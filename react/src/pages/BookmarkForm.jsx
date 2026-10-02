@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
-import { Card, Panel } from '../components/Card.jsx'
+import { Card } from '../components/Card.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
-import { ListItem } from '../components/ListItem.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { Skeleton } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
@@ -18,7 +17,10 @@ import {
 	getBookmark, getBookmarkPreview, removeBookmarkPhoto, setBookmarkArchived, updateBookmark
 } from '../api/client.js'
 import { amount, currency, currencySymbol, shortDate } from '../api/format.js'
-import { CategoryTokens, ConfirmDelete, Failed, bookmarkDeleteNote, useLeaveGuard } from './vendorsCategories.jsx'
+import { useListReturn } from '../app/listMemory.js'
+import {
+	CategoryTokens, CommitBar, ConfirmDelete, Failed, GoneNotice, RecordPage, bookmarkDeleteNote, hold, isGone, sayFailure, useLeaveGuard
+} from './vendorsCategories.jsx'
 
 const rule = name => BOOKMARK_FIELDS.find(f => f.name === name).check
 const checks = { url: rule('bookmark-url'), name: rule('bookmark-name') }
@@ -29,39 +31,32 @@ export default function BookmarkForm() {
 	// once deleted, the record is not read again: the page is on its way out
 	const [gone, setGone] = useState(false)
 	const existing = useApi(getBookmark, [id], { enabled: Boolean(id) && !gone })
-	const touch = useShellShape() === 'touch'
+	const list = useListReturn('bookmarks')
 	// the last record stays in hand while the next one loads, so it has to be the one the address names
 	if (id && existing.data?.id !== id) {
 		if (existing.error) return (
 			<div className="sp-stack sp-gap-12">
 				<Failed title="This bookmark did not load" error={existing.error} onRetry={existing.refresh}
-					list={{ to: '/bookmarks', label: 'Open Bookmarks' }} />
+					list={{ to: list, label: 'Open Bookmarks' }} />
 			</div>
 		)
-		return (
-			<>
-				<div className="sp-stack sp-gap-12">
-					<Card aria-busy="true" aria-label="Loading the bookmark">
-						<div className="sp-stack sp-gap-12">
-							<Skeleton shape="mark-large" />
-							<Skeleton shape="title" />
-							<Skeleton shape="line" />
-							<Skeleton shape="short" />
-						</div>
-					</Card>
-				</div>
-				{touch ? null : <Panel />}
-			</>
-		)
+		return <BookmarkFields key="loading" bookmark={LOADING} loading onGone={setGone} />
 	}
 	return <BookmarkFields key={id ?? 'new'} bookmark={existing.data ?? null} onGone={setGone} />
 }
 
-function BookmarkFields({ bookmark, onGone }) {
+// the form while the bookmark is on its way: an existing record's form, every value held by a skeleton
+const LOADING = { id: null, url: '', name: '', price: null, categories: [], archived: false, photoId: null, createdAt: null }
+
+function BookmarkFields({ bookmark, loading = false, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const editing = Boolean(bookmark)
 	const touch = useShellShape() === 'touch'
+	const list = useListReturn('bookmarks')
+	const h = loading ? hold : control => control
+	// a value in the summary while the bookmark loads: a bar the width it will take
+	const v = (value, w) => (loading ? <Skeleton shape="end" data-w={w} data-h="13" /> : value)
 
 	const [url, setUrl] = useState(bookmark?.url ?? '')
 	const [name, setName] = useState(bookmark?.name ?? '')
@@ -69,6 +64,8 @@ function BookmarkFields({ bookmark, onGone }) {
 	const [chosen, setChosen] = useState(bookmark?.categories ?? [])
 	const [errors, setErrors] = useState({})
 	const [saving, setSaving] = useState(false)
+	// the bookmark was deleted after this page opened it: what the save said, and nothing left to save
+	const [lost, setLost] = useState(null)
 	const [archived, setArchived] = useState(Boolean(bookmark?.archived))
 	const [confirming, setConfirming] = useState(false)
 	const [busy, setBusy] = useState(false)
@@ -96,7 +93,7 @@ function BookmarkFields({ bookmark, onGone }) {
 		|| Boolean(picked || offered || (cleared && bookmark?.photoId))
 
 	const guard = useLeaveGuard(dirty)
-	const leave = (to = '/bookmarks') => { guard.release(); navigate(to) }
+	const leave = () => { guard.release(); navigate(list) }
 
 	// marked on leaving the field or on Save, and cleared by the next value that passes
 	const mark = (field, value) => setErrors(e => ({ ...e, [field]: checks[field](value.trim()) }))
@@ -137,7 +134,8 @@ function BookmarkFields({ bookmark, onGone }) {
 			leave()
 		} catch (e) {
 			setSaving(false)
-			toast({ message: failureMessage(e, 'That did not save. Try again.'), color: 'danger' })
+			if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
+			sayFailure(toast, e, 'That did not save. Try again.')
 		}
 	}
 
@@ -149,9 +147,10 @@ function BookmarkFields({ bookmark, onGone }) {
 				message: `${bookmark.name} ${archived ? 'is back on your list' : 'archived'}.`,
 				undo: { label: 'Undo', onClick: () => setBookmarkArchived(bookmark.id, archived) }
 			})
-			navigate('/bookmarks')
+			navigate(list)
 		} catch (e) {
-			toast({ message: failureMessage(e, 'That did not change. Try again.'), color: 'danger' })
+			if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
+			sayFailure(toast, e, 'That did not change. Try again.')
 		}
 	}
 
@@ -159,14 +158,14 @@ function BookmarkFields({ bookmark, onGone }) {
 		setBusy(true)
 		onGone(true)
 		try {
-			await deleteBookmark(bookmark.id)
+			await deleteBookmark(bookmark.id).catch(e => { if (!isGone(e)) throw e })
 			toast({ message: `${bookmark.name} deleted.` })
 			leave()
 		} catch (e) {
 			onGone(false)
 			setBusy(false)
 			setConfirming(false)
-			toast({ message: failureMessage(e, 'That did not delete. Try again.'), color: 'danger' })
+			sayFailure(toast, e, 'That did not delete. Try again.')
 		}
 	}
 
@@ -185,13 +184,13 @@ function BookmarkFields({ bookmark, onGone }) {
 		>
 			<span className="sp-section-label">The bookmark</span>
 			<Field label="Picture" id="bookmark-picture">
-				<Slot start src={picture} kind="Photo" name="the picture" onFile={choose}
-					onRemove={() => { setPicked(null); setOffered(null); setCleared(true) }} />
+				{h(<Slot start src={picture} kind="Photo" name="the picture" onFile={choose}
+					onRemove={() => { setPicked(null); setOffered(null); setCleared(true) }} />)}
 			</Field>
 			<Field label="Link" id="bookmark-url"
 				message={errors.url || (editing ? 'The page you would buy it on.' : 'Paste the address first. The name and picture are taken from the page.')}
 				messageType={errors.url ? 'danger' : 'hint'}>
-				<TextField value={url} inputMode="url" autoFocus={!editing}
+				{h(<TextField value={url} inputMode="url" autoFocus={!editing}
 					onChange={setUrl}
 					onBlur={ev => { mark('url', ev.target.value); readPage(ev.target.value) }}
 					onPaste={ev => {
@@ -200,17 +199,17 @@ function BookmarkFields({ bookmark, onGone }) {
 						if (!clean) return
 						ev.preventDefault()
 						setUrl(clean)
-					}} />
+					}} />)}
 			</Field>
 			<Field label="Name" id="bookmark-name" message={errors.name || undefined} messageType={errors.name ? 'danger' : 'hint'}>
-				<TextField value={name} onChange={setName} onBlur={ev => mark('name', ev.target.value)} />
+				{h(<TextField value={name} onChange={setName} onBlur={ev => mark('name', ev.target.value)} />)}
 			</Field>
 			<div className="sp-fields">
 				<Field label="Price" id="bookmark-price" unit={currencySymbol()} message="Leave it empty if you have not looked it up.">
-					<NumberField value={price} onChange={setPrice} decimals={0} min={0} locale="da-DK" />
+					{h(<NumberField value={price} onChange={setPrice} decimals={0} min={0} locale="da-DK" />)}
 				</Field>
 				<Field label="Categories" id="bookmark-categories" message="Type a name that is not on the list to add a new category.">
-					<CategoryTokens value={chosen} onChange={setChosen} />
+					{h(<CategoryTokens value={chosen} onChange={setChosen} />)}
 				</Field>
 			</div>
 		</Card>
@@ -219,21 +218,23 @@ function BookmarkFields({ bookmark, onGone }) {
 		<Card>
 			<span className="sp-section-label">Bookmark summary</span>
 			<div className="sp-stack">
-				<Sum value={site || '-'}>Shop</Sum>
-				<Sum value={chosen.length ? chosen.join(', ') : '-'}>Categories</Sum>
-				{editing ? <Sum value={shortDate(bookmark.createdAt)}>Added</Sum> : null}
-				<Sum value={price != null ? currency(price, 0) : '-'}>Price</Sum>
+				<Sum value={v(site || '-', '88')}>Shop</Sum>
+				<Sum value={v(chosen.length ? chosen.join(', ') : '-', '104')}>Categories</Sum>
+				{editing ? <Sum value={loading ? v(null, '76') : shortDate(bookmark.createdAt)}>Added</Sum> : null}
+				<Sum value={v(price != null ? currency(price, 0) : '-', '64')}>Price</Sum>
 			</div>
-			{href
-				? <Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer"><span className="sp-truncate">Open {site}</span></Button>
-				: null}
+			{loading
+				? hold(<Button variant="outline" size="small">Open the shop</Button>)
+				: href
+					? <Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer"><span className="sp-truncate">Open {site}</span></Button>
+					: null}
 		</Card>
 	)
 	const endOfLife = editing
 		? (
 			<Card footerLayout="split" footerCommits footer={[
-				<Button key="archive" variant="outline" onClick={archive}>{archived ? 'Unarchive' : 'Archive'}</Button>,
-				<Button key="delete" color="danger" onClick={() => setConfirming(true)}>Delete</Button>
+				h(<Button key="archive" variant="outline" onClick={archive}>{archived ? 'Unarchive' : 'Archive'}</Button>),
+				h(<Button key="delete" color="danger" onClick={() => setConfirming(true)}>Delete</Button>)
 			]}>
 				<span className="sp-section-label">End of its life</span>
 				<Well>
@@ -243,14 +244,12 @@ function BookmarkFields({ bookmark, onGone }) {
 			</Card>
 		)
 		: null
-	const bar = !editing || dirty
+	// a phone always shows its save bar, since it stands in the tab bar's place (Mobile 5b)
+	const bar = touch || !editing || dirty
 		? (
-			<ListItem variant="sticky">
-				{editing ? <span className="sp-data">Unsaved changes</span> : <span className="sp-data sp-ink-5">Nothing saved yet</span>}
-				<span className="sp-grow" />
-				<Button variant="outline" onClick={() => leave()}>Cancel</Button>
-				<Button onClick={save} disabled={saving}>{touch ? (editing ? 'Save' : 'Create') : editing ? 'Save bookmark' : 'Add bookmark'}</Button>
-			</ListItem>
+			<CommitBar status={!editing ? 'Nothing saved yet' : dirty ? 'Unsaved changes' : null} quiet={!editing}
+				onCancel={leave} onSave={lost ? null : save}
+				commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save bookmark' : 'Add bookmark'} saving={saving} disabled={loading} />
 		)
 		: null
 	const prompt = (
@@ -260,7 +259,7 @@ function BookmarkFields({ bookmark, onGone }) {
 				? (
 					<ConfirmDelete title={`Delete ${bookmark.name}?`} action="Delete bookmark" busy={busy}
 						onConfirm={remove} onCancel={() => setConfirming(false)}>
-						{bookmarkDeleteNote}
+						{bookmarkDeleteNote(bookmark)}
 					</ConfirmDelete>
 				)
 				: null}
@@ -268,11 +267,11 @@ function BookmarkFields({ bookmark, onGone }) {
 	)
 
 	// a phone has no rail: the form, then the end-of-life card, then the bar it commits from (Mobile 5b)
-	if (touch) return <div className="sp-stack sp-gap-12">{form}{endOfLife}{bar}{prompt}</div>
 	return (
 		<>
-			<div className="sp-stack sp-gap-12">{form}{bar}{prompt}</div>
-			<Panel>{summaryCard}{endOfLife}</Panel>
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Bookmarks' }} /> : null}
+				cards={form} rail={<>{summaryCard}{endOfLife}</>} alone={endOfLife} bar={bar} />
+			{prompt}
 		</>
 	)
 }

@@ -1,20 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Controls, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
+import { Caption, Controls, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Card, ListFooter } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Gauge } from '../components/Data.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
-import { Empty, EmptyBody, EmptyTitle, Stacked } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	deleteCategory, failureMessage, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData
+	deleteCategory, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData
 } from '../api/client.js'
 import { NUMBER_LOCALE, amount, amountRound, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
+import { useListMemory } from '../app/listMemory.js'
 import {
-	CategoryMark, ConfirmDelete, Failed, ListLoading, RowMenu, SortControl, categoryDeleteNote, monthPace, usePaged
+	Bar, CategoryMark, ConfirmDelete, Failed, Held, RowMenu, SortControl, categoryDeleteNote, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
 const SORTS = [
@@ -65,6 +66,9 @@ export default function Categories() {
 	const [deleting, setDeleting] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const pace = monthPace()
+	// a page of rows per Load more, kept for Back along with the scroll
+	const { pages, setPages, restored } = useListMemory(`categories?${query}&${sort.id}`)
+	useEffect(() => { if (state.data) restored() }, [state.data])
 
 	const write = (q, sortId) => {
 		const next = {}
@@ -76,18 +80,21 @@ export default function Categories() {
 	const all = state.data?.categories ?? []
 	const needle = query.trim().toLowerCase()
 	const rows = all.filter(c => !needle || c.name.toLowerCase().includes(needle)).sort(sort.by)
-	const paged = usePaged(rows, step, query + sort.id)
+	const shown = rows.slice(0, pages * step)
+	const refocus = useRefocus(state.data?.categories, '.sp-table [aria-haspopup="menu"]', '.sp-controls a')
 
 	const remove = () => {
 		setBusy(true)
+		refocus(deleting, shown.findIndex(r => r.id === deleting.id))
 		deleteCategory(deleting.id)
+			.catch(e => { if (!isGone(e)) throw e })
 			.then(() => {
 				invalidateCategoryData()
 				invalidateVendorData()
 				state.refresh()
 				setDeleting(null)
 			})
-			.catch(e => toast({ message: failureMessage(e, 'The category was not deleted. Try again.'), color: 'danger' }))
+			.catch(e => sayFailure(toast, e, 'The category was not deleted. Try again.'))
 			.finally(() => setBusy(false))
 	}
 
@@ -105,7 +112,8 @@ export default function Categories() {
 
 	let body
 	if (!state.data && state.error) body = <Failed title="Your categories could not be loaded" error={state.error} onRetry={state.refresh} />
-	else if (!state.data) body = <ListLoading />
+	else if (!state.data) body = <CategoriesLoading touch={touch} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
+		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} />
 	else if (!all.length) body = (
 		<Card>
 			<Empty>
@@ -125,7 +133,7 @@ export default function Categories() {
 	)
 	else if (touch) body = (
 		<>
-			{paged.page.map(c => {
+			{shown.map(c => {
 				const over = c.budget > 0 && c.monthSpend > c.budget
 				return (
 					<Card key={c.id} to={`/categories/${c.id}/edit`}>
@@ -145,16 +153,17 @@ export default function Categories() {
 			{rows.length > step
 				? (
 					<ListFooter loose>
-						<span className="sp-subtitle">Showing {amount(paged.page.length, 0)} of {amount(rows.length, 0)}</span>
-						{paged.more ? <Button variant="outline" size="small" onClick={paged.showMore}>Load more</Button> : null}
+						<span className="sp-subtitle">Showing {amount(shown.length, 0)} of {amount(rows.length, 0)}</span>
+						{shown.length < rows.length ? <Button variant="outline" size="small" onClick={() => setPages(pages + 1)}>Load more</Button> : null}
 					</ListFooter>
 				)
 				: null}
 		</>
 	)
 	else body = (
-		<List data={rows} recordKey={c => c.id} noun="categories" pageSize={step} selectionKey={query + sort.id}
+		<List data={shown} total={rows.length} onLoadMore={() => setPages(pages + 1)} recordKey={c => c.id} noun="categories" pageSize={step}
 			rowTo={c => `/categories/${c.id}/edit`} locale={NUMBER_LOCALE}>
+			<Caption><strong className="sp-data">{plural(rows.length, 'category', 'categories')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
 				<ListCell width="amount">{sort.id.startsWith('month-') ? sort.label : 'This month'}</ListCell>
@@ -212,5 +221,50 @@ export default function Categories() {
 				)
 				: null}
 		</>
+	)
+}
+
+const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc', '92']]
+
+/* A page of rows held at the loaded rows' places (6b), so nothing moves when the categories land. */
+function CategoriesLoading({ touch, size, month, limit }) {
+	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
+	const gauge = <Held shape={<Gauge thin untargeted value={0} aria-label="No limit set" />} />
+	if (touch) return rows.map(({ id, w }) => (
+		<Card key={id} aria-busy="true">
+			<div className="sp-cell-flex">
+				<Skeleton shape="mark" />
+				<div className="sp-stack sp-gap-6 sp-grow"><Bar role="sp-heading" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></div>
+				<Bar role="sp-amount" w={w[2]} h="13" end />
+			</div>
+			{gauge}
+		</Card>
+	))
+	return (
+		<List data={rows} recordKey={r => r.id} noun="categories" pageSize={size} aria-busy="true">
+			<Caption><Bar role="sp-data" w="82" h="13" /></Caption>
+			<ListHead>
+				<ListCell width="title">Category</ListCell>
+				<ListCell width="amount">{month}</ListCell>
+				<ListCell width="amount">{limit}</ListCell>
+				<ListCell width="menu" />
+			</ListHead>
+			<ListRow>
+				{({ w }) => [
+					<ListCell key="t" cell="flex">
+						<Skeleton shape="mark" />
+						<Stacked><Bar role="sp-title" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></Stacked>
+					</ListCell>,
+					<ListCell key="m">
+						<div className="sp-stack sp-gap-6">
+							{gauge}
+							<Bar role="sp-meta" w={w[2]} h="10" end />
+						</div>
+					</ListCell>,
+					<ListCell key="l" cell="amount"><Bar role="sp-amount" w="74" h="13" end /></ListCell>,
+					<ListCell key="x" cell="menu"><Skeleton shape="icon" /></ListCell>
+				]}
+			</ListRow>
+		</List>
 	)
 }

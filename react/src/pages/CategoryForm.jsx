@@ -1,16 +1,15 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { Card, Panel } from '../components/Card.jsx'
+import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { ICONS } from '../components/icons.js'
-import { ListItem } from '../components/ListItem.jsx'
 import { Gauge, Stat, Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
-import { Stacked } from '../components/Utilities.jsx'
+import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
@@ -19,9 +18,11 @@ import {
 } from '../api/client.js'
 import { amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
+import { useListReturn } from '../app/listMemory.js'
+import { glyphOf } from '../app/categoryMark.jsx'
 import {
-	CategoryMark, ConfirmDelete, Failed, FormLoading, RecentOrders, SWATCHES, categoryDeleteNote, focusFirst,
-	monthPace, pickedColour, storedColour, swatchOf, useLeaveGuard
+	CategoryMark, CommitBar, ConfirmDelete, EndLoading, Failed, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
+	SummaryLoading, categoryDeleteNote, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
 
 /* The icons the picker leads with (5e), then the rest of the register. */
@@ -39,28 +40,34 @@ export default function CategoryForm() {
 	// once deleted, the record is not read again: the page is on its way out
 	const [gone, setGone] = useState(false)
 	const record = useApi(getCategory, [id], { enabled: Boolean(id) && !gone })
+	const list = useListReturn('categories')
 	// the last record stays in hand while the next one loads, so it has to be the one the address names
 	if (id && record.data?.id !== id) {
 		if (record.error) return (
 			<div className="sp-stack sp-gap-12">
 				<Failed title="This category could not be opened" error={record.error} onRetry={record.refresh}
-					list={{ to: '/categories', label: 'Open Categories' }} />
+					list={{ to: list, label: 'Open Categories' }} />
 			</div>
 		)
-		return <FormLoading />
+		return <CategoryFields key="loading" category={LOADING} loading onGone={setGone} />
 	}
 	return <CategoryFields key={id ?? 'new'} category={record.data ?? null} onGone={setGone} />
 }
 
-function CategoryFields({ category, onGone }) {
+// the form while the category is on its way: an existing record's form, every value held by a skeleton
+const LOADING = { id: null, name: '', icon: 'tag', colour: null, budget: 0, orders: 0, bookmarks: 0 }
+
+function CategoryFields({ category, loading = false, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
+	const list = useListReturn('categories')
 	const all = useApi(getCategories)
+	const h = loading ? hold : control => control
 	const editing = Boolean(category)
 	const start = useMemo(() => ({
 		name: category?.name ?? '',
-		icon: category?.icon ?? 'tag',
+		icon: glyphOf(category?.icon),
 		colour: category ? pickedColour(category.colour) : null,
 		budget: category?.budget > 0 ? category.budget : null
 	}), [category])
@@ -70,7 +77,10 @@ function CategoryFields({ category, onGone }) {
 	const [allIcons, setAllIcons] = useState(() => Boolean(ICONS[start.icon]) && !FIRST.includes(start.icon))
 	const [deleting, setDeleting] = useState(false)
 	const [busy, setBusy] = useState(false)
-	const saving = useRef(false)
+	const [saving, setSaving] = useState(false)
+	// the category was deleted after this page opened it: what the save said, and nothing left to save
+	const [lost, setLost] = useState(null)
+	const writing = useRef(false)
 	const set = (key, value) => setValues(v => ({ ...v, [key]: value }))
 
 	const others = (all.data ?? []).filter(c => c.id !== category?.id)
@@ -81,6 +91,7 @@ function CategoryFields({ category, onGone }) {
 	const changed = values.name.trim() !== start.name.trim() || values.icon !== start.icon
 		|| values.colour !== start.colour || values.budget !== start.budget
 	const guard = useLeaveGuard(changed)
+	const leave = () => { guard.release(); navigate(list) }
 
 	const nameProblem = name => {
 		if (!name.trim()) return 'Give the category a name.'
@@ -90,11 +101,12 @@ function CategoryFields({ category, onGone }) {
 	const budgetProblem = budget => (budget === 0 ? 'Use an amount above zero, or leave it empty for no limit.' : null)
 
 	const save = () => {
-		if (saving.current) return
+		if (writing.current) return
 		const found = { name: nameProblem(values.name), budget: budgetProblem(values.budget) }
 		setErrors(found)
 		if (found.name || found.budget) return focusFirst([found.name && 'category-name', found.budget && 'category-limit'])
-		saving.current = true
+		writing.current = true
+		setSaving(true)
 		const name = values.name.trim()
 		const look = {
 			name, icon: values.icon, colour: storedColour(colour), budget: values.budget ?? 0,
@@ -104,12 +116,14 @@ function CategoryFields({ category, onGone }) {
 		written
 			.then(() => {
 				invalidateCategoryData()
-				guard.release()
-				navigate('/categories')
+				leave()
 			})
 			.catch(e => {
-				saving.current = false
+				writing.current = false
+				setSaving(false)
+				if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 				const message = failureMessage(e, 'The category was not saved. Check the connection and try again.')
+				if (!message) return
 				if (e?.status === 409 || e?.status === 400) {
 					setErrors(err => ({ ...err, name: message }))
 					return focusFirst(['category-name'])
@@ -122,16 +136,16 @@ function CategoryFields({ category, onGone }) {
 		setBusy(true)
 		onGone(true)
 		deleteCategory(category.id)
+			.catch(e => { if (!isGone(e)) throw e })
 			.then(() => {
 				invalidateCategoryData()
 				invalidateVendorData()
-				guard.release()
-				navigate('/categories')
+				leave()
 			})
 			.catch(e => {
 				setBusy(false)
 				onGone(false)
-				toast({ message: failureMessage(e, 'The category was not deleted. Try again.'), color: 'danger' })
+				sayFailure(toast, e, 'The category was not deleted. Try again.')
 			})
 	}
 
@@ -148,9 +162,9 @@ function CategoryFields({ category, onGone }) {
 				<Field id="category-name" label="Name"
 					message={errors.name ?? (editing ? undefined : 'Appears on chips, facets and charts, so short wins - "Decor", not "Home decoration items".')}
 					messageType={errors.name ? 'danger' : 'hint'}>
-					<TextField value={values.name} onChange={v => set('name', v)}
+					{h(<TextField value={values.name} onChange={v => set('name', v)}
 						onBlur={() => setErrors(e => ({ ...e, name: nameProblem(values.name) }))}
-						placeholder={editing ? undefined : 'What you spent it on'} />
+						placeholder={editing ? undefined : 'What you spent it on'} />)}
 				</Field>
 			</Card>
 
@@ -158,14 +172,14 @@ function CategoryFields({ category, onGone }) {
 				<span className="sp-section-label">Mark</span>
 				<div className="sp-stack sp-gap-12">
 					<Field label="Icon">
-						<Picker icons={shown.map(name => ({ name, label: ICON_LABELS[name], icon: <Icon name={name} /> }))}
+						{h(<Picker icons={shown.map(name => ({ name, label: ICON_LABELS[name], icon: <Icon name={name} /> }))}
 							value={values.icon} onChange={v => set('icon', v)}
 							search={iconSearch} onSearch={setIconSearch} searchLabel="Search icons…"
-							more={hidden ? `+${hidden}` : undefined} onMore={() => setAllIcons(true)} />
+							more={hidden ? `+${hidden}` : undefined} onMore={() => setAllIcons(true)} />)}
 					</Field>
 					<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
-						<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
-							value={colour} onChange={v => set('colour', v)} />
+						{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
+							value={colour} onChange={v => set('colour', v)} />)}
 					</Field>
 				</div>
 			</Card>
@@ -178,53 +192,62 @@ function CategoryFields({ category, onGone }) {
 						message={errors.budget ?? (editing ? 'One amount for every month. Statistics reads this.' : 'One amount that applies to every month. Leave empty for no limit.')}
 						messageType={errors.budget ? 'danger' : 'hint'}>
 						{/* money is written the Danish way everywhere it is shown (api/format.js), so it is typed that way too */}
-						<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale="da-DK" placeholder="no limit" />
+						{h(<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale="da-DK" placeholder="no limit" />)}
 					</Field>
 				</div>
 			</Card>
 		</>
 	)
 
-	const saveBar = !editing || changed
+	// a phone always shows its save bar, since it stands in the tab bar's place (Mobile 5b)
+	const bar = touch || !editing || changed
 		? (
-			<ListItem variant="sticky">
-				{editing ? <span className="sp-data sp-grow">Unsaved changes</span> : <span className="sp-data sp-ink-5 sp-grow">Nothing saved yet</span>}
-				<Button variant="outline" onClick={() => navigate('/categories')}>Cancel</Button>
-				<Button onClick={save}>{editing ? 'Save category' : 'Create'}</Button>
-			</ListItem>
+			<CommitBar status={!editing ? 'Nothing saved yet' : changed ? 'Unsaved changes' : null} quiet={!editing}
+				onCancel={() => navigate(list)} onSave={lost ? null : save}
+				commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save category' : 'Create'} saving={saving} disabled={loading} />
 		)
 		: null
 
-	const rail = editing
+	const rail = loading
 		? (
 			<>
-				<CategorySummary category={category} preview={preview} budget={values.budget} />
-				<RecentOrders filter={{ categoryId: category.id }} to={`/orders?category=${category.id}`} total={category.orders} />
-				<Removing category={category} onDelete={() => setDeleting(true)} />
+				<SummaryLoading label="Category summary" sums={[['Orders', '44']]} action="See more in statistics">
+					<Held shape={<Stat large figure="0 kr." />}><Skeleton shape="line" data-w="130" data-h="22" /></Held>
+					<Held shape={<Gauge value={0} aria-label="Share of the limit used" />} />
+				</SummaryLoading>
+				<RecentLoading />
+				<EndLoading label="Removing it" title="A category in use cannot be deleted"
+					body="It is on 10 orders. To keep the grouping under a different name, rename it instead." />
 			</>
 		)
-		: (
-			<Card>
-				<span className="sp-section-label">Category summary</span>
-				<div className="sp-row-flex sp-gap-12">
-					<CategoryMark category={preview} />
-					<Stacked>
-						<span className="sp-title sp-truncate">{preview.name}</span>
-					</Stacked>
-				</div>
-				<div className="sp-stack">
-					<Sum value={values.name.trim() || '-'}>Name</Sum>
-					<Sum value={values.budget ? currency(values.budget, 0) : 'none'}>Monthly limit</Sum>
-				</div>
-			</Card>
-		)
+		: editing
+			? (
+				<>
+					<CategorySummary category={category} preview={preview} budget={values.budget} />
+					<RecentOrders filter={{ categoryId: category.id }} to={`/orders?category=${category.id}`} total={category.orders} />
+					<Removing category={category} onDelete={() => setDeleting(true)} />
+				</>
+			)
+			: (
+				<Card>
+					<span className="sp-section-label">Category summary</span>
+					<div className="sp-row-flex sp-gap-12">
+						<CategoryMark category={preview} />
+						<Stacked>
+							<span className="sp-title sp-truncate">{preview.name}</span>
+						</Stacked>
+					</div>
+					<div className="sp-stack">
+						<Sum value={values.name.trim() || '-'}>Name</Sum>
+						<Sum value={values.budget ? currency(values.budget, 0) : 'none'}>Monthly limit</Sum>
+					</div>
+				</Card>
+			)
 
 	return (
 		<>
-			{/* below 640 the rail follows the form in one column, and the save bar closes the page */}
-			{touch
-				? <div className="sp-stack sp-gap-12">{cards}{editing ? rail : null}{saveBar}</div>
-				: <><div className="sp-stack sp-gap-12">{cards}{saveBar}</div><Panel>{rail}</Panel></>}
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Categories' }} /> : null}
+				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
 			{guard.prompt}
 			{deleting
 				? (

@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, Panel } from '../components/Card.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
+import { Sum } from '../components/Data.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TokensField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu } from '../components/Overlays.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu } from '../components/Overlays.jsx'
+import { SaveBar } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
+import { Well } from '../components/Well.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getCategories, getOrders } from '../api/client.js'
 import { currency, dot, plural, shortDate } from '../api/format.js'
@@ -54,65 +57,165 @@ export function RowMenu({ noun, label, open, onToggle, onClose, children }) {
 	)
 }
 
-/** A list still on its way: the loading card of c13, a row per record. */
-export function ListLoading() {
+/** Whether the page's column is at or under the 900 fold (18b), where a rail stacks under its form
+    and the list's bar takes its phone shape. Measured on the body, as the stylesheet's queries are. */
+export function useFold() {
+	const ref = useRef(null)
+	const [folded, setFolded] = useState(false)
+	useLayoutEffect(() => {
+		const body = ref.current?.closest('.sp-shell__body')
+		if (!body) return
+		const inner = () => {
+			const s = getComputedStyle(body)
+			return body.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight)
+		}
+		setFolded(inner() <= 900)
+		const watch = new ResizeObserver(([entry]) => setFolded(entry.contentRect.width <= 900))
+		watch.observe(body)
+		return () => watch.disconnect()
+	}, [])
+	return [ref, folded]
+}
+
+/** A skeleton over the part it stands in for: `shape` is that part, laid out unseen, so a loading
+    page is the loaded page's size (6b). With no children the skeleton fills the part. */
+export function Held({ shape, children }) {
+	return (
+		<span className="lb-hold">
+			<span className="lb-ghost" aria-hidden="true" inert>{shape}</span>
+			<span className="lb-state">{children ?? <Skeleton shape="bar" />}</span>
+		</span>
+	)
+}
+function HeldGroup(props) { return <Held {...props} /> }
+// a Field lays a group of options out under a legend, so the stand-in for one keeps that layout
+HeldGroup.fieldRole = 'group'
+
+/** `control` while the record loads: held, so its Field keeps its layout. */
+export const hold = control => (control?.type?.fieldRole === 'group'
+	? <HeldGroup key={control.key} shape={control} />
+	: <Held key={control?.key} shape={control} />)
+
+/** A skeleton line at the height of the text it stands in for; `role` is that text's class. */
+export function Bar({ role, w, h, end = false }) {
+	return (
+		<span className="sp-row-flex">
+			<span className={role} aria-hidden="true">{'\u200b'}</span>
+			<Skeleton shape={end ? 'end' : 'line'} data-w={w} data-h={h} />
+		</span>
+	)
+}
+
+/** A record's page (5b, 22c): below the 900 fold the rail follows the form and the bar comes
+    last, so it never scrolls away (c27). `alone` is what a phone keeps of the rail. */
+export function RecordPage({ notice, cards, rail, alone = rail, bar }) {
+	const [ref, folded] = useFold()
+	const touch = useShellShape() === 'touch'
+	if (touch || folded)
+		return <div className="sp-stack sp-gap-12" ref={ref}>{notice}{cards}{touch ? alone : rail}{bar}</div>
+	return (
+		<div ref={ref}>
+			<div className="lb-split">
+				<div className="sp-stack sp-gap-12">{notice}{cards}{bar}</div>
+				<Panel>{rail}</Panel>
+			</div>
+		</div>
+	)
+}
+
+/** A form's commit bar: the save bar in the tab bar's place on a phone (r13, Mobile 5b), the sticky
+    row under the form elsewhere (c27). Without `onSave` there is nothing left to save. */
+export function CommitBar({ status, quiet = false, onCancel, onSave, commit, saving = false, disabled = false }) {
+	const touch = useShellShape() === 'touch'
+	const buttons = (
+		<>
+			<Button variant="outline" onClick={onCancel}>Cancel</Button>
+			{onSave ? <Button onClick={onSave} disabled={saving || disabled}>{saving ? 'Saving…' : commit}</Button> : null}
+		</>
+	)
+	if (touch) return <SaveBar><span className={quiet ? 'sp-subtitle sp-grow sp-ink-5' : 'sp-subtitle sp-grow'}>{status}</span>{buttons}</SaveBar>
+	return <ListItem variant="sticky"><span className={quiet ? 'sp-data sp-grow sp-ink-5' : 'sp-data sp-grow'}>{status}</span>{buttons}</ListItem>
+}
+
+/** A save that found its record deleted: the client's sentence, kept above the form, with the
+    way back to the list. */
+export function GoneNotice({ message, list }) {
+	return (
+		<Alert color="danger" mark="!" action={<Button variant="outline" size="small" to={list.to}>{list.label}</Button>}>
+			{message}
+		</Alert>
+	)
+}
+export const isGone = error => Boolean(error?.gone)
+
+/** The rail's cards while the record loads (5c, 5f, 22d), each at its loaded size. */
+export function SummaryLoading({ label, sums, action, children }) {
 	return (
 		<Card aria-busy="true">
-			<div className="sp-stack sp-gap-12">
-				{[0, 1, 2].map(n => (
-					<div className="sp-row-flex sp-gap-12" key={n}>
-						<Skeleton shape="mark" />
-						<span className="sp-stack sp-gap-8 sp-grow">
-							<Skeleton shape="title" />
-							<Skeleton shape="short" />
-						</span>
-					</div>
-				))}
+			<span className="sp-section-label">{label}</span>
+			<div className="sp-row-flex sp-gap-12">
+				<Skeleton shape="mark" />
+				<Stacked><Bar role="sp-title" w="62pc" h="13" /><Bar role="sp-meta" w="44pc" h="10" /></Stacked>
 			</div>
+			{children}
+			<div className="sp-stack">
+				{sums.map(([name, w]) => <Sum key={name} value={<Skeleton shape="end" data-w={w} data-h="13" />}>{name}</Sum>)}
+			</div>
+			{action ? <Held shape={<Button variant="outline" size="small">{action}</Button>} /> : null}
 		</Card>
 	)
+}
+
+export function RecentLoading() {
+	return (
+		<Card aria-busy="true">
+			<span className="sp-section-label">Recent orders</span>
+			{['62pc', '48pc'].map(w => (
+				<ListItem key={w}>
+					<Stacked><Bar role="sp-title" w={w} h="13" /><Bar role="sp-meta" w="44pc" h="10" /></Stacked>
+					<Bar role="sp-title" w="88" h="13" end />
+				</ListItem>
+			))}
+			<Held shape={<Button variant="outline" size="small">See all orders</Button>} />
+		</Card>
+	)
+}
+
+/** The end-of-life card while the record loads: `title` and `body` are the words it most often
+    says, held unseen so the card keeps their size. */
+export function EndLoading({ label, title, body }) {
+	return (
+		<Card aria-busy="true">
+			<span className="sp-section-label">{label}</span>
+			<Well>
+				<Held shape={<span className="sp-title">{title}</span>}><Skeleton shape="line" data-w="62pc" data-h="13" /></Held>
+				<Held shape={<span className="sp-subtitle">{body}</span>} />
+			</Well>
+		</Card>
+	)
+}
+
+/** A failed write said as a toast; a session that ended has its own dialog, so it says nothing. */
+export function sayFailure(toast, error, fallback) {
+	const message = failureMessage(error, fallback)
+	if (message) toast({ message, color: 'danger' })
 }
 
 /** A read that failed, with the one action that can fix it: asking again, or for a record that
     is gone, going back to the list it was in. */
 export function Failed({ title, error, onRetry, list }) {
 	const gone = error?.status === 404 && list
+	const why = gone ? 'It may have been deleted.' : failureMessage(error, 'The connection failed. Check it and try again.')
 	return (
 		<Card>
 			<Empty>
 				<EmptyTitle>{title}</EmptyTitle>
-				<EmptyBody>{gone ? 'It may have been deleted.' : failureMessage(error, 'The connection failed. Check it and try again.')}</EmptyBody>
+				{why ? <EmptyBody>{why}</EmptyBody> : null}
 				{gone
 					? <Button variant="outline" size="small" to={list.to}>{list.label}</Button>
 					: <Button variant="outline" size="small" onClick={onRetry}>Try again</Button>}
 			</Empty>
 		</Card>
-	)
-}
-
-/** A record's form while the record is on its way: the form's column and the rail. */
-export function FormLoading() {
-	const touch = useShellShape() === 'touch'
-	return (
-		<>
-			<div className="sp-stack sp-gap-12">
-				<Card aria-busy="true">
-					<Skeleton shape="short" />
-					<Skeleton shape="line" />
-				</Card>
-			</div>
-			{touch ? null : <Panel>
-				<Card aria-busy="true">
-					<div className="sp-row-flex sp-gap-12">
-						<Skeleton shape="mark" />
-						<span className="sp-stack sp-gap-8 sp-grow">
-							<Skeleton shape="title" />
-							<Skeleton shape="short" />
-						</span>
-					</div>
-				</Card>
-			</Panel>}
-		</>
 	)
 }
 
@@ -146,11 +249,11 @@ export const categoryDeleteNote = budget => (budget > 0
 	: 'No order or bookmark carries it.')
 
 /** What deleting a bookmark takes with it, and the way to keep it instead. */
-export const bookmarkDeleteNote = 'The bookmark and its picture are removed. To keep it off the list without losing it, archive it instead.'
+export const bookmarkDeleteNote = bookmark => `${bookmark.photoId ? 'The bookmark and its picture are' : 'The bookmark is'} removed. To keep it off the list without losing it, archive it instead.`
 
-/** Holds the page while the form has changes: in-app navigation asks first, and a reload or a
-    closed tab gets the browser's own question. `release` lets a finished save leave. */
-export function useLeaveGuard(dirty, { within, search = false } = {}) {
+/** Holds the page while the form has changes: in-app navigation asks first, a reload gets the
+    browser's question. `names` say where the changes are (9c); `release` lets a save leave. */
+export function useLeaveGuard(dirty, { within, search = false, names = [] } = {}) {
 	const released = useRef(false)
 	const live = useRef(dirty)
 	live.current = dirty
@@ -167,7 +270,7 @@ export function useLeaveGuard(dirty, { within, search = false } = {}) {
 		? (
 			<Dialog onCancel={() => blocker.reset()}>
 				<DialogTitle>Leave without saving?</DialogTitle>
-				<DialogBody>Your changes on this page are not saved. If you leave now, they are lost.</DialogBody>
+				<DialogBody>Your changes {names.length ? `in ${names.join(' and in ')}` : 'on this page'} are not saved. If you leave now, they are lost.</DialogBody>
 				<DialogActions>
 					<Button variant="outline" onClick={() => blocker.reset()}>Keep editing</Button>
 					<span className="sp-grow" />
@@ -244,9 +347,17 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 	)
 }
 
-/** A list's own paging below 640, where the rows are cards: the loose footer under them. */
-export function usePaged(rows, size, resetKey) {
-	const [shown, setShown] = useState(size)
-	useEffect(() => { setShown(size) }, [resetKey, size])
-	return { page: rows.slice(0, shown), more: rows.length > shown, showMore: () => setShown(s => s + size) }
+/** Where focus goes once a record leaves the list under it: the record now in its place, else the
+    last one, else `fallback`. Focus the reader has since moved elsewhere is left where it is. */
+export function useRefocus(rows, selector, fallback) {
+	const pending = useRef(null)
+	useEffect(() => {
+		const gone = pending.current
+		if (!gone || !rows || rows.some(r => r.id === gone.id)) return
+		pending.current = null
+		if (document.activeElement && document.activeElement !== document.body) return
+		const all = document.querySelectorAll(selector)
+		;(all[Math.min(gone.index, all.length - 1)] ?? document.querySelector(fallback))?.focus()
+	}, [rows, selector, fallback])
+	return (row, index) => { pending.current = { id: row.id, index } }
 }
