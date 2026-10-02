@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { Fragment, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
@@ -24,6 +24,7 @@ import { ImportCard } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, Heading } from './SettingsParts.jsx'
+import { useLeaveGuard } from './vendorsCategories.jsx'
 
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
@@ -36,6 +37,9 @@ const SECTIONS = [
 	{ key: 'demo', label: 'Demo data' },
 	{ key: 'build', label: 'This build' }
 ]
+
+// the first of the panes that are tools rather than preferences, which the nav sets apart (11a)
+const TOOLS = 'import'
 
 const PAGE_SIZES = [5, 10, 15, 20, 25, 50, 100]
 
@@ -78,6 +82,8 @@ export default function Settings() {
 		return out
 	})
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
+	// moving between panes keeps the draft, so only leaving Settings asks first
+	const guard = useLeaveGuard(dirty.length > 0, '/settings')
 
 	const save = () => {
 		setSaving(true)
@@ -132,29 +138,34 @@ export default function Settings() {
 			<>
 				{open ? <Arrive section={open}>{cards[open]}</Arrive> : <PhoneIndex email={user.data?.email} />}
 				{saveBar}
+				{guard.prompt}
 			</>
 		)
 	}
 
 	return (
-		<div className="sp-row-flex sp-top sp-gap-12">
+		<div className="sp-row-flex sp-top sp-gap-16">
 			{narrow ? null : <SectionNav current={current} />}
 			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
 				{narrow ? <SectionPicker current={current} /> : null}
 				{body ?? <Arrive section={current}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
 			</div>
+			{guard.prompt}
 		</div>
 	)
 }
 
 function SectionNav({ current }) {
 	return (
-		<nav className="sp-rail sp-stack sp-gap-8" aria-label="Settings">
+		<nav className="st-subnav sp-stack sp-gap-8" aria-label="Settings">
 			<span className="sp-section-label">Settings</span>
 			<div className="sp-nav-list">
 				{SECTIONS.map(s => (
-					<NavItem key={s.key} variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
+					<Fragment key={s.key}>
+						{s.key === TOOLS ? <span className="sp-rule" role="separator" /> : null}
+						<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
+					</Fragment>
 				))}
 			</div>
 		</nav>

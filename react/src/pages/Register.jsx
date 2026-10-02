@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { failureMessage, register } from '../api/client.js'
-import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, landing } from './SignIn.jsx'
+import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, focusField, landing, useSignedOut } from './SignIn.jsx'
 
 // the server refuses anything shorter
 const MIN_PASSWORD = 8
@@ -18,6 +18,7 @@ export default function Register() {
 	const [taken, setTaken] = useState(null)
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
+	const signedOut = useSignedOut()
 
 	const checkEmail = () => {
 		const ok = !email.trim() || EMAIL_PATTERN.test(email.trim())
@@ -30,7 +31,7 @@ export default function Register() {
 		if (!emailOk) setEmailProblem(EMAIL_PROBLEM)
 		const passwordOk = password.length >= MIN_PASSWORD
 		setPasswordProblem(passwordOk ? null : `Use at least ${MIN_PASSWORD} characters.`)
-		if (!emailOk || !passwordOk) return
+		if (!emailOk || !passwordOk) return focusField(emailOk ? 'register-password' : 'register-email')
 		setBusy(true)
 		setAlert(null)
 		const address = email.trim().toLowerCase()
@@ -38,9 +39,9 @@ export default function Register() {
 			.then(() => navigate(landing(params), { replace: true }))
 			.catch(e => {
 				setBusy(false)
-				if (e?.status === 409) setTaken(address)
-				else if (e?.status === 400 && /password/i.test(e.message)) setPasswordProblem(e.message)
-				else if (e?.status === 400) setEmailProblem(e.message)
+				if (e?.status === 409) { setTaken(address); focusField('register-email') }
+				else if (e?.status === 400 && /password/i.test(e.message)) { setPasswordProblem(e.message); focusField('register-password') }
+				else if (e?.status === 400) { setEmailProblem(e.message); focusField('register-email') }
 				else setAlert(failureMessage(e, 'Spendly could not be reached. Check your connection and try again.'))
 			})
 	}
@@ -50,16 +51,17 @@ export default function Register() {
 		? <>There's already an account with this email. <Link className="sp-strong" to="/signin">Sign in instead?</Link></>
 		: emailProblem
 
+	if (!signedOut) return null
 	return (
 		<AuthCard title="Create your account" lead={isTaken || alert ? null : 'Takes a minute. Nothing to set up afterwards.'}
 			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
 			disabled={isTaken}
 			across={<>Already have one? <Link className="sp-strong sp-ink-accent" to="/signin">Sign in</Link></>}>
-			<Field label="Email" message={emailMessage ?? undefined} messageType={emailMessage ? 'danger' : 'hint'}>
+			<Field label="Email" id="register-email" message={emailMessage ?? undefined} messageType={emailMessage ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
-			<Field label="Password" message={passwordProblem ?? 'At least 8 characters. Longer beats complicated.'}
+			<Field label="Password" id="register-password" message={passwordProblem ?? 'At least 8 characters. Longer beats complicated.'}
 				messageType={passwordProblem ? 'danger' : 'hint'}>
 				<PasswordField autoComplete="new-password" value={password}
 					onChange={v => { setPassword(v); setPasswordProblem(null) }} />
