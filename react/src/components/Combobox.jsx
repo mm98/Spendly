@@ -6,6 +6,8 @@ import { useDismiss } from './Utilities.jsx'
 const VARIANT = {
 	default: null,
 	sort: 'sp-combobox--sort',
+	// a sort control last in its bar opens leftward, so its panel stays inside the window
+	'sort-end': 'sp-combobox--sort sp-combobox--end',
 	end: 'sp-combobox--end',
 	stretch: 'sp-combobox--stretch'
 }
