@@ -8,15 +8,12 @@ import { colourFor } from '../lib/palette.js'
 export const router = Router()
 
 const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead'
-const selectAll = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE user_id = ? ORDER BY name`)
+const selectAll = db.prepare('SELECT id, name, favourite FROM vendors WHERE user_id = ? ORDER BY name')
 const selectOne = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
 const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead)
 	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead)`)
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE vendor_id = ? AND user_id = ?')
-/* (user_id, vendor_id) is idx_orders_user_vendor's own order. An order's search_text holds no
-   vendor name (migrations/001), so nothing has to be rewritten behind this. */
-const moveOrdersTo = db.prepare('UPDATE orders SET vendor_id = ? WHERE vendor_id = ? AND user_id = ?')
 const deleteOne = db.prepare('DELETE FROM vendors WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead WHERE id=@id AND user_id=@userId')
 
@@ -125,6 +122,16 @@ const withStats = (vendor, stats, aliases = [], defaultCategories = []) => {
 	}
 }
 
+/* The list's own shape: what the vendor list, the pickers, the filters and the palette read.
+   The record's look (initials, colour, lead) is the single-record route's. */
+const listRow = (vendor, stats, aliases, defaultCategories) => {
+	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0 }
+	return {
+		id: vendor.id, name: vendor.name, favourite: Boolean(vendor.favourite), aliases, defaultCategories,
+		orders: s.orders, spend: s.spend, saved: s.saved
+	}
+}
+
 router.get('/', (req, res) => {
 	const stats = vendorStats(req.user.id)
 	const groupByVendor = rows => {
@@ -141,7 +148,7 @@ router.get('/', (req, res) => {
 	   row of a list that is already in hand. */
 	const defaultsBy = groupByVendor(selectAllDefaultCategories.all(req.user.id))
 	res.json(selectAll.all(req.user.id)
-		.map(v => withStats(v, stats, aliasesBy.get(v.id) ?? [], defaultsBy.get(v.id) ?? [])))
+		.map(v => listRow(v, stats, aliasesBy.get(v.id) ?? [], defaultsBy.get(v.id) ?? [])))
 })
 
 router.post('/', (req, res) => {
@@ -255,19 +262,6 @@ router.post('/aliases', (req, res) => {
 	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
 	writeAliases(req.user.id, vendor.id, cleaned.aliases)
 	res.status(201).json({ id: vendor.id, aliases: aliasesFor(req.user.id, vendor.id) })
-})
-
-/* The delete below refuses while a vendor has orders, so this is the way out of it. Aliases
-   stay with the vendor they were learned for. */
-router.post('/:id/move-orders', (req, res) => {
-	const vendor = selectOne.get(req.params.id, req.user.id)
-	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
-	const toId = String(req.body?.to ?? '')
-	if (toId === vendor.id) return res.status(400).json({ error: 'Pick a different vendor.' })
-	const target = toId ? selectOne.get(toId, req.user.id) : null
-	if (!target) return res.status(404).json({ error: 'No vendor ' + (toId || req.body?.to) })
-	const moved = moveOrdersTo.run(target.id, vendor.id, req.user.id).changes
-	res.json({ moved, from: vendor.id, to: target.id, name: target.name })
 })
 
 router.delete('/:id', (req, res) => {

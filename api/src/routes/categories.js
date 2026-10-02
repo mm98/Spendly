@@ -22,23 +22,6 @@ const countBookmarks = db.prepare('SELECT COUNT(*) c FROM bookmark_categories bc
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
-/* Driven from idx_order_categories_cat like countOrders above. OR IGNORE leans on the
-   (order_id, category_id) key: an order already on the target keeps the one link it has. */
-const linkOrdersTo = db.prepare(`INSERT OR IGNORE INTO order_categories (order_id, category_id)
-	SELECT oc.order_id, ? FROM order_categories oc
-	WHERE oc.category_id = ? AND EXISTS (SELECT 1 FROM orders o WHERE o.id = oc.order_id AND o.user_id = ?)`)
-const unlinkOrders = db.prepare(`DELETE FROM order_categories WHERE category_id = ?
-	AND EXISTS (SELECT 1 FROM orders o WHERE o.id = order_categories.order_id AND o.user_id = ?)`)
-
-/* One transaction, so an interrupted move cannot leave an order on neither category. The count
-   is read inside it for the same reason: it is what the answer reports as moved. */
-const moveOrders = db.transaction((fromId, toId, userId) => {
-	const moved = countOrders.get(fromId, userId).c
-	linkOrdersTo.run(toId, fromId, userId)
-	unlinkOrders.run(fromId, userId)
-	return moved
-})
-
 const ZERO_STATS = { orders: 0, spend: 0, share: 0, saved: 0 }
 
 // Order and bookmark usage ride beside spend/share -- the filter panels' own answer to "is this
@@ -115,19 +98,6 @@ router.patch('/:id', (req, res) => {
 	update.run({ ...next, id: category.id, userId: req.user.id })
 	const updated = selectOne.get(category.id, req.user.id)
 	res.json(withStats(updated, categoryStatsFor(req.user.id, category.id), countBookmarks.get(category.id, req.user.id).c))
-})
-
-/* The delete below refuses while a category is on an order, so this is the way out of it.
-   Bookmarks are not touched: they carry categories through a table of their own. */
-router.post('/:id/move-orders', (req, res) => {
-	const category = selectOne.get(req.params.id, req.user.id)
-	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
-	const toId = String(req.body?.to ?? '')
-	if (toId === category.id) return res.status(400).json({ error: 'Pick a different category.' })
-	const target = toId ? selectOne.get(toId, req.user.id) : null
-	if (!target) return res.status(404).json({ error: 'No category ' + (toId || req.body?.to) })
-	const moved = moveOrders(category.id, target.id, req.user.id)
-	res.json({ moved, from: category.id, to: target.id, name: target.name })
 })
 
 router.delete('/:id', (req, res) => {

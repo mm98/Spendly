@@ -15,12 +15,6 @@ const findUserByEmail = db.prepare('SELECT id, email, password_hash, needs_setup
    from here, and writing it out is what keeps those two facts from being one fact
    (migrations/014_first_run.sql). */
 const insertUser = db.prepare('INSERT INTO users (id, email, password_hash, needs_setup) VALUES (?, ?, ?, 1)')
-/* Cleared the moment the reader arrives on the settings page, not when they leave it or save
-   something: the flag records that they were shown the page, and they have been. Anything
-   later -- a save, a navigation away -- makes a reader who reads the page and closes the tab
-   into a reader who gets sent back to it next time, which is the one behaviour a one-time
-   detour must not have. */
-const clearNeedsSetup = db.prepare('UPDATE users SET needs_setup = 0 WHERE id = ?')
 
 router.post('/register', async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
@@ -83,12 +77,4 @@ router.get('/me', requireAuth, (req, res) => {
 		// (react/src/routes.jsx's route loader) rather than a second fetch Scan alone would pay for.
 		scanAiEnabled: Boolean(process.env.ANTHROPIC_API_KEY)
 	})
-})
-
-/** Marks the settings page as seen. A POST rather than a side effect of GET /settings: that
-    route is read by the route loader on every navigation, so hanging a write off it would
-    clear the flag before the reader had been sent anywhere by it. */
-router.post('/setup-seen', requireAuth, (req, res) => {
-	clearNeedsSetup.run(req.user.id)
-	res.status(204).end()
 })
