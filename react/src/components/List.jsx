@@ -2,7 +2,7 @@ import { cloneElement, useEffect, useId, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Check } from './Choice.jsx'
 import { Button } from './Button.jsx'
-import { ListFooter } from './Card.jsx'
+import { Cards, ListFooter } from './Card.jsx'
 import { Icon } from './Icon.jsx'
 
 const WIDTH = {
@@ -325,5 +325,17 @@ export function Record({ photos = [], empty, more, href, pick, menu, title, subt
 				</div>
 			</div>
 		</article>
+	)
+}
+
+/** The list as a grid of Record cards (c1 cards, Order list 2c, Bookmarks 22a): no ground of its
+    own, the grid, then `footer` under it at the grid's width. */
+export function Records({ footer, children, ...rest }) {
+	reject(rest, 'Records')
+	return (
+		<div className="sp-list sp-list--cards" {...rest}>
+			<Cards>{children}</Cards>
+			{footer ? <ListFooter loose>{footer}</ListFooter> : null}
+		</div>
 	)
 }

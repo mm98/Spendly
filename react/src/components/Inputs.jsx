@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { Children, cloneElement, useId, useRef, useState } from 'react'
 import { IconButton } from './Button.jsx'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Chip } from './Chip.jsx'
+import { ComboboxOption } from './Combobox.jsx'
 import { formatNumber, parseNumber } from './format.js'
 
 const TEXT = {
@@ -225,16 +226,36 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 	)
 }
 
-export function TokensField({ value = [], onChange, placeholder, danger = false, id, ...rest }) {
+/** A set of typed values as chips. Given `children` (ComboboxOption) it also offers them in a
+    panel under the field, the page filtering them by what `onSearch` reports (Bookmarks 22c). */
+export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, children, ...rest }) {
 	reject(rest, 'TokensField')
 	const [typed, setTyped] = useState('')
+	const [open, setOpen] = useState(false)
+	const [active, setActive] = useState(-1)
+	const panelId = useId()
+	const suggests = children !== undefined
+	const type = text => {
+		setTyped(text)
+		setActive(-1)
+		onSearch?.(text)
+	}
 	const add = () => {
 		const next = typed.trim()
 		if (!next) return
 		if (!value.includes(next)) onChange?.([...value, next])
-		setTyped('')
+		type('')
 	}
-	return (
+	const options = []
+	const list = Children.map(children, child => {
+		if (!child || typeof child !== 'object' || child.type !== ComboboxOption) return child
+		const index = options.length
+		const choose = () => { child.props.onSelect?.(); type('') }
+		options.push({ ...child.props, onSelect: choose })
+		return cloneElement(child, { id: panelId + '-' + index, active: index === active, onSelect: choose })
+	})
+	const shown = suggests && open && options.length > 0
+	const field = (
 		<span className="sp-tokens" {...rest}>
 			{value.map(token => (
 				<Chip
@@ -259,16 +280,45 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 				placeholder={value.length ? undefined : placeholder}
 				value={typed}
 				{...(danger ? { 'aria-invalid': 'true' } : {})}
-				onChange={ev => setTyped(ev.target.value)}
+				{...(suggests
+					? {
+						role: 'combobox',
+						'aria-expanded': shown ? 'true' : 'false',
+						'aria-controls': panelId,
+						'aria-autocomplete': 'list',
+						'aria-activedescendant': shown && active > -1 ? panelId + '-' + active : undefined,
+						onFocus: () => setOpen(true)
+					}
+					: {})}
+				onChange={ev => { type(ev.target.value); setOpen(true) }}
 				onKeyDown={ev => {
+					if (suggests && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
+						ev.preventDefault()
+						setOpen(true)
+						const n = options.length
+						if (!n) return
+						const by = ev.key === 'ArrowDown' ? 1 : -1
+						setActive(active < 0 ? (by > 0 ? 0 : n - 1) : (active + by + n) % n)
+						return
+					}
+					if (ev.key === 'Enter' && shown && active > -1) { ev.preventDefault(); options[active].onSelect(); return }
+					if (ev.key === 'Escape' && shown) { ev.stopPropagation(); setOpen(false); return }
 					if (ev.key === 'Enter' || ev.key === ',') { ev.preventDefault(); add() }
 					// backspace in an empty field removes the last value, which is what
 					// every token field does and what a reader will try first
 					if (ev.key === 'Backspace' && !typed && value.length) onChange?.(value.slice(0, -1))
 				}}
-				onBlur={add}
+				onBlur={() => { add(); setOpen(false) }}
 			/>
 		</span>
+	)
+	if (!suggests) return field
+	return (
+		<div className="sp-combobox" data-open={shown ? 'true' : 'false'}>
+			{field}
+			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
+			<ul className="sp-combobox__panel" id={panelId} role="listbox" onMouseDown={ev => ev.preventDefault()}>{list}</ul>
+		</div>
 	)
 }
 

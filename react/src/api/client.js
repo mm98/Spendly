@@ -374,6 +374,13 @@ export async function updateBookmark(id, bookmark, signal) {
 	return saved
 }
 
+/** Archives or brings back one bookmark; nothing else on it changes. */
+export async function setBookmarkArchived(id, archived, signal) {
+	const saved = await request(`/api/bookmarks/${id}`, { method: 'PATCH', body: { archived: Boolean(archived) }, signal })
+	invalidateBookmarkData()
+	return saved
+}
+
 export async function deleteBookmark(id, signal) {
 	const gone = await request(`/api/bookmarks/${id}`, { method: 'DELETE', signal })
 	invalidateBookmarkData()
