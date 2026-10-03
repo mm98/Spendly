@@ -33,11 +33,8 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
 // the columns that have not arrived, as States 6b draws them
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
-/** `selected` is the column a chart that filters by its columns has chosen: only such a chart has a
-    pressed one. `current` is the column holding today (10a), its label marked without being chosen.
-    A column's `tip` is its readout (ChartTip), shown while the pointer or the keyboard is on it; an
-    `inert` column stands among buttons and opens nothing (4d's Other bar). `named` ticks are names
-    the reader typed, so a long one ends in an ellipsis. */
+/** `selected` is the pressed column of a chart that filters; `current` holds today (10a), marked, not chosen.
+    `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `named` ticks truncate. */
 export function Bars({ columns = [], variant = 'default', selected, current, onSelect, loading = false, named = false, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)

@@ -402,9 +402,8 @@ export function Facets({ children, ...rest }) {
 	return <div className="sp-facets" {...rest}>{children}</div>
 }
 
-/** One filter or one drill level. `name` is what the remove control says it removes. An earlier
-    level of a drill path has no remove; `onOpen` goes back to it instead (4c), and its `onRemove`
-    is for the keyboard alone. A focused crumb is removed with Backspace (c8). */
+/** One filter or drill level; `name` is what its remove says. An earlier level opens with `onOpen` (4c)
+    and has no remove: its `onRemove` is Backspace on the focused crumb (c8), as the last level's is. */
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
 	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }
