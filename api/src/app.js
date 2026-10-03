@@ -92,6 +92,12 @@ if (process.argv.includes('--debug') || process.env.DEBUG) {
 	})
 }
 
+// the build that answered, on every API response: an open tab compares it with its own (react/src/api/build.js)
+app.use('/api', (req, res, next) => {
+	if (process.env.SPENDLY_BUILD_SHA) res.setHeader('Build', process.env.SPENDLY_BUILD_SHA)
+	next()
+})
+
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
 /* Which build is running: the image's build time and commit, stamped at build time

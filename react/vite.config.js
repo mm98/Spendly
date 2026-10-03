@@ -22,6 +22,9 @@ const stripHtmlComments = () => ({
 export default defineConfig({
 	base: './',
 	plugins: [react(), stripHtmlComments()],
+	// the commit this bundle was built from (the Dockerfile passes GIT_SHA); null anywhere else,
+	// which the update notice reads as "nothing to be out of date with"
+	define: { __BUILD_COMMIT__: JSON.stringify(process.env.GIT_SHA || null) },
 	server: {
 		port: 5173,
 		// Same-origin from the browser's point of view, so the session cookie the API sets is a

@@ -5,6 +5,7 @@ import { detectLocale, parseAmount, today } from './format.js'
 import { forgetAll, invalidate } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
 import { vendorKey } from './names.js'
+import { noteServerBuild, writeSettled, writeStarted } from './build.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields, body) {
@@ -90,11 +91,19 @@ const TODAY = 'X-Spendly-Today'
 
 async function request(path, { method = 'GET', body, signal, form } = {}) {
 	const json = !form && body !== undefined
-	const res = await fetch(path, {
-		method, signal, credentials: 'include',
-		headers: { [TODAY]: today(), ...(json ? { 'Content-Type': 'application/json' } : {}) },
-		body: form ?? (json ? JSON.stringify(body) : undefined)
-	})
+	const writes = method !== 'GET'
+	if (writes) writeStarted()
+	let res
+	try {
+		res = await fetch(path, {
+			method, signal, credentials: 'include',
+			headers: { [TODAY]: today(), ...(json ? { 'Content-Type': 'application/json' } : {}) },
+			body: form ?? (json ? JSON.stringify(body) : undefined)
+		})
+		noteServerBuild(res.headers.get('Build'))
+	} finally {
+		if (writes) writeSettled()
+	}
 	if (res.status === 204) return null
 	let data = null
 	try { data = await res.json() } catch { /* empty body */ }
