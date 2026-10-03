@@ -148,8 +148,11 @@ export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 // zero is a figure that holds nothing, a saving of 0 above all: it stays grey
 const STAT_INK = { default: null, success: 'sp-ink-success', zero: 'sp-ink-5' }
 
-/** `meta` is the quiet line under the figure that says what it is measured against. */
-export function Stat({ figure, large = false, color = 'default', label, delta, meta, ...rest }) {
+const HELP_INK = { default: null, warning: 'warning', success: 'success', danger: 'danger' }
+
+/** `meta` is the quiet line under the figure that says what it is measured against; `help` is the
+    same line said as a field's help, which a drilled figure uses for its share of the level above (4b). */
+export function Stat({ figure, large = false, color = 'default', label, delta, meta, help, helpColor = 'default', ...rest }) {
 	reject(rest, 'Stat')
 	return (
 		<div className="sp-stat" {...rest}>
@@ -157,6 +160,9 @@ export function Stat({ figure, large = false, color = 'default', label, delta, m
 			<span className={join('sp-stat__figure', large && 'sp-stat__figure--large', pick(STAT_INK, color, 'color', 'Stat'))}>{figure}</span>
 			{delta ? <span className="sp-stat__delta">{delta}</span> : null}
 			{meta ? <span className="sp-meta">{meta}</span> : null}
+			{help
+				? <span className="sp-field__help" {...(helpColor === 'default' ? {} : { 'data-color': pick(HELP_INK, helpColor, 'helpColor', 'Stat') })}>{help}</span>
+				: null}
 		</div>
 	)
 }

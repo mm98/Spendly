@@ -52,13 +52,24 @@ const searchOrders = perMatcher(match => `
 	SELECT ${orderTotalsSelectList('ot')} FROM orders ot
 	WHERE ot.user_id = @userId AND (
 		${match('ot.search_text')}
+		OR ${match('ot.reference')}
 		OR ot.vendor_id IN (${vendorIdsMatching(match)})
 	)
 	ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit
 `)
+/* Full counts once a kind fills the limit. An item counts once per order and name, as the
+   palette lists it; search_text holds every title, so it narrows the orders first. */
+const countVendors = perMatcher(match =>
+	`SELECT COUNT(*) AS c FROM vendors v WHERE v.user_id = @userId AND v.id IN (${vendorIdsMatching(match)})`)
+const countItems = perMatcher(match => `
+	SELECT COUNT(*) AS c FROM (
+		SELECT DISTINCT oi.order_id, lower(oi.title) FROM orders ot JOIN order_items oi ON oi.order_id = ot.id
+		WHERE ot.user_id = @userId AND ${match('ot.search_text')} AND ${match('oi.title')}
+	)
+`)
 
 /** Cross-entity search for the command palette: vendors, categories, bookmarks and orders
-    (matched by vendor name, note, or an item's title) that the query text appears in, each
+    (matched by vendor name, reference, note, or an item's title) that the query text appears in, each
     scoped to the account's own rows via an indexed user_id lookup. */
 router.get('/', (req, res) => {
 	const needle = String(req.query.query ?? '').trim().toLowerCase()
@@ -75,10 +86,17 @@ router.get('/', (req, res) => {
 	   exist. */
 	if ('without category'.includes(needle) && hasUncategorised.get(req.user.id))
 		categories.push({ id: 'none', name: 'Without category' })
+	const vendors = searchVendors[shape].all(params)
 	res.json({
-		vendors: searchVendors[shape].all(params),
+		vendors,
 		categories,
 		bookmarks: searchBookmarks[shape].all(params),
-		orders: decorateOrderSearchRows(orderRows)
+		orders: decorateOrderSearchRows(orderRows),
+		/* Under the limit the rows themselves are the whole answer, so the client counts them;
+		   at the limit the full count comes from here. */
+		counts: {
+			vendors: vendors.length < MAX_PER_KIND ? vendors.length : countVendors[shape].get(params).c,
+			items: orderRows.length < MAX_PER_KIND ? null : countItems[shape].get(params).c
+		}
 	})
 })

@@ -100,8 +100,9 @@ const updateBookmark = db.transaction((userId, bookmark, categories) => {
 const BOOKMARK_SORT_SQL = {
 	'added-desc': 'b.created_at DESC, b.rowid DESC',
 	'added-asc': 'b.created_at ASC, b.rowid ASC',
-	'price-desc': 'b.price DESC, b.id DESC',
-	'price-asc': 'b.price ASC, b.id ASC',
+	// a bookmark with no price goes last under either price sort
+	'price-desc': 'b.price IS NULL, b.price DESC, b.id DESC',
+	'price-asc': 'b.price IS NULL, b.price ASC, b.id ASC',
 	'name-asc': 'b.name COLLATE NOCASE ASC, b.id ASC'
 }
 
@@ -114,10 +115,6 @@ function buildBookmarkFilter(userId, q) {
 
 	// Two states, and unasked it takes "not archived": a bookmark you still want is not archived.
 	where.push(q.archived === 'yes' ? 'b.archived = 1' : 'b.archived = 0')
-
-	// A bookmark with no price is not the cheapest one. Here, not in the ORDER BY, so the count
-	// and the page agree about which rows the sort dropped.
-	if (sortKey.startsWith('price-')) where.push('b.price IS NOT NULL')
 
 	if (q.categoryId === 'none') {
 		where.push('NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)')
@@ -188,6 +185,24 @@ async function previewThumbnail(imageUrl) {
 	if (!processed.thumbnail) return null
 	return `data:${processed.thumbnailContentType};base64,${processed.thumbnail.toString('base64')}`
 }
+
+/* What the Bookmarks category filter lists: how many bookmarks of one view (open, or archived)
+   carry each category, and how many carry none. */
+const selectViewCategoryLinks = db.prepare(`SELECT bc.category_id AS categoryId FROM bookmark_categories bc
+	JOIN bookmarks b ON b.id = bc.bookmark_id WHERE b.user_id = ? AND b.archived = ?`)
+const countViewUncategorised = db.prepare(`SELECT COUNT(*) AS c FROM bookmarks b WHERE b.user_id = ? AND b.archived = ?
+	AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)`)
+
+router.get('/categories', (req, res) => {
+	const archived = req.query.archived === 'yes' ? 1 : 0
+	const counts = new Map()
+	for (const { categoryId } of selectViewCategoryLinks.all(req.user.id, archived))
+		counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1)
+	res.json({
+		categories: [...counts].map(([id, bookmarks]) => ({ id, bookmarks })),
+		without: countViewUncategorised.get(req.user.id, archived).c
+	})
+})
 
 router.get('/preview', async (req, res) => {
 	const { title, image } = await fetchPagePreview(String(req.query.url ?? ''))

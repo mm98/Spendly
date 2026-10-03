@@ -1,13 +1,14 @@
-/* Order create (3a, 3b): the start screen, the receipt beside its progress, and the copy picker's
-   list. The start screen fills the page's width, as every page does. */
+/* Order create (3a, 3b): the start screen's measure, the receipt beside its progress, and the
+   copy picker's list. Layout only, from the design's own order-create.css. */
 
 @layer base {
-	.oc-narrow { width: 100%; }
+	.oc-narrow { width: 720px; max-width: 100%; margin: 0 auto; }
 	.oc-choices {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		gap: var(--sp-12);
-		width: 100%;
+		width: 720px;
+		max-width: 100%;
 		text-align: left;
 	}
 	.sp-touch .oc-choices { grid-template-columns: minmax(0, 1fr); }

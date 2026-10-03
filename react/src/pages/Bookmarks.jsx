@@ -22,9 +22,9 @@ import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
 import {
 	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarks, getCategories,
-	getSettings, getUncategorised, setBookmarkArchived
+	getBookmarkCategoryCounts, getSettings, setBookmarkArchived
 } from '../api/client.js'
-import { NUMBER_LOCALE, currency, plural, shortDate } from '../api/format.js'
+import { NUMBER_LOCALE, currency, dot, plural, shortDate } from '../api/format.js'
 import { Bar, CategoryMark, ConfirmDelete, Held, bookmarkDeleteNote, isGone, sayFailure, useFold, useRefocus } from './vendorsCategories.jsx'
 
 const SORT_LABEL = {
@@ -58,16 +58,11 @@ export default function Bookmarks() {
 	const shown = pages * step
 
 	const categories = useApi(getCategories)
-	const uncategorised = useApi(getUncategorised)
+	const counts = useCategoryCounts(categories.data, archived)
 	const list = useApi(getBookmarks, [{
 		query, categoryId: category, sort, archived: archived ? 'yes' : 'no', page: 1, pageSize: shown
 	}])
 	useEffect(() => { if (list.data) restored() }, [list.data])
-	// a price sort leaves out what has no price, so an empty answer is asked again without it to say why
-	const pricedEmpty = Boolean(list.data?.total && !list.data.bookmarks.length && sort.startsWith('price-'))
-	const unpriced = useApi(getBookmarks, [{
-		query, categoryId: category, sort: SORTS[0].id, archived: archived ? 'yes' : 'no', page: 1, pageSize: 1
-	}], { enabled: pricedEmpty })
 	const refocus = useRefocus(list.data?.bookmarks, '.sp-record__act', '.sp-empty a, .sp-empty button')
 
 	const [menuFor, setMenuFor] = useState(null)
@@ -102,14 +97,13 @@ export default function Bookmarks() {
 	}
 	const clearAll = () => write({ q: '', category: '', archived: '' })
 
-	const used = (categories.data ?? []).filter(c => c.bookmarks > 0)
-	const withoutCount = uncategorised.data?.bookmarks ?? 0
+	const { used, withoutCount } = counts
 	const idOf = name => categories.data?.find(c => c.name === name)?.id
 	const nameOf = id => id === NONE ? 'Without category' : categories.data?.find(c => c.id === id)?.name ?? ''
 	const categoryName = nameOf(category)
 	const sortLabel = SORTS.find(s => s.id === sort).label
 
-	const refresh = () => { list.refresh(); categories.refresh(); uncategorised.refresh() }
+	const refresh = () => { list.refresh(); categories.refresh(); counts.refresh() }
 
 	// a link to a category that is gone (or never was) falls back to every category
 	const known = categories.data
@@ -180,11 +174,14 @@ export default function Bookmarks() {
 		variant: 'outline', 'aria-haspopup': 'dialog', 'aria-expanded': draft ? 'true' : 'false',
 		onClick: () => setDraft({ category, archived })
 	}
+	// the button says how many of the filters it holds are set (Mobile screens 7b)
+	const held = (category ? 1 : 0) + (archived ? 1 : 0)
+	const filtersLabel = held ? `Filters${dot}${held}` : 'Filters'
 	const head = touch
 		? (
 			<ListItem variant="card" ref={column}>
 				<span className="sp-grow">
-					<Button {...filtersButtonProps}>Filters</Button>
+					<Button {...filtersButtonProps}>{filtersLabel}</Button>
 				</span>
 				{sortControl}
 				<span className="sp-flex-none">
@@ -197,7 +194,7 @@ export default function Bookmarks() {
 				<SearchInput value={query} onChange={q => write({ q })}
 					placeholder="Search bookmarks, shops or categories" aria-label="Search bookmarks" />
 				{folded
-					? <Button {...filtersButtonProps}>Filters</Button>
+					? <Button {...filtersButtonProps}>{filtersLabel}</Button>
 					: (
 						<Combobox variant="sort" aria-label="Category" value={category ? categoryName : 'Any'} prefix="Category">
 							{categoryOptions}
@@ -228,7 +225,7 @@ export default function Bookmarks() {
 	const sheet = draft
 		? createPortal(
 			<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) closeSheet() }}>
-				<FilterSheet draft={draft} setDraft={setDraft} used={used} withoutCount={withoutCount} onClose={closeSheet}
+				<FilterSheet draft={draft} setDraft={setDraft} categories={categories.data} onClose={closeSheet}
 					onApply={() => { write({ category: draft.category, archived: draft.archived ? 'yes' : '' }); closeSheet() }} />
 			</Scrim>,
 			document.body
@@ -239,7 +236,7 @@ export default function Bookmarks() {
 	let body
 	if (list.error) {
 		body = <Failed what="Your bookmarks" error={list.error} onRetry={refresh} />
-	} else if (!data || (pricedEmpty && (unpriced.loading || (!unpriced.data && !unpriced.error)))) {
+	} else if (!data) {
 		body = <BookmarksLoading size={step} />
 	} else if (data.total === 0) {
 		body = (
@@ -253,28 +250,22 @@ export default function Bookmarks() {
 		)
 	} else if (!data.bookmarks.length) {
 		// each sentence states only what an empty answer to this exact request proves
-		const state = archived ? 'archived' : 'open'
 		const holds = used.find(c => c.id === category)?.bookmarks ?? 0
-		// under a price sort, the price is the cause only when the same filters find bookmarks without it
-		const priced = sort.startsWith('price-') && unpriced.data?.matched > 0
-		const unknown = sort.startsWith('price-') && !unpriced.data
+		const ever = categories.data?.find(c => c.id === category)?.bookmarks ?? 0
 		const filtered = Boolean(query || category || archived)
-		const why = unknown ? null
-			: priced ? `No ${state} bookmark here has a price yet. Sorting by price leaves those out.`
-			: query && category && category !== NONE
-				? `Nothing in ${categoryName} matches "${query}". ${categoryName} holds ${plural(holds, 'bookmark')}.`
+		const why = query && category && category !== NONE
+			? `Nothing in ${categoryName} matches "${query}". ${categoryName} holds ${plural(holds, 'bookmark')}.`
 			: query && category ? `Nothing without a category matches "${query}".`
 			: query ? `Nothing matches "${query}".`
 			: category === NONE ? `Every bookmark without a category is ${archived ? 'open' : 'archived'}.`
-			: category ? (holds ? `Every bookmark in ${categoryName} is ${archived ? 'open' : 'archived'}.` : `${categoryName} holds no bookmarks.`)
+			: category ? (ever ? `Every bookmark in ${categoryName} is ${archived ? 'open' : 'archived'}.` : `${categoryName} holds no bookmarks.`)
 			: archived ? 'You have not archived any bookmarks.'
 			: 'Every bookmark you have is archived.'
 		body = (
 			<Card>
 				<Empty>
 					<EmptyTitle>No bookmarks match these filters</EmptyTitle>
-					{why ? <EmptyBody>{why}</EmptyBody> : null}
-					{priced || unknown ? <Button variant="outline" size="small" onClick={() => write({ sort: SORTS[0].id })}>Sort by newest</Button> : null}
+					<EmptyBody>{why}</EmptyBody>
 					{filtered ? <Button variant="outline" size="small" onClick={clearAll}>Clear filters</Button> : null}
 				</Empty>
 			</Card>
@@ -348,7 +339,9 @@ export default function Bookmarks() {
 }
 
 /** The phone's filters (Mobile screens 22a, c12): a sheet over the list, applied together. */
-function FilterSheet({ draft, setDraft, used, withoutCount, onClose, onApply }) {
+function FilterSheet({ draft, setDraft, categories, onClose, onApply }) {
+	// the categories of the view the sheet is set to, which can differ from the list behind it
+	const { used, withoutCount } = useCategoryCounts(categories, draft.archived)
 	const box = useRef(null)
 	// modal while open; closing gives focus back to the Filters button that opened it
 	useFocusTrap(box)
@@ -382,6 +375,14 @@ function FilterSheet({ draft, setDraft, used, withoutCount, onClose, onApply }) 
 			</div>
 		</Sheet>
 	)
+}
+
+/** The categories bookmarks of one view carry, each with its count there, and how many carry none. */
+function useCategoryCounts(categories, archived) {
+	const counts = useApi(getBookmarkCategoryCounts, [archived])
+	const by = new Map((counts.data?.categories ?? []).map(c => [c.id, c.bookmarks]))
+	const used = (categories ?? []).filter(c => by.has(c.id)).map(c => ({ ...c, bookmarks: by.get(c.id) }))
+	return { used, withoutCount: counts.data?.without ?? 0, refresh: counts.refresh }
 }
 
 const noop = () => {}

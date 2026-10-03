@@ -162,6 +162,26 @@ const signed = value => /^[+-]|-$/.test(clean(value)) || /^\(.*\)$/.test(value.t
 const moneyScore = values => values.filter(v => /\d[.,]\d{2}(?!\d)/.test(v)).length / values.length
 	+ (values.some(signed) ? 0.5 : 0)
 
+/* What a column that names an account, a person or a payment holds, said in words instead of its
+   values (21h): by its name in the header first, else by the shape of every filled cell. */
+const DESCRIBED = [
+	{ said: 'An account number', name: /konto|account|iban|reg\.?nr|regnr/, value: v => /^[A-Z]{2}\d{2}[\dA-Z ]{10,}$/.test(v) || /^\d{4}[- ]\d{6,10}$/.test(v) },
+	{ said: 'A MobilePay number', name: /mobilepay/ },
+	{ said: 'A name', name: /navn|name|modtager|afsender|payee|payer/ },
+	{ said: 'A reference number', name: /reference|^ref|kvittering|transaktions?id|^id$/, value: v => /^\d{8,}$/.test(v) || /\d-\d/.test(v) }
+]
+
+/** How the column table shows a column it does not read: a description instead of values that identify
+    an account, a person or a payment, or null to show the values. */
+export function describeColumn(cells, name = '') {
+	const filled = cells.map(c => String(c ?? '').trim()).filter(Boolean)
+	if (!filled.length) return null
+	const named = String(name).toLocaleLowerCase('da')
+	const found = DESCRIBED.find(d => (named && d.name.test(named)) || (d.value && filled.every(d.value)))
+	if (!found) return null
+	return filled.length < cells.length ? `${found.said}, or empty` : found.said
+}
+
 // A first row is names, not a payment, when none of its cells reads as a date.
 export const hasHeader = rows => rows.length > 1
 	&& !rows[0].some(cell => DATE_FORMATS.some(f => readDate(cell, f.id)))
