@@ -49,7 +49,7 @@
     <div class="doc-note"><b class="sp-ink">Filters and sort become two controls above the list</b>, not a facet rail. Filters opens the bottom sheet in <b>7b</b> and carries a count when any are applied.</div>
     <div class="doc-note"><b class="sp-ink">Anything that creates or edits gets a sticky save bar</b> at the bottom of the content, clear of the safe-area inset. It takes the tab bar's place rather than sitting above it - the screen is a task until it is saved or cancelled. The primary reads <b>Create</b> on a new record and <b>Save</b> on an existing one, and the page title already says which record it is.</div>
     <div class="doc-note"><b class="sp-ink">These frames are drawn at 375px</b>, but the rule is the 640px threshold in 9h - not this device.</div>
-    <div class="doc-note"><b class="sp-ink">Budget shows one month at a time.</b> The twelve-month strip from 21a does not fit, so the window control steps through the months and the halves become a single well. Year, the Months / Whole year switch and the actions share one bar; the kebab holds <b>Edit</b> and <b>Check a bank statement</b>, the two buttons the desktop bar carries.</div>
+    <div class="doc-note"><b class="sp-ink">Budget shows one month at a time.</b> The twelve-month strip from 21a does not fit, so the window control steps through the months and the halves become a single well. Year, the Months / Whole year switch and the actions share one bar, the year as the compact select (<code>sp-combobox--bare</code>: the value and its chevron, no field box) so the three fit 328px; the kebab holds <b>Edit</b> and <b>Check a bank statement</b>, the two buttons the desktop bar carries.</div>
     <div class="doc-note"><b class="sp-ink">The whole year is the 21b sheet, unchanged.</b> It scrolls sideways inside its card and opens on the month it is now, with the row names held at the left, so the frame shows what is in view on arrival: Row, then October onwards. The account column and the earlier months are to the left, one swipe away.</div>
     <div class="doc-note"><b class="sp-ink">Editing a budget row and the bank check keep their desktop behaviour</b> (21c, 21g): the row editor opens in place of the row, and the bank check's table scrolls sideways like the sheet.</div>
     <div class="doc-note"><b class="sp-ink">Bookmarks is the 22a card list in one column</b> - the card grid already drops to one column below 640px. Filters opens the bottom sheet from 7b holding Category and Open / Archived; <b>+</b> in the list head is New bookmark, as on Vendors. New and edit bookmark are the create frame shown for 5b.</div>
@@ -92,7 +92,7 @@
                   <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search orders" aria-label="Search orders">
                 </div></div><div class="ms-head"><div class="sp-list-item sp-list-item--card">
-          <div class="sp-combobox sp-grow">
+          <div class="sp-combobox sp-combobox--grow">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
                     <span class="sp-grow">Filters</span>
                     <span class="sp-list-item__count">2</span>
@@ -151,7 +151,7 @@
                 </div></div>
           <div class="ms-pane"><div class="ms-scroll ms-scroll--pad">
         <div class="sp-row-flex sp-gap-8">
-          <div class="sp-combobox sp-grow">
+          <div class="sp-combobox sp-combobox--grow">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Year">
                     <span class="sp-grow">2026</span>
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
@@ -210,7 +210,7 @@
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
           <div class="ms-pane"><div class="ms-head"><div class="sp-list-item sp-list-item--card">
-          <div class="sp-combobox sp-grow">
+          <div class="sp-combobox sp-combobox--grow">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
                     <span class="sp-meta sp-nowrap">Sort</span>
                     <span class="sp-title sp-nowrap">Spend ↓</span>
@@ -294,7 +294,7 @@
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
           <div class="ms-pane"><div class="ms-head"><div class="sp-list-item sp-list-item--card">
-          <div class="sp-combobox sp-grow">
+          <div class="sp-combobox sp-combobox--grow">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
                     <span class="sp-meta sp-nowrap">Sort</span>
                     <span class="sp-title sp-nowrap">Name A - Z</span>
@@ -347,7 +347,7 @@
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
           <div class="ms-pane"><div class="ms-head"><div class="sp-list-item sp-list-item--card">
-          <div class="sp-combobox">
+          <div class="sp-combobox sp-combobox--bare">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Year">
                     <span class="sp-title sp-nowrap">2026</span>
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
@@ -435,7 +435,7 @@
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
           <div class="ms-pane"><div class="ms-head"><div class="sp-list-item sp-list-item--card">
-          <div class="sp-combobox">
+          <div class="sp-combobox sp-combobox--bare">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Year">
                     <span class="sp-title sp-nowrap">2026</span>
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
@@ -554,7 +554,7 @@
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
           <div class="ms-pane"><div class="ms-head"><div class="sp-list-item sp-list-item--card">
-          <div class="sp-combobox sp-grow">
+          <div class="sp-combobox sp-combobox--grow">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
                     <span class="sp-grow">Filters</span>
                   </button>
@@ -673,7 +673,7 @@
                 </div></div>
         <div class="ms-pane">
         <div class="ms-head"><div class="sp-list-item sp-list-item--card">
-          <div class="sp-combobox sp-grow">
+          <div class="sp-combobox sp-combobox--grow">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
                     <span class="sp-grow">Filters</span>
                     <span class="sp-list-item__count">2</span>
@@ -1060,15 +1060,19 @@
                 </div></div>
         <div class="ms-pane">
         <div class="ms-head">
-          <div class="sp-combobox sp-grow">
+          <div class="sp-window sp-window--select">
+            <button type="button" class="sp-window__btn" aria-label="Earlier year"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <div class="sp-combobox">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Period">
                     <span class="sp-grow">Year · 2026</span>
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
                   </button>
                 </div>
+            <button type="button" class="sp-window__btn" aria-label="Later year" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
         </div>
         <div class="ms-head">
-          <nav aria-label="Drill path">
+          <nav aria-label="Showing">
             <ol class="sp-crumbs">
               <li><span class="sp-crumbs__root">2026</span></li>
               <li><span class="sp-crumb">August<button type="button" class="sp-crumb__remove" aria-label="Remove August">×</button></span></li>
@@ -1177,6 +1181,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>On a phone the Statistics period is one select</b>: 30 days, Week, Month, Quarter, Year, Custom, with the window it resolves to beside the name ("Year · 2026"). It is the same six presets as the desktop row (<a href="Order statistics.dc.html#4a">4a</a>).</div>
+    <div class="doc-note"><b>Arrows either side of the select step the period</b> by its own length: the month before, the quarter before, the year before. Later is disabled on the period that holds today. On Custom both are disabled, since a range of its own has no next or previous (<a href="Order statistics.dc.html#4f">4f</a>). The control is <code>sp-window--select</code>, the window from 21a with the select in its middle.</div>
     <div class="doc-note"><b>The order list keeps its own search field on a phone</b>, above Filters and Sort. It filters the list; the top bar's search is the palette, which finds records but does not filter.</div>
     <div class="doc-note"><b>Applied filters wrap</b>, one chip each, followed by <b>Clear all</b> - the filter row of <a href="Components.dc.html#c12">c12</a>.</div>
     <div class="doc-note"><b>Reset</b> in the sheet's header is a text button (<code>sp-btn--text</code>, small), in the button's green, like Cancel in the search screen; it clears every filter and keeps the sheet open. <b>Show 39 more</b> expands that facet's list in place inside the sheet.</div>
