@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { join, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
@@ -89,6 +89,22 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 			/>
 		</label>
 	)
+}
+
+/** A picture pasted anywhere on a page with one slot goes to `onImage`: a paste goes to the focused
+    field, never to the slot. One a nearer handler took (a focused slot, an open line) is left alone. */
+export function usePastedImage(onImage) {
+	const latest = useRef(onImage)
+	latest.current = onImage
+	useEffect(() => {
+		const paste = ev => {
+			if (ev.defaultPrevented) return
+			const image = [...(ev.clipboardData?.files ?? [])].find(f => f.type.startsWith('image/'))
+			if (image) { ev.preventDefault(); latest.current(image) }
+		}
+		window.addEventListener('paste', paste)
+		return () => window.removeEventListener('paste', paste)
+	}, [])
 }
 
 /** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove, or a
