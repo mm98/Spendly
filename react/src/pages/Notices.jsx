@@ -25,7 +25,7 @@ function Notice({ title, lead, children }) {
 	return (
 		<main className={shape === 'touch' ? 'sp-auth sp-touch' : 'sp-auth'}>
 			<Card variant="float">
-				<div className="sp-stack sp-gap-12 sp-center">
+				<div className="sp-stack sp-gap-12 sp-center au-centred">
 					<Mark size="large" fill="solid" aria-label="Spendly"><span>S</span></Mark>
 					<div className="sp-stack sp-gap-6">
 						<span className="sp-heading">{title}</span>

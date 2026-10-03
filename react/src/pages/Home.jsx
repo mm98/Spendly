@@ -654,7 +654,7 @@ function MonthsCard() {
 				<span className="sp-grow" />
 				<Button variant="text" size="small" to="/statistics">Statistics</Button>
 			</div>
-			<Bars columns={months ?? []} loading={!months} current={today().slice(0, 7)}
+			<Bars columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
 				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
 		</Card>
 	)

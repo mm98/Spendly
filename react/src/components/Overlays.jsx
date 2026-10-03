@@ -269,9 +269,11 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 		typeof c === 'string' ? <DialogBody key={'body' + i}>{c}</DialogBody> : c)
 	if (!actions && !stacked) console.error('<Dialog> has no <DialogActions>: a decision with no way out cannot be answered')
 	const named = rest['aria-label'] || !parts.title.length ? {} : { 'aria-labelledby': parts.title.join(' ') }
+	// below 640 a dialog is a sheet, anchored to the bottom (Layout rules, Responsive reference 18a)
+	const touch = useContext(ShellTouch)
 	const panel = (
 		<DialogParts.Provider value={register}>
-			<div className="sp-dialog" role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
+			<div className={touch ? 'sp-sheet' : 'sp-dialog'} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
 				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
 				<div className="sp-stack sp-gap-6">
 					{above}

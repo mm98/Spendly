@@ -46,13 +46,14 @@ export function LineEditor({
 				{onDelete ? <IconButton variant="outline" danger icon={<Icon name="trash" />} aria-label={`Delete the ${what}`} onClick={onDelete} /> : null}
 			</div>}
 			{photo ? children : (
-				<div className={join('sp-line-editor__grid', fields.length < 2 && 'sp-line-editor__grid--one')}>
+				// on a phone two halves holding unrelated values become two full-width fields (15b)
+				<div className={join('sp-line-editor__grid', (fields.length < 2 || sheet) && 'sp-line-editor__grid--one')}>
 					{children}
 				</div>
 			)}
 			<div className="sp-dialog__actions">
 				{/* in a sheet the two commits share the row (1c), with no keys to name */}
-				{sheet ? null : <><span className="sp-note">{hint}</span><span className="sp-grow" /></>}
+				{sheet ? null : <><span className="sp-note sp-truncate">{hint}</span><span className="sp-grow" /></>}
 				<Button variant="outline" fullWidth={sheet} onClick={onCancel}>Cancel</Button>
 				<Button disabled={saving} fullWidth={sheet} onClick={onCommit}>{saving ? 'Saving…' : commit}</Button>
 			</div>

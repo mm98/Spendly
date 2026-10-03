@@ -7,6 +7,20 @@
 }
 @layer base;
 
+/* Status per component is in styles/COMPONENT-STATUS.md.
+   LOCKED means the appearance is accepted: do not edit those rules, add a variant beside them.
+   DRAFT means still being designed. */
+
+/* Spendly components.
+   Generic, reusable, native-element components. Every value comes from tokens.css.
+   Markup carries classes only - no inline styles, no per-page overrides.
+   States are the element's own: :hover, :focus-visible, :checked, :disabled, [aria-invalid]. */
+
+/* ---------- base ----------
+   Everything here sits in the @layer base cascade layer. Component rules below are
+   unlayered, and unlayered styles always beat layered ones - so a base or page rule
+   can never override a component, whatever its specificity. */
+
 @layer base {
 
   .sp[data-theme="dark"] { background: var(--bg); color: var(--ink); }
@@ -36,11 +50,11 @@
 /* ---------- layout helpers: the only spacing primitives ---------- */
 
 .sp-stack { display: flex; flex-direction: column; }
-/* on a phone a stacked pair - a line and its second line - sits 2 apart (Mobile screens); a stack
-   that needs a real gap asks for it with a gap class, which outranks this */
-@layer base {
-  .sp-touch .sp-stack { gap: var(--sp-2); }
-}
+/* A title with its second line, as one block. Authored as three utilities it drifted
+   into three behaviours: 216 at 6, 14 at 2 inside .sp-card--row, and 21 forced to
+   display: block by `.sp-table td > .sp-truncate`, where the gap did nothing at all.
+   One class, one gap, changed here rather than in 251 places. The children carry their
+   own truncation - the stack only has to stop growing and hide what overflows. */
 .sp-stacked {
   display: flex;
   flex-direction: column;
@@ -52,6 +66,9 @@
 .sp-row-flex { display: flex; align-items: center; }
 .sp-wrap { flex-wrap: wrap; }
 .sp-grow { flex: 1; min-width: 0; }
+/* One class per step of the spacing scale, named by its value like the tokens -
+   so there is no pair of classes that resolve to the same gap, and no step a page
+   has to reach past the scale for. */
 .sp-gap-6 { gap: var(--sp-6); }
 .sp-gap-8 { gap: var(--sp-8); }
 .sp-gap-10 { gap: var(--sp-10); }
@@ -80,6 +97,9 @@
 /* an amount is one unbroken figure: it never wraps, and never shrinks below the width
    its digits need, whatever sits beside it in the row */
 .sp-amount { font-size: var(--t-14); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+/* A label that heads a block rather than a line takes a rule under it. It is a block
+   itself: the rule and the padding below it only occupy space if the box is one, and
+   an inline label paints them over whatever follows instead. */
 .sp-section-label--ruled {
   display: block;
   border-bottom: 1px solid var(--line-3);
@@ -103,6 +123,8 @@
 .sp-card--flush { gap: 0; padding: 0; overflow: hidden; }
 .sp-card[data-color="warning"] { background: var(--amber-tint-2); border-color: var(--amber); }
 .sp-card[data-color="danger"] { background: var(--red-tint-2); border-color: var(--red-ink); }
+/* the bar above a list, and the header of a card that has one: the same object, so
+   the same name. Defined with the list - see .sp-list__toolbar there. */
 /* the whole header is the target: a link out, or the card's own collapse */
 .sp-list__toolbar--link,
 .sp-list__toolbar--toggle {
@@ -140,8 +162,13 @@
 .sp-list__toolbar--toggle[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
 .sp-list__toolbar--toggle[aria-expanded="false"] + .sp-card__body { display: none; }
 .sp-card__body { padding: var(--sp-16); }
-/* a card's one statement, centred in the height the card holds for its resting form */
-.sp-card__fill { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+/* The card's action area. Every action a card owns goes in here - one button, a
+   committing pair, or a text button that reveals more of the card - and never
+   loose in the card's own stack: a full-width button dropped into the stack lands
+   in the same place with the same spacing and no rule above it, so the two read
+   as one thing drawn two ways. The rule above the footer is about context, not
+   the footer's identity: it draws where content ends and action begins, and drops
+   where that boundary is already drawn. */
 .sp-card__footer {
   display: flex;
   align-items: center;
@@ -152,6 +179,11 @@
 /* No rule where the content above is already a bordered box: the well's own
    border and the footer's would read as two separators with nothing between. */
 .sp-well + .sp-card__footer { border-top: 0; padding-top: 0; }
+/* A footer whose only content is one solid button: the button is the footer, so
+   it fills it. No page has to remember --block for this - the structure says it.
+   A pair uses --split, which is already a 1fr/1fr grid, so both halves match.
+   A text button is excluded: it is a link, and a link that spans a card reads as
+   a button while behaving like navigation. */
 .sp-card__footer > .sp-btn:only-child:not([class*="--text"]) { width: 100%; }
 a.sp-card { text-decoration: none; color: inherit; }
 a.sp-card:hover { border-color: var(--line-3); }
@@ -171,6 +203,13 @@ a.sp-card:hover { border-color: var(--line-3); }
   font-weight: 700;
   position: relative;
 }
+/* The attachment size: the box an uploaded image is shown in. It was .sp-tile, a
+   second square image box with its own add, its own no-thumbnail ground and its own
+   kind label - so it is the mark at a fourth size, and the mark's own fills and
+   banner do the rest. Its type follows the scale like every other size, 10, 13, 20,
+   24 - the tile's own 11px was the size of a file-type label, which is what the kind
+   banner is for. The radius stays the 9 the tile had rather than following the scale
+   to 12, which is a separate question from the merge. */
 .sp-mark--xlarge { width: var(--mark-xlarge); height: var(--mark-xlarge); border-radius: var(--r-field); font-size: var(--t-24); }
 .sp-mark--large { width: var(--mark-large); height: var(--mark-large); border-radius: var(--r-card); font-size: var(--t-20); }
 .sp-mark--medium { width: var(--mark-medium); height: var(--mark-medium); border-radius: var(--r-tile); font-size: var(--t-13); }
@@ -194,6 +233,7 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
   color: var(--ink-6);
 }
 .sp-mark--none { background: var(--hover); color: var(--ink-5); }
+/* the extra-photo count sits inside the thumbnail, bottom-right */
 /* The control that takes an attachment away. It is quiet until the box is hovered
    or holds focus, so a grid of them is not a grid of crosses. */
 .sp-mark__remove {
@@ -218,6 +258,9 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
 .sp-mark:hover .sp-mark__remove,
 .sp-mark:focus-within .sp-mark__remove { opacity: 1; }
 
+/* the button that fills the box, where the box itself cannot be one - a mark that
+   carries a remove control cannot also be a button, since a button inside a button
+   is not a thing the browser will render */
 .sp-mark__open {
   display: grid;
   place-items: center;
@@ -234,8 +277,6 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
   outline: none;
 }
 .sp-mark__open:focus-visible { box-shadow: var(--ring); }
-/* a photo inside the open control fills the tile, as it does a bare photo mark */
-.sp-mark__open > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 
 /* a mark that picks a file wraps a real input, clipped rather than hidden so it
    stays focusable and the label around it opens the platform's own picker */
@@ -272,7 +313,24 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
 
 .sp-field__label { font-size: var(--t-12); font-weight: 600; color: var(--ink-2); }
+/* A required field says so on its label. Quiet ink rather than red: red in this
+   system means something is wrong, and a field that has not been filled in yet is
+   not wrong. The asterisk is decoration for a screen reader - the control carries
+   `required`, which is what gets announced - so it is aria-hidden.
+   Most fields in this product are optional (a vendor needs only a name), so the few
+   that are required are the ones worth marking; marking the optional ones instead
+   would put a word on almost every label. */
 .sp-field__required { color: var(--ink-5); font-weight: 400; }
+/* Three messages can sit under a field, and they are three different things:
+   __help is a hint that is always true, __help--attention a warning the user may
+   pass, __error a problem that blocks the save. There is one name for each -
+   never a --error variant of the help, which is how one ends up with no colour. */
+/* Quiet text comes in two sizes: --t-12 carries a sentence that stands on its
+   own (a subtitle, a card's second line), --t-11 one that is subordinate to
+   something above it. A field's help is the second kind - it must read quieter
+   than the label it explains, so it takes --t-11 even though its wording is a
+   full sentence. A warning or an error steps up to --t-12 at 600 with its own
+   colour, which is how a problem outranks the label rather than sitting under it. */
 .sp-subtitle { font-size: var(--t-12); color: var(--ink-4); }
 .sp-field__help { font-size: var(--t-11); color: var(--ink-4); }
 
@@ -298,6 +356,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   pointer-events: none;
 }
 /* centred on the field rather than offset from its top, so it cannot sit low */
+/* The control at the field's trailing edge - a reveal, a clear, a picker. It is a
+   button, so it must state that it has no chrome of its own: without the reset a
+   <button> renders the browser's default 2px outset grey box over the field. */
 .sp-field__trail {
   position: absolute;
   right: var(--sp-6);
@@ -339,6 +400,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-textarea:hover { border-color: var(--line-5); }
 .sp-input:focus-visible,
 .sp-textarea:focus-visible { border-color: var(--green); box-shadow: var(--ring); }
+/* A placeholder is not a value: one step down from the text that will replace it,
+   and the same step in every field. On touch it takes the field's own size instead -
+   a 16px field is what stops a phone zooming when it is focused, and a smaller
+   placeholder inside one is the thing a reader has to read first. */
 .sp-input::placeholder,
 .sp-textarea::placeholder { color: var(--ink-5); font-size: var(--t-12); }
 .sp-tokens__add::placeholder { color: var(--ink-5); font-size: var(--t-12); }
@@ -377,6 +442,12 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   cursor: pointer;
 }
 .sp-input[type="file"]:hover { border-color: var(--green); background: var(--green-tint-2); }
+/* A native control brings its own glyphs, and they are the only ones in the design
+   that are not from the register: a black calendar on a date field, a grey clear on
+   a search field. Both are suppressed, and the field's own trail carries the
+   register's icon instead - which opens the same platform picker, so nothing is
+   lost, and on touch that picker is still the native one. Without this a field
+   shows two of everything: two calendars, or two clears. */
 .sp-input[type="date"]::-webkit-inner-spin-button,
 .sp-input[type="date"]::-webkit-clear-button,
 .sp-input[type="search"]::-webkit-search-cancel-button,
@@ -384,6 +455,19 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   display: none;
   appearance: none;
 }
+/* The calendar indicator survives display: none in current Chrome - it is drawn as
+   the pseudo-element's own background image - so the image is what gets removed.
+   The pseudo keeps its box, which is why the field needs no trail padding: the
+   indicator's own width is the room our icon sits in, and our button is what opens
+   the picker. */
+/* The native calendar glyph cannot be removed in current Chromium - display: none,
+   a cleared background and a zero width all leave it laying out and painting. So it
+   is covered instead: the field keeps its ordinary padding, which puts the glyph in
+   the field's own trailing slot, and the trail button sits over it on the field's
+   ground carrying the register's calendar. The button opens the same platform
+   picker, so nothing is lost by hiding the one the browser draws.
+   Verified by measuring, not by screenshot: a DOM-snapshot capture re-renders the
+   pseudo-element from the UA sheet whatever this file says. */
 .sp-field__wrap:has(> .sp-input[type="date"]) > .sp-field__trail {
   background: var(--surface);
   z-index: 1;
@@ -448,6 +532,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   background: var(--green);
   border-color: var(--green);
 }
+/* The runtime sets .indeterminate, which is a property and cannot be written in
+   markup - so a drawn state needs an attribute to stand in for it. Only ever for
+   documentation; the shipped control sets the property. */
 .sp-check[data-indeterminate="true"] { background: var(--green); border-color: var(--green); }
 .sp-check[data-indeterminate="true"]::after,
 .sp-check:indeterminate::after {
@@ -479,6 +566,11 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-choice:has(:disabled) { color: var(--ink-5); cursor: not-allowed; }
 
+/* A named set of controls, which was drawn twice: `.sp-fieldset` for a group of
+   choices and `.sp-field-group` for a group in the filter rail. They had the same reset,
+   the same axis, the same 8px gap and the same 12/600 legend - only `min-width: 0`
+   and the counted head told them apart, and neither is a second design. One class
+   now, and the gap is the field's 6 so a group and a field space alike. */
 .sp-field-group {
   border: 0;
   padding: 0;
@@ -527,6 +619,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-switch:focus-visible { box-shadow: var(--ring); }
 .sp-switch:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* stepper: two buttons and a field */
 /* ---------- stepper - LOCKED c4 ----------
    One bordered control, its buttons divided by a rule. */
 .sp-stepper {
@@ -587,6 +680,12 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-touch .sp-stepper__btn { width: 40px; }
 .sp-touch .sp-stepper__value { font-size: var(--t-16); }
 
+/* RangeInput: two handles over a rail, optionally above the pair of fields that
+   set the same two bounds exactly. The rail is coarse, the fields are precise,
+   and they are one value seen twice.
+   The rail spans the field's full width and the handles travel inside it, so at
+   either bound a handle's edge lines up with the field's edge rather than hanging
+   over it. Positions are the percentage --p (and --a / --b for the span). */
 .sp-track {
   --hs: 14px;
   position: relative;
@@ -622,15 +721,36 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 
 .sp-track__handle:focus-visible { box-shadow: var(--ring); }
 .sp-track__handle:active { cursor: grabbing; }
-/* on touch the rail is the same 4px, but the handle grows and carries a touch target
-   (the shared rule in the touch block) */
+/* on touch the rail is the same 4px, but the handle grows and carries a 44px target */
 .sp-touch .sp-track { --hs: 18px; margin: var(--sp-16) 0; }
+.sp-touch .sp-track__handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--control-h-touch);
+  height: var(--control-h-touch);
+  transform: translate(-50%, -50%);
+}
 
 .sp-bounds { display: flex; gap: var(--sp-8); }
 .sp-bounds .sp-input { padding: 0 var(--sp-8); }
 
 /* ---------- button - LOCKED c6 ---------- */
 
+/* COLOUR - the full set of values a button paints with. [data-color] replaces the
+   set; it does not tint it, so primary is a complete set like any other and every
+   variable below is always defined.
+
+   A style class states structure - ground, border, padding - and reads its colours
+   from here. That is what keeps the two axes apart: there is no bordered-destructive
+   rule, because bordered is structure and destructive is colour, and they meet on
+   the element rather than in a class name.
+
+   Three colours: primary is the green of the action you are meant to take and is
+   the default, so it carries no attribute; attention is the amber of something over
+   its limit; destructive is the red of removing a record. `disabled` is not a
+   colour - it is the attribute, and it composes with every style and colour. */
 .sp-btn {
   --btn-fill: var(--green);
   --btn-fill-hover: var(--green-2);
@@ -705,11 +825,23 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-btn--outline:not(:disabled):active { background: var(--btn-tint-press); }
 .sp-btn--outline:disabled:hover { background: var(--surface); }
 
+/* The edge inherits the button's colour instead of the grey line. For a button on a
+   tinted ground, where --line-3 is 1.17:1 against --green-tint and the white ground
+   is no better, so only the label reads. No colour is nameable: the edge comes from
+   whatever colour the button already is, which is why a red or amber ground needs no
+   case of its own. */
+/* Only the border is softened - the label's ink and any fill stay at full strength.
+   The border IS the button's colour at half weight rather than a second colour named
+   per set, which is what the word inherit claims and what keeps every colour handled
+   by one rule. It firms up to the full ink on hover. */
 .sp-btn--border-inherit {
   --btn-border: color-mix(in oklch, var(--btn-ink) 50%, transparent);
   --btn-border-hover: var(--btn-ink);
 }
 
+/* The quietest weight: no ground, no border. It reads as floating text where it sits
+   beside bordered controls, which is why the uses moved to Secondary - see the Open
+   note in c4. The variant stays defined for the places that want it back. */
 .sp-btn--text {
   background: none;
   color: var(--btn-ink);
@@ -721,8 +853,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 
 .sp-btn--block { width: 100%; }
 
-/* the smallest button, for the action in a rail section header (Views, Filters);
-   on touch it takes the small size, see the .sp-touch rule */
+/* The smallest button: the action a rail section header carries (Views - Edit,
+   Filters - Clear all), where 34px stands taller than the 11px label beside it.
+   Desktop only - on touch it takes the small size, see the .sp-touch rule. */
 .sp-btn--xsmall {
   height: 22px;
   padding: 0 var(--sp-6);
@@ -805,12 +938,6 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-chip--dashed:hover { color: var(--ink-3); }
 .sp-chip--static { cursor: default; }
 .sp-chip--static:hover { border-color: var(--line-3); }
-/* on touch a chip that acts is a control and takes its height; a token keeps its size
-   and lets its remove target reach past it, cutting its own text instead */
-.sp-touch button.sp-chip,
-.sp-touch label.sp-chip { height: var(--control-h-touch); }
-.sp-touch .sp-chip:has(> .sp-icon-btn) { overflow: visible; }
-.sp-touch .sp-chip:has(> .sp-icon-btn) > span { overflow: hidden; text-overflow: ellipsis; }
 /* pill chip: a one-shot range or shortcut, as Order statistics 5b draws it */
 .sp-chip--pill {
   border-radius: var(--r-pill);
@@ -818,6 +945,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   font-size: var(--t-12);
   color: var(--ink-3);
 }
+
+/* ---------- controls bar - DRAFT c20 ----------
+   The bar a page puts above a list: search, and any of filters, sort, one action.
+   It pads --card-pad, as every bar above content does - see the token. */
 
 .sp-controls {
   display: flex;
@@ -835,20 +966,11 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-controls > .sp-segmented,
 .sp-controls > .sp-btn { flex: none; }
 .sp-controls > .sp-combobox .sp-combobox__trigger { width: auto; }
-/* at 900 the bar takes its phone shape (18b), in the shell's column as on a phone:
-   search alone on the first row, the other controls sharing the second */
-@container (max-width: 900px) {
-  .sp-controls { flex-wrap: wrap; }
-  .sp-controls > .sp-picker__search { flex: 1 0 100%; }
-  .sp-controls > .sp-combobox { flex: 1 1 0; min-width: 0; }
-  .sp-controls > .sp-combobox .sp-combobox__trigger { width: 100%; }
-  .sp-controls > .sp-combobox .sp-combobox__trigger > span { overflow: hidden; text-overflow: ellipsis; }
-  /* a bar with no search breaks at the spacer that ends its first row, so its actions move
-     as one row and keep the end: the spacer's own line is the gap between the two */
-  .sp-controls:has(> .sp-grow) { row-gap: 0; }
-  .sp-controls > .sp-grow { flex-basis: 100%; height: var(--sp-12); }
-  .sp-controls > .sp-grow + * { margin-left: auto; }
-}
+.sp-touch .sp-controls { flex-wrap: wrap; }
+.sp-touch .sp-controls > .sp-picker__search { flex: 1 0 100%; }
+.sp-touch .sp-controls > .sp-combobox { flex: 1 1 0; min-width: 0; }
+.sp-touch .sp-controls > .sp-combobox .sp-combobox__trigger { width: 100%; }
+.sp-touch .sp-controls > .sp-combobox .sp-combobox__trigger > span { overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- list - LOCKED c1 ---------- */
 
@@ -890,13 +1012,14 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   display: flex;
   align-items: center;
   gap: var(--sp-12);
+  /* the top stays on the table's 12px row rhythm, so Load more still reads as one
+     more row of it; the bottom takes the 16 the sides use, so the gap below the
+     button matches the gap right of it */
   padding: var(--sp-12) var(--sp-16) var(--sp-16);
 }
 /* below a card grid there is no list border to sit inside, so the footer takes
    the grid's own width: the count at one edge, Load more at the other */
 .sp-touch .sp-list__footer--loose { flex-direction: column; gap: var(--sp-8); }
-/* stacked, the spacer would add a second gap between the count and Load more */
-.sp-touch .sp-list__footer--loose > .sp-grow { display: none; }
 .sp-touch .sp-list__footer--loose .sp-btn { width: 100%; }
 .sp-list__footer--loose { padding: 0; }
 
@@ -913,8 +1036,6 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table td:last-child { padding-right: var(--sp-16); }
 .sp-table th + th,
 .sp-table td + td { padding-left: var(--sp-12); }
-/* the compact row density (Settings, Appearance): more rows on screen, same columns */
-[data-density="compact"] .sp-table tbody td { padding-top: var(--sp-6); padding-bottom: var(--sp-6); }
 
 .sp-table thead th {
   padding-top: var(--sp-8);
@@ -929,6 +1050,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table tbody tr { border-bottom: 1px solid var(--line-2); }
 .sp-table tbody tr:last-child { border-bottom: 0; }
 .sp-table tbody tr:hover { background: var(--hover); cursor: pointer; }
+/* A reference table is read, not opened: its rows carry no record behind them, so
+   neither the lit row nor the hand belongs on them. Same opt-out as
+   .sp-chip--static - the interactive default stands, the inert case declares itself. */
 .sp-table--static tbody tr:hover { background: none; cursor: default; }
 /* a checked row marks itself, so the tick and the row never disagree */
 .sp-list-item:has(input:checked) { background: var(--green-tint); }
@@ -948,12 +1072,20 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* the menu column is exactly its control, so it takes no side padding */
 .sp-table th.sp-col-menu,
 .sp-table td.sp-cell-menu-cell { padding-left: 0; padding-right: 0; }
+/* Truncation needs a block box: on an inline span overflow is ignored, so the
+   text stops wrapping and spills into the next column instead of ellipsing.
+   Where a cell's content IS the truncating text, the cell gives it that box -
+   .sp-cell-flex already does the same job by being a flex parent. */
 .sp-table td > .sp-truncate { display: block; }
 
 .sp-table .sp-col-amount { width: 152px; text-align: right; }
 .sp-table .sp-col-status { width: 120px; }
 .sp-table .sp-col-date { width: 104px; }
 .sp-table .sp-col-number { width: 90px; }
+/* the title states no width and every other column does: in a fixed table the one
+   unstated column absorbs the slack, so the pixel columns stay the size they say
+   instead of the leftover being spread across all of them. The title is the column
+   that can take it - it has text to give, and it truncates */
 .sp-table .sp-col-title { width: auto; }
 .sp-table .sp-col-flex { width: 21%; }
 /* a table inside a panel or a card: the same table, at the density a narrow
@@ -967,10 +1099,11 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table--compact thead th { background: var(--surface-2); border-bottom: 0; }
 
 .sp-cell-flex { display: flex; align-items: center; gap: var(--sp-12); min-width: 0; }
-/* a row that opens a record carries its link on the title: the cell's ink, and the row's own focus */
-a.sp-cell-flex { color: inherit; text-decoration: none; outline: none; border-radius: var(--r-tile); }
-a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
-.sp-table tbody tr:has(a.sp-cell-flex:focus-visible) { background: var(--hover); }
+/* A modifier on .sp-stacked: an amount over its saving is the same stacked pair,
+   so every amount cell carries both classes and a change to the stack reaches this
+   column too. This states only the two differences - the pair sits against the
+   column's right edge, and it never hides overflow, since an amount is shown in full
+   or not at all. */
 .sp-cell-amount {
   align-items: flex-end;
   overflow: visible;
@@ -980,6 +1113,9 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 /* the same list, rendered as cards: the columns of a row become the lines of a
    card, so the records and their order are unchanged - only the shape is */
 
+/* The same grid with no query at all: the track floor decides how many fit, so it
+   reflows at every width instead of stepping at two. Two classes, so it outranks the
+   base track and the queries that step it. */
 .sp-cards.sp-cards--fluid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .sp-record {
   display: flex;
@@ -1025,6 +1161,24 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
   width: var(--control-h-touch);
   height: var(--control-h-touch);
 }
+/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c);
+   its round scrim keeps it legible over any photo */
+.sp-record__photos > .sp-record__pick { opacity: 0; }
+.sp-record:hover .sp-record__pick,
+.sp-record__pick:focus-within,
+.sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
+.sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
+.sp-record__pick > .sp-check { grid-area: 1 / 1; }
+.sp-record__pick::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: calc(var(--box) + var(--sp-10));
+  height: calc(var(--box) + var(--sp-10));
+  border-radius: 50%;
+  background: var(--overlay-scrim);
+}
+/* the band that says there are no photos has nothing to read the box against, so it needs no scrim */
+.sp-record__photos--empty > .sp-record__pick::before { content: none; }
 /* the box and the menu sit over the photo, so both carry a lift to stay legible */
 .sp-record__photos .sp-check { box-shadow: 0 1px 4px rgba(27, 26, 23, 0.28); }
 .sp-record__menu {
@@ -1044,9 +1198,6 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
   height: var(--control-h-touch);
 }
 .sp-record__menu .sp-menu--floating { top: 100%; right: 0; }
-.sp-record__menu .sp-menu--floating[data-place="up"] { top: auto; bottom: 100%; }
-/* the button's target is the whole hit box around it, not the 22px glyph */
-.sp-record__menu > .sp-record__act::after { content: ""; position: absolute; inset: 0; }
 .sp-record__act {
   display: grid;
   place-items: center;
@@ -1092,31 +1243,15 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
 .sp-record:has(input:checked) { border-color: var(--green); background: var(--green-tint); }
 .sp-record[data-void="true"] { opacity: 0.6; }
-/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c);
-   its round scrim keeps it legible over any photo */
-.sp-record__photos > .sp-record__pick { opacity: 0; }
-.sp-record:hover .sp-record__pick,
-.sp-record__pick:focus-within,
-.sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
-.sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
-.sp-record__pick > .sp-check { grid-area: 1 / 1; }
-.sp-record__pick::before {
-  content: "";
-  grid-area: 1 / 1;
-  width: calc(var(--box) + var(--sp-10));
-  height: calc(var(--box) + var(--sp-10));
-  border-radius: 50%;
-  background: rgba(27, 26, 23, 0.35);
-}
-/* the band that says there are no photos has nothing to read the box against, so it needs no scrim */
-.sp-record__photos--empty > .sp-record__pick::before { content: none; }
+
+
+/* The card's lines are a column of text at the shared gap - see .sp-stacked. This
+   states only what differs: it takes the space the mark leaves, and it does not hide
+   overflow, since each line truncates its own text and carries an amount that must
+   not be cut. */
 
 .sp-list-item .sp-chip,
 .sp-list-item .sp-pill { flex: none; }
-/* a pill naming what the reader typed gives way before the row does: the name ends in an ellipsis */
-.sp-pill:has(> .sp-truncate) { min-width: 0; max-width: 100%; }
-.sp-list-item .sp-pill:has(> .sp-truncate) { flex: 0 1 auto; }
-.sp-pill > .sp-truncate { display: block; }
 
 /* ---------- menu - LOCKED c9 ---------- */
 
@@ -1176,6 +1311,10 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 }
 .sp-picker__search { position: relative; display: block; }
 .sp-options {
+  /* the cell is a fixed square - an icon is the same size everywhere it is shown -
+     so the row holds as many as the field fits and the rest wrap onto the next
+     line. Eight is what a field at the form width holds; narrower fields hold
+     fewer rather than shrinking the icons. */
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-8);
@@ -1208,27 +1347,33 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
   outline: 2px solid var(--green);
   outline-offset: 1px;
 }
+/* a label carries the same chosen ring as a button: the custom cell is a label,
+   because it wraps the native colour input, and a colour chosen outside the set is
+   chosen exactly as much as one inside it */
 label.sp-option--swatch[aria-pressed="true"] {
   outline: none;
   background: var(--swatch, var(--green));
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green);
 }
+/* The ring is drawn rather than outlined, so it cannot widen the grid. The cell
+   keeps its own colour while it is the chosen one: a chosen option otherwise takes
+   the group's pressed ground, which on a swatch would paint over the very thing
+   being chosen. A named swatch already won on specificity; one carrying its colour
+   as a value did not. */
 .sp-option--swatch[aria-pressed="true"] {
   outline: none;
   background: var(--swatch, var(--green));
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green);
 }
-/* focus adds the ring outside the chosen ring: the ring's 3px in the ring's colour, past the 4 */
-.sp-option--swatch[aria-pressed="true"]:focus-visible,
-label.sp-option--swatch[aria-pressed="true"]:focus-within {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green), 0 0 0 7px var(--green-tint);
-}
 .sp-option--custom { background: var(--surface); border: 1px solid var(--line-3); color: var(--ink-3); }
 .sp-option--custom:hover { border-color: var(--line-5); }
-.sp-touch .sp-option { width: var(--control-h-touch); height: var(--control-h-touch); }
 
 /* ---------- meter - LOCKED c10 ---------- */
 
+/* the gauge is the track: the fill, the overage and the marker are drawn against
+   the same box, so nothing can drift. The <meter> stays for semantics - it is what
+   a screen reader reads - but it paints nothing, because a browser insets its own
+   bar inside its box and that offset is not ours to fight */
 .sp-gauge {
   position: relative;
   display: block;
@@ -1282,8 +1427,6 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
 .sp-segmented {
   display: inline-flex;
   align-self: flex-start;
-  /* in a column narrower than its labels it gives up the segments' padding, never the column's edge */
-  max-width: 100%;
   height: var(--control-h);
   padding: var(--sp-6);
   gap: var(--sp-6);
@@ -1295,7 +1438,6 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
   display: grid;
   place-items: center;
   position: relative;
-  min-width: 0;
   padding: 0 var(--sp-12);
   border-radius: var(--r-tile);
   font-size: var(--t-13);
@@ -1332,9 +1474,6 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
   place-items: center;
 }
 .sp-segmented__item:has(:focus-visible) { box-shadow: var(--ring); }
-/* on touch the track's whole height picks: each option's target reaches through its inset */
-.sp-touch .sp-segmented__item::before,
-.sp-touch .sp-period__preset::before { content: ""; position: absolute; inset: calc(var(--sp-6) * -1) 0; }
 
 /* ---------- sort control and pager - LOCKED c8 ---------- */
 
@@ -1375,11 +1514,7 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
   min-height: var(--crumb-h);
 }
 .sp-crumbs__root { font-size: var(--t-13); font-weight: 600; color: var(--ink-3); }
-.sp-crumbs li { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; max-width: 100%; }
-/* a level the reader drilled into can have any name: it ends in an ellipsis, and its remove keeps its size */
-:has(> .sp-crumbs) { min-width: 0; }
-.sp-crumb { max-width: 100%; min-width: 0; }
-.sp-crumb__remove { flex: none; }
+.sp-crumbs li { display: flex; align-items: center; gap: var(--sp-8); }
 .sp-crumbs li + li::before {
   content: "";
   width: 5px;
@@ -1402,10 +1537,6 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
   font-weight: 600;
   cursor: default;
 }
-/* an earlier level of the path, pressed to go back to it */
-button.sp-crumb { cursor: pointer; outline: none; }
-button.sp-crumb:hover { background: var(--green-5); }
-button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-crumb__remove {
   display: grid;
   place-items: center;
@@ -1467,44 +1598,15 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 
 /* ---------- touch: the same components, bigger targets ---------- */
 
-/* a small control keeps its drawing and carries an invisible touch-sized target (18b: 44px or more) */
-.sp-touch .sp-track__handle::after,
-.sp-touch button.sp-field__trail::after,
-.sp-touch .sp-icon-btn--small::after,
-.sp-touch .sp-icon-btn--field::after,
-.sp-touch .sp-crumb__remove::after,
-.sp-touch .sp-list-item__handle::after,
-.sp-touch .sp-slot__remove::after,
-.sp-touch .sp-toast__undo::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--control-h-touch);
-  height: var(--control-h-touch);
-  transform: translate(-50%, -50%);
-}
-.sp-touch .sp-icon-btn--small,
-.sp-touch .sp-icon-btn--field:not(.sp-field__trail),
-.sp-touch .sp-crumb__remove,
-.sp-touch .sp-list-item__handle,
-.sp-touch .sp-slot__remove,
-.sp-touch .sp-toast__undo { position: relative; }
-/* every other icon button is a touch control: its box takes the touch size, so two side
-   by side are two targets rather than one shared one */
-.sp-touch .sp-icon-btn:not(.sp-icon-btn--small):not(.sp-icon-btn--field) { width: var(--control-h-touch); height: var(--control-h-touch); }
-/* a row you pick from is a target as tall as a control */
-.sp-touch .sp-choice,
-.sp-touch .sp-menu__item,
-.sp-touch .sp-combobox__option,
-.sp-touch .sp-field-group__more { min-height: var(--control-h-touch); }
-/* a sum line that opens something is a row too; one with a single line centres it in that height */
-.sp-touch .sp-sum[role="button"] { min-height: var(--control-h-touch); }
-.sp-touch .sp-sum[role="button"]:not(:has(.sp-meta)) { align-items: center; }
-
+/* Touch sizes the controls a finger aims at. Every button reaches the 44px floor,
+   the small variant included - it stays narrow rather than short, since the width
+   rule below is the one that excludes it. */
 .sp-touch .sp-input,
 .sp-touch .sp-btn { min-height: var(--control-h-touch); font-size: var(--t-14); }
 .sp-touch .sp-input { font-size: var(--t-16); }
+/* A button on touch fills its column, so a finger has the whole width to aim at.
+   A bar lays its own buttons out in a row, so a button in one keeps its own width -
+   otherwise two commits and their label cannot share 375px. */
 .sp-touch .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 /* xsmall is a desktop size: on touch it is the small button, height and width */
 .sp-touch .sp-btn--xsmall { width: auto; height: 34px; padding: 0 var(--sp-16); font-weight: 600; }
@@ -1524,12 +1626,9 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-touch .sp-switch::after { width: 20px; height: 20px; top: var(--sp-2); left: var(--sp-2); }
 .sp-touch .sp-switch:checked::after { transform: translateX(18px); }
 .sp-touch .sp-list-item__line .sp-title { font-size: var(--t-15); }
-/* on a phone a row's text buttons do not fit beside its words: they go under them, where the words start */
-.sp-touch .sp-list-item:has(> .sp-list-item__actions .sp-btn) { flex-wrap: wrap; }
-.sp-touch .sp-list-item > .sp-list-item__actions:has(.sp-btn) { flex-basis: 100%; }
-.sp-touch .sp-list-item:has(> .sp-mark--small, > .sp-list-item__count) > .sp-list-item__actions:has(.sp-btn) { padding-left: calc(var(--mark-small) + var(--sp-12)); }
 
-/* the shell's own touch query (app/useMedia.js): 640 is still the desktop rail */
+/* the shell's own touch query: 640 is still the desktop rail (18b, "below 640px"); small
+   and xsmall buttons keep their own width, as the touch rule and 1c have them */
 @media (max-width: 639.98px) {
   .sp-section { padding: 0 var(--sp-16) var(--sp-16); }
   .sp-input,
@@ -1560,6 +1659,11 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-option--swatch[data-swatch="ink-6"] { background: var(--ink-6); }
 .sp-option--swatch.sp-option--custom { background: var(--surface); }
 
+/* ---------- Combobox: one component, two modes ----------
+   Mode 1 pick-only - the trigger is a button, because there is nothing to type into.
+   Mode 2 searchable - the trigger is a text input and the list narrows as you type.
+   Not a native select: options carry dots, marks, meta and a check. */
+
 .sp-combobox { position: relative; display: block; }
 .sp-combobox__trigger {
   display: flex;
@@ -1578,6 +1682,13 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
+/* A control that takes its height from the container it sits in rather than from
+   --control-h. It states no height of its own, so it fills whatever the row is:
+   the parent must be a grid or flex row that stretches its items, and the height
+   then comes from the tallest side and changes with it. Use it where a control is
+   paired with a box that carries more than one line - a mapping row, a two-line
+   value beside a field - and the two must read as one pair. A page cannot do this
+   itself: --control-h is set unlayered, so a layered page rule never wins. */
 .sp-combobox--stretch { display: flex; }
 .sp-combobox--stretch .sp-combobox__trigger { height: auto; }
 .sp-input--stretch { height: auto; display: flex; align-items: center; }
@@ -1585,8 +1696,7 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-combobox__trigger:hover { border-color: var(--line-5); }
 .sp-combobox__trigger:focus-visible,
 .sp-combobox__trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: var(--ring); }
-/* the chosen value keeps to one line, and says it runs on when the field is too narrow */
-.sp-combobox__trigger > .sp-grow { pointer-events: none; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-combobox__trigger > .sp-grow { pointer-events: none; }
 /* a flex box, like the card's and the row's chevrons: an inline svg sits on the
    text baseline instead, which reads as a glyph a pixel or two too high */
 .sp-combobox__chevron { display: flex; align-items: center; color: var(--ink-5); flex: none; }
@@ -1614,8 +1724,6 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
   overflow-y: auto;
 }
 .sp-combobox[data-open="true"] .sp-combobox__panel { display: flex; }
-/* with no room below and more above, the panel opens upward from the field (c9) */
-.sp-combobox__panel[data-place="up"] { top: auto; bottom: calc(100% + var(--sp-2)); }
 /* the panel overlays: it is anchored under the trigger and never changes the layout behind it */
 
 .sp-combobox__group {
@@ -1651,9 +1759,15 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 /* hover and keyboard focus are one state; the current value is another, and they can sit on different rows */
 .sp-combobox__option:hover,
 .sp-combobox__option:focus-visible { background: var(--hover); }
+/* selection is the ground, not the weight: weighting the whole option bolded its meta
+   lines too, so a selected row read heavier throughout while its neighbours kept the
+   title-only weight */
 .sp-combobox__option[aria-selected="true"] {
   background: var(--green-tint);
 }
+/* The option the keyboard is on. It takes the ring rather than a ground, because a
+   chosen option already has one and both have to read at once - and the ring is what
+   marks where the keyboard is everywhere else in the system. */
 .sp-combobox__option[data-active="true"] { box-shadow: var(--ring); }
 .sp-combobox__option:disabled { opacity: 0.45; cursor: not-allowed; }
 .sp-combobox__dot {
@@ -1668,11 +1782,15 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-combobox__dot[data-dot="done"] { background: var(--green); }
 .sp-combobox__dot[data-dot="returned"] { background: var(--amber-2); }
 .sp-combobox__dot[data-dot="cancelled"] { background: var(--red); }
-/* a category over its monthly limit carries this wherever it is named (8b, c19) */
-.sp-combobox__dot[data-dot="problem"] { background: var(--red); }
 .sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
 .sp-combobox__empty { padding: var(--sp-8) var(--sp-12); font-size: var(--t-13); color: var(--ink-5); }
+
+/* ---------- FAB: the create action on touch ----------
+   A 56px round button that opens New order (3a step 1) - one size, everywhere it
+   appears, and never a label: it is the only floating action in the app, so there
+   is nothing to tell it apart from. The hidden file input lives on the receipt
+   zone in 3a, not here. */
 
 .sp-fab {
   display: grid;
@@ -1737,6 +1855,9 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 }
 .sp-menu li:hover > .sp-menu__sub,
 .sp-menu li:focus-within > .sp-menu__sub,
+/* the same depth as the rule that hides it: that one carries an element selector, so
+   at equal class count this one lost and a submenu opened on hover but never from
+   its item's own state - which is what a keyboard and a touch device have */
 .sp-menu li:has(> .sp-menu__sub) > .sp-menu__item[aria-expanded="true"] + .sp-menu__sub {
   visibility: visible;
   opacity: 1;
@@ -1775,6 +1896,10 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
   display: grid;
   /* a peeking sidebar is positioned against this */
   position: relative;
+  /* The sidebar's width in a shell is this track. It is not animated: a grid track
+     does not interpolate here, and a transition on it only holds the old width for
+     its duration and then snaps, which reads as a jump. The column changes at once
+     and the labels carry the movement. */
   grid-template-columns: var(--sidebar-w) 1fr;
   min-height: 520px;
   background: var(--surface-2);
@@ -1783,10 +1908,20 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
   overflow: hidden;
 }
 .sp-shell--collapsed { grid-template-columns: var(--sidebar-w-rail) 1fr; }
+/* The rail is a state of the sidebar, not of the shell: a sidebar drawn on its own
+   collapses the same way, so the treatment is stated against this variant and the
+   shell's collapsed class shares every rule with it. */
 .sp-sidebar.sp-sidebar--rail { width: var(--sidebar-w-rail); }
+/* Peek: a collapsed sidebar opens on hover and closes again when the pointer leaves,
+   without the page moving - it floats over the content at its expanded width while
+   the column stays at the rail's. components.js holds it through a short delay, so
+   crossing the rail on the way somewhere else does not open it. */
 /* the sidebar leaves the flow while it peeks, so the page keeps the column it was in
    rather than sliding left into the rail's */
 .sp-shell--collapsed:has(.sp-sidebar--peek) > *:not(.sp-sidebar) { grid-column: 2; }
+/* The words arrive with the column rather than appearing fully formed in it, so the
+   whole thing reads as one movement. Both the grip and the hover peek use this: the
+   slide belongs to the sidebar, not to either control. */
 @keyframes sp-sidebar-slide-in {
   from { opacity: 0; transform: translateX(-10px); }
   to { opacity: 1; transform: none; }
@@ -1830,6 +1965,10 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
 .sp-sidebar {
   display: flex;
   flex-direction: column;
+  /* Two spacing values and no others. Rows sit --sp-6 apart, and so does a group
+     title from the rows it heads. Blocks - the brand, a group, the account - sit
+     --sp-16 apart; since the column's own gap already contributes 6, the elements
+     that start a block add the remainder rather than a second full value. */
   gap: var(--sp-6);
   --sidebar-block-extra: calc(var(--sp-16) - var(--sp-6));
   min-width: 0;
@@ -1845,6 +1984,10 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
   .sp-sidebar { transition: none; }
 }
 
+/* The grip: the one control that collapses the sidebar to the rail and expands it
+   again. It sits just inside the sidebar's right edge, vertically centred, so it is
+   in the same place whatever the column holds and at whatever scroll position -
+   inside rather than straddling the seam, because the shell clips its overflow. */
 .sp-sidebar__grip {
   position: absolute;
   top: 50%;
@@ -1969,6 +2112,9 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   border: 0;
   background: rgba(255, 255, 255, 0.09);
 }
+/* The rail is produced from the expanded sidebar's own markup, so one sidebar serves
+   both states: everything that is words goes, everything that is a target stays and
+   centres. A chevron or a switch is not a direct child span, hence * rather than span. */
 .sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-nav-item > *:not(.sp-nav-item__icon):not(.sp-mark),
 .sp-sidebar--rail:not(.sp-sidebar--peek) .sp-nav-item > *:not(.sp-nav-item__icon):not(.sp-mark) { display: none; }
 /* the group title keeps its box and loses only its words, so the rows below it stay
@@ -1995,6 +2141,10 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
 
 /* the content column's own body: the padding the app gives its pages and the
    rhythm between their blocks. Every page sits in one, so no page states it. */
+/* The column beside the sidebar: the top bar, then the page's own body. The bar is
+   the body's sibling and never sits inside it - inside, it would take the body's
+   padding and card gap and read as the first card on the page. The pages spell this
+   column themselves; the component owns it so a page cannot nest it wrongly. */
 .sp-shell__page {
   display: flex;
   flex-direction: column;
@@ -2011,10 +2161,10 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   gap: var(--sp-12);
   padding: var(--sp-16);
   min-width: 0;
-  /* the layout container of Responsive reference 18a: its content box is the column
-     every threshold inside the page measures */
-  container-type: inline-size;
 }
+/* a page whose content is a list and the record it opens: two tracks, the panel's
+   width fixed and the list taking the rest, on the body's own rhythm. A page states
+   none of it - two columns spacing themselves differently is how rows drift apart. */
 .sp-shell__body--split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
@@ -2037,14 +2187,6 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   gap: inherit;
   min-width: 0;
 }
-/* at 900 two columns become one (18b): each column spans both tracks, so the empty
-   max-content track and its gap take no width, and the rail follows its form */
-@container (max-width: 900px) {
-  .sp-shell__body--split > * { grid-column: 1 / -1; }
-  .sp-shell__body .sp-panel { width: auto; position: static; }
-}
-/* a page with nothing for the rail (loading, missing, failed) fills the body */
-.sp-shell__body--split > :only-child { grid-column: 1 / -1; }
 
 .sp-topbar {
   display: flex;
@@ -2054,6 +2196,11 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
+/* The same bar on a phone: --phone-bar-h tall whatever it carries - the search field,
+   or a back control beside a record's name - and inset to the frame's own gutter, so
+   the field lines up with the content under it wherever the phone is drawn. The height
+   is exact rather than a floor: a 48px touch field plus padding would otherwise push
+   it a pixel past the bars it must match. */
 .sp-topbar--touch {
   height: var(--phone-bar-h);
   box-sizing: border-box;
@@ -2072,6 +2219,11 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   padding-right: var(--phone-gutter);
 }
 
+/* A bar at the top edge of a phone screen reaches the glass the way the tab bar, the
+   save bar and a sheet reach the bottom of it - the top bar, and the selection bar
+   that replaces it while rows are selected. Only as a direct child: nested one level
+   down, the element holding it has already bled. As the first child it also takes the
+   frame's own top corners, since nothing sits above it. */
 .sp-phone > .sp-topbar,
 .sp-phone > .sp-bulkbar { margin-left: calc(var(--sp-16) * -1); margin-right: calc(var(--sp-16) * -1); }
 .sp-phone > .sp-topbar:first-child,
@@ -2112,7 +2264,7 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   border-top: 1px solid var(--line);
   /* every bar pinned to the bottom of a phone screen is at least this tall, so the
      frame keeps its height when a save bar takes the tab bar's place */
-  min-height: 68px;
+  min-height: var(--commit-bar-h);
   box-sizing: border-box;
 }
 .sp-tabbar__item {
@@ -2130,8 +2282,6 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   cursor: pointer;
   outline: none;
 }
-/* a destination is a link (9h), which must not read as underlined text */
-a.sp-tabbar__item { text-decoration: none; }
 .sp-tabbar__item[aria-current="page"] { color: var(--green); font-weight: 600; }
 .sp-tabbar__item:focus-visible { box-shadow: var(--ring); }
 
@@ -2150,6 +2300,9 @@ a.sp-tabbar__item { text-decoration: none; }
   border-bottom: 1px solid var(--line);
 }
 .sp-bulkbar__count { font-size: var(--t-13); font-weight: 600; color: var(--green); }
+/* the second line of the bar: what the page selection does not cover, and the
+   action that widens it. Same ground as the bar it hangs from, so the two read
+   as one strip rather than a banner dropped into the list */
 .sp-bulkbar--note {
   height: auto;
   padding: var(--sp-10) var(--sp-16);
@@ -2157,22 +2310,15 @@ a.sp-tabbar__item { text-decoration: none; }
   font-size: var(--t-12);
   color: var(--ink-2);
 }
-/* on a phone a selection takes the top bar's place (c12): stuck to the top of the screen, out to
-   its edges over the body's own inset, while the top bar steps aside until the selection empties */
-.sp-bulkbar--head {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  margin: calc(var(--sp-12) * -1) calc(var(--sp-12) * -1) 0;
-  gap: var(--sp-8);
-}
-.sp-shell--touch:has(.sp-bulkbar--head) > .sp-shell__page > .sp-topbar { display: none; }
 
 /* ---------- facets - LOCKED c12 ---------- */
 
 .sp-facets { display: flex; flex-direction: column; gap: var(--sp-16); width: 100%; min-width: 0; }
 /* the page sets the rail width; the facets fill whatever they are given */
 .sp-rail { width: 232px; flex: none; }
+/* the panel: the record a list row opens, beside the list rather than over it.
+   Wider than the facet rail because it holds fields, not filters, and sticky so
+   it stays level with the row it belongs to. */
 .sp-panel {
   width: 360px;
   flex: none;
@@ -2188,45 +2334,11 @@ a.sp-tabbar__item { text-decoration: none; }
   display: flex;
   align-items: center;
   gap: var(--sp-8);
-  /* a legend shrinks to its words unless told, which would keep the count and the chevron off the end */
-  width: 100%;
   font-size: var(--t-12);
   font-weight: 600;
   color: var(--ink-2);
 }
 .sp-field-group__count { font-size: var(--t-11); color: var(--ink-5); font-variant-numeric: tabular-nums; }
-/* a facet group folds from its head (c12, 16a): the whole head is one button, Enter or a press
-   folds it, and the chevron turns as the card's does */
-.sp-field-group__fold {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: var(--sp-8);
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-marker);
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  outline: none;
-}
-.sp-field-group__fold:focus-visible { box-shadow: var(--ring); }
-/* a facet's values scroll inside the group rather than lengthen the rail (16a); the inset is room
-   for a value's focus ring, which the scroll box would otherwise cut */
-.sp-field-group__values {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-6);
-  max-height: var(--list-max);
-  overflow-y: auto;
-  margin: calc(var(--sp-4) * -1);
-  padding: var(--sp-4);
-}
-.sp-field-group__fold[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
-.sp-touch .sp-field-group__fold { min-height: var(--control-h-touch); }
 .sp-filters {
   display: flex;
   align-items: center;
@@ -2248,12 +2360,6 @@ a.sp-tabbar__item { text-decoration: none; }
 .sp-empty__body { font-size: var(--t-14); color: var(--ink-3); max-width: 380px; line-height: var(--lh); }
 
 /* ---------- loading - LOCKED c13 ---------- */
-
-/* a state laid over the resting form, which is kept unseen beneath so the height holds */
-.sp-hold { display: grid; }
-.sp-hold__ghost,
-.sp-hold__state { grid-area: 1 / 1; display: grid; min-width: 0; }
-.sp-hold__ghost { visibility: hidden; }
 
 .sp-skeleton {
   display: block;
@@ -2300,6 +2406,9 @@ a.sp-tabbar__item { text-decoration: none; }
 .sp-skeleton[data-h="22"] { height: 22px; }
 .sp-skeleton[data-h="18"], .sp-skeleton[data-h="20"], .sp-skeleton[data-h="22"] { border-radius: var(--r-field); }
 .sp-skeleton--end { margin-left: auto; }
+/* A pill's placeholder has to state its own box: the real pill is sized by the text
+   inside it, and an empty one collapses to nothing. 72 is the width a status word
+   comes to, and the height is the pill's own - 12px of text plus its padding. */
 .sp-skeleton--pill {
   width: 72px;
   height: calc(var(--t-12) + var(--sp-6) + var(--sp-6) + 6px);
@@ -2330,33 +2439,12 @@ a.sp-tabbar__item { text-decoration: none; }
   box-shadow: var(--shadow-sheet);
   margin-top: auto;
 }
-/* on a phone a popover is a sheet from the bottom edge holding the same panel (c13): the sheet is
-   its surface, so the panel drops its own place, frame and width */
-.sp-sheet > .sp-popover {
-  position: static;
-  width: auto;
-  min-width: 0;
-  max-width: none;
-  padding: 0;
-  border: 0;
-  background: none;
-  box-shadow: none;
-}
 .sp-sheet__handle {
-  flex: none;
   width: 32px;
   height: 4px;
   border-radius: var(--r-marker);
   background: var(--line-3);
   align-self: center;
-}
-/* the handle is pulled down to close the sheet (c13): a thumb-sized grip around the drawn bar,
-   reaching the sheet's top edge and the gap under it; short of closing, the sheet slides back */
-.sp-sheet__handle { position: relative; touch-action: none; cursor: grab; }
-.sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
-.sp-sheet { transition: transform 160ms ease-out; }
-@media (prefers-reduced-motion: reduce) {
-  .sp-sheet { transition: none; }
 }
 
 /* ---------- dialog - LOCKED c13 ---------- */
@@ -2367,7 +2455,7 @@ a.sp-tabbar__item { text-decoration: none; }
   display: flex;
   flex-direction: column;
   gap: var(--sp-12);
-  width: var(--dialog-w);
+  width: 420px;
   max-width: 100%;
   padding: var(--card-pad);
   border: 1px solid var(--line);
@@ -2395,6 +2483,9 @@ a.sp-tabbar__item { text-decoration: none; }
 }
 .sp-combobox[data-open="true"] .sp-field__chevron { color: var(--ink-2); }
 
+/* the shortcut hint sits inside the search field, at the same inset as the unit and
+   the chevron: every tail slot that is not a hit target sits at 12, so a shortcut
+   hint does not read closer to the edge than a unit in the field beside it */
 .sp-field__kbd {
   position: absolute;
   right: var(--sp-12);
@@ -2425,6 +2516,7 @@ a.sp-tabbar__item { text-decoration: none; }
 .sp-field-group__more:hover { text-decoration: underline; }
 .sp-field-group__more:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 
+/* facet chip: a hidden checkbox in a label, counted */
 /* a chip that carries a choice shows the marker for it, at its left edge, in the
    same form as the radio and checkbox elsewhere - never the browser's own */
 .sp-chip input[type="radio"],
@@ -2474,7 +2566,7 @@ a.sp-tabbar__item { text-decoration: none; }
 }
 
 /* each label is measured at its selected weight, so selecting one shifts nothing */
-.sp-chip--facet > span { display: grid; grid-template-columns: minmax(0, 1fr); }
+.sp-chip--facet > span { display: grid; }
 .sp-chip--facet > span::before {
   content: attr(data-label);
   font-weight: 600;
@@ -2483,9 +2575,6 @@ a.sp-tabbar__item { text-decoration: none; }
   visibility: hidden;
   pointer-events: none;
 }
-/* a value the reader named can be any length: its name ends in an ellipsis and its count keeps its room */
-.sp-chip--facet > span > span { overflow: hidden; text-overflow: ellipsis; }
-.sp-chip--facet > span + span { flex: none; }
 .sp-chip--facet {
   border-radius: var(--r-pill);
   padding: var(--sp-6) var(--pill-pad-x);
@@ -2500,9 +2589,6 @@ a.sp-tabbar__item { text-decoration: none; }
   font-weight: 600;
 }
 .sp-chip--facet:focus-within { box-shadow: var(--ring); }
-/* a value with nothing behind it stays in its place, greyed, as a disabled choice is (c12) */
-.sp-chip--facet:has(input:disabled),
-.sp-chip--facet:has(input:disabled):hover { border-color: var(--line-3); color: var(--ink-5); cursor: not-allowed; }
 
 /* segmented, facet variant: a filled track, options sharing the width */
 .sp-segmented--facet {
@@ -2518,6 +2604,10 @@ a.sp-tabbar__item { text-decoration: none; }
 .sp-segmented--facet .sp-segmented__item { padding: 0 var(--sp-8); font-size: var(--t-12); }
 
 /* the two bounds under a range facet */
+
+/* ---------- file slot - LOCKED c17 ----------
+   One control for anywhere a file can be added: the frame is the input.
+   Two shapes: a thumb (an image, at a mark size) and a document row (any file). */
 
 /* the file slot: the frame is the control, and Remove sits under it */
 .sp-slot { margin-top: 0; display: flex; flex-direction: column; align-items: center; gap: var(--sp-6); }
@@ -2574,11 +2664,9 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   font-weight: 600;
   text-align: center;
 }
-/* a file being sent: the spinner sits over its own preview, never an empty box (17a) */
-.sp-mark--photo > .sp-spinner { position: relative; z-index: 1; }
 /* the same bottom banner when what it names is a problem: only the colour changes */
 .sp-mark__text[data-color="danger"] { background: var(--red-ink); }
-.sp-line-editor__form { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-12); container-type: inline-size; }
+.sp-line-editor__form { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-12); }
 .sp-line-editor__grid {
   display: grid;
   grid-template-columns: 132px 1fr 1fr 120px;
@@ -2586,11 +2674,6 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   /* every label on one line and every control on the next, so a field that gains
      a message grows downwards instead of pushing its neighbours off the line */
   align-items: start;
-}
-/* a field grid collapses at 640 (18a), measured on the form: the four fields fold to
-   the sheet's two columns before a price is narrowed past its figure */
-@container (max-width: 640px) {
-  .sp-line-editor__grid { grid-template-columns: 132px minmax(0, 1fr); }
 }
 /* a quiet line of explanation beside a control: the count under a range, the hint
    under a line editor, the result count in the palette */
@@ -2618,23 +2701,21 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   box-shadow: none;
 }
 .sp-line-editor--sheet .sp-list-item__handle { display: none; }
-/* the form measures its own width for its field grid, so it takes the sheet's rather than its content's */
-.sp-line-editor--sheet > .sp-line-editor__form { align-self: stretch; }
 .sp-line-editor--sheet .sp-slot { align-self: flex-start; }
 /* a slot that is a field of its own sits at the field's start edge, under its label, instead of centring across the card */
 .sp-slot--start { align-self: flex-start; }
 .sp-line-editor--sheet .sp-line-editor__grid { grid-template-columns: 132px 1fr; }
-/* on touch there are no keys to name, and a row editor's fields stack as a phone's do */
-/* the keys are one line beside the commits (1b), cut with "…" where the editor is narrower than drawn */
-.sp-line-editor .sp-dialog__actions > .sp-note { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sp-touch .sp-line-editor .sp-dialog__actions > .sp-note { display: none; }
-.sp-touch .sp-line-editor--plain .sp-line-editor__grid { grid-template-columns: minmax(0, 1fr); }
 
+.sp-line-editor--sheet .sp-note { display: none; }
+
+/* ---------- line editor, plain - c15 variant ----------
+   The same editor for any list row that has no photo: a budget row, a group, an
+   account. Same frame, same form column, same action row; the photo slot is absent,
+   and a head names what is open and carries its move and delete controls. The handle
+   column stays when the list reorders, so the row's text does not move when it opens. */
 .sp-line-editor--plain { padding-top: var(--sp-12); }
 .sp-line-editor--plain .sp-list-item__handle { padding-top: 0; height: 30px; }
 .sp-line-editor__head { display: flex; align-items: center; gap: var(--sp-8); }
-/* a title that wraps takes its room from itself, never from the buttons beside it */
-.sp-line-editor__head > .sp-icon-btn { flex-shrink: 0; }
 /* fields two by two, or one, on the editor's 8px rhythm */
 .sp-line-editor--plain .sp-line-editor__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .sp-line-editor--plain .sp-line-editor__grid--one { grid-template-columns: minmax(0, 1fr); }
@@ -2673,6 +2754,9 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   font-family: inherit;
   outline: none;
 }
+/* Only a column that does something reacts to the cursor. A column with no drill-in
+   is a span, and the hand and the lit bar were both promising a click it does not
+   have - the spark inside a stat being the case that showed it. */
 button.sp-bars__col { cursor: pointer; }
 button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-bars__col:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
@@ -2690,14 +2774,11 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-legend {
   display: flex;
   flex-wrap: wrap;
-  min-width: 0;
-  max-width: 100%;
   gap: var(--sp-12);
   font-size: var(--t-12);
   color: var(--ink-3);
 }
-/* a series the reader named can be long: the item keeps to the legend's width and its name ends in an ellipsis */
-.sp-legend__item { display: flex; align-items: center; gap: var(--sp-6); min-width: 0; max-width: 100%; }
+.sp-legend__item { display: flex; align-items: center; gap: var(--sp-6); }
 .sp-legend__key {
   width: 10px;
   height: 10px;
@@ -2740,13 +2821,18 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   display: flex;
   align-items: center;
   gap: var(--sp-12);
-  /* the readouts take the next line before a size is narrowed past its label */
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding: var(--card-pad);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
 }
+/* on touch the sizes keep their own full-width row at the touch height and the
+   stepper takes the next one, so its chevrons are a comfortable reach apart */
+.sp-touch .sp-period { flex-wrap: wrap; }
+.sp-touch .sp-period__presets { flex: 1 0 100%; height: var(--control-h-touch); }
+.sp-touch .sp-window { width: 100%; }
+
 .sp-period__presets {
   overflow: visible;
   flex: 0 1 auto;
@@ -2773,15 +2859,6 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   overflow: hidden;
   background: var(--surface);
 }
-/* at 900 the sizes take a full row and the stepper and readouts the next (18b); on touch
-   the sizes are touch height and the stepper full width, its chevrons a reach apart */
-@container (max-width: 900px) {
-  .sp-period__presets { flex: 1 0 100%; }
-}
-.sp-touch .sp-period__presets { height: var(--control-h-touch); }
-.sp-touch .sp-window { width: 100%; height: var(--control-h-touch); }
-.sp-touch .sp-window__btn { width: var(--control-h-touch); }
-
 .sp-window__label {
   flex: 1;
   min-width: 0;
@@ -2807,6 +2884,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 }
 .sp-period__anchor > .sp-period__preset { height: 100%; }
 
+/* The label is centred here rather than on .sp-period__presets: that container also
+   holds the anchored range popover, and text-align inherits, so centring it there
+   reached into the picker and centred its foot. */
 .sp-period__preset {
   display: grid;
   place-items: center;
@@ -2836,19 +2916,19 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-period__preset:has(:focus-visible) { box-shadow: var(--ring); }
 .sp-period__preset { min-width: 0; }
 
+/* the gloss is the first thing to go when the row runs out of room, rather than being shown half-written */
+@media (max-width: 1100px) {
+  .sp-period__note { display: none; }
+}
 
 .sp-period__resolved { flex: none; font-size: var(--t-13); color: var(--ink-4); white-space: nowrap; }
+/* The comparison area in the period bar. The bar derives the two periods and hands
+   them over; what sits here - a switch, a word, a second figure - is the page's, so
+   this rule states the slot and nothing about its contents. */
 .sp-period__compare { display: flex; align-items: center; gap: var(--sp-8); flex: none; }
-.sp-period__held { display: grid; flex: none; align-items: center; }
-.sp-period__held > * { grid-area: 1 / 1; }
-.sp-period__held[aria-hidden="true"] { visibility: hidden; }
+
 
 .sp-period__note { flex: none; font-size: var(--t-12); color: var(--ink-5); white-space: nowrap; }
-/* the note and the way back to the present share one place, as wide as the wider of the two, at the
-   row's right edge on whichever line it lands: stepping away from the present moves nothing */
-.sp-period__end { display: grid; flex: none; margin-left: auto; }
-.sp-period__end > * { grid-area: 1 / 1; justify-self: end; align-self: center; }
-.sp-period__end > [aria-hidden="true"] { visibility: hidden; }
 
 /* the window: one bordered control, arrows either side of the label */
 .sp-window__btn { flex: none;
@@ -2869,6 +2949,12 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-window__btn:focus-visible { background: var(--green-tint); }
 .sp-window__btn:disabled { color: var(--line-5); cursor: not-allowed; }
 .sp-window__btn:disabled:hover { background: none; }
+/* fixed by the longest value each preset can show, so the control never resizes as it is stepped */
+/* one width for every window, set by the longest value any of them shows, so the
+   stepper is the same size whichever preset is chosen and stepping never resizes it */
+
+
+/* the empty line at the end of the list: how a line is added */
 /* the last row: a real row with the photo replaced by a plus */
 .sp-list-item--add {
   border-style: dashed;
@@ -2890,6 +2976,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-list-item--add:focus-within { box-shadow: var(--ring); }
 .sp-list-item--add > .sp-title { font-weight: 600; }
 
+
+
+
 .sp-list-item__handle {
   display: grid;
   place-items: center;
@@ -2902,10 +2991,14 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   cursor: grab;
 }
 
+
 /* in a row at rest, the handle, the mark and the actions are centred against the two lines */
 .sp-list-item > .sp-mark,
 .sp-list-item > .sp-list-item__handle { align-self: center; }
 .sp-list-item__actions { display: flex; gap: var(--sp-8); }
+/* the heading over a set of list rows, with the set's total: inset by the row's own
+   padding and border, so its label starts on the rows' first column and its total
+   ends on the rows' amounts (Budget 21g) */
 .sp-list-head { display: flex; align-items: center; gap: var(--sp-12); padding: 0 calc(var(--sp-12) + 1px); }
 .sp-icon-btn--outline {
   width: 30px;
@@ -2923,6 +3016,17 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   font-size: var(--t-13);
 }
 
+/* The committing size. A surface that commits states it once, and every button
+   on that surface takes it - so a pair can never be half one thing and half the
+   other. Four surfaces only ever commit: a dialog's actions, a popover's, the
+   line editor's foot, a save bar. A card footer can also reveal ("Show all 200
+   vendors"), so it opts in with --commits. .sp-btn--small remains for a button of
+   this size with no committing surface around it - the action a card header
+   carries is the same size as the action a dialog closes with, so the system has
+   two button sizes and not three.
+   Case is sentence case, as everywhere else: uppercase read as shouting, and the
+   primary fill already marks the commit. The height is 34px against the form
+   button's 42px; the type is the same 13px, so the height carries the difference. */
 .sp-btn--small,
 .sp-card__footer--commits .sp-btn,
 .sp-dialog__actions .sp-btn,
@@ -2985,6 +3089,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 }
 .sp-strip::-webkit-scrollbar { display: none; }
 
+
+
+
 .sp-viewer {
   position: relative;
   display: flex;
@@ -2998,6 +3105,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-viewer__stage {
   display: grid;
   place-items: center;
+  /* a resting height, not a cap: 220px when the stage is empty or the subject is
+     small, and taller when the subject is taller - a stage that crops the thing
+     it exists to show is a defect, and height did exactly that */
   min-height: 220px;
   border-radius: var(--r-tile);
   background: repeating-linear-gradient(45deg, var(--hatch-a) 0 6px, var(--hatch-b) 6px 12px);
@@ -3006,38 +3116,23 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-viewer__count { color: var(--shell-item); font-variant-numeric: tabular-nums; }
 .sp-viewer .sp-icon-btn { color: var(--shell-item); }
 .sp-viewer .sp-icon-btn:hover { background: var(--shell-item-hover); color: #fff; }
-/* a file with pages: the page rail down the left, the chosen page on the stage (12b, 17d) */
-.sp-viewer__paged { display: flex; gap: var(--sp-12); min-width: 0; }
-.sp-viewer__paged > .sp-viewer__stage { flex: 1; min-width: 0; }
-.sp-viewer__pages {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-8);
-  flex: none;
-  max-height: 70dvh;
-  overflow-y: auto;
-  /* room for the chosen page's outline inside the scroll box */
-  padding: var(--sp-4);
-}
-/* a page is letterboxed at its own proportion: cropping a receipt can hide its total */
-.sp-viewer__pages > .sp-mark > img { object-fit: contain; }
-.sp-viewer__pages > .sp-mark[aria-current="true"] { outline: 2px solid #fff; outline-offset: 2px; }
-/* two files side by side, each under its own label (3c), so the viewer takes the room of two */
-.sp-viewer--compare { width: min(1120px, 100%); }
-.sp-viewer__compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
-.sp-viewer__side { display: flex; flex-direction: column; gap: var(--sp-8); min-width: 0; }
-.sp-viewer__label { color: var(--shell-item); font-size: var(--t-12); }
-@media (max-width: 639.98px) {
-  .sp-viewer__compare { grid-template-columns: minmax(0, 1fr); }
-  .sp-viewer__paged { flex-direction: column-reverse; }
-  .sp-viewer__pages { flex-direction: row; max-height: none; overflow-x: auto; }
-}
 
 /* bar heights and legend keys arrive as data */
 .sp-bars__bar[data-h="30"] { height: 30%; }
 .sp-bars__bar[data-h="40"] { height: 40%; }
 .sp-bars__bar[data-h="65"] { height: 65%; }
 .sp-bars__bar[data-h="100"] { height: 100%; }
+
+/* the remove control on a tile appears on hover or focus *
+
+/* every label-wrapped native input is hidden the same way, once *
+
+/* a tile is a container: one button opens it, another removes it */
+
+
+/* mid-upload: the tile keeps its image and centres the ring over it, so the row
+   never collapses and the file being replaced stays visible */
+
 
 /* a line's remove control appears on hover or focus, and stays put on touch */
 .sp-list-item__remove { opacity: 0; transition: opacity 100ms ease; }
@@ -3046,28 +3141,6 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-touch .sp-list-item__remove { opacity: 1; }
 
 .sp-touch .sp-mark__remove { opacity: 1; }
-/* the mark clips what leaves it, so on touch the target grows from its corner inward */
-.sp-touch .sp-mark__remove::after {
-  content: "";
-  position: absolute;
-  top: calc(var(--sp-4) * -1);
-  right: calc(var(--sp-4) * -1);
-  width: var(--control-h-touch);
-  height: var(--control-h-touch);
-}
-/* a touch screen wider than a phone has no hover either: the control shows, at its touch size (c16) */
-@media (hover: none), (pointer: coarse) {
-  .sp-mark__remove,
-  .sp-list-item__remove { opacity: 1; }
-  .sp-mark__remove::after {
-    content: "";
-    position: absolute;
-    top: calc(var(--sp-4) * -1);
-    right: calc(var(--sp-4) * -1);
-    width: var(--control-h-touch);
-    height: var(--control-h-touch);
-  }
-}
 
 /* an empty photo mark inside an editable line is the file control itself */
 label.sp-mark--empty { cursor: pointer; }
@@ -3123,6 +3196,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 }
 .sp-range__input:focus-visible,
 .sp-range__input[data-editing="true"] { border-color: var(--green); }
+/* The arrow sits level with the two inputs, not with the fields that contain them:
+   a top padding tuned to one glyph's metrics left an icon ten pixels high. Aligned
+   to the fields' bottom edge instead, which is the inputs' bottom edge, and lifted
+   by half an input - so any glyph lands on the inputs' centre line. */
 .sp-range__arrow {
   color: var(--line-5);
   align-self: flex-end;
@@ -3131,7 +3208,6 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   height: var(--control-h);
   padding-bottom: var(--sp-2);
 }
-.sp-range--single { width: auto; }
 .sp-range__months { display: flex; gap: var(--sp-16); padding: 0 var(--sp-12) var(--sp-12); }
 .sp-range__month { flex: 1; display: flex; flex-direction: column; gap: var(--sp-8); }
 .sp-range__month-head { display: flex; align-items: center; gap: var(--sp-8); font-size: var(--t-12); font-weight: 600; }
@@ -3148,6 +3224,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   outline: none;
 }
 .sp-range__nav:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
+/* A step past min or max: nothing to reach, so it stops offering. The arrow stays in
+   place rather than disappearing - a head that loses a control shifts the month name
+   under the reader's eye. */
 .sp-range__nav:disabled { color: var(--ink-6); cursor: default; }
 .sp-range__weekdays,
 .sp-range__days {
@@ -3156,6 +3235,12 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   gap: var(--sp-6);
   text-align: center;
 }
+/* ---------- the week column - c14 variant ----------
+   A month that names its weeks takes an eighth track before the days, and the
+   weekday row takes an empty cell over it so the two grids stay in step. The
+   column says W once at its head and the rows carry the number, so a row reads as
+   a number in a labelled column rather than repeating its own unit seven times.
+   They are ISO weeks - the number the reader's own invoice and delivery note use. */
 .sp-range__month--weeks .sp-range__weekdays,
 .sp-range__month--weeks .sp-range__days { grid-template-columns: var(--box) repeat(7, 1fr); }
 .sp-range__week {
@@ -3178,9 +3263,18 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   color: inherit;
   cursor: pointer;
   outline: none;
+  /* the cells are already separated by the grid gap, so each one carries the
+     radius rather than the run: hover, the chosen day and the days in a range all
+     read as the same shape the rest of the library uses */
   border-radius: var(--r-marker);
 }
 .sp-range__day--outside { color: var(--line-5); }
+/* A day that cannot be picked - outside min or max, or one the caller blocked. It
+   stays in the grid, because a missing day reads as a hole in the month, but it
+   stops inviting the click it would refuse: the hover and the pointer are what made
+   it look available. The stroke through it says so at a glance, where grey alone
+   reads as "quieter" rather than "closed" - drawn as a gradient rather than a
+   rotated element so it needs no extra box and scales with the cell. */
 .sp-range__day:disabled {
   color: var(--ink-6);
   cursor: default;
@@ -3197,8 +3291,15 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   background-position: center;
 }
 .sp-range__day--in { background: var(--range-in); }
+/* :not(:disabled), and the shorthand is why: a plain background on hover resets
+   background-image, which took the stroke off a blocked day the moment the pointer
+   crossed it. */
 .sp-range__day:not(:disabled):hover { background: var(--hover); }
 
+/* The chosen day - the single date, or either end of a range. It was marked for a
+   screen reader and drawn for nobody: opening a date field showed the right month
+   with nothing in it selected, and a range's two ends looked like the days between
+   them. Stated after the hover so the pointer cannot take the choice off it. */
 .sp-range__day[aria-selected="true"] {
   background: var(--green);
   color: var(--surface);
@@ -3213,6 +3314,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   padding: var(--sp-12);
   border-top: 1px solid var(--range-line);
 }
+
+/* ---------- calendar - LOCKED c14 ----------
+   One day grid, three shapes: one month in a DateField popover, two months in the
+   desktop range picker, and one scrolling month inside the touch filter sheet. */
 
 .sp-calendar {
   display: none;
@@ -3229,8 +3334,6 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 }
 [data-open="true"] > .sp-calendar { display: block; }
 .sp-calendar .sp-range__month { gap: var(--sp-8); }
-/* a single date's one-click days (14a): the range's quick row, inside the popover's own padding */
-.sp-calendar .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }
 
 /* the same grid, scrolling, inside a sheet */
 .sp-calendar--sheet {
@@ -3396,7 +3499,6 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 /* the panel is a control's own overlay, so its labels sit one step down */
 .sp-field-group__panel .sp-field__label { font-size: var(--t-11); }
 .sp-field-group__panel .sp-input { min-height: 40px; padding: 0 var(--sp-10); }
-.sp-touch .sp-field-group__panel .sp-input { min-height: var(--control-h-touch); }
 .sp-field-group__panel .sp-input--trail { padding-right: calc(var(--sp-10) + var(--box) + var(--sp-10)); }
 
 /* ---------- inline alert - LOCKED c19 ----------
@@ -3439,8 +3541,6 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   color: var(--ink);
 }
 [data-theme="dark"] .sp-toast__undo { color: var(--green-2); }
-/* the readout's rows are a quiet light ink on its lifted surface; the light theme's line tone is dark here */
-[data-theme="dark"] .sp-tip__row { color: var(--ink-3); }
 
 /* ---------- summary rows - DRAFT c21 ----------
    The right-hand panel's contents: a fact per row, then the total. */
@@ -3449,13 +3549,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 
 .sp-sum { display: flex; align-items: baseline; gap: var(--sp-12); padding: var(--sp-8) 0; font-size: var(--t-12); }
 .sp-sum + .sp-sum { border-top: 1px solid var(--line-2); }
-/* a long value wraps inside its card rather than pushing the card wider */
-.sp-sum__value { margin-left: auto; font-weight: 600; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.sp-sum__value { margin-left: auto; font-weight: 600; text-align: right; }
 .sp-sum--stacked { flex-direction: column; gap: var(--sp-6); }
 .sp-sum--stacked .sp-sum__value { margin-left: 0; text-align: left; }
-/* a summary row that opens something rings like every other control, as a shares row does */
-.sp-sum[role="button"] { outline: none; }
-.sp-sum[role="button"]:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-sum--total { padding-top: var(--sp-12); border-top: 1px solid var(--line); }
 /* the rule separates the total from the sums above it, so with nothing above it
    there is nothing to separate - it would read as a card missing its header */
@@ -3477,17 +3573,10 @@ button.sp-nav-item--light[aria-current="page"]:hover {
   color: var(--green);
   font-weight: 600;
 }
-/* the bold label of the current row is held in every state, so choosing one moves nothing */
-.sp-nav-item--light > [data-label] { display: grid; align-items: center; }
-.sp-nav-item--light > [data-label] > span,
-.sp-nav-item--light > [data-label]::after { grid-area: 1 / 1; }
-.sp-nav-item--light > [data-label]::after { content: attr(data-label); font-weight: 600; visibility: hidden; }
-/* a label the reader named (a saved view) can be any length: it ends in an ellipsis, so every row keeps one height */
-.sp-nav-item > .sp-grow,
-.sp-nav-item--light > [data-label] > span,
-.sp-nav-item--light > [data-label]::after { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sp-nav-item--light > [data-label] { grid-template-columns: minmax(0, 1fr); }
 .sp-nav-item--light .sp-nav-item__count { color: var(--ink-4); }
+/* the row's own state, not a badge beside it: a saved view whose filters have
+   changed since it was saved. A chip here would make one row taller than the
+   others and shift the list every time a filter moved */
 .sp-nav-item--light.sp-nav-item--edited { background: var(--amber-tint-2); color: var(--amber-ink-2); }
 a.sp-nav-item--light.sp-nav-item--edited:hover,
 button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-tint); color: var(--amber-ink-2); }
@@ -3523,6 +3612,17 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
   min-width: 60px;
 }
 
+/* ---------- row - c15 / c23 ----------
+   One row: a mark, text, and whatever the row carries at its tail - a count, a
+   chevron, a drag handle, actions. It was drawn twice, as .sp-line for an editable
+   set and .sp-list-item for everything else, and the two differed by one shade of
+   ground and 2px of radius - a difference nobody could name, so it was two
+   implementations of one thing. This is the one.
+
+   What genuinely varies is what the row carries, not the row: the handle, the
+   remove control, the add row that ends a set, the carried row mid-drag and the
+   rule showing where it lands are all parts and variants of this component. */
+
 .sp-list-item {
   display: flex;
   align-items: center;
@@ -3543,12 +3643,13 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
   text-decoration: none;
   outline: none;
 }
+/* The row is a div far more often than a control (65 to 14), so the pointer belongs to
+   the elements that actually do something when clicked - a static row showing a value
+   must not invite a click. */
 a.sp-list-item,
-button.sp-list-item,
-.sp-list-item--opens { cursor: pointer; }
+button.sp-list-item { cursor: pointer; }
 a.sp-list-item:hover,
-button.sp-list-item:hover,
-.sp-list-item--opens:hover { background: var(--hover); }
+button.sp-list-item:hover { background: var(--hover); }
 a.sp-list-item:focus-visible,
 button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 /* Stated after the checked fill, so a row that is both ticked and uncertain still
@@ -3583,11 +3684,6 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 .sp-palette {
   width: 520px;
   max-width: 100%;
-  /* the body scrolls at 420 (c24) and the whole palette never passes 60vh (9d): on a
-     short window the body gives up the difference */
-  display: flex;
-  flex-direction: column;
-  max-height: 60vh;
   flex: none;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -3679,16 +3775,16 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   color: var(--ink-5);
 }
 .sp-palette__thumb { width: 22px; height: 22px; border-radius: var(--r-tile); background: var(--line); flex: none; }
-/* an item's own photo fills the box its placeholder drew */
-.sp-palette__thumb > img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 
 /* the same palette filling a phone: no card edges, and the body takes the height
    the frame has rather than its own maximum */
 .sp-palette--screen {
   width: auto;
   max-width: none;
-  max-height: none;
   align-self: stretch;
+  /* the palette IS the screen here, so it has no surface border of its own - the
+     search row's bottom hairline is the only rule, and the field inside it keeps
+     the same width as the top bar's */
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -3702,12 +3798,15 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
    is that bar's height and gutter - not the floating palette's own padding */
 .sp-palette--screen .sp-palette__search { height: var(--phone-bar-h); padding: 0 var(--phone-gutter); }
 .sp-palette--screen .sp-picker__search { flex: 1; min-width: 0; }
-.sp-palette--screen .sp-palette__search > .sp-btn { width: auto; flex: none; }
 /* the trail stays centred whatever height the field is, so a touch field's clear
    control does not sit high in it */
 .sp-field__wrap .sp-field__trail { top: 50%; transform: translateY(-50%); }
 .sp-input--lead + .sp-field__trail,
 .sp-input--search ~ .sp-field__trail { right: var(--sp-6); }
+
+/* ---------- choice row - c5 variant ----------
+   A choice that is a row in a list: padded, rounded, filled when it is the one chosen.
+   Plain .sp-choice stays what it is - a box and a label on a line. */
 
 .sp-choice--row {
   padding: var(--sp-8) var(--sp-10);
@@ -3716,6 +3815,11 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 }
 .sp-choice--row:hover { background: var(--hover); }
 .sp-choice--row:has(:checked) { background: var(--green-tint); }
+
+/* ---------- popover panel - DRAFT c25 ----------
+   A panel opened from a bar or a button that asks for a decision before it applies:
+   a heading, a list of choices, an optional summary of what will happen, and the
+   Cancel / Apply pair. It is not a Menu: a menu item acts on click, this one waits. */
 
 .sp-popover {
   position: absolute;
@@ -3742,15 +3846,11 @@ li.sp-anchor { display: flex; }
 li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-popover--start { left: 0; }
 .sp-popover--end { right: 0; }
-/* the positioner (c9) flips a popover above its trigger when only above has room */
-.sp-popover[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
 .sp-popover--static { position: static; box-shadow: none; }
 .sp-popover__head { display: flex; flex-direction: column; gap: var(--sp-6); }
 /* the list caps its height and scrolls inside the panel, so a search that matches
    forty records cannot grow the popover past the viewport */
 .sp-popover__list { display: flex; flex-direction: column; gap: var(--sp-6); max-height: 216px; overflow-y: auto; }
-/* a submenu that holds a picker's list is that picker, so it takes the popover's widths (2a) */
-.sp-menu__sub:has(> .sp-popover__list) { min-width: 240px; max-width: 320px; }
 .sp-popover__summary {
   display: flex;
   align-items: center;
@@ -3769,7 +3869,15 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   border-radius: var(--r-tile);
 }
 
+/* ---------- mark tones - c2 variant ----------
+   A record that carries a colour of its own (a category, a vendor) paints its mark
+   with it. The set is the swatch list the picker offers in c7 - no other value,
+   and the colour is data, so it arrives as the same data-swatch attribute. */
+
 .sp-mark--solid[data-swatch="green"] { background: var(--green); }
+/* green-2 completes the set: the swatch picker offers it, so a mark must carry it
+   too - without this rule a mark reading green-2 falls back to base green and the
+   two categories become indistinguishable */
 .sp-mark--solid[data-swatch="green-2"] { background: var(--green-2); }
 .sp-mark--solid[data-swatch="green-3"] { background: var(--green-3); }
 .sp-mark--solid[data-swatch="green-4"] { background: var(--green-4); color: var(--ink); }
@@ -3778,8 +3886,10 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-mark--solid[data-swatch="amber-2"] { background: var(--amber-2); color: var(--ink); }
 .sp-mark--solid[data-swatch="red-ink"] { background: var(--red-ink); }
 .sp-mark--solid[data-swatch="ink-6"] { background: var(--ink-6); color: var(--ink); }
-/* the ink is whichever of --surface and --ink has the higher APCA lightness contrast on the fill, a tie
-   keeping --surface: these are that result per swatch and theme; data-ink below carries it for the rest */
+/* The ink on a solid mark is whichever of --surface and --ink has the higher APCA
+   lightness contrast on its fill, a tie keeping --surface. The rules above and below
+   are that result for each swatch in each theme; a colour the reader picks arrives
+   with data-ink, worked out the same way by the component. */
 :where([data-theme="dark"]) .sp-mark--solid:not([data-swatch]),
 :where([data-theme="dark"]) .sp-mark--solid[data-swatch="green"],
 :where([data-theme="dark"]) .sp-mark--solid[data-swatch="green-3"],
@@ -3791,6 +3901,13 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 :where([data-theme="light"]) .sp-mark--solid[data-swatch="green-3"] { color: var(--surface); }
 :where([data-theme="light"]) .sp-mark--solid[data-swatch="green-4"],
 :where([data-theme="light"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
+/* the ink is worked out from the fill: whichever of the two reads better on it */
+.sp-mark--solid[data-ink="surface"] { color: var(--surface); }
+.sp-mark--solid[data-ink="ink"] { color: var(--ink); }
+
+/* ---------- record strip, nothing photographed - c1 variant ----------
+   The band keeps its height so a grid of cards stays even, and says what is
+   missing rather than looking like an image that failed to load. */
 
 .sp-record__photos--empty {
   display: grid;
@@ -3799,6 +3916,10 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   gap: var(--sp-6);
   color: var(--ink-6);
 }
+
+/* ---------- card footer, two equal actions - c10 variant ----------
+   A pair the user chooses between (commit or discard) shares the footer evenly,
+   so neither reads as the larger target. */
 
 .sp-card__footer--split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 
@@ -3840,22 +3961,42 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-alert[data-color="success"] .sp-alert__title,
 .sp-alert[data-color="success"] .sp-alert__note { color: var(--green); }
 
+/* ---------- field help, two tones - c3 variants ----------
+   A word about one field's value, beside its label: matched cleanly, or needs a look.
+   The tones are the system's own - positive green and in-progress amber. */
+
 .sp-field__help[data-color="warning"] { font-weight: 600; color: var(--amber-ink); }
 .sp-field__help[data-color="success"] { font-weight: 600; color: var(--green-2); }
 .sp-field__help[data-color="danger"] { font-weight: 600; color: var(--red-ink); }
+
+/* ---------- input, needs a look - c3 variant ----------
+   Not invalid: the value is usable, it was just read with low confidence. Red is
+   reserved for a value that cannot be saved. */
 
 .sp-input[data-color="warning"] { border-color: var(--amber); background: var(--amber-tint-2); }
 .sp-input[data-color="warning"]:hover { border-color: var(--amber-ink); }
 .sp-input[data-color="warning"]:focus-visible { border-color: var(--amber-ink); }
 
+
+
 /* ---------- attention row, the recommended path - c23 variant ----------
    One row of a set carries the action the design expects to be taken. */
 
 .sp-list-item--primary { background: var(--green-tint-2); border: 1px solid var(--green); color: var(--ink); }
+/* The row's own text is one step down from a card's ink, since a note is secondary to
+   what it sits under. A row carrying a record - a reference and an amount - is not
+   secondary, so it takes the card's ink back. */
 a.sp-list-item--primary:hover,
 button.sp-list-item--primary:hover { background: var(--green-tint); }
 
 .sp-gauge__fill[data-fill="68"] { width: 68%; }
+
+/* ---------- source view - DRAFT c16 ----------
+   The file as the scanner read it, with the regions the fields came from drawn on
+   it. The regions are static: each one is a named rule here, the same way a gauge
+   fill or a bar height is. Nothing computes a position from the markup.
+
+   The page shape (one page of the receipt, ruled) is a stand-in for the render. */
 
 .sp-source {
   position: relative;
@@ -3902,6 +4043,10 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 }
 .sp-source__region[data-region="shipping"] .sp-source__label { color: var(--amber-ink-2); }
 
+/* ---------- card on the shell ground - DRAFT c10 variant ----------
+   One panel per page may sit on the shell's own dark ground: the month Home opens
+   with. It states what its contents become, the way the viewer does for its buttons. */
+
 .sp-card--shell { background: var(--shell); border-color: var(--shell); color: #fff; }
 .sp-card--shell .sp-section-label,
 .sp-card--shell .sp-meta,
@@ -3923,13 +4068,9 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 
 /* the figure that is money kept rather than money spent - c14 variant */
 .sp-card--shell .sp-ink-success { color: var(--green-4); }
-/* a figure of nothing stays grey on the dark panel too, in the panel's own quiet ink */
-.sp-card--shell .sp-stat__figure.sp-ink-5 { color: var(--shell-item); }
 
-/* the chosen column's label reads as chosen too, not just its bar - c14; the column holding today
-   is marked the same way where nothing is chosen (10a) */
-.sp-bars__col[aria-pressed="true"] .sp-bars__tick,
-.sp-bars__col[aria-current] .sp-bars__tick { color: var(--green); font-weight: 600; }
+/* the chosen column's label reads as chosen too, not just its bar - c14 */
+.sp-bars__col[aria-pressed="true"] .sp-bars__tick { color: var(--green); font-weight: 600; }
 
 /* measurements as data */
 .sp-gauge__fill[data-fill="40"] { width: 40%; }
@@ -3946,36 +4087,57 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-bars__bar[data-h="71"] { height: 71%; }
 .sp-bars__bar[data-h="81"] { height: 81%; }
 
+/* ---------- the sidebar row's second line - DRAFT c11 ----------
+   The account row carries a name and the address under it. The count's own rule
+   pushes itself to the row's end, which inside a stacked row means its right edge -
+   so the second line is its own class rather than a reused count. */
+
 .sp-nav-item__sub { font-size: var(--t-11); color: var(--shell-group); }
+/* An email on that second line truncates from the middle, not the right: the local
+   part shrinks and the domain never does, because the domain is what says which
+   account is signed in. text-overflow alone cannot express that - it needs the two
+   parts as separate children of a row. */
 .sp-nav-item__sub--email { display: flex; min-width: 0; }
 .sp-nav-item__sub--email > .sp-nav-item__local { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-nav-item__sub--email > .sp-nav-item__domain { flex: none; }
-/* the local part gives way first; a domain wider than the line less the local part's first
-   letters is cut too, so the email never leaves its block */
-.sp-nav-item__sub--email > .sp-nav-item__domain { max-width: calc(100% - 4ch); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* The account menu (9c), fixed to the window over the account block so the sidebar's own
-   scrolling cannot clip it: 4 above the block and its width, or beside the avatar on the rail. */
-.sp-sidebar__menu { position: fixed; z-index: 30; }
-.sp-sidebar__menu > .sp-menu { position: absolute; box-shadow: var(--shadow-menu); }
-.sp-sidebar__menu--up > .sp-menu { left: 0; right: 0; bottom: calc(100% + var(--sp-4)); min-width: 0; }
-.sp-sidebar__menu--side > .sp-menu { left: calc(100% + var(--sp-4)); bottom: 0; }
-.sp-sidebar__menu--down > .sp-menu { left: 0; right: 0; top: calc(100% + var(--sp-4)); min-width: 0; }
-/* a row with a second way in (16a): the row, then a chevron that opens a short menu, each its own
-   target; the rail keeps the row alone */
-.sp-nav-split { display: flex; gap: var(--sp-2); }
-.sp-nav-split > .sp-nav-item:first-child { flex: 1; min-width: 0; }
-.sp-nav-split > .sp-nav-split__more { flex: none; width: var(--menu-col); justify-content: center; padding: 0; }
-.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-nav-split__more,
-.sp-sidebar--rail:not(.sp-sidebar--peek) .sp-nav-split__more { display: none; }
+
+/* ---------- the brand mark sits in the icon column - c11 ----------
+   The mark is 24 and a nav row's icon slot is 16, so left-aligning the two boxes
+   would start the product name 4px right of every label under it. The mark centres
+   on the slot instead: same centre line for the mark and the icons, and the brand
+   name lands exactly where the labels do. */
+
+/* ---------- a count that is a backlog - c11 variant ----------
+   A saved view whose count is work waiting (orders with no receipt) carries the
+   in-progress tone on the number itself. The row stays a row. */
 
 .sp-nav-item__count[data-color="warning"] { color: var(--amber-3); }
 .sp-nav-item--light .sp-nav-item__count[data-color="warning"] { color: var(--amber-ink); }
 
+/* ---------- the rail's glyph centres on the tile - c11 ----------
+   A row's icon sits in a fixed 16px slot so every label starts on one line. On the
+   collapsed rail there is no label, the glyph is larger than the slot, and a box
+   smaller than its content cannot centre it - so the tile centres the glyph itself. */
+
+/* ---------- the sidebar's divider spans the sidebar - c11 ----------
+   It separates the destinations from the pinned bottom zone, so it runs the full
+   width of the rows it sits between. The 28px stub is the collapsed rail's, where
+   there is no row width to match. */
+
 .sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-sidebar__divider,
 .sp-sidebar--rail:not(.sp-sidebar--peek) .sp-sidebar__divider { width: 28px; }
 
+/* ---------- a mark survives the collapse - c11 ----------
+   The rail hides a row's label, which is every span that is not the icon slot - but
+   the account row's identity mark is not a label, it is the row's whole content. */
+
 .sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-nav-item > span.sp-mark:not(.sp-nav-item__icon),
 .sp-sidebar--rail:not(.sp-sidebar--peek) .sp-nav-item > span.sp-mark:not(.sp-nav-item__icon) { display: grid; }
+
+/* ---------- plot frame - DRAFT c14 ----------
+   What a bar chart needs around it once it is read against a number rather than
+   against its neighbours: a value axis, gridlines, and a limit the bars cross.
+   The plot states its own height once; the axis, the grid and the bars take it. */
 
 .sp-plot { --plot-h: 260px; --plot-foot: 22px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-14); }
 .sp-plot__axis {
@@ -4067,6 +4229,10 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-bars__bar[data-h="95"], .sp-bars__stack[data-h="95"], .sp-bars__seg[data-share="95"] { height: 95%; }
 .sp-bars__bar[data-h="100"], .sp-bars__stack[data-h="100"], .sp-bars__seg[data-share="100"] { height: 100%; }
 
+/* ---------- donut - DRAFT c14 ----------
+   The share list's own shape, for the one place a whole is being divided. The stop
+   set is data, like a bar's height; the ring uses the same four keys the legend does. */
+
 .sp-donut {
   width: 128px;
   height: 128px;
@@ -4091,6 +4257,10 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 }
 .sp-donut__figure { font-size: var(--t-15); font-weight: 700; }
 
+/* ---------- tooltip, as a panel - DRAFT c18 ----------
+   The chip states one value. A chart step has several, so the same dark surface
+   holds a head and a row per series. */
+
 .sp-tip--panel {
   display: flex;
   flex-direction: column;
@@ -4105,12 +4275,6 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-tip__head > :last-child { margin-left: auto; font-weight: 700; }
 .sp-tip__row { display: flex; align-items: center; gap: var(--sp-6); font-size: var(--t-11); color: var(--line-4); }
 .sp-tip__row > :last-child { margin-left: auto; }
-/* the readout hangs beside the column it reads, inside the chart (4a); a column in the chart's left
-   half carries it on its right, where there is room. It takes no pointer, so the next column does */
-.sp-bars__col:has(> .sp-bars__tip) { position: relative; }
-.sp-bars__tip { position: absolute; top: 50%; right: 100%; z-index: 3; margin-right: var(--sp-12); transform: translateY(-50%); pointer-events: none; }
-.sp-bars__tip[data-side="end"] { right: auto; left: 100%; margin-right: 0; margin-left: var(--sp-12); }
-.sp-bars--plot .sp-bars__tip { top: auto; bottom: 96px; transform: none; }
 
 /* the gauge reads its measurement from the same 5% scale the charts use */
 .sp-gauge__fill[data-fill="0"] { width: 0%; }
@@ -4177,42 +4341,33 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-gauge__over[data-over="100"] { width: 100%; }
 .sp-gauge__marker[data-at="100"] { left: 100%; }
 
+/* ---------- a negative measure - DRAFT c10 / c14 ----------
+   Under the net lens a row can be negative: money came back. The bar grows from
+   the right edge in the problem tone, and the figure carries the same tone, so a
+   negative is read as a direction rather than as a smaller positive. */
+
 .sp-gauge__fill--negative { left: auto; right: 0; background: var(--red-ink); border-radius: var(--r-marker); }
+
+/* ---------- a panel wider than its trigger - DRAFT c5 variant ----------
+   The combobox panel spans its trigger (left and right both 0), which is right
+   while the trigger is the wider of the two. A short trigger - a lens on a bar -
+   lets min-width push the panel past whatever contains it, so this variant anchors
+   it to the trigger's right edge instead and lets it grow inward. */
 
 .sp-combobox--end .sp-combobox__panel { left: auto; right: 0; width: 288px; }
 
+/* The screen a sheet or a dialog sits over, dimmed. It fills the frame it is in, so
+   inside a phone it covers the glass edge to edge and takes the frame's own corners.
+   A sheet above it needs a position of its own: an absolutely positioned scrim paints
+   in a later layer than an in-flow element whatever the DOM order. */
 .sp-scrim {
   position: absolute;
   inset: 0;
   background: var(--overlay-photo);
   border-radius: inherit;
 }
-/* the same scrim holding a dialog rather than sitting under a sheet. The track is the
-   scrim's width, so the dialog's max-width: 100% has a width to hold to on a phone */
-.sp-scrim--dialog { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-16); overflow-y: auto; }
-/* a sheet in the scrim rises from the window's bottom edge at its full width, and
-   scrolls inside the window when it holds more than fits */
-.sp-scrim--dialog:has(> .sp-sheet) { padding: 0; grid-template-rows: minmax(0, 1fr); place-items: end stretch; }
-.sp-scrim--dialog > .sp-sheet {
-  max-height: 100%;
-  overflow-y: auto;
-  padding-bottom: calc(var(--card-pad) + env(safe-area-inset-bottom));
-}
-/* off touch it is the drawer a narrower window opens (18b), at a dialog's width */
-body:not(.sp-touch) > .sp-scrim--dialog > .sp-sheet { justify-self: center; width: var(--dialog-w); max-width: 100%; }
-/* on a phone a sheet rises at most this far, so the page stays in view above it (Mobile screens) */
-body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
-/* on a phone a dialog is a sheet: anchored to the bottom, rounded at its top corners only (15b) */
-body.sp-touch > .sp-scrim--dialog:has(> .sp-dialog) { padding: 0; grid-template-rows: minmax(0, 1fr); place-items: end stretch; }
-body.sp-touch > .sp-scrim--dialog > .sp-dialog {
-  width: auto;
-  max-height: 88%;
-  overflow-y: auto;
-  border: 0;
-  border-radius: var(--r-card) var(--r-card) 0 0;
-  box-shadow: var(--shadow-sheet);
-  padding-bottom: calc(var(--card-pad) + env(safe-area-inset-bottom));
-}
+/* the same scrim holding a dialog rather than sitting under a sheet */
+.sp-scrim--dialog { display: grid; place-items: center; padding: var(--sp-16); }
 .sp-phone > .sp-sheet,
 .sp-phone > * > .sp-sheet { position: relative; }
 
@@ -4224,6 +4379,12 @@ body.sp-touch > .sp-scrim--dialog > .sp-dialog {
   border-radius: var(--r-card) var(--r-card) var(--r-phone) var(--r-phone);
 }
 
+/* ---------- scrolling regions ----------
+   Every region that scrolls shows the same bar: thin, no track, a thumb in the
+   divider ink. Stated once here rather than per region, so a sidebar, a menu, a
+   popover list and a card's own scroll all read alike. Inside the dark sidebar the
+   thumb takes its own value, since the hairline ink would vanish against the ground.
+   A phone shows no bar at all - a touch surface has none to show. */
 .sp-scrolls { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .sp-scrolls::-webkit-scrollbar { width: 8px; height: 8px; }
 .sp-scrolls::-webkit-scrollbar-track { background: none; }
@@ -4259,17 +4420,19 @@ body.sp-touch > .sp-scrim--dialog > .sp-dialog {
 .sp-phone * { scrollbar-width: none; }
 .sp-phone ::-webkit-scrollbar { display: none; }
 
-/* A row being carried: lifted off the list, on the raised-card shadow the library
-   already names, tilted just enough to read as held rather than placed. */
+
+
+/* A row being carried: lifted off the list, on the menu shadow the library already
+   names, tilted just enough to read as held rather than placed. It stacks above the
+   rows it is carried across. */
 .sp-list-item--carried {
+  position: relative;
+  z-index: 1;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-tile);
   box-shadow: var(--shadow-menu);
   transform: rotate(-0.6deg);
-  /* it passes over the rows it is carried across */
-  position: relative;
-  z-index: 1;
 }
 /* the handle under the pointer darkens and its row takes the row hover; a carried row stays white */
 .sp-list-item__handle:hover { color: var(--ink-3); }
@@ -4282,16 +4445,6 @@ body.sp-touch > .sp-scrim--dialog > .sp-dialog {
 .sp-touch .sp-list-item:has(> .sp-list-item__handle) { min-height: var(--control-h-touch); }
 @media (prefers-reduced-motion: reduce) {
   .sp-list-item--carried { transform: none; }
-}
-/* a line read out to a screen reader and drawn nowhere */
-.sp-announce {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
 }
 /* Where it will land. */
 .sp-list-item__insertion {
@@ -4308,10 +4461,23 @@ body.sp-touch > .sp-scrim--dialog > .sp-dialog {
 /* a row whose text is a title and a note aligns its mark to the first line, the
    same reasoning as .sp-list-item--top */
 .sp-list-item--top { align-items: flex-start; }
+/* a box in a top-aligned row centres on the title's first line, not on the row's top
+   edge: the title is 14px on Poppins' normal 1.5 line, so the line box is 21px and the
+   16px box sits half the difference down - the same correction the described choice
+   (c5) makes for its 13px label */
 .sp-list-item--top > .sp-check,
 .sp-list-item--top > .sp-radio { margin-top: calc((var(--t-14) * 1.5 - var(--box)) / 2); }
 /* a row whose content stacks rather than sitting in a line - c24 variant */
 .sp-list-item--stack { flex-direction: column; align-items: stretch; gap: var(--sp-4); }
+/* ---------- the row on a surface ground - c15 variant ----------
+   The same row, carrying a surface's ground, edge and padding, so a column of them
+   reads as a list of cards. It is a variant of the row and not a card, because it
+   repeats - repeating is what separates a row from a surface.
+
+   Which body a list shows is a question about the list's own width, not about a
+   device: a list wide enough to align columns is a table, and one that is not is a
+   column of these rows. The list answers it with a container query - see
+   .sp-list--cards - so there is one implementation and no phone-only component. */
 .sp-list-item--card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -4319,12 +4485,16 @@ body.sp-touch > .sp-scrim--dialog > .sp-dialog {
   padding: var(--card-pad);
   color: inherit;
 }
+/* A card row that stays where it is while the page scrolls under it, lifted off what
+   it covers and a little taller - which is what a form's commit bar is. Named for
+   what it does and not for the one place it is used.
+   It was .sp-savebar--page, which restated the card row's ground, border, radius,
+   padding, gap and centring to arrive at the same box. The phone's own bar is not
+   this: .sp-savebar keeps a border-top and no radius, because a bar welded to an edge
+   is a different shape. */
 .sp-list-item--sticky {
   position: sticky;
   bottom: 0;
-  /* the last thing in its column, so at the strip arrows' level it covers what scrolls
-     under it, while a menu or a panel (3 and up) still opens over it */
-  z-index: 2;
   min-height: var(--commit-bar-h);
   box-shadow: var(--shadow-sheet);
 }
@@ -4336,6 +4506,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-list-item__line { display: flex; align-items: flex-start; gap: var(--sp-8); }
 .sp-list-item__line + .sp-list-item__line { align-items: center; }
 .sp-list-item--top > .sp-mark { align-self: flex-start; }
+
+/* ---------- text, ink and alignment roles - DRAFT c28 ----------
+   Text, ink and alignment roles that existed only as inline declarations before,
+   plus the save bar, restored here after it was lost from this file. */
 
 /* alignment, as roles rather than one-off declarations */
 .sp-right { text-align: right; }
@@ -4361,10 +4535,13 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-ink-warning { color: var(--amber-ink); }
 .sp-ink-danger { color: var(--red-ink); }
 
+/* ---------- save bar - DRAFT c27 ----------
+   The bar a form commits from: the figure being committed on the left, the commit
+   on the right. It never scrolls away. */
 .sp-savebar {
   display: flex;
   align-items: center;
-  min-height: 68px;
+  min-height: var(--commit-bar-h);
   box-sizing: border-box;
   gap: var(--sp-12);
   padding: var(--card-pad);
@@ -4372,17 +4549,29 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   border-top: 1px solid var(--line);
 }
 
+
 .sp-phone > .sp-savebar,
 .sp-phone > * > .sp-savebar {
   margin: 0 calc(var(--sp-16) * -1) calc(var(--sp-16) * -1);
   border-radius: 0 0 var(--r-phone) var(--r-phone);
 }
 
+/* A card whose contents sit in one row rather than a column - c10 variant. Layout
+   and nothing else: a card is a surface, so it owns a ground, an edge and padding,
+   and it never takes a row's own concerns - the control states, the text column and
+   the line parts belong to .sp-list-item--card, which is the row that wants a card's
+   ground. Its two lines of text sit tighter than a stack elsewhere, so the 42px mark
+   sets the height and the card is exactly as tall as a controls bar beside it. */
 .sp-card--row { flex-direction: row; align-items: center; gap: var(--sp-12); }
 .sp-card--row > .sp-stack { gap: var(--sp-2); }
+/* a card carrying something the user must deal with - see .sp-card[data-color="warning"] above,
+   which is the attention surface every other component uses */
 /* a footer holding a stack rather than a row of buttons - c10 variant */
 .sp-card__footer--stack { flex-direction: column; align-items: stretch; gap: var(--sp-8); }
 
+/* ---------- well - DRAFT c26 ----------
+   A bordered box inside a card, for a sub-list or an aside that belongs to the card
+   but is not the card. */
 .sp-well {
   border: 1px solid var(--line);
   border-radius: var(--r-tile);
@@ -4402,14 +4591,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a token field that failed validation: the input's own invalid state, on the box
    that holds the values - c3 */
 .sp-tokens:has([aria-invalid="true"]),
-.sp-stepper:has([aria-invalid="true"]),
-.sp-combobox__trigger[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
-.sp-combobox__trigger[aria-invalid="true"]:focus-visible { border-color: var(--red-ink); box-shadow: var(--ring-error); }
+.sp-stepper:has([aria-invalid="true"]) { border-color: var(--red); background: var(--red-tint-2); }
 
 /* a chip carrying a problem - c6 variant */
 .sp-chip[data-color="danger"] { background: var(--red-tint); border-color: var(--red); color: var(--red-ink); font-weight: 600; }
-/* the alias a receipt last matched (Vendors 5h), coloured as a positive pill is */
-.sp-chip[data-color="success"] { background: var(--green-tint); border-color: var(--green); color: var(--green); }
 
 /* an icon button with no weight of its own: a chevron or a grip inside a row */
 .sp-icon-btn--quiet { border: 0; background: none; color: var(--line-5); }
@@ -4417,13 +4602,33 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* the separator inside a menu - c9 */
 .sp-menu__sep { height: 1px; background: var(--line-2); margin: var(--sp-6) var(--sp-8); border: 0; }
 
+/* the record's own identity on its own page - c2. The same box as the form mark,
+   named separately because the two answer to different things: the form mark is
+   the size a form's controls set, this one is the size a record's identity takes. */
+
+
 /* a list card whose content stacks rather than sits in a row - c1 */
+
+/* a choice whose label needs a second line - c5 variant
+   The box aligns to the first line rather than the middle of the pair, the same
+   reasoning as .sp-list-item--top, and the two lines stack at the library's tightest gap. */
 
 .sp-choice--described { align-items: flex-start; }
 .sp-choice--described > .sp-check,
 .sp-choice--described > .sp-radio { margin-top: 2px; }
+/* header and description are one block of text, not two stacked items, so they
+   sit on their own line height rather than on a gap. The header takes the field
+   label's size, not the choice's body size: a described choice sits among fields,
+   and a heavier line than the labels beside it reads as a heading for the card. */
 .sp-choice__text { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
 .sp-choice__text > strong { font-size: var(--t-12); font-weight: 600; color: var(--ink-2); }
+
+/* ---------- swatch - DRAFT c31 ----------
+   A colour shown as itself: the square that stands for a palette value in a
+   reference or a legend. It is not an option - nothing is chosen by clicking it -
+   so it takes no border, no press state and no name of its own; the row beside it
+   names it. The colour is data, so it arrives as the same data-swatch attribute
+   the mark and the option already use. */
 
 .sp-swatch {
   width: var(--swatch);
@@ -4476,6 +4681,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-swatch[data-swatch="red-tint-2"] { background: var(--red-tint-2); }
 .sp-swatch[data-swatch="shell"] { background: var(--shell); }
 
+/* ---------- step - DRAFT c32 ----------
+   The number of a step in an ordered procedure, beside the sentence that is the
+   step. A count, not a control: it states position and nothing else. */
+
 .sp-step {
   width: var(--step);
   height: var(--step);
@@ -4503,14 +4712,18 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   text-transform: uppercase;
 }
 
-.sp-menu--up,
-.sp-menu--floating[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
+/* which side a panel opens on. The default is below the trigger and aligned to
+   its right edge; these are what the positioner picks when that does not fit.
+   The panel never grows past the space it has: it caps and scrolls instead, and
+   it never repositions once it is open. */
+.sp-menu--up { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
 .sp-menu--start { right: auto; left: 0; }
 /* a menu that is not a panel: inside a sheet or a dialog it has no box of its own,
    because the surface it sits on is already the surface */
 .sp-menu--plain { background: none; border: 0; padding: 0; min-width: 0; }
 
 .sp-menu--scrolls { max-height: var(--menu-max); overflow-y: auto; }
+/* a submenu opens to the side of the row that owns it, its top level with it */
 /* the offset clears the parent menu's own padding as well as the gap, so the two
    panels sit side by side rather than overlapping */
 .sp-menu--side-left { top: 0; right: calc(100% + var(--sp-6) + var(--sp-2)); }
@@ -4527,9 +4740,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a toast that needs an answer stays on the page's own surface, so it does not
    read as something that will disappear on its own - c23 */
 .sp-toast--asks { background: var(--surface); border: 1px solid var(--amber); color: var(--amber-ink-2); }
-/* a phone's row is too narrow for the words and two answers: the answers go under the words */
-.sp-touch .sp-toast--asks { flex-wrap: wrap; }
-.sp-touch .sp-toast--asks > .sp-stack { flex: 1 1 0; min-width: calc(100% - var(--step) - var(--sp-12)); }
+/* where toasts appear: a column, so a notice that stays until answered sits above a
+   passing toast instead of under it - c23. On touch both take the full width. */
+.sp-toast-region { display: flex; flex-direction: column; align-items: center; gap: var(--sp-8); }
+.sp-touch .sp-toast-region { align-items: stretch; }
 
 /* a pill carrying a problem - c6 variant */
 
@@ -4549,6 +4763,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-skeleton--bar[data-h-pc="82"] { height: 82%; }
 .sp-skeleton--bar[data-h-pc="96"] { height: 96%; }
 
+/* ---------- what Settings needed and the library did not have ----------
+   All variants of components that already existed; nothing new was invented. */
+
 /* a field showing a value the user cannot change here - c17 variant */
 .sp-input--readonly { background: var(--surface-2); color: var(--ink-2); }
 /* a field with nothing in it yet, where the emptiness is the point - c17 variant */
@@ -4559,6 +4776,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-well--quiet { background: var(--surface-2); padding: var(--sp-8) var(--sp-12); gap: var(--sp-2); }
 .sp-well[data-color="warning"] { background: var(--amber-tint); border-color: var(--amber-3); }
 
+/* the attention row's two siblings: one that states something went well, one that
+   states a problem, and one that is bordered rather than filled because it is a
+   choice rather than a notice - c24 variants */
 .sp-list-item[data-color="success"] { background: var(--green-tint); color: var(--green); }
 .sp-list-item[data-color="danger"] { background: var(--red-tint-2); border: 1px solid var(--red); }
 .sp-list-item--outline { background: none; border: 1px solid var(--line); }
@@ -4575,6 +4795,13 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* the rule turned on its side, separating two values in a row - c10 */
 .sp-rule--vertical { width: 1px; height: 16px; }
+
+
+/* ---------- add row - c33 ----------
+   The one way to add an item to a set that is not order lines: a row to a budget
+   group, a group to a side, an account to the list. The order line keeps its own
+   add row (c15), which carries a mark where the photo goes. This one is the small
+   button's height, so it sits under any list without claiming a record's room. */
 
 .sp-add-row {
   display: flex;
@@ -4597,12 +4824,16 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-add-row:hover { border-color: var(--green); background: var(--green-tint-2); }
 .sp-add-row:focus-visible { box-shadow: var(--ring); }
 .sp-add-row > svg { flex: none; }
-.sp-touch .sp-add-row { height: var(--control-h-touch); }
 
+/* ---------- halves ----------
+   Two columns of equal width that keep their own heights. It was drawn three times as
+   page scaffolding - .os-halves, .st-pair and .bg-halves, one profile under three
+   names - so it is one utility now. */
 .sp-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); align-items: start; }
-/* cards in a grid row share a height (15a) */
-.sp-halves--cards { align-items: stretch; }
 
+/* a NumberField that lives in a table cell (Budget 21b): it reads as the cell's figure
+   until it is clicked or focused, then shows the field's border and ring at the cell's
+   own size, so the row does not grow and nothing beside it moves */
 .sp-input.sp-input--cell {
   height: 22px;
   min-height: 0;
@@ -4621,191 +4852,19 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   font-size: inherit;
   text-align: right;
 }
-/* in a sum line the field takes the width of the figure it stands in for, not a text box's
-   own, so the line's name keeps its room while an amount is typed */
-.sp-sum__value > .sp-input.sp-input--cell { width: calc(12ch + var(--sp-4)); }
 .sp-input.sp-input--cell:hover { border-color: var(--line-3); }
 .sp-input.sp-input--cell:focus,
 .sp-input.sp-input--cell[data-focus="true"] { border-color: var(--green); background: var(--surface); box-shadow: var(--ring); }
-/* a figure that could not be read looks it, as any invalid field does */
-.sp-input.sp-input--cell[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
 
 /* a table read as a sheet of figures rather than a list of records (Budget 21b): the
    rules between rows and under the header go, and the columns carry the structure */
 .sp-table--borderless thead th,
 .sp-table--borderless tbody tr { border-bottom: 0; }
 
+/* a compact table that fills a flush card takes the card's own inset at its two ends,
+   so its first column starts on the line the card's title starts on. Compact is a
+   density, not a narrower frame - the 12px inset is for a table inside a panel. */
 .sp-card--flush .sp-table--compact th:first-child,
 .sp-card--flush .sp-table--compact td:first-child { padding-left: var(--card-pad); }
 .sp-card--flush .sp-table--compact th:last-child,
 .sp-card--flush .sp-table--compact td:last-child { padding-right: var(--card-pad); }
-
-/* ---------- the shell in a browser window (9a, 9f, 9h) ----------
-   The drawn shell is a framed window; in use it fills the viewport edge to edge. */
-
-.sp-shell--viewport {
-  min-height: 100dvh;
-  border: 0;
-  border-radius: 0;
-  overflow: visible;
-}
-.sp-shell--viewport > .sp-sidebar {
-  position: sticky;
-  top: 0;
-  height: 100dvh;
-  overflow-y: auto;
-}
-/* opened over the page from the rail, it covers the window's height wherever the page is scrolled */
-.sp-shell--viewport > .sp-sidebar.sp-sidebar--peek { position: fixed; height: 100dvh; }
-.sp-shell--viewport .sp-shell__page > .sp-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-/* search is one field at a fixed width, flush with the content's own inset (9f) */
-.sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { width: 420px; max-width: 100%; }
-
-/* below 640 the sidebar is a tab bar along the bottom of the window, and the content
-   scrolls beneath it and the one floating action */
-.sp-shell--touch {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-  background: var(--bg);
-  --phone-gutter: var(--sp-12);
-  padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom));
-}
-.sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
-.sp-shell--touch .sp-shell__body { padding: var(--sp-12); }
-.sp-shell--touch > .sp-tabbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 5;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-/* a task's save bar takes the tab bar's place at the bottom edge (r13, Mobile screens 5b) */
-.sp-shell--touch .sp-savebar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 5;
-  height: calc(var(--phone-bar-h) + env(safe-area-inset-bottom));
-  padding: 0 var(--phone-gutter) env(safe-area-inset-bottom);
-}
-.sp-shell--touch > .sp-fab {
-  position: fixed;
-  right: var(--sp-12);
-  bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom));
-  z-index: 5;
-}
-/* the content also clears the floating action, so the last control never sits under it */
-.sp-shell--touch:has(> .sp-fab) { padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + var(--fab) + env(safe-area-inset-bottom)); }
-/* a task takes the bottom edge for its save bar; the tab bar steps aside (9h), and the room
-   under the page is the save bar's, as it was the tab bar's */
-.sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-tabbar,
-.sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-fab { display: none; }
-.sp-shell--touch:has(.sp-savebar) { padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom)); }
-/* focus the keyboard moves stops 12 clear of the bars pinned over the page, at the top and the bottom */
-html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }
-html:has(.sp-shell--viewport .sp-list-item--sticky) { scroll-padding-bottom: calc(var(--commit-bar-h) + var(--sp-12)); }
-html:has(.sp-shell--touch) {
-  scroll-padding-top: calc(var(--phone-bar-h) + var(--sp-12));
-  scroll-padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom));
-}
-html:has(.sp-shell--touch > .sp-fab) { scroll-padding-bottom: calc(var(--phone-bar-h) + var(--fab) + 2 * var(--sp-12) + env(safe-area-inset-bottom)); }
-/* a control on a pinned bar is always in view: focusing it never scrolls the page */
-html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--sticky) :focus) { scroll-padding: 0; }
-
-/* a real picture fills the box its placeholder drew, at the same size and corners */
-.sp-mark--photo > img,
-.sp-mark--photo > .sp-mark__open > img,
-.sp-record__photo > img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: inherit;
-}
-/* the mark's grid track would grow to the picture and crop it from the top: laid over
-   the box instead, it is cropped from the centre (17d) */
-.sp-mark--photo > img,
-.sp-mark--photo > .sp-mark__open > img { position: absolute; inset: 0; }
-.sp-mark--photo:has(> img),
-.sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }
-/* Thumbnail tone (17b, 12b): on light, goods only (paper is read), saturate(0.88) under --bg at 8%, which is
-   the picture at 92% over --bg; on dark every thumbnail is edged and at 90%. Never in the viewer or an avatar. */
-[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo, .sp-palette__thumb):has(> img) { background: var(--bg); }
-[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo, .sp-palette__thumb) > img { filter: saturate(0.88); opacity: 0.92; }
-[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img) { border-color: var(--line-3); }
-[data-theme="dark"] :is(.sp-record__photo, .sp-palette__thumb) > img { outline: 1px solid var(--line-3); outline-offset: -1px; }
-[data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo, .sp-palette__thumb) > img { opacity: 0.9; }
-[data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo, .sp-palette__thumb):hover > img { opacity: 1; }
-.sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; cursor: zoom-in; user-select: none; }
-/* a picture at full size zooms where it is pressed (17d); a finger on it swipes or pinches, so the
-   page under it does not scroll or zoom instead. Zoomed, it keeps the stage's size and moves inside it */
-.sp-viewer__stage:has(> img) { touch-action: none; }
-.sp-viewer__stage--zoomed { display: flex; overflow: auto; }
-.sp-viewer__stage--zoomed > img { flex: none; margin: auto; max-width: none; max-height: none; cursor: zoom-out; }
-.sp-viewer__stage:has(> img),
-.sp-viewer__stage:has(> .sp-mark) { background: none; }
-/* the rail's label, fixed to the window where [data-tip] would clip inside a scrolling sidebar */
-.sp-tip--float { position: fixed; z-index: 30; transform: translate(-50%, calc(-100% - var(--sp-6))); pointer-events: none; }
-/* one toast at a time, under any notice waiting for an answer, bottom centre, taking no press but its
-   own; above the tab bar on touch, spanning the window inside a 16 inset (c18). A bar it would cover lifts it. */
-.sp-toast-region {
-  position: fixed;
-  left: var(--sp-16);
-  right: var(--sp-16);
-  bottom: var(--sp-16);
-  /* above a sheet's or a dialog's scrim (50): a toast is never blocked by what is open (6f) */
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-8);
-  pointer-events: none;
-}
-.sp-toast-region > * { pointer-events: auto; }
-body:has(.sp-shell--touch) .sp-toast-region { bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom)); align-items: stretch; }
-body:has(.sp-shell--touch) .sp-toast-region > .sp-toast { flex: 1; min-width: 0; }
-/* a scrim over the whole document covers the window, not the first screen of it */
-body > .sp-scrim { position: fixed; z-index: 50; border-radius: 0; }
-/* the window's own edge: the page meets it, and a key cap reads in the product's face */
-@layer base {
-  body.sp { margin: 0; }
-  .sp kbd { font-family: inherit; }
-}
-
-/* ---------- signing in (20a): the one card that floats on the page ---------- */
-.sp-auth { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-16); background: var(--bg); }
-.sp-card--float { width: 400px; max-width: 100%; box-shadow: var(--shadow-menu); }
-.sp-card--float > .sp-stack.sp-center { align-items: center; }
-.sp-card--float-wide { width: 420px; }
-
-/* ---------- the shell's layouts below their thresholds (Responsive reference 18a) ----------
-   A railed body is one column on a phone (a split one folds at 900, beside its rules). */
-.sp-shell--touch .sp-shell__body--rail { grid-template-columns: minmax(0, 1fr); }
-/* field grids collapse at the phone threshold */
-.sp-touch .sp-fields { grid-template-columns: minmax(0, 1fr); }
-.sp-touch .sp-filters .sp-btn { width: auto; }
-/* the picture strip is a link out: it keeps the card's ink, not a link's */
-a.sp-record__photos { color: inherit; text-decoration: none; }
-
-/* the palette hangs at 15% of the window over the page (9d), and fills a phone (7b) */
-body > .sp-scrim:has(> .sp-palette) { place-items: start center; padding-top: 15vh; background: var(--overlay-palette); }
-.sp-palette__all[aria-selected="true"] { background: var(--green-tint); }
-.sp-touch .sp-palette__row,
-.sp-touch .sp-palette__all { min-height: var(--control-h-touch); }
-.sp-touch .sp-palette__all { display: flex; align-items: center; }
-.sp-shell--touch:has(.sp-palette--screen) { padding-bottom: 0; }
-.sp-shell--touch .sp-shell__page:has(> .sp-palette--screen) { height: 100dvh; }
-/* a column of settings cards stops at the width a field reads at (Responsive reference: 11a) */
-.sp-column--form { max-width: 640px; }
-/* a mark in a colour the user picked outside the set, as the picker's own custom cell wears it */
-.sp-mark--solid[data-swatch="custom"] { background: var(--swatch); }
-/* the ink is worked out from the fill (components/colour.js): whichever of the two reads better on it */
-.sp-mark--solid[data-ink="surface"] { color: var(--surface); }
-.sp-mark--solid[data-ink="ink"] { color: var(--ink); }

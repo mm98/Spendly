@@ -6,6 +6,7 @@ import { applyTheme } from './app/theme.js'
 import './styles/fonts.css'
 import './styles/tokens.css'
 import './styles/components.css'
+import './styles/app.css'
 import './styles/pages.js'
 
 // before first paint, so a dark reader never sees a light frame

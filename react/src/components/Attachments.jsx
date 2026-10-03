@@ -212,7 +212,7 @@ function ZoomStage({ src, alt, onSwipe }) {
 }
 
 /** One file on a stage, with the page rail when it has more than one page (17d: page thumbnail). */
-function ViewerFile({ item, label, onSwipe }) {
+function ViewerFile({ item, onSwipe }) {
 	const pages = usePages(item)
 	const [page, setPage] = useState(0)
 	useEffect(() => setPage(0), [item?.key, item?.name])
@@ -240,12 +240,11 @@ function ViewerFile({ item, label, onSwipe }) {
 			</div>
 		)
 		: stage
-	if (!label) return body
-	return <div className="sp-viewer__side"><span className="sp-viewer__label">{label}</span>{body}</div>
+	return body
 }
 
 /** One file at full size (12b); `items` are `{ name, src, download, kind, pageSrc?, pages?, countPages? }`.
-    `beside` is a second file shown next to the first to compare them (3c), each with its `label`. */
+    `beside` is a second file shown next to the first to compare them (3c). */
 export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest }) {
 	reject(rest, 'Viewer')
 	const box = useRef(null)
@@ -268,10 +267,10 @@ export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest })
 	if (!shown) return null
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose?.() }}>
-			<div className={beside ? 'sp-viewer sp-viewer--compare' : 'sp-viewer'} role="dialog" aria-modal="true"
+			<div className="sp-viewer" role="dialog" aria-modal="true"
 				aria-label={beside ? `${shown.name} beside ${beside.name}` : shown.name} tabIndex={-1} ref={box}>
 				{beside
-					? <div className="sp-viewer__compare"><ViewerFile item={shown} label={shown.label} /><ViewerFile item={beside} label={beside.label} /></div>
+					? <div className="sp-viewer__compare"><ViewerFile item={shown} /><ViewerFile item={beside} /></div>
 					: <ViewerFile item={shown} onSwipe={items.length > 1 ? step : undefined} />}
 				<div className="sp-viewer__bar">
 					<IconButton icon="chevron-left" aria-label="Previous" disabled={items.length < 2} onClick={() => step(-1)} />

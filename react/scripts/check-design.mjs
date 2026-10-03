@@ -13,6 +13,8 @@ const src = join(root, 'src')
 const read = p => readFileSync(p, 'utf8')
 const tokens = read(join(src, 'styles/tokens.css'))
 const components = read(join(src, 'styles/components.css'))
+// what the app adds to the design's stylesheet: a real window, and what the design states in words only
+const app = read(join(src, 'styles/app.css'))
 // one layout file per screen, as the handoff's styles/pages/ has; never a component rule
 const layoutDir = join(src, 'styles/pages')
 const pageCss = (() => { try { return readdirSync(layoutDir).filter(n => n.endsWith('.css')).map(n => join(layoutDir, n)) } catch { return [] } })()
@@ -55,15 +57,22 @@ const stringsIn = node => {
 	return out
 }
 
+/* ---- the design's own stylesheets, copied byte for byte ---- */
+
+for (const name of ['tokens.css', 'components.css'])
+	if (read(join(root, '../design/styles', name)) !== read(join(src, 'styles', name)))
+		fail('copies of the design', `src/styles/${name}`, `differs from design/styles/${name}: copy it over, and put anything the app adds in app.css`)
+
 /* ---- classes resolve, tokens are defined ---- */
 
-const cssClasses = new Set([...[components, ...pages.map(([, css]) => css)].join('\n').matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map(m => m[1]))
+const cssClasses = new Set([...[components, app, ...pages.map(([, css]) => css)].join('\n').matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map(m => m[1]))
 const defined = new Set([...(tokens + components).matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]))
 // set per instance by a component, which is the one place a fallback is legitimate
 const HOOKS = ['--swatch', '--p', '--a', '--b']
 
-for (const m of new Set([...components.matchAll(/var\((--[\w-]+)/g)].map(m => m[1])))
-	if (!defined.has(m) && !HOOKS.includes(m)) fail('tokens defined', 'components.css', `${m} is not defined`)
+for (const [name, css] of [['components.css', components], ['app.css', app]])
+	for (const m of new Set([...css.matchAll(/var\((--[\w-]+)/g)].map(m => m[1])))
+		if (!defined.has(m) && !HOOKS.includes(m)) fail('tokens defined', name, `${m} is not defined`)
 for (const m of new Set([...components.matchAll(/var\((--[\w-]+),\s*[^)]+\)/g)].map(m => m[0])))
 	if (!HOOKS.some(h => m.startsWith(`var(${h},`))) fail('no var() fallbacks', 'components.css', m)
 
@@ -73,13 +82,13 @@ for (const [p, ast] of parsed) {
 		const literal = n.value.type === 'Literal'
 		for (const s of stringsIn(n.value))
 			for (const c of s.split(/\s+/).filter(Boolean))
-				if ((literal || c.startsWith('sp-')) && c !== 'sp' && !cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css or a page layout file`)
+				if ((literal || c.startsWith('sp-')) && c !== 'sp' && !cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css, app.css or a page layout file`)
 	})
 	// a class chosen from a variant map or join() never sits in a className literal
 	for (const s of stringsIn(ast)) {
 		const parts = s.trim().split(/\s+/)
 		if (parts.length && parts.every(c => /^sp-[\w-]+$/.test(c)))
-			for (const c of parts) if (!cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css or a page layout file`)
+			for (const c of parts) if (!cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css, app.css or a page layout file`)
 		for (const v of s.matchAll(/var\((--[\w-]+)/g))
 			if (!defined.has(v[1])) fail('tokens defined', rel(p), `${v[1]} is not defined`)
 	}
@@ -185,7 +194,7 @@ for (const [p, ast] of parsed) {
 /* ---- what the product says ---- */
 
 const TELLS = [/—/, /–/, /[‘’“”]/, /&(mdash|ndash|rsquo|lsquo|ldquo|rdquo);/, /\p{Extended_Pictographic}/u]
-const sweep = [...checked, ...pageCss, join(root, 'index.html'), join(src, 'styles/tokens.css'), join(src, 'styles/components.css')]
+const sweep = [...checked, ...pageCss, join(root, 'index.html'), join(src, 'styles/tokens.css'), join(src, 'styles/components.css'), join(src, 'styles/app.css')]
 for (const p of sweep) read(p).split('\n').forEach((line, i) => {
 	for (const t of TELLS) if (t.test(line)) fail('typographic tells', `${rel(p)}:${i + 1}`, line.trim().slice(0, 90))
 })

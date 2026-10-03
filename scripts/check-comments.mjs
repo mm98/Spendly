@@ -42,8 +42,11 @@ const growth = new Map();
 let inAddedBlock = false;
 let inRemovedBlock = false;
 
+// byte copies of design/styles: their prose is the design's, and design:check holds them equal
+const DESIGN_COPIES = ["react/src/styles/components.css", "react/src/styles/tokens.css"];
+
 function isSourceFile(path) {
-	return EXTENSIONS.some(ext => path.endsWith(ext));
+	return EXTENSIONS.some(ext => path.endsWith(ext)) && !DESIGN_COPIES.includes(path);
 }
 
 // Whether a line opens, continues or closes a block comment, carried across lines because a
@@ -72,7 +75,8 @@ function tally(side, comment) {
 // A rewrite may spend what it removed: replacing a six-line comment with five is a shortening,
 // while replacing it with nine is the growth this cap exists to stop.
 function checkRun(removedBudget) {
-	if (!file || !isSourceFile(file) || run.length === 0) return;
+	// a skipped file's lines are dropped here, or the next file would be judged on them
+	if (!file || !isSourceFile(file) || run.length === 0) { run = []; return; }
 	const limit = Math.max(MAX_NEW_COMMENT_LINES, removedBudget);
 	let inBlock = false;
 	let commentStart = null;

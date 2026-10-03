@@ -552,7 +552,7 @@ function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = n
 	const figures = <div className="os-stats">{kpis}</div>
 	if (drilled) {
 		if (shape === 'touch' || stacked) return <>{period}{crumbsBar}{figures}{chart}{side}{slice}</>
-		return <>{period}{crumbsBar}{figures}<Halves cards>{chart}{side}</Halves>{slice}</>
+		return <>{period}{crumbsBar}{figures}<Halves>{chart}{side}</Halves>{slice}</>
 	}
 	// the period control stays first in every state, so it keeps its focus while a window loads
 	if (shape === 'touch') return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{slice}</>
@@ -564,7 +564,7 @@ function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = n
 			{figures}
 			{shape === 'wide'
 				? <div className="sp-shell__body--split">{chart}<Panel>{byCategory}{byStatus}</Panel></div>
-				: <>{chart}<Halves cards>{byCategory}{byStatus}</Halves></>}
+				: <>{chart}<Halves>{byCategory}{byStatus}</Halves></>}
 			<Halves>
 				<div className="sp-stack sp-gap-12">{vendors}{saving}</div>
 				{limits}
@@ -782,7 +782,6 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 			...(stackedNow && column.spend > 0 ? { segments: segmentsOf(column) } : {})
 		}
 	})
-	const current = columns.find(column => column.running)?.key
 	const below = columns.filter(column => column.spend < 0)
 	const limitLine = limit > 0 && !touch
 		? { at: `${100 - share(limit, top) * fit}%`, label: `${unit === 'month' ? 'Monthly limit' : 'Limit'} ${currency(limit, 0)}` }
@@ -813,10 +812,10 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 					: null}
 			</div>
 			{touch
-				? <Bars ref={bars} columns={drawn} current={current} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
+				? <Bars ref={bars} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 				: (
 					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5} limit={limitLine}>
-						<Bars ref={bars} variant="plot" columns={drawn} current={current} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
+						<Bars ref={bars} variant="plot" columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 					</Plot>
 				)}
 			{below.length
@@ -1036,11 +1035,7 @@ function VendorChart({ view, onOpen }) {
 		height: share(Math.max(0, entry.amount), most) * fit,
 		muted: entry.other,
 		inert: entry.other,
-		tick: entry.name,
-		tip: (
-			<ChartTip title={entry.other ? `Other ${counted(rest.length, 'vendor')}` : entry.name} value={currency(entry.amount, 0)}
-				note={`${counted(entry.orders, 'order')}${!entry.other && onOpen ? `${dot}press to see its orders` : ''}`} />
-		)
+		tick: entry.name
 	}))
 	return (
 		<Card>
@@ -1126,7 +1121,6 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 							pair: [share(Math.max(0, column.spend), most), share(Math.max(0, column.saved), most)],
 							tick: tickOf(chart, column, touch)
 						}))}
-						current={columns.find(column => column.running)?.key}
 						selected={select ? selected : undefined}
 						onSelect={select}
 					/>

@@ -2,7 +2,7 @@ import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
-import { getCategories, getCurrentUser, getOrder, getOrders, getStats, getVendor, getVendors, itemAttachmentThumbnailUrl, overBudget, searchRecords, withMonthSpend } from '../api/client.js'
+import { getCategories, getCurrentUser, getOrder, getOrders, getStats, getVendor, getVendors, overBudget, searchRecords, withMonthSpend } from '../api/client.js'
 import { cachedFetch, forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
 import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
 import { MAC } from './useMedia.js'
@@ -94,7 +94,7 @@ function shape(needle, list, hits, vendors, touch) {
 			return true
 		})
 		.map(i => ({
-			key: 'item-' + i.id, thumb: i.photo ? itemAttachmentThumbnailUrl(o.id, i.id, i.photo) : true, plain: true, name: i.title, to: `/orders/${o.id}`,
+			key: 'item-' + i.id, thumb: true, plain: true, name: i.title, to: `/orders/${o.id}`,
 			meta: 'in ' + (o.reference || [o.vendor?.name, dayShortMonth(o.date)].filter(Boolean).join(dot))
 		})))
 	return {

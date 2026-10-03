@@ -25,7 +25,7 @@ src/
   pages/          one module per screen
   api/            client.js (every request), useApi.js (the read cache), format.js (money,
                   dates, counts in the account's own format), the bank statement reader
-  styles/         tokens.css, components.css, fonts.css, and pages/ (one layout file per screen)
+  styles/         tokens.css, components.css, app.css, fonts.css, and pages/ (one layout file per screen)
   fonts/          Poppins 400, 500, 600 and 700
 public/           icons, the web manifest, theme.js (sets the theme before the first paint)
 scripts/          check-design, check-bank-statement, precompress, regen-docs, lighthouse
@@ -36,7 +36,12 @@ scripts/          check-design, check-bank-statement, precompress, regen-docs, l
 The design handoff is `../design`. Two parts of it are lifted into the app, not redrawn:
 
 - `design/styles/tokens.css` and `components.css` are `src/styles/tokens.css` and
-  `components.css`. Every value is a token; every look is a component rule there.
+  `components.css`, byte for byte: `check-design` fails when they differ. Every value is a
+  token; every look is a component rule there.
+- `src/styles/app.css` holds what the app adds to them, and nothing else: the drawn screens
+  placed in a real window (pinned bars, `100dvh`, scroll room), the rules for what a design note
+  states in words but has no CSS for yet, and the few places where the design's own stylesheet
+  does not give what its drawing shows. Each rule names the design section it implements.
 - `design/react_handoff/*.jsx` are the components in `src/components/`, in the same files.
   Components the screens needed and the handoff did not ship are added beside them, copied from
   the canonical markup in `design/Components.dc.html`.

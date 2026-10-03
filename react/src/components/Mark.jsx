@@ -71,8 +71,8 @@ export function Mark({
 		round && 'sp-mark--round',
 		goods && 'sp-mark--goods'
 	)
-	// a colour the user picked outside the set rides in the hook its rule reads
-	const paint = !chosen ? {} : SWATCHES.includes(chosen) ? { 'data-swatch': chosen } : { 'data-swatch': 'custom', style: { '--swatch': chosen } }
+	// a colour the user picked outside the set is painted on the mark itself
+	const paint = !chosen ? {} : SWATCHES.includes(chosen) ? { 'data-swatch': chosen } : { style: { background: chosen } }
 	// its glyph or initials take whichever ink reads better on the fill
 	if (chosen) paint['data-ink'] = inkFor(chosen)
 	if (!derives && !rest['aria-label'])

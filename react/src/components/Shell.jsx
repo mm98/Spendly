@@ -125,10 +125,8 @@ export function NavItem({ variant = 'default', icon, mark, count, countColor, su
 	const body = (
 		<>
 			{mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
-			{/* a light row holds its current, bold label's room in every state, as Segmented does */}
-			{(variant === 'light' || variant === 'edited') && typeof children === 'string'
-				? <span className="sp-grow" data-label={children}><span>{children}</span></span>
-				: <span className="sp-grow">{children}</span>}
+			{/* a long name ends in an ellipsis on one line (9f) */}
+			<span className="sp-grow sp-truncate">{children}</span>
 			{sub ? <span className="sp-nav-item__sub">{sub}</span> : null}
 			{count != null
 				? <span className="sp-nav-item__count" {...(countColor ? { 'data-color': countColor } : {})}>{count}</span>
@@ -314,7 +312,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 						? (
 							<>
 								<SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
-								{onCancel ? <Button variant="text" onClick={onCancel}>Cancel</Button> : null}
+								{onCancel ? <Button variant="text" size="small" onClick={onCancel}>Cancel</Button> : null}
 							</>
 						)
 						: (
@@ -369,7 +367,7 @@ export function PaletteRow({ icon, thumb = false, plain = false, action = false,
 	const screen = useContext(PaletteScreen)
 	const trail = !screen && (value != null || kbd)
 	let lead = null
-	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true">{typeof thumb === 'string' ? <img src={thumb} alt="" /> : null}</span>
+	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true" />
 	else if (icon && screen) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
 	else if (icon) lead = <span className="sp-palette__icon"><Icon name={icon} size={15} /></span>
 	return (
