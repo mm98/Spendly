@@ -808,6 +808,13 @@ export async function putSummaryAway(month, signal) {
 	return answer
 }
 
+/** Hides one category's line from a month's summary, or brings it back (`hidden` false). */
+export async function hideSummaryLine(month, categoryId, hidden, signal) {
+	const answer = await request('/api/stats/summary/hidden', { method: 'PUT', body: { month, categoryId, hidden }, signal })
+	invalidate(getMonthlySummary)
+	return answer
+}
+
 /** The order the vendors and categories lists open in: one setting, so only the orders both lists
     have. A label names the column and the direction; Name has one direction, the one that finds. */
 export const listSorts = [

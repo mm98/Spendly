@@ -1508,6 +1508,10 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-touch .sp-switch::after { width: 20px; height: 20px; top: var(--sp-2); left: var(--sp-2); }
 .sp-touch .sp-switch:checked::after { transform: translateX(18px); }
 .sp-touch .sp-list-item__line .sp-title { font-size: var(--t-15); }
+/* on a phone a row's text buttons do not fit beside its words: they go under them, where the words start */
+.sp-touch .sp-list-item:has(> .sp-list-item__actions .sp-btn) { flex-wrap: wrap; }
+.sp-touch .sp-list-item > .sp-list-item__actions:has(.sp-btn) { flex-basis: 100%; }
+.sp-touch .sp-list-item:has(> .sp-mark--small, > .sp-list-item__count) > .sp-list-item__actions:has(.sp-btn) { padding-left: calc(var(--mark-small) + var(--sp-12)); }
 
 /* the shell's own touch query (app/useMedia.js): 640 is still the desktop rail */
 @media (max-width: 639.98px) {

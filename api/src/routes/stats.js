@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { filterOf, getStats, homeAttention, markSummarySeen, monthlySummary, sliceLines, sliceOrders } from '../lib/stats.js'
+import { filterOf, getStats, homeAttention, markSummarySeen, monthlySummary, setSummaryLineHidden, sliceLines, sliceOrders } from '../lib/stats.js'
 
 export const router = Router()
 
@@ -26,5 +26,11 @@ router.get('/summary', (req, res) => {
 
 router.put('/summary/seen', (req, res) => {
 	if (!markSummarySeen(req.user.id, req.body?.month)) return res.status(400).json({ error: 'Which month?' })
+	res.status(204).end()
+})
+
+router.put('/summary/hidden', (req, res) => {
+	const { month, categoryId, hidden } = req.body ?? {}
+	if (!setSummaryLineHidden(req.user.id, month, categoryId, hidden !== false)) return res.status(400).json({ error: 'Which month and category?' })
 	res.status(204).end()
 })

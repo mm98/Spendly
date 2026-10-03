@@ -17,7 +17,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, glyphOf } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCategories, getCurrentUser, getHomeAttention, getMonthlySummary, getOrders, getSettings, getStatsSlice,
+	failureMessage, getCategories, getCurrentUser, getHomeAttention, getMonthlySummary, hideSummaryLine, getOrders, getSettings, getStatsSlice,
 	overBudget, putSummaryAway, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -157,8 +157,21 @@ export default function Home() {
 		}
 	}
 	const due = summary.data
+	// a line hidden or brought back here holds until the server's answer says the same
+	const [lineHidden, setLineHidden] = useState({})
+	const isHidden = id => lineHidden[id] ?? due?.hidden?.includes(id) ?? false
+	const hideLine = async (c, monthName, hidden = true) => {
+		setLineHidden(was => ({ ...was, [c.id]: hidden }))
+		try {
+			await hideSummaryLine(due.month, c.id, hidden)
+			if (hidden) toast({ message: `${c.name} is hidden from the ${monthName} summary.`, undo: { label: 'Undo', onClick: () => hideLine(c, monthName, false) } })
+		} catch (error) {
+			setLineHidden(was => ({ ...was, [c.id]: !hidden }))
+			toast({ message: failureMessage(error, hidden ? 'The line was not hidden. Try again.' : 'The line did not come back. Try again.'), color: 'danger' })
+		}
+	}
 	const notice = known && loud.summary && due?.orders && !due.seen && putAway !== due.month && categories.data
-		? <MonthlySummary summary={due} categories={categories.data} early={loud.early} onHide={() => hide(due.month)} />
+		? <MonthlySummary summary={due} categories={categories.data} early={loud.early} onHide={() => hide(due.month)} isHidden={isHidden} onHideLine={hideLine} />
 		: null
 	if (recent.data && !recent.data.total) return <DayOne categories={categories.data} name={name} touch={touch} />
 	const props = { month, categories, view, recent, attention: attention.data, name, notice }
@@ -356,7 +369,7 @@ function summarySentence(over, close, room) {
 
 /** Last month against its limits, said once (8b, 6f): from the first of the month until the reader
     hides it. Each row opens that month's orders in the category. */
-function MonthlySummary({ summary, categories, early, onHide }) {
+function MonthlySummary({ summary, categories, early, onHide, isHidden, onHideLine }) {
 	const month = monthNames('long')[Number(summary.month.slice(5)) - 1]
 	const byId = new Map(categories.map(c => [c.id, c]))
 	const rows = summary.limits
@@ -369,19 +382,22 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	const limits = rows.reduce((sum, c) => sum + c.budget, 0)
 	const of = c => `${amount(c.spend, 0)} of ${currency(c.budget, 0)}`
 	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
+	// a hidden line goes from the rows below, not from what the month came to
+	const shown = c => !isHidden(c.id)
+	const roomShown = rows.filter(c => shown(c) && !over.includes(c) && !close.includes(c)).sort((a, b) => a.used - b.used || a.name.localeCompare(b.name))[0]
 	const lines = [
-		...over.map(c => ({
+		...over.filter(shown).map(c => ({
 			c, color: 'danger', mark: <CategoryMark category={c} size="small" />,
 			said: `went ${currency(c.spend - c.budget, 0)} over`,
 			meta: c.overs >= 12 ? 'Over in all twelve months. The limit may be too low.'
 				: c.overs >= 2 ? `${ORDINALS[c.overs]} time in twelve months.${c.overs >= 3 ? ' The limit may be too low.' : ''}` : of(c),
 			adjust: true
 		})),
-		...close.map(c => ({
+		...close.filter(shown).map(c => ({
 			c, mark: <Mark size="small" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={13} /></Mark>,
 			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
 		})),
-		...(room ? [{ c: room, mark: <Mark size="small" aria-hidden="true" aria-label={room.name}><Icon name={glyphOf(room.icon)} size={13} /></Mark>, said: `used ${Math.round(room.used)}%`, meta: of(room) }] : [])
+		...(roomShown ? [{ c: roomShown, mark: <Mark size="small" aria-hidden="true" aria-label={roomShown.name}><Icon name={glyphOf(roomShown.icon)} size={13} /></Mark>, said: `used ${Math.round(roomShown.used)}%`, meta: of(roomShown) }] : [])
 	].slice(0, SUMMARY_ROWS)
 	return (
 		<Card footer={[
@@ -406,7 +422,10 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 					<div className="sp-stack sp-gap-12">
 						{lines.map(line => (
 							<ListItem key={line.c.id} color={line.color} mark={line.mark}
-								actions={line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : null}>
+								actions={<>
+									{line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : null}
+									<IconButton icon="x" aria-label={`Hide ${line.c.name} from the ${month} summary`} onClick={() => onHideLine(line.c, month)} />
+								</>}>
 								<Link className="sp-stack sp-gap-6 sp-grow hm-link" to={link(line.c)}>
 									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span className="sp-nowrap">{line.said}</span></span>
 									<span className="sp-meta">{line.meta}</span>
