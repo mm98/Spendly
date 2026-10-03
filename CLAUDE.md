@@ -71,6 +71,26 @@ stated twice and obeyed once.
 - A rule already settled in the README is not re-derived from the diff in front of you — check
   README before inventing a new shape for a form, a list, a validation pattern.
 
+## Building from `design/`
+
+`design/` is changed only by the user, through Claude Design. It is the source of truth for every
+pattern: components, tokens, layouts, behaviour rules. A new pattern is never invented in the app; it
+is proposed to Claude Design as a written brief, and built once it is in `design/`.
+
+`design/` is a design system, not an assembly manual. It does not draw every case, and it does not
+have to. Putting screens together from its patterns is the build's job:
+
+- **Decide, don't ask,** when no drawing covers the exact case but an existing pattern fits and the
+  choice does not change what the user can do: fallback or loading text, which existing variant, an
+  empty or error state shaped like a drawn one, spacing by the layout rules. Use the closest pattern,
+  and list each such decision once in the pull request so the user can overrule it.
+- **Ask Claude Design** only for a real design question: a pattern that does not exist, two pages
+  that contradict each other, or a choice that changes what the user can do.
+- **Ask in one batch.** Compare the whole change with `design/` before building, and put every real
+  question in one brief, not one per round of building.
+- A design fault (a rule that breaks in practice, such as a clipped outline) goes in that same brief;
+  the app may carry a minimal workaround in `app.css` until the design takes it in.
+
 ## The API's queries
 
 ### `npm run queries:check` is the standing guard, and it is a guard rather than a goal
