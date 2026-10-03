@@ -177,8 +177,17 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const dirty = Boolean(lineChanged) || files.length > 0 || gone.length > 0
 		|| JSON.stringify(draft) !== JSON.stringify({ ...start, lines: undefined })
 		|| JSON.stringify(lines) !== JSON.stringify(start.lines)
+	// a line's photo is sent when it is chosen (17a); one still on its way is a file the leave question counts (17b)
+	const [photosSending, setPhotosSending] = useState(() => new Set())
+	const sendPhoto = file => {
+		const sent = sendFile(file).catch(() => null)
+		setPhotosSending(p => new Set(p).add(sent))
+		sent.then(() => setPhotosSending(p => { const next = new Set(p); next.delete(sent); return next }))
+		return sent
+	}
+	const photosOnTheirWay = [...lines.map(l => l.newPhoto), editing?.values.newPhoto].filter(p => p && photosSending.has(p.sent)).length
 	// a new order's steps differ only in the query, so a step away asks as a page away does
-	const guard = useLeaveGuard(dirty, { search: creating, uploading: files.filter(f => f.sending).length })
+	const guard = useLeaveGuard(dirty, { search: creating, uploading: files.filter(f => f.sending).length + photosOnTheirWay })
 
 	/* ---- lines ---- */
 
@@ -584,6 +593,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				editing={editing}
 				sheet={touch}
 				photoUrl={photoUrl}
+				sendPhoto={sendPhoto}
 				onChange={values => setEditing(e => ({ ...e, values }))}
 				onCommit={() => commit(false)}
 				onCommitNext={() => commit(true)}
@@ -1114,7 +1124,7 @@ function notices({ origin, scan, lines, leave, touch }) {
 }
 
 /** The line being edited or added (1b), in place on a desktop and in a sheet on a phone. */
-function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, onCancel }) {
+function LineForm({ editing, sheet, photoUrl, sendPhoto, onChange, onCommit, onCommitNext, onCancel }) {
 	const v = editing.values
 	const errors = editing.tried ? lineErrors(v) : {}
 	const set = patch => onChange({ ...v, ...patch })
@@ -1134,8 +1144,7 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 		const refused = fileProblem(file, PHOTO_TYPES)
 		if (refused) return set({ photoProblem: refused })
 		if (v.newPhoto) URL.revokeObjectURL(v.newPhoto.url)
-		const sent = sendFile(file).catch(() => null)
-		set({ newPhoto: { file, url: URL.createObjectURL(file), sent }, dropPhoto: false, photoProblem: null })
+		set({ newPhoto: { file, url: URL.createObjectURL(file), sent: sendPhoto(file) }, dropPhoto: false, photoProblem: null })
 	}
 	// a pasted picture is the line's photo; pasted words stay with the field they went into
 	const paste = ev => {
@@ -1155,7 +1164,7 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 					src={photo}
 					problem={v.photoProblem ?? (sending === 'failed' ? 'Failed' : undefined)}
 					busy={sending === 'busy'}
-					onRetry={sending === 'failed' ? () => set({ newPhoto: { ...v.newPhoto, sent: sendFile(v.newPhoto.file).catch(() => null) } }) : undefined}
+					onRetry={sending === 'failed' ? () => set({ newPhoto: { ...v.newPhoto, sent: sendPhoto(v.newPhoto.file) } }) : undefined}
 					onFile={take}
 					onRemove={() => set({ newPhoto: null, dropPhoto: Boolean(v.photo), photoProblem: null })}
 				/>
