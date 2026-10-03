@@ -160,7 +160,7 @@ const GO = [
 ]
 
 // `first` is what the empty palette offers, the rest are found by name; `action` fills the mark (9d)
-const actionsFor = (theme, onShortcuts, overLimit) => [
+const actionsFor = (theme, onShortcuts, overLimit, drafts) => [
 	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', to: '/orders/new?source=scan', first: true, action: true },
 	{ key: 'new', icon: 'plus', name: 'New order', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
@@ -170,20 +170,22 @@ const actionsFor = (theme, onShortcuts, overLimit) => [
 	theme === 'dark'
 		? { key: 'theme', icon: 'sun', name: 'Switch to light mode', run: () => setTheme('light'), first: true }
 		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true },
-	// a filter rather than a page, offered only while one category is over its limit (9d)
+	// filters rather than pages, offered only while a category is over its limit or a draft exists (9d)
 	...(overLimit ? [{ key: 'over-limit', icon: 'alert-triangle', name: 'Orders over limit this month', to: overLimit }] : []),
+	...(drafts ? [{ key: 'drafts', icon: 'file-text', name: 'Drafts', to: '/orders?status=Draft' }] : []),
 	...(onShortcuts ? [{ key: 'keys', icon: 'keyboard', name: 'Keyboard shortcuts', kbd: '?', run: onShortcuts }] : [])
 ].map(a => ({ ...a, plain: true }))
 
-/* The month's orders in the one category over its limit, as Home's notice opens them. With two or
-   more over, the orders list has no filter that holds them all yet, so nothing is offered. */
+/* The month's orders in every category over its limit, as Home's notice opens them. */
 function useOverLimit() {
 	const month = useApi(getStats, ['month', undefined, undefined]).data?.window
 	const categories = useApi(getCategories).data
 	if (!month || !categories) return null
 	const over = withMonthSpend(categories, month.split).filter(overBudget)
-	return over.length === 1 ? `/orders?category=${over[0].id}&from=${month.from}&to=${month.to}` : null
+	return over.length ? `/orders?category=${over.map(c => c.id).join(',')}&from=${month.from}&to=${month.to}` : null
 }
+
+const useHasDrafts = () => useApi(getOrders, [{ status: 'Draft', pageSize: 1 }]).data?.matched > 0
 
 const countLabel = (name, count) => (count == null ? name : name + dot + count)
 
@@ -266,7 +268,8 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const found = useSearch(needle, touch)
 	const recent = useRecentRows(touch)
 	const overLimit = useOverLimit()
-	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit))
+	const drafts = useHasDrafts()
+	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts))
 	const flat = groups.flatMap(g => g.entries)
 
 	// the current row goes back to the first whenever the rows change

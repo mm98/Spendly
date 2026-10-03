@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -122,8 +122,17 @@ const RECEIPT = { attached: 'Receipt attached', missing: 'Receipt missing' }
 
 const daysBetween = (from, to) => Math.round((new Date(to) - new Date(from)) / 864e5) + 1
 
-/** The order list (Order list 2b): the facet rail, then search, sort, what is filtering, and the orders. */
+/* Addresses other pages link to by name (Home's alerts), as the filters they stand for */
+const NAMED = { 'missing-receipt': 'receipt=missing' }
+
 export default function Orders() {
+	const [params] = useSearchParams()
+	const named = NAMED[params.get('view')]
+	return named ? <Navigate to={`/orders?${named}`} replace /> : <OrderList />
+}
+
+/** The order list (Order list 2b): the facet rail, then search, sort, what is filtering, and the orders. */
+function OrderList() {
 	const navigate = useNavigate()
 	const [params, setParams] = useSearchParams()
 	const f = useMemo(() => readFilters(params), [params])
