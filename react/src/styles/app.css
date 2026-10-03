@@ -20,6 +20,13 @@
 	z-index: 5;
 }
 
+/* the body is the box the layout's widths are measured on (18a, Responsive reference .rr-frame):
+   at 900 two columns become one */
+.sp-shell__body { container-type: inline-size; }
+@container (max-width: 900px) {
+	.sp-shell__body--split > * { grid-column: 1 / -1; }
+}
+
 /* below 640 the shell is the phone the design draws (Mobile screens .ms-device), on the whole window */
 .sp-shell--touch {
 	--phone-gutter: var(--sp-12);
@@ -31,6 +38,7 @@
 }
 .sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
 .sp-shell--touch .sp-shell__body { padding: var(--sp-12); }
+.sp-shell--touch .sp-shell__body--rail { grid-template-columns: minmax(0, 1fr); }
 .sp-shell--touch > .sp-tabbar {
 	position: fixed;
 	left: 0;
@@ -135,6 +143,18 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 [data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo) > img { opacity: 0.9; }
 [data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo):hover > img { opacity: 1; }
 
+/* uploading, the ring sits over the image, the old one or the new local preview (17b) */
+.sp-mark--photo > .sp-spinner { position: relative; z-index: 1; }
+/* a remove is a 44px target on touch whatever its glyph (19b); the mark clips, so it grows inward */
+.sp-touch .sp-mark__remove::after {
+	content: "";
+	position: absolute;
+	top: calc(var(--sp-4) * -1);
+	right: calc(var(--sp-4) * -1);
+	width: var(--control-h-touch);
+	height: var(--control-h-touch);
+}
+
 /* the viewer shows the file whole and zoomable (17d); a finger on it pinches or swipes (18b) */
 .sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; cursor: zoom-in; user-select: none; }
 .sp-viewer__stage:has(> img) { touch-action: none; }
@@ -142,7 +162,7 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-viewer__stage--zoomed > img { flex: none; margin: auto; max-width: none; max-height: none; cursor: zoom-out; }
 .sp-viewer__stage:has(> img),
 .sp-viewer__stage:has(> .sp-mark) { background: none; }
-/* a file with pages: the page rail down the left (12b, 17d), a strip under the page below 900 (18b) */
+/* a file with pages: the page rail down the left (12b, 17d) */
 .sp-viewer__paged { display: flex; gap: var(--sp-12); min-width: 0; }
 .sp-viewer__paged > .sp-viewer__stage { flex: 1; min-width: 0; }
 .sp-viewer__pages {
@@ -155,10 +175,6 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 }
 /* a page is letterboxed at its own proportion: cropping a receipt can hide its total (17d) */
 .sp-viewer__pages > .sp-mark > img { object-fit: contain; }
-@media (max-width: 899.98px) {
-	.sp-viewer__paged { flex-direction: column-reverse; }
-	.sp-viewer__pages { flex-direction: row; max-height: none; overflow-x: auto; }
-}
 /* Compare the files opens both side by side (3c) */
 .sp-viewer__compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
 
@@ -190,6 +206,25 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 	overflow-y: auto;
 	margin: calc(var(--sp-4) * -1);
 	padding: var(--sp-4);
+}
+
+/* a facet group's count and action sit at the heading's right edge (c12) */
+.sp-field-group__head { width: 100%; }
+/* a facet chip truncates rather than wraps, its count kept whole (c6, c12) */
+.sp-chip--facet > span { grid-template-columns: minmax(0, 1fr); }
+.sp-chip--facet > span > span { overflow: hidden; text-overflow: ellipsis; }
+.sp-chip--facet > span + span { flex: none; }
+/* on touch the period stepper is a control at the touch height (c0, Mobile screens 7a) */
+.sp-touch .sp-window { height: var(--control-h-touch); }
+/* the palette never grows past 60vh; its results scroll inside it (9d). Full screen on a phone (7b) */
+.sp-palette { display: flex; flex-direction: column; max-height: 60vh; }
+.sp-palette--screen { max-height: none; }
+/* a sheet is dragged down to close (c13): its grip takes the finger, and it slides back if let go */
+.sp-sheet { transition: transform 160ms ease-out; }
+.sp-sheet__handle { position: relative; cursor: grab; touch-action: none; }
+.sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
+@media (prefers-reduced-motion: reduce) {
+	.sp-sheet { transition: none; }
 }
 
 /* a live region, read out and drawn nowhere (c1, c9, 14a) */
