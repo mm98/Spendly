@@ -2,7 +2,7 @@ import { Failed } from '../components/Failed.jsx'
 import { Card, Panel, Toolbar } from '../components/Card.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 
-import { Skeleton } from '../components/Utilities.jsx'
+import { Skeleton, Spinner } from '../components/Utilities.jsx'
 import { Mark, MarkRemove } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Attachment } from '../components/Attachments.jsx'
@@ -12,7 +12,7 @@ import { SaveBar } from '../components/Touch.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
-	attachmentFileUrl, attachmentThumbnailUrl, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
+	attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, getAttachmentPages, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
 } from '../api/client.js'
 import { currency, dot, quantity, plural } from '../api/format.js'
 
@@ -81,41 +81,76 @@ export const itemPhoto = (orderId, item) => {
 
 const kindOf = file => (file.kind === 'pdf' ? 'PDF' : String(file.name).split('.').pop().toUpperCase().slice(0, 4))
 
+/** What the viewer needs to page through a stored PDF (12b): its pages, or how to count them. */
+export const pagesOf = (orderId, file) => (file.kind === 'pdf'
+	? {
+		pages: file.pages ?? null,
+		pageSrc: i => attachmentPageUrl(orderId, file.id, i),
+		countPages: () => getAttachmentPages(orderId, file.id).then(r => r.pages)
+	}
+	: {})
+
 /** The order's files as the viewer walks them: its attachments, then its lines' photos. */
 export function filesOf(order) {
 	const files = order.attachments.map(a => ({
 		key: a.id,
 		name: a.name,
+		kind: a.kind,
 		src: a.kind === 'pdf'
 			? (a.hasThumbnail ? attachmentThumbnailUrl(order.id, a.id) : null)
 			: attachmentFileUrl(order.id, a.id),
-		download: attachmentFileUrl(order.id, a.id)
+		download: attachmentFileUrl(order.id, a.id),
+		...pagesOf(order.id, a)
 	}))
 	for (const item of order.items) {
 		const photo = item.attachments?.[0]
 		if (photo) files.push({
 			key: photo.id,
 			name: item.title,
+			kind: photo.kind,
 			src: photo.kind === 'pdf' ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : itemAttachmentFileUrl(order.id, item.id, photo.id),
-			download: itemAttachmentFileUrl(order.id, item.id, photo.id)
+			download: itemAttachmentFileUrl(order.id, item.id, photo.id),
+			...pagesOf(order.id, photo)
 		})
 	}
 	return files
 }
 
-/** One attachment in the strip; without a `thumb` the tile names the file's kind. A `problem` is
-    why the file cannot be kept, said on the tile until it is removed (17b). */
-export function AttachmentTile({ name, kind, thumb, problem, onOpen, onRemove, bare = false }) {
+/** One attachment in the strip: `problem` says why it cannot be kept (17b), `sending` is the part sent,
+    0 to 1 (17a), and `twin` warns that the same file is already there. */
+export function AttachmentTile({ name, kind, thumb, problem, sending, twin = false, onOpen, onRemove, bare = false }) {
 	const label = kindOf({ name, kind })
 	const remove = onRemove
 		? <MarkRemove aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="x" size={11} /></MarkRemove>
 		: null
 	const named = onOpen ? `Open ${name}` : name
 	let mark
-	if (problem)
+	if (sending !== undefined) {
+		const part = `${Math.round(sending * 100)}%`
+		mark = (
+			<Mark size="xlarge" fill="photo" aria-label={`${name}, ${part} sent`} remove={remove}>
+				{thumb ? <img src={thumb} alt="" /> : null}
+				<Spinner />
+			</Mark>
+		)
+		return bare ? mark : <Attachment name={part}>{mark}</Attachment>
+	}
+	if (problem === 'Upload failed')
+		mark = (
+			<Mark size="xlarge" fill="photo" danger="Retry" aria-label={`${name} was not sent. Send it again`} onClick={onOpen} remove={remove}>
+				{thumb ? <img src={thumb} alt="" /> : null}
+			</Mark>
+		)
+	else if (problem)
 		mark = (
 			<Mark size="xlarge" fill="photo" danger={problem} aria-label={`${name}: ${problem.toLowerCase()}`} remove={remove}>
 				{thumb ? <img src={thumb} alt="" /> : null}
+			</Mark>
+		)
+	else if (twin)
+		mark = (
+			<Mark size="xlarge" fill={thumb ? 'photo' : 'none'} text="Added twice" aria-label={`${named}. This file is already on the order`} onClick={onOpen} remove={remove}>
+				{thumb ? <img src={thumb} alt="" /> : <span>{label}</span>}
 			</Mark>
 		)
 	else if (thumb)

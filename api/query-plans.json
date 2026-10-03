@@ -16,7 +16,7 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
+		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
 			"plan": [
 				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
 				"SEARCH a USING INDEX idx_attachments_item (order_item_id=?)"
@@ -231,6 +231,23 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') GROUP BY c.id ORDER BY spend DESC": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
 		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND ot.category_count = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_uncategorised (user_id=? AND date>? AND date<?)",
@@ -320,23 +337,6 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY c.id ORDER BY spend DESC": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
-				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
-				"USE TEMP B-TREE FOR GROUP BY",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_date",
-				"sqlite_autoindex_categories_1",
-				"sqlite_autoindex_order_categories_1"
-			]
-		},
 		"SELECT c.name FROM categories c JOIN bookmark_categories bc ON bc.category_id = c.id WHERE bc.bookmark_id = ? ORDER BY c.name": {
 			"plan": [
 				"SEARCH bc USING COVERING INDEX sqlite_autoindex_bookmark_categories_1 (bookmark_id=?)",
@@ -366,6 +366,35 @@
 				"sqlite_autoindex_vendor_default_categories_1"
 			]
 		},
+		"SELECT COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved FROM orders ot WHERE ot.user_id = @userId": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_discount"
+			],
+			"indexes": [
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses))": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
+			]
+		},
 		"SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_total (user_id=?)"
@@ -375,6 +404,24 @@
 			],
 			"indexes": [
 				"idx_orders_user_total"
+			]
+		},
+		"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND status IN ('Draft', 'Cancelled')": {
+			"plan": [
+				"SEARCH orders USING INDEX idx_orders_user_status (user_id=? AND status=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_status"
+			]
+		},
+		"SELECT colour FROM categories WHERE user_id = ?": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
 			]
 		},
 		"SELECT COUNT(*) AS bookmarks FROM bookmarks b WHERE b.user_id = ? AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)": {
@@ -431,7 +478,7 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spend, COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = ? AND ot.user_id = ?": {
+		"SELECT COUNT(*) AS orders, COALESCE(SUM(CASE WHEN ot.status IN ('Draft', 'Cancelled') THEN 0 ELSE ot.total * 1.0 / ot.category_count END), 0) AS spend, COALESCE(SUM(CASE WHEN ot.status IN ('Draft', 'Cancelled') THEN 0 ELSE ot.saved * 1.0 / ot.category_count END), 0) AS saved FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = ? AND ot.user_id = ?": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -440,6 +487,15 @@
 			"indexes": [
 				"idx_order_categories_cat",
 				"sqlite_autoindex_orders_1"
+			]
+		},
+		"SELECT COUNT(*) AS orders, COALESCE(SUM(CASE WHEN status IN ('Draft', 'Cancelled') THEN 0 ELSE total END), 0) AS spend, COALESCE(SUM(CASE WHEN status IN ('Draft', 'Cancelled') THEN 0 ELSE saved END), 0) AS saved FROM orders WHERE user_id = ? AND vendor_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_vendor"
 			]
 		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spent, COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)": {
@@ -455,15 +511,6 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total), 0) AS spent, COALESCE(SUM(ot.saved), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_orders_user_date"
-			]
-		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total), 0) AS spent, COALESCE(SUM(ot.saved), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status = 'Returned'": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=? AND date>? AND date<?)"
@@ -471,6 +518,15 @@
 			"findings": [],
 			"indexes": [
 				"idx_orders_user_status"
+			]
+		},
+		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total), 0) AS spent, COALESCE(SUM(ot.saved), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft')": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_date"
 			]
 		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total), 0) AS spent, COALESCE(SUM(ot.saved), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft')": {
@@ -503,15 +559,6 @@
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total), 0) AS spent, COALESCE(SUM(ot.saved), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND ot.vendor_id = @vendorId": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_orders_user_vendor"
-			]
-		},
-		"SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spend, COALESCE(SUM(saved), 0) AS saved FROM orders WHERE user_id = ? AND vendor_id = ?": {
-			"plan": [
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=?)"
 			],
 			"findings": [],
 			"indexes": [
@@ -689,6 +736,38 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) AND (EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)) AND ot.saved > 0": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 3",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"SEARCH a USING COVERING INDEX idx_attachments_item (order_item_id=?)",
+				"SEARCH a EXISTS USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_discount"
+			],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_attachments_order",
+				"idx_order_items_order",
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_discount (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_orders_user_discount"
+			]
+		},
 		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.category_count = 0": {
 			"plan": [
 				"SEARCH ot USING COVERING INDEX idx_orders_user_uncategorised (user_id=?)"
@@ -783,6 +862,27 @@
 				"idx_orders_user_status"
 			]
 		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.status = @status AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_orders_user_status"
+			]
+		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.status = @status AND ot.date >= @from AND ot.date <= @to": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=? AND status=? AND date>? AND date<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_status"
+			]
+		},
 		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.status = @status AND ot.kind = @kind": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_kind (user_id=? AND kind=?)"
@@ -837,6 +937,24 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses))": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
+			]
+		},
 		"SELECT COUNT(*) c FROM orders WHERE user_id = ?": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_discount (user_id=?)"
@@ -862,6 +980,48 @@
 			"findings": [],
 			"indexes": [
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT COUNT(*) n FROM orders WHERE user_id = ? AND status = ?": {
+			"plan": [
+				"SEARCH orders USING COVERING INDEX idx_orders_user_status (user_id=? AND status=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_status"
+			]
+		},
+		"SELECT COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached FROM orders ot WHERE ot.user_id = @userId": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_discount (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses))": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 4",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
 			]
 		},
 		"SELECT created_at AS at FROM orders WHERE rowid = (SELECT MAX(rowid) FROM orders WHERE user_id = ?)": {
@@ -892,6 +1052,15 @@
 			]
 		},
 		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density FROM settings WHERE user_id = ?": {
+			"plan": [
+				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_settings_1"
+			]
+		},
+		"SELECT default_status FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
 			],
@@ -937,6 +1106,15 @@
 			],
 			"indexes": []
 		},
+		"SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
 		"SELECT id FROM categories WHERE user_id = ? ORDER BY name LIMIT 1": {
 			"plan": [
 				"SEARCH categories USING INDEX sqlite_autoindex_categories_2 (user_id=?)"
@@ -955,6 +1133,15 @@
 				"idx_orders_user_date"
 			]
 		},
+		"SELECT id FROM saved_views WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH saved_views USING INDEX sqlite_autoindex_saved_views_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_saved_views_1"
+			]
+		},
 		"SELECT id FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_2 (user_id=?)"
@@ -964,6 +1151,24 @@
 				"sqlite_autoindex_vendors_2"
 			]
 		},
+		"SELECT id, date FROM order_statuses WHERE order_id = ? AND status = ?": {
+			"plan": [
+				"SEARCH order_statuses USING INDEX idx_order_statuses_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_statuses_order"
+			]
+		},
+		"SELECT id, date, status FROM orders WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_orders_1"
+			]
+		},
 		"SELECT id, file_name, mapping, orders, lines, skipped, vendors, created_at, undone_at FROM imports WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?": {
 			"plan": [
 				"SEARCH imports USING INDEX idx_imports_user_created (user_id=?)"
@@ -971,6 +1176,27 @@
 			"findings": [],
 			"indexes": [
 				"idx_imports_user_created"
+			]
+		},
+		"SELECT id, key, name, tone FROM statuses WHERE user_id = ? AND key = ?": {
+			"plan": [
+				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=? AND key=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_statuses_2"
+			]
+		},
+		"SELECT id, key, name, tone, position FROM statuses WHERE user_id = ? ORDER BY position, rowid": {
+			"plan": [
+				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"sqlite_autoindex_statuses_2"
 			]
 		},
 		"SELECT id, kind, name, position FROM budget_groups WHERE user_id = ? AND year_id = ?": {
@@ -987,6 +1213,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_budget_accounts_1"
+			]
+		},
+		"SELECT id, name FROM categories WHERE user_id = ?": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
 			]
 		},
 		"SELECT id, name FROM categories WHERE user_id = @userId AND contains_fold(name, @needle) ORDER BY name LIMIT @limit": {
@@ -1096,7 +1331,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail FROM attachments WHERE order_id = ?": {
+		"SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages FROM attachments WHERE order_id = ?": {
 			"plan": [
 				"SEARCH attachments USING INDEX idx_attachments_order (order_id=?)"
 			],
@@ -1114,6 +1349,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_budget_accounts_2"
+			]
+		},
+		"SELECT id, name, query, is_default, attention FROM saved_views WHERE user_id = ? ORDER BY position, rowid": {
+			"plan": [
+				"SEARCH saved_views USING INDEX idx_saved_views_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_saved_views_user"
 			]
 		},
 		"SELECT id, name, url, price, archived, created_at, photo_id FROM bookmarks WHERE id = ? AND user_id = ?": {
@@ -1170,6 +1414,15 @@
 				"sqlite_autoindex_budget_years_2"
 			]
 		},
+		"SELECT key, name FROM statuses WHERE user_id = ?": {
+			"plan": [
+				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_statuses_2"
+			]
+		},
 		"SELECT l.id, l.group_id, l.name, l.account_id, g.year_id, y.year FROM budget_lines l JOIN budget_groups g ON g.id = l.group_id JOIN budget_years y ON y.id = g.year_id WHERE l.id = ? AND l.user_id = ?": {
 			"plan": [
 				"SEARCH l USING INDEX sqlite_autoindex_budget_lines_1 (id=?)",
@@ -1201,6 +1454,15 @@
 			"findings": [],
 			"indexes": [
 				"idx_orders_user_date"
+			]
+		},
+		"SELECT MIN(position) p FROM saved_views WHERE user_id = ?": {
+			"plan": [
+				"SEARCH saved_views USING COVERING INDEX idx_saved_views_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_saved_views_user"
 			]
 		},
 		"SELECT name FROM _migrations": {
@@ -1259,6 +1521,39 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT oc.category_id, COUNT(*) n FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND ot.status IN (SELECT value FROM json_each(@statuses)) GROUP BY oc.category_id": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_status",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT oc.category_id, COUNT(*) n FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId GROUP BY oc.category_id": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_discount (user_id=?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_discount",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
 		"SELECT oc.order_id, c.id, c.name FROM categories c JOIN order_categories oc ON oc.category_id = c.id WHERE oc.order_id IN (SELECT value FROM json_each(?)) ORDER BY oc.order_id, c.name": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -1306,23 +1601,20 @@
 				"idx_order_items_order"
 			]
 		},
-		"SELECT ot.date, oc.category_id AS id, SUM((CASE WHEN ot.status = 'Returned' THEN -ot.total ELSE ot.total END) * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
+		"SELECT order_id, rowid AS seq, id FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))": {
 			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
+				"SEARCH attachments USING INDEX idx_attachments_order (order_id=?)",
 				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"USE TEMP B-TREE FOR GROUP BY"
+				"SCAN json_each VIRTUAL TABLE INDEX 1:"
 			],
 			"findings": [
-				"sorts in a temp B-tree"
+				"reads a per-account table without naming user_id"
 			],
 			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_date"
+				"idx_attachments_order"
 			]
 		},
-		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
+		"SELECT ot.date, oc.category_id AS id, SUM((CASE WHEN ot.status = 'Returned' THEN -ot.total ELSE ot.total END) * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
@@ -1352,6 +1644,22 @@
 			"indexes": [
 				"idx_order_categories_cat",
 				"idx_orders_user_status"
+			]
+		},
+		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_date"
 			]
 		},
 		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
@@ -1433,6 +1741,15 @@
 				"idx_orders_user_status"
 			]
 		},
+		"SELECT ot.date, SUM(ot.total) AS spend, SUM(ot.saved) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') GROUP BY ot.date ORDER BY ot.date": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_date"
+			]
+		},
 		"SELECT ot.date, SUM(ot.total) AS spend, SUM(ot.saved) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND ot.category_count = 0 GROUP BY ot.date ORDER BY ot.date": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_uncategorised (user_id=? AND date>? AND date<?)"
@@ -1461,15 +1778,6 @@
 			]
 		},
 		"SELECT ot.date, SUM(ot.total) AS spend, SUM(ot.saved) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') GROUP BY ot.date ORDER BY ot.date": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_orders_user_date"
-			]
-		},
-		"SELECT ot.date, SUM(ot.total) AS spend, SUM(ot.saved) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY ot.date ORDER BY ot.date": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
 			],
@@ -1601,6 +1909,45 @@
 				"idx_orders_user_date",
 				"idx_vendor_aliases_user_name",
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) AND (EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)) AND ot.saved > 0 ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 3",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"SEARCH a USING COVERING INDEX idx_attachments_item (order_item_id=?)",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_attachments_order",
+				"idx_order_items_order",
+				"idx_orders_user_date"
+			]
+		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_orders_user_date"
 			]
 		},
 		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ot.category_count = 0 ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
@@ -1805,6 +2152,29 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses)) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_date"
+			]
+		},
 		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId ORDER BY ot.date ASC, ot.created_at ASC, ot.rowid ASC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
@@ -1949,16 +2319,31 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT ot.status, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY ot.status": {
+		"SELECT ot.status, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) GROUP BY ot.status": {
 			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"USE TEMP B-TREE FOR GROUP BY"
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
 			],
 			"findings": [
-				"sorts in a temp B-tree"
+				"walks one account's orders through non-covering idx_orders_user_status"
 			],
 			"indexes": [
-				"idx_orders_user_date"
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
+			]
+		},
+		"SELECT ot.status, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId GROUP BY ot.status": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_status"
 			]
 		},
 		"SELECT ot.vendor_id AS id, v.name, SUM((CASE WHEN ot.status = 'Returned' THEN -ot.total ELSE ot.total END)) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') GROUP BY ot.vendor_id ORDER BY spend DESC": {
@@ -2007,6 +2392,21 @@
 			],
 			"indexes": [
 				"idx_orders_user_status",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') GROUP BY ot.vendor_id ORDER BY spend DESC": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
 				"sqlite_autoindex_vendors_1"
 			]
 		},
@@ -2069,19 +2469,31 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY ot.vendor_id ORDER BY spend DESC": {
+		"SELECT ot.vendor_id, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses)) GROUP BY ot.vendor_id": {
 			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
-				"USE TEMP B-TREE FOR GROUP BY",
-				"USE TEMP B-TREE FOR ORDER BY"
+				"SEARCH ot USING INDEX idx_orders_user_vendor (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER"
 			],
 			"findings": [
-				"sorts in a temp B-tree"
+				"walks one account's orders through non-covering idx_orders_user_vendor"
 			],
 			"indexes": [
-				"idx_orders_user_date",
-				"sqlite_autoindex_vendors_1"
+				"idx_order_categories_cat",
+				"idx_orders_user_vendor"
+			]
+		},
+		"SELECT ot.vendor_id, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId GROUP BY ot.vendor_id": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_vendor (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_vendor"
 			]
 		},
 		"SELECT pattern, kind, line_name FROM bank_links WHERE user_id = ?": {
@@ -2090,6 +2502,24 @@
 			],
 			"findings": [],
 			"indexes": []
+		},
+		"SELECT shown FROM saved_view_prefs WHERE user_id = ?": {
+			"plan": [
+				"SEARCH saved_view_prefs USING INDEX sqlite_autoindex_saved_view_prefs_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_saved_view_prefs_1"
+			]
+		},
+		"SELECT status, COUNT(*) n FROM orders WHERE user_id = ? GROUP BY status": {
+			"plan": [
+				"SEARCH orders USING COVERING INDEX idx_orders_user_status (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_status"
+			]
 		},
 		"SELECT status, date FROM order_statuses WHERE order_id = ?": {
 			"plan": [
@@ -2155,7 +2585,7 @@
 				"sqlite_autoindex_vendors_2"
 			]
 		},
-		"SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved, MAX(date) AS last FROM orders WHERE user_id = ? GROUP BY vendor_id": {
+		"SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(CASE WHEN status IN ('Draft', 'Cancelled') THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status IN ('Draft', 'Cancelled') THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = ? GROUP BY vendor_id": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)"
 			],
@@ -2202,14 +2632,21 @@
 			"columns": [
 				"order_item_id"
 			],
-			"readers": 2
+			"readers": 4
 		},
 		"idx_attachments_order": {
 			"table": "attachments",
 			"columns": [
 				"order_id"
 			],
-			"readers": 2
+			"readers": 10
+		},
+		"idx_attachments_sha256": {
+			"table": "attachments",
+			"columns": [
+				"sha256"
+			],
+			"readers": 0
 		},
 		"idx_categories_import": {
 			"table": "categories",
@@ -2223,7 +2660,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 5
+			"readers": 8
 		},
 		"idx_imports_user_created": {
 			"table": "imports",
@@ -2247,21 +2684,28 @@
 				"category_id",
 				"order_id"
 			],
-			"readers": 19
+			"readers": 25
 		},
 		"idx_order_items_order": {
 			"table": "order_items",
 			"columns": [
 				"order_id"
 			],
-			"readers": 7
+			"readers": 9
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",
 			"columns": [
 				"order_id"
 			],
-			"readers": 1
+			"readers": 2
+		},
+		"idx_order_trash_deleted": {
+			"table": "order_trash",
+			"columns": [
+				"deleted_at"
+			],
+			"readers": 0
 		},
 		"idx_orders_import": {
 			"table": "orders",
@@ -2277,7 +2721,7 @@
 				"date",
 				"id"
 			],
-			"readers": 41
+			"readers": 43
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
@@ -2286,7 +2730,7 @@
 				"discount",
 				"id"
 			],
-			"readers": 10
+			"readers": 15
 		},
 		"idx_orders_user_kind": {
 			"table": "orders",
@@ -2304,7 +2748,7 @@
 				"date",
 				"id"
 			],
-			"readers": 16
+			"readers": 27
 		},
 		"idx_orders_user_total": {
 			"table": "orders",
@@ -2334,7 +2778,15 @@
 				"date",
 				"id"
 			],
-			"readers": 16
+			"readers": 18
+		},
+		"idx_saved_views_user": {
+			"table": "saved_views",
+			"columns": [
+				"user_id",
+				"position"
+			],
+			"readers": 2
 		},
 		"idx_scan_uploads_user": {
 			"table": "scan_uploads",

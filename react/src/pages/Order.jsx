@@ -1,14 +1,19 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { Card, Panel } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
+import { Alert, useToast } from '../components/Overlays.jsx'
+import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
-import { attachmentFileUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
-import { dot, shortDate } from '../api/format.js'
+import {
+	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, invalidateOrderData
+} from '../api/client.js'
+import { dot, plural, shortDate } from '../api/format.js'
+import { draftOf } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
 import { useShellShape } from '../app/useMedia.js'
 import { StatusPill } from '../app/orderRow.jsx'
@@ -23,18 +28,65 @@ import { DeleteOrder } from './DeleteOrder.jsx'
 
 export default function Order() {
 	const { id } = useParams()
+	const location = useLocation()
+	const navigate = useNavigate()
 	// off once the order is deleted, so the page never asks for it again on its way out
 	const [gone, setGone] = useState(false)
+	// what the create screen handed over, taken once so a reload or a return does not offer Undo again
+	const [created] = useState(() => (location.state?.created?.id === id ? location.state.created : null))
+	useEffect(() => {
+		if (location.state?.created) navigate(location.pathname, { replace: true, state: null })
+	}, [])
 	const state = useApi(getOrder, [id], { enabled: !gone })
 	const touch = useShellShape() === 'touch'
 	const order = state.data?.id === id ? state.data : null
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
 	if (!order) return <OrderLoading />
-	return <OrderView key={order.id} order={order} touch={touch} onGone={() => setGone(true)} />
+	return <OrderView key={order.id} order={order} touch={touch} created={created} onGone={() => setGone(true)} />
 }
 
-function OrderView({ order, touch, onGone }) {
+/** The saved state's notice (3a): where the order came from, and Undo, which deletes it and goes
+    back to the screen it was created from. */
+function Created({ order, created, onGone }) {
+	const navigate = useNavigate()
+	const toast = useToast()
+	const [busy, setBusy] = useState(false)
+	const undo = () => {
+		setBusy(true)
+		deleteOrder(order.id)
+			.then(() => {
+				onGone()
+				invalidateOrderData()
+				if (created.documentKey) navigate(`/orders/new?source=scan&doc=${created.documentKey}`, { replace: true })
+				else {
+					const draft = draftOf(order)
+					const lines = draft.lines.map(({ id, photo, ...line }) => ({ ...line, key: `undo-${id}` }))
+					navigate('/orders/new?source=empty', { replace: true, state: { seed: { ...draft, lines, reference: created.reference } } })
+				}
+				toast({ message: created.documentKey ? 'The order was not kept. The receipt is back for you to check.' : 'The order was not kept. What you typed is back in the form.' })
+			})
+			.catch(e => {
+				setBusy(false)
+				toast({ message: failureMessage(e, 'The order was not removed. Try again.'), color: 'danger' })
+			})
+	}
+	const files = order.attachments.length + order.items.filter(i => i.attachments?.length).length - (created.documentKey ? 1 : 0)
+	return (
+		<div className="or-span">
+			<Alert color="success" mark={<Icon name="check" size={12} />}
+				title={created.file ? `Order created from ${created.file}.` : 'Order created.'}
+				action={<Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>}>
+				{[
+					created.file ? 'The receipt is kept as an attachment.' : null,
+					files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
+				].filter(Boolean).join(' ') || null}
+			</Alert>
+		</div>
+	)
+}
+
+function OrderView({ order, touch, created, onGone }) {
 	const navigate = useNavigate()
 	const list = useListReturn('orders')
 	const [viewing, setViewing] = useState(null)
@@ -144,6 +196,7 @@ function OrderView({ order, touch, onGone }) {
 
 	return (
 		<>
+			{created ? <Created order={order} created={created} onGone={onGone} /> : null}
 			<div className="sp-stack sp-gap-12">{items}{attachments}</div>
 			<Panel>{details}{totals}{dialog}{viewer}</Panel>
 		</>

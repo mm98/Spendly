@@ -1080,6 +1080,22 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
 .sp-record:has(input:checked) { border-color: var(--green); background: var(--green-tint); }
 .sp-record[data-void="true"] { opacity: 0.6; }
+/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c);
+   its round scrim keeps it legible over any photo */
+.sp-record__photos > .sp-record__pick { opacity: 0; }
+.sp-record:hover .sp-record__pick,
+.sp-record__pick:focus-within,
+.sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
+.sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
+.sp-record__pick > .sp-check { grid-area: 1 / 1; }
+.sp-record__pick::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: calc(var(--box) + var(--sp-10));
+  height: calc(var(--box) + var(--sp-10));
+  border-radius: 50%;
+  background: rgba(27, 26, 23, 0.35);
+}
 
 .sp-list-item .sp-chip,
 .sp-list-item .sp-pill { flex: none; }
@@ -2458,6 +2474,8 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   font-weight: 600;
   text-align: center;
 }
+/* a file being sent: the spinner sits over its own preview, never an empty box (17a) */
+.sp-mark--photo > .sp-spinner { position: relative; z-index: 1; }
 /* the same bottom banner when what it names is a problem: only the colour changes */
 .sp-mark__text[data-color="danger"] { background: var(--red-ink); }
 .sp-line-editor__form { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-12); container-type: inline-size; }
@@ -2885,6 +2903,32 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-viewer__count { color: var(--shell-item); font-variant-numeric: tabular-nums; }
 .sp-viewer .sp-icon-btn { color: var(--shell-item); }
 .sp-viewer .sp-icon-btn:hover { background: var(--shell-item-hover); color: #fff; }
+/* a file with pages: the page rail down the left, the chosen page on the stage (12b, 17d) */
+.sp-viewer__paged { display: flex; gap: var(--sp-12); min-width: 0; }
+.sp-viewer__paged > .sp-viewer__stage { flex: 1; min-width: 0; }
+.sp-viewer__pages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  flex: none;
+  max-height: 70dvh;
+  overflow-y: auto;
+  /* room for the chosen page's outline inside the scroll box */
+  padding: var(--sp-4);
+}
+/* a page is letterboxed at its own proportion: cropping a receipt can hide its total */
+.sp-viewer__pages > .sp-mark > img { object-fit: contain; }
+.sp-viewer__pages > .sp-mark[aria-current="true"] { outline: 2px solid #fff; outline-offset: 2px; }
+/* two files side by side, each under its own label (3c), so the viewer takes the room of two */
+.sp-viewer--compare { width: min(1120px, 100%); }
+.sp-viewer__compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
+.sp-viewer__side { display: flex; flex-direction: column; gap: var(--sp-8); min-width: 0; }
+.sp-viewer__label { color: var(--shell-item); font-size: var(--t-12); }
+@media (max-width: 639.98px) {
+  .sp-viewer__compare { grid-template-columns: minmax(0, 1fr); }
+  .sp-viewer__paged { flex-direction: column-reverse; }
+  .sp-viewer__pages { flex-direction: row; max-height: none; overflow-x: auto; }
+}
 
 /* bar heights and legend keys arrive as data */
 .sp-bars__bar[data-h="30"] { height: 30%; }
@@ -3331,6 +3375,11 @@ button.sp-nav-item--light[aria-current="page"]:hover {
 .sp-nav-item--light > [data-label] > span,
 .sp-nav-item--light > [data-label]::after { grid-area: 1 / 1; }
 .sp-nav-item--light > [data-label]::after { content: attr(data-label); font-weight: 600; visibility: hidden; }
+/* a label the reader named (a saved view) can be any length: it ends in an ellipsis, so every row keeps one height */
+.sp-nav-item > .sp-grow,
+.sp-nav-item--light > [data-label] > span,
+.sp-nav-item--light > [data-label]::after { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-nav-item--light > [data-label] { grid-template-columns: minmax(0, 1fr); }
 .sp-nav-item--light .sp-nav-item__count { color: var(--ink-4); }
 .sp-nav-item--light.sp-nav-item--edited { background: var(--amber-tint-2); color: var(--amber-ink-2); }
 a.sp-nav-item--light.sp-nav-item--edited:hover,

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { join, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
+import { Spinner } from './Utilities.jsx'
 
 /** What a photo place takes, and what an attachment place takes: a photo, or a PDF besides. */
 export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif'
@@ -54,9 +55,9 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 	)
 }
 
-/** The file slot (c17): choosing, dropping or pasting a picture replaces what is there. A file it cannot
-    take, or a page's `problem`, shows its reason over the frame with a Remove (17b); `start` is its own field. */
-export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, onFile, onRemove, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
+/** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove, or a
+    Retry when `onRetry` is given (17b); `busy` draws the spinner over the picture while it is sent (17a). */
+export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)
 	const take = file => {
@@ -80,21 +81,23 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 				as="label"
 				size={size}
 				fill={src ? 'photo' : 'empty'}
-				text={src && !failed ? kind : undefined}
+				text={src && !failed && !busy ? kind : undefined}
 				danger={failed || undefined}
 				htmlFor={id}
-				aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : what}
+				aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? `${what}, still sending` : what}
 				data-tip={what}
 				onDragOver={ev => ev.preventDefault()}
 				onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files?.[0]) }}
 			>
 				{src ? <img src={src} alt="" /> : <Icon name="camera" size={26} />}
+				{src && busy ? <Spinner /> : null}
 				<input id={id} type="file" accept={accept} aria-describedby={describedBy}
 					onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
 			</Mark>
 			{refused
 				? <button type="button" className="sp-slot__remove" aria-label={`Remove ${refused.name}`} onClick={() => setRefused(null)}>Remove</button>
-				: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
+				: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={`Send ${name} again`} onClick={onRetry}>Retry</button>
+					: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
 		</span>
 	)
 }

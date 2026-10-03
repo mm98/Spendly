@@ -10,6 +10,7 @@ import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
+import { pageCount, pageImage } from '../lib/filePages.js'
 import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
 import { msUntilEndOfDay } from '../lib/backup.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
@@ -21,8 +22,38 @@ export const router = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
-	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at)
-	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @expiresAt)`)
+	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at, pages, ai_read_json)
+	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @expiresAt, @pages,
+		(SELECT read_json FROM scan_readings WHERE user_id = @userId AND sha256 = @sha256))`)
+const keepReading = db.prepare(`INSERT INTO scan_readings (user_id, sha256, read_json) VALUES (?, ?, ?)
+	ON CONFLICT (user_id, sha256) DO UPDATE SET read_json = excluded.read_json, read_at = unixepoch()`)
+const selectReadingTime = db.prepare('SELECT read_at FROM scan_readings WHERE user_id = ? AND sha256 = ?')
+/* The orders that already hold a file with these bytes as their own attachment, newest first (3c). */
+const selectOrdersWithFile = db.prepare(`
+	SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.name AS file_name, a.kind AS file_kind
+	FROM attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id
+	WHERE a.sha256 = @sha256 AND o.user_id = @userId
+	ORDER BY o.date DESC, o.created_at DESC`)
+
+/** What is already known about these bytes: the orders that hold them and when they were read. */
+function seenBefore(userId, sha256) {
+	const orders = selectOrdersWithFile.all({ sha256, userId })
+	if (!orders.length) return null
+	const read = selectReadingTime.get(userId, sha256)
+	return {
+		readAt: read ? new Date(read.read_at * 1000).toISOString() : null,
+		count: orders.length,
+		orders: orders.slice(0, 3).map(o => ({
+			id: o.id, reference: o.reference, date: fromEpoch(o.date), itemCount: o.item_count, status: o.status,
+			total: o.total, vendor: o.vendor, file: { id: o.attachment_id, name: o.file_name, kind: o.file_kind }
+		}))
+	}
+}
+const uploadAnswer = (row, name, userId) => ({
+	key: row.id, name, kind: row.kind, hasThumbnail: Boolean(row.has_thumbnail), pages: row.pages ?? null,
+	meta: `${row.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(row.size)}`,
+	sha256: row.sha256, seen: seenBefore(userId, row.sha256)
+})
 /* A pending upload nobody came back to (DISCARD, or a tab just closed), or one that already
    became an order's attachment (attach below leaves the row in place either way) -- both are
    swept by scheduleDailyUploadCleanup once expires_at passes, not deleted on the spot. Set once
@@ -59,7 +90,7 @@ export function scheduleDailyUploadCleanup() {
    either way: same id, same cached ai_read_json if the draft was already opened, no second
    resize and no second model call for a document this account has already paid to read once. */
 const selectUploadByHash = db.prepare(`
-	SELECT id, kind, size, (thumbnail IS NOT NULL) AS has_thumbnail
+	SELECT id, kind, size, pages, sha256, (thumbnail IS NOT NULL) AS has_thumbnail
 	FROM scan_uploads WHERE user_id = ? AND sha256 = ? AND expires_at > ?
 	ORDER BY created_at DESC LIMIT 1`)
 /* Split by what each reader draws: the draft screen wants the row's facts, the thumbnail route
@@ -73,7 +104,7 @@ const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND use
 // size, kind, thumbnail) plus the cached read, in one row -- the draft handler either has an
 // AI read already or is about to go make one, and both branches want the same row.
 const selectUploadForRead = db.prepare(`SELECT id, name, size, kind, content_type, data, data_is_compressed,
-	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json FROM scan_uploads WHERE id = ? AND user_id = ?`)
+	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM scan_uploads WHERE id = ? AND user_id = ?`)
 const saveAiRead = db.prepare('UPDATE scan_uploads SET ai_read_json = @json WHERE id = @id AND user_id = @userId')
 const selectVendorName = db.prepare('SELECT name FROM vendors WHERE id = ? AND user_id = ?')
 /* A possible duplicate: the same vendor, within two weeks either side of the read date -- close
@@ -98,13 +129,7 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 	// same regardless of what processAttachment below would make of either.
 	const sha256 = createHash('sha256').update(file.buffer).digest('hex')
 	const existing = selectUploadByHash.get(req.user.id, sha256, nowEpoch())
-	if (existing) {
-		return res.status(200).json({
-			key: existing.id, name: file.originalname, kind: existing.kind,
-			hasThumbnail: Boolean(existing.has_thumbnail),
-			meta: `${existing.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(existing.size)}`
-		})
-	}
+	if (existing) return res.status(200).json(uploadAnswer(existing, file.originalname, req.user.id))
 
 	// The kind the bytes declare, not the one the filename claims -- see lib/fileType.js.
 	const processed = await processAttachment(file.buffer, file.mimetype, file.originalname)
@@ -116,12 +141,58 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 		data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 		thumbnailContentType: processed.thumbnailContentType,
-		expiresAt: nowEpoch() + UPLOAD_TTL_SECONDS
+		expiresAt: nowEpoch() + UPLOAD_TTL_SECONDS, pages: processed.pages ?? null
 	})
-	res.status(201).json({
-		key: id, name: file.originalname, kind, hasThumbnail: Boolean(processed.thumbnail),
-		meta: `${kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(processed.size)}`
-	})
+	res.status(201).json(uploadAnswer({
+		id, kind, size: processed.size, pages: processed.pages, sha256, has_thumbnail: processed.thumbnail != null
+	}, file.originalname, req.user.id))
+})
+
+/** A stored upload's own bytes: an image's display copy, or the PDF as it arrived. */
+const selectUploadFile = db.prepare('SELECT name, content_type, data, data_is_compressed FROM scan_uploads WHERE id = ? AND user_id = ?')
+router.get('/documents/:key/file', (req, res) => {
+	const upload = selectUploadFile.get(req.params.key, req.user.id)
+	if (!upload || !upload.data) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
+	res.set('Content-Type', upload.content_type || 'application/octet-stream')
+	res.set('Content-Disposition', `inline; filename="${upload.name.replace(/"/g, '')}"`)
+	res.send(decompressBlob(upload.data, upload.data_is_compressed))
+})
+
+const ownUpload = req => {
+	if (!selectUploadMeta.get(req.params.key, req.user.id))
+		throw Object.assign(new Error('No uploaded document ' + req.params.key), { status: 404 })
+	return req.params.key
+}
+router.get('/documents/:key/pages', async (req, res) => {
+	res.json({ pages: await pageCount('upload', ownUpload(req)) })
+})
+router.get('/documents/:key/pages/:page', async (req, res) => {
+	const page = await pageImage('upload', ownUpload(req), Number(req.params.page))
+	if (!page) return res.status(404).json({ error: 'No such page.' })
+	res.set('Content-Type', page.contentType)
+	res.set('Cache-Control', 'private, max-age=31536000, immutable')
+	res.send(page.image)
+})
+
+/** Forget the reading of these bytes, so the next opening of the draft reads the file again (3c). */
+const clearUploadReading = db.prepare('UPDATE scan_uploads SET ai_read_json = NULL WHERE user_id = ? AND sha256 = ?')
+const forgetReading = db.prepare('DELETE FROM scan_readings WHERE user_id = ? AND sha256 = ?')
+const selectUploadHash = db.prepare('SELECT sha256 FROM scan_uploads WHERE id = ? AND user_id = ?')
+router.post('/documents/:key/reread', (req, res) => {
+	const upload = selectUploadHash.get(req.params.key, req.user.id)
+	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
+	db.transaction(() => {
+		clearUploadReading.run(req.user.id, upload.sha256)
+		forgetReading.run(req.user.id, upload.sha256)
+	})()
+	res.json({ key: req.params.key })
+})
+
+/** Throws an upload away now rather than when it expires. The reading of it is kept. */
+const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
+router.delete('/documents/:key', (req, res) => {
+	deleteUpload.run(req.params.key, req.user.id)
+	res.json({ key: req.params.key })
 })
 
 /** The review step's starting point. Reads the document once via Claude's vision
@@ -133,33 +204,55 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 router.get('/draft/:key', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
-	const settings = selectDraftDefaults.get(req.user.id)
 
+	/* ?progress=stream answers in NDJSON: `{ progress: { found, lines } }` lines while the file is
+	   read (3a step 2), then `{ draft }`, the same object the plain answer is. */
+	const streaming = req.query.progress === 'stream'
+	if (streaming) {
+		res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
+		res.flushHeaders()
+	}
 	const hadCachedRead = upload.ai_read_json != null
 	const { read, failure } = hadCachedRead
-		? { read: JSON.parse(upload.ai_read_json), failure: null } : await parseReceipt(upload, req.today)
+		? { read: JSON.parse(upload.ai_read_json), failure: null }
+		: await parseReceipt(upload, req.today, progress => { if (streaming) res.write(JSON.stringify({ progress }) + '\n') })
 	// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
-	if (!hadCachedRead && !failure) saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
+	if (!hadCachedRead && !failure && read?.lines.length) {
+		saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
+		if (upload.sha256) keepReading.run(req.user.id, upload.sha256, JSON.stringify(read))
+	}
+	const draft = draftOf(req, upload, read, failure)
+	if (streaming) res.end(JSON.stringify({ draft }) + '\n')
+	else res.json(draft)
+})
 
+/** The review form's starting values, or the blank draft when nothing was read. `failure` says why
+    there are no lines: 'billing', 'failed', 'unread' (no reading service) or 'empty' (no lines found). */
+function draftOf(req, upload, read, failure) {
+	const settings = selectDraftDefaults.get(req.user.id)
 	const file = {
-		key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.has_thumbnail),
+		key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.has_thumbnail), pages: upload.pages ?? null,
 		meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(upload.size)}`
 	}
 
-	if (!read) {
-		return res.json({
+	if (!read?.lines.length) {
+		const partial = read ? findVendorIdByAnyName(req.user.id, read.vendor) : null
+		return {
 			documentKey: upload.id, file,
-			vendor: '', vendorMatched: false, date: req.today,
+			vendor: read ? (partial ? selectVendorName.get(partial, req.user.id)?.name : read.vendor) : '',
+			vendorMatched: Boolean(partial), date: read?.date ?? req.today,
 			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-			deliveredDate: req.today, returnedDate: req.today,
+			deliveredDate: req.today, returnedDate: req.today, reference: read?.reference ?? '',
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: null,
+			failure: read ? 'empty' : failure === 'billing' ? 'billing' : process.env.ANTHROPIC_API_KEY ? 'failed' : 'unread',
+			found: read ? { vendor: read.vendor, date: read.date } : null,
 			reconciled: failure === 'billing'
 				? 'This document was not read: the reading service reports a billing problem, such as no credits left. Add the line items and totals below yourself, or upload it again once that is fixed.'
 				: process.env.ANTHROPIC_API_KEY
 					? 'This document could not be read automatically. Add the line items and totals below yourself.'
 					: 'This document has not been read automatically. Add the line items and totals below yourself.',
-			checks: [], duplicate: null
-		})
+			checks: [], unclear: [], duplicate: null
+		}
 	}
 
 	const vendorId = findVendorIdByAnyName(req.user.id, read.vendor)
@@ -178,8 +271,9 @@ router.get('/draft/:key', async (req, res) => {
 		}
 	}
 
-	res.json({
-		documentKey: upload.id, file,
+	return {
+		documentKey: upload.id, file, failure: null, found: null,
+		reference: read.reference ?? '', unclear: read.unclear ?? [],
 		// The document's own spelling once reached the review screen even when the vendor
 		// matched -- a receipt printing "BILKA" against a vendor named "Bilka" showed the
 		// document's casing on a field the picker's "matched" chip claimed was already right.
@@ -192,7 +286,8 @@ router.get('/draft/:key', async (req, res) => {
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({
 			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price,
-			uncertain: l.uncertain, meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
+			uncertain: l.uncertain, unclearPart: l.unclearPart ?? null,
+			meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
 		})),
 		// The printed total or null, never the lines' own sum: the review checks the lines against it.
 		remainder: null, total: read.total,
@@ -225,8 +320,8 @@ router.get('/draft/:key', async (req, res) => {
 				}
 		],
 		duplicate
-	})
-})
+	}
+}
 
 /** Turns a reviewed draft into the new order's own attachment, so the browser doesn't have to
     upload the same file a second time -- an INSERT ... SELECT, so the bytes go table-to-table
@@ -235,19 +330,32 @@ router.get('/draft/:key', async (req, res) => {
     on answering a later re-upload of the same bytes -- including one after this very order gets
     deleted -- until the row's own expires_at retires it (scheduleDailyUploadCleanup above). */
 const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
-	(id, order_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
-	SELECT @id, @orderId, name, kind, @meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
+	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages
 	FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
+const copyUploadPages = db.prepare(`INSERT INTO attachment_pages (attachment_id, page, image, content_type)
+	SELECT @id, page, image, content_type FROM scan_upload_pages WHERE upload_id = @uploadId`)
+const selectItemOfOrder = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
 
+/* Also commits a file a form staged on drop (17a): `?as=file` files it as added, `?item=` puts it
+   on one line, `?name=` keeps the name it was chosen under (equal bytes share one upload row). */
 router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const upload = selectUploadMeta.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
 	const order = selectOrderExists.get(req.params.orderId, req.user.id)
 	if (!order) return res.status(404).json({ error: 'No order ' + req.params.orderId })
+	const itemId = req.query.item ? selectItemOfOrder.get(String(req.query.item), order.id)?.id : null
+	if (req.query.item && !itemId) return res.status(404).json({ error: 'No item ' + req.query.item })
+	const name = typeof req.query.name === 'string' && req.query.name.trim() ? req.query.name.trim().slice(0, 200) : null
 
-	copyUploadToAttachment.run({ id: newId('a'), orderId: order.id,
-		meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, uploadId: upload.id, userId: req.user.id })
-	res.json(getDecoratedOrder(req.user.id, order.id))
+	const id = newId('a')
+	db.transaction(() => {
+		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId,
+			name, meta: `${req.query.as === 'file' ? 'Added' : 'Scanned'} today${sep}${fileSizeLabel(upload.size)}`,
+			uploadId: upload.id, userId: req.user.id })
+		copyUploadPages.run({ id, uploadId: upload.id })
+	})()
+	res.json({ ...getDecoratedOrder(req.user.id, order.id), attached: id })
 })
 
 router.get('/documents/:key/thumbnail', (req, res) => {

@@ -187,7 +187,7 @@ function comparisonWindowId(userId, range, id, compare, today) {
 
 /* The statuses that are money out, money back, or neither: a draft or a cancelled order moved no money. */
 const FLOW_WHERE = {
-	all: '',
+	all: " AND ot.status NOT IN ('Cancelled', 'Draft')",
 	expenses: " AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft')",
 	refunds: " AND ot.status = 'Returned'",
 	net: " AND ot.status NOT IN ('Cancelled', 'Draft')"

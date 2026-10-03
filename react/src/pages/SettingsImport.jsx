@@ -11,13 +11,14 @@ import { Gauge, Stat } from '../components/Data.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	checkImportDuplicates, failureMessage, getCategories, getImports, getSettings, getVendors, importOrders, orderStatuses, startImport,
+	checkImportDuplicates, failureMessage, getCategories, getImports, getSettings, getVendors, importOrders, startImport,
 	undoImport, vendorByAnyName
 } from '../api/client.js'
 import { amount, amountRound, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
 import { buildOrders, download, guessMapping, readSheet, reuseMapping, skippedCsv, templateWorkbook } from '../api/orderImport.js'
 import { Heading, useStepFocus } from './SettingsParts.jsx'
 import { ImportFooter, MapStep } from './SettingsImportMap.jsx'
+import { useStatuses } from '../app/statuses.js'
 
 /* The server takes 50 MB per request and a receipt rides along as base64, so orders are sent
    in slices under this many bytes of JSON. */
@@ -280,7 +281,8 @@ function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
 		return () => ask.abort()
 	}, [source])
 
-	const canDraft = orderStatuses.includes('Draft')
+	const statuses = useStatuses()
+	const canDraft = statuses.some(s => s.key === 'Draft')
 	const sending = source.orders.filter((_, i) => withDuplicates || !duplicates?.has(i))
 	const drafts$ = sending.map(o => (canDraft && drafts && source.kind === 'sheet' ? { ...o.draft, status: 'Draft' } : o.draft))
 	const fresh = vendors.data && !vendors.loading ? newVendors(drafts$, vendors.data) : null

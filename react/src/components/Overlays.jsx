@@ -172,11 +172,12 @@ export function MenuSeparator(props) {
 
 const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--end', static: 'sp-popover--static' }
 
-export function Popover({ position = 'default', head, children, summary, note, actions, ...rest }) {
+export function Popover({ position = 'default', head, search, children, summary, note, actions, ...rest }) {
 	reject(rest, 'Popover')
 	return (
 		<div className={join('sp-popover', pick(POPOVER, position, 'position', 'Popover'))} {...rest}>
 			{head ? <div className="sp-popover__head">{head}</div> : null}
+			{search ?? null}
 			{children ? <div className="sp-popover__list">{children}</div> : null}
 			{summary ? <div className="sp-popover__summary">{summary}</div> : null}
 			{note ? <div className="sp-popover__note">{note}</div> : null}

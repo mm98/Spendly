@@ -113,19 +113,20 @@ export function SidebarDivider(props) {
 	return <span className="sp-sidebar__divider" {...props} />
 }
 
-const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item--light', edited: 'sp-nav-item--edited' }
+// edited is a light row whose saved view differs from the list (2g), so it carries both classes
+const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item--light', edited: 'sp-nav-item--light sp-nav-item--edited' }
 
 /** `tip` is the label shown while the row's own is hidden, on the rail; `control` is a Switch
     at the row's end, which makes the row its label. */
-export function NavItem({ variant = 'default', icon, count, countColor, sub, current = false, to, onClick, tip, control, children, ...rest }) {
+export function NavItem({ variant = 'default', icon, mark, count, countColor, sub, current = false, to, onClick, tip, control, children, ...rest }) {
 	reject(rest, 'NavItem')
 	const [hint, tipEvents] = useTip(tip)
 	const classes = join('sp-nav-item', pick(NAV, variant, 'variant', 'NavItem'))
 	const body = (
 		<>
-			{icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null}
+			{mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
 			{/* a light row holds its current, bold label's room in every state, as Segmented does */}
-			{variant === 'light' && typeof children === 'string'
+			{(variant === 'light' || variant === 'edited') && typeof children === 'string'
 				? <span className="sp-grow" data-label={children}><span>{children}</span></span>
 				: <span className="sp-grow">{children}</span>}
 			{sub ? <span className="sp-nav-item__sub">{sub}</span> : null}
@@ -138,7 +139,7 @@ export function NavItem({ variant = 'default', icon, count, countColor, sub, cur
 	)
 	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest }
 	if (control) return <label className={classes} {...state}>{body}</label>
-	if (to) return <Link className={classes} to={to} data-go={to} {...state}>{body}</Link>
+	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{body}</Link>
 	if (!onClick) return <span className={classes} {...state}>{body}</span>
 	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
 }

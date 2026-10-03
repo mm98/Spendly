@@ -42,7 +42,7 @@ export const failureMessage = (error, fallback) =>
 
 // the records a "not found" can name, by the address asked; the server's own text carries an id
 const THINGS = [
-	[/^\/api\/orders\/(?!import|draft|overview)[^/?]+/, 'order'],
+	[/^\/api\/orders\/(?!import|draft|overview|often|limits|trash)[^/?]+/, 'order'],
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
 	[/^\/api\/categories\/(?!uncategorised)[^/?]+/, 'category'],
 	[/^\/api\/bookmarks\/(?!preview|categories)[^/?]+/, 'bookmark'],
@@ -507,9 +507,74 @@ export async function updateOrder(id, draft, signal) {
 	return request(`/api/orders/${id}`, { method: 'PUT', body: toApiDraft(draft), signal })
 }
 
+/** Deletes an order; the answer's `undo` names the copy `restoreOrder` puts back (6d). */
 export async function deleteOrder(id, signal) {
 	const out = await request(`/api/orders/${id}`, { method: 'DELETE', signal })
 	forgetRecent('order', id)
+	return out
+}
+
+export async function restoreOrder(undo, signal) {
+	return request(`/api/orders/trash/${undo}/restore`, { method: 'POST', signal })
+}
+
+/** The orders the account repeats, newest of each, with how many `times` (3b). */
+export async function getOftenOrders(signal) {
+	return request('/api/orders/often', { signal })
+}
+
+/** The monthly limits an order dated `date` in `categories` counts against, without `exclude` (8b). */
+export async function getOrderLimits(date, categories, exclude, signal) {
+	const usp = new URLSearchParams({ date })
+	for (const c of categories) usp.append('categories', c)
+	if (exclude) usp.set('exclude', exclude)
+	return request(`/api/orders/limits?${usp}`, { signal })
+}
+
+/** How many pages an order's file has, and each page as an image (12b). */
+export async function getAttachmentPages(orderId, attachmentId, signal) {
+	return request(`/api/orders/${orderId}/attachments/${attachmentId}/pages`, { signal })
+}
+export const attachmentPageUrl = (orderId, attachmentId, page) => `/api/orders/${orderId}/attachments/${attachmentId}/pages/${page}`
+
+/* ---- the account's statuses (Settings 11a): each answer is the whole list, in order ---- */
+
+export async function getStatuses(signal) {
+	return request('/api/statuses', { signal })
+}
+
+const statusWrite = async (path, method, body) => {
+	const out = await request(path, { method, body })
+	invalidate(getStatuses)
+	return out
+}
+export const addStatus = status => statusWrite('/api/statuses', 'POST', status)
+export const changeStatus = (key, status) => statusWrite(`/api/statuses/${encodeURIComponent(key)}`, 'PATCH', status)
+export const orderStatusesAs = keys => statusWrite('/api/statuses/order', 'PUT', { keys })
+export const deleteStatus = key => statusWrite(`/api/statuses/${encodeURIComponent(key)}`, 'DELETE')
+
+/* ---- saved order views (2g, 9e): each answer is `{ all, shown, views }`, every view with its count ---- */
+
+export async function getViews(signal) {
+	return request('/api/views', { signal })
+}
+
+const viewWrite = async (path, method, body) => {
+	const out = await request(path, { method, body })
+	invalidate(getViews)
+	return out
+}
+export const addView = view => viewWrite('/api/views', 'POST', view)
+export const changeView = (id, change) => viewWrite(`/api/views/${encodeURIComponent(id)}`, 'PATCH', change)
+export const orderViewsAs = ids => viewWrite('/api/views/order', 'PUT', { ids })
+export const deleteView = id => viewWrite(`/api/views/${encodeURIComponent(id)}`, 'DELETE')
+export const setViewsShown = shown => viewWrite('/api/views/shown', 'PUT', { shown })
+
+/** One change to several orders at once (Order list 2a, 2e): `{ ids, status, deliveredToday,
+    addCategories (names), removeCategories (ids), delete }`. Answers how many were changed. */
+export async function changeOrders(change, signal) {
+	const out = await request('/api/orders/bulk', { method: 'POST', body: change, signal })
+	if (change.delete) for (const id of change.ids) forgetRecent('order', id)
 	return out
 }
 
@@ -700,29 +765,107 @@ export async function putScanDocument(file, signal) {
 	return request('/api/scan/documents', { method: 'POST', form, signal })
 }
 
-export async function getScanDraft(documentKey, signal) {
-	return request(`/api/scan/draft/${documentKey}`, { signal })
+/* What the reading of a receipt has found so far, `{ found, lines }`, for whoever shows it (3a step 2). */
+const scanProgress = new Map()
+export function watchScanProgress(documentKey, fn) {
+	const entry = scanProgress.get(documentKey) ?? { listeners: new Set(), last: null }
+	scanProgress.set(documentKey, entry)
+	entry.listeners.add(fn)
+	if (entry.last) fn(entry.last)
+	return () => entry.listeners.delete(fn)
+}
+const tellProgress = (documentKey, progress) => {
+	const entry = scanProgress.get(documentKey) ?? { listeners: new Set(), last: null }
+	scanProgress.set(documentKey, entry)
+	entry.last = progress
+	for (const fn of entry.listeners) fn(progress)
 }
 
-export async function attachScanDocument(documentKey, orderId, signal) {
-	return request(`/api/scan/documents/${documentKey}/attach/${orderId}`, { method: 'POST', signal })
+/** The review's draft for an uploaded receipt, read as it streams so its progress can be shown. */
+export async function getScanDraft(documentKey, signal) {
+	const path = `/api/scan/draft/${documentKey}?progress=stream`
+	const res = await fetch(path, { signal, credentials: 'include', headers: { [TODAY]: today() } })
+	if (!res.ok) {
+		let data = null
+		try { data = await res.json() } catch { /* empty body */ }
+		throw refusal(path, 'GET', res.status, data)
+	}
+	const decoder = new TextDecoder()
+	let buffered = '', draft = null
+	const take = line => {
+		if (!line.trim()) return
+		const o = JSON.parse(line)
+		if (o.progress) tellProgress(documentKey, o.progress)
+		if (o.draft) draft = o.draft
+	}
+	const reader = res.body.getReader()
+	for (let part = await reader.read(); !part.done; part = await reader.read()) {
+		buffered += decoder.decode(part.value, { stream: true })
+		let nl
+		while ((nl = buffered.indexOf('\n')) !== -1) { take(buffered.slice(0, nl)); buffered = buffered.slice(nl + 1) }
+	}
+	take(buffered)
+	scanProgress.delete(documentKey)
+	if (!draft) throw new TypeError('The reading ended before its answer arrived')
+	return draft
+}
+
+/** Files a sent upload on an order. `as: 'file'` for a file added in the form, `item` for a
+    line's photo, `name` for the name it was chosen under. */
+export async function attachScanDocument(documentKey, orderId, { as, item, name } = {}, signal) {
+	return request(`/api/scan/documents/${documentKey}/attach/${orderId}` + qs({ as, item, name }), { method: 'POST', signal })
 }
 
 export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKey}/thumbnail`
+export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
+export const scanPageUrl = (documentKey, page) => `/api/scan/documents/${documentKey}/pages/${page}`
 
-/** The records the text appears in, as the server answers: vendors (with the alias that
-    matched), categories, bookmarks and orders with their item titles and photos, each cut at
-    eight, and `counts` with the full number of vendors and, past eight orders, of items. */
+export async function getScanPages(documentKey, signal) {
+	return request(`/api/scan/documents/${documentKey}/pages`, { signal })
+}
+
+/** Forgets what was read from the file, so it is read again when its draft next opens (3c). */
+export async function rereadScanDocument(documentKey, signal) {
+	return request(`/api/scan/documents/${documentKey}/reread`, { method: 'POST', signal })
+}
+
+export async function discardScanDocument(documentKey, signal) {
+	return request(`/api/scan/documents/${documentKey}`, { method: 'DELETE', signal })
+}
+
+/** Sends one file to be kept until a save files it (17a). `onSent` hears the fraction sent, 0 to 1. */
+export function sendFile(file, { signal, onSent } = {}) {
+	const path = '/api/scan/documents'
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest()
+		xhr.open('POST', path)
+		xhr.setRequestHeader(TODAY, today())
+		xhr.withCredentials = true
+		if (onSent) xhr.upload.onprogress = e => { if (e.lengthComputable && e.total) onSent(e.loaded / e.total) }
+		xhr.onerror = () => reject(new TypeError('Network request failed'))
+		xhr.onabort = () => reject(new DOMException('The operation was aborted.', 'AbortError'))
+		if (signal) signal.addEventListener('abort', () => xhr.abort(), { once: true })
+		xhr.onload = () => {
+			let data = null
+			try { data = JSON.parse(xhr.responseText) } catch { /* empty body */ }
+			if (xhr.status >= 200 && xhr.status < 300) resolve(data)
+			else reject(refusal(path, 'POST', xhr.status, data, true))
+		}
+		const form = new FormData()
+		form.append('file', file)
+		xhr.send(form)
+	})
+}
+
+/** Vendors (with the alias that matched), categories, bookmarks and orders holding the text, each cut
+    at eight; `counts` holds the full number of vendors and, past eight orders, of items. */
 export async function searchRecords(query, signal) {
 	return request('/api/search' + qs({ query }), { signal })
 }
 
-/* ---- option lists: spendKinds and orderStatuses mirror the server's own ---- */
+/* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses) ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
-
-// in the order a purchase goes through them, wherever the list appears
-export const orderStatuses = ['Ordered', 'Delivered', 'Returned']
 
 // a ranking comes in both directions; Vendor groups rather than ranks, so it has one
 export const sorts = [
@@ -746,7 +889,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention]
+const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendors, getVendor, getHomeAttention]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
 const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]

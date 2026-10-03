@@ -15,6 +15,7 @@ const ROWS = [
 	{ to: '/vendors', label: 'Vendors' },
 	{ to: '/categories', label: 'Categories' },
 	{ to: '/bookmarks', label: 'Bookmarks' },
+	{ to: '/more/views', label: 'Saved views' },
 	{ to: '/settings', label: 'Settings' }
 ]
 
