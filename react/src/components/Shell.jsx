@@ -118,7 +118,7 @@ const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item-
 
 /** `tip` is the label shown while the row's own is hidden, on the rail; `control` is a Switch
     at the row's end, which makes the row its label. */
-export function NavItem({ variant = 'default', icon, mark, count, countColor, sub, current = false, to, onClick, tip, control, actions, children, ...rest }) {
+export function NavItem({ variant = 'default', icon, mark, count, countColor, sub, current = false, to, onClick, tip, control, children, ...rest }) {
 	reject(rest, 'NavItem')
 	const [hint, tipEvents] = useTip(tip)
 	const classes = join('sp-nav-item', pick(NAV, variant, 'variant', 'NavItem'))
@@ -133,14 +133,13 @@ export function NavItem({ variant = 'default', icon, mark, count, countColor, su
 			{count != null
 				? <span className="sp-nav-item__count" {...(countColor ? { 'data-color': countColor } : {})}>{count}</span>
 				: null}
-			{actions}
 			{control}
 			{hint}
 		</>
 	)
 	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest }
 	if (control) return <label className={classes} {...state}>{body}</label>
-	if (to) return <Link className={classes} to={to} data-go={to} {...state}>{body}</Link>
+	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{body}</Link>
 	if (!onClick) return <span className={classes} {...state}>{body}</span>
 	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
 }

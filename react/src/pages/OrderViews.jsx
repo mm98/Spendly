@@ -2,6 +2,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card } from '../components/Card.jsx'
+import { FieldGroup } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
@@ -26,7 +27,7 @@ export function useActiveView(params) {
 /** The Views card (2g): All orders and the saved views with live counts, read-only at rest. Its
     header holds one action: Save when the filters differ from the view in force, Edit otherwise,
     Cancel while a name is typed, Done while editing. */
-export function ViewsCard({ params, matched, summary }) {
+export function ViewsCard({ params, matched, summary, onList = true }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const answer = useViews()
@@ -127,7 +128,7 @@ export function ViewsCard({ params, matched, summary }) {
 							<span className="sp-meta">locked</span>
 						</ListItem>
 					)
-					: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={!active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
+					: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={onList && !active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
 				{list.map((view, i) => (
 					<Fragment key={view.id}>
 						{drag && drag.at === i && drag.id !== view.id ? <Insertion /> : null}
@@ -221,5 +222,29 @@ function ViewMenu({ view, onRename, onDefault, onDelete }) {
 				)
 				: null}
 		</Anchor>
+	)
+}
+
+/** The views as the phone reaches them (9e, 9h): More's Saved views opens this card alone, away from
+    any list, so nothing in it is the list in force. */
+export default function SavedViews() {
+	return <ViewsCard params={new URLSearchParams()} onList={false} />
+}
+
+/** The views at the top of the phone's filter sheet (9e): a tap opens one at once, as on the rail. */
+export function SheetViews({ params, onOpen }) {
+	const answer = useViews().data
+	const { active, now } = useActiveView(params)
+	if (!answer) return null
+	return (
+		<FieldGroup facet legend="Views">
+			<div className="sp-nav-list">
+				<NavItem variant="light" icon="receipt" to={ALL_ORDERS} onClick={onOpen} current={!active && !now} count={amount(answer.all, 0)}>All orders</NavItem>
+				{answer.views.map(view => (
+					<NavItem key={view.id} variant="light" to={viewLink(view)} onClick={onOpen} mark={<ViewMark query={view.query} />} current={active?.id === view.id}
+						count={amount(view.count, 0)} countColor={view.attention ? 'warning' : undefined}>{view.name}</NavItem>
+				))}
+			</div>
+		</FieldGroup>
 	)
 }

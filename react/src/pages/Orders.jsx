@@ -31,7 +31,7 @@ import { allMatching, ordersCsv, saveCsv } from '../app/ordersCsv.js'
 import { DeleteOrder } from './DeleteOrder.jsx'
 import { BulkActions, useStatusName } from './OrderBulk.jsx'
 import { OrderCard, RowMenu } from './OrderMenu.jsx'
-import { ViewsCard } from './OrderViews.jsx'
+import { SheetViews, ViewsCard } from './OrderViews.jsx'
 import { useViews, viewLink } from '../app/views.jsx'
 
 const SORTS = [
@@ -476,6 +476,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
 				<span className="sp-heading">Filters</span>
 				<div className="ol-sheet-body">
+					<SheetViews params={params} onOpen={onClose} />
 					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={count.loading ? undefined : count.data?.matched}
 							counts={count.loading ? undefined : count.data?.facets} {...facetData} />
 				</div>
