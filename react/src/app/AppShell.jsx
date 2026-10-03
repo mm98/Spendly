@@ -308,7 +308,7 @@ function NavScroll({ navKey, children }) {
 /* Scan receipt opens the file picker at once (16a). */
 function ScanReceipt({ rail }) {
 	const scan = useScanPicker()
-	return <><Row icon="camera" variant="action" rail={rail} onClick={scan.open}>Scan receipt</Row>{scan.input}</>
+	return <Row icon="camera" variant="action" rail={rail} onClick={scan.open}>Scan receipt</Row>
 }
 
 /* New order is a plain row to step 1 of 3a, where scan, empty and copy are chosen, as the phone's button. It is

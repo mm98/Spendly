@@ -8,6 +8,7 @@ import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
 import { MAC } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { forgetRecent, noteRecent, readRecent } from './recent.js'
+import { useScanPicker } from './scanPicker.jsx'
 
 export { forgetRecent }
 
@@ -170,8 +171,8 @@ const GO = [
 ]
 
 // `first` is what the empty palette offers, the rest are found by name; `action` fills the mark (9d)
-const actionsFor = (theme, onShortcuts, overLimit, drafts) => [
-	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', to: '/orders/new?source=scan', first: true, action: true },
+const actionsFor = (theme, onShortcuts, overLimit, drafts, scan) => [
+	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', run: scan, first: true, action: true },
 	{ key: 'new', icon: 'plus', name: 'New order', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
 	...GO.map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
@@ -279,7 +280,8 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const recent = useRecentRows(touch)
 	const overLimit = useOverLimit()
 	const drafts = useHasDrafts()
-	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts))
+	const scan = useScanPicker()
+	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts, scan.open))
 	const flat = groups.flatMap(g => g.entries)
 
 	// the current row goes back to the first whenever the rows change

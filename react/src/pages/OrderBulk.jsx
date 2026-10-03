@@ -43,12 +43,12 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 		setBusy(true)
 		try {
 			const before = await records()
-			await changeOrders({ ...change, ids: before.map(o => o.id) })
+			const out = await changeOrders({ ...change, ids: before.map(o => o.id) })
 			invalidateOrderData()
 			setOpen(null)
 			setDeleting(false)
 			onDone()
-			if (done) toast(done(before))
+			if (done) toast(done(before, out))
 		} catch (e) {
 			toast({ message: failureMessage(e, failed), color: 'danger' })
 		} finally {
@@ -67,9 +67,9 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 
 	const panel = open === 'status'
 		? <SetStatus chosen={all ? null : chosen} count={count} busy={busy} onCancel={close}
-			onApply={(status, deliveredToday) => write({ status, deliveredToday }, before => ({
+			onApply={(status, deliveredToday) => write({ status, deliveredToday }, (before, out) => ({
 				message: `Status set to ${statusName(status)} on ${plural(before.length, 'order')}.`,
-				undo: undoing(() => restoreStatuses(before), 'The status was not changed back. Try again.')
+				undo: undoing(() => changeOrders({ ids: out.kept.map(o => o.id), restore: out.kept }), 'The status was not changed back. Try again.')
 			}), 'The status was not changed. Try again.')} />
 		: open === 'category'
 			? <AddCategory chosen={all ? null : chosen} count={count} busy={busy} onCancel={close}
@@ -113,13 +113,6 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 				: null}
 		</Anchor>
 	)
-}
-
-/* Each order goes back to the status it had; one write per status. */
-function restoreStatuses(orders) {
-	const groups = new Map()
-	for (const o of orders) groups.set(o.status, [...(groups.get(o.status) ?? []), o.id])
-	return Promise.all([...groups].map(([status, ids]) => changeOrders({ ids, status })))
 }
 
 /* A category comes off only the orders that did not carry it before. */

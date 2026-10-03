@@ -19,7 +19,7 @@ import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
-import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
+import { failureMessage, getCategories, getCurrentUser, getImports, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
@@ -47,7 +47,7 @@ const SORTS = [
 const SORTED = { 'date-desc': ['date', '↓'], 'date-asc': ['date', '↑'], 'amount-desc': ['amount', '↓'], 'amount-asc': ['amount', '↑'], 'vendor-asc': ['title', '↑'] }
 const headOf = (sort, column, label) => (SORTED[sort]?.[0] === column ? `${label} ${SORTED[sort][1]}` : label)
 
-const FACETS = ['vendor', 'category', 'status', 'receipt', 'files', 'discounted', 'period', 'from', 'to', 'kind', 'min', 'max']
+const FACETS = ['vendor', 'category', 'status', 'receipt', 'files', 'discounted', 'period', 'from', 'to', 'kind', 'min', 'max', 'import']
 const FILTERS = ['q', ...FACETS]
 
 /* A facet that takes several values holds them comma-separated in the address. */
@@ -86,7 +86,7 @@ const withChanges = (params, changes) => {
 
 const requestOf = (f, sort) => ({
 	query: f.q, vendorId: f.vendor, categoryId: f.category, status: f.status, kind: f.kind,
-	receipt: f.receipt, files: f.files, discounted: f.discounted,
+	receipt: f.receipt, files: f.files, discounted: f.discounted, importId: f.import,
 	from: f.from, to: f.to, minAmount: f.min, maxAmount: f.max, sort
 })
 
@@ -122,6 +122,8 @@ const loaded = {
 		return { ...parts.at(-1), orders: parts.flatMap(p => p.orders).slice(0, want) }
 	}
 }.getOrders
+
+const importDate = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', year: 'numeric' })
 
 const RECEIPT = { attached: 'Receipt attached', missing: 'Receipt missing' }
 
@@ -175,6 +177,7 @@ function OrderList() {
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
 	const highest = useApi(getOrders, [{ sort: 'amount-desc', pageSize: 1 }])
+	const imports = useApi(getImports, [], { enabled: !!f.import })
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled
 
 	const sort = SORTS.some(s => s.id === f.sort) ? f.sort
@@ -286,6 +289,13 @@ function OrderList() {
 		files: () => f.files === '1' && <Crumb key="files" onRemove={removing({ files: '' })}>Has attachments</Crumb>,
 		discounted: () => f.discounted === '1' && <Crumb key="discounted" onRemove={removing({ discounted: '' })}>Discounted only</Crumb>,
 		kind: () => f.kind && <Crumb key="kind" onRemove={removing({ kind: '' })}>{f.kind}</Crumb>,
+		// arriving from an import (11b): one chip, never part of a saved view
+		import: () => {
+			if (!f.import) return null
+			const made = imports.data?.find(i => i.id === f.import)?.createdAt
+			const label = made ? `From import ${importDate().format(new Date(made * 1000))}` : 'From an import'
+			return <Crumb key="import" onRemove={removing({ import: '' })}>{label}</Crumb>
+		},
 		amount: () => {
 			if (!f.min && !f.max) return null
 			const label = f.min && f.max ? `${amount(Number(f.min), 0)} - ${currency(Number(f.max), 0)}`
@@ -384,7 +394,6 @@ function OrderList() {
 						<Button size="small" onClick={scan.open}>Scan a receipt</Button>
 						<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 					</div>
-					{scan.input}
 				</Empty>
 			</Card>
 		)
@@ -516,18 +525,19 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
 			<Sheet role="dialog" aria-modal="true" aria-label="Filters" ref={box} tabIndex={-1}
 				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
-				<span className="sp-heading">Filters</span>
+				<div className="sp-row-flex">
+					<span className="sp-heading">Filters</span>
+					<span className="sp-grow" />
+					<Button variant="text" size="small" onClick={clear}>Reset</Button>
+				</div>
 				<div className="ol-sheet-body">
 					<SheetViews params={params} onOpen={onClose} />
 					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={matched}
 							counts={count.loading ? undefined : count.data?.facets} {...facetData} />
 				</div>
-				<div className="sp-row-flex sp-gap-8">
-					<Button variant="outline" size="small" onClick={clear}>Reset</Button>
-					<Button size="small" disabled={matched === 0} onClick={apply}>
-						{matched === undefined ? 'Apply' : matched === 0 ? 'No orders match' : `Show ${plural(matched, 'order')}`}
-					</Button>
-				</div>
+				<Button size="small" fullWidth disabled={matched === 0} onClick={apply}>
+					{matched === undefined ? 'Apply' : matched === 0 ? 'No orders match' : `Show ${plural(matched, 'order')}`}
+				</Button>
 			</Sheet>
 		</Scrim>,
 		document.body

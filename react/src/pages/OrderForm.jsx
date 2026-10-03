@@ -1269,7 +1269,7 @@ function Include({ line, setLines }) {
 }
 
 /** Where a copy came from, or what a scan could not read. On a phone the save bar is the way
-    out and a button takes the row's whole width, so there the notice only states. */
+    out, so there the copy notice has no Discard. */
 function notices({ origin, scan, lines, leave, touch, jump }) {
 	if (origin.copy)
 		return (
@@ -1298,7 +1298,7 @@ function notices({ origin, scan, lines, leave, touch, jump }) {
 	const said = [hard.length ? `${names(hard)} ${one ? 'was' : 'were'} hard to read` : null, ...looks].filter(Boolean)
 	return (
 		<Alert mark="!" title={count === 1 ? '1 value needs a look.' : `${count} values need a look.`}
-			action={jump && !touch ? <Button variant="outline" size="small" onClick={jump}>Jump to first</Button> : null}>
+			action={jump ? <Button variant="outline" size="small" onClick={jump}>Jump to first</Button> : null}>
 			{said.join(', ').replace(/^./, c => c.toUpperCase())}.
 		</Alert>
 	)

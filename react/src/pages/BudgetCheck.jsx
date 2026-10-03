@@ -16,7 +16,7 @@ import { useToast } from '../components/Overlays.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { Failed } from '../components/Failed.jsx'
 import { cachedFetch, useApi } from '../api/useApi.js'
-import { amount, currency, currencySymbol, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
+import { amount, capitalised, currency, currencySymbol, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, getBudgetYears, saveBankLink, updateBudgetLine } from '../api/client.js'
 import {
 	DATE_FORMATS, checkPayments, dateFormatsFor, describeColumn, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
@@ -644,7 +644,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 						onChange={ev => setLeaveAlone(new Set(ev.target.checked ? [] : writes.map(w => w.id)))} />}>Select every amount</Choice>
 					{sides(writes.map(w => ({ ...w, total: w.amount })), w => line({
 						key: w.id, title: w.name, total: w.amount,
-						subtitle: `${long[w.month - 1]} ${w.year}${dot}${w.group}${w.count > 1 ? `${dot}${plural(w.count, 'payment')}` : ''}`,
+						subtitle: `${capitalised(long[w.month - 1])} ${w.year}${dot}${w.group}${w.count > 1 ? `${dot}${plural(w.count, 'payment')}` : ''}`,
 						check: <Check checked={!leaveAlone.has(w.id)} aria-label={`Select ${w.name}`} onChange={() => toggle(setLeaveAlone, w.id)} />,
 						note: writeNote(w), ink: 'sp-ink-warning'
 					}))}

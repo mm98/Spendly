@@ -87,11 +87,12 @@ export function reanchor(range, id, next) {
 	return windowIdAt(next, last)
 }
 
-/** "2026", "Q3 2026", "August 2026", "Week 34, 2026", "04/09/2026 - 03/10/2026". */
-export function nameOf(range, id) {
+/** "2026", "Q3 2026", "August 2026", "Week 34, 2026", "04/09/2026 - 03/10/2026". The month is
+    capitalised unless the name sits inside running text (`inText`), where it follows the language. */
+export function nameOf(range, id, inText = false) {
 	const y = id.slice(0, 4)
 	if (range === 'week') return `Week ${Number(id.slice(6))}, ${y}`
-	if (range === 'month') return `${monthNames('long')[Number(id.slice(5)) - 1]} ${y}`
+	if (range === 'month') return `${monthNames('long', !inText)[Number(id.slice(5)) - 1]} ${y}`
 	if (range === 'quarter') return `${id.slice(5)} ${y}`
 	if (range === 'days30' || range === 'custom') {
 		const [from, to] = boundsOf(range, id).map(isoOf)
@@ -106,7 +107,7 @@ export const dayAndMonth = iso => new Intl.DateTimeFormat(activeLocaleCode(), { 
 // the stepper's own short name; its width is set by the longest month
 export function stepLabel(range, id) {
 	if (range === 'week') return `W${Number(id.slice(6))}`
-	if (range === 'month') return monthNames('long')[Number(id.slice(5)) - 1]
+	if (range === 'month') return monthNames('long', true)[Number(id.slice(5)) - 1]
 	if (range === 'quarter') return id.slice(5)
 	if (range === 'days30') return boundsOf(range, id).map(ms => dayAndMonth(isoOf(ms))).join(' - ')
 	return id
@@ -196,10 +197,9 @@ export function chartOf(view) {
 			from,
 			to,
 			// more than a week of days is named by date: thirty weekday names do not fit their columns
-			tick: unit === 'month' ? monthNames()[month] : unit === 'week' ? daySpan(from, to) : days > 7 ? String(Number(from.slice(8))) : weekday(from),
-			// a month's head is its name with a capital and the year, "January 2026", in every locale (4a)
+			tick: unit === 'month' ? monthNames('short', true)[month] : unit === 'week' ? daySpan(from, to) : days > 7 ? String(Number(from.slice(8))) : weekday(from),
 			name: unit === 'month'
-				? `${monthNames('long')[month].charAt(0).toUpperCase()}${monthNames('long')[month].slice(1)} ${new Date(at).getUTCFullYear()}`
+				? `${monthNames('long', true)[month]} ${new Date(at).getUTCFullYear()}`
 				: unit === 'week' ? `Week ${week}, ${shortDate(from)} - ${shortDate(to)}` : longDate(from),
 			crumb: unit === 'month' ? { kind: 'month', value: windowIdAt('month', at) } : unit === 'week' ? { kind: 'week', value: windowIdAt('week', at) } : null,
 			spend: between(spend, start, end),

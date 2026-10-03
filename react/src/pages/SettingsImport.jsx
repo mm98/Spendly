@@ -570,7 +570,7 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 				<Button variant="outline" disabled={undoing} onClick={undo}>{undoing ? 'Undoing…' : 'Undo this import'}</Button>
 				<span className="st-push" />
 				{downloadButton}
-				<Button to="/orders">See the {ordersWord(imported)}</Button>
+				<Button to={`/orders?import=${encodeURIComponent(importId)}`}>See the {ordersWord(imported)}</Button>
 			</ImportFooter>
 		</Card>
 	)

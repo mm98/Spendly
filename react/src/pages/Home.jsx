@@ -106,7 +106,7 @@ function lastMonths(window) {
 	}
 	const [y0, m0] = today().split('-').map(Number)
 	const short = monthNames('short')
-	const long = monthNames('long')
+	const long = monthNames('long', true)
 	const months = Array.from({ length: MONTHS }, (unused, i) => {
 		const at = new Date(y0, m0 - 1 - (MONTHS - 1 - i), 1)
 		const y = at.getFullYear(), m = at.getMonth()
