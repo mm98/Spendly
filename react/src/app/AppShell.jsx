@@ -9,10 +9,11 @@ import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { TopBarEndSlot } from './topBarEnd.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
+import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getSettings, getVendors, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
+import { SessionDialog, SignedOutBanner } from './SessionDialog.jsx'
 import { SavedLater } from './SavedLater.jsx'
 import { countBadge } from '../api/format.js'
 import { MAC, useMedia, useShellShape } from './useMedia.js'
@@ -104,13 +105,14 @@ export function AppShell() {
 
 	// a session that ends mid-use asks over the page rather than throwing the reader out (20e)
 	const [ended, setEnded] = useState(false)
+	const [later, setLater] = useState(false)
 	useEffect(() => onSessionEnded(() => setEnded(true)), [])
 
 	// below 1280 the facet rail leaves and the list takes the column (18b)
 	const body = layout === 'rail' && shape !== 'wide' ? 'default' : layout
 	const content = (
 		<ShellContent layout={body}>
-			<ConfirmBanner />
+			{later && !ended ? <SignedOutBanner onSignIn={() => setEnded(true)} /> : <ConfirmBanner />}
 			<Suspense fallback={null}><Outlet /></Suspense>
 		</ShellContent>
 	)
@@ -139,18 +141,13 @@ export function AppShell() {
 	})
 	const keySheet = keysShown ? <ShortcutSheet onClose={() => setKeysShown(false)} /> : null
 
+	const account = useApi(getCurrentUser).data
 	const signedOut = ended
 		? (
-			<Dialog onCancel={() => setEnded(false)}>
-				<DialogTitle>You've been signed out</DialogTitle>
-				<DialogBody>Sign in again to carry on. Text you typed on this page and did not save is not kept. Choose Later to stay here and copy it first.</DialogBody>
-				<DialogActions>
-					<Button variant="outline" size="small" onClick={() => setEnded(false)}>Later</Button>
-					<Button size="small" onClick={() => { setEnded(false); navigate(`/signin?next=${encodeURIComponent(pathname + params)}`) }}>
-						Sign in
-					</Button>
-				</DialogActions>
-			</Dialog>
+			<SessionDialog email={account?.email ?? null}
+				onSignedIn={() => { setEnded(false); setLater(false) }}
+				onLater={() => { setEnded(false); setLater(true) }}
+				onSignInPage={() => { setEnded(false); navigate(`/signin?next=${encodeURIComponent(pathname + params)}`) }} />
 		)
 		: null
 
