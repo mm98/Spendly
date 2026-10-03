@@ -717,9 +717,8 @@ export function sendFile(file, { signal, onSent } = {}) {
 	})
 }
 
-/** The records the text appears in, as the server answers: vendors (with the alias that
-    matched), categories, bookmarks and orders with their item titles and photos, each cut at
-    eight, and `counts` with the full number of vendors and, past eight orders, of items. */
+/** Vendors (with the alias that matched), categories, bookmarks and orders holding the text, each cut
+    at eight; `counts` holds the full number of vendors and, past eight orders, of items. */
 export async function searchRecords(query, signal) {
 	return request('/api/search' + qs({ query }), { signal })
 }
