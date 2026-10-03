@@ -569,12 +569,11 @@ export async function attachScanDocument(documentKey, orderId, signal) {
 export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKey}/thumbnail`
 
 /** The records the text appears in, as the server answers: vendors (with the alias that
-    matched), categories, bookmarks and orders with their item titles, each cut at SEARCH_CAP. */
+    matched), categories, bookmarks and orders with their item titles and photos, each cut at
+    eight, and `counts` with the full number of vendors and, past eight orders, of items. */
 export async function searchRecords(query, signal) {
 	return request('/api/search' + qs({ query }), { signal })
 }
-// the server's MAX_PER_KIND (api/src/routes/search.js): a kind that fills it may hold more
-export const SEARCH_CAP = 8
 
 /* ---- option lists: spendKinds and orderStatuses mirror the server's own ---- */
 

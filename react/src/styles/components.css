@@ -3516,6 +3516,8 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   color: var(--ink-5);
 }
 .sp-palette__thumb { width: 22px; height: 22px; border-radius: var(--r-tile); background: var(--line); flex: none; }
+/* an item's own photo fills the box its placeholder drew */
+.sp-palette__thumb > img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 
 /* the same palette filling a phone: no card edges, and the body takes the height
    the frame has rather than its own maximum */
@@ -4439,6 +4441,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   height: 100dvh;
   overflow-y: auto;
 }
+/* opened over the page from the rail, it covers the window's height wherever the page is scrolled */
+.sp-shell--viewport > .sp-sidebar.sp-sidebar--peek { position: fixed; height: 100dvh; }
 .sp-shell--viewport .sp-shell__page > .sp-topbar {
   position: sticky;
   top: 0;
