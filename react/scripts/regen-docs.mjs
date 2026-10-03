@@ -43,9 +43,11 @@ mkdirSync(outdir, { recursive: true })
 const browser = await chromium.launch()
 
 async function freshAccount(ctx) {
-	const email = `docs-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`
+	// one fixed address: the sidebar's account mark is drawn from it, so a new one per run moves pixels
+	const email = 'docs@example.com'
 	let r = await ctx.request.post(BASE + '/api/auth/register', { data: { email, password: 'docs-pass-1' } })
-	if (r.status() !== 201) throw new Error('register ' + r.status())
+	if (r.status() !== 201) r = await ctx.request.post(BASE + '/api/auth/login', { data: { email, password: 'docs-pass-1' } })
+	if (!r.ok()) throw new Error('sign in ' + r.status())
 	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: SEED, months: MONTHS, orders: 30 } })
 	if (!r.ok()) throw new Error('demo-data ' + r.status())
 	console.log('demo-data:', await r.text())
