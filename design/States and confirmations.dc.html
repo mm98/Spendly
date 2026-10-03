@@ -206,6 +206,37 @@
       </div>
     </div>
 
+    <div class="sp-hold doc-w400">
+      <div class="sp-hold__ghost" aria-hidden="true">
+        <div class="sp-card">
+          <span class="sp-section-label">This month</span>
+          <div class="sp-fields">
+            <div class="sp-stack sp-gap-8"><span class="sp-skeleton" data-w="60" data-h="10"></span><span class="sp-skeleton" data-w="104" data-h="20"></span></div>
+            <div class="sp-stack sp-gap-8"><span class="sp-skeleton" data-w="70" data-h="10"></span><span class="sp-skeleton" data-w="44" data-h="20"></span></div>
+            <div class="sp-stack sp-gap-8"><span class="sp-skeleton" data-w="76" data-h="10"></span><span class="sp-skeleton" data-w="96" data-h="20"></span></div>
+            <div class="sp-stack sp-gap-8"><span class="sp-skeleton" data-w="64" data-h="10"></span><span class="sp-skeleton" data-w="82" data-h="20"></span></div>
+          </div>
+          <div class="sp-bars"><span class="sp-skeleton sp-skeleton--bar" data-h-pc="96"></span></div>
+        </div>
+      </div>
+      <div class="sp-hold__state">
+        <div class="sp-card">
+          <span class="sp-section-label">This month</span>
+          <div class="sp-alert" data-color="danger">
+            <span class="sp-alert__mark" aria-hidden="true">!</span>
+            <span class="sp-alert__body">
+              <span class="sp-alert__title">This month did not load</span>
+              <span class="sp-alert__note">Check the connection and try again.</span>
+            </span>
+          </div>
+          <span class="sp-grow"></span>
+          <div class="sp-card__footer">
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Try again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="sp-card sp-card--row doc-w400">
       <span class="sp-spinner"></span>
       <div class="sp-stack sp-gap-6">
@@ -213,6 +244,10 @@
         <span class="sp-meta">Your changes are saved. The totals will update in a moment.</span>
       </div>
     </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>A card that failed to load keeps the height it has when full</b> (<code>.sp-hold</code>: the full card is laid out invisibly behind the state shown), so nothing below it moves. It keeps its label, says what did not load in the red alert (c19) under the label, and offers <b>Try again</b> in its footer. Try again turns the card back into its skeleton; nothing else on the page reloads.</div>
   </div>
 </section>
 

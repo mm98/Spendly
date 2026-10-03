@@ -4987,3 +4987,25 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 [data-theme="dark"] .sp-record__photo { box-shadow: inset 0 0 0 1px var(--line-3); }
 /* a status pill in Settings' Statuses list may end in an ellipsis; everywhere else a pill never truncates (2i) */
 .sp-pill--truncate { display: inline-block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- brief 4: placements the pages describe ---------- */
+
+/* The account menu (9c) sits on the window, not in the sidebar, which scrolls and would cut
+   it off (c9). The wrapper is fixed at the account block's box; the menu hangs from it:
+   upward at the block's width 4 above it, or on the collapsed rail to the right of the
+   avatar, 4 clear, bottom edges aligned. */
+.sp-sidebar__menu { position: fixed; z-index: 30; }
+.sp-sidebar__menu > .sp-menu { position: absolute; box-shadow: var(--shadow-menu); }
+.sp-sidebar__menu--up > .sp-menu { left: 0; right: 0; bottom: calc(100% + var(--sp-4)); min-width: 0; }
+.sp-sidebar__menu--side > .sp-menu { left: calc(100% + var(--sp-4)); bottom: 0; }
+
+/* A rail icon's label (9b, 9f): the c18 chip to the right of the icon, 6 clear and centred on
+   it, on the window so the scrolling sidebar cannot cut it. Shown on hover and on keyboard
+   focus; the item's aria-label carries the same name. */
+.sp-tip--float { position: fixed; z-index: 30; transform: translateY(-50%); pointer-events: none; }
+
+/* On a phone a selection takes the top bar's place (c11, c12): the same slot, edge to edge,
+   and it stays at the top while the list scrolls. The top bar returns when the selection
+   is cleared. */
+.sp-bulkbar--head { position: sticky; top: 0; z-index: 5; }
+.sp-touch:has(.sp-bulkbar--head) .sp-topbar--touch { display: none; }
