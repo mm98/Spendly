@@ -29,9 +29,9 @@ class NoAnswer extends Error {
 }
 
 // what the server says reaches the reader only as a refusal written for them: a whole sentence,
-// never a crash's note or a record's internal id
-const forReader = (status, text) => status < 500 && typeof text === 'string'
-	&& /^[A-Z0-9"'(].*[.?!]$/s.test(text.trim()) && !/\b[a-z]{1,3}-[0-9a-f]{8,}\b/.test(text)
+// never a crash's note or a record's internal id; an upload's refusal may open on the file's own name
+const forReader = (status, text, upload = false) => status < 500 && typeof text === 'string'
+	&& (upload ? /^\S.*[.?!]$/s : /^[A-Z0-9"'(].*[.?!]$/s).test(text.trim()) && !/\b[a-z]{1,3}-[0-9a-f]{8,}\b/.test(text)
 
 /** The sentence a failed request shows: the server's own words, or `fallback` for a failure that
     has none (no connection), whose browser message is not about what the reader did. Empty for a
@@ -72,12 +72,12 @@ export function onSessionEnded(fn) {
 }
 
 /** The error a refused request throws: `signedOut` for a session that ended, `gone` for a record that is gone. */
-function refusal(path, method, status, data) {
+function refusal(path, method, status, data, upload = false) {
 	const ended = status === 401 && !path.startsWith('/api/auth/')
 	if (ended && !signedOut) sessionListener?.()
 	const thing = status === 404 ? THINGS.find(([at]) => at.test(path))?.[1] : null
 	const error = thing ? new ApiError(goneMessage(thing, method), status, data?.fields, data)
-		: forReader(status, data?.error) ? new ApiError(data.error, status, data.fields, data)
+		: forReader(status, data?.error, upload) ? new ApiError(data.error, status, data.fields, data)
 		: new NoAnswer(status, data?.fields, data)
 	if (ended) error.signedOut = true
 	if (thing) error.gone = true
@@ -97,7 +97,7 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 	if (res.status === 204) return null
 	let data = null
 	try { data = await res.json() } catch { /* empty body */ }
-	if (!res.ok) throw refusal(path, method, res.status, data)
+	if (!res.ok) throw refusal(path, method, res.status, data, !!form)
 	return data
 }
 
