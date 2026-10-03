@@ -51,7 +51,7 @@ export default function CategoryForm() {
 		)
 		return <CategoryFields key="loading" category={LOADING} loading onGone={setGone} />
 	}
-	return <CategoryFields key={id ?? 'new'} category={record.data ?? null} onGone={setGone} />
+	return <CategoryFields key={id ?? 'new'} category={id ? record.data ?? null : null} onGone={setGone} />
 }
 
 // the form while the category is on its way: an existing record's form, every value held by a skeleton

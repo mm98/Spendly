@@ -42,7 +42,7 @@ export default function BookmarkForm() {
 		)
 		return <BookmarkFields key="loading" bookmark={LOADING} loading onGone={setGone} />
 	}
-	return <BookmarkFields key={id ?? 'new'} bookmark={existing.data ?? null} onGone={setGone} />
+	return <BookmarkFields key={id ?? 'new'} bookmark={id ? existing.data ?? null : null} onGone={setGone} />
 }
 
 // the form while the bookmark is on its way: an existing record's form, every value held by a skeleton
@@ -248,7 +248,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	const bar = touch || !editing || dirty
 		? (
 			<CommitBar status={!editing ? 'Nothing saved yet' : dirty ? 'Unsaved changes' : null} quiet={!editing}
-				onCancel={leave} onSave={lost ? null : save}
+				onCancel={() => navigate(list)} onSave={lost ? null : save}
 				commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save bookmark' : 'Add bookmark'} saving={saving} disabled={loading} />
 		)
 		: null

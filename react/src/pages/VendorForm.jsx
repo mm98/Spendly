@@ -41,7 +41,7 @@ export default function VendorForm() {
 		)
 		return <VendorFields key="loading" vendor={LOADING} loading onGone={setGone} />
 	}
-	return <VendorFields key={id ?? 'new'} vendor={record.data ?? null} onGone={setGone} />
+	return <VendorFields key={id ?? 'new'} vendor={id ? record.data ?? null : null} onGone={setGone} />
 }
 
 // the form while the vendor is on its way: an existing record's form, every value held by a skeleton
