@@ -155,7 +155,7 @@ const GO = [
 ]
 
 // `first` is what the empty palette offers, the rest are found by name; `action` fills the mark (9d)
-const actionsFor = theme => [
+const actionsFor = (theme, onShortcuts) => [
 	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', to: '/orders/new?source=scan', first: true, action: true },
 	{ key: 'new', icon: 'plus', name: 'New order', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
@@ -164,7 +164,8 @@ const actionsFor = theme => [
 	{ key: 'add-category', icon: 'category', name: 'Add a category', to: '/categories/new' },
 	theme === 'dark'
 		? { key: 'theme', icon: 'sun', name: 'Switch to light mode', run: () => setTheme('light'), first: true }
-		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true }
+		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true },
+	...(onShortcuts ? [{ key: 'keys', icon: 'keyboard', name: 'Keyboard shortcuts', kbd: '?', run: onShortcuts }] : [])
 ].map(a => ({ ...a, plain: true }))
 
 const countLabel = (name, count) => (count == null ? name : name + dot + count)
@@ -224,7 +225,7 @@ function resultCount(found) {
 
 /** The command palette (9d, c24): over the page on a desktop, the whole screen on a phone (7b),
     where a result replaces the search's step in the history. `onClose` closes it without acting. */
-export function Palette({ query = '', touch = false, onClose }) {
+export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const navigate = useNavigate()
 	const theme = useTheme()
 	const [text, setText] = useState(query)
@@ -238,7 +239,7 @@ export function Palette({ query = '', touch = false, onClose }) {
 	const needle = text.trim()
 	const found = useSearch(needle, touch)
 	const recent = useRecentRows(touch)
-	const groups = groupsFor(text, found, recent, actionsFor(theme))
+	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts))
 	const flat = groups.flatMap(g => g.entries)
 
 	// the current row goes back to the first whenever the rows change
@@ -311,7 +312,7 @@ export function Palette({ query = '', touch = false, onClose }) {
 				if (e.all) return <PaletteAll key={e.key} {...events}>{e.name}</PaletteAll>
 				return (
 					<PaletteRow key={e.key} icon={e.icon} thumb={e.thumb} plain={e.plain} action={e.action} match={e.match} meta={e.meta}
-						value={e.open && at === index ? 'Open' : e.value} {...events}>
+						value={e.open && at === index ? 'Open' : e.value} kbd={e.kbd} {...events}>
 						{e.name}
 					</PaletteRow>
 				)

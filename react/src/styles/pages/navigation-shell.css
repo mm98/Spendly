@@ -21,4 +21,11 @@
 	.ns-scroll--faded { mask-image: linear-gradient(to bottom, var(--ink) calc(100% - 22px), transparent); }
 	.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .ns-scroll { margin-inline: 0; padding-inline: 0; align-items: center; }
 
+	/* the keyboard shortcuts list; on a short window it scrolls, never the title or Done */
+	.ns-keys-list { display: flex; flex-direction: column; gap: var(--sp-12); min-height: 0; max-height: calc(100dvh - 180px); overflow-y: auto; }
+	/* what a key does at the left, its key caps at the right */
+	.ns-keys { display: flex; flex-direction: column; gap: var(--sp-6); }
+	.ns-keys__row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); }
+	.ns-keys__caps { display: flex; align-items: center; gap: var(--sp-4); flex: none; }
+
 }

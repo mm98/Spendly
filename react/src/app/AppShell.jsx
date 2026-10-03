@@ -15,6 +15,7 @@ import { MAC, useMedia, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
 import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
+import { ShortcutSheet, useShortcutKeys } from './Shortcuts.jsx'
 
 
 /* The route's handle names the page for the browser tab, the sidebar row it belongs to, the
@@ -115,9 +116,14 @@ export function AppShell() {
 			kbd={touch ? undefined : <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd>}
 		/>
 	)
+	const [keysShown, setKeysShown] = useState(false)
+	const showKeys = useCallback(() => setKeysShown(true), [])
 	const overlay = palette
-		? <Palette query={palette.query} touch={touch} onClose={closePalette} />
+		? <Palette query={palette.query} touch={touch} onShortcuts={showKeys} onClose={closePalette} />
 		: null
+	useShortcutKeys({ enabled: !touch && !palette && !keysShown, onSheet: showKeys, onGo: (key, to) => navigate(go(key, to)) })
+	const keySheet = keysShown ? <ShortcutSheet onClose={() => setKeysShown(false)} /> : null
+
 	const signedOut = ended
 		? (
 			<Dialog onCancel={() => setEnded(false)}>
@@ -139,7 +145,7 @@ export function AppShell() {
 	return (
 		<Toaster>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
-				{touch ? null : sidebar({ navKey, fold, short, go })}
+				{touch ? null : sidebar({ navKey, fold, short, go, showKeys })}
 				<TopBar touch={touch}>{search}</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
@@ -154,6 +160,7 @@ export function AppShell() {
 					: null}
 			</Shell>
 			{touch ? null : overlay}
+			{keySheet}
 			{signedOut}
 		</Toaster>
 	)
@@ -162,7 +169,7 @@ export function AppShell() {
 /* An element rather than a component: the shell places its children by type. On the rail the
    groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). The brand
    and the bottom zone stay put; only the destinations between them scroll (9g). */
-function sidebar({ navKey, fold, short, go }) {
+function sidebar({ navKey, fold, short, go, showKeys }) {
 	const { rail } = fold
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
@@ -187,7 +194,7 @@ function sidebar({ navKey, fold, short, go }) {
 			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}
 			{rail ? null : <SidebarDivider />}
 			{short ? null : <DarkMode rail={rail} />}
-			<Account rail={rail} short={short} />
+			<Account rail={rail} short={short} onShortcuts={showKeys} />
 			<SidebarGrip expanded={!rail} onClick={fold.toggle} />
 		</Sidebar>
 	)
@@ -310,7 +317,7 @@ function DarkMode({ rail }) {
 
 /** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
     ends on the sign-in page, once the reader has been let go. */
-export function AccountMenu({ email, position, short = false, onClose }) {
+export function AccountMenu({ email, position, short = false, onShortcuts, onClose }) {
 	const navigate = useNavigate()
 	const theme = useTheme()
 	return (
@@ -324,12 +331,17 @@ export function AccountMenu({ email, position, short = false, onClose }) {
 					{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
 				</MenuItem>
 				: null}
+			{onShortcuts
+				? <MenuItem icon="keyboard" onClick={() => { onClose(); onShortcuts() }}>
+					<span>Keyboard shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
+				</MenuItem>
+				: null}
 			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
 		</Menu>
 	)
 }
 
-function Account({ rail, short }) {
+function Account({ rail, short, onShortcuts }) {
 	const user = useApi(getCurrentUser)
 	const [open, setOpen] = useState(false)
 	const close = useCallback(() => setOpen(false), [])
@@ -337,6 +349,6 @@ function Account({ rail, short }) {
 	if (!email) return null
 	return (
 		<SidebarAccount email={email} expanded={open} tip={rail ? email : undefined} aria-label={email}
-			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu email={email} short={short} onClose={close} />} />
+			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu email={email} short={short} onShortcuts={onShortcuts} onClose={close} />} />
 	)
 }
