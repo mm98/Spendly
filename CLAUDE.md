@@ -194,6 +194,9 @@ paged or searched on the server, and is tested with more rows than the demo data
   (Playwright 1.56.1). Firefox/WebKit need an explicit install first
   (`npx playwright install firefox`, or `webkit` + `install-deps webkit`) and are an explicit
   request, not a standing default. Report "verified in Blink, others unverified," never silence.
+- **A fault on an iPhone is reproduced in WebKit, not Chromium.** Native date fields, the phone's
+  keyboard-facing inputs and other controls the engine draws itself differ there. Use the
+  `devices['iPhone 15']` profile, and say "verified in WebKit" only when WebKit rendered it.
 - **`--with-deps` fails as two steps, not one.** It installs system deps first and aborts the whole
   run if any apt source is unreachable — even an irrelevant one. Split it: `install` the engine, then
   `install-deps` separately, so an apt failure doesn't cost you an already-downloaded browser.

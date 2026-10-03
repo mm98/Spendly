@@ -45,6 +45,11 @@
 }
 .sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
 .sp-shell--touch .sp-shell__body { padding: var(--phone-gutter); }
+/* WebKit keeps a date value at the top edge of the field, so the field centres it (README: Browser quirks) */
+.sp-input[type="date"],
+.sp-input[type="time"],
+.sp-input[type="month"],
+.sp-input[type="datetime-local"] { display: flex; align-items: center; }
 .sp-shell--touch .sp-shell__body--rail { grid-template-columns: minmax(0, 1fr); }
 .sp-shell--touch > .sp-tabbar {
 	position: fixed;
