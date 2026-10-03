@@ -14,6 +14,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Empty, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { Failed } from './Budget.jsx'
 import { cachedFetch, useApi } from '../api/useApi.js'
 import { amount, currency, currencySymbol, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, getBudgetYears, saveBankLink, updateBudgetLine } from '../api/client.js'
@@ -137,18 +138,26 @@ export default function BudgetCheck() {
 		[ready, rows, mapping, dateFormat])
 	const years = useMemo(() => [...new Set(payments.map(p => Number(p.date.slice(0, 4))))].sort(), [payments])
 
+	const [sheetsFailed, setSheetsFailed] = useState(false)
+	const [attempt, setAttempt] = useState(0)
 	useEffect(() => {
 		let live = true
 		setSheets(null)
+		setSheetsFailed(false)
 		// only the years the budget holds are asked for, so a year without one is not an error
 		cachedFetch(getBudgetYears).then(held => Promise.all(years.map(y => (held.years.includes(y) ? cachedFetch(getBudgetYear, [y]) : null))))
 			.then(found => {
 			if (live) setSheets(new Map(years.map((y, i) => [y, found[i]]).filter(([, s]) => s)))
-		}).catch(e => {
-			if (live) toastFailure(toast, e, 'The budget could not be read.')
+		}).catch(() => {
+			if (live) setSheetsFailed(true)
 		})
 		return () => { live = false }
-	}, [years, toast])
+	}, [years, attempt])
+	const failed = sheetsFailed || (!links && !!saved.error)
+	const retry = () => {
+		if (!links) saved.refresh()
+		if (sheetsFailed) setAttempt(n => n + 1)
+	}
 
 	const checked = useMemo(() => (sheets && links ? checkPayments(payments, sheets, links) : null), [payments, sheets, links])
 
@@ -173,7 +182,7 @@ export default function BudgetCheck() {
 					left={ready && payments.length && unread.length ? `${plural(unread.length, 'line')} could not be read with these columns.` : null}
 					onChange={change} />
 				: !checked
-					? <Card aria-busy="true"><Skeleton shape="title" /><Skeleton shape="line" /><Skeleton shape="short" /></Card>
+					? failed ? <Failed onRetry={retry} /> : <Card aria-busy="true"><Skeleton shape="title" /><Skeleton shape="line" /><Skeleton shape="short" /></Card>
 					: <Results key={file} file={file} payments={payments} unread={unread.length} checked={checked} sheets={sheets} setSheets={setSheets}
 						setLinks={setLinks} view={view} onFailed={saved.refresh} />}
 		</>

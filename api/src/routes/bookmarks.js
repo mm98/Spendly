@@ -98,8 +98,8 @@ const updateBookmark = db.transaction((userId, bookmark, categories) => {
    qualify. No index: the scan is the right plan at the size of one account's bookmarks (docs/defects.md). */
 
 const BOOKMARK_SORT_SQL = {
-	'added-desc': 'b.created_at DESC, b.id DESC',
-	'added-asc': 'b.created_at ASC, b.id ASC',
+	'added-desc': 'b.created_at DESC, b.rowid DESC',
+	'added-asc': 'b.created_at ASC, b.rowid ASC',
 	'price-desc': 'b.price DESC, b.id DESC',
 	'price-asc': 'b.price ASC, b.id ASC',
 	'name-asc': 'b.name COLLATE NOCASE ASC, b.id ASC'
@@ -176,12 +176,7 @@ router.get('/', (req, res) => {
 		LIMIT @limit OFFSET @offset
 	`).all({ ...params, limit: size, offset: (at - 1) * size })
 
-	res.json({
-		bookmarks: decorateRows(rows),
-		matched, total, page: at, pages,
-		from: matched ? (at - 1) * size + 1 : 0,
-		to: Math.min(at * size, matched)
-	})
+	res.json({ bookmarks: decorateRows(rows), matched, total })
 })
 
 /** Always 200 and always `{ title, image, thumbnail }`, any of them null. The picture is

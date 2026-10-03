@@ -6,9 +6,9 @@
 
 export const DEFAULT_SETTINGS = {
 	defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10,
-	sort: 'date-desc', showScanCard: true, confirmDelete: true,
-	// Six rows a card, and the vendors and categories lists opening alphabetically.
-	cardRows: 6, listSort: 'name-asc',
+	sort: 'date-desc',
+	// The vendors and categories lists opening alphabetically.
+	listSort: 'name-asc',
 	// The ledger's unit. DKK because every figure in the app is printed as "kr." by default,
 	// so a new account's currency has to match what its own figures already mean.
 	currency: 'DKK',
@@ -16,19 +16,16 @@ export const DEFAULT_SETTINGS = {
 	// every account got before the column existed and the right answer wherever a reader's
 	// browser language and their region already agree. Registration overrides it when the
 	// client managed to work out where the reader is (see routes/auth.js).
-	locale: 'auto',
-	// The window the Vendors and Categories rings both draw from.
-	chartPeriod: 'month'
+	locale: 'auto'
 }
 
 /** Inserts the settings row every account needs, inside the caller's transaction. `overrides`
     carries what registration knows better (the locale), validated by the caller. */
 export function seedAccountDefaults(db, userId, overrides = {}) {
 	const settings = { ...DEFAULT_SETTINGS, ...overrides }
+	// show_scan_card and confirm_delete are NOT NULL without a default; nothing reads them
 	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort,
-		show_scan_card, confirm_delete, card_rows, list_sort, currency, locale, chart_period)
-		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard,
-			@confirmDelete, @cardRows, @listSort, @currency, @locale, @chartPeriod)`)
-		.run({ userId, ...settings, showScanCard: settings.showScanCard ? 1 : 0,
-			confirmDelete: settings.confirmDelete ? 1 : 0 })
+		show_scan_card, confirm_delete, list_sort, currency, locale)
+		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale)`)
+		.run({ userId, ...settings })
 }

@@ -74,11 +74,11 @@ router.get('/draft', (req, res) => {
    rather than in JS, and only the resulting page (not the whole table) is passed to
    decorateOrderListRows for its batched child-row queries. */
 
-/* A day holds several orders, so the day's own ties go to when each was added, then the id:
-   "newest" and "last order" mean the one added last, not a random one of that day's. */
+/* A day holds several orders, so the day's own ties go to when each was added, then the rowid
+   (insertion order, since created_at has whole seconds): "newest" means the one added last. */
 const SORT_SQL = {
-	'date-desc': 'ot.date DESC, ot.created_at DESC, ot.id DESC',
-	'date-asc': 'ot.date ASC, ot.created_at ASC, ot.id ASC',
+	'date-desc': 'ot.date DESC, ot.created_at DESC, ot.rowid DESC',
+	'date-asc': 'ot.date ASC, ot.created_at ASC, ot.rowid ASC',
 	'amount-desc': 'ot.total DESC, ot.id DESC',
 	'amount-asc': 'ot.total ASC, ot.id ASC',
 	'discount-desc': 'ot.discount DESC, ot.id DESC',

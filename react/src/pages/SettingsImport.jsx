@@ -149,7 +149,7 @@ export function ImportCard() {
 	if (stage.name === 'review' || stage.name === 'importing') {
 		const { orders, file } = stage
 		const busy = stage.name === 'importing'
-		const fresh = vendors.data ? newVendors(orders, vendors.data) : null
+		const fresh = vendors.data && !vendors.loading ? newVendors(orders, vendors.data) : null
 		return (
 			<Card ref={box} footerCommits footerLayout="split" footer={[
 				<Button key="cancel" variant="outline" disabled={busy} onClick={restart}>Cancel</Button>,

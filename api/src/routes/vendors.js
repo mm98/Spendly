@@ -89,7 +89,7 @@ function cleanAliases(userId, vendorId, vendorName, raw) {
 			return { status: 409, error: `You already have a vendor called ${name}.` }
 		const owner = selectAliasOwner.get(userId, name)
 		if (owner && owner.id !== vendorId)
-			return { status: 409, error: `${name} is already an alias of ${owner.name}.` }
+			return { status: 409, error: `Another vendor, ${owner.name}, already matches "${name}". Pick a different one.` }
 		aliases.push(name)
 	}
 	return { aliases }
@@ -158,7 +158,7 @@ router.post('/', (req, res) => {
 		return res.status(409).json({ error: `You already have a vendor called ${name}.` })
 	const nameAsAlias = selectAliasOwner.get(req.user.id, name)
 	if (nameAsAlias)
-		return res.status(409).json({ error: `${name} is already an alias of ${nameAsAlias.name}.` })
+		return res.status(409).json({ error: `Another vendor, ${nameAsAlias.name}, already matches "${name}". Pick a different name.` })
 
 	const look = req.body?.look ?? {}
 	const cleaned = cleanAliases(req.user.id, null, name, look.aliases ?? [])
@@ -211,7 +211,7 @@ router.patch('/:id', (req, res) => {
 		if (clash) return res.status(409).json({ error: `You already have a vendor called ${nextName}.` })
 		const owner = selectAliasOwner.get(req.user.id, nextName)
 		if (owner && owner.id !== vendor.id)
-			return res.status(409).json({ error: `${nextName} is already an alias of ${owner.name}.` })
+			return res.status(409).json({ error: `Another vendor, ${owner.name}, already matches "${nextName}". Pick a different name.` })
 	}
 
 	/* The submitted set replaces the stored one; absent, the stored one stands. Either way

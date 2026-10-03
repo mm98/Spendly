@@ -230,9 +230,9 @@ export function budgetYears(years) {
 	const seen = new Set()
 	return years.map(y => {
 		const year = budgetYear(y?.year)
-		if (seen.has(year)) throw refuse(`${year} is in the file twice.`)
+		if (seen.has(year)) throw refuse(`The year ${year} is in the file twice.`)
 		seen.add(year)
-		if (!Array.isArray(y.groups)) throw refuse(`${year} has no groups.`)
+		if (!Array.isArray(y.groups)) throw refuse(`The year ${year} has no groups.`)
 		return {
 			year,
 			groups: y.groups.map(g => ({

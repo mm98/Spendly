@@ -18,31 +18,22 @@ export function vendorStats(userId) {
 	}]))
 }
 
-/* An order can carry more than one category (order_categories is many-to-many), and nothing in
-   the original app ever states how such an order's total should roll up per category — this
-   splits it evenly across the categories it carries via cat_count, the one rule that keeps "sum
-   of every category's spend" equal to the spend of categorised orders, which is the invariant a
-   reader of a category breakdown expects to hold.
-
-   category_count is the stored, trigger-maintained column on the order row, for the same
-   reason as lib/stats.js's split: a joined `GROUP BY order_id` subquery has no user bound
-   SQLite can push inside it, so it counted every account's links to answer one -- ~2.3s per
-   Categories read on a 5.1M-order database, ~250ms stored (the remainder is the honest cost
-   of an all-time rollup over every link the account has), identical rows. */
-const categoryStatsQuery = db.prepare(`
-	SELECT oc.category_id AS categoryId, COUNT(*) AS orders,
-		SUM(ot.total * 1.0 / ot.category_count) AS spend,
-		SUM(ot.saved * 1.0 / ot.category_count) AS saved
+/* How many orders carry each category, keyed by category id: what the category list reads.
+   Only the count, so the links are counted from the covering link index with no order totals read. */
+const categoryOrderCountsQuery = db.prepare(`
+	SELECT oc.category_id AS categoryId, COUNT(*) AS orders
 	FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	WHERE ot.user_id = ?
 	GROUP BY oc.category_id
 `)
 
-/* The account's true all-time spend, for the shares below. Shared against the categorised
-   sum instead, every category's "of expenses" overstated itself the moment one order had no
-   category -- the same defect lib/stats.js's splitOver names for the window split, at the
-   all-time scale these figures live at.
+export function categoryOrderCounts(userId) {
+	return new Map(categoryOrderCountsQuery.all(userId).map(r => [r.categoryId, r.orders]))
+}
+
+/* The account's true all-time spend, for one category's share. Shared against the categorised
+   sum instead, a category's "of expenses" overstated itself the moment one order had no category.
 
    INDEXED BY, because five user-prefixed indexes satisfy this WHERE equally and only one of
    them carries the summed column: left to tie-break, the planner read the whole account
@@ -54,13 +45,6 @@ const categoryStatsQuery = db.prepare(`
 const accountTotalQuery = db.prepare(
 	'SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?')
 
-/* What the shares above leave over: the orders no category claims. category_count is the
-   stored column the per-category splits divide by, so these rows are exactly the remainder
-   those splits never touch -- the figure the "Without category" rows carry. */
-const uncategorisedQuery = db.prepare(`
-	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spend, COALESCE(SUM(saved), 0) AS saved
-	FROM orders WHERE user_id = ? AND category_count = 0
-`)
 const uncategorisedBookmarksQuery = db.prepare(`
 	SELECT COUNT(*) AS bookmarks FROM bookmarks b WHERE b.user_id = ?
 	AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)
@@ -94,20 +78,11 @@ const categoryStatsForQuery = db.prepare(`
 	WHERE oc.category_id = ? AND ot.user_id = ?
 `)
 
-/** One category's orders/spend/saved/share -- the same shape one entry of categoryStats holds. */
+/** One category's orders/spend/saved/share, for its own record. */
 export function categoryStatsFor(userId, categoryId) {
 	const r = categoryStatsForQuery.get(categoryId, userId)
 	const total = accountTotalQuery.get(userId).spend
 	return { orders: r.orders, spend: r.spend, saved: r.saved, share: total ? (r.spend / total) * 100 : 0 }
-}
-
-/** Orders/spend/saved/share per category, keyed by category id. Shares are of the account's
-    whole spend, so they and uncategorisedStats' share add up to it rather than to more. */
-export function categoryStats(userId) {
-	const rows = categoryStatsQuery.all(userId)
-	const total = accountTotalQuery.get(userId).spend
-	return new Map(rows.map(r => [r.categoryId,
-		{ orders: r.orders, spend: r.spend, saved: r.saved, share: total ? (r.spend / total) * 100 : 0 }]))
 }
 
 /* No GROUP BY: SQLite would sort in a temp B-tree to group it, for a row count bounded by
@@ -118,7 +93,7 @@ const bookmarkCategoryLinksQuery = db.prepare(`
 `)
 
 /** How many bookmarks each category is on, keyed by category id -- the bookmark-side twin of
-    categoryStats' order counts. */
+    categoryOrderCounts. */
 export function bookmarkCategoryCounts(userId) {
 	const counts = new Map()
 	for (const { categoryId } of bookmarkCategoryLinksQuery.all(userId))
@@ -126,10 +101,7 @@ export function bookmarkCategoryCounts(userId) {
 	return counts
 }
 
-/** Orders/bookmarks/spend/saved/share of the account's uncategorised records -- the all-time
-    version of the window split's "Without category" row, for whatever draws it over all time. */
-export function uncategorisedStats(userId) {
-	const row = uncategorisedQuery.get(userId)
-	const total = accountTotalQuery.get(userId).spend
-	return { ...row, bookmarks: uncategorisedBookmarksQuery.get(userId).bookmarks, share: total ? (row.spend / total) * 100 : 0 }
+/** How many bookmarks carry no category: all the Bookmarks filter reads of its "Without category" row. */
+export function uncategorisedBookmarks(userId) {
+	return { bookmarks: uncategorisedBookmarksQuery.get(userId).bookmarks }
 }

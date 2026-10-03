@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { categoryStats, categoryStatsFor, uncategorisedStats, bookmarkCategoryCounts } from '../lib/aggregate.js'
+import { categoryOrderCounts, categoryStatsFor, uncategorisedBookmarks, bookmarkCategoryCounts } from '../lib/aggregate.js'
 
 export const router = Router()
 
@@ -24,25 +24,29 @@ const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_pa
 
 const ZERO_STATS = { orders: 0, spend: 0, share: 0, saved: 0 }
 
-// Order and bookmark usage ride beside spend/share -- the filter panels' own answer to "is this
-// category worth offering," read for free by every consumer that already fetches the list.
+// The single record, in full: its form and rail read it.
 const withStats = (category, stats = ZERO_STATS, bookmarks = 0) => ({
 	id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
 	colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
 	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, bookmarks
 })
 
+// A list row: what the lists, filters and pickers read; the counts say whether a filter is worth offering.
+const listRow = (category, orders = 0, bookmarks = 0) => ({
+	id: category.id, name: category.name, icon: category.icon, colour: category.colour, budget: category.budget, orders, bookmarks
+})
+
 router.get('/', (req, res) => {
-	const stats = categoryStats(req.user.id)
+	const orderCounts = categoryOrderCounts(req.user.id)
 	const bookmarkCounts = bookmarkCategoryCounts(req.user.id)
-	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats.get(c.id), bookmarkCounts.get(c.id) ?? 0)))
+	res.json(selectAll.all(req.user.id).map(c => listRow(c, orderCounts.get(c.id), bookmarkCounts.get(c.id))))
 })
 
 /* Registered before /:id, or that route would answer it with "No category uncategorised".
    Its own resource rather than a row in the list above: the list is the account's category
    records, and every reader of it -- comboboxes, order forms, settings -- maps records.
    A stand-in row there would be offered as something to assign and to edit. */
-router.get('/uncategorised', (req, res) => res.json(uncategorisedStats(req.user.id)))
+router.get('/uncategorised', (req, res) => res.json(uncategorisedBookmarks(req.user.id)))
 
 // The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at
 // all), so a negative budget only ever reached this table by calling the API directly -- but it
