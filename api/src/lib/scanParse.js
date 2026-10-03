@@ -47,6 +47,12 @@ const READ_RECEIPT_TOOL = {
 			shipping: { type: 'number', description: 'A shipping or delivery fee, VAT-inclusive. 0 if none is printed.' },
 			discount: { type: 'number', description: 'A whole-order discount/rabat (as a positive amount taken off), VAT-inclusive. 0 if none is printed.' },
 			total: { type: 'number', description: 'The final total actually payable, VAT-inclusive, after any shipping and discount.' },
+			reference: { type: 'string', description: 'The order, invoice or receipt number printed on the document, if there is one.' },
+			unclear: {
+				type: 'array',
+				items: { type: 'string', enum: ['vendor', 'date', 'shipping', 'discount', 'total'] },
+				description: 'Which of these document-level values were genuinely hard to read -- smudged, cropped or ambiguous. Empty when all were clearly printed.'
+			},
 			lines: {
 				type: 'array',
 				description: 'Every line item printed on the document, each converted to include VAT.',
@@ -56,7 +62,8 @@ const READ_RECEIPT_TOOL = {
 						title: { type: 'string', description: 'The item as described on the document.' },
 						quantity: { type: 'number', description: 'How many of this item, as printed (1 if not stated). May be a fraction where the line is sold by weight or length, e.g. 0.75.' },
 						price: { type: 'number', description: 'The per-unit price INCLUDING VAT -- convert it first if the document prints it net of VAT. quantity times this price must equal the line\'s own VAT-inclusive total.' },
-						uncertain: { type: 'boolean', description: 'true only if this specific line is a genuine guess -- smudged, cropped or otherwise hard to read. Omit or false for anything clearly printed.' }
+						uncertain: { type: 'boolean', description: 'true only if this specific line is a genuine guess -- smudged, cropped or otherwise hard to read. Omit or false for anything clearly printed.' },
+						unclearPart: { type: 'string', enum: ['title', 'quantity', 'price'], description: 'When uncertain, the part of the line that was hardest to read.' }
 					},
 					required: ['title', 'quantity', 'price']
 				}
@@ -97,13 +104,27 @@ function normalise(input, today) {
 			title: String(l?.title ?? '').trim().slice(0, 120),
 			quantity: isFiniteNumber(l?.quantity) && l.quantity > 0 ? Math.round(l.quantity * 100) / 100 : 1,
 			price: isFiniteNumber(l?.price) && l.price >= 0 ? l.price : null,
-			uncertain: l?.uncertain === true
+			uncertain: l?.uncertain === true,
+			unclearPart: l?.uncertain === true && ['title', 'quantity', 'price'].includes(l?.unclearPart) ? l.unclearPart : null
 		}))
 		.filter(l => l.title && l.price !== null)
 		: []
-	if (!lines.length) return null
+	const reference = String(input.reference ?? '').trim().slice(0, 80)
+	const unclear = Array.isArray(input.unclear)
+		? [...new Set(input.unclear.filter(f => ['vendor', 'date', 'shipping', 'discount', 'total'].includes(f)))] : []
 
-	return { vendor, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, lines }
+	// a read without lines still carries the vendor and date it found (6e), but is no answer to keep
+	return { vendor, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, reference, unclear, lines }
+}
+
+/** What a partial answer already holds, for the reading screen (3a step 2): the vendor and date
+    once both are in, and how many lines are complete. */
+function progressOf(snapshot) {
+	if (!snapshot || typeof snapshot !== 'object') return null
+	const lines = Array.isArray(snapshot.lines) ? snapshot.lines : []
+	// the last line may still be arriving; it counts once its price is in
+	const complete = lines.filter(l => l && typeof l.price === 'number').length
+	return { found: Boolean(snapshot.vendor && snapshot.date), lines: complete }
 }
 
 function contentBlockFor(bytes, contentType, kind) {
@@ -120,14 +141,14 @@ const isBillingRefusal = e => e instanceof APIError
     serves) via Claude, and returns `{ read, failure }`: the normalised fields above or null, and
     null when the model answered, 'billing' when the account was refused, 'failed' otherwise.
     `upload` is a full row from scan_uploads -- data, data_is_compressed, content_type, kind. */
-export async function parseReceipt(upload, today = todayIso()) {
+export async function parseReceipt(upload, today = todayIso(), onProgress) {
 	const anthropic = getClient()
 	if (!anthropic || !upload.data) return { read: null, failure: 'failed' }
 	const bytes = decompressBlob(upload.data, upload.data_is_compressed)
 	if (!bytes?.length) return { read: null, failure: 'failed' }
 
 	try {
-		const response = await anthropic.messages.create({
+		const stream = anthropic.messages.stream({
 			model: MODEL,
 			max_tokens: 4096,
 			tool_choice: { type: 'tool', name: READ_RECEIPT_TOOL.name },
@@ -146,11 +167,22 @@ export async function parseReceipt(upload, today = todayIso()) {
 							+ 'prints its line prices net of VAT with the tax added separately near the total (common '
 							+ 'on an emailed invoice), convert every one of them using the rate the document states; '
 							+ 'if none is stated, use the rate implied by the stated VAT amount against the net total; '
-							+ 'only fall back to 25% if the document is clearly Danish/EU and states neither.'
+							+ 'only fall back to 25% if the document is clearly Danish/EU and states neither. '
+							+ 'Report the printed order or invoice number as reference when there is one. List in unclear '
+							+ 'each document-level value you could not read clearly, and for an uncertain line say which '
+							+ 'part was hard to read in unclearPart.'
 					}
 				]
 			}]
 		})
+		let said = ''
+		stream.on('inputJson', (_, snapshot) => {
+			const now = progressOf(snapshot)
+			if (!now || !onProgress) return
+			const key = JSON.stringify(now)
+			if (key !== said) { said = key; onProgress(now) }
+		})
+		const response = await stream.finalMessage()
 		const call = response.content.find(b => b.type === 'tool_use' && b.name === READ_RECEIPT_TOOL.name)
 		return { read: call ? normalise(call.input, today) : null, failure: null }
 	} catch (error) {

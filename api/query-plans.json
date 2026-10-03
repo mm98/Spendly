@@ -16,7 +16,7 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
+		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
 			"plan": [
 				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
 				"SEARCH a USING INDEX idx_attachments_item (order_item_id=?)"
@@ -1087,7 +1087,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail FROM attachments WHERE order_id = ?": {
+		"SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages FROM attachments WHERE order_id = ?": {
 			"plan": [
 				"SEARCH attachments USING INDEX idx_attachments_order (order_id=?)"
 			],
@@ -2194,6 +2194,13 @@
 			],
 			"readers": 2
 		},
+		"idx_attachments_sha256": {
+			"table": "attachments",
+			"columns": [
+				"sha256"
+			],
+			"readers": 0
+		},
 		"idx_categories_user": {
 			"table": "categories",
 			"columns": [
@@ -2222,6 +2229,13 @@
 				"order_id"
 			],
 			"readers": 1
+		},
+		"idx_order_trash_deleted": {
+			"table": "order_trash",
+			"columns": [
+				"deleted_at"
+			],
+			"readers": 0
 		},
 		"idx_orders_user_date": {
 			"table": "orders",

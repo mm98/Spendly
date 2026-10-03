@@ -17,4 +17,22 @@
 	/* a vendor name that is one long word breaks inside the row rather than widening the page */
 	.or-wrap { min-width: 0; overflow-wrap: anywhere; }
 
+	/* the scanned receipt beside the values read off it (17d): letterboxed at its own proportion,
+	   never toned, and the whole of it a button that opens it at full size */
+	.or-receipt {
+		display: grid;
+		place-items: center;
+		padding: var(--sp-8);
+		border: 1px solid var(--line);
+		border-radius: var(--r-tile);
+		background: var(--surface-2);
+		min-height: 220px;
+		cursor: zoom-in;
+	}
+	.or-receipt > * { grid-area: 1 / 1; }
+	.or-receipt > img { display: block; max-width: 100%; max-height: 420px; object-fit: contain; }
+
+	/* a notice about the whole order, above both columns (3a: the saved state's notice) */
+	.or-span { grid-column: 1 / -1; }
+
 }

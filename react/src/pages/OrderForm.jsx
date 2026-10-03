@@ -17,23 +17,25 @@ import { Pill } from '../components/Pill.jsx'
 import { MAX_FILE_MB, PHOTO_TYPES, Slot, fileProblem } from '../components/FileDrop.jsx'
 import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
-import { Empty, useFocusTrap } from '../components/Utilities.jsx'
+import { Empty, Spinner, useFocusTrap } from '../components/Utilities.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addAttachments, addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, createOrder,
-	failureMessage, getOrders, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
-	removeItemAttachment, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
+	addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, createOrder,
+	failureMessage, getOrderLimits, getOrders, getScanPages, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
+	removeItemAttachment, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
-import { NUMBER_LOCALE, activeLocaleCode, amount, currencySymbol, dayShortMonth, dot, plural, today } from '../api/format.js'
+import {
+	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, today
+} from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
-	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, totalsOf
+	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
@@ -98,6 +100,15 @@ function apiDraft(d, lines) {
 let made = 0
 const freshKey = () => `new-${++made}`
 
+/* A new order left to set up its vendor first (Vendors 5b), kept in memory with its files and
+   photos until the form at the same address opens again. Taken once: any other visit drops it. */
+let away = null
+const takeAway = address => {
+	const kept = away
+	away = null
+	return kept?.address === address ? kept : null
+}
+
 /** `origin` is `{ copy: { id, vendor, date } }` or `{ scan: answer }`; `region` draws the split
     itself, for a route whose body is not already the split. */
 export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave }) {
@@ -109,19 +120,22 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const latest = useApi(getOrders, [{ pageSize: 20 }])
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
+	const here = useLocation()
+	const address = here.pathname + here.search
+	const [back] = useState(() => (creating ? takeAway(address) : null))
 
-	const [draft, setDraft] = useState(() => ({ ...seed, lines: undefined }))
+	const [draft, setDraft] = useState(() => back?.draft ?? { ...seed, lines: undefined })
 	// the categories a vendor filled in, so another vendor takes back only those (5l); and the
 	// defaults offered as an add when the field already had some
-	const [suggested, setSuggested] = useState(null)
+	const [suggested, setSuggested] = useState(back?.suggested ?? null)
 	const [offer, setOffer] = useState(null)
 	// the order was deleted elsewhere, in the sentence that says so: nothing here can be saved any more
 	const [lost, setLost] = useState(null)
-	const [lines, setLines] = useState(seed.lines)
-	const [editing, setEditing] = useState(() => (creating && !seed.lines.length && !scan ? newEditing() : null))
+	const [lines, setLines] = useState(back?.lines ?? seed.lines)
+	const [editing, setEditing] = useState(() => (back ? back.editing : creating && !seed.lines.length && !scan ? newEditing() : null))
 	const [tried, setTried] = useState(false)
 	const [saving, setSaving] = useState(false)
-	const [files, setFiles] = useState([])
+	const [files, setFiles] = useState(back?.files ?? [])
 	const [gone, setGone] = useState([])
 	const [folded, setFolded] = useState(true)
 	const [reordering, setReordering] = useState(false)
@@ -160,7 +174,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		|| JSON.stringify(draft) !== JSON.stringify({ ...start, lines: undefined })
 		|| JSON.stringify(lines) !== JSON.stringify(start.lines)
 	// a new order's steps differ only in the query, so a step away asks as a page away does
-	const guard = useLeaveGuard(dirty, { search: creating })
+	const guard = useLeaveGuard(dirty, { search: creating, uploading: files.filter(f => f.sending).length })
 
 	/* ---- lines ---- */
 
@@ -178,7 +192,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	}
 	const commitInto = current => setLines(ls => current.isNew
 		? [...ls, { ...current.values, key: current.key, include: true, uncertain: false }]
-		: ls.map(l => (l.key === current.key ? { ...current.values, uncertain: false } : l)))
+		: ls.map(l => (l.key === current.key ? { ...current.values, uncertain: false, checked: true } : l)))
 	const commit = next => {
 		if (!editing) return
 		if (Object.keys(lineErrors(editing.values)).length) {
@@ -311,19 +325,53 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	/* ---- attachments, staged until the save ---- */
 
-	// each file is checked on its own: a refused one keeps its tile with the reason, and is never sent (17b)
-	const addFiles = (picked, problems) => setFiles(fs => [...fs, ...picked.map((file, i) => ({
-		key: freshKey(), file, name: file.name, problem: problems[i],
-		kind: isPdf(file) ? 'pdf' : 'image',
-		thumb: /^image\//.test(file.type) ? URL.createObjectURL(file) : null
-	}))])
+	// a file is sent when added and filed by the save (17a); a refused or failed one says so on its tile (17b)
+	const sends = useRef(back?.sends ?? new Map())
+	const patchFile = (key, patch) => setFiles(fs => fs.map(f => (f.key === key ? { ...f, ...patch } : f)))
+	const send = record => {
+		const sent = sendFile(record.file, { onSent: part => patchFile(record.key, { sent: part }) })
+			.then(upload => { patchFile(record.key, { upload, sending: false }); return upload })
+			.catch(e => { patchFile(record.key, { sending: false, failed: failureMessage(e, '') || 'Upload failed' }); return null })
+		sends.current.set(record.key, sent)
+	}
+	const addFiles = (picked, problems) => {
+		const records = picked.map((file, i) => ({
+			key: freshKey(), file, name: file.name, problem: problems[i], sending: !problems[i], sent: 0,
+			kind: isPdf(file) ? 'pdf' : 'image',
+			thumb: /^image\//.test(file.type) ? URL.createObjectURL(file) : null
+		}))
+		setFiles(fs => [...fs, ...records])
+		for (const r of records) if (!r.problem) send(r)
+	}
+	const resend = record => {
+		patchFile(record.key, { sending: true, sent: 0, failed: null })
+		send(record)
+	}
 	const dropFile = file => setFiles(fs => {
 		if (file.thumb) URL.revokeObjectURL(file.thumb)
+		sends.current.delete(file.key)
 		return fs.filter(f => f.key !== file.key)
 	})
+	// the same bytes already on the order or added just before, or one with the same name and size:
+	// warned on its tile, never refused, since two photos of one thing are fine (17b)
+	const twinOf = f => {
+		const hash = f.upload?.sha256
+		if (hash && savedFiles.some(s => !gone.includes(s.id) && s.sha256 === hash)) return true
+		const earlier = files.slice(0, files.indexOf(f))
+		return earlier.some(o => !o.problem && ((hash && o.upload?.sha256 === hash) || (o.file.name === f.file.name && o.file.size === f.file.size)))
+	}
+	const keptAway = useRef(false)
 	useEffect(() => () => {
+		if (keptAway.current) return
 		for (const f of staged.current) if (f.thumb) URL.revokeObjectURL(f.thumb)
 	}, [])
+	// everything typed and added goes with the reader to set up the vendor, and comes back with them
+	const setUpVendor = () => {
+		away = { address, draft, lines, editing, files, suggested, sends: sends.current }
+		keptAway.current = true
+		guard.release()
+		navigate('/vendors/new', { state: { fromScan: { name: draft.vendor, to: address } } })
+	}
 
 	/* ---- the vendor ---- */
 
@@ -342,12 +390,13 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(vendor, draft.categories) } : {}) })
 	}
 	// a vendor just set up from this receipt comes back chosen (Vendors 5b)
-	const returned = useLocation().state?.pickedVendor
+	const returned = here.state?.pickedVendor
 	// a receipt or a link that names the vendor is the first vendor choice
 	const seeded = useRef(false)
 	useEffect(() => {
 		if (seeded.current || !creating || !vendors.data || origin.copy) return
 		if (returned) { seeded.current = true; return pickVendor(returned) }
+		if (back) { seeded.current = true; return }
 		if (!draft.vendor) return
 		seeded.current = true
 		const categories = suggest(draft.vendor, draft.categories)
@@ -429,7 +478,6 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			return null
 		}
 		let receiptMissed = false, notRemoved = 0
-		const clashes = []
 		if (scan) await attachScanDocument(scan.documentKey, order.id).catch(() => { receiptMissed = true })
 		// the server keeps one file per name, so a removed one goes before its namesake arrives
 		await Promise.all(gone.map(id => removeAttachment(order.id, id).catch(() => { notRemoved++ })))
@@ -439,16 +487,27 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			if (!saved) return
 			if (line.newPhoto) {
 				const file = line.newPhoto.file
-				const sent = await addItemAttachments(order.id, saved.id, [old && sameName(old.name, file.name) ? renamed(file) : file]).catch(e => refused(file.name, e))
-				if (!sent) return
-				if (!sent.added?.length) return refused(file.name)
+				const twin = old && sameName(old.name, file.name)
+				// the photo sent when it was chosen is filed from there; one that did not arrive is sent now
+				const upload = await line.newPhoto.sent
+				if (upload) {
+					const put = await attachScanDocument(upload.key, order.id, { as: 'file', item: saved.id, name: twin ? renamed(file).name : file.name })
+						.catch(e => refused(file.name, e))
+					if (!put) return
+				} else {
+					const sent = await addItemAttachments(order.id, saved.id, [twin ? renamed(file) : file]).catch(e => refused(file.name, e))
+					if (!sent) return
+					if (!sent.added?.length) return refused(file.name)
+				}
 				if (old) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
 			} else if (old && line.dropPhoto) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
 		}))
 		for (const f of files) {
 			if (f.problem) { missed.push(f.name); reasons.add(refusalOf(f)); continue }
-			const sent = await addAttachments(order.id, [f.file]).catch(e => refused(f.name, e))
-			if (sent?.skipped?.length) clashes.push(f.name)
+			// one still on its way is waited for; one that failed to send is missed, and can be added again
+			const upload = f.upload ?? await sends.current.get(f.key)
+			if (!upload) { refused(f.name); continue }
+			await attachScanDocument(upload.key, order.id, { as: 'file', name: f.name }).catch(e => refused(f.name, e))
 		}
 		if (scan) learnAlias(scan.vendor, order)
 		invalidateOrderData()
@@ -461,10 +520,12 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		if (receiptMissed || notRemoved) retry = true
 		if (lapses.length)
 			toast({ message: [`The order was saved, but ${lapses.join(', and ')}.`, ...reasons, retry ? 'Try again from Edit order.' : null].filter(Boolean).join(' '), color: 'danger' })
-		else if (clashes.length)
-			toast({ message: `The order was saved. ${names(clashes)} ${clashes.length === 1 ? 'was' : 'were'} not added: the order already has a file with that name.`, color: 'danger' })
-		else toast({ message: creating ? (scan ? `Order created from ${scan.file.name}. The receipt is kept as an attachment.` : 'Order created.') : 'Changes saved.' })
-		navigate(`/orders/${order.id}`, { replace: creating })
+		else if (!creating) toast({ message: 'Changes saved.' })
+		// a new order lands on its saved page with the notice that can undo it (3a)
+		const created = creating
+			? { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference }
+			: undefined
+		navigate(`/orders/${order.id}`, { replace: creating, state: created && { created } })
 	}
 
 	/* A receipt's vendor line that was filed under another name becomes that vendor's alias,
@@ -480,11 +541,14 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	/* ---- the parts ---- */
 
 	// what the viewer walks (17b): the attachments, saved then staged, then the lines' photos
+	const receipt = scan ? receiptOf(scan.file) : null
 	const viewable = [
+		...(receipt ? [receipt] : []),
 		...savedFiles.filter(f => !gone.includes(f.id)).map(f => ({
-			key: f.id, name: f.name,
+			key: f.id, name: f.name, kind: f.kind,
 			src: f.kind === 'pdf' ? f.thumb : attachmentFileUrl(orderId, f.id),
-			download: attachmentFileUrl(orderId, f.id)
+			download: attachmentFileUrl(orderId, f.id),
+			...pagesOf(orderId, f)
 		})),
 		...files.filter(f => !f.problem).map(f => ({ key: f.key, name: f.name, src: f.thumb })),
 		...lines.flatMap(l => {
@@ -518,17 +582,21 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const mark = <LinePhoto src={photo} name={line.title} onOpen={photo && !touch ? () => open(`line:${line.key}`) : undefined} />
 		const warn = line.uncertain || (tried && Object.keys(lineErrors(line)).length)
 		const named = line.title || 'the unnamed line'
+		// a line as the receipt gave it says how well it was read (3a); once checked it reads as any line
+		const asRead = scan && !touch && !line.checked && scan.lines.some(r => r.id === line.key)
+		const subtitle = warn ? (line.uncertain ? UNCLEAR_LINE[line.unclearPart] ?? UNCLEAR_LINE.line : UNCLEAR_LINE.line)
+			: asRead ? 'read clearly' : lineMetaWith(line, photo, scan || touch)
+		const ink = warn ? 'sp-ink-warning' : asRead ? 'sp-ink-success' : null
 		const words = (
 			<span className="sp-stacked or-line">
 				<span className="sp-title sp-truncate">{line.title || 'Unnamed line'}</span>
-				<span className={['sp-subtitle', touch ? null : 'sp-truncate', warn ? 'sp-ink-warning' : null].filter(Boolean).join(' ')}>
-					{warn ? 'Check this line against the receipt' : lineMetaWith(line, photo, scan || touch)}
-				</span>
+				<span className={['sp-subtitle', touch ? null : 'sp-truncate', ink].filter(Boolean).join(' ')}>{subtitle}</span>
 			</span>
 		)
 		const text = (
 			<>
 				{words}
+				{asRead && !touch && line.price != null ? <span className="sp-subtitle sp-nowrap">{lineMeta(line, true)}</span> : null}
 				{line.price == null ? <span className="sp-subtitle sp-nowrap">No price</span> : <LineAmount line={line} compact />}
 			</>
 		)
@@ -630,7 +698,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				: null}
 			{mismatch
 				? (
-					<ListItem color="warning" count="!">
+					<ListItem color="warning" count="!"
+						actions={<Button variant="outline" size="small" onClick={() => open('receipt')}>Compare</Button>}>
 						<span className="sp-data sp-ink-warning">
 							The order comes to <strong className="sp-strong">{money(sums.total)}</strong> but the receipt says <strong className="sp-strong">{money(printed)}</strong> - a line may be missing.
 						</span>
@@ -641,8 +710,34 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	)
 
 	const shownFiles = savedFiles.filter(f => !gone.includes(f.id))
+	// before the save the receipt is an upload, not an attachment (3a): shown to read the lines against
+	const receiptPages = receipt?.pages > 1 ? `${receipt.pages} pages` : null
 	const attachmentsCard = scan
-		? null
+		? touch
+			? (
+				<Card>
+					<ListItem onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}`}
+						mark={<Mark size="medium" fill={scan.file.hasThumbnail ? 'photo' : 'none'} text={scan.file.kind === 'pdf' && scan.file.hasThumbnail ? 'PDF' : undefined} aria-hidden="true" aria-label="Receipt">
+							{scan.file.hasThumbnail ? <img src={scanThumbnailUrl(scan.file.key)} alt="" /> : <span>{scan.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
+						</Mark>}>
+						<span className="sp-stacked sp-grow">
+							<span className="sp-title sp-truncate">{receiptPages ? `Receipt, ${receiptPages}` : 'Receipt'}</span>
+							<span className="sp-subtitle">Tap to see it at full size</span>
+						</span>
+					</ListItem>
+				</Card>
+			)
+			: (
+				<Card>
+					<div className="sp-row-flex sp-gap-8">
+						<span className="sp-section-label">Receipt</span>
+						<span className="sp-meta sp-truncate">{[scan.file.name, receiptPages].filter(Boolean).join(dot)}</span>
+					</div>
+					<button type="button" className="or-receipt" onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}, at full size`}>
+						<ReceiptPage src={receipt.src} />
+					</button>
+				</Card>
+			)
 		: (
 			<Card>
 				<span className="sp-section-label">Attachments{dot}{shownFiles.length + files.length}</span>
@@ -652,8 +747,13 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 							onOpen={() => open(f.id)} onRemove={() => setGone(g => [...g, f.id])} />
 					))}
 					{files.map(f => (
-						<AttachmentTile key={f.key} name={f.name} kind={f.kind} thumb={f.thumb} problem={f.problem} bare={touch}
-							onOpen={f.problem ? undefined : () => open(f.key)} onRemove={() => dropFile(f)} />
+						<AttachmentTile key={f.key} name={f.name} kind={f.kind} bare={touch}
+							thumb={f.thumb ?? (f.upload?.hasThumbnail ? scanThumbnailUrl(f.upload.key) : null)}
+							problem={f.problem ?? (f.failed ? 'Upload failed' : undefined)}
+							sending={f.sending ? f.sent : undefined}
+							twin={!f.problem && !f.failed && twinOf(f)}
+							onOpen={f.problem || f.sending ? undefined : f.failed ? () => resend(f) : () => open(f.key)}
+							onRemove={() => dropFile(f)} />
 					))}
 					<AttachmentAdd onFiles={addFiles} />
 				</Strip>
@@ -661,16 +761,21 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		)
 
 	const fixCount = Object.keys(shown).length
+	// a note beside a value the receipt gave, while it is still the value read (3a)
+	const lookAt = field => (scan?.unclear?.includes(field) && draft[field] === start[field] ? { note: field === 'vendor' ? 'needs a look' : 'check', noteType: 'warning' } : {})
+	const vendorNote = !scan || !scan.vendor || draft.vendor !== start.vendor ? {}
+		: scan.unclear?.includes('vendor') ? lookAt('vendor')
+			: scan.vendorMatched ? { note: 'matched existing vendor', noteType: 'success' } : { note: 'new vendor, created on save' }
 	const fields = (
 		<>
-			<Field label="Vendor" {...problem(shown.vendor)}>
+			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
 				<VendorPicker vendors={(vendors.data ?? []).filter(v => !v.archived)} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
 			</Field>
 			{scan && creating && vendors.data && draft.vendor && !vendorByAnyName(vendors.data, draft.vendor)
-				? <NewVendorFromScan name={draft.vendor} />
+				? <NewVendorFromScan onSetUp={setUpVendor} />
 				: null}
 			<div className="sp-fields">
-				<Field label="Date" {...problem(shown.date)}>
+				<Field label="Date" {...lookAt('date')} {...problem(shown.date)}>
 					<DateField value={draft.date} max={today()} danger={!!shown.date} locale={activeLocaleCode()}
 						onChange={date => set({ date })} />
 				</Field>
@@ -698,16 +803,17 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				)
 				: null}
 			<div className="sp-fields">
-				<Field label="Discount" unit={currencySymbol()}>
+				<Field label="Discount" unit={currencySymbol()} {...lookAt('discount')}>
 					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={discount => set({ discount })} />
 				</Field>
-				<Field label="Shipping fee" unit={currencySymbol()}>
+				<Field label="Shipping fee" unit={currencySymbol()} {...lookAt('shipping')}>
 					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
 			<div className="sp-fields">
 				<Field label="Reference">
-					<TextField value={draft.reference} onChange={reference => set({ reference })} />
+					{/* an order saved without one is given the next order number */}
+					<TextField value={draft.reference} placeholder={creating ? 'Given on save' : undefined} onChange={reference => set({ reference })} />
 				</Field>
 				<Field label="Note">
 					<TextField value={draft.note} onChange={note => set({ note })} />
@@ -743,8 +849,32 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			</Card>
 		)
 
+	/* A monthly limit this order takes its category past (8b): said where the save is, amber, and
+	   never in the way of the save. The order's total is shared between its categories. */
+	const dated = /^\d{4}-\d{2}-\d{2}$/.test(draft.date ?? '')
+	const limits = useApi(getOrderLimits, [draft.date, draft.categories, orderId ?? ''], { enabled: dated && draft.categories.length > 0 })
+	const share = draft.categories.length ? sums.total / draft.categories.length : 0
+	const crossed = dated && draft.categories.length && limits.data
+		? limits.data.limits.filter(l => l.spend + share > l.budget + 0.005)
+		: []
+	const monthName = dated ? monthNames('long')[Number(draft.date.slice(5, 7)) - 1] : ''
+	const limitNotice = crossed.length
+		? crossed.map(l => (
+			<ListItem key={l.name} color="warning" count="!">
+				<span className="sp-stack sp-gap-6">
+					<span className="sp-title sp-ink-warning">
+						{l.spend > l.budget ? `${l.name} is already over its limit` : `This order puts ${l.name} over its limit`}
+					</span>
+					<span className="sp-meta sp-ink-warning">
+						{currency(l.spend + share, 0)} of {currency(l.budget, 0)} for {monthName}. You can still save. Nothing is blocked.
+					</span>
+				</span>
+			</ListItem>
+		))
+		: null
+
 	const leaveWord = creating ? 'Discard' : 'Cancel'
-	const commitWord = saving ? 'Saving…' : creating ? 'Create' : 'Save'
+	const commitWord = saving ? 'Saving…' : crossed.length ? (creating ? 'Create anyway' : 'Save anyway') : creating ? 'Create' : 'Save'
 	const leaveButton = <Button key="leave" variant="outline" onClick={discard}>{leaveWord}</Button>
 	const commitButton = lost ? null : <Button key="save" disabled={saving} onClick={save}>{commitWord}</Button>
 	const state = lost ? 'Not saved' : dirty ? 'Unsaved changes' : creating ? 'Nothing saved yet' : null
@@ -756,6 +886,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			footerCommits
 		>
 			{scan ? <span className="sp-section-label">Totals</span> : null}
+			{touch ? null : limitNotice}
 			<div className="sp-stack">
 				{scan
 					? <>
@@ -835,7 +966,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{lostNotice}{notice}{itemsCard}{attachmentsCard}{detailsCard}{scan ? totalsCard : null}{touchBar}{sheet}{dialog}{viewer}{guard.prompt}
+			{lostNotice}{notice}{itemsCard}{attachmentsCard}{detailsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{viewer}{guard.prompt}
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
@@ -882,6 +1013,24 @@ function useStacked(ref) {
 	return stacked
 }
 
+/** The uploaded receipt as the viewer shows it, every page of it (17d: receipt preview). */
+const receiptOf = file => ({
+	key: 'receipt', name: file.name, kind: file.kind, download: scanFileUrl(file.key),
+	src: file.kind === 'pdf' ? scanPageUrl(file.key, 0) : scanFileUrl(file.key),
+	...(file.kind === 'pdf'
+		? { pages: file.pages ?? null, pageSrc: i => scanPageUrl(file.key, i), countPages: () => getScanPages(file.key).then(r => r.pages) }
+		: {})
+})
+
+const UNCLEAR_FIELD = { vendor: 'the vendor name', date: 'the date', shipping: 'the shipping fee', discount: 'the discount', total: 'the printed total' }
+// what was hard to read on a line of a scanned receipt, by the part the reading named (3a)
+const UNCLEAR_LINE = {
+	price: 'price unclear - check against the receipt',
+	title: 'name was partly readable - check the spelling',
+	quantity: 'quantity unclear - check against the receipt',
+	line: 'Check this line against the receipt'
+}
+
 const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${dot}no photo`)
 
 const detailsLine = d => [d.categories.join(', '), d.kind, d.reference].filter(Boolean).join(dot)
@@ -906,19 +1055,21 @@ function notices({ origin, scan, lines, leave, touch }) {
 	if (!scan) return null
 	if (!scan.linesRead)
 		return (
-			<Alert mark="!" title="Nothing was read from this receipt.">
-				Add the lines and the details yourself. The receipt is kept with the order when you create it.
+			<Alert mark="!" title={scan.failure === 'empty' ? 'No lines were read from this receipt.' : 'Nothing was read from this receipt.'}>
+				{scan.failure === 'empty' ? 'Add the lines yourself.' : 'Add the lines and the details yourself.'} The receipt is kept with the order when you create it.
 			</Alert>
 		)
+	const unclear = lines.filter(l => l.uncertain).length
+	const hard = [unclear ? plural(unclear, 'line') : null, ...(scan.unclear ?? []).map(f => UNCLEAR_FIELD[f])].filter(Boolean)
 	const looks = [
 		...(scan.vendorMatched ? [] : ['the vendor is new and will be created']),
 		...(scan.total == null ? ['no printed total was found'] : []),
 		...(scan.checks?.some(c => c.id === 'vat' && c.warning) ? ['it was not clear if the prices include VAT'] : [])
 	]
-	const unclear = lines.filter(l => l.uncertain).length
-	const count = looks.length + unclear
+	const count = looks.length + unclear + (scan.unclear?.length ?? 0)
 	if (!count) return null
-	const said = [unclear ? `${unclear === 1 ? '1 line was' : `${unclear} lines were`} hard to read` : null, ...looks].filter(Boolean)
+	const one = hard.length === 1 && unclear < 2
+	const said = [hard.length ? `${names(hard)} ${one ? 'was' : 'were'} hard to read` : null, ...looks].filter(Boolean)
 	return (
 		<Alert mark="!" title={count === 1 ? '1 value needs a look.' : `${count} values need a look.`}
 			action={unclear && !touch ? <Button variant="outline" size="small" onClick={() => focusFirst('.sp-list-item[data-color="warning"]')}>Jump to first</Button> : null}>
@@ -933,12 +1084,23 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 	const errors = editing.tried ? lineErrors(v) : {}
 	const set = patch => onChange({ ...v, ...patch })
 	const photo = v.newPhoto?.url ?? (v.dropPhoto ? null : photoUrl(v))
+	// the new photo is sent at once (17a); one that did not arrive keeps its failure and a Retry (17b)
+	const [sending, setSending] = useState(null)
+	useEffect(() => {
+		const sent = v.newPhoto?.sent
+		setSending(sent ? 'busy' : null)
+		if (!sent) return
+		let live = true
+		sent.then(upload => { if (live) setSending(upload ? null : 'failed') })
+		return () => { live = false }
+	}, [v.newPhoto?.sent])
 	// a file the line cannot take leaves the photo as it was and says why on the slot (17b)
 	const take = file => {
 		const refused = fileProblem(file, PHOTO_TYPES)
 		if (refused) return set({ photoProblem: refused })
 		if (v.newPhoto) URL.revokeObjectURL(v.newPhoto.url)
-		set({ newPhoto: { file, url: URL.createObjectURL(file) }, dropPhoto: false, photoProblem: null })
+		const sent = sendFile(file).catch(() => null)
+		set({ newPhoto: { file, url: URL.createObjectURL(file), sent }, dropPhoto: false, photoProblem: null })
 	}
 	// a pasted picture is the line's photo; pasted words stay with the field they went into
 	const paste = ev => {
@@ -956,7 +1118,9 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 					size="medium"
 					name="the line's photo"
 					src={photo}
-					problem={v.photoProblem ?? undefined}
+					problem={v.photoProblem ?? (sending === 'failed' ? 'Failed' : undefined)}
+					busy={sending === 'busy'}
+					onRetry={sending === 'failed' ? () => set({ newPhoto: { ...v.newPhoto, sent: sendFile(v.newPhoto.file).catch(() => null) } }) : undefined}
 					onFile={take}
 					onRemove={() => set({ newPhoto: null, dropPhoto: Boolean(v.photo), photoProblem: null })}
 				/>
@@ -1033,18 +1197,24 @@ function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
 }
 
 /** A receipt's vendor the account does not know yet: set it up first, and come back to the receipt
-    with it chosen (Vendors 5b). Saving the order without this creates it from the name alone. */
-function NewVendorFromScan({ name }) {
-	const navigate = useNavigate()
-	const here = useLocation()
+    with it chosen and the order as it was left (Vendors 5b). The field's note says saving adds it. */
+function NewVendorFromScan({ onSetUp }) {
 	return (
 		<div className="sp-row-flex sp-gap-8">
-			<span className="sp-note sp-grow">{name} is a new vendor. Saving the order adds it with this name.</span>
-			<Button variant="outline" size="small"
-				onClick={() => navigate('/vendors/new', { state: { fromScan: { name, to: here.pathname + here.search } } })}>
-				Set it up first
-			</Button>
+			<span className="sp-note sp-grow">Want to add its details now?</span>
+			<Button variant="outline" size="small" onClick={onSetUp}>Set it up first</Button>
 		</div>
+	)
+}
+
+/** A receipt page drawn the first time it is opened: the spinner holds its place until it arrives. */
+function ReceiptPage({ src }) {
+	const [shown, setShown] = useState(null)
+	return (
+		<>
+			{shown === src ? null : <Spinner />}
+			<img src={src} alt="" onLoad={() => setShown(src)} />
+		</>
 	)
 }
 

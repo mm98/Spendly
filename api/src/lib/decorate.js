@@ -11,10 +11,10 @@ import { ORDER_STATUSES } from './constants.js'
 const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()} FROM orders WHERE id = ? AND user_id = ?`)
 const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note FROM order_items WHERE order_id = ? ORDER BY position')
 const selectAttachments = db.prepare(`
-	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail FROM attachments WHERE order_id = ?
+	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages FROM attachments WHERE order_id = ?
 `)
 const selectItemAttachments = db.prepare(`
-	SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail
+	SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages
 	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
 	WHERE oi.order_id = ?
 `)
@@ -38,7 +38,11 @@ const selectOrderStatuses = db.prepare('SELECT status, date FROM order_statuses 
 
 // hasThumbnail tells the client whether GET .../thumbnail will 404 (a PDF, or an image sharp
 // couldn't decode) — never the bytes themselves, so an order's JSON stays small.
-const mapAttachment = a => ({ id: a.id, name: a.name, kind: a.kind, meta: a.meta, hasThumbnail: Boolean(a.has_thumbnail) })
+// sha256 lets the edit form tell the same file added twice (17b); pages is null until counted
+const mapAttachment = a => ({
+	id: a.id, name: a.name, kind: a.kind, meta: a.meta, hasThumbnail: Boolean(a.has_thumbnail),
+	sha256: a.sha256 ?? null, pages: a.pages ?? null
+})
 
 const mapItem = (i, itemAttachments) => ({
 	id: i.id, title: i.title, quantity: i.quantity, price: i.price,

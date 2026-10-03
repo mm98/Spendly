@@ -1,22 +1,27 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
-import { SumHead } from '../components/Data.jsx'
+import { Gauge, SumHead } from '../components/Data.jsx'
 import { Button } from '../components/Button.jsx'
 import { FILE_TYPES, FileDrop, MAX_FILE_MB, fileProblem } from '../components/FileDrop.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { ComboboxEmpty, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Alert, Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
+import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Spinner } from '../components/Utilities.jsx'
+import { ListItem } from '../components/ListItem.jsx'
+import { Viewer } from '../components/Attachments.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCurrentUser, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
+	attachmentFileUrl, attachmentPageUrl, discardScanDocument, failureMessage, getCurrentUser, getOftenOrders, getOrder,
+	getOrderDraft, getOrders, getScanDraft, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
+	watchScanProgress
 } from '../api/client.js'
-import { amount, dayShortMonth, dot, plural, sep } from '../api/format.js'
+import { activeLocaleCode, amount, dayShortMonth, dot, plural, sep, shortDate } from '../api/format.js'
+import { useShellShape } from '../app/useMedia.js'
 import { OrderForm } from './OrderForm.jsx'
-import { OrderFailed, OrderLoading, isPdf } from './OrderParts.jsx'
+import { OrderFailed, OrderLoading, isPdf, pagesOf } from './OrderParts.jsx'
 
 /* A new order (3a, 3b): a way to start, then the order form unsaved. The address names the
    start, so a reload lands where the reader was. */
@@ -41,7 +46,7 @@ export default function OrderNew() {
 	// ?duplicate=id, ?source=scan&doc=key, ?source=empty or ?vendor=name, else step 1
 	if (duplicate) return <Copy key={duplicate} id={duplicate} />
 	if (doc) return <Scanned key={doc} documentKey={doc} upload={location.state?.upload} />
-	if (source === 'empty' || vendor) return <Blank vendor={vendor ?? ''} />
+	if (source === 'empty' || vendor) return <Blank vendor={vendor ?? ''} restored={location.state?.seed} />
 	return <Start scanOnly={source === 'scan'} file={location.state?.file} picking={params.get('pick') === 'copy'} />
 }
 
@@ -51,15 +56,17 @@ const fromBlank = blank => ({
 	shipping: null, discount: null, reference: '', note: '', refunded: false, lines: []
 })
 
-function Blank({ vendor }) {
+/** An empty order, or one an Undo on its saved page sent back as `restored` (3a). */
+function Blank({ vendor, restored }) {
 	const blank = useApi(getOrderDraft)
+	if (restored) return <OrderForm mode="new" region seed={restored} />
 	if (blank.error) return <OrderFailed what="The new order" error={blank.error} retry={blank.refresh} />
 	if (!blank.data) return <Waiting />
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} />
 }
 
-/* A copy carries the vendor, categories, kind, reference, note and priced lines; the date is
-   today, the status the account's default, and the files stay where they are. */
+/* A copy carries the vendor, categories, kind, note and priced lines; the date is today, the
+   status the account's default, the reference a new one (8a), and the files stay where they are. */
 function Copy({ id }) {
 	const order = useApi(getOrder, [id])
 	const blank = useApi(getOrderDraft)
@@ -71,7 +78,7 @@ function Copy({ id }) {
 			...fromBlank(blank.data),
 			vendor: from.vendor?.name ?? '', kind: from.kind, categories: from.categories.map(c => c.name),
 			shipping: from.shipping || null, discount: from.discount || null,
-			reference: from.reference ?? '', note: from.note ?? '',
+			note: from.note ?? '',
 			lines: from.items.map((item, i) => ({
 				key: `copy-${i}`, title: item.title, quantity: item.quantity, price: item.price,
 				retail: item.retail ?? null, note: item.note ?? ''
@@ -88,22 +95,28 @@ function Copy({ id }) {
 }
 
 function Scanned({ documentKey, upload }) {
-	const read = useApi(getScanDraft, [documentKey])
 	const navigate = useNavigate()
+	// a file read before is asked about first (3c); "Use the reading" goes on to the review
+	const [asking, setAsking] = useState(Boolean(upload?.seen?.orders?.length))
+	// a failed reading is shown as such (6e) until the reader chooses to go on by hand
+	const [manual, setManual] = useState(false)
+	const read = useApi(getScanDraft, [documentKey], { enabled: !asking })
 	const answer = read.data?.documentKey === documentKey ? read.data : null
 	const seed = useMemo(() => (answer
 		? {
 			vendor: answer.vendor ?? '', date: answer.date, status: answer.status, kind: answer.kind,
 			deliveredDate: answer.deliveredDate, returnedDate: answer.returnedDate, categories: [],
 			shipping: answer.shipping || null, discount: answer.discount || null,
-			reference: '', note: '', refunded: false,
+			reference: answer.reference ?? '', note: '', refunded: false,
 			lines: answer.lines.map(l => ({
 				key: l.id, title: l.title ?? '', quantity: l.quantity ?? 1, price: l.price ?? null,
-				retail: null, note: '', uncertain: Boolean(l.uncertain), include: true
+				retail: null, note: '', uncertain: Boolean(l.uncertain), unclearPart: l.unclearPart ?? null, include: true
 			}))
 		}
 		: null), [answer])
 	const back = () => navigate('/orders/new?source=scan')
+	const discard = () => discardScanDocument(documentKey).catch(() => {}).finally(back)
+	if (asking) return <SeenBefore upload={upload} onUse={() => setAsking(false)} onDiscard={discard} />
 	if (read.error)
 		return (
 			<Alert color="danger" mark="!" title="This receipt could not be opened."
@@ -111,17 +124,40 @@ function Scanned({ documentKey, upload }) {
 				{failureMessage(read.error, 'Check your connection, then try again.')}
 			</Alert>
 		)
-	if (!seed) return <Reading file={upload ?? { key: documentKey }} onCancel={back} />
+	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onCancel={back} />
+	if (answer.failure && answer.failure !== 'unread' && !manual)
+		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={back} onDiscard={discard} />
 	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer }} onLeave={back} />
 }
 
-/** Step 2 (3a): the receipt while it is sent and read. */
-function Reading({ file, onCancel }) {
+/** Step 2 (3a): the receipt while it is sent and read, with what has been found so far. The
+    gauge counts the steps: sent, vendor and date found, the whole reading in. */
+function Reading({ file, documentKey, onCancel }) {
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
+	const [progress, setProgress] = useState(null)
+	useEffect(() => (documentKey ? watchScanProgress(documentKey, setProgress) : undefined), [documentKey])
 	const thumb = file.key && file.hasThumbnail ? scanThumbnailUrl(file.key) : null
-	const doing = !file.key ? 'Sending the receipt…' : reads ? 'Reading the receipt…' : 'Opening the receipt…'
+	const sending = !file.key
+	const found = progress?.found
+	const lines = progress?.lines ?? 0
+	const doing = sending ? 'Sending the receipt…' : !reads ? 'Opening the receipt…' : found ? 'Reading the lines…' : 'Reading the receipt…'
+	const value = sending ? (file.sent ?? 0) * 33 : found ? 67 : 34
+	const meta = [file.meta?.replaceAll(sep, dot), file.pages > 1 ? `${file.pages} pages` : null].filter(Boolean).join(dot)
+	// a reading still going well past its usual time says so (6e); the server finishes and keeps it either way
+	const [slow, setSlow] = useState(false)
+	useEffect(() => {
+		if (!reads || sending) return
+		const timer = setTimeout(() => setSlow(true), SLOW_READING_MS)
+		return () => clearTimeout(timer)
+	}, [reads, sending])
+	const done = text => (
+		<div className="sp-row-flex sp-gap-8">
+			<Mark size="small" fill="solid" aria-hidden="true" aria-label="Done"><Icon name="check" size={11} /></Mark>
+			<span className="sp-data">{text}</span>
+		</div>
+	)
 	return (
-		<div className="oc-narrow">
+		<div className="oc-narrow sp-stack sp-gap-12">
 			<Card aria-busy="true">
 				<div className="oc-row-top">
 					<div className="oc-preview" role="img" aria-label={file.name ?? 'The receipt'}>
@@ -132,11 +168,14 @@ function Reading({ file, onCancel }) {
 							? (
 								<div className="sp-row-flex sp-gap-12">
 									<span className="sp-title sp-truncate">{file.name}</span>
-									{file.meta ? <span className="sp-meta sp-nowrap">{file.meta.replaceAll(sep, dot)}</span> : null}
+									{meta ? <span className="sp-meta sp-nowrap">{meta}</span> : null}
 								</div>
 							)
 							: null}
+						<Gauge value={value} aria-label={sending ? 'Sending the receipt' : 'Reading the receipt'} />
 						<div className="sp-stack sp-gap-8">
+							{found ? done('Vendor and date found') : null}
+							{lines ? done(lines === 1 ? '1 line found' : `${lines} lines found`) : null}
 							<div className="sp-row-flex sp-gap-8">
 								<Spinner />
 								<strong className="sp-data">{doing}</strong>
@@ -145,6 +184,169 @@ function Reading({ file, onCancel }) {
 						</div>
 						<div className="oc-read__foot">
 							<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
+						</div>
+					</div>
+				</div>
+			</Card>
+			{slow
+				? (
+					<Card variant="row" role="status">
+						<Mark size="small" aria-hidden="true" aria-label="Slow"><Icon name="wifi" size={15} /></Mark>
+						<div className="sp-stack sp-gap-6">
+							<span className="sp-title">Reading is taking longer than usual</span>
+							<span className="sp-subtitle">You can keep waiting. If you leave, the reading still finishes, and adding the same file again uses it at once.</span>
+						</div>
+					</Card>
+				)
+				: null}
+		</div>
+	)
+}
+
+const SLOW_READING_MS = 20000
+
+const timeFormat = () => new Intl.DateTimeFormat(activeLocaleCode(), { hour: '2-digit', minute: '2-digit' })
+const localDay = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
+/** Step 2 replaced (3c): these exact bytes are already on an order. The matched orders first,
+    then what to do instead of reading the same file twice. */
+function SeenBefore({ upload, onUse, onDiscard }) {
+	const toast = useToast()
+	const [comparing, setComparing] = useState(null)
+	const [busy, setBusy] = useState(false)
+	const { seen } = upload
+	const newest = seen.orders[0]
+	const named = o => o.reference || `the order from ${o.vendor}`
+	const readAt = seen.readAt ? new Date(seen.readAt) : null
+	const again = () => {
+		setBusy(true)
+		rereadScanDocument(upload.key)
+			.then(() => { invalidate(getScanDraft); onUse() })
+			.catch(e => { setBusy(false); toast({ message: failureMessage(e, 'The receipt was not read again. Try again.'), color: 'danger' }) })
+	}
+	const compare = o => setComparing({
+		key: 'new', name: upload.name, kind: upload.kind, label: `New: ${upload.name}`,
+		src: upload.kind === 'pdf' ? (upload.hasThumbnail ? scanThumbnailUrl(upload.key) : null) : scanFileUrl(upload.key),
+		...(upload.kind === 'pdf' ? { pages: upload.pages, pageSrc: i => scanPageUrl(upload.key, i) } : {}),
+		beside: {
+			key: o.file.id, name: o.file.name, kind: o.file.kind, label: `On ${named(o)}: ${o.file.name}`,
+			src: o.file.kind === 'pdf' ? attachmentPageUrl(o.id, o.file.id, 0) : attachmentFileUrl(o.id, o.file.id),
+			...pagesOf(o.id, { ...o.file, pages: null })
+		}
+	})
+	return (
+		<div className="oc-narrow">
+			<Card>
+				<div className="sp-stack sp-gap-6">
+					<span className="sp-heading">This receipt has been added before</span>
+					<span className="sp-meta">
+						{seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`}
+					</span>
+				</div>
+				{seen.orders.map(o => (
+					<ListItem key={o.id} variant="top" mark={<Mark size="medium" fill="none" aria-hidden="true" aria-label="Receipt"><span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span></Mark>}>
+						<span className="sp-stack sp-gap-8 sp-grow">
+							<span className="sp-stacked">
+								<span className="sp-title sp-truncate">{o.vendor}</span>
+								<span className="sp-subtitle">{[o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)}</span>
+							</span>
+							<span className="sp-meta">
+								{[readAt && o === newest ? `Read ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)}
+							</span>
+							<span className="sp-row-flex sp-gap-8 sp-wrap">
+								<Button size="small" to={`/orders/${o.id}`}>Open that order</Button>
+								<Button variant="outline" size="small" onClick={() => compare(o)}>Compare the files</Button>
+							</span>
+						</span>
+						<span className="sp-stacked sp-cell-amount sp-flex-none"><span className="sp-amount">{amount(o.total)}</span></span>
+					</ListItem>
+				))}
+				<div className="sp-stack sp-gap-12">
+					<span className="sp-section-label">If that is not what you meant</span>
+					<SeenChoice icon="file-text" primary title="New order from the saved reading"
+						body="Starts a new order with the same lines, ready for you to check and change."
+						action={<Button size="small" disabled={busy} onClick={onUse}>Use the reading</Button>} />
+					<SeenChoice icon="refresh" title="Read it again" body="Use this if the lines came out wrong last time."
+						action={<Button variant="outline" size="small" disabled={busy} onClick={again}>Scan again</Button>} />
+					<SeenChoice icon="paperclip" title="Attach it to that order instead"
+						body={`${named(newest).replace(/^t/, 'T')} already has this file, so there is nothing to add.`}
+						action={<Button variant="outline" size="small" disabled>Attach</Button>} />
+				</div>
+				<div className="sp-card__footer sp-card__footer--commits">
+					<span className="sp-meta sp-grow">If you do nothing, the upload is removed after 7 days.</span>
+					<Button variant="outline" disabled={busy} onClick={onDiscard}>Discard the upload</Button>
+				</div>
+			</Card>
+			{comparing
+				? <Viewer items={[comparing]} at={0} beside={comparing.beside} onMove={() => {}} onClose={() => setComparing(null)} />
+				: null}
+		</div>
+	)
+}
+
+/** One way on from 3c; on a phone the button goes under the words, which need the row's width. */
+function SeenChoice({ icon, title, body, action, primary = false }) {
+	const touch = useShellShape() === 'touch'
+	return (
+		<ListItem variant={primary ? 'primary' : 'top'}
+			mark={<Mark size="small" fill="plain" aria-hidden="true" aria-label={title}><Icon name={icon} size={16} /></Mark>}>
+			<span className="sp-stack sp-gap-6 sp-grow">
+				<span className="sp-title">{title}</span>
+				<span className="sp-meta">{body}</span>
+				{touch ? <span className="sp-row-flex">{action}</span> : null}
+			</span>
+			{touch ? null : action}
+		</ListItem>
+	)
+}
+
+/** When the scan fails (6e): never a dead end. What came through is named, the file stays with
+    the order, and typing it in is one click away. */
+function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
+	const { file, found } = answer
+	const photo = file.kind !== 'pdf'
+	const why = answer.failure === 'billing'
+		? 'The reading service is not available right now: it reports a problem with its payment.'
+		: answer.failure === 'empty'
+			? `The ${photo ? 'photo' : 'file'} was opened, but no lines could be picked out of it.`
+			: `The ${photo ? 'photo' : 'file'} could not be read.`
+	const kept = found?.vendor || found?.date
+		? `${found.vendor && found.date ? 'The vendor and date came through' : found.vendor ? 'The vendor came through' : 'The date came through'}, so the order is started with ${found.vendor && found.date ? 'those' : 'that'}.`
+		: 'Nothing came through, so you type in the details.'
+	return (
+		<div className="oc-narrow">
+			<Card>
+				<div className="sp-row-flex sp-gap-16 sp-top">
+					<Mark size="xlarge" fill="none" danger={kindWord(file)} aria-label={file.name}><Icon name="file" size={18} /></Mark>
+					<div className="sp-stack sp-gap-12 sp-grow">
+						<div className="sp-row-flex sp-gap-12 sp-baseline sp-wrap">
+							<span className="sp-heading">Could not read this receipt</span>
+							<span className="sp-meta">{[file.name, file.meta?.replace(/^.*?•\s*/, '')].filter(Boolean).join(dot)}</span>
+						</div>
+						<span className="sp-data">{why} {kept}</span>
+						<div className="sp-stack sp-gap-8">
+							{found?.vendor || found?.date
+								? (
+									<div className="sp-row-flex sp-gap-8 sp-data">
+										<span className="sp-ink-success"><Icon name="check" size={14} /></span>
+										{[found.vendor ? `Vendor: ${found.vendor}` : null, found.date ? `Date: ${shortDate(found.date)}` : null].filter(Boolean).join(dot)}
+									</div>
+								)
+								: null}
+							<div className="sp-row-flex sp-gap-8 sp-data sp-ink-danger sp-strong">
+								<Icon name="x" size={14} />
+								No lines and no total could be read
+							</div>
+						</div>
+						<ListItem>
+							{answer.failure === 'billing'
+								? 'You can try again later. If you continue, the file is kept with the order.'
+								: `${photo ? 'A flatter photo in better light usually works' : 'A clearer copy of the file usually works'}. If you continue, the file is kept with the order.`}
+						</ListItem>
+						<div className="sp-row-flex sp-gap-8 sp-wrap">
+							<Button size="small" onClick={onManual}>Continue manually</Button>
+							<Button variant="outline" size="small" onClick={onAnother}>{photo ? 'Try another photo' : 'Try another file'}</Button>
+							<Button variant="outline" size="small" onClick={onDiscard}>Discard</Button>
 						</div>
 					</div>
 				</div>
@@ -176,7 +378,7 @@ function Start({ scanOnly, file, picking }) {
 		setRefused(null)
 		const pdf = isPdf(f)
 		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${dot}${sizeLabel(f.size)}` })
-		putScanDocument(f)
+		sendFile(f, { onSent: sent => setSending(s => (s ? { ...s, sent } : s)) })
 			.then(upload => {
 				invalidate(getScanDraft)
 				navigate(`/orders/new?source=scan&doc=${upload.key}`, { replace: true, state: { upload } })
@@ -262,7 +464,12 @@ function CopyPicker({ onClose }) {
 	// after the dialog has focused its first button, so the reader starts where they type
 	useEffect(() => { search.current?.focus() }, [])
 	const found = useApi(getOrders, [{ pageSize: 6, query: asked, with: 'itemTitles' }])
-	const orders = found.data?.orders ?? []
+	// the repeats lead an empty search (3b); a search looks through every order
+	const repeats = useApi(getOftenOrders)
+	const often = asked ? [] : repeats.data?.orders ?? []
+	// six rows in all, as the drawing keeps the dialog small
+	const recent = (found.data?.orders ?? []).filter(o => !often.some(r => r.id === o.id)).slice(0, 6 - often.length)
+	const orders = [...often, ...recent]
 	useEffect(() => setActive(-1), [asked])
 	const pick = o => navigate(`/orders/new?duplicate=${o.id}`)
 	const keys = ev => {
@@ -275,26 +482,29 @@ function CopyPicker({ onClose }) {
 			pick(orders[active])
 		}
 	}
+	const row = (o, i) => (
+		<ComboboxOption key={o.id} id={`${listId}-${i}`} active={i === active} onSelect={() => pick(o)}>
+			<span className="sp-row-flex sp-gap-8">
+				<span className="sp-stacked sp-grow">
+					<span className="sp-title sp-truncate">{o.vendor?.name}</span>
+					<span className="sp-meta sp-truncate">{plural(o.itemCount, 'line')}{o.itemTitles?.length ? `${dot}${o.itemTitles.join(', ')}${o.itemCount > o.itemTitles.length ? '…' : ''}` : null}</span>
+				</span>
+				<span className="sp-stacked sp-cell-amount sp-flex-none">
+					<span className="sp-amount">{amount(o.total)}</span>
+					<span className="sp-meta">{o.times ? `${o.times} times${dot}last ${dayShortMonth(o.date)}` : dayShortMonth(o.date)}</span>
+				</span>
+			</span>
+		</ComboboxOption>
+	)
 	let rows
 	if (!found.data) rows = null
 	else if (!orders.length) rows = <ComboboxEmpty>{asked ? `No order matches "${asked}".` : 'There are no orders to copy yet.'}</ComboboxEmpty>
 	else rows = (
 		<>
-			{asked ? null : <ComboboxGroup>Recent</ComboboxGroup>}
-			{orders.map((o, i) => (
-				<ComboboxOption key={o.id} id={`${listId}-${i}`} active={i === active} onSelect={() => pick(o)}>
-					<span className="sp-row-flex sp-gap-8">
-						<span className="sp-stacked sp-grow">
-							<span className="sp-title sp-truncate">{o.vendor?.name}</span>
-							<span className="sp-meta sp-truncate">{plural(o.itemCount, 'line')}{o.itemTitles?.length ? `${dot}${o.itemTitles.join(', ')}${o.itemCount > o.itemTitles.length ? '…' : ''}` : null}</span>
-						</span>
-						<span className="sp-stacked sp-cell-amount sp-flex-none">
-							<span className="sp-amount">{amount(o.total)}</span>
-							<span className="sp-meta">{dayShortMonth(o.date)}</span>
-						</span>
-					</span>
-				</ComboboxOption>
-			))}
+			{often.length ? <ComboboxGroup>You order these often</ComboboxGroup> : null}
+			{often.map(row)}
+			{asked || !recent.length ? null : <ComboboxGroup>Recent</ComboboxGroup>}
+			{recent.map((o, i) => row(o, often.length + i))}
 		</>
 	)
 	return (
@@ -302,7 +512,7 @@ function CopyPicker({ onClose }) {
 			<div className="sp-stack sp-gap-12">
 				<div className="sp-stack sp-gap-6">
 					<DialogTitle>Copy a previous order</DialogTitle>
-					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
+					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, the copy gets a new order number, and the receipt stays on the original order.</DialogBody>
 				</div>
 				<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders"
 					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"

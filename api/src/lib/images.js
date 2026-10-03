@@ -69,16 +69,15 @@ const PDF_WORKER = fileURLToPath(new URL('./pdfPage.worker.js', import.meta.url)
    slow one. On expiry the worker is terminated and the upload keeps its document icon. */
 const PDF_RENDER_TIMEOUT_MS = 15_000
 
-/** The first page of a PDF, rendered to a PNG on a worker thread. Resolves null for anything
-    that cannot be rendered (encrypted, corrupt, zero pages, not a PDF) and for a render that
-    outruns the timeout -- every one of which the caller already handles by falling back to the
-    plain document icon. */
-function renderPdfFirstPage(buffer) {
+/** One page of a PDF (from 0), rendered to a PNG on a worker thread: `{ png, pages }`. `png` is
+    null for a page that cannot be rendered (encrypted, corrupt, past the end, not a PDF); the
+    whole answer is null for a render that outruns the timeout. */
+function renderPdfPage(buffer, index = 0) {
 	return new Promise(resolve => {
 		let settled = false
 		const settle = value => { if (!settled) { settled = true; clearTimeout(timer); resolve(value) } }
 		const worker = new Worker(PDF_WORKER, {
-			workerData: { buffer, longEdge: PDF_RENDER_LONG_EDGE }
+			workerData: { buffer, longEdge: PDF_RENDER_LONG_EDGE, page: index }
 		})
 		/* A worker that has already posted its result is left to exit on its own rather than
 		   force-terminated here. mupdf's own module has a top-level await (WASM instantiation),
@@ -91,7 +90,7 @@ function renderPdfFirstPage(buffer) {
 		   milliseconds regardless, so nothing here waits on terminate() for that case. Only a
 		   genuinely hung worker -- the timeout below -- still needs it. */
 		const timer = setTimeout(() => { worker.terminate(); settle(null) }, PDF_RENDER_TIMEOUT_MS)
-		worker.on('message', message => settle(message.png ? Buffer.from(message.png) : null))
+		worker.on('message', message => settle({ png: message.png ? Buffer.from(message.png) : null, pages: message.pages ?? null }))
 		worker.on('error', () => settle(null))
 		worker.on('exit', () => settle(null))
 	})
@@ -111,12 +110,25 @@ export async function processPdfThumbnail(buffer) {
 	// Not a PDF by its own first bytes: mupdf would spend the whole parse discovering that, and
 	// on a 25MB file that is 411ms of a blocked thread to answer a question four bytes settle.
 	if (detectFileType(buffer)?.type !== 'application/pdf') return null
-	const png = await renderPdfFirstPage(buffer)
+	const { png, pages } = await renderPdfPage(buffer) ?? {}
 	if (!png) return null
 	try {
-		return { thumbnail: await resizeTo(png, DISPLAY_MAX), thumbnailContentType: 'image/webp' }
+		return { thumbnail: await resizeTo(png, DISPLAY_MAX), thumbnailContentType: 'image/webp', pages }
 	} catch {
 		return null
+	}
+}
+
+/** One page of a PDF (counted from 0) at the display size, with the document's page count:
+    `{ image, contentType, pages }`, or `{ image: null, pages }` when that page cannot be drawn. */
+export async function processPdfPage(buffer, index) {
+	if (detectFileType(buffer)?.type !== 'application/pdf') return { image: null, pages: 0 }
+	const { png, pages } = await renderPdfPage(buffer, index) ?? {}
+	if (!png) return { image: null, pages: pages ?? 0 }
+	try {
+		return { image: await resizeTo(png, DISPLAY_MAX), contentType: 'image/webp', pages }
+	} catch {
+		return { image: null, pages }
 	}
 }
 
@@ -143,7 +155,8 @@ export async function processAttachment(buffer, mimetype, name) {
 		const pdfThumb = await processPdfThumbnail(buffer)
 		return {
 			data: buffer, contentType: detected?.type ?? mimetype ?? null, size: buffer.length,
-			thumbnail: pdfThumb?.thumbnail ?? null, thumbnailContentType: pdfThumb?.thumbnailContentType ?? null
+			thumbnail: pdfThumb?.thumbnail ?? null, thumbnailContentType: pdfThumb?.thumbnailContentType ?? null,
+			pages: pdfThumb?.pages ?? null
 		}
 	})()
 	/* Each blob compressed against its own content type, so the pipeline's own JPEGs are
