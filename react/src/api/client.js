@@ -434,6 +434,23 @@ export const changeStatus = (key, status) => statusWrite(`/api/statuses/${encode
 export const orderStatusesAs = keys => statusWrite('/api/statuses/order', 'PUT', { keys })
 export const deleteStatus = key => statusWrite(`/api/statuses/${encodeURIComponent(key)}`, 'DELETE')
 
+/* ---- saved order views (2g, 9e): each answer is `{ all, shown, views }`, every view with its count ---- */
+
+export async function getViews(signal) {
+	return request('/api/views', { signal })
+}
+
+const viewWrite = async (path, method, body) => {
+	const out = await request(path, { method, body })
+	invalidate(getViews)
+	return out
+}
+export const addView = view => viewWrite('/api/views', 'POST', view)
+export const changeView = (id, change) => viewWrite(`/api/views/${encodeURIComponent(id)}`, 'PATCH', change)
+export const orderViewsAs = ids => viewWrite('/api/views/order', 'PUT', { ids })
+export const deleteView = id => viewWrite(`/api/views/${encodeURIComponent(id)}`, 'DELETE')
+export const setViewsShown = shown => viewWrite('/api/views/shown', 'PUT', { shown })
+
 /** One change to several orders at once (Order list 2a, 2e): `{ ids, status, deliveredToday,
     addCategories (names), removeCategories (ids), delete }`. Answers how many were changed. */
 export async function changeOrders(change, signal) {
@@ -626,7 +643,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats, getStatuses]
+const orderReads = [getOrders, getOrder, getStats, getStatuses, getViews]
 const vendorReads = [getVendors, getVendor]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
 const bookmarkReads = [getBookmarks, getBookmark]

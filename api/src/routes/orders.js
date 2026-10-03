@@ -193,6 +193,12 @@ function buildOrderFilter(userId, q, except = null) {
 	return { whereSql: where.join(' AND '), params, sortKey, filtered: where.length > 1 }
 }
 
+/** How many orders a list request matches: a saved view's live count (routes/views.js). */
+export function countMatching(userId, q) {
+	const { whereSql, params } = buildOrderFilter(userId, q)
+	return db.prepare(`SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}`).get(params).c
+}
+
 const listOf = v => [...new Set([].concat(v ?? []).flatMap(x => String(x).split(',')).map(x => x.trim()).filter(Boolean))]
 
 /* with=facets: each facet's counts under every other filter (what ticking a value would add), and

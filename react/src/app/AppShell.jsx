@@ -14,6 +14,7 @@ import { amount } from '../api/format.js'
 import { MAC, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
+import { ALL_ORDERS, SidebarViews } from './views.jsx'
 import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
 
 
@@ -157,6 +158,10 @@ export function AppShell() {
 
 /* An element rather than a component: the shell places its children by type. On the rail the
    groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). */
+// the saved view the order list was opened from (9e), and All orders never returning to one
+const onView = () => { const id = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('saved'); return id && id !== 'all' ? id : null }
+const allOrders = to => (/[?&]saved=(?!all)/.test(to) ? ALL_ORDERS : to)
+
 function sidebar({ navKey, rail, go }) {
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
@@ -168,7 +173,8 @@ function sidebar({ navKey, rail, go }) {
 			<Row to="/orders/new?source=scan" icon="camera" variant="action" rail={rail}>Scan receipt</Row>
 			<Row to="/orders/new" icon="plus" rail={rail}>New order</Row>
 			{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
-			<Counted to={go('orders', '/orders')} icon="receipt" rail={rail} current={navKey === 'orders'} useCount={useOrdersCount}>All orders</Counted>
+			<Counted to={allOrders(go('orders', ALL_ORDERS))} icon="receipt" rail={rail} current={navKey === 'orders' && !onView()} useCount={useOrdersCount}>All orders</Counted>
+			<SidebarViews rail={rail} savedId={navKey === 'orders' ? onView() : null} />
 			{rail ? null : <SidebarGroup>Budget</SidebarGroup>}
 			<Row to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
 			{rail ? null : <SidebarGroup>Library</SidebarGroup>}

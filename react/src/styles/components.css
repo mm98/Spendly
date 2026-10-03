@@ -3340,6 +3340,11 @@ button.sp-nav-item--light[aria-current="page"]:hover {
 .sp-nav-item--light > [data-label] > span,
 .sp-nav-item--light > [data-label]::after { grid-area: 1 / 1; }
 .sp-nav-item--light > [data-label]::after { content: attr(data-label); font-weight: 600; visibility: hidden; }
+/* a label the reader named (a saved view) can be any length: it ends in an ellipsis, so every row keeps one height */
+.sp-nav-item > .sp-grow,
+.sp-nav-item--light > [data-label] > span,
+.sp-nav-item--light > [data-label]::after { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-nav-item--light > [data-label] { grid-template-columns: minmax(0, 1fr); }
 .sp-nav-item--light .sp-nav-item__count { color: var(--ink-4); }
 .sp-nav-item--light.sp-nav-item--edited { background: var(--amber-tint-2); color: var(--amber-ink-2); }
 a.sp-nav-item--light.sp-nav-item--edited:hover,

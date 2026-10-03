@@ -14,6 +14,7 @@ import { router as statsRouter } from './routes/stats.js'
 import { router as scanRouter } from './routes/scan.js'
 import { router as searchRouter } from './routes/search.js'
 import { router as statusesRouter } from './routes/statuses.js'
+import { router as viewsRouter } from './routes/views.js'
 import { requireAuth } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
@@ -187,6 +188,7 @@ app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/statuses', statusesRouter)
+app.use('/api/views', viewsRouter)
 // Mounted at the bare /api prefix: its one route is POST /api/demo-data, which shadows nothing.
 app.use('/api', accountRouter)
 app.use('/api/stats', statsRouter)

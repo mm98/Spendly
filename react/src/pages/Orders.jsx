@@ -31,6 +31,8 @@ import { allMatching, ordersCsv, saveCsv } from '../app/ordersCsv.js'
 import { DeleteOrder } from './DeleteOrder.jsx'
 import { BulkActions, useStatusName } from './OrderBulk.jsx'
 import { OrderCard, RowMenu } from './OrderMenu.jsx'
+import { ViewsCard } from './OrderViews.jsx'
+import { useViews, viewLink } from '../app/views.jsx'
 
 const SORTS = [
 	{ id: 'date-desc', label: 'Newest first' },
@@ -40,7 +42,7 @@ const SORTS = [
 	{ id: 'vendor-asc', label: 'Vendor A - Z' }
 ]
 
-const FACETS = ['vendor', 'category', 'status', 'receipt', 'files', 'discounted', 'from', 'to', 'kind', 'min', 'max']
+const FACETS = ['vendor', 'category', 'status', 'receipt', 'files', 'discounted', 'period', 'from', 'to', 'kind', 'min', 'max']
 const FILTERS = ['q', ...FACETS]
 
 /* A facet that takes several values holds them comma-separated in the address. */
@@ -60,6 +62,10 @@ const readFilters = params => {
 	for (const k of ['from', 'to']) if (!isDay(f[k])) f[k] = ''
 	for (const k of ['min', 'max']) if (!isAmount(f[k])) f[k] = ''
 	if (f.from && f.to && f.to < f.from) f.from = f.to = ''
+	// a named period is kept as its name, so a link or a saved view rolls with the calendar (2d)
+	const preset = PRESETS.find(p => p.key === f.period)
+	if (preset) [f.from, f.to] = preset.range(new Date())
+	else f.period = ''
 	if (f.min && f.max && Number(f.max) < Number(f.min)) f.min = f.max = ''
 	return f
 }
@@ -79,8 +85,8 @@ const requestOf = (f, sort) => ({
 	from: f.from, to: f.to, minAmount: f.min, maxAmount: f.max, sort
 })
 
-/* A preset is a calendar period around today; the URL holds its two dates, and the chip reads
-   them back, so a link that carries the same dates lands on the same chip. */
+/* A preset is a calendar period around today, held in the address by its name; a link that carries
+   the same two dates still lands on the same chip. */
 const PRESETS = [
 	{ key: 'week', label: 'This week', range: n => { const at = n.getDate() - (n.getDay() + 6) % 7; return [day(n.getFullYear(), n.getMonth(), at), day(n.getFullYear(), n.getMonth(), at + 6)] } },
 	{ key: 'month', label: 'This month', range: n => [day(n.getFullYear(), n.getMonth(), 1), day(n.getFullYear(), n.getMonth() + 1, 0)] },
@@ -121,6 +127,16 @@ export default function Orders() {
 	const navigate = useNavigate()
 	const [params, setParams] = useSearchParams()
 	const f = useMemo(() => readFilters(params), [params])
+	// Orders opened with nothing asked opens on the default view, if one is set (2g); only on arrival
+	const arrived = useRef([...params.keys()].length === 0)
+	const viewsAnswer = useViews().data
+	useEffect(() => {
+		if (!arrived.current || !viewsAnswer) return
+		arrived.current = false
+		const first = viewsAnswer.views.find(v => v.isDefault)
+		if (first && [...new URLSearchParams(window.location.hash.split('?')[1] ?? '').keys()].length === 0)
+			navigate(viewLink(first), { replace: true })
+	}, [viewsAnswer, navigate])
 	const shape = useShellShape()
 	const touch = shape === 'touch'
 	// the facet rail stands beside the list only on a wide window; below that it is a sheet (18b)
@@ -217,11 +233,11 @@ export default function Orders() {
 	const crumbOf = {
 		date: () => {
 			if (!f.from && !f.to) return null
-			const preset = custom ? null : presetOf(f.from, f.to)
+			const preset = custom ? null : PRESETS.find(p => p.key === f.period) ?? presetOf(f.from, f.to)
 			const label = preset ? preset.label
 				: f.from && f.to ? `${shortDate(f.from)} - ${shortDate(f.to)}`
 					: f.from ? `From ${shortDate(f.from)}` : `Until ${shortDate(f.to)}`
-			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={ev => { setCustom(false); removing({ from: '', to: '' })(ev) }}>{label}</Crumb>
+			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={ev => { setCustom(false); removing({ from: '', to: '', period: '' })(ev) }}>{label}</Crumb>
 		},
 		// one crumb for each value a facet holds, each removing only itself
 		status: () => listOf(f.status).map(s => <Crumb key={`status-${s}`} onRemove={removing({ status: toggled(f.status, s, false) })}>{statusName(s)}</Crumb>),
@@ -239,7 +255,7 @@ export default function Orders() {
 		}
 	}
 	// in the order the filters were applied (c12): a new one joins the end of the address
-	const groupOf = k => (k === 'from' || k === 'to' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
+	const groupOf = k => (k === 'from' || k === 'to' || k === 'period' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
 	const crumbs = [...new Set([...params.keys()].map(groupOf))].flatMap(g => crumbOf[g]?.() ?? []).filter(Boolean)
 	useEffect(() => {
 		if (!crumbFocus || crumbs.length === crumbFocus.count) return
@@ -413,7 +429,11 @@ export default function Orders() {
 	if (alone) return main
 	return (
 		<>
-			<div className="sp-rail sp-stack sp-gap-12">{filtersCard}</div>
+			<div className="sp-rail sp-stack sp-gap-12">
+				<ViewsCard params={params} matched={orders.data?.matched}
+					summary={[...crumbs.map(c => c.props.children), sortLabel.toLowerCase()].join(dot)} />
+				{filtersCard}
+			</div>
 			{main}
 		</>
 	)
@@ -695,7 +715,7 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 	const Groups = bare ? Fragment : Facets
 	return (
 		<Groups>
-			<DateFacet from={f.from} to={f.to} matched={matched} update={update} custom={custom} setCustom={setCustom} />
+			<DateFacet from={f.from} to={f.to} period={f.period} matched={matched} update={update} custom={custom} setCustom={setCustom} />
 
 			<FieldGroup facet legend="Status">
 				{statuses.map(s => {
@@ -789,10 +809,10 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 }
 
 /** One control, four settings (2d): a preset, or a range typed in under them. */
-function DateFacet({ from, to, matched, update, custom, setCustom }) {
+function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 	const name = useId()
-	const preset = presetOf(from, to)
-	const chosen = custom ? 'custom' : preset ? preset.key : from || to ? 'custom' : null
+
+	const chosen = custom ? 'custom' : period || presetOf(from, to)?.key || (from || to ? 'custom' : null)
 	const [draft, setDraft] = useState({ from, to })
 	useEffect(() => setDraft({ from, to }), [from, to])
 	const wrong = !!(draft.from && draft.to && draft.to < draft.from)
@@ -802,7 +822,7 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 	const edit = next => {
 		if (![next.from, next.to].every(d => !d || isDay(d))) return
 		setDraft(next)
-		if (!(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to })
+		if (!(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to, period: '' })
 	}
 	const leave = ev => { if (!ev.currentTarget.contains(ev.relatedTarget)) setDraft({ from, to }) }
 	// a count not known yet is left out rather than shown as zero (6b)
@@ -814,7 +834,7 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 			<Filters>
 				{PRESETS.map(p => (
 					<Chip key={p.key} variant="facet" inputType="radio" name={name} value={p.key} selected={chosen === p.key}
-						onSelect={() => { setCustom(false); const [a, b] = p.range(new Date()); update({ from: a, to: b }) }}>
+						onSelect={() => { setCustom(false); update({ period: p.key, from: '', to: '' }) }}>
 						{p.label}
 					</Chip>
 				))}
@@ -835,7 +855,7 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 							<div className="sp-row-flex sp-gap-8">
 								<span className="sp-subtitle">{summary}</span>
 								<span className="sp-grow" />
-								<Button variant="outline" size="small" onClick={() => update({ from: '', to: '' })}>Clear</Button>
+								<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>Clear</Button>
 							</div>
 						)
 						: <span className="sp-field__help">Leave To empty to include everything up to today.</span>}
