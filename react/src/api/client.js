@@ -4,6 +4,7 @@
 import { detectLocale, parseAmount, today } from './format.js'
 import { forgetAll, invalidate } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
+import { vendorKey } from './names.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields, body) {
@@ -187,8 +188,12 @@ export async function addVendorAlias(id, name, signal) {
 export const vendorByAnyName = (vendors, name) => {
 	const needle = String(name ?? '').trim().toLowerCase()
 	if (!needle) return undefined
-	return vendors.find(v => v.name.toLowerCase() === needle
+	const exact = vendors.find(v => v.name.toLowerCase() === needle
 		|| (v.aliases ?? []).some(a => a.toLowerCase() === needle))
+	if (exact) return exact
+	// then as the API matches receipts: case, accents, punctuation and a legal form set aside
+	const key = vendorKey(name)
+	return vendors.find(v => vendorKey(v.name) === key) ?? vendors.find(v => (v.aliases ?? []).some(a => vendorKey(a) === key))
 }
 
 /** Whether typed text finds this vendor, and the alias that did; `alias` is null when the name

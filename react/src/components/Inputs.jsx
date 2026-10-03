@@ -255,7 +255,8 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 
 /** Typed values as chips. Given `children` (ComboboxOption) it offers them in a panel, the page filtering
     them by `onSearch` (Bookmarks 22c); `noun`, plural, names them in the count read out as they narrow. */
-export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, children, ...rest }) {
+// `marked` is one token drawn in green (Vendors 5h); the field's message says what it means
+export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it
 	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
@@ -286,6 +287,7 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 			{value.map(token => (
 				<Chip
 					key={token}
+					{...(token === marked ? { color: 'success' } : {})}
 					trail={
 						<IconButton
 							icon={<Icon name="x" size={9} />}
