@@ -2895,7 +2895,8 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 /* a page is letterboxed at its own proportion: cropping a receipt can hide its total */
 .sp-viewer__pages > .sp-mark > img { object-fit: contain; }
 .sp-viewer__pages > .sp-mark[aria-current="true"] { outline: 2px solid #fff; outline-offset: 2px; }
-/* two files side by side, each under its own label (3c) */
+/* two files side by side, each under its own label (3c), so the viewer takes the room of two */
+.sp-viewer--compare { width: min(1120px, 100%); }
 .sp-viewer__compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
 .sp-viewer__side { display: flex; flex-direction: column; gap: var(--sp-8); min-width: 0; }
 .sp-viewer__label { color: var(--shell-item); font-size: var(--t-12); }

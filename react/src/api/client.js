@@ -582,8 +582,49 @@ export async function putScanDocument(file, signal) {
 	return request('/api/scan/documents', { method: 'POST', form, signal })
 }
 
+/* What the reading of a receipt has found so far, `{ found, lines }`, for whoever shows it (3a step 2). */
+const scanProgress = new Map()
+export function watchScanProgress(documentKey, fn) {
+	const entry = scanProgress.get(documentKey) ?? { listeners: new Set(), last: null }
+	scanProgress.set(documentKey, entry)
+	entry.listeners.add(fn)
+	if (entry.last) fn(entry.last)
+	return () => entry.listeners.delete(fn)
+}
+const tellProgress = (documentKey, progress) => {
+	const entry = scanProgress.get(documentKey) ?? { listeners: new Set(), last: null }
+	scanProgress.set(documentKey, entry)
+	entry.last = progress
+	for (const fn of entry.listeners) fn(progress)
+}
+
+/** The review's draft for an uploaded receipt, read as it streams so its progress can be shown. */
 export async function getScanDraft(documentKey, signal) {
-	return request(`/api/scan/draft/${documentKey}`, { signal })
+	const path = `/api/scan/draft/${documentKey}?progress=stream`
+	const res = await fetch(path, { signal, credentials: 'include', headers: { [TODAY]: today() } })
+	if (!res.ok) {
+		let data = null
+		try { data = await res.json() } catch { /* empty body */ }
+		throw refusal(path, 'GET', res.status, data)
+	}
+	const decoder = new TextDecoder()
+	let buffered = '', draft = null
+	const take = line => {
+		if (!line.trim()) return
+		const o = JSON.parse(line)
+		if (o.progress) tellProgress(documentKey, o.progress)
+		if (o.draft) draft = o.draft
+	}
+	const reader = res.body.getReader()
+	for (let part = await reader.read(); !part.done; part = await reader.read()) {
+		buffered += decoder.decode(part.value, { stream: true })
+		let nl
+		while ((nl = buffered.indexOf('\n')) !== -1) { take(buffered.slice(0, nl)); buffered = buffered.slice(nl + 1) }
+	}
+	take(buffered)
+	scanProgress.delete(documentKey)
+	if (!draft) throw new TypeError('The reading ended before its answer arrived')
+	return draft
 }
 
 /** Files a sent upload on an order. `as: 'file'` for a file added in the form, `item` for a

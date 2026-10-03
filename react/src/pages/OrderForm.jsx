@@ -25,10 +25,12 @@ import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	addAttachments, addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, createOrder,
-	failureMessage, getOrders, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
-	removeItemAttachment, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
+	failureMessage, getOrderLimits, getOrders, getScanPages, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
+	removeItemAttachment, scanFileUrl, scanPageUrl, scanThumbnailUrl, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
-import { NUMBER_LOCALE, activeLocaleCode, amount, currencySymbol, dayShortMonth, dot, plural, today } from '../api/format.js'
+import {
+	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, today
+} from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
@@ -178,7 +180,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	}
 	const commitInto = current => setLines(ls => current.isNew
 		? [...ls, { ...current.values, key: current.key, include: true, uncertain: false }]
-		: ls.map(l => (l.key === current.key ? { ...current.values, uncertain: false } : l)))
+		: ls.map(l => (l.key === current.key ? { ...current.values, uncertain: false, checked: true } : l)))
 	const commit = next => {
 		if (!editing) return
 		if (Object.keys(lineErrors(editing.values)).length) {
@@ -480,7 +482,9 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	/* ---- the parts ---- */
 
 	// what the viewer walks (17b): the attachments, saved then staged, then the lines' photos
+	const receipt = scan ? receiptOf(scan.file) : null
 	const viewable = [
+		...(receipt ? [receipt] : []),
 		...savedFiles.filter(f => !gone.includes(f.id)).map(f => ({
 			key: f.id, name: f.name, kind: f.kind,
 			src: f.kind === 'pdf' ? f.thumb : attachmentFileUrl(orderId, f.id),
@@ -519,17 +523,21 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const mark = <LinePhoto src={photo} name={line.title} onOpen={photo && !touch ? () => open(`line:${line.key}`) : undefined} />
 		const warn = line.uncertain || (tried && Object.keys(lineErrors(line)).length)
 		const named = line.title || 'the unnamed line'
+		// a line as the receipt gave it says how well it was read (3a); once checked it reads as any line
+		const asRead = scan && !touch && !line.checked && scan.lines.some(r => r.id === line.key)
+		const subtitle = warn ? (line.uncertain ? UNCLEAR_LINE[line.unclearPart] ?? UNCLEAR_LINE.line : UNCLEAR_LINE.line)
+			: asRead ? 'read clearly' : lineMetaWith(line, photo, scan || touch)
+		const ink = warn ? 'sp-ink-warning' : asRead ? 'sp-ink-success' : null
 		const words = (
 			<span className="sp-stacked or-line">
 				<span className="sp-title sp-truncate">{line.title || 'Unnamed line'}</span>
-				<span className={['sp-subtitle', touch ? null : 'sp-truncate', warn ? 'sp-ink-warning' : null].filter(Boolean).join(' ')}>
-					{warn ? 'Check this line against the receipt' : lineMetaWith(line, photo, scan || touch)}
-				</span>
+				<span className={['sp-subtitle', touch ? null : 'sp-truncate', ink].filter(Boolean).join(' ')}>{subtitle}</span>
 			</span>
 		)
 		const text = (
 			<>
 				{words}
+				{asRead && !touch && line.price != null ? <span className="sp-subtitle sp-nowrap">{lineMeta(line, true)}</span> : null}
 				{line.price == null ? <span className="sp-subtitle sp-nowrap">No price</span> : <LineAmount line={line} compact />}
 			</>
 		)
@@ -631,7 +639,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				: null}
 			{mismatch
 				? (
-					<ListItem color="warning" count="!">
+					<ListItem color="warning" count="!"
+						actions={<Button variant="outline" size="small" onClick={() => open('receipt')}>Compare</Button>}>
 						<span className="sp-data sp-ink-warning">
 							The order comes to <strong className="sp-strong">{money(sums.total)}</strong> but the receipt says <strong className="sp-strong">{money(printed)}</strong> - a line may be missing.
 						</span>
@@ -642,8 +651,34 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	)
 
 	const shownFiles = savedFiles.filter(f => !gone.includes(f.id))
+	// before the save the receipt is an upload, not an attachment (3a): shown to read the lines against
+	const receiptPages = receipt?.pages > 1 ? `${receipt.pages} pages` : null
 	const attachmentsCard = scan
-		? null
+		? touch
+			? (
+				<Card>
+					<ListItem onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}`}
+						mark={<Mark size="medium" fill={scan.file.hasThumbnail ? 'photo' : 'none'} text={scan.file.kind === 'pdf' && scan.file.hasThumbnail ? 'PDF' : undefined} aria-hidden="true" aria-label="Receipt">
+							{scan.file.hasThumbnail ? <img src={scanThumbnailUrl(scan.file.key)} alt="" /> : <span>{scan.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
+						</Mark>}>
+						<span className="sp-stacked sp-grow">
+							<span className="sp-title sp-truncate">{receiptPages ? `Receipt, ${receiptPages}` : 'Receipt'}</span>
+							<span className="sp-subtitle">Tap to see it at full size</span>
+						</span>
+					</ListItem>
+				</Card>
+			)
+			: (
+				<Card>
+					<div className="sp-row-flex sp-gap-8">
+						<span className="sp-section-label">Receipt</span>
+						<span className="sp-meta sp-truncate">{[scan.file.name, receiptPages].filter(Boolean).join(dot)}</span>
+					</div>
+					<button type="button" className="or-receipt" onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}, at full size`}>
+						<img src={receipt.src} alt="" />
+					</button>
+				</Card>
+			)
 		: (
 			<Card>
 				<span className="sp-section-label">Attachments{dot}{shownFiles.length + files.length}</span>
@@ -662,13 +697,18 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		)
 
 	const fixCount = Object.keys(shown).length
+	// a note beside a value the receipt gave, while it is still the value read (3a)
+	const lookAt = field => (scan?.unclear?.includes(field) && draft[field] === start[field] ? { note: field === 'vendor' ? 'needs a look' : 'check', noteType: 'warning' } : {})
+	const vendorNote = !scan || !scan.vendor || draft.vendor !== start.vendor ? {}
+		: scan.unclear?.includes('vendor') ? lookAt('vendor')
+			: scan.vendorMatched ? { note: 'matched existing vendor', noteType: 'success' } : { note: 'new vendor, created on save' }
 	const fields = (
 		<>
-			<Field label="Vendor" {...problem(shown.vendor)}>
+			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
 				<VendorPicker vendors={vendors.data ?? []} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
 			</Field>
 			<div className="sp-fields">
-				<Field label="Date" {...problem(shown.date)}>
+				<Field label="Date" {...lookAt('date')} {...problem(shown.date)}>
 					<DateField value={draft.date} max={today()} danger={!!shown.date} locale={activeLocaleCode()}
 						onChange={date => set({ date })} />
 				</Field>
@@ -696,10 +736,10 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				)
 				: null}
 			<div className="sp-fields">
-				<Field label="Discount" unit={currencySymbol()}>
+				<Field label="Discount" unit={currencySymbol()} {...lookAt('discount')}>
 					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={discount => set({ discount })} />
 				</Field>
-				<Field label="Shipping fee" unit={currencySymbol()}>
+				<Field label="Shipping fee" unit={currencySymbol()} {...lookAt('shipping')}>
 					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
@@ -742,8 +782,32 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			</Card>
 		)
 
+	/* A monthly limit this order takes its category past (8b): said where the save is, amber, and
+	   never in the way of the save. The order's total is shared between its categories. */
+	const dated = /^\d{4}-\d{2}-\d{2}$/.test(draft.date ?? '')
+	const limits = useApi(getOrderLimits, [draft.date, draft.categories, orderId ?? ''], { enabled: dated && draft.categories.length > 0 })
+	const share = draft.categories.length ? sums.total / draft.categories.length : 0
+	const crossed = dated && draft.categories.length && limits.data
+		? limits.data.limits.filter(l => l.spend + share > l.budget + 0.005)
+		: []
+	const monthName = dated ? monthNames('long')[Number(draft.date.slice(5, 7)) - 1] : ''
+	const limitNotice = crossed.length
+		? crossed.map(l => (
+			<ListItem key={l.name} color="warning" count="!">
+				<span className="sp-stack sp-gap-6">
+					<span className="sp-title sp-ink-warning">
+						{l.spend > l.budget ? `${l.name} is already over its limit` : `This order puts ${l.name} over its limit`}
+					</span>
+					<span className="sp-meta sp-ink-warning">
+						{currency(l.spend + share, 0)} of {currency(l.budget, 0)} for {monthName}. You can still save. Nothing is blocked.
+					</span>
+				</span>
+			</ListItem>
+		))
+		: null
+
 	const leaveWord = creating ? 'Discard' : 'Cancel'
-	const commitWord = saving ? 'Saving…' : creating ? 'Create' : 'Save'
+	const commitWord = saving ? 'Saving…' : crossed.length ? (creating ? 'Create anyway' : 'Save anyway') : creating ? 'Create' : 'Save'
 	const leaveButton = <Button key="leave" variant="outline" onClick={discard}>{leaveWord}</Button>
 	const commitButton = lost ? null : <Button key="save" disabled={saving} onClick={save}>{commitWord}</Button>
 	const state = lost ? 'Not saved' : dirty ? 'Unsaved changes' : creating ? 'Nothing saved yet' : null
@@ -755,6 +819,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			footerCommits
 		>
 			{scan ? <span className="sp-section-label">Totals</span> : null}
+			{touch ? null : limitNotice}
 			<div className="sp-stack">
 				{scan
 					? <>
@@ -834,7 +899,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{lostNotice}{notice}{itemsCard}{attachmentsCard}{detailsCard}{scan ? totalsCard : null}{touchBar}{sheet}{dialog}{viewer}{guard.prompt}
+			{lostNotice}{notice}{itemsCard}{attachmentsCard}{detailsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{viewer}{guard.prompt}
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
@@ -881,6 +946,24 @@ function useStacked(ref) {
 	return stacked
 }
 
+/** The uploaded receipt as the viewer shows it, every page of it (17d: receipt preview). */
+const receiptOf = file => ({
+	key: 'receipt', name: file.name, kind: file.kind, download: scanFileUrl(file.key),
+	src: file.kind === 'pdf' ? scanPageUrl(file.key, 0) : scanFileUrl(file.key),
+	...(file.kind === 'pdf'
+		? { pages: file.pages ?? null, pageSrc: i => scanPageUrl(file.key, i), countPages: () => getScanPages(file.key).then(r => r.pages) }
+		: {})
+})
+
+const UNCLEAR_FIELD = { vendor: 'the vendor name', date: 'the date', shipping: 'the shipping fee', discount: 'the discount', total: 'the printed total' }
+// what was hard to read on a line of a scanned receipt, by the part the reading named (3a)
+const UNCLEAR_LINE = {
+	price: 'price unclear - check against the receipt',
+	title: 'name was partly readable - check the spelling',
+	quantity: 'quantity unclear - check against the receipt',
+	line: 'Check this line against the receipt'
+}
+
 const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${dot}no photo`)
 
 const detailsLine = d => [d.categories.join(', '), d.kind, d.reference].filter(Boolean).join(dot)
@@ -905,19 +988,21 @@ function notices({ origin, scan, lines, leave, touch }) {
 	if (!scan) return null
 	if (!scan.linesRead)
 		return (
-			<Alert mark="!" title="Nothing was read from this receipt.">
-				Add the lines and the details yourself. The receipt is kept with the order when you create it.
+			<Alert mark="!" title={scan.failure === 'empty' ? 'No lines were read from this receipt.' : 'Nothing was read from this receipt.'}>
+				{scan.failure === 'empty' ? 'Add the lines yourself.' : 'Add the lines and the details yourself.'} The receipt is kept with the order when you create it.
 			</Alert>
 		)
+	const unclear = lines.filter(l => l.uncertain).length
+	const hard = [unclear ? plural(unclear, 'line') : null, ...(scan.unclear ?? []).map(f => UNCLEAR_FIELD[f])].filter(Boolean)
 	const looks = [
 		...(scan.vendorMatched ? [] : ['the vendor is new and will be created']),
 		...(scan.total == null ? ['no printed total was found'] : []),
 		...(scan.checks?.some(c => c.id === 'vat' && c.warning) ? ['it was not clear if the prices include VAT'] : [])
 	]
-	const unclear = lines.filter(l => l.uncertain).length
-	const count = looks.length + unclear
+	const count = looks.length + unclear + (scan.unclear?.length ?? 0)
 	if (!count) return null
-	const said = [unclear ? `${unclear === 1 ? '1 line was' : `${unclear} lines were`} hard to read` : null, ...looks].filter(Boolean)
+	const one = hard.length === 1 && unclear < 2
+	const said = [hard.length ? `${names(hard)} ${one ? 'was' : 'were'} hard to read` : null, ...looks].filter(Boolean)
 	return (
 		<Alert mark="!" title={count === 1 ? '1 value needs a look.' : `${count} values need a look.`}
 			action={unclear && !touch ? <Button variant="outline" size="small" onClick={() => focusFirst('.sp-list-item[data-color="warning"]')}>Jump to first</Button> : null}>

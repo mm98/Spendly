@@ -64,7 +64,7 @@ function Created({ order, created, onGone }) {
 					const lines = draft.lines.map(({ id, photo, ...line }) => ({ ...line, key: `undo-${id}` }))
 					navigate('/orders/new?source=empty', { replace: true, state: { seed: { ...draft, lines, reference: created.reference } } })
 				}
-				toast({ message: 'The order was not kept. What you typed is back in the form.' })
+				toast({ message: created.documentKey ? 'The order was not kept. The receipt is back for you to check.' : 'The order was not kept. What you typed is back in the form.' })
 			})
 			.catch(e => {
 				setBusy(false)

@@ -3,6 +3,7 @@ import { pick, reject } from './variants.js'
 import { Choice, FieldGroup } from './Choice.jsx'
 
 const MESSAGE = { hint: null, warning: 'warning', danger: 'danger' }
+const NOTE = { hint: null, success: 'success', warning: 'warning' }
 
 export function Field({
 	label,
@@ -14,6 +15,9 @@ export function Field({
 	chevron,
 	message,
 	messageType = 'hint',
+	// a word beside the label about where the value came from (3a: "matched existing vendor")
+	note,
+	noteType = 'hint',
 	required = false,
 	children,
 	...rest
@@ -81,12 +85,23 @@ export function Field({
 		</FieldGroup>
 	)
 
+	const labelled = (
+		<label className="sp-field__label" htmlFor={fieldId} id={fieldId + '-label'}>
+			{label}
+			{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
+		</label>
+	)
+	const noteColor = note ? pick(NOTE, noteType, 'noteType', 'Field') : null
 	return (
 		<div className="sp-field">
-			<label className="sp-field__label" htmlFor={fieldId} id={fieldId + '-label'}>
-				{label}
-				{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
-			</label>
+			{note
+				? (
+					<div className="sp-row-flex sp-gap-8">
+						{labelled}
+						<span className="sp-field__help" {...(noteColor ? { 'data-color': noteColor } : {})}>{note}</span>
+					</div>
+				)
+				: labelled}
 			{wrapped}
 			{message
 				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>

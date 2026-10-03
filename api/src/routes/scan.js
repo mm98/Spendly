@@ -203,36 +203,55 @@ router.delete('/documents/:key', (req, res) => {
 router.get('/draft/:key', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
-	const settings = selectDraftDefaults.get(req.user.id)
 
+	/* ?progress=stream answers in NDJSON: `{ progress: { found, lines } }` lines while the file is
+	   read (3a step 2), then `{ draft }`, the same object the plain answer is. */
+	const streaming = req.query.progress === 'stream'
+	if (streaming) {
+		res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
+		res.flushHeaders()
+	}
 	const hadCachedRead = upload.ai_read_json != null
 	const { read, failure } = hadCachedRead
-		? { read: JSON.parse(upload.ai_read_json), failure: null } : await parseReceipt(upload, req.today)
+		? { read: JSON.parse(upload.ai_read_json), failure: null }
+		: await parseReceipt(upload, req.today, progress => { if (streaming) res.write(JSON.stringify({ progress }) + '\n') })
 	// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
-	if (!hadCachedRead && !failure) {
+	if (!hadCachedRead && !failure && read?.lines.length) {
 		saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
-		if (read && upload.sha256) keepReading.run(req.user.id, upload.sha256, JSON.stringify(read))
+		if (upload.sha256) keepReading.run(req.user.id, upload.sha256, JSON.stringify(read))
 	}
+	const draft = draftOf(req, upload, read, failure)
+	if (streaming) res.end(JSON.stringify({ draft }) + '\n')
+	else res.json(draft)
+})
 
+/** The review form's starting values, or the blank draft when nothing was read. `failure` says why
+    there are no lines: 'billing', 'failed', 'unread' (no reading service) or 'empty' (no lines found). */
+function draftOf(req, upload, read, failure) {
+	const settings = selectDraftDefaults.get(req.user.id)
 	const file = {
 		key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.has_thumbnail), pages: upload.pages ?? null,
 		meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(upload.size)}`
 	}
 
-	if (!read) {
-		return res.json({
+	if (!read?.lines.length) {
+		const partial = read ? findVendorIdByAnyName(req.user.id, read.vendor) : null
+		return {
 			documentKey: upload.id, file,
-			vendor: '', vendorMatched: false, date: req.today,
+			vendor: read ? (partial ? selectVendorName.get(partial, req.user.id)?.name : read.vendor) : '',
+			vendorMatched: Boolean(partial), date: read?.date ?? req.today,
 			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-			deliveredDate: req.today, returnedDate: req.today,
+			deliveredDate: req.today, returnedDate: req.today, reference: read?.reference ?? '',
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: null,
+			failure: read ? 'empty' : failure === 'billing' ? 'billing' : process.env.ANTHROPIC_API_KEY ? 'failed' : 'unread',
+			found: read ? { vendor: read.vendor, date: read.date } : null,
 			reconciled: failure === 'billing'
 				? 'This document was not read: the reading service reports a billing problem, such as no credits left. Add the line items and totals below yourself, or upload it again once that is fixed.'
 				: process.env.ANTHROPIC_API_KEY
 					? 'This document could not be read automatically. Add the line items and totals below yourself.'
 					: 'This document has not been read automatically. Add the line items and totals below yourself.',
-			checks: [], duplicate: null
-		})
+			checks: [], unclear: [], duplicate: null
+		}
 	}
 
 	const vendorId = findVendorIdByAnyName(req.user.id, read.vendor)
@@ -251,8 +270,9 @@ router.get('/draft/:key', async (req, res) => {
 		}
 	}
 
-	res.json({
-		documentKey: upload.id, file,
+	return {
+		documentKey: upload.id, file, failure: null, found: null,
+		reference: read.reference ?? '', unclear: read.unclear ?? [],
 		// The document's own spelling once reached the review screen even when the vendor
 		// matched -- a receipt printing "BILKA" against a vendor named "Bilka" showed the
 		// document's casing on a field the picker's "matched" chip claimed was already right.
@@ -265,7 +285,8 @@ router.get('/draft/:key', async (req, res) => {
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({
 			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price,
-			uncertain: l.uncertain, meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
+			uncertain: l.uncertain, unclearPart: l.unclearPart ?? null,
+			meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
 		})),
 		// The printed total or null, never the lines' own sum: the review checks the lines against it.
 		remainder: null, total: read.total,
@@ -298,8 +319,8 @@ router.get('/draft/:key', async (req, res) => {
 				}
 		],
 		duplicate
-	})
-})
+	}
+}
 
 /** Turns a reviewed draft into the new order's own attachment, so the browser doesn't have to
     upload the same file a second time -- an INSERT ... SELECT, so the bytes go table-to-table
