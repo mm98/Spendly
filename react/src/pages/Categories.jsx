@@ -16,7 +16,7 @@ import { NUMBER_LOCALE, amountRound, currency, dot, plural } from '../api/format
 import { useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
-	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
+	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
 const SORTS = [
@@ -68,6 +68,8 @@ export default function Categories() {
 	const sort = SORTS.find(s => s.id === params.get('sort')) ?? opening
 	const [menuFor, setMenuFor] = useState(null)
 	const [deleting, setDeleting] = useState(null)
+	// the row whose Merge into… popover is open (5d), then the two 5j's dialog compares
+	const [picking, setPicking] = useState(null)
 	const [merging, setMerging] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const column = useRef(null)
@@ -107,14 +109,15 @@ export default function Categories() {
 	}
 
 	const merge = target => {
+		const { source } = merging
 		setBusy(true)
-		refocus(merging, shown.findIndex(r => r.id === merging.id))
-		mergeCategory(merging.id, target.id)
+		refocus(source, shown.findIndex(r => r.id === source.id))
+		mergeCategory(source.id, target.id)
 			.then(() => {
 				invalidateCategoryData()
 				invalidateVendorData()
 				state.refresh()
-				toast({ message: `${merging.name} is merged into ${target.name}.` })
+				toast({ message: `${source.name} is merged into ${target.name}.` })
 				setMerging(null)
 			})
 			.catch(e => sayFailure(toast, e, 'The categories were not merged. Try again.'))
@@ -211,10 +214,15 @@ export default function Categories() {
 					),
 					<ListCell key="x" cell="menu">
 						<RowMenu noun="Category" label={c.name} open={menuFor === c.id}
-							onToggle={() => setMenuFor(menuFor === c.id ? null : c.id)} onClose={() => setMenuFor(null)}>
+							onToggle={() => { setPicking(null); setMenuFor(menuFor === c.id ? null : c.id) }}
+							onClose={() => { setMenuFor(null); setPicking(null) }}
+							panel={picking === c.id
+								? box => <MergePicker kind="category" source={c} options={all} anchor={box} onClose={() => setPicking(null)}
+									onPick={target => { setPicking(null); setMerging({ source: c, target }) }} />
+								: null}>
 							<MenuItem icon="external-link" onClick={() => navigate(`/orders?category=${c.id}`)}>Open in the order list</MenuItem>
 							<MenuItem icon="pencil" onClick={() => navigate(`/categories/${c.id}/edit`)}>Edit category</MenuItem>
-							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setMerging(c) }}>Merge into…</MenuItem>
+							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(c.id) }}>Merge into…</MenuItem>
 							<MenuSeparator />
 							<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
 						</RowMenu>
@@ -232,7 +240,7 @@ export default function Categories() {
 				? <DeleteCategory category={deleting} busy={busy} onConfirm={remove} onCancel={() => setDeleting(null)} />
 				: null}
 			{merging
-				? <MergeDialog kind="category" source={merging} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				? <MergeDialog kind="category" source={merging.source} initial={merging.target} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)

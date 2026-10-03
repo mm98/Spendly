@@ -1,20 +1,23 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, Panel } from '../components/Card.jsx'
-import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
+import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace } from '../components/Combobox.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { TokensField } from '../components/Inputs.jsx'
+import { SearchInput, TokensField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu } from '../components/Overlays.jsx'
-import { SaveBar } from '../components/Touch.jsx'
-import { Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Popover } from '../components/Overlays.jsx'
+import { Scrim } from '../components/Shell.jsx'
+import { SaveBar, Sheet } from '../components/Touch.jsx'
+import { Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
 import { useApi } from '../api/useApi.js'
-import { failureMessage, getCategories, getCategory, getOrders } from '../api/client.js'
-import { currency, dot, fullStop, plural, shortDate } from '../api/format.js'
+import { failureMessage, getCategories, getCategory, getOrders, vendorTextMatch } from '../api/client.js'
+import { amount, currency, dot, fullStop, plural, shortDate } from '../api/format.js'
+import { looksAlike, vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
 
@@ -46,15 +49,16 @@ export function SortControl({ sorts, value, onChange }) {
 }
 
 /** A row's kebab and its menu. A click inside stays out of the row, which opens the record. The
-    button names its row (c9), so a list of the page's buttons tells the rows apart. */
-export function RowMenu({ noun, label, open, onToggle, onClose, children }) {
+    button names its row (c9), so a list of the page's buttons tells the rows apart. `panel` draws a
+    popover an item opened (5a) in the menu's place: `box => <MergePicker anchor={box} />`. */
+export function RowMenu({ noun, label, open, onToggle, onClose, panel, children }) {
 	const box = useRef(null)
-	useDismiss(box, open, onClose)
+	useDismiss(box, open || !!panel, onClose)
 	return (
-		<Anchor ref={box} open={open} onClick={ev => ev.stopPropagation()}>
+		<Anchor ref={box} open={open || !!panel} onClick={ev => ev.stopPropagation()}>
 			<IconButton icon="dots-vertical" aria-label={`${noun} menu, ${label}`} aria-haspopup="menu"
-				aria-expanded={open ? 'true' : 'false'} onClick={onToggle} />
-			<Menu position="floating" aria-label={label}>{children}</Menu>
+				aria-expanded={open || panel ? 'true' : 'false'} onClick={onToggle} />
+			{panel ? panel(box) : <Menu position="floating" aria-label={label}>{children}</Menu>}
 		</Anchor>
 	)
 }
@@ -184,10 +188,11 @@ export function RecentLoading() {
 }
 
 /** The end-of-life card while the record loads: `title` and `body` are the words it most often
-    says, held unseen so the card keeps their size. `action` holds the room of its footer button. */
-export function EndLoading({ label, title, body, action }) {
+    says, held unseen so the card keeps their size. `action` holds the room of its footer button, `after` of what is under it. */
+export function EndLoading({ label, title, body, action, after }) {
 	return (
-		<Card aria-busy="true" {...(action ? { footer: [<Held key="action" shape={action} />], footerCommits: true } : {})}>
+		<Card aria-busy="true" {...(action ? { footer: [<Held key="action" shape={action} />], footerCommits: true } : {})}
+			{...(after ? { after: <Held shape={after} /> } : {})}>
 			<span className="sp-section-label">{label}</span>
 			<Well>
 				<Held shape={<span className="sp-title">{title}</span>}><Skeleton shape="line" data-w="62pc" data-h="13" /></Held>
@@ -253,29 +258,123 @@ export function DeleteCategory({ category, busy, onConfirm, onCancel }) {
 	)
 }
 
-/** Archiving a vendor, confirmed in a dialog. It can be undone, so the commit is the primary one. */
-export function ConfirmArchive({ vendor, busy, onConfirm, onCancel }) {
+/** Archives a vendor or brings it back, and says so in a toast with Undo (6f, 16a): it can be
+    undone, so it asks nothing first. `done` runs after the change and after its undo. */
+export function archiveVendor({ vendor, to, update, toast, done }) {
+	return update(vendor.id, { archived: to }).then(() => {
+		done()
+		toast({
+			message: to ? `${vendor.name} is archived.` : `${vendor.name} is back in the list.`,
+			undo: {
+				label: 'Undo',
+				onClick: () => update(vendor.id, { archived: !to }).then(done, e => sayFailure(toast, e, 'That did not change back. Try again.'))
+			}
+		})
+	})
+}
+
+// the records a merge can go into: look-alikes first, then the most recently used (5a)
+function mergeTargets(kind, source, options) {
+	const others = options.filter(o => o.id !== source.id && !o.archived)
+	if (kind !== 'vendor') return others.sort((a, b) => (b.orders ?? 0) - (a.orders ?? 0))
+	const alike = o => o.id === source.duplicateOf || o.duplicateOf === source.id || looksAlike(source, o)
+	return others.map(o => ({ o, alike: alike(o) }))
+		.sort((a, b) => (b.alike - a.alike) || String(b.o.lastOrder ?? '').localeCompare(String(a.o.lastOrder ?? '')))
+		.map(({ o }) => o)
+}
+
+/** Merge into… (5a, 5d): a popover hung from `anchor` (a sheet on a phone) that picks the target;
+    picking is the action, so it has no buttons, and 5j's dialog compares next. */
+export function MergePicker({ kind, source, options, anchor, position = 'end', onPick, onClose }) {
+	const touch = useShellShape() === 'touch'
+	const panel = useRef(null)
+	const sheet = useRef(null)
+	const [find, setFind] = useState('')
+	const vendor = kind === 'vendor'
+	const noun = vendor ? 'vendors' : 'categories'
+	usePanelPlace(anchor, panel, !touch)
+	useFocusTrap(sheet, touch, 'input')
+	useEffect(() => { if (!touch) panel.current?.querySelector('input')?.focus({ preventScroll: true }) }, [touch])
+	const targets = useMemo(() => mergeTargets(kind, source, options), [kind, source, options])
+	const needle = find.trim().toLowerCase()
+	const shown = needle
+		? targets.filter(o => (vendor ? vendorTextMatch(o, needle).matches : o.name.toLowerCase().includes(needle)))
+		: targets
+	const back = () => anchor.current?.querySelector('[aria-expanded]')?.focus()
+	const keys = ev => {
+		if (ev.key === 'Escape') { ev.stopPropagation(); back(); onClose() }
+		// down from the search goes into the list
+		if (ev.key === 'ArrowDown' && ev.target.tagName === 'INPUT') {
+			ev.preventDefault()
+			panel.current?.querySelector('.sp-menu__item')?.focus()
+		}
+	}
+	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
+	const orders = source.orders ?? 0
+	const moving = orders ? `Its ${plural(orders, 'order')} ${orders === 1 ? 'moves' : 'move'} to the ${vendor ? 'vendor' : 'category'} you pick` : null
+	const head = (
+		<>
+			<span className="sp-title sp-truncate">Merge {source.name} into</span>
+			<span className="sp-subtitle">{vendor
+				? `${moving ? `${moving}, its` : 'Its'} name becomes an alias there, and this record is deleted.`
+				: `${moving ? `${moving}, and` : 'It is merged into the category you pick, and'} ${source.name} is deleted.`}</span>
+		</>
+	)
+	const search = <SearchInput value={find} onChange={setFind} placeholder={`Search ${amount(targets.length, 0)} ${noun}…`} aria-label={`Search ${noun}`} />
+	const list = (
+		<Menu position="plain" aria-label={vendor ? 'Vendor to merge into' : 'Category to merge into'}>
+			{shown.length
+				? shown.map(o => (
+					<MenuItem key={o.id} onClick={() => { back(); onPick(o) }}>
+						{markOf(o)}
+						<span className="sp-truncate">{o.name}</span>
+						<span className="sp-grow" />
+						<span className="sp-meta sp-nowrap">{plural(o.orders ?? 0, 'order')}</span>
+						<Icon name="chevron-right" size={13} />
+					</MenuItem>
+				))
+				: <ComboboxEmpty role="none">{targets.length ? `No ${vendor ? 'vendor' : 'category'} matches "${find.trim()}".` : `There are no other ${noun} yet.`}</ComboboxEmpty>}
+		</Menu>
+	)
+	if (!touch) return (
+		<Popover ref={panel} position={position} role="dialog" aria-label={`Merge ${source.name} into`} onKeyDown={keys} head={head} search={search}>
+			{list}
+		</Popover>
+	)
+	// on a phone the same parts fill a sheet from the bottom edge
+	return createPortal(
+		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) { back(); onClose() } }}>
+			<Sheet ref={sheet} role="dialog" aria-modal="true" aria-label={`Merge ${source.name} into`} tabIndex={-1} onKeyDown={keys}>
+				<div className="sp-popover__head">{head}</div>
+				{search}
+				<div className="sp-popover__list" ref={panel}>{list}</div>
+			</Sheet>
+		</Scrim>,
+		document.body
+	)
+}
+
+/** A record page's Merge button (5c, 5f), with its MergePicker hung from it. `merge` is
+    `{ open, onToggle, onClose, picker: box => <MergePicker anchor={box} /> }`. */
+export function MergeButton({ merge, size = 'standard', disabled = false, children }) {
+	const touch = useShellShape() === 'touch'
+	const box = useRef(null)
+	// a phone's picker is a sheet with its own way out
+	useDismiss(box, merge.open && !touch, merge.onClose)
 	return (
-		<Dialog onCancel={onCancel}>
-			<DialogTitle>Archive {vendor.name}?</DialogTitle>
-			<DialogBody>
-				It leaves the vendor list and the order list's filters. {vendor.orders
-					? `Its ${plural(vendor.orders, 'order')} ${vendor.orders === 1 ? 'keeps' : 'keep'} it as their vendor, and`
-					: 'Its details stay, and'} the Archived view brings it back.
-			</DialogBody>
-			<DialogActions>
-				<Button variant="outline" onClick={onCancel}>Cancel</Button>
-				<span className="sp-grow" />
-				<Button disabled={busy} onClick={onConfirm}>Archive</Button>
-			</DialogActions>
-		</Dialog>
+		<Anchor ref={box} open={merge.open && !touch}>
+			<Button variant="outline" size={size} fullWidth aria-haspopup="dialog" aria-expanded={merge.open ? 'true' : 'false'} disabled={disabled}
+				onClick={merge.onToggle}>{children}</Button>
+			{merge.open ? merge.picker(box) : null}
+		</Anchor>
 	)
 }
 
 /** Merging a vendor or a category into another (5j). The target is searched, never the source
-    itself; what the result will be is shown before the button, which carries the count. */
-export function MergeDialog({ kind, source, options, busy, onConfirm, onCancel }) {
-	const [target, setTarget] = useState(null)
+    itself; what the result will be is shown before the button, which carries the count. `initial`
+    is the target a picker already chose. */
+export function MergeDialog({ kind, source, options, initial = null, busy, onConfirm, onCancel }) {
+	const [target, setTarget] = useState(initial?.id ?? null)
 	const [query, setQuery] = useState('')
 	const vendor = kind === 'vendor'
 	const others = options.filter(o => o.id !== source.id)
@@ -283,8 +382,10 @@ export function MergeDialog({ kind, source, options, busy, onConfirm, onCancel }
 	const shown = others.filter(o => !needle || o.name.toLowerCase().includes(needle))
 	const picked = others.find(o => o.id === target) ?? null
 	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
-	const names = o => new Set([o.name, ...(o.aliases ?? [])].map(n => n.toLowerCase()))
-	const aliasCount = picked ? new Set([...(picked.aliases ?? []), ...names(source)].map(n => n.toLowerCase()).filter(n => n !== picked.name.toLowerCase())).size : 0
+	// counted as the merge writes them: one alias per spelling a receipt is matched by
+	const aliasCount = picked
+		? new Set([...(picked.aliases ?? []), source.name, ...(source.aliases ?? [])].map(vendorKey).filter(k => k && k !== vendorKey(picked.name))).size
+		: 0
 	return (
 		<Dialog onCancel={onCancel}>
 			<DialogTitle>{vendor ? 'Merge a vendor' : 'Merge a category'}</DialogTitle>

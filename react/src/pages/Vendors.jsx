@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
+import { Caption, Controls, Crumb, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
@@ -18,12 +18,30 @@ import { useListMemory } from '../app/listMemory.js'
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
 import {
-	Bar, ConfirmArchive, ConfirmDelete, MergeDialog, RowMenu, SortControl, deleteNote, isGone, sayFailure, useRefocus
+	Bar, ConfirmDelete, MergeDialog, MergePicker, RowMenu, SortControl, archiveVendor, deleteNote, isGone, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
 const SHOWN = [{ value: 'active', label: 'Active' }, { value: 'archived', label: 'Archived' }]
 // at this width of the list or under, the last order joins the name's second line (5k)
 const FOLD = 880
+// the address of the look-alike view, as Home links to it (10a)
+const LOOKALIKES = 'possible-duplicate'
+
+/** The look-alike view's rows: each vendor that is probably a duplicate under the one it is like
+    (the API's `duplicateOf`), the pairs in the list's order. */
+function pairedRows(vendors, by) {
+	const under = new Map()
+	for (const v of vendors) if (v.duplicateOf && !v.archived) under.set(v.duplicateOf, [...(under.get(v.duplicateOf) ?? []), v])
+	const rows = []
+	const seen = new Set()
+	for (const keep of vendors.filter(v => under.has(v.id)).sort(by))
+		for (const v of [keep, ...under.get(keep.id).sort(by)]) if (!seen.has(v.id)) { seen.add(v.id); rows.push(v) }
+	return rows
+}
+
+/** A vendor's second line: favourite, orders, made by a scan (5a), and the last order when it has no column. */
+const factsOf = (v, last) => [v.favourite ? 'Favourite' : null, plural(v.orders, 'order'), v.createdByScan ? 'created by receipt scan' : null,
+	last && v.lastOrder ? `last ${last(v.lastOrder)}` : null].filter(Boolean).join(dot)
 
 const SORTS = [
 	{ id: 'spend-desc', label: 'Spend ↓', by: (a, b) => b.spend - a.spend },
@@ -48,30 +66,47 @@ export default function Vendors() {
 	const query = touch ? '' : params.get('q') ?? ''
 	const sort = SORTS.find(s => s.id === params.get('sort')) ?? opening
 	const archived = params.get('archived') === 'yes'
+	// only the vendors that look like another, in pairs (10a): Home's "look like duplicates" opens it
+	const alike = !archived && params.get('flag') === LOOKALIKES
 	const [menuFor, setMenuFor] = useState(null)
 	const [deleting, setDeleting] = useState(null)
-	const [archiving, setArchiving] = useState(null)
+	// the row whose Merge into… popover is open, then the two vendors 5j's dialog compares
+	const [picking, setPicking] = useState(null)
 	const [merging, setMerging] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const column = useRef(null)
 	const width = useWidth(column)
 	const folded = !touch && width > 0 && width <= FOLD
 	// a page of rows per Load more, kept for Back along with the scroll
-	const { pages, setPages, restored } = useListMemory(`vendors?${query}&${sort.id}&${archived}`)
+	const { pages, setPages, restored } = useListMemory(`vendors?${query}&${sort.id}&${archived}&${alike}`)
 	useEffect(() => { if (vendors.data) restored() }, [vendors.data])
 
-	const write = (q, sortId, view = archived) => {
+	const write = (q, sortId, view = archived, flag = alike) => {
 		const next = {}
 		if (q) next.q = q
 		if (sortId !== opening.id) next.sort = sortId
 		if (view) next.archived = 'yes'
+		if (flag && !view) next.flag = LOOKALIKES
 		setParams(next, { replace: true })
 	}
 
-	const rows = (vendors.data ?? [])
-		.filter(v => v.archived === archived && vendorTextMatch(v, query).matches)
-		.sort((a, b) => (b.favourite - a.favourite) || sort.by(a, b))
+	// Home's Merge names one pair (16a): its comparison opens here, once, over the look-alike view
+	const location = useLocation()
+	const asked = location.state?.merge
+	useEffect(() => {
+		if (!asked || !vendors.data) return
+		const source = vendors.data.find(v => v.id === asked.source)
+		const target = vendors.data.find(v => v.id === asked.target)
+		if (source && target) setMerging({ source, target })
+		navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null })
+	}, [asked, vendors.data])
+
+	const all = vendors.data ?? []
+	const order = (a, b) => (b.favourite - a.favourite) || sort.by(a, b)
+	const paired = alike ? pairedRows(all, order) : null
+	const rows = (paired ?? all.filter(v => v.archived === archived).sort(order)).filter(v => vendorTextMatch(v, query).matches)
 	const shown = rows.slice(0, pages * step)
+	const nameOf = id => all.find(v => v.id === id)?.name
 	const refocus = useRefocus(vendors.data, '.sp-table [aria-haspopup="menu"]', '.sp-controls input, .sp-controls a')
 
 	const remove = () => {
@@ -89,36 +124,28 @@ export default function Vendors() {
 			.finally(() => setBusy(false))
 	}
 
-	// archiving can be undone, so it says so in a toast that offers the way back
+	// archiving can be undone, so it asks nothing and says so in a toast that offers the way back (6f)
 	const setArchived = (vendor, to) => {
 		setBusy(true)
 		refocus(vendor, shown.findIndex(r => r.id === vendor.id))
-		updateVendor(vendor.id, { archived: to })
-			.then(() => {
-				invalidateVendorData()
-				vendors.refresh()
-				setArchiving(null)
-				toast({
-					message: to ? `${vendor.name} archived.` : `${vendor.name} is back in the list.`,
-					undo: { label: 'Undo', onClick: () => updateVendor(vendor.id, { archived: !to }).then(() => { invalidateVendorData(); vendors.refresh() }) }
-				})
-			})
+		archiveVendor({ vendor, to, update: updateVendor, toast, done: () => { invalidateVendorData(); vendors.refresh() } })
 			.catch(e => {
-				if (isGone(e)) { vendors.refresh(); setArchiving(null) }
+				if (isGone(e)) vendors.refresh()
 				sayFailure(toast, e, 'That did not change. Try again.')
 			})
 			.finally(() => setBusy(false))
 	}
 
 	const merge = target => {
+		const { source } = merging
 		setBusy(true)
-		refocus(merging, shown.findIndex(r => r.id === merging.id))
-		mergeVendor(merging.id, target.id)
+		refocus(source, shown.findIndex(r => r.id === source.id))
+		mergeVendor(source.id, target.id)
 			.then(() => {
 				invalidateVendorData()
 				invalidateCategoryData()
 				vendors.refresh()
-				toast({ message: `${merging.name} is merged into ${target.name}.` })
+				toast({ message: `${source.name} is merged into ${target.name}.` })
 				setMerging(null)
 			})
 			.catch(e => sayFailure(toast, e, 'The vendors were not merged. Try again.'))
@@ -141,6 +168,13 @@ export default function Vendors() {
 				: <Button to="/vendors/new">New vendor</Button>}
 		</Controls>
 	)
+	const crumbs = alike
+		? <Filters><Crumb name="the possible duplicates filter" onRemove={() => write(query, sort.id, false, false)}>Possible duplicates</Crumb></Filters>
+		: null
+	// in the look-alike view a probable duplicate names the vendor it is like
+	const likeNote = v => (alike && v.duplicateOf
+		? <>{dot}<span className="sp-ink-warning">possible duplicate of {nameOf(v.duplicateOf)}</span></>
+		: null)
 
 	let body
 	if (!vendors.data && vendors.error) body = <Failed what="Your vendors" error={vendors.error} onRetry={vendors.refresh} />
@@ -163,6 +197,15 @@ export default function Vendors() {
 			</Empty>
 		</Card>
 	)
+	else if (alike && !paired.length) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No vendors look like duplicates</EmptyTitle>
+				<EmptyBody>Two vendors look alike when their names are almost the same, or when they have the same VAT number.</EmptyBody>
+				<Button variant="outline" size="small" onClick={() => write(query, sort.id, false, false)}>Show all vendors</Button>
+			</Empty>
+		</Card>
+	)
 	else if (!rows.length) body = (
 		<Card>
 			<Empty>
@@ -179,7 +222,7 @@ export default function Vendors() {
 						<VendorMark name={v.name} colour={v.colour} />
 						<Stacked>
 							<span className="sp-heading sp-truncate">{v.name}</span>
-							<span className="sp-meta">{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}{v.lastOrder ? `${dot}last ${shortDate(v.lastOrder)}` : null}</span>
+							<span className="sp-meta sp-truncate">{factsOf(v, shortDate)}{likeNote(v)}</span>
 						</Stacked>
 						<span className="sp-amount sp-nowrap">{amount(v.spend)}</span>
 					</div>
@@ -204,9 +247,7 @@ export default function Vendors() {
 						<VendorMark name={v.name} colour={v.colour} />
 						<Stacked>
 							<span className="sp-title sp-truncate">{v.name}</span>
-							<span className="sp-meta sp-truncate">
-								{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}{folded && v.lastOrder ? `${dot}last ${dayMonth(v.lastOrder)}` : null}
-							</span>
+							<span className="sp-meta sp-truncate">{factsOf(v, folded ? dayMonth : null)}{likeNote(v)}</span>
 						</Stacked>
 					</ListCell>,
 					folded ? null : (
@@ -220,14 +261,19 @@ export default function Vendors() {
 					</ListCell>,
 					<ListCell key="m" cell="menu">
 						<RowMenu noun="Vendor" label={v.name} open={menuFor === v.id}
-							onToggle={() => setMenuFor(menuFor === v.id ? null : v.id)} onClose={() => setMenuFor(null)}>
+							onToggle={() => { setPicking(null); setMenuFor(menuFor === v.id ? null : v.id) }}
+							onClose={() => { setMenuFor(null); setPicking(null) }}
+							panel={picking === v.id
+								? box => <MergePicker kind="vendor" source={v} options={all} anchor={box} onClose={() => setPicking(null)}
+									onPick={target => { setPicking(null); setMerging({ source: v, target }) }} />
+								: null}>
 							<MenuItem icon="external-link" onClick={() => navigate(`/orders?vendor=${v.id}`)}>Open in the order list</MenuItem>
 							<MenuItem icon="pencil" onClick={() => navigate(`/vendors/${v.id}/edit`)}>Edit vendor</MenuItem>
-							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setMerging(v) }}>Merge into…</MenuItem>
+							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(v.id) }}>Merge into…</MenuItem>
 							<MenuSeparator />
 							{v.archived
 								? <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, false) }}>Unarchive</MenuItem>
-								: <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchiving(v) }}>Archive</MenuItem>}
+								: <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, true) }}>Archive</MenuItem>}
 							{v.orders === 0
 								? <MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(v) }}>Delete</MenuItem>
 								: null}
@@ -241,6 +287,7 @@ export default function Vendors() {
 	return (
 		<>
 			{bar}
+			{crumbs}
 			{body}
 			{deleting
 				? (
@@ -250,11 +297,8 @@ export default function Vendors() {
 					</ConfirmDelete>
 				)
 				: null}
-			{archiving
-				? <ConfirmArchive vendor={archiving} busy={busy} onConfirm={() => setArchived(archiving, true)} onCancel={() => setArchiving(null)} />
-				: null}
 			{merging
-				? <MergeDialog kind="vendor" source={merging} options={vendors.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				? <MergeDialog kind="vendor" source={merging.source} initial={merging.target} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)

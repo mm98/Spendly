@@ -15,23 +15,24 @@ import { Alert, useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendors,
-	invalidateCategoryData, invalidateVendorData, updateVendor
+	invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor
 } from '../api/client.js'
-import { currency, isSaving, plural } from '../api/format.js'
-import { likeness, vendorKey } from '../api/names.js'
+import { currency, dot, isSaving, plural } from '../api/format.js'
+import { likeness, looksAlike, vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
-	CategoryTokens, CommitBar, ConfirmArchive, ConfirmDelete, EndLoading, GoneNotice, RecentLoading, RecentOrders, RecordPage, SWATCHES,
-	SummaryLoading, deleteNote, focusFirst, hold, isGone, pickedColour, sayFailure, storedColour, useLeaveGuard
+	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, MergeButton, MergeDialog, MergePicker, RecentLoading, RecentOrders, RecordPage, SWATCHES,
+	SummaryLoading, archiveVendor, deleteNote, focusFirst, hold, isGone, pickedColour, sayFailure, storedColour, useLeaveGuard
 } from './vendorsCategories.jsx'
 
 /** A vendor, created (5b) or edited (5c): one page, one form, one rail. */
 export default function VendorForm() {
 	const { id } = useParams()
-	// once deleted, the record is not read again: the page is on its way out
-	const [gone, setGone] = useState(false)
-	const record = useApi(getVendor, [id], { enabled: Boolean(id) && !gone })
+	// once deleted or merged, that record is not read again (the page is on its way out); another one is
+	const [gone, setGone] = useState(null)
+	const record = useApi(getVendor, [id], { enabled: Boolean(id) && gone !== id })
+	const going = on => setGone(on ? id : null)
 	const list = useListReturn('vendors')
 	// the last record stays in hand while the next one loads, so it has to be the one the address names
 	if (id && record.data?.id !== id) {
@@ -41,9 +42,9 @@ export default function VendorForm() {
 					back={{ to: list, label: 'Open Vendors' }} />
 			</div>
 		)
-		return <VendorFields key="loading" vendor={LOADING} loading loadingId={id} onGone={setGone} />
+		return <VendorFields key="loading" vendor={LOADING} loading loadingId={id} onGone={going} />
 	}
-	return <VendorFields key={id ?? 'new'} vendor={id ? record.data ?? null : null} onGone={setGone} />
+	return <VendorFields key={id ?? 'new'} vendor={id ? record.data ?? null : null} onGone={going} />
 }
 
 // the form while the vendor is on its way: an existing record's form, every value held by a skeleton
@@ -71,7 +72,9 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
 	const [deleting, setDeleting] = useState(false)
-	const [archiving, setArchiving] = useState(false)
+	// Merge into… (5d: nothing lives only in a row's menu): the picker, then the two 5j's dialog compares
+	const [picking, setPicking] = useState(false)
+	const [merging, setMerging] = useState(null)
 	// aliases another vendor holds, which this save moves here; and the one on offer to move
 	const [moves, setMoves] = useState([])
 	const [offer, setOffer] = useState(null)
@@ -103,11 +106,12 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			? lower(taken.name) === lower(name) ? `You already have a vendor called ${taken.name}.` : `${taken.name} already has that name. Pick a different name.`
 			: `Another vendor, ${taken.name}, already matches "${name.trim()}". Pick a different name.`
 	}
-	// on leaving the field: the vendor whose name is most like this one, when it is very like it
+	// on leaving the field: the vendor most like this one, when the two look like one shop (5j)
 	const lookAlike = name => {
 		if (!name.trim() || name.trim() === start.name.trim()) return null
-		const best = others.map(v => ({ v, score: likeness(v.name, name) })).sort((a, b) => b.score - a.score)[0]
-		return best && best.score >= 0.85 && vendorKey(best.v.name) !== vendorKey(name) ? best.v : null
+		const typed = { name, aliases: values.aliases }
+		return others.filter(v => vendorKey(v.name) !== vendorKey(name) && looksAlike(v, typed))
+			.sort((a, b) => likeness(b.name, name) - likeness(a.name, name))[0] ?? null
 	}
 
 	/* A name another vendor already matches would file receipts in two places, so it is
@@ -151,7 +155,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			// an alias the name already matches says nothing more, and the API refuses it
 			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
 			favourite: values.favourite, defaultCategories: values.defaultCategories,
-			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {})
+			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {}),
+			...(fromScan && !editing ? { origin: 'scan' } : {})
 		}
 		const written = editing ? updateVendor(vendor.id, look) : createVendor(name, look)
 		written
@@ -177,22 +182,37 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			})
 	}
 
-	// archiving returns to the list, which the vendor has left; unarchiving stays on the page
+	/* Archiving asks nothing and offers Undo in its toast (6f). It returns to the list, which the
+	   vendor has left; unarchiving stays on the page. */
 	const setArchived = to => {
 		setBusy(true)
-		updateVendor(vendor.id, { archived: to })
+		archiveVendor({ vendor, to, update: updateVendor, toast, done: invalidateVendorData })
 			.then(() => {
-				invalidateVendorData()
 				setBusy(false)
-				setArchiving(false)
-				toast({ message: to ? `${vendor.name} archived.` : `${vendor.name} is back in the list.` })
 				if (to) leave()
 			})
 			.catch(e => {
 				setBusy(false)
-				setArchiving(false)
 				if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 				sayFailure(toast, e, 'That did not change. Try again.')
+			})
+	}
+
+	// the vendor is gone once merged, so the page goes back to the list
+	const merge = target => {
+		setBusy(true)
+		onGone(true)
+		mergeVendor(vendor.id, target.id)
+			.then(() => {
+				invalidateVendorData()
+				invalidateCategoryData()
+				toast({ message: `${vendor.name} is merged into ${target.name}.` })
+				leave()
+			})
+			.catch(e => {
+				setBusy(false)
+				onGone(false)
+				sayFailure(toast, e, 'The vendors were not merged. Try again.')
 			})
 	}
 
@@ -293,7 +313,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					action="See more in statistics" />
 				{!known || known.orders ? <RecentLoading /> : null}
 				<EndLoading label="End of its life" title={end.title} body={end.body}
-					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive'}</Button>} />
+					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive'}</Button>}
+					after={<Button variant="outline" size="small" fullWidth>Merge into…</Button>} />
 			</>
 		)
 		: editing
@@ -301,8 +322,13 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<>
 					<VendorSummary vendor={vendor} name={name || vendor.name} colour={storedColour(values.colour)} />
 					<RecentOrders filter={{ vendorId: vendor.id }} to={`/orders?vendor=${vendor.id}`} total={vendor.orders} />
-					<EndOfLife vendor={vendor} busy={busy} onArchive={() => setArchiving(true)} onUnarchive={() => setArchived(false)}
-						onDelete={() => setDeleting(true)} />
+					<EndOfLife vendor={vendor} busy={busy} onArchive={() => setArchived(true)} onUnarchive={() => setArchived(false)}
+						onDelete={() => setDeleting(true)}
+						merge={{
+							open: picking, onToggle: () => setPicking(!picking), onClose: () => setPicking(false),
+							picker: box => <MergePicker kind="vendor" source={vendor} options={all.data ?? []} anchor={box} position="start"
+								onClose={() => setPicking(false)} onPick={target => { setPicking(false); setMerging(target) }} />
+						}} />
 				</>
 			)
 			: (
@@ -336,8 +362,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					</ConfirmDelete>
 				)
 				: null}
-			{archiving
-				? <ConfirmArchive vendor={vendor} busy={busy} onConfirm={() => setArchived(true)} onCancel={() => setArchiving(false)} />
+			{merging
+				? <MergeDialog kind="vendor" source={vendor} initial={merging} options={all.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)
@@ -353,21 +379,23 @@ const endWords = ({ orders, archived = false }) => {
 			: 'It is out of the vendor list and the order list\'s filters. Deleting removes it outright.'
 	}
 	return orders
-		? { title: 'A vendor with orders cannot be deleted', body: `Every order must name a vendor, so its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} this one. Archiving takes it out of the list and the order list's filters, and leaves the orders as they are.` }
+		? { title: 'A vendor with orders cannot be deleted', body: `Every order must name a vendor, so its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} this one. Archiving takes it out of the list and the order list's filters, and leaves the orders as they are. If it is the same shop as another vendor, merge it into that one.` }
 		: { title: 'Nothing points at this vendor any more', body: 'Archiving keeps it out of the way; deleting removes it outright.' }
 }
 
-/** The end-of-life card (5c): Archive, or Unarchive once archived, and Delete at zero orders. */
-function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete }) {
+/** The end-of-life card (5c): Archive, or Unarchive once archived, and Delete at zero orders; under
+    them Merge into… (5d), whose picker `merge` holds. */
+function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 	const { title, body } = endWords(vendor)
 	const footer = [
 		vendor.archived
 			? <Button key="archive" variant="outline" disabled={busy} onClick={onUnarchive}>Unarchive</Button>
-			: <Button key="archive" variant="outline" onClick={onArchive}>Archive</Button>,
+			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>Archive</Button>,
 		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
 	].filter(Boolean)
 	return (
-		<Card footer={footer} footerLayout={footer.length > 1 ? 'split' : 'fill'} footerCommits>
+		<Card footer={footer} footerLayout={footer.length > 1 ? 'split' : 'fill'} footerCommits
+			after={<MergeButton merge={merge} size="small" disabled={busy}>Merge into…</MergeButton>}>
 			<span className="sp-section-label">End of its life</span>
 			<Well>
 				<span className="sp-title">{title}</span>
@@ -389,7 +417,7 @@ function VendorSummary({ vendor, name, colour }) {
 				<VendorMark name={name} colour={colour} />
 				<Stacked>
 					<span className="sp-title sp-truncate">{name}</span>
-					<span className="sp-meta">{plural(vendor.orders, 'order')}</span>
+					<span className="sp-meta sp-truncate">{plural(vendor.orders, 'order')}{vendor.createdByScan ? `${dot}created by receipt scan` : null}</span>
 				</Stacked>
 			</div>
 			<div className="sp-stack">
@@ -398,7 +426,7 @@ function VendorSummary({ vendor, name, colour }) {
 				<Sum value={<span className={isSaving(vendor.saved, 0) ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>Saved</Sum>
 				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>Returned</Sum>
 			</div>
-			<Button variant="outline" size="small" to="/statistics">See more in statistics</Button>
+			<Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>See more in statistics</Button>
 		</Card>
 	)
 }

@@ -3645,6 +3645,8 @@ li.sp-anchor { display: flex; }
 li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-popover--start { left: 0; }
 .sp-popover--end { right: 0; }
+/* the positioner (c9) flips a popover above its trigger when only above has room */
+.sp-popover[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
 .sp-popover--static { position: static; box-shadow: none; }
 .sp-popover__head { display: flex; flex-direction: column; gap: var(--sp-6); }
 /* the list caps its height and scrolls inside the panel, so a search that matches
