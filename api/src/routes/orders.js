@@ -307,12 +307,14 @@ router.get('/often', (req, res) => {
 })
 
 /* The monthly limits a saved order counts against (8b): each named category's limit and what its
-   month spent without this order, an order's total shared between its categories as in statistics. */
+   month spent without this order, an order's total shared between its categories as in statistics,
+   where a draft or a cancelled order spends nothing. */
 const selectCategoryLimit = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
 const selectCategoryMonthSpend = db.prepare(`
 	SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
-	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude`).pluck()
+	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
+		AND ot.status NOT IN ('Cancelled', 'Draft')`).pluck()
 router.get('/limits', (req, res) => {
 	const day = String(req.query.date ?? '')
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'A date is needed, as YYYY-MM-DD.' })

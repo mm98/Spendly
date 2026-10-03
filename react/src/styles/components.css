@@ -1644,6 +1644,8 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-combobox__dot[data-dot="done"] { background: var(--green); }
 .sp-combobox__dot[data-dot="returned"] { background: var(--amber-2); }
 .sp-combobox__dot[data-dot="cancelled"] { background: var(--red); }
+/* the over-limit mark a category carries wherever it shows (8b) */
+.sp-combobox__dot[data-dot="problem"] { background: var(--red); }
 .sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
 .sp-combobox__empty { padding: var(--sp-8) var(--sp-12); font-size: var(--t-13); color: var(--ink-5); }

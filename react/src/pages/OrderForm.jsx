@@ -893,8 +893,10 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const early = [75, 90, 100].includes(loud.notifyEarly) ? loud.notifyEarly : 90
 	const dated = /^\d{4}-\d{2}-\d{2}$/.test(draft.date ?? '')
 	const limits = useApi(getOrderLimits, [draft.date, draft.categories, orderId ?? ''], { enabled: warns && dated && draft.categories.length > 0 })
+	// a draft or a cancelled order spends nothing, so it takes no category anywhere
+	const counts = draft.status !== 'Draft' && draft.status !== 'Cancelled'
 	const share = draft.categories.length ? sums.total / draft.categories.length : 0
-	const flagged = warns && dated && draft.categories.length && limits.data
+	const flagged = warns && counts && dated && draft.categories.length && limits.data
 		? limits.data.limits
 			.map(l => ({ ...l, after: l.spend + share }))
 			.filter(l => l.after > l.budget + 0.005 || (early < 100 && l.after >= l.budget * early / 100 - 0.005))

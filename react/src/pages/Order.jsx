@@ -5,12 +5,13 @@ import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
 import { Sum } from '../components/Data.jsx'
+import { Chip } from '../components/Chip.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Alert, useToast } from '../components/Overlays.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, invalidateOrderData
+	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, invalidateOrderData
 } from '../api/client.js'
 import { dot, plural, shortDate } from '../api/format.js'
 import { draftOf } from './OrderForm.jsx'
@@ -158,7 +159,7 @@ function OrderView({ order, touch, created, onGone }) {
 				<Sum value={order.vendor?.name}>Vendor</Sum>
 				<Sum value={shortDate(order.date)}>Date</Sum>
 				<Sum value={order.kind}>Kind</Sum>
-				<Sum value={order.categories.length ? order.categories.map(c => c.name).join(dot) : 'None'}>Categories</Sum>
+				<Sum value={<OrderCategories order={order} />}>Categories</Sum>
 				{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
 				{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
 			</div>
@@ -200,6 +201,24 @@ function OrderView({ order, touch, created, onGone }) {
 			<div className="sp-stack sp-gap-12">{items}{attachments}</div>
 			<Panel>{details}{totals}{dialog}{viewer}</Panel>
 		</>
+	)
+}
+
+/** The order's categories; one its month took past its limit carries the problem dot, the mark
+    that travels with a category wherever it shows (8b). */
+function OrderCategories({ order }) {
+	const names = order.categories.map(c => c.name)
+	const limits = useApi(getOrderLimits, [order.date, names, ''], { enabled: names.length > 0 })
+	const over = new Set((limits.data?.limits ?? []).filter(l => l.spend > l.budget + 0.005).map(l => l.name.toLowerCase()))
+	if (!names.length) return 'None'
+	if (!over.size) return names.join(dot)
+	return (
+		<span className="sp-row-flex sp-wrap sp-gap-6 or-chips">
+			{order.categories.map(c => (over.has(c.name.toLowerCase())
+				? <Chip key={c.id} trail={<span className="sp-combobox__dot" data-dot="problem" />}>{c.name}</Chip>
+				: <Chip key={c.id}>{c.name}</Chip>))}
+			<span className="sp-meta">over limit</span>
+		</span>
 	)
 }
 
