@@ -473,6 +473,29 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   z-index: 1;
 }
 .sp-field__wrap:has(> .sp-input[type="date"]) > .sp-field__trail:hover { background: var(--hover); }
+/* iOS 15+ draws the value in ::-webkit-date-and-time-value, which defaults to
+   width: 100% and text-align: center; text-align on the input does not reach it.
+   Without this a date sits mid-field while every neighbouring value sits left
+   (Apple DTS, developer.apple.com/forums/thread/691305). Covers time, month and
+   datetime-local too; the pseudo-element does not exist on other types, and Blink
+   and Gecko already left-align. */
+.sp-input::-webkit-date-and-time-value { text-align: left; margin: 0; }
+/* iOS also draws date-family inputs with their native appearance, which sets its own
+   height and ignores min-height, so the field comes out shorter or taller than the
+   text fields beside it, and collapses when empty. Dropping the native appearance
+   hands the box back to .sp-input's own min-height, border and radius; the picker
+   still opens on tap. */
+.sp-input[type="date"],
+.sp-input[type="time"],
+.sp-input[type="month"],
+.sp-input[type="datetime-local"] {
+  -webkit-appearance: none;
+  appearance: none;
+  /* iOS also gives these inputs an intrinsic minimum width wider than a phone
+     column, so width: 100% is ignored and the field runs past the card's edge. */
+  min-width: 0;
+  -webkit-min-logical-width: 0;
+}
 
 .sp-input[type="color"] {
   width: var(--control-h);

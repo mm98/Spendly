@@ -731,21 +731,31 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 		return () => document.removeEventListener('pointerdown', away)
 	}, [open])
 
+	// the trail opens the same platform picker the field does, drawn with the register's calendar
+	const pickNative = () => {
+		const input = wrap.current?.querySelector('input')
+		try { input?.showPicker() } catch { input?.focus() }
+	}
 	if (isNative)
 		return (
-			<input
-				id={id}
-				type="date"
-				className="sp-input"
-				value={value}
-				min={min}
-				max={max}
-				onChange={ev => onChange?.(ev.target.value)}
-				aria-describedby={message}
-				required={required}
-				{...(marked ? { 'aria-invalid': 'true' } : {})}
-				{...unused}
-			/>
+			<span className="sp-field__wrap" ref={wrap}>
+				<input
+					id={id}
+					type="date"
+					className="sp-input"
+					value={value}
+					min={min}
+					max={max}
+					onChange={ev => onChange?.(ev.target.value)}
+					aria-describedby={message}
+					required={required}
+					{...(marked ? { 'aria-invalid': 'true' } : {})}
+					{...unused}
+				/>
+				<button type="button" className="sp-field__trail" aria-label="Open the calendar" onClick={pickNative}>
+					<Icon name="calendar" size={15} />
+				</button>
+			</span>
 		)
 
 	const hintId = id ? `${id}-format` : undefined
