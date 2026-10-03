@@ -12,7 +12,7 @@ import { Alert, Dialog, DialogActions, DialogBody, DialogTitle } from '../compon
 import { Empty, EmptyBody, EmptyTitle, Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCurrentUser, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
+	failureMessage, getCurrentUser, getOftenOrders, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
 } from '../api/client.js'
 import { amount, dayShortMonth, dot, plural, sep } from '../api/format.js'
 import { OrderForm } from './OrderForm.jsx'
@@ -41,7 +41,7 @@ export default function OrderNew() {
 	// ?duplicate=id, ?source=scan&doc=key, ?source=empty or ?vendor=name, else step 1
 	if (duplicate) return <Copy key={duplicate} id={duplicate} />
 	if (doc) return <Scanned key={doc} documentKey={doc} upload={location.state?.upload} />
-	if (source === 'empty' || vendor) return <Blank vendor={vendor ?? ''} />
+	if (source === 'empty' || vendor) return <Blank vendor={vendor ?? ''} restored={location.state?.seed} />
 	return <Start scanOnly={source === 'scan'} file={location.state?.file} picking={params.get('pick') === 'copy'} />
 }
 
@@ -51,15 +51,17 @@ const fromBlank = blank => ({
 	shipping: null, discount: null, reference: '', note: '', refunded: false, lines: []
 })
 
-function Blank({ vendor }) {
+/** An empty order, or one an Undo on its saved page sent back as `restored` (3a). */
+function Blank({ vendor, restored }) {
 	const blank = useApi(getOrderDraft)
+	if (restored) return <OrderForm mode="new" region seed={restored} />
 	if (blank.error) return <OrderFailed what="The new order" error={blank.error} retry={blank.refresh} />
 	if (!blank.data) return <Waiting />
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} />
 }
 
-/* A copy carries the vendor, categories, kind, reference, note and priced lines; the date is
-   today, the status the account's default, and the files stay where they are. */
+/* A copy carries the vendor, categories, kind, note and priced lines; the date is today, the
+   status the account's default, the reference a new one (8a), and the files stay where they are. */
 function Copy({ id }) {
 	const order = useApi(getOrder, [id])
 	const blank = useApi(getOrderDraft)
@@ -71,7 +73,7 @@ function Copy({ id }) {
 			...fromBlank(blank.data),
 			vendor: from.vendor?.name ?? '', kind: from.kind, categories: from.categories.map(c => c.name),
 			shipping: from.shipping || null, discount: from.discount || null,
-			reference: from.reference ?? '', note: from.note ?? '',
+			note: from.note ?? '',
 			lines: from.items.map((item, i) => ({
 				key: `copy-${i}`, title: item.title, quantity: item.quantity, price: item.price,
 				retail: item.retail ?? null, note: item.note ?? ''
@@ -262,7 +264,12 @@ function CopyPicker({ onClose }) {
 	// after the dialog has focused its first button, so the reader starts where they type
 	useEffect(() => { search.current?.focus() }, [])
 	const found = useApi(getOrders, [{ pageSize: 6, query: asked, with: 'itemTitles' }])
-	const orders = found.data?.orders ?? []
+	// the repeats lead an empty search (3b); a search looks through every order
+	const repeats = useApi(getOftenOrders)
+	const often = asked ? [] : repeats.data?.orders ?? []
+	// six rows in all, as the drawing keeps the dialog small
+	const recent = (found.data?.orders ?? []).filter(o => !often.some(r => r.id === o.id)).slice(0, 6 - often.length)
+	const orders = [...often, ...recent]
 	useEffect(() => setActive(-1), [asked])
 	const pick = o => navigate(`/orders/new?duplicate=${o.id}`)
 	const keys = ev => {
@@ -275,26 +282,29 @@ function CopyPicker({ onClose }) {
 			pick(orders[active])
 		}
 	}
+	const row = (o, i) => (
+		<ComboboxOption key={o.id} id={`${listId}-${i}`} active={i === active} onSelect={() => pick(o)}>
+			<span className="sp-row-flex sp-gap-8">
+				<span className="sp-stacked sp-grow">
+					<span className="sp-title sp-truncate">{o.vendor?.name}</span>
+					<span className="sp-meta sp-truncate">{plural(o.itemCount, 'line')}{o.itemTitles?.length ? `${dot}${o.itemTitles.join(', ')}${o.itemCount > o.itemTitles.length ? '…' : ''}` : null}</span>
+				</span>
+				<span className="sp-stacked sp-cell-amount sp-flex-none">
+					<span className="sp-amount">{amount(o.total)}</span>
+					<span className="sp-meta">{o.times ? `${o.times} times${dot}last ${dayShortMonth(o.date)}` : dayShortMonth(o.date)}</span>
+				</span>
+			</span>
+		</ComboboxOption>
+	)
 	let rows
 	if (!found.data) rows = null
 	else if (!orders.length) rows = <ComboboxEmpty>{asked ? `No order matches "${asked}".` : 'There are no orders to copy yet.'}</ComboboxEmpty>
 	else rows = (
 		<>
-			{asked ? null : <ComboboxGroup>Recent</ComboboxGroup>}
-			{orders.map((o, i) => (
-				<ComboboxOption key={o.id} id={`${listId}-${i}`} active={i === active} onSelect={() => pick(o)}>
-					<span className="sp-row-flex sp-gap-8">
-						<span className="sp-stacked sp-grow">
-							<span className="sp-title sp-truncate">{o.vendor?.name}</span>
-							<span className="sp-meta sp-truncate">{plural(o.itemCount, 'line')}{o.itemTitles?.length ? `${dot}${o.itemTitles.join(', ')}${o.itemCount > o.itemTitles.length ? '…' : ''}` : null}</span>
-						</span>
-						<span className="sp-stacked sp-cell-amount sp-flex-none">
-							<span className="sp-amount">{amount(o.total)}</span>
-							<span className="sp-meta">{dayShortMonth(o.date)}</span>
-						</span>
-					</span>
-				</ComboboxOption>
-			))}
+			{often.length ? <ComboboxGroup>You order these often</ComboboxGroup> : null}
+			{often.map(row)}
+			{asked || !recent.length ? null : <ComboboxGroup>Recent</ComboboxGroup>}
+			{recent.map((o, i) => row(o, often.length + i))}
 		</>
 	)
 	return (
@@ -302,7 +312,7 @@ function CopyPicker({ onClose }) {
 			<div className="sp-stack sp-gap-12">
 				<div className="sp-stack sp-gap-6">
 					<DialogTitle>Copy a previous order</DialogTitle>
-					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
+					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, the copy gets a new order number, and the receipt stays on the original order.</DialogBody>
 				</div>
 				<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders"
 					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"

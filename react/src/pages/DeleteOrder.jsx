@@ -6,10 +6,10 @@ import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Skeleton } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
-import { deleteOrder, failureMessage, getOrder, invalidateOrderData } from '../api/client.js'
+import { deleteOrder, failureMessage, getOrder, invalidateOrderData, restoreOrder } from '../api/client.js'
 import { currency, fullStop, monthNames, plural, shortDate } from '../api/format.js'
 
-/** Deleting cannot be undone, so it asks first and names what goes (6d). `order` needs only its
+/** Deleting reaches past what is on screen, so it asks first and names what goes (6d). `order` needs only its
     id: the sentence and Delete wait for the whole order, so every number in it is true. */
 export function DeleteOrder({ order, onClose, onDeleted }) {
 	const toast = useToast()
@@ -21,12 +21,19 @@ export function DeleteOrder({ order, onClose, onDeleted }) {
 
 	const remove = () => {
 		setBusy(true)
+		const vendor = detail.vendor?.name ?? 'no vendor'
 		deleteOrder(order.id)
-			.then(() => {
+			.then(({ undo }) => {
 				setGone(true)
 				onDeleted()
 				invalidateOrderData()
-				toast({ message: `The order from ${detail.vendor?.name ?? 'no vendor'} was deleted.` })
+				const bringBack = () => restoreOrder(undo)
+					.then(() => {
+						invalidateOrderData()
+						toast({ message: `The order from ${vendor} is back.` })
+					})
+					.catch(e => toast({ message: failureMessage(e, 'The order was not brought back. Check your connection.'), color: 'danger' }))
+				toast({ message: `The order from ${vendor} was deleted.`, undo: undo ? { label: 'Undo', onClick: bringBack } : undefined })
 			})
 			.catch(e => {
 				setBusy(false)
@@ -61,7 +68,7 @@ export function DeleteOrder({ order, onClose, onDeleted }) {
 					<DialogTitle>Delete this order?</DialogTitle>
 				</div>
 				{body}
-				<ListItem>This cannot be undone.</ListItem>
+				<ListItem>You can undo this from the message that follows. After the message goes away, it cannot be undone.</ListItem>
 				<DialogActions>
 					<Button variant="outline" fullWidth disabled={busy} onClick={onClose}>Keep it</Button>
 					<Button color="danger" fullWidth disabled={busy || !detail} onClick={remove}>Delete order</Button>

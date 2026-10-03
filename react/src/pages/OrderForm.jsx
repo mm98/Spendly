@@ -459,8 +459,12 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			toast({ message: [`The order was saved, but ${lapses.join(', and ')}.`, ...reasons, retry ? 'Try again from Edit order.' : null].filter(Boolean).join(' '), color: 'danger' })
 		else if (clashes.length)
 			toast({ message: `The order was saved. ${names(clashes)} ${clashes.length === 1 ? 'was' : 'were'} not added: the order already has a file with that name.`, color: 'danger' })
-		else toast({ message: creating ? (scan ? `Order created from ${scan.file.name}. The receipt is kept as an attachment.` : 'Order created.') : 'Changes saved.' })
-		navigate(`/orders/${order.id}`, { replace: creating })
+		else if (!creating) toast({ message: 'Changes saved.' })
+		// a new order lands on its saved page with the notice that can undo it (3a)
+		const created = creating
+			? { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference }
+			: undefined
+		navigate(`/orders/${order.id}`, { replace: creating, state: created && { created } })
 	}
 
 	/* A receipt's vendor line that was filed under another name becomes that vendor's alias,
@@ -700,7 +704,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			</div>
 			<div className="sp-fields">
 				<Field label="Reference">
-					<TextField value={draft.reference} onChange={reference => set({ reference })} />
+					{/* an order saved without one is given the next order number */}
+					<TextField value={draft.reference} placeholder={creating ? 'Given on save' : undefined} onChange={reference => set({ reference })} />
 				</Field>
 				<Field label="Note">
 					<TextField value={draft.note} onChange={note => set({ note })} />

@@ -41,7 +41,7 @@ export const failureMessage = (error, fallback) =>
 
 // the records a "not found" can name, by the address asked; the server's own text carries an id
 const THINGS = [
-	[/^\/api\/orders\/(?!import|draft|overview)[^/?]+/, 'order'],
+	[/^\/api\/orders\/(?!import|draft|overview|often|limits|trash)[^/?]+/, 'order'],
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
 	[/^\/api\/categories\/(?!uncategorised)[^/?]+/, 'category'],
 	[/^\/api\/bookmarks\/(?!preview)[^/?]+/, 'bookmark'],
@@ -412,11 +412,35 @@ export async function updateOrder(id, draft, signal) {
 	return request(`/api/orders/${id}`, { method: 'PUT', body: toApiDraft(draft), signal })
 }
 
+/** Deletes an order; the answer's `undo` names the copy `restoreOrder` puts back (6d). */
 export async function deleteOrder(id, signal) {
 	const out = await request(`/api/orders/${id}`, { method: 'DELETE', signal })
 	forgetRecent('order', id)
 	return out
 }
+
+export async function restoreOrder(undo, signal) {
+	return request(`/api/orders/trash/${undo}/restore`, { method: 'POST', signal })
+}
+
+/** The orders the account repeats, newest of each, with how many `times` (3b). */
+export async function getOftenOrders(signal) {
+	return request('/api/orders/often', { signal })
+}
+
+/** The monthly limits an order dated `date` in `categories` counts against, without `exclude` (8b). */
+export async function getOrderLimits(date, categories, exclude, signal) {
+	const usp = new URLSearchParams({ date })
+	for (const c of categories) usp.append('categories', c)
+	if (exclude) usp.set('exclude', exclude)
+	return request(`/api/orders/limits?${usp}`, { signal })
+}
+
+/** How many pages an order's file has, and each page as an image (12b). */
+export async function getAttachmentPages(orderId, attachmentId, signal) {
+	return request(`/api/orders/${orderId}/attachments/${attachmentId}/pages`, { signal })
+}
+export const attachmentPageUrl = (orderId, attachmentId, page) => `/api/orders/${orderId}/attachments/${attachmentId}/pages/${page}`
 
 /** Uploads the files picked or dropped, as they are. */
 export async function addAttachments(orderId, files, signal) {
@@ -562,11 +586,52 @@ export async function getScanDraft(documentKey, signal) {
 	return request(`/api/scan/draft/${documentKey}`, { signal })
 }
 
-export async function attachScanDocument(documentKey, orderId, signal) {
-	return request(`/api/scan/documents/${documentKey}/attach/${orderId}`, { method: 'POST', signal })
+/** Files a sent upload on an order. `as: 'file'` for a file added in the form, `item` for a
+    line's photo, `name` for the name it was chosen under. */
+export async function attachScanDocument(documentKey, orderId, { as, item, name } = {}, signal) {
+	return request(`/api/scan/documents/${documentKey}/attach/${orderId}` + qs({ as, item, name }), { method: 'POST', signal })
 }
 
 export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKey}/thumbnail`
+export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
+export const scanPageUrl = (documentKey, page) => `/api/scan/documents/${documentKey}/pages/${page}`
+
+export async function getScanPages(documentKey, signal) {
+	return request(`/api/scan/documents/${documentKey}/pages`, { signal })
+}
+
+/** Forgets what was read from the file, so it is read again when its draft next opens (3c). */
+export async function rereadScanDocument(documentKey, signal) {
+	return request(`/api/scan/documents/${documentKey}/reread`, { method: 'POST', signal })
+}
+
+export async function discardScanDocument(documentKey, signal) {
+	return request(`/api/scan/documents/${documentKey}`, { method: 'DELETE', signal })
+}
+
+/** Sends one file to be kept until a save files it (17a). `onSent` hears the fraction sent, 0 to 1. */
+export function sendFile(file, { signal, onSent } = {}) {
+	const path = '/api/scan/documents'
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest()
+		xhr.open('POST', path)
+		xhr.setRequestHeader(TODAY, today())
+		xhr.withCredentials = true
+		if (onSent) xhr.upload.onprogress = e => { if (e.lengthComputable && e.total) onSent(e.loaded / e.total) }
+		xhr.onerror = () => reject(new TypeError('Network request failed'))
+		xhr.onabort = () => reject(new DOMException('The operation was aborted.', 'AbortError'))
+		if (signal) signal.addEventListener('abort', () => xhr.abort(), { once: true })
+		xhr.onload = () => {
+			let data = null
+			try { data = JSON.parse(xhr.responseText) } catch { /* empty body */ }
+			if (xhr.status >= 200 && xhr.status < 300) resolve(data)
+			else reject(refusal(path, 'POST', xhr.status, data, true))
+		}
+		const form = new FormData()
+		form.append('file', file)
+		xhr.send(form)
+	})
+}
 
 /** The records the text appears in, as the server answers: vendors (with the alias that
     matched), categories, bookmarks and orders with their item titles, each cut at SEARCH_CAP. */
@@ -605,7 +670,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats]
+const orderReads = [getOrders, getOrder, getStats, getOftenOrders, getOrderLimits]
 const vendorReads = [getVendors, getVendor]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
 const bookmarkReads = [getBookmarks, getBookmark]

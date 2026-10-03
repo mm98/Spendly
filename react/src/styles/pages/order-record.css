@@ -17,4 +17,7 @@
 	/* a vendor name that is one long word breaks inside the row rather than widening the page */
 	.or-wrap { min-width: 0; overflow-wrap: anywhere; }
 
+	/* a notice about the whole order, above both columns (3a: the saved state's notice) */
+	.or-span { grid-column: 1 / -1; }
+
 }
