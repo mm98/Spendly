@@ -74,7 +74,7 @@ export function OverLimitDot() {
 
 /* Two categories fit a row; past two the first stands for the rest, its count carrying their mark (2b,
    8b). One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
-export function CategoryChips({ categories }) {
+export function CategoryChips({ categories, variant = 'outline' }) {
 	const over = useOverLimitIds()
 	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">No category</Chip></div>
 	const shown = categories.length > 2 ? categories.slice(0, 1) : categories
@@ -83,11 +83,11 @@ export function CategoryChips({ categories }) {
 		<div className="sp-row-flex sp-gap-6">
 			{shown.map(c => (
 				<span key={c.id} className="ol-chip-slot">
-					<Chip trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{c.name}</Chip>
+					<Chip variant={variant} trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{c.name}</Chip>
 				</span>
 			))}
 			{rest.length
-				? <span className="sp-flex-none"><Chip trail={rest.some(c => over.has(c.id)) ? <OverLimitDot /> : undefined}>{`+${rest.length}`}</Chip></span>
+				? <span className="sp-flex-none"><Chip variant={variant} trail={rest.some(c => over.has(c.id)) ? <OverLimitDot /> : undefined}>{`+${rest.length}`}</Chip></span>
 				: null}
 		</div>
 	)
