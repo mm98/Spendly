@@ -4,7 +4,7 @@ import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-route
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel, Switch } from '../components/Choice.jsx'
+import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel, FieldGroupValues, Switch } from '../components/Choice.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { DateField } from '../components/DatePickers.jsx'
@@ -827,6 +827,12 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 	const found = find ? shownVendors.filter(v => v.name.toLowerCase().includes(find.toLowerCase())) : shownVendors
 	const vendorsPicked = listOf(f.vendor)
 	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || vendorsPicked.includes(v.id))
+	// the categories the same way: their first few, then the rest on asking, found by name past twenty
+	const [allCategories, setAllCategories] = useState(false)
+	const [findCategory, setFindCategory] = useState('')
+	const categoriesFound = findCategory ? shownCategories.filter(c => c.name.toLowerCase().includes(findCategory.toLowerCase())) : shownCategories
+	const categoriesPicked = listOf(f.category)
+	const categoriesListed = allCategories || findCategory ? categoriesFound : categoriesFound.filter((c, i) => i < 6 || categoriesPicked.includes(c.id))
 	const empty = (n, total, on) => !on && (n === undefined ? !total : n === 0)
 	const switches = useId()
 
@@ -867,14 +873,18 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 							: null}
 						{shownVendors.length > 20 ? <Announce>{find ? (found.length ? plural(found.length, 'vendor') : 'No vendor by that name.') : ''}</Announce> : null}
 						{find && !found.length ? <span className="sp-subtitle">No vendor by that name.</span> : null}
-						{listed.map(v => {
-							const on = vendorsPicked.includes(v.id)
-							const n = live('vendor', v.id)
-							return (
-								<Choice key={v.id} control={<Check checked={on} disabled={empty(n, v.orders, on)}
-									onChange={ev => update({ vendor: toggled(f.vendor, v.id, ev.target.checked) })} />}>{v.name}{countOf(n)}</Choice>
-							)
-						})}
+						<FieldGroupValues>
+							{listed.map(v => {
+								const on = vendorsPicked.includes(v.id)
+								const n = live('vendor', v.id)
+								return (
+									<Choice key={v.id} control={<Check checked={on} disabled={empty(n, v.orders, on)}
+										onChange={ev => update({ vendor: toggled(f.vendor, v.id, ev.target.checked) })} />}>
+										<span className="sp-truncate">{v.name}</span>{countOf(n)}
+									</Choice>
+								)
+							})}
+						</FieldGroupValues>
 						{!allVendors && !find && found.length > listed.length
 							? <FieldGroupMore onClick={() => setAllVendors(true)}>Show {found.length - listed.length} more</FieldGroupMore>
 							: null}
@@ -885,17 +895,33 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 			{shownCategories.length
 				? (
 					<FieldGroup facet legend="Categories">
-						<Filters>
-							{shownCategories.map(c => {
-								const on = listOf(f.category).includes(c.id)
-								const n = live('category', c.id)
-								return (
-									<Chip key={c.id} variant="facet" value={c.id} selected={on} disabled={empty(n, c.orders, on)}
-										count={n == null ? null : amount(n, 0)} trail={over.has(c.id) ? <OverLimitDot /> : undefined}
-										onSelect={next => update({ category: toggled(f.category, c.id, next) })}>{c.name}</Chip>
-								)
-							})}
-						</Filters>
+						{shownCategories.length > 20
+							? <SearchInput value={findCategory} onChange={setFindCategory} placeholder="Find a category…" aria-label="Find a category" />
+							: null}
+						{shownCategories.length > 20
+							? <Announce>{findCategory ? (categoriesFound.length ? plural(categoriesFound.length, 'category', 'categories') : 'No category by that name.') : ''}</Announce>
+							: null}
+						{findCategory && !categoriesFound.length ? <span className="sp-subtitle">No category by that name.</span> : null}
+						{categoriesListed.length
+							? (
+								<FieldGroupValues>
+									<Filters>
+										{categoriesListed.map(c => {
+											const on = categoriesPicked.includes(c.id)
+											const n = live('category', c.id)
+											return (
+												<Chip key={c.id} variant="facet" value={c.id} selected={on} disabled={empty(n, c.orders, on)}
+													count={n == null ? null : amount(n, 0)} trail={over.has(c.id) ? <OverLimitDot /> : undefined}
+													onSelect={next => update({ category: toggled(f.category, c.id, next) })}>{c.name}</Chip>
+											)
+										})}
+									</Filters>
+								</FieldGroupValues>
+							)
+							: null}
+						{!allCategories && !findCategory && categoriesFound.length > categoriesListed.length
+							? <FieldGroupMore onClick={() => setAllCategories(true)}>Show {categoriesFound.length - categoriesListed.length} more</FieldGroupMore>
+							: null}
 					</FieldGroup>
 				)
 				: null}

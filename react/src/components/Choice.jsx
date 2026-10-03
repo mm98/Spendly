@@ -97,6 +97,12 @@ export function FieldGroup({ legend, facet = false, count, meta, children, ...re
 	)
 }
 
+/** A facet's values: however many there are, they scroll inside the group past --list-max (16a). */
+export function FieldGroupValues({ children, ...rest }) {
+	reject(rest, 'FieldGroupValues')
+	return <div className="sp-field-group__values" {...rest}>{children}</div>
+}
+
 /** Shows the rest of a facet's values (c12). */
 export function FieldGroupMore({ onClick, children, ...rest }) {
 	reject(rest, 'FieldGroupMore')

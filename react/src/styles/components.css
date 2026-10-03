@@ -2190,6 +2190,17 @@ a.sp-tabbar__item { text-decoration: none; }
   outline: none;
 }
 .sp-field-group__fold:focus-visible { box-shadow: var(--ring); }
+/* a facet's values scroll inside the group rather than lengthen the rail (16a); the inset is room
+   for a value's focus ring, which the scroll box would otherwise cut */
+.sp-field-group__values {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  max-height: var(--list-max);
+  overflow-y: auto;
+  margin: calc(var(--sp-4) * -1);
+  padding: var(--sp-4);
+}
 .sp-field-group__fold[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
 .sp-touch .sp-field-group__fold { min-height: var(--control-h-touch); }
 .sp-filters {
