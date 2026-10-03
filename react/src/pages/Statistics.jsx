@@ -26,7 +26,7 @@ import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRo
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { failureMessage, getCategoryPage, getCurrentUser, getLimitedCategories, getSliceLines, getSliceOrders, getStatsSlice, getVendorPage } from '../api/client.js'
+import { failureMessage, getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceLines, getSliceOrders, getStatsSlice, getVendorPage } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, quantity, shortDate, today
@@ -60,7 +60,8 @@ const TOP = 8
 const OF_WINDOW = { year: 'the year', quarter: 'the quarter', month: 'the month', week: 'the week' }
 const OF_CRUMB = { month: 'this month', week: 'this week', vendor: 'this vendor', category: 'this category', status: 'these orders' }
 const VERSUS = { month: 'all months', week: 'all weeks', vendor: 'all vendors', category: 'all categories', status: 'all statuses' }
-const SLICE = 25
+// the table pages by the row count set in Settings, as every order list does
+const usePageSize = () => useApi(getSettings).data?.pageSize ?? null
 
 /** The id a range opens on when the address names none: the window holding today. */
 const defaultId = range => windowIdAt(range, todayUtc())
@@ -153,12 +154,13 @@ export default function Statistics() {
 
 	// the table pages on the server; what Load more added is card-local, so a reload starts at one page (4d)
 	const { restored } = useListMemory('orders')
-	const slice = JSON.stringify({ base, filter })
+	const size = usePageSize()
+	const slice = JSON.stringify({ base, filter, size })
 	const [more, setMore] = useState({ slice, pages: [], count: 0 })
 	const kept = more.slice === slice ? more : { pages: [], count: 0 }
 	const earlier = kept.pages
-	const ask = { page: kept.count + 1, pageSize: SLICE }
-	const next = useCurrent(getSliceOrders, [{ ...base, ...filter, ...ask }], { enabled: !touch })
+	const ask = { page: kept.count + 1, pageSize: size }
+	const next = useCurrent(getSliceOrders, [{ ...base, ...filter, ...ask }], { enabled: !touch && size != null })
 	const loadMore = () => {
 		if (next.error) return next.refresh()
 		if (!next.data) return
@@ -1390,6 +1392,7 @@ function sliceHead(show) {
 }
 
 function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onLoadMore, onRetry }) {
+	const size = usePageSize() ?? 10
 	const column = useRef(null)
 	const show = columnsFor(useWidth(column))
 	let body
@@ -1397,10 +1400,10 @@ function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onL
 		body = <Failed what={`The orders in ${name}`} error={failed} onRetry={onRetry} />
 	}
 	// a page of rows holds the table's place, or the window's own count once it is known
-	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, SLICE) : SLICE} total={view?.orders} />
+	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, size) : size} page={size} total={view?.orders} />
 	else {
 		body = (
-			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={SLICE} total={matched} onLoadMore={onLoadMore} selectionKey={`${view.id} ${view.slice.from}`}
+			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={size} total={matched} onLoadMore={onLoadMore} selectionKey={`${view.id} ${view.slice.from}`}
 				rowTo={order => `/orders/${order.id}`} locale={NUMBER_LOCALE}>
 				<Caption>
 					{drilled
@@ -1440,12 +1443,12 @@ function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onL
 const LOADING_ROWS = [['62pc', '58', '88'], ['48pc', '74', '74'], ['55pc', '46', '92']]
 
 /* Skeletons hold the real rows' places, so nothing moves when the orders land (6b). */
-function RowsLoading({ show, size, total }) {
+function RowsLoading({ show, size, page, total }) {
 	const rows = Array.from({ length: size }, (unused, i) => ({ id: i, r: LOADING_ROWS[i % LOADING_ROWS.length] }))
 	// a count already known holds the foot the rows will have; its Load more waits for them
-	const foot = total > SLICE ? { total, onLoadMore: () => {} } : {}
+	const foot = total > page ? { total, onLoadMore: () => {} } : {}
 	return (
-		<List data={rows} recordKey={x => x.id} noun="orders" pageSize={SLICE} {...foot}>
+		<List data={rows} recordKey={x => x.id} noun="orders" pageSize={page} {...foot}>
 			<Caption><Skeleton shape="line" data-w="82" data-h="13" /></Caption>
 			{sliceHead(show)}
 			<ListRow>{({ r }) => (
