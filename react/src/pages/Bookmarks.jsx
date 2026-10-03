@@ -22,7 +22,7 @@ import { MoreMatches, moreText, usePickList } from '../app/pickList.jsx'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
 import {
-	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarks, getBookmarksWithoutCategory,
+	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarkPages, getBookmarksWithoutCategory,
 	getCategoryPage, getSettings, setBookmarkArchived
 } from '../api/client.js'
 import { NUMBER_LOCALE, currency, dot, plural, shortDate } from '../api/format.js'
@@ -58,7 +58,6 @@ export default function Bookmarks() {
 	const step = settings.data?.pageSize ?? 10
 	// a page of cards per Load more, held in the address
 	const { pages, setPages, restored } = useListMemory()
-	const shown = pages * step
 
 	const [findCategory, setFindCategory] = useState('')
 	const counts = useCategoryCounts(archived, findCategory)
@@ -66,9 +65,7 @@ export default function Bookmarks() {
 	const one = category && category !== NONE ? category : null
 	const chosen = useApi(getCategoryPage, [{ ids: one, with: 'bookmarks', pageSize: 1 }], { enabled: Boolean(one) })
 	const chosenHere = useApi(getCategoryPage, [{ ids: one, bookmarks: archived ? 'archived' : 'open', with: 'bookmarks', pageSize: 1 }], { enabled: Boolean(one) })
-	const list = useApi(getBookmarks, [{
-		query, categoryId: category, sort, archived: archived ? 'yes' : 'no', page: 1, pageSize: shown
-	}])
+	const list = useApi(getBookmarkPages, [{ query, categoryId: category, sort, archived: archived ? 'yes' : 'no' }, step, pages])
 	useEffect(() => { if (list.data) restored() }, [list.data])
 	const refocus = useRefocus(list.data?.bookmarks, '.sp-record__act', '.sp-empty a, .sp-empty button')
 

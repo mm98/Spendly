@@ -45,10 +45,6 @@
 }
 .sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
 .sp-shell--touch .sp-shell__body { padding: var(--phone-gutter); }
-/* an empty state standing in for the page sits in the body's gutter, not a second one inside it */
-.sp-shell--touch .sp-shell__body > .sp-empty:not(.sp-empty--dashed) { padding: 0; }
-/* a chip that is only a label keeps its drawn height on touch; the touch height is for chips that act */
-.sp-touch .sp-chip--static { height: var(--field-trail); min-height: 0; }
 .sp-shell--touch .sp-shell__body--rail { grid-template-columns: minmax(0, 1fr); }
 .sp-shell--touch > .sp-tabbar {
 	position: fixed;

@@ -5015,7 +5015,8 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-window { height: var(--control-h-touch); }
 .sp-touch .sp-window__btn { width: var(--control-h-touch); }
 .sp-touch .sp-add-row { height: var(--control-h-touch); }
-.sp-touch .sp-chip { height: auto; min-height: var(--control-h-touch); }
+/* only a chip that acts takes the touch height; a label chip (--static) keeps its own */
+.sp-touch .sp-chip:not(.sp-chip--static) { height: auto; min-height: var(--control-h-touch); }
 .sp-touch .sp-option { width: var(--control-h-touch); height: var(--control-h-touch); }
 .sp-touch .sp-menu__item,
 .sp-touch .sp-combobox__option,
@@ -5023,6 +5024,8 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-field-group__head { box-sizing: border-box; min-height: var(--control-h-touch); }
 .sp-touch .sp-field-group__panel .sp-input { min-height: var(--control-h-touch); }
 .sp-touch .sp-sum:has(.sp-input--cell) { box-sizing: border-box; min-height: var(--control-h-touch); align-items: center; }
+/* a start screen straight in the phone body takes the body's gutter, not a second one */
+.sp-shell--touch .sp-shell__body > .sp-empty:not(.sp-empty--dashed) { padding: 0; }
 /* card photos in dark mode keep 17b's edge, drawn inside so the strip does not grow */
 [data-theme="dark"] .sp-record__photo { box-shadow: inset 0 0 0 1px var(--line-3); }
 /* a status pill in Settings' Statuses list may end in an ellipsis; everywhere else a pill never truncates (2i) */
