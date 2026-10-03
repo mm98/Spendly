@@ -524,7 +524,7 @@ export const itemAttachmentFileUrl = (orderId, itemId, attachmentId) =>
 
 /** A POST by XMLHttpRequest, for the sent fraction of the body and an NDJSON answer read line by
     line as it arrives; a stream is 200 throughout, so its last line carries the verdict. */
-function uploadJson(path, body, { signal, onSent, onLine } = {}) {
+function uploadJson(path, body, { signal, onSent, onLine, isResult = o => 'imported' in o } = {}) {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest()
 		xhr.open('POST', path)
@@ -552,7 +552,8 @@ function uploadJson(path, body, { signal, onSent, onLine } = {}) {
 			if (streamed()) {
 				drain()
 				take(xhr.responseText.slice(read))
-				if (last && 'imported' in last) resolve(last)
+				if (last && isResult(last)) resolve(last)
+				else if (last?.error) reject(new ApiError(last.error, xhr.status, undefined, last))
 				else reject(new ApiError('The import ended before its result arrived.', xhr.status, undefined, last))
 			} else {
 				let data = null
@@ -601,9 +602,13 @@ export async function saveSettings(patch, signal) {
 
 /** Replaces the ledger with `orders` demo orders over the last `months`. Given up after 30 s, six
     times the largest fill; the server still finishes, so a late fill has still happened. */
-export async function populateDemoData(orders, months, signal) {
-	return request('/api/demo-data', { method: 'POST', body: { orders, months },
-		signal: signal ?? AbortSignal.timeout(30000) })
+/** `onRows(done, total)` hears the fill's progress as orders are written. */
+export async function populateDemoData(orders, months, { signal, onRows } = {}) {
+	return uploadJson('/api/demo-data?progress=stream', { orders, months }, {
+		signal: signal ?? AbortSignal.timeout(120000),
+		onLine: o => { if (onRows && o && 'done' in o && 'total' in o) onRows(o.done, o.total) },
+		isResult: o => 'orders' in o && 'vendors' in o
+	})
 }
 
 /* ---- statistics ---- */

@@ -120,7 +120,7 @@ const insertBookmarkCategory = db.prepare('INSERT INTO bookmark_categories (book
     `orders` is the total the whole year lands on, exactly: the months split it between them
     with some jitter, and the current month absorbs the rounding. Left off, each month rolls
     its own 28..44 as before. `today` is the reader's date, YYYY-MM-DD. */
-export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders, today: day } = {}) => {
+export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders, today: day, onProgress } = {}) => {
 	let s = seed
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
@@ -159,6 +159,9 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	const todayEpoch = Math.floor(today.getTime() / 1000)
 	let made = 0, reference = 1000
 	let remaining = Number.isFinite(orders) && orders > 0 ? Math.floor(orders) : null
+	// about a hundred progress reports however big the fill, and only when the total is known
+	const total = remaining
+	const every = total ? Math.max(1, Math.floor(total / 100)) : 0
 
 	for (let back = months - 1; back >= 0; back--) {
 		const first = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - back, 1))
@@ -221,6 +224,7 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 					title: src[0], quantity, price, retail })
 			})
 			made++
+			if (onProgress && every && made % every === 0) onProgress(made, total)
 		}
 	}
 
