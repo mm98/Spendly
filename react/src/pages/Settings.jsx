@@ -5,7 +5,6 @@ import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Field } from '../components/Field.jsx'
-import { TextField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -19,18 +18,20 @@ import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setTheme, useTheme } from '../app/theme.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, orderStatuses, saveSettings, sorts, spendKinds
+	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, orderStatuses, saveSettings, sorts, spendKinds,
+	updateProfile
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
+import { AccountCard } from './SettingsAccount.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, Heading } from './SettingsParts.jsx'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
-	{ key: 'account', label: 'Account and profile' },
+	{ key: 'account', label: 'Account and profile', keys: ['name'] },
 	{ key: 'appearance', label: 'Appearance' },
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus'] },
@@ -74,7 +75,8 @@ export default function Settings() {
 	const toast = useToast()
 	const [draft, setDraft] = useState({})
 	const [saving, setSaving] = useState(false)
-	const saved = settings.data
+	// the name is the account's, not a setting, but it is edited and saved with the rest
+	const saved = settings.data && user.data ? { ...settings.data, name: user.data.name ?? '' } : null
 	const current = SECTIONS.some(s => s.key === section) ? section : null
 
 	const value = key => (key in draft ? draft[key] : saved?.[key])
@@ -89,8 +91,12 @@ export default function Settings() {
 
 	const save = () => {
 		setSaving(true)
-		saveSettings(draft)
-			.then(next => {
+		const { name, ...prefs } = draft
+		Promise.all([
+			Object.keys(prefs).length ? saveSettings(prefs) : null,
+			name !== undefined ? updateProfile({ name }) : null
+		])
+			.then(([next]) => {
 				setCurrency(next?.currency ?? value('currency'))
 				setLocale(next?.locale ?? value('locale'))
 				dropStale()
@@ -108,7 +114,7 @@ export default function Settings() {
 	const touch = shape === 'touch'
 	const fields = { value, change, touch }
 	const cards = {
-		account: <AccountCard key="account" email={user.data?.email} />,
+		account: <AccountCard key="account" user={user.data} {...fields} />,
 		appearance: <AppearanceCard key="appearance" touch={touch} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" {...fields} />,
@@ -141,18 +147,18 @@ export default function Settings() {
 			)
 
 	const seen = useSeenSection(!touch && saved != null, current)
-	const body = settings.error && !saved
-		? <Failed what="Your settings" error={settings.error} onRetry={settings.refresh} />
+	const failed = settings.error ?? user.error
+	const body = failed && !saved
+		? <Failed what="Your settings" error={failed} onRetry={() => { settings.refresh(); user.refresh() }} />
 		: !saved
 			? <><LoadingCard /><LoadingCard /><LoadingCard /></>
 			: null
 
 	if (touch) {
 		if (body) return body
-		const open = current && current !== 'account' ? current : null
 		return (
 			<>
-				{open ? <Arrive section={open}>{cards[open]}</Arrive> : <PhoneIndex email={user.data?.email} />}
+				{current ? <Arrive section={current}>{cards[current]}</Arrive> : <PhoneIndex user={user.data} />}
 				{saveBar}
 				{guard.prompt}
 			</>
@@ -251,19 +257,6 @@ function Arrive({ section, children }) {
 	return <div className="sp-stack sp-gap-12" ref={column}>{children}</div>
 }
 
-function AccountCard({ email }) {
-	return (
-		<Card>
-			<Heading section="account">Account and profile</Heading>
-			<Halves>
-				<Field label="Email">
-					<TextField type="email" variant="readonly" readOnly value={email ?? ''} />
-				</Field>
-			</Halves>
-		</Card>
-	)
-}
-
 /* The theme lives in this browser, and applies the moment it is picked, as the sidebar's switch does. */
 function AppearanceCard({ touch }) {
 	useTheme()
@@ -357,17 +350,24 @@ function ListsCard({ value, change, touch }) {
 }
 
 /* Below 640 the panes are a list (7a): the account first, then one row per pane. */
-function PhoneIndex({ email }) {
+function PhoneIndex({ user }) {
 	const chevron = <Icon name="chevron-right" />
+	const email = user?.email
+	const name = user?.name || email?.split('@')[0]
 	return (
 		<>
-			<Card>
+			<Card to="/settings/account" chevron={chevron} aria-label="Account and profile">
 				<span className="sp-section-label">Account</span>
 				{email
 					? (
 						<div className="sp-cell-flex">
-							<Mark size="large" fill="solid" round>{email.split('@')[0]}</Mark>
-							<div className="sp-stack sp-gap-6 sp-grow"><span className="sp-meta sp-truncate">{email}</span></div>
+							{user.picture
+								? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
+								: <Mark size="large" fill="solid" round>{name}</Mark>}
+							<div className="sp-stack sp-gap-6 sp-grow">
+								{user.name ? <span className="sp-title sp-truncate">{user.name}</span> : null}
+								<span className="sp-meta sp-truncate">{email}</span>
+							</div>
 						</div>
 					)
 					: <Skeleton shape="line" />}

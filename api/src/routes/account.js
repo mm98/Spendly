@@ -30,8 +30,11 @@ const refreshStatistics = () => db.exec('ANALYZE')
 
    Only ever this account -- populateDemoData writes every row against req.user.id, the same
    rule every other route here follows. */
+// a filled account has something in it, so the first run (/welcome) is over
+const finishSetup = db.prepare('UPDATE users SET needs_setup = 0 WHERE id = ?')
 const replaceWithDemo = db.transaction((userId, seed, orders, months, today) => {
 	wipeLedger(userId)
+	finishSetup.run(userId)
 	return populateDemoData(userId, { seed, orders, months, today })
 })
 

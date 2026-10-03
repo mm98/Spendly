@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { db } from '../db.js'
+import { requireConfirmed } from '../lib/auth.js'
 import { newId } from '../lib/ids.js'
 import { toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
@@ -471,7 +472,7 @@ const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	thumbnail: a.thumbnail, thumbnailCompressed: a.thumbnailCompressed ? 1 : 0, thumbnailContentType: a.thumbnailContentType
 })
 
-router.post('/import', async (req, res) => {
+router.post('/import', requireConfirmed, async (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders : []
 	if (!orders.length) return res.status(400).json({ error: 'Provide a non-empty "orders" array.' })
 

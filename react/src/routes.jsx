@@ -11,10 +11,16 @@ import { setCurrency, setLocale } from './api/format.js'
    account's currency and date format are read on the same wait, before any figure is drawn. */
 const requireAuth = async ({ request }) => {
 	try {
-		await cachedFetch(getCurrentUser)
+		const user = await cachedFetch(getCurrentUser)
+		// an account that has not had its first run is sent there from every page (20e)
+		if (user?.needsSetup) {
+			const { pathname, search } = new URL(request.url)
+			throw redirect(pathname === '/' ? '/welcome' : `/welcome?next=${encodeURIComponent(pathname + search)}`)
+		}
 		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale) }).catch(() => {})
 		return null
 	} catch (e) {
+		if (e instanceof Response) throw e
 		if (e.status === 401) {
 			const { pathname, search } = new URL(request.url)
 			throw redirect(pathname === '/' ? '/signin' : `/signin?next=${encodeURIComponent(pathname + search)}`)
@@ -43,6 +49,11 @@ const page = load => lazy(() => load()
 
 const SignIn = page(() => import('./pages/SignIn.jsx'))
 const Register = page(() => import('./pages/Register.jsx'))
+const Welcome = page(() => import('./pages/Welcome.jsx'))
+const ConfirmSent = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmSent })))
+const ConfirmLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmLink })))
+const ResetAsk = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetAsk })))
+const ResetLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetLink })))
 const Home = page(() => import('./pages/Home.jsx'))
 const Orders = page(() => import('./pages/Orders.jsx'))
 const Order = page(() => import('./pages/Order.jsx'))
@@ -65,6 +76,11 @@ const More = page(() => import('./pages/More.jsx'))
 export const routes = [
 	{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
 	{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
+	{ path: 'welcome', element: <Welcome />, handle: { title: 'Welcome' } },
+	{ path: 'confirm', element: <ConfirmSent />, handle: { title: 'Confirm your email' } },
+	{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
+	{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
+	{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
 	{
 		element: <AppShell />,
 		errorElement: <ShellError />,

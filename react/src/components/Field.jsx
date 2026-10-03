@@ -14,6 +14,8 @@ export function Field({
 	chevron,
 	message,
 	messageType = 'hint',
+	// a small button at the label's right end: sign in's Forgot it? (20a)
+	labelAction,
 	required = false,
 	children,
 	...rest
@@ -81,12 +83,15 @@ export function Field({
 		</FieldGroup>
 	)
 
+	const labelled = (
+		<label className="sp-field__label" htmlFor={fieldId} id={fieldId + '-label'}>
+			{label}
+			{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
+		</label>
+	)
 	return (
 		<div className="sp-field">
-			<label className="sp-field__label" htmlFor={fieldId} id={fieldId + '-label'}>
-				{label}
-				{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
-			</label>
+			{labelAction ? <div className="sp-row-flex sp-baseline">{labelled}<span className="sp-grow" />{labelAction}</div> : labelled}
 			{wrapped}
 			{message
 				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>

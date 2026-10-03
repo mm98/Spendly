@@ -4549,6 +4549,7 @@ body > .sp-scrim { position: fixed; z-index: 50; border-radius: 0; }
 .sp-auth { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-16); background: var(--bg); }
 .sp-card--float { width: 400px; max-width: 100%; box-shadow: var(--shadow-menu); }
 .sp-card--float > .sp-stack.sp-center { align-items: center; }
+.sp-card--float-wide { width: 420px; }
 
 /* ---------- the shell's layouts below their thresholds (Responsive reference 18a) ----------
    A railed body is one column on a phone (a split one folds at 900, beside its rules). */

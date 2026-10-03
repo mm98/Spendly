@@ -3,14 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { failureMessage, register } from '../api/client.js'
-import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, focusField, landing, useSignedOut } from './SignIn.jsx'
+import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, landing, onward, useMail, useSignedOut } from './SignIn.jsx'
 
-// the server refuses anything shorter
-const MIN_PASSWORD = 8
+const HINT = `At least ${MIN_PASSWORD} characters. Longer beats complicated.`
 
 export default function Register() {
 	const navigate = useNavigate()
 	const [params] = useSearchParams()
+	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [emailProblem, setEmailProblem] = useState(null)
@@ -18,6 +18,7 @@ export default function Register() {
 	const [taken, setTaken] = useState(null)
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
+	const mail = useMail()
 	const signedOut = useSignedOut()
 
 	const checkEmail = () => {
@@ -35,8 +36,9 @@ export default function Register() {
 		setBusy(true)
 		setAlert(null)
 		const address = email.trim().toLowerCase()
-		register(address, password)
-			.then(() => navigate(landing(params), { replace: true }))
+		register(address, password, name.trim())
+			// an address waiting for its link goes to the page that says so (20e); the first run follows
+			.then(user => navigate(user?.emailConfirmed === false ? '/confirm' : onward(user, landing(params)), { replace: true }))
 			.catch(e => {
 				setBusy(false)
 				const said = failureMessage(e, '')
@@ -50,7 +52,7 @@ export default function Register() {
 	const isTaken = taken !== null && taken === email.trim().toLowerCase()
 	const emailMessage = isTaken
 		? <>There's already an account with this email. <Link className="sp-strong au-across" to="/signin">Sign in instead?</Link></>
-		: emailProblem
+		: emailProblem ?? (mail ? "We'll send a link here to confirm it's yours." : undefined)
 
 	if (!signedOut) return null
 	return (
@@ -58,15 +60,24 @@ export default function Register() {
 			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
 			disabled={isTaken}
 			across={<>Already have one? <Link className="sp-strong sp-ink-accent au-across" to="/signin">Sign in</Link></>}>
-			<Field label="Email" id="register-email" message={emailMessage ?? undefined} messageType={emailMessage ? 'danger' : 'hint'}>
+			{isTaken ? null : (
+				<Field label="Name" id="register-name">
+					<TextField autoComplete="name" value={name} maxLength={80} onChange={setName} />
+				</Field>
+			)}
+			<Field label="Email" id="register-email" message={emailMessage}
+				messageType={isTaken || emailProblem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
-			<Field label="Password" id="register-password" message={passwordProblem ?? 'At least 8 characters. Longer beats complicated.'}
-				messageType={passwordProblem ? 'danger' : 'hint'}>
-				<PasswordField autoComplete="new-password" value={password}
-					onChange={v => { setPassword(v); setPasswordProblem(null) }} />
-			</Field>
+			{isTaken ? null : (
+				<Field label="Password" id="register-password"
+					message={passwordProblem ?? <PasswordHint password={password} hint={HINT} />}
+					messageType={passwordProblem ? 'danger' : 'hint'}>
+					<PasswordField autoComplete="new-password" value={password}
+						onChange={v => { setPassword(v); setPasswordProblem(null) }} />
+				</Field>
+			)}
 		</AuthCard>
 	)
 }

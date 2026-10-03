@@ -8,7 +8,9 @@ const VARIANT = {
 	row: 'sp-card--row',
 	shell: 'sp-card--shell',
 	// the sign-in card, the one card that floats on the page rather than in the shell (20a)
-	float: 'sp-card--float'
+	float: 'sp-card--float',
+	// the first run's card, a step wider for its two-column choices (20d)
+	'float-wide': 'sp-card--float sp-card--float-wide'
 }
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }

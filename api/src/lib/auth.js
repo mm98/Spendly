@@ -8,11 +8,16 @@ import { readCookie, setCookie, clearCookie, SESSION_COOKIE } from './cookies.js
 const scryptAsync = promisify(scrypt)
 
 const SCRYPT_N = 16384, SCRYPT_R = 8, SCRYPT_P = 1, KEY_LEN = 64
-const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60   // 7 days
+// "Stay signed in" keeps a session 30 days; without it the cookie ends with the browser, and the row after a day
+const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60
+const SHORT_TTL_SECONDS = 24 * 60 * 60
 // Sliding sessions renew on use, but not on every request -- only once the session is more than
 // a day past its last renewal, so an active user never re-writes the row (and re-sends the
-// cookie) more than once a day, while an idle one still expires 7 days after their last request.
+// cookie) more than once a day, while an idle one still expires a full term after their last request.
 const SESSION_RENEW_AFTER_SECONDS = 24 * 60 * 60
+const SHORT_RENEW_AFTER_SECONDS = 60 * 60
+const ttlOf = remember => (remember ? SESSION_TTL_SECONDS : SHORT_TTL_SECONDS)
+const renewAfterOf = remember => (remember ? SESSION_RENEW_AFTER_SECONDS : SHORT_RENEW_AFTER_SECONDS)
 
 /** Self-describing so the cost parameters can change later without breaking existing hashes. */
 export async function hashPassword(password) {
@@ -30,23 +35,23 @@ export async function verifyPassword(password, stored) {
 	return actual.length === expected.length && timingSafeEqual(actual, expected)
 }
 
-const insertSession = db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
+const insertSession = db.prepare('INSERT INTO sessions (id, user_id, expires_at, remember) VALUES (?, ?, ?, ?)')
 const purgeExpiredSessions = db.prepare('DELETE FROM sessions WHERE expires_at <= ?')
 /* The purge rides on session creation because nothing else ever removed an expired row: the
    lookup below filters them out but leaves them, logout deletes only its own, and no account
    flow deletes users -- so the table only grew, and requireAuth probes it on every request.
    Swept here, it stays at roughly the live-session count; one sweep and the insert commit
    together so a login costs the one fsync it always did. */
-const openSession = db.transaction((id, userId, expiresAt) => {
+const openSession = db.transaction((id, userId, expiresAt, remember) => {
 	purgeExpiredSessions.run(nowEpoch())
-	insertSession.run(id, userId, expiresAt)
+	insertSession.run(id, userId, expiresAt, remember ? 1 : 0)
 })
 
-export function createSession(req, res, userId) {
+export function createSession(req, res, userId, { remember = true } = {}) {
 	const id = newSessionId()
-	const expiresAt = nowEpoch() + SESSION_TTL_SECONDS
-	openSession(id, userId, expiresAt)
-	setCookie(req, res, SESSION_COOKIE, id, { maxAgeSeconds: SESSION_TTL_SECONDS })
+	const expiresAt = nowEpoch() + ttlOf(remember)
+	openSession(id, userId, expiresAt, remember)
+	setCookie(req, res, SESSION_COOKIE, id, { maxAgeSeconds: remember ? SESSION_TTL_SECONDS : undefined })
 	// Returned so login and register can hand the same token back in the body: a script uses
 	// it as `Authorization: Bearer <token>` instead of parsing Set-Cookie. One token, two
 	// carriers, one session row either way.
@@ -71,7 +76,7 @@ export function destroySession(req, res) {
 }
 
 const selectSessionUser = db.prepare(`
-	SELECT u.id, u.email, u.needs_setup, s.expires_at FROM sessions s
+	SELECT u.id, u.email, u.needs_setup, u.email_confirmed, s.expires_at, s.remember FROM sessions s
 	JOIN users u ON u.id = s.user_id
 	WHERE s.id = ? AND s.expires_at > ?
 `)
@@ -83,18 +88,27 @@ const renewSession = db.prepare('UPDATE sessions SET expires_at = ? WHERE id = ?
 
     Sliding expiration: a session used within SESSION_RENEW_AFTER_SECONDS of its last renewal is
     left alone; past that, both the row and the cookie are pushed out another SESSION_TTL_SECONDS
-    from now, so an active session never expires mid-use and an idle one still expires 7 days
+    from now, so an active session never expires mid-use and an idle one still expires a full term
     after the last request that touched it. */
 export function requireAuth(req, res, next) {
 	const token = sessionToken(req)
 	const now = nowEpoch()
 	const user = token ? selectSessionUser.get(token, now) : null
 	if (!user) return res.status(401).json({ error: 'Not signed in.' })
-	if (user.expires_at - now < SESSION_TTL_SECONDS - SESSION_RENEW_AFTER_SECONDS) {
-		const expiresAt = now + SESSION_TTL_SECONDS
-		renewSession.run(expiresAt, token)
-		setCookie(req, res, SESSION_COOKIE, token, { maxAgeSeconds: SESSION_TTL_SECONDS })
+	const ttl = ttlOf(user.remember)
+	if (user.expires_at - now < ttl - renewAfterOf(user.remember)) {
+		renewSession.run(now + ttl, token)
+		setCookie(req, res, SESSION_COOKIE, token, { maxAgeSeconds: user.remember ? ttl : undefined })
 	}
 	req.user = user
+	next()
+}
+
+/** The token this request is signed in with, so a route can end every session but this one. */
+export const currentSessionId = req => sessionToken(req)
+
+/** Scanning and importing wait until the account's email is confirmed (20b). */
+export function requireConfirmed(req, res, next) {
+	if (!req.user.email_confirmed) return res.status(403).json({ error: 'Confirm your email first. Then you can scan receipts and import orders.' })
 	next()
 }

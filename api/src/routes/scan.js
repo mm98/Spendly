@@ -2,6 +2,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import { createHash } from 'crypto'
 import { db } from '../db.js'
+import { requireConfirmed } from '../lib/auth.js'
 import { newId } from '../lib/ids.js'
 import { getDecoratedOrder } from '../lib/decorate.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
@@ -88,7 +89,7 @@ const selectPossibleDuplicate = db.prepare(`
     see getDraft below — so nothing here reads the file's contents beyond resizing it (an image
     gets a display copy and a thumbnail; a PDF's bytes are kept as-is with a rendered-first-page
     thumbnail — lib/images.js — same processing a direct order attachment upload gets). */
-router.post('/documents', upload.single('file'), async (req, res) => {
+router.post('/documents', requireConfirmed, upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
 	assertImageOrPdf([file])

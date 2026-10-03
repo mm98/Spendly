@@ -104,19 +104,92 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 /* ---- auth: each clears the whole read cache, since crossing accounts makes every answer someone else's ---- */
 
 // the locale guess rides with the registration: the first settings row is written in the same transaction
-export async function register(email, password, signal) {
+export async function register(email, password, name, signal) {
 	const user = await request('/api/auth/register',
-		{ method: 'POST', body: { email, password, locale: detectLocale() }, signal })
+		{ method: 'POST', body: { email, password, name, locale: detectLocale() }, signal })
 	signedOut = false
 	invalidate()
 	return user
 }
 
-export async function login(email, password, signal) {
-	const user = await request('/api/auth/login', { method: 'POST', body: { email, password }, signal })
+export async function login(email, password, remember = true, signal) {
+	const user = await request('/api/auth/login', { method: 'POST', body: { email, password, remember }, signal })
 	signedOut = false
 	invalidate()
 	return user
+}
+
+/** What the signed-out pages may offer: `mail` says whether this server can send a link. */
+export async function getAuthOptions(signal) {
+	return request('/api/auth/options', { signal })
+}
+
+export async function askPasswordReset(email, signal) {
+	return request('/api/auth/reset', { method: 'POST', body: { email }, signal })
+}
+
+/** { state: 'valid' | 'used' | 'expired', email } for a reset link. */
+export async function readResetLink(token, signal) {
+	return request(`/api/auth/reset/${encodeURIComponent(token)}`, { signal })
+}
+
+export async function resetPassword(token, password, signal) {
+	const out = await request(`/api/auth/reset/${encodeURIComponent(token)}`, { method: 'POST', body: { password }, signal })
+	signedOut = false
+	invalidate()
+	return out
+}
+
+/** { state: 'confirmed' | 'already' | 'expired', email }; a confirmed link signs this browser in. */
+export async function confirmEmail(token, signal) {
+	const out = await request('/api/auth/confirm', { method: 'POST', body: { token }, signal })
+	signedOut = false
+	invalidate()
+	return out
+}
+
+export async function resendConfirmation(signal) {
+	return request('/api/auth/confirm/resend', { method: 'POST', signal })
+}
+
+export async function changeEmail(email, signal) {
+	const out = await request('/api/auth/email', { method: 'POST', body: { email }, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+/* ---- the account's own profile ---- */
+
+export async function updateProfile(patch, signal) {
+	const out = await request('/api/account', { method: 'PATCH', body: patch, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function uploadPicture(file, signal) {
+	const form = new FormData()
+	form.append('file', file)
+	const out = await request('/api/account/picture', { method: 'PUT', form, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function removePicture(signal) {
+	const out = await request('/api/account/picture', { method: 'DELETE', signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function changePassword(current, password, signal) {
+	const out = await request('/api/account/password', { method: 'POST', body: { current, password }, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function finishSetup(signal) {
+	const out = await request('/api/account/setup-done', { method: 'POST', signal })
+	invalidate(getCurrentUser)
+	return out
 }
 
 /* The page still on screen is leaving: its readers are not asked again, since every answer
