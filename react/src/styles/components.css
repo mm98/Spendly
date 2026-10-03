@@ -3136,6 +3136,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 }
 [data-open="true"] > .sp-calendar { display: block; }
 .sp-calendar .sp-range__month { gap: var(--sp-8); }
+/* a single date's one-click days (14a): the range's quick row, inside the popover's own padding */
+.sp-calendar .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }
 
 /* the same grid, scrolling, inside a sheet */
 .sp-calendar--sheet {
