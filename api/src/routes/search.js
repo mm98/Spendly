@@ -54,7 +54,7 @@ const searchOrders = perMatcher(match => `
 		${match('ot.search_text')}
 		OR ot.vendor_id IN (${vendorIdsMatching(match)})
 	)
-	ORDER BY ot.date DESC, ot.created_at DESC, ot.id DESC LIMIT @limit
+	ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit
 `)
 
 /** Cross-entity search for the command palette: vendors, categories, bookmarks and orders

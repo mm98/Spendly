@@ -70,5 +70,5 @@ export function detectKind(buffer, declaredType, name) {
     own bytes -- before anything is stored, so a refused upload adds nothing. */
 export function assertImageOrPdf(files) {
 	const other = files.find(file => !detectFileType(file.buffer))
-	if (other) throw Object.assign(new Error(`${other.originalname} is not an image or a PDF. Nothing was added.`), { status: 415 })
+	if (other) throw Object.assign(new Error(`The file "${other.originalname}" is not an image or a PDF. Nothing was added.`), { status: 415 })
 }

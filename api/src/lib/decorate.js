@@ -170,11 +170,9 @@ export function decorateOrderListRows(totalsRows, { itemTitles = false } = {}) {
 	})
 }
 
-/** The row shape the command palette's search matches against and links from (api/client.js
-    search(), driven by routes/search.js): id, date, total, vendor name, the note text and each
-    item's id/title. No status, no categories, no attachments, no item quantity/price/retail --
-    a search result never shows or matches on any of them. One item query (titles only) and one
-    vendor query instead of getDecoratedOrder's five. */
+/** The row shape the command palette links from (api/client.js searchRecords(), driven by
+    routes/search.js): id, date, reference, vendor name and each item's id/title -- what its item
+    rows draw. One item query (titles only) and one vendor query instead of getDecoratedOrder's five. */
 export function decorateOrderSearchRows(totalsRows) {
 	if (!totalsRows.length) return []
 	const ids = JSON.stringify(totalsRows.map(t => t.id))
@@ -188,9 +186,7 @@ export function decorateOrderSearchRows(totalsRows) {
 		return {
 			id: totals.id,
 			date: fromEpoch(totals.date),
-			note: totals.note,
 			reference: totals.reference,
-			total: totals.total,
 			vendor: vendor ? { name: vendor.name } : null,
 			items: (itemsByOrder.get(totals.id) ?? []).map(i => ({ id: i.id, title: i.title }))
 		}

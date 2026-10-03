@@ -126,7 +126,7 @@ export default function Settings() {
 				<SaveBar>
 					<span className="sp-subtitle sp-grow">Unsaved changes</span>
 					<Button variant="outline" disabled={saving} onClick={discard}>Discard</Button>
-					<Button disabled={saving} onClick={save}>Save</Button>
+					<Button disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save'}</Button>
 				</SaveBar>
 			)
 			: (
@@ -136,7 +136,7 @@ export default function Settings() {
 					</span>
 					<span className="sp-grow" />
 					<Button variant="outline" size="small" disabled={saving} onClick={discard}>Discard</Button>
-					<Button disabled={saving} onClick={save}>Save</Button>
+					<Button disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save'}</Button>
 				</ListItem>
 			)
 

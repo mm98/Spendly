@@ -355,7 +355,7 @@ function SheetColumns({ short, thisMonth = -1 }) {
 	)
 }
 
-function Failed({ onRetry }) {
+export function Failed({ onRetry }) {
 	return (
 		<Card>
 			<Empty>

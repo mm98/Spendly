@@ -182,10 +182,10 @@ export function RecentLoading() {
 }
 
 /** The end-of-life card while the record loads: `title` and `body` are the words it most often
-    says, held unseen so the card keeps their size. */
-export function EndLoading({ label, title, body }) {
+    says, held unseen so the card keeps their size. `action` holds the room of its footer button. */
+export function EndLoading({ label, title, body, action }) {
 	return (
-		<Card aria-busy="true">
+		<Card aria-busy="true" {...(action ? { footer: [<Held key="action" shape={action} />], footerCommits: true } : {})}>
 			<span className="sp-section-label">{label}</span>
 			<Well>
 				<Held shape={<span className="sp-title">{title}</span>}><Skeleton shape="line" data-w="62pc" data-h="13" /></Held>

@@ -143,7 +143,7 @@ const COPY = {
 /** A new year, copied from another, or with no groups: each side already carries its own heading,
     so a starter group would only repeat it. Refuses a year that is already there. */
 export const createYear = db.transaction((userId, year, { from, amounts = 'same' } = {}) => {
-	if (selectYear.get(userId, year)) throw Object.assign(new Error(`${year} is already there.`), { status: 409 })
+	if (selectYear.get(userId, year)) throw Object.assign(new Error(`There is already a budget for ${year}.`), { status: 409 })
 	const source = from == null ? null : readYear(userId, from)
 	if (from != null && !source) throw notFound('year to copy from')
 	const yearId = newId('by')

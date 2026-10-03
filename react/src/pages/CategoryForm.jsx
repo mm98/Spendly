@@ -14,7 +14,7 @@ import { useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategoriesThisMonth, getCategory,
-	invalidateCategoryData, invalidateVendorData, updateCategory
+	invalidateCategoryData, invalidateVendorData, overBudget, updateCategory
 } from '../api/client.js'
 import { amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
@@ -49,7 +49,7 @@ export default function CategoryForm() {
 					list={{ to: list, label: 'Open Categories' }} />
 			</div>
 		)
-		return <CategoryFields key="loading" category={LOADING} loading onGone={setGone} />
+		return <CategoryFields key="loading" category={LOADING} loading loadingId={id} onGone={setGone} />
 	}
 	return <CategoryFields key={id ?? 'new'} category={id ? record.data ?? null : null} onGone={setGone} />
 }
@@ -57,7 +57,7 @@ export default function CategoryForm() {
 // the form while the category is on its way: an existing record's form, every value held by a skeleton
 const LOADING = { id: null, name: '', icon: 'tag', colour: null, budget: 0, orders: 0, bookmarks: 0 }
 
-function CategoryFields({ category, loading = false, onGone }) {
+function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
@@ -209,17 +209,7 @@ function CategoryFields({ category, loading = false, onGone }) {
 		: null
 
 	const rail = loading
-		? (
-			<>
-				<SummaryLoading label="Category summary" sums={[['Orders', '44']]} action="See more in statistics">
-					<Held shape={<Stat large figure="0 kr." />}><Skeleton shape="line" data-w="130" data-h="22" /></Held>
-					<Held shape={<Gauge value={0} aria-label="Share of the limit used" />} />
-				</SummaryLoading>
-				<RecentLoading />
-				<EndLoading label="Removing it" title="A category in use cannot be deleted"
-					body="It is on 10 orders. To keep the grouping under a different name, rename it instead." />
-			</>
-		)
+		? <RailLoading id={loadingId} />
 		: editing
 			? (
 				<>
@@ -305,29 +295,49 @@ function CategorySummary({ category, preview, budget }) {
 	)
 }
 
-/** The way out (5f): delete, offered only when nothing carries the category. */
-function Removing({ category, onDelete }) {
+/** The rail while the category loads. The list answer, when in hand, gives each card the shape
+    the loaded one takes: the over-the-limit line, the recent orders, the words of the way out. */
+function RailLoading({ id }) {
+	const month = useApi(getCategoriesThisMonth)
+	const known = month.data?.categories.find(c => c.id === id)
+	const over = known ? overBudget(known) : false
+	const end = known ? removingWords(known) : { title: 'A category in use cannot be deleted', body: 'It is on 10 orders. To keep the grouping under a different name, rename it instead.' }
+	return (
+		<>
+			<SummaryLoading label="Category summary" sums={[['Orders', '44']]} action="See more in statistics">
+				<Held shape={<Stat large figure="0 kr." />}><Skeleton shape="line" data-w="130" data-h="22" /></Held>
+				<Held shape={<Gauge value={0} aria-label="Share of the limit used" />} />
+				{over ? <Held shape={<span className="sp-meta">0 kr. over the limit, on day 1 of 30.</span>} /> : null}
+			</SummaryLoading>
+			{!known || known.orders ? <RecentLoading /> : null}
+			<EndLoading label="Removing it" title={end.title} body={end.body}
+				action={end.free ? <Button color="danger">Delete</Button> : null} />
+		</>
+	)
+}
+
+/** What the way-out card says of a category: deleting is offered only when nothing carries it. */
+const removingWords = category => {
 	const free = category.orders === 0 && category.bookmarks === 0
 	const carried = [
 		category.orders ? plural(category.orders, 'order') : null,
 		category.bookmarks ? plural(category.bookmarks, 'bookmark') : null
 	].filter(Boolean).join(' and ')
+	return free
+		? { free, title: 'Nothing carries this category', body: 'Deleting removes it outright.' }
+		: { free, title: 'A category in use cannot be deleted', body: `It is on ${carried}. To keep the grouping under a different name, rename it instead.` }
+}
+
+/** The way out (5f): delete, offered only when nothing carries the category. */
+function Removing({ category, onDelete }) {
+	const { free, title, body } = removingWords(category)
 	return (
 		<Card {...(free ? { footer: [<Button key="delete" color="danger" onClick={onDelete}>Delete</Button>], footerCommits: true } : {})}>
 			<span className="sp-section-label">Removing it</span>
-			{free
-				? (
-					<Well>
-						<span className="sp-title">Nothing carries this category</span>
-						<span className="sp-subtitle">Deleting removes it outright.</span>
-					</Well>
-				)
-				: (
-					<Well>
-						<span className="sp-title">A category in use cannot be deleted</span>
-						<span className="sp-subtitle">It is on {carried}. To keep the grouping under a different name, rename it instead.</span>
-					</Well>
-				)}
+			<Well>
+				<span className="sp-title">{title}</span>
+				<span className="sp-subtitle">{body}</span>
+			</Well>
 		</Card>
 	)
 }

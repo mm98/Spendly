@@ -39,7 +39,7 @@ export default function VendorForm() {
 					list={{ to: list, label: 'Open Vendors' }} />
 			</div>
 		)
-		return <VendorFields key="loading" vendor={LOADING} loading onGone={setGone} />
+		return <VendorFields key="loading" vendor={LOADING} loading loadingId={id} onGone={setGone} />
 	}
 	return <VendorFields key={id ?? 'new'} vendor={id ? record.data ?? null : null} onGone={setGone} />
 }
@@ -50,7 +50,7 @@ const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: fals
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
 
-function VendorFields({ vendor, loading = false, onGone }) {
+function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const list = useListReturn('vendors')
@@ -88,7 +88,7 @@ function VendorFields({ vendor, loading = false, onGone }) {
 		if (!taken) return null
 		return lower(taken.name) === lower(name)
 			? `You already have a vendor called ${taken.name}.`
-			: `${taken.name} already matches "${name.trim()}". Pick a different name.`
+			: `Another vendor, ${taken.name}, already matches "${name.trim()}". Pick a different name.`
 	}
 
 	/* A name another vendor already matches would file receipts in two places, so it is
@@ -100,8 +100,8 @@ function VendorFields({ vendor, loading = false, onGone }) {
 			if (taken) return setErrors(e => ({
 				...e,
 				aliases: lower(taken.name) === lower(added)
-					? `${taken.name} is the name of another vendor. Pick a different one.`
-					: `${taken.name} already matches "${added}". Pick a different one.`
+					? `Another vendor is called ${taken.name}. Pick a different one.`
+					: `Another vendor, ${taken.name}, already matches "${added}". Pick a different one.`
 			}))
 			if (lower(added) === lower(values.name))
 				return setErrors(e => ({ ...e, aliases: 'That is already the vendor\'s name. Add the other names it uses.' }))
@@ -137,9 +137,9 @@ function VendorFields({ vendor, loading = false, onGone }) {
 				const message = failureMessage(e, 'The vendor was not saved. Check the connection and try again.')
 				if (!message) return
 				const about = !e?.status || e.status >= 500 ? null
-					: message.startsWith(`You already have a vendor called ${name}.`) || message.startsWith(`${name} is already`)
+					: message.startsWith(`You already have a vendor called ${name}.`) || message.endsWith('Pick a different name.')
 						|| /needs a name/.test(message) ? 'name'
-						: /alias|vendor called/.test(message) ? 'aliases' : null
+						: /alias|vendor called|already matches/.test(message) ? 'aliases' : null
 				if (!about) return toast({ message, color: 'danger' })
 				setErrors(err => ({ ...err, [about]: message }))
 				focusFirst([about === 'name' ? 'vendor-name' : 'vendor-aliases'])
@@ -214,14 +214,17 @@ function VendorFields({ vendor, loading = false, onGone }) {
 		: null
 
 	const name = values.name.trim()
+	// the list answer, when in hand, says whether the loaded rail has recent orders and a Delete
+	const known = loading ? all.data?.find(v => v.id === loadingId) : null
+	const end = endWords(known?.orders ?? 10)
 	const rail = loading
 		? (
 			<>
 				<SummaryLoading label="Vendor summary" sums={[['Spend this year', '76'], ['Average order', '76'], ['Saved', '76'], ['Returned', '64']]}
 					action="See more in statistics" />
-				<RecentLoading />
-				<EndLoading label="End of its life" title="A vendor with orders cannot be deleted"
-					body="Every order must name a vendor, so its 10 orders keep this one." />
+				{!known || known.orders ? <RecentLoading /> : null}
+				<EndLoading label="End of its life" title={end.title} body={end.body}
+					action={known && !known.orders ? <Button color="danger">Delete</Button> : null} />
 			</>
 		)
 		: editing
@@ -231,19 +234,10 @@ function VendorFields({ vendor, loading = false, onGone }) {
 					<RecentOrders filter={{ vendorId: vendor.id }} to={`/orders?vendor=${vendor.id}`} total={vendor.orders} />
 					<Card {...(vendor.orders ? {} : { footer: [<Button key="delete" color="danger" onClick={() => setDeleting(true)}>Delete</Button>], footerCommits: true })}>
 						<span className="sp-section-label">End of its life</span>
-						{vendor.orders
-							? (
-								<Well>
-									<span className="sp-title">A vendor with orders cannot be deleted</span>
-									<span className="sp-subtitle">Every order must name a vendor, so its {plural(vendor.orders, 'order')} keep this one.</span>
-								</Well>
-							)
-							: (
-								<Well>
-									<span className="sp-title">Nothing points at this vendor any more</span>
-									<span className="sp-subtitle">Deleting removes it outright.</span>
-								</Well>
-							)}
+						<Well>
+							<span className="sp-title">{endWords(vendor.orders).title}</span>
+							<span className="sp-subtitle">{endWords(vendor.orders).body}</span>
+						</Well>
 					</Card>
 				</>
 			)
@@ -281,6 +275,11 @@ function VendorFields({ vendor, loading = false, onGone }) {
 		</>
 	)
 }
+
+/** What the end-of-life card says of a vendor with `orders` orders: only one with none can be deleted. */
+const endWords = orders => (orders
+	? { title: 'A vendor with orders cannot be deleted', body: `Every order must name a vendor, so its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} this one.` }
+	: { title: 'Nothing points at this vendor any more', body: 'Deleting removes it outright.' })
 
 /** What the vendor has cost, beside the fields that describe it (5c). */
 function VendorSummary({ vendor, name }) {
