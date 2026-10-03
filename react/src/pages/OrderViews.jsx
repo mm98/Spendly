@@ -24,9 +24,8 @@ export function useActiveView(params) {
 	return { views, active, now, edited: Boolean(active) && canonical(active.query) !== now }
 }
 
-/** The Views card (2g): All orders and the saved views with live counts, read-only at rest. Its
-    header holds one action: Save when the filters differ from the view in force, Edit otherwise,
-    Cancel while a name is typed, Done while editing. */
+/** The Views card (2g), read-only at rest. Its header holds one action: Save when the filters differ
+    from the view in force, Edit otherwise, Cancel while a name is typed, Done while editing. */
 export function ViewsCard({ params, matched, summary, onList = true }) {
 	const navigate = useNavigate()
 	const toast = useToast()

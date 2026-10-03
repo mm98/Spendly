@@ -44,9 +44,8 @@ export function ViewMark({ query }) {
 	return <span className="sp-nav-item__icon"><Icon name={icon} /></span>
 }
 
-/** The saved views under All orders in the sidebar (9e): the first few the account chose, each with
-    its live count, then how many more the order list holds. Gone on the rail, where icons alone
-    cannot tell views apart. */
+/** The saved views under All orders in the sidebar (9e), each with its live count, then how many
+    more the order list holds. Gone on the rail, where icons alone cannot tell views apart. */
 export function SidebarViews({ rail, savedId }) {
 	const answer = useViews().data
 	if (rail || !answer) return null

@@ -167,12 +167,13 @@ export function AppShell() {
 	)
 }
 
+// the saved view the list was opened from (9e); All orders never returns to one
+const onView = () => { const id = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('saved'); return id && id !== 'all' ? id : null }
+const allOrders = to => (/[?&]saved=(?!all)/.test(to) ? ALL_ORDERS : to)
+
 /* An element rather than a component: the shell places its children by type. On the rail the
    groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). The brand
    and the bottom zone stay put; only the destinations between them scroll (9g). */
-// the saved view the order list was opened from (9e), and All orders never returning to one
-const onView = () => { const id = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('saved'); return id && id !== 'all' ? id : null }
-const allOrders = to => (/[?&]saved=(?!all)/.test(to) ? ALL_ORDERS : to)
 
 function sidebar({ navKey, fold, short, go, showKeys }) {
 	const { rail } = fold

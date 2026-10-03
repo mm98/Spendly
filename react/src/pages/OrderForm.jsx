@@ -41,7 +41,6 @@ import { useLeaveGuard } from './vendorsCategories.jsx'
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Nothing reaches the server until Save or Create writes the order, then its files. */
 
-// a status's dot in a pick list, by its tone (2e)
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
 
 const orderErrors = d => {

@@ -474,9 +474,8 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 	)
 }
 
-/** The list as a grid of Record cards (c1 cards, Order list 2c, Bookmarks 22a): no ground of its
-    own, the grid, then `footer` under it at the grid's width: a `<ListMore loose>`. `head` stands
-    above the grid: the summary line or the bulk bar, each `loose` (2c). */
+/** Record cards as a grid (c1, 2c, 22a): `head` above it (the summary or the bulk bar) and `footer`
+    under it (a `<ListMore loose>`), each at the grid's width. */
 export function Records({ head, footer, children, ...rest }) {
 	reject(rest, 'Records')
 	return (

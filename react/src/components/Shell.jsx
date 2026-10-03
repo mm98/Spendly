@@ -113,7 +113,7 @@ export function SidebarDivider(props) {
 	return <span className="sp-sidebar__divider" {...props} />
 }
 
-// edited is a light row whose saved view no longer matches the list (2g), so it carries both classes
+// edited is a light row whose saved view differs from the list (2g), so it carries both classes
 const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item--light', edited: 'sp-nav-item--light sp-nav-item--edited' }
 
 /** `tip` is the label shown while the row's own is hidden, on the rail; `control` is a Switch
