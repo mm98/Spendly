@@ -149,9 +149,9 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 	const [low, high] = value
 	const pct = n => ((n - min) / (max - min)) * 100
 
-	const move = (which, n) => {
-		const snapped = Math.round(n / step) * step
-		const bounded = Math.min(max, Math.max(min, snapped))
+	// a dragged or stepped bound lands on a step; a typed one is kept as typed, inside min and max
+	const move = (which, n, snap = true) => {
+		const bounded = Math.min(max, Math.max(min, snap ? Math.round(n / step) * step : n))
 		onChange?.(which === 'low' ? [Math.min(bounded, high), high] : [low, Math.max(bounded, low)])
 	}
 
@@ -171,7 +171,7 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 		setTyping(t => ({ ...t, [which]: undefined }))
 		if (text === undefined) return
 		const n = read(text)
-		if (n !== null) move(which, n)
+		if (n !== null) move(which, n, false)
 	}
 
 	const stepKeys = (which, n) => ev => {

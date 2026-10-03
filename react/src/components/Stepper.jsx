@@ -44,6 +44,12 @@ export function Stepper({
 		return n
 	}
 
+	// minus and plus move by whole steps only: a step that would cross a bound is not offered
+	const fewer = round(current - step, decimals)
+	const more = round(current + step, decimals)
+	const noFewer = min !== undefined && fewer < min
+	const noMore = max !== undefined && more > max
+
 	const shown = typing ?? (fractional
 		? (places === undefined ? formatNumber(current, { locale, decimals }) : new Intl.NumberFormat(locale, { maximumFractionDigits: decimals }).format(current))
 		: String(current))
@@ -54,12 +60,12 @@ export function Stepper({
 				type="button"
 				className="sp-stepper__btn"
 				aria-label={`One step fewer ${rest['aria-label']}`}
-				disabled={min !== undefined && current <= min}
+				disabled={noFewer}
 				onClick={() => {
 					setTyping(null)
 					// a button that disables itself at the bound would drop focus to the page
-					const n = set(current - step)
-					if (min !== undefined && n <= min) input.current?.focus()
+					const n = set(fewer)
+					if (min !== undefined && round(n - step, decimals) < min) input.current?.focus()
 				}}
 			>
 				<Icon name="minus" size={13} />
@@ -97,18 +103,18 @@ export function Stepper({
 					if (!fractional) return   // the number input does this itself
 					ev.preventDefault()
 					setTyping(null)
-					set(current + (ev.key === 'ArrowUp' ? step : -step))
+					if (ev.key === 'ArrowUp' ? !noMore : !noFewer) set(ev.key === 'ArrowUp' ? more : fewer)
 				}}
 			/>
 			<button
 				type="button"
 				className="sp-stepper__btn"
 				aria-label={`One step more ${rest['aria-label']}`}
-				disabled={max !== undefined && current >= max}
+				disabled={noMore}
 				onClick={() => {
 					setTyping(null)
-					const n = set(current + step)
-					if (max !== undefined && n >= max) input.current?.focus()
+					const n = set(more)
+					if (max !== undefined && round(n + step, decimals) > max) input.current?.focus()
 				}}
 			>
 				<Icon name="plus" size={13} />

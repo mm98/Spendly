@@ -467,6 +467,19 @@ const precedingDates = (preset, [from, to]) => {
 	return [iso(new Date(a.getFullYear(), a.getMonth(), a.getDate() - days)), iso(new Date(a.getFullYear(), a.getMonth(), a.getDate() - 1))]
 }
 
+// every window of the preset in this year and the ones before it that a reader steps back through,
+// so a readout can hold the width of the widest; a figure is not equally wide in every year
+const recentWindows = (preset, today) => {
+	if (!PERIODS[preset]) return []
+	const now = today.getFullYear()
+	const years = preset === 'week' ? [now - 1, now] : [now - 2, now - 1, now]
+	const days = years.flatMap(y => (preset === 'week' ? Array.from({ length: 53 }, (_, i) => new Date(y, 0, 1 + 7 * i))
+		: preset === 'month' ? Array.from({ length: 12 }, (_, i) => new Date(y, i, 1))
+			: preset === 'quarter' ? Array.from({ length: 4 }, (_, i) => new Date(y, 3 * i, 1))
+				: [new Date(y, 0, 1)]))
+	return days.map(d => PERIODS[preset](d).map(iso))
+}
+
 const precedingName = (preset, [from, to], locale) => {
 	const a = parse(from)
 	const b = parse(to)
@@ -566,6 +579,11 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 	const against = offers
 		? { name: precedingName(value, dates, locale), dates: precedingDates(value, dates) }
 		: null
+	// stepping to another window moves nothing: each readout is as wide as its widest recent one
+	const others = value !== 'custom' && dates ? recentWindows(value, today) : []
+	const held = (live, wider) => (wider.length
+		? <span className="sp-period__held">{live}<span className="sp-period__held" aria-hidden="true" inert>{wider}</span></span>
+		: live)
 	const last = list[list.length - 1]
 	const withCustom = custom && last
 	const before = withCustom ? list.slice(0, -1) : list
@@ -600,9 +618,13 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 					: null}
 			</div>
 			{stepper}
-			{resolved ? <span className="sp-period__resolved">{resolved}</span> : null}
+			{resolved
+				? held(<span className="sp-period__resolved">{resolved}</span>,
+					others.map((span, i) => <span className="sp-period__resolved" key={i}>{numericRange(span, locale)}</span>))
+				: null}
 			{against && picked
-				? <span className="sp-period__compare">{typeof picked === 'function' ? picked(shapeOf(value, dates)) : picked}</span>
+				? held(<span className="sp-period__compare">{typeof picked === 'function' ? picked(shapeOf(value, dates)) : picked}</span>,
+					typeof picked === 'function' ? others.map((span, i) => <span className="sp-period__compare" key={i}>{picked(shapeOf(value, span))}</span>) : [])
 				: null}
 			{note || away ? <span className="sp-grow" /> : null}
 			{/* the note and the way back share one place as wide as the wider of them, so stepping
@@ -774,7 +796,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 					text.onKeyDown(ev)
 				}}
 			/>
-			{hintId ? <span id={hintId} hidden>{readable(iso(new Date(2026, 10, 22)), locale)}</span> : null}
+			{hintId ? <span id={hintId} hidden>For example {readable(iso(new Date(2026, 10, 22)), locale)}</span> : null}
 			<span className="sp-field__trail" ref={trigger}>
 				<IconButton
 					icon={<Icon name="calendar" size={15} />}

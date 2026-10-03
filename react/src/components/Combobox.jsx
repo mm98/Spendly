@@ -192,6 +192,9 @@ export function Combobox({
 	const panelId = useId()
 	const own = useId()
 	const triggerId = id ?? own
+	// a figure drawn before the value is part of what the trigger holds, so it is read with it
+	const leadId = isValidElement(lead) ? lead.props.id ?? triggerId + '-lead' : null
+	const leading = leadId ? cloneElement(lead, { id: leadId }) : lead
 	const setOpen = next => {
 		if (open === undefined) setHeld(next)
 		onOpenChange?.(next)
@@ -305,13 +308,13 @@ export function Combobox({
 						aria-controls={panelId}
 						aria-activedescendant={activeId}
 						aria-label={label}
-						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'} ${triggerId}-value`}
+						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'}${leadId ? ' ' + leadId : ''} ${triggerId}-value`}
 						{...told}
 						onClick={toggle}
 						onKeyDown={onKeys}
 					>
 						{prefix ? <span className="sp-combobox__chevron" id={triggerId + '-prefix'}>{prefix}</span> : null}
-						{lead}
+						{leading}
 						<span className="sp-grow" id={triggerId + '-value'}>{value}</span>
 						<span className="sp-combobox__chevron"><Icon name="chevron-down" size={14} /></span>
 					</button>

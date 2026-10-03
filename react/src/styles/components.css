@@ -2704,6 +2704,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 
 .sp-period__resolved { flex: none; font-size: var(--t-13); color: var(--ink-4); white-space: nowrap; }
 .sp-period__compare { display: flex; align-items: center; gap: var(--sp-8); flex: none; }
+.sp-period__held { display: grid; flex: none; align-items: center; }
+.sp-period__held > * { grid-area: 1 / 1; }
+.sp-period__held[aria-hidden="true"] { visibility: hidden; }
 
 .sp-period__note { flex: none; font-size: var(--t-12); color: var(--ink-5); white-space: nowrap; }
 /* the note and the way back to the present share one place, as wide as the wider of the two, at the
@@ -4487,6 +4490,8 @@ html:has(.sp-shell--touch) {
   scroll-padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom));
 }
 html:has(.sp-shell--touch > .sp-fab) { scroll-padding-bottom: calc(var(--phone-bar-h) + var(--fab) + 2 * var(--sp-12) + env(safe-area-inset-bottom)); }
+/* a control on a pinned bar is always in view: focusing it never scrolls the page */
+html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--sticky) :focus) { scroll-padding: 0; }
 
 /* a real picture fills the box its placeholder drew, at the same size and corners */
 .sp-mark--photo > img,

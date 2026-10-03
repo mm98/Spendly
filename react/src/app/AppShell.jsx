@@ -118,7 +118,7 @@ export function AppShell() {
 		? (
 			<Dialog onCancel={() => setEnded(false)}>
 				<DialogTitle>You've been signed out</DialogTitle>
-				<DialogBody>Your session expired. Sign in again to carry on - nothing was lost.</DialogBody>
+				<DialogBody>Sign in again to carry on. Text you typed on this page and did not save is not kept. Choose Later to stay here and copy it first.</DialogBody>
 				<DialogActions>
 					<Button variant="outline" size="small" onClick={() => setEnded(false)}>Later</Button>
 					<Button size="small" onClick={() => { setEnded(false); navigate(`/signin?next=${encodeURIComponent(pathname + params)}`) }}>

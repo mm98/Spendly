@@ -284,16 +284,33 @@ export function List({
     Load more while more remain. `loose` as ListFooter's; `children` sits beside the count. */
 export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, locale, children, ...rest }) {
 	reject(rest, 'ListMore')
+	const line = useRef(null)
+	const asked = useRef(null)
+	// the last Load more goes with its page: focus moves to the first record it brought, else to this line
+	useEffect(() => {
+		const from = asked.current
+		if (from == null || shown <= from) return
+		asked.current = null
+		const lost = !document.activeElement || document.activeElement === document.body
+		if (!lost || !line.current) return
+		const foot = line.current.parentElement
+		const kin = [...foot.parentElement.children].filter(c => c !== foot)
+		const rows = kin.length >= shown ? kin : [...foot.parentElement.querySelectorAll('tbody > tr')]
+		const row = rows.length >= shown ? rows[rows.length - shown + from] : null
+		const target = row?.matches('a[href], button') ? row : row?.querySelector('a[href], button')
+		;(target ?? line.current).focus()
+	}, [shown])
 	if (!(total > pageSize)) return null
 	const counted = n => formatNumber(n, { locale, decimals: 0 })
+	const more = () => { asked.current = shown; onMore?.() }
 	return (
 		<ListFooter loose={loose} {...rest}>
-			<span className="sp-subtitle">Showing {counted(shown)} of {counted(total)}</span>
+			<span className="sp-subtitle" ref={line} tabIndex={-1}>Showing {counted(shown)} of {counted(total)}</span>
 			{children}
 			<span className="sp-grow" />
 			{/* gone once everything is loaded, not disabled: a disabled Load more is
 			    a promise of more that will not be kept */}
-			{shown < total ? <Button variant="outline" size="small" onClick={onMore}>Load more</Button> : null}
+			{shown < total ? <Button variant="outline" size="small" onClick={more}>Load more</Button> : null}
 		</ListFooter>
 	)
 }
@@ -323,11 +340,33 @@ export function Controls({ children, ...rest }) {
 export function Filters({ onClear, children, ...rest }) {
 	reject(rest, 'Filters')
 	return (
-		<div className="sp-filters" {...rest}>
+		<div className="sp-filters" onClickCapture={keepFocus} {...rest}>
 			{children}
 			{onClear ? <Button variant="outline" size="small" onClick={onClear}>Clear all</Button> : null}
 		</div>
 	)
+}
+
+const CONTROL = 'a[href], button:not(:disabled), input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'
+
+/* A crumb or Clear all leaves with its click; focus goes to the next crumb's remove, else the one
+   before, else the control after the row, else the one before it. */
+function keepFocus(ev) {
+	const row = ev.currentTarget
+	const hit = ev.target.closest('button')
+	if (!hit || !row.contains(hit)) return
+	const removes = [...row.querySelectorAll('.sp-crumb__remove')]
+	const at = removes.indexOf(hit)
+	const all = [...document.querySelectorAll(CONTROL)].filter(c => c.checkVisibility?.() !== false)
+	const after = all.find(c => !row.contains(c) && (row.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING))
+	const before = all.findLast(c => !row.contains(c) && (row.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_PRECEDING))
+	const order = [at >= 0 ? removes[at + 1] : null, at > 0 ? removes[at - 1] : null, after, before].filter(Boolean)
+	const settle = () => {
+		if (document.activeElement && document.activeElement !== document.body) return
+		order.find(c => c.isConnected)?.focus()
+	}
+	// the list answers later than the row: checked again once it has
+	for (const wait of [0, 300, 1000]) setTimeout(settle, wait)
 }
 
 /** The facet rail's groups (c12): one `FieldGroup facet` per thing the list can be filtered by. */

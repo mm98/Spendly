@@ -351,7 +351,7 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 /* One toast at a time, bottom centre, for six seconds; a second replaces the first and
    restarts the time, hovering or focus inside holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18). */
 const ToastContext = createContext(() => {})
-const PINNED = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab'
+const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:not(.sp-btn--outline, .sp-btn--text)'
 
 /** Shows a toast: `show({ message, icon, color, undo: { label, onClick } })`. */
 export const useToast = () => useContext(ToastContext)
@@ -378,7 +378,8 @@ export function Toaster({ children }) {
 		const lost = document.activeElement === document.body || !document.activeElement
 		if (lost && before.current?.isConnected) before.current.focus()
 	}, [toast, focused])
-	// a bar pinned along the bottom that the toast would cover lifts it to 12 above that bar
+	// a bar pinned along the bottom, or a solid button the toast would land on, lifts it to 12 above;
+	// placed again whenever the page under it changes, so it never takes a click meant for a button
 	useLayoutEffect(() => {
 		const el = region.current
 		if (!toast || !el) return
@@ -387,20 +388,37 @@ export function Toaster({ children }) {
 			const shown = el.firstElementChild?.getBoundingClientRect()
 			if (!shown) return
 			const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-12'))
-			let top = Infinity
-			for (const bar of document.querySelectorAll(PINNED)) {
-				if (bar.checkVisibility?.() === false) continue
-				const r = bar.getBoundingClientRect()
-				if (r.top < shown.bottom + gap && r.bottom > shown.top && r.left < shown.right && r.right > shown.left) top = Math.min(top, r.top)
+			const under = [...document.querySelectorAll(UNDER)]
+				.filter(o => !el.contains(o) && o.checkVisibility?.() !== false)
+				.map(o => o.getBoundingClientRect())
+				.filter(r => r.height && r.left < shown.right && r.right > shown.left && r.top < innerHeight)
+			let top = shown.top
+			let bottom = shown.bottom
+			for (let moved = true; moved && top > 0;) {
+				moved = false
+				for (const r of under) {
+					if (r.top < bottom + gap && r.bottom > top) {
+						const lift = bottom + gap - r.top
+						top -= lift
+						bottom -= lift
+						moved = true
+					}
+				}
 			}
-			if (top === Infinity) return
-			const floor = el.getBoundingClientRect().bottom + parseFloat(getComputedStyle(el).bottom)
-			el.style.bottom = floor - top + gap + 'px'
+			// never past the window's middle: a page full of buttons keeps the toast at its edge
+			if (bottom === shown.bottom || top < innerHeight / 2) return
+			el.style.bottom = parseFloat(getComputedStyle(el).bottom) + shown.bottom - bottom + 'px'
 		}
+		let frame = 0
+		const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(place) }
+		const watch = new MutationObserver(list => { if (list.some(m => !el.contains(m.target))) later() })
+		watch.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'disabled'] })
 		place()
 		window.addEventListener('scroll', place, true)
 		window.addEventListener('resize', place)
 		return () => {
+			cancelAnimationFrame(frame)
+			watch.disconnect()
 			window.removeEventListener('scroll', place, true)
 			window.removeEventListener('resize', place)
 		}

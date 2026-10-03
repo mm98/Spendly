@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 /* One hook for every read: it aborts a request whose arguments changed, caches by endpoint and
-   arguments, keeps the last good data across a refetch, and reports the error.
+   arguments, keeps the last good data across a refetch, and reports the error (never a signed-out one).
 
    A cached answer is trusted for FRESH_MS with no request: every write invalidates the reads it
    can change (the groups at the foot of client.js). Past it a hit paints at once and asks again
@@ -70,7 +70,8 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 				setState({ data, error: null, loading: false })
 			})
 			.catch(error => {
-				if (!live || error.name === 'AbortError') return
+				// a session that ended is the shell's to say: the page keeps its last data, or its loading frame
+				if (!live || error.name === 'AbortError' || error.signedOut) return
 				setState(s => ({ data: s.data, error, loading: false }))
 			})
 
