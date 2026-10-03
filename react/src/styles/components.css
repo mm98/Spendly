@@ -3772,12 +3772,25 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-mark--solid[data-swatch="green"] { background: var(--green); }
 .sp-mark--solid[data-swatch="green-2"] { background: var(--green-2); }
 .sp-mark--solid[data-swatch="green-3"] { background: var(--green-3); }
-.sp-mark--solid[data-swatch="green-4"] { background: var(--green-4); }
+.sp-mark--solid[data-swatch="green-4"] { background: var(--green-4); color: var(--ink); }
 .sp-mark--solid[data-swatch="green-5"] { background: var(--green-5); color: var(--ink); }
 .sp-mark--solid[data-swatch="amber-ink"] { background: var(--amber-ink); }
 .sp-mark--solid[data-swatch="amber-2"] { background: var(--amber-2); color: var(--ink); }
 .sp-mark--solid[data-swatch="red-ink"] { background: var(--red-ink); }
-.sp-mark--solid[data-swatch="ink-6"] { background: var(--ink-6); }
+.sp-mark--solid[data-swatch="ink-6"] { background: var(--ink-6); color: var(--ink); }
+/* the ink is whichever of --surface and --ink has the higher APCA lightness contrast on the fill, a tie
+   keeping --surface: these are that result per swatch and theme; data-ink below carries it for the rest */
+:where([data-theme="dark"]) .sp-mark--solid:not([data-swatch]),
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green-3"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green-4"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
+/* a light island inside a dark page takes the light results back */
+:where([data-theme="light"]) .sp-mark--solid:not([data-swatch]),
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="green"],
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="green-3"] { color: var(--surface); }
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="green-4"],
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
 
 .sp-record__photos--empty {
   display: grid;
