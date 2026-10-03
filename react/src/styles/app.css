@@ -45,6 +45,11 @@
 }
 .sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
 .sp-shell--touch .sp-shell__body { padding: var(--phone-gutter); }
+/* a notice that asks keeps its words on a full row on a phone, and its answers on the row under them */
+.sp-touch .sp-toast--asks { flex-wrap: wrap; }
+.sp-touch .sp-toast--asks > .sp-stack { flex: 1 1 calc(100% - var(--step) - var(--sp-12)); min-width: 0; }
+.sp-touch .sp-toast--asks > .sp-grow { display: none; }
+.sp-touch .sp-toast--asks > .sp-btn:first-of-type { margin-left: auto; }
 .sp-shell--touch .sp-shell__body--rail { grid-template-columns: minmax(0, 1fr); }
 .sp-shell--touch > .sp-tabbar {
 	position: fixed;
