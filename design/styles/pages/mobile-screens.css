@@ -96,7 +96,7 @@
   .ms-pane > .ms-scroll { margin-top: calc(var(--sp-12) * -1); }
   /* the layer is a column with no gap, so there is nothing to take back */
   .ms-layer > .ms-scroll { margin-top: 0; }
-  .ms-scroll--pad { padding: var(--sp-12); gap: var(--sp-12); }
+  .ms-scroll--pad { padding: var(--phone-gutter); gap: var(--sp-12); }
   /* A screen that stacks a bar, a heading or a summary above the scroll puts them
      in a pane: it fills the frame like the scroll does but never scrolls itself, so
      the one scrolling region stays the one inside it - and the content keeps a

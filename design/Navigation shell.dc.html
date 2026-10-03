@@ -36,7 +36,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Note on the frame</span>
-    <div class="doc-note">The content column is deliberately empty - this frame has no content of its own, and every screen in the set renders in that column. Other files redraw this bar around their own screen so each reads in context - <b>9a is the one that governs it</b>. A page heading sits in the content column at 20px/600, on the same x as the content below it, and carries <b>no back control</b>: the sidebar is always visible and is the way back, browser back already works, and a screen reached from a sidebar action has no previous page for an arrow to point at. Leaving a record is Cancel or Discard in the page, or picking another destination. There is <b>no page heading anywhere</b> - not in the bar and not at the top of the content column. The sidebar names the area, and a record identifies itself in its own content: the order list by its rows, an order by its vendor and reference in the details rail. A heading above either would repeat what is already on screen. If they ever disagree, this file is right, and the difference is a bug in the other file rather than a variant.</div>
+    <div class="doc-note">The content column is deliberately empty - this frame has no content of its own, and every screen in the set renders in that column. Other files redraw this bar around their own screen so each reads in context - <b>9a is the one that governs it</b>. There is no page heading, in the bar or in the content column; the sidebar's current row says where you are. Nothing on a page carries <b>a back control</b> either: the sidebar is always visible and is the way back, browser back already works, and a screen reached from a sidebar action has no previous page for an arrow to point at. Leaving a record is Cancel or Discard in the page, or picking another destination. There is <b>no page heading anywhere</b> - not in the bar and not at the top of the content column. The sidebar names the area, and a record identifies itself in its own content: the order list by its rows, an order by its vendor and reference in the details rail. A heading above either would repeat what is already on screen. If they ever disagree, this file is right, and the difference is a bug in the other file rather than a variant.</div>
     <div class="doc-note">The rounded corners, the 1px outline and the drop shadow around the shell below are <b>presentation only</b> - they exist so the mockup reads as a window on this page. In the app the shell fills the browser viewport edge to edge: the sidebar runs the full height with square corners, and the content column meets the window edge with no border and no radius. Same for the fixed 1400px width, which stands in for a viewport.</div>
   </div>
 
@@ -48,6 +48,7 @@
       <a class="sp-nav-item" href="#3a" aria-label="New order"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span><span>New order</span></a>
       <div class="sp-sidebar__group">Orders</div>
       <a class="sp-nav-item" href="#2b" aria-label="All orders" aria-current="page"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
+        <a class="sp-nav-item" href="Budget.dc.html#21a" aria-label="This year"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
       <a class="sp-nav-item" href="#2b" aria-label="Awaiting delivery"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
       <a class="sp-nav-item" href="#2b" aria-label="Missing receipt"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count" data-color="warning">12</span></a>
       <a class="sp-nav-item" href="#2b" aria-label="This quarter"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M11 15h1" /><path d="M12 15v3" /></svg></span><span>This quarter</span><span class="sp-nav-item__count">64</span></a>
@@ -64,7 +65,7 @@
       <hr class="sp-sidebar__divider">
       <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
       <a class="sp-nav-item" href="#9c" aria-label="Mikkel M.">
-        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -102,10 +103,10 @@
     <span class="doc-notes__label">Notes for implementation</span>
       <div class="doc-note"><b>While a new order is being made, the New order row is the current one</b> (<code>aria-current="page"</code>, <code>--shell-current</code>): on step 1, while a scan is read, and on the edit screen until it is saved. Once saved, the order is an ordinary order and All orders is current. Scan receipt never takes the current state: it is a button, filled on every screen.</div>
       <div class="doc-note"><b>Scan receipt and New order go to different places.</b> New order opens step 1 of <a href="Order create.dc.html#3a">3a</a>, where the user picks receipt, empty order or copy. Scan receipt opens the file picker straight away and the chosen file goes to step 2, reading; cancelling the picker changes nothing.</div>
-    <div class="doc-note"><b>68px, and the width alone decides it.</b> Rows keep their 40px height and 44px targets; only the labels go. Nothing shrinks - the rail is the expanded sidebar with the text removed, not a scaled copy of it. There is no preference to remember: the viewport produces this state and takes it away again. Whether the user should also be able to choose it is <a href="#9i">9i</a>, and unsettled.</div>
+    <div class="doc-note"><b>68px, and the width alone decides it.</b> Rows keep their 40px height and 44px targets; only the labels go. Nothing shrinks - the rail is the expanded sidebar with the text removed, not a scaled copy of it. The viewport produces this state below 1280. On a wider screen the user can also choose it with the grip (<a href="#9i">9i</a>), and the choice is stored per user.</div>
     
     <div class="doc-note"><b>Two greens, and on the rail they are the only thing telling two tiles apart.</b> <code>--green</code> is the capture action; <code>--shell-current</code> is the active destination. With labels gone there is nothing else to distinguish them, so a tile drawn in the wrong green reads as the page you are on.</div>
-    <div class="doc-note"><b>Collapsed, the rail is the same destinations as static icons - saved views drop out.</b> Five 17px glyphs derived from filters are not distinguishable from one another - the ORDERS group collapses to <b>All orders</b>' icon alone. Every other row survives one-to-one - Home, Scan receipt, New order, All orders, This year, Vendors, Categories, Bookmarks, Statistics, Settings, dark mode, account - in the same order, with the same two greens and the same divider. Views are reached from the facet rail (<a href="#9e">9e</a>), which is where they are managed anyway.</div>
+    <div class="doc-note"><b>Collapsed, the rail is the same destinations as static icons - saved views drop out.</b> Five glyphs derived from filters are not distinguishable from one another - the ORDERS group collapses to <b>All orders</b>' icon alone. Every other row survives one-to-one - Home, Scan receipt, New order, All orders, This year, Vendors, Categories, Bookmarks, Statistics, Settings, dark mode, account - in the same order, with the same two greens and the same divider. Views are reached from the facet rail (<a href="#9e">9e</a>), which is where they are managed anyway.</div>
     <div class="doc-note"><b>Every tile needs a tooltip and an aria-label.</b> An icon-only rail is unusable without them, and the label is the destination's name - the same string the expanded row shows.</div>
     <div class="doc-note"><b>⌘K is not the collapsed state's compensation.</b> It works identically expanded; the palette is drawn here because it is the other thing the shell owns, not because collapsing needs a fallback.</div>
   </div>
@@ -120,6 +121,7 @@
         <a class="sp-nav-item" href="#3a" aria-label="New order"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span></a>
         <hr class="sp-sidebar__divider">
         <a class="sp-nav-item" href="#2b" aria-current="page" aria-label="All orders"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span></a>
+        <a class="sp-nav-item" href="Budget.dc.html#21a" aria-label="This year"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span></a>
         <a class="sp-nav-item" href="#10a" aria-label="Vendors"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21l0 -10.15" /><path d="M19 21l0 -10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg></span></a>
         <a class="sp-nav-item" href="#10a" aria-label="Categories"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6l0 -6" /><path d="M14 4h6v6h-6l0 -6" /><path d="M4 14h6v6h-6l0 -6" /><path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></span></a>
         <a class="sp-nav-item" href="Bookmarks.dc.html#22a" aria-label="Bookmarks"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></span></a>
@@ -127,7 +129,7 @@
         <span class="sp-grow"></span>
         <a class="sp-nav-item" href="#10a" aria-label="Settings"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span></a>
         <a class="sp-nav-item" href="#10a" aria-label="Dark mode"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span></a>
-        <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span></a>
+        <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span></a>
       </nav>
     </div>
 
@@ -143,36 +145,31 @@
           <div class="sp-palette__search">
             <span class="sp-palette__icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
             <input class="sp-palette__term" type="search" defaultValue="indbo" aria-label="Search everything">
-            <span class="sp-kbd">ESC</span>
           </div>
           <div class="sp-palette__body">
-            <span class="sp-palette__group">Vendors</span>
+            <span class="sp-palette__group">Orders</span>
             <button type="button" class="sp-palette__row" aria-selected="true">
-              <span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">IM</span>
+              <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span>
               <span class="sp-palette__name">Indbo Møbler</span>
-              <span class="sp-grow"></span>
-              <span class="sp-meta">38 orders · 142.310 kr.</span>
+              <span class="sp-meta">SPENDLY-447 · 8 Aug · 3.980,00 kr.</span>
             </button>
             <button type="button" class="sp-palette__row">
-              <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="amber-2" aria-hidden="true">IN</span>
-              <span class="sp-palette__name sp-palette__name--plain">Indbo Moebler A/S</span>
+              <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span>
+              <span class="sp-palette__name">Indbo Møbler</span>
+              <span class="sp-meta">SPENDLY-441 · 2 Aug · 7.240,00 kr.</span>
+            </button>
+            <span class="sp-palette__group">Vendors</span>
+            <button type="button" class="sp-palette__row">
+              <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21l0 -10.15" /><path d="M19 21l0 -10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg></span>
+              <span class="sp-palette__name">Indbo Møbler</span>
+              <span class="sp-meta">vendor · 38 orders</span>
+            </button>
+            <button type="button" class="sp-palette__row">
+              <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21l0 -10.15" /><path d="M19 21l0 -10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg></span>
+              <span class="sp-palette__name">Indbo Moebler A/S</span>
+              <span class="sp-meta">vendor · 2 orders</span>
               <span class="sp-grow"></span>
               <span class="sp-field__help" data-color="warning">possible duplicate</span>
-            </button>
-            <span class="sp-palette__group">Orders</span>
-            <button type="button" class="sp-palette__row">
-              <span class="sp-palette__thumb" aria-hidden="true"></span>
-              <span class="sp-palette__name sp-palette__name--plain">SPENDLY-447</span>
-              <span class="sp-meta">Indbo Møbler · 08/08/2026</span>
-              <span class="sp-grow"></span>
-              <span class="sp-amount">3.980,00 kr.</span>
-            </button>
-            <button type="button" class="sp-palette__row">
-              <span class="sp-palette__thumb" aria-hidden="true"></span>
-              <span class="sp-palette__name sp-palette__name--plain">SPENDLY-441</span>
-              <span class="sp-meta">Indbo Møbler · 02/08/2026</span>
-              <span class="sp-grow"></span>
-              <span class="sp-amount">7.240,00 kr.</span>
             </button>
             <span class="sp-palette__group">Actions</span>
             <button type="button" class="sp-palette__row">
@@ -185,9 +182,9 @@
             </button>
           </div>
           <div class="sp-palette__foot">
-            <span>↑ ↓ to move</span>
-            <span>↵ to open</span>
-            <span>⇧↵ in a new tab</span>
+            <span>↑↓ move</span>
+            <span>↵ open</span>
+            <span>⌘↵ new tab</span>
             <span class="sp-grow"></span>
             <span>Searching orders, vendors, items, references</span>
           </div>
@@ -216,7 +213,7 @@
         <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 6a7.75 7.75 0 1 0 10 0" /><path d="M12 4l0 8" /></svg><span>Sign out</span></button></li>
       </ul>
       <a class="sp-nav-item" href="#9c" aria-expanded="true">
-        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -232,8 +229,8 @@
       <div class="doc-note"><b>The account block is name over email, and the domain never truncates.</b> There is no company name on an account, so line two is the email. It is split into two spans - the local part shrinks with <b>text-overflow: ellipsis</b>, the <b>@domain</b> is <b>flex: none</b> - because truncating from the right would hide the part that identifies which account is signed in. <b>mikkel.mortensen@verylongcompany.example.net</b> renders as <b>mikkel.mo…@verylongcompany.dk</b>, not <b>mikkel.mortensen@very…</b>. The chevron is <b>flex: none</b> for the same reason.</div>
       <div class="doc-note"><b>Where "Account and profile" goes.</b> Not a new screen - it is Settings (11a) at <b>/settings/account</b>, whose first card is already that form: avatar with upload and remove, name, read-only email, and Change password. The only difference from the nav's Settings row is arrival state: the section is selected in the left nav, the page is scrolled to that card, and focus lands on the card's heading so a keyboard user knows where they arrived. No highlight flash, no auto-focused field - nothing is being asked for yet.</div>
       <div class="doc-note"><b>Deliberately not here.</b> No theme switch - the toggle sits directly above in the sidebar, and two controls for one preference is how they drift. No org or account switching, because there is one user. No "Upgrade".</div>
-      <div class="doc-note"><b>Anchoring.</b> Opens upward, the account block's own width and aligned to both its edges, radius 12px, shadow 0 6px 16px rgba(27,26,23,0.08), 4px above the trigger. Light surface, like every other popover - it belongs to the page, not to the sidebar.</div>
-      <div class="doc-note"><b>The chevron indicates state:</b> down when closed, up when open. It is the only thing on the block that changes.</div>
+      <div class="doc-note"><b>Anchoring.</b> Opens upward, the account block's own width and aligned to both its edges, radius <code>--r-field</code>, shadow <code>--shadow-menu</code>, 4px above the trigger. Light surface, like every other popover - it belongs to the page, not to the sidebar.</div>
+      <div class="doc-note"><b>The chevron points up in both states</b> - the direction the menu opens. The block's <b>aria-expanded</b> carries the state.</div>
       <div class="doc-note"><b>Behaviour.</b> Standard menu semantics - <b>aria-haspopup="menu"</b> and <b>aria-expanded</b> on the block, <b>role="menu"</b> on the panel, arrow keys between items, Esc closes and returns focus to the trigger, click outside closes. Sign out confirms only if there are unsaved changes, naming what would be lost.</div>
       <div class="doc-note"><b>Collapsed rail.</b> The block becomes the avatar alone and the chevron disappears; the same menu opens to the right of it, 4px clear, its bottom edge on the avatar's.</div>
       <div class="doc-note"><b>It is placed on the window, not inside the sidebar.</b> The sidebar scrolls, and a menu inside it would be cut off. <code>.sp-sidebar__menu</code> is fixed at the account block's box; <code>--up</code> hangs the menu above it at its width, <code>--side</code> beside the avatar on the rail.</div>
@@ -259,19 +256,19 @@
         <div class="sp-palette__body">
           <span class="sp-palette__group">Jump back in</span>
           <button type="button" class="sp-palette__row" aria-selected="true">
-            <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></svg></span>
+            <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span>
             <span class="sp-palette__name">Indbo Møbler</span>
             <span class="sp-meta">SPENDLY-447 · 12 Aug · 3.980,00 kr.</span>
             <span class="sp-grow"></span>
             <span class="sp-meta">Open</span>
           </button>
           <button type="button" class="sp-palette__row">
-            <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></svg></span>
+            <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span>
             <span class="sp-palette__name">Hay</span>
             <span class="sp-meta">SPENDLY-441 · 9 Aug · 7.240,00 kr.</span>
           </button>
           <button type="button" class="sp-palette__row">
-            <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span>
+            <span class="sp-mark sp-mark--small sp-mark--none" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21l0 -10.15" /><path d="M19 21l0 -10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg></span>
             <span class="sp-palette__name">Muuto</span>
             <span class="sp-meta">vendor · 33 orders</span>
           </button>
@@ -384,7 +381,7 @@
 
       <div class="doc-card">
         <span class="doc-eyebrow">Behaviour</span>
-        <div class="doc-note"><b>560px, centred, top-anchored at 15vh.</b> Radius 14px, shadow <b>0 14px 32px rgba(27,26,23,0.14)</b>, scrim <b>rgba(27,26,23,0.35)</b>. It does not grow past 60vh; the result list scrolls inside it.</div>
+        <div class="doc-note"><b>520px, centred, top-anchored at 15vh.</b> Radius 14px, shadow <b>0 14px 32px rgba(27,26,23,0.14)</b>, scrim <b>rgba(27,26,23,0.35)</b>. It does not grow past 60vh; the result list scrolls inside it.</div>
         <div class="doc-note"><b>Groups are fixed in order</b> - Orders, Vendors, Items, Actions - and a group with no matches is hidden entirely, header included. Each shows at most three rows plus "See all N in …".</div>
         <div class="doc-note"><b>Arrows traverse everything as one list</b>, crossing group boundaries and skipping headers. Same rule as the combobox in 14a - build the flat list, render headers into it.</div>
         <div class="doc-note"><b>Actions rank above records only when the query matches a command name.</b> Typing a vendor name should never put "Switch to dark mode" first.</div>
@@ -394,7 +391,7 @@
         <div class="doc-note"><b>No results is one line</b> - "No matches for møb" - plus "Search all orders", which leaves the palette for the list with the query applied.</div>
         <div class="doc-note"><b>Opening from the order list carries the query</b> into the field, so ⌘K from a filtered list continues rather than restarts.</div>
         <div class="doc-note"><b>Unsaved changes prompt before it navigates</b>, the same as any other navigation.</div>
-        <div class="doc-note"><b>Not on mobile.</b> Below 640px ⌘K has no meaning and the search field goes to the order list instead.</div>
+        <div class="doc-note"><b>On a phone</b> there is no ⌘K, and tapping the top bar's search field opens this palette over the whole screen (<a href="Mobile screens.dc.html#7b">7b</a>).</div>
       </div>
 
       <div class="doc-card">
@@ -524,7 +521,7 @@
     <div class="doc-note"><b>Selecting from the sidebar navigates to the order list</b> with that view's URL applied, exactly as selecting it in the rail would. Arriving that way, the rail shows the same row selected - there is no state where the two disagree about which view is active.</div>
     <div class="doc-note"><b>The counts are live and identical.</b> One request returns the counts for every view; both surfaces render from it. A count the sidebar has not received yet renders as nothing, not a zero (2g).</div>
     <div class="doc-note"><b>A view can carry an attention flag</b>, and both surfaces honour it - "Missing receipt" here. The flag is a property of the view, set when it is saved, never derived from the number, and a count is never red. Like status colour (11a), the flag names a <b>pair</b>, one ink per surface: <code>--amber-2</code> on the dark sidebar, <code>--amber-ink</code> at weight 600 on the rail's white card. Both are authored - the dark tint on white fails contrast, so neither is computed from the other.</div>
-    <div class="doc-note"><b>Collapsed (9b) and mobile.</b> Collapsed, the group shows only <b>All orders</b>' icon; individual views are not distinguishable as 17px glyphs. On the phone tab bar, Orders is one destination and views are reached from the rail's sheet.</div>
+    <div class="doc-note"><b>Collapsed (9b) and mobile.</b> Collapsed, the group shows only <b>All orders</b>' icon; individual views are not distinguishable as glyphs alone. On the phone tab bar, Orders is one destination and views are reached from the rail's sheet.</div>
   </div>
 </section>
 
@@ -574,7 +571,6 @@
       <span class="doc-specimen__label">Truncation - every text in the shell</span>
       <div class="sp-list ns-table--trunc ns-col-440">
         <div class="ns-table__row doc-table__head"><div>Text</div><div>When too long</div></div>
-        <div class="ns-table__row doc-table__row"><div class="sp-data">Page title</div><div class="sp-meta">never truncates - the set of titles is fixed and short</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">Sidebar area name</div><div class="sp-meta">ellipsis, one line</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">Saved view name</div><div class="sp-meta">ellipsis; the count never shrinks or wraps</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">Account name</div><div class="sp-meta">ellipsis, one line</div></div>
@@ -585,7 +581,7 @@
         <span class="doc-eyebrow">The email case, drawn</span>
         <nav class="sp-sidebar ns-email" aria-label="Account">
           <a class="sp-nav-item" href="#9c">
-            <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+            <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
             <span class="sp-stack sp-grow">
               <span class="sp-truncate">Mikkel Møller</span>
               <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel.mortensen</span><span class="sp-nav-item__domain">@verylongcompany.dk</span></span>
@@ -601,7 +597,7 @@
       <span class="doc-specimen__label">The shell at each width</span>
       <div class="sp-list ns-table--widths ns-col-400">
         <div class="ns-table__row doc-table__head"><div>Width</div><div>Shell</div></div>
-        <div class="ns-table__row doc-table__row"><div class="sp-data">≥ 1280</div><div class="sp-meta">Sidebar 248px expanded, <b>Scan receipt</b> and New order above the ORDERS group. Top bar with title and the 420px search field.</div></div>
+        <div class="ns-table__row doc-table__row"><div class="sp-data">≥ 1280</div><div class="sp-meta">Sidebar 248px expanded, <b>Scan receipt</b> and New order above the ORDERS group. Top bar with the 420px search field and nothing else.</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">&lt; 1280</div><div class="sp-meta">Sidebar may collapse to the 68px rail (9b) - icons only, labels as tooltips. <b>Scan receipt</b> keeps its green fill as a 44px tile at the top of the icon stack, with New order below it as a neutral icon and a hairline separating both from the destinations. The ORDERS group shows only <b>All orders</b>' icon. Search keeps its field but stops growing.</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">&lt; 900</div><div class="sp-meta">Sidebar stays the collapsed rail - capture and New order unchanged at its top. Search keeps its field, which now fills the width the bar has left.</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">&lt; 640</div><div class="sp-meta">Sidebar becomes a <b>bottom tab bar</b>: Home, Orders, Statistics, More. <b>New order</b> leaves the sidebar and becomes the 56px floating action button above the bar (7a). It opens 3a step 1, where the receipt zone leads - the phone is the camera - with an empty order and a copy beneath it. Top bar is the search field and nothing else - no title, no hamburger, no back arrow; tapping it opens the palette over the whole screen (7b). Settings, the account and saved views move under More, and the theme is under Settings, in Appearance.</div></div>
@@ -612,13 +608,13 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>The shell takes no children from a page.</b> No slot, no portal, no <b>useTopBarActions</b> hook. If the shell cannot be extended, the constraint holds by construction rather than by review - and every one of these rules stops needing to be checked.</div>
-    <div class="doc-note"><b>The page title comes from the route</b>, not from the page's own render. A page that sets its own title can set anything, which is how a record name and then a status chip end up in a locked bar.</div>
+    <div class="doc-note"><b>The shell takes no children from a page, with one exception.</b> No slot for the sidebar, no <b>useTopBarActions</b> hook. The exception is Statistics: its Which orders menu and Export sit at the right end of the top bar (<a href="Order statistics.dc.html#4a">4a</a>), through one named slot that only that page fills. Every other page puts nothing there.</div>
+    <div class="doc-note"><b>There is no page title in the shell.</b> The route names the browser tab, and nothing else: a page that sets a title in the bar can set anything, which is how a record name and then a status chip end up in a locked bar.</div>
     <div class="doc-note"><b>Every truncating text needs min-width: 0 on its flex parent.</b> Without it the item refuses to shrink below its content and pushes its siblings out instead of clipping - the single most common cause of a shell that overflows at 1280px but looks fine at 1440px.</div>
     <div class="doc-note"><b>A count next to a truncating label is flex: none.</b> The number is the reason the row is there; losing it to make room for a name is backwards.</div>
-    <div class="doc-note"><b>One icon column, brand included.</b> Every row in the sidebar is <b>9px 10px</b> with an <b>11px</b> gap after a 17px glyph, and the brand row is the same footprint - so the wordmark's mark sits on the same vertical line as every nav icon below it, and the active fill's rounded rectangle is the exact rectangle the brand row occupies. The brand keeps its filled tile - a 26px rounded square with negative side margins, so it <b>centres on the 17px icon column</b> and overhangs it evenly instead of pushing the wordmark out of line.</div>
+    <div class="doc-note"><b>One icon column, brand included.</b> Every row in the sidebar is padded <code>--shell-item-pad</code> with a <code>--shell-gap</code> gap after its glyph in a <code>--mark-small</code> slot, and the brand row is the same footprint - so the wordmark's mark sits on the same vertical line as every nav icon below it, and the active fill's rounded rectangle is the exact rectangle the brand row occupies. The brand keeps its filled tile - a 26px rounded square with negative side margins, so it <b>centres on the icon column</b> and overhangs it evenly instead of pushing the wordmark out of line.</div>
     <div class="doc-note"><b>Tooltips on the collapsed rail carry the full label: the c18 chip to the right of the icon, 6px clear and centred on it, on hover and on keyboard focus. It is placed on the window (<code>.sp-tip--float</code>), so the scrolling sidebar cannot cut it; <code>data-tip</code> is not used on the rail for that reason. The tooltips</b>, so truncation is never the only way to read a name. Anything truncated in the shell must be readable somewhere - the tooltip, the palette, or the Settings page it belongs to.</div>
-    <div class="doc-note"><b>The bottom tab bar respects the safe-area inset</b> and the sticky save bar sits above it, not under it. Both are fixed to the viewport on mobile, which is the one place the content column is not the only scroll container.</div>
+    <div class="doc-note"><b>The bottom tab bar respects the safe-area inset</b> and a task's save bar takes its place rather than sitting above it (<a href="Mobile screens.dc.html#7a">7a</a>). Both are fixed to the viewport on mobile, which is the one place the content column is not the only scroll container.</div>
   </div>
 </section>
 
@@ -656,7 +652,7 @@
         <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
         <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
         <a class="sp-nav-item" href="#9c">
-          <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
           <span class="sp-stack sp-grow">
             <span class="sp-truncate">Mikkel M.</span>
             <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -692,7 +688,7 @@
         <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
         <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
         <a class="sp-nav-item" href="#9c">
-          <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
           <span class="sp-stack sp-grow">
             <span class="sp-truncate">Mikkel M.</span>
             <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -724,7 +720,7 @@
         </div>
         <hr class="sp-sidebar__divider">
         <a class="sp-nav-item" href="#9c">
-          <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
           <span class="sp-stack sp-grow">
             <span class="sp-truncate">Mikkel M.</span>
             <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -758,7 +754,7 @@
     <div class="doc-note"><b>The scrolling region is the nav only</b>: <b>flex: 1; min-height: 0; overflow-y: auto</b>. Without <b>min-height: 0</b> a flex child refuses to shrink below its content and pushes the bottom zone off-screen instead of scrolling - the same automatic-minimum-size rule as 13a, and the single most likely thing to go wrong here.</div>
     <div class="doc-note"><b>The fade is a mask, not a gradient overlay.</b> <b>mask-image: linear-gradient(to bottom, <code>--ink</code> calc(100% - 22px), transparent)</b> on the scroll container. An overlay would need to match the sidebar colour and would break the moment the theme changes; a mask does not care.</div>
     <div class="doc-note"><b>The fade only shows when there is more below.</b> A permanent fade at the bottom of a fully-visible list reads as a rendering fault. Toggle it from the scroll position.</div>
-    <div class="doc-note"><b>The brand is outside the scroll region</b> - a wordmark that scrolls away leaves the sidebar looking like a detached list, and it is the only fixed point at the top. Same for the bottom zone at the other end. <b>Scrollbar:</b> 6px, thumb <b>rgba(255,255,255,0.14)</b>, transparent track, visible on hover and while scrolling. Never the platform default - a light scrollbar on <code>--shell</code> is the brightest thing in the sidebar.</div>
+    <div class="doc-note"><b>The brand is outside the scroll region</b> - a wordmark that scrolls away leaves the sidebar looking like a detached list, and it is the only fixed point at the top. Same for the bottom zone at the other end. <b>Scrollbar:</b> 8px, no track, a rounded thumb in <code>--shell-scroll</code>, as <a href="#9e">9e</a>. Never the platform default - a light scrollbar on <code>--shell</code> is the brightest thing in the sidebar.</div>
     <div class="doc-note"><b>Scroll the active row into view on load</b>, nearest-edge, no animation. Landing on Categories with the nav scrolled to the top hides where you are.</div>
     <div class="doc-note"><b>The collapsed rail (9b) has the same three tiers</b> and the same rules - it is shorter per row, so it reaches each threshold later, but nothing about the behaviour differs.</div>
   </div>
@@ -773,9 +769,9 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Below 1280px is the collapsed rail, not a new layout.</b> Same three zones, same order, labels become tooltips. Saved views drop out - they are the one group that cannot be told apart as 19px glyphs. Everything else survives one-to-one.</div>
+    <div class="doc-note"><b>Below 1280px is the collapsed rail, not a new layout.</b> Same three zones, same order, labels become tooltips. Saved views drop out - they are the one group that cannot be told apart as glyphs alone. Everything else survives one-to-one.</div>
     <div class="doc-note"><b>Below 640px the sidebar is a bottom tab bar, not a drawer.</b> Four destinations - Home, Orders, Statistics, More - with the account, Vendors, Categories, saved views and Settings inside More, which is drawn in <b>7a</b>. The theme is under Settings, in Appearance, not on More itself. A hamburger drawer puts the most-used navigation two taps away on the device where capture matters most.</div>
-    <div class="doc-note"><b>New order becomes the floating action button</b> and is the only FAB in the app. It opens step 1 of <b>3a</b>, where the receipt zone is the first and largest choice - the phone is the camera, so capture leads, but the same button also reaches an empty order and a copy. It leaves the nav because creating is the one action that must be reachable from every screen without a tab change. 56px, bottom right, clear of the tab bar.</div>
+    <div class="doc-note"><b>New order becomes the floating action button</b> and is the only FAB in the app. It opens step 1 of <b>3a</b>, where the receipt zone is the first and largest choice - the phone is the camera, so capture leads, but the same button also reaches an empty order and a copy. It is on Home and Orders, and nowhere else (<a href="Mobile screens.dc.html#7a">7a</a>). 56px, bottom right, clear of the tab bar.</div>
     <div class="doc-note"><b>The tab bar is present on every place and absent on every task.</b> Present: the four destinations and anything reached inside them - a filtered list, a drilled statistics slice, a vendor or category list, Settings and the rest of More. Absent: a record in create or edit, where the sticky save bar takes the bottom instead; the scan review; full-screen search; the image viewer; and while a bottom sheet or dialog is open, which covers it rather than removing it. It returns when the task ends - saved, cancelled or dismissed - and a screen never carries both the tab bar and a save bar. The bar does not animate away on scroll: content scrolls under it, because a navigation bar that hides while reading a list is a navigation bar you cannot find.</div>
     <div class="doc-note"><b>The FAB is on Home and Orders only.</b> It creates an order, so it appears where orders are the subject - the Home overview and the order list, including a filtered or drilled list. It is absent on Statistics, on Settings and everything under More, and on the vendor and category lists, which create their own records from a <b>+</b> in the list head. It hides while a save bar, a sheet, a dialog or the image viewer is up, and returns when that closes. No screen shows two floating actions, and no screen shows a second one of its own.</div>
     <div class="doc-note"><b>The top bar keeps only search</b> at every width. It never gains a title, a hamburger or a back arrow - the tab bar says where you are and the browser says where you came from.</div>
@@ -796,6 +792,7 @@
           <a class="sp-nav-item" href="#3a" aria-label="New order"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span></a>
           <hr class="sp-sidebar__divider">
           <a class="sp-nav-item" href="#2b" aria-current="page" aria-label="All orders"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span></a>
+        <a class="sp-nav-item" href="Budget.dc.html#21a" aria-label="This year"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span></a>
           <a class="sp-nav-item" href="#10a" aria-label="Vendors"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21l0 -10.15" /><path d="M19 21l0 -10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg></span></a>
           <a class="sp-nav-item" href="#10a" aria-label="Categories"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6l0 -6" /><path d="M14 4h6v6h-6l0 -6" /><path d="M4 14h6v6h-6l0 -6" /><path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></span></a>
           <a class="sp-nav-item" href="Bookmarks.dc.html#22a" aria-label="Bookmarks"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></span></a>
@@ -803,7 +800,7 @@
           <span class="sp-grow"></span>
           <a class="sp-nav-item" href="#10a" aria-label="Settings"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span></a>
           <a class="sp-nav-item" href="#10a" aria-label="Dark mode"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span></a>
-          <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span></a>
+          <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span></a>
       </nav>
         <div class="sp-shell__page">
           <div class="sp-topbar">
@@ -847,7 +844,7 @@
     <span class="doc-badge" id="9i">9i</span>
     <span class="doc-section__title">Collapsing the sidebar - experiment</span>
   </div>
-  <div class="doc-lede">Not part of the shell as it stands. <a href="#9a">9a</a> is the committed frame and its sidebar has no control on it; the rail in <a href="#9b">9b</a> is what a narrow viewport produces. This section asks a different question: whether the sidebar should also be collapsible by choice on a wide screen, where statistics and the wide list would take the width. Judge it here and it goes into the shell or it does not.</div>
+  <div class="doc-lede">Part of the shell: the grip is the committed control, the choice is stored per user, and there is no hover peek. <a href="#9a">9a</a> is the committed frame and its sidebar has no control on it; the rail in <a href="#9b">9b</a> is what a narrow viewport produces. This section asks a different question: whether the sidebar should also be collapsible by choice on a wide screen, where statistics and the wide list would take the width. Judge it here and it goes into the shell or it does not.</div>
 
   <div class="doc-specimens">
 <div class="ns-screen sp-shell">
@@ -858,6 +855,7 @@
       <a class="sp-nav-item" href="#3a" aria-label="New order"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span><span>New order</span></a>
       <div class="sp-sidebar__group">Orders</div>
       <a class="sp-nav-item" href="#2b" aria-label="All orders" aria-current="page"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
+        <a class="sp-nav-item" href="Budget.dc.html#21a" aria-label="This year"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
       <a class="sp-nav-item" href="#2b" aria-label="Awaiting delivery"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
       <a class="sp-nav-item" href="#2b" aria-label="Missing receipt"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count" data-color="warning">12</span></a>
       <a class="sp-nav-item" href="#2b" aria-label="This quarter"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M11 15h1" /><path d="M12 15v3" /></svg></span><span>This quarter</span><span class="sp-nav-item__count">64</span></a>
@@ -874,7 +872,7 @@
       <hr class="sp-sidebar__divider">
       <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
       <a class="sp-nav-item" href="#9c" aria-label="Mikkel M.">
-        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -905,7 +903,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Experiment, not settled: collapsed, pointing at it opens it over the page.</b> The sidebar slides out to its full width on top of the content rather than pushing it, and closes again when the pointer leaves, so reaching a destination from the rail costs no click and no reflow. Both edges are delayed - a moment before it opens, so crossing the rail on the way somewhere else does nothing, and longer before it closes, so a pointer that dips outside does not shut it. A sidebar the user expanded with the grip is not peeking and stays open. This one is here to be judged rather than built: the grip is the committed control, and if the peek is dropped the rail loses nothing but the hover.</div>
+    <div class="doc-note"><b>Experiment, not settled: collapsed, pointing at it opens it over the page.</b> The sidebar slides out to its full width on top of the content rather than pushing it, and closes again when the pointer leaves, so reaching a destination from the rail costs no click and no reflow. Both edges are delayed - a moment before it opens, so crossing the rail on the way somewhere else does nothing, and longer before it closes, so a pointer that dips outside does not shut it. A sidebar the user expanded with the grip is not peeking and stays open. The peek is not built: the grip is the committed control, and the rail loses nothing without the hover.</div>
     <div class="doc-note"><b>The grip is what collapses it.</b> A 3&times;26 bar on the sidebar's right edge, vertically centred, in a 14&times;44 target. Clicking it slides the column: opening runs the labels in as it widens, closing runs them out first and gives the width back after. It toggles between <code>--sidebar-w</code> and <code>--sidebar-w-rail</code> rather than resizing freely - there are two widths, not a range - and the choice is stored per user, so the sidebar opens in the state it was left in. Below 1280px the rail is the layout whatever that choice was, and the grip expands it back over the page for as long as it is open.</div>
   </div>
 </section>

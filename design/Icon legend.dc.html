@@ -65,8 +65,8 @@
             <tr>
               <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></span></td>
               <td class="il-col-name"><span class="sp-title">bookmark</span></td>
-              <td><span class="sp-data">Toggles the record into the Favourites group at the top of its picker. Capped at five; filled means on.</span></td>
-              <td class="il-col-where"><span class="sp-meta">Vendor and category rows</span></td>
+              <td><span class="sp-data">Toggles the record into the Favourites group at the top of its picker. Capped at five; filled means on. Also the default mark of a saved view that has none of its own.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Vendor and category rows, saved views (9e)</span></td>
               <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span> Add to favourites</span>
           <span class="sp-meta"><span class="sp-ink-5">aria</span> Add {vendor} to favourites</span></span></td>
             </tr>
@@ -164,8 +164,8 @@
             <tr>
               <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span></td>
               <td class="il-col-name"><span class="sp-title">clock</span></td>
-              <td><span class="sp-data">Marks the Recent group in a combobox. Decorative.</span></td>
-              <td class="il-col-where"><span class="sp-meta">Combobox group headers</span></td>
+              <td><span class="sp-data">Marks the Recent group in a combobox, and a saved view about waiting (Awaiting delivery). Decorative.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Combobox group headers, saved views (9e)</span></td>
               <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span> - </span>
           <span class="sp-meta"><span class="sp-ink-5">aria</span> aria-hidden</span></span></td>
             </tr>
@@ -265,8 +265,8 @@
               <td class="il-col-name"><span class="sp-title">moon</span></td>
               <td><span class="sp-data">Toggles between light and dark, and stays in sync with the Settings control.</span></td>
               <td class="il-col-where"><span class="sp-meta">Sidebar bottom zone</span></td>
-              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span> Switch to dark</span>
-          <span class="sp-meta"><span class="sp-ink-5">aria</span> Switch to dark mode</span></span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span> Dark mode</span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> Dark mode, with aria-pressed</span></span></td>
             </tr>
             <tr>
               <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span></td>
@@ -353,7 +353,119 @@
               <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span> Close</span>
           <span class="sp-meta"><span class="sp-ink-5">aria</span> Close</span></span></td>
             </tr>
-            </tbody>
+                        <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">wallet</span></td>
+              <td><span class="sp-data">This year: the year against its budget.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Sidebar ORDERS group, rail</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span> This year</span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> This year</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2l0 -8" /><path d="M6 10l0 .01" /><path d="M10 10l0 .01" /><path d="M14 10l0 .01" /><path d="M18 10l0 .01" /><path d="M6 14l0 .01" /><path d="M18 14l0 .01" /><path d="M10 14l4 .01" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">keyboard</span></td>
+              <td><span class="sp-data">Keyboard shortcuts.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Account menu</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> menu item text</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 6a7.75 7.75 0 1 0 10 0" /><path d="M12 4l0 8" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">power</span></td>
+              <td><span class="sp-data">Sign out.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Account menu</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> menu item text</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">sun</span></td>
+              <td><span class="sp-data">Toggles back to light; moon's counterpart while dark is on.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Sidebar bottom zone</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span> Dark mode</span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> Dark mode, with aria-pressed</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">tag</span></td>
+              <td><span class="sp-data">A category with no icon of its own, and the fallback for a saved icon Tabler no longer has.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Category marks, Add category</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> aria-hidden</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2" /><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" /><path d="M10 12l4 0" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">archive</span></td>
+              <td><span class="sp-data">Archive a vendor.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Vendor row menu, 5c</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> menu item text</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h5l3.5 5h9.5" /><path d="M3 17h5l3.495 -5" /><path d="M18 15l3 -3l-3 -3" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">arrows-join</span></td>
+              <td><span class="sp-data">Merge one record into another.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Vendor and category menus, 5j</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> menu item text</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">alert-circle</span></td>
+              <td><span class="sp-data">An error: in an alert or beside a field's message.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Alerts, forms</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> aria-hidden</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">eye</span></td>
+              <td><span class="sp-data">Shows or hides a password.</span></td>
+              <td class="il-col-where"><span class="sp-meta">PasswordField trail</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> Show password, with aria-pressed</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l14 0" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">minus</span></td>
+              <td><span class="sp-data">Steps a value down.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Stepper</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> Decrease</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">refresh</span></td>
+              <td><span class="sp-data">Read or check again.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Scan duplicate (3c), failed card</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> button text</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">star</span></td>
+              <td><span class="sp-data">Makes a saved view the default.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Views card menu (2g)</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> menu item text</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">device-desktop</span></td>
+              <td><span class="sp-data">This build: the app's version.</span></td>
+              <td class="il-col-where"><span class="sp-meta">Settings, This build (11d)</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> aria-hidden</span></span></td>
+            </tr>
+            <tr>
+              <td class="il-col-icon"><span class="sp-mark sp-mark--medium sp-mark--plain"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18l.01 0" /><path d="M9.172 15.172a4 4 0 0 1 5.656 0" /><path d="M6.343 12.343a8 8 0 0 1 11.314 0" /><path d="M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0" /></svg></span></td>
+              <td class="il-col-name"><span class="sp-title">wifi</span></td>
+              <td><span class="sp-data">The connection: offline and slow notices.</span></td>
+              <td class="il-col-where"><span class="sp-meta">States and confirmations (6d, 6e)</span></td>
+              <td class="il-col-label"><span class="sp-stack sp-gap-6"><span class="sp-meta"><span class="sp-ink-5">tip</span>  - </span>
+          <span class="sp-meta"><span class="sp-ink-5">aria</span> aria-hidden</span></span></td>
+            </tr>
+          </tbody>
         </table>
   </div>
 </section>

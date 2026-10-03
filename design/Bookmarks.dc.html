@@ -36,7 +36,7 @@
   <div class="doc-lede">Things the user is interested in buying, each with a link to the shop. A row in the sidebar's Library group, with no tie to orders, totals or the budget. Drawn as cards, the order list card from <a href="Order list.dc.html#2c">2c</a>, with search, a category filter and sort above them. The picture strip opens the shop; the menu edits the bookmark in <a href="#22d">22d</a>.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>The record is a bookmark everywhere.</b> Routes are <code>/bookmarks</code>, <code>/bookmarks/new</code> and <code>/bookmarks/:id/edit</code>; every label, title and button says bookmark. In the repo source this area is the wishlist: <code>react/src/pages/Wishlist.jsx</code> and <code>WishForm.jsx</code>.</div>
+    <div class="doc-note"><b>The record is a bookmark everywhere.</b> Routes are <code>/bookmarks</code>, <code>/bookmarks/new</code> and <code>/bookmarks/:id/edit</code>; every label, title and button says bookmark.</div>
     <div class="doc-note"><b>The card is <code>.sp-record</code>, unchanged.</b> A bookmark has exactly one picture, never several. The strip holds that one picture filling its whole width, exactly as an order with one item photo does; there is never a second cell, a divider or a <b>+N</b> count. The form in <a href="#22c">22c</a> has one picture slot for the same reason. No picture draws the empty band with <b>No picture</b>, so every card keeps the same height.</div>
     <div class="doc-note"><b>Only the picture strip opens the link.</b> The strip at the top of the card is a link to the bookmark's URL, opening in a new tab, so it middle-clicks and copies like one. The rest of the card is not a link: the category chips filter the list by that category, and editing is <b>Edit bookmark</b> in the menu. The link is required and validated on save, so every strip has one to open, including the empty No picture band.</div>
     <div class="doc-note"><b>The menu holds what the edit page does:</b> Open at the shop, Edit, Archive, Delete. With <b>Archived</b> selected, Archive becomes <b>Unarchive</b> in the same position; it applies at once and the card leaves the archived list. Delete confirms in a popover from the card, the same component the category list uses in <a href="Vendors and categories.dc.html#5d">5d</a>.</div>
@@ -71,7 +71,7 @@
       <hr class="sp-sidebar__divider">
       <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
       <a class="sp-nav-item" href="#11a">
-        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -428,7 +428,7 @@
       <hr class="sp-sidebar__divider">
       <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
       <a class="sp-nav-item" href="#11a">
-        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -607,7 +607,7 @@
       <hr class="sp-sidebar__divider">
       <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
       <a class="sp-nav-item" href="#11a">
-        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
@@ -731,7 +731,7 @@
       <hr class="sp-sidebar__divider">
       <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
       <a class="sp-nav-item" href="#11a">
-        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
