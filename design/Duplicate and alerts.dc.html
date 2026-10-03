@@ -32,67 +32,9 @@
     <span class="doc-badge" id="8a">8a</span>
     <span class="doc-section__title">Duplicate an order</span>
   </div>
-  <div class="doc-lede">Reached from Duplicate on the read view, or from the order row menu. One sheet decides what carries over - the point of duplicating is a repeat purchase, so lines and prices come by default while the date resets to today and attachments do not follow. Confirming opens the copy in the edit screen, unsaved, so it can still be abandoned.</div>
+  <div class="doc-lede">Reached from Duplicate on the read view, or from the order row menu. There is no dialog: the source is already chosen, so Duplicate opens the copy straight in the edit screen, unsaved, where anything can still be changed or the copy abandoned. Lines and prices come, the date becomes today, the status resets and attachments do not follow - the copy rules of <a href="Order create.dc.html#3b">3b</a>.</div>
 
   <div class="doc-specimens">
-    <div class="sp-dialog da-w520">
-      <div class="sp-stack sp-gap-6">
-        <span class="sp-heading sp-truncate">Duplicate SPENDLY-447</span>
-        <span class="sp-dialog__body">Indbo Møbler · 08/08/2026 · 4 items · 3.980,00 kr.</span>
-      </div>
-
-      <div class="sp-stack sp-gap-6">
-        <label class="sp-field__label" for="da-date">Date for the copy</label>
-        <span class="sp-field__wrap">
-          <input class="sp-input sp-input--unit sp-number" id="da-date" type="text" inputMode="numeric" defaultValue="20/08/2026">
-          <span class="sp-field__unit">today</span>
-        </span>
-      </div>
-
-      <div class="sp-stack sp-gap-6">
-        <span class="sp-title">Carry over</span>
-        <div class="sp-list-item">
-          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry1" defaultChecked="{{ true }}">4 lines with quantities</label>
-          <span class="sp-meta">3.980,00 kr.</span>
-        </div>
-        <div class="sp-list-item">
-          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry2" defaultChecked="{{ true }}">Prices as they were</label>
-          <span class="sp-meta">or clear them</span>
-        </div>
-        <div class="sp-list-item">
-          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry5" defaultChecked="{{ true }}">Categories, kind and note</label>
-        </div>
-        <div class="sp-list-item">
-          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry3" defaultChecked="{{ true }}">3 attachments</label>
-          <span class="sp-meta">not copied</span>
-        </div>
-        <div class="sp-list-item">
-          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry4" defaultChecked="{{ true }}">Order reference</label>
-          <span class="sp-meta">a new one will be given</span>
-        </div>
-      </div>
-
-      <div class="sp-stack sp-gap-6">
-        <span class="sp-title">Status of the copy</span>
-        <div class="sp-segmented sp-segmented--facet" role="radiogroup">
-          <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="da-seg1" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
-          <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="da-seg1"><span class="sp-label">Delivered</span></label>
-          <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="da-seg1"><span class="sp-label">Returned</span></label>
-        </div>
-      </div>
-
-      <div class="sp-list-item" data-color="warning">
-        <span class="sp-list-item__count">!</span>
-        <span class="sp-meta sp-ink-warning">Decor is 2.100 kr. over its limit this month. Adding this copy takes it to 6.080 kr. over.</span>
-      </div>
-
-      <div class="sp-dialog__actions">
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Cancel</button>
-          <span class="sp-grow"></span>
-          <button type="button" class="sp-btn sp-btn--small">Create copy</button>
-        </div>
-    </div>
-
     <div class="sp-stack sp-gap-14 da-w640">
       <span class="sp-section-label">WHERE IT IS REACHED FROM</span>
       <div class="sp-list da-list-headroom">
@@ -114,7 +56,7 @@
                 <div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.980,00 kr.</span></div>
               </td>
               <td class="sp-cell-menu-cell">
-                <div class="sp-cell-menu">
+                <div class="sp-cell-menu" data-open="true">
                   <button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
                   </button>
@@ -136,7 +78,7 @@
         </table>
       </div>
 
-      <span class="sp-section-label">AFTER CONFIRMING</span>
+      <span class="sp-section-label">AFTER DUPLICATE</span>
       <div class="sp-list">
         <div class="sp-list__toolbar da-toolbar--done">
           <span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid">
@@ -175,9 +117,8 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Create copy</b> opens the copy in the edit screen, not saved yet, as <a href="Order create.dc.html#3a">3a</a> step 3 does. Save creates it; leaving discards, with a confirm.</div>
-    <div class="doc-note"><b>Discard</b> and <b>Cancel</b> close the sheet; nothing is created.</div>
-    <div class="doc-note"><b>Add files</b> adds files to the copy only.</div>
+    <div class="doc-note"><b>Duplicate</b> opens the copy in the edit screen, not saved yet, as <a href="Order create.dc.html#3a">3a</a> step 3 does. Save creates it; Discard, or leaving with a confirm, throws it away. If the copy takes a category over its limit, the edit screen says so as any order does (<a href="#8b">8b</a>); it never blocks.</div>
+        <div class="doc-note"><b>Add files</b> adds files to the copy only.</div>
   </div>
 </section>
 
@@ -190,7 +131,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Open statistics</b> opens Statistics (<a href="Order statistics.dc.html#4a">4a</a>) for the current month with that category as a crumb.</div>
+    <div class="doc-note"><b>Open statistics</b> opens Statistics (<a href="Order statistics.dc.html#4a">4a</a>) for the month the summary is about, with no crumb: the card names several categories, and the page shows them all.</div>
     <div class="doc-note"><b class="sp-ink">A limit is a fact about the month, not a validation rule.</b> Crossing one never disables Save and never routes through the validation layer - keep the check out of that code path entirely, or it eventually starts blocking. Amber informs; red blocks.</div>
     <div class="doc-note"><b class="sp-ink">The over-limit chip travels.</b> The same dot renders wherever the category appears - list rows, facet lists and order details - so the state is recognisable without reading the number.</div>
     <div class="doc-note"><b class="sp-ink">Attachments do not follow a duplicate</b> because a receipt is evidence of one specific purchase; copying it to another order makes the record lie. Items, vendor, category, reference and notes do carry over.</div>

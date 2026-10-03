@@ -85,7 +85,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Jump to first</b> moves focus to the first value that needs a look and scrolls it into view.</div>
+    <div class="doc-note"><b>Jump to first</b> moves focus to the first value that needs a look and scrolls it into view. It shows on a phone too: the values that need a look are there as well.</div>
     <div class="doc-note"><b>One button for the file, not two.</b> Camera versus files is the device's decision, not a design choice: a single input with the right <b>accept</b> and <b>capture</b> attributes gets a camera option on a phone, a photo library on a tablet, and a plain file dialog on desktop - each in the form that platform's users already know. Offering "Choose file" and "Use camera" as separate buttons duplicates the OS picker's own first screen, and one of the two is always dead weight on whatever device you are holding.</div>
     <div class="doc-note"><b>Drop is the desktop path and needs no button</b> - the zone is the affordance. Keep the button anyway for keyboard users and for anyone who does not think to drag.</div>
     <div class="doc-note"><b>Three ways to start, ranked by frequency:</b> receipt (the common case, so it gets the whole zone), empty order, copy a previous order. Copy is hidden entirely when there are no orders yet.</div>
