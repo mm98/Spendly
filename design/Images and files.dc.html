@@ -253,10 +253,10 @@
       </div>
 
       <div class="sp-cell-flex">
-        <span class="sp-mark sp-mark--medium sp-mark--empty"></span>
+        <span class="sp-mark sp-mark--medium sp-mark--empty"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8h.01" /><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" /><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" /></svg></span>
         <span class="sp-stack sp-gap-6">
           <span class="sp-title sp-truncate">No photo</span>
-          <span class="sp-meta">The empty mark - dashed, quiet, no glyph and no label.</span>
+          <span class="sp-meta">The empty mark - dashed, with the image symbol in <code>--ink-6</code> and no label.</span>
         </span>
       </div>
 
@@ -304,7 +304,7 @@
       </span></td>
               <td class="if-col-size"><span class="sp-data"><code>--mark-medium</code><br>42px square</span></td>
               <td><span class="sp-data">The photo on that one item line - a picture of the thing bought, taken by the user or read off the receipt. One per line, never more. <b>object-fit: cover</b>, centre crop.</span></td>
-              <td><span class="sp-meta">The empty mark, <code>.sp-mark--empty</code> - quiet, no icon and no camera glyph, because most lines never get a photo and a prompt on every one is noise.</span></td>
+              <td><span class="sp-meta">The empty mark, <code>.sp-mark--empty</code> - dashed, with the image symbol in <code>--ink-6</code>; no camera glyph and no label, because most lines never get a photo and a prompt on every one is noise.</span></td>
             </tr>
             <tr>
               <td class="if-col-position"><span class="sp-stack sp-gap-6">
@@ -322,7 +322,7 @@
       </span></td>
               <td class="if-col-size"><span class="sp-data"><code>--mark-medium</code><br>42px square</span></td>
               <td><span class="sp-data">One image standing for the whole order in a row: <b>the first item line's photo</b>, by position, not by price or by which happens to have one. Deterministic, so the same order always shows the same face. Used in 2b, 10a and 8a.</span></td>
-              <td><span class="sp-meta">The order's <b>category IdentityMark</b> at <code>--mark-medium</code> in category colour. Never an empty tile - a list of blank squares is worse than no images, and the category mark is always available.</span></td>
+              <td><span class="sp-meta">The empty mark, <code>.sp-mark--empty</code>, at <code>--mark-medium</code>: dashed, with the image symbol in <code>--ink-6</code>, as <a href="Order list.dc.html#2b">2b</a> and <a href="Components.dc.html#c2">c2</a> draw it. Not the category mark: a row already names its category, and a mark in the photo cell would read as a photo.</span></td>
             </tr>
             <tr>
               <td class="if-col-position"><span class="sp-stack sp-gap-6">
@@ -336,7 +336,7 @@
       </span></td>
               <td class="if-col-size"><span class="sp-data"><code>.sp-record__photos</code><br>116px tall, full width</span></td>
               <td><span class="sp-data">The order's item photos across the top of a card in <a href="Order list.dc.html#2c">2c</a> - the first three lines that have one, in item order, each <b>object-fit: cover</b>. The count badge carries the rest.</span></td>
-              <td><span class="sp-meta"><code>.sp-record__photos--empty</code> - the category mark centred in the same 116px band, so the grid keeps its rhythm and no card is shorter than its neighbours.</span></td>
+              <td><span class="sp-meta"><code>.sp-record__photos--empty</code> - the image symbol in <code>--ink-6</code> over "No photos", centred in the same 116px band on <code>--surface-3</code>, so the grid keeps its rhythm and no card is shorter than its neighbours (<a href="Order list.dc.html#2c">2c</a>).</span></td>
             </tr>
             <tr>
               <td class="if-col-position"><span class="sp-stack sp-gap-6">

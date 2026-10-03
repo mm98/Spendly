@@ -1,11 +1,14 @@
-# Spendly - two small answers
+# Spendly - an order with no photo
 
-Copy these files over the brief 8 package (handoff_2026_10_03h_changes_fixed).
+Copy these files over the previous package (handoff_2026_10_03i_changes).
 
-- **7b Reset in the filter sheet** is a real button: `sp-btn sp-btn--text sp-btn--small`, in the button's green, as Cancel in the search screen. The grey text in the drawing was wrong and is replaced. Reset clears every filter and keeps the sheet open.
-- **2b import chip:** it names the import by its own date, kept with the import, so an import older than the last five still reads "From import 3 Oct 2026". "From an import" is the fallback only when the date cannot be had, and is now in the 2b note.
+One treatment everywhere, as Components c2 draws it: `.sp-mark--empty` - the dashed `--line-3` square on `--surface-2` with the image symbol (`photo`) in `--ink-6` at its centre. Not the category mark, not an empty tile.
+
+- **Order list 2b:** the note names the image symbol; the hatch note says the dashed square with its symbol is the one literal treatment, the same symbol the Cards band uses (2c).
+- **Images and files 17b ("The three states") and 17d (the image table):** the "no glyph / no icon" wording and the two "category mark" rows are replaced. The row thumbnail with no photo is the empty mark; the card band with no photo is the image symbol over "No photos" on `--surface-3` (2c).
+- Every empty mark drawn on these two pages now carries the symbol.
 
 ## Files
 
-- `Mobile screens.dc.html`
 - `Order list.dc.html`
+- `Images and files.dc.html`
