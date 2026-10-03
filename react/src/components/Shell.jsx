@@ -144,12 +144,11 @@ export function NavItem({ variant = 'default', icon, mark, count, countColor, su
 	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
 }
 
-/** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
-    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab. */
-export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
-	reject(rest, 'SidebarAccount')
-	const [hint, tipEvents] = useTip(expanded ? null : tip)
+/* A menu a sidebar row opens, fixed to the window so the sidebar's scroll cannot clip it, placed against
+   `block`; Up and Down on its button open it at either end (c9), a press outside, Escape or Tab dismisses it. */
+function useSidebarMenu({ expanded, onClick, onDismiss }) {
 	const block = useRef(null)
+	const button = useRef(null)
 	const panel = useRef(null)
 	// which end of the menu an arrow on the closed button asked for (c9: Up opens on the last item)
 	const end = useRef('first')
@@ -184,12 +183,54 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 			ev.preventDefault()
 			items[(i + (ev.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
 		} else if (ev.key === 'Escape' || ev.key === 'Tab') {
-			// Tab goes on from the block, where the menu sits in the reading order
+			// Tab goes on from the button, where the menu sits in the reading order
 			if (ev.key === 'Escape') ev.preventDefault()
-			block.current?.focus()
+			button.current?.focus()
 			onDismiss?.()
 		}
 	}
+	const opener = ev => {
+		if (expanded || (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp')) return
+		ev.preventDefault()
+		end.current = ev.key === 'ArrowUp' ? 'last' : 'first'
+		onClick?.(ev)
+	}
+	// the menu drops below the box, or opens beside it on the rail; `up` opens it above, from the foot
+	const drawn = (menu, way) => (at && menu
+		? createPortal(
+			<div ref={panel} className={join('sp-sidebar__menu', at.side ? 'sp-sidebar__menu--side' : way === 'up' ? 'sp-sidebar__menu--up' : 'sp-sidebar__menu--down')}
+				style={{ left: at.left, top: at.top, width: at.width, height: at.height }} onKeyDown={keys}>
+				{menu}
+			</div>,
+			document.body)
+		: null)
+	return { block, button, opener, drawn }
+}
+
+/** A sidebar row with a second way in: the row goes to `to`, and the chevron at its end opens `menu`
+    (16a: New order, then Scan a receipt, Import a file, Copy a previous order). The rail keeps the row only. */
+export function SidebarSplit({ icon, to, current = false, tip, label, expanded = false, onClick, onDismiss, menu, children, ...rest }) {
+	reject(rest, 'SidebarSplit')
+	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
+	return (
+		<div className="sp-nav-split" ref={block}>
+			<NavItem icon={icon} to={to} current={current} tip={tip} aria-label={children} {...rest}>{children}</NavItem>
+			<button type="button" className="sp-nav-item sp-nav-split__more" ref={button} aria-label={label} aria-haspopup="menu"
+				aria-expanded={expanded ? 'true' : 'false'} onClick={onClick} onKeyDown={opener}>
+				<Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={14} />
+			</button>
+			{drawn(menu)}
+		</div>
+	)
+}
+
+/** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
+    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab. */
+export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
+	reject(rest, 'SidebarAccount')
+	const [hint, tipEvents] = useTip(expanded ? null : tip)
+	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
+	const bind = el => { block.current = el; button.current = el }
 	const split = email.lastIndexOf('@')
 	const address = (
 		<span className="sp-nav-item__sub sp-nav-item__sub--email">
@@ -199,14 +240,8 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 	)
 	return (
 		<>
-			<button type="button" className="sp-nav-item" ref={block} onClick={onClick} aria-haspopup="menu"
-				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents}
-				onKeyDown={ev => {
-					if (expanded || (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp')) return
-					ev.preventDefault()
-					end.current = ev.key === 'ArrowUp' ? 'last' : 'first'
-					onClick?.(ev)
-				}}
+			<button type="button" className="sp-nav-item" ref={bind} onClick={onClick} aria-haspopup="menu"
+				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents} onKeyDown={opener}
 				{...rest}>
 				{picture
 					? <Mark size="medium" fill="photo" aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
@@ -218,14 +253,7 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 				<span className="sp-combobox__chevron"><Icon name="chevron-up" size={14} /></span>
 				{hint}
 			</button>
-			{at && menu
-				? createPortal(
-					<div ref={panel} className={join('sp-sidebar__menu', at.side ? 'sp-sidebar__menu--side' : 'sp-sidebar__menu--up')}
-						style={{ left: at.left, top: at.top, width: at.width, height: at.height }} onKeyDown={keys}>
-						{menu}
-					</div>,
-					document.body)
-				: null}
+			{drawn(menu, 'up')}
 		</>
 	)
 }

@@ -10,6 +10,7 @@ import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
+import { resolveStatus } from '../lib/statuses.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
 import { msUntilEndOfDay } from '../lib/backup.js'
@@ -98,7 +99,22 @@ const selectUploadByHash = db.prepare(`
 const selectUploadMeta = db.prepare(
 	'SELECT id, name, size, kind, (thumbnail IS NOT NULL) AS has_thumbnail FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
-const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
+const selectDraftDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM settings WHERE user_id = ?')
+
+// what each kind of document sets when the account lets a scan override its defaults (Settings, Defaults)
+const FROM_DOCUMENT = {
+	receipt: { status: 'Delivered' }, order_confirmation: { status: 'Ordered' },
+	return: { status: 'Returned' }, sale: { kind: 'Sold' }
+}
+
+/** The new order's status and kind: the account's defaults, or what the document shows when the
+    account lets a scan override them. A status the account has deleted keeps the default. */
+function startingValues(userId, settings, read) {
+	const own = { status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense' }
+	const found = FROM_DOCUMENT[read?.documentType]
+	if (!found || (settings && !settings.scan_overrides)) return own
+	return { status: (found.status && resolveStatus(userId, found.status)) || own.status, kind: found.kind ?? own.kind }
+}
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
 // Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
 // size, kind, thumbnail) plus the cached read, in one row -- the draft handler either has an
@@ -241,7 +257,7 @@ function draftOf(req, upload, read, failure) {
 			documentKey: upload.id, file,
 			vendor: read ? (partial ? selectVendorName.get(partial, req.user.id)?.name : read.vendor) : '',
 			vendorMatched: Boolean(partial), date: read?.date ?? req.today,
-			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+			...startingValues(req.user.id, settings, read),
 			deliveredDate: req.today, returnedDate: req.today, reference: read?.reference ?? '',
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: null,
 			failure: read ? 'empty' : failure === 'billing' ? 'billing' : process.env.ANTHROPIC_API_KEY ? 'failed' : 'unread',
@@ -281,7 +297,7 @@ function draftOf(req, upload, read, failure) {
 		// there was no vendor to match it to.
 		vendor: vendorMatched ? vendorName : read.vendor, vendorMatched,
 		date: read.date ?? req.today,
-		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+		...startingValues(req.user.id, settings, read),
 		deliveredDate: read.date ?? req.today, returnedDate: req.today,
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({

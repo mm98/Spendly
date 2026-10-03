@@ -695,7 +695,8 @@ export async function getSettings(signal) {
 	return request('/api/settings', { signal })
 }
 
-/** The running build: { builtAt, commit }, both null outside the Docker image. */
+/** The running build: { builtAt, commit }, both null outside the Docker image, and `canUpdate`, whether
+    this server can install a newer one itself. */
 export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
@@ -704,6 +705,12 @@ export async function getVersion(signal) {
     server asks the registry, which a browser cannot. */
 export async function checkVersion(signal) {
 	return request('/api/version/check', { signal })
+}
+
+/** Asks the server to install the newest published version (11d). It restarts to do so, so the answer
+    says only that the update started; /api/version names the new commit once it is back. */
+export async function startUpdate(signal) {
+	return request('/api/version/update', { method: 'POST', signal })
 }
 
 export async function saveSettings(patch, signal) {

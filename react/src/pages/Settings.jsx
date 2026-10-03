@@ -5,6 +5,7 @@ import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Field } from '../components/Field.jsx'
+import { Choice, Switch } from '../components/Choice.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -16,10 +17,10 @@ import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
-import { invalidate, useApi } from '../api/useApi.js'
+import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, saveSettings, setViewsShown, sorts, spendKinds,
-	updateProfile
+	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, removePicture, saveSettings,
+	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard } from './SettingsImport.jsx'
@@ -34,11 +35,12 @@ import { useLeaveGuard } from './vendorsCategories.jsx'
 
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
-	{ key: 'account', label: 'Account and profile', keys: ['name'] },
+	{ key: 'account', label: 'Account and profile', keys: ['name', 'picture'] },
 	{ key: 'appearance', label: 'Appearance', keys: ['density'] },
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
-	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus'] },
+	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'sort', 'listSort'] },
+	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEmail', 'notifyEarly'] },
 	{ key: 'statuses', label: 'Statuses' },
 	{ key: 'import', label: 'Import' },
 	{ key: 'demo', label: 'Demo data' },
@@ -62,6 +64,15 @@ const DENSITIES = [
 	{ value: 'comfortable', label: 'Comfortable' },
 	{ value: 'compact', label: 'Compact' }
 ]
+
+// the share of a limit a warning starts at (8b); 100 is only once it is passed
+const EARLY = [
+	{ value: 75, label: '75%' },
+	{ value: 90, label: '90%' },
+	{ value: 100, label: 'Only over' }
+]
+// what a key the server does not send yet stands at, as 8b draws it
+const ALERT_DEFAULTS = { notifyWhileSaving: true, notifyMonthlySummary: true, notifyEmail: true, notifyEarly: 90, scanOverrides: true }
 
 const currencyLabel = c => `${c.label} (${c.symbol})`
 const localeLabel = l => `${l.label} (${localeSample(l.code)})`
@@ -91,7 +102,9 @@ export default function Settings() {
 	const [saving, setSaving] = useState(false)
 	// the name is the account's and the sidebar's view count is kept with the views; both save with the rest
 	const shown = useViews().data?.shown
-	const saved = settings.data && user.data ? { ...settings.data, name: user.data.name ?? '', orderViews: shown ?? 4 } : null
+	const saved = settings.data && user.data
+		? { ...ALERT_DEFAULTS, ...settings.data, name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4 }
+		: null
 	const current = SECTIONS.some(s => s.key === section) ? section : null
 
 	const value = key => (key in draft ? draft[key] : saved?.[key])
@@ -106,12 +119,16 @@ export default function Settings() {
 
 	const save = () => {
 		setSaving(true)
-		const { name, orderViews, ...prefs } = draft
+		const { name, picture, orderViews, ...prefs } = draft
+		const account = name !== undefined || picture !== undefined
 		Promise.all([
 			Object.keys(prefs).length ? saveSettings(prefs) : null,
 			name !== undefined ? updateProfile({ name }) : null,
+			picture !== undefined ? (picture ? uploadPicture(picture) : removePicture()) : null,
 			orderViews ? setViewsShown(orderViews) : null
 		])
+			// the account's own answer is in before the draft goes, so the old picture never shows between
+			.then(out => (account ? freshFetch(getCurrentUser).catch(() => {}).then(() => out) : out))
 			.then(([next]) => {
 				setCurrency(next?.currency ?? value('currency'))
 				setLocale(next?.locale ?? value('locale'))
@@ -134,9 +151,10 @@ export default function Settings() {
 		account: <AccountCard key="account" user={user.data} {...fields} />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
-		defaults: <DefaultsCard key="defaults" {...fields} />,
+		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
-		statuses: <StatusesCard key="statuses" />,
+		alerts: <AlertsCard key="alerts" mail={user.data?.mail} {...fields} />,
+		statuses: <StatusesCard key="statuses" touch={touch} />,
 		import: <ImportCard key="import" />,
 		demo: <DemoCard key="demo" />,
 		build: <BuildCard key="build" />
@@ -355,7 +373,9 @@ function MoneyCard({ value, change, touch }) {
 	)
 }
 
-function DefaultsCard({ value, change, touch }) {
+/* `reads` is whether this server reads receipts: without that a scan finds nothing to override with,
+   so the switch is not offered. */
+function DefaultsCard({ value, change, touch, reads }) {
 	const statuses = useStatuses()
 	return (
 		<Card>
@@ -370,6 +390,39 @@ function DefaultsCard({ value, change, touch }) {
 						options={statuses.map(s => ({ id: s.key, label: s.name }))} />
 				</Field>
 			</Pair>
+			{reads
+				? (
+					<>
+						<span className="sp-rule" />
+						<div className="sp-stack">
+							<Choice variant="described"
+								control={<Switch role="switch" checked={value('scanOverrides')} onChange={ev => change('scanOverrides', ev.target.checked)} />}
+								description="When a scan shows what the paper is, such as an order confirmation or a return, the scan sets the status or the kind to match. Off means your defaults always apply.">
+								Let a scan override these
+							</Choice>
+						</div>
+					</>
+				)
+				: null}
+		</Card>
+	)
+}
+
+/* How loudly a category's limit speaks up (8b). Email is offered only when this server can send it. */
+function AlertsCard({ value, change, mail }) {
+	const switchOf = (key, label, rest) => (
+		<Choice control={<Switch role="switch" checked={value(key)} onChange={ev => change(key, ev.target.checked)} {...rest} />}>{label}</Choice>
+	)
+	return (
+		<Card footerLayout="stack" footer={[
+			<span key="label" className="sp-section-label" id="alerts-early">Tell me early, at</span>,
+			<Segmented key="early" variant="facet" name="alerts-early" options={EARLY} value={value('notifyEarly')}
+				onChange={v => change('notifyEarly', v)} role="radiogroup" aria-labelledby="alerts-early" />
+		]}>
+			<Heading section="alerts">Limit alerts</Heading>
+			{switchOf('notifyWhileSaving', 'Warn me while I am saving an order')}
+			{switchOf('notifyMonthlySummary', 'Monthly summary on the first of the month')}
+			{mail ? switchOf('notifyEmail', 'Also by email', { disabled: !value('notifyMonthlySummary') }) : null}
 		</Card>
 	)
 }

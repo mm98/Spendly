@@ -38,6 +38,8 @@ export function Mark({
 	fill = 'default',
 	swatch,
 	round = false,
+	// a photo of goods (an item, an order, a bookmark) rather than paper, which the light theme tones (17b)
+	goods = false,
 	count,
 	text,
 	danger,
@@ -63,7 +65,8 @@ export function Mark({
 		'sp-mark',
 		pick(SIZE, size, 'size', 'Mark'),
 		pick(FILL, fill, 'fill', 'Mark'),
-		round && 'sp-mark--round'
+		round && 'sp-mark--round',
+		goods && 'sp-mark--goods'
 	)
 	// a colour the user picked outside the set rides in the hook its rule reads
 	const paint = !chosen ? {} : SWATCHES.includes(chosen) ? { 'data-swatch': chosen } : { 'data-swatch': 'custom', style: { '--swatch': chosen } }

@@ -10,7 +10,7 @@ import { Icon } from '../components/Icon.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
 import { attachmentFileUrl, changeOrders, failureMessage, getCategories, invalidateOrderData, itemAttachmentThumbnailUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { currency, dot, plural, shortDate } from '../api/format.js'
+import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
 import { StatusPill, orderLine } from '../app/orderRow.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
@@ -176,7 +176,7 @@ export function RowMenu({ order, touch, onDelete }) {
     is the row's menu, and its box picks it as a row's does. */
 export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
 	const photos = order.photos ?? []
-	const more = order.photoCount > photos.length ? `+${order.photoCount - photos.length}` : null
+	const more = order.photoCount > photos.length ? morePhotos(order.photoCount - photos.length) : null
 	return (
 		<Record
 			onClick={() => onOpen(order)}

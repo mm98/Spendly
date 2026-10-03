@@ -81,6 +81,7 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 				as="label"
 				size={size}
 				fill={src ? 'photo' : 'empty'}
+				goods={Boolean(src)}
 				text={src && !failed && !busy ? kind : undefined}
 				danger={failed || undefined}
 				htmlFor={id}

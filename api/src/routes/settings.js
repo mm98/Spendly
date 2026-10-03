@@ -6,23 +6,31 @@ import { statusKeys } from '../lib/statuses.js'
 export const router = Router()
 
 const selectSettings = db.prepare(`
-	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density
+	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density,
+		notify_while_saving, notify_monthly_summary, notify_email, notify_early, scan_overrides
 	FROM settings WHERE user_id = ?
 `)
 // show_scan_card and confirm_delete are NOT NULL without a default, so a first write fills them
 const upsertSettings = db.prepare(`
 	INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
-		confirm_delete, list_sort, currency, locale, density)
-	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale, @density)
+		confirm_delete, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary,
+		notify_email, notify_early, scan_overrides)
+	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale, @density,
+		@notifyWhileSaving, @notifyMonthlySummary, @notifyEmail, @notifyEarly, @scanOverrides)
 	ON CONFLICT (user_id) DO UPDATE SET
 		default_kind = excluded.default_kind, default_status = excluded.default_status,
 		page_size = excluded.page_size, sort = excluded.sort, list_sort = excluded.list_sort,
-		currency = excluded.currency, locale = excluded.locale, density = excluded.density
+		currency = excluded.currency, locale = excluded.locale, density = excluded.density,
+		notify_while_saving = excluded.notify_while_saving, notify_monthly_summary = excluded.notify_monthly_summary,
+		notify_email = excluded.notify_email, notify_early = excluded.notify_early,
+		scan_overrides = excluded.scan_overrides
 `)
 
 const toApi = row => ({
 	defaultKind: row.default_kind, defaultStatus: row.default_status, pageSize: row.page_size,
-	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density
+	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density,
+	notifyWhileSaving: Boolean(row.notify_while_saving), notifyMonthlySummary: Boolean(row.notify_monthly_summary),
+	notifyEmail: Boolean(row.notify_email), notifyEarly: row.notify_early, scanOverrides: Boolean(row.scan_overrides)
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -37,7 +45,11 @@ export const ORDER_SORTS = [
 export const LIST_SORTS = ['name-asc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
 const CURRENCY_CODES = CURRENCIES.map(c => c.code)
 const DENSITIES = ['comfortable', 'compact']
+// the share of a limit a warning starts at; 100 is "only when over"
+const EARLY = [75, 90, 100]
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)
+// a switch takes only true or false; anything else keeps what is stored
+const onOff = (asked, fallback) => (typeof asked === 'boolean' ? asked : fallback) ? 1 : 0
 
 router.get('/', (req, res) => {
 	const row = selectSettings.get(req.user.id)
@@ -48,7 +60,8 @@ router.patch('/', (req, res) => {
 	const current = selectSettings.get(req.user.id)
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
-		listSort: 'name-asc', currency: 'DKK', locale: 'auto', density: 'comfortable'
+		listSort: 'name-asc', currency: 'DKK', locale: 'auto', density: 'comfortable',
+		notifyWhileSaving: true, notifyMonthlySummary: true, notifyEmail: true, notifyEarly: 90, scanOverrides: true
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
@@ -78,7 +91,12 @@ router.patch('/', (req, res) => {
 		   so a stored value nothing validates is every date in the product replaced by an
 		   error boundary. */
 		locale: oneOf(LOCALES, String(next.locale ?? ''), currentApi.locale),
-		density: oneOf(DENSITIES, String(next.density ?? ''), currentApi.density)
+		density: oneOf(DENSITIES, String(next.density ?? ''), currentApi.density),
+		notifyWhileSaving: onOff(next.notifyWhileSaving, currentApi.notifyWhileSaving),
+		notifyMonthlySummary: onOff(next.notifyMonthlySummary, currentApi.notifyMonthlySummary),
+		notifyEmail: onOff(next.notifyEmail, currentApi.notifyEmail),
+		notifyEarly: oneOf(EARLY, Number(next.notifyEarly), currentApi.notifyEarly),
+		scanOverrides: onOff(next.scanOverrides, currentApi.scanOverrides)
 	})
 	res.json(toApi(selectSettings.get(req.user.id)))
 })
