@@ -14,7 +14,7 @@ import { Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getCategories, getCategory, getOrders } from '../api/client.js'
-import { currency, dot, plural, shortDate } from '../api/format.js'
+import { currency, dot, fullStop, plural, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
 
@@ -325,7 +325,7 @@ export function MergeDialog({ kind, source, options, busy, onConfirm, onCancel }
 						<span className="sp-subtitle">
 							{picked.name} gets its {plural(source.orders, 'order')}. An order carrying both keeps one label, not two.
 							{source.budget > 0 ? ` ${source.name}'s limit of ${currency(source.budget, 0)} goes with it` : ''}
-							{source.budget > 0 && picked.budget > 0 ? `; ${picked.name}'s stays at ${currency(picked.budget, 0)}.` : source.budget > 0 ? '.' : ''}
+							{source.budget > 0 && picked.budget > 0 ? `; ${picked.name}'s stays at ${currency(picked.budget, 0)}${fullStop()}` : source.budget > 0 ? '.' : ''}
 						</span>
 					</Well>
 				)

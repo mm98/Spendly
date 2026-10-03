@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
@@ -10,13 +10,13 @@ import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	deleteCategory, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData
+	deleteCategory, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
 } from '../api/client.js'
 import { NUMBER_LOCALE, amountRound, currency, dot, plural } from '../api/format.js'
-import { useShellShape } from '../app/useMedia.js'
+import { useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
-	Bar, CategoryMark, ConfirmDelete, Held, RowMenu, SortControl, categoryDeleteNote, isGone, monthPace, sayFailure, useRefocus
+	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
 const SORTS = [
@@ -26,6 +26,9 @@ const SORTS = [
 	{ id: 'limit-desc', label: 'Limit ↓', by: (a, b) => b.budget - a.budget },
 	{ id: 'orders-desc', label: 'Orders ↓', by: (a, b) => b.orders - a.orders }
 ]
+// at this width of the list or under, the monthly limit joins the name's second line (5k)
+const FOLD = 880
+
 // Settings' shared sort in this list's terms: spend here is the month's, and a category saves nothing
 const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
 
@@ -65,7 +68,11 @@ export default function Categories() {
 	const sort = SORTS.find(s => s.id === params.get('sort')) ?? opening
 	const [menuFor, setMenuFor] = useState(null)
 	const [deleting, setDeleting] = useState(null)
+	const [merging, setMerging] = useState(null)
 	const [busy, setBusy] = useState(false)
+	const column = useRef(null)
+	const width = useWidth(column)
+	const folded = !touch && width > 0 && width <= FOLD
 	const pace = monthPace()
 	// a page of rows per Load more, kept for Back along with the scroll
 	const { pages, setPages, restored } = useListMemory(`categories?${query}&${sort.id}`)
@@ -99,8 +106,23 @@ export default function Categories() {
 			.finally(() => setBusy(false))
 	}
 
+	const merge = target => {
+		setBusy(true)
+		refocus(merging, shown.findIndex(r => r.id === merging.id))
+		mergeCategory(merging.id, target.id)
+			.then(() => {
+				invalidateCategoryData()
+				invalidateVendorData()
+				state.refresh()
+				toast({ message: `${merging.name} is merged into ${target.name}.` })
+				setMerging(null)
+			})
+			.catch(e => sayFailure(toast, e, 'The categories were not merged. Try again.'))
+			.finally(() => setBusy(false))
+	}
+
 	const bar = (
-		<Controls>
+		<Controls ref={column}>
 			{touch ? null : (
 				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" />
 			)}
@@ -114,7 +136,7 @@ export default function Categories() {
 	let body
 	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
 	else if (!state.data) body = <CategoriesLoading touch={touch} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
-		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} />
+		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
 	else if (!all.length) body = (
 		<Card>
 			<Empty>
@@ -161,7 +183,7 @@ export default function Categories() {
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
 				<ListCell width="amount">{sort.id.startsWith('month-') ? sort.label : 'This month'}</ListCell>
-				<ListCell width="amount">{sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'}</ListCell>
+				{folded ? null : <ListCell width="amount">{sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'}</ListCell>}
 				<ListCell width="menu" />
 			</ListHead>
 			<ListRow>
@@ -170,7 +192,10 @@ export default function Categories() {
 						<CategoryMark category={c} />
 						<Stacked>
 							<span className="sp-title sp-truncate">{c.name}</span>
-							<span className="sp-meta sp-truncate">{plural(c.orders, 'order')}</span>
+							<span className="sp-meta sp-truncate">
+								{plural(c.orders, 'order')}{dot}{currency(c.monthAverage ?? 0, 0)} avg. per month
+								{folded ? `${dot}${c.budget > 0 ? `limit ${currency(c.budget, 0)}` : 'no limit'}` : null}
+							</span>
 						</Stacked>
 					</ListCell>,
 					<ListCell key="m">
@@ -179,22 +204,19 @@ export default function Categories() {
 							<MonthLine category={c} />
 						</div>
 					</ListCell>,
-					<ListCell key="l" cell="amount">
-						{c.budget > 0 ? <span className="sp-amount">{currency(c.budget, 0)}</span> : <span className="sp-data sp-ink-5">no limit</span>}
-					</ListCell>,
+					folded ? null : (
+						<ListCell key="l" cell="amount">
+							{c.budget > 0 ? <span className="sp-amount">{currency(c.budget, 0)}</span> : <span className="sp-data sp-ink-5">no limit</span>}
+						</ListCell>
+					),
 					<ListCell key="x" cell="menu">
 						<RowMenu noun="Category" label={c.name} open={menuFor === c.id}
 							onToggle={() => setMenuFor(menuFor === c.id ? null : c.id)} onClose={() => setMenuFor(null)}>
 							<MenuItem icon="external-link" onClick={() => navigate(`/orders?category=${c.id}`)}>Open in the order list</MenuItem>
 							<MenuItem icon="pencil" onClick={() => navigate(`/categories/${c.id}/edit`)}>Edit category</MenuItem>
-							{c.orders === 0 && c.bookmarks === 0
-								? (
-									<>
-										<MenuSeparator />
-										<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
-									</>
-								)
-								: null}
+							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setMerging(c) }}>Merge into…</MenuItem>
+							<MenuSeparator />
+							<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
 						</RowMenu>
 					</ListCell>
 				]}
@@ -207,12 +229,10 @@ export default function Categories() {
 			{bar}
 			{body}
 			{deleting
-				? (
-					<ConfirmDelete title={`Delete ${deleting.name}?`} action="Delete category" busy={busy}
-						onConfirm={remove} onCancel={() => setDeleting(null)}>
-						{categoryDeleteNote(deleting.budget)}
-					</ConfirmDelete>
-				)
+				? <DeleteCategory category={deleting} busy={busy} onConfirm={remove} onCancel={() => setDeleting(null)} />
+				: null}
+			{merging
+				? <MergeDialog kind="category" source={merging} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)
@@ -221,7 +241,7 @@ export default function Categories() {
 const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc', '92']]
 
 /* A page of rows held at the loaded rows' places (6b), so nothing moves when the categories land. */
-function CategoriesLoading({ touch, size, month, limit }) {
+function CategoriesLoading({ touch, size, month, limit, folded }) {
 	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
 	const gauge = <Held shape={<Gauge thin untargeted value={0} aria-label="No limit set" />} />
 	if (touch) return rows.map(({ id, w }) => (
@@ -240,7 +260,7 @@ function CategoriesLoading({ touch, size, month, limit }) {
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
 				<ListCell width="amount">{month}</ListCell>
-				<ListCell width="amount">{limit}</ListCell>
+				{folded ? null : <ListCell width="amount">{limit}</ListCell>}
 				<ListCell width="menu" />
 			</ListHead>
 			<ListRow>
@@ -255,7 +275,7 @@ function CategoriesLoading({ touch, size, month, limit }) {
 							<Bar role="sp-meta" w={w[2]} h="10" end />
 						</div>
 					</ListCell>,
-					<ListCell key="l" cell="amount"><Bar role="sp-amount" w="74" h="13" end /></ListCell>,
+					folded ? null : <ListCell key="l" cell="amount"><Bar role="sp-amount" w="74" h="13" end /></ListCell>,
 					<ListCell key="x" cell="menu"><Skeleton shape="icon" /></ListCell>
 				]}
 			</ListRow>

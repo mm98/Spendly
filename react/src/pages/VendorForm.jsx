@@ -359,7 +359,7 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete }) {
 		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
 	].filter(Boolean)
 	return (
-		<Card footer={footer} footerCommits>
+		<Card footer={footer} footerLayout={footer.length > 1 ? 'split' : 'fill'} footerCommits>
 			<span className="sp-section-label">End of its life</span>
 			<Well>
 				<span className="sp-title">{title}</span>
