@@ -1099,6 +1099,10 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 
 .sp-list-item .sp-chip,
 .sp-list-item .sp-pill { flex: none; }
+/* a pill naming what the reader typed gives way before the row does: the name ends in an ellipsis */
+.sp-pill:has(> .sp-truncate) { min-width: 0; max-width: 100%; }
+.sp-list-item .sp-pill:has(> .sp-truncate) { flex: 0 1 auto; }
+.sp-pill > .sp-truncate { display: block; }
 
 /* ---------- menu - LOCKED c9 ---------- */
 
@@ -2267,6 +2271,14 @@ a.sp-tabbar__item { text-decoration: none; }
   border-radius: var(--r-marker);
   background: var(--line-3);
   align-self: center;
+}
+/* the handle is pulled down to close the sheet (c13): a thumb-sized grip around the drawn bar,
+   reaching the sheet's top edge and the gap under it; short of closing, the sheet slides back */
+.sp-sheet__handle { position: relative; touch-action: none; cursor: grab; }
+.sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
+.sp-sheet { transition: transform 160ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .sp-sheet { transition: none; }
 }
 
 /* ---------- dialog - LOCKED c13 ---------- */
@@ -3847,6 +3859,14 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-sidebar__menu > .sp-menu { position: absolute; box-shadow: var(--shadow-menu); }
 .sp-sidebar__menu--up > .sp-menu { left: 0; right: 0; bottom: calc(100% + var(--sp-4)); min-width: 0; }
 .sp-sidebar__menu--side > .sp-menu { left: calc(100% + var(--sp-4)); bottom: 0; }
+.sp-sidebar__menu--down > .sp-menu { left: 0; right: 0; top: calc(100% + var(--sp-4)); min-width: 0; }
+/* a row with a second way in (16a): the row, then a chevron that opens a short menu, each its own
+   target; the rail keeps the row alone */
+.sp-nav-split { display: flex; gap: var(--sp-2); }
+.sp-nav-split > .sp-nav-item:first-child { flex: 1; min-width: 0; }
+.sp-nav-split > .sp-nav-split__more { flex: none; width: var(--menu-col); justify-content: center; padding: 0; }
+.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-nav-split__more,
+.sp-sidebar--rail:not(.sp-sidebar--peek) .sp-nav-split__more { display: none; }
 
 .sp-nav-item__count[data-color="warning"] { color: var(--amber-3); }
 .sp-nav-item--light .sp-nav-item__count[data-color="warning"] { color: var(--amber-ink); }
@@ -4591,7 +4611,20 @@ html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--st
 .sp-mark--photo > .sp-mark__open > img { position: absolute; inset: 0; }
 .sp-mark--photo:has(> img),
 .sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }
-.sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; }
+/* Thumbnail tone (17b, 12b): on light, goods only (paper is read), saturate(0.88) under --bg at 8%, which is
+   the picture at 92% over --bg; on dark every thumbnail is edged and at 90%. Never in the viewer or an avatar. */
+[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo, .sp-palette__thumb):has(> img) { background: var(--bg); }
+[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo, .sp-palette__thumb) > img { filter: saturate(0.88); opacity: 0.92; }
+[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img) { border-color: var(--line-3); }
+[data-theme="dark"] :is(.sp-record__photo, .sp-palette__thumb) > img { outline: 1px solid var(--line-3); outline-offset: -1px; }
+[data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo, .sp-palette__thumb) > img { opacity: 0.9; }
+[data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo, .sp-palette__thumb):hover > img { opacity: 1; }
+.sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; cursor: zoom-in; user-select: none; }
+/* a picture at full size zooms where it is pressed (17d); a finger on it swipes or pinches, so the
+   page under it does not scroll or zoom instead. Zoomed, it keeps the stage's size and moves inside it */
+.sp-viewer__stage:has(> img) { touch-action: none; }
+.sp-viewer__stage--zoomed { display: flex; overflow: auto; }
+.sp-viewer__stage--zoomed > img { flex: none; margin: auto; max-width: none; max-height: none; cursor: zoom-out; }
 .sp-viewer__stage:has(> img),
 .sp-viewer__stage:has(> .sp-mark) { background: none; }
 /* the rail's label, fixed to the window where [data-tip] would clip inside a scrolling sidebar */

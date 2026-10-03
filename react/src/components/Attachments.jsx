@@ -1,4 +1,4 @@
-import { Children, useCallback, useEffect, useRef, useState } from 'react'
+import { Children, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
@@ -93,20 +93,142 @@ function usePages(item) {
 	return item?.pages ?? counted ?? 1
 }
 
+// how far a picture zooms: a tap or click goes to TAP_ZOOM at the point pressed, a pinch anywhere up to MAX_ZOOM
+const TAP_ZOOM = 2.5
+const MAX_ZOOM = 4
+// a press that moves less than this is a tap; a sideways swipe past SWIPE_PX moves to the next file
+const TAP_SLOP_PX = 6
+const SWIPE_PX = 48
+
+/** A picture at full size that zooms (17d): a click or tap at a point, a pinch or Ctrl and the wheel; zoomed,
+    it is dragged around. Unzoomed, a sideways swipe calls `onSwipe(1)` for the next file, -1 for the one before. */
+function ZoomStage({ src, alt, onSwipe }) {
+	const stage = useRef(null)
+	const img = useRef(null)
+	const [scale, setScale] = useState(1)
+	// the picture's size and the stage's own at fit, which a zoomed stage keeps so the viewer does not grow
+	const [fit, setFit] = useState(null)
+	const anchor = useRef(null)
+	const pointers = useRef(new Map())
+	const gesture = useRef(null)
+	const pressed = useRef(false)
+	const current = useRef(scale)
+	current.current = scale
+
+	const zoomTo = useCallback((next, x, y) => {
+		const el = img.current
+		const box = stage.current
+		if (!el || !box) return
+		const to = next < 1.02 ? 1 : Math.min(MAX_ZOOM, next)
+		if (current.current === 1 && to > 1) setFit({ w: el.offsetWidth, h: el.offsetHeight, frameW: box.offsetWidth, frameH: box.offsetHeight })
+		const r = el.getBoundingClientRect()
+		anchor.current = { fx: (x - r.left) / r.width, fy: (y - r.top) / r.height, x, y }
+		setScale(to)
+	}, [])
+	// the point that was pressed stays under the finger or pointer as the picture grows
+	useLayoutEffect(() => {
+		const at = anchor.current
+		anchor.current = null
+		const el = img.current
+		const box = stage.current
+		if (!at || !el || !box || scale === 1) return
+		const r = el.getBoundingClientRect()
+		box.scrollLeft += r.left + at.fx * r.width - at.x
+		box.scrollTop += r.top + at.fy * r.height - at.y
+	}, [scale])
+	useEffect(() => {
+		const box = stage.current
+		if (!box) return
+		// Ctrl and the wheel is a trackpad's pinch too; the page must not zoom instead
+		const wheel = ev => {
+			if (!ev.ctrlKey) return
+			ev.preventDefault()
+			zoomTo(current.current * Math.exp(-ev.deltaY * 0.01), ev.clientX, ev.clientY)
+		}
+		box.addEventListener('wheel', wheel, { passive: false })
+		return () => box.removeEventListener('wheel', wheel)
+	}, [zoomTo])
+
+	const spread = () => {
+		const [a, b] = [...pointers.current.values()]
+		return { d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+	}
+	const events = {
+		onPointerDown: ev => {
+			if (ev.pointerType === 'mouse' && ev.button !== 0) return
+			ev.currentTarget.setPointerCapture(ev.pointerId)
+			pointers.current.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
+			const box = stage.current
+			if (pointers.current.size === 2) gesture.current = { pinch: { ...spread(), scale: current.current }, moved: true }
+			else if (pointers.current.size === 1) gesture.current = { x: ev.clientX, y: ev.clientY, left: box.scrollLeft, top: box.scrollTop, touch: ev.pointerType !== 'mouse', moved: false }
+		},
+		onPointerMove: ev => {
+			const g = gesture.current
+			if (!g || !pointers.current.has(ev.pointerId)) return
+			pointers.current.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
+			if (g.pinch) {
+				if (pointers.current.size < 2) return
+				const now = spread()
+				zoomTo(g.pinch.scale * now.d / g.pinch.d, now.x, now.y)
+				return
+			}
+			const dx = ev.clientX - g.x
+			const dy = ev.clientY - g.y
+			if (!g.moved && Math.hypot(dx, dy) < TAP_SLOP_PX) return
+			g.moved = true
+			if (current.current > 1) {
+				stage.current.scrollLeft = g.left - dx
+				stage.current.scrollTop = g.top - dy
+			} else if (g.touch && onSwipe && img.current) img.current.style.transform = `translateX(${dx}px)`
+		},
+		onPointerUp: ev => {
+			const g = gesture.current
+			pointers.current.delete(ev.pointerId)
+			if (!g) return
+			if (pointers.current.size) return
+			gesture.current = null
+			pressed.current = g.moved
+			img.current?.style.removeProperty('transform')
+			if (g.pinch || !g.moved || current.current > 1 || !g.touch || !onSwipe) return
+			const dx = ev.clientX - g.x
+			const dy = ev.clientY - g.y
+			if (Math.abs(dx) > SWIPE_PX && Math.abs(dx) > Math.abs(dy) * 1.5) onSwipe(dx < 0 ? 1 : -1)
+		},
+		onPointerCancel: ev => {
+			pointers.current.delete(ev.pointerId)
+			gesture.current = null
+			img.current?.style.removeProperty('transform')
+		},
+		// a press that moved was a drag, a swipe or a pinch, not a click
+		onClick: ev => {
+			if (pressed.current) { pressed.current = false; return }
+			zoomTo(current.current > 1 ? 1 : TAP_ZOOM, ev.clientX, ev.clientY)
+		}
+	}
+	const zoomed = scale > 1 && fit
+	return (
+		<div className={zoomed ? 'sp-viewer__stage sp-viewer__stage--zoomed' : 'sp-viewer__stage'} ref={stage}
+			style={zoomed ? { width: fit.frameW, height: fit.frameH } : undefined} {...events}>
+			<img ref={img} src={src} alt={alt} draggable={false}
+				style={zoomed ? { width: fit.w * scale, height: fit.h * scale } : undefined} />
+		</div>
+	)
+}
+
 /** One file on a stage, with the page rail when it has more than one page (17d: page thumbnail). */
-function ViewerFile({ item, label }) {
+function ViewerFile({ item, label, onSwipe }) {
 	const pages = usePages(item)
 	const [page, setPage] = useState(0)
 	useEffect(() => setPage(0), [item?.key, item?.name])
 	const many = pages > 1 && item.pageSrc
 	const src = many ? item.pageSrc(page) : item.src
-	const stage = (
-		<div className="sp-viewer__stage">
-			{src
-				? <img src={src} alt={many ? `${item.name}, page ${page + 1} of ${pages}` : item.name} />
-				: <Mark size="xlarge" fill="none" aria-label={item.name}><span>{kindOf(item)}</span></Mark>}
-		</div>
-	)
+	const stage = src
+		? <ZoomStage key={src} src={src} alt={many ? `${item.name}, page ${page + 1} of ${pages}` : item.name} onSwipe={onSwipe} />
+		: (
+			<div className="sp-viewer__stage">
+				<Mark size="xlarge" fill="none" aria-label={item.name}><span>{kindOf(item)}</span></Mark>
+			</div>
+		)
 	const body = many
 		? (
 			<div className="sp-viewer__paged">
@@ -154,7 +276,7 @@ export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest })
 				aria-label={beside ? `${shown.name} beside ${beside.name}` : shown.name} tabIndex={-1} ref={box}>
 				{beside
 					? <div className="sp-viewer__compare"><ViewerFile item={shown} label={shown.label} /><ViewerFile item={beside} label={beside.label} /></div>
-					: <ViewerFile item={shown} />}
+					: <ViewerFile item={shown} onSwipe={items.length > 1 ? step : undefined} />}
 				<div className="sp-viewer__bar">
 					<IconButton icon="chevron-left" aria-label="Previous" disabled={items.length < 2} onClick={() => step(-1)} />
 					<span className="sp-viewer__count">{at + 1} of {items.length}</span>

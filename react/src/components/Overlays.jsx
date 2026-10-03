@@ -315,7 +315,8 @@ export function DialogActions({ children, ...rest }) {
 
 const TOAST_COLOR = { default: null, danger: 'danger' }
 
-export function Toast({ icon, color = 'default', compact = false, asks = false, children, ...rest }) {
+/** `seconds` is how long the Undo in it lasts, drawn after it (6d). */
+export function Toast({ icon, color = 'default', compact = false, asks = false, seconds, children, ...rest }) {
 	reject(rest, 'Toast')
 	// the way back is a child, not a prop: it is the last thing in the row, which is
 	// where it is written, and a page cannot put a plain link there by accident
@@ -332,6 +333,8 @@ export function Toast({ icon, color = 'default', compact = false, asks = false, 
 			{icon ? <span className="sp-toast__icon"><Icon name={icon} /></span> : null}
 			<span>{message}</span>
 			{undo}
+			{/* not read out: a live region would say it again every second */}
+			{undo && seconds != null ? <span className="sp-meta sp-number" aria-hidden="true">{seconds}s</span> : null}
 		</div>
 	)
 }
@@ -364,7 +367,9 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 }
 
 /* One toast at a time, bottom centre, for six seconds; a second replaces the first and
-   restarts the time, hovering or focus inside holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18). */
+   restarts the time, hovering or focus inside holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18).
+   An Undo shows the seconds it has left (6d). */
+const TOAST_MS = 6000
 const ToastContext = createContext(() => {})
 const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:not(.sp-btn--outline, .sp-btn--text)'
 
@@ -382,10 +387,21 @@ export function Toaster({ children }) {
 	// ended) leaves the speaking to whatever does
 	const show = useCallback(next => { if (next?.message) setToast({ ...next, key: Date.now() }) }, [])
 	const dismiss = useCallback(() => setToast(null), [])
+	// the time left, which a hold stops and the end of the hold carries on from
+	const [left, setLeft] = useState(TOAST_MS)
+	const leftNow = useRef(TOAST_MS)
+	useLayoutEffect(() => { leftNow.current = TOAST_MS; setLeft(TOAST_MS) }, [toast])
 	useEffect(() => {
 		if (!toast || hovered || focused) return
-		const timer = setTimeout(dismiss, 6000)
-		return () => clearTimeout(timer)
+		const from = leftNow.current
+		const start = Date.now()
+		const tick = () => {
+			leftNow.current = from - (Date.now() - start)
+			if (leftNow.current <= 0) dismiss()
+			else setLeft(leftNow.current)
+		}
+		const timer = setInterval(tick, 200)
+		return () => clearInterval(timer)
 	}, [toast, hovered, focused, dismiss])
 	useLayoutEffect(() => {
 		if (toast || !focused) return
@@ -456,7 +472,8 @@ export function Toaster({ children }) {
 				onBlur={ev => { if (!region.current?.contains(ev.relatedTarget)) setFocused(false) }}>
 				{toast
 					? (
-						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}>
+						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}
+							seconds={Math.ceil(left / 1000)}>
 							{toast.message}
 							{toast.undo ? <ToastUndo onClick={() => { toast.undo.onClick(); dismiss() }}>{toast.undo.label ?? 'Undo'}</ToastUndo> : null}
 						</Toast>

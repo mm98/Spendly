@@ -2,7 +2,7 @@ import { Icon } from '../components/Icon.jsx'
 import { NavItem } from '../components/Shell.jsx'
 import { getCategories, getViews } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { amount } from '../api/format.js'
+import { countBadge } from '../api/format.js'
 import { CategoryMark } from './categoryMark.jsx'
 
 /* What a saved view holds (2g): the order list's address, without the view it was opened from. */
@@ -56,8 +56,8 @@ export function SidebarViews({ rail, savedId }) {
 		<>
 			{shown.map(view => (
 				<NavItem key={view.id} to={viewLink(view)} mark={<ViewMark query={view.query} />} current={savedId === view.id}
-					count={amount(view.count, 0)} countColor={view.attention ? 'warning' : undefined}
-					aria-label={`${view.name}, ${amount(view.count, 0)}`}>{view.name}</NavItem>
+					count={countBadge(view.count)} countColor={view.attention ? 'warning' : undefined}
+					aria-label={`${view.name}, ${countBadge(view.count)}`}>{view.name}</NavItem>
 			))}
 			{more > 0 ? <NavItem mark={<span className="sp-nav-item__icon" />} sub={`${more} more in Orders`} /> : null}
 		</>

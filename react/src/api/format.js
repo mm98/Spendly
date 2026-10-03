@@ -15,6 +15,12 @@ export const amount = (n, decimals = 2) => {
 /** 18420 -> "18.420". */
 export const amountRound = n => amount(n, 0)
 
+/** A count in a badge (Layout rules 15a): 248 -> "248", past four digits "9.999+", which is all a reader acts on. */
+export const countBadge = n => (n > 9999 ? `${amount(9999, 0)}+` : amount(n, 0))
+
+/** The photos past those shown, over a thumbnail's corner (17c): 7 -> "+7", and "+99" at most. */
+export const morePhotos = n => `+${Math.min(n, 99)}`
+
 /** 2 -> "2", 1.5 -> "1,5": a count is not money, so trailing zeros go. */
 export const quantity = n => amount(n, 2).replace(/(,\d*?)0+$/, '$1').replace(/,$/, '')
 
