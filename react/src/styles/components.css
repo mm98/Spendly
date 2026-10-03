@@ -2612,11 +2612,14 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-legend {
   display: flex;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
   gap: var(--sp-12);
   font-size: var(--t-12);
   color: var(--ink-3);
 }
-.sp-legend__item { display: flex; align-items: center; gap: var(--sp-6); }
+/* a series the reader named can be long: the item keeps to the legend's width and its name ends in an ellipsis */
+.sp-legend__item { display: flex; align-items: center; gap: var(--sp-6); min-width: 0; max-width: 100%; }
 .sp-legend__key {
   width: 10px;
   height: 10px;
@@ -3356,6 +3359,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   color: var(--ink);
 }
 [data-theme="dark"] .sp-toast__undo { color: var(--green-2); }
+/* the readout's rows are a quiet light ink on its lifted surface; the light theme's line tone is dark here */
+[data-theme="dark"] .sp-tip__row { color: var(--ink-3); }
 
 /* ---------- summary rows - DRAFT c21 ----------
    The right-hand panel's contents: a fact per row, then the total. */
@@ -4005,6 +4010,12 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-tip__head > :last-child { margin-left: auto; font-weight: 700; }
 .sp-tip__row { display: flex; align-items: center; gap: var(--sp-6); font-size: var(--t-11); color: var(--line-4); }
 .sp-tip__row > :last-child { margin-left: auto; }
+/* the readout hangs beside the column it reads, inside the chart (4a); a column in the chart's left
+   half carries it on its right, where there is room. It takes no pointer, so the next column does */
+.sp-bars__col:has(> .sp-bars__tip) { position: relative; }
+.sp-bars__tip { position: absolute; top: 50%; right: 100%; z-index: 3; margin-right: var(--sp-12); transform: translateY(-50%); pointer-events: none; }
+.sp-bars__tip[data-side="end"] { right: auto; left: 100%; margin-right: 0; margin-left: var(--sp-12); }
+.sp-bars--plot .sp-bars__tip { top: auto; bottom: 96px; transform: none; }
 
 /* the gauge reads its measurement from the same 5% scale the charts use */
 .sp-gauge__fill[data-fill="0"] { width: 0%; }

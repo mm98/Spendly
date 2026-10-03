@@ -1151,6 +1151,15 @@
 				"sqlite_autoindex_vendors_2"
 			]
 		},
+		"SELECT id, budget FROM categories WHERE user_id = ? AND budget > 0": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
 		"SELECT id, date FROM order_statuses WHERE order_id = ? AND status = ?": {
 			"plan": [
 				"SEARCH order_statuses USING INDEX idx_order_statuses_order (order_id=?)"
@@ -1465,6 +1474,15 @@
 				"idx_saved_views_user"
 			]
 		},
+		"SELECT month FROM monthly_summary_seen WHERE user_id = ?": {
+			"plan": [
+				"SEARCH monthly_summary_seen USING INDEX sqlite_autoindex_monthly_summary_seen_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_monthly_summary_seen_1"
+			]
+		},
 		"SELECT name FROM _migrations": {
 			"plan": [
 				"SCAN _migrations USING COVERING INDEX sqlite_autoindex__migrations_1"
@@ -1518,6 +1536,22 @@
 			],
 			"indexes": [
 				"idx_orders_user_date",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT oc.category_id AS id, strftime('%Y-%m', ot.date, 'unixepoch') AS month, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND c.budget > 0 GROUP BY oc.category_id, month": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
@@ -2660,7 +2694,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 8
+			"readers": 9
 		},
 		"idx_imports_user_created": {
 			"table": "imports",
@@ -2721,7 +2755,7 @@
 				"date",
 				"id"
 			],
-			"readers": 43
+			"readers": 44
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",

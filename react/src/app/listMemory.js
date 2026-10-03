@@ -35,6 +35,19 @@ export const rememberList = (section, address) => keep(lists, section, address)
 /** A section's list address as last shown, or undefined before it has been opened. */
 export const rememberedList = section => lists.get(section)
 
+/** The period chosen on Statistics, put on the order list as it next opens from the shell (c14).
+    A saved view stays as it was saved, so the dates go on All orders instead. */
+export function carryPeriod(from, to) {
+	const [path, query = ''] = (lists.get('orders') ?? '/orders').split('?')
+	const params = new URLSearchParams(query)
+	const view = params.get('saved')
+	const next = view && view !== 'all' ? new URLSearchParams({ saved: 'all' }) : params
+	next.delete('period')
+	next.set('from', from)
+	next.set('to', to)
+	keep(lists, 'orders', `${path}?${next}`)
+}
+
 /** A section's list as the reader last left it, with its sort, search and filters; the bare list
     when it has not been opened. What an edit page's Cancel, Save and Archive go back to. */
 export function useListReturn(section) {

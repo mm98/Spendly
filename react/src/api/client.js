@@ -754,6 +754,18 @@ export async function getHomeAttention(signal) {
 	return request('/api/stats/home', { signal })
 }
 
+/** Last month's summary for Home (8b): its totals, each limited category's spend and how often it
+    went over in twelve months, and whether the reader put it away. */
+export async function getMonthlySummary(signal) {
+	return request('/api/stats/summary', { signal })
+}
+
+export async function putSummaryAway(month, signal) {
+	const answer = await request('/api/stats/summary/seen', { method: 'PUT', body: { month }, signal })
+	invalidate(getMonthlySummary)
+	return answer
+}
+
 /** The order the vendors and categories lists open in: one setting, so only the orders both lists
     have. A label names the column and the direction; Name has one direction, the one that finds. */
 export const listSorts = [
@@ -897,9 +909,9 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendors, getVendor, getHomeAttention]
-const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
+const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 
