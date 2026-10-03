@@ -1589,7 +1589,7 @@ label.sp-option--swatch[aria-pressed="true"] {
 /* A button on touch fills its column, so a finger has the whole width to aim at.
    A bar lays its own buttons out in a row, so a button in one keeps its own width -
    otherwise two commits and their label cannot share 375px. */
-.sp-touch .sp-btn:not(.sp-btn--small) { width: 100%; }
+.sp-touch .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 /* xsmall is a desktop size: on touch it is the small button, height and width */
 .sp-touch .sp-btn--xsmall { width: auto; height: 34px; padding: 0 var(--sp-16); font-weight: 600; }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
@@ -1613,7 +1613,7 @@ label.sp-option--swatch[aria-pressed="true"] {
   .sp-section { padding: 0 var(--sp-16) var(--sp-16); }
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
-  .sp-btn { width: 100%; }
+  .sp-btn:not(.sp-btn--xsmall) { width: 100%; }
 }
 
 /* a measurement arrives as a data attribute with its own rule below, so no
@@ -1699,6 +1699,9 @@ label.sp-option--swatch[aria-pressed="true"] {
   border: 1px solid var(--line);
   border-radius: 10px;
   box-shadow: var(--shadow-menu);
+  /* a long list stops at --list-max and scrolls inside, however tall the window */
+  max-height: var(--list-max);
+  overflow-y: auto;
 }
 .sp-combobox[data-open="true"] .sp-combobox__panel { display: flex; }
 /* the panel overlays: it is anchored under the trigger and never changes the layout behind it */
@@ -3690,7 +3693,7 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 }
 .sp-palette__term::placeholder { color: var(--ink-5); }
 .sp-palette__term::-webkit-search-cancel-button { appearance: none; }
-.sp-palette__body { padding: var(--sp-10) 0; max-height: 420px; overflow-y: auto; }
+.sp-palette__body { padding: var(--sp-10) 0; max-height: var(--list-max); overflow-y: auto; }
 .sp-palette__group {
   display: block;
   padding: var(--sp-6) var(--sp-16);
@@ -3857,12 +3860,30 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
    two categories become indistinguishable */
 .sp-mark--solid[data-swatch="green-2"] { background: var(--green-2); }
 .sp-mark--solid[data-swatch="green-3"] { background: var(--green-3); }
-.sp-mark--solid[data-swatch="green-4"] { background: var(--green-4); }
+.sp-mark--solid[data-swatch="green-4"] { background: var(--green-4); color: var(--ink); }
 .sp-mark--solid[data-swatch="green-5"] { background: var(--green-5); color: var(--ink); }
 .sp-mark--solid[data-swatch="amber-ink"] { background: var(--amber-ink); }
 .sp-mark--solid[data-swatch="amber-2"] { background: var(--amber-2); color: var(--ink); }
 .sp-mark--solid[data-swatch="red-ink"] { background: var(--red-ink); }
-.sp-mark--solid[data-swatch="ink-6"] { background: var(--ink-6); }
+.sp-mark--solid[data-swatch="ink-6"] { background: var(--ink-6); color: var(--ink); }
+/* The ink on a solid mark is whichever of --surface and --ink has the higher APCA
+   lightness contrast on its fill, a tie keeping --surface. The rules above and below
+   are that result for each swatch in each theme; a colour the reader picks arrives
+   with data-ink, worked out the same way by the component. */
+:where([data-theme="dark"]) .sp-mark--solid:not([data-swatch]),
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green-3"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green-4"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
+/* a light island inside a dark page takes the light results back */
+:where([data-theme="light"]) .sp-mark--solid:not([data-swatch]),
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="green"],
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="green-3"] { color: var(--surface); }
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="green-4"],
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
+/* the ink is worked out from the fill: whichever of the two reads better on it */
+.sp-mark--solid[data-ink="surface"] { color: var(--surface); }
+.sp-mark--solid[data-ink="ink"] { color: var(--ink); }
 
 /* ---------- record strip, nothing photographed - c1 variant ----------
    The band keeps its height so a grid of cards stays even, and says what is
@@ -4381,14 +4402,29 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 
 
 
-/* A row being carried: lifted off the list, on the raised-card shadow the library
-   already names, tilted just enough to read as held rather than placed. */
+/* A row being carried: lifted off the list, on the menu shadow the library already
+   names, tilted just enough to read as held rather than placed. It stacks above the
+   rows it is carried across. */
 .sp-list-item--carried {
+  position: relative;
+  z-index: 1;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-tile);
   box-shadow: var(--shadow-menu);
   transform: rotate(-0.6deg);
+}
+/* the handle under the pointer darkens and its row takes the row hover; a carried row stays white */
+.sp-list-item__handle:hover { color: var(--ink-3); }
+.sp-list-item:not(.sp-list-item--carried):has(> .sp-list-item__handle:hover) { background: var(--hover); }
+/* a row the keyboard picked up wears the selected-row tint until it is dropped */
+.sp-list-item--picked { background: var(--green-tint); }
+/* on touch a handle is held before it drags, so holding it selects nothing and opens no callout */
+.sp-list-item__handle { -webkit-touch-callout: none; user-select: none; }
+.sp-touch .sp-list-item__handle { width: 24px; }
+.sp-touch .sp-list-item:has(> .sp-list-item__handle) { min-height: var(--control-h-touch); }
+@media (prefers-reduced-motion: reduce) {
+  .sp-list-item--carried { transform: none; }
 }
 /* Where it will land. */
 .sp-list-item__insertion {
@@ -4684,6 +4720,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a toast that needs an answer stays on the page's own surface, so it does not
    read as something that will disappear on its own - c23 */
 .sp-toast--asks { background: var(--surface); border: 1px solid var(--amber); color: var(--amber-ink-2); }
+/* where toasts appear: a column, so a notice that stays until answered sits above a
+   passing toast instead of under it - c23. On touch both take the full width. */
+.sp-toast-region { display: flex; flex-direction: column; align-items: center; gap: var(--sp-8); }
+.sp-touch .sp-toast-region { align-items: stretch; }
 
 /* a pill carrying a problem - c6 variant */
 

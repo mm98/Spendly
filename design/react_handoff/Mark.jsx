@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 
 /* The mark: the square that stands in for a thing - initials, an icon, a photo, or
@@ -50,6 +51,53 @@ const swatchOf = name => {
 	return DERIVED[hash % DERIVED.length]
 }
 
+/* The ink on a solid mark is worked out from its fill: whichever of the theme's two
+   inks, --surface or --ink, has the higher APCA lightness contrast on it, a tie
+   keeping --surface. The fill is read from the rendered mark, so the rule holds for
+   every swatch at its value in the current theme and for any colour the reader picks. */
+const channels = css => {
+	const m = String(css).match(/[\d.]+/g)
+	return m && m.length >= 3 ? m.slice(0, 3).map(Number) : null
+}
+const luminance = rgb => {
+	const [r, g, b] = rgb.map(c => Math.pow(c / 255, 2.4))
+	const y = 0.2126729 * r + 0.7151522 * g + 0.072175 * b
+	return y > 0.022 ? y : y + Math.pow(0.022 - y, 1.414)
+}
+// APCA 0.0.98G lightness contrast of text on a ground, as a magnitude
+const contrast = (text, ground) => {
+	const yt = luminance(text), yg = luminance(ground)
+	if (yg > yt) {
+		const c = (Math.pow(yg, 0.56) - Math.pow(yt, 0.57)) * 1.14
+		return c < 0.1 ? 0 : (c - 0.027) * 100
+	}
+	const c = (Math.pow(yg, 0.65) - Math.pow(yt, 0.62)) * 1.14
+	return c > -0.1 ? 0 : -(c + 0.027) * 100
+}
+export const inkOn = (fill, surface, ink) =>
+	contrast(ink, fill) > contrast(surface, fill) ? 'ink' : 'surface'
+
+const useInk = (paints, deps) => {
+	const box = useRef(null)
+	const [ink, setInk] = useState(null)
+	useLayoutEffect(() => {
+		const el = box.current
+		if (!paints || !el) return setInk(null)
+		const style = getComputedStyle(el)
+		const fill = channels(style.backgroundColor)
+		const resolve = name => {
+			const probe = document.createElement('span')
+			probe.style.color = `var(${name})`
+			el.appendChild(probe)
+			const value = channels(getComputedStyle(probe).color)
+			probe.remove()
+			return value
+		}
+		const surface = resolve('--surface'), dark = resolve('--ink')
+		setInk(fill && surface && dark ? inkOn(fill, surface, dark) : null)
+	}, [paints, ...deps])
+	return [box, ink]
+}
 
 
 /**
@@ -122,7 +170,10 @@ export function Mark({
 		pick(FILL, fill, 'fill', 'Mark'),
 		round && 'sp-mark--round'
 	)
-	const paint = chosen ? { 'data-swatch': chosen } : {}
+	/* the theme can change under a mounted mark; a host that switches theme without a
+	   reload remounts or rerenders, which recomputes this */
+	const [box, ink] = useInk(paints, [chosen, rest.style?.background, rest.style?.backgroundColor])
+	const paint = { ...(chosen ? { 'data-swatch': chosen } : {}), ...(ink ? { 'data-ink': ink } : {}), ref: box }
 	/* A derived mark draws two letters and means a whole name, so the name is what it
 	   announces - with role="img", since aria-label on a bare span is ignored by most
 	   screen readers. A caller can still name it something else. */

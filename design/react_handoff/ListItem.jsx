@@ -16,7 +16,7 @@ const VARIANT = {
 	top: 'sp-list-item--top',
 	add: 'sp-list-item--add',
 	carried: 'sp-list-item--carried',
-	// picked up from the keyboard, waiting for Space to drop it
+	// picked up from the keyboard and not yet dropped: the selected-row tint
 	picked: 'sp-list-item--picked',
 	card: 'sp-list-item--card',
 	// the card row that stays put while the page scrolls under it, lifted off what it
