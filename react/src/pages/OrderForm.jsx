@@ -515,7 +515,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const warn = line.uncertain || (tried && Object.keys(lineErrors(line)).length)
 		const named = line.title || 'the unnamed line'
 		const words = (
-			<span className="sp-stacked">
+			<span className="sp-stacked or-line">
 				<span className="sp-title sp-truncate">{line.title || 'Unnamed line'}</span>
 				<span className={['sp-subtitle', touch ? null : 'sp-truncate', warn ? 'sp-ink-warning' : null].filter(Boolean).join(' ')}>
 					{warn ? 'Check this line against the receipt' : lineMetaWith(line, photo, scan || touch)}
@@ -525,7 +525,6 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const text = (
 			<>
 				{words}
-				<span className="sp-grow" />
 				{line.price == null ? <span className="sp-subtitle sp-nowrap">No price</span> : <LineAmount line={line} compact />}
 			</>
 		)
@@ -553,7 +552,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				variant={carried === line.key || held?.key === line.key ? 'carried' : 'default'}
 				color={warn ? 'warning' : 'default'}
 				opens={!touch && !reordering}
-				handle={scan ? undefined : <Icon name="grip-vertical" size={14} />}
+				// a phone moves a line with its two buttons, so it shows no handle to drag
+				handle={scan || touch ? undefined : <Icon name="grip-vertical" size={14} />}
 				handleLabel={`Reorder ${named}, currently position ${at + 1} of ${lines.length}`}
 				mark={scan ? <><Include line={line} setLines={setLines} />{mark}</> : mark}
 				actions={reordering

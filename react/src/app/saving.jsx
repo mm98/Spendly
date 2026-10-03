@@ -10,5 +10,8 @@ const LOOK = {
     is the line it sits on: under an amount, a card's figure, or a caption. */
 export function Saving({ value, variant = 'amount' }) {
 	const on = isSaving(value)
-	return <span {...LOOK[variant][on ? 'on' : 'off']}>Saved {currency(on ? Number(value) : 0)}</span>
+	const line = <span {...LOOK[variant][on ? 'on' : 'off']}>Saved {currency(on ? Number(value) : 0)}</span>
+	if (variant !== 'stat') return line
+	// a card's figure is one height whether it reads zero or not, so the card never moves
+	return <span className="sp-row-flex"><span className="sp-stat__delta" aria-hidden="true">{'\u200b'}</span>{line}</span>
 }

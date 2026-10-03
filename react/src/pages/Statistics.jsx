@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
 import { Card, Panel } from '../components/Card.jsx'
@@ -799,6 +799,11 @@ function SavingChart({ chart, name, touch, onOpen }) {
 	)
 }
 
+/* How many categories had a limit when this tab last knew, so a fresh load holds that many rows. */
+const LIMITED = 'spendly:limited'
+const rememberedLimits = () => { try { return Number(sessionStorage.getItem(LIMITED)) || 0 } catch { return 0 } }
+const rememberLimits = n => { try { sessionStorage.setItem(LIMITED, String(n)) } catch { /* storage denied */ } }
+
 function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 	const edit = <Button key="edit" variant="outline" size="small" to="/categories">Edit on category</Button>
 	// a phone button takes the full width, so there it sits in the card's footer rather than squeezing the label
@@ -809,12 +814,14 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 			{touch ? null : edit}
 		</div>
 	)
+	const limited = categories.data?.filter(category => category.budget > 0)
+	useEffect(() => { if (limited) rememberLimits(limited.length) }, [limited?.length])
 	if (categories.error) return <Failed label="Monthly limit" what="The limits did not load." error={categories.error} onRetry={onRetry} />
 	const footer = touch ? [edit] : null
-	// the limits set the card's length, so until they answer it holds two lines
-	if (!categories.data) return <Card aria-busy="true" footer={footer}>{head}<Skeleton shape="line" /><Skeleton shape="short" /></Card>
-	const limited = categories.data.filter(category => category.budget > 0)
-	if (!limited.length) {
+	// the limits set the card's length, so until they answer it holds the rows last seen, else two lines
+	const held = limited ? limited.length : rememberedLimits()
+	if (!limited && !held) return <Card aria-busy="true" footer={footer}>{head}<Skeleton shape="line" /><Skeleton shape="short" /></Card>
+	if (limited && !limited.length) {
 		return (
 			<Card footer={footer}>
 				{head}
@@ -825,16 +832,16 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 	const note = range === 'month'
 		? 'Each category has one limit that applies to every month.'
 		: `Each category has one limit that applies to every month. The amounts below cover ${name}.`
-	if (!view) {
+	if (!view || !limited) {
 		return (
 			<Card aria-busy="true" footer={footer}>
 				{head}
 				<span className="sp-meta">{note}</span>
-				{running
+				{running ?? view?.pace.running
 					? <ListItem aria-hidden="true"><span className="sp-data">{hold('130')}</span><span className="sp-grow" /><span className="sp-amount">{hold('18')}</span></ListItem>
 					: null}
-				{limited.map((category, i) => (
-					<div className="sp-stack sp-gap-6" key={category.id} aria-hidden="true">
+				{Array.from({ length: held }, (unused, i) => (
+					<div className="sp-stack sp-gap-6" key={i} aria-hidden="true">
 						<div className="sp-row-flex sp-gap-8">
 							<span className="sp-data">{hold(WIDTHS[i % WIDTHS.length])}</span>
 							<span className="sp-grow" />
@@ -849,7 +856,7 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 					<span className="sp-grow" />
 					<span className="sp-amount">{hold('104')}</span>
 				</div>
-				{running ? <div className="sp-row-flex sp-gap-8" aria-hidden="true"><GaugeKey /><span className="sp-meta">{hold('130', '11')}</span></div> : null}
+				{running ?? view?.pace.running ? <div className="sp-row-flex sp-gap-8" aria-hidden="true"><GaugeKey /><span className="sp-meta">{hold('130', '11')}</span></div> : null}
 			</Card>
 		)
 	}
@@ -951,7 +958,7 @@ function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry }) {
 		)
 	}
 	// a page of rows holds the table's place, or the window's own count once it is known
-	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, SLICE) : SLICE} />
+	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, SLICE) : SLICE} total={view?.orders} />
 	else {
 		body = (
 			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={SLICE} total={matched} onLoadMore={onLoadMore} selectionKey={view.id}
@@ -994,10 +1001,12 @@ function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry }) {
 const LOADING_ROWS = [['62pc', '58', '88'], ['48pc', '74', '74'], ['55pc', '46', '92']]
 
 /* Skeletons hold the real rows' places, so nothing moves when the orders land (6b). */
-function RowsLoading({ show, size }) {
+function RowsLoading({ show, size, total }) {
 	const rows = Array.from({ length: size }, (unused, i) => ({ id: i, r: LOADING_ROWS[i % LOADING_ROWS.length] }))
+	// a count already known holds the foot the rows will have; its Load more waits for them
+	const foot = total > SLICE ? { total, onLoadMore: () => {} } : {}
 	return (
-		<List data={rows} recordKey={x => x.id} noun="orders" pageSize={SLICE}>
+		<List data={rows} recordKey={x => x.id} noun="orders" pageSize={SLICE} {...foot}>
 			<Caption><Skeleton shape="line" data-w="82" data-h="13" /></Caption>
 			{sliceHead(show)}
 			<ListRow>{({ r }) => (

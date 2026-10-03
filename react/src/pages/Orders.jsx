@@ -11,14 +11,14 @@ import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { RangeSlider, SearchInput } from '../components/Inputs.jsx'
 import { Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
-import { ListItem } from '../components/ListItem.jsx'
+import { Announce, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Menu, MenuItem, MenuSeparator } from '../components/Overlays.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
 import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
-import { useApi } from '../api/useApi.js'
+import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useShellShape, useWidth } from '../app/useMedia.js'
@@ -80,6 +80,29 @@ const PRESETS = [
 ]
 const presetOf = (from, to) => PRESETS.find(p => { const [a, b] = p.range(new Date()); return a === from && b === to })
 
+/* The server answers at most this many rows at once. */
+const MOST = 1000
+
+/* Load more adds one page to those held; a fresh start asks in blocks of whole pages up to MOST.
+   Named getOrders so a write that forgets the orders forgets these too (useApi keys by name). */
+const loaded = {
+	async getOrders(request, size, pages, signal) {
+		const before = pages > 1 ? peek(loaded, [request, size, pages - 1]) : null
+		if (before && before.orders.length === size * (pages - 1)) {
+			const next = await getOrders({ ...request, page: pages, pageSize: size }, signal)
+			return { ...next, orders: [...before.orders, ...next.orders] }
+		}
+		const block = size * Math.max(1, Math.floor(MOST / size))
+		const want = size * pages
+		const parts = []
+		for (let page = 1; (page - 1) * block < want; page++) {
+			parts.push(await getOrders({ ...request, page, pageSize: Math.min(block, want) }, signal))
+			if (parts.at(-1).orders.length < Math.min(block, want)) break
+		}
+		return { ...parts.at(-1), orders: parts.flatMap(p => p.orders).slice(0, want) }
+	}
+}.getOrders
+
 const daysBetween = (from, to) => Math.round((new Date(to) - new Date(from)) / 864e5) + 1
 
 /** The order list (Order list 2b): the facet rail, then search, sort, what is filtering, and the orders. */
@@ -122,7 +145,7 @@ export default function Orders() {
 	const request = requestOf(f, sort)
 	// the pages loaded for this history step and these filters, so Back returns to the same rows
 	const { pages, setPages, restored } = useListMemory(`orders?${JSON.stringify(request)}`)
-	const orders = useApi(getOrders, [{ ...request, page: 1, pageSize: size * pages }])
+	const orders = useApi(loaded, [request, size, pages])
 	const loadMore = () => setPages(pages + 1)
 	useEffect(() => { if ((orders.data || orders.error) && !orders.loading) restored() }, [orders.data, orders.error, orders.loading, restored])
 
@@ -144,6 +167,18 @@ export default function Orders() {
 	const [filtersOpen, setFiltersOpen] = useState(false)
 	useEffect(() => { if (railed) setFiltersOpen(false) }, [railed])
 
+	// a crumb removed hands focus to the next crumb, else the one before, else Filters or the search
+	const [crumbFocus, setCrumbFocus] = useState(null)
+	const removing = changes => ev => {
+		const all = [...(column.current?.querySelectorAll('.sp-crumb__remove') ?? [])]
+		setCrumbFocus({ at: Math.max(0, all.indexOf(ev?.currentTarget)), count: all.length })
+		update(changes)
+	}
+	const clearCrumbs = () => {
+		setCrumbFocus({ at: 0, count: column.current?.querySelectorAll('.sp-crumb__remove').length ?? 0 })
+		clearAll()
+	}
+
 	const vendorName = id => vendors.data?.find(v => v.id === id)?.name ?? 'Vendor'
 	const categoryName = id => (id === 'none' ? 'No category' : categories.data?.find(c => c.id === id)?.name ?? 'Category')
 	const crumbOf = {
@@ -153,22 +188,30 @@ export default function Orders() {
 			const label = preset ? preset.label
 				: f.from && f.to ? `${shortDate(f.from)} - ${shortDate(f.to)}`
 					: f.from ? `From ${shortDate(f.from)}` : `Until ${shortDate(f.to)}`
-			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={() => { setCustom(false); update({ from: '', to: '' }) }}>{label}</Crumb>
+			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={ev => { setCustom(false); removing({ from: '', to: '' })(ev) }}>{label}</Crumb>
 		},
-		status: () => f.status && <Crumb key="status" onRemove={() => update({ status: '' })}>{f.status}</Crumb>,
-		vendor: () => f.vendor && <Crumb key="vendor" onRemove={() => update({ vendor: '' })}>{vendorName(f.vendor)}</Crumb>,
-		category: () => f.category && <Crumb key="category" onRemove={() => update({ category: '' })}>{categoryName(f.category)}</Crumb>,
-		kind: () => f.kind && <Crumb key="kind" onRemove={() => update({ kind: '' })}>{f.kind}</Crumb>,
+		status: () => f.status && <Crumb key="status" onRemove={removing({ status: '' })}>{f.status}</Crumb>,
+		vendor: () => f.vendor && <Crumb key="vendor" onRemove={removing({ vendor: '' })}>{vendorName(f.vendor)}</Crumb>,
+		category: () => f.category && <Crumb key="category" onRemove={removing({ category: '' })}>{categoryName(f.category)}</Crumb>,
+		kind: () => f.kind && <Crumb key="kind" onRemove={removing({ kind: '' })}>{f.kind}</Crumb>,
 		amount: () => {
 			if (!f.min && !f.max) return null
 			const label = f.min && f.max ? `${amount(Number(f.min), 0)} - ${currency(Number(f.max), 0)}`
 				: f.min ? `From ${currency(Number(f.min), 0)}` : `Up to ${currency(Number(f.max), 0)}`
-			return <Crumb key="amount" name="the amount range" onRemove={() => update({ min: '', max: '' })}>{label}</Crumb>
+			return <Crumb key="amount" name="the amount range" onRemove={removing({ min: '', max: '' })}>{label}</Crumb>
 		}
 	}
 	// in the order the filters were applied (c12): a new one joins the end of the address
 	const groupOf = k => (k === 'from' || k === 'to' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
 	const crumbs = [...new Set([...params.keys()].map(groupOf))].map(g => crumbOf[g]?.()).filter(Boolean)
+	useEffect(() => {
+		if (!crumbFocus || crumbs.length === crumbFocus.count) return
+		setCrumbFocus(null)
+		const all = [...(column.current?.querySelectorAll('.sp-crumb__remove') ?? [])]
+		const target = all[crumbFocus.at] ?? all[crumbFocus.at - 1]
+			?? column.current?.querySelector('button[aria-haspopup="dialog"]') ?? column.current?.querySelector('input')
+		target?.focus()
+	}, [crumbFocus, crumbs.length])
 
 	const facetData = {
 		vendors: vendors.data,
@@ -257,7 +300,7 @@ export default function Orders() {
 					<EmptyBody>{f.q
 						? 'Remove one of the filters, or clear all of them to see every order that matches the search.'
 						: 'Remove one of the filters, or clear all of them to see every order.'}</EmptyBody>
-					<Button variant="outline" size="small" onClick={clearAll}>Clear filters</Button>
+					<Button variant="outline" size="small" onClick={clearCrumbs}>Clear filters</Button>
 				</Empty>
 			</Card>
 		)
@@ -273,7 +316,7 @@ export default function Orders() {
 		<div className={alone ? 'sp-grow sp-stack sp-gap-12 ol-alone' : 'sp-grow sp-stack sp-gap-12'} ref={column}>
 			{none ? null : controls}
 			{none || !touch ? null : <div className="sp-row-flex sp-gap-8">{filtersButton}</div>}
-			{crumbs.length ? <Filters onClear={clearAll}>{crumbs}</Filters> : null}
+			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
 			{body}
 			{filtersOpen
 				? (
@@ -446,7 +489,7 @@ function RowMenu({ order, onDelete }) {
 	const go = to => () => { close(); navigate(to) }
 	return (
 		<Anchor ref={anchor} open={open} onClick={ev => ev.stopPropagation()}>
-			<IconButton icon="dots-vertical" aria-label={`Order menu, ${order.vendor?.name ?? 'order'} ${shortDate(order.date)}`}
+			<IconButton icon="dots-vertical" aria-label={`Order menu, ${[order.vendor?.name ?? 'No vendor', order.reference, shortDate(order.date)].filter(Boolean).join(', ')}`}
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
 			<Menu position="floating" aria-label="Order">
 				<MenuItem icon="external-link" onClick={go(`/orders/${order.id}`)}>Open order</MenuItem>
@@ -569,6 +612,8 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 						{shownVendors.length > 20
 							? <SearchInput value={find} onChange={setFind} placeholder="Find a vendor…" aria-label="Find a vendor" />
 							: null}
+						{shownVendors.length > 20 ? <Announce>{find ? (found.length ? plural(found.length, 'vendor') : 'No vendor by that name.') : ''}</Announce> : null}
+						{find && !found.length ? <span className="sp-subtitle">No vendor by that name.</span> : null}
 						{listed.map(v => (
 							<Choice key={v.id} control={<Check checked={f.vendor === v.id} disabled={!v.orders && f.vendor !== v.id}
 								onChange={ev => update({ vendor: ev.target.checked ? v.id : '' })} />}>{v.name}</Choice>
@@ -645,9 +690,11 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 			</Filters>
 			<FieldGroupPanel onBlur={leave}>
 				<Field label="From"><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
-				<Field label="To"><DateField value={draft.to} placeholder="Today" danger={wrong} locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} /></Field>
+				<Field label="To" message={wrong ? 'To must be on or after From. The list keeps the last valid range.' : null} messageType={wrong ? 'danger' : 'hint'}>
+					<DateField value={draft.to} placeholder="Today" locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} />
+				</Field>
 				{wrong
-					? <span className="sp-field__help" data-color="danger">To must be on or after From. The list keeps the last valid range.</span>
+					? null
 					: from || to
 						? (
 							<div className="sp-row-flex sp-gap-8">
