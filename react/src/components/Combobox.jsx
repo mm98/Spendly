@@ -98,8 +98,7 @@ const roomOf = root => {
 }
 
 /** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
-    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it.
-    Sideways, a panel too wide for its side of the window hangs from whichever edge of the field has more room. */
+    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it. */
 export function usePanelPlace(root, panel, open, size) {
 	useLayoutEffect(() => {
 		const list = panel.current
