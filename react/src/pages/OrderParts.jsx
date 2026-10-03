@@ -116,10 +116,8 @@ export function filesOf(order) {
 	return files
 }
 
-/** One attachment in the strip; without a `thumb` the tile names the file's kind. A `problem` is
-    why the file cannot be kept, said on the tile until it is removed (17b); an "Upload failed"
-    tile sends again when pressed. `sending` is the part sent so far, 0 to 1, shown over the
-    file's own preview (17a). `twin` warns that the same file is already there. */
+/** One attachment in the strip: `problem` says why it cannot be kept (17b), `sending` is the part sent,
+    0 to 1 (17a), and `twin` warns that the same file is already there. */
 export function AttachmentTile({ name, kind, thumb, problem, sending, twin = false, onOpen, onRemove, bare = false }) {
 	const label = kindOf({ name, kind })
 	const remove = onRemove

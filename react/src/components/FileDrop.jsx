@@ -55,8 +55,7 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 	)
 }
 
-/** The file slot (c17): choosing, dropping or pasting a picture replaces what is there. A file it cannot
-    take, or a page's `problem`, shows its reason over the frame with a Remove (17b); `start` is its own field.
+/** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove (17b);
     `busy` draws the spinner over the picture while it is sent (17a). */
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, busy = false, onFile, onRemove, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')

@@ -100,6 +100,15 @@ function apiDraft(d, lines) {
 let made = 0
 const freshKey = () => `new-${++made}`
 
+/* A new order left to set up its vendor first (Vendors 5b), kept in memory with its files and
+   photos until the form at the same address opens again. Taken once: any other visit drops it. */
+let away = null
+const takeAway = address => {
+	const kept = away
+	away = null
+	return kept?.address === address ? kept : null
+}
+
 /** `origin` is `{ copy: { id, vendor, date } }` or `{ scan: answer }`; `region` draws the split
     itself, for a route whose body is not already the split. */
 export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave }) {
@@ -111,19 +120,22 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const latest = useApi(getOrders, [{ pageSize: 20 }])
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
+	const here = useLocation()
+	const address = here.pathname + here.search
+	const [back] = useState(() => (creating ? takeAway(address) : null))
 
-	const [draft, setDraft] = useState(() => ({ ...seed, lines: undefined }))
+	const [draft, setDraft] = useState(() => back?.draft ?? { ...seed, lines: undefined })
 	// the categories a vendor filled in, so another vendor takes back only those (5l); and the
 	// defaults offered as an add when the field already had some
-	const [suggested, setSuggested] = useState(null)
+	const [suggested, setSuggested] = useState(back?.suggested ?? null)
 	const [offer, setOffer] = useState(null)
 	// the order was deleted elsewhere, in the sentence that says so: nothing here can be saved any more
 	const [lost, setLost] = useState(null)
-	const [lines, setLines] = useState(seed.lines)
-	const [editing, setEditing] = useState(() => (creating && !seed.lines.length && !scan ? newEditing() : null))
+	const [lines, setLines] = useState(back?.lines ?? seed.lines)
+	const [editing, setEditing] = useState(() => (back ? back.editing : creating && !seed.lines.length && !scan ? newEditing() : null))
 	const [tried, setTried] = useState(false)
 	const [saving, setSaving] = useState(false)
-	const [files, setFiles] = useState([])
+	const [files, setFiles] = useState(back?.files ?? [])
 	const [gone, setGone] = useState([])
 	const [folded, setFolded] = useState(true)
 	const [reordering, setReordering] = useState(false)
@@ -313,9 +325,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	/* ---- attachments, staged until the save ---- */
 
-	/* A file is sent when added and filed on the order by the save (17a). A refused one keeps its
-	   tile with the reason; one that fails to send says so and can be sent again (17b). */
-	const sends = useRef(new Map())
+	// a file is sent when added and filed by the save (17a); a refused or failed one says so on its tile (17b)
+	const sends = useRef(back?.sends ?? new Map())
 	const patchFile = (key, patch) => setFiles(fs => fs.map(f => (f.key === key ? { ...f, ...patch } : f)))
 	const send = record => {
 		const sent = sendFile(record.file, { onSent: part => patchFile(record.key, { sent: part }) })
@@ -349,9 +360,18 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const earlier = files.slice(0, files.indexOf(f))
 		return earlier.some(o => !o.problem && ((hash && o.upload?.sha256 === hash) || (o.file.name === f.file.name && o.file.size === f.file.size)))
 	}
+	const keptAway = useRef(false)
 	useEffect(() => () => {
+		if (keptAway.current) return
 		for (const f of staged.current) if (f.thumb) URL.revokeObjectURL(f.thumb)
 	}, [])
+	// everything typed and added goes with the reader to set up the vendor, and comes back with them
+	const setUpVendor = () => {
+		away = { address, draft, lines, editing, files, suggested, sends: sends.current }
+		keptAway.current = true
+		guard.release()
+		navigate('/vendors/new', { state: { fromScan: { name: draft.vendor, to: address } } })
+	}
 
 	/* ---- the vendor ---- */
 
@@ -370,12 +390,13 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(vendor, draft.categories) } : {}) })
 	}
 	// a vendor just set up from this receipt comes back chosen (Vendors 5b)
-	const returned = useLocation().state?.pickedVendor
+	const returned = here.state?.pickedVendor
 	// a receipt or a link that names the vendor is the first vendor choice
 	const seeded = useRef(false)
 	useEffect(() => {
 		if (seeded.current || !creating || !vendors.data || origin.copy) return
 		if (returned) { seeded.current = true; return pickVendor(returned) }
+		if (back) { seeded.current = true; return }
 		if (!draft.vendor) return
 		seeded.current = true
 		const categories = suggest(draft.vendor, draft.categories)
@@ -751,7 +772,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				<VendorPicker vendors={(vendors.data ?? []).filter(v => !v.archived)} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
 			</Field>
 			{scan && creating && vendors.data && draft.vendor && !vendorByAnyName(vendors.data, draft.vendor)
-				? <NewVendorFromScan name={draft.vendor} />
+				? <NewVendorFromScan onSetUp={setUpVendor} />
 				: null}
 			<div className="sp-fields">
 				<Field label="Date" {...lookAt('date')} {...problem(shown.date)}>
@@ -1175,17 +1196,12 @@ function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
 }
 
 /** A receipt's vendor the account does not know yet: set it up first, and come back to the receipt
-    with it chosen (Vendors 5b). Saving the order without this creates it from the name alone. */
-function NewVendorFromScan({ name }) {
-	const navigate = useNavigate()
-	const here = useLocation()
+    with it chosen and the order as it was left (Vendors 5b). The field's note says saving adds it. */
+function NewVendorFromScan({ onSetUp }) {
 	return (
 		<div className="sp-row-flex sp-gap-8">
-			<span className="sp-note sp-grow">{name} is a new vendor. Saving the order adds it with this name.</span>
-			<Button variant="outline" size="small"
-				onClick={() => navigate('/vendors/new', { state: { fromScan: { name, to: here.pathname + here.search } } })}>
-				Set it up first
-			</Button>
+			<span className="sp-note sp-grow">Want to add its details now?</span>
+			<Button variant="outline" size="small" onClick={onSetUp}>Set it up first</Button>
 		</div>
 	)
 }

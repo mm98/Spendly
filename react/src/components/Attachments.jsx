@@ -126,11 +126,8 @@ function ViewerFile({ item, label }) {
 	return <div className="sp-viewer__side"><span className="sp-viewer__label">{label}</span>{body}</div>
 }
 
-/** One file at full size over the page, with its set (12b). `items` are `{ name, src, download, kind }`:
-    `src` is what the stage shows, else the tile naming its kind; `download` the file as stored. A
-    file with pages adds `pageSrc(i)` and `pages`, or `countPages()` when its count is not known.
-    `beside` is a second file shown next to the first, to compare the two (3c); each then wears
-    its `label`. */
+/** One file at full size (12b); `items` are `{ name, src, download, kind, pageSrc?, pages?, countPages? }`.
+    `beside` is a second file shown next to the first to compare them (3c), each with its `label`. */
 export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest }) {
 	reject(rest, 'Viewer')
 	const box = useRef(null)
