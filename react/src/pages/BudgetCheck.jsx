@@ -86,6 +86,8 @@ const rememberMapping = (width, mapping) => {
 	} catch { /* the choice is only a convenience */ }
 }
 
+const BANK_FILES = '.csv,.txt,text/csv'
+
 export default function BudgetCheck() {
 	const toast = useToast()
 	// four segments do not fit beside a phone's buttons, so there they take the full row
@@ -96,6 +98,7 @@ export default function BudgetCheck() {
 	const [showColumns, setShowColumns] = useState(false)
 	const [sheets, setSheets] = useState(null)
 	const [view, setView] = useState('place')
+	const picker = useRef(null)
 	const saved = useApi(getBankLinks)
 	const [links, setLinks] = useState(null)
 	useEffect(() => { if (saved.data) setLinks(saved.data) }, [saved.data])
@@ -173,7 +176,9 @@ export default function BudgetCheck() {
 				{ready && payments.length
 					? <Button variant="outline" aria-pressed={showColumns ? 'true' : 'false'} onClick={toggleColumns}>{showColumns ? 'Close columns' : 'Columns'}</Button>
 					: null}
-				<Button variant="outline" onClick={() => { setRows(null); setFile(null); setMapping(null) }}>Another file</Button>
+				<Button variant="outline" onClick={() => picker.current?.click()}>Another file</Button>
+				<input ref={picker} type="file" accept={BANK_FILES} hidden tabIndex={-1}
+					onChange={ev => { const chosen = ev.target.files?.[0]; ev.target.value = ''; read(chosen) }} />
 			</Controls>
 			{showColumns || !ready || !payments.length
 				? <Columns file={file} rows={rows} body={body} width={width} mapping={mapping} dateFits={dateFits} dateFormat={dateFormat}
@@ -193,7 +198,7 @@ export default function BudgetCheck() {
 function PickFile({ onFile }) {
 	return (
 		<Card>
-			<FileDrop accept=".csv,.txt,text/csv" onFiles={files => onFile(files?.[0])}>
+			<FileDrop accept={BANK_FILES} onFiles={files => onFile(files?.[0])}>
 				<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Bank file"><Icon name="upload" size={19} /></Mark>
 				<span className="sp-title">Drop the bank file, or choose it</span>
 				<span className="sp-subtitle">The CSV file your bank exports. Each payment is looked up in the budget for its year and month. The file stays on this device.</span>

@@ -799,7 +799,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 			}
 		}
 		return (
-			<Sum key={line.id} data-row={`${line.id}-${month}`} tone={!typing && m.real == null && m.expected != null ? 'expected' : 'default'}
+			<Sum key={line.id} edits data-row={`${line.id}-${month}`} tone={!typing && m.real == null && m.expected != null ? 'expected' : 'default'}
 				value={typing ? amounts.field(line, month) : value != null ? money(value) : null} {...control}>
 				<span className="sp-stacked">
 					<span>{line.name}</span>

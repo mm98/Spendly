@@ -213,7 +213,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// a change kept to send when the connection returns is not lost by leaving (6d), so it does not ask
 	const kept = waiting?.at === JSON.stringify({ draft, lines, files: files.map(f => f.key), gone })
 	// a new order's steps differ only in the query, so a step away asks as a page away does
-	const guard = useLeaveGuard(dirty && !kept, { search: creating, uploading: files.filter(f => f.sending).length + photosOnTheirWay })
+	// a copy is unsaved from the start (8a), so leaving it asks until it is saved
+	const unsavedCopy = Boolean(origin.copy) && creating && !createdAs
+	const guard = useLeaveGuard((dirty || unsavedCopy) && !kept, { search: creating, uploading: files.filter(f => f.sending).length + photosOnTheirWay })
 
 	/* ---- lines ---- */
 
@@ -563,9 +565,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		const seen = draftOf(theirs)
 		const kept = { draft, lines, gone, files }
 		base.current = theirs.revision ?? null
+		const ownLines = editing && !Object.keys(lineErrors(editing.values)).length
+			? (editing.isNew ? [...lines, { ...editing.values, key: editing.key, include: true }] : lines.map(l => (l.key === editing.key ? { ...editing.values } : l)))
+			: lines
 		setStart(seen)
 		setDraft({ ...seen, lines: undefined })
-		setLines(seen.lines)
+		setLines(withOwnLines(seen.lines, start.lines, ownLines))
 		setGone([])
 		setFiles([])
 		setEditing(null)
@@ -587,9 +592,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const keepMine = () => {
 		if (stuck) dropSave(stuck.key)
 		if (conflict.theirs) base.current = conflict.theirs.revision ?? null
-		const again = conflict.fromSave
 		setConflict(null)
-		if (again) save()
+		save()
 	}
 	// a save in flight or waiting is the form's own change, not another copy's
 	const busy = useRef(false)
@@ -902,7 +906,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						<Alert mark="!" title={`${offer.vendor} usually gets ${names(offer.names)}`} />
 						<div className="sp-row-flex sp-gap-12">
 							<span className="sp-grow" />
-							<Button variant="outline" size="small" onClick={() => { setOffer(null); set({ categories: [...draft.categories, ...offer.names] }) }}>
+							<Button variant="outline" size="small" onClick={() => { setOffer(null); set({ categories: [...draft.categories, ...offer.names.filter(n => !draft.categories.some(c => c.toLowerCase() === n.toLowerCase()))] }) }}>
 								{offer.names.length === 1 ? `Add ${offer.names[0]}` : offer.names.length === 2 ? 'Add both' : `Add all ${offer.names.length}`}
 							</Button>
 						</div>
@@ -1068,7 +1072,19 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			)
 			: null
 
-	const notice = notices({ origin, scan, lines, leave, touch })
+	// the first warning, a line or a field note, in the order the page shows them (3a)
+	const looking = lines.some(l => l.uncertain) || vendorNote.noteType === 'warning' || ['date', 'discount', 'shipping'].some(f => lookAt(f).note)
+	const jumpFirst = () => {
+		const mark = document.querySelector(LOOK)
+		const row = mark?.closest('[data-line]')
+		const field = row ? null : mark?.closest('.sp-field')
+		const target = row ? (row.matches('button') ? row : row.querySelector('[data-edit]')) : document.getElementById(field?.querySelector('label')?.htmlFor)
+		quietVendor.current = true
+		target?.focus()
+		quietVendor.current = false
+		;(row ?? field)?.scrollIntoView?.({ block: 'center' })
+	}
+	const notice = notices({ origin, scan, lines, leave, touch, jump: looking ? jumpFirst : null })
 
 	// on a phone the sheet's line is copied as it stands in the sheet, once it reads as a whole line
 	const copyEditing = () => {
@@ -1156,6 +1172,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }
 
+const LOOK = '[data-line][data-color="warning"], .sp-field__label + .sp-field__help[data-color="warning"]'
 const INVALID = '[aria-invalid="true"] input, input[aria-invalid="true"], [aria-invalid="true"] button, button[aria-invalid="true"]'
 
 /** Focus the first field to fix inside `selector`. `quiet` is held while it takes focus, so a
@@ -1228,6 +1245,18 @@ function changedThere(was, now, statuses) {
 	const said = names(parts)
 	return `${said.charAt(0).toUpperCase()}${said.slice(1)} ${parts.length === 1 && parts[0] !== 'the lines' && parts[0] !== 'the categories' ? 'was' : 'were'} changed there.`
 }
+/** Their lines with the reader's own on top: a changed line replaces theirs, a new one is added,
+    a removed one stays removed (6d). A line they removed comes back as a new one. */
+function withOwnLines(theirs, was, mine) {
+	const before = new Map(was.map(l => [l.key, l]))
+	const own = new Map(mine.map(l => [l.key, l]))
+	const changed = mine.filter(l => before.has(l.key) && JSON.stringify(l) !== JSON.stringify(before.get(l.key)))
+	const merged = theirs
+		.filter(l => !before.has(l.key) || own.has(l.key))
+		.map(l => changed.find(c => c.key === l.key) ?? l)
+	const missing = changed.filter(c => !merged.some(l => l.key === c.key)).map(({ id, ...l }) => ({ ...l, key: freshKey() }))
+	return [...merged, ...missing, ...mine.filter(l => !before.has(l.key))]
+}
 /** Whether the reader's own changes are to the lines alone. */
 const onlyLines = (was, draft, lines) => JSON.stringify({ ...was, lines: undefined }) === JSON.stringify({ ...draft, lines: undefined })
 	&& JSON.stringify(was.lines.map(lineShape)) !== JSON.stringify(lines.map(lineShape))
@@ -1241,7 +1270,7 @@ function Include({ line, setLines }) {
 
 /** Where a copy came from, or what a scan could not read. On a phone the save bar is the way
     out and a button takes the row's whole width, so there the notice only states. */
-function notices({ origin, scan, lines, leave, touch }) {
+function notices({ origin, scan, lines, leave, touch, jump }) {
 	if (origin.copy)
 		return (
 			<Alert color="success" mark={<Icon name="copy" size={13} />}
@@ -1269,7 +1298,7 @@ function notices({ origin, scan, lines, leave, touch }) {
 	const said = [hard.length ? `${names(hard)} ${one ? 'was' : 'were'} hard to read` : null, ...looks].filter(Boolean)
 	return (
 		<Alert mark="!" title={count === 1 ? '1 value needs a look.' : `${count} values need a look.`}
-			action={unclear && !touch ? <Button variant="outline" size="small" onClick={() => focusFirst('.sp-list-item[data-color="warning"]')}>Jump to first</Button> : null}>
+			action={jump && !touch ? <Button variant="outline" size="small" onClick={jump}>Jump to first</Button> : null}>
 			{said.join(', ').replace(/^./, c => c.toUpperCase())}.
 		</Alert>
 	)

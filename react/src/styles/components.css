@@ -3582,6 +3582,23 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 .sp-sum--total:first-child { padding-top: 0; border-top: 0; }
 .sp-sum--total .sp-ink-2 { font-size: var(--t-14); font-weight: 600; color: var(--ink); }
 .sp-sum--total .sp-sum__value { font-size: var(--t-20); font-weight: 700; }
+/* A budget line whose amount opens in place (21a). The whole line is the target, so the
+   whole line takes the --hover ground under the pointer, at --r-tile, bled 8 past the text
+   on both sides so the figure keeps its column. The same in edit mode, where the name opens
+   the row editor and the amount its field. The focus ring shows with it; on touch, where
+   nothing hovers, nothing changes. */
+.sp-sum--edits {
+  margin-inline: calc(var(--sp-8) * -1);
+  padding-inline: var(--sp-8);
+  border-radius: var(--r-tile);
+  cursor: pointer;
+  outline: none;
+}
+@media (hover: hover) {
+  .sp-sum--edits:hover { background: var(--hover); }
+}
+.sp-sum--edits[data-hover="true"] { background: var(--hover); }
+.sp-sum--edits:focus-visible { box-shadow: var(--ring); }
 
 /* ---------- light nav row - DRAFT c22 ----------
    The same row as the sidebar's, on a light surface: saved views, section nav. */
@@ -4866,7 +4883,11 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   font-size: inherit;
   text-align: right;
 }
-.sp-input.sp-input--cell:hover { border-color: var(--line-3); }
+/* hover shows where to click: the --hover ground inside the cell, only where a pointer can hover (21b) */
+@media (hover: hover) {
+  .sp-input.sp-input--cell:hover { background: var(--hover); }
+}
+.sp-input.sp-input--cell[data-hover="true"] { background: var(--hover); }
 .sp-input.sp-input--cell:focus,
 .sp-input.sp-input--cell[data-focus="true"] { border-color: var(--green); background: var(--surface); box-shadow: var(--ring); }
 /* a figure that was not saved stays marked: the cell rule above would otherwise cancel the field's red (21) */

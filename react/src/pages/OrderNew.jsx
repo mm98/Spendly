@@ -45,9 +45,9 @@ export default function OrderNew() {
 
 	// ?duplicate=id, ?source=scan&doc=key, ?source=empty or ?vendor=name, else step 1
 	if (duplicate) return <Copy key={duplicate} id={duplicate} />
-	if (doc) return <Scanned key={doc} documentKey={doc} upload={location.state?.upload} />
+	if (doc) return <Scanned key={doc} documentKey={doc} upload={location.state?.upload} from={location.state?.from} />
 	if (source === 'empty' || vendor) return <Blank vendor={vendor ?? ''} restored={location.state?.seed} />
-	return <Start scanOnly={source === 'scan'} file={location.state?.file} picking={params.get('pick') === 'copy'} />
+	return <Start scanOnly={source === 'scan'} file={location.state?.file} from={location.state?.from} picking={params.get('pick') === 'copy'} />
 }
 
 const fromBlank = blank => ({
@@ -96,7 +96,7 @@ function Copy({ id }) {
 
 const leaving = new Map()
 
-function Scanned({ documentKey, upload }) {
+function Scanned({ documentKey, upload, from }) {
 	const navigate = useNavigate()
 	// a file read before is asked about first (3c); "Use the reading" goes on to the review
 	const [asking, setAsking] = useState(Boolean(upload?.seen?.orders?.length))
@@ -117,7 +117,11 @@ function Scanned({ documentKey, upload }) {
 		}
 		: null), [answer])
 	const back = () => navigate('/orders/new?source=scan')
-	const discard = () => discardScanDocument(documentKey).catch(() => {}).finally(back)
+	const dropThen = to => discardScanDocument(documentKey).catch(() => {}).finally(() => navigate(to))
+	const discard = () => dropThen('/orders/new?source=scan')
+	// a new file takes the failed one's place and is read from the start (6e)
+	const another = file => discardScanDocument(documentKey).catch(() => {})
+		.finally(() => navigate('/orders/new?source=scan', { replace: true, state: { file, from } }))
 	/* Leaving while the file is read leaves the reading to finish and become a Draft order (6e, 3a
 	   step 2): another page, or a closed tab. Cancel abandons it, upload and all (16a). */
 	const reading = !asking && !answer && !read.error
@@ -132,7 +136,7 @@ function Scanned({ documentKey, upload }) {
 	}, [documentKey])
 	const cancel = () => { away.current.cancelled = true; discard() }
 	if (answer?.draftOrderId) return <Navigate to={`/orders/${answer.draftOrderId}`} replace />
-	if (asking) return <SeenBefore upload={upload} onUse={() => setAsking(false)} onDiscard={discard} />
+	if (asking) return <SeenBefore upload={upload} onUse={() => setAsking(false)} onDiscard={() => dropThen('/orders/new')} />
 	if (read.error)
 		return (
 			<Alert color="danger" mark="!" title="This receipt could not be opened."
@@ -142,7 +146,7 @@ function Scanned({ documentKey, upload }) {
 		)
 	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onCancel={cancel} />
 	if (answer.failure && answer.failure !== 'unread' && !manual)
-		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={back} onDiscard={discard} />
+		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={another} onDiscard={() => dropThen(from ?? '/orders/new')} />
 	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer }} onLeave={back} />
 }
 
@@ -322,6 +326,12 @@ function SeenChoice({ icon, title, body, action, primary = false }) {
 function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 	const { file, found } = answer
 	const photo = file.kind !== 'pdf'
+	const picker = useRef(null)
+	const take = ev => {
+		const chosen = ev.target.files?.[0]
+		ev.target.value = ''
+		if (chosen) onAnother(chosen)
+	}
 	const why = answer.failure === 'billing'
 		? 'The reading service is not available right now: it reports a problem with its payment.'
 		: answer.failure === 'empty'
@@ -362,7 +372,8 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 						</ListItem>
 						<div className="sp-row-flex sp-gap-8 sp-wrap">
 							<Button size="small" onClick={onManual}>Continue manually</Button>
-							<Button variant="outline" size="small" onClick={onAnother}>{photo ? 'Try another photo' : 'Try another file'}</Button>
+							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>{photo ? 'Try another photo' : 'Try another file'}</Button>
+							<input ref={picker} type="file" accept={FILE_TYPES} hidden tabIndex={-1} onChange={take} />
 							<Button variant="outline" size="small" onClick={onDiscard}>Discard</Button>
 						</div>
 					</div>
@@ -373,7 +384,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 }
 
 /** Step 1 (3a): the receipt zone, then an empty order or a copy. */
-function Start({ scanOnly, file, picking }) {
+function Start({ scanOnly, file, from, picking }) {
 	const navigate = useNavigate()
 	const any = useApi(getOrders, [{ pageSize: 1 }])
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
@@ -398,7 +409,7 @@ function Start({ scanOnly, file, picking }) {
 		sendFile(f, { onSent: sent => setSending(s => (s ? { ...s, sent } : s)) })
 			.then(upload => {
 				invalidate(getScanDraft)
-				navigate(`/orders/new?source=scan&doc=${upload.key}`, { replace: true, state: { upload } })
+				navigate(`/orders/new?source=scan&doc=${upload.key}`, { replace: true, state: { upload, from } })
 			})
 			.catch(e => {
 				setSending(null)

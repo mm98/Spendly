@@ -197,8 +197,9 @@ export function chartOf(view) {
 			to,
 			// more than a week of days is named by date: thirty weekday names do not fit their columns
 			tick: unit === 'month' ? monthNames()[month] : unit === 'week' ? daySpan(from, to) : days > 7 ? String(Number(from.slice(8))) : weekday(from),
+			// a month's head is its name with a capital and the year, "January 2026", in every locale (4a)
 			name: unit === 'month'
-				? `${monthNames('long')[month]} ${new Date(at).getUTCFullYear()}`
+				? `${monthNames('long')[month].charAt(0).toUpperCase()}${monthNames('long')[month].slice(1)} ${new Date(at).getUTCFullYear()}`
 				: unit === 'week' ? `Week ${week}, ${shortDate(from)} - ${shortDate(to)}` : longDate(from),
 			crumb: unit === 'month' ? { kind: 'month', value: windowIdAt('month', at) } : unit === 'week' ? { kind: 'week', value: windowIdAt('week', at) } : null,
 			spend: between(spend, start, end),

@@ -23,6 +23,7 @@ import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, 
 import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
+import { useScanPicker } from '../app/scanPicker.jsx'
 import { useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, OrderFiles, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
@@ -228,6 +229,7 @@ function OrderList() {
 	const clearPicked = () => setPicked([])
 
 	const toast = useToast()
+	const scan = useScanPicker()
 	const statusName = useStatusName()
 	const [exporting, setExporting] = useState(false)
 	// everything the filter matches, one row per item line (16b)
@@ -379,9 +381,10 @@ function OrderList() {
 							: 'Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.'}
 					</EmptyBody>
 					<div className="sp-row-flex sp-gap-8">
-						<Button size="small" to="/orders/new?source=scan">Scan a receipt</Button>
+						<Button size="small" onClick={scan.open}>Scan a receipt</Button>
 						<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 					</div>
+					{scan.input}
 				</Empty>
 			</Card>
 		)
@@ -507,6 +510,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 		onApply(changes, draftCustom)
 	}
 	const clear = () => { setDraftCustom(false); update(Object.fromEntries(FACETS.map(k => [k, '']))) }
+	const matched = count.loading ? undefined : count.data?.matched
 
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
@@ -515,12 +519,14 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 				<span className="sp-heading">Filters</span>
 				<div className="ol-sheet-body">
 					<SheetViews params={params} onOpen={onClose} />
-					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={count.loading ? undefined : count.data?.matched}
+					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={matched}
 							counts={count.loading ? undefined : count.data?.facets} {...facetData} />
 				</div>
 				<div className="sp-row-flex sp-gap-8">
-					<Button variant="outline" size="small" onClick={clear}>Clear all</Button>
-					<Button size="small" onClick={apply}>Apply</Button>
+					<Button variant="outline" size="small" onClick={clear}>Reset</Button>
+					<Button size="small" disabled={matched === 0} onClick={apply}>
+						{matched === undefined ? 'Apply' : matched === 0 ? 'No orders match' : `Show ${plural(matched, 'order')}`}
+					</Button>
 				</div>
 			</Sheet>
 		</Scrim>,
@@ -619,9 +625,10 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
    the account renamed, is named as a status. */
 const PAST = ['Ordered', 'Delivered', 'Returned', 'Cancelled']
 
-/* The periods a narrow date filter widens to, smallest first, each holding the range in force. */
+/* The periods a narrow date filter widens to, smallest first, each holding the range in force. A range
+   inside this year widens to the whole year (6a), never to a quarter or a month. */
 const widerThan = (from, to) => [
-	...PRESETS.map(p => { const [a, b] = p.range(new Date()); return { key: p.key, label: p.label.toLowerCase(), from: a, to: b } }),
+	...PRESETS.filter(p => p.key === 'year').map(p => { const [a, b] = p.range(new Date()); return { key: p.key, label: p.label.toLowerCase(), from: a, to: b } }),
 	{ key: '', label: 'all dates', from: '', to: '' }
 ].filter(c => !c.key || (from && to && c.from <= from && c.to >= to && !(c.from === from && c.to === to)))
 

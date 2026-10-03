@@ -24,6 +24,7 @@ import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
+import { useScanPicker } from '../app/scanPicker.jsx'
 import { failureMessage, getCategories, getSliceLines, getSliceOrders, getStatsSlice, getVendors } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
@@ -284,6 +285,7 @@ export default function Statistics() {
 		refocus.current = false
 		document.querySelector('input[name="statistics-period"]:checked')?.focus()
 	}, [drilled])
+	const scan = useScanPicker()
 
 	const name = nameOf(range, id)
 	const labels = { vendors: vendors.data, categories: categories.data, windowYear: id.slice(0, 4) }
@@ -321,7 +323,8 @@ export default function Statistics() {
 							<EmptyTitle>No orders yet</EmptyTitle>
 							<EmptyBody>Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.</EmptyBody>
 							<div className="sp-row-flex sp-gap-8">
-								<Button size="small" to="/orders/new?source=scan">Scan a receipt</Button>
+								<Button size="small" onClick={scan.open}>Scan a receipt</Button>
+								{scan.input}
 								<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 							</div>
 						</Empty>
@@ -751,8 +754,6 @@ function segmentsOf(column) {
 
 /** A step of the spend chart, read out (4a): its name and total, each category the bars are split
     by and the rest, and how many orders it holds. */
-const capital = word => word.charAt(0).toUpperCase() + word.slice(1)
-
 function SpendTip({ column, categories, opens }) {
 	const parts = categories ? column.byCategory.slice(0, categories.length) : []
 	const rest = column.spend - parts.reduce((sum, n) => sum + n, 0)
@@ -762,10 +763,7 @@ function SpendTip({ column, categories, opens }) {
 			{ key: 'other', series: 4, name: 'Other', value: amount(rest, 0) }
 		]
 		: []
-	// a month's head is its name and year, "January 2026", in every locale (4a)
-	const title = column.crumb?.kind === 'week' ? `Week ${Number(column.crumb.value.slice(6))}`
-		: column.crumb?.kind === 'month' ? `${capital(monthNames('long')[Number(column.from.slice(5, 7)) - 1])} ${column.from.slice(0, 4)}`
-			: column.name
+	const title = column.crumb?.kind === 'week' ? `Week ${Number(column.crumb.value.slice(6))}` : column.name
 	return <ChartTip title={title} value={currency(column.spend, 0)} rows={rows} note={`${counted(column.orders, 'order')}${opens ? `${dot}press to look closer` : ''}`} />
 }
 

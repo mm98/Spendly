@@ -33,17 +33,22 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 	const records = async () => (all ? allMatching(request) : chosen)
 	const ids = all ? null : chosen.map(o => o.id)
 
+	const undoing = (back, failed) => ({
+		label: 'Undo',
+		onClick: () => back().then(invalidateOrderData, e => toast({ message: failureMessage(e, failed), color: 'danger' }))
+	})
+
 	// a dialog closing is the delete's confirmation, so a delete says nothing more (6f)
 	const write = async (change, done, failed) => {
 		setBusy(true)
 		try {
-			const ids = (await records()).map(o => o.id)
-			await changeOrders({ ...change, ids })
+			const before = await records()
+			await changeOrders({ ...change, ids: before.map(o => o.id) })
 			invalidateOrderData()
 			setOpen(null)
 			setDeleting(false)
 			onDone()
-			if (done) toast({ message: done(ids.length) })
+			if (done) toast(done(before))
 		} catch (e) {
 			toast({ message: failureMessage(e, failed), color: 'danger' })
 		} finally {
@@ -62,10 +67,16 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 
 	const panel = open === 'status'
 		? <SetStatus chosen={all ? null : chosen} count={count} busy={busy} onCancel={close}
-			onApply={(status, deliveredToday) => write({ status, deliveredToday }, n => `Status set on ${plural(n, 'order')}.`, 'The status was not changed. Try again.')} />
+			onApply={(status, deliveredToday) => write({ status, deliveredToday }, before => ({
+				message: `Status set to ${statusName(status)} on ${plural(before.length, 'order')}.`,
+				undo: undoing(() => restoreStatuses(before), 'The status was not changed back. Try again.')
+			}), 'The status was not changed. Try again.')} />
 		: open === 'category'
 			? <AddCategory chosen={all ? null : chosen} count={count} busy={busy} onCancel={close}
-				onApply={names => write({ addCategories: names }, n => `${names.join(', ')} added to ${plural(n, 'order')}.`, 'No category was added. Try again.')} />
+				onApply={names => write({ addCategories: names }, before => ({
+					message: `${names.join(', ')} added to ${plural(before.length, 'order')}.`,
+					undo: undoing(() => removeAdded(before, names), 'The categories were not changed back. Try again.')
+				}), 'No category was added. Try again.')} />
 			: null
 
 	const toggle = name => ({
@@ -102,6 +113,23 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 				: null}
 		</Anchor>
 	)
+}
+
+/* Each order goes back to the status it had; one write per status. */
+function restoreStatuses(orders) {
+	const groups = new Map()
+	for (const o of orders) groups.set(o.status, [...(groups.get(o.status) ?? []), o.id])
+	return Promise.all([...groups].map(([status, ids]) => changeOrders({ ids, status })))
+}
+
+/* A category comes off only the orders that did not carry it before. */
+async function removeAdded(orders, names) {
+	const categories = await getCategories()
+	return Promise.all(names.map(name => {
+		const category = categories.find(c => c.name.toLowerCase() === name.toLowerCase())
+		const ids = category ? orders.filter(o => !o.categories.some(x => x.id === category.id)).map(o => o.id) : []
+		return ids.length ? changeOrders({ ids, removeCategories: [category.id] }) : null
+	}))
 }
 
 /* Named getOrderImpact so a write that forgets the orders forgets this too (useApi keys by name).

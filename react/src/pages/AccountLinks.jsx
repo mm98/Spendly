@@ -196,7 +196,7 @@ export function ResetLink() {
 	if (link.state !== 'valid') return (
 		<AuthCard mark={false} title="That link has expired"
 			lead="Reset links last an hour and work once. Ask for a new one and we'll send it straight away."
-			onSubmit={() => navigate('/reset')} submit="Start again"
+			onSubmit={() => navigate(link.email ? `/reset?email=${encodeURIComponent(link.email)}` : '/reset')} submit="Start again"
 			across={<Link className="sp-title sp-ink-accent" to="/signin">Back to sign in</Link>} />
 	)
 	const save = () => {
@@ -208,7 +208,7 @@ export function ResetLink() {
 			.then(me => navigate(onward(me, '/'), { replace: true }))
 			.catch(e => {
 				setBusy(false)
-				if (e?.status === 410) setLink({ state: 'expired' })
+				if (e?.status === 410) setLink(l => ({ ...l, state: 'expired' }))
 				else setAlert(failureMessage(e, UNREACHABLE))
 			})
 	}

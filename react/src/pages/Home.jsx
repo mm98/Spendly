@@ -522,7 +522,7 @@ function CaptureCard({ newest, loading }) {
 	const navigate = useNavigate()
 	const input = useId()
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled
-	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0] } }) }
+	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const footer = newest
 		? [
 			<span className="sp-subtitle sp-grow" key="ask">Bought from {newest.vendor?.name} again?</span>,
@@ -829,7 +829,7 @@ function PhoneOrder({ order }) {
 
 function DayOne({ categories, name, touch }) {
 	const navigate = useNavigate()
-	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0] } }) }
+	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled
 	const first = categories?.slice(0, 4) ?? []
 	return (
