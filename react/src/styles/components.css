@@ -4439,6 +4439,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   height: 100dvh;
   overflow-y: auto;
 }
+/* opened over the page from the rail, it covers the window's height wherever the page is scrolled */
+.sp-shell--viewport > .sp-sidebar.sp-sidebar--peek { position: fixed; height: 100dvh; }
 .sp-shell--viewport .sp-shell__page > .sp-topbar {
   position: sticky;
   top: 0;

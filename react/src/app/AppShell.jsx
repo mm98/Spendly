@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
-import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
+import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Switch } from '../components/Choice.jsx'
@@ -9,7 +9,7 @@ import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
-import { useApi } from '../api/useApi.js'
+import { peek, useApi } from '../api/useApi.js'
 import { amount } from '../api/format.js'
 import { MAC, useMedia, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
@@ -39,6 +39,8 @@ export function AppShell() {
 	const { navKey, layout = 'default', fab = false, title, remember = false } = handle
 	const navigate = useNavigate()
 	const { pathname, search: params, key: visit, state } = useLocation()
+
+	const fold = useFold(shape, visit)
 
 	useEffect(() => { document.title = title ? `${title} - Spendly` : 'Spendly' }, [title])
 
@@ -136,8 +138,8 @@ export function AppShell() {
 	   the reader had not saved. */
 	return (
 		<Toaster>
-			<Shell touch={touch} viewport={!touch} collapsed={shape === 'rail'} cover={touch ? overlay : undefined}>
-				{touch ? null : sidebar({ navKey, rail: shape === 'rail', short, go })}
+			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
+				{touch ? null : sidebar({ navKey, fold, short, go })}
 				<TopBar touch={touch}>{search}</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
@@ -160,10 +162,11 @@ export function AppShell() {
 /* An element rather than a component: the shell places its children by type. On the rail the
    groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). The brand
    and the bottom zone stay put; only the destinations between them scroll (9g). */
-function sidebar({ navKey, rail, short, go }) {
+function sidebar({ navKey, fold, short, go }) {
+	const { rail } = fold
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
-		<Sidebar aria-label="Sections">
+		<Sidebar aria-label="Sections" ref={fold.box} variant={fold.over ? 'peek' : 'default'} motion={fold.motion}>
 			{rail
 				? <>{brand}<SidebarDivider /></>
 				: <SidebarBrand>{brand}<span>Spendly</span></SidebarBrand>}
@@ -185,8 +188,66 @@ function sidebar({ navKey, rail, short, go }) {
 			{rail ? null : <SidebarDivider />}
 			{short ? null : <DarkMode rail={rail} />}
 			<Account rail={rail} short={short} />
+			<SidebarGrip expanded={!rail} onClick={fold.toggle} />
 		</Sidebar>
 	)
+}
+
+const SLIDE_IN_MS = 180
+const SLIDE_OUT_MS = 140
+const foldKey = () => `spendly:sidebar:${peek(getCurrentUser)?.id ?? ''}`
+const readFold = () => { try { return localStorage.getItem(foldKey()) === 'rail' } catch { return false } }
+
+/* The grip (9i). On a wide window it folds the sidebar to the rail and back, and the choice is
+   kept for the account in this browser. Below 1280 the rail is the layout whatever the choice,
+   and the grip opens the full sidebar over the page until it is closed or a page is opened. */
+function useFold(shape, visit) {
+	const [folded, setFolded] = useState(readFold)
+	const [over, setOver] = useState(false)
+	const [motion, setMotion] = useState(null)
+	const box = useRef(null)
+	const timer = useRef(0)
+	const still = useMedia('(prefers-reduced-motion: reduce)')
+	const wide = shape === 'wide'
+	const later = (fn, ms) => { clearTimeout(timer.current); timer.current = setTimeout(fn, still ? 0 : ms) }
+	useEffect(() => () => clearTimeout(timer.current), [])
+
+	const keep = value => {
+		setFolded(value)
+		try { localStorage.setItem(foldKey(), value ? 'rail' : 'open') } catch { /* storage denied: this tab only */ }
+	}
+	const open = () => {
+		if (wide) keep(false)
+		else setOver(true)
+		setMotion('in')
+		later(() => setMotion(null), SLIDE_IN_MS)
+	}
+	const close = () => {
+		setMotion('out')
+		later(() => {
+			if (wide) keep(true)
+			else setOver(false)
+			setMotion(null)
+		}, SLIDE_OUT_MS)
+	}
+	const closeNow = useRef(close)
+	closeNow.current = close
+
+	// opening a page, or the window reaching the wide shape, ends the sidebar laid over the page
+	useEffect(() => { setOver(false); setMotion(null) }, [visit, wide])
+	useEffect(() => {
+		if (!over) return
+		const away = ev => { if (!box.current?.contains(ev.target) && !ev.target.closest?.('.sp-sidebar__menu')) closeNow.current() }
+		const key = ev => { if (ev.key === 'Escape' && !ev.defaultPrevented) closeNow.current() }
+		document.addEventListener('pointerdown', away)
+		document.addEventListener('keydown', key)
+		return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', key) }
+	}, [over])
+
+	const collapsed = wide ? folded : true
+	// while it closes, the labels leave from the full width before the rail takes it back
+	const rail = collapsed && !over
+	return { box, collapsed, rail, over, motion, toggle: () => (rail ? open() : close()) }
 }
 
 /* The one scrolling part of the sidebar. The fade at its foot shows only while there is more

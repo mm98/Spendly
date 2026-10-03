@@ -70,10 +70,13 @@ const SIDEBAR = {
 	'slide-out': 'sp-sidebar--slide-out'
 }
 
-export function Sidebar({ variant = 'default', children, ...rest }) {
+const MOTION = { in: 'sp-sidebar--slide-in', out: 'sp-sidebar--slide-out' }
+
+/** `motion` runs the labels in as the column opens, or out before it closes (9i). */
+export function Sidebar({ variant = 'default', motion, children, ...rest }) {
 	reject(rest, 'Sidebar')
 	return (
-		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'))} {...rest}>
+		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'), motion && pick(MOTION, motion, 'motion', 'Sidebar'))} {...rest}>
 			{children}
 		</nav>
 	)
@@ -154,7 +157,7 @@ export function SidebarAccount({ name, email, expanded = false, onClick, onDismi
 		if (!expanded) { setAt(null); return }
 		const place = () => {
 			const r = block.current.getBoundingClientRect()
-			const side = !!block.current.closest('.sp-shell--collapsed, .sp-sidebar--rail')
+			const side = !!block.current.closest('.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek), .sp-sidebar--rail:not(.sp-sidebar--peek)')
 			setAt({ side, left: r.left, top: r.top, width: r.width, height: r.height })
 		}
 		place()
