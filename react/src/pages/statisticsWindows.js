@@ -1,4 +1,4 @@
-import { activeLocaleCode, longDate, monthNames, shortDate, today } from '../api/format.js'
+import { activeLocaleCode, longDate, monthNames, shortDate, today, withShortMonth } from '../api/format.js'
 
 /* ---- windows: the ids the API pages through, worked out here so the control answers at once ---- */
 
@@ -102,7 +102,7 @@ export function nameOf(range, id, inText = false) {
 }
 
 // "2 Oct": the compare switch already names the earlier window's year
-export const dayAndMonth = iso => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
+export const dayAndMonth = iso => withShortMonth(new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', timeZone: 'UTC' }), new Date(utcOf(iso)))
 
 // the stepper's own short name; its width is set by the longest month
 export function stepLabel(range, id) {

@@ -20,6 +20,8 @@ const CHORD_MS = 1500
 const GROUPS = [
 	['Anywhere', [
 		['Open or close search', [[MOD, 'K']]],
+		['Scan a receipt', [['S']]],
+		['New order', [['N']]],
 		...GO_KEYS.map(([key, , , name]) => [`Go to ${name}`, [['G'], [key.toUpperCase()]], 'then']),
 		['Show this list', [['?']]],
 		['Close a window or a menu', [['Esc']]],
@@ -72,11 +74,12 @@ export function ShortcutSheet({ onClose }) {
 
 const typing = el => !!el?.closest?.('input, textarea, select, [contenteditable="true"], [role="dialog"], [role="menu"]')
 
-/** ? opens the list, and G then a letter opens a section - never while the reader types. */
-export function useShortcutKeys({ enabled, onSheet, onGo }) {
+/** ? opens the list, S scans, N starts an order and G then a letter opens a section - never while
+    the reader types. Without `onScan`, S does nothing. */
+export function useShortcutKeys({ enabled, onSheet, onGo, onScan, onNew }) {
 	const chord = useRef(0)
 	const calls = useRef(null)
-	calls.current = { onSheet, onGo }
+	calls.current = { onSheet, onGo, onScan, onNew }
 	useEffect(() => {
 		if (!enabled) return
 		const key = ev => {
@@ -89,7 +92,10 @@ export function useShortcutKeys({ enabled, onSheet, onGo }) {
 				return
 			}
 			if (ev.key === '?') { ev.preventDefault(); calls.current.onSheet() }
-			else if (k === 'g' && !ev.shiftKey) chord.current = Date.now() + CHORD_MS
+			else if (ev.shiftKey) return
+			else if (k === 'g') chord.current = Date.now() + CHORD_MS
+			else if (k === 's' && calls.current.onScan) { ev.preventDefault(); calls.current.onScan() }
+			else if (k === 'n') { ev.preventDefault(); calls.current.onNew() }
 		}
 		document.addEventListener('keydown', key)
 		return () => document.removeEventListener('keydown', key)

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
-import { Card, Panel } from '../components/Card.jsx'
+import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
@@ -14,8 +14,9 @@ import {
 	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, invalidateOrderData
 } from '../api/client.js'
 import { dot, plural, shortDate, today } from '../api/format.js'
-import { draftOf } from './OrderForm.jsx'
+import { draftOf, useStacked } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
+import { useFolded } from '../app/folded.js'
 import { useShellShape } from '../app/useMedia.js'
 import { OverLimitDot, StatusPill, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
@@ -104,6 +105,9 @@ function OrderView({ order, touch, created, onGone }) {
 	const [asking, setAsking] = useState(false)
 	const files = filesOf(order)
 	const open = key => setViewing(files.findIndex(f => f.key === key))
+	const column = useRef(null)
+	const stacked = useStacked(column)
+	const [folded, setFolded] = useFolded('order', 'details', true)
 
 	const items = (
 		<Card>
@@ -162,19 +166,35 @@ function OrderView({ order, touch, created, onGone }) {
 		)
 		: null
 
-	const details = (
-		<Card>
-			<span className="sp-section-label">Order details</span>
-			<div className="sp-stack">
-				<Sum value={order.vendor?.name}>Vendor</Sum>
-				<Sum value={shortDate(order.date)}>Date</Sum>
-				<Sum value={order.kind}>Kind</Sum>
-				<Sum value={<OrderCategories order={order} />}>Categories</Sum>
-				{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
-				{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
-			</div>
-		</Card>
+	const sums = (
+		<div className="sp-stack">
+			<Sum value={order.vendor?.name}>Vendor</Sum>
+			<Sum value={shortDate(order.date)}>Date</Sum>
+			<Sum value={order.kind}>Kind</Sum>
+			<Sum value={<OrderCategories order={order} />}>Categories</Sum>
+			{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
+			{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
+		</div>
 	)
+	// in one column the details fold to a line above the items (18b)
+	const details = stacked
+		? (
+			<Card variant="flush">
+				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)} chevron={<Icon name="chevron-down" />}>
+					<span className="sp-stacked">
+						<span className="sp-title sp-truncate">Order details</span>
+						<span className="sp-meta sp-truncate">{[order.categories.map(c => c.name).join(', '), order.kind, order.reference].filter(Boolean).join(dot)}</span>
+					</span>
+				</Toolbar>
+				<CardBody>{sums}</CardBody>
+			</Card>
+		)
+		: (
+			<Card>
+				<span className="sp-section-label">Order details</span>
+				{sums}
+			</Card>
+		)
 
 	const totals = (
 		<Card
@@ -208,8 +228,8 @@ function OrderView({ order, touch, created, onGone }) {
 	return (
 		<>
 			{created ? <Created order={order} created={created} touch={touch} onGone={onGone} /> : null}
-			<div className="sp-stack sp-gap-12">{items}{attachments}</div>
-			<Panel>{details}{totals}{dialog}{viewer}</Panel>
+			<div className="sp-stack sp-gap-12" ref={column}>{stacked ? details : null}{items}{attachments}</div>
+			<Panel>{stacked ? null : details}{totals}{dialog}{viewer}</Panel>
 		</>
 	)
 }

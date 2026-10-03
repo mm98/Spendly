@@ -6,6 +6,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Well } from '../components/Well.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { Pill } from '../components/Pill.jsx'
 import { dot, plural } from '../api/format.js'
 import {
 	DATE_LABELS, DATE_SHAPES, FIELDS, NONE, REQUIRED, dateFormatsOf, decimalOf, fieldsFor, unknownCategories
@@ -16,6 +17,8 @@ const SHAPES = [
 	{ value: 'line', label: 'one item line' },
 	{ value: 'order', label: 'a whole order' }
 ]
+// a line's own fields, which a whole order has no place for (11b)
+const ITEM_ONLY = ['quantity', 'price']
 const label = id => FIELDS.find(f => f.id === id)?.label ?? "Don't import"
 const sampleOf = (body, i) => {
 	const values = [...new Set(body.map(r => String(r[i] ?? '').trim()).filter(Boolean))].slice(0, 3)
@@ -48,7 +51,7 @@ export function readMapping(rows, mapping, categories) {
 }
 
 /** Step 2 of 11b: which column is which, checked against the file's own rows. */
-export function MapStep({ box, file, rows, mapping, onChange, categories, onReplace, onCancel, onPreview }) {
+export function MapStep({ box, file, rows, mapping, onChange, categories, onReplace, onPreview }) {
 	const matchRef = useRef(null)
 	const facts = readMapping(rows, mapping, categories)
 	const { body, columns } = facts
@@ -68,6 +71,7 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 	const dateNote = dateColumnAt < 0 ? null : facts.dateFormat
 		? (
 			<ListItem color="warning">
+				<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
 				<span className="sp-subtitle sp-ink-warning sp-grow">
 					{facts.dateFormat === 'excel' ? 'Dates are read as Excel dates.' : <>Dates are read as <b className="sp-nowrap">{DATE_SHAPES[facts.dateFormat]}</b>.</>}
 					{facts.dateFormats.length === 1 ? ' Every date in the file matched that shape.' : facts.dateFormats.length > 1 ? ' The dates could be read another way too. Check that this is right.' : ''}
@@ -81,6 +85,7 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 		)
 		: (
 			<ListItem color="danger">
+				<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
 				<span className="sp-subtitle sp-ink-danger">These are not dates Spendly can read. Map another column as the order date.</span>
 			</ListItem>
 		)
@@ -88,6 +93,7 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 	const categoryNote = facts.unknown.length && facts.unresolved.length
 		? (
 			<ListItem color="warning">
+				<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
 				<span className="sp-subtitle sp-ink-warning sp-grow">
 					<b>{plural(facts.unresolved.length, 'value')}</b> in {categoryColumn} {facts.unresolved.length === 1 ? "doesn't" : "don't"} match a category yet. They are listed below and each needs a choice before the import can run.
 				</span>
@@ -99,16 +105,27 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 	const row = (name, i) => {
 		const id = columns[i]
 		const idle = id === NONE
+		const title = String(name || `Column ${i + 1}`)
+		if (shape === 'order' && idle && ITEM_ONLY.includes(mapping.line?.[i])) return (
+			<div key={i} className="st-map sp-muted">
+				<Well variant="quiet">
+					<span className="sp-data sp-void sp-strong sp-truncate">{title}</span>
+					<span className="sp-meta sp-truncate">{sampleOf(body, i)}</span>
+				</Well>
+				<Icon name="chevron-right" size={16} />
+				<span className="sp-input sp-input--empty sp-input--stretch">No field for this now</span>
+			</div>
+		)
 		return (
 			<div key={i} className={idle ? 'st-map sp-muted' : 'st-map'}>
 				<Well variant="quiet">
-					<span className="sp-data sp-strong sp-truncate">{String(name || `Column ${i + 1}`)}</span>
+					<span className="sp-data sp-strong sp-truncate">{title}</span>
 					<span className="sp-meta sp-truncate">{sampleOf(body, i)}</span>
 				</Well>
 				<Icon name="chevron-right" size={16} />
 				<Combobox aria-label={`Field for ${name || `column ${i + 1}`}`}
 					value={idle ? <span className="sp-ink-5">Don't import</span>
-						: <span className="sp-row-flex sp-gap-8">{label(id)}{fields.find(f => f.id === id)?.optional ? <span className="sp-meta">optional</span> : null}</span>}>
+						: <span className="sp-row-flex sp-gap-8">{label(id)}{fields.find(f => f.id === id)?.optional ? <span className="sp-meta">optional</span> : null}{shape === 'order' && id === 'total' ? <Pill color="success">New</Pill> : null}</span>}>
 					{fields.map(f => (
 						<ComboboxOption key={f.id} selected={f.id === id} onSelect={() => setColumn(i, f.id)}
 							meta={REQUIRED[shape].includes(f.id) ? 'required' : f.optional ? 'optional' : undefined}>{f.label}</ComboboxOption>
@@ -135,6 +152,7 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 		<Card ref={box}>
 			<Heading section="import">Import</Heading>
 			<div className="sp-row-flex sp-gap-12">
+				<span className="sp-row-flex sp-flex-none"><Icon name="file" /></span>
 				<span className="sp-title sp-truncate">{file}</span>
 				<span className="sp-meta sp-nowrap">{plural(body.length, 'row')}{dot}{plural(header.length, 'column')}</span>
 				<span className="sp-grow" />
@@ -166,8 +184,9 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 			{shape === 'order'
 				? (
 					<ListItem color="warning">
+						<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
 						<span className="sp-subtitle sp-ink-warning">
-							Each order arrives with <b>one item line</b> carrying the description and the total, quantity 1. The order stays editable, but it can't be broken back into its items later. Switching back to "one item line" brings back the mapping you had.
+							Each order arrives with <b>one item line</b> carrying the description and the total, quantity 1. That keeps the totals correct and the order editable, but the detail is gone - an order imported this way can't be broken back into its items later. Switching back to "one item line" restores the mapping you had; it isn't lost.
 						</span>
 					</ListItem>
 				)
@@ -176,7 +195,7 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 				? (
 					<div className="sp-stack sp-gap-8" ref={matchRef}>
 						<span className="sp-section-label">Matching unknown values</span>
-						<span className="sp-meta">Every value gets a choice. Nothing is guessed: a category made up by an import is worse than one you chose.</span>
+						<span className="sp-meta">Every unmatched value gets a row. Nothing is guessed silently - an unresolved row blocks the import, because a category invented by an import is worse than one you chose.</span>
 						{facts.unknown.map(u => {
 							const chosen = mapping.categories?.[u.value]
 							const open = chosen === undefined
@@ -206,7 +225,6 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 					{facts.mapped} of {header.length} columns mapped. {required} are required.
 					{facts.missing.length ? <> Still missing: {facts.missing.map(label).join(', ').toLowerCase()}.</> : null}
 				</span>
-				<Button variant="outline" onClick={onCancel}>Cancel</Button>
 				<Button disabled={!facts.ready} onClick={() => onPreview(facts)}>Preview</Button>
 			</ImportFooter>
 		</Card>

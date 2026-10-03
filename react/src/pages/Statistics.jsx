@@ -24,8 +24,9 @@ import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
+import { VendorMark } from '../app/categoryMark.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { failureMessage, getCategories, getSliceLines, getSliceOrders, getStatsSlice, getVendors } from '../api/client.js'
+import { failureMessage, getCategories, getCurrentUser, getSliceLines, getSliceOrders, getStatsSlice, getVendors } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, quantity, shortDate, today
@@ -57,9 +58,11 @@ const share = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
 const signed = (n, text) => (n > 0 ? `+${text}` : n < 0 ? `-${text}` : text)
 const counted = (n, noun, nouns = `${noun}s`) => `${amount(n, 0)} ${n === 1 ? noun : nouns}`
 const TOP = 8
+// inside a crumb the Spend and Average help name the level above by its kind (4b, 4c)
+const OF_WINDOW = { year: 'the year', quarter: 'the quarter', month: 'the month', week: 'the week' }
+const OF_CRUMB = { month: 'this month', week: 'this week', vendor: 'this vendor', category: 'this category', status: 'these orders' }
+const VERSUS = { month: 'all months', week: 'all weeks', vendor: 'all vendors', category: 'all categories', status: 'all statuses' }
 const SLICE = 25
-// the API answers at most 1000 orders at once (MAX_PAGE_SIZE)
-const MOST_PAGES = 1000 / SLICE
 
 /** The id a range opens on when the address names none: the window holding today. */
 const defaultId = range => windowIdAt(range, todayUtc())
@@ -135,21 +138,18 @@ export default function Statistics() {
 	const categories = useApi(getCategories)
 	const vendors = useApi(getVendors, [], { enabled: crumbs.some(c => c.kind === 'vendor') })
 
-	/* The table pages on the server; the pages already shown are kept for this slice only. Back to
-	   this step asks for every page the reader had open in one answer, then Load more one at a time. */
-	const { pages, setPages, restored } = useListMemory('orders')
+	// the table pages on the server; what Load more added is card-local, so a reload starts at one page (4d)
+	const { restored } = useListMemory('orders')
 	const slice = JSON.stringify({ base, filter })
 	const [more, setMore] = useState({ slice, pages: [], count: 0 })
 	const kept = more.slice === slice ? more : { pages: [], count: 0 }
 	const earlier = kept.pages
-	const first = Math.min(pages, MOST_PAGES)
-	const ask = kept.count ? { page: kept.count + 1, pageSize: SLICE } : { page: 1, pageSize: SLICE * first }
+	const ask = { page: kept.count + 1, pageSize: SLICE }
 	const next = useCurrent(getSliceOrders, [{ ...base, ...filter, ...ask }], { enabled: !touch })
 	const loadMore = () => {
 		if (next.error) return next.refresh()
 		if (!next.data) return
-		setMore({ slice, pages: [...earlier, next.data], count: kept.count ? kept.count + 1 : first })
-		setPages(n => n + 1)
+		setMore({ slice, pages: [...earlier, next.data], count: kept.count + 1 })
 	}
 	// the window goes back to where the reader left it once the rows are drawn, or there are none to draw
 	const drawn = !!stats.error || (!!stats.data && (touch || !stats.data.window.orders || !!next.data || !!next.error))
@@ -226,7 +226,7 @@ export default function Statistics() {
 		<TopBarEnd>
 			{which}
 			<Button variant="outline" onClick={exportSlice} disabled={!view?.orders}>
-				{view ? `Export ${counted(view.orders, 'order')}` : 'Export'}
+				Export
 			</Button>
 		</TopBarEnd>
 	)
@@ -248,8 +248,10 @@ export default function Statistics() {
 					show(nextRange, reanchor(range, id, nextRange))
 				}}
 				onPresent={() => show(range, defaultId(range))}
+				// a custom range has no stepper (4f): choosing the selected Custom again opens its dates
+				onClick={ev => { if (range === 'custom' && !draft && ev.target.matches('input[value="custom"]')) openCustom() }}
 				stepper={range === 'custom'
-					? <Button variant="outline" size="small" onClick={openCustom}>Change dates</Button>
+					? null
 					: (
 						<PeriodWindow
 							touch={touch}
@@ -287,6 +289,7 @@ export default function Statistics() {
 		document.querySelector('input[name="statistics-period"]:checked')?.focus()
 	}, [drilled])
 	const scan = useScanPicker()
+	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 
 	const name = nameOf(range, id)
 	const nameInText = nameOf(range, id, true)
@@ -325,7 +328,9 @@ export default function Statistics() {
 							<EmptyTitle>No orders yet</EmptyTitle>
 							<EmptyBody>Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.</EmptyBody>
 							<div className="sp-row-flex sp-gap-8">
-								<Button size="small" onClick={scan.open}>Scan a receipt</Button>
+								{held
+									? <Button size="small" disabled data-tip="Available once your email is confirmed">Scan a receipt</Button>
+									: <Button size="small" onClick={scan.open}>Scan a receipt</Button>}
 								<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 							</div>
 						</Empty>
@@ -400,7 +405,7 @@ export default function Statistics() {
 
 	if (drilled) {
 		const parentView = parent.data?.window
-		const above = crumbs.length > 1 ? crumbLabel(crumbs.at(-2), labels, true) : nameInText
+		const above = crumbs.length > 1 ? OF_CRUMB[crumbs.at(-2).kind] : OF_WINDOW[range] ?? 'the period'
 		/* The card beside the chart is the first breakdown the path has not already narrowed. */
 		const side = !categoryCrumb
 			? <CategoryRows key={`category ${slice}`} view={view} onOpen={drillTo('category')} hint />
@@ -413,7 +418,7 @@ export default function Statistics() {
 						: <SavingChart chart={chart} name={sliceName} touch={touch} selected={selectedKey} />
 		return arrange({
 			shape, stacked, period, crumbsBar, drilled,
-			kpis: <DrilledKpis view={view} parent={parentView} above={above} chart={chart} time={time ? sliceName : null}
+			kpis: <DrilledKpis view={view} parent={parentView} above={above} versusAll={VERSUS[crumbs.at(-1).kind]} chart={chart} time={time ? sliceName : null}
 				category={category} flow={flow} touch={touch} />,
 			chart: spendChart,
 			side,
@@ -542,7 +547,8 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 				<Crumbs root={root}>
 					{crumbs.map((c, i) => {
 						const label = crumbLabel(c, labels)
-						const mark = c.kind === 'vendor' ? <Mark size="small" fill="solid" aria-hidden="true">{label}</Mark> : null
+						const vendor = c.kind === 'vendor' ? labels.vendors?.find(v => v.id === c.value) : null
+						const mark = c.kind === 'vendor' ? <VendorMark name={label} colour={vendor?.colour} size="small" /> : null
 						return i === crumbs.length - 1
 							? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={dropping(i)}>{mark}{label}</Crumb>
 							: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)} onRemove={dropping(i)}>{mark}{label}</Crumb>
@@ -693,12 +699,12 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 }
 
 /** Inside a crumb the figures are held against the level above, not an earlier window (4b, 4c). */
-function DrilledKpis({ view, parent, above, chart, time, category, flow, touch }) {
+function DrilledKpis({ view, parent, above, versusAll, chart, time, category, flow, touch }) {
 	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
 	const of = parent && parent.spent > 0 && view.spent >= 0 ? `${percent(share(view.spent, parent.spent), 0)} of ${above}` : null
 	const higher = parent && parent.average > 0 ? view.average - parent.average : null
 	const versus = higher == null || Math.round(view.average) === Math.round(parent.average)
-		? null : `${signed(higher, percent(Math.abs(share(higher, parent.average)), 0))} vs all of ${above}`
+		? null : `${signed(higher, percent(Math.abs(share(higher, parent.average)), 0))} vs ${versusAll}`
 	/* A category's limit, against the month the chart ends on, or against the stretch a time crumb chose. */
 	let limit = null
 	if (category?.budget > 0 && flow !== 'refunds') {
@@ -1067,7 +1073,7 @@ function VendorsCard({ view, name, touch, onOpen }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Top vendors</span>
 				<span className="sp-grow" />
-				<span className="sp-meta">{onOpen && !touch ? `${name}${dot}press a vendor to see its orders` : name}</span>
+				<span className="sp-meta">{onOpen && !touch ? `${name}${dot}select a vendor to see its orders` : name}</span>
 			</div>
 			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} onOpen={onOpen} counts={!touch} />
 		</Card>
@@ -1260,10 +1266,10 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 			const allowed = category.budget * months
 			return { id: category.id, name: category.name, spend, allowed, used: share(spend, allowed) }
 		})
-		.sort((a, b) => b.used - a.used || b.spend - a.spend || a.name.localeCompare(b.name))
+		.sort((a, b) => b.spend - a.spend || a.name.localeCompare(b.name))
 	const pace = view.pace.running ? share(view.pace.daysIn, view.pace.unitDays) : null
 	const allowed = rows.reduce((sum, row) => sum + row.allowed, 0)
-	// the closest to their limit rest at the top eight; past the resting nine the rest are a press away (4d)
+	// the most spent rest at the top eight, as drawn (4a); past the resting nine the rest are a press away (4d)
 	const folds = rows.length > TOP + 1
 	const all = folds ? <ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={rows.length} noun="categories" /> : null
 	const drawn = rows.slice(0, folds && !open ? TOP : rows.length).map(row => {

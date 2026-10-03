@@ -15,8 +15,8 @@ import { Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.
 import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, useFocusTrap } from '../components/Utilities.jsx'
-import { useShellShape } from '../app/useMedia.js'
+import { Empty, EmptyBody, EmptyTitle, Kbd, useFocusTrap } from '../components/Utilities.jsx'
+import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
@@ -45,6 +45,8 @@ export default function Bookmarks() {
 	// below the 900 fold the bar takes the phone's shape: the filters move into the sheet (18b)
 	const [column, folded] = useFold()
 	const sheeted = touch || folded
+	// the search drops its shortcut badge at 720 of the list or under (15e)
+	const badged = useWidth(column) > 720
 	const [params, setParams] = useSearchParams()
 	const query = params.get('q') ?? ''
 	const category = params.get('category') ?? ''
@@ -192,7 +194,8 @@ export default function Bookmarks() {
 		: (
 			<Controls ref={column}>
 				<SearchInput value={query} onChange={q => write({ q })}
-					placeholder="Search bookmarks, shops or categories" aria-label="Search bookmarks" />
+					placeholder="Search bookmarks, shops or categories" aria-label="Search bookmarks"
+					kbd={badged ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined} />
 				{folded
 					? <Button {...filtersButtonProps}>{filtersLabel}</Button>
 					: (

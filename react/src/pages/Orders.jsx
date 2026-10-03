@@ -18,13 +18,13 @@ import { useToast } from '../components/Overlays.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Kbd, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
 import { failureMessage, getCategories, getCurrentUser, getImport, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
-import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
+import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today, withShortMonth } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { useShellShape, useWidth } from '../app/useMedia.js'
+import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, OrderFiles, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses } from '../app/statuses.js'
@@ -87,7 +87,7 @@ const withChanges = (params, changes) => {
 const requestOf = (f, sort) => ({
 	query: f.q, vendorId: f.vendor, categoryId: f.category, status: f.status, kind: f.kind,
 	receipt: f.receipt, files: f.files, discounted: f.discounted, importId: f.import,
-	from: f.from, to: f.to, minAmount: f.min, maxAmount: f.max, sort
+	from: f.from, to: f.to || (f.from ? today() : ''), minAmount: f.min, maxAmount: f.max, sort
 })
 
 /* A preset is a calendar period around today, held in the address by its name; a link that carries
@@ -124,6 +124,9 @@ const loaded = {
 }.getOrders
 
 const importDate = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', year: 'numeric' })
+
+// the search drops its shortcut badge at this width of the list or under (15e)
+const KBD = 720
 
 const RECEIPT = { attached: 'Receipt attached', missing: 'Receipt missing' }
 
@@ -178,7 +181,9 @@ function OrderList() {
 	const categories = useApi(getCategories)
 	const highest = useApi(getOrders, [{ sort: 'amount-desc', pageSize: 1 }])
 	const fromImport = useApi(getImport, [f.import], { enabled: !!f.import })
-	const reads = useApi(getCurrentUser).data?.scanAiEnabled
+	const user = useApi(getCurrentUser).data
+	const reads = user?.scanAiEnabled
+	const held = user?.emailConfirmed === false
 
 	const sort = SORTS.some(s => s.id === f.sort) ? f.sort
 		: SORTS.some(s => s.id === settings.data?.sort) ? settings.data.sort : 'date-desc'
@@ -293,7 +298,7 @@ function OrderList() {
 		import: () => {
 			if (!f.import) return null
 			const made = fromImport.data?.id === f.import ? fromImport.data.createdAt : null
-			const label = made ? `From import ${importDate().format(new Date(made * 1000))}` : 'From an import'
+			const label = made ? `From import ${withShortMonth(importDate(), new Date(made * 1000))}` : 'From an import'
 			return <Crumb key="import" onRemove={removing({ import: '' })}>{label}</Crumb>
 		},
 		amount: () => {
@@ -338,11 +343,11 @@ function OrderList() {
 			{crumbs.length ? `Filters${dot}${crumbs.length}` : 'Filters'}
 		</Button>
 	)
-	// without the rail, Filters joins the bar before sort (15e); a phone gives it its own row (c12)
+	// without the rail, Filters joins the bar before sort (15e, 7a)
 	const controls = (
 		<Controls>
-			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} />
-			{railed || touch ? null : filtersButton}
+			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} badged={width > KBD} />
+			{railed ? null : filtersButton}
 			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>
 				{SORTS.map(s => (
 					<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => update({ sort: s.id })}>
@@ -391,7 +396,9 @@ function OrderList() {
 							: 'Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.'}
 					</EmptyBody>
 					<div className="sp-row-flex sp-gap-8">
-						<Button size="small" onClick={scan.open}>Scan a receipt</Button>
+						{held
+							? <Button size="small" disabled data-tip="Available once your email is confirmed">Scan a receipt</Button>
+							: <Button size="small" onClick={scan.open}>Scan a receipt</Button>}
 						<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 					</div>
 				</Empty>
@@ -421,7 +428,7 @@ function OrderList() {
 				{summary ? <span className="sp-subtitle">{dot.trimStart()}{currency(summary.total)}</span> : null}
 				{summary ? <Saving value={summary.saved} /> : null}
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" disabled={exporting} onClick={exportCsv}>Export {plural(data.matched, 'order')}</Button>
+				<Button variant="outline" size="small" disabled={exporting} onClick={exportCsv}>Export CSV</Button>
 			</>
 		)
 		const pickedAll = chosen.length > 0 && chosen.length === data.orders.length
@@ -461,7 +468,6 @@ function OrderList() {
 			{/* on a phone a selection takes the top bar's place (c12) */}
 			{touch && narrow && chosen.length ? <BulkBar head count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar> : null}
 			{none ? null : controls}
-			{none || !touch ? null : <div className="sp-row-flex sp-gap-8">{filtersButton}</div>}
 			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
 			{body}
 			{filtersOpen
@@ -491,7 +497,7 @@ function OrderList() {
 		<OverLimitProvider>
 			<div className="sp-rail sp-stack sp-gap-12">
 				<ViewsCard params={params} matched={orders.data?.matched}
-					summary={[...crumbs.map(c => c.props.children), sortLabel.toLowerCase()].join(dot)} />
+					summary={[...crumbs.map(c => (PRESETS.some(p => p.label === c.props.children) ? c.props.children.toLowerCase() : c.props.children)), sortLabel.toLowerCase()].join(dot)} />
 				{filtersCard}
 			</div>
 			{main}
@@ -546,7 +552,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 
 /** The list's search (c20). The field keeps what is typed and writes it to the address once it
     settles, so a key pressed while the list redraws is never overwritten. */
-function OrderSearch({ q, onSearch, touch }) {
+function OrderSearch({ q, onSearch, touch, badged }) {
 	const [text, setText] = useState(q)
 	const wrote = useRef(q)
 	useEffect(() => {
@@ -569,6 +575,7 @@ function OrderSearch({ q, onSearch, touch }) {
 			onChange={setText}
 			placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
 			aria-label="Search orders"
+			kbd={badged ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined}
 		/>
 	)
 }
@@ -730,15 +737,16 @@ function OrderCards({ data, size, summary, picked, bulk, onPick, onOpen, onLoadM
 							<Stacked>
 								<Line>
 									<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
-									<span className="sp-amount">{currency(o.total)}</span>
+									<span className={o.status === 'Cancelled' ? 'sp-amount sp-void' : 'sp-amount'}>{currency(o.total)}</span>
 								</Line>
 								<Line>
 									<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
+									{o.status === 'Cancelled' ? <span className="sp-amount-secondary">not counted</span> : <Saving value={o.saved} />}
 									<StatusPill status={o.status} />
 								</Line>
 								<Line>
-									<span className="sp-subtitle sp-grow">{shortDate(o.date)}{dot}{plural(o.itemCount, 'item')}</span>
-									<Saving value={o.saved} />
+									<span className="sp-subtitle sp-nowrap">{shortDate(o.date)}{dot}{plural(o.itemCount, 'item')}</span>
+									<span className="ol-card-chips"><CategoryChips categories={o.categories} /></span>
 								</Line>
 							</Stacked>
 						</ListItem>

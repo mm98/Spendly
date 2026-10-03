@@ -343,15 +343,14 @@ function marked(text, match) {
 }
 
 /** One record or one action, led by `icon` or `thumb` (a picture's address, or true for the empty box).
-    `match` is marked in the name; `value` and `kbd` end it, and a phone drops both (7b). */
-export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, kbd, selected = false, children, ...rest }) {
+    `match` is marked in the name; an amount (`value`), a `note` or `kbd` end it, and a phone drops them (7b). */
+export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, note, kbd, selected = false, children, ...rest }) {
 	reject(rest, 'PaletteRow')
 	const screen = useContext(PaletteScreen)
-	const trail = !screen && (value != null || kbd)
+	const trail = !screen && (value != null || note || kbd)
 	let lead = null
 	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true" />
-	else if (icon && screen) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
-	else if (icon) lead = <span className="sp-palette__icon"><Icon name={icon} size={15} /></span>
+	else if (icon) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
 	return (
 		<button type="button" className="sp-palette__row" role="option" aria-selected={selected ? 'true' : 'false'} tabIndex={-1} {...rest}>
 			{lead}
@@ -359,7 +358,8 @@ export function PaletteRow({ icon, thumb = false, plain = false, action = false,
 			<span className={join('sp-palette__name', plain && 'sp-palette__name--plain', 'sp-truncate')}>{marked(children, match)}</span>
 			{meta ? <span className="sp-meta sp-truncate">{meta}</span> : null}
 			{trail ? <span className="sp-grow" /> : null}
-			{trail && value != null ? <span className="sp-data">{value}</span> : null}
+			{trail && value != null ? <span className="sp-amount">{value}</span> : null}
+			{trail && note ? <span className="sp-meta">{note}</span> : null}
 			{trail && kbd ? <Kbd>{kbd}</Kbd> : null}
 		</button>
 	)

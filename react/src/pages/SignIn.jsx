@@ -13,7 +13,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { failureMessage, getAuthOptions, getCurrentUser, login } from '../api/client.js'
 
 // the server refuses anything shorter
-export const MIN_PASSWORD = 8
+export const MIN_PASSWORD = 12
 
 const STRENGTH = ['Weak', 'Fair', 'Strong', 'Very strong']
 
@@ -68,11 +68,16 @@ export function useCountdown() {
 	return [left, setLeft]
 }
 
-/** Every screen outside the shell is one card (20a-20d): the brand, a heading and a line, an alert
-    slot, the fields, the primary action and what sits under it. A warning alert carries a title. */
+// each glyph at the size its drawing gives it
+const STATUS_ICON = { mail: 21, check: 24, clock: 20 }
+// the space over what sits under the primary button, which each drawing sets
+const UNDER = { 10: 'sp-gap-10', 12: 'sp-gap-12', 14: 'sp-gap-14' }
+
+/** Every screen outside the shell is one card (20a-20d): the brand or a round status mark, a heading and
+    a line, an alert slot, the fields, the primary action and what sits under it. A warning alert carries a title. */
 export function AuthCard({
-	title, lead, mark = true, alert, alertColor = 'danger', alertTitle, onSubmit, submit, submitVariant = 'solid',
-	busy, busyLabel, disabled = false, across, note, terms, footer, children
+	title, lead, mark = true, icon, alert, alertColor = 'danger', alertIcon = 'alert-circle', alertTitle, onSubmit, submit,
+	submitIcon, submitVariant = 'solid', busy, busyLabel, disabled = false, gap = 14, across, note, terms, footer, children
 }) {
 	const shape = useShellShape()
 	// outside the shell, so the tab is named here, from the route's own title
@@ -82,7 +87,9 @@ export function AuthCard({
 	const card = (
 		<Card variant="float" footer={footer}>
 			<div className="sp-stack sp-gap-12 sp-center au-centred">
-				{mark ? <Mark size="large" fill="solid" aria-label="Spendly"><span>S</span></Mark> : null}
+				{icon
+					? <Mark size="large" round aria-hidden="true" aria-label={icon}><Icon name={icon} size={STATUS_ICON[icon]} /></Mark>
+					: mark ? <Mark size="large" fill="solid" aria-label="Spendly"><span>S</span></Mark> : null}
 				<div className="sp-stack sp-gap-6">
 					<span className="sp-heading">{title}</span>
 					{lead ? <span className="sp-data">{lead}</span> : null}
@@ -92,7 +99,7 @@ export function AuthCard({
 				{alert
 					? (
 						<ListItem variant="top" color={alertColor} role="alert">
-							<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
+							<span className="sp-row-flex sp-flex-none"><Icon name={alertIcon} /></span>
 							{warning
 								? (
 									<span className="sp-stack sp-gap-6">
@@ -105,9 +112,9 @@ export function AuthCard({
 					)
 					: null}
 				{children}
-				<div className="sp-stack sp-gap-14">
+				<div className={'sp-stack ' + UNDER[gap]}>
 					<Button type="submit" size="small" variant={submitVariant} fullWidth disabled={busy || disabled}>
-						{busy ? <><Spinner />{busyLabel}</> : submit}
+						{busy ? <><Spinner />{busyLabel}</> : <>{submitIcon ? <Icon name={submitIcon} size={14} /> : null}{submit}</>}
 					</Button>
 					{terms ? <span className="sp-meta sp-center">{terms}</span> : null}
 					{across ? <span className="sp-data sp-center">{across}</span> : null}
@@ -209,9 +216,9 @@ export default function SignIn() {
 
 	if (!signedOut) return null
 	if (locked) return (
-		<AuthCard title="Sign in to Spendly" alertColor="warning" alertTitle="Too many attempts"
-			alert={<>Sign in is paused for <b>{waitWords(lockedFor)}</b>.{mail ? ' You can reset your password instead. That works straight away.' : ''}</>}
-			onSubmit={submit} submit={mail ? 'Reset my password' : 'Sign in'} disabled={!mail}
+		<AuthCard title="Sign in to Spendly" alertColor="warning" alertIcon="lock" alertTitle="Too many attempts"
+			alert={<>Sign in is paused for <b>{waitWords(lockedFor)}</b>.{mail ? ' You can reset your password instead - that works straight away.' : ''}</>}
+			onSubmit={submit} submit={mail ? 'Reset my password' : 'Sign in'} disabled={!mail} gap={12}
 			note={mail ? `Or wait ${waitWords(lockedFor)} and try again.` : `Wait ${waitWords(lockedFor)} and try again.`}>
 			<Field label="Email" id="signin-email">
 				<TextField type="email" autoComplete="email" value={email} disabled onChange={() => {}} />
@@ -224,7 +231,7 @@ export default function SignIn() {
 	return (
 		<AuthCard title="Sign in to Spendly" lead={alert ? null : 'Your orders, receipts and monthly limits.'} alert={alert}
 			onSubmit={submit} submit="Sign in" busy={busy} busyLabel="Signing in…"
-			across={<>New here? <Link className="sp-strong sp-ink-accent au-across" to="/register">Create an account</Link></>}>
+			across={alert ? null : <>New here? <Link className="sp-strong sp-ink-accent au-across" to="/register">Create an account</Link></>}>
 			<Field label="Email" id="signin-email" message={emailProblem ?? undefined} messageType={emailProblem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />

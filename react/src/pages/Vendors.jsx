@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Caption, Controls, Crumb, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { Card } from '../components/Card.jsx'
@@ -7,13 +7,13 @@ import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Kbd, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	deleteVendor, getSettings, getVendors, invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor, vendorTextMatch
 } from '../api/client.js'
 import { NUMBER_LOCALE, amount, currency, dayMonth, dot, plural, shortDate } from '../api/format.js'
-import { useShellShape, useWidth } from '../app/useMedia.js'
+import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
@@ -24,6 +24,10 @@ import {
 const SHOWN = [{ value: 'active', label: 'Active' }, { value: 'archived', label: 'Archived' }]
 // at this width of the list or under, the last order joins the name's second line (5k)
 const FOLD = 880
+// at this width of the list or under, the table becomes cards (5k)
+const CARDS = 900
+// the search drops its shortcut badge at this width of the list or under (15e)
+const KBD = 720
 // the address of the look-alike view, as Home links to it (10a)
 const LOOKALIKES = 'possible-duplicate'
 
@@ -39,8 +43,8 @@ function pairedRows(vendors, by) {
 	return rows
 }
 
-/** A vendor's second line: favourite, orders, made by a scan (5a), and the last order when it has no column. */
-const factsOf = (v, last) => [v.favourite ? 'Favourite' : null, plural(v.orders, 'order'), v.createdByScan ? 'created by receipt scan' : null,
+/** A vendor's second line: orders, made by a scan (5a), and the last order when it has no column. */
+const factsOf = (v, last) => [plural(v.orders, 'order'), v.createdByScan ? 'created by receipt scan' : null,
 	last && v.lastOrder ? `last ${last(v.lastOrder)}` : null].filter(Boolean).join(dot)
 
 const SORTS = [
@@ -55,7 +59,6 @@ const SORTS = [
 /** Vendors (5a): find a vendor and open it, or create one. Favourites are kept at the top. */
 export default function Vendors() {
 	const touch = useShellShape() === 'touch'
-	const navigate = useNavigate()
 	const toast = useToast()
 	const vendors = useApi(getVendors)
 	const settings = useApi(getSettings).data
@@ -76,7 +79,8 @@ export default function Vendors() {
 	const [busy, setBusy] = useState(false)
 	const column = useRef(null)
 	const width = useWidth(column)
-	const folded = !touch && width > 0 && width <= FOLD
+	const cards = touch || (width > 0 && width <= CARDS)
+	const folded = !cards && width > 0 && width <= FOLD
 	// a page of rows per Load more, kept for Back along with the scroll
 	const { pages, setPages, restored } = useListMemory(`vendors?${query}&${sort.id}&${archived}&${alike}`)
 	useEffect(() => { if (vendors.data) restored() }, [vendors.data])
@@ -145,12 +149,11 @@ export default function Vendors() {
 		<Controls ref={column}>
 			{touch ? null : (
 				<SearchInput value={query} onChange={q => write(q, sort.id)}
-					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias" />
+					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias"
+					kbd={width > KBD ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined} />
 			)}
 			<Segmented name="vendors-shown" options={SHOWN} value={archived ? 'archived' : 'active'} variant={touch ? 'facet' : 'default'}
 				onChange={v => write(query, sort.id, v === 'archived')} role="radiogroup" aria-label="Which vendors" />
-			{/* on a phone the view takes the first row, and sort and New share the second */}
-			{touch ? <span className="sp-grow" /> : null}
 			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
 			{touch
 				? <Button to="/vendors/new" iconStart="plus" aria-label="New vendor" />
@@ -167,7 +170,7 @@ export default function Vendors() {
 
 	let body
 	if (!vendors.data && vendors.error) body = <Failed what="Your vendors" error={vendors.error} onRetry={vendors.refresh} />
-	else if (!vendors.data) body = <VendorsLoading touch={touch} size={step} folded={folded} spend={sort.id.startsWith('spend') ? sort.label : 'Spend'} />
+	else if (!vendors.data) body = <VendorsLoading cards={cards} size={step} folded={folded} spend={sort.id.startsWith('spend') ? sort.label : 'Spend'} />
 	else if (archived && !vendors.data.some(v => v.archived)) body = (
 		<Card>
 			<Empty>
@@ -203,7 +206,7 @@ export default function Vendors() {
 			</Empty>
 		</Card>
 	)
-	else if (touch) body = (
+	else if (cards) body = (
 		<>
 			{shown.map(v => (
 				<Card key={v.id} to={`/vendors/${v.id}/edit`}>
@@ -256,8 +259,8 @@ export default function Vendors() {
 								? box => <MergePicker kind="vendor" source={v} options={all} anchor={box} onClose={() => setPicking(null)}
 									onPick={target => { setPicking(null); setMerging({ source: v, target }) }} />
 								: null}>
-							<MenuItem icon="external-link" onClick={() => navigate(`/orders?vendor=${v.id}`)}>Open in the order list</MenuItem>
-							<MenuItem icon="pencil" onClick={() => navigate(`/vendors/${v.id}/edit`)}>Edit vendor</MenuItem>
+							<MenuItem icon="external-link" to={`/orders?vendor=${v.id}`}>Open in the order list</MenuItem>
+							<MenuItem icon="pencil" to={`/vendors/${v.id}/edit`}>Edit vendor</MenuItem>
 							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(v.id) }}>Merge into…</MenuItem>
 							<MenuSeparator />
 							{v.archived
@@ -296,9 +299,9 @@ export default function Vendors() {
 const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc', '92']]
 
 /* A page of rows held at the loaded rows' places (6b), so nothing moves when the vendors land. */
-function VendorsLoading({ touch, size, spend, folded }) {
+function VendorsLoading({ cards, size, spend, folded }) {
 	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
-	if (touch) return rows.map(({ id, w }) => (
+	if (cards) return rows.map(({ id, w }) => (
 		<Card key={id} aria-busy="true">
 			<div className="sp-cell-flex">
 				<Skeleton shape="mark" />

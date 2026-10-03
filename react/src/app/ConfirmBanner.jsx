@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button, IconButton } from '../components/Button.jsx'
+import { Icon } from '../components/Icon.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getCurrentUser, resendConfirmation } from '../api/client.js'
@@ -28,6 +29,7 @@ export function ConfirmBanner() {
 	return (
 		<div className="au-banner">
 			<ListItem color="warning">
+				<Icon name="mail" size={18} />
 				<span className="sp-data sp-ink-warning sp-grow">
 					{said ?? (user.emailConfirmed
 						? <>Confirm <b>{address}</b> to start using it. Until then you sign in with {user.email}.</>

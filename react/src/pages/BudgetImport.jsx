@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { budgetFromFile } from '../api/budgetImport.js'
-import { failureMessage, importBudget } from '../api/client.js'
+import { failureMessage, getBudgetYears, importBudget } from '../api/client.js'
 import { plural } from '../api/format.js'
 
 const listed = items => (items.length < 2 ? items.join('')
@@ -19,7 +19,9 @@ export function ImportButton({ onImported }) {
 		if (!file) return
 		try {
 			const result = await budgetFromFile(file)
-			if (result.years.length) setFound({ file: file.name, ...result })
+			// null when the years already here could not be read, so the dialog claims none
+			const have = result.years.length ? await getBudgetYears().then(r => r.years, () => null) : null
+			if (result.years.length) setFound({ file: file.name, have, ...result })
 			else toast({ message: `${file.name} has no sheet named after a year, like 2026.`, color: 'danger' })
 		} catch (e) {
 			toast({ message: e.message, color: 'danger' })
@@ -42,6 +44,7 @@ export function ImportButton({ onImported }) {
 	}
 	const years = found?.years.map(y => y.year) ?? []
 	const rows = found?.years.map(y => y.groups.reduce((n, g) => n + g.lines.length, 0)) ?? []
+	const replaced = found?.have ? years.filter(y => found.have.includes(y)) : []
 	return (
 		<>
 			<Button size="small" onClick={() => picker.current?.click()}>Import from Excel</Button>
@@ -51,6 +54,11 @@ export function ImportButton({ onImported }) {
 				<Dialog onCancel={() => setFound(null)}>
 					<DialogTitle>Bring in {plural(years.length, 'year')}?</DialogTitle>
 					<DialogBody>{found.file} holds {listed(years.map((y, i) => `${y} (${plural(rows[i], 'row')})`))}.</DialogBody>
+					{found.have === null ? (
+						<DialogBody>A year that is already in your budget is replaced.</DialogBody>
+					) : replaced.length ? (
+						<DialogBody>{listed(replaced)} {replaced.length === 1 ? 'is already in your budget, so it is' : 'are already in your budget, so they are'} replaced.</DialogBody>
+					) : null}
 					{found.left.length ? (
 						<DialogBody>{listed(found.left)} {found.left.length === 1 ? 'is not a year, so it is' : 'are not years, so they are'} left out.</DialogBody>
 					) : null}

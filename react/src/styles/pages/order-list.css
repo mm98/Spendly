@@ -8,6 +8,9 @@
 	/* two category chips share their cell: a short name keeps its width, a long one takes the
 	   rest and truncates (2i) */
 	.ol-chip-slot { display: flex; flex: 1 1 0; min-width: 0; max-width: max-content; }
+	/* on a narrow card the chips give way first, so the date always shows whole (7a) */
+	.ol-card-chips { display: flex; flex: 1 1 0; min-width: 0; justify-content: flex-end; }
+	.ol-card-chips > * { min-width: 0; }
 
 	/* a narrow card's box sits in a hit target of its own over the card's leading edge, centred on
 	   the room the card keeps for it: a press there picks the order, anywhere else opens it (2c) */

@@ -139,12 +139,17 @@ const dayMonthFormat = formatter({ day: '2-digit', month: '2-digit' })
 const sampleFormat = formatter({ dateStyle: 'short', timeStyle: 'short' })
 
 const shortMonthFormat = formatter({ month: 'short' })
+
+/** A date in `format` with an English short month cut to three letters ("Sept" -> "Sep"), as drawn (21a). */
+export const withShortMonth = (format, date) => (format.resolvedOptions().locale.startsWith('en')
+	? format.formatToParts(date).map(part => (part.type === 'month' ? part.value.slice(0, 3) : part.value)).join('')
+	: format.format(date))
 const longMonthFormat = formatter({ month: 'long' })
 
 /** The twelve month names in the reader's own locale; a short one drops its closing full stop ("okt.").
     `head` is a month that stands alone or starts a label: capitalised in every locale, unlike running text. */
 export const monthNames = (style = 'short', head = false) => Array.from({ length: 12 }, (_, m) => {
-	const name = (style === 'long' ? longMonthFormat : shortMonthFormat)().format(new Date(2026, m, 1))
+	const name = style === 'long' ? longMonthFormat().format(new Date(2026, m, 1)) : withShortMonth(shortMonthFormat(), new Date(2026, m, 1))
 	const shown = style === 'long' ? name : name.replace(/\.$/, '')
 	return head ? capitalised(shown) : shown
 })
@@ -161,7 +166,7 @@ const thisYear = date => date.getFullYear() === new Date().getFullYear()
 /** "2026-08-03" -> "3 Aug", with the year once it is not this one (3b). */
 export const dayShortMonth = iso => {
 	const date = dateOf(iso)
-	return (thisYear(date) ? dayShortMonthFormat() : dayShortMonthYearFormat()).format(date)
+	return withShortMonth(thisYear(date) ? dayShortMonthFormat() : dayShortMonthYearFormat(), date)
 }
 
 /** "2026-07-18" -> "18 July 2026", in the reader's own order. */

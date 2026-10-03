@@ -49,6 +49,9 @@
 	}
 	.oc-preview > img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 
+	/* a badly read price typed over in its row (3a) */
+	.oc-amount-field { width: 132px; }
+
 	/* the picker's rows sit in a list, at the 6 the design's group of options keeps */
 	.oc-options {
 		display: flex;

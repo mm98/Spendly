@@ -148,7 +148,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 				message: `${bookmark.name} ${archived ? 'is back on your list' : 'archived'}.`,
 				undo: { label: 'Undo', onClick: () => setBookmarkArchived(bookmark.id, archived) }
 			})
-			navigate(list)
+			leave()
 		} catch (e) {
 			if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 			sayFailure(toast, e, 'That did not change. Try again.')
@@ -234,7 +234,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	const endOfLife = editing
 		? (
 			<Card footerLayout="split" footerCommits footer={[
-				h(<Button key="archive" variant="outline" onClick={archive}>{archived ? 'Unarchive' : 'Archive'}</Button>),
+				h(<Button key="archive" variant="outline" onClick={() => guard.ask(archive)}>{archived ? 'Unarchive' : 'Archive'}</Button>),
 				h(<Button key="delete" color="danger" onClick={() => setConfirming(true)}>Delete</Button>)
 			]}>
 				<span className="sp-section-label">End of its life</span>

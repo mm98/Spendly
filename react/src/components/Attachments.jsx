@@ -6,7 +6,7 @@ import { Mark } from './Mark.jsx'
 import { Scrim } from './Shell.jsx'
 import { reject } from './variants.js'
 import { useFocusTrap } from './Utilities.jsx'
-import { FILE_TYPES, fileProblem } from './FileDrop.jsx'
+import { FILE_TYPES, sniffedProblem } from './FileDrop.jsx'
 
 /** The attachment strip (c16): tiles in one row that scrolls sideways under two chevrons. A
     chevron is disabled, and so hidden, when there is nothing further that way. */
@@ -55,12 +55,12 @@ export function Attachment({ name, children, ...rest }) {
 }
 
 /** The tile the strip ends with, a label over a file input. `onFiles(files, problems)`: each file chosen
-    or dropped, and why it cannot be kept (`fileProblem`) or null, so its tile can say so (17b). */
+    or dropped, and why it cannot be kept (`sniffedProblem`) or null, so its tile can say so (17b). */
 export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, ...rest }) {
 	reject(rest, 'AttachmentAdd')
-	const take = list => {
+	const take = async list => {
 		const files = [...(list ?? [])].slice(0, multiple ? undefined : 1)
-		if (files.length) onFiles?.(files, files.map(file => fileProblem(file, accept)))
+		if (files.length) onFiles?.(files, await Promise.all(files.map(file => sniffedProblem(file, accept))))
 	}
 	return (
 		<Mark as="label" size="xlarge" fill="add" aria-label="Add attachment" data-tip="Add attachment"
@@ -265,6 +265,8 @@ export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest })
 		return () => document.removeEventListener('keydown', keys)
 	}, [step, onClose])
 	if (!shown) return null
+	// on a phone the viewer is the whole screen, and its bar names the file (18b)
+	const touch = document.body.classList.contains('sp-touch')
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose?.() }}>
 			<div className="sp-viewer" role="dialog" aria-modal="true"
@@ -276,7 +278,7 @@ export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest })
 					<IconButton icon="chevron-left" aria-label="Previous" disabled={items.length < 2} onClick={() => step(-1)} />
 					<span className="sp-viewer__count">{at + 1} of {items.length}</span>
 					<IconButton icon="chevron-right" aria-label="Next" disabled={items.length < 2} onClick={() => step(1)} />
-					<span className="sp-grow" />
+					{touch ? <span className="sp-viewer__count sp-truncate sp-grow">{shown.name}</span> : <span className="sp-grow" />}
 					{shown.download ? <IconButton icon="download" aria-label={`Download ${shown.name}`} href={shown.download} download={shown.name} /> : null}
 					<IconButton icon="x" aria-label="Close" onClick={onClose} />
 				</div>

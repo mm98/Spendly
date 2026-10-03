@@ -495,7 +495,9 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 				<div className={join('sp-record__foot', lines.length < 2 && 'sp-record__foot--single')}>
 					{lines.length < 2 ? lines[0] : <span className="sp-stack sp-gap-6">{lines}</span>}
 					<span className="sp-grow" />
-					<span className="sp-amount">{amount}</span>
+					{amount == null
+						? <span className="sp-amount" aria-hidden="true">{'\u00a0'}</span>
+						: <span className="sp-amount">{amount}</span>}
 				</div>
 			</div>
 		</article>

@@ -161,7 +161,27 @@ async function publishedDigests(commit) {
 	}
 	const [latest, mine] = await Promise.all([digestOf('latest'), digestOf(commit)])
 	if (!latest) throw new Error('the registry holds no `latest` tag')
-	return { latest, mine }
+	const latestBuiltAt = latest === mine ? null
+		: await builtAtOf(`https://${registry}/v2/${repo}`, latest, token, signal)
+	return { latest, mine, latestBuiltAt }
+}
+
+/* The build stamp of the image behind `digest`, from its config blob. The blob lives on a
+   second host, so where only the registry is reachable the check answers without the date. */
+async function builtAtOf(base, digest, token, signal) {
+	try {
+		const headers = { Authorization: `Bearer ${token}` }
+		const manifest = await fetch(`${base}/manifests/${digest}`, { signal, headers: { ...headers, Accept: MANIFEST_TYPES } })
+		const config = manifest.ok ? (await manifest.json()).config?.digest : null
+		if (!config) return null
+		const blob = await fetch(`${base}/blobs/${config}`, { signal, headers })
+		if (!blob.ok) return null
+		const image = await blob.json()
+		const stamp = image.config?.Env?.find(e => e.startsWith('SPENDLY_BUILD_TIME='))?.slice('SPENDLY_BUILD_TIME='.length)
+		return stamp || image.created || null
+	} catch {
+		return null
+	}
 }
 
 /* Above the auth gate beside /api/version for the same reason it is: whether the container
@@ -172,11 +192,11 @@ app.get('/api/version/check', async (req, res) => {
 	const commit = process.env.SPENDLY_BUILD_SHA || null
 	if (!commit) return res.status(409).json({ error: 'No build stamp: this server is not running from the Docker image.' })
 	try {
-		const { latest, mine } = await publishedDigests(commit)
+		const { latest, mine, latestBuiltAt } = await publishedDigests(commit)
 		/* `published: false` is its own fact, not a flavour of "behind": a locally built
 		   image whose commit was never pushed to the registry cannot be compared, and
 		   calling it out of date would send someone pulling for an update that is not one. */
-		res.json({ current: mine !== null && mine === latest, published: mine !== null, commit })
+		res.json({ current: mine !== null && mine === latest, published: mine !== null, commit, latestBuiltAt })
 	} catch (e) {
 		res.status(502).json({ error: `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}` })
 	}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
@@ -58,26 +58,30 @@ function ChangeAddress({ onSent }) {
 /** /confirm: the page that says a link was sent (20b 1 and 2). */
 export function ConfirmSent() {
 	const navigate = useNavigate()
+	// the expired link's own resend arrives here already sent, or already throttled
+	const { state } = useLocation()
 	const [user, setUser] = useState(null)
 	const [again, setAgain] = useState(false)
 	const [wait, setWait] = useCountdown()
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
-	useEffect(() => {
-		getCurrentUser()
-			.then(me => {
-				if (me.emailConfirmed && !me.pendingEmail) navigate(onward(me, '/'), { replace: true })
-				else setUser(me)
-			})
-			.catch(() => navigate('/signin?next=%2Fconfirm', { replace: true }))
-	}, [])
-	if (!user) return null
-	const address = user.pendingEmail ?? user.email
 	const sent = out => {
 		setUser(u => ({ ...u, ...(u.emailConfirmed ? { pendingEmail: out.email } : { email: out.email }) }))
 		setAgain(true)
 		setWait(out.retryAfter ?? 60)
 	}
+	useEffect(() => {
+		getCurrentUser()
+			.then(me => {
+				if (me.emailConfirmed && !me.pendingEmail) return navigate(onward(me, '/'), { replace: true })
+				setUser(me)
+				if (state?.sent) sent(state.sent)
+				else if (state?.wait) setWait(state.wait)
+			})
+			.catch(() => navigate('/signin?next=%2Fconfirm', { replace: true }))
+	}, [])
+	if (!user) return null
+	const address = user.pendingEmail ?? user.email
 	const resend = () => {
 		setBusy(true)
 		setAlert(null)
@@ -90,12 +94,13 @@ export function ConfirmSent() {
 			.finally(() => setBusy(false))
 	}
 	return (
-		<AuthCard mark={false} title={again ? 'Sent again' : 'Confirm your email'}
+		<AuthCard icon={again ? 'check' : 'mail'} gap={10} title={again ? 'Sent again' : 'Confirm your email'}
 			lead={again
 				? <>A new link is on its way to <b className="sp-ink">{address}</b>. The earlier one no longer works.</>
 				: <>We sent a link to <b className="sp-ink">{address}</b>. Open it and you're in. It expires in 24 hours.</>}
 			alert={alert} onSubmit={resend} submitVariant="outline" busy={busy} busyLabel="Sending…"
-			disabled={wait > 0} submit={wait > 0 ? `Send again in ${clock(wait)}` : again ? 'Send again' : 'Send it again'}
+			disabled={wait > 0} submitIcon={wait > 0 ? 'clock' : null}
+			submit={wait > 0 ? `Send again in ${clock(wait)}` : again ? 'Send again' : 'Send it again'}
 			across={<ChangeAddress onSent={sent} />}
 			footer={<span className="sp-meta sp-center sp-grow">Nothing after a few minutes? Check spam.</span>} />
 	)
@@ -107,6 +112,8 @@ export function ConfirmLink() {
 	const navigate = useNavigate()
 	const [answer, setAnswer] = useState(null)
 	const [me, setMe] = useState(undefined)
+	const [alert, setAlert] = useState(null)
+	const [busy, setBusy] = useState(false)
 	useEffect(() => {
 		confirmOnce(token)
 			.then(setAnswer)
@@ -116,7 +123,7 @@ export function ConfirmLink() {
 	if (!answer || me === undefined) return null
 	const next = me ? onward(me, '/') : '/signin'
 	if (answer.state === 'confirmed' || answer.state === 'already') return (
-		<AuthCard mark={false} title={answer.state === 'confirmed' ? 'Email confirmed' : 'Already confirmed'}
+		<AuthCard icon="check" title={answer.state === 'confirmed' ? 'Email confirmed' : 'Already confirmed'}
 			lead={!me ? 'Sign in to carry on.' : me.needsSetup ? "You're signed in. Two quick choices and you're done." : "You're signed in."}
 			onSubmit={() => navigate(next, { replace: true })} submit={me ? 'Continue' : 'Sign in'} />
 	)
@@ -125,11 +132,24 @@ export function ConfirmLink() {
 			onSubmit={() => window.location.reload()} submit="Try again" />
 	)
 	const address = answer.email ?? me?.pendingEmail ?? me?.email
+	const sendNew = () => {
+		if (!me) return navigate('/signin?next=%2Fconfirm')
+		setBusy(true)
+		setAlert(null)
+		resendConfirmation()
+			.then(out => navigate('/confirm', { state: { sent: out } }))
+			.catch(e => {
+				if (e?.status === 429 && e.body?.retryAfter) return navigate('/confirm', { state: { wait: e.body.retryAfter } })
+				setBusy(false)
+				setAlert(failureMessage(e, UNREACHABLE))
+			})
+	}
 	return (
-		<AuthCard mark={false} title="That link has expired"
+		<AuthCard icon="clock" gap={12} title="That link has expired"
 			lead={<>Links last 24 hours and work once.{address ? <> We can send a fresh one to <b className="sp-ink">{address}</b>.</> : null}</>}
-			onSubmit={() => navigate(me ? '/confirm' : '/signin?next=%2Fconfirm')}
-			submit={me ? 'Send a new link' : 'Sign in to get a new link'} />
+			alert={alert} onSubmit={sendNew} busy={busy} busyLabel="Sending…"
+			submit={me ? 'Send a new link' : 'Sign in to get a new link'}
+			across={me ? <ChangeAddress onSent={out => navigate('/confirm', { state: { sent: out } })} /> : null} />
 	)
 }
 
@@ -157,17 +177,17 @@ export function ResetAsk() {
 	}
 
 	if (sentTo) return (
-		<AuthCard mark={false} title="Check your email"
+		<AuthCard icon="mail" gap={10} title="Check your email"
 			lead={<>If there's an account for <b className="sp-ink">{sentTo}</b>, a reset link is on its way. It works once, and expires in an hour.</>}
 			alert={alert} onSubmit={send} submitVariant="outline" busy={busy} busyLabel="Sending…"
-			disabled={wait > 0} submit={wait > 0 ? `Send again in ${clock(wait)}` : 'Send it again'}
-			note="Nothing after a few minutes? Check spam, or try another address."
-			across={<Button variant="text" size="small" onClick={() => { setSentTo(null); focusField('reset-email') }}>Try another address</Button>} />
+			disabled={wait > 0} submitIcon={wait > 0 ? 'clock' : null}
+			submit={wait > 0 ? `Send again in ${clock(wait)}` : 'Send it again'}
+			note="Nothing after a few minutes? Check spam, or try another address." />
 	)
 	return (
 		<AuthCard title="Reset your password" lead={mail ? "Enter the email you signed up with and we'll send a link." : null}
 			alert={mail ? alert : NO_MAIL} alertColor={mail ? 'danger' : 'warning'} alertTitle="Email is not set up"
-			onSubmit={send} submit="Send the link" busy={busy} busyLabel="Sending…" disabled={!mail} across={back}>
+			onSubmit={send} submit="Send the link" busy={busy} busyLabel="Sending…" disabled={!mail} gap={12} across={back}>
 			<Field label="Email" id="reset-email" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					placeholder="you@example.com" onChange={v => { setEmail(v); setProblem(null) }} />
@@ -194,7 +214,7 @@ export function ResetLink() {
 			onSubmit={() => window.location.reload()} submit="Try again" />
 	)
 	if (link.state !== 'valid') return (
-		<AuthCard mark={false} title="That link has expired"
+		<AuthCard icon="clock" gap={12} title="That link has expired"
 			lead="Reset links last an hour and work once. Ask for a new one and we'll send it straight away."
 			onSubmit={() => navigate(link.email ? `/reset?email=${encodeURIComponent(link.email)}` : '/reset')} submit="Start again"
 			across={<Link className="sp-title sp-ink-accent" to="/signin">Back to sign in</Link>} />
@@ -214,7 +234,7 @@ export function ResetLink() {
 	}
 	return (
 		<AuthCard title="Choose a new password" lead={`For ${link.email}`} alert={alert}
-			onSubmit={save} submit="Save and sign in" busy={busy} busyLabel="Saving…"
+			onSubmit={save} submit="Save and sign in" busy={busy} busyLabel="Saving…" gap={12}
 			note="This signs you out everywhere else.">
 			<Field label="New password" id="reset-password"
 				message={problem ?? <PasswordHint password={password} hint={`At least ${MIN_PASSWORD} characters. Longer beats complicated.`} />}

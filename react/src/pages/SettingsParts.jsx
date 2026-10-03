@@ -7,16 +7,18 @@ export function Heading({ section, children }) {
 }
 
 /** A combobox over a fixed list of `{ id, label }`. `figure` and `suffix` draw a number and its
-    unit in the trigger, as Rows per page does; both sit in the value, so the trigger's name reads them. */
-export function Choose({ options, value, onChange, figure, suffix, id }) {
+    unit in the trigger, as Rows per page does; both sit in the value, so the trigger's name reads them.
+    `narrow` caps it at the 280 that 11a draws a half's combobox at. */
+export function Choose({ options, value, onChange, figure, suffix, id, narrow = false }) {
 	const chosen = options.find(o => o.id === value)
-	return (
+	const box = (
 		<Combobox id={id} value={figure ? <span className="sp-row-flex sp-gap-8">{figure} {suffix}</span> : chosen?.label ?? ''}>
 			{options.map(o => (
 				<ComboboxOption key={o.id} selected={o.id === value} onSelect={() => onChange(o.id)}>{o.label}</ComboboxOption>
 			))}
 		</Combobox>
 	)
+	return narrow ? <div className="st-w280">{box}</div> : box
 }
 
 /** `then(target)` before a step sends focus, once drawn, to the id `target`, the first footer

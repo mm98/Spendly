@@ -26,6 +26,13 @@
 	.sp-shell__body--split > * { grid-column: 1 / -1; }
 }
 
+/* below 900 the search fills the width the bar has left (9f), measured on the bar as the body is */
+.sp-topbar:not(.sp-topbar--touch) { container-type: inline-size; }
+@container (max-width: 900px) {
+	.sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { flex: 1; width: auto; min-width: 0; }
+	.sp-topbar:not(.sp-topbar--touch) > .sp-grow { display: none; }
+}
+
 /* below 640 the shell is the phone the design draws (Mobile screens .ms-device), on the whole window */
 .sp-shell--touch {
 	display: flex;
@@ -65,6 +72,8 @@
 .sp-shell--touch:has(> .sp-fab) { padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + var(--fab) + env(safe-area-inset-bottom)); }
 .sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-tabbar,
 .sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-fab { display: none; }
+/* a sheet, a dialog or the viewer owns the screen while open: no tab bar or action under it (7a) */
+html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display: none; }
 .sp-shell--touch:has(.sp-savebar) { padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom)); }
 /* the search fills a phone (7b) */
 .sp-shell--touch:has(.sp-palette--screen) { padding-bottom: 0; }
@@ -101,6 +110,9 @@ body:not(.sp-touch) > .sp-scrim--dialog:has(> .sp-sheet) { place-items: stretch 
 body:not(.sp-touch) > .sp-scrim--dialog > .sp-sheet { width: 320px; max-width: 100%; max-height: none; margin-top: 0; border-radius: 0; }
 /* Mobile screens .ms-sheet: on a phone a sheet rises at most this far, so the page stays in view */
 body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
+/* a sheet's buttons go full width, stacked, the commit on top (Layout rules, 18b); it is written last */
+.sp-sheet .sp-dialog__actions { flex-direction: column-reverse; align-items: stretch; }
+.sp-sheet .sp-dialog__actions > .sp-btn { flex: none; }
 
 /* one toast at a time, under a notice waiting for an answer, at the window's bottom (c18, 6d) */
 .sp-toast-region {
@@ -136,17 +148,22 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-mark--photo > img,
 .sp-mark--photo > .sp-mark__open > img { position: absolute; inset: 0; }
 /* the hatch and the half tone are how the drawings stand in for a picture they lack (17c) */
-.sp-mark--photo:has(> img),
+.sp-mark--photo:has(> img, > .sp-mark__open > img),
 .sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }
 /* thumbnail tone (17b, 12b): goods on light at saturate(0.88) under --bg at 8%; on dark edged, at 90% */
-[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo):has(> img) { background: var(--bg); }
-[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo) > img { filter: saturate(0.88); opacity: 0.92; }
-[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img) { border-color: var(--line-3); }
-[data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo) > img { opacity: 0.9; }
-[data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo):hover > img { opacity: 1; }
+[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo):has(> img, > .sp-mark__open > img) { background: var(--bg); }
+[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo) > img,
+[data-theme="light"] .sp-mark--goods > .sp-mark__open > img { filter: saturate(0.88); opacity: 0.92; }
+[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img, > .sp-mark__open > img) { border-color: var(--line-3); }
+[data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo) > img,
+[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *) > .sp-mark__open > img { opacity: 0.9; }
+[data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo):hover > img,
+[data-theme="dark"] .sp-mark--photo:hover > .sp-mark__open > img { opacity: 1; }
 
 /* uploading, the ring sits over the image, the old one or the new local preview (17b) */
 .sp-mark--photo > .sp-spinner { position: relative; z-index: 1; }
+/* the old picture dims under the ring, at the dim a disabled control takes */
+.sp-mark--photo:has(> .sp-spinner) img { opacity: 0.6; }
 /* a remove is a 44px target on touch whatever its glyph (19b); the mark clips, so it grows inward */
 .sp-touch .sp-mark__remove::after {
 	content: "";
@@ -179,6 +196,14 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-viewer__pages > .sp-mark > img { object-fit: contain; }
 /* Compare the files opens both side by side (3c) */
 .sp-viewer__compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
+/* on a phone the viewer is the whole screen (12b) */
+body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
+.sp-touch .sp-viewer { width: 100%; height: 100dvh; border-radius: 0; }
+.sp-touch .sp-viewer > .sp-viewer__stage,
+.sp-touch .sp-viewer > .sp-viewer__compare { flex: 1; min-height: 0; }
+/* one track the stage's own size, so the picture's cap is the stage and not its own height */
+.sp-touch .sp-viewer__stage { grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.sp-touch .sp-viewer__stage > img { max-height: 100%; }
 
 /* a facet group collapses from its heading (c12, 16a "Facets as expandable sections") */
 .sp-field-group__fold {
@@ -264,3 +289,6 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 /* a single date's shortcuts sit in a calendar that pads itself, so the row keeps its gap and rule
    but not the range panel's own inset, and lines up with the month below */
 .sp-calendar > .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }
+
+/* a menu row's icon keeps its size: a long label beside a key cap would otherwise squeeze it to nothing */
+.sp-menu__item > svg { flex: none; }

@@ -381,6 +381,8 @@ export function MergeDialog({ kind, source, options, initial = null, busy, onCon
 	const picked = others.find(o => o.id === target) ?? null
 	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
 	// counted as the merge writes them: one alias per spelling a receipt is matched by
+	// an order carrying both is counted once: the orders in either one
+	const after = useApi(getOrders, [{ categoryId: [source.id, picked?.id], pageSize: 1 }], { enabled: Boolean(picked) && !vendor }).data?.matched
 	const aliasCount = picked
 		? new Set([...(picked.aliases ?? []), source.name, ...(source.aliases ?? [])].map(vendorKey).filter(k => k && k !== vendorKey(picked.name))).size
 		: 0
@@ -421,11 +423,7 @@ export function MergeDialog({ kind, source, options, initial = null, busy, onCon
 				? (
 					<Well color="danger">
 						<span className="sp-title">{source.name} is deleted once its orders have moved</span>
-						<span className="sp-subtitle">
-							{picked.name} gets its {plural(source.orders, 'order')}. An order carrying both keeps one label, not two.
-							{source.budget > 0 ? ` ${source.name}'s limit of ${currency(source.budget, 0)} goes with it` : ''}
-							{source.budget > 0 && picked.budget > 0 ? `; ${picked.name}'s stays at ${currency(picked.budget, 0)}${fullStop()}` : source.budget > 0 ? '.' : ''}
-						</span>
+						{after == null ? <Held shape={mergeResult(source, picked, source.orders + picked.orders)} /> : mergeResult(source, picked, after)}
 					</Well>
 				)
 				: null}
@@ -441,13 +439,23 @@ export function MergeDialog({ kind, source, options, initial = null, busy, onCon
 	)
 }
 
+const mergeResult = (source, target, orders) => (
+	<span className="sp-subtitle">
+		{target.name} ends with {plural(orders, 'order')}. An order carrying both keeps one label, not two.
+		{source.budget > 0 ? ` ${source.name}'s limit of ${currency(source.budget, 0)} goes with it` : ''}
+		{source.budget > 0 && target.budget > 0 ? `; ${target.name}'s stays at ${currency(target.budget, 0)}${fullStop()}` : source.budget > 0 ? '.' : ''}
+	</span>
+)
+
 /** What deleting a bookmark takes with it, and the way to keep it instead. */
 export const bookmarkDeleteNote = bookmark => `${bookmark.photoId ? 'The bookmark and its picture are' : 'The bookmark is'} removed. To keep it off the list without losing it, archive it instead.`
 
 /** Holds the page while the form has changes: in-app navigation asks first, a reload gets the
-    browser's question. `names` say where the changes are (9c); `release` lets a save leave. */
+    browser's question. `names` say where the changes are (9c); `release` lets a save leave. `ask(go)`
+    asks the same question before an action that leaves, and runs `go` only on Leave. */
 export function useLeaveGuard(dirty, { within, search = false, names = [], uploading = 0 } = {}) {
 	const released = useRef(false)
+	const [asking, setAsking] = useState(null)
 	const live = useRef(dirty)
 	live.current = dirty
 	// pages under `within` share the changes, so moving among them does not ask
@@ -459,20 +467,27 @@ export function useLeaveGuard(dirty, { within, search = false, names = [], uploa
 	useBeforeUnload(useCallback(ev => {
 		if (live.current && !released.current) { ev.preventDefault(); ev.returnValue = '' }
 	}, []))
-	const prompt = blocker.state === 'blocked'
+	const stay = () => (asking ? setAsking(null) : blocker.reset())
+	const go = () => {
+		if (!asking) return blocker.proceed()
+		setAsking(null)
+		asking()
+	}
+	const prompt = blocker.state === 'blocked' || asking
 		? (
-			<Dialog onCancel={() => blocker.reset()}>
+			<Dialog onCancel={stay}>
 				<DialogTitle>Leave without saving?</DialogTitle>
 				<DialogBody>Your changes {names.length ? `in ${names.join(' and in ')}` : 'on this page'} are not saved.{uploading ? ` ${uploading === 1 ? '1 file is' : `${uploading} files are`} still uploading.` : ''} If you leave now, they are lost.</DialogBody>
 				<DialogActions>
-					<Button variant="outline" onClick={() => blocker.reset()}>Keep editing</Button>
+					<Button variant="outline" onClick={stay}>Keep editing</Button>
 					<span className="sp-grow" />
-					<Button color="danger" onClick={() => blocker.proceed()}>Leave</Button>
+					<Button color="danger" onClick={go}>Leave</Button>
 				</DialogActions>
 			</Dialog>
 		)
 		: null
-	return { prompt, release: () => { released.current = true } }
+	const ask = action => (live.current && !released.current ? setAsking(() => action) : action())
+	return { prompt, ask, release: () => { released.current = true } }
 }
 
 /** Moves focus to the first field the save refused, so pressing Save always does something. */

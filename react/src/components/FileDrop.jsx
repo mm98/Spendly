@@ -13,11 +13,40 @@ export const MAX_FILE_MB = 25
 // a file whose type the browser does not report is read by its ending
 const ENDINGS = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif', gif: 'image/gif' }
 
+const typesOf = file => {
+	const ending = String(file?.name ?? '').includes('.') ? file.name.split('.').pop().toLowerCase() : ''
+	return { ending, types: [file?.type?.toLowerCase(), ENDINGS[ending]].filter(Boolean) }
+}
+
+const ascii = text => [...text].map(c => c.charCodeAt(0))
+// the same first bytes the server reads (api/src/lib/fileType.js): [offset, bytes] pairs that all match
+const SIGNATURES = [
+	[[0, ascii('%PDF')]],
+	[[0, [0xff, 0xd8, 0xff]]],
+	[[0, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]]],
+	[[0, ascii('GIF8')]],
+	[[0, ascii('RIFF')], [8, ascii('WEBP')]],
+	...['avif', 'avis', 'heic', 'heix', 'mif1'].map(brand => [[4, ascii('ftyp')], [8, ascii(brand)]]),
+	[[0, [0x49, 0x49, 0x2a, 0x00]]],
+	[[0, [0x4d, 0x4d, 0x00, 0x2a]]],
+	[[0, ascii('BM')]]
+]
+
+/** `fileProblem`, and then an image or a PDF must also start with its own first bytes (17a step 1),
+    so a renamed file is refused before it is sent. */
+export async function sniffedProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
+	const problem = fileProblem(file, accept, maxMb)
+	if (problem || !typesOf(file).types.some(t => FILE_TYPES.split(',').includes(t))) return problem
+	let head
+	try { head = new Uint8Array(await file.slice(0, 12).arrayBuffer()) } catch { return null }
+	return SIGNATURES.some(parts => parts.every(([at, bytes]) => bytes.every((byte, i) => head[at + i] === byte)))
+		? null : 'Not a supported type'
+}
+
 /** Why a file cannot be taken where `accept` (the input's own list) names what can, in the words its
     tile shows (17b): "Not a supported type" or "Too large". Null when it can be taken. */
 export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
-	const ending = String(file?.name ?? '').includes('.') ? file.name.split('.').pop().toLowerCase() : ''
-	const types = [file?.type?.toLowerCase(), ENDINGS[ending]].filter(Boolean)
+	const { ending, types } = typesOf(file)
 	const fits = String(accept).split(',').map(a => a.trim().toLowerCase()).filter(Boolean).some(a =>
 		a.startsWith('.') ? a === '.' + ending : a.endsWith('/*') ? types.some(t => t.startsWith(a.slice(0, -1))) : types.includes(a))
 	if (!fits) return 'Not a supported type'
@@ -26,12 +55,19 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
 }
 
 /** `action` is the button-shaped words inside the zone (3a); `grow` takes the room left in its row (10a).
-    `onFiles(files, problems)`: each file chosen or dropped, and why it cannot be taken (`fileProblem`) or null. */
-export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, grow = false, id, ...rest }) {
+    `onFiles(files, problems)`: each file chosen or dropped, and why it cannot be taken (`sniffedProblem`) or null.
+    `disabled` draws the zone muted with no file input (20b); its children say why. */
+export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, grow = false, disabled = false, id, ...rest }) {
 	reject(rest, 'FileDrop')
-	const take = list => {
+	if (disabled) return (
+		<div className={join('sp-filedrop', grow && 'sp-grow', 'sp-muted')} aria-disabled="true" {...rest}>
+			{icon ? <Icon name={icon} /> : null}
+			{children}
+		</div>
+	)
+	const take = async list => {
 		const files = [...(list ?? [])].slice(0, multiple ? undefined : 1)
-		if (files.length) onFiles?.(files, files.map(file => fileProblem(file, accept ?? FILE_TYPES, maxMb)))
+		if (files.length) onFiles?.(files, await Promise.all(files.map(file => sniffedProblem(file, accept ?? FILE_TYPES, maxMb))))
 	}
 	const dropping = onFiles
 		? {
@@ -60,9 +96,9 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)
-	const take = file => {
+	const take = async file => {
 		if (!file) return
-		const own = fileProblem(file, accept)
+		const own = await sniffedProblem(file, accept)
 		setRefused(own ? { name: file.name, problem: own } : null)
 		if (!own) onFile?.(file)
 	}

@@ -122,7 +122,7 @@ export function AppShell() {
 			onChange={text => openPalette(text)}
 			onClick={() => openPalette()}
 			placeholder={touch ? 'Search' : 'Search orders, vendors, items…'}
-			aria-label="Search orders, vendors, items"
+			aria-label="Search orders"
 			kbd={touch ? undefined : <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd>}
 		/>
 	)
@@ -131,7 +131,12 @@ export function AppShell() {
 	const overlay = palette
 		? <Palette query={palette.query} touch={touch} onShortcuts={showKeys} onClose={closePalette} />
 		: null
-	useShortcutKeys({ enabled: !touch && !palette && !keysShown, onSheet: showKeys, onGo: (key, to) => navigate(go(key, to)) })
+	const scan = useScanPicker()
+	const held = useApi(getCurrentUser).data?.emailConfirmed === false
+	useShortcutKeys({
+		enabled: !touch && !palette && !keysShown, onSheet: showKeys, onGo: (key, to) => navigate(go(key, to)),
+		onScan: held ? null : scan.open, onNew: () => navigate('/orders/new')
+	})
 	const keySheet = keysShown ? <ShortcutSheet onClose={() => setKeysShown(false)} /> : null
 
 	const signedOut = ended
@@ -305,9 +310,16 @@ function NavScroll({ navKey, children }) {
 	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
-/* Scan receipt opens the file picker at once (16a). */
+/* Scan receipt opens the file picker at once (16a). Before the email is confirmed the row only reports,
+   and says why on hover and on focus. */
 function ScanReceipt({ rail }) {
 	const scan = useScanPicker()
+	const held = useApi(getCurrentUser).data?.emailConfirmed === false
+	if (held)
+		return (
+			<NavItem icon="camera" tip="Available once your email is confirmed" tabIndex={0} aria-disabled="true"
+				aria-label="Scan receipt, available once your email is confirmed">Scan receipt</NavItem>
+		)
 	return <Row icon="camera" variant="action" rail={rail} onClick={scan.open}>Scan receipt</Row>
 }
 
@@ -367,7 +379,7 @@ export function AccountMenu({ name, email, position, short = false, onShortcuts,
 				: null}
 			{onShortcuts
 				? <MenuItem icon="keyboard" onClick={() => { onClose(); onShortcuts() }}>
-					<span className="sp-nowrap">Keyboard shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
+					<span className="sp-truncate">Shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
 				</MenuItem>
 				: null}
 			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>

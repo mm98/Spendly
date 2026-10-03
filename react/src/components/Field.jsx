@@ -20,6 +20,8 @@ export function Field({
 	// a word beside the label about where the value came from (3a: "matched existing vendor")
 	note,
 	noteType = 'hint',
+	// what the message offers to do, under it: the alias another vendor holds (5h)
+	after,
 	required = false,
 	children,
 	...rest
@@ -73,6 +75,7 @@ export function Field({
 			{message
 				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
+			{after}
 		</div>
 	)
 
@@ -84,6 +87,7 @@ export function Field({
 			{message
 				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
+			{after}
 		</FieldGroup>
 	)
 
@@ -110,6 +114,7 @@ export function Field({
 			{message
 				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
+			{after}
 		</div>
 	)
 }

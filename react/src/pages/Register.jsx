@@ -65,8 +65,8 @@ export default function Register() {
 		<AuthCard title="Create your account" lead={isTaken || alert ? null : 'Takes a minute. Nothing to set up afterwards.'}
 			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
 			disabled={isTaken}
-			terms={<>By creating an account you accept the <NoticeLink to={options?.terms} page="/terms">terms</NoticeLink> and <NoticeLink to={options?.privacy} page="/privacy">privacy notice</NoticeLink>.</>}
-			across={<>Already have one? <Link className="sp-strong sp-ink-accent au-across" to="/signin">Sign in</Link></>}>
+			terms={isTaken ? null : <>By creating an account you accept the <NoticeLink to={options?.terms} page="/terms">terms</NoticeLink> and <NoticeLink to={options?.privacy} page="/privacy">privacy notice</NoticeLink>.</>}
+			across={isTaken ? null : <>Already have one? <Link className="sp-strong sp-ink-accent au-across" to="/signin">Sign in</Link></>}>
 			{isTaken ? null : (
 				<Field label="Name" id="register-name">
 					<TextField autoComplete="name" value={name} maxLength={80} onChange={setName} />

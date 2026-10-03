@@ -337,6 +337,7 @@ function AppearanceCard({ value, change, touch }) {
 			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
 				<Segmented name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
 			</Field>
+			<span className="sp-rule" />
 			<Field label="Row density" message="Compact fits more rows on screen.">
 				<Segmented name="density" options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
 			</Field>
@@ -355,11 +356,11 @@ function MoneyCard({ value, change, touch }) {
 			<Heading section="money">Money, dates and times</Heading>
 			<Pair touch={touch}>
 				<Field label="Currency" message="The currency all amounts are shown in. This renames your figures. It does not convert them.">
-					<Choose value={value('currency')} onChange={v => change('currency', v)}
+					<Choose narrow={!touch} value={value('currency')} onChange={v => change('currency', v)}
 						options={CURRENCIES.map(c => ({ id: c.code, label: currencyLabel(c) }))} />
 				</Field>
 				<Field label="Date and time format" message="How dates and times are written. Times always show in your own clock.">
-					<Choose value={value('locale')} onChange={v => change('locale', v)}
+					<Choose narrow={!touch} value={value('locale')} onChange={v => change('locale', v)}
 						options={LOCALES.map(l => ({ id: l.code, label: localeLabel(l) }))} />
 				</Field>
 			</Pair>
@@ -382,11 +383,11 @@ function DefaultsCard({ value, change, touch, reads }) {
 			<Heading section="defaults">Defaults for a new order</Heading>
 			<Pair touch={touch}>
 				<Field label="Kind" message="What the Kind field opens with on a new order.">
-					<Choose value={value('defaultKind')} onChange={v => change('defaultKind', v)}
+					<Choose narrow={!touch} value={value('defaultKind')} onChange={v => change('defaultKind', v)}
 						options={spendKinds.map(k => ({ id: k, label: k }))} />
 				</Field>
 				<Field label="Status">
-					<Choose value={value('defaultStatus')} onChange={v => change('defaultStatus', v)}
+					<Choose narrow={!touch} value={value('defaultStatus')} onChange={v => change('defaultStatus', v)}
 						options={statuses.map(s => ({ id: s.key, label: s.name }))} />
 				</Field>
 			</Pair>
@@ -441,6 +442,7 @@ function ListsCard({ value, change, touch }) {
 					suffix={<span className="sp-data sp-ink-5">views</span>}
 					options={VIEWS_SHOWN.map(n => ({ id: n, label: `${n} views` }))} />
 			</Field>
+			<span className="sp-rule" />
 			<Field label="Rows per page" message="How many rows the order, vendor and category lists show before Load more.">
 				<Choose value={rows} onChange={v => change('pageSize', v)}
 					figure={<span className="sp-data sp-number">{rows}</span>}
@@ -466,22 +468,19 @@ function PhoneIndex({ user }) {
 	const name = user?.name || email?.split('@')[0]
 	return (
 		<>
-			<Card to="/settings/account" chevron={chevron} aria-label="Account and profile">
-				<span className="sp-section-label">Account</span>
+			<ListItem variant="card" chevron={chevron} to="/settings/account" aria-label="Account and profile"
+				mark={!email ? null : user.picture
+					? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
+					: <Mark size="large" fill="solid" round>{name}</Mark>}>
 				{email
 					? (
-						<div className="sp-cell-flex">
-							{user.picture
-								? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
-								: <Mark size="large" fill="solid" round>{name}</Mark>}
-							<div className="sp-stack sp-gap-6 sp-grow">
-								{user.name ? <span className="sp-title sp-truncate">{user.name}</span> : null}
-								<span className="sp-meta sp-truncate">{email}</span>
-							</div>
-						</div>
+						<span className="sp-stack sp-gap-6 sp-grow">
+							{user.name ? <span className="sp-title sp-truncate">{user.name}</span> : null}
+							<span className="sp-meta sp-truncate">{email}</span>
+						</span>
 					)
 					: <Skeleton shape="line" />}
-			</Card>
+			</ListItem>
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
 					<span className="sp-data sp-grow">{s.label}</span>
