@@ -642,7 +642,7 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale FROM settings WHERE user_id = ?": {
+		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
 			],
@@ -713,6 +713,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_vendors_2"
+			]
+		},
+		"SELECT id, file_name, mapping, orders, lines, skipped, vendors, created_at, undone_at FROM imports WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?": {
+			"plan": [
+				"SEARCH imports USING INDEX idx_imports_user_created (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_imports_user_created"
 			]
 		},
 		"SELECT id, kind, name, position FROM budget_groups WHERE user_id = ? AND year_id = ?": {
@@ -1400,7 +1409,7 @@
 				"idx_order_statuses_order"
 			]
 		},
-		"SELECT u.id, u.email, u.needs_setup, s.expires_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
+		"SELECT u.id, u.email, u.needs_setup, u.email_confirmed, s.expires_at, s.remember FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
 			"plan": [
 				"SEARCH s USING INDEX sqlite_autoindex_sessions_1 (id=?)",
 				"SEARCH u USING INDEX sqlite_autoindex_users_1 (id=?)"
@@ -1489,6 +1498,14 @@
 		}
 	},
 	"inventory": {
+		"idx_account_tokens_user_kind": {
+			"table": "account_tokens",
+			"columns": [
+				"user_id",
+				"kind"
+			],
+			"readers": 0
+		},
 		"idx_attachments_item": {
 			"table": "attachments",
 			"columns": [
@@ -1503,12 +1520,35 @@
 			],
 			"readers": 1
 		},
+		"idx_categories_import": {
+			"table": "categories",
+			"columns": [
+				"import_id"
+			],
+			"readers": 0
+		},
 		"idx_categories_user": {
 			"table": "categories",
 			"columns": [
 				"user_id"
 			],
 			"readers": 5
+		},
+		"idx_imports_user_created": {
+			"table": "imports",
+			"columns": [
+				"user_id",
+				"created_at"
+			],
+			"readers": 1
+		},
+		"idx_login_failures_email_at": {
+			"table": "login_failures",
+			"columns": [
+				"email",
+				"at"
+			],
+			"readers": 0
 		},
 		"idx_order_categories_cat": {
 			"table": "order_categories",
@@ -1531,6 +1571,13 @@
 				"order_id"
 			],
 			"readers": 1
+		},
+		"idx_orders_import": {
+			"table": "orders",
+			"columns": [
+				"import_id"
+			],
+			"readers": 0
 		},
 		"idx_orders_user_date": {
 			"table": "orders",
@@ -1634,6 +1681,13 @@
 				"vendor_id"
 			],
 			"readers": 3
+		},
+		"idx_vendors_import": {
+			"table": "vendors",
+			"columns": [
+				"import_id"
+			],
+			"readers": 0
 		},
 		"idx_vendors_user_name": {
 			"table": "vendors",

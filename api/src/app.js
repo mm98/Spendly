@@ -11,6 +11,7 @@ import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as accountRouter } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
+import { router as importsRouter } from './routes/imports.js'
 import { router as statsRouter } from './routes/stats.js'
 import { router as scanRouter } from './routes/scan.js'
 import { router as searchRouter } from './routes/search.js'
@@ -65,7 +66,7 @@ const smallJson = express.json()
 const importJson = express.json({ limit: '50mb' })
 // A budget file of many years outgrows the default 100 kB, though it carries no images.
 const budgetJson = express.json({ limit: '2mb' })
-app.use((req, res, next) => (req.path === '/api/orders/import' ? importJson
+app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '/api/imports/check' ? importJson
 	: req.path === '/api/budget/import' ? budgetJson : smallJson)(req, res, next))
 
 // Debug request log, off unless asked for (node src/server.js --debug, or DEBUG=1) -- one line
@@ -187,6 +188,7 @@ app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/account', profileRouter)
+app.use('/api/imports', importsRouter)
 // Mounted at the bare /api prefix: its one route is POST /api/demo-data, which shadows nothing.
 app.use('/api', accountRouter)
 app.use('/api/stats', statsRouter)

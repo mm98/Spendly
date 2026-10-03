@@ -1,0 +1,214 @@
+import { useRef } from 'react'
+import { Card, CardFooter } from '../components/Card.jsx'
+import { Button } from '../components/Button.jsx'
+import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
+import { ListItem } from '../components/ListItem.jsx'
+import { Segmented } from '../components/Segmented.jsx'
+import { Well } from '../components/Well.jsx'
+import { Icon } from '../components/Icon.jsx'
+import { dot, plural } from '../api/format.js'
+import {
+	DATE_LABELS, DATE_SHAPES, FIELDS, NONE, REQUIRED, dateFormatsOf, decimalOf, fieldsFor, unknownCategories
+} from '../api/orderImport.js'
+import { Heading } from './SettingsParts.jsx'
+
+const SHAPES = [
+	{ value: 'line', label: 'one item line' },
+	{ value: 'order', label: 'a whole order' }
+]
+const label = id => FIELDS.find(f => f.id === id)?.label ?? "Don't import"
+const sampleOf = (body, i) => {
+	const values = [...new Set(body.map(r => String(r[i] ?? '').trim()).filter(Boolean))].slice(0, 3)
+	return values.length ? values.join(', ') + '…' : 'Empty'
+}
+
+/** A footer whose buttons share a line where they fit and take one each on a touch screen. */
+export function ImportFooter({ children }) {
+	return <CardFooter><div className="st-wrap st-foot">{children}</div></CardFooter>
+}
+
+/** The facts the mapping decides, worked out from the file: what each check found and what is still missing. */
+export function readMapping(rows, mapping, categories) {
+	const body = rows.slice(1)
+	const columns = mapping[mapping.shape]
+	const at = id => columns.indexOf(id)
+	const dateValues = at('date') >= 0 ? body.map(r => r[at('date')]) : []
+	const dateFormats = at('date') >= 0 ? dateFormatsOf(dateValues) : []
+	const dateFormat = mapping.dateFormat && (dateFormats.includes(mapping.dateFormat) || mapping.dateChosen) ? mapping.dateFormat : dateFormats[0] ?? null
+	const amountColumns = ['price', 'total', 'shipping', 'quantity'].map(at).filter(i => i >= 0)
+	const unknown = unknownCategories(body, at('category'), categories ?? [])
+	const unresolved = unknown.filter(u => !(u.value in (mapping.categories ?? {})))
+	const missing = REQUIRED[mapping.shape].filter(id => at(id) < 0)
+	return {
+		body, columns, dateFormats, dateFormat, unknown, unresolved, missing,
+		decimal: decimalOf(body, amountColumns),
+		mapped: columns.filter(c => c !== NONE).length,
+		ready: !missing.length && Boolean(dateFormat) && !unresolved.length
+	}
+}
+
+/** Step 2 of 11b: which column is which, checked against the file's own rows. */
+export function MapStep({ box, file, rows, mapping, onChange, categories, onReplace, onCancel, onPreview }) {
+	const matchRef = useRef(null)
+	const facts = readMapping(rows, mapping, categories)
+	const { body, columns } = facts
+	const header = rows[0]
+	const shape = mapping.shape
+	const fields = fieldsFor(shape)
+	const setColumn = (i, id) => {
+		// a field belongs to one column: picking it here takes it from any other
+		const next = columns.map((c, j) => (j === i ? id : c === id && id !== NONE ? NONE : c))
+		onChange({ [shape]: next })
+	}
+	const required = REQUIRED[shape].map(label).map((l, i, all) => (i === 0 ? l : i === all.length - 1 ? ` and ${l.toLowerCase()}` : `, ${l.toLowerCase()}`)).join('')
+	const categoryColumn = header[columns.indexOf('category')]
+	const dateColumnAt = columns.indexOf('date')
+	const knownFormats = facts.dateFormats.length ? facts.dateFormats : Object.keys(DATE_SHAPES).filter(f => f !== 'excel')
+
+	const dateNote = dateColumnAt < 0 ? null : facts.dateFormat
+		? (
+			<ListItem color="warning">
+				<span className="sp-subtitle sp-ink-warning sp-grow">
+					{facts.dateFormat === 'excel' ? 'Dates are read as Excel dates.' : <>Dates are read as <b className="sp-nowrap">{DATE_SHAPES[facts.dateFormat]}</b>.</>}
+					{facts.dateFormats.length === 1 ? ' Every date in the file matched that shape.' : facts.dateFormats.length > 1 ? ' The dates could be read another way too. Check that this is right.' : ''}
+				</span>
+				<Combobox variant="sort-end" value="Change" aria-label="How the dates are written">
+					{knownFormats.map(f => (
+						<ComboboxOption key={f} selected={f === facts.dateFormat} onSelect={() => onChange({ dateFormat: f, dateChosen: true })}>{DATE_LABELS[f]}</ComboboxOption>
+					))}
+				</Combobox>
+			</ListItem>
+		)
+		: (
+			<ListItem color="danger">
+				<span className="sp-subtitle sp-ink-danger">These are not dates Spendly can read. Map another column as the order date.</span>
+			</ListItem>
+		)
+
+	const categoryNote = facts.unknown.length && facts.unresolved.length
+		? (
+			<ListItem color="warning">
+				<span className="sp-subtitle sp-ink-warning sp-grow">
+					<b>{plural(facts.unresolved.length, 'value')}</b> in {categoryColumn} {facts.unresolved.length === 1 ? "doesn't" : "don't"} match a category yet. They are listed below and each needs a choice before the import can run.
+				</span>
+				<Button variant="outline" size="small" color="warning" onClick={() => matchRef.current?.scrollIntoView({ block: 'center' })}>Match them</Button>
+			</ListItem>
+		)
+		: null
+
+	const row = (name, i) => {
+		const id = columns[i]
+		const idle = id === NONE
+		return (
+			<div key={i} className={idle ? 'st-map sp-muted' : 'st-map'}>
+				<Well variant="quiet">
+					<span className="sp-data sp-strong sp-truncate">{String(name || `Column ${i + 1}`)}</span>
+					<span className="sp-meta sp-truncate">{sampleOf(body, i)}</span>
+				</Well>
+				<Icon name="chevron-right" size={16} />
+				<Combobox aria-label={`Field for ${name || `column ${i + 1}`}`}
+					value={idle ? <span className="sp-ink-5">Don't import</span>
+						: <span className="sp-row-flex sp-gap-8">{label(id)}{fields.find(f => f.id === id)?.optional ? <span className="sp-meta">optional</span> : null}</span>}>
+					{fields.map(f => (
+						<ComboboxOption key={f.id} selected={f.id === id} onSelect={() => setColumn(i, f.id)}
+							meta={REQUIRED[shape].includes(f.id) ? 'required' : f.optional ? 'optional' : undefined}>{f.label}</ComboboxOption>
+					))}
+					<ComboboxOption selected={idle} onSelect={() => setColumn(i, NONE)}>Don't import</ComboboxOption>
+				</Combobox>
+			</div>
+		)
+	}
+
+	const groupedBy = shape === 'line'
+		? (
+			<Combobox variant="sort-end" aria-label="How item lines become orders"
+				value={mapping.group === 'reference' && columns.includes('reference') ? 'grouped by Order ref' : 'grouped by vendor and date'}>
+				{columns.includes('reference')
+					? <ComboboxOption selected={mapping.group === 'reference'} onSelect={() => onChange({ group: 'reference' })}>grouped by Order ref</ComboboxOption>
+					: null}
+				<ComboboxOption selected={mapping.group !== 'reference' || !columns.includes('reference')} onSelect={() => onChange({ group: 'vendor-date' })}>grouped by vendor and date</ComboboxOption>
+			</Combobox>
+		)
+		: null
+
+	return (
+		<Card ref={box}>
+			<Heading section="import">Import</Heading>
+			<div className="sp-row-flex sp-gap-12">
+				<span className="sp-title sp-truncate">{file}</span>
+				<span className="sp-meta sp-nowrap">{plural(body.length, 'row')}{dot}{plural(header.length, 'column')}</span>
+				<span className="sp-grow" />
+				<Button variant="outline" size="small" onClick={onReplace}>Replace file</Button>
+			</div>
+			<ListItem>
+				<div className="st-wrap">
+					<span className="sp-field__label" id="import-shape-label">Each row is</span>
+					<Segmented name="import-shape" options={SHAPES} value={shape} aria-labelledby="import-shape-label"
+						onChange={v => onChange({ shape: v })} />
+					<span className="st-push" />
+					{groupedBy}
+				</div>
+			</ListItem>
+			<div className="sp-stack sp-gap-12">
+				<div className="st-map st-map--head">
+					<span className="sp-section-label">Column in file</span>
+					<span />
+					<span className="sp-section-label">Spendly field</span>
+				</div>
+				{header.map((name, i) => (
+					<div key={i} className="sp-stack sp-gap-12">
+						{row(name, i)}
+						{i === dateColumnAt ? dateNote : null}
+						{columns[i] === 'category' ? categoryNote : null}
+					</div>
+				))}
+			</div>
+			{shape === 'order'
+				? (
+					<ListItem color="warning">
+						<span className="sp-subtitle sp-ink-warning">
+							Each order arrives with <b>one item line</b> carrying the description and the total, quantity 1. The order stays editable, but it can't be broken back into its items later. Switching back to "one item line" brings back the mapping you had.
+						</span>
+					</ListItem>
+				)
+				: null}
+			{facts.unknown.length
+				? (
+					<div className="sp-stack sp-gap-8" ref={matchRef}>
+						<span className="sp-section-label">Matching unknown values</span>
+						<span className="sp-meta">Every value gets a choice. Nothing is guessed: a category made up by an import is worse than one you chose.</span>
+						{facts.unknown.map(u => {
+							const chosen = mapping.categories?.[u.value]
+							const open = chosen === undefined
+							return (
+								<ListItem key={u.value} color={open ? 'warning' : 'default'}>
+									<div className="st-wrap">
+									<span className={'sp-title sp-truncate st-match-name' + (open ? ' sp-ink-warning' : '')}>{u.value}</span>
+									<span className={'sp-meta sp-nowrap' + (open ? ' sp-ink-warning' : '')}>{plural(u.rows, 'row')}</span>
+									<span className="st-push" />
+									<Combobox variant="sort-end" aria-label={`Category for ${u.value}`}
+										value={open ? 'Pick, or create it' : chosen === '' ? 'No category' : chosen === u.value ? `Create ${u.value}` : chosen}>
+										<ComboboxOption create selected={chosen === u.value} onSelect={() => onChange({ categories: { ...mapping.categories, [u.value]: u.value } })}>{`Create ${u.value}`}</ComboboxOption>
+										{(categories ?? []).map(c => (
+											<ComboboxOption key={c.id} selected={chosen === c.name} onSelect={() => onChange({ categories: { ...mapping.categories, [u.value]: c.name } })}>{c.name}</ComboboxOption>
+										))}
+										<ComboboxOption selected={chosen === ''} onSelect={() => onChange({ categories: { ...mapping.categories, [u.value]: '' } })}>No category</ComboboxOption>
+									</Combobox>
+									</div>
+								</ListItem>
+							)
+						})}
+					</div>
+				)
+				: null}
+			<ImportFooter>
+				<span className="sp-subtitle st-foot-note">
+					{facts.mapped} of {header.length} columns mapped. {required} are required.
+					{facts.missing.length ? <> Still missing: {facts.missing.map(label).join(', ').toLowerCase()}.</> : null}
+				</span>
+				<Button variant="outline" onClick={onCancel}>Cancel</Button>
+				<Button disabled={!facts.ready} onClick={() => onPreview(facts)}>Preview</Button>
+			</ImportFooter>
+		</Card>
+	)
+}

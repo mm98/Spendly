@@ -256,7 +256,7 @@ const REQUESTS = [
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/settings',
+	'/settings', '/imports',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links'
 ]

@@ -568,11 +568,33 @@ function uploadJson(path, body, { signal, onSent, onLine, isResult = o => 'impor
 
 /** Imports whole orders from a file. `onSent` reports the fraction sent, 0 to 1; `onRows` the
     rows the server has processed so far. */
-export async function importOrders(orders, { signal, onSent, onRows } = {}) {
-	return uploadJson('/api/orders/import?progress=stream', { orders }, {
+export async function importOrders(orders, { signal, onSent, onRows, importId } = {}) {
+	return uploadJson('/api/orders/import' + qs({ progress: 'stream', importId }), { orders }, {
 		signal, onSent,
 		onLine: o => { if (onRows && o && 'done' in o && 'total' in o) onRows(o.done, o.total) }
 	})
+}
+
+/** The account's last few imports: what each wrote, its mapping, and whether it can still be undone. */
+export async function getImports(signal) {
+	return request('/api/imports', { signal })
+}
+
+/** An import record the orders about to be sent are tagged with: { id }. */
+export async function startImport(fileName, mapping, skipped = 0, signal) {
+	return request('/api/imports', { method: 'POST', body: { fileName, mapping, skipped }, signal })
+}
+
+/** Removes what an import wrote, within a day of it. */
+export async function undoImport(id, signal) {
+	const out = await request(`/api/imports/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+	invalidate()
+	return out
+}
+
+/** Which of `orders` ({ vendor, date, total }) look like orders the account already has: their positions. */
+export async function checkImportDuplicates(orders, signal) {
+	return request('/api/imports/check', { method: 'POST', body: { orders }, signal })
 }
 
 export async function getOrderDraft(signal) {
