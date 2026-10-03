@@ -196,7 +196,7 @@ function Counted({ useCount, ...rest }) {
 	return <Row count={useCount()} {...rest} />
 }
 const useOrdersCount = () => useApi(getOrders, [{ pageSize: 1 }]).data?.total
-const useVendorsCount = () => useApi(getVendors).data?.length
+const useVendorsCount = () => useApi(getVendors).data?.filter(v => !v.archived).length
 const useCategoriesCount = () => useApi(getCategories).data?.length
 const useBookmarksCount = () => useApi(getBookmarks, [{ pageSize: 1 }]).data?.matched
 

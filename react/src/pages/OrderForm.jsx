@@ -660,7 +660,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const fields = (
 		<>
 			<Field label="Vendor" {...problem(shown.vendor)}>
-				<VendorPicker vendors={vendors.data ?? []} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
+				<VendorPicker vendors={(vendors.data ?? []).filter(v => !v.archived)} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
 			</Field>
 			<div className="sp-fields">
 				<Field label="Date" {...problem(shown.date)}>
