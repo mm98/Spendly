@@ -422,10 +422,11 @@ export function Facets({ children, ...rest }) {
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
 	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }
-	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} onKeyDown={backspace} {...rest}><span className="sp-truncate">{children}</span></button>
+	// a crumb wraps rather than truncate: a name the reader cannot read is a filter they cannot verify (4c)
+	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} onKeyDown={backspace} {...rest}>{children}</button>
 	return (
 		<span className="sp-crumb" {...rest}>
-			<span className="sp-truncate">{children}</span>
+			{children}
 			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove} onKeyDown={backspace}>×</button>
 		</span>
 	)
