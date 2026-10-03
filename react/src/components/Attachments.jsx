@@ -111,7 +111,6 @@ function ZoomStage({ src, alt, onSwipe }) {
 	const anchor = useRef(null)
 	const pointers = useRef(new Map())
 	const gesture = useRef(null)
-	const pressed = useRef(false)
 	const current = useRef(scale)
 	current.current = scale
 
@@ -187,9 +186,11 @@ function ZoomStage({ src, alt, onSwipe }) {
 			if (!g) return
 			if (pointers.current.size) return
 			gesture.current = null
-			pressed.current = g.moved
 			img.current?.style.removeProperty('transform')
-			if (g.pinch || !g.moved || current.current > 1 || !g.touch || !onSwipe) return
+			if (g.pinch) return
+			// a press that did not move is a tap or a click: in at that point, or back out
+			if (!g.moved) return zoomTo(current.current > 1 ? 1 : TAP_ZOOM, ev.clientX, ev.clientY)
+			if (current.current > 1 || !g.touch || !onSwipe) return
 			const dx = ev.clientX - g.x
 			const dy = ev.clientY - g.y
 			if (Math.abs(dx) > SWIPE_PX && Math.abs(dx) > Math.abs(dy) * 1.5) onSwipe(dx < 0 ? 1 : -1)
@@ -198,11 +199,6 @@ function ZoomStage({ src, alt, onSwipe }) {
 			pointers.current.delete(ev.pointerId)
 			gesture.current = null
 			img.current?.style.removeProperty('transform')
-		},
-		// a press that moved was a drag, a swipe or a pinch, not a click
-		onClick: ev => {
-			if (pressed.current) { pressed.current = false; return }
-			zoomTo(current.current > 1 ? 1 : TAP_ZOOM, ev.clientX, ev.clientY)
 		}
 	}
 	const zoomed = scale > 1 && fit
