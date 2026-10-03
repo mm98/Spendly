@@ -334,9 +334,8 @@ function marked(text, match) {
 	return <>{text.slice(0, at)}<mark>{text.slice(at, at + needle.length)}</mark>{text.slice(at + needle.length)}</>
 }
 
-/** One record or one action. `icon` or `thumb` leads it (a small mark on a phone, filled for an
-    `action`); `thumb` is a picture's address, or true for the empty box. `match` is marked in
-    the name, `value` and `kbd` end it; a phone drops both (7b). */
+/** One record or one action, led by `icon` or `thumb` (a picture's address, or true for the empty box).
+    `match` is marked in the name; `value` and `kbd` end it, and a phone drops both (7b). */
 export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, kbd, selected = false, children, ...rest }) {
 	reject(rest, 'PaletteRow')
 	const screen = useContext(PaletteScreen)
