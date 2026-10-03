@@ -395,6 +395,15 @@
 				"idx_orders_user_status"
 			]
 		},
+		"SELECT COALESCE(SUM(CASE WHEN status = 'Cancelled' THEN 0 ELSE total END), 0) FROM orders WHERE user_id = ? AND date >= ? AND date < ?": {
+			"plan": [
+				"SEARCH orders USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_date"
+			]
+		},
 		"SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_total (user_id=?)"
@@ -1021,6 +1030,61 @@
 			"indexes": [
 				"idx_attachments_order",
 				"idx_order_categories_cat",
+				"idx_orders_user_status"
+			]
+		},
+		"SELECT COUNT(*) orders, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles, COALESCE(SUM(ot.date >= @monthFrom AND ot.date < @monthTo), 0) monthOrders, COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo THEN CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END ELSE 0 END), 0) monthTotal FROM orders ot WHERE +ot.user_id = @userId AND ot.id IN (SELECT value FROM json_each(@orderIds))": {
+			"plan": [
+				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"SEARCH a USING COVERING INDEX idx_attachments_item (order_item_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_attachments_order",
+				"idx_order_items_order",
+				"sqlite_autoindex_orders_1"
+			]
+		},
+		"SELECT COUNT(*) orders, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles, COALESCE(SUM(ot.date >= @monthFrom AND ot.date < @monthTo), 0) monthOrders, COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo THEN CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END ELSE 0 END), 0) monthTotal FROM orders ot WHERE ot.user_id = @userId": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"SEARCH a USING COVERING INDEX idx_attachments_item (order_item_id=?)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_discount"
+			],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_attachments_order",
+				"idx_order_items_order",
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COUNT(*) orders, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles, COALESCE(SUM(ot.date >= @monthFrom AND ot.date < @monthTo), 0) monthOrders, COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo THEN CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END ELSE 0 END), 0) monthTotal FROM orders ot WHERE ot.user_id = @userId AND ot.status = @status AND ot.date >= @from": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=? AND date>?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"SEARCH a USING COVERING INDEX idx_attachments_item (order_item_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_attachments_order",
+				"idx_order_items_order",
 				"idx_orders_user_status"
 			]
 		},
@@ -1802,6 +1866,107 @@
 			"indexes": [
 				"idx_order_items_order",
 				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total, (SELECT group_concat(name, ', ') FROM (SELECT c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id ORDER BY c.name)) AS categories, oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote FROM orders ot LEFT JOIN vendors v ON v.id = ot.vendor_id LEFT JOIN order_items oi ON oi.order_id = ot.id WHERE +ot.user_id = @userId AND ot.id IN (SELECT value FROM json_each(@orderIds)) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC, oi.position": {
+			"plan": [
+				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?) LEFT-JOIN",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?) LEFT-JOIN",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY",
+				"SCAN (subquery-1)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_items_order",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1",
+				"sqlite_autoindex_orders_1",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total, (SELECT group_concat(name, ', ') FROM (SELECT c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id ORDER BY c.name)) AS categories, oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote FROM orders ot LEFT JOIN vendors v ON v.id = ot.vendor_id LEFT JOIN order_items oi ON oi.order_id = ot.id WHERE ot.user_id = @userId AND ot.status = @status ORDER BY ot.total DESC, ot.id DESC, oi.position": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_total (user_id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?) LEFT-JOIN",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?) LEFT-JOIN",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY",
+				"SCAN (subquery-1)",
+				"USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_total",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_items_order",
+				"idx_orders_user_total",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total, (SELECT group_concat(name, ', ') FROM (SELECT c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id ORDER BY c.name)) AS categories, oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote FROM orders ot LEFT JOIN vendors v ON v.id = ot.vendor_id LEFT JOIN order_items oi ON oi.order_id = ot.id WHERE ot.user_id = @userId ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC, oi.position": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?) LEFT-JOIN",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?) LEFT-JOIN",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY",
+				"SCAN (subquery-1)",
+				"USE TEMP B-TREE FOR LAST 3 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_items_order",
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total, (SELECT group_concat(name, ', ') FROM (SELECT c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id ORDER BY c.name)) AS categories, oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote FROM orders ot LEFT JOIN vendors v ON v.id = ot.vendor_id LEFT JOIN order_items oi ON oi.order_id = ot.id WHERE ot.user_id = @userId ORDER BY v.name COLLATE NOCASE ASC, ot.id ASC, oi.position": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_kind (user_id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?) LEFT-JOIN",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?) LEFT-JOIN",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY",
+				"SCAN (subquery-1)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_kind",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_items_order",
+				"idx_orders_user_kind",
 				"sqlite_autoindex_categories_1",
 				"sqlite_autoindex_order_categories_1",
 				"sqlite_autoindex_vendors_1"
@@ -2632,14 +2797,14 @@
 			"columns": [
 				"order_item_id"
 			],
-			"readers": 4
+			"readers": 7
 		},
 		"idx_attachments_order": {
 			"table": "attachments",
 			"columns": [
 				"order_id"
 			],
-			"readers": 10
+			"readers": 13
 		},
 		"idx_attachments_sha256": {
 			"table": "attachments",
@@ -2691,7 +2856,7 @@
 			"columns": [
 				"order_id"
 			],
-			"readers": 9
+			"readers": 16
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",
@@ -2721,7 +2886,7 @@
 				"date",
 				"id"
 			],
-			"readers": 43
+			"readers": 45
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
@@ -2730,7 +2895,7 @@
 				"discount",
 				"id"
 			],
-			"readers": 15
+			"readers": 16
 		},
 		"idx_orders_user_kind": {
 			"table": "orders",
@@ -2738,7 +2903,7 @@
 				"user_id",
 				"kind"
 			],
-			"readers": 4
+			"readers": 5
 		},
 		"idx_orders_user_status": {
 			"table": "orders",
@@ -2748,7 +2913,7 @@
 				"date",
 				"id"
 			],
-			"readers": 27
+			"readers": 28
 		},
 		"idx_orders_user_total": {
 			"table": "orders",
@@ -2757,7 +2922,7 @@
 				"total",
 				"id"
 			],
-			"readers": 9
+			"readers": 10
 		},
 		"idx_orders_user_uncategorised": {
 			"table": "orders",

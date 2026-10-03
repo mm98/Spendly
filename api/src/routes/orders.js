@@ -4,7 +4,7 @@ import { createHash } from 'crypto'
 import { db } from '../db.js'
 import { requireConfirmed } from '../lib/auth.js'
 import { newId } from '../lib/ids.js'
-import { toEpoch } from '../lib/dates.js'
+import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
@@ -147,6 +147,14 @@ function buildOrderFilter(userId, q, except = null) {
 		else { where.push('ot.status IN (SELECT value FROM json_each(@statuses))'); params.statuses = JSON.stringify(statuses) }
 	}
 	if (q.kind) { where.push('ot.kind = @kind'); params.kind = q.kind }
+	// the orders picked by hand, as Export and Delete in the bulk bar name them: the ids lead, and
+	// the + keeps the planner from walking the whole account's index to find a handful of them
+	const orderIds = listOf(q.ids)
+	if (orderIds.length) {
+		where[0] = '+ot.user_id = @userId'
+		where.push('ot.id IN (SELECT value FROM json_each(@orderIds))')
+		params.orderIds = JSON.stringify(orderIds)
+	}
 
 	// the receipt is a file on the order itself; both values chosen is no filter at all
 	const receipt = listOf(q.receipt).filter(r => r === 'attached' || r === 'missing')
@@ -281,6 +289,47 @@ router.get('/', (req, res) => {
 		orders: decorateOrderListRows(totalsRows, { itemTitles: wants.includes('itemTitles'), listRows: wants.includes('rows') }),
 		matched, total, pages,
 		...(wants.includes('facets') ? orderFacets(req.user.id, q) : {})
+	})
+})
+
+/* Every item line of the orders a list request matches, in the list's order, the order's fields
+   repeated on each (16b): the column set an import reads back. A lineless order is one row. */
+router.get('/lines', (req, res) => {
+	const { whereSql, params, sortKey } = buildOrderFilter(req.user.id, req.query)
+	const lines = db.prepare(`
+		SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total,
+			(SELECT group_concat(name, ', ') FROM (SELECT c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id
+				WHERE oc.order_id = ot.id ORDER BY c.name)) AS categories,
+			oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote
+		FROM orders ot
+		LEFT JOIN vendors v ON v.id = ot.vendor_id
+		LEFT JOIN order_items oi ON oi.order_id = ot.id
+		WHERE ${whereSql}
+		ORDER BY ${SORT_SQL[sortKey]}, oi.position
+	`).all(params)
+	res.json({ lines: lines.map(line => ({ ...line, date: fromEpoch(line.date) })) })
+})
+
+/* What deleting the orders a request names takes with it (6d): how many, their sum (a cancelled one
+   never counts), how many carry a file, and this month's part of it beside the month's total. */
+const selectMonthSpend = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status = 'Cancelled' THEN 0 ELSE total END), 0)
+	FROM orders WHERE user_id = ? AND date >= ? AND date < ?`).pluck()
+router.get('/impact', (req, res) => {
+	const { whereSql, params } = buildOrderFilter(req.user.id, req.query)
+	const [year, month] = req.today.split('-').map(Number)
+	const monthFrom = Date.UTC(year, month - 1, 1) / 1000, monthTo = Date.UTC(year, month, 1) / 1000
+	const counted = "CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END"
+	const row = db.prepare(`
+		SELECT COUNT(*) orders, COALESCE(SUM(${counted}), 0) total,
+			COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
+				OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles,
+			COALESCE(SUM(ot.date >= @monthFrom AND ot.date < @monthTo), 0) monthOrders,
+			COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo THEN ${counted} ELSE 0 END), 0) monthTotal
+		FROM orders ot WHERE ${whereSql}
+	`).get({ ...params, monthFrom, monthTo })
+	res.json({
+		orders: row.orders, total: row.total, withFiles: row.withFiles,
+		month: { orders: row.monthOrders, total: row.monthTotal, spend: selectMonthSpend.get(req.user.id, monthFrom, monthTo) }
 	})
 })
 
@@ -465,6 +514,8 @@ const selectStatusEvent = db.prepare('SELECT id, date FROM order_statuses WHERE 
 const deleteStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ? AND status = ?')
 const insertOrderCategoryOnce = db.prepare('INSERT OR IGNORE INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const deleteOrderCategory = db.prepare('DELETE FROM order_categories WHERE order_id = ? AND category_id = ?')
+// a bulk delete is not kept to undo (6d): its dialog asked for the number first
+const deleteOrderRow = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 
 const applyBulk = db.transaction((userId, ids, change, today) => {
 	const day = Math.max(toEpoch(today), 0)
@@ -474,7 +525,7 @@ const applyBulk = db.transaction((userId, ids, change, today) => {
 		const order = selectOrderForBulk.get(id, userId)
 		if (!order) continue
 		changed++
-		if (change.delete) { deleteOrder.run(id, userId); continue }
+		if (change.delete) { deleteOrderRow.run(id, userId); continue }
 		if (change.status) {
 			updateOrderStatus.run(change.status, id)
 			const at = Math.max(day, order.date)

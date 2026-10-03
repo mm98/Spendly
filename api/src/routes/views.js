@@ -19,9 +19,10 @@ const selectFirst = db.prepare('SELECT MIN(position) p FROM saved_views WHERE us
 const selectShown = db.prepare('SELECT shown FROM saved_view_prefs WHERE user_id = ?')
 const upsertShown = db.prepare('INSERT INTO saved_view_prefs (user_id, shown) VALUES (?, ?) ON CONFLICT (user_id) DO UPDATE SET shown = excluded.shown')
 const countAll = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
-const insertView = db.prepare('INSERT INTO saved_views (id, user_id, name, query, position) VALUES (?, ?, ?, ?, ?)')
+const insertView = db.prepare('INSERT INTO saved_views (id, user_id, name, query, position, attention) VALUES (?, ?, ?, ?, ?, ?)')
 const renameView = db.prepare('UPDATE saved_views SET name = ? WHERE id = ? AND user_id = ?')
 const requeryView = db.prepare('UPDATE saved_views SET query = ? WHERE id = ? AND user_id = ?')
+const flagView = db.prepare('UPDATE saved_views SET attention = ? WHERE id = ? AND user_id = ?')
 const clearDefault = db.prepare('UPDATE saved_views SET is_default = 0 WHERE user_id = ?')
 const makeDefault = db.prepare('UPDATE saved_views SET is_default = 1 WHERE id = ? AND user_id = ?')
 const placeView = db.prepare('UPDATE saved_views SET position = ? WHERE id = ? AND user_id = ?')
@@ -80,7 +81,7 @@ router.post('/', (req, res) => {
 	const name = cleanName(req.body?.name)
 	if (!name) return refuse(res, 'A view needs a name.')
 	const id = newId('sv')
-	insertView.run(id, req.user.id, name, cleanQuery(req.body?.query), (selectFirst.get(req.user.id).p ?? 1) - 1)
+	insertView.run(id, req.user.id, name, cleanQuery(req.body?.query), (selectFirst.get(req.user.id).p ?? 1) - 1, req.body?.attention === true ? 1 : 0)
 	res.status(201).json({ id, ...list(req.user.id, req.today) })
 })
 
@@ -100,6 +101,8 @@ router.patch('/:id', (req, res) => {
 		renameView.run(name, req.params.id, req.user.id)
 	}
 	if ('query' in body) requeryView.run(cleanQuery(body.query), req.params.id, req.user.id)
+	// the amber count is the view's own setting, chosen when it is saved or edited (9e)
+	if ('attention' in body) flagView.run(body.attention === true ? 1 : 0, req.params.id, req.user.id)
 	if ('isDefault' in body) {
 		clearDefault.run(req.user.id)
 		if (body.isDefault === true) makeDefault.run(req.params.id, req.user.id)
