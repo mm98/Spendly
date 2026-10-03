@@ -91,16 +91,6 @@
 			],
 			"indexes": []
 		},
-		"SELECT b.id, b.name, b.url, b.price, b.archived, b.created_at, b.photo_id FROM bookmarks b WHERE b.user_id = @userId AND b.archived = 0 AND b.price IS NOT NULL ORDER BY b.price DESC, b.id DESC LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"SCAN b",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": []
-		},
 		"SELECT b.id, b.name, b.url, b.price, b.archived, b.created_at, b.photo_id FROM bookmarks b WHERE b.user_id = @userId AND b.archived = 0 AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id) ORDER BY b.created_at DESC, b.rowid DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SCAN b",
@@ -136,6 +126,16 @@
 			"indexes": []
 		},
 		"SELECT b.id, b.name, b.url, b.price, b.archived, b.created_at, b.photo_id FROM bookmarks b WHERE b.user_id = @userId AND b.archived = 0 ORDER BY b.name COLLATE NOCASE ASC, b.id ASC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN b",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT b.id, b.name, b.url, b.price, b.archived, b.created_at, b.photo_id FROM bookmarks b WHERE b.user_id = @userId AND b.archived = 0 ORDER BY b.price IS NULL, b.price DESC, b.id DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SCAN b",
 				"USE TEMP B-TREE FOR ORDER BY"
@@ -388,13 +388,6 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT COUNT(*) c FROM bookmarks b WHERE b.user_id = @userId AND b.archived = 0 AND b.price IS NOT NULL": {
-			"plan": [
-				"SCAN b"
-			],
-			"findings": [],
-			"indexes": []
-		},
 		"SELECT COUNT(*) c FROM bookmarks b WHERE b.user_id = @userId AND b.archived = 0 AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)": {
 			"plan": [
 				"SCAN b",
@@ -429,7 +422,7 @@
 				"idx_categories_user"
 			]
 		},
-		"SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?": {
+		"SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ? AND o.category_count = 1": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -816,7 +809,7 @@
 			],
 			"indexes": []
 		},
-		"SELECT id, name, colour, favourite FROM vendors WHERE user_id = ? ORDER BY name": {
+		"SELECT id, name, colour, favourite, archived FROM vendors WHERE user_id = ? ORDER BY name": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_2 (user_id=?)"
 			],
@@ -854,7 +847,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT id, name, initials, colour, favourite, lead FROM vendors WHERE id = ? AND user_id = ?": {
+		"SELECT id, name, initials, colour, favourite, lead, archived FROM vendors WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
 			],
@@ -979,7 +972,7 @@
 				"sqlite_autoindex__migrations_1"
 			]
 		},
-		"SELECT name FROM vendor_aliases WHERE vendor_id = ? AND user_id = ? ORDER BY name": {
+		"SELECT name, matched_at FROM vendor_aliases WHERE vendor_id = ? AND user_id = ? ORDER BY name": {
 			"plan": [
 				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_vendor (vendor_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
@@ -1009,6 +1002,20 @@
 			],
 			"indexes": [
 				"idx_orders_user_discount",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT oc.category_id AS categoryId, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY oc.category_id": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
@@ -1489,7 +1496,7 @@
 				"sqlite_autoindex_vendors_2"
 			]
 		},
-		"SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved FROM orders WHERE user_id = ? GROUP BY vendor_id": {
+		"SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved, MAX(date) AS last FROM orders WHERE user_id = ? GROUP BY vendor_id": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)"
 			],
@@ -1573,7 +1580,7 @@
 				"date",
 				"id"
 			],
-			"readers": 18
+			"readers": 19
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",

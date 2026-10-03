@@ -4199,6 +4199,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* a chip carrying a problem - c6 variant */
 .sp-chip[data-color="danger"] { background: var(--red-tint); border-color: var(--red); color: var(--red-ink); font-weight: 600; }
+/* the alias a receipt last matched (Vendors 5h), coloured as a positive pill is */
+.sp-chip[data-color="success"] { background: var(--green-tint); border-color: var(--green); color: var(--green); }
 
 /* an icon button with no weight of its own: a chevron or a grip inside a row */
 .sp-icon-btn--quiet { border: 0; background: none; color: var(--line-5); }

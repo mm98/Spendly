@@ -128,6 +128,7 @@ const dayShortMonthFormat = formatter({ day: 'numeric', month: 'short' })
 const dayShortMonthYearFormat = formatter({ day: 'numeric', month: 'short', year: 'numeric' })
 const longDateFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
 const shortDateFormat = formatter({ day: '2-digit', month: '2-digit', year: 'numeric' })
+const dayMonthFormat = formatter({ day: '2-digit', month: '2-digit' })
 // the shortest date and time a locale has, so a reader sees what a locale looks like before choosing it
 const sampleFormat = formatter({ dateStyle: 'short', timeStyle: 'short' })
 
@@ -158,6 +159,12 @@ export const longDate = iso => longDateFormat().format(dateOf(iso))
 
 /** "2026-07-18" -> "18.07.2026", the form the summary rows use, in the reader's own order. */
 export const shortDate = iso => shortDateFormat().format(dateOf(iso))
+
+/** "2026-08-08" -> "08.08", with the year once it is not this one: a date in a line that has little room (5k). */
+export const dayMonth = iso => {
+	const date = dateOf(iso)
+	return (thisYear(date) ? dayMonthFormat() : shortDateFormat()).format(date)
+}
 
 /** What a locale renders, for the picker that offers it, from a fixed instant. */
 const SAMPLE_AT = new Date('2026-08-18T12:26:00Z')

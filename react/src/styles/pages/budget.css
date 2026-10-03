@@ -16,6 +16,8 @@
 	.bg-sheet tbody td.bg-hold > .bg-held { position: sticky; left: var(--card-pad); z-index: 1; width: calc(100cqi - 2 * var(--card-pad)); }
 	/* an editor with a list open lies over the sticky cells after it, so the list is what a press reaches */
 	.bg-sheet tbody td.bg-hold > .bg-held:has([aria-expanded="true"]) { z-index: 4; }
+	.bg-sheet .bg-col-name { width: 180px; }
+	.bg-sheet .bg-col-account { width: 120px; }
 	.bg-sheet tbody td.bg-opens { cursor: pointer; }
 	/* on touch an account's name, which opens its editor, is a target as tall as a control */
 	.sp-touch .bg-opens-account { min-height: var(--control-h-touch); justify-content: center; }

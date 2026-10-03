@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Announce, ListItem } from '../components/ListItem.jsx'
@@ -341,10 +341,14 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const vendor = vendorByAnyName(vendors.data ?? [], name)?.name ?? name.trim()
 		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(vendor, draft.categories) } : {}) })
 	}
+	// a vendor just set up from this receipt comes back chosen (Vendors 5b)
+	const returned = useLocation().state?.pickedVendor
 	// a receipt or a link that names the vendor is the first vendor choice
 	const seeded = useRef(false)
 	useEffect(() => {
-		if (seeded.current || !creating || !vendors.data || !draft.vendor || origin.copy) return
+		if (seeded.current || !creating || !vendors.data || origin.copy) return
+		if (returned) { seeded.current = true; return pickVendor(returned) }
+		if (!draft.vendor) return
 		seeded.current = true
 		const categories = suggest(draft.vendor, draft.categories)
 		// filled in before the reader did anything, so it is where the form starts, not a change
@@ -660,8 +664,11 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const fields = (
 		<>
 			<Field label="Vendor" {...problem(shown.vendor)}>
-				<VendorPicker vendors={vendors.data ?? []} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
+				<VendorPicker vendors={(vendors.data ?? []).filter(v => !v.archived)} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
 			</Field>
+			{scan && creating && vendors.data && draft.vendor && !vendorByAnyName(vendors.data, draft.vendor)
+				? <NewVendorFromScan name={draft.vendor} />
+				: null}
 			<div className="sp-fields">
 				<Field label="Date" {...problem(shown.date)}>
 					<DateField value={draft.date} max={today()} danger={!!shown.date} locale={activeLocaleCode()}
@@ -1022,6 +1029,22 @@ function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
 				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption create onSelect={() => onPick(typed)}>Create "{typed}"</ComboboxOption></>
 				: null}
 		</Combobox>
+	)
+}
+
+/** A receipt's vendor the account does not know yet: set it up first, and come back to the receipt
+    with it chosen (Vendors 5b). Saving the order without this creates it from the name alone. */
+function NewVendorFromScan({ name }) {
+	const navigate = useNavigate()
+	const here = useLocation()
+	return (
+		<div className="sp-row-flex sp-gap-8">
+			<span className="sp-note sp-grow">{name} is a new vendor. Saving the order adds it with this name.</span>
+			<Button variant="outline" size="small"
+				onClick={() => navigate('/vendors/new', { state: { fromScan: { name, to: here.pathname + here.search } } })}>
+				Set it up first
+			</Button>
+		</div>
 	)
 }
 

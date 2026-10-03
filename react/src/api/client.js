@@ -4,6 +4,7 @@
 import { detectLocale, parseAmount, today } from './format.js'
 import { forgetAll, invalidate } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
+import { vendorKey } from './names.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields, body) {
@@ -44,7 +45,7 @@ const THINGS = [
 	[/^\/api\/orders\/(?!import|draft|overview)[^/?]+/, 'order'],
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
 	[/^\/api\/categories\/(?!uncategorised)[^/?]+/, 'category'],
-	[/^\/api\/bookmarks\/(?!preview)[^/?]+/, 'bookmark'],
+	[/^\/api\/bookmarks\/(?!preview|categories)[^/?]+/, 'bookmark'],
 	[/^\/api\/budget\/lines\//, 'budget row'],
 	[/^\/api\/budget\/groups\//, 'budget group'],
 	[/^\/api\/budget\/accounts\//, 'account']
@@ -162,6 +163,13 @@ const forgetGone = (kind, id) => error => {
 	throw error
 }
 
+/** Moves every order of one vendor to another, makes its names the other's aliases, and deletes it. */
+export async function mergeVendor(id, into, signal) {
+	const out = await request(`/api/vendors/${id}/merge`, { method: 'POST', body: { into }, signal })
+	forgetRecent('vendor', id)
+	return out
+}
+
 export async function deleteVendor(id, signal) {
 	const out = await request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 	forgetRecent('vendor', id)
@@ -180,8 +188,12 @@ export async function addVendorAlias(id, name, signal) {
 export const vendorByAnyName = (vendors, name) => {
 	const needle = String(name ?? '').trim().toLowerCase()
 	if (!needle) return undefined
-	return vendors.find(v => v.name.toLowerCase() === needle
+	const exact = vendors.find(v => v.name.toLowerCase() === needle
 		|| (v.aliases ?? []).some(a => a.toLowerCase() === needle))
+	if (exact) return exact
+	// then as the API matches receipts: case, accents, punctuation and a legal form set aside
+	const key = vendorKey(name)
+	return vendors.find(v => vendorKey(v.name) === key) ?? vendors.find(v => (v.aliases ?? []).some(a => vendorKey(a) === key))
 }
 
 /** Whether typed text finds this vendor, and the alias that did; `alias` is null when the name
@@ -212,7 +224,7 @@ export const withMonthSpend = (categories, split) => {
 /** The category list with this month's spend joined on: a join of two requests, so its own cache entry. */
 export async function getCategoriesThisMonth(signal) {
 	const [categories, { window }] = await Promise.all([
-		getCategories(signal),
+		request('/api/categories?average=1', { signal }),
 		request('/api/stats' + qs({ range: 'month', summary: 1 }), { signal })
 	])
 	return { categories: withMonthSpend(categories, window.split) }
@@ -233,6 +245,11 @@ export async function getCategory(id, signal) {
 
 export async function updateCategory(id, patch, signal) {
 	return request(`/api/categories/${id}`, { method: 'PATCH', body: patch, signal })
+}
+
+/** Moves every order and bookmark of one category to another, and deletes it. */
+export async function mergeCategory(id, into, signal) {
+	return request(`/api/categories/${id}/merge`, { method: 'POST', body: { into }, signal })
 }
 
 export async function deleteCategory(id, signal) {
@@ -260,6 +277,11 @@ const toApiDraft = draft => ({
 
 export async function getBookmarks(params = {}, signal) {
 	return request('/api/bookmarks' + qs(params), { signal })
+}
+
+/** How many bookmarks of one view carry each category, and how many carry none: the category filter's counts. */
+export async function getBookmarkCategoryCounts(archived, signal) {
+	return request('/api/bookmarks/categories' + qs({ archived: archived ? 'yes' : 'no' }), { signal })
 }
 
 export async function getBookmark(id, signal) {
@@ -607,7 +629,7 @@ export const bookmarkSorts = [
 const orderReads = [getOrders, getOrder, getStats]
 const vendorReads = [getVendors, getVendor]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
-const bookmarkReads = [getBookmarks, getBookmark]
+const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 
 /** An order changed: everything sums orders, and saving one can create a vendor or a category. */

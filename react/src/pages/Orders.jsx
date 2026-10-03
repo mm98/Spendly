@@ -215,7 +215,8 @@ export default function Orders() {
 	}, [crumbFocus, crumbs.length])
 
 	const facetData = {
-		vendors: vendors.data,
+		// an archived vendor leaves the facet, unless the list is filtered by it
+		vendors: vendors.data?.filter(v => !v.archived || v.id === f.vendor),
 		categories: categories.data,
 		highest: highest.data?.orders?.[0]?.total
 	}
