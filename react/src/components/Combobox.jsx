@@ -84,7 +84,7 @@ const clipperOf = el => {
 }
 
 // the window's room less the bars pinned over its edges (the top bar, the tab bar, a save bar)
-const roomOf = root => {
+export const roomOf = root => {
 	let top = 0
 	let bottom = window.innerHeight
 	for (const bar of document.querySelectorAll('.sp-topbar, .sp-tabbar, .sp-savebar')) {
@@ -118,18 +118,23 @@ export function usePanelPlace(root, panel, open, size) {
 					: { left: '0px', right: 'auto', width: drawn.width + 'px' })
 				drawn = list.getBoundingClientRect()
 			}
-			const height = list.scrollHeight
+			// a box that does not scroll is measured as drawn: a hidden submenu is laid out beside it, not in it
+			const height = getComputedStyle(list).overflowY === 'visible' ? drawn.height : list.scrollHeight
 			const gap = drawn.top - at.bottom
 			const edge = roomOf(root.current)
 			const below = edge.bottom - at.bottom - gap - 8
 			const above = at.top - edge.top - gap - 8
 			const up = height > below && above > below
-			const room = Math.max(0, up ? above : below)
+			// a menu too tall for either side slides along the window until it fits, over its own button;
+			// a list never does, since it would cover the field being typed into
+			const slides = list.getAttribute('role') === 'menu' && height <= edge.bottom - edge.top - 16
+			const room = Math.max(0, slides ? height : up ? above : below)
 			const shown = Math.min(height, room)
-			const top = up ? at.top - gap - shown : at.bottom + gap
+			const top = up ? Math.max(edge.top + 8, at.top - gap - shown) : Math.min(at.bottom + gap, edge.bottom - 8 - shown)
 			const clip = clipperOf(root.current)?.getBoundingClientRect()
 			const outside = drawn.left < view.left - 0.5 || drawn.right > view.right + 0.5
-			const cut = outside || (!!clip && (top < clip.top - 0.5 || top + shown > clip.bottom + 0.5 || drawn.left < clip.left - 0.5 || drawn.right > clip.right + 0.5))
+			const moved = top !== (up ? at.top - gap - shown : at.bottom + gap)
+			const cut = outside || moved || (!!clip && (top < clip.top - 0.5 || top + shown > clip.bottom + 0.5 || drawn.left < clip.left - 0.5 || drawn.right > clip.right + 0.5))
 			if (height > room) Object.assign(list.style, { maxHeight: room + 'px', overflowY: 'auto' })
 			if (!cut) {
 				if (up) list.dataset.place = 'up'

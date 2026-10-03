@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
+import { Fragment, useEffect, useReducer, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
@@ -75,6 +75,7 @@ export default function Settings() {
 	const { section } = useParams()
 	// each opening of a section is its own visit, so opening the one already open goes back to it
 	const visit = useLocation().key
+	const row = useRef(null)
 	const shape = useShellShape()
 	const narrow = useMedia('(max-width: 899.98px)')
 	const settings = useApi(getSettings)
@@ -173,11 +174,11 @@ export default function Settings() {
 	}
 
 	return (
-		<div className="sp-row-flex sp-top sp-gap-16">
+		<div className="sp-row-flex sp-top sp-gap-16" ref={row}>
 			{narrow ? null : <SectionNav current={seen ?? current} />}
-			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
+			<div className="sp-stack sp-gap-12 sp-grow sp-column--form st-cards">
 				{narrow ? <SectionPicker current={seen ?? current} /> : null}
-				{body ?? <Arrive section={current} visit={visit} room>{SECTIONS.map(s => cards[s.key])}</Arrive>}
+				{body ?? <Arrive section={current} visit={visit} room={row}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
 			</div>
 			{guard.prompt}
@@ -215,15 +216,17 @@ function useSeenSection(active) {
 
 function SectionNav({ current }) {
 	return (
-		<nav className="st-subnav sp-stack sp-gap-8" aria-label="Settings">
-			<span className="sp-section-label">Settings</span>
-			<div className="sp-nav-list st-subnav__list">
-				{SECTIONS.map(s => (
-					<Fragment key={s.key}>
-						{s.key === TOOLS ? <span className="sp-rule" role="separator" /> : null}
-						<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
-					</Fragment>
-				))}
+		<nav className="st-subnav" aria-label="Settings">
+			<div className="sp-stack sp-gap-8 st-subnav__body">
+				<span className="sp-section-label">Settings</span>
+				<div className="sp-nav-list">
+					{SECTIONS.map(s => (
+						<Fragment key={s.key}>
+							{s.key === TOOLS ? <span className="sp-rule" role="separator" /> : null}
+							<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
+						</Fragment>
+					))}
+				</div>
 			</div>
 		</nav>
 	)
@@ -244,29 +247,37 @@ function SectionPicker({ current }) {
 
 /* Arriving at /settings/<section> brings that card to where the first card sits and moves
    focus to its heading (9c), so a keyboard reader knows where they landed. */
-function Arrive({ section, visit, room = false, children }) {
+function Arrive({ section, visit, room, children }) {
 	const column = useRef(null)
-	useLayoutEffect(() => {
+	// after the page's own refs are in place, and before the scroll below that may need the room
+	useEffect(() => {
 		const box = column.current
-		if (!room || !box) return
-		// room under the last card so its heading too can scroll up to where the first one sits;
-		// measured, so it is set where it is measured
+		const holder = room?.current
+		if (!holder || !box) return
+		// room for the last heading to scroll up to where the first one sits: in the menu's column when
+		// there is one, so the menu stays in view to the end; measured, so set where it is measured
 		const fit = () => {
 			const heads = box.querySelectorAll('[data-section]')
 			if (heads.length < 2) return
-			const pad = parseFloat(box.style.paddingBottom) || 0
-			const end = document.documentElement.scrollHeight - pad - window.innerHeight
+			const nav = holder.querySelector(':scope > .st-subnav')
+			if (nav) holder.style.removeProperty('padding-bottom')
+			const cards = box.parentElement.getBoundingClientRect().height
+			const now = nav ? parseFloat(nav.style.minHeight) || 0 : parseFloat(holder.style.paddingBottom) || 0
+			const extra = nav ? Math.max(0, now - cards) : now
+			const end = document.documentElement.scrollHeight - extra - window.innerHeight
 			const need = Math.max(0, Math.ceil(heads[heads.length - 1].getBoundingClientRect().top - heads[0].getBoundingClientRect().top - end))
-			if (need !== pad) box.style.paddingBottom = need ? need + 'px' : ''
+			if (nav) nav.style.minHeight = need ? cards + need + 'px' : ''
+			else holder.style.paddingBottom = need ? need + 'px' : ''
 		}
 		fit()
 		const watch = new ResizeObserver(fit)
-		watch.observe(document.body)
+		watch.observe(box.parentElement)
 		window.addEventListener('resize', fit)
 		return () => {
 			watch.disconnect()
 			window.removeEventListener('resize', fit)
-			box.style.paddingBottom = ''
+			holder.style.paddingBottom = ''
+			holder.querySelector(':scope > .st-subnav')?.style.removeProperty('min-height')
 		}
 	}, [room])
 	useEffect(() => {

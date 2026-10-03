@@ -4,7 +4,7 @@ import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
-import { usePanelPlace } from './Combobox.jsx'
+import { roomOf, usePanelPlace } from './Combobox.jsx'
 import { menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
 
 const MENU = {
@@ -117,6 +117,20 @@ export function useMenuButton(box, open) {
 	}
 }
 
+/* A submenu opens level with its item and moves up as far as it must to end inside the window; only
+   one taller than the window scrolls. It is laid out while hidden, so it measures before it shows. */
+function fitSubmenu(item) {
+	const sub = item.parentElement?.querySelector(':scope > .sp-menu__sub')
+	if (!sub) return
+	for (const prop of ['top', 'max-height', 'overflow-y']) sub.style.removeProperty(prop)
+	const edge = roomOf(item)
+	const room = edge.bottom - edge.top - 16
+	const r = sub.getBoundingClientRect()
+	const lift = Math.min(r.bottom - (edge.bottom - 8), Math.max(0, r.top - edge.top - 8))
+	if (lift > 0) sub.style.top = parseFloat(getComputedStyle(sub).top) - lift + 'px'
+	if (r.height > room) Object.assign(sub.style, { maxHeight: room + 'px', overflowY: 'auto' })
+}
+
 export function MenuItem({ icon, onClick, disabled = false, danger = false, dot, selected, children, ...rest }) {
 	reject(rest, 'MenuItem')
 	// the nested menu is a child, not a prop: one of these children is a Menu and the
@@ -144,7 +158,7 @@ export function MenuItem({ icon, onClick, disabled = false, danger = false, dot,
 				onClick={act}
 				disabled={disabled}
 				{...(submenu ? { 'aria-haspopup': 'menu', 'aria-expanded': subOpen ? 'true' : 'false' } : {})}
-				{...(submenu ? { onMouseEnter: () => setSubOpen(true), onMouseLeave: () => setSubOpen(false), onFocus: () => setSubOpen(true) } : {})}
+				{...(submenu ? { onMouseEnter: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) }, onMouseLeave: () => setSubOpen(false), onFocus: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) } } : {})}
 				{...(selected === undefined ? {} : { 'aria-selected': selected ? 'true' : 'false' })}
 				{...rest}
 			>

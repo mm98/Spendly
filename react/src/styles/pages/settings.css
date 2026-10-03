@@ -3,17 +3,28 @@
 @layer base {
 
 	/* 208 from the content column's edge, as 11a draws it: the page's own inset is its left
-	   padding. The hairline runs the height of the cards beside it, not to the last entry. */
+	   padding. It runs on into the room under the cards, so the menu in it can stay in view. */
 	.st-subnav {
 		width: 208px;
 		flex: none;
 		align-self: stretch;
 		margin-left: calc(-1 * var(--card-pad));
 		padding: 0 var(--card-pad);
-		border-right: 1px solid var(--line-3);
+		border-right: 1px solid transparent;
 	}
-	/* the section list stays in view under the top bar (12 + field + 12 + its rule) while the cards scroll */
-	.st-subnav__list { position: sticky; top: calc(var(--sp-12) + var(--control-h) + var(--sp-12) + 1px + var(--sp-16)); }
+	/* the whole section menu, its label too, stays where it starts under the top bar (12 + field + 12 + rule + 16) */
+	.st-subnav__body { position: sticky; top: calc(var(--sp-12) + var(--control-h) + var(--sp-12) + 1px + var(--sp-16)); }
+	/* the hairline is the menu's right edge, drawn the height of the cards beside it, not the room under them */
+	.st-cards { position: relative; }
+	.st-subnav + .st-cards::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: calc(-1 * var(--sp-16) - 1px);
+		width: 1px;
+		background: var(--line-3);
+	}
 
 	/* where /settings/<section> lands focus (9c): the system's ring for a keyboard reader, never
 	   the browser's own outline */
