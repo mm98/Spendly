@@ -1108,6 +1108,8 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
   border-radius: 50%;
   background: rgba(27, 26, 23, 0.35);
 }
+/* the band that says there are no photos has nothing to read the box against, so it needs no scrim */
+.sp-record__photos--empty > .sp-record__pick::before { content: none; }
 
 .sp-list-item .sp-chip,
 .sp-list-item .sp-pill { flex: none; }

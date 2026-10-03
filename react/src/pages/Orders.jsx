@@ -431,7 +431,7 @@ function OrderList() {
 		else if (view === 'cards')
 			body = (
 				<OrderGrid data={data} size={size} touch={touch} caption={caption} picked={current.ids} count={count} bulk={bulk} note={note}
-					onPick={pickRun} onClear={clearPicked} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
+					onPick={pickRun} onPickAll={setPicked} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
 					onCategory={id => update({ category: toggled(f.category, id, true) })} />
 			)
 		else
@@ -734,17 +734,22 @@ function OrderCards({ data, size, summary, picked, bulk, onPick, onOpen, onLoadM
 }
 
 /** The Cards view (2c): the same orders, picked the same way, drawn as cards with their photos.
-    The summary line or the bulk bar stands above the grid; there is no box that picks them all. */
-function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPick, onClear, onOpen, onLoadMore, onDelete, onCategory }) {
+    The summary line or the bulk bar stands above the grid, each led by the box that picks the page, as rows have. */
+function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPick, onPickAll, onOpen, onLoadMore, onDelete, onCategory }) {
 	const [menuFor, setMenuFor] = useState(null)
+	const page = data.orders.map(o => o.id)
+	const selectAll = {
+		selectedCount: picked.filter(id => page.includes(id)).length, total: page.length, noun: 'orders',
+		onToggleAll: on => onPickAll(on ? [...new Set([...picked, ...page])] : picked.filter(id => !page.includes(id)))
+	}
 	const head = picked.length
 		? (
 			<>
-				<BulkBar loose count={`${amount(count, 0)} selected`} onClear={onClear}>{bulk}</BulkBar>
+				<BulkBar loose count={`${amount(count, 0)} selected`} selectAll={selectAll}>{bulk}</BulkBar>
 				{note ? <div className="sp-bulkbar sp-bulkbar--loose sp-bulkbar--note">{note}</div> : null}
 			</>
 		)
-		: <ListToolbar loose>{caption}</ListToolbar>
+		: <ListToolbar loose selectAll={selectAll}>{caption}</ListToolbar>
 	const footer = <ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
 	return (
 		<Records head={head} footer={footer} onContextMenu={menuHere}>
