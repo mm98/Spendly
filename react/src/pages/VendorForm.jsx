@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
@@ -56,12 +56,14 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const list = useListReturn('vendors')
+	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
+	const fromScan = useLocation().state?.fromScan ?? null
 	const all = useApi(getVendors)
 	const h = loading ? hold : control => control
 	const editing = Boolean(vendor)
 	const start = useMemo(() => ({
 		name: vendor?.name ?? '',
-		aliases: vendor?.aliases ?? [],
+		aliases: vendor?.aliases ?? (fromScan?.name ? [fromScan.name] : []),
 		colour: vendor ? pickedColour(vendor.colour) : 'green-2',
 		favourite: Boolean(vendor?.favourite),
 		defaultCategories: vendor?.defaultCategories ?? []
@@ -87,6 +89,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		|| !same(values.defaultCategories, start.defaultCategories)
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
+	// back to the receipt, with the vendor just made chosen on it
+	const back = name => { guard.release(); navigate(fromScan.to, { state: { pickedVendor: name } }) }
 
 	const others = (all.data ?? []).filter(v => v.id !== vendor?.id)
 	// compared as receipts are matched: case, accents, punctuation and a legal form set aside (5h)
@@ -144,15 +148,17 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
-			name, aliases: values.aliases, ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
+			// an alias the name already matches says nothing more, and the API refuses it
+			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
 			favourite: values.favourite, defaultCategories: values.defaultCategories,
 			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {})
 		}
 		const written = editing ? updateVendor(vendor.id, look) : createVendor(name, look)
 		written
-			.then(() => {
+			.then(saved => {
 				invalidateVendorData()
 				invalidateCategoryData()
+				if (fromScan && !editing) return back(saved.name)
 				leave()
 			})
 			.catch(e => {
@@ -232,7 +238,9 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			<Card>
 				<span className="sp-section-label">Aliases</span>
 				<Field id="vendor-aliases" label="Also matches"
-					message={errors.aliases ?? `Other names this vendor uses on receipts. A receipt with one of these is filed here.${marked ? ' The green one is the name the last receipt matched.' : ''}`}
+					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
+						? 'Other names this vendor uses on receipts. The name the scan read is already here. Keep it, so the next receipt is filed here by itself.'
+						: `Other names this vendor uses on receipts. A receipt with one of these is filed here.${marked ? ' The green one is the name the last receipt matched.' : ''}`)}
 					messageType={errors.aliases ? 'danger' : 'hint'}>
 					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
 				</Field>
@@ -269,7 +277,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const bar = touch || !editing || changed
 		? (
 			<CommitBar status={!editing ? 'Nothing saved yet' : changed ? 'Unsaved changes' : null} quiet={!editing}
-				onCancel={() => navigate(list)} onSave={lost ? null : save} commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save vendor' : 'Create'}
+				onCancel={() => navigate(fromScan && !editing ? fromScan.to : list)} onSave={lost ? null : save} commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save vendor' : 'Create'}
 				saving={saving} disabled={loading} />
 		)
 		: null
