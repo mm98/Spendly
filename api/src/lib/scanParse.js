@@ -1,6 +1,7 @@
 import Anthropic, { APIError } from '@anthropic-ai/sdk'
 import { decompressBlob } from './blobCompression.js'
 import { todayIso } from './dates.js'
+import { vatNumberOf, webAddressOf } from './names.js'
 
 /* The one place a scanned document's bytes are actually read. Everything in routes/scan.js
    around this stayed an honest blank draft until now -- see that route's own comment, and the
@@ -40,6 +41,8 @@ const READ_RECEIPT_TOOL = {
 		type: 'object',
 		properties: {
 			vendor: { type: 'string', description: 'The store or company that issued the document, as printed.' },
+			website: { type: 'string', description: 'The issuer\'s web address as printed (e.g. indbo.dk), or the part after the @ of its printed email address. Omit if neither is printed.' },
+			vatNumber: { type: 'string', description: 'The issuer\'s VAT or company registration number as printed (in Denmark the CVR or SE number, e.g. "CVR 12345678"). Omit if none is printed - never the customer\'s number.' },
 			date: { type: 'string', description: 'The order or purchase date printed on the document, as YYYY-MM-DD.' },
 			currency: { type: 'string', description: 'The ISO 4217 code of the currency the amounts are printed in, if it can be told (e.g. DKK, EUR, USD).' },
 			pricesAsPrintedIncludeVat: { type: 'boolean', description: 'Whether the unit prices and total AS PRINTED on the document already include VAT (true for most Danish paper receipts) or are shown net of it with VAT added separately (common on emailed/PDF invoices). This describes the source document, not the numbers you report below -- those are always converted to include VAT regardless of this value.' },
@@ -110,11 +113,14 @@ function normalise(input, today) {
 		.filter(l => l.title && l.price !== null)
 		: []
 	const reference = String(input.reference ?? '').trim().slice(0, 80)
+	// the other two things a receipt is matched to its vendor by (5h), kept only when they read as one
+	const website = webAddressOf(input.website)
+	const vatNumber = vatNumberOf(input.vatNumber)
 	const unclear = Array.isArray(input.unclear)
 		? [...new Set(input.unclear.filter(f => ['vendor', 'date', 'shipping', 'discount', 'total'].includes(f)))] : []
 
 	// a read without lines still carries the vendor and date it found (6e), but is no answer to keep
-	return { vendor, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, reference, unclear, lines }
+	return { vendor, website, vatNumber, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, reference, unclear, lines }
 }
 
 /** What a partial answer already holds, for the reading screen (3a step 2): the vendor and date
@@ -168,7 +174,8 @@ export async function parseReceipt(upload, today = todayIso(), onProgress) {
 							+ 'on an emailed invoice), convert every one of them using the rate the document states; '
 							+ 'if none is stated, use the rate implied by the stated VAT amount against the net total; '
 							+ 'only fall back to 25% if the document is clearly Danish/EU and states neither. '
-							+ 'Report the printed order or invoice number as reference when there is one. List in unclear '
+							+ 'Report the printed order or invoice number as reference when there is one, and the issuer\'s '
+							+ 'own web address and VAT (CVR) number when they are printed. List in unclear '
 							+ 'each document-level value you could not read clearly, and for an uncertain line say which '
 							+ 'part was hard to read in unclearPart.'
 					}

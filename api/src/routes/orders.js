@@ -348,7 +348,7 @@ function saveOrderStatuses(orderId, draft) {
 /** Turns a validated draft into inserted rows. Shared by manual create, update (which first
     clears whatever it's replacing) and import. */
 const insertOrderRows = db.transaction((userId, id, draft) => {
-	const vendorId = findOrCreateVendor(userId, draft.vendor)
+	const vendorId = findOrCreateVendor(userId, draft.vendor, id)
 	const categoryIds = (draft.categories ?? []).map(name => findOrCreateCategory(userId, name))
 
 	insertOrder.run({

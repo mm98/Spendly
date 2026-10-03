@@ -1255,15 +1255,6 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT id, name FROM vendors WHERE user_id = ?": {
-			"plan": [
-				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_vendors_user_name"
-			]
-		},
 		"SELECT id, name, archived FROM bookmarks WHERE user_id = @userId AND contains_fold(name, @needle) ORDER BY name COLLATE NOCASE LIMIT @limit": {
 			"plan": [
 				"SCAN bookmarks",
@@ -1284,7 +1275,7 @@
 			],
 			"indexes": []
 		},
-		"SELECT id, name, colour, favourite, archived FROM vendors WHERE user_id = ? ORDER BY name": {
+		"SELECT id, name, colour, favourite, archived, origin FROM vendors WHERE user_id = ? ORDER BY name": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_2 (user_id=?)"
 			],
@@ -1322,7 +1313,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT id, name, initials, colour, favourite, lead, archived FROM vendors WHERE id = ? AND user_id = ?": {
+		"SELECT id, name, initials, colour, favourite, lead, archived, origin FROM vendors WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
 			],
@@ -1340,6 +1331,15 @@
 			],
 			"indexes": [
 				"idx_attachments_order"
+			]
+		},
+		"SELECT id, name, origin, rowid AS made FROM vendors WHERE user_id = ? AND archived = 0": {
+			"plan": [
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendors_user_name"
 			]
 		},
 		"SELECT id, name, position, grey FROM budget_accounts WHERE user_id = ?": {
@@ -1504,20 +1504,6 @@
 			],
 			"indexes": [
 				"idx_orders_user_discount",
-				"sqlite_autoindex_order_categories_1"
-			]
-		},
-		"SELECT oc.category_id AS categoryId, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY oc.category_id": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
-				"USE TEMP B-TREE FOR GROUP BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_date",
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
@@ -1708,6 +1694,17 @@
 			"indexes": [
 				"idx_order_categories_cat",
 				"idx_orders_user_vendor"
+			]
+		},
+		"SELECT ot.date, ot.total * 1.0 / ot.category_count AS spend FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to": {
+			"plan": [
+				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
+				"sqlite_autoindex_orders_1"
 			]
 		},
 		"SELECT ot.date, SUM((CASE WHEN ot.status = 'Returned' THEN -ot.total ELSE ot.total END)) AS spend, SUM((CASE WHEN ot.status = 'Returned' THEN -ot.saved ELSE ot.saved END)) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') GROUP BY ot.date ORDER BY ot.date": {
@@ -2585,6 +2582,15 @@
 				"sqlite_autoindex_vendors_2"
 			]
 		},
+		"SELECT vendor_id AS id, name FROM vendor_aliases WHERE user_id = ?": {
+			"plan": [
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name"
+			]
+		},
 		"SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(CASE WHEN status IN ('Draft', 'Cancelled') THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status IN ('Draft', 'Cancelled') THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = ? GROUP BY vendor_id": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)"
@@ -2684,7 +2690,7 @@
 				"category_id",
 				"order_id"
 			],
-			"readers": 25
+			"readers": 26
 		},
 		"idx_order_items_order": {
 			"table": "order_items",
@@ -2721,7 +2727,7 @@
 				"date",
 				"id"
 			],
-			"readers": 43
+			"readers": 42
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
@@ -2816,7 +2822,7 @@
 				"user_id",
 				null
 			],
-			"readers": 9
+			"readers": 10
 		},
 		"idx_vendor_aliases_vendor": {
 			"table": "vendor_aliases",

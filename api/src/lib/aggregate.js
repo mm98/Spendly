@@ -121,11 +121,39 @@ const categoryYearSpendQuery = db.prepare(`
 	GROUP BY oc.category_id
 `)
 
-/** Each category's 12-month average, keyed by category id: what it spent in the twelve whole
-    months before the one `today` (epoch seconds, UTC midnight) is in, divided by twelve. */
-export function categoryMonthAverages(userId, today) {
+// the twelve whole months before the one `today` (epoch seconds, UTC midnight) is in
+function lastTwelveMonths(today) {
 	const day = new Date(today * 1000)
-	const to = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1) / 1000
-	const from = Date.UTC(day.getUTCFullYear(), day.getUTCMonth() - 12, 1) / 1000
+	return {
+		from: Date.UTC(day.getUTCFullYear(), day.getUTCMonth() - 12, 1) / 1000,
+		to: Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1) / 1000
+	}
+}
+
+/** Each category's 12-month average, keyed by category id: what it spent in the twelve whole
+    months before the one `today` is in, divided by twelve. */
+export function categoryMonthAverages(userId, today) {
+	const { from, to } = lastTwelveMonths(today)
 	return new Map(categoryYearSpendQuery.all({ userId, from, to }).map(r => [r.categoryId, r.spend / 12]))
+}
+
+/* One category's orders over those twelve months, its share of each, driven from the category's
+   own links as the order counts above are. */
+const categoryYearOrdersQuery = db.prepare(`
+	SELECT ot.date, ot.total * 1.0 / ot.category_count AS spend
+	FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id
+	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+`)
+
+/** What one category spent in each of the twelve whole months before the one `today` is in,
+    oldest first: the limit check on its form (6c) counts the months a limit would have been passed. */
+export function categoryMonthSpends(userId, categoryId, today) {
+	const { from, to } = lastTwelveMonths(today)
+	const start = new Date(from * 1000)
+	const months = Array(12).fill(0)
+	for (const { date, spend } of categoryYearOrdersQuery.all({ userId, categoryId, from, to })) {
+		const at = new Date(date * 1000)
+		months[(at.getUTCFullYear() - start.getUTCFullYear()) * 12 + at.getUTCMonth() - start.getUTCMonth()] += spend
+	}
+	return months
 }
