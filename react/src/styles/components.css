@@ -1161,24 +1161,14 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   width: var(--control-h-touch);
   height: var(--control-h-touch);
 }
-/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c);
-   its round scrim keeps it legible over any photo */
+/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c).
+   Over a photo it reads by its own white fill and a soft shadow; nothing is drawn behind it */
 .sp-record__photos > .sp-record__pick { opacity: 0; }
 .sp-record:hover .sp-record__pick,
 .sp-record__pick:focus-within,
 .sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
 .sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
-.sp-record__pick > .sp-check { grid-area: 1 / 1; }
-.sp-record__pick::before {
-  content: "";
-  grid-area: 1 / 1;
-  width: calc(var(--box) + var(--sp-10));
-  height: calc(var(--box) + var(--sp-10));
-  border-radius: 50%;
-  background: var(--overlay-scrim);
-}
-/* the band that says there are no photos has nothing to read the box against, so it needs no scrim */
-.sp-record__photos--empty > .sp-record__pick::before { content: none; }
+.sp-record__photos:not(.sp-record__photos--empty) > .sp-record__pick > .sp-check { box-shadow: var(--shadow-menu); }
 /* the box and the menu sit over the photo, so both carry a lift to stay legible */
 .sp-record__photos .sp-check { box-shadow: 0 1px 4px rgba(27, 26, 23, 0.28); }
 .sp-record__menu {
@@ -1269,7 +1259,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-menu--floating {
   position: absolute;
   right: var(--sp-8);
-  top: calc(var(--control-h) + var(--sp-2));
+  /* 6 clear of its trigger, as every menu sits (c9) */
+  top: calc(var(--control-h) + var(--sp-6));
   z-index: 3;
   box-shadow: var(--shadow-menu);
 }
@@ -1365,6 +1356,11 @@ label.sp-option--swatch[aria-pressed="true"] {
   background: var(--swatch, var(--green));
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green);
 }
+/* focus on the chosen colour: a third ring outside the chosen one */
+.sp-option--swatch[aria-pressed="true"]:focus-visible,
+label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green), 0 0 0 7px var(--green-tint);
+}
 .sp-option--custom { background: var(--surface); border: 1px solid var(--line-3); color: var(--ink-3); }
 .sp-option--custom:hover { border-color: var(--line-5); }
 
@@ -1445,6 +1441,9 @@ label.sp-option--swatch[aria-pressed="true"] {
   white-space: nowrap;
   cursor: pointer;
 }
+/* in a narrow column the control stays inside it and its labels give way */
+.sp-segmented { max-width: 100%; }
+.sp-segmented__item { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .sp-segmented__item input[type="radio"] {
   position: absolute;
   width: 1px;
@@ -1554,6 +1553,8 @@ label.sp-option--swatch[aria-pressed="true"] {
   outline: none;
 }
 .sp-crumb__remove:hover { background: var(--green-5); color: var(--green); }
+/* the x keeps its 14px when a long crumb wraps */
+.sp-crumb__remove { flex: none; }
 .sp-crumb__remove:focus-visible { box-shadow: var(--ring); }
 
 /* ---------- file drop - LOCKED c4 ---------- */
@@ -1697,6 +1698,8 @@ label.sp-option--swatch[aria-pressed="true"] {
 .sp-combobox__trigger:focus-visible,
 .sp-combobox__trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: var(--ring); }
 .sp-combobox__trigger > .sp-grow { pointer-events: none; }
+/* a long chosen value stays on the field's one line and ends in an ellipsis */
+.sp-combobox__trigger > .sp-grow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* a flex box, like the card's and the row's chevrons: an inline svg sits on the
    text baseline instead, which reads as a glyph a pixel or two too high */
 .sp-combobox__chevron { display: flex; align-items: center; color: var(--ink-5); flex: none; }
@@ -1782,6 +1785,8 @@ label.sp-option--swatch[aria-pressed="true"] {
 .sp-combobox__dot[data-dot="done"] { background: var(--green); }
 .sp-combobox__dot[data-dot="returned"] { background: var(--amber-2); }
 .sp-combobox__dot[data-dot="cancelled"] { background: var(--red); }
+/* over the limit (8b) */
+.sp-combobox__dot[data-dot="problem"] { background: var(--red-ink); }
 .sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
 .sp-combobox__empty { padding: var(--sp-8) var(--sp-12); font-size: var(--t-13); color: var(--ink-5); }
@@ -2233,6 +2238,8 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
 }
 /* a key cap sits inside a line of text, so it never drives the line's height */
 .sp-kbd {
+  /* the product's face, not the browser's monospace for <kbd> */
+  font-family: inherit;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2440,6 +2447,7 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   margin-top: auto;
 }
 .sp-sheet__handle {
+  flex: none;
   width: 32px;
   height: 4px;
   border-radius: var(--r-marker);
@@ -2716,6 +2724,10 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
 .sp-line-editor--plain { padding-top: var(--sp-12); }
 .sp-line-editor--plain .sp-list-item__handle { padding-top: 0; height: 30px; }
 .sp-line-editor__head { display: flex; align-items: center; gap: var(--sp-8); }
+/* the head's buttons keep their size when a long title wraps */
+.sp-line-editor__head > .sp-icon-btn { flex: none; }
+/* on the phone the form spans the sheet, as 1c draws it */
+.sp-line-editor--sheet > .sp-line-editor__form { align-self: stretch; }
 /* fields two by two, or one, on the editor's 8px rhythm */
 .sp-line-editor--plain .sp-line-editor__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .sp-line-editor--plain .sp-line-editor__grid--one { grid-template-columns: minmax(0, 1fr); }
@@ -2779,6 +2791,10 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   color: var(--ink-3);
 }
 .sp-legend__item { display: flex; align-items: center; gap: var(--sp-6); }
+/* a long series name ends in an ellipsis inside the card; its key keeps its size */
+.sp-legend { min-width: 0; max-width: 100%; }
+.sp-legend__item { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-legend__item > .sp-legend__key { flex: none; }
 .sp-legend__key {
   width: 10px;
   height: 10px;
@@ -3550,6 +3566,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 .sp-sum { display: flex; align-items: baseline; gap: var(--sp-12); padding: var(--sp-8) 0; font-size: var(--t-12); }
 .sp-sum + .sp-sum { border-top: 1px solid var(--line-2); }
 .sp-sum__value { margin-left: auto; font-weight: 600; text-align: right; }
+/* a long value breaks inside the row rather than running past it */
+.sp-sum__value { min-width: 0; overflow-wrap: anywhere; }
 .sp-sum--stacked { flex-direction: column; gap: var(--sp-6); }
 .sp-sum--stacked .sp-sum__value { margin-left: 0; text-align: left; }
 .sp-sum--total { padding-top: var(--sp-12); border-top: 1px solid var(--line); }
@@ -4275,6 +4293,8 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-tip__head > :last-child { margin-left: auto; font-weight: 700; }
 .sp-tip__row { display: flex; align-items: center; gap: var(--sp-6); font-size: var(--t-11); color: var(--line-4); }
 .sp-tip__row > :last-child { margin-left: auto; }
+/* --line-4 reads on the light theme's dark panel; on the dark theme's panel it all but vanishes */
+[data-theme="dark"] .sp-tip__row { color: var(--ink-3); }
 
 /* the gauge reads its measurement from the same 5% scale the charts use */
 .sp-gauge__fill[data-fill="0"] { width: 0%; }
@@ -4367,7 +4387,7 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   border-radius: inherit;
 }
 /* the same scrim holding a dialog rather than sitting under a sheet */
-.sp-scrim--dialog { display: grid; place-items: center; padding: var(--sp-16); }
+.sp-scrim--dialog { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-16); }
 .sp-phone > .sp-sheet,
 .sp-phone > * > .sp-sheet { position: relative; }
 
@@ -4855,6 +4875,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-input.sp-input--cell:hover { border-color: var(--line-3); }
 .sp-input.sp-input--cell:focus,
 .sp-input.sp-input--cell[data-focus="true"] { border-color: var(--green); background: var(--surface); box-shadow: var(--ring); }
+/* a figure that was not saved stays marked: the cell rule above would otherwise cancel the field's red (21) */
+.sp-input.sp-input--cell[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
 
 /* a table read as a sheet of figures rather than a list of records (Budget 21b): the
    rules between rows and under the header go, and the columns carry the structure */
@@ -4868,3 +4890,122 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-card--flush .sp-table--compact td:first-child { padding-left: var(--card-pad); }
 .sp-card--flush .sp-table--compact th:last-child,
 .sp-card--flush .sp-table--compact td:last-child { padding-right: var(--card-pad); }
+
+
+/* ---------- behaviour the pages describe, taken from the app (brief 3, part C) ----------
+   Each rule names the section that describes it. */
+
+/* a link's underline is not in 9h's tab bar */
+a.sp-tabbar__item { text-decoration: none; }
+/* a saving of zero stays grey, on the dark card too */
+.sp-card--shell .sp-stat__figure.sp-ink-5 { color: var(--shell-item); }
+/* a pick-only field in error takes the message's colour, as any field does */
+.sp-combobox__trigger[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
+.sp-combobox__trigger[aria-invalid="true"]:focus-visible { border-color: var(--red-ink); box-shadow: var(--ring-error); }
+/* a live region, read out and drawn nowhere (c1, c9, 14a) */
+.sp-announce { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* overlays flip up when below has less room than above (c9, 2c, 5a), 6 clear as below */
+.sp-combobox__panel[data-place="up"] { top: auto; bottom: calc(100% + var(--sp-6)); }
+.sp-popover[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-6)); }
+.sp-menu--floating[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-6)); }
+.sp-record__menu .sp-menu--floating[data-place="up"] { top: auto; bottom: 100%; }
+/* A chart's readout (4a) stands above its own bar, centred on it and 8 clear of the top of
+   the tallest of that bar and its two neighbours, so it covers none of the three. --tip-at is
+   that height, measured from the column's bottom. Where that leaves too little room for it
+   inside the plot, data-pin="top" sets it inside the plot's top edge instead, still centred
+   on the bar, over the tops of the bars beneath it. Near the
+   chart's ends it shifts inward to stay in the card: data-side="start" aligns its left edge
+   with the bar's, data-side="end" its right edge. */
+.sp-bars__col:has(> .sp-bars__tip) { position: relative; }
+.sp-bars--plot .sp-bars__tip { --tip-at: 100%; position: absolute; left: 50%; bottom: calc(var(--tip-at) + var(--sp-8)); transform: translateX(-50%); z-index: 3; pointer-events: none; }
+.sp-bars--plot .sp-bars__tip[data-side="start"] { left: 0; transform: none; }
+.sp-bars--plot .sp-bars__tip[data-side="end"] { left: auto; right: 0; transform: none; }
+.sp-bars--plot .sp-bars__tip[data-pin="top"] { top: 0; bottom: auto; }
+/* search is one field, 420 fixed (9f, c11) */
+.sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { width: 420px; max-width: 100%; }
+/* a row that opens is never inert: pointer and hover fill (c15) */
+.sp-list-item--opens { cursor: pointer; }
+.sp-list-item--opens:hover { background: var(--hover); }
+/* a row opens from its title too, as a link a new tab can take (c1, 16a) */
+a.sp-cell-flex { color: inherit; text-decoration: none; outline: none; border-radius: var(--r-tile); }
+a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
+/* an earlier crumb is pressed to go back to it (4c) */
+button.sp-crumb { cursor: pointer; outline: none; }
+button.sp-crumb:focus-visible { box-shadow: var(--ring); }
+/* the alias that matched most recently is the green chip (5h) */
+.sp-chip[data-color="success"] { background: var(--green-tint); border-color: var(--green); color: var(--green); }
+/* a bookmark's picture strip is the link to its page (22a) */
+a.sp-record__photos { color: inherit; text-decoration: none; }
+/* on a phone a popover is a bottom sheet holding the same panel (c9, c13) */
+.sp-sheet > .sp-popover { position: static; width: auto; min-width: 0; max-width: none; padding: 0; border: 0; background: none; box-shadow: none; }
+/* on touch a phone's paired fields stack (18b) */
+.sp-touch .sp-fields { grid-template-columns: minmax(0, 1fr); }
+/* a card that is loading, empty or failed keeps the height it has when full (10a, 6b) */
+.sp-hold { display: grid; }
+.sp-hold__ghost,
+.sp-hold__state { grid-area: 1 / 1; display: grid; min-width: 0; }
+.sp-hold__ghost { visibility: hidden; }
+/* Settings caps its cards at 640 (11a) */
+.sp-column--form { max-width: 640px; }
+/* the sign-in card centres on the window at a 16 inset (20a, 20e) */
+.sp-auth { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-16); background: var(--bg); }
+/* on touch a small control keeps its drawn size inside a 44px press area (19b) */
+.sp-touch .sp-icon-btn--small,
+.sp-touch .sp-icon-btn--field:not(.sp-field__trail),
+.sp-touch .sp-crumb__remove,
+.sp-touch .sp-list-item__handle,
+.sp-touch .sp-slot__remove,
+.sp-touch .sp-toast__undo { position: relative; }
+.sp-touch .sp-icon-btn--small::after,
+.sp-touch .sp-icon-btn--field:not(.sp-field__trail)::after,
+.sp-touch .sp-crumb__remove::after,
+.sp-touch .sp-list-item__handle::after,
+.sp-touch .sp-slot__remove::after,
+.sp-touch .sp-toast__undo::after { content: ""; position: absolute; top: 50%; left: 50%; width: var(--control-h-touch); height: var(--control-h-touch); transform: translate(-50%, -50%); }
+/* the presets' track is the target, not only the pill drawn in it (7a) */
+.sp-touch .sp-segmented__item::before,
+.sp-touch .sp-period__preset::before { content: ""; position: absolute; inset: calc(var(--sp-6) * -1) 0; }
+/* a card's menu sits in a hit target of its own, larger than its glyph (c1) */
+.sp-record__menu > .sp-record__act::after { content: ""; position: absolute; inset: 0; }
+
+/* the way out of the phone's full-screen search: Cancel at the field's right (7b) */
+.sp-palette--screen .sp-palette__search > .sp-btn { flex: none; width: auto; }
+/* on touch every control listed in 18b and 19b takes the touch height visibly, not only a press area */
+.sp-touch .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field) { width: var(--control-h-touch); height: var(--control-h-touch); }
+.sp-touch .sp-window { height: var(--control-h-touch); }
+.sp-touch .sp-window__btn { width: var(--control-h-touch); }
+.sp-touch .sp-add-row { height: var(--control-h-touch); }
+.sp-touch .sp-chip { height: auto; min-height: var(--control-h-touch); }
+.sp-touch .sp-option { width: var(--control-h-touch); height: var(--control-h-touch); }
+.sp-touch .sp-menu__item,
+.sp-touch .sp-combobox__option,
+.sp-touch .sp-palette__row,
+.sp-touch .sp-field-group__head { box-sizing: border-box; min-height: var(--control-h-touch); }
+.sp-touch .sp-field-group__panel .sp-input { min-height: var(--control-h-touch); }
+.sp-touch .sp-sum:has(.sp-input--cell) { box-sizing: border-box; min-height: var(--control-h-touch); align-items: center; }
+/* card photos in dark mode keep 17b's edge, drawn inside so the strip does not grow */
+[data-theme="dark"] .sp-record__photo { box-shadow: inset 0 0 0 1px var(--line-3); }
+/* a status pill in Settings' Statuses list may end in an ellipsis; everywhere else a pill never truncates (2i) */
+.sp-pill--truncate { display: inline-block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- brief 4: placements the pages describe ---------- */
+
+/* The account menu (9c) sits on the window, not in the sidebar, which scrolls and would cut
+   it off (c9). The wrapper is fixed at the account block's box; the menu hangs from it:
+   upward at the block's width 4 above it, or on the collapsed rail to the right of the
+   avatar, 4 clear, bottom edges aligned. */
+.sp-sidebar__menu { position: fixed; z-index: 30; }
+.sp-sidebar__menu > .sp-menu { position: absolute; box-shadow: var(--shadow-menu); }
+.sp-sidebar__menu--up > .sp-menu { left: 0; right: 0; bottom: calc(100% + var(--sp-4)); min-width: 0; }
+.sp-sidebar__menu--side > .sp-menu { left: calc(100% + var(--sp-4)); bottom: 0; }
+
+/* A rail icon's label (9b, 9f): the c18 chip to the right of the icon, 6 clear and centred on
+   it, on the window so the scrolling sidebar cannot cut it. Shown on hover and on keyboard
+   focus; the item's aria-label carries the same name. */
+.sp-tip--float { position: fixed; z-index: 30; transform: translateY(-50%); pointer-events: none; }
+
+/* On a phone a selection takes the top bar's place (c11, c12): the same slot, edge to edge,
+   and it stays at the top while the list scrolls. The top bar returns when the selection
+   is cleared. */
+.sp-bulkbar--head { position: sticky; top: 0; z-index: 5; }
+.sp-touch:has(.sp-bulkbar--head) .sp-topbar--touch { display: none; }

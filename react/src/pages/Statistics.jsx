@@ -9,6 +9,7 @@ import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Bars, ChartTip, Donut, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
 import { PeriodPicker, PeriodWindow, RangePicker, Selected } from '../components/DatePickers.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { TopBarEnd } from '../app/topBarEnd.jsx'
 import { Caption, Crumb, Crumbs, Foot, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -209,8 +210,27 @@ export default function Statistics() {
 				onChange={(a, b) => setDraft({ from: a, to: b })} onApply={applyCustom} onCancel={() => setDraft(null)} />
 		)
 		: null
+	const which = (
+		<Combobox variant="end" value={FLOWS.find(f => f.value === flow).label} aria-label="Which orders">
+			{FLOWS.map(f => (
+				<ComboboxOption key={f.value} selected={f.value === flow} onSelect={() => write({ flow: f.value })}>
+					<span className="sp-stack"><span className="sp-data">{f.label}</span><span className="sp-meta">{f.help}</span></span>
+				</ComboboxOption>
+			))}
+		</Combobox>
+	)
+	// off touch the lens and Export sit at the top bar's right end, and the period row holds the period alone (4a)
+	const barEnd = touch ? null : (
+		<TopBarEnd>
+			{which}
+			<Button variant="outline" onClick={exportSlice} disabled={!view?.orders}>
+				{view ? `Export ${counted(view.orders, 'order')}` : 'Export'}
+			</Button>
+		</TopBarEnd>
+	)
 	const period = (
 		<>
+			{barEnd}
 			<PeriodPicker
 				name="statistics-period"
 				presets={touch ? PHONE_PRESETS : PRESETS}
@@ -239,22 +259,7 @@ export default function Statistics() {
 							onNext={newer ? () => show(range, newer) : undefined}
 						/>
 					)}
-				actions={(
-					<>
-						<Combobox variant="end" value={FLOWS.find(f => f.value === flow).label} aria-label="Which orders">
-							{FLOWS.map(f => (
-								<ComboboxOption key={f.value} selected={f.value === flow} onSelect={() => write({ flow: f.value })}>
-									<span className="sp-stack"><span className="sp-data">{f.label}</span><span className="sp-meta">{f.help}</span></span>
-								</ComboboxOption>
-							))}
-						</Combobox>
-						{touch ? null : (
-							<Button variant="outline" onClick={exportSlice} disabled={!view?.orders}>
-								{view ? `Export ${counted(view.orders, 'order')}` : 'Export'}
-							</Button>
-						)}
-					</>
-				)}
+				actions={touch ? which : null}
 			>
 				{touch
 					? null

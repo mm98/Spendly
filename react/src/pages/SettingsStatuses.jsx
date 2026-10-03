@@ -17,9 +17,10 @@ import { Heading } from './SettingsParts.jsx'
 
 const TONE_NAMES = [['success', 'Positive'], ['progress', 'In progress'], ['danger', 'Problem'], ['neutral', 'Neutral']]
 
+// the one list where a long status name ends in an ellipsis, so its row keeps its height (11a)
 const StatusLook = ({ tone, children }) => {
 	const look = TONES[tone] ?? {}
-	return <Pill color={look.color} state={look.state}>{children}</Pill>
+	return <Pill color={look.color} state={look.state} truncate>{children}</Pill>
 }
 
 /** Statuses (11a), each saved as made: a row moves by drag or keys (on a phone by up and down buttons,

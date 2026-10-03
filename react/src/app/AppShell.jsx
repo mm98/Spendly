@@ -1,12 +1,13 @@
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
-import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, SidebarSplit, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
+import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Switch } from '../components/Choice.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
+import { TopBarEndSlot } from './topBarEnd.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
@@ -36,6 +37,7 @@ const TABS = [
 const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'settings', 'more']
 
 export function AppShell() {
+	const [topBarEnd, setTopBarEnd] = useState(null)
 	const shape = useShellShape()
 	const touch = shape === 'touch'
 	// below 560 the bottom zone gives Settings and the theme to the account menu (9g)
@@ -150,10 +152,14 @@ export function AppShell() {
 	/* One tree for every shape, so crossing a breakpoint keeps the page mounted with whatever
 	   the reader had not saved. */
 	return (
+		<TopBarEndSlot.Provider value={topBarEnd}>
 		<Toaster notice={update}>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
 				{touch ? null : sidebar({ navKey, fold, short, go, showKeys })}
-				<TopBar touch={touch}>{search}</TopBar>
+				<TopBar touch={touch}>
+					{search}
+					{touch ? null : <><span className="sp-grow" /><span className="sp-row-flex sp-gap-8" ref={setTopBarEnd} /></>}
+				</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
 				{touch
@@ -171,6 +177,7 @@ export function AppShell() {
 			{signedOut}
 			<SavedLater />
 		</Toaster>
+		</TopBarEndSlot.Provider>
 	)
 }
 
@@ -297,25 +304,9 @@ function NavScroll({ navKey, children }) {
 	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
-/* New order is typed in by hand; its chevron offers the other ways to start one (16a, 3b). */
+/* New order is a plain row: the blank order to type in (16a); the other ways in live on its screen (3b). */
 function NewOrder({ rail }) {
-	const navigate = useNavigate()
-	const [open, setOpen] = useState(false)
-	const close = useCallback(() => setOpen(false), [])
-	const go = to => { close(); navigate(to) }
-	return (
-		<SidebarSplit icon="plus" to="/orders/new?source=empty" tip={rail ? 'New order' : undefined} label="Other ways to start an order"
-			expanded={open} onClick={() => setOpen(!open)} onDismiss={close}
-			menu={(
-				<Menu aria-label="Start an order">
-					<MenuItem icon="camera" onClick={() => go('/orders/new?source=scan')}>Scan a receipt</MenuItem>
-					<MenuItem icon="upload" onClick={() => go('/settings/import')}>Import a file</MenuItem>
-					<MenuItem icon="copy" onClick={() => go('/orders/new?pick=copy')}>Copy a previous order</MenuItem>
-				</Menu>
-			)}>
-			New order
-		</SidebarSplit>
-	)
+	return <NavItem icon="plus" to="/orders/new?source=empty" tip={rail ? 'New order' : undefined} aria-label="New order">New order</NavItem>
 }
 
 /* A count is read with its destination; on the rail the label is the tile's only name. */

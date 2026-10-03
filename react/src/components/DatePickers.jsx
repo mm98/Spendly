@@ -366,7 +366,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 
 	return (
 		<div
-			className={join('sp-range', single && 'sp-range--single')}
+			className="sp-range"
 			onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); revert() } }}
 			{...rest}
 		>

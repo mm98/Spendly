@@ -11,7 +11,6 @@
 	position: sticky;
 	top: 0;
 	height: 100dvh;
-	overflow-y: auto;
 }
 .sp-shell--viewport > .sp-sidebar.sp-sidebar--peek { position: fixed; height: 100dvh; }
 .sp-shell--viewport .sp-shell__page > .sp-topbar {
@@ -29,7 +28,6 @@
 
 /* below 640 the shell is the phone the design draws (Mobile screens .ms-device), on the whole window */
 .sp-shell--touch {
-	--phone-gutter: var(--sp-12);
 	display: flex;
 	flex-direction: column;
 	min-height: 100dvh;
@@ -98,6 +96,9 @@ body > .sp-scrim:has(> .sp-palette) { place-items: start center; padding-top: 15
 	overflow-y: auto;
 	padding-bottom: calc(var(--card-pad) + env(safe-area-inset-bottom));
 }
+/* off touch the Filters sheet is a drawer from the left, 320px wide, the window's height (18b) */
+body:not(.sp-touch) > .sp-scrim--dialog:has(> .sp-sheet) { place-items: stretch start; }
+body:not(.sp-touch) > .sp-scrim--dialog > .sp-sheet { width: 320px; max-width: 100%; max-height: none; margin-top: 0; border-radius: 0; }
 /* Mobile screens .ms-sheet: on a phone a sheet rises at most this far, so the page stays in view */
 body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 
@@ -141,7 +142,6 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 [data-theme="light"] :is(.sp-mark--goods, .sp-record__photo):has(> img) { background: var(--bg); }
 [data-theme="light"] :is(.sp-mark--goods, .sp-record__photo) > img { filter: saturate(0.88); opacity: 0.92; }
 [data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img) { border-color: var(--line-3); }
-[data-theme="dark"] .sp-record__photo > img { outline: 1px solid var(--line-3); outline-offset: -1px; }
 [data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo) > img { opacity: 0.9; }
 [data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo):hover > img { opacity: 1; }
 
@@ -219,8 +219,6 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 /* a value with no orders is disabled rather than hidden (c12), as a disabled choice reads */
 .sp-chip--facet:has(input:disabled),
 .sp-chip--facet:has(input:disabled):hover { border-color: var(--line-3); color: var(--ink-5); cursor: not-allowed; }
-/* on touch the period stepper is a control at the touch height (c0, Mobile screens 7a) */
-.sp-touch .sp-window { height: var(--control-h-touch); }
 /* the palette never grows past 60vh; its results scroll inside it (9d). Full screen on a phone (7b) */
 .sp-palette { display: flex; flex-direction: column; max-height: 60vh; }
 .sp-palette--screen { max-height: none; }
@@ -230,6 +228,17 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
 @media (prefers-reduced-motion: reduce) {
 	.sp-sheet { transition: none; }
+}
+
+/* the field's trailing button carries the same 44px press area on touch as the design's small controls (19b) */
+.sp-touch button.sp-field__trail::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: var(--control-h-touch);
+	height: var(--control-h-touch);
+	transform: translate(-50%, -50%);
 }
 
 /* the item editor measures its own width: below 640 its thirds become fixed + fluid (15b, .rr-f-thirds) */
@@ -243,153 +252,13 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-sum[role="button"]:focus-visible { border-radius: var(--r-marker); box-shadow: var(--ring); }
 .sp-sum__value > .sp-input.sp-input--cell { width: calc(12ch + var(--sp-4)); }
 
-/* a small control keeps its drawing and carries an invisible 44px target on touch (19b, 18b) */
-.sp-touch button.sp-field__trail::after,
-.sp-touch .sp-icon-btn--small::after,
-.sp-touch .sp-icon-btn--field::after,
-.sp-touch .sp-crumb__remove::after,
-.sp-touch .sp-list-item__handle::after,
-.sp-touch .sp-slot__remove::after,
-.sp-touch .sp-toast__undo::after {
-	content: "";
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: var(--control-h-touch);
-	height: var(--control-h-touch);
-	transform: translate(-50%, -50%);
-}
-.sp-touch .sp-icon-btn--small,
-.sp-touch .sp-icon-btn--field:not(.sp-field__trail),
-.sp-touch .sp-crumb__remove,
-.sp-touch .sp-list-item__handle,
-.sp-touch .sp-slot__remove,
-.sp-touch .sp-toast__undo { position: relative; }
-/* the presets' track is the target, not only the pill drawn in it (Mobile screens 7a) */
-.sp-touch .sp-segmented__item::before,
-.sp-touch .sp-period__preset::before { content: ""; position: absolute; inset: calc(var(--sp-6) * -1) 0; }
-/* a card's menu sits in a hit target of its own, larger than its glyph (c1) */
-.sp-record__menu > .sp-record__act::after { content: ""; position: absolute; inset: 0; }
-/* on touch a phone's paired fields stack (18b; Responsive reference .rr-f-halves) */
-.sp-touch .sp-fields { grid-template-columns: minmax(0, 1fr); }
-/* on a phone a popover is a bottom sheet holding the same panel (c9, c13): the sheet is its surface */
-.sp-sheet > .sp-popover {
-	position: static;
-	width: auto;
-	min-width: 0;
-	max-width: none;
-	padding: 0;
-	border: 0;
-	background: none;
-	box-shadow: none;
-}
 /* compact rows are 8px vertical (15a; Settings 11a) */
 [data-density="compact"] .sp-table tbody td { padding-top: var(--sp-8); padding-bottom: var(--sp-8); }
-/* a bookmark's picture strip is the link to its page (22a) */
-a.sp-record__photos { color: inherit; text-decoration: none; }
-/* a pick-only field in error takes the message's colour, as any field does (handoff Field) */
-.sp-combobox__trigger[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
-.sp-combobox__trigger[aria-invalid="true"]:focus-visible { border-color: var(--red-ink); box-shadow: var(--ring-error); }
 
-/* a live region, read out and drawn nowhere (c1, c9, 14a) */
-.sp-announce {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	overflow: hidden;
-	clip: rect(0 0 0 0);
-	white-space: nowrap;
-}
 
-/* overlays flip up when below has less room than above (c9, 2c, 5a) */
-.sp-combobox__panel[data-place="up"] { top: auto; bottom: calc(100% + var(--sp-2)); }
-.sp-popover[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
-.sp-menu--floating[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
-.sp-record__menu .sp-menu--floating[data-place="up"] { top: auto; bottom: 100%; }
 
-/* the account menu opens upward, the block's width, 4 above it, or beside the avatar on the rail (9c);
-   on the window, so the sidebar's scrolling cannot clip it (c9) */
-.sp-sidebar__menu { position: fixed; z-index: 30; }
-.sp-sidebar__menu > .sp-menu { position: absolute; box-shadow: var(--shadow-menu); }
-.sp-sidebar__menu--up > .sp-menu { left: 0; right: 0; bottom: calc(100% + var(--sp-4)); min-width: 0; }
-.sp-sidebar__menu--side > .sp-menu { left: calc(100% + var(--sp-4)); bottom: 0; }
-/* the New order chevron's menu, below its row and 6 clear of it (c9) */
-.sp-sidebar__menu--down > .sp-menu { left: 0; right: 0; top: calc(100% + var(--sp-6)); min-width: 0; }
-/* New order is a split control: the chevron offers Scan a receipt and Import a file (16a, 3b) */
-.sp-nav-split { display: flex; gap: var(--sp-2); }
-.sp-nav-split > .sp-nav-item:first-child { flex: 1; min-width: 0; }
-.sp-nav-split > .sp-nav-split__more { flex: none; width: var(--menu-col); justify-content: center; padding: 0; }
-/* the rail keeps New order as one neutral icon (9f) */
-.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-nav-split__more,
-.sp-sidebar--rail:not(.sp-sidebar--peek) .sp-nav-split__more { display: none; }
-/* the rail's tooltip carries the full label (9b, 9f), on the window where the scrolling sidebar cannot clip it */
-.sp-tip--float { position: fixed; z-index: 30; transform: translate(-50%, calc(-100% - var(--sp-6))); pointer-events: none; }
-/* search is one field, 420 fixed (9f, c11) */
-.sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { width: 420px; max-width: 100%; }
 
-/* on a phone a selection stands in for the top bar (c11, c12), reaching the screen's edges as 18a's bars do */
-.sp-bulkbar--head {
-	position: sticky;
-	top: 0;
-	z-index: 5;
-	margin: calc(var(--sp-12) * -1) calc(var(--sp-12) * -1) 0;
-}
-.sp-shell--touch:has(.sp-bulkbar--head) > .sp-shell__page > .sp-topbar { display: none; }
-
-/* a card that is loading, empty or failed keeps the height it has when full (10a, 6b) */
-.sp-hold { display: grid; }
-.sp-hold__ghost,
-.sp-hold__state { grid-area: 1 / 1; display: grid; min-width: 0; }
-.sp-hold__ghost { visibility: hidden; }
-
-/* the readout hangs beside its column inside the plot (Order statistics .os-tip, 4a), on the side with room */
-.sp-bars__col:has(> .sp-bars__tip) { position: relative; }
-.sp-bars--plot .sp-bars__tip { position: absolute; right: 100%; bottom: 96px; z-index: 3; margin-right: var(--sp-12); pointer-events: none; }
-.sp-bars--plot .sp-bars__tip[data-side="end"] { right: auto; left: 100%; margin-right: 0; margin-left: var(--sp-12); }
 /* a figure card's bar readout hangs above its bar, right edges together (Order statistics .os-spark-tip) */
 .sp-bars--spark .sp-bars__bar:has(> .sp-bars__tip) { position: relative; }
 .sp-bars--spark .sp-bars__tip { position: absolute; right: 0; bottom: calc(100% + var(--sp-6)); z-index: 3; pointer-events: none; }
 .sp-bars--spark .sp-bars__tip[data-side="end"] { right: auto; left: 0; }
-
-/* a line row never looks inert: pointer and hover fill (c15) */
-.sp-list-item--opens { cursor: pointer; }
-.sp-list-item--opens:hover { background: var(--hover); }
-/* a row opens from its title too, as a link a new tab can take (c1, 16a) */
-a.sp-cell-flex { color: inherit; text-decoration: none; outline: none; border-radius: var(--r-tile); }
-a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
-/* an earlier crumb is pressed to go back to it (4c) */
-button.sp-crumb { cursor: pointer; outline: none; }
-button.sp-crumb:focus-visible { box-shadow: var(--ring); }
-/* the alias that matched most recently is the green chip (5h) */
-.sp-chip[data-color="success"] { background: var(--green-tint); border-color: var(--green); color: var(--green); }
-/* a saving of zero stays grey, on the dark card too (PROJECT-RULES) */
-.sp-card--shell .sp-stat__figure.sp-ink-5 { color: var(--shell-item); }
-
-/* no sidebar and no top bar: the card centres on a 100dvh canvas at a 16 inset (20a, 20e) */
-.sp-auth {
-	min-height: 100dvh;
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	place-items: center;
-	padding: var(--sp-16);
-	background: var(--bg);
-}
-
-/* Settings caps its cards at 640 (11a, Settings .st-pane) */
-.sp-column--form { max-width: 640px; }
-
-/* not yet built as drawn: c14 puts two fields over one scrolling month in a phone's sheet */
-.sp-range--single { width: auto; }
-
-/* the design's drawing where its own stylesheet does not give it: 1c's phone editor spans the sheet */
-.sp-line-editor--sheet > .sp-line-editor__form { align-self: stretch; }
-/* readable in dark: the readout's rows take --line-4, which on the dark surface is near invisible */
-[data-theme="dark"] .sp-tip__row { color: var(--ink-3); }
-/* a budget figure that was not saved reads as invalid: .sp-input--cell otherwise cancels the red */
-.sp-input.sp-input--cell[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
-/* 9h draws the tab bar's items as links; a link's underline is not in the drawing */
-a.sp-tabbar__item { text-decoration: none; }
-/* the period row holds presets, stepper, dates, comparison, note and actions: on one line its
-   presets are squeezed into each other at every desktop width, so it wraps as touch does */
-.sp-period { flex-wrap: wrap; }

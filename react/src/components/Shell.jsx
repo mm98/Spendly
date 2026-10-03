@@ -11,10 +11,13 @@ import { Button } from './Button.jsx'
 
 /** Whether the page sits in the touch shell: what a part that changes its form on touch reads. */
 export const ShellTouch = createContext(false)
+// on a phone, the top bar's slot: a selection bar takes it, edge to edge (c11, c12)
+export const ShellHead = createContext(null)
 
 /** `viewport` fills the window; `touch` is the shell below 640: top bar, content, tab bar, one
     floating action. `cover` owns the whole touch screen (7b's search), the page mounted under it. */
 export function Shell({ collapsed = false, viewport = false, touch = false, cover, children, ...rest }) {
+	const [head, setHead] = useState(null)
 	reject(rest, 'Shell')
 	let menu = null, topbar = null, content = null, tabbar = null, fab = null
 	for (const child of [].concat(children ?? []).flat()) {
@@ -36,16 +39,20 @@ export function Shell({ collapsed = false, viewport = false, touch = false, cove
 	   the page rather than mounting it again and losing what the reader had not saved. */
 	return (
 		<ShellTouch.Provider value={touch}>
+		<ShellHead.Provider value={touch ? head : null}>
 			<div className={touch ? 'sp-shell--touch sp-touch' : join('sp-shell', collapsed && 'sp-shell--collapsed', viewport && 'sp-shell--viewport')} {...rest}>
 				{touch ? null : menu}
 				<div className="sp-shell__page" hidden={touch && !!cover}>
 					{topbar}
+					{/* no box of its own, so the bar it holds sticks to the page, not to this wrapper */}
+					{touch ? <div ref={setHead} style={{ display: 'contents' }} /> : null}
 					{content}
 				</div>
 				{touch && cover ? <div className="sp-shell__page">{cover}</div> : null}
 				{touch && !cover ? fab : null}
 				{touch && !cover ? tabbar : null}
 			</div>
+		</ShellHead.Provider>
 		</ShellTouch.Provider>
 	)
 }
@@ -193,33 +200,16 @@ function useSidebarMenu({ expanded, onClick, onDismiss }) {
 		end.current = ev.key === 'ArrowUp' ? 'last' : 'first'
 		onClick?.(ev)
 	}
-	// the menu drops below the box, or opens beside it on the rail; `up` opens it above, from the foot
-	const drawn = (menu, way) => (at && menu
+	// the menu opens above the block at its width, or beside the avatar on the rail (9c)
+	const drawn = menu => (at && menu
 		? createPortal(
-			<div ref={panel} className={join('sp-sidebar__menu', at.side ? 'sp-sidebar__menu--side' : way === 'up' ? 'sp-sidebar__menu--up' : 'sp-sidebar__menu--down')}
+			<div ref={panel} className={join('sp-sidebar__menu', at.side ? 'sp-sidebar__menu--side' : 'sp-sidebar__menu--up')}
 				style={{ left: at.left, top: at.top, width: at.width, height: at.height }} onKeyDown={keys}>
 				{menu}
 			</div>,
 			document.body)
 		: null)
 	return { block, button, opener, drawn }
-}
-
-/** A sidebar row with a second way in: the row goes to `to`, and the chevron at its end opens `menu`
-    (16a: New order, then Scan a receipt, Import a file, Copy a previous order). The rail keeps the row only. */
-export function SidebarSplit({ icon, to, current = false, tip, label, expanded = false, onClick, onDismiss, menu, children, ...rest }) {
-	reject(rest, 'SidebarSplit')
-	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
-	return (
-		<div className="sp-nav-split" ref={block}>
-			<NavItem icon={icon} to={to} current={current} tip={tip} aria-label={children} {...rest}>{children}</NavItem>
-			<button type="button" className="sp-nav-item sp-nav-split__more" ref={button} aria-label={label} aria-haspopup="menu"
-				aria-expanded={expanded ? 'true' : 'false'} onClick={onClick} onKeyDown={opener}>
-				<Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={14} />
-			</button>
-			{drawn(menu)}
-		</div>
-	)
 }
 
 /** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
@@ -251,33 +241,25 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 				<span className="sp-combobox__chevron"><Icon name="chevron-up" size={14} /></span>
 				{hint}
 			</button>
-			{drawn(menu, 'up')}
+			{drawn(menu)}
 		</>
 	)
 }
 
-/* The rail's label where [data-tip] draws it, but fixed to the window so the sidebar's scroll cannot
-   clip it, and held inside the window's edge. Only its position is set here. */
+/* The rail's label, on the window so the sidebar's scroll cannot clip it; only its position is set here. */
 function useTip(tip) {
 	const [at, setAt] = useState(null)
-	const box = useRef(null)
 	useEffect(() => { if (!tip) setAt(null) }, [tip])
-	useLayoutEffect(() => {
-		const el = box.current
-		if (!at || !el) return
-		const edge = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-8'))
-		const half = el.offsetWidth / 2
-		const left = Math.min(Math.max(at.left, edge + half), window.innerWidth - edge - half)
-		if (left !== at.left) setAt({ ...at, left })
-	}, [at])
 	if (!tip) return [null, {}]
+	// the label stands to the right of the icon, 6 clear and centred on it (9b, 9f)
 	const show = ev => {
 		const r = ev.currentTarget.getBoundingClientRect()
-		setAt({ left: r.left + r.width / 2, top: r.top })
+		const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-6'))
+		setAt({ left: r.right + gap, top: r.top + r.height / 2 })
 	}
 	const hide = () => setAt(null)
 	const hint = at
-		? createPortal(<span ref={box} className="sp-tip sp-tip--float" role="tooltip" style={{ left: at.left, top: at.top }}>{tip}</span>, document.body)
+		? createPortal(<span className="sp-tip sp-tip--float" role="tooltip" style={{ left: at.left, top: at.top }}>{tip}</span>, document.body)
 		: null
 	return [hint, { onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: hide }]
 }
@@ -312,7 +294,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 						? (
 							<>
 								<SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
-								{onCancel ? <Button variant="text" size="small" onClick={onCancel}>Cancel</Button> : null}
+								{onCancel ? <Button variant="text" onClick={onCancel}>Cancel</Button> : null}
 							</>
 						)
 						: (
