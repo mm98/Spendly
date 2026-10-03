@@ -263,7 +263,8 @@ function alertsOf(view, attention) {
 	const lookalikes = attention?.lookalikeVendors
 		? [{
 			key: 'vendors', to: '/vendors?flag=possible-duplicate', count: amount(attention.lookalikeVendors, 0),
-			text: 'vendors look like duplicates', phone: 'look like duplicates',
+			// with two buttons beside it a phone's line is shorter, so it stays one line
+			text: 'vendors look like duplicates', phone: pair ? 'look alike' : 'look like duplicates',
 			actions: pair
 				? <>
 					<Button variant="outline" size="small" to="/vendors?flag=possible-duplicate">Review</Button>
@@ -296,7 +297,7 @@ function AlertsCard({ view, attention }) {
 					{alerts
 						? shown.map(a => (
 							<ListItem key={a.key} to={a.actions ? undefined : a.to} color={a.color} chevron={a.actions ? undefined : CHEVRON} count={a.count} actions={a.actions}>
-								<span className="sp-grow">{a.text}</span>
+								<span className={a.actions ? 'sp-grow sp-truncate' : 'sp-grow'}>{a.text}</span>
 							</ListItem>
 						))
 						: ['62pc', '48pc', '55pc'].map(width => <AlertSkeleton key={width} width={width} />)}
@@ -623,7 +624,7 @@ function PhoneAlerts({ view, attention }) {
 							: null}
 						{alerts.others.map(a => (
 							<ListItem key={a.key} to={a.actions ? undefined : a.to} chevron={a.actions ? undefined : chevron} count={a.count} actions={a.actions}>
-								<span className="sp-data sp-grow">{a.phone}</span>
+								<span className={a.actions ? 'sp-data sp-grow sp-truncate' : 'sp-data sp-grow'}>{a.phone}</span>
 							</ListItem>
 						))}
 					</>

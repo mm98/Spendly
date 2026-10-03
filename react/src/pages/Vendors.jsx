@@ -171,9 +171,9 @@ export default function Vendors() {
 	const crumbs = alike
 		? <Filters><Crumb name="the possible duplicates filter" onRemove={() => write(query, sort.id, false, false)}>Possible duplicates</Crumb></Filters>
 		: null
-	// in the look-alike view a probable duplicate names the vendor it is like
+	// in the look-alike view a probable duplicate leads with the vendor it is like: it is why the row is here
 	const likeNote = v => (alike && v.duplicateOf
-		? <>{dot}<span className="sp-ink-warning">possible duplicate of {nameOf(v.duplicateOf)}</span></>
+		? <><span className="sp-ink-warning">possible duplicate of {nameOf(v.duplicateOf)}</span>{dot}</>
 		: null)
 
 	let body
@@ -222,7 +222,7 @@ export default function Vendors() {
 						<VendorMark name={v.name} colour={v.colour} />
 						<Stacked>
 							<span className="sp-heading sp-truncate">{v.name}</span>
-							<span className="sp-meta sp-truncate">{factsOf(v, shortDate)}{likeNote(v)}</span>
+							<span className="sp-meta sp-truncate">{likeNote(v)}{factsOf(v, shortDate)}</span>
 						</Stacked>
 						<span className="sp-amount sp-nowrap">{amount(v.spend)}</span>
 					</div>
@@ -247,7 +247,7 @@ export default function Vendors() {
 						<VendorMark name={v.name} colour={v.colour} />
 						<Stacked>
 							<span className="sp-title sp-truncate">{v.name}</span>
-							<span className="sp-meta sp-truncate">{factsOf(v, folded ? dayMonth : null)}{likeNote(v)}</span>
+							<span className="sp-meta sp-truncate">{likeNote(v)}{factsOf(v, folded ? dayMonth : null)}</span>
 						</Stacked>
 					</ListCell>,
 					folded ? null : (
