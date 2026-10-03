@@ -1,8 +1,10 @@
+import { createContext, useContext, useMemo } from 'react'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { itemAttachmentThumbnailUrl } from '../api/client.js'
+import { getCategories, getStats, itemAttachmentThumbnailUrl, overBudget, withMonthSpend } from '../api/client.js'
+import { useApi } from '../api/useApi.js'
 import { dot, plural } from '../api/format.js'
 import { TONES, useStatuses } from './statuses.js'
 
@@ -44,15 +46,51 @@ export function StatusPill({ status }) {
 /** The columns an order table keeps at its own width (2i): Items goes at 1040 and under, Categories at 880. */
 export const columnsFor = width => ({ items: width > 1040, categories: width > 880 })
 
-/* Two categories fit a row; past two the first stands for the rest, with their count (2b).
-   One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
+const NONE = new Set()
+
+/** The categories over their monthly limit this month (8b), as ids: none until both answers are in.
+    The same reads as the palette's Orders over limit, so the two share their answers. */
+export function useOverLimit(enabled = true) {
+	const month = useApi(getStats, ['month', undefined, undefined], { enabled }).data?.window
+	const categories = useApi(getCategories, [], { enabled }).data
+	return useMemo(() => (month && categories ? new Set(withMonthSpend(categories, month.split).filter(overBudget).map(c => c.id)) : NONE),
+		[month, categories])
+}
+
+/* A list that names many categories asks once, here, for every chip in it; a chip with no list
+   around it asks for itself. */
+const OverLimitList = createContext(null)
+export function OverLimitProvider({ children }) {
+	return <OverLimitList.Provider value={useOverLimit()}>{children}</OverLimitList.Provider>
+}
+export function useOverLimitIds() {
+	const given = useContext(OverLimitList)
+	const own = useOverLimit(given === null)
+	return given ?? own
+}
+
+/** The mark a category over its limit carries wherever it is named (8b, c19). */
+export function OverLimitDot() {
+	return <span className="sp-combobox__dot" data-dot="problem" role="img" aria-label="over its limit this month" title="Over its limit this month" />
+}
+
+/* Two categories fit a row; past two the first stands for the rest, its count carrying their mark (2b,
+   8b). One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
 export function CategoryChips({ categories }) {
+	const over = useOverLimitIds()
 	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">No category</Chip></div>
 	const shown = categories.length > 2 ? categories.slice(0, 1) : categories
+	const rest = categories.slice(shown.length)
 	return (
 		<div className="sp-row-flex sp-gap-6">
-			{shown.map(c => <span key={c.id} className="ol-chip-slot"><Chip><span className="sp-truncate">{c.name}</span></Chip></span>)}
-			{categories.length > 2 ? <span className="sp-flex-none"><Chip>{`+${categories.length - 1}`}</Chip></span> : null}
+			{shown.map(c => (
+				<span key={c.id} className="ol-chip-slot">
+					<Chip trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{c.name}</Chip>
+				</span>
+			))}
+			{rest.length
+				? <span className="sp-flex-none"><Chip trail={rest.some(c => over.has(c.id)) ? <OverLimitDot /> : undefined}>{`+${rest.length}`}</Chip></span>
+				: null}
 		</div>
 	)
 }

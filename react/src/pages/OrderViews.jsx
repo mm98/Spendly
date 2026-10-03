@@ -2,14 +2,14 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card } from '../components/Card.jsx'
-import { FieldGroup } from '../components/Choice.jsx'
+import { Check, Choice, FieldGroup } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { NavItem } from '../components/Shell.jsx'
-import { useDismiss } from '../components/Utilities.jsx'
+import { useDismiss, within } from '../components/Utilities.jsx'
 import { addView, changeView, deleteView, failureMessage, orderViewsAs } from '../api/client.js'
 import { amount } from '../api/format.js'
 import { ALL_ORDERS, ViewMark, canonical, useViews, viewLink } from '../app/views.jsx'
@@ -43,7 +43,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 
 	const fail = (e, what) => toast({ message: failureMessage(e, what), color: 'danger' })
 
-	const save = name => addView({ name, query: now })
+	const save = (name, attention) => addView({ name, query: now, attention })
 		.then(out => { setMode('rest'); navigate(viewLink({ id: out.id, query: now })) })
 		.catch(e => fail(e, 'The view was not saved. Try again.'))
 	const update = () => changeView(active.id, { query: now })
@@ -53,6 +53,10 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 	const rename = (view, name) => changeView(view.id, { name })
 		.then(() => setRenaming(null))
 		.catch(e => fail(e, 'The view was not renamed. Try again.'))
+	// the amber count is the view's own, never worked out from the number (9e)
+	const flag = view => changeView(view.id, { attention: !view.attention })
+		.then(() => toast({ message: view.attention ? `The count of ${view.name} is no longer highlighted.` : `The count of ${view.name} is highlighted now.` }))
+		.catch(e => fail(e, 'That was not saved. Try again.'))
 	const makeDefault = view => changeView(view.id, { isDefault: !view.isDefault })
 		.then(() => toast({ message: view.isDefault ? 'Orders opens on All orders again.' : `Orders now opens on ${view.name}.` }))
 		.catch(e => fail(e, 'That was not saved. Try again.'))
@@ -119,7 +123,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
 			<div className={mode === 'editing' ? 'sp-stack sp-gap-8' : 'sp-nav-list'} ref={rows}>
 				<Announce>{said}</Announce>
-				{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
+				{mode === 'naming' ? <ViewName count={matched} flaggable onSave={save} onCancel={() => setMode('rest')} /> : null}
 				{mode === 'editing'
 					? (
 						<ListItem mark={<span className="sp-nav-item__icon"><Icon name="receipt" /></span>}>
@@ -138,7 +142,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 									<ListItem handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Reorder ${view.name}`} data-view={view.id} {...handleEvents(view)}
 										variant={drag?.id === view.id ? 'carried' : 'default'}>
 										<span className="sp-data sp-grow sp-truncate">{view.name}</span>
-										<ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onDelete={() => setDeleting(view)} />
+										<ViewMenu view={view} onRename={() => setRenaming(view.id)} onFlag={() => flag(view)} onDefault={() => makeDefault(view)} onDelete={() => setDeleting(view)} />
 									</ListItem>
 								)
 								: (
@@ -173,35 +177,48 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 	)
 }
 
-/* A name typed where the view's row will stand (2g): Enter saves, Escape or leaving the field
-   cancels, and an empty name is never saved. The count shows how many orders it names. */
-function ViewName({ name = '', count, onSave, onCancel }) {
+/* A name typed where the view's row will stand (2g), beside how many orders it names: Enter saves, Escape
+   or leaving cancels, an empty name is never saved. A new view's count can be highlighted (9e). */
+function ViewName({ name = '', count, flaggable = false, onSave, onCancel }) {
 	const [text, setText] = useState(name)
+	const [flagged, setFlagged] = useState(false)
 	const field = useRef(null)
+	const area = useRef(null)
 	useEffect(() => { field.current?.focus() }, [])
 	const done = useRef(false)
 	const commit = () => {
 		if (done.current) return
 		done.current = true
-		if (text.trim()) onSave(text.trim())
+		if (text.trim()) onSave(text.trim(), flagged)
 		else onCancel()
 	}
+	const keys = ev => {
+		if (ev.key === 'Enter') { ev.preventDefault(); commit() }
+		if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); done.current = true; onCancel() }
+	}
+	// moving between the name and its switch is not leaving
+	const leave = ev => { if (!done.current && !within(area.current, ev.relatedTarget)) { done.current = true; onCancel() } }
 	return (
-		<span className="sp-field__wrap">
-			<span className="sp-field__lead"><Icon name="bookmark" size={14} /></span>
-			<TextField inputRef={field} lead unit value={text} onChange={setText} placeholder="Name this view" aria-label="Name this view" maxLength={60}
-				onKeyDown={ev => {
-					if (ev.key === 'Enter') { ev.preventDefault(); commit() }
-					if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); done.current = true; onCancel() }
-				}}
-				onBlur={() => { if (!done.current) { done.current = true; onCancel() } }} />
-			{count != null ? <span className="sp-field__unit">{amount(count, 0)}</span> : null}
-		</span>
+		<div className="sp-stack sp-gap-6" ref={area} onKeyDown={keys} onBlur={leave}>
+			<span className="sp-field__wrap">
+				<span className="sp-field__lead"><Icon name="bookmark" size={14} /></span>
+				<TextField inputRef={field} lead unit value={text} onChange={setText} placeholder="Name this view" aria-label="Name this view" maxLength={60} />
+				{count != null ? <span className="sp-field__unit">{amount(count, 0)}</span> : null}
+			</span>
+			{flaggable
+				? (
+					// the name keeps the focus, so Enter still saves
+					<Choice onMouseDown={ev => ev.preventDefault()} control={<Check checked={flagged} onChange={ev => { setFlagged(ev.target.checked); field.current?.focus() }} />}>
+						Highlight the count
+					</Choice>
+				)
+				: null}
+		</div>
 	)
 }
 
 /* A saved view's own menu, in edit mode only (2g). */
-function ViewMenu({ view, onRename, onDefault, onDelete }) {
+function ViewMenu({ view, onRename, onFlag, onDefault, onDelete }) {
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
@@ -214,6 +231,7 @@ function ViewMenu({ view, onRename, onDefault, onDelete }) {
 				? (
 					<Menu position="floating" aria-label={view.name}>
 						<MenuItem icon="pencil" onClick={() => { close(); onRename() }}>Rename</MenuItem>
+						<MenuItem icon="alert-circle" onClick={() => { close(); onFlag() }}>{view.attention ? 'Stop highlighting the count' : 'Highlight the count'}</MenuItem>
 						<MenuItem icon="star" onClick={() => { close(); onDefault() }}>{view.isDefault ? 'Stop opening with it' : 'Make default'}</MenuItem>
 						<MenuSeparator />
 						<MenuItem icon="trash" danger onClick={() => { close(); onDelete() }}>Delete view</MenuItem>

@@ -1,21 +1,23 @@
-import { getOrders } from '../api/client.js'
-import { today } from '../api/format.js'
+import { getOrderLines, getOrders } from '../api/client.js'
+import { quantity, today } from '../api/format.js'
 
-/* One row per order (2b, 2a). Semicolons and a decimal comma, as a Danish spreadsheet reads them;
-   the mark at the start says UTF-8, so "ø" survives the opening. */
+/* One row per item line, the order's fields repeated on each: the columns an import reads back (16b).
+   Semicolons and a decimal comma, as a Danish spreadsheet reads them; the mark at the start says UTF-8. */
+const HEAD = ['Date', 'Vendor', 'Status', 'Kind', 'Reference', 'Categories', 'Note', 'Shipping', 'Discount', 'Order total',
+	'Item', 'Quantity', 'Price', 'Retail price', 'Item note']
+
 const cell = v => {
 	const s = String(v ?? '')
 	return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
-const money = n => (Number(n) || 0).toFixed(2).replace('.', ',')
+const money = n => (n == null ? '' : Number(n).toFixed(2).replace('.', ','))
 
-export function ordersCsv(orders, statusName) {
-	const head = ['Date', 'Vendor', 'Reference', 'Note', 'Status', 'Categories', 'Items', 'Total', 'Saved']
-	const rows = orders.map(o => [
-		o.date, o.vendor?.name ?? '', o.reference ?? '', o.note ?? '', statusName(o.status),
-		o.categories.map(c => c.name).join(', '), o.itemCount, money(o.total), money(Math.max(0, o.saved ?? 0))
+export function linesCsv(lines, statusName) {
+	const rows = lines.map(l => [
+		l.date, l.vendor, statusName(l.status), l.kind, l.reference, l.categories, l.note, money(l.shipping), money(l.discount), money(l.total),
+		l.title, l.quantity == null ? '' : quantity(l.quantity), money(l.price), money(l.retail), l.itemNote
 	])
-	return '﻿' + [head, ...rows].map(r => r.map(cell).join(';')).join('\r\n') + '\r\n'
+	return '﻿' + [HEAD, ...rows].map(r => r.map(cell).join(';')).join('\r\n') + '\r\n'
 }
 
 /** Hands the reader the file to keep. */
@@ -30,9 +32,23 @@ export function saveCsv(text, name = `spendly-orders-${today()}.csv`) {
 	setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
+// orders named by id in one request: the address stays well under what a server accepts
+const IDS_AT_ONCE = 100
+
+/** Ids picked by hand, in groups one request each can carry, in the order they were given. */
+export const idGroups = ids => Array.from({ length: Math.ceil(ids.length / IDS_AT_ONCE) }, (_, i) => ids.slice(i * IDS_AT_ONCE, (i + 1) * IDS_AT_ONCE))
+
+/** The item lines of every order `request` matches, or of the orders `ids` names within it. */
+export async function linesOf(request, ids, signal) {
+	if (!ids) return (await getOrderLines(request, signal)).lines
+	const parts = []
+	for (const group of idGroups(ids)) parts.push(...(await getOrderLines({ sort: request.sort, ids: group.join(',') }, signal)).lines)
+	return parts
+}
+
 const BLOCK = 1000
 
-/** Every order a list request matches, in its order: what Export CSV and Select all matching act on. */
+/** Every order a list request matches, in its order: what Select all matching acts on. */
 export async function allMatching(request, signal) {
 	const all = []
 	for (let page = 1; ; page++) {

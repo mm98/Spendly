@@ -1,6 +1,7 @@
 import { cloneElement, useEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { SearchInput } from './Inputs.jsx'
+import { Icon } from './Icon.jsx'
 import { countOf } from './Combobox.jsx'
 
 export function Check({ indeterminate = false, ...rest }) {
@@ -56,32 +57,42 @@ export function Choice({ variant = 'default', control, children, description, ..
 	)
 }
 
-/** `facet` is the group as a filter rail draws it (c12): its legend is the head, with a `count` at its end.
-    A facet whose controls name themselves, as a range does, has a head row instead, with its `meta` at the right. */
+/* The facet groups a reader folded, by name, kept for the next visit on this device */
+const FOLDED = 'spendly:folded-facets'
+const foldedNow = () => { try { return JSON.parse(localStorage.getItem(FOLDED)) ?? [] } catch { return [] } }
+const keepFolded = (name, folded) => {
+	try { localStorage.setItem(FOLDED, JSON.stringify([...foldedNow().filter(n => n !== name), ...(folded ? [name] : [])])) } catch { /* this visit only */ }
+}
+
+/** `facet` is the group as a filter rail draws it (c12): its head, a `count` at its end, folds it (16a).
+    A facet whose controls name themselves, as a range does, has a head row, its `meta` at the right. */
 export function FieldGroup({ legend, facet = false, count, meta, children, ...rest }) {
 	reject(rest, 'FieldGroup')
 	if ((count !== undefined || meta !== undefined) && !facet) console.error('<FieldGroup> a count or a meta belongs to a facet head')
+	const named = typeof legend === 'string' ? legend : null
+	const [open, setOpen] = useState(() => !(facet && named && foldedNow().includes(named)))
+	const fold = () => { setOpen(!open); if (named) keepFolded(named, open) }
+	const head = end => (
+		<button type="button" className="sp-field-group__fold" aria-expanded={open ? 'true' : 'false'} onClick={fold}>
+			{legend}
+			<span className="sp-grow" />
+			{end}
+			<span className="sp-card__chevron"><Icon name="chevron-down" size={14} /></span>
+		</button>
+	)
 	if (meta !== undefined)
 		return (
 			<div className="sp-field-group" {...rest}>
-				<div className="sp-row-flex">
-					<span className="sp-field-group__head sp-grow">{legend}</span>
-					<span className="sp-meta">{meta}</span>
-				</div>
-				{children}
+				<div className="sp-field-group__head">{head(<span className="sp-meta">{meta}</span>)}</div>
+				{open ? children : null}
 			</div>
 		)
 	return (
 		<fieldset className="sp-field-group" {...rest}>
 			{facet
-				? (
-					<legend className="sp-field-group__head">
-						{legend}
-						{count !== undefined ? <><span className="sp-grow" /><span className="sp-field-group__count">{count}</span></> : null}
-					</legend>
-				)
+				? <legend className="sp-field-group__head">{head(count !== undefined ? <span className="sp-field-group__count">{count}</span> : null)}</legend>
 				: <legend>{legend}</legend>}
-			{children}
+			{!facet || open ? children : null}
 		</fieldset>
 	)
 }
