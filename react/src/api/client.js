@@ -719,6 +719,11 @@ export async function getImports(signal) {
 	return request('/api/imports', { signal })
 }
 
+/** One import's id and date, however old: { id, createdAt }. */
+export async function getImport(id, signal) {
+	return request(`/api/imports/${encodeURIComponent(id)}`, { signal })
+}
+
 /** An import record the orders about to be sent are tagged with: { id }. */
 export async function startImport(fileName, mapping, skipped = 0, signal) {
 	return request('/api/imports', { method: 'POST', body: { fileName, mapping, skipped }, signal })

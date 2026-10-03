@@ -19,7 +19,7 @@ import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
-import { failureMessage, getCategories, getCurrentUser, getImports, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
+import { failureMessage, getCategories, getCurrentUser, getImport, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
@@ -177,7 +177,7 @@ function OrderList() {
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
 	const highest = useApi(getOrders, [{ sort: 'amount-desc', pageSize: 1 }])
-	const imports = useApi(getImports, [], { enabled: !!f.import })
+	const fromImport = useApi(getImport, [f.import], { enabled: !!f.import })
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled
 
 	const sort = SORTS.some(s => s.id === f.sort) ? f.sort
@@ -292,7 +292,7 @@ function OrderList() {
 		// arriving from an import (11b): one chip, never part of a saved view
 		import: () => {
 			if (!f.import) return null
-			const made = imports.data?.find(i => i.id === f.import)?.createdAt
+			const made = fromImport.data?.id === f.import ? fromImport.data.createdAt : null
 			const label = made ? `From import ${importDate().format(new Date(made * 1000))}` : 'From an import'
 			return <Crumb key="import" onRemove={removing({ import: '' })}>{label}</Crumb>
 		},

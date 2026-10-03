@@ -29,6 +29,13 @@ router.get('/', (req, res) => {
 	res.json(selectRecent.all(req.user.id, RECENT).map(toApi))
 })
 
+// one import by id, for the order list's chip (2b): its date, however old it is
+router.get('/:id', (req, res) => {
+	const row = selectOne.get(req.params.id, req.user.id)
+	if (!row) return res.status(404).json({ error: 'That import is not in this account.' })
+	res.json({ id: row.id, createdAt: row.created_at })
+})
+
 router.post('/', (req, res) => {
 	const fileName = String(req.body?.fileName ?? '').trim().slice(0, 200) || 'Imported file'
 	const mapping = req.body?.mapping != null ? JSON.stringify(req.body.mapping) : null
