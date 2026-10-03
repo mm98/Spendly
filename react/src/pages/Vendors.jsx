@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Caption, Controls, Crumb, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { Card } from '../components/Card.jsx'
@@ -89,17 +89,6 @@ export default function Vendors() {
 		if (flag && !view) next.flag = LOOKALIKES
 		setParams(next, { replace: true })
 	}
-
-	// Home's Merge names one pair (16a): its comparison opens here, once, over the look-alike view
-	const location = useLocation()
-	const asked = location.state?.merge
-	useEffect(() => {
-		if (!asked || !vendors.data) return
-		const source = vendors.data.find(v => v.id === asked.source)
-		const target = vendors.data.find(v => v.id === asked.target)
-		if (source && target) setMerging({ source, target })
-		navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null })
-	}, [asked, vendors.data])
 
 	const all = vendors.data ?? []
 	const order = (a, b) => (b.favourite - a.favourite) || sort.by(a, b)

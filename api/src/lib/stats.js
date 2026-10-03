@@ -571,14 +571,11 @@ export function markSummarySeen(userId, month) {
 	return true
 }
 
-/** What Home reads beyond the month: when an order was last added, and what needs a look. One
-    pair of look-alike vendors is named, so Home can offer to merge it (16a). */
+/** What Home reads beyond the month: when an order was last added, and what needs a look. */
 export function homeAttention(userId) {
-	const pairs = lookalikePairs(userId)
 	return {
 		lastAdded: selectLastAdded.get(userId)?.at ?? null,
 		withoutReceipt: countWithoutReceipt.get(userId).c,
-		lookalikeVendors: vendorsIn(pairs),
-		lookalikePair: pairs.length === 1 ? pairs[0] : null
+		lookalikeVendors: vendorsIn(lookalikePairs(userId))
 	}
 }

@@ -297,19 +297,10 @@ function alertsOf(view, attention) {
 			text: `${attention.withoutReceipt === 1 ? 'order' : 'orders'} without a receipt attached`, phone: 'missing a receipt'
 		}]
 		: []
-	// one obvious pair also offers Merge, which opens 5j's comparison over the list (16a)
-	const pair = attention?.lookalikePair
 	const lookalikes = attention?.lookalikeVendors
 		? [{
 			key: 'vendors', to: '/vendors?flag=possible-duplicate', count: amount(attention.lookalikeVendors, 0),
-			// with two buttons beside it a phone's line is shorter, so it stays one line
-			text: 'vendors look like duplicates', phone: pair ? 'look alike' : 'look like duplicates',
-			actions: pair
-				? <>
-					<Button variant="outline" size="small" to="/vendors?flag=possible-duplicate">Review</Button>
-					<Button variant="outline" size="small" to="/vendors?flag=possible-duplicate" state={{ merge: { source: pair.merge, target: pair.keep } }}>Merge</Button>
-				</>
-				: null
+			text: 'vendors look like duplicates', phone: 'look like duplicates'
 		}]
 		: []
 	return { over, near, others: [...receipts, ...lookalikes] }
@@ -335,7 +326,7 @@ function AlertsCard({ view, attention }) {
 				<div className="sp-stack sp-gap-8">
 					{alerts
 						? shown.map(a => (
-							<ListItem key={a.key} to={a.actions ? undefined : a.to} color={a.color} chevron={a.actions ? undefined : CHEVRON} count={a.count} actions={a.actions}>
+							<ListItem key={a.key} to={a.to} color={a.color} chevron={CHEVRON} count={a.count}>
 								<span className="sp-grow sp-truncate">{a.text}</span>
 							</ListItem>
 						))
@@ -753,8 +744,8 @@ function PhoneAlerts({ view, attention }) {
 							)
 							: null}
 						{alerts.others.map(a => (
-							<ListItem key={a.key} to={a.actions ? undefined : a.to} chevron={a.actions ? undefined : chevron} count={a.count} actions={a.actions}>
-								<span className={a.actions ? 'sp-data sp-grow sp-truncate' : 'sp-data sp-grow'}>{a.phone}</span>
+							<ListItem key={a.key} to={a.to} chevron={chevron} count={a.count}>
+								<span className="sp-data sp-grow sp-truncate">{a.phone}</span>
 							</ListItem>
 						))}
 					</>
