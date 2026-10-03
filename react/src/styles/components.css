@@ -4390,6 +4390,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a toast that needs an answer stays on the page's own surface, so it does not
    read as something that will disappear on its own - c23 */
 .sp-toast--asks { background: var(--surface); border: 1px solid var(--amber); color: var(--amber-ink-2); }
+/* a phone's row is too narrow for the words and two answers: the answers go under the words */
+.sp-touch .sp-toast--asks { flex-wrap: wrap; }
+.sp-touch .sp-toast--asks > .sp-stack { flex: 1 1 0; min-width: calc(100% - var(--step) - var(--sp-12)); }
 
 /* a pill carrying a problem - c6 variant */
 

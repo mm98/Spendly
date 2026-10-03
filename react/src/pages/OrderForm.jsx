@@ -39,7 +39,7 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
 import { useLeaveGuard } from './vendorsCategories.jsx'
-import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
+import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Nothing reaches the server until Save or Create writes the order, then its files. */
@@ -258,7 +258,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		setLines(ls => ls.filter(l => l.key !== line.key))
 		if (editing?.key === line.key) setEditing(null)
 		toast({
-			message: `${line.title || 'The line'} removed.`,
+			message: `${shortened(line.title) || 'The line'} removed.`,
 			undo: {
 				label: 'Undo',
 				onClick: () => {
@@ -403,12 +403,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		}
 		dropped.current.push(file)
 		const at = files.findIndex(f => f.key === file.key)
-		toast({ message: `${file.name} removed.`, undo: { label: 'Undo', onClick: () => setFiles(fs => [...fs.slice(0, at), file, ...fs.slice(at)]) } })
+		toast({ message: `${shortened(file.name)} removed.`, undo: { label: 'Undo', onClick: () => setFiles(fs => [...fs.slice(0, at), file, ...fs.slice(at)]) } })
 	}
 	const removeSaved = file => {
 		if (file.fromScan) return setRemoving({ file })
 		setGone(g => [...g, file.id])
-		toast({ message: `${file.name} removed.`, undo: { label: 'Undo', onClick: () => setGone(g => g.filter(id => id !== file.id)) } })
+		toast({ message: `${shortened(file.name)} removed.`, undo: { label: 'Undo', onClick: () => setGone(g => g.filter(id => id !== file.id)) } })
 	}
 	// a line's photo, while its line is open or after: the patch lands on whichever holds the line
 	const patchLine = (key, patch) => {
@@ -420,7 +420,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		const without = { newPhoto: null, dropPhoto: Boolean(values.photo), photoProblem: null }
 		if (!values.newPhoto && values.photo?.fromScan) return setRemoving({ photo: { key, name: values.title, without } })
 		patchLine(key, without)
-		toast({ message: `The photo of ${values.title || 'the line'} removed.`, undo: { label: 'Undo', onClick: () => patchLine(key, before) } })
+		toast({ message: `The photo of ${shortened(values.title) || 'the line'} removed.`, undo: { label: 'Undo', onClick: () => patchLine(key, before) } })
 	}
 	// the same bytes already on the order or added just before, or one with the same name and size:
 	// warned on its tile, never refused, since two photos of one thing are fine (17b)
@@ -988,7 +988,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)} chevron={<Icon name="chevron-down" />}>
 					<span className="sp-stacked">
 						<span className="sp-title sp-truncate">Order details</span>
-						<span className="sp-meta">{detailsLine(draft)}</span>
+						<span className="sp-meta sp-truncate">{detailsLine(draft)}</span>
 					</span>
 				</Toolbar>
 				<CardBody>
@@ -1035,9 +1035,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	}
 	const limitTitle = l => {
 		if (l.after > l.budget + 0.005)
-			return l.spend > l.budget ? `${l.name} is already over its limit` : `This order puts ${l.name} over its limit`
+			return l.spend > l.budget ? `${shortened(l.name)} is already over its limit` : `This order puts ${shortened(l.name)} over its limit`
 		const part = Math.floor(l.after / l.budget * 100)
-		return l.spend >= l.budget * early / 100 ? `${l.name} is already at ${part}% of its limit` : `This order takes ${l.name} to ${part}% of its limit`
+		return l.spend >= l.budget * early / 100 ? `${shortened(l.name)} is already at ${part}% of its limit` : `This order takes ${shortened(l.name)} to ${part}% of its limit`
 	}
 	const limitNotice = flagged.length
 		? flagged.map((l, i) => (
@@ -1161,7 +1161,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					<DialogTitle>{removing.file ? 'Remove the scanned receipt?' : 'Remove the scanned photo?'}</DialogTitle>
 					<DialogBody>
 						{removing.file
-							? `${removing.file.name} came from a scan. It is the proof of this order, and it cannot be taken again. It is removed when you save.`
+							? `${shortened(removing.file.name, 40)} came from a scan. It is the proof of this order, and it cannot be taken again. It is removed when you save.`
 							: `The photo of ${removing.photo.name || 'this line'} came from a scan, and it cannot be taken again. It is removed when you save.`}
 					</DialogBody>
 					<DialogActions>
@@ -1275,7 +1275,7 @@ function changedThere(was, now, statuses) {
 	const status = was.status !== now.status
 	const lines = !same(was.lines.map(lineShape), now.lines.map(lineShape))
 	if (status && !fields.length && !lines)
-		return `The status was set to ${statuses.find(st => st.key === now.status)?.name ?? now.status} there.`
+		return `The status was set to ${shortened(statuses.find(st => st.key === now.status)?.name ?? now.status)} there.`
 	const parts = [status ? 'the status' : null, ...fields.map(k => FIELD_WORDS[k]), lines ? 'the lines' : null].filter(Boolean)
 	if (!parts.length) return 'It was saved again there.'
 	const said = names(parts)

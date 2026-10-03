@@ -15,6 +15,12 @@ const sameName = (a, b) => a.toLowerCase() === b.toLowerCase()
 // the server keeps one file per name on a line, so a replacement with the old one's name is sent under another
 const renamedName = name => name.replace(/(\.[^.]*)?$/, ' (2)$1')
 const renamed = file => new File([file], renamedName(file.name), { type: file.type })
+/** A typed name inside a sentence, cut at a word and ended in "…" past `most` letters, so a long
+    one never stretches a notice or a toast to many lines. */
+export const shortened = (name, most = 32) => {
+	const text = String(name ?? '')
+	return text.length <= most ? text : `${text.slice(0, most).replace(/\s+\S*$/, '').replace(/[\s,.;:-]+$/, '')}…`
+}
 /** "a.pdf", "a.pdf and b.jpg", "a.pdf, b.jpg and c.png" */
 export const names = list => (list.length < 2 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list.at(-1)}`)
 // the server's own words for the two refusals, for a file the form refused before sending it
