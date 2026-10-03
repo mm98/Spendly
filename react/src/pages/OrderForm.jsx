@@ -34,6 +34,7 @@ import {
 import { useListReturn } from '../app/listMemory.js'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
+import { useStatuses } from '../app/statuses.js'
 import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
@@ -42,7 +43,7 @@ import { useLeaveGuard } from './vendorsCategories.jsx'
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Nothing reaches the server until Save or Create writes the order, then its files. */
 
-const STATUSES = ['Ordered', 'Delivered', 'Returned'].map(s => ({ value: s, label: s }))
+const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
 
 const orderErrors = d => {
 	const e = {}
@@ -160,6 +161,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const editingNow = useRef(editing)
 	editingNow.current = editing
 	const statusName = useId()
+	const statuses = useStatuses()
 
 	const set = patch => setDraft(d => ({ ...d, ...patch }))
 	const errors = orderErrors(draft)
@@ -410,7 +412,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	}
 	const setStatus = status => set({
 		status,
-		...(status !== 'Ordered' && !draft.deliveredDate ? { deliveredDate: today() } : {}),
+		...((status === 'Delivered' || status === 'Returned') && !draft.deliveredDate ? { deliveredDate: today() } : {}),
 		...(status === 'Returned' && !draft.returnedDate ? { returnedDate: today() } : {})
 	})
 
@@ -784,7 +786,15 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				</Field>
 			</div>
 			<Field label="Status">
-				<Segmented name={statusName} variant="facet" options={STATUSES} value={draft.status} onChange={setStatus} />
+				{statuses.length <= 4
+					? <Segmented name={statusName} variant="facet" options={statuses.map(s => ({ value: s.key, label: s.name }))} value={draft.status} onChange={setStatus} />
+					: (
+						<Combobox value={statuses.find(s => s.key === draft.status)?.name ?? draft.status} aria-label="Status">
+							{statuses.map(s => (
+								<ComboboxOption key={s.key} dot={DOT[s.tone]} selected={s.key === draft.status} onSelect={() => setStatus(s.key)}>{s.name}</ComboboxOption>
+							))}
+						</Combobox>
+					)}
 			</Field>
 			<Field label="Categories" message={suggested?.said ? `Filled from ${suggested.vendor}. Remove any that do not fit.` : undefined}>
 				<TokensField value={draft.categories} onChange={setCategories} placeholder="Add category…" aria-label="Add a category" />

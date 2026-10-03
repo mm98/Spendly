@@ -1,31 +1,38 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel } from '../components/Choice.jsx'
+import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel, Switch } from '../components/Choice.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { DateField } from '../components/DatePickers.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { RangeSlider, SearchInput } from '../components/Inputs.jsx'
-import { Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
+import { BulkBar, Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow, ListToolbar, Records, Selected } from '../components/List.jsx'
 import { Announce, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Anchor, Menu, MenuItem, MenuSeparator } from '../components/Overlays.jsx'
+import { useToast } from '../components/Overlays.jsx'
+import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
-import { getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
+import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
+import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useShellShape, useWidth } from '../app/useMedia.js'
-import { OrderPhoto, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
+import { OrderFiles, OrderPhoto, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
+import { useStatuses } from '../app/statuses.js'
+import { allMatching, ordersCsv, saveCsv } from '../app/ordersCsv.js'
 import { DeleteOrder } from './DeleteOrder.jsx'
+import { BulkActions, useStatusName } from './OrderBulk.jsx'
+import { OrderCard, RowMenu } from './OrderMenu.jsx'
+import { SheetViews, ViewsCard } from './OrderViews.jsx'
+import { useViews, viewLink } from '../app/views.jsx'
 
 const SORTS = [
 	{ id: 'date-desc', label: 'Newest first' },
@@ -35,10 +42,12 @@ const SORTS = [
 	{ id: 'vendor-asc', label: 'Vendor A - Z' }
 ]
 
-const STATUSES = ['Delivered', 'Ordered', 'Returned']
-
-const FACETS = ['vendor', 'category', 'status', 'from', 'to', 'kind', 'min', 'max']
+const FACETS = ['vendor', 'category', 'status', 'receipt', 'files', 'discounted', 'period', 'from', 'to', 'kind', 'min', 'max']
 const FILTERS = ['q', ...FACETS]
+
+/* A facet that takes several values holds them comma-separated in the address. */
+const listOf = s => (s ? s.split(',').filter(Boolean) : [])
+const toggled = (s, value, on) => [...listOf(s).filter(v => v !== value), ...(on ? [value] : [])].join(',')
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const day = (y, m, d) => iso(new Date(y, m, d))
@@ -53,6 +62,10 @@ const readFilters = params => {
 	for (const k of ['from', 'to']) if (!isDay(f[k])) f[k] = ''
 	for (const k of ['min', 'max']) if (!isAmount(f[k])) f[k] = ''
 	if (f.from && f.to && f.to < f.from) f.from = f.to = ''
+	// a named period is kept as its name, so a link or a saved view rolls with the calendar (2d)
+	const preset = PRESETS.find(p => p.key === f.period)
+	if (preset) [f.from, f.to] = preset.range(new Date())
+	else f.period = ''
 	if (f.min && f.max && Number(f.max) < Number(f.min)) f.min = f.max = ''
 	return f
 }
@@ -68,11 +81,12 @@ const withChanges = (params, changes) => {
 
 const requestOf = (f, sort) => ({
 	query: f.q, vendorId: f.vendor, categoryId: f.category, status: f.status, kind: f.kind,
+	receipt: f.receipt, files: f.files, discounted: f.discounted,
 	from: f.from, to: f.to, minAmount: f.min, maxAmount: f.max, sort
 })
 
-/* A preset is a calendar period around today; the URL holds its two dates, and the chip reads
-   them back, so a link that carries the same dates lands on the same chip. */
+/* A preset is a calendar period around today, held in the address by its name; a link that carries
+   the same two dates still lands on the same chip. */
 const PRESETS = [
 	{ key: 'week', label: 'This week', range: n => { const at = n.getDate() - (n.getDay() + 6) % 7; return [day(n.getFullYear(), n.getMonth(), at), day(n.getFullYear(), n.getMonth(), at + 6)] } },
 	{ key: 'month', label: 'This month', range: n => [day(n.getFullYear(), n.getMonth(), 1), day(n.getFullYear(), n.getMonth() + 1, 0)] },
@@ -104,13 +118,34 @@ const loaded = {
 	}
 }.getOrders
 
+const RECEIPT = { attached: 'Receipt attached', missing: 'Receipt missing' }
+
 const daysBetween = (from, to) => Math.round((new Date(to) - new Date(from)) / 864e5) + 1
 
-/** The order list (Order list 2b): the facet rail, then search, sort, what is filtering, and the orders. */
+/* Addresses other pages link to by name (Home's alerts), as the filters they stand for */
+const NAMED = { 'missing-receipt': 'receipt=missing' }
+
 export default function Orders() {
+	const [params] = useSearchParams()
+	const named = NAMED[params.get('view')]
+	return named ? <Navigate to={`/orders?${named}`} replace /> : <OrderList />
+}
+
+/** The order list (Order list 2b): the facet rail, then search, sort, what is filtering, and the orders. */
+function OrderList() {
 	const navigate = useNavigate()
 	const [params, setParams] = useSearchParams()
 	const f = useMemo(() => readFilters(params), [params])
+	// Orders opened with nothing asked opens on the default view, if one is set (2g); only on arrival
+	const arrived = useRef([...params.keys()].length === 0)
+	const viewsAnswer = useViews().data
+	useEffect(() => {
+		if (!arrived.current || !viewsAnswer) return
+		arrived.current = false
+		const first = viewsAnswer.views.find(v => v.isDefault)
+		if (first && [...new URLSearchParams(window.location.hash.split('?')[1] ?? '').keys()].length === 0)
+			navigate(viewLink(first), { replace: true })
+	}, [viewsAnswer, navigate])
 	const shape = useShellShape()
 	const touch = shape === 'touch'
 	// the facet rail stands beside the list only on a wide window; below that it is a sheet (18b)
@@ -146,13 +181,35 @@ export default function Orders() {
 	const request = requestOf(f, sort)
 	// the pages loaded for this history step and these filters, so Back returns to the same rows
 	const { pages, setPages, restored } = useListMemory(`orders?${JSON.stringify(request)}`)
-	const orders = useApi(loaded, [request, size, pages])
+	const orders = useApi(loaded, [{ ...request, with: 'rows' }, size, pages])
 	const loadMore = () => setPages(pages + 1)
 	useEffect(() => { if ((orders.data || orders.error) && !orders.loading) restored() }, [orders.data, orders.error, orders.loading, restored])
+	// the rail's live counts and the summary's sum, for the same filters
+	const facets = useApi(getOrders, [{ ...request, page: 1, pageSize: 1, with: 'facets' }])
 
 	const column = useRef(null)
 	const width = useWidth(column)
 	const narrow = touch || (width > 0 && width <= 640)
+	// rows or cards (2b, 2c): in the address, as the filters are; a narrow column always draws cards
+	const view = params.get('view') === 'cards' ? 'cards' : 'rows'
+
+	// picked orders are this filter's own: any filter, search or sort change starts with none (2h)
+	const selectionKey = JSON.stringify(request)
+	const [selection, setSelection] = useState({ key: selectionKey, ids: [], all: false })
+	const current = selection.key === selectionKey ? selection : { ids: [], all: false }
+	const setPicked = ids => setSelection({ key: selectionKey, ids, all: false })
+	const clearPicked = () => setPicked([])
+
+	const toast = useToast()
+	const statusName = useStatusName()
+	const [exporting, setExporting] = useState(false)
+	const exportCsv = () => {
+		setExporting(true)
+		allMatching(request)
+			.then(rows => saveCsv(ordersCsv(rows, statusName)))
+			.catch(e => toast({ message: failureMessage(e, 'The file was not made. Try again.'), color: 'danger' }))
+			.finally(() => setExporting(false))
+	}
 
 	const [deleting, setDeleting] = useState(null)
 	// once a deleted order has left the list, focus goes to the menu of the row that took its
@@ -185,15 +242,19 @@ export default function Orders() {
 	const crumbOf = {
 		date: () => {
 			if (!f.from && !f.to) return null
-			const preset = custom ? null : presetOf(f.from, f.to)
+			const preset = custom ? null : PRESETS.find(p => p.key === f.period) ?? presetOf(f.from, f.to)
 			const label = preset ? preset.label
 				: f.from && f.to ? `${shortDate(f.from)} - ${shortDate(f.to)}`
 					: f.from ? `From ${shortDate(f.from)}` : `Until ${shortDate(f.to)}`
-			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={ev => { setCustom(false); removing({ from: '', to: '' })(ev) }}>{label}</Crumb>
+			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={ev => { setCustom(false); removing({ from: '', to: '', period: '' })(ev) }}>{label}</Crumb>
 		},
-		status: () => f.status && <Crumb key="status" onRemove={removing({ status: '' })}>{f.status}</Crumb>,
-		vendor: () => f.vendor && <Crumb key="vendor" onRemove={removing({ vendor: '' })}>{vendorName(f.vendor)}</Crumb>,
-		category: () => f.category && <Crumb key="category" onRemove={removing({ category: '' })}>{categoryName(f.category)}</Crumb>,
+		// one crumb for each value a facet holds, each removing only itself
+		status: () => listOf(f.status).map(s => <Crumb key={`status-${s}`} onRemove={removing({ status: toggled(f.status, s, false) })}>{statusName(s)}</Crumb>),
+		vendor: () => listOf(f.vendor).map(v => <Crumb key={`vendor-${v}`} onRemove={removing({ vendor: toggled(f.vendor, v, false) })}>{vendorName(v)}</Crumb>),
+		category: () => listOf(f.category).map(c => <Crumb key={`category-${c}`} onRemove={removing({ category: toggled(f.category, c, false) })}>{categoryName(c)}</Crumb>),
+		receipt: () => listOf(f.receipt).map(r => <Crumb key={`receipt-${r}`} onRemove={removing({ receipt: toggled(f.receipt, r, false) })}>{RECEIPT[r] ?? r}</Crumb>),
+		files: () => f.files === '1' && <Crumb key="files" onRemove={removing({ files: '' })}>Has attachments</Crumb>,
+		discounted: () => f.discounted === '1' && <Crumb key="discounted" onRemove={removing({ discounted: '' })}>Discounted only</Crumb>,
 		kind: () => f.kind && <Crumb key="kind" onRemove={removing({ kind: '' })}>{f.kind}</Crumb>,
 		amount: () => {
 			if (!f.min && !f.max) return null
@@ -203,8 +264,8 @@ export default function Orders() {
 		}
 	}
 	// in the order the filters were applied (c12): a new one joins the end of the address
-	const groupOf = k => (k === 'from' || k === 'to' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
-	const crumbs = [...new Set([...params.keys()].map(groupOf))].map(g => crumbOf[g]?.()).filter(Boolean)
+	const groupOf = k => (k === 'from' || k === 'to' || k === 'period' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
+	const crumbs = [...new Set([...params.keys()].map(groupOf))].flatMap(g => crumbOf[g]?.() ?? []).filter(Boolean)
 	useEffect(() => {
 		if (!crumbFocus || crumbs.length === crumbFocus.count) return
 		setCrumbFocus(null)
@@ -227,7 +288,7 @@ export default function Orders() {
 				<span className="sp-grow" />
 				<Button variant="outline" size="small" onClick={clearAll}>Clear all</Button>
 			</div>
-			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} {...facetData} />
+			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} counts={facets.data?.facets} {...facetData} />
 		</Card>
 	)
 
@@ -249,6 +310,11 @@ export default function Orders() {
 					</ComboboxOption>
 				))}
 			</Combobox>
+			{narrow
+				? null
+				: <Segmented name="order-view" role="group" aria-label="Show orders as" value={view}
+					options={[{ value: 'rows', label: 'Rows' }, { value: 'cards', label: 'Cards' }]}
+					onChange={v => update({ view: v === 'cards' ? 'cards' : '' })} />}
 		</Controls>
 	)
 
@@ -298,10 +364,47 @@ export default function Orders() {
 				</Empty>
 			</Card>
 		)
-	else if (narrow)
-		body = <OrderCards data={data} size={size} onOpen={open} onLoadMore={loadMore} />
-	else
-		body = <OrderRows data={data} width={width} size={size} onLoadMore={loadMore} onDelete={setDeleting} />
+	else {
+		// the summary line (2b): how many, what they come to, what was saved, and the file of them
+		const summary = facets.data?.summary
+		const caption = (
+			<>
+				<strong className="sp-data">{plural(data.matched, 'order')}</strong>
+				{summary ? <span className="sp-subtitle">{dot.trimStart()}{currency(summary.total)}</span> : null}
+				{summary ? <Saving value={summary.saved} /> : null}
+				<span className="sp-grow" />
+				<Button variant="outline" size="small" disabled={exporting} onClick={exportCsv}>Export CSV</Button>
+			</>
+		)
+		const chosen = data.orders.filter(o => current.ids.includes(o.id))
+		const count = current.all ? data.matched : chosen.length
+		const bulk = <BulkActions chosen={chosen} all={current.all} count={count} request={request} touch={touch} onDone={clearPicked} />
+		const pickedAll = chosen.length > 0 && chosen.length === data.orders.length
+		const note = pickedAll && data.matched > data.orders.length
+			? (current.all
+				? <span>All {plural(data.matched, 'matching order')} are selected.</span>
+				: <>
+					<span>All {plural(data.orders.length, 'order')} on this page are selected.</span>
+					<Button variant="outline" size="small" onClick={() => setSelection({ key: selectionKey, ids: current.ids, all: true })}>
+						Select all {amount(data.matched, 0)} matching
+					</Button>
+				</>)
+			: null
+		const pickOne = id => setPicked(current.ids.includes(id) ? current.ids.filter(x => x !== id) : [...current.ids, id])
+		if (narrow)
+			body = <OrderCards data={data} size={size} summary={summary} onOpen={open} onLoadMore={loadMore} />
+		else if (view === 'cards')
+			body = (
+				<OrderGrid data={data} size={size} touch={touch} caption={caption} picked={current.ids} count={count} bulk={bulk} note={note}
+					onPick={pickOne} onClear={clearPicked} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
+					onCategory={id => update({ category: toggled(f.category, id, true) })} />
+			)
+		else
+			body = (
+				<OrderRows data={data} width={width} size={size} touch={touch} caption={caption} picked={current.ids} onPick={setPicked}
+					count={count} bulk={bulk} note={note} onLoadMore={loadMore} onDelete={setDeleting} />
+			)
+	}
 
 	// an account with no orders has nothing to filter (6a): one empty card, no rail
 	const none = data?.total === 0
@@ -336,7 +439,11 @@ export default function Orders() {
 	if (alone) return main
 	return (
 		<>
-			<div className="sp-rail sp-stack sp-gap-12">{filtersCard}</div>
+			<div className="sp-rail sp-stack sp-gap-12">
+				<ViewsCard params={params} matched={orders.data?.matched}
+					summary={[...crumbs.map(c => c.props.children), sortLabel.toLowerCase()].join(dot)} />
+				{filtersCard}
+			</div>
 			{main}
 		</>
 	)
@@ -350,7 +457,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 	const f = readFilters(draft)
 	const update = useCallback(changes => setDraft(d => withChanges(d, changes)), [])
 	// the date group's order count is for the choices in the sheet, not the list behind it
-	const count = useApi(getOrders, [{ ...requestOf(f, ''), page: 1, pageSize: 1 }])
+	const count = useApi(getOrders, [{ ...requestOf(f, ''), page: 1, pageSize: 1, with: 'facets' }])
 	const box = useRef(null)
 	// modal while open; closing gives focus back to the Filters button that opened it
 	useFocusTrap(box)
@@ -369,7 +476,9 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
 				<span className="sp-heading">Filters</span>
 				<div className="ol-sheet-body">
-					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={count.loading ? undefined : count.data?.matched} {...facetData} />
+					<SheetViews params={params} onOpen={onClose} />
+					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={count.loading ? undefined : count.data?.matched}
+							counts={count.loading ? undefined : count.data?.facets} {...facetData} />
 				</div>
 				<div className="sp-row-flex sp-gap-8">
 					<Button variant="outline" size="small" onClick={clear}>Clear all</Button>
@@ -421,13 +530,22 @@ function useSettled(value, ms = 250) {
 	return settled
 }
 
-function OrderRows({ data, width, size, onLoadMore, onDelete }) {
+/** The orders as rows (2b): the summary line, which the bulk bar takes over once a row is
+    picked (2h), the table, and Load more. */
+function OrderRows({ data, width, size, touch, caption, picked, onPick, count, bulk, note, onLoadMore, onDelete }) {
 	const show = columnsFor(width)
 	return (
 		<List data={data.orders} recordKey={o => o.id} noun="orders" rowTo={o => `/orders/${o.id}`} locale={NUMBER_LOCALE}
-			pageSize={size} total={data.matched} onLoadMore={onLoadMore}>
-			<Caption><strong className="sp-data">{plural(data.matched, 'order')}</strong></Caption>
+			pageSize={size} total={data.matched} onLoadMore={onLoadMore} picked={picked} onPick={onPick} bulkNote={note}
+			rowVoid={o => o.status === 'Cancelled'}>
+			<Caption>{caption}</Caption>
+			<Selected>
+				<span className="sp-bulkbar__count">{amount(count, 0)} selected</span>
+				<span className="sp-grow" />
+				{bulk}
+			</Selected>
 			<ListHead>
+				<ListCell cell="checkbox" />
 				<ListCell width="title">Order</ListCell>
 				<ListCell width="date">Date</ListCell>
 				{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
@@ -438,26 +556,33 @@ function OrderRows({ data, width, size, onLoadMore, onDelete }) {
 			</ListHead>
 			<ListRow>{o => (
 				<>
+					<ListCell cell="checkbox" />
 					<ListCell cell="flex">
 						<OrderPhoto order={o} />
 						<span className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{o.vendor?.name ?? 'No vendor'}</span>
 							<span className="sp-subtitle sp-truncate">{orderLine(o)}</span>
 						</span>
+						<OrderFiles count={o.fileCount} />
 					</ListCell>
 					<ListCell><span className="sp-data">{shortDate(o.date)}</span></ListCell>
 					{show.categories ? <ListCell><CategoryChips categories={o.categories} /></ListCell> : null}
 					{show.items ? <ListCell cell="number"><span className="sp-data">{o.itemCount}</span></ListCell> : null}
 					<ListCell><StatusPill status={o.status} /></ListCell>
-					<ListCell cell="amount">
-						<span className="sp-amount">{currency(o.total)}</span>
-						<Saving value={o.saved} />
-					</ListCell>
-					<ListCell cell="menu"><RowMenu order={o} onDelete={onDelete} /></ListCell>
+					<ListCell cell="amount"><OrderAmount order={o} /></ListCell>
+					<ListCell cell="menu"><RowMenu order={o} touch={touch} onDelete={onDelete} /></ListCell>
 				</>
 			)}</ListRow>
 		</List>
 	)
+}
+
+/* A cancelled order did not happen, so its amount is struck and says it is not counted, where a
+   saving would stand (2b). */
+function OrderAmount({ order }) {
+	if (order.status === 'Cancelled')
+		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">not counted</span></>
+	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
 
 /* Two categories fit a row; past two the first stands for the rest, with their count (2b).
@@ -473,34 +598,12 @@ function CategoryChips({ categories }) {
 	)
 }
 
-/** The row's own menu (2e): only what can be done to one order today. */
-function RowMenu({ order, onDelete }) {
-	const navigate = useNavigate()
-	const [open, setOpen] = useState(false)
-	const anchor = useRef(null)
-	const close = useCallback(() => setOpen(false), [])
-	useDismiss(anchor, open, close)
-	const go = to => () => { close(); navigate(to) }
-	return (
-		<Anchor ref={anchor} open={open} onClick={ev => ev.stopPropagation()}>
-			<IconButton icon="dots-vertical" aria-label={`Order menu, ${[order.vendor?.name ?? 'No vendor', order.reference, shortDate(order.date)].filter(Boolean).join(', ')}`}
-				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
-			<Menu position="floating" aria-label="Order">
-				<MenuItem icon="external-link" onClick={go(`/orders/${order.id}`)}>Open order</MenuItem>
-				<MenuItem icon="file" onClick={go(`/orders/new?duplicate=${order.id}`)}>Duplicate</MenuItem>
-				<MenuSeparator />
-				<MenuItem icon="trash" danger onClick={() => { close(); onDelete(order) }}>Delete order</MenuItem>
-			</Menu>
-		</Anchor>
-	)
-}
-
 /** At 640 of list column and under, rows become cards (2i): the photo, then name and total,
     reference and status, date and saving. */
-function OrderCards({ data, size, onOpen, onLoadMore }) {
+function OrderCards({ data, size, summary, onOpen, onLoadMore }) {
 	return (
 		<>
-			<span className="sp-meta">{plural(data.matched, 'order')}</span>
+			<span className="sp-meta">{plural(data.matched, 'order')}{summary ? `${dot}${currency(summary.total)}` : ''}</span>
 			{data.orders.map(o => (
 				<ListItem key={o.id} variant="card" mark={<OrderPhoto order={o} />} onClick={() => onOpen(o)}>
 					<Stacked>
@@ -521,6 +624,29 @@ function OrderCards({ data, size, onOpen, onLoadMore }) {
 			))}
 			<ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
 		</>
+	)
+}
+
+/** The Cards view (2c): the same orders, picked the same way, drawn as cards with their photos.
+    The summary line or the bulk bar stands above the grid; there is no box that picks them all. */
+function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPick, onClear, onOpen, onLoadMore, onDelete, onCategory }) {
+	const [menuFor, setMenuFor] = useState(null)
+	const head = picked.length
+		? (
+			<>
+				<BulkBar loose count={`${amount(count, 0)} selected`} onClear={onClear}>{bulk}</BulkBar>
+				{note ? <div className="sp-bulkbar sp-bulkbar--loose sp-bulkbar--note">{note}</div> : null}
+			</>
+		)
+		: <ListToolbar loose>{caption}</ListToolbar>
+	const footer = <ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
+	return (
+		<Records head={head} footer={footer}>
+			{data.orders.map(o => (
+				<OrderCard key={o.id} order={o} touch={touch} picked={picked.includes(o.id)} onPick={() => onPick(o.id)}
+					menuOpen={menuFor === o.id} onMenu={setMenuFor} onOpen={onOpen} onDelete={onDelete} onCategory={onCategory} />
+			))}
+		</Records>
 	)
 }
 
@@ -576,28 +702,54 @@ function CardsLoading({ size }) {
 	))]
 }
 
-/** The rail's groups (c12, 2b), each one a filter the orders can take today. `bare` gives the
-    groups alone, for the sheet that spaces them itself (7b). */
-function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, categories, highest, matched }) {
+/* A value's live count at the end of its row (2b): left out while it is not known (6b). */
+const countOf = n => (n == null ? null : <><span className="sp-grow" /><span className="sp-field-group__count">{amount(n, 0)}</span></>)
+
+/** The rail's groups (c12, 2b): several values each, with live counts; a value with nothing
+    behind it stays, greyed. `bare` gives the groups alone, for the sheet (7b). */
+function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, categories, highest, matched, counts }) {
+	const statuses = useStatuses()
+	const live = (group, key) => (counts ? counts[group]?.[key] ?? 0 : undefined)
 	// every vendor and category, so a group's total is the count the sidebar shows (2b); one
-	// with no orders comes last and cannot be picked (c12)
+	// with no orders comes last
 	const byUse = list => [...(list ?? [])].sort((a, b) => b.orders - a.orders)
 	const shownVendors = byUse(vendors)
 	const shownCategories = byUse(categories)
 	const [allVendors, setAllVendors] = useState(false)
 	const [find, setFind] = useState('')
 	const found = find ? shownVendors.filter(v => v.name.toLowerCase().includes(find.toLowerCase())) : shownVendors
-	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || v.id === f.vendor)
+	const vendorsPicked = listOf(f.vendor)
+	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || vendorsPicked.includes(v.id))
+	const empty = (n, total, on) => !on && (n === undefined ? !total : n === 0)
+	const switches = useId()
 
 	const Groups = bare ? Fragment : Facets
 	return (
 		<Groups>
-			<DateFacet from={f.from} to={f.to} matched={matched} update={update} custom={custom} setCustom={setCustom} />
+			<DateFacet from={f.from} to={f.to} period={f.period} matched={matched} update={update} custom={custom} setCustom={setCustom} />
 
 			<FieldGroup facet legend="Status">
-				{STATUSES.map(s => (
-					<Choice key={s} control={<Check checked={f.status === s} onChange={ev => update({ status: ev.target.checked ? s : '' })} />}>{s}</Choice>
-				))}
+				{statuses.map(s => {
+					const on = listOf(f.status).includes(s.key)
+					const n = live('status', s.key)
+					return (
+						<Choice key={s.key} control={<Check checked={on} disabled={empty(n, 1, on)} onChange={ev => update({ status: toggled(f.status, s.key, ev.target.checked) })} />}>
+							{s.name}{countOf(n)}
+						</Choice>
+					)
+				})}
+			</FieldGroup>
+
+			<FieldGroup facet legend="Receipt">
+				{['attached', 'missing'].map(r => {
+					const on = listOf(f.receipt).includes(r)
+					const n = counts?.receipt?.[r]
+					return (
+						<Choice key={r} control={<Check checked={on} disabled={empty(n, 1, on)} onChange={ev => update({ receipt: toggled(f.receipt, r, ev.target.checked) })} />}>
+							{r === 'attached' ? 'Attached' : 'Missing'}{countOf(n)}
+						</Choice>
+					)
+				})}
 			</FieldGroup>
 
 			{shownVendors.length
@@ -608,10 +760,14 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 							: null}
 						{shownVendors.length > 20 ? <Announce>{find ? (found.length ? plural(found.length, 'vendor') : 'No vendor by that name.') : ''}</Announce> : null}
 						{find && !found.length ? <span className="sp-subtitle">No vendor by that name.</span> : null}
-						{listed.map(v => (
-							<Choice key={v.id} control={<Check checked={f.vendor === v.id} disabled={!v.orders && f.vendor !== v.id}
-								onChange={ev => update({ vendor: ev.target.checked ? v.id : '' })} />}>{v.name}</Choice>
-						))}
+						{listed.map(v => {
+							const on = vendorsPicked.includes(v.id)
+							const n = live('vendor', v.id)
+							return (
+								<Choice key={v.id} control={<Check checked={on} disabled={empty(n, v.orders, on)}
+									onChange={ev => update({ vendor: toggled(f.vendor, v.id, ev.target.checked) })} />}>{v.name}{countOf(n)}</Choice>
+							)
+						})}
 						{!allVendors && !find && found.length > listed.length
 							? <FieldGroupMore onClick={() => setAllVendors(true)}>Show {found.length - listed.length} more</FieldGroupMore>
 							: null}
@@ -623,10 +779,15 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 				? (
 					<FieldGroup facet legend="Categories">
 						<Filters>
-							{shownCategories.map(c => (
-								<Chip key={c.id} variant="facet" value={c.id} selected={f.category === c.id} disabled={!c.orders && f.category !== c.id}
-									onSelect={on => update({ category: on ? c.id : '' })}>{c.name}</Chip>
-							))}
+							{shownCategories.map(c => {
+								const on = listOf(f.category).includes(c.id)
+								const n = live('category', c.id)
+								return (
+									<Chip key={c.id} variant="facet" value={c.id} selected={on} disabled={empty(n, c.orders, on)}
+										count={n == null ? null : amount(n, 0)}
+										onSelect={next => update({ category: toggled(f.category, c.id, next) })}>{c.name}</Chip>
+								)
+							})}
 						</Filters>
 					</FieldGroup>
 				)
@@ -643,15 +804,26 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 			</FieldGroup>
 
 			{highest ? <AmountFacet top={Math.max(1000, Math.ceil(highest / 1000) * 1000)} min={f.min} max={f.max} update={update} /> : null}
+
+			<div className="sp-field-group">
+				<div className="sp-row-flex sp-gap-12">
+					<Switch id={`${switches}-files`} checked={f.files === '1'} onChange={ev => update({ files: ev.target.checked ? '1' : '' })} />
+					<label className="sp-data" htmlFor={`${switches}-files`}>Has attachments</label>
+				</div>
+				<div className="sp-row-flex sp-gap-12">
+					<Switch id={`${switches}-discounted`} checked={f.discounted === '1'} onChange={ev => update({ discounted: ev.target.checked ? '1' : '' })} />
+					<label className="sp-data" htmlFor={`${switches}-discounted`}>Discounted only</label>
+				</div>
+			</div>
 		</Groups>
 	)
 }
 
 /** One control, four settings (2d): a preset, or a range typed in under them. */
-function DateFacet({ from, to, matched, update, custom, setCustom }) {
+function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 	const name = useId()
-	const preset = presetOf(from, to)
-	const chosen = custom ? 'custom' : preset ? preset.key : from || to ? 'custom' : null
+
+	const chosen = custom ? 'custom' : period || presetOf(from, to)?.key || (from || to ? 'custom' : null)
 	const [draft, setDraft] = useState({ from, to })
 	useEffect(() => setDraft({ from, to }), [from, to])
 	const wrong = !!(draft.from && draft.to && draft.to < draft.from)
@@ -661,7 +833,7 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 	const edit = next => {
 		if (![next.from, next.to].every(d => !d || isDay(d))) return
 		setDraft(next)
-		if (!(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to })
+		if (!(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to, period: '' })
 	}
 	const leave = ev => { if (!ev.currentTarget.contains(ev.relatedTarget)) setDraft({ from, to }) }
 	// a count not known yet is left out rather than shown as zero (6b)
@@ -673,7 +845,7 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 			<Filters>
 				{PRESETS.map(p => (
 					<Chip key={p.key} variant="facet" inputType="radio" name={name} value={p.key} selected={chosen === p.key}
-						onSelect={() => { setCustom(false); const [a, b] = p.range(new Date()); update({ from: a, to: b }) }}>
+						onSelect={() => { setCustom(false); update({ period: p.key, from: '', to: '' }) }}>
 						{p.label}
 					</Chip>
 				))}
@@ -694,7 +866,7 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 							<div className="sp-row-flex sp-gap-8">
 								<span className="sp-subtitle">{summary}</span>
 								<span className="sp-grow" />
-								<Button variant="outline" size="small" onClick={() => update({ from: '', to: '' })}>Clear</Button>
+								<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>Clear</Button>
 							</div>
 						)
 						: <span className="sp-field__help">Leave To empty to include everything up to today.</span>}

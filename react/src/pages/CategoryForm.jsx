@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
@@ -66,12 +66,15 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const all = useApi(getCategories)
 	const h = loading ? hold : control => control
 	const editing = Boolean(category)
+	// a name typed where the category was asked for (Order list 2e) starts the new one
+	const [params] = useSearchParams()
+	const named = params.get('name') ?? ''
 	const start = useMemo(() => ({
-		name: category?.name ?? '',
+		name: category?.name ?? named,
 		icon: glyphOf(category?.icon),
 		colour: category ? pickedColour(category.colour) : null,
 		budget: category?.budget > 0 ? category.budget : null
-	}), [category])
+	}), [category, named])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
 	const [iconSearch, setIconSearch] = useState('')

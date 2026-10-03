@@ -464,6 +464,47 @@ export async function getAttachmentPages(orderId, attachmentId, signal) {
 }
 export const attachmentPageUrl = (orderId, attachmentId, page) => `/api/orders/${orderId}/attachments/${attachmentId}/pages/${page}`
 
+/* ---- the account's statuses (Settings 11a): each answer is the whole list, in order ---- */
+
+export async function getStatuses(signal) {
+	return request('/api/statuses', { signal })
+}
+
+const statusWrite = async (path, method, body) => {
+	const out = await request(path, { method, body })
+	invalidate(getStatuses)
+	return out
+}
+export const addStatus = status => statusWrite('/api/statuses', 'POST', status)
+export const changeStatus = (key, status) => statusWrite(`/api/statuses/${encodeURIComponent(key)}`, 'PATCH', status)
+export const orderStatusesAs = keys => statusWrite('/api/statuses/order', 'PUT', { keys })
+export const deleteStatus = key => statusWrite(`/api/statuses/${encodeURIComponent(key)}`, 'DELETE')
+
+/* ---- saved order views (2g, 9e): each answer is `{ all, shown, views }`, every view with its count ---- */
+
+export async function getViews(signal) {
+	return request('/api/views', { signal })
+}
+
+const viewWrite = async (path, method, body) => {
+	const out = await request(path, { method, body })
+	invalidate(getViews)
+	return out
+}
+export const addView = view => viewWrite('/api/views', 'POST', view)
+export const changeView = (id, change) => viewWrite(`/api/views/${encodeURIComponent(id)}`, 'PATCH', change)
+export const orderViewsAs = ids => viewWrite('/api/views/order', 'PUT', { ids })
+export const deleteView = id => viewWrite(`/api/views/${encodeURIComponent(id)}`, 'DELETE')
+export const setViewsShown = shown => viewWrite('/api/views/shown', 'PUT', { shown })
+
+/** One change to several orders at once (Order list 2a, 2e): `{ ids, status, deliveredToday,
+    addCategories (names), removeCategories (ids), delete }`. Answers how many were changed. */
+export async function changeOrders(change, signal) {
+	const out = await request('/api/orders/bulk', { method: 'POST', body: change, signal })
+	if (change.delete) for (const id of change.ids) forgetRecent('order', id)
+	return out
+}
+
 /** Uploads the files picked or dropped, as they are. */
 export async function addAttachments(orderId, files, signal) {
 	const form = new FormData()
@@ -723,12 +764,9 @@ export async function searchRecords(query, signal) {
 	return request('/api/search' + qs({ query }), { signal })
 }
 
-/* ---- option lists: spendKinds and orderStatuses mirror the server's own ---- */
+/* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses) ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
-
-// in the order a purchase goes through them, wherever the list appears
-export const orderStatuses = ['Ordered', 'Delivered', 'Returned']
 
 // a ranking comes in both directions; Vendor groups rather than ranks, so it has one
 export const sorts = [
@@ -752,7 +790,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getOftenOrders, getOrderLimits]
+const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendors, getVendor, getHomeAttention]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
 const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]

@@ -1078,6 +1078,22 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
 .sp-record:has(input:checked) { border-color: var(--green); background: var(--green-tint); }
 .sp-record[data-void="true"] { opacity: 0.6; }
+/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c);
+   its round scrim keeps it legible over any photo */
+.sp-record__photos > .sp-record__pick { opacity: 0; }
+.sp-record:hover .sp-record__pick,
+.sp-record__pick:focus-within,
+.sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
+.sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
+.sp-record__pick > .sp-check { grid-area: 1 / 1; }
+.sp-record__pick::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: calc(var(--box) + var(--sp-10));
+  height: calc(var(--box) + var(--sp-10));
+  border-radius: 50%;
+  background: rgba(27, 26, 23, 0.35);
+}
 
 .sp-list-item .sp-chip,
 .sp-list-item .sp-pill { flex: none; }
@@ -3357,6 +3373,11 @@ button.sp-nav-item--light[aria-current="page"]:hover {
 .sp-nav-item--light > [data-label] > span,
 .sp-nav-item--light > [data-label]::after { grid-area: 1 / 1; }
 .sp-nav-item--light > [data-label]::after { content: attr(data-label); font-weight: 600; visibility: hidden; }
+/* a label the reader named (a saved view) can be any length: it ends in an ellipsis, so every row keeps one height */
+.sp-nav-item > .sp-grow,
+.sp-nav-item--light > [data-label] > span,
+.sp-nav-item--light > [data-label]::after { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-nav-item--light > [data-label] { grid-template-columns: minmax(0, 1fr); }
 .sp-nav-item--light .sp-nav-item__count { color: var(--ink-4); }
 .sp-nav-item--light.sp-nav-item--edited { background: var(--amber-tint-2); color: var(--amber-ink-2); }
 a.sp-nav-item--light.sp-nav-item--edited:hover,

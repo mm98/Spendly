@@ -138,12 +138,17 @@ const groupBy = (rows, key) => {
 
 // The copy picker's row names this many of an order's lines, first by position (3b).
 const ITEM_TITLES_SHOWN = 3
+// An order card's strip shows this many line photos, then counts the rest (2c).
+const PHOTOS_SHOWN = 3
+const selectOrderFilesFor = db.prepare(`
+	SELECT order_id, rowid AS seq, id FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))
+`)
 
 /** The row shape the order lists render (pages/Orders.jsx, Home's recent orders, Statistics'
     slice, a vendor's recent orders, the palette and the copy picker): the row's facts, its
     reference and note line, and its first line photo with the count. `itemTitles` adds the
     first line names, which only the copy picker asks for. */
-export function decorateOrderListRows(totalsRows, { itemTitles = false } = {}) {
+export function decorateOrderListRows(totalsRows, { itemTitles = false, listRows = false } = {}) {
 	if (!totalsRows.length) return []
 	const ids = JSON.stringify(totalsRows.map(t => t.id))
 	const vendorIds = JSON.stringify([...new Set(totalsRows.map(t => t.vendor_id))])
@@ -152,10 +157,20 @@ export function decorateOrderListRows(totalsRows, { itemTitles = false } = {}) {
 	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
 	const photosByOrder = groupBy(selectLinePhotosFor.all(ids), 'order_id')
 	const itemsByOrder = itemTitles ? groupBy(selectItemTitlesFor.all(ids), 'order_id') : null
+	const filesByOrder = listRows ? groupBy(selectOrderFilesFor.all(ids), 'order_id') : null
 
 	return totalsRows.map(totals => {
 		const vendor = vendorById.get(totals.vendor_id)
 		const photos = photosByOrder.get(totals.id) ?? []
+		// the order list's rows and cards: the first three line photos in line order for the card
+		// strip, and the order's own files for the paperclip and Download receipt (the first one)
+		const files = filesByOrder ? (filesByOrder.get(totals.id) ?? []).sort((a, b) => a.seq - b.seq) : null
+		const listed = listRows ? {
+			photos: [...photos].sort((a, b) => a.position - b.position || a.seq - b.seq).slice(0, PHOTOS_SHOWN)
+				.map(p => ({ itemId: p.order_item_id, attachmentId: p.id })),
+			fileCount: files.length,
+			receipt: files.length ? files[0].id : null
+		} : {}
 		return {
 			id: totals.id,
 			date: fromEpoch(totals.date),
@@ -169,7 +184,8 @@ export function decorateOrderListRows(totalsRows, { itemTitles = false } = {}) {
 			itemCount: totals.item_count,
 			total: totals.total,
 			saved: totals.saved,
-			...(itemsByOrder ? { itemTitles: (itemsByOrder.get(totals.id) ?? []).slice(0, ITEM_TITLES_SHOWN).map(i => i.title) } : {})
+			...(itemsByOrder ? { itemTitles: (itemsByOrder.get(totals.id) ?? []).slice(0, ITEM_TITLES_SHOWN).map(i => i.title) } : {}),
+			...listed
 		}
 	})
 }
