@@ -901,6 +901,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table td:last-child { padding-right: var(--sp-16); }
 .sp-table th + th,
 .sp-table td + td { padding-left: var(--sp-12); }
+/* the compact row density (Settings, Appearance): more rows on screen, same columns */
+[data-density="compact"] .sp-table tbody td { padding-top: var(--sp-6); padding-bottom: var(--sp-6); }
 
 .sp-table thead th {
   padding-top: var(--sp-8);

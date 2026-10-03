@@ -15,7 +15,7 @@ import { useToast } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
-import { chosenTheme, followSystem, setTheme, useTheme } from '../app/theme.js'
+import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, orderStatuses, saveSettings, sorts, spendKinds,
@@ -32,7 +32,7 @@ import { useLeaveGuard } from './vendorsCategories.jsx'
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
 	{ key: 'account', label: 'Account and profile', keys: ['name'] },
-	{ key: 'appearance', label: 'Appearance' },
+	{ key: 'appearance', label: 'Appearance', keys: ['density'] },
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus'] },
 	{ key: 'lists', label: 'Lists', keys: ['pageSize', 'sort', 'listSort'] },
@@ -50,6 +50,11 @@ const THEMES = [
 	{ value: 'light', label: 'Light' },
 	{ value: 'dark', label: 'Dark' },
 	{ value: 'system', label: 'Follow system' }
+]
+
+const DENSITIES = [
+	{ value: 'comfortable', label: 'Comfortable' },
+	{ value: 'compact', label: 'Compact' }
 ]
 
 const currencyLabel = c => `${c.label} (${c.symbol})`
@@ -99,6 +104,7 @@ export default function Settings() {
 			.then(([next]) => {
 				setCurrency(next?.currency ?? value('currency'))
 				setLocale(next?.locale ?? value('locale'))
+				setDensity(next?.density ?? value('density'))
 				dropStale()
 				settings.refresh()
 				setDraft({})
@@ -115,7 +121,7 @@ export default function Settings() {
 	const fields = { value, change, touch }
 	const cards = {
 		account: <AccountCard key="account" user={user.data} {...fields} />,
-		appearance: <AppearanceCard key="appearance" touch={touch} />,
+		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
@@ -258,7 +264,7 @@ function Arrive({ section, children }) {
 }
 
 /* The theme lives in this browser, and applies the moment it is picked, as the sidebar's switch does. */
-function AppearanceCard({ touch }) {
+function AppearanceCard({ value, change, touch }) {
 	useTheme()
 	const [, redraw] = useReducer(n => n + 1, 0)
 	const pick = next => {
@@ -271,6 +277,9 @@ function AppearanceCard({ touch }) {
 			<Heading section="appearance">Appearance</Heading>
 			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
 				<Segmented name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
+			</Field>
+			<Field label="Row density" message="Compact fits more rows on screen.">
+				<Segmented name="density" options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
 			</Field>
 		</Card>
 	)
