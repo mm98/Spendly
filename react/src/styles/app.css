@@ -260,3 +260,7 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-bars--spark .sp-bars__bar:has(> .sp-bars__tip) { position: relative; }
 .sp-bars--spark .sp-bars__tip { position: absolute; right: 0; bottom: calc(100% + var(--sp-6)); z-index: 3; pointer-events: none; }
 .sp-bars--spark .sp-bars__tip[data-side="end"] { right: auto; left: 0; }
+
+/* a single date's shortcuts sit in a calendar that pads itself, so the row keeps its gap and rule
+   but not the range panel's own inset, and lines up with the month below */
+.sp-calendar > .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }

@@ -25,7 +25,7 @@ import { parseNumber } from '../components/format.js'
 import { join } from '../components/variants.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useApi } from '../api/useApi.js'
-import { NUMBER_LOCALE as LOCALE, amount, currency, currencySymbol, dot, monthNames, plural } from '../api/format.js'
+import { NUMBER_LOCALE as LOCALE, amount, capitalised, currency, currencySymbol, dot, monthNames, plural } from '../api/format.js'
 import { ImportButton } from './BudgetImport.jsx'
 import {
 	addBudgetAccount, addBudgetGroup, addBudgetLine, createBudgetYear, deleteBudgetAccount, deleteBudgetGroup,
@@ -662,7 +662,7 @@ function MonthHero({ sheet, month, totals, long, touch }) {
 	const waiting = withAmount.length - real
 	return (
 		<Card variant="shell">
-			<span className="sp-section-label">{head[month]} {sheet.year}</span>
+			<span className="sp-section-label">{capitalised(long[month])} {sheet.year}</span>
 			<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 				<Stat label="Left over" figure={currency(cents(totals.left[month]), 0)} />
 				<Stat label="Income" figure={currency(cents(totals.income[month]), 0)}
@@ -831,7 +831,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 	return (
 		<Well>
 			<div className="sp-row-flex sp-gap-8">
-				<span className="sp-title">{head[month]}</span>
+				<span className="sp-title">{capitalised(long[month])}</span>
 				{month === thisMonth ? <Pill>Now</Pill> : null}
 				<span className="sp-grow" />
 				<Pill color={toneOf(left)}>Left {money(left)}</Pill>

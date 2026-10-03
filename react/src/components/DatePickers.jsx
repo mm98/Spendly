@@ -668,19 +668,16 @@ function fromReadable(text, locale, { short = true } = {}) {
 	return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-/** The one-click days a single date offers (14a): Today and Yesterday pick, This month turns the
-    calendar to it. A day the field cannot take is not offered. */
+/** The one-click days a single date offers (Input types: DateField): Today and Yesterday, each a
+    day the field can take; a month is not a date, so it is no shortcut here. */
 function dayShortcuts({ min, max, unavailable }) {
 	const now = new Date()
 	const today = iso(now)
 	const yesterday = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
-	const first = iso(new Date(now.getFullYear(), now.getMonth(), 1))
-	const last = iso(new Date(now.getFullYear(), now.getMonth() + 1, 0))
 	const takes = s => !(min && s < min) && !(max && s > max) && !(typeof unavailable === 'function' && unavailable(s))
 	return [
 		takes(today) ? { label: 'Today', pick: today } : null,
-		takes(yesterday) ? { label: 'Yesterday', pick: yesterday } : null,
-		!(min && last < min) && !(max && first > max) ? { label: 'This month', show: today } : null
+		takes(yesterday) ? { label: 'Yesterday', pick: yesterday } : null
 	].filter(Boolean)
 }
 
@@ -803,7 +800,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 						<div className="sp-range__quick" role="group" aria-label="Days worth one click">
 							{dayShortcuts({ min, max, unavailable }).map(q => (
 								<Chip key={q.label}
-									onClick={() => (q.pick ? (onChange?.(q.pick), close({ toTrigger: true })) : openTo(q.show))}>{q.label}</Chip>
+									onClick={() => { onChange?.(q.pick); close({ toTrigger: true }) }}>{q.label}</Chip>
 							))}
 						</div>
 					)
