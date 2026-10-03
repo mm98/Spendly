@@ -17,7 +17,7 @@ import { Pill } from '../components/Pill.jsx'
 import { MAX_FILE_MB, PHOTO_TYPES, Slot, fileProblem } from '../components/FileDrop.jsx'
 import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
-import { Empty, useFocusTrap } from '../components/Utilities.jsx'
+import { Empty, Spinner, useFocusTrap } from '../components/Utilities.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -734,7 +734,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 						<span className="sp-meta sp-truncate">{[scan.file.name, receiptPages].filter(Boolean).join(dot)}</span>
 					</div>
 					<button type="button" className="or-receipt" onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}, at full size`}>
-						<img src={receipt.src} alt="" />
+						<ReceiptPage src={receipt.src} />
 					</button>
 				</Card>
 			)
@@ -1204,6 +1204,17 @@ function NewVendorFromScan({ onSetUp }) {
 			<span className="sp-note sp-grow">Want to add its details now?</span>
 			<Button variant="outline" size="small" onClick={onSetUp}>Set it up first</Button>
 		</div>
+	)
+}
+
+/** A receipt page drawn the first time it is opened: the spinner holds its place until it arrives. */
+function ReceiptPage({ src }) {
+	const [shown, setShown] = useState(null)
+	return (
+		<>
+			{shown === src ? null : <Spinner />}
+			<img src={src} alt="" onLoad={() => setShown(src)} />
+		</>
 	)
 }
 

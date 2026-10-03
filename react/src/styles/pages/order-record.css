@@ -29,6 +29,7 @@
 		min-height: 220px;
 		cursor: zoom-in;
 	}
+	.or-receipt > * { grid-area: 1 / 1; }
 	.or-receipt > img { display: block; max-width: 100%; max-height: 420px; object-fit: contain; }
 
 	/* a notice about the whole order, above both columns (3a: the saved state's notice) */
