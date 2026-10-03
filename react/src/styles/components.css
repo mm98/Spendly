@@ -4238,6 +4238,9 @@ body.sp-touch > .sp-scrim--dialog > .sp-dialog {
   border-radius: var(--r-tile);
   box-shadow: var(--shadow-menu);
   transform: rotate(-0.6deg);
+  /* it passes over the rows it is carried across */
+  position: relative;
+  z-index: 1;
 }
 /* the handle under the pointer darkens and its row takes the row hover; a carried row stays white */
 .sp-list-item__handle:hover { color: var(--ink-3); }

@@ -17,6 +17,7 @@ import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
+import { useReorder } from '../components/Reorder.js'
 import { Icon } from '../components/Icon.jsx'
 import { AddRow, Empty, EmptyBody, EmptyTitle, Skeleton, useDismiss } from '../components/Utilities.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
@@ -1021,11 +1022,6 @@ function AccountsCard({ sheet, onChanged }) {
 	const toast = useToast()
 	const [open, setOpen] = useState(null)
 	useGiveBack(open, id => [opener('account', id), opener('account', 'new')])
-	const [drag, setDrag] = useState(null)
-	// the account a keyboard picked up, and where it started, so Escape can put it back (c1)
-	const [held, setHeld] = useState(null)
-	const [said, setSaid] = useState('')
-	const rowsRef = useRef(null)
 	const write = Object.assign(async (send, optimistic, ownsGone = false) => {
 		if (optimistic) setList(optimistic)
 		try {
@@ -1047,6 +1043,12 @@ function AccountsCard({ sheet, onChanged }) {
 		next.splice(to, 0, next.splice(from, 1)[0])
 		write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})
 	}
+	const reorder = useReorder({
+		items: list ?? [],
+		keyOf: account => account.id,
+		nameOf: account => account.name,
+		onMove: (next, account, to) => write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})
+	})
 
 	if (!list) return <AccountsLoading />
 	const year = sheet.year
@@ -1060,70 +1062,21 @@ function AccountsCard({ sheet, onChanged }) {
 		}).filter(Boolean)
 	}
 
-	// a drag is let go where the pointer is: before the first row whose middle is below it
-	const dropAt = y => {
-		const rows = [...(rowsRef.current?.querySelectorAll('[data-account]') ?? [])]
-		const at = rows.findIndex(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2 })
-		return at < 0 ? rows.length : at
-	}
-	const handleEvents = account => ({
-		onPointerDown: ev => {
-			if (!ev.target.closest('.sp-list-item__handle')) return
-			ev.preventDefault()
-			ev.currentTarget.setPointerCapture(ev.pointerId)
-			setDrag({ id: account.id, at: dropAt(ev.clientY) })
-		},
-		onPointerMove: ev => { if (drag?.id === account.id) setDrag({ id: account.id, at: dropAt(ev.clientY) }) },
-		onPointerUp: () => {
-			if (drag?.id !== account.id) return
-			const from = list.findIndex(a => a.id === account.id)
-			setDrag(null)
-			moveTo(account, drag.at > from ? drag.at - 1 : drag.at)
-		},
-		// Space or Enter picks the row up and drops it, the arrows move it, Escape puts it back (c1)
-		onKeyDown: ev => {
-			if (!ev.target.closest('.sp-list-item__handle')) return
-			const at = list.findIndex(a => a.id === account.id)
-			const tell = (n, word) => setSaid(`${account.name}${word ? `, ${word}` : ''}, position ${n + 1} of ${list.length}`)
-			if (ev.key === ' ' || ev.key === 'Enter') {
-				ev.preventDefault()
-				const holding = held?.id === account.id
-				setHeld(holding ? null : { id: account.id, from: at })
-				tell(at, holding ? 'dropped' : 'picked up')
-				return
-			}
-			if (ev.key === 'Escape' && held?.id === account.id) {
-				ev.preventDefault()
-				ev.stopPropagation()
-				moveTo(account, held.from)
-				setHeld(null)
-				tell(held.from, 'put back')
-				return
-			}
-			const step = ev.key === 'ArrowUp' ? -1 : ev.key === 'ArrowDown' ? 1 : 0
-			if (!step) return
-			ev.preventDefault()
-			if (at + step < 0 || at + step >= list.length) return
-			moveTo(account, at + step)
-			tell(at + step)
-		}
-	})
-
 	return (
 		<Card>
 			<span className="sp-section-label">Accounts</span>
 			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
-			<div className="sp-stack sp-gap-8" ref={rowsRef}>
-				<Announce>{said}</Announce>
-				{list.map((account, i) => (
+			<div className="sp-stack sp-gap-8" {...reorder.list}>
+				<Announce>{reorder.said}</Announce>
+				{reorder.items.map((account, i) => (
 					<Fragment key={account.id}>
-						{drag && drag.at === i && drag.id !== account.id ? <Insertion /> : null}
+						{reorder.lands(account) ? <Insertion /> : null}
 						{open === account.id
 							? <AccountEditor account={account} index={i} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
 							: (
-								<ListItem variant={drag?.id === account.id || held?.id === account.id ? 'carried' : 'default'}
+								<ListItem variant={reorder.variant(account)}
 									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}
-									data-account={account.id} {...handleEvents(account)}>
+									{...reorder.row(account)}>
 									<span className="sp-stacked sp-grow bg-opens-account" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}
 										onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setOpen(account.id) } }}>
@@ -1134,7 +1087,6 @@ function AccountsCard({ sheet, onChanged }) {
 							)}
 					</Fragment>
 				))}
-				{drag && drag.at === list.length ? <Insertion /> : null}
 				{open === 'new'
 					? <AccountEditor list={list} write={write} onClose={() => setOpen(null)} />
 					: <AddRow data-opener="account:new" onClick={() => setOpen('new')}>{list.length ? 'Add an account' : 'Add the first account'}</AddRow>}

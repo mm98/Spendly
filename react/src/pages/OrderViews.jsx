@@ -9,6 +9,7 @@ import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { NavItem } from '../components/Shell.jsx'
+import { useReorder } from '../components/Reorder.js'
 import { useDismiss } from '../components/Utilities.jsx'
 import { addView, changeView, deleteView, failureMessage, orderViewsAs } from '../api/client.js'
 import { amount } from '../api/format.js'
@@ -35,11 +36,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 	const [renaming, setRenaming] = useState(null)
 	const [deleting, setDeleting] = useState(null)
 	const [order, setOrder] = useState(null)
-	const [drag, setDrag] = useState(null)
-	const [said, setSaid] = useState('')
-	const rows = useRef(null)
 	useEffect(() => setOrder(null), [answer.data])
-	const list = order ?? views
 
 	const fail = (e, what) => toast({ message: failureMessage(e, what), color: 'danger' })
 
@@ -74,44 +71,14 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 	const remove = view => deleteView(view.id)
 		.then(() => { setDeleting(null); if (active?.id === view.id) navigate(ALL_ORDERS) })
 		.catch(e => { setDeleting(null); fail(e, 'The view was not deleted. Try again.') })
-	const moveTo = (view, to) => {
-		const from = list.findIndex(v => v.id === view.id)
-		if (to === from || to < 0 || to >= list.length) return
-		const next = [...list]
-		next.splice(to, 0, next.splice(from, 1)[0])
-		setOrder(next)
-		orderViewsAs(next.map(v => v.id)).catch(e => { setOrder(null); fail(e, 'The new order was not saved. Try again.') })
-	}
-	// a drag in edit mode is let go before the first row whose middle is below the pointer
-	const dropAt = y => {
-		const all = [...(rows.current?.querySelectorAll('[data-view]') ?? [])]
-		const at = all.findIndex(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2 })
-		return at < 0 ? all.length : at
-	}
-	const handleEvents = view => ({
-		onPointerDown: ev => {
-			if (!ev.target.closest('.sp-list-item__handle')) return
-			ev.preventDefault()
-			ev.currentTarget.setPointerCapture(ev.pointerId)
-			setDrag({ id: view.id, at: dropAt(ev.clientY) })
-		},
-		onPointerMove: ev => { if (drag?.id === view.id) setDrag({ id: view.id, at: dropAt(ev.clientY) }) },
-		onPointerUp: () => {
-			if (drag?.id !== view.id) return
-			const from = list.findIndex(v => v.id === view.id)
-			setDrag(null)
-			moveTo(view, drag.at > from ? drag.at - 1 : drag.at)
-		},
-		// the arrows move the row whose handle has focus, one place at a time
-		onKeyDown: ev => {
-			if (!ev.target.closest('.sp-list-item__handle')) return
-			const step = ev.key === 'ArrowUp' ? -1 : ev.key === 'ArrowDown' ? 1 : 0
-			if (!step) return
-			ev.preventDefault()
-			const at = list.findIndex(v => v.id === view.id)
-			if (at + step < 0 || at + step >= list.length) return
-			moveTo(view, at + step)
-			setSaid(`${view.name}, position ${at + step + 1} of ${list.length}`)
+	// reordering saves on drop (9e), and a save that fails puts the views back and says so (c1)
+	const reorder = useReorder({
+		items: order ?? views,
+		keyOf: view => view.id,
+		nameOf: view => view.name,
+		onMove: next => {
+			setOrder(next)
+			orderViewsAs(next.map(v => v.id)).catch(e => { setOrder(null); fail(e, 'The new order was not saved. Try again.') })
 		}
 	})
 
@@ -132,8 +99,8 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 				{slot}
 			</div>
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
-			<div className={mode === 'editing' ? 'sp-stack sp-gap-8' : 'sp-nav-list'} ref={rows}>
-				<Announce>{said}</Announce>
+			<div className={mode === 'editing' ? 'sp-stack sp-gap-8' : 'sp-nav-list'} {...reorder.list}>
+				<Announce>{reorder.said}</Announce>
 				{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
 				{mode === 'editing'
 					? (
@@ -143,15 +110,15 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 						</ListItem>
 					)
 					: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={onList && !active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
-				{list.map((view, i) => (
+				{reorder.items.map(view => (
 					<Fragment key={view.id}>
-						{drag && drag.at === i && drag.id !== view.id ? <Insertion /> : null}
+						{reorder.lands(view) ? <Insertion /> : null}
 						{renaming === view.id
 							? <ViewName name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
 							: mode === 'editing'
 								? (
-									<ListItem handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Reorder ${view.name}`} data-view={view.id} {...handleEvents(view)}
-										variant={drag?.id === view.id ? 'carried' : 'default'}>
+									<ListItem handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Reorder ${view.name}`} {...reorder.row(view)}
+										variant={reorder.variant(view)}>
 										<span className="sp-data sp-grow sp-truncate">{view.name}</span>
 										<ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onDelete={() => setDeleting(view)} />
 									</ListItem>
@@ -164,7 +131,6 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 								)}
 					</Fragment>
 				))}
-				{drag && drag.at === list.length ? <Insertion /> : null}
 			</div>
 			{mode === 'naming' ? <span className="sp-meta">{summary}</span> : null}
 			{deleting

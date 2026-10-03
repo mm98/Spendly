@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Announce, ListItem } from '../components/ListItem.jsx'
+import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
+import { useReorder } from '../components/Reorder.js'
 import { Computed, LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField, TokensField } from '../components/Inputs.jsx'
@@ -156,13 +157,21 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const [createdAs, setCreatedAs] = useState(null)
 	const [folded, setFolded] = useFolded(creating ? 'order-new' : 'order-edit', 'details', true)
 	const [reordering, setReordering] = useState(false)
-	const [carried, setCarried] = useState(null)
 	const [asking, setAsking] = useState(false)
 	const [viewing, setViewing] = useState(null)
-	// the row a keyboard picked up, and where it started, so Escape can put it back (c1)
-	const [held, setHeld] = useState(null)
 	const [said, setSaid] = useState('')
-	const list = useRef(null)
+	// a line moved by hand marks the order changed and waits for the save bar (c1)
+	const reorder = useReorder({
+		items: lines,
+		keyOf: line => line.key,
+		nameOf: line => line.title || 'Unnamed line',
+		onMove: next => setLines(ls => {
+			const now = new Map(ls.map(l => [l.key, l]))
+			const moved = next.map(l => now.get(l.key)).filter(Boolean)
+			return [...moved, ...ls.filter(l => !moved.includes(l))]
+		})
+	})
+	const list = reorder.list.ref
 	const column = useRef(null)
 	const stacked = useStacked(column)
 	const quietVendor = useRef(false)
@@ -170,7 +179,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	useFocusTrap(sheetBox, Boolean(touch && editing), '.sp-line-editor__form input')
 	// the line or add control whose editor is open, which takes focus back when it closes
 	const reopen = useRef(editing?.isNew ? 'add' : null)
-	const dragged = useRef(false)
 	const [start, setStart] = useState(seed)
 	const staged = useRef(files)
 	staged.current = files
@@ -288,82 +296,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		return next
 	})
 	const move = (key, by) => moveTo(key, lines.findIndex(l => l.key === key) + by)
-	const tell = (key, at, word) => {
-		const line = lines.find(l => l.key === key)
-		if (line) setSaid(`${line.title}${word ? `, ${word}` : ''}, position ${at + 1} of ${lines.length}`)
-	}
 
-	/* A row is carried by its handle and passes a neighbour once the pointer crosses that
-	   neighbour's middle. The window listens, since moving a row re-inserts its element. */
-	const grab = ev => {
-		const handle = ev.target.closest?.('.sp-list-item__handle')
-		const row = handle?.closest('[data-line]')
-		if (!row || ev.button !== 0) return
-		ev.preventDefault()
-		dragged.current = true
-		setCarried(row.dataset.line)
-	}
-	// a click on a row opens it, as its pencil does (c15); the click that ends a drag does not
+	// a click on a row opens it, as its pencil does (c15)
 	const rowClick = ev => {
-		const afterDrag = dragged.current
-		dragged.current = false
 		const row = ev.target.closest?.('[data-line]')
-		if (afterDrag || !row || ev.target.closest('button, input, label, a')) return
+		if (!row || ev.target.closest('button, input, label, a')) return
 		const line = lines.find(l => l.key === row.dataset.line)
 		if (line) openLine(line)
-	}
-	useEffect(() => {
-		if (!carried) return
-		const drag = ev => {
-			const rows = [...(list.current?.querySelectorAll('[data-line]') ?? [])]
-			const at = rows.findIndex(r => r.dataset.line === carried)
-			const over = rows.findIndex(r => {
-				const box = r.getBoundingClientRect()
-				return ev.clientY >= box.top && ev.clientY <= box.bottom
-			})
-			if (at < 0 || over < 0 || over === at) return
-			const box = rows[over].getBoundingClientRect()
-			const middle = box.top + box.height / 2
-			if ((over > at && ev.clientY > middle) || (over < at && ev.clientY < middle)) moveTo(carried, over)
-		}
-		const drop = () => {
-			setCarried(null)
-			// the click that ends the drag reads the flag first; a drop that makes no click clears it
-			setTimeout(() => { dragged.current = false })
-		}
-		window.addEventListener('pointermove', drag)
-		window.addEventListener('pointerup', drop)
-		window.addEventListener('pointercancel', drop)
-		return () => {
-			window.removeEventListener('pointermove', drag)
-			window.removeEventListener('pointerup', drop)
-			window.removeEventListener('pointercancel', drop)
-		}
-	}, [carried])
-	// Space or Enter picks a row up and drops it, the arrows move it, Escape puts it back (c1)
-	const keyMove = ev => {
-		const row = ev.target.closest?.('.sp-list-item__handle') && ev.target.closest('[data-line]')
-		if (!row) return
-		const key = row.dataset.line
-		const at = lines.findIndex(l => l.key === key)
-		if (ev.key === ' ' || ev.key === 'Enter') {
-			ev.preventDefault()
-			const holding = held?.key === key
-			setHeld(holding ? null : { key, from: at })
-			tell(key, at, holding ? 'dropped' : 'picked up')
-		} else if (ev.key === 'Escape' && held?.key === key) {
-			ev.preventDefault()
-			ev.stopPropagation()
-			moveTo(key, held.from)
-			setHeld(null)
-			tell(key, held.from, 'put back')
-		} else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
-			ev.preventDefault()
-			const to = at + (ev.key === 'ArrowUp' ? -1 : 1)
-			if (to < 0 || to >= lines.length) return
-			move(key, ev.key === 'ArrowUp' ? -1 : 1)
-			tell(key, to)
-		}
 	}
 
 	/* ---- attachments, staged until the save ---- */
@@ -769,16 +708,17 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					{text}
 				</ListItem>
 			)
-		const at = lines.indexOf(line)
+		const at = reorder.items.indexOf(line)
 		return (
 			<ListItem
 				key={line.key}
 				data-line={line.key}
-				variant={carried === line.key || held?.key === line.key ? 'carried' : 'default'}
+				{...reorder.row(line)}
+				variant={reorder.variant(line)}
 				color={warn ? 'warning' : 'default'}
 				opens={!touch && !reordering}
-				// a phone moves a line with its two buttons, so it shows no handle to drag
-				handle={scan || touch ? undefined : <Icon name="grip-vertical" size={14} />}
+				// a phone's Reorder mode has the handle and the two buttons, both (1c)
+				handle={scan ? undefined : <Icon name="grip-vertical" size={14} />}
 				handleLabel={`Reorder ${named}, currently position ${at + 1} of ${lines.length}`}
 				mark={scan ? <><Include line={line} setLines={setLines} />{mark}</> : mark}
 				actions={reordering
@@ -818,10 +758,15 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const itemsCard = (
 		<Card>
 			{itemsHead}
-			<div className="sp-stack sp-gap-8" ref={list} onPointerDown={touch ? undefined : grab} onClick={touch ? undefined : rowClick}
-				onKeyDown={keyMove}>
+			<div className="sp-stack sp-gap-8" {...reorder.list} onClick={touch ? undefined : rowClick}>
 				<Announce>{said}</Announce>
-				{lines.map(line => (editing && !touch && editing.key === line.key ? editor : lineRow(line)))}
+				<Announce>{reorder.said}</Announce>
+				{reorder.items.map(line => (
+					<Fragment key={line.key}>
+						{reorder.lands(line) ? <Insertion /> : null}
+						{editing && !touch && editing.key === line.key ? editor : lineRow(line)}
+					</Fragment>
+				))}
 				{!lines.length && !(editing?.isNew) && tried
 					? (
 						<Empty dashed>

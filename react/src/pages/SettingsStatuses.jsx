@@ -7,6 +7,7 @@ import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
+import { useReorder } from '../components/Reorder.js'
 import { Skeleton } from '../components/Utilities.jsx'
 import { addStatus, changeStatus, deleteStatus, failureMessage, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -29,10 +30,15 @@ export function StatusesCard({ touch = false }) {
 	const [list, setList] = useState(null)
 	useEffect(() => { if (loaded.data) setList(loaded.data) }, [loaded.data])
 	const [editing, setEditing] = useState(null)
-	const [drag, setDrag] = useState(null)
-	const [held, setHeld] = useState(null)
 	const [said, setSaid] = useState('')
-	const rows = useRef(null)
+	// a phone moves a status with its up and down buttons, so the handle is the desktop's (18b)
+	const reorder = useReorder({
+		items: list ?? [],
+		keyOf: status => status.key,
+		nameOf: status => status.name,
+		onMove: next => write(() => orderStatusesAs(next.map(s => s.key)), next)
+	})
+	const rows = reorder.list.ref
 	// the row and the way it was last moved by a button, so focus can follow it to its new place
 	const moved = useRef(null)
 	useEffect(() => {
@@ -76,54 +82,6 @@ export function StatusesCard({ touch = false }) {
 		next.splice(to, 0, next.splice(from, 1)[0])
 		write(() => orderStatusesAs(next.map(s => s.key)), next)
 	}
-	const dropAt = y => {
-		const all = [...(rows.current?.querySelectorAll('[data-status]') ?? [])]
-		const at = all.findIndex(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2 })
-		return at < 0 ? all.length : at
-	}
-	const handleEvents = status => ({
-		onPointerDown: ev => {
-			if (!ev.target.closest('.sp-list-item__handle')) return
-			ev.preventDefault()
-			ev.currentTarget.setPointerCapture(ev.pointerId)
-			setDrag({ key: status.key, at: dropAt(ev.clientY) })
-		},
-		onPointerMove: ev => { if (drag?.key === status.key) setDrag({ key: status.key, at: dropAt(ev.clientY) }) },
-		onPointerUp: () => {
-			if (drag?.key !== status.key) return
-			const from = list.findIndex(s => s.key === status.key)
-			setDrag(null)
-			moveTo(status, drag.at > from ? drag.at - 1 : drag.at)
-		},
-		// Space or Enter picks the row up and drops it, the arrows move it, Escape puts it back (c1)
-		onKeyDown: ev => {
-			if (!ev.target.closest('.sp-list-item__handle')) return
-			const at = list.findIndex(s => s.key === status.key)
-			const tell = (n, word) => setSaid(`${status.name}${word ? `, ${word}` : ''}, position ${n + 1} of ${list.length}`)
-			if (ev.key === ' ' || ev.key === 'Enter') {
-				ev.preventDefault()
-				const holding = held?.key === status.key
-				setHeld(holding ? null : { key: status.key, from: at })
-				tell(at, holding ? 'dropped' : 'picked up')
-				return
-			}
-			if (ev.key === 'Escape' && held?.key === status.key) {
-				ev.preventDefault()
-				ev.stopPropagation()
-				moveTo(status, held.from)
-				setHeld(null)
-				tell(held.from, 'put back')
-				return
-			}
-			const step = ev.key === 'ArrowUp' ? -1 : ev.key === 'ArrowDown' ? 1 : 0
-			if (!step || held?.key !== status.key) return
-			ev.preventDefault()
-			if (at + step < 0 || at + step >= list.length) return
-			moveTo(status, at + step)
-			tell(at + step)
-		}
-	})
-
 	const step = (status, way) => {
 		const at = list.findIndex(s => s.key === status.key)
 		moved.current = { key: status.key, way }
@@ -142,18 +100,18 @@ export function StatusesCard({ touch = false }) {
 				<span className="sp-grow" />
 				{touch ? null : <span className="sp-meta">Drag to reorder</span>}
 			</div>
-			<div className="sp-stack sp-gap-6" ref={rows}>
-				<Announce>{said}</Announce>
-				{list.map((status, i) => (
+			<div className="sp-stack sp-gap-6" {...reorder.list}>
+				<Announce>{touch ? said : reorder.said}</Announce>
+				{reorder.items.map((status, i) => (
 					<Fragment key={status.key}>
-						{drag && drag.at === i && drag.key !== status.key ? <Insertion /> : null}
+						{reorder.lands(status) ? <Insertion /> : null}
 						{editing === status.key
 							? <StatusEditor status={status} onCancel={() => setEditing(null)}
 								onSave={next => write(() => changeStatus(status.key, next)).then(ok => { if (ok) setEditing(null) })} />
 							: (
-								<ListItem variant={drag?.key === status.key || held?.key === status.key ? 'carried' : 'default'}
+								<ListItem variant={reorder.variant(status)}
 									handle={touch ? undefined : <Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
-									data-status={status.key} {...(touch ? {} : handleEvents(status))}>
+									data-status={status.key} {...reorder.row(status)}>
 									{touch
 										? (
 											// on a phone the count goes under the name, so the name keeps its room beside the buttons
@@ -193,7 +151,6 @@ export function StatusesCard({ touch = false }) {
 							)}
 					</Fragment>
 				))}
-				{drag && drag.at === list.length ? <Insertion /> : null}
 				{editing === 'new'
 					? <StatusEditor onCancel={() => setEditing(null)}
 						onSave={next => write(() => addStatus(next)).then(ok => { if (ok) setEditing(null) })} />

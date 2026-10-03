@@ -13,11 +13,8 @@ const still = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matc
 const laidAt = el => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return y }
 const swallow = ev => { ev.preventDefault(); ev.stopPropagation() }
 
-/** One way to move rows by hand, for every list that has them (Components, Ordering by hand). Only
-    the handle starts it: a pointer drags the row, which follows it while the rows around it make room;
-    a touch does the same after a held moment; the keyboard picks the row up with Space or Enter, moves
-    it with the arrows, drops it with Space and puts it back with Escape, each step read out.
-    `onMove(items)` gets the new order once, when the row is dropped somewhere new. */
+/** One way to move rows by hand, for every list that has them (c1, Ordering by hand). `onMove(items,
+    item, to)` gets the new order once, when `item` is dropped somewhere new, at `to`. */
 export function useReorder({ items, keyOf, nameOf, onMove }) {
 	const list = useRef(null)
 	const [order, setOrder] = useState(null)
@@ -25,6 +22,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 	const [held, setHeld] = useState(null)
 	const [said, setSaid] = useState('')
 	const press = useRef(null)
+	// where each row was drawn just before a move, so it can slide from there
 	const tops = useRef(new Map())
 	const shifting = useRef(false)
 	const dropped = useRef(null)
@@ -40,14 +38,20 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 	if (!act.current) {
 		const rowOf = key => list.current?.querySelector(`[data-reorder="${CSS.escape(key)}"]`)
 		const inList = el => laidAt(el) - laidAt(list.current)
+		const snap = () => {
+			const top = list.current?.getBoundingClientRect().top ?? 0
+			tops.current = new Map([...(list.current?.querySelectorAll('[data-reorder]') ?? [])].map(r => [r.dataset.reorder, r.getBoundingClientRect().top - top]))
+			shifting.current = true
+		}
 		const place = (key, to) => { const next = now.current.live.filter(k => k !== key); next.splice(to, 0, key); return next }
 		const tell = (key, word, within = now.current.live) =>
 			setSaid(`${now.current.nameOf(now.current.byKey.get(key))}${word ? `, ${word}` : ''}, position ${within.indexOf(key) + 1} of ${within.length}`)
 		// dropping in the same place is not a change: nothing is saved
-		const commit = next => {
-			shifting.current = true
+		const commit = (next, key) => {
+			snap()
 			setOrder(null)
-			if (next.join('\n') !== now.current.keys.join('\n')) now.current.onMove(next.map(k => now.current.byKey.get(k)))
+			const { keys, byKey, onMove } = now.current
+			if (next.join('\n') !== keys.join('\n')) onMove(next.map(k => byKey.get(k)), byKey.get(key), next.indexOf(key))
 		}
 
 		const follow = () => {
@@ -65,7 +69,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			for (const row of list.current.querySelectorAll('[data-reorder]'))
 				if (row.dataset.reorder !== p.key && pointer > inList(row) + row.offsetHeight / 2) to++
 			if (to === now.current.live.indexOf(p.key)) return
-			shifting.current = true
+			snap()
 			setOrder(place(p.key, to))
 		}
 		const begin = () => {
@@ -76,7 +80,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			p.grab = p.y0 - list.current.getBoundingClientRect().top - inList(row)
 			try { p.handle.setPointerCapture(p.id) } catch { /* the pointer is already gone */ }
 			if (p.touch) navigator.vibrate?.(10)
-			shifting.current = true
+			snap()
 			setOrder(now.current.live)
 			setCarried(p.key)
 		}
@@ -110,7 +114,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			if (p.live) {
 				dropped.current = { key: p.key, top: p.top }
 				setCarried(null)
-				commit(now.current.live)
+				commit(now.current.live, p.key)
 				// the click that ends a drag opens nothing
 				window.addEventListener('click', swallow, { capture: true, once: true })
 				setTimeout(() => window.removeEventListener('click', swallow, true))
@@ -121,8 +125,8 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			const p = press.current
 			if (!p || ev.pointerId !== p.id) return
 			if (p.live) {
+				snap()
 				dropped.current = { key: p.key, top: p.top }
-				shifting.current = true
 				setCarried(null)
 				setOrder(null)
 			}
@@ -153,11 +157,11 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 				ev.preventDefault()
 				if (holding) {
 					setHeld(null)
-					commit(live)
+					commit(live, key)
 					tell(key, 'dropped')
 					return
 				}
-				if (held) commit(live)
+				if (held) commit(live, held.key)
 				setHeld({ key, from: live })
 				setOrder(live)
 				tell(key, 'picked up')
@@ -167,7 +171,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			if (ev.key === 'Escape') {
 				ev.preventDefault()
 				ev.stopPropagation()
-				shifting.current = true
+				snap()
 				refocus.current = key
 				setOrder(null)
 				setHeld(null)
@@ -179,7 +183,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			ev.preventDefault()
 			if (to < 0 || to >= live.length) return
 			const next = place(key, to)
-			shifting.current = true
+			snap()
 			refocus.current = key
 			setOrder(next)
 			tell(key, null, next)
@@ -188,25 +192,21 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 		// a row that moved slides from where it was drawn to its new place
 		const settle = () => {
 			const box = list.current
-			if (!box) return
-			const animate = shifting.current && !still()
+			if (!box || !shifting.current) return follow()
 			shifting.current = false
-			const was = tops.current
-			const at = new Map()
+			const animate = !still()
 			for (const row of box.querySelectorAll('[data-reorder]')) {
 				const key = row.dataset.reorder
-				const top = inList(row)
-				at.set(key, top)
-				const from = dropped.current?.key === key ? dropped.current.top : was.get(key)
 				if (key === press.current?.key && press.current.live) continue
-				if (!animate || from == null || from === top) { if (dropped.current?.key === key) row.style.translate = ''; continue }
+				const from = dropped.current?.key === key ? dropped.current.top : tops.current.get(key)
+				const shift = animate && from != null ? from - inList(row) : 0
 				row.style.transition = 'none'
-				row.style.translate = `0 ${from - top}px`
+				row.style.translate = Math.abs(shift) < 0.5 ? '' : `0 ${shift}px`
+				if (Math.abs(shift) < 0.5) continue
 				row.getBoundingClientRect()
 				row.style.transition = SHIFT
 				row.style.translate = ''
 			}
-			tops.current = at
 			dropped.current = null
 			follow()
 			const back = refocus.current && rowOf(refocus.current)?.querySelector('.sp-list-item__handle')
