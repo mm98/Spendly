@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
@@ -11,17 +11,18 @@ import { VendorMark } from '../app/categoryMark.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Stacked } from '../components/Utilities.jsx'
-import { useToast } from '../components/Overlays.jsx'
+import { Alert, useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendors,
 	invalidateCategoryData, invalidateVendorData, updateVendor
 } from '../api/client.js'
 import { currency, isSaving, plural } from '../api/format.js'
+import { likeness, vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
-	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, RecentLoading, RecentOrders, RecordPage, SWATCHES,
+	CategoryTokens, CommitBar, ConfirmArchive, ConfirmDelete, EndLoading, GoneNotice, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	SummaryLoading, deleteNote, focusFirst, hold, isGone, pickedColour, sayFailure, storedColour, useLeaveGuard
 } from './vendorsCategories.jsx'
 
@@ -46,7 +47,7 @@ export default function VendorForm() {
 }
 
 // the form while the vendor is on its way: an existing record's form, every value held by a skeleton
-const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, defaultCategories: [], orders: 0 }
+const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], orders: 0 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
@@ -55,12 +56,14 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const list = useListReturn('vendors')
+	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
+	const fromScan = useLocation().state?.fromScan ?? null
 	const all = useApi(getVendors)
 	const h = loading ? hold : control => control
 	const editing = Boolean(vendor)
 	const start = useMemo(() => ({
 		name: vendor?.name ?? '',
-		aliases: vendor?.aliases ?? [],
+		aliases: vendor?.aliases ?? (fromScan?.name ? [fromScan.name] : []),
 		colour: vendor ? pickedColour(vendor.colour) : 'green-2',
 		favourite: Boolean(vendor?.favourite),
 		defaultCategories: vendor?.defaultCategories ?? []
@@ -68,6 +71,12 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
 	const [deleting, setDeleting] = useState(false)
+	const [archiving, setArchiving] = useState(false)
+	// aliases another vendor holds, which this save moves here; and the one on offer to move
+	const [moves, setMoves] = useState([])
+	const [offer, setOffer] = useState(null)
+	// a vendor whose name is close to the one typed, offered instead (5b)
+	const [close, setClose] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const [saving, setSaving] = useState(false)
 	// the vendor was deleted after this page opened it: what the save said, and nothing left to save
@@ -80,36 +89,55 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		|| !same(values.defaultCategories, start.defaultCategories)
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
+	// back to the receipt, with the vendor just made chosen on it
+	const back = name => { guard.release(); navigate(fromScan.to, { state: { pickedVendor: name } }) }
 
 	const others = (all.data ?? []).filter(v => v.id !== vendor?.id)
-	const owner = text => others.find(v => lower(v.name) === lower(text) || (v.aliases ?? []).some(a => lower(a) === lower(text)))
+	// compared as receipts are matched: case, accents, punctuation and a legal form set aside (5h)
+	const owner = text => others.find(v => vendorKey(v.name) === vendorKey(text) || (v.aliases ?? []).some(a => vendorKey(a) === vendorKey(text)))
 	const nameProblem = name => {
 		if (!name.trim()) return 'Give the vendor a name.'
 		const taken = owner(name)
 		if (!taken) return null
-		return lower(taken.name) === lower(name)
-			? `You already have a vendor called ${taken.name}.`
+		return vendorKey(taken.name) === vendorKey(name)
+			? lower(taken.name) === lower(name) ? `You already have a vendor called ${taken.name}.` : `${taken.name} already has that name. Pick a different name.`
 			: `Another vendor, ${taken.name}, already matches "${name.trim()}". Pick a different name.`
+	}
+	// on leaving the field: the vendor whose name is most like this one, when it is very like it
+	const lookAlike = name => {
+		if (!name.trim() || name.trim() === start.name.trim()) return null
+		const best = others.map(v => ({ v, score: likeness(v.name, name) })).sort((a, b) => b.score - a.score)[0]
+		return best && best.score >= 0.85 && vendorKey(best.v.name) !== vendorKey(name) ? best.v : null
 	}
 
 	/* A name another vendor already matches would file receipts in two places, so it is
-	   refused where it is typed rather than when the save is. */
+	   stopped where it is typed: another vendor's alias can be moved here, its name cannot. */
 	const changeAliases = next => {
 		const added = next.find(a => !values.aliases.includes(a))
+		setOffer(null)
 		if (added) {
 			const taken = owner(added)
-			if (taken) return setErrors(e => ({
-				...e,
-				aliases: lower(taken.name) === lower(added)
-					? `Another vendor is called ${taken.name}. Pick a different one.`
-					: `Another vendor, ${taken.name}, already matches "${added}". Pick a different one.`
+			if (taken && vendorKey(taken.name) === vendorKey(added)) return setErrors(e => ({
+				...e, aliases: `Another vendor is called ${taken.name}. Pick a different one.`
 			}))
-			if (lower(added) === lower(values.name))
+			if (taken) {
+				setOffer({ alias: added, holder: taken })
+				return setErrors(e => ({ ...e, aliases: `${taken.name} already matches "${added}". Move it here, or pick a different one.` }))
+			}
+			if (vendorKey(added) === vendorKey(values.name))
 				return setErrors(e => ({ ...e, aliases: 'That is already the vendor\'s name. Add the other names it uses.' }))
 		}
 		setErrors(e => ({ ...e, aliases: null }))
+		setMoves(m => m.filter(a => next.includes(a)))
 		set('aliases', next)
 	}
+	const moveHere = () => {
+		setMoves(m => [...m, offer.alias])
+		set('aliases', [...values.aliases, offer.alias])
+		setErrors(e => ({ ...e, aliases: null }))
+		setOffer(null)
+	}
+	const keepThere = () => { setErrors(e => ({ ...e, aliases: null })); setOffer(null) }
 
 	const save = () => {
 		if (writing.current) return
@@ -120,15 +148,17 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
-			name, aliases: values.aliases, colour: storedColour(values.colour),
+			// an alias the name already matches says nothing more, and the API refuses it
+			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
 			favourite: values.favourite, defaultCategories: values.defaultCategories,
 			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {})
 		}
 		const written = editing ? updateVendor(vendor.id, look) : createVendor(name, look)
 		written
-			.then(() => {
+			.then(saved => {
 				invalidateVendorData()
 				invalidateCategoryData()
+				if (fromScan && !editing) return back(saved.name)
 				leave()
 			})
 			.catch(e => {
@@ -144,6 +174,25 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				if (!about) return toast({ message, color: 'danger' })
 				setErrors(err => ({ ...err, [about]: message }))
 				focusFirst([about === 'name' ? 'vendor-name' : 'vendor-aliases'])
+			})
+	}
+
+	// archiving returns to the list, which the vendor has left; unarchiving stays on the page
+	const setArchived = to => {
+		setBusy(true)
+		updateVendor(vendor.id, { archived: to })
+			.then(() => {
+				invalidateVendorData()
+				setBusy(false)
+				setArchiving(false)
+				toast({ message: to ? `${vendor.name} archived.` : `${vendor.name} is back in the list.` })
+				if (to) leave()
+			})
+			.catch(e => {
+				setBusy(false)
+				setArchiving(false)
+				if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
+				sayFailure(toast, e, 'That did not change. Try again.')
 			})
 	}
 
@@ -164,6 +213,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			})
 	}
 
+	const marked = vendor?.lastMatched && values.aliases.includes(vendor.lastMatched) ? vendor.lastMatched : null
+
 	const cards = (
 		<>
 			<Card>
@@ -171,19 +222,36 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<Field id="vendor-name" label="Name"
 					message={errors.name ?? (editing ? undefined : 'The name you will recognise in a list. Receipts can spell it differently.')}
 					messageType={errors.name ? 'danger' : 'hint'}>
-					{h(<TextField value={values.name} onChange={v => set('name', v)}
-						onBlur={() => setErrors(e => ({ ...e, name: nameProblem(values.name) }))}
+					{h(<TextField value={values.name} onChange={v => { set('name', v); setClose(null) }}
+						onBlur={() => { const problem = nameProblem(values.name); setErrors(e => ({ ...e, name: problem })); setClose(problem ? null : lookAlike(values.name)) }}
 						placeholder={editing ? undefined : 'Where you bought it'} />)}
 				</Field>
+				{close
+					? (
+						<Alert color="warning" mark="!" action={<Button variant="outline" size="small" to={`/vendors/${close.id}/edit`}>Open {close.name}</Button>}>
+							You already have {close.name}, a name very like this one. If it is the same shop, use that vendor instead.
+						</Alert>
+					)
+					: null}
 			</Card>
 
 			<Card>
 				<span className="sp-section-label">Aliases</span>
 				<Field id="vendor-aliases" label="Also matches"
-					message={errors.aliases ?? 'Other names this vendor uses on receipts. A receipt with one of these is filed here.'}
+					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
+						? 'Other names this vendor uses on receipts. The name the scan read is already here. Keep it, so the next receipt is filed here by itself.'
+						: `Other names this vendor uses on receipts. A receipt with one of these is filed here.${marked ? ' The green one is the name the last receipt matched.' : ''}`)}
 					messageType={errors.aliases ? 'danger' : 'hint'}>
-					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" />)}
+					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
 				</Field>
+				{offer
+					? (
+						<div className="sp-row-flex sp-gap-8">
+							<Button variant="outline" size="small" onClick={moveHere}>Move it here</Button>
+							<Button variant="outline" size="small" onClick={keepThere}>Keep it on {offer.holder.name}</Button>
+						</div>
+					)
+					: null}
 				<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
 					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 						value={values.colour} onChange={v => set('colour', v)} />)}
@@ -209,7 +277,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const bar = touch || !editing || changed
 		? (
 			<CommitBar status={!editing ? 'Nothing saved yet' : changed ? 'Unsaved changes' : null} quiet={!editing}
-				onCancel={() => navigate(list)} onSave={lost ? null : save} commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save vendor' : 'Create'}
+				onCancel={() => navigate(fromScan && !editing ? fromScan.to : list)} onSave={lost ? null : save} commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save vendor' : 'Create'}
 				saving={saving} disabled={loading} />
 		)
 		: null
@@ -217,7 +285,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const name = values.name.trim()
 	// the list answer, when in hand, says whether the loaded rail has recent orders and a Delete
 	const known = loading ? all.data?.find(v => v.id === loadingId) : null
-	const end = endWords(known?.orders ?? 10)
+	const end = endWords(known ?? { orders: 10 })
 	const rail = loading
 		? (
 			<>
@@ -225,7 +293,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					action="See more in statistics" />
 				{!known || known.orders ? <RecentLoading /> : null}
 				<EndLoading label="End of its life" title={end.title} body={end.body}
-					action={known && !known.orders ? <Button color="danger">Delete</Button> : null} />
+					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive'}</Button>} />
 			</>
 		)
 		: editing
@@ -233,13 +301,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<>
 					<VendorSummary vendor={vendor} name={name || vendor.name} colour={storedColour(values.colour)} />
 					<RecentOrders filter={{ vendorId: vendor.id }} to={`/orders?vendor=${vendor.id}`} total={vendor.orders} />
-					<Card {...(vendor.orders ? {} : { footer: [<Button key="delete" color="danger" onClick={() => setDeleting(true)}>Delete</Button>], footerCommits: true })}>
-						<span className="sp-section-label">End of its life</span>
-						<Well>
-							<span className="sp-title">{endWords(vendor.orders).title}</span>
-							<span className="sp-subtitle">{endWords(vendor.orders).body}</span>
-						</Well>
-					</Card>
+					<EndOfLife vendor={vendor} busy={busy} onArchive={() => setArchiving(true)} onUnarchive={() => setArchived(false)}
+						onDelete={() => setDeleting(true)} />
 				</>
 			)
 			: (
@@ -273,14 +336,46 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					</ConfirmDelete>
 				)
 				: null}
+			{archiving
+				? <ConfirmArchive vendor={vendor} busy={busy} onConfirm={() => setArchived(true)} onCancel={() => setArchiving(false)} />
+				: null}
 		</>
 	)
 }
 
-/** What the end-of-life card says of a vendor with `orders` orders: only one with none can be deleted. */
-const endWords = orders => (orders
-	? { title: 'A vendor with orders cannot be deleted', body: `Every order must name a vendor, so its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} this one.` }
-	: { title: 'Nothing points at this vendor any more', body: 'Deleting removes it outright.' })
+/** What the end-of-life card says (5c): archiving always works and can be undone; only a vendor
+    with no orders can be deleted. */
+const endWords = ({ orders, archived = false }) => {
+	if (archived) return {
+		title: 'This vendor is archived',
+		body: orders
+			? `It is out of the vendor list and the order list's filters. Its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} it as their vendor.`
+			: 'It is out of the vendor list and the order list\'s filters. Deleting removes it outright.'
+	}
+	return orders
+		? { title: 'A vendor with orders cannot be deleted', body: `Every order must name a vendor, so its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} this one. Archiving takes it out of the list and the order list's filters, and leaves the orders as they are.` }
+		: { title: 'Nothing points at this vendor any more', body: 'Archiving keeps it out of the way; deleting removes it outright.' }
+}
+
+/** The end-of-life card (5c): Archive, or Unarchive once archived, and Delete at zero orders. */
+function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete }) {
+	const { title, body } = endWords(vendor)
+	const footer = [
+		vendor.archived
+			? <Button key="archive" variant="outline" disabled={busy} onClick={onUnarchive}>Unarchive</Button>
+			: <Button key="archive" variant="outline" onClick={onArchive}>Archive</Button>,
+		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
+	].filter(Boolean)
+	return (
+		<Card footer={footer} footerLayout={footer.length > 1 ? 'split' : 'fill'} footerCommits>
+			<span className="sp-section-label">End of its life</span>
+			<Well>
+				<span className="sp-title">{title}</span>
+				<span className="sp-subtitle">{body}</span>
+			</Well>
+		</Card>
+	)
+}
 
 /** What the vendor has cost, beside the fields that describe it (5c). */
 function VendorSummary({ vendor, name, colour }) {

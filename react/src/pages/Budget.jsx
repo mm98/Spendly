@@ -335,8 +335,8 @@ function SheetColumns({ short, thisMonth = -1 }) {
 		<>
 			{/* the widths sit on the columns, so the name column takes a width without the amount column's right alignment */}
 			<colgroup>
-				<col className="sp-col-amount" />
-				<col className="sp-col-status" />
+				<col className="bg-col-name" />
+				<col className="bg-col-account" />
 				{Array.from({ length: MONTHS + 2 }, (_, m) => <col className="sp-col-date" key={m} />)}
 			</colgroup>
 			<thead>

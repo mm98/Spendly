@@ -1,172 +1,56 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { createPortal } from 'react-dom'
+import { useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
 import { Card, CardFooter, Panel } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
+import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Bars, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
-import { PeriodPicker, PeriodWindow, Selected } from '../components/DatePickers.jsx'
+import { PeriodPicker, PeriodWindow, RangePicker, Selected } from '../components/DatePickers.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Caption, Foot, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
+import { Caption, Crumb, Crumbs, Foot, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Alert } from '../components/Overlays.jsx'
+import { Alert, useToast } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked } from '../components/Utilities.jsx'
+import { Segmented } from '../components/Segmented.jsx'
+import { Scrim } from '../components/Shell.jsx'
+import { Sheet } from '../components/Touch.jsx'
+import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
 import { Halves } from '../components/Well.jsx'
 import { useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
-import { getCategories, getOrders, getStats } from '../api/client.js'
+import { failureMessage, getCategories, getSliceLines, getSliceOrders, getStatsSlice, getVendors } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
-	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, longDate, monthNames, percent, shortDate, today
+	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, quantity, shortDate, today
 } from '../api/format.js'
+import {
+	DAY_MS, MOST_CRUMBS, RANGES, boundsOf, chartOf, crumbsIn, dayAndMonth, filterOf, isTime, isoOf, nameOf, readCrumbs,
+	reanchor, scaleFor, stepLabel, todayUtc, utcOf, validId, windowIdAt, writeCrumbs, yearEarlier
+} from './statisticsWindows.js'
 
-/* ---- windows: the ids the API pages through, worked out here so the control answers at once ---- */
-
-const RANGES = ['week', 'month', 'quarter', 'year']
 const PRESETS = [
+	{ value: 'days30', label: '30 days' },
 	{ value: 'week', label: 'Week' },
 	{ value: 'month', label: 'Month' },
 	{ value: 'quarter', label: 'Quarter' },
-	{ value: 'year', label: 'Year' }
+	{ value: 'year', label: 'Year' },
+	{ value: 'custom', label: 'Custom' }
 ]
-const DAY_MS = 86400000
-const pad = n => String(n).padStart(2, '0')
-const utcOf = iso => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
-const isoOf = ms => new Date(ms).toISOString().slice(0, 10)
-// the reader's own date, the one the API is told is today
-const todayUtc = () => utcOf(today())
-const mondayFirst = ms => (new Date(ms).getUTCDay() + 6) % 7
+// a phone row holds six sizes only at these lengths (Mobile screens 7a)
+const PHONE_PRESETS = PRESETS.map(p => ({ ...p, label: { days30: '30 d', week: 'Wk', month: 'Mo', quarter: 'Qtr' }[p.value] ?? p.label }))
 
-// ISO weeks, the same arithmetic as the API's lib/stats.js
-function isoWeekOf(ms) {
-	const thursday = ms + (3 - mondayFirst(ms)) * DAY_MS
-	const year = new Date(thursday).getUTCFullYear()
-	const jan4 = Date.UTC(year, 0, 4)
-	return { year, week: Math.round((thursday - (jan4 + (3 - mondayFirst(jan4)) * DAY_MS)) / (7 * DAY_MS)) + 1 }
-}
-const mondayOfWeek = (year, week) => {
-	const jan4 = Date.UTC(year, 0, 4)
-	return jan4 - mondayFirst(jan4) * DAY_MS + (week - 1) * 7 * DAY_MS
-}
-
-function windowIdAt(range, ms) {
-	const at = new Date(ms)
-	if (range === 'week') { const { year, week } = isoWeekOf(ms); return `${year}-W${pad(week)}` }
-	if (range === 'month') return `${at.getUTCFullYear()}-${pad(at.getUTCMonth() + 1)}`
-	if (range === 'quarter') return `${at.getUTCFullYear()}-Q${Math.floor(at.getUTCMonth() / 3) + 1}`
-	return String(at.getUTCFullYear())
-}
-
-const ID_SHAPE = { week: /^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/, month: /^\d{4}-(0[1-9]|1[0-2])$/, quarter: /^\d{4}-Q[1-4]$/, year: /^\d{4}$/ }
-
-// most years have 52 ISO weeks, so a W53 is real only when its Monday reads back as the same week
-const validId = (range, id) => ID_SHAPE[range].test(id ?? '')
-	&& (range !== 'week' || windowIdAt('week', mondayOfWeek(Number(id.slice(0, 4)), Number(id.slice(6)))) === id)
-
-/** The first and last day of a window, as UTC midnights. */
-function boundsOf(range, id) {
-	if (range === 'week') {
-		const from = mondayOfWeek(Number(id.slice(0, 4)), Number(id.slice(6)))
-		return [from, from + 6 * DAY_MS]
-	}
-	const y = Number(id.slice(0, 4))
-	if (range === 'month') { const m = Number(id.slice(5)); return [Date.UTC(y, m - 1, 1), Date.UTC(y, m, 0)] }
-	if (range === 'quarter') { const q = Number(id.slice(6)); return [Date.UTC(y, (q - 1) * 3, 1), Date.UTC(y, q * 3, 0)] }
-	return [Date.UTC(y, 0, 1), Date.UTC(y, 11, 31)]
-}
-
-/** The same window a year earlier, which is what the switch compares with: a week keeps its number,
-    and a week 53 the year before did not have is compared with that year's week 52. */
-function yearEarlier(range, id) {
-	const earlier = `${Number(id.slice(0, 4)) - 1}${id.slice(4)}`
-	return range !== 'week' || validId('week', earlier) ? earlier : `${earlier.slice(0, 4)}-W52`
-}
-
-/** A window of another size around the same stretch: the one holding this window's last day,
-    or today when this window runs past it. */
-function reanchor(range, id, next) {
-	const [from, to] = boundsOf(range, id)
-	return windowIdAt(next, Math.max(from, Math.min(todayUtc(), to)))
-}
-
-/** "2026", "Q3 2026", "August 2026", "Week 34, 2026". */
-function nameOf(range, id) {
-	const y = id.slice(0, 4)
-	if (range === 'week') return `Week ${Number(id.slice(6))}, ${y}`
-	if (range === 'month') return `${monthNames('long')[Number(id.slice(5)) - 1]} ${y}`
-	if (range === 'quarter') return `${id.slice(5)} ${y}`
-	return y
-}
-
-// the stepper's own short name; its width is set by the longest month
-function stepLabel(range, id) {
-	if (range === 'week') return `W${Number(id.slice(6))}`
-	if (range === 'month') return monthNames('long')[Number(id.slice(5)) - 1]
-	if (range === 'quarter') return id.slice(5)
-	return id
-}
-
-/* ---- the window's own days, cut into the columns the charts draw ---- */
-
-// a chart stays within about ten columns (4d), so a month is drawn by its weeks
-const UNIT = { week: 'day', month: 'week', quarter: 'month', year: 'month' }
-
-const weekday = iso => new Intl.DateTimeFormat(activeLocaleCode(), { weekday: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
-// "2 Oct": the compare switch already names the earlier window's year
-const dayAndMonth = iso => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
-// a month's first and last weeks hold only the month's own days, so a week's column is named by its days
-const daySpan = (from, to) => (from === to ? String(Number(from.slice(8))) : `${Number(from.slice(8))}-${Number(to.slice(8))}`)
-
-/** Months for a quarter or a year, weeks for a month, days for a week, up to the one holding today
-    (4a), each with its spend and saving from the API's running totals and the window a press opens. */
-function chartOf(view) {
-	const spend = view.series.current
-	const saved = view.series.savedCumulative
-	const days = spend.length
-	const unit = UNIT[view.range]
-	const first = utcOf(view.from)
-	const starts = unit === 'month'
-		? view.axis.map(mark => mark.day)
-		: spend.map((unused, day) => day).filter(day => unit === 'day' || day === 0 || mondayFirst(first + day * DAY_MS) === 0)
-	const between = (series, a, b) => series[b - 1] - (a > 0 ? series[a - 1] : 0)
-	const columns = starts.map((start, i) => {
-		const end = i + 1 < starts.length ? starts[i + 1] : days
-		const at = first + start * DAY_MS
-		const from = isoOf(at)
-		const to = isoOf(first + (end - 1) * DAY_MS)
-		const month = new Date(at).getUTCMonth()
-		const week = isoWeekOf(at).week
-		return {
-			key: from,
-			from,
-			to,
-			tick: unit === 'month' ? monthNames()[month] : unit === 'week' ? daySpan(from, to) : weekday(from),
-			name: unit === 'month'
-				? `${monthNames('long')[month]} ${new Date(at).getUTCFullYear()}`
-				: unit === 'week' ? `Week ${week}, ${shortDate(from)} - ${shortDate(to)}` : longDate(from),
-			open: unit === 'month' ? { range: 'month', id: windowIdAt('month', at) } : unit === 'week' ? { range: 'week', id: windowIdAt('week', at) } : null,
-			spend: Math.max(0, between(spend, start, end)),
-			saved: Math.max(0, between(saved, start, end)),
-			running: view.todayIndex != null && view.todayIndex >= start && view.todayIndex < end,
-			future: view.todayIndex != null && view.todayIndex < start
-		}
-	})
-	return { unit, columns: columns.filter(column => !column.future) }
-}
-
-/** An axis of four even steps whose top is a round number at or above the largest value. */
-function scaleFor(most) {
-	if (!(most > 0)) return 4
-	const raw = most / 4
-	const power = 10 ** Math.floor(Math.log10(raw))
-	const step = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map(f => f * power).find(s => s >= raw)
-	return step * 4
-}
+/* The lens (4e): which orders the page adds up. In the address as flow=, and never a crumb. */
+const FLOWS = [
+	{ value: 'expenses', label: 'Expenses only', help: 'What you paid.' },
+	{ value: 'refunds', label: 'Refunds only', help: 'Returned orders.' },
+	{ value: 'net', label: 'Net of refunds', help: 'What you paid, less what came back.' }
+]
 
 const share = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
 const signed = (n, text) => (n > 0 ? `+${text}` : n < 0 ? `-${text}` : text)
@@ -175,6 +59,9 @@ const TOP = 8
 const SLICE = 25
 // the API answers at most 1000 orders at once (MAX_PAGE_SIZE)
 const MOST_PAGES = 1000 / SLICE
+
+/** The id a range opens on when the address names none: the window holding today. */
+const defaultId = range => windowIdAt(range, todayUtc())
 
 /* useApi keeps its last answer while new arguments load or fail. This returns data only when it
    answers these arguments, so one window's figures never stand under another window's name. */
@@ -188,6 +75,30 @@ function useCurrent(fn, args, options) {
 	return { ...state, data: current ? state.data : undefined }
 }
 
+/** The name a crumb shows: a month, a week, or the record it filters by. */
+function crumbLabel(crumb, { vendors, categories, windowYear }) {
+	if (crumb.kind === 'month') {
+		const month = monthNames('long')[Number(crumb.value.slice(5)) - 1]
+		return crumb.value.slice(0, 4) === windowYear ? month : `${month} ${crumb.value.slice(0, 4)}`
+	}
+	if (crumb.kind === 'week') return `Week ${Number(crumb.value.slice(6))}`
+	if (crumb.kind === 'vendor') return vendors?.find(v => v.id === crumb.value)?.name ?? 'This vendor'
+	if (crumb.kind === 'category') {
+		if (crumb.value === 'none') return 'Without category'
+		return categories?.find(c => c.id === crumb.value)?.name ?? 'This category'
+	}
+	return crumb.value
+}
+
+/** The order list with the drill path as its filters, the reverse of "See in Statistics". */
+function ordersLink(slice, crumbs) {
+	const q = new URLSearchParams()
+	for (const c of crumbs) if (!isTime(c)) q.set(c.kind, c.value)
+	q.set('from', slice.from)
+	q.set('to', slice.to)
+	return `/orders?${q}`
+}
+
 /* ---- the page ---- */
 
 export default function Statistics() {
@@ -195,42 +106,40 @@ export default function Statistics() {
 	const touch = shape === 'touch'
 	// Layout rules: below 900 the paired cards stack
 	const stacked = useMedia('(max-width: 899.98px)')
-	const navigate = useNavigate()
+	const toast = useToast()
 	const [params, setParams] = useSearchParams()
 	const range = RANGES.includes(params.get('range')) ? params.get('range') : 'year'
 	const asked = params.get('period')
-	const id = validId(range, asked) ? asked : windowIdAt(range, todayUtc())
+	const id = validId(range, asked) && !(range === 'days30' && asked > today()) ? asked : defaultId(range)
 	const compareOn = params.get('compare') !== 'off'
-	const comparing = compareOn && !touch
-	const before = yearEarlier(range, id)
+	const flow = FLOWS.some(f => f.value === params.get('flow')) ? params.get('flow') : 'expenses'
 	const [fromMs, toMs] = boundsOf(range, id)
 	const from = isoOf(fromMs)
 	const to = isoOf(toMs)
+	const crumbs = crumbsIn(readCrumbs(params.get('crumbs')), from, to)
+	const drilled = crumbs.length > 0
+	const comparing = compareOn && !touch && !drilled
+	const before = yearEarlier(range, id)
 
-	const stats = useCurrent(getStats, [range, id, 'previous'])
-	const past = useCurrent(getStats, [range, before, 'previous'], { enabled: comparing })
+	const base = { range, windowId: id, flow }
+	const filter = filterOf(crumbs)
+	const stats = useCurrent(getStatsSlice, [{ ...base, ...filter }])
+	const past = useCurrent(getStatsSlice, [{ range, windowId: before, flow, ...filter }], { enabled: comparing })
+	// inside a crumb every figure is held against the level above it (4b)
+	const parent = useCurrent(getStatsSlice, [{ ...base, ...filterOf(crumbs.slice(0, -1)) }], { enabled: drilled })
 	const categories = useApi(getCategories)
-	const delivered = useCurrent(getOrders, [{ status: 'Delivered', from, to, pageSize: 1 }])
-	const ordered = useCurrent(getOrders, [{ status: 'Ordered', from, to, pageSize: 1 }])
-	const returned = useCurrent(getOrders, [{ status: 'Returned', from, to, pageSize: 1 }])
+	const vendors = useApi(getVendors, [], { enabled: crumbs.some(c => c.kind === 'vendor') })
 
-	// a window still running is compared with the same number of days of the earlier one
-	const pace = stats.data?.window.pace
-	const [pastFrom, pastTo] = boundsOf(range, before)
-	const sameDays = pace?.running ? Math.min(pace.daysIn, Math.round((pastTo - pastFrom) / DAY_MS) + 1) : null
-	const pastLast = isoOf(pastFrom + ((sameDays ?? 1) - 1) * DAY_MS)
-	const toDate = useCurrent(getOrders, [{ from: isoOf(pastFrom), to: pastLast, pageSize: 1 }], { enabled: comparing && sameDays != null })
-
-	/* The table pages on the server; the pages already shown are kept for this window only. Back to
+	/* The table pages on the server; the pages already shown are kept for this slice only. Back to
 	   this step asks for every page the reader had open in one answer, then Load more one at a time. */
 	const { pages, setPages, restored } = useListMemory('orders')
-	const slice = `${from}/${to}`
+	const slice = JSON.stringify({ base, filter })
 	const [more, setMore] = useState({ slice, pages: [], count: 0 })
 	const kept = more.slice === slice ? more : { pages: [], count: 0 }
 	const earlier = kept.pages
 	const first = Math.min(pages, MOST_PAGES)
 	const ask = kept.count ? { page: kept.count + 1, pageSize: SLICE } : { page: 1, pageSize: SLICE * first }
-	const next = useCurrent(getOrders, [{ from, to, ...ask }], { enabled: !touch })
+	const next = useCurrent(getSliceOrders, [{ ...base, ...filter, ...ask }], { enabled: !touch })
 	const loadMore = () => {
 		if (next.error) return next.refresh()
 		if (!next.data) return
@@ -242,76 +151,147 @@ export default function Statistics() {
 	useLayoutEffect(() => { if (drawn) restored() }, [drawn, restored])
 
 	const retry = () => {
-		for (const call of [stats, past, toDate, categories, delivered, ordered, returned, next]) if (call.error) call.refresh()
+		for (const call of [stats, past, parent, categories, next]) if (call.error) call.refresh()
 	}
 
 	// the URL holds only what differs from the page's own default
-	const show = (nextRange, nextId, nextComparing = compareOn) => setParams({
-		...(nextRange === 'year' ? {} : { range: nextRange }),
-		...(nextId === windowIdAt(nextRange, todayUtc()) ? {} : { period: nextId }),
-		...(nextComparing ? {} : { compare: 'off' })
+	const write = ({ range: r = range, id: i = id, compare: c = compareOn, flow: f = flow, crumbs: cr = crumbs }) => setParams({
+		...(r === 'year' ? {} : { range: r }),
+		...(r !== 'custom' && i === defaultId(r) ? {} : { period: i }),
+		...(c ? {} : { compare: 'off' }),
+		...(f === 'expenses' ? {} : { flow: f }),
+		...(cr.length ? { crumbs: writeCrumbs(cr) } : {})
 	})
-	const open = target => show(target.range, target.id)
+	const show = (nextRange, nextId) => write({ range: nextRange, id: nextId })
+
+	/* A crumb of a kind already in the path takes its place; a new kind is pushed, up to three. */
+	const sameKind = (a, b) => a.kind === b.kind || (isTime(a) && isTime(b))
+	const canDrill = crumb => crumbs.some(c => sameKind(c, crumb)) || crumbs.length < MOST_CRUMBS
+	const drill = crumb => {
+		if (!canDrill(crumb)) return
+		const at = crumbs.findIndex(c => sameKind(c, crumb))
+		write({ crumbs: at < 0 ? [...crumbs, crumb] : crumbs.map((c, i) => (i === at ? crumb : c)) })
+	}
+	const drillTo = kind => (canDrill({ kind }) ? value => drill({ kind, value }) : undefined)
+
+	// Custom is a draft until Apply (4f): the page behind it stays as it is
+	const [draft, setDraft] = useState(null)
+	const openCustom = () => {
+		const [a, b] = (range === 'custom' ? id : reanchor(range, id, 'custom')).split('~')
+		setDraft({ from: a, to: b })
+	}
+	const applyCustom = () => { if (draft?.from && draft?.to) show('custom', `${draft.from}~${draft.to}`); setDraft(null) }
 
 	// until the API answers for this window, the stepper stays live on the calendar alone, so it keeps its focus
-	const older = stats.data ? stats.data.older : windowIdAt(range, fromMs - DAY_MS)
-	const newer = stats.data ? stats.data.newer : toMs < todayUtc() ? windowIdAt(range, toMs + DAY_MS) : null
+	const older = stats.data ? stats.data.older : range === 'custom' ? null : windowIdAt(range, fromMs - DAY_MS)
+	const newer = stats.data ? stats.data.newer : range !== 'custom' && toMs < todayUtc() ? windowIdAt(range, toMs + DAY_MS) : null
 
+	const view = stats.data?.window
+	const exportSlice = async () => {
+		try {
+			const { lines } = await getSliceLines({ ...base, ...filter })
+			download(csvOf(lines), `spendly-${view?.slice.from ?? from}-${view?.slice.to ?? to}.csv`)
+		} catch (error) {
+			toast({ message: failureMessage(error, 'The export did not download. Try again.'), color: 'danger' })
+		}
+	}
+
+	const quick = quickRanges()
+	const rangePicker = draft
+		? (
+			<RangePicker from={draft.from} to={draft.to} max={today()} locale={activeLocaleCode()} quick={quick} single={touch}
+				onChange={(a, b) => setDraft({ from: a, to: b })} onApply={applyCustom} onCancel={() => setDraft(null)} />
+		)
+		: null
 	const period = (
-		<PeriodPicker
-			name="statistics-period"
-			presets={PRESETS}
-			value={range}
-			at={from}
-			locale={activeLocaleCode()}
-			onChange={({ period: nextRange }) => show(nextRange, reanchor(range, id, nextRange))}
-			onPresent={() => show(range, windowIdAt(range, todayUtc()))}
-			stepper={(
-				<PeriodWindow
-					touch={touch}
-					unit={range}
-					label={stepLabel(range, id)}
-					previousLabel={`Previous ${range}`}
-					nextLabel={`Next ${range}`}
-					onPrevious={older ? () => show(range, older) : undefined}
-					onNext={newer ? () => show(range, newer) : undefined}
-				/>
-			)}
-		>
-			{touch
-				? null
-				: (
-					<Selected>
-						{shape => (
-							<Choice control={<Switch checked={compareOn} onChange={ev => show(range, id, ev.target.checked)} />}>
-								Compare with {nameOf(range, yearEarlier(range, windowIdAt(range, Date.parse(shape.selected.from + 'T00:00:00Z'))))}
-							</Choice>
+		<>
+			<PeriodPicker
+				name="statistics-period"
+				presets={touch ? PHONE_PRESETS : PRESETS}
+				value={draft ? 'custom' : range}
+				at={range === 'days30' ? to : from}
+				from={draft ? draft.from : from}
+				to={draft ? draft.to : to}
+				locale={activeLocaleCode()}
+				custom={draft && !touch ? rangePicker : null}
+				onChange={({ period: nextRange }) => {
+					if (nextRange === 'custom') return openCustom()
+					setDraft(null)
+					show(nextRange, reanchor(range, id, nextRange))
+				}}
+				onPresent={() => show(range, defaultId(range))}
+				stepper={range === 'custom'
+					? <Button variant="outline" size="small" onClick={openCustom}>Change dates</Button>
+					: (
+						<PeriodWindow
+							touch={touch}
+							unit={range}
+							label={stepLabel(range, id)}
+							previousLabel={range === 'days30' ? 'The 30 days before' : `Previous ${range}`}
+							nextLabel={range === 'days30' ? 'The 30 days after' : `Next ${range}`}
+							onPrevious={older ? () => show(range, older) : undefined}
+							onNext={newer ? () => show(range, newer) : undefined}
+						/>
+					)}
+				actions={(
+					<>
+						<Combobox variant="end" value={FLOWS.find(f => f.value === flow).label} aria-label="Which orders">
+							{FLOWS.map(f => (
+								<ComboboxOption key={f.value} selected={f.value === flow} onSelect={() => write({ flow: f.value })}>
+									<span className="sp-stack"><span className="sp-data">{f.label}</span><span className="sp-meta">{f.help}</span></span>
+								</ComboboxOption>
+							))}
+						</Combobox>
+						{touch ? null : (
+							<Button variant="outline" onClick={exportSlice} disabled={!view?.orders}>
+								{view ? `Export ${counted(view.orders, 'order')}` : 'Export'}
+							</Button>
 						)}
-					</Selected>
+					</>
 				)}
-		</PeriodPicker>
+			>
+				{touch
+					? null
+					: (
+						<Selected>
+							{span => (
+								<Choice control={<Switch checked={compareOn} onChange={ev => write({ compare: ev.target.checked })} />}>
+									Compare with {nameOf(range, yearEarlier(range, idOfSpan(range, span.selected)))}
+								</Choice>
+							)}
+						</Selected>
+					)}
+			</PeriodPicker>
+			{draft && touch ? <RangeSheet onClose={() => setDraft(null)}>{rangePicker}</RangeSheet> : null}
+		</>
 	)
+
+	const name = nameOf(range, id)
+	const labels = { vendors: vendors.data, categories: categories.data, windowYear: id.slice(0, 4) }
+	const crumbsBar = drilled
+		? <CrumbsBar root={name} crumbs={crumbs} labels={labels} link={ordersLink(view?.slice ?? { from, to }, crumbs)}
+			onTruncate={i => write({ crumbs: crumbs.slice(0, i + 1) })} onRemove={() => write({ crumbs: crumbs.slice(0, -1) })}
+			onReset={() => write({ crumbs: [] })} />
+		: null
 
 	if (stats.error) {
 		return (
 			<>
 				{period}
+				{crumbsBar}
 				<Failed what="Your statistics" error={stats.error} onRetry={retry} />
 			</>
 		)
 	}
 
-	const name = nameOf(range, id)
-	if (!stats.data) {
+	if (!view) {
 		const running = fromMs <= todayUtc() && todayUtc() <= toMs
-		return arrange({ shape, stacked, period, ...busyParts({ range, name, running, touch, comparing, categories }) })
+		return arrange({ shape, stacked, period, crumbsBar, drilled, ...busyParts({ range, name, running, touch, comparing, categories, drilled, flow }) })
 	}
 
-	const view = stats.data.window
-
-	if (!view.orders) {
+	if (!view.orders && !drilled) {
 		// with no window on either side there are no orders at all yet (6a)
-		if (!older && !newer) {
+		if (!older && !newer && range !== 'custom') {
 			return (
 				<>
 					{period}
@@ -333,7 +313,7 @@ export default function Statistics() {
 			<>
 				{period}
 				<Empty dashed>
-					<EmptyTitle>No orders in {name}</EmptyTitle>
+					<EmptyTitle>{flow === 'refunds' ? `No returned orders in ${name}` : `No orders in ${name}`}</EmptyTitle>
 					<EmptyBody>Choose another period above, or add an order.</EmptyBody>
 					<Button variant="outline" to="/orders/new">New order</Button>
 				</Empty>
@@ -342,14 +322,17 @@ export default function Statistics() {
 	}
 
 	const chart = chartOf(view)
+	const time = crumbs.find(isTime)
+	const selectedKey = time ? chart.columns.find(c => c.crumb?.value === time.value)?.key ?? null : null
+	const sliceName = time ? crumbLabel(time, labels) : name
+	// the window still running is compared with the same number of days of the earlier one
+	const pace = view.pace
+	const [pastFrom, pastTo] = boundsOf(range, before)
+	const sameDays = pace.running ? Math.min(pace.daysIn, Math.round((pastTo - pastFrom) / DAY_MS) + 1) : null
+	const pastLast = isoOf(pastFrom + ((sameDays ?? 1) - 1) * DAY_MS)
 	const wasName = nameOf(range, before)
-	const was = !comparing || !past.data
-		? null
-		: sameDays == null
-			? past.data.window
-			: toDate.data ? sameDaysOf(past.data.window, sameDays, toDate.data.matched) : null
-	const compareFailed = comparing && (past.error || toDate.error)
-	const failedNotice = compareFailed
+	const was = !comparing || !past.data ? null : sameDays == null ? past.data.window : sameDaysOf(past.data.window, sameDays)
+	const failedNotice = comparing && past.error
 		? (
 			<Alert color="danger" mark="!" title={`${wasName} did not load`} action={<Button variant="outline" size="small" onClick={retry}>Try again</Button>}>
 				The figures are shown without the comparison.
@@ -357,8 +340,52 @@ export default function Statistics() {
 		)
 		: null
 
+	const vendorCrumb = crumbs.find(c => c.kind === 'vendor')
+	const categoryCrumb = crumbs.find(c => c.kind === 'category')
+	const statusCrumb = crumbs.find(c => c.kind === 'status')
+	const category = categoryCrumb && categories.data?.find(c => c.id === categoryCrumb.value)
+	const limit = flow === 'refunds' || vendorCrumb || statusCrumb ? 0
+		: categoryCrumb ? category?.budget ?? 0
+			: (categories.data ?? []).reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
+	const records = crumbs.filter(c => !isTime(c)).map(c => crumbLabel(c, labels))
+	const narrowed = records.length ? `${records.join(dot)}${records.length === 1 ? ' only' : ''}` : null
+
 	// an order added while paging shifts the pages by one, so a row can arrive twice
 	const rows = [...new Map([...earlier.flatMap(page => page.orders), ...(next.data?.orders ?? [])].map(order => [order.id, order])).values()]
+	const table = touch
+		? <SliceCard view={view} link={ordersLink(view.slice, crumbs)} drilled={drilled} />
+		: (
+			<OrdersTable view={view} name={sliceName} drilled={drilled} rows={rows}
+				matched={next.data?.matched ?? earlier.at(-1)?.matched} failed={next.error} onLoadMore={loadMore} onRetry={retry} />
+		)
+	const spendChart = (
+		<SpendChart range={range} chart={chart} touch={touch} selected={selectedKey} narrowed={narrowed}
+			stackable={!categoryCrumb} categories={view.series.categories} limit={chart.unit === 'month' ? limit : 0}
+			onOpen={canDrill({ kind: 'month' }) ? column => drill(column.crumb) : undefined} />
+	)
+
+	if (drilled) {
+		const parentView = parent.data?.window
+		const above = crumbs.length > 1 ? crumbLabel(crumbs.at(-2), labels) : name
+		/* The card beside the chart is the first breakdown the path has not already narrowed. */
+		const side = !categoryCrumb
+			? <CategoryRows key={`category ${slice}`} view={view} onOpen={drillTo('category')} hint />
+			: category?.budget > 0 && chart.unit === 'month' && flow !== 'refunds'
+				? <LimitByMonth chart={chart} selected={selectedKey} budget={category.budget} pace={pace} />
+				: !vendorCrumb
+					? <VendorsCard key={`vendors ${slice}`} view={view} name={sliceName} touch={touch} onOpen={drillTo('vendor')} />
+					: !statusCrumb
+						? <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />
+						: <SavingChart chart={chart} name={sliceName} touch={touch} selected={selectedKey} />
+		return arrange({
+			shape, stacked, period, crumbsBar, drilled,
+			kpis: <DrilledKpis view={view} parent={parentView} above={above} chart={chart} time={time ? sliceName : null}
+				category={category} flow={flow} touch={touch} />,
+			chart: spendChart,
+			side,
+			slice: table
+		})
+	}
 
 	return arrange({
 		shape,
@@ -367,42 +394,119 @@ export default function Statistics() {
 		notice: failedNotice,
 		kpis: (
 			<Kpis view={view} chart={chart} was={was} by={sameDays == null ? null : dayAndMonth(pastLast)}
-				waiting={comparing && !was && !compareFailed} touch={touch} />
+				waiting={comparing && !was && !past.error} touch={touch} />
 		),
-		chart: <SpendChart range={range} chart={chart} touch={touch} onOpen={open} />,
+		chart: spendChart,
 		byCategory: touch
-			? <CategoryRows key={`category ${view.id}`} view={view} />
-			: <CategoryShares view={view} onOpen={category => navigate(`/orders?category=${category ?? 'none'}&from=${view.from}&to=${view.to}`)} />,
-		byStatus: <StatusCard total={view.orders} counts={[['Delivered', delivered], ['Ordered', ordered], ['Returned', returned]]} onRetry={retry} />,
-		vendors: <VendorsCard key={`vendors ${view.id}`} view={view} name={name} touch={touch} />,
-		saving: <SavingChart chart={chart} name={name} touch={touch} onOpen={open} />,
-		limits: <LimitCard range={range} view={view} name={name} categories={categories} touch={touch} onRetry={retry} />,
-		slice: touch
-			? <SliceCard view={view} />
-			: (
-				<OrdersTable
-					view={view}
-					rows={rows}
-					matched={next.data?.matched ?? earlier.at(-1)?.matched}
-					failed={next.error}
-					onLoadMore={loadMore}
-					onRetry={retry}
-				/>
-			)
+			? <CategoryRows key={`category ${view.id}`} view={view} onOpen={drillTo('category')} />
+			: <CategoryShares view={view} onOpen={drillTo('category')} />,
+		byStatus: <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />,
+		vendors: <VendorsCard key={`vendors ${view.id}`} view={view} name={name} touch={touch} onOpen={drillTo('vendor')} />,
+		saving: <SavingChart chart={chart} name={name} touch={touch} selected={selectedKey}
+			onOpen={canDrill({ kind: 'month' }) ? column => drill(column.crumb) : undefined} />,
+		limits: flow === 'refunds' ? null : <LimitCard range={range} view={view} name={name} categories={categories} touch={touch} onRetry={retry} />,
+		slice: table
 	})
 }
 
-/** The earlier window cut to its first `days` days: its running totals give spend and saving, and
-    the count of its orders in those days comes from the order list. */
-function sameDaysOf(window, days, orders) {
+/** The id a span of days stands for at a width, for naming the window a year before it. */
+function idOfSpan(range, span) {
+	if (range === 'days30') return span.to
+	if (range === 'custom') return `${span.from}~${span.to}`
+	return windowIdAt(range, utcOf(span.from))
+}
+
+/** Shortcuts to a range, not windows of their own (4f): each fills both dates and leaves the panel open. */
+function quickRanges() {
+	const now = today()
+	const y = Number(now.slice(0, 4))
+	const m = Number(now.slice(5, 7))
+	const firstOf = (year, month) => isoOf(Date.UTC(year, month - 1, 1))
+	return [
+		{ label: 'This month', value: [firstOf(y, m), now] },
+		{ label: 'Last month', value: [firstOf(m === 1 ? y - 1 : y, m === 1 ? 12 : m - 1), isoOf(Date.UTC(y, m - 1, 0))] },
+		{ label: 'Year to date', value: [`${y}-01-01`, now] }
+	]
+}
+
+/** On touch the range picker is a sheet over the page, not a panel under the row (4f). */
+function RangeSheet({ onClose, children }) {
+	const box = useRef(null)
+	useFocusTrap(box)
+	return createPortal(
+		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
+			<Sheet role="dialog" aria-modal="true" aria-label="Choose dates" ref={box}
+				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
+				{children}
+			</Sheet>
+		</Scrim>,
+		document.body
+	)
+}
+
+/** One row per item line, the order's own fields repeated on each: the column set an import reads. */
+function csvOf(lines) {
+	const head = ['Date', 'Vendor', 'Status', 'Kind', 'Reference', 'Categories', 'Note', 'Shipping', 'Discount', 'Order total',
+		'Item', 'Quantity', 'Price', 'Retail price', 'Item note']
+	const money = n => (n == null ? '' : Number(n).toFixed(2).replace('.', ','))
+	const cell = v => { const s = String(v ?? ''); return /[;"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s }
+	const rows = lines.map(l => [
+		l.date, l.vendor, l.status, l.kind, l.reference, l.categories, l.note, money(l.shipping), money(l.discount), money(l.total),
+		l.title, l.quantity == null ? '' : quantity(l.quantity), money(l.price), money(l.retail), l.itemNote
+	])
+	// a byte order mark, so a spreadsheet opens Danish letters as written; a semicolon, as the decimal is a comma
+	return '﻿' + [head, ...rows].map(r => r.map(cell).join(';')).join('\r\n') + '\r\n'
+}
+
+function download(text, fileName) {
+	const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }))
+	const a = document.createElement('a')
+	a.href = url
+	a.download = fileName
+	document.body.append(a)
+	a.click()
+	a.remove()
+	setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+/** The earlier window cut to its first `days` days, from its running totals. */
+function sameDaysOf(window, days) {
 	const spent = window.series.current[days - 1] ?? 0
+	const orders = window.series.ordersCumulative[days - 1] ?? 0
 	return { spent, saved: window.series.savedCumulative[days - 1] ?? 0, orders, average: orders ? spent / orders : 0 }
 }
 
+/** The drill path (4b, 4c): only the last level carries a remove; an earlier one goes back to itself. */
+function CrumbsBar({ root, crumbs, labels, link, onTruncate, onRemove, onReset }) {
+	return (
+		<Card variant="crumbs">
+			<div className="os-crumbs">
+				<span className="sp-section-label">Showing</span>
+				<Crumbs root={root}>
+					{crumbs.map((c, i) => {
+						const label = crumbLabel(c, labels)
+						const mark = c.kind === 'vendor' ? <Mark size="small" fill="solid" aria-hidden="true">{label}</Mark> : null
+						return i === crumbs.length - 1
+							? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={onRemove}>{mark}{label}</Crumb>
+							: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)}>{mark}{label}</Crumb>
+					})}
+				</Crumbs>
+				<span className="sp-grow" />
+				<Button variant="outline" size="small" onClick={onReset}>Reset</Button>
+				<Button variant="outline" size="small" to={link}>Open in orders</Button>
+			</div>
+		</Card>
+	)
+}
+
 /** Where each card sits: beside the chart on a wide screen, in pairs on a narrower one, and one
-    column below 900 and on a phone. */
-function arrange({ shape, stacked, period, notice = null, kpis, chart, byCategory, byStatus, vendors, saving, limits, slice }) {
+    column below 900 and on a phone. Inside a crumb, the chart and one breakdown, then the orders (4b). */
+function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = null, kpis, chart, side, byCategory, byStatus, vendors, saving, limits, slice }) {
 	const figures = <div className="os-stats">{kpis}</div>
+	if (drilled) {
+		if (shape === 'touch' || stacked) return <>{period}{crumbsBar}{figures}{chart}{side}{slice}</>
+		return <>{period}{crumbsBar}{figures}<Halves cards>{chart}{side}</Halves>{slice}</>
+	}
 	// the period control stays first in every state, so it keeps its focus while a window loads
 	if (shape === 'touch' || stacked) return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{slice}</>
 	return (
@@ -425,7 +529,7 @@ function arrange({ shape, stacked, period, notice = null, kpis, chart, byCategor
 /* ---- the frames before the figures land (6b): the loaded layout's own cards, empty ---- */
 
 // two figure spaces and an en space are as wide as a label like "60k", so the axis keeps its width
-const AXIS_HOLD = Array.from({ length: 5 }, () => '   ')
+const AXIS_HOLD = Array.from({ length: 5 }, () => '   ')
 const WIDTHS = ['96', '76', '88', '64', '104', '70', '82', '58', '92']
 
 /** A skeleton bar on the line of text it stands in for, at that text's own height (6b). */
@@ -439,45 +543,44 @@ const buttonHold = key => (
 	</span>
 )
 
-function busyParts({ range, name, running, touch, comparing, categories }) {
-	const pending = { data: undefined, error: null }
+function busyParts({ range, name, running, touch, comparing, categories, drilled, flow }) {
 	// the account's categories bound a breakdown's length before its window answers
 	const known = categories.data?.length
 	return {
-		kpis: ['Total spend', 'Orders', 'Average order', 'Saved'].map((label, i) => (
+		kpis: (drilled ? ['Spend', 'Orders', 'Average order', 'Saved'] : ['Total spend', 'Orders', 'Average order', 'Saved']).map(label => (
 			<Card key={label} aria-busy="true">
 				<Stat label={label} figure={hold('104', '22')} />
 				{comparing ? <Skeleton shape="pill" /> : null}
-				{!touch && (i === 0 || i === 3) ? <Bars variant="spark" loading /> : null}
+				{!touch && !drilled ? <Bars variant="spark" loading /> : null}
 			</Card>
 		)),
 		chart: <SpendChart range={range} running={running} touch={touch} />,
+		side: <CategoryRows known={known} hint />,
 		byCategory: touch ? <CategoryRows known={known} /> : <CategoryShares known={known} />,
-		byStatus: <StatusCard counts={[['Delivered', pending], ['Ordered', pending], ['Returned', pending]]} />,
+		byStatus: <StatusCard flow={flow} />,
 		vendors: <VendorsCard name={name} touch={touch} />,
 		saving: <SavingChart name={name} touch={touch} />,
 		limits: <LimitCard range={range} name={name} running={running} categories={categories} touch={touch} />,
-		slice: touch ? <SliceCard /> : <OrdersTable rows={[]} />
+		slice: touch ? <SliceCard /> : <OrdersTable rows={[]} drilled={drilled} />
 	}
 }
 
 /* ---- cards ---- */
 
+/** A small chart of the window's columns under a figure card (4a). */
+function Spark({ columns, value, label }) {
+	const values = columns.map(value)
+	const most = Math.max(...values, 0)
+	return (
+		<Bars variant="spark" role="img" aria-label={label}
+			columns={columns.map((column, i) => ({ key: column.key, height: share(Math.max(0, values[i]), most), muted: i < columns.length - 1 }))} />
+	)
+}
+
 // on touch a figure card is its label and figure only (Mobile screens 7a)
 function Kpis({ view, chart, was, by, waiting, touch }) {
 	const shown = chart.columns
-	const spark = (key, label) => {
-		const most = Math.max(...shown.map(column => column[key]), 0)
-		if (touch) return null
-		return (
-			<Bars
-				variant="spark"
-				role="img"
-				aria-label={label}
-				columns={shown.map((column, i) => ({ key: column.key, height: share(column[key], most), muted: i < shown.length - 1 }))}
-			/>
-		)
-	}
+	const spark = (value, label) => (touch ? null : <Spark columns={shown} value={value} label={label} />)
 	const compared = line => (was ? line(was) : waiting ? <Skeleton shape="pill" /> : null)
 	// a phone tile draws the figure without its currency (Mobile screens 7a), so a million still fits on one line
 	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
@@ -488,7 +591,7 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 		<Card key="spend">
 			<Stat label="Total spend" figure={figure(view.spent)} />
 			{compared(then => <Change tone={cost(view.spent, then.spent)} against={currency(then.spent, 0)} by={by}>{rise(view.spent, then.spent)}</Change>)}
-			{spark('spend', `Total spend in each ${chart.unit}`)}
+			{spark(c => c.spend, `Total spend in each ${chart.unit}`)}
 		</Card>,
 		<Card key="orders">
 			<Stat label="Orders" figure={amount(view.orders, 0)} />
@@ -497,6 +600,7 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 					{signed(view.orders - then.orders, amount(Math.abs(view.orders - then.orders), 0))}
 				</Change>
 			))}
+			{spark(c => c.orders, `Orders in each ${chart.unit}`)}
 		</Card>,
 		<Card key="average">
 			<Stat label="Average order" figure={figure(view.average)} />
@@ -505,6 +609,7 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 					{rise(view.average, then.average)}
 				</Change>
 			))}
+			{spark(c => (c.orders ? c.spend / c.orders : 0), `Average order in each ${chart.unit}`)}
 		</Card>,
 		<Card key="saved">
 			<Stat label="Saved" color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
@@ -513,8 +618,34 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 					{signed(view.saved - then.saved, currency(Math.abs(view.saved - then.saved), 0))}
 				</Change>
 			))}
-			{spark('saved', `Saved in each ${chart.unit}`)}
+			{spark(c => c.saved, `Saved in each ${chart.unit}`)}
 		</Card>
+	]
+}
+
+/** Inside a crumb the figures are held against the level above, not an earlier window (4b, 4c). */
+function DrilledKpis({ view, parent, above, chart, time, category, flow, touch }) {
+	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
+	const of = parent && parent.spent > 0 && view.spent >= 0 ? `${percent(share(view.spent, parent.spent), 0)} of ${above}` : null
+	const higher = parent && parent.average > 0 ? view.average - parent.average : null
+	const versus = higher == null || Math.round(view.average) === Math.round(parent.average)
+		? null : `${signed(higher, percent(Math.abs(share(higher, parent.average)), 0))} vs all of ${above}`
+	/* A category's limit, against the month the chart ends on, or against the stretch a time crumb chose. */
+	let limit = null
+	if (category?.budget > 0 && flow !== 'refunds') {
+		const last = chart.unit === 'month' && !time ? chart.columns.at(-1) : null
+		const spent = last ? last.spend : view.spent
+		const allowed = last ? category.budget : category.budget * view.budgets.months
+		const label = last ? monthNames('long')[Number(last.from.slice(5, 7)) - 1] : time ?? 'this period'
+		limit = { spent, allowed, help: `${label}, ${spent > allowed ? 'over' : 'under'}`, over: spent > allowed }
+	}
+	return [
+		<Card key="spend"><Stat label="Spend" figure={figure(view.spent)} help={of} /></Card>,
+		<Card key="orders"><Stat label="Orders" figure={amount(view.orders, 0)} /></Card>,
+		<Card key="average"><Stat label="Average order" figure={figure(view.average)} help={versus} helpColor={higher > 0 ? 'warning' : 'default'} /></Card>,
+		limit
+			? <Card key="limit"><Stat label="Against the limit" figure={`${amount(limit.spent, 0)} / ${amount(limit.allowed, 0)}`} help={limit.help} helpColor={limit.over ? 'warning' : 'default'} /></Card>
+			: <Card key="saved"><Stat label="Saved" color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} /></Card>
 	]
 }
 
@@ -544,46 +675,93 @@ function useFit(bars, layout) {
 // on a phone twelve months are cut to their first letter (Mobile screens 7a); the bar keeps its full name
 const tickOf = (chart, column, touch) => (touch && chart.unit === 'month' && chart.columns.length > 6 ? column.tick.slice(0, 1) : column.tick)
 
-function SpendChart({ range, chart, running: soon, touch, onOpen }) {
-	const unit = UNIT[range]
+const SHAPES = [{ value: 'Stacked', label: 'Stacked' }, { value: 'Total', label: 'Total' }]
+
+/** A column's spend split by the window's top three categories and the rest, each a share of the bar. */
+function segmentsOf(column) {
+	const parts = column.byCategory.map(n => Math.max(0, n))
+	const rest = Math.max(0, column.spend - parts.reduce((sum, n) => sum + n, 0))
+	const whole = parts.reduce((sum, n) => sum + n, rest)
+	return [...parts, rest].map((n, i) => ({ key: String(i + 1), share: share(n, whole) })).filter(s => s.share > 0)
+}
+
+function SpendChart({ range, chart, running: soon, touch, selected, narrowed, stackable = false, categories = [], limit = 0, onOpen }) {
+	const [shapeOf, setShape] = useState('Stacked')
 	const columns = chart?.columns ?? []
-	const top = scaleFor(Math.max(...columns.map(column => column.spend)))
+	const unit = chart?.unit ?? (range === 'week' ? 'day' : range === 'month' || range === 'days30' ? 'week' : 'month')
+	const splits = stackable && categories.length > 0
+	const stackedNow = splits && shapeOf === 'Stacked'
+	const most = Math.max(...columns.map(column => column.spend), 0)
+	const top = scaleFor(Math.max(most, limit))
 	const bars = useRef(null)
 	const fit = useFit(bars, `${touch} ${columns.length}`)
 	// before the window answers, the calendar says whether it is still running
 	const running = chart ? columns.some(column => column.running) : soon
-	const drawn = columns.map(column => ({
-		key: column.key,
-		from: column.from,
-		to: column.to,
-		label: `${column.name}, ${currency(column.spend, 0)}`,
-		height: share(column.spend, top) * fit,
-		muted: column.running,
-		tick: tickOf(chart, column, touch)
-	}))
-	const select = unit === 'day' ? undefined : key => onOpen(columns.find(column => column.key === key).open)
+	const drawn = columns.map(column => {
+		const height = share(Math.max(0, column.spend), top) * fit
+		return {
+			key: column.key,
+			from: column.from,
+			to: column.to,
+			label: `${column.name}, ${currency(column.spend, 0)}`,
+			height,
+			muted: !stackedNow && column.running,
+			tick: tickOf(chart, column, touch),
+			...(stackedNow && column.spend > 0 ? { segments: segmentsOf(column) } : {})
+		}
+	})
+	const select = unit === 'day' || !onOpen ? undefined : key => onOpen(columns.find(column => column.key === key))
 	const current = columns.find(column => column.running)?.key
+	const below = columns.filter(column => column.spend < 0)
+	const limitLine = limit > 0 && !touch
+		? { at: `${100 - share(limit, top) * fit}%`, label: `${unit === 'month' ? 'Monthly limit' : 'Limit'} ${currency(limit, 0)}` }
+		: undefined
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
-			<div className="sp-row-flex sp-gap-12">
+			<div className="sp-row-flex sp-gap-12 sp-wrap">
 				<span className="sp-section-label">Spend by {unit}</span>
 				<span className="sp-grow" />
-				{running
+				{narrowed ? <span className="sp-meta">{narrowed}</span> : null}
+				{stackedNow
 					? (
 						<Legend>
-							<LegendItem series={1}>Spend</LegendItem>
-							<LegendItem series={4}>Not yet complete</LegendItem>
+							{categories.map((c, i) => <LegendItem series={i + 1} key={c.id}>{c.name}</LegendItem>)}
+							<LegendItem series={4}>Other</LegendItem>
 						</Legend>
 					)
+					: running && !narrowed
+						? (
+							<Legend>
+								<LegendItem series={1}>Spend</LegendItem>
+								<LegendItem series={4}>Not yet complete</LegendItem>
+							</Legend>
+						)
+						: null}
+				{splits && !touch
+					? <Segmented name="statistics-bar-shape" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" />
 					: null}
 			</div>
 			{touch
-				? <Bars ref={bars} columns={drawn} current={current} onSelect={select} loading={!chart} />
+				? <Bars ref={bars} columns={drawn} current={current} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 				: (
-					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5}>
-						<Bars ref={bars} variant="plot" columns={drawn} current={current} onSelect={select} loading={!chart} />
+					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5} limit={limitLine}>
+						<Bars ref={bars} variant="plot" columns={drawn} current={current} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 					</Plot>
 				)}
+			{below.length
+				? (
+					<>
+						<div className="os-below" aria-hidden="true">
+							{columns.map(column => (
+								<span key={column.key} className={column.spend < 0 ? 'os-below__bar' : undefined} />
+							))}
+						</div>
+						<span className="sp-meta">
+							{below.map(column => column.name).join(', ')} returned more than {below.length === 1 ? 'it' : 'they'} bought.
+						</span>
+					</>
+				)
+				: null}
 		</Card>
 	)
 }
@@ -611,7 +789,8 @@ function CategoryShares({ view, known, onOpen }) {
 			<span className="sp-section-label">By category</span>
 			<Shares>
 				{shown.map((entry, i) => (
-					<ShareRow key={entry.id ?? 'none'} series={i + 1} value={`${Math.round(entry.share)}%`} onClick={() => onOpen(entry.id)}>
+					<ShareRow key={entry.id ?? 'none'} series={i + 1} value={`${Math.round(entry.share)}%`}
+						onClick={onOpen ? () => onOpen(entry.id ?? 'none') : undefined}>
 						{entry.name}
 					</ShareRow>
 				))}
@@ -627,9 +806,15 @@ function CategoryShares({ view, known, onOpen }) {
 	)
 }
 
+/** A row a reader presses to drill into what it names: the whole row is the button. */
+function Pick({ onPick, label, children }) {
+	if (!onPick) return children
+	return <button type="button" className="os-pick" onClick={onPick} aria-label={label}>{children}</button>
+}
+
 /** A ranked list with a bar under each line: the top eight and one line for the rest, or all of
     them in a region that scrolls inside the card (4d). With no entries yet, `rows` skeleton lines. */
-function Ranked({ entries, rows = TOP + 1, noun, touch, open }) {
+function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = false }) {
 	if (!entries) {
 		return WIDTHS.slice(0, rows).map(w => (touch
 			? (
@@ -652,27 +837,40 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open }) {
 	const rest = entries.slice(TOP)
 	const folded = !open && rest.length > 1
 	const lines = folded
-		? [...entries.slice(0, TOP), { id: 'other', other: true, name: `Other ${amount(rest.length, 0)} ${noun}`, amount: rest.reduce((sum, entry) => sum + entry.amount, 0) }]
+		? [...entries.slice(0, TOP), {
+			id: 'other', other: true, name: `Other ${amount(rest.length, 0)} ${noun}`,
+			amount: rest.reduce((sum, entry) => sum + entry.amount, 0), orders: rest.reduce((sum, entry) => sum + (entry.orders ?? 0), 0)
+		}]
 		: entries
 	// the remainder can outweigh the top entry, so each bar is a share of the largest line shown
-	const most = Math.max(...lines.map(entry => entry.amount), 0)
-	const drawn = lines.map(entry => (touch
-		? (
-			<div className="sp-stack" key={entry.id ?? 'none'}>
-				<Sum value={amount(entry.amount, 0)}>{entry.other ? <span className="sp-subtitle">{entry.name}</span> : entry.name}</Sum>
-				<Gauge thin value={share(entry.amount, most)} remainder={entry.other} aria-label={entry.name} />
-			</div>
+	const most = Math.max(...lines.map(entry => Math.abs(entry.amount)), 0)
+	const ink = entry => (entry.amount < 0 ? 'sp-amount sp-ink-danger' : 'sp-amount')
+	const drawn = lines.map(entry => {
+		const pick = !entry.other && onOpen ? () => onOpen(entry.id ?? 'none') : undefined
+		const gauge = <Gauge thin={touch} value={share(Math.abs(entry.amount), most)} remainder={entry.other} negative={entry.amount < 0} aria-label={entry.name} />
+		return (
+			<Pick key={entry.id ?? 'none'} onPick={pick} label={`${entry.name}, ${currency(entry.amount, 0)}`}>
+				{touch
+					? (
+						<div className="sp-stack">
+							<Sum value={amount(entry.amount, 0)}>{entry.other ? <span className="sp-subtitle">{entry.name}</span> : entry.name}</Sum>
+							{gauge}
+						</div>
+					)
+					: (
+						<div className="sp-stack sp-gap-6">
+							<div className="sp-row-flex sp-gap-8">
+								<span className={entry.other ? 'sp-data sp-subtitle' : 'sp-data'}>{entry.name}</span>
+								<span className="sp-grow" />
+								<span className={ink(entry)}>{currency(entry.amount, 0)}</span>
+								{counts ? <span className="sp-meta">{counted(entry.orders, 'order')}</span> : null}
+							</div>
+							{gauge}
+						</div>
+					)}
+			</Pick>
 		)
-		: (
-			<div className="sp-stack sp-gap-6" key={entry.id ?? 'none'}>
-				<div className="sp-row-flex sp-gap-8">
-					<span className={entry.other ? 'sp-data sp-subtitle' : 'sp-data'}>{entry.name}</span>
-					<span className="sp-grow" />
-					<span className="sp-amount">{currency(entry.amount, 0)}</span>
-				</div>
-				<Gauge value={share(entry.amount, most)} remainder={entry.other} aria-label={entry.name} />
-			</div>
-		)))
+	})
 	return open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn
 }
 
@@ -683,14 +881,18 @@ function moreFooter(entries, count, noun, open, setOpen) {
 	return [<ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={count} noun={noun} />]
 }
 
-function CategoryRows({ view, known }) {
+function CategoryRows({ view, known, onOpen, hint = false }) {
 	const [open, setOpen] = useState(false)
 	const entries = view?.split
 	const count = entries ? entries.length : known ?? TOP + 2
 	return (
 		<Card aria-busy={entries ? undefined : 'true'} footer={moreFooter(entries, count, 'categories', open, setOpen)}>
-			<span className="sp-section-label">By category</span>
-			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} />
+			<div className="sp-row-flex sp-gap-8">
+				<span className="sp-section-label">By category</span>
+				<span className="sp-grow" />
+				{hint && onOpen ? <span className="sp-meta">press one to look closer</span> : null}
+			</div>
+			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} onOpen={onOpen} />
 		</Card>
 	)
 }
@@ -703,7 +905,7 @@ function ShowAll({ open, onClick, count, noun }) {
 	)
 }
 
-function VendorsCard({ view, name, touch }) {
+function VendorsCard({ view, name, touch, onOpen }) {
 	const [open, setOpen] = useState(false)
 	const vendors = view?.vendorSplit
 	// before the window answers, the card holds its resting cap: eight, the rest, and the way to all
@@ -713,51 +915,54 @@ function VendorsCard({ view, name, touch }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Top vendors</span>
 				<span className="sp-grow" />
-				<span className="sp-meta">{name}</span>
+				<span className="sp-meta">{onOpen && !touch ? `${name}${dot}press a vendor to see its orders` : name}</span>
 			</div>
-			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} />
+			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} onOpen={onOpen} counts={!touch} />
 		</Card>
 	)
 }
 
-function StatusCard({ total, counts, onRetry }) {
-	const failed = counts.find(([, state]) => state.error)
-	if (failed) return (
-		<Hold shape={<StatusCard total={total} counts={counts.map(([status]) => [status, {}])} />}>
-			<Failed variant="card" label="By status" what="The counts by status" error={failed[1].error} onRetry={onRetry} />
-		</Hold>
-	)
-	const busy = counts.some(([, state]) => !state.data)
+const STATUSES = ['Delivered', 'Ordered', 'Returned']
+// the statuses each lens can hold: an expense is never a returned order, a refund always is
+const LENS_STATUSES = { expenses: ['Delivered', 'Ordered'], refunds: ['Returned'], net: STATUSES }
+
+function StatusCard({ view, flow = 'expenses', onOpen }) {
+	const total = view?.orders ?? 0
+	const counts = new Map((view?.statusSplit ?? []).map(s => [s.status, s.orders]))
+	const shown = [...LENS_STATUSES[flow], ...[...counts.keys()].filter(s => !LENS_STATUSES[flow].includes(s))]
 	return (
-		<Card aria-busy={busy ? 'true' : undefined}>
+		<Card aria-busy={view ? undefined : 'true'}>
 			<span className="sp-section-label">By status</span>
-			{counts.map(([status, state]) => {
-				const count = state.data?.matched
+			{shown.map(status => {
+				const count = view ? counts.get(status) ?? 0 : null
 				return (
-					<div className="sp-stack sp-gap-6" key={status}>
-						<div className="sp-row-flex sp-gap-8">
-							<span className="sp-data">{status}</span>
-							<span className="sp-grow" />
-							{count == null
-								? <span className="sp-amount">{hold('44')}</span>
-								: (
-									<>
-										<span className="sp-amount">{amount(count, 0)}</span>
-										<span className="sp-meta">{Math.round(share(count, total))}%</span>
-									</>
-								)}
+					<Pick key={status} onPick={onOpen && count ? () => onOpen(status) : undefined} label={`${status}, ${counted(count ?? 0, 'order')}`}>
+						<div className="sp-stack sp-gap-6">
+							<div className="sp-row-flex sp-gap-8">
+								<span className="sp-data">{status}</span>
+								<span className="sp-grow" />
+								{count == null
+									? <span className="sp-amount">{hold('44')}</span>
+									: (
+										<>
+											<span className="sp-amount">{amount(count, 0)}</span>
+											<span className="sp-meta">{Math.round(share(count, total))}%</span>
+										</>
+									)}
+							</div>
+							<Gauge value={share(count ?? 0, total)} aria-label={status} />
 						</div>
-						<Gauge value={share(count ?? 0, total)} aria-label={status} />
-					</div>
+					</Pick>
 				)
 			})}
 		</Card>
 	)
 }
 
-function SavingChart({ chart, name, touch, onOpen }) {
+function SavingChart({ chart, name, touch, selected, onOpen }) {
 	const columns = chart?.columns
 	const most = Math.max(...(columns ?? []).map(column => column.spend), 0)
+	const select = !chart || chart.unit === 'day' || !onOpen ? undefined : key => onOpen(columns.find(column => column.key === key))
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
 			<div className="sp-row-flex sp-gap-12">
@@ -773,11 +978,12 @@ function SavingChart({ chart, name, touch, onOpen }) {
 							from: column.from,
 							to: column.to,
 							label: `${column.name}, paid ${currency(column.spend, 0)}, saved ${currency(column.saved, 0)}`,
-							pair: [share(column.spend, most), share(column.saved, most)],
+							pair: [share(Math.max(0, column.spend), most), share(Math.max(0, column.saved), most)],
 							tick: tickOf(chart, column, touch)
 						}))}
 						current={columns.find(column => column.running)?.key}
-						onSelect={chart.unit === 'day' ? undefined : key => onOpen(columns.find(column => column.key === key).open)}
+						selected={select ? selected : undefined}
+						onSelect={select}
 					/>
 				)
 				: <Bars loading />}
@@ -785,6 +991,38 @@ function SavingChart({ chart, name, touch, onOpen }) {
 				<LegendItem series={1}>Paid</LegendItem>
 				<LegendItem series={4}>Saved</LegendItem>
 			</Legend>
+		</Card>
+	)
+}
+
+/** One category inside a crumb, month by month against its one limit (4c). */
+function LimitByMonth({ chart, selected, budget, pace }) {
+	const upTo = selected ? chart.columns.findIndex(c => c.key === selected) + 1 : chart.columns.length
+	const months = chart.columns.slice(Math.max(0, upTo - 3), upTo)
+	return (
+		<Card>
+			<div className="sp-row-flex sp-gap-8">
+				<span className="sp-section-label">By month, against the limit</span>
+				<span className="sp-grow" />
+				<span className="sp-meta">limit {currency(budget, 0)}</span>
+			</div>
+			{months.map(column => {
+				const scale = Math.max(column.spend, budget)
+				const over = column.spend > budget
+				const marker = column.running && pace.running ? share(budget * (pace.daysIn / pace.unitDays), scale) : undefined
+				const month = monthNames('long')[Number(column.from.slice(5, 7)) - 1]
+				return (
+					<div className="sp-stack sp-gap-6" key={column.key}>
+						<div className="sp-row-flex sp-gap-8">
+							<span className={column.running ? 'sp-data sp-subtitle' : 'sp-data'}>{month}</span>
+							<span className="sp-grow" />
+							<span className="sp-amount">{amount(column.spend, 0)}</span>
+						</div>
+						<Gauge value={share(Math.min(column.spend, budget), scale)} over={over ? share(column.spend - budget, scale) : undefined}
+							marker={marker} aria-label={month} />
+					</div>
+				)
+			})}
 		</Card>
 	)
 }
@@ -936,21 +1174,23 @@ function sliceHead(show) {
 	)
 }
 
-function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry }) {
+function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, onRetry }) {
 	const column = useRef(null)
 	const show = columnsFor(useWidth(column))
 	let body
 	if (!rows.length && failed) {
-		body = <Failed what={`The orders in ${nameOf(view.range, view.id)}`} error={failed} onRetry={onRetry} />
+		body = <Failed what={`The orders in ${name}`} error={failed} onRetry={onRetry} />
 	}
 	// a page of rows holds the table's place, or the window's own count once it is known
 	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, SLICE) : SLICE} total={view?.orders} />
 	else {
 		body = (
-			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={SLICE} total={matched} onLoadMore={onLoadMore} selectionKey={view.id}
+			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={SLICE} total={matched} onLoadMore={onLoadMore} selectionKey={`${view.id} ${view.slice.from}`}
 				rowTo={order => `/orders/${order.id}`} locale={NUMBER_LOCALE}>
 				<Caption>
-					<strong className="sp-data">{counted(view.orders, 'order')} in this slice</strong>
+					{drilled
+						? <span className="sp-section-label">The {counted(view.orders, 'order')} behind this</span>
+						: <strong className="sp-data">{counted(view.orders, 'order')} in this slice</strong>}
 					<span className="sp-meta">{dot}{currency(view.spent)}</span>
 					<Saving value={view.saved} variant="help" />
 					<span className="sp-grow" />
@@ -1009,7 +1249,7 @@ function RowsLoading({ show, size, total }) {
 	)
 }
 
-function SliceCard({ view }) {
+function SliceCard({ view, link, drilled }) {
 	const chevron = <Icon name="chevron-right" />
 	if (!view) {
 		return (
@@ -1024,9 +1264,9 @@ function SliceCard({ view }) {
 	}
 	// the title wraps rather than cut: on the narrowest phone the count does not fit beside the total
 	return (
-		<ListItem variant="card" to={`/orders?from=${view.from}&to=${view.to}`} chevron={chevron}>
+		<ListItem variant="card" to={link} chevron={chevron}>
 			<Stacked>
-				<span className="sp-title">{counted(view.orders, 'order')} in this slice</span>
+				<span className="sp-title">{drilled ? `The ${counted(view.orders, 'order')} behind this` : `${counted(view.orders, 'order')} in this slice`}</span>
 			</Stacked>
 			<span className="sp-stacked sp-cell-amount">
 				<span className="sp-amount">{currency(view.spent)}</span>

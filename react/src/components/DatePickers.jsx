@@ -261,7 +261,8 @@ function standardRanges(locale) {
 // what the typed-text hook hands an input, less its own `invalid` flag, which is no attribute
 const field = ({ invalid, ...props }) => props
 
-export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, ...rest }) {
+/** `single` is the touch sheet's form (c14): one month, paged, where two do not fit. */
+export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, single = false, ...rest }) {
 	reject(rest, 'RangePicker')
 	if (minDays !== undefined && minDays < 1) console.error('<RangePicker> minDays counts days inclusively, so the smallest range is 1')
 	if (from && to && from > to) console.error('<RangePicker> from is after to: ' + from + ' → ' + to)
@@ -365,7 +366,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 
 	return (
 		<div
-			className="sp-range"
+			className={join('sp-range', single && 'sp-range--single')}
 			onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); revert() } }}
 			{...rest}
 		>
@@ -398,8 +399,8 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 				</label>
 			</div>
 			<div className="sp-range__months">
-				<Month year={shown.year} month={shown.month} showPrevious {...shared} />
-				<Month year={second.getFullYear()} month={second.getMonth()} showNext {...shared} />
+				<Month year={shown.year} month={shown.month} showPrevious showNext={single} {...shared} />
+				{single ? null : <Month year={second.getFullYear()} month={second.getMonth()} showNext {...shared} />}
 			</div>
 			{/* the foot is the control's, not the caller's: the count says what applying
 			    will do, and a range picker without a way to cancel is a trap */}
@@ -413,6 +414,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 }
 
 const PERIODS = {
+	days30: today => [new Date(today.getFullYear(), today.getMonth(), today.getDate() - 29), today],
 	week: today => {
 		const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7))
 		return [monday, new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6)]
@@ -501,7 +503,7 @@ export function Selected() { return null }
 
 /** The stepper inside the period control (c14): one box, an arrow either side of the window's
     name. An arrow with no handler is disabled, never hidden, so the box keeps its width. */
-const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year' }
+const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year', days30: 'days30' }
 
 export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
 	reject(rest, 'PeriodWindow')
@@ -531,8 +533,9 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
 }
 
 /* `at` is a day in the window the presets resolve around, today when absent; `stepper` moves it.
-   `onPresent` returns a window stepped away from today to the one holding it (c14). */
-export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, children, locale, ...rest }) {
+   `onPresent` returns a window stepped away from today to the one holding it (c14). `actions` end the
+   row: the lens and Export on Statistics (4a). */
+export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this
 	// component derives, so it cannot be resolved until they exist
@@ -636,7 +639,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 							? (
 								<Button variant="text" size="small" onClick={() => { back.current = true; onPresent() }}
 									{...(away ? {} : { tabIndex: -1, 'aria-hidden': 'true' })}>
-									Back to this {value}
+									{value === 'days30' ? 'Back to today' : `Back to this ${value}`}
 								</Button>
 							)
 							: null}
@@ -644,6 +647,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 					</span>
 				)
 				: null}
+			{actions ? <>{note || away ? null : <span className="sp-grow" />}{actions}</> : null}
 		</div>
 	)
 }

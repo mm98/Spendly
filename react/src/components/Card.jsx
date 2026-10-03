@@ -10,7 +10,9 @@ const VARIANT = {
 	// the sign-in card, the one card that floats on the page rather than in the shell (20a)
 	float: 'sp-card--float',
 	// the first run's card, a step wider for its two-column choices (20d)
-	'float-wide': 'sp-card--float sp-card--float-wide'
+	'float-wide': 'sp-card--float sp-card--float-wide',
+	// the drill path's bar above the cards it filters (c8)
+	crumbs: 'sp-crumbs-bar'
 }
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }

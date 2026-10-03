@@ -4,6 +4,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { Card, Panel } from '../components/Card.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Sum } from '../components/Data.jsx'
+import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TokensField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -12,9 +13,10 @@ import { SaveBar } from '../components/Touch.jsx'
 import { Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
 import { useApi } from '../api/useApi.js'
-import { failureMessage, getCategories, getOrders } from '../api/client.js'
-import { currency, dot, plural, shortDate } from '../api/format.js'
+import { failureMessage, getCategories, getCategory, getOrders } from '../api/client.js'
+import { currency, dot, fullStop, plural, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
+import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
 
 /* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
    record stores, the mark it is drawn with, the bars above and around a list, and the parts of a record's form. */
@@ -225,10 +227,120 @@ export const deleteNote = vendor => {
 		: `It has no orders. The ${n} other names it matches on receipts go with it.`
 }
 
-/** What deleting a category takes with it. Only one no order or bookmark carries can be deleted. */
-export const categoryDeleteNote = budget => (budget > 0
-	? `No order or bookmark carries it. Its limit of ${currency(budget, 0)} goes with it.`
-	: 'No order or bookmark carries it.')
+/** What deleting a category does (5d, 5f): the label comes off what carries it, and its limit goes.
+    `alone` is how many of its orders carry no other category. */
+export function categoryDeleteNote({ orders = 0, alone = 0, bookmarks = 0, budget = 0 }) {
+	const parts = []
+	if (orders) parts.push(`The label comes off ${plural(orders, 'order')}${alone
+		? `; ${alone === orders && orders === 1 ? 'it carries' : `${alone} of them ${alone === 1 ? 'carries' : 'carry'}`} no other category`
+		: ''}.`)
+	if (bookmarks) parts.push(`It also comes off ${plural(bookmarks, 'bookmark')}.`)
+	if (!orders && !bookmarks) parts.push('No order or bookmark carries it.')
+	if (budget > 0) parts.push(`Its limit of ${currency(budget, 0)} goes with it.`)
+	return parts.join(' ')
+}
+
+/** Deleting a category, confirmed in a dialog (6d) that reads the record first, so it can say how
+    many orders are left with no category. The button names what goes, and only that. */
+export function DeleteCategory({ category, busy, onConfirm, onCancel }) {
+	const record = useApi(getCategory, [category.id])
+	const known = record.data?.id === category.id ? record.data : null
+	return (
+		<ConfirmDelete title={`Delete ${category.name}?`} action="Delete category" busy={busy || !known}
+			onConfirm={onConfirm} onCancel={onCancel}>
+			{categoryDeleteNote(known ?? category)}
+		</ConfirmDelete>
+	)
+}
+
+/** Archiving a vendor, confirmed in a dialog. It can be undone, so the commit is the primary one. */
+export function ConfirmArchive({ vendor, busy, onConfirm, onCancel }) {
+	return (
+		<Dialog onCancel={onCancel}>
+			<DialogTitle>Archive {vendor.name}?</DialogTitle>
+			<DialogBody>
+				It leaves the vendor list and the order list's filters. {vendor.orders
+					? `Its ${plural(vendor.orders, 'order')} ${vendor.orders === 1 ? 'keeps' : 'keep'} it as their vendor, and`
+					: 'Its details stay, and'} the Archived view brings it back.
+			</DialogBody>
+			<DialogActions>
+				<Button variant="outline" onClick={onCancel}>Cancel</Button>
+				<span className="sp-grow" />
+				<Button disabled={busy} onClick={onConfirm}>Archive</Button>
+			</DialogActions>
+		</Dialog>
+	)
+}
+
+/** Merging a vendor or a category into another (5j). The target is searched, never the source
+    itself; what the result will be is shown before the button, which carries the count. */
+export function MergeDialog({ kind, source, options, busy, onConfirm, onCancel }) {
+	const [target, setTarget] = useState(null)
+	const [query, setQuery] = useState('')
+	const vendor = kind === 'vendor'
+	const others = options.filter(o => o.id !== source.id)
+	const needle = query.trim().toLowerCase()
+	const shown = others.filter(o => !needle || o.name.toLowerCase().includes(needle))
+	const picked = others.find(o => o.id === target) ?? null
+	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
+	const names = o => new Set([o.name, ...(o.aliases ?? [])].map(n => n.toLowerCase()))
+	const aliasCount = picked ? new Set([...(picked.aliases ?? []), ...names(source)].map(n => n.toLowerCase()).filter(n => n !== picked.name.toLowerCase())).size : 0
+	return (
+		<Dialog onCancel={onCancel}>
+			<DialogTitle>{vendor ? 'Merge a vendor' : 'Merge a category'}</DialogTitle>
+			<Field id="merge-target"
+				label={vendor
+					? <>Move everything from <b className="sp-ink">{source.name}</b> into</>
+					: <>Merge <b className="sp-ink">{source.name}</b> and its <b className="sp-ink">{plural(source.orders, 'order')}</b> into</>}
+				message={vendor
+					? `"${source.name}" becomes an alias, so the next receipt printing that name files here.`
+					: 'Every category except this one. Totals and charts count it under the one you pick.'}>
+				<Combobox searchable search={query} onSearch={setQuery} noun={vendor ? 'vendors' : 'categories'}
+					placeholder={vendor ? 'Choose a vendor' : 'Choose a category'}
+					value={picked ? picked.name : ''} lead={picked ? markOf(picked) : undefined}>
+					{shown.map(o => (
+						<ComboboxOption key={o.id} selected={o.id === target} mark={markOf(o)} meta={plural(o.orders, 'order')}
+							onSelect={() => { setTarget(o.id); setQuery('') }}>{o.name}</ComboboxOption>
+					))}
+				</Combobox>
+			</Field>
+			{picked && vendor
+				? (
+					<div className="sp-list">
+						<table className="sp-table sp-table--compact sp-table--static">
+							<thead><tr><th /><th>Source</th><th>Result</th></tr></thead>
+							<tbody>
+								<tr><td className="sp-ink-2">Name</td><td className="sp-ink-5">{source.name}</td><td className="sp-strong">{picked.name}</td></tr>
+								<tr><td className="sp-ink-2">Aliases</td><td className="sp-ink-5">{source.aliases?.length ?? 0}</td><td className="sp-strong">{aliasCount}</td></tr>
+								<tr><td className="sp-ink-2">Orders</td><td className="sp-ink-5">{source.orders}</td><td className="sp-strong">{source.orders + picked.orders}</td></tr>
+							</tbody>
+						</table>
+					</div>
+				)
+				: null}
+			{picked && !vendor
+				? (
+					<Well color="danger">
+						<span className="sp-title">{source.name} is deleted once its orders have moved</span>
+						<span className="sp-subtitle">
+							{picked.name} gets its {plural(source.orders, 'order')}. An order carrying both keeps one label, not two.
+							{source.budget > 0 ? ` ${source.name}'s limit of ${currency(source.budget, 0)} goes with it` : ''}
+							{source.budget > 0 && picked.budget > 0 ? `; ${picked.name}'s stays at ${currency(picked.budget, 0)}${fullStop()}` : source.budget > 0 ? '.' : ''}
+						</span>
+					</Well>
+				)
+				: null}
+			<DialogBody>This cannot be undone.</DialogBody>
+			<DialogActions>
+				<Button variant="outline" onClick={onCancel}>Cancel</Button>
+				<span className="sp-grow" />
+				<Button {...(vendor ? {} : { color: 'danger' })} disabled={busy || !picked} onClick={() => onConfirm(picked)}>
+					Merge {plural(source.orders, 'order')}
+				</Button>
+			</DialogActions>
+		</Dialog>
+	)
+}
 
 /** What deleting a bookmark takes with it, and the way to keep it instead. */
 export const bookmarkDeleteNote = bookmark => `${bookmark.photoId ? 'The bookmark and its picture are' : 'The bookmark is'} removed. To keep it off the list without losing it, archive it instead.`

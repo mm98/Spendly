@@ -136,7 +136,8 @@ function buildOrderFilter(userId, q) {
 	if (Number.isFinite(maxAmount)) { where.push('ot.total <= @maxAmount'); params.maxAmount = maxAmount }
 
 	/* One LIKE over the order's trigger-maintained search_text (its note and item titles --
-	   see migrations/002) instead of a correlated scan of order_items per order row, plus the
+	   see migrations/002) and one over its reference, instead of a correlated scan of
+	   order_items per order row, plus the
 	   two renameable names reached through their own small tables: matching vendors and
 	   categories resolve to id sets first (a dozen rows and ten), and the orders side is an
 	   indexed IN. LIKE is already case-insensitive for ASCII, which is exactly what lower()
@@ -155,6 +156,7 @@ function buildOrderFilter(userId, q) {
 		params.needle = asciiNeedle(needle) ? `%${escapeLike(needle)}%` : needle
 		where.push(`(
 			${match('ot.search_text')}
+			OR ${match('ot.reference')}
 			OR ot.vendor_id IN (${vendorIdsMatching(match)})
 			OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id
 				WHERE c.user_id = @userId AND ${match('c.name')})
