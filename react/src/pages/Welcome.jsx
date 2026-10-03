@@ -5,13 +5,12 @@ import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField } from '../components/Inputs.jsx'
-import { Picker } from '../components/Choice.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
-import { SWATCHES } from '../app/categoryMark.jsx'
+import { CategoryIconPicker, SWATCHES } from '../app/categoryMark.jsx'
 import {
 	createCategory, failureMessage, finishSetup, getCategories, getCurrentUser, getOrders, getSettings, saveSettings
 } from '../api/client.js'
@@ -26,7 +25,6 @@ const SUGGESTED = [
 	{ name: 'Furniture', icon: 'armchair', colour: SWATCHES['green-2'] },
 	{ name: 'Electronics', icon: 'device-desktop', colour: SWATCHES['green-3'] }
 ]
-const ICONS = ['flower', 'armchair', 'lamp', 'photo', 'star', 'home', 'shopping-bag', 'heart', 'diamond', 'clock', 'archive', 'tag', 'building-store']
 const OTHER = 'other'
 
 const priced = code => {
@@ -172,8 +170,7 @@ export default function Welcome() {
 								<TextField value={own.name} maxLength={60} onChange={v => setOwn(o => ({ ...o, name: v }))} />
 							</Field>
 							<Field label="Icon">
-								<Picker icons={ICONS.map(name => ({ name, icon: <Icon name={name} /> }))}
-									value={own.icon} onChange={v => setOwn(o => ({ ...o, icon: v }))} />
+								<CategoryIconPicker value={own.icon} onChange={v => setOwn(o => ({ ...o, icon: v }))} />
 							</Field>
 						</div>
 					)

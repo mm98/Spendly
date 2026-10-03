@@ -7,7 +7,6 @@ import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { ICONS } from '../components/icons.js'
 import { Gauge, Stat, Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
@@ -20,17 +19,11 @@ import {
 import { amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
-import { glyphOf } from '../app/categoryMark.jsx'
+import { CategoryIconPicker } from '../app/categoryMark.jsx'
 import {
 	CategoryMark, CommitBar, DeleteCategory, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	MergeButton, MergeDialog, MergePicker, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
-
-/* The icons the picker leads with (5e), then the rest of the register. */
-const FIRST = ['flower', 'armchair', 'lamp', 'photo', 'star', 'home', 'shopping-bag', 'heart', 'diamond', 'clock', 'archive', 'tag', 'building-store']
-const ICON_NAMES = [...FIRST, ...Object.keys(ICONS).filter(n => !FIRST.includes(n)).sort()]
-// an icon the drawing names otherwise than its register name reads (5e)
-const ICON_LABELS = { 'building-store': 'Store' }
 
 // case and accents do not make two names different: "Decor" and "décor" chart as one
 const fold = s => String(s).normalize('NFD').replace(/\p{M}/gu, '').trim().toLowerCase()
@@ -75,14 +68,13 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const location = useLocation()
 	const start = useMemo(() => ({
 		name: category?.name ?? named,
-		icon: glyphOf(category?.icon),
+		// a saved name missing from Tabler is kept until the user picks again (c7)
+		icon: category?.icon || 'tag',
 		colour: category ? pickedColour(category.colour) : null,
 		budget: category?.budget > 0 ? category.budget : null
 	}), [category, named])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
-	const [iconSearch, setIconSearch] = useState('')
-	const [allIcons, setAllIcons] = useState(() => Boolean(ICONS[start.icon]) && !FIRST.includes(start.icon))
 	const [deleting, setDeleting] = useState(false)
 	// Merge…: the picker from its button, then the category 5j's dialog compares against
 	const [picking, setPicking] = useState(false)
@@ -201,10 +193,6 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			})
 	}
 
-	const needle = iconSearch.trim().toLowerCase()
-	const matches = needle ? ICON_NAMES.filter(n => n.replace(/-/g, ' ').includes(needle)) : ICON_NAMES
-	const shown = needle || allIcons ? matches : matches.slice(0, FIRST.length)
-	const hidden = matches.length - shown.length
 	const preview = { name: values.name.trim() || 'New category', icon: values.icon, colour: storedColour(colour) }
 
 	const cards = (
@@ -224,10 +212,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				<span className="sp-section-label">Mark</span>
 				<div className="sp-stack sp-gap-12">
 					<Field label="Icon">
-						{h(<Picker icons={shown.map(name => ({ name, label: ICON_LABELS[name], icon: <Icon name={name} /> }))}
-							value={values.icon} onChange={v => set('icon', v)}
-							search={iconSearch} onSearch={setIconSearch} searchLabel="Search icons…" noun="icons"
-							more={hidden ? `+${hidden}` : undefined} onMore={() => setAllIcons(true)} />)}
+						{h(<CategoryIconPicker value={values.icon} onChange={v => set('icon', v)} />)}
 					</Field>
 					<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
 						{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}

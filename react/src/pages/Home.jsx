@@ -14,7 +14,7 @@ import { Icon } from '../components/Icon.jsx'
 
 import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
-import { CategoryMark, glyphOf } from '../app/categoryMark.jsx'
+import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
 	failureMessage, getCategories, getCurrentUser, getHomeAttention, getMonthlySummary, hideSummaryLine, getOrders, getSettings, getStatsSlice,
@@ -397,7 +397,7 @@ function MonthlySummary({ summary, categories, early, onHide, isHidden, onHideLi
 			c, mark: <Mark size="small" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={13} /></Mark>,
 			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
 		})),
-		...(roomShown ? [{ c: roomShown, mark: <Mark size="small" aria-hidden="true" aria-label={roomShown.name}><Icon name={glyphOf(roomShown.icon)} size={13} /></Mark>, said: `used ${Math.round(roomShown.used)}%`, meta: of(roomShown) }] : [])
+		...(roomShown ? [{ c: roomShown, mark: <Mark size="small" aria-hidden="true" aria-label={roomShown.name}><CategoryIcon name={roomShown.icon} size={13} /></Mark>, said: `used ${Math.round(roomShown.used)}%`, meta: of(roomShown) }] : [])
 	].slice(0, SUMMARY_ROWS)
 	return (
 		<Card footer={[

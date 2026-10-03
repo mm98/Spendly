@@ -164,8 +164,9 @@ function walk(ev) {
 }
 
 /** `search` with `onSearch` puts the search above the cells, `noun` (plural) naming them in the count read
-    out as they narrow; `more` is the "+N" cell, with `onMore` (c7). An icon option may carry a `label`. */
-export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, noun, more, onMore, ...rest }) {
+    out as they narrow; `more` is the "+N" cell, with `onMore` (c7). An icon option may carry a `label`,
+    or be `loading` (a skeleton tile); `empty` stands in for a grid with no cells. */
+export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, noun, more, onMore, empty, ...rest }) {
 	reject(rest, 'Picker')
 	if (swatches && icons) console.error('<Picker> takes swatches or icons, not both')
 	if (custom && !swatches) console.error('<Picker> a custom colour belongs to a colour group')
@@ -177,14 +178,14 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 	const chosenOutside = custom && value && !named(value) && !(swatches ?? []).includes(value)
 
 	// one Tab stop for the whole grid (c7): the cell last moved to, else the chosen one, else the first
-	const keys = [...(swatches ?? []), ...(icons ?? []).map(o => o.name), ...(custom ? ['custom'] : []), ...(more ? ['more'] : [])]
+	const keys = [...(swatches ?? []), ...(icons ?? []).filter(o => !o.loading).map(o => o.name), ...(custom ? ['custom'] : []), ...(more ? ['more'] : [])]
 	const [moved, setMoved] = useState(null)
 	const chosen = chosenOutside ? 'custom' : keys.includes(value) ? value : null
 	const stop = keys.includes(moved) ? moved : chosen ?? keys[0]
 	const cell = key => ({ 'data-cell': '', tabIndex: key === stop ? 0 : -1, onFocus: () => setMoved(key) })
 
 	const cells = (
-		<span className="sp-options" role="group" onKeyDown={walk} {...rest}>
+		<span className="sp-options" role="group" onKeyDown={walk} aria-busy={(icons ?? []).some(o => o.loading) ? 'true' : undefined} {...rest}>
 			{(swatches ?? []).map(swatch => (
 				<button
 					type="button"
@@ -198,8 +199,9 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 					{...paint(swatch)}
 				/>
 			))}
-			{(icons ?? []).map(option => (
-				<button
+			{(icons ?? []).map(option => (option.loading
+				? <span className="sp-skeleton sp-skeleton--mark" key={option.name} />
+				: <button
 					type="button"
 					className="sp-option"
 					aria-label={option.label ?? iconName(option.name)}
@@ -238,7 +240,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 	return (
 		<div className="sp-picker">
 			<SearchInput value={search ?? ''} onChange={onSearch} placeholder={searchLabel} aria-label={searchLabel} />
-			{cells}
+			{empty && !(icons ?? []).length ? <span className="sp-field__help">{empty}</span> : cells}
 			<span className="sp-announce" aria-live="polite">{search ? countOf(icons ?? [], noun) : ''}</span>
 		</div>
 	)
