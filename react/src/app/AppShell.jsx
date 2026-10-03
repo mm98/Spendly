@@ -304,9 +304,9 @@ function NavScroll({ navKey, children }) {
 	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
-/* New order is a plain row: the blank order to type in (16a); the other ways in live on its screen (3b). */
+/* New order is a plain row to step 1 of 3a, where scan, empty and copy are chosen, as the phone's button (9a). */
 function NewOrder({ rail }) {
-	return <NavItem icon="plus" to="/orders/new?source=empty" tip={rail ? 'New order' : undefined} aria-label="New order">New order</NavItem>
+	return <NavItem icon="plus" to="/orders/new" tip={rail ? 'New order' : undefined} aria-label="New order">New order</NavItem>
 }
 
 /* A count is read with its destination; on the rail the label is the tile's only name. */
