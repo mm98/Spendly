@@ -4202,7 +4202,7 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-bars__pair > .sp-bars__bar { border-radius: var(--r-marker) var(--r-marker) 0 0; }
 
 /* the same chart at a stat's size: no axis, no ticks, one highlighted step */
-.sp-bars--spark { height: 34px; gap: 3px; }
+.sp-bars--spark { height: 56px; gap: 3px; }
 .sp-bars--spark .sp-bars__bar { border-radius: 2px; }
 
 /* every chart height is a step on one 5% scale, so a bar, a stack and a segment

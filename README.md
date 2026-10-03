@@ -48,4 +48,4 @@ The app in [`react/`](react/) builds these screens on the API in [`api/`](api/).
 README says how it is put together and how to run it. Where the design shows something the app
 cannot do yet, the app leaves it out rather than drawing a control that does nothing.
 
-![The phone](docs/phone.png)
+<img src="docs/phone.png" alt="The phone" width="393">
