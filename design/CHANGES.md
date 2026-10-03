@@ -1,27 +1,25 @@
-# Spendly - brief 10 answers (fixed)
+# Spendly - brief 11 answers (fixed)
 
-**Fixed in this package:** the phone order card drops the reference and the status. It is two lines: vendor and amount, then date and items with the saving under the amount. This replaces handoff_2026_10_03m_changes.
+**Fixed in this package:** on desktop the notice that asks centred its mark and buttons on the whole block, so with the list of changes the mark floated beside the bullets. `.sp-toast--asks { align-items: flex-start; }` keeps them level with the title. This replaces handoff_2026_10_03n_changes.
 
-Copy these files over handoff_2026_10_03l_changes_fixed_fixed.
+Copy these files over handoff_2026_10_03m_changes_fixed.
 
-`Brief 10 answers.md` answers the five topics, numbered as the brief.
+`Brief 11 answers.md` answers the two points, and the "what changed" list added to the update notice.
 
 **Stylesheet changes the app takes (components.css)**
-- `.sp-touch .sp-chip:not(.sp-chip--static)` - only a chip that acts takes the touch height (4).
-- `.sp-shell--touch .sp-shell__body > .sp-empty:not(.sp-empty--dashed) { padding: 0; }` - one gutter on New order (5).
+- `.sp-touch .sp-toast--asks` and its children - the phone layout of the notice that asks. Drop the four app.css workaround rules (1).
+- `.sp-toast__changes` - the list of what changed in "A newer version is available".
 
 **What the app changes**
-- Statistics order table: Load more writes `?pages=` like the other lists. Show all and Show top 8 stay out of the address (2).
-- Phone order card: two lines - vendor and amount, then date and items with the saving. No reference, status or category (3).
-- Remove both app.css workarounds (4, 5).
+- "A newer version is available" shows up to three lines from the new version's release notes, and no list when there are none.
+- Order statistics: the order table text says one page (Rows per page) (2).
 
 ## Files
 
-- `Mobile screens.dc.html`
+- `States and confirmations.dc.html`
 - `Order statistics.dc.html`
-- `Order list.dc.html`
-- `Components.dc.html`
 - `styles/components.css`
-- `Brief 10 answers.md`
+- `styles/doc.css` (the 361px specimen width)
+- `Brief 11 answers.md`
 
-`styles/check.js` reports 82 known findings, unchanged.
+`styles/check.js` reports 84 known findings: the 82 from before, plus the two phone notices, which repeat the desktop notices' "stacked pair truncates" finding (their words wrap by design).
