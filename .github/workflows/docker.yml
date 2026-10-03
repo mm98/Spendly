@@ -49,7 +49,10 @@ jobs:
       # bundle through its own API, which is the only honest thing to stamp -- and the second
       # pass bakes the result in. Every layer is cached from the first pass, so the second
       # rebuilds the ENV line and nothing else.
-      - uses: docker/build-push-action@v7
+      # the first pass, the node setup and the scoring are switched off: nothing in the app shows the
+      # score, and the push below builds the image on its own
+      - if: false
+        uses: docker/build-push-action@v7
         with:
           context: .
           load: true
@@ -61,10 +64,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
-      - uses: actions/setup-node@v5
+      - if: false
+        uses: actions/setup-node@v5
         with:
           node-version: 24
-      - name: Score the image
+      - if: false
+        name: Score the image
         id: lighthouse
         run: |
           # SPENDLY_DB into /tmp: the image points it at /data, which only exists once a volume
