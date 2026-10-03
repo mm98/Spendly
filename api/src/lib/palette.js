@@ -32,3 +32,16 @@ export const colourFor = (name, palette = VENDOR_PALETTE) =>
     many entries as the palette is long, which is what "every vendor a different colour"
     actually requires and what a hash cannot promise. */
 export const nthColour = (i, palette = VENDOR_PALETTE) => palette[i % palette.length]
+
+/** The design's eight swatches, in the order the colour picker shows them (react/src/app/categoryMark.jsx). */
+export const SWATCHES = ['#1d4d33', '#2f7a51', '#4f7f63', '#8caf97', '#7a5c23', '#d3b98a', '#8a4a41', '#b3b1a9']
+
+/** The first swatch no colour in `worn` uses; past eight, the one worn least, first in order on a tie. */
+export function nextUnused(worn) {
+	const count = new Map(SWATCHES.map(h => [h, 0]))
+	for (const colour of worn) {
+		const hex = String(colour ?? '').toLowerCase()
+		if (count.has(hex)) count.set(hex, count.get(hex) + 1)
+	}
+	return [...count].reduce((a, b) => (b[1] < a[1] ? b : a))[0]
+}

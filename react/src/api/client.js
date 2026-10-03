@@ -44,7 +44,7 @@ const THINGS = [
 	[/^\/api\/orders\/(?!import|draft|overview)[^/?]+/, 'order'],
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
 	[/^\/api\/categories\/(?!uncategorised)[^/?]+/, 'category'],
-	[/^\/api\/bookmarks\/(?!preview)[^/?]+/, 'bookmark'],
+	[/^\/api\/bookmarks\/(?!preview|categories)[^/?]+/, 'bookmark'],
 	[/^\/api\/budget\/lines\//, 'budget row'],
 	[/^\/api\/budget\/groups\//, 'budget group'],
 	[/^\/api\/budget\/accounts\//, 'account']
@@ -260,6 +260,11 @@ const toApiDraft = draft => ({
 
 export async function getBookmarks(params = {}, signal) {
 	return request('/api/bookmarks' + qs(params), { signal })
+}
+
+/** How many bookmarks of one view carry each category, and how many carry none: the category filter's counts. */
+export async function getBookmarkCategoryCounts(archived, signal) {
+	return request('/api/bookmarks/categories' + qs({ archived: archived ? 'yes' : 'no' }), { signal })
 }
 
 export async function getBookmark(id, signal) {
@@ -608,7 +613,7 @@ export const bookmarkSorts = [
 const orderReads = [getOrders, getOrder, getStats]
 const vendorReads = [getVendors, getVendor]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
-const bookmarkReads = [getBookmarks, getBookmark]
+const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 
 /** An order changed: everything sums orders, and saving one can create a vendor or a category. */
