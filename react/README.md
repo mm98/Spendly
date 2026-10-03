@@ -120,27 +120,6 @@ build: entry 63.94 kB (20.30 kB gzipped), vendor 285.12 kB (90.45 kB gzipped), s
   a light frame. It is a file, not inline code, because the API's security policy runs no inline
   script.
 
-## Browser quirks the app carries
-
-Rules in `src/styles/app.css` that exist because one engine draws something the design does not
-show. Each stays until the design's own stylesheet takes it in, and then goes.
-
-**iOS date fields: the value sits at the top.** On touch the date field is the phone's own
-`<input type="date">`. WebKit draws its value in the input's own box, and with the design's
-`appearance: none` rule on date-family inputs the 48px field keeps the value at the top edge,
-not in the middle. Blink and Gecko centre it, so only WebKit shows it.
-
-- The rule: `.sp-input[type="date" | "time" | "month" | "datetime-local"] { display: flex; align-items: center; }`.
-  The field centres the value itself, so it holds at any field height.
-- Not the fix: `line-height` set to the field height (it works, but breaks when the height
-  changes), and styling `::-webkit-date-and-time-value` (it left the value at the top).
-- It covers every native date field: New order's Date, and From and To in the order filters.
-- To check it: run the app, open New order on the `iPhone 15` profile in **WebKit** (not
-  Chromium), open Order details, and look at Date next to Kind. Both are 327x48px, the value
-  vertically centred.
-- WebKit for the test runner: `npx playwright install webkit`, then `install-deps webkit` as a
-  second step.
-
 ## Lighthouse
 
 `node scripts/lighthouse.mjs <url>` scores a served build (`npm run build`, then

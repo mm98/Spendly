@@ -1,5 +1,4 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
@@ -7,7 +6,7 @@ import { Card, CardFooter, Panel } from '../components/Card.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Bars, ChartTip, Donut, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
-import { PeriodPicker, PeriodWindow, RangePicker, Selected } from '../components/DatePickers.jsx'
+import { PeriodPicker, PeriodWindow, RangePicker, RangeSheet, Selected } from '../components/DatePickers.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TopBarEnd } from '../app/topBarEnd.jsx'
 import { Caption, Controls, Crumb, Crumbs, Foot, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
@@ -16,9 +15,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Alert, useToast } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Segmented } from '../components/Segmented.jsx'
-import { Scrim } from '../components/Shell.jsx'
-import { Sheet } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { Halves } from '../components/Well.jsx'
 import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
@@ -513,21 +510,6 @@ function quickRanges(firstOrder) {
 		{ label: 'Year to date', value: [`${y}-01-01`, now] },
 		...(firstOrder ? [{ label: 'All time', value: [firstOrder > earliest ? (firstOrder < now ? firstOrder : now) : earliest, now] }] : [])
 	]
-}
-
-/** On touch the range picker is a sheet over the page, not a panel under the row (4f). */
-function RangeSheet({ onClose, children }) {
-	const box = useRef(null)
-	useFocusTrap(box)
-	return createPortal(
-		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
-			<Sheet role="dialog" aria-modal="true" aria-label="Choose dates" ref={box}
-				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
-				{children}
-			</Sheet>
-		</Scrim>,
-		document.body
-	)
 }
 
 /** One row per item line, the order's own fields repeated on each: the column set an import reads. */

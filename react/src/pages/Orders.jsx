@@ -7,7 +7,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel, FieldGroupValues, Switch } from '../components/Choice.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
-import { DateField } from '../components/DatePickers.jsx'
+import { DateField, RangePicker, RangeSheet } from '../components/DatePickers.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { RangeSlider, SearchInput } from '../components/Inputs.jsx'
@@ -1044,6 +1044,11 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 	const [draft, setDraft] = useState({ from, to })
 	useEffect(() => setDraft({ from, to }), [from, to])
 	const wrong = !!(draft.from && draft.to && draft.to < draft.from)
+	// on a phone Custom opens the range sheet (c14); its Apply sets From and To here, and the
+	// filter sheet's own Apply runs the filter
+	const touch = useShellShape() === 'touch'
+	const [range, setRange] = useState(null)
+	const openRange = () => setRange({ from: from || today(), to: to || today() })
 
 	// a range that ends before it starts waits in the fields while the reader is in them; a date
 	// the page cannot read is never kept, and leaving the two fields shows the range in force
@@ -1067,27 +1072,53 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 					</Chip>
 				))}
 				<Chip variant="facet" inputType="radio" name={name} value="custom" data-preset="custom" selected={chosen === 'custom'}
-					onSelect={() => setCustom(true)}>
+					onSelect={() => { setCustom(true); if (touch) openRange() }}>
 					Custom…
 				</Chip>
 			</Filters>
-			<FieldGroupPanel onBlur={leave}>
-				<Field label="From"><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
-				<Field label="To" message={wrong ? 'To must be on or after From. The list keeps the last valid range.' : null} messageType={wrong ? 'danger' : 'hint'}>
-					<DateField value={draft.to} placeholder="Today" locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} />
-				</Field>
-				{wrong
-					? null
-					: from || to
+			{touch ? (
+				<FieldGroupPanel>
+					{from || to
 						? (
-							<div className="sp-row-flex sp-gap-8">
-								<span className="sp-subtitle">{summary}</span>
-								<span className="sp-grow" />
-								<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>Clear</Button>
-							</div>
+							<>
+								<span className="sp-data">{from ? shortDate(from) : '…'} - {shortDate(to || today())}</span>
+								<div className="sp-row-flex sp-gap-8">
+									<span className="sp-subtitle">{summary}</span>
+									<span className="sp-grow" />
+									<Button variant="outline" size="small" onClick={openRange}>Change</Button>
+									<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>Clear</Button>
+								</div>
+							</>
 						)
-						: <span className="sp-field__help">Leave To empty to include everything up to today.</span>}
-			</FieldGroupPanel>
+						: <Button variant="outline" size="small" onClick={openRange}>Choose dates</Button>}
+				</FieldGroupPanel>
+			) : (
+				<FieldGroupPanel onBlur={leave}>
+					<Field label="From"><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
+					<Field label="To" message={wrong ? 'To must be on or after From. The list keeps the last valid range.' : null} messageType={wrong ? 'danger' : 'hint'}>
+						<DateField value={draft.to} placeholder="Today" locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} />
+					</Field>
+					{wrong
+						? null
+						: from || to
+							? (
+								<div className="sp-row-flex sp-gap-8">
+									<span className="sp-subtitle">{summary}</span>
+									<span className="sp-grow" />
+									<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>Clear</Button>
+								</div>
+							)
+							: <span className="sp-field__help">Leave To empty to include everything up to today.</span>}
+				</FieldGroupPanel>
+			)}
+			{range ? (
+				<RangeSheet onClose={() => setRange(null)}>
+					<RangePicker single from={range.from} to={range.to} max={today()} locale={activeLocaleCode()}
+						onChange={(a, b) => setRange({ from: a, to: b })}
+						onApply={() => { update({ from: range.from, to: range.to, period: '' }); setRange(null) }}
+						onCancel={() => setRange(null)} />
+				</RangeSheet>
+			) : null}
 		</FieldGroup>
 	)
 }

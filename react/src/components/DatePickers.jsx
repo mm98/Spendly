@@ -1,7 +1,11 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Icon } from './Icon.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Chip } from './Chip.jsx'
+import { Scrim } from './Shell.jsx'
+import { Sheet } from './Touch.jsx'
+import { useFocusTrap } from './Utilities.jsx'
 import { join, pick, reject } from './variants.js'
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -456,6 +460,22 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 				<Button size="small" onClick={apply}>Apply</Button>
 			</div>
 		</div>
+	)
+}
+
+/** On touch the range picker is a sheet over the page, not a panel under the row (c14): the one
+    sheet Statistics and the order filters share. Its own scrim closes it without applying. */
+export function RangeSheet({ onClose, children }) {
+	const box = useRef(null)
+	useFocusTrap(box)
+	return createPortal(
+		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
+			<Sheet role="dialog" aria-modal="true" aria-label="Choose dates" ref={box}
+				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
+				{children}
+			</Sheet>
+		</Scrim>,
+		document.body
 	)
 }
 
