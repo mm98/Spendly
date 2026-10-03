@@ -235,7 +235,7 @@ export const bookmarkDeleteNote = bookmark => `${bookmark.photoId ? 'The bookmar
 
 /** Holds the page while the form has changes: in-app navigation asks first, a reload gets the
     browser's question. `names` say where the changes are (9c); `release` lets a save leave. */
-export function useLeaveGuard(dirty, { within, search = false, names = [] } = {}) {
+export function useLeaveGuard(dirty, { within, search = false, names = [], uploading = 0 } = {}) {
 	const released = useRef(false)
 	const live = useRef(dirty)
 	live.current = dirty
@@ -252,7 +252,7 @@ export function useLeaveGuard(dirty, { within, search = false, names = [] } = {}
 		? (
 			<Dialog onCancel={() => blocker.reset()}>
 				<DialogTitle>Leave without saving?</DialogTitle>
-				<DialogBody>Your changes {names.length ? `in ${names.join(' and in ')}` : 'on this page'} are not saved. If you leave now, they are lost.</DialogBody>
+				<DialogBody>Your changes {names.length ? `in ${names.join(' and in ')}` : 'on this page'} are not saved.{uploading ? ` ${uploading === 1 ? '1 file is' : `${uploading} files are`} still uploading.` : ''} If you leave now, they are lost.</DialogBody>
 				<DialogActions>
 					<Button variant="outline" onClick={() => blocker.reset()}>Keep editing</Button>
 					<span className="sp-grow" />

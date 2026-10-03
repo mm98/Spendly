@@ -2452,6 +2452,8 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   font-weight: 600;
   text-align: center;
 }
+/* a file being sent: the spinner sits over its own preview, never an empty box (17a) */
+.sp-mark--photo > .sp-spinner { position: relative; z-index: 1; }
 /* the same bottom banner when what it names is a problem: only the colour changes */
 .sp-mark__text[data-color="danger"] { background: var(--red-ink); }
 .sp-line-editor__form { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-12); container-type: inline-size; }

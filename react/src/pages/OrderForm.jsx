@@ -24,9 +24,9 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addAttachments, addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, createOrder,
+	addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, createOrder,
 	failureMessage, getOrderLimits, getOrders, getScanPages, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
-	removeItemAttachment, scanFileUrl, scanPageUrl, scanThumbnailUrl, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
+	removeItemAttachment, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, today
@@ -162,7 +162,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		|| JSON.stringify(draft) !== JSON.stringify({ ...start, lines: undefined })
 		|| JSON.stringify(lines) !== JSON.stringify(start.lines)
 	// a new order's steps differ only in the query, so a step away asks as a page away does
-	const guard = useLeaveGuard(dirty, { search: creating })
+	const guard = useLeaveGuard(dirty, { search: creating, uploading: files.filter(f => f.sending).length })
 
 	/* ---- lines ---- */
 
@@ -313,16 +313,42 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	/* ---- attachments, staged until the save ---- */
 
-	// each file is checked on its own: a refused one keeps its tile with the reason, and is never sent (17b)
-	const addFiles = (picked, problems) => setFiles(fs => [...fs, ...picked.map((file, i) => ({
-		key: freshKey(), file, name: file.name, problem: problems[i],
-		kind: isPdf(file) ? 'pdf' : 'image',
-		thumb: /^image\//.test(file.type) ? URL.createObjectURL(file) : null
-	}))])
+	/* A file is sent when added and filed on the order by the save (17a). A refused one keeps its
+	   tile with the reason; one that fails to send says so and can be sent again (17b). */
+	const sends = useRef(new Map())
+	const patchFile = (key, patch) => setFiles(fs => fs.map(f => (f.key === key ? { ...f, ...patch } : f)))
+	const send = record => {
+		const sent = sendFile(record.file, { onSent: part => patchFile(record.key, { sent: part }) })
+			.then(upload => { patchFile(record.key, { upload, sending: false }); return upload })
+			.catch(e => { patchFile(record.key, { sending: false, failed: failureMessage(e, '') || 'Upload failed' }); return null })
+		sends.current.set(record.key, sent)
+	}
+	const addFiles = (picked, problems) => {
+		const records = picked.map((file, i) => ({
+			key: freshKey(), file, name: file.name, problem: problems[i], sending: !problems[i], sent: 0,
+			kind: isPdf(file) ? 'pdf' : 'image',
+			thumb: /^image\//.test(file.type) ? URL.createObjectURL(file) : null
+		}))
+		setFiles(fs => [...fs, ...records])
+		for (const r of records) if (!r.problem) send(r)
+	}
+	const resend = record => {
+		patchFile(record.key, { sending: true, sent: 0, failed: null })
+		send(record)
+	}
 	const dropFile = file => setFiles(fs => {
 		if (file.thumb) URL.revokeObjectURL(file.thumb)
+		sends.current.delete(file.key)
 		return fs.filter(f => f.key !== file.key)
 	})
+	// the same bytes already on the order or added just before, or one with the same name and size:
+	// warned on its tile, never refused, since two photos of one thing are fine (17b)
+	const twinOf = f => {
+		const hash = f.upload?.sha256
+		if (hash && savedFiles.some(s => !gone.includes(s.id) && s.sha256 === hash)) return true
+		const earlier = files.slice(0, files.indexOf(f))
+		return earlier.some(o => !o.problem && ((hash && o.upload?.sha256 === hash) || (o.file.name === f.file.name && o.file.size === f.file.size)))
+	}
 	useEffect(() => () => {
 		for (const f of staged.current) if (f.thumb) URL.revokeObjectURL(f.thumb)
 	}, [])
@@ -427,7 +453,6 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			return null
 		}
 		let receiptMissed = false, notRemoved = 0
-		const clashes = []
 		if (scan) await attachScanDocument(scan.documentKey, order.id).catch(() => { receiptMissed = true })
 		// the server keeps one file per name, so a removed one goes before its namesake arrives
 		await Promise.all(gone.map(id => removeAttachment(order.id, id).catch(() => { notRemoved++ })))
@@ -445,8 +470,10 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		}))
 		for (const f of files) {
 			if (f.problem) { missed.push(f.name); reasons.add(refusalOf(f)); continue }
-			const sent = await addAttachments(order.id, [f.file]).catch(e => refused(f.name, e))
-			if (sent?.skipped?.length) clashes.push(f.name)
+			// one still on its way is waited for; one that failed to send is missed, and can be added again
+			const upload = f.upload ?? await sends.current.get(f.key)
+			if (!upload) { refused(f.name); continue }
+			await attachScanDocument(upload.key, order.id, { as: 'file', name: f.name }).catch(e => refused(f.name, e))
 		}
 		if (scan) learnAlias(scan.vendor, order)
 		invalidateOrderData()
@@ -459,8 +486,6 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		if (receiptMissed || notRemoved) retry = true
 		if (lapses.length)
 			toast({ message: [`The order was saved, but ${lapses.join(', and ')}.`, ...reasons, retry ? 'Try again from Edit order.' : null].filter(Boolean).join(' '), color: 'danger' })
-		else if (clashes.length)
-			toast({ message: `The order was saved. ${names(clashes)} ${clashes.length === 1 ? 'was' : 'were'} not added: the order already has a file with that name.`, color: 'danger' })
 		else if (!creating) toast({ message: 'Changes saved.' })
 		// a new order lands on its saved page with the notice that can undo it (3a)
 		const created = creating
@@ -688,8 +713,13 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 							onOpen={() => open(f.id)} onRemove={() => setGone(g => [...g, f.id])} />
 					))}
 					{files.map(f => (
-						<AttachmentTile key={f.key} name={f.name} kind={f.kind} thumb={f.thumb} problem={f.problem} bare={touch}
-							onOpen={f.problem ? undefined : () => open(f.key)} onRemove={() => dropFile(f)} />
+						<AttachmentTile key={f.key} name={f.name} kind={f.kind} bare={touch}
+							thumb={f.thumb ?? (f.upload?.hasThumbnail ? scanThumbnailUrl(f.upload.key) : null)}
+							problem={f.problem ?? (f.failed ? 'Upload failed' : undefined)}
+							sending={f.sending ? f.sent : undefined}
+							twin={!f.problem && !f.failed && twinOf(f)}
+							onOpen={f.problem || f.sending ? undefined : f.failed ? () => resend(f) : () => open(f.key)}
+							onRemove={() => dropFile(f)} />
 					))}
 					<AttachmentAdd onFiles={addFiles} />
 				</Strip>

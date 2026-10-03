@@ -2,7 +2,7 @@ import { Failed } from '../components/Failed.jsx'
 import { Card, Panel, Toolbar } from '../components/Card.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 
-import { Skeleton } from '../components/Utilities.jsx'
+import { Skeleton, Spinner } from '../components/Utilities.jsx'
 import { Mark, MarkRemove } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Attachment } from '../components/Attachments.jsx'
@@ -117,18 +117,42 @@ export function filesOf(order) {
 }
 
 /** One attachment in the strip; without a `thumb` the tile names the file's kind. A `problem` is
-    why the file cannot be kept, said on the tile until it is removed (17b). */
-export function AttachmentTile({ name, kind, thumb, problem, onOpen, onRemove, bare = false }) {
+    why the file cannot be kept, said on the tile until it is removed (17b); an "Upload failed"
+    tile sends again when pressed. `sending` is the part sent so far, 0 to 1, shown over the
+    file's own preview (17a). `twin` warns that the same file is already there. */
+export function AttachmentTile({ name, kind, thumb, problem, sending, twin = false, onOpen, onRemove, bare = false }) {
 	const label = kindOf({ name, kind })
 	const remove = onRemove
 		? <MarkRemove aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="x" size={11} /></MarkRemove>
 		: null
 	const named = onOpen ? `Open ${name}` : name
 	let mark
-	if (problem)
+	if (sending !== undefined) {
+		const part = `${Math.round(sending * 100)}%`
+		mark = (
+			<Mark size="xlarge" fill="photo" aria-label={`${name}, ${part} sent`} remove={remove}>
+				{thumb ? <img src={thumb} alt="" /> : null}
+				<Spinner />
+			</Mark>
+		)
+		return bare ? mark : <Attachment name={part}>{mark}</Attachment>
+	}
+	if (problem === 'Upload failed')
+		mark = (
+			<Mark size="xlarge" fill="photo" danger="Retry" aria-label={`${name} was not sent. Send it again`} onClick={onOpen} remove={remove}>
+				{thumb ? <img src={thumb} alt="" /> : null}
+			</Mark>
+		)
+	else if (problem)
 		mark = (
 			<Mark size="xlarge" fill="photo" danger={problem} aria-label={`${name}: ${problem.toLowerCase()}`} remove={remove}>
 				{thumb ? <img src={thumb} alt="" /> : null}
+			</Mark>
+		)
+	else if (twin)
+		mark = (
+			<Mark size="xlarge" fill={thumb ? 'photo' : 'none'} text="Added twice" aria-label={`${named}. This file is already on the order`} onClick={onOpen} remove={remove}>
+				{thumb ? <img src={thumb} alt="" /> : <span>{label}</span>}
 			</Mark>
 		)
 	else if (thumb)
