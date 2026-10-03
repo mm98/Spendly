@@ -644,9 +644,8 @@ export async function saveSettings(patch, signal) {
 	return request('/api/settings', { method: 'PATCH', body: patch, signal })
 }
 
-/** Replaces the ledger with `orders` demo orders over the last `months`. Given up after 30 s, six
-    times the largest fill; the server still finishes, so a late fill has still happened. */
-/** `onRows(done, total)` hears the fill's progress as orders are written. */
+/** Replaces the ledger with `orders` demo orders over the last `months`; `onRows(done, total)` hears
+    its progress. A timed-out wait does not stop the server, so a late fill has still happened. */
 export async function populateDemoData(orders, months, { signal, onRows } = {}) {
 	return uploadJson('/api/demo-data?progress=stream', { orders, months }, {
 		signal: signal ?? AbortSignal.timeout(120000),

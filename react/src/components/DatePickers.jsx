@@ -532,9 +532,8 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
 	)
 }
 
-/* `at` is a day in the window the presets resolve around, today when absent; `stepper` moves it.
-   `onPresent` returns a window stepped away from today to the one holding it (c14). `actions` end the
-   row: the lens and Export on Statistics (4a). */
+/* `at` is the day the presets resolve around (today when absent), `stepper` moves it, `onPresent`
+   steps back to the window holding today (c14); `actions` end the row (4a). */
 export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this

@@ -168,8 +168,7 @@ export function AppShell() {
 	)
 }
 
-/* An element rather than a component: the shell places its children by type. On the rail the
-   groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). The brand
+/* An element rather than a component: the shell places its children by type (9b, 9h). The brand
    and the bottom zone stay put; only the destinations between them scroll (9g). */
 function sidebar({ navKey, fold, short, go, showKeys }) {
 	const { rail } = fold
