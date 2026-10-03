@@ -26,7 +26,7 @@ import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRo
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { failureMessage, getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceLines, getSliceOrders, getStatsSlice, getVendorPage } from '../api/client.js'
+import { failureMessage, getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceLines, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, quantity, shortDate, today
@@ -152,26 +152,22 @@ export default function Statistics() {
 	const crumbCategories = useCrumbRecords(getCategoryPage, crumbs, 'category')?.categories
 	const known = useApi(getCategoryPage, [{ pageSize: 1 }]).data?.matched
 
-	// the table pages on the server; what Load more added is card-local, so a reload starts at one page (4d)
-	const { restored } = useListMemory()
+	// the table's loaded pages are in the address, as on every list (4d); a new period or crumb drops them
+	const { pages, setPages, restored } = useListMemory()
 	const size = usePageSize()
 	const slice = JSON.stringify({ base, filter, size })
-	const [more, setMore] = useState({ slice, pages: [], count: 0 })
-	const kept = more.slice === slice ? more : { pages: [], count: 0 }
-	const earlier = kept.pages
-	const ask = { page: kept.count + 1, pageSize: size }
-	const next = useCurrent(getSliceOrders, [{ ...base, ...filter, ...ask }], { enabled: !touch && size != null })
-	const loadMore = () => {
-		if (next.error) return next.refresh()
-		if (!next.data) return
-		setMore({ slice, pages: [...earlier, next.data], count: kept.count + 1 })
-	}
+	const read = useCurrent(getSliceOrderPages, [{ ...base, ...filter }, size, pages], { enabled: !touch && size != null })
+	// the rows already drawn stay while Load more fetches the next page of the same slice
+	const [shownRows, setShownRows] = useState(null)
+	if (read.data && shownRows?.data !== read.data) setShownRows({ slice, data: read.data })
+	const loadedRows = read.data ?? (shownRows?.slice === slice ? shownRows.data : undefined)
+	const loadMore = () => (read.error ? read.refresh() : setPages(pages + 1))
 	// the window goes back to where the reader left it once the rows are drawn, or there are none to draw
-	const drawn = !!stats.error || (!!stats.data && (touch || !stats.data.window.orders || !!next.data || !!next.error))
+	const drawn = !!stats.error || (!!stats.data && (touch || !stats.data.window.orders || !!loadedRows || !!read.error))
 	useLayoutEffect(() => { if (drawn) restored() }, [drawn, restored])
 
 	const retry = () => {
-		for (const call of [stats, past, parent, ownMonth, categories, next]) if (call.error) call.refresh()
+		for (const call of [stats, past, parent, ownMonth, categories, read]) if (call.error) call.refresh()
 	}
 
 	// the URL holds only what differs from the page's own default
@@ -419,7 +415,7 @@ export default function Statistics() {
 	const narrowed = records.length ? `${records.join(dot)}${records.length === 1 ? ' only' : ''}` : null
 
 	// an order added while paging shifts the pages by one, so a row can arrive twice
-	const rows = [...new Map([...earlier.flatMap(page => page.orders), ...(next.data?.orders ?? [])].map(order => [order.id, order])).values()]
+	const rows = [...new Map((loadedRows?.orders ?? []).map(order => [order.id, order])).values()]
 	// "39% of August spend": a week window and a time crumb go by their short names, a range of days by none
 	const periodTime = periodCrumbs[0]
 	const periodName = periodTime ? crumbLabel(periodTime, labels, true)
@@ -433,7 +429,7 @@ export default function Statistics() {
 		? <SliceCard view={view} link={ordersLink(view.slice, crumbs)} drilled={drilled} />
 		: (
 			<OrdersTable view={view} name={sliceInText} drilled={drilled} rows={rows} ofPeriod={ofPeriod}
-				matched={next.data?.matched ?? earlier.at(-1)?.matched} failed={next.error} onLoadMore={loadMore} onRetry={retry} />
+				matched={loadedRows?.matched} failed={read.error} onLoadMore={loadMore} onRetry={retry} />
 		)
 	const spendChart = (
 		<SpendChart chart={chart} touch={touch} selected={selectedKey} narrowed={narrowed}

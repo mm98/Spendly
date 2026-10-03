@@ -410,6 +410,11 @@ export async function getBookmarks(params = {}, signal) {
 	return request('/api/bookmarks' + qs(params), { signal })
 }
 
+/** The bookmark list's pages 1 to `pages`, `size` cards each. */
+export async function getBookmarkPages(request, size, pages, signal) {
+	return gathered(getBookmarkPages, getBookmarks, 'bookmarks', request, size, pages, signal)
+}
+
 /** How many bookmarks of one view carry no category: the category filter's "Without category". */
 export async function getBookmarksWithoutCategory(archived, signal) {
 	return (await request('/api/bookmarks/categories' + qs({ archived: archived ? 'yes' : 'no' }), { signal })).without
@@ -846,6 +851,11 @@ export async function getSliceOrders(slice, signal) {
 	return request('/api/stats/orders' + qs(slice), { signal })
 }
 
+/** A slice's orders, pages 1 to `pages` of `size` rows each. */
+export async function getSliceOrderPages(slice, size, pages, signal) {
+	return gathered(getSliceOrderPages, getSliceOrders, 'orders', slice, size, pages, signal)
+}
+
 /** Every item line behind a slice, for the export. Not cached: it is read once per press. */
 export async function getSliceLines(slice, signal) {
 	return request('/api/stats/lines' + qs(slice), { signal })
@@ -1030,10 +1040,10 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendorPage, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
 const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getUncategorised, getMonthlySummary]
-const bookmarkReads = [getBookmarks, getBookmark, getBookmarksWithoutCategory]
+const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 
 /** An order changed: everything sums orders, and saving one can create a vendor or a category. */
