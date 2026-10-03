@@ -34,6 +34,34 @@ Not applied:
 
 - B7 CSS. The design's stylesheet has no `.sp-record__pick::before` scrim at all, so `content: none` would cancel a rule that does not exist. The 2c note describes the scrim (rgba(27,26,23,0.35), circular). Send the app's `::before` rule and it goes into the design with the empty-band exception.
 
+## Brief 2: answers
+
+The design is the source of truth. A rule the design does not hold is removed from the app unless listed below as allowed.
+
+**A1 accepted.** The narrow-screen block is now `@media (max-width: 639.98px)` with `.sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }`. The design contradicted its own 18b, 1c and touch rule. The earlier B4 note asking the app to change is withdrawn.
+
+**A2 accepted**, as the 2c note describes, with one change: the scrim colour is the token `--overlay-scrim`, not a literal (see B1).
+
+**A3 accepted.** 2c's boxes read "Select all 18 orders on this page". The same c1 breach is in 16 more places (rows' header boxes on Order list, Components, Dark mode and image viewer, Responsive reference, Type specimen). `styles/check.js` now asserts it ("a select-all box names its scope"), and all 17 are fixed: the count is the specimen's page (18 where the list holds 18, otherwise the page size of 25). The c1 note now also names the ticked state: "Select all N orders on this page" when empty or dashed, "Clear the N selected orders" when ticked, which is what the app does.
+
+**B1 tokens.**
+- `--commit-bar-h: 68px` accepted. Used by the three 68px rules.
+- `--fab: 56px` accepted. Used by `.sp-fab`; the app's clearance calcs may use it.
+- `--overlay-palette` accepted under the design's name **`--overlay-scrim`** (light `rgba(27,26,23,0.35)`, dark `rgba(0,0,0,0.35)`), in the `--overlay-*` family. One value, two uses: the palette backdrop (9d) and the card box scrim (2c). Rename in the app.
+- `--dialog-w` rejected. 420 appears once in the design's CSS; `.sp-dialog` keeps the literal.
+
+**B2, rules the design has and the app does not.** The design keeps all 13; the app takes them.
+- Search bar: `.sp-touch .sp-controls`. The design draws no container-query fold for the controls at 900; remove it from the app.
+- Narrow-screen block: per A1.
+- `.sp-line-editor--sheet .sp-note { display: none }`. Use the design's selector, not `.sp-touch .sp-line-editor .sp-dialog__actions > .sp-note`.
+- Period: wraps on touch only, and `.sp-period__note` hides below 1100. Remove the app's desktop wrap and second-line note.
+- `.sp-touch .sp-toast-region`: the design's selector stays. The app sets `sp-touch` on an ancestor of the toast region (`body` or `html`) so it matches; `body:has(.sp-shell--touch)` is not needed.
+
+**B3, rules only in the app.** The appendix arrived cut off: 28 of 204 rules (`.sp-shell` and the first `.sp-viewer` rule). Nothing is adopted until the full list is in. Until then:
+- Allowed in the app, in its own stylesheet and not in its copy of `components.css`: page-level integration that the design's framed mockups do not need: `.sp-shell--viewport`, `html:has(...) scroll-padding`, fixed positioning of the tab bar, save bar and FAB on a real window, `100dvh` heights. These may only implement behaviour the design already notes (9h, r13, 7b, 18a, c12, 16a) and must not change any component's look.
+- Not allowed: any rule that changes a component's size, spacing, colour or type. Each one goes into the full appendix for a decision.
+- The toast region rules in that group are replaced by the B2 answer.
+
 ## Files
 
 - `styles/components.css` - the two variants and their touch rules.

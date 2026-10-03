@@ -227,7 +227,7 @@
     <table class="sp-table" data-total="18">
       <thead>
         <tr>
-          <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select all"></th>
+          <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select all 18 orders on this page"></th>
           <th scope="col" class="sp-col-title">Title</th>
           <th scope="col" class="sp-col-date">Data</th>
           <th scope="col" class="sp-col-flex">Chip</th>
@@ -699,7 +699,7 @@
     <div class="doc-note"><b>Two shapes of selection, one piece of state.</b> Either a set of ids, or a flag meaning "everything matching the current filter" held alongside that filter. The second is not a list of 128 ids: an action on it sends the filter to the server, not the ids, so it stays correct if a row was added since the click.</div>
     <div class="doc-note"><b>Filter, search, sort and page-size changes clear the selection</b> - including the filter-wide one - with no warning, because it no longer describes anything. <b>Paging does not.</b> That is the only case where the two differ, which is why page changes are handled separately from filter changes.</div>
     <div class="doc-note"><b>The header box is a real <span class="sp-nowrap">&lt;input type="checkbox"&gt;</span></b> with <b>indeterminate</b> set from script - it is a property, not an attribute, and cannot be written in markup. Assistive technology reports "mixed" only for a genuine checkbox; a styled div announces nothing.</div>
-    <div class="doc-note"><b>Its accessible name states the scope</b> - "Select all 25 on this page", updated when the page size changes. "Select all" alone is the ambiguity this section exists to remove.</div>
+    <div class="doc-note"><b>Its accessible name states the scope</b> - "Select all 25 orders on this page" when empty or dashed, "Clear the 25 selected orders" when ticked, updated when the page size changes. "Select all" alone is the ambiguity this section exists to remove.</div>
     <div class="doc-note"><b>Destructive bulk actions restate the number and the noun</b> in the dialog: "Delete 128 orders?". A count that arrived from a filter-wide selection is the one a user is most likely to have misread.</div>
   </div>
 

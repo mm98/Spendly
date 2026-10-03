@@ -1161,6 +1161,24 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   width: var(--control-h-touch);
   height: var(--control-h-touch);
 }
+/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c);
+   its round scrim keeps it legible over any photo */
+.sp-record__photos > .sp-record__pick { opacity: 0; }
+.sp-record:hover .sp-record__pick,
+.sp-record__pick:focus-within,
+.sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
+.sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
+.sp-record__pick > .sp-check { grid-area: 1 / 1; }
+.sp-record__pick::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: calc(var(--box) + var(--sp-10));
+  height: calc(var(--box) + var(--sp-10));
+  border-radius: 50%;
+  background: var(--overlay-scrim);
+}
+/* the band that says there are no photos has nothing to read the box against, so it needs no scrim */
+.sp-record__photos--empty > .sp-record__pick::before { content: none; }
 /* the box and the menu sit over the photo, so both carry a lift to stay legible */
 .sp-record__photos .sp-check { box-shadow: 0 1px 4px rgba(27, 26, 23, 0.28); }
 .sp-record__menu {
@@ -1609,11 +1627,13 @@ label.sp-option--swatch[aria-pressed="true"] {
 .sp-touch .sp-switch:checked::after { transform: translateX(18px); }
 .sp-touch .sp-list-item__line .sp-title { font-size: var(--t-15); }
 
-@media (max-width: 640px) {
+/* the shell's own touch query: 640 is still the desktop rail (18b, "below 640px"); small
+   and xsmall buttons keep their own width, as the touch rule and 1c have them */
+@media (max-width: 639.98px) {
   .sp-section { padding: 0 var(--sp-16) var(--sp-16); }
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
-  .sp-btn:not(.sp-btn--xsmall) { width: 100%; }
+  .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 }
 
 /* a measurement arrives as a data attribute with its own rule below, so no
@@ -1776,8 +1796,8 @@ label.sp-option--swatch[aria-pressed="true"] {
   display: grid;
   place-items: center;
   align-self: flex-end;
-  width: 56px;
-  height: 56px;
+  width: var(--fab);
+  height: var(--fab);
   border: 0;
   border-radius: 50%;
   background: var(--green);
@@ -2244,7 +2264,7 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   border-top: 1px solid var(--line);
   /* every bar pinned to the bottom of a phone screen is at least this tall, so the
      frame keeps its height when a save bar takes the tab bar's place */
-  min-height: 68px;
+  min-height: var(--commit-bar-h);
   box-sizing: border-box;
 }
 .sp-tabbar__item {
@@ -4475,7 +4495,7 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-list-item--sticky {
   position: sticky;
   bottom: 0;
-  min-height: 68px;
+  min-height: var(--commit-bar-h);
   box-shadow: var(--shadow-sheet);
 }
 button.sp-list-item--card:active { background: var(--surface-2); }
@@ -4521,7 +4541,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-savebar {
   display: flex;
   align-items: center;
-  min-height: 68px;
+  min-height: var(--commit-bar-h);
   box-sizing: border-box;
   gap: var(--sp-12);
   padding: var(--card-pad);

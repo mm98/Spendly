@@ -566,6 +566,11 @@
       if (isCardBody && cls.includes('sp-truncate')) fail('a card body does not truncate', p, m[1] + ' clips prose');
     }
 
+    // a select-all box names its scope (c1): "Select all 25 orders on this page", never "Select all" alone
+    for (const m of s.matchAll(/aria-label="(Select all[^"]*)"/g)) {
+      if (!/\d/.test(m[1])) fail('a select-all box names its scope', p, m[1]);
+    }
+
     // a saving is an amount, green unless zero, under the amount it belongs to
     for (const m of s.matchAll(/>([^<]{0,80})</g)) {
       const t = m[1].trim();
