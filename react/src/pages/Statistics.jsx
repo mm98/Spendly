@@ -6,7 +6,7 @@ import { Button } from '../components/Button.jsx'
 import { Card, CardFooter, Panel } from '../components/Card.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
-import { Bars, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
+import { Bars, ChartTip, Donut, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
 import { PeriodPicker, PeriodWindow, RangePicker, Selected } from '../components/DatePickers.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Caption, Crumb, Crumbs, Foot, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
@@ -19,7 +19,7 @@ import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
 import { Halves } from '../components/Well.jsx'
-import { useListMemory } from '../app/listMemory.js'
+import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
@@ -126,6 +126,9 @@ export default function Statistics() {
 	const past = useCurrent(getStatsSlice, [{ range, windowId: before, flow, ...filter }], { enabled: comparing })
 	// inside a crumb every figure is held against the level above it (4b)
 	const parent = useCurrent(getStatsSlice, [{ ...base, ...filterOf(crumbs.slice(0, -1)) }], { enabled: drilled })
+	// the table's slice is stated as a share of its period's spend (4a): the time crumb, or the whole window
+	const periodCrumbs = crumbs.some(c => !isTime(c)) ? crumbs.filter(isTime) : []
+	const whole = useCurrent(getStatsSlice, [{ ...base, ...filterOf(periodCrumbs) }], { enabled: drilled && !touch })
 	const categories = useApi(getCategories)
 	const vendors = useApi(getVendors, [], { enabled: crumbs.some(c => c.kind === 'vendor') })
 
@@ -161,7 +164,11 @@ export default function Statistics() {
 		...(f === 'expenses' ? {} : { flow: f }),
 		...(cr.length ? { crumbs: writeCrumbs(cr) } : {})
 	})
-	const show = (nextRange, nextId) => write({ range: nextRange, id: nextId })
+	// a period the reader chooses here is the one the order list opens on next (c14)
+	const show = (nextRange, nextId) => {
+		carryPeriod(...boundsOf(nextRange, nextId).map(isoOf))
+		write({ range: nextRange, id: nextId })
+	}
 
 	/* A crumb of a kind already in the path takes its place; a new kind is pushed, up to three. */
 	const sameKind = (a, b) => a.kind === b.kind || (isTime(a) && isTime(b))
@@ -195,7 +202,7 @@ export default function Statistics() {
 		}
 	}
 
-	const quick = quickRanges()
+	const quick = quickRanges(stats.data?.firstOrder)
 	const rangePicker = draft
 		? (
 			<RangePicker from={draft.from} to={draft.to} max={today()} locale={activeLocaleCode()} quick={quick} single={touch}
@@ -265,11 +272,20 @@ export default function Statistics() {
 		</>
 	)
 
+	// the last crumb removed by keyboard takes the bar with it, so the focus goes to the period control
+	const refocus = useRef(false)
+	useLayoutEffect(() => {
+		if (!refocus.current || drilled) return
+		refocus.current = false
+		document.querySelector('input[name="statistics-period"]:checked')?.focus()
+	}, [drilled])
+
 	const name = nameOf(range, id)
 	const labels = { vendors: vendors.data, categories: categories.data, windowYear: id.slice(0, 4) }
 	const crumbsBar = drilled
 		? <CrumbsBar root={name} crumbs={crumbs} labels={labels} link={ordersLink(view?.slice ?? { from, to }, crumbs)}
-			onTruncate={i => write({ crumbs: crumbs.slice(0, i + 1) })} onRemove={() => write({ crumbs: crumbs.slice(0, -1) })}
+			onTruncate={i => write({ crumbs: crumbs.slice(0, i + 1) })}
+			onDrop={(i, focused) => { if (focused && crumbs.length === 1) refocus.current = true; write({ crumbs: crumbs.filter((c, j) => j !== i) }) }}
 			onReset={() => write({ crumbs: [] })} />
 		: null
 
@@ -351,10 +367,19 @@ export default function Statistics() {
 
 	// an order added while paging shifts the pages by one, so a row can arrive twice
 	const rows = [...new Map([...earlier.flatMap(page => page.orders), ...(next.data?.orders ?? [])].map(order => [order.id, order])).values()]
+	// "39% of August spend": a week window and a time crumb go by their short names, a range of days by none
+	const periodTime = periodCrumbs[0]
+	const periodName = periodTime ? crumbLabel(periodTime, labels)
+		: range === 'week' ? `Week ${Number(id.slice(6))}`
+			: range === 'days30' || range === 'custom' ? null : name
+	const wholeSpent = whole.data?.window.spent
+	const ofPeriod = drilled && wholeSpent > 0 && view.spent >= 0
+		? `${percent(share(view.spent, wholeSpent), 0)} of ${periodName ? `${periodName} spend` : 'the spend in this period'}`
+		: null
 	const table = touch
 		? <SliceCard view={view} link={ordersLink(view.slice, crumbs)} drilled={drilled} />
 		: (
-			<OrdersTable view={view} name={sliceName} drilled={drilled} rows={rows}
+			<OrdersTable view={view} name={sliceName} drilled={drilled} rows={rows} ofPeriod={ofPeriod}
 				matched={next.data?.matched ?? earlier.at(-1)?.matched} failed={next.error} onLoadMore={loadMore} onRetry={retry} />
 		)
 	const spendChart = (
@@ -398,12 +423,13 @@ export default function Statistics() {
 		chart: spendChart,
 		byCategory: touch
 			? <CategoryRows key={`category ${view.id}`} view={view} onOpen={drillTo('category')} />
-			: <CategoryShares view={view} onOpen={drillTo('category')} />,
+			: <CategoryShares view={view} ring={flow === 'net' ? null : ringLabel(range, id)} onOpen={drillTo('category')} />,
 		byStatus: <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />,
 		vendors: <VendorsCard key={`vendors ${view.id}`} view={view} name={name} touch={touch} onOpen={drillTo('vendor')} />,
 		saving: <SavingChart chart={chart} name={name} touch={touch} selected={selectedKey}
 			onOpen={canDrill({ kind: 'month' }) ? column => drill(column.crumb) : undefined} />,
-		limits: flow === 'refunds' ? null : <LimitCard range={range} view={view} name={name} categories={categories} touch={touch} onRetry={retry} />,
+		limits: flow === 'refunds' ? null : <LimitCard key={`limits ${view.id}`} range={range} view={view} name={name} categories={categories} touch={touch} onRetry={retry} />,
+		vendorChart: <VendorChart view={view} onOpen={drillTo('vendor')} />,
 		slice: table
 	})
 }
@@ -415,16 +441,22 @@ function idOfSpan(range, span) {
 	return windowIdAt(range, utcOf(span.from))
 }
 
-/** Shortcuts to a range, not windows of their own (4f): each fills both dates and leaves the panel open. */
-function quickRanges() {
+// the API answers a chosen range of at most this many days (MAX_CUSTOM_DAYS)
+const MOST_RANGE_DAYS = 3660
+
+/** Shortcuts to a range, not windows of their own (4f): each fills both dates and leaves the panel
+    open. All time starts at the account's first order, once the page knows it. */
+function quickRanges(firstOrder) {
 	const now = today()
 	const y = Number(now.slice(0, 4))
 	const m = Number(now.slice(5, 7))
 	const firstOf = (year, month) => isoOf(Date.UTC(year, month - 1, 1))
+	const earliest = isoOf(todayUtc() - (MOST_RANGE_DAYS - 1) * DAY_MS)
 	return [
 		{ label: 'This month', value: [firstOf(y, m), now] },
 		{ label: 'Last month', value: [firstOf(m === 1 ? y - 1 : y, m === 1 ? 12 : m - 1), isoOf(Date.UTC(y, m - 1, 0))] },
-		{ label: 'Year to date', value: [`${y}-01-01`, now] }
+		{ label: 'Year to date', value: [`${y}-01-01`, now] },
+		...(firstOrder ? [{ label: 'All time', value: [firstOrder > earliest ? (firstOrder < now ? firstOrder : now) : earliest, now] }] : [])
 	]
 }
 
@@ -475,19 +507,35 @@ function sameDaysOf(window, days) {
 	return { spent, saved: window.series.savedCumulative[days - 1] ?? 0, orders, average: orders ? spent / orders : 0 }
 }
 
-/** The drill path (4b, 4c): only the last level carries a remove; an earlier one goes back to itself. */
-function CrumbsBar({ root, crumbs, labels, link, onTruncate, onRemove, onReset }) {
+/** The drill path (4b, 4c): only the last level carries a remove; an earlier one goes back to itself.
+    Backspace removes the focused level and keeps the rest (c8, 4c); the focus takes its place. */
+function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) {
+	const bar = useRef(null)
+	const path = writeCrumbs(crumbs)
+	// the path the focus left, and where it goes once the shorter path is drawn (the address lags the press)
+	const [focusAt, setFocusAt] = useState(null)
+	const dropping = i => () => {
+		const focused = !!bar.current?.contains(document.activeElement)
+		if (focused) setFocusAt({ at: i, left: path })
+		onDrop(i, focused)
+	}
+	useLayoutEffect(() => {
+		if (!focusAt || focusAt.left === path) return
+		setFocusAt(null)
+		const levels = [...(bar.current?.querySelectorAll('.sp-crumbs > li') ?? [])].slice(root ? 1 : 0)
+		levels[Math.min(focusAt.at, levels.length - 1)]?.querySelector('button')?.focus()
+	}, [focusAt, path, root])
 	return (
 		<Card variant="crumbs">
-			<div className="os-crumbs">
+			<div className="os-crumbs" ref={bar}>
 				<span className="sp-section-label">Showing</span>
 				<Crumbs root={root}>
 					{crumbs.map((c, i) => {
 						const label = crumbLabel(c, labels)
 						const mark = c.kind === 'vendor' ? <Mark size="small" fill="solid" aria-hidden="true">{label}</Mark> : null
 						return i === crumbs.length - 1
-							? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={onRemove}>{mark}{label}</Crumb>
-							: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)}>{mark}{label}</Crumb>
+							? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={dropping(i)}>{mark}{label}</Crumb>
+							: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)} onRemove={dropping(i)}>{mark}{label}</Crumb>
 					})}
 				</Crumbs>
 				<span className="sp-grow" />
@@ -500,14 +548,15 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onRemove, onReset }
 
 /** Where each card sits: beside the chart on a wide screen, in pairs on a narrower one, and one
     column below 900 and on a phone. Inside a crumb, the chart and one breakdown, then the orders (4b). */
-function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = null, kpis, chart, side, byCategory, byStatus, vendors, saving, limits, slice }) {
+function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = null, kpis, chart, side, byCategory, byStatus, vendors, saving, limits, vendorChart, slice }) {
 	const figures = <div className="os-stats">{kpis}</div>
 	if (drilled) {
 		if (shape === 'touch' || stacked) return <>{period}{crumbsBar}{figures}{chart}{side}{slice}</>
 		return <>{period}{crumbsBar}{figures}<Halves cards>{chart}{side}</Halves>{slice}</>
 	}
 	// the period control stays first in every state, so it keeps its focus while a window loads
-	if (shape === 'touch' || stacked) return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{slice}</>
+	if (shape === 'touch') return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{slice}</>
+	if (stacked) return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{vendorChart}{slice}</>
 	return (
 		<>
 			{period}
@@ -520,6 +569,7 @@ function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = n
 				<div className="sp-stack sp-gap-12">{vendors}{saving}</div>
 				{limits}
 			</Halves>
+			{vendorChart}
 			{slice}
 		</>
 	)
@@ -555,11 +605,12 @@ function busyParts({ range, name, running, touch, comparing, categories, drilled
 		)),
 		chart: <SpendChart range={range} running={running} touch={touch} />,
 		side: <CategoryRows known={known} hint />,
-		byCategory: touch ? <CategoryRows known={known} /> : <CategoryShares known={known} />,
+		byCategory: touch ? <CategoryRows known={known} /> : <CategoryShares known={known} ring={flow === 'net' ? null : 'held'} />,
 		byStatus: <StatusCard flow={flow} />,
 		vendors: <VendorsCard name={name} touch={touch} />,
 		saving: <SavingChart name={name} touch={touch} />,
 		limits: <LimitCard range={range} name={name} running={running} categories={categories} touch={touch} />,
+		vendorChart: <VendorChart />,
 		slice: touch ? <SliceCard /> : <OrdersTable rows={[]} drilled={drilled} />
 	}
 }
@@ -684,6 +735,24 @@ function segmentsOf(column) {
 	return [...parts, rest].map((n, i) => ({ key: String(i + 1), share: share(n, whole) })).filter(s => s.share > 0)
 }
 
+/** A step of the spend chart, read out (4a): its name and total, each category the bars are split
+    by and the rest, and how many orders it holds. */
+function SpendTip({ column, categories, opens, years }) {
+	const parts = categories ? column.byCategory.slice(0, categories.length) : []
+	const rest = column.spend - parts.reduce((sum, n) => sum + n, 0)
+	const rows = categories
+		? [
+			...categories.map((c, i) => ({ key: c.id, series: i + 1, name: c.name, value: amount(parts[i] ?? 0, 0) })),
+			{ key: 'other', series: 4, name: 'Other', value: amount(rest, 0) }
+		]
+		: []
+	// the panel's head holds a six-figure total beside the name, so a month carries its year only when the chart spans two
+	const title = column.crumb?.kind === 'week' ? `Week ${Number(column.crumb.value.slice(6))}`
+		: column.crumb?.kind === 'month' && !years ? monthNames('long')[Number(column.from.slice(5, 7)) - 1]
+			: column.name
+	return <ChartTip title={title} value={currency(column.spend, 0)} rows={rows} note={`${counted(column.orders, 'order')}${opens ? `${dot}press to look closer` : ''}`} />
+}
+
 function SpendChart({ range, chart, running: soon, touch, selected, narrowed, stackable = false, categories = [], limit = 0, onOpen }) {
 	const [shapeOf, setShape] = useState('Stacked')
 	const columns = chart?.columns ?? []
@@ -696,6 +765,8 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 	const fit = useFit(bars, `${touch} ${columns.length}`)
 	// before the window answers, the calendar says whether it is still running
 	const running = chart ? columns.some(column => column.running) : soon
+	const select = unit === 'day' || !onOpen ? undefined : key => onOpen(columns.find(column => column.key === key))
+	const years = columns.length > 0 && columns[0].from.slice(0, 4) !== columns.at(-1).from.slice(0, 4)
 	const drawn = columns.map(column => {
 		const height = share(Math.max(0, column.spend), top) * fit
 		return {
@@ -706,10 +777,11 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 			height,
 			muted: !stackedNow && column.running,
 			tick: tickOf(chart, column, touch),
+			// a pointer reads a step in a panel beside it (4a); a phone has no pointer to hover with
+			tip: touch ? undefined : <SpendTip column={column} categories={stackedNow ? categories : null} opens={!!select} years={years} />,
 			...(stackedNow && column.spend > 0 ? { segments: segmentsOf(column) } : {})
 		}
 	})
-	const select = unit === 'day' || !onOpen ? undefined : key => onOpen(columns.find(column => column.key === key))
 	const current = columns.find(column => column.running)?.key
 	const below = columns.filter(column => column.spend < 0)
 	const limitLine = limit > 0 && !touch
@@ -765,42 +837,71 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 	)
 }
 
-/** The top three categories and one line for the rest, which opens nothing (4d). */
-function CategoryShares({ view, known, onOpen }) {
+// the ring's hole is 78 wide: from a hundred thousand the figure is in whole thousands, "486k", "1.359k"
+const ringFigure = n => (Math.abs(n) >= 100000 ? `${amount(Math.round(n / 1000), 0)}k` : compactAmount(n))
+
+/** The ring's short name for the window, which fits its hole: "August", "Q3", "2026", "30 days". */
+function ringLabel(range, id) {
+	if (range === 'days30') return '30 days'
+	if (range === 'custom') {
+		const [from, to] = boundsOf(range, id)
+		return counted(Math.round((to - from) / DAY_MS) + 1, 'day')
+	}
+	return stepLabel(range, id)
+}
+
+/** The top three categories and one line for the rest, which opens nothing (4d), read from the ring
+    beside them (4a). Under net a share can be negative, which a ring cannot draw, so it is left out (4e). */
+function CategoryShares({ view, known, ring, onOpen }) {
 	if (!view) {
 		return (
 			<Card aria-busy="true">
 				<span className="sp-section-label">By category</span>
-				<Shares aria-hidden="true">
-					{WIDTHS.slice(0, Math.min(4, Math.max(1, known ?? 4))).map((w, i) => (
-						<ShareRow key={w} series={i + 1} value={hold('18')} disabled>{hold(w)}</ShareRow>
-					))}
-				</Shares>
+				<div className="sp-row-flex sp-gap-16">
+					{ring ? <Donut loading /> : null}
+					<div className="sp-grow">
+						<Shares aria-hidden="true">
+							{WIDTHS.slice(0, Math.min(4, Math.max(1, known ?? 4))).map((w, i) => (
+								<ShareRow key={w} series={i + 1} value={hold('18')} disabled>{hold(w)}</ShareRow>
+							))}
+						</Shares>
+					</div>
+				</div>
 			</Card>
 		)
 	}
 	const split = view.split
 	const rest = split.slice(3)
 	const folded = rest.length > 1
-	const shown = folded ? split.slice(0, 3) : split
+	const shown = (folded ? split.slice(0, 3) : split).map((entry, i) => ({ ...entry, series: i + 1 }))
+	const lines = folded ? [...shown, { id: 'other', other: true, series: 4, share: rest.reduce((sum, entry) => sum + entry.share, 0) }] : shown
 	return (
 		<Card>
 			<span className="sp-section-label">By category</span>
-			<Shares>
-				{shown.map((entry, i) => (
-					<ShareRow key={entry.id ?? 'none'} series={i + 1} value={`${Math.round(entry.share)}%`}
-						onClick={onOpen ? () => onOpen(entry.id ?? 'none') : undefined}>
-						{entry.name}
-					</ShareRow>
-				))}
-				{folded
+			<div className="sp-row-flex sp-gap-16">
+				{ring
 					? (
-						<ShareRow series={4} value={`${Math.round(rest.reduce((sum, entry) => sum + entry.share, 0))}%`} aria-disabled="true">
-							Other {counted(rest.length, 'category', 'categories')}
-						</ShareRow>
+						<Donut shares={lines.map(entry => ({ value: entry.share, series: entry.series }))} figure={ringFigure(view.spent)}
+							label={ring} aria-label={`Share of ${nameOf(view.range, view.id)} spend by category`} />
 					)
 					: null}
-			</Shares>
+				<div className="sp-grow">
+					<Shares>
+						{lines.map(entry => (entry.other
+							? (
+								<ShareRow key="other" series={4} value={`${Math.round(entry.share)}%`} aria-disabled="true">
+									Other {counted(rest.length, 'category', 'categories')}
+								</ShareRow>
+							)
+							: (
+								<ShareRow key={entry.id ?? 'none'} series={entry.series} value={`${Math.round(entry.share)}%`}
+									onClick={onOpen ? () => onOpen(entry.id ?? 'none') : undefined}>
+									{entry.name}
+								</ShareRow>
+							)))}
+					</Shares>
+				</div>
+			</div>
 		</Card>
 	)
 }
@@ -901,6 +1002,52 @@ function ShowAll({ open, onClick, count, noun }) {
 		<Button variant="outline" size="small" onClick={onClick}>
 			{open ? `Show top ${TOP} only` : `Show all ${amount(count, 0)} ${noun}`}
 		</Button>
+	)
+}
+
+// a chart past ten bars collides its labels, so it stops at ten and the remainder is one bar (4d)
+const CHART_TOP = 10
+
+/** The window's spend by vendor as bars: the top ten and the rest as one bar that opens nothing (4d). */
+function VendorChart({ view, onOpen }) {
+	const bars = useRef(null)
+	const vendors = view?.vendorSplit
+	const rest = vendors ? vendors.slice(CHART_TOP) : []
+	const folded = rest.length > 1
+	const fit = useFit(bars, `${vendors?.length} ${folded}`)
+	const head = (
+		<div className="sp-row-flex sp-gap-8">
+			<span className="sp-section-label">Spend by vendor</span>
+			<span className="sp-grow" />
+			{folded ? <span className="sp-meta">top {CHART_TOP}, remainder as one bar</span> : null}
+		</div>
+	)
+	if (!vendors) return <Card aria-busy="true">{head}<Bars loading /></Card>
+	const lines = folded
+		? [...vendors.slice(0, CHART_TOP), {
+			id: 'other', other: true, name: `Other ${amount(rest.length, 0)}`,
+			amount: rest.reduce((sum, entry) => sum + entry.amount, 0), orders: rest.reduce((sum, entry) => sum + entry.orders, 0)
+		}]
+		: vendors
+	// the remainder can outweigh the top vendor, so each bar is a share of the tallest one drawn
+	const most = Math.max(...lines.map(entry => entry.amount), 0)
+	const columns = lines.map(entry => ({
+		key: entry.id,
+		label: `${entry.other ? `Other ${counted(rest.length, 'vendor')}` : entry.name}, ${currency(entry.amount, 0)}`,
+		height: share(Math.max(0, entry.amount), most) * fit,
+		muted: entry.other,
+		inert: entry.other,
+		tick: entry.name,
+		tip: (
+			<ChartTip title={entry.other ? `Other ${counted(rest.length, 'vendor')}` : entry.name} value={currency(entry.amount, 0)}
+				note={`${counted(entry.orders, 'order')}${!entry.other && onOpen ? `${dot}press to see its orders` : ''}`} />
+		)
+	}))
+	return (
+		<Card>
+			{head}
+			<Bars ref={bars} columns={columns} named onSelect={onOpen} />
+		</Card>
 	)
 }
 
@@ -1043,6 +1190,7 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 	)
 	const limited = categories.data?.filter(category => category.budget > 0)
 	useEffect(() => { if (limited) rememberLimits(limited.length) }, [limited?.length])
+	const [open, setOpen] = useState(false)
 	if (categories.error) return (
 		<Hold shape={<LimitCard range={range} view={view} name={name} running={running} categories={{}} touch={touch} />}>
 			<Failed variant="card" label="Monthly limit" what="The limits" error={categories.error} onRetry={onRetry} />
@@ -1102,8 +1250,36 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 		.sort((a, b) => b.used - a.used || b.spend - a.spend || a.name.localeCompare(b.name))
 	const pace = view.pace.running ? share(view.pace.daysIn, view.pace.unitDays) : null
 	const allowed = rows.reduce((sum, row) => sum + row.allowed, 0)
+	// the closest to their limit rest at the top eight; past the resting nine the rest are a press away (4d)
+	const folds = rows.length > TOP + 1
+	const all = folds ? <ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={rows.length} noun="categories" /> : null
+	const drawn = rows.slice(0, folds && !open ? TOP : rows.length).map(row => {
+		const over = row.spend > row.allowed
+		const scale = Math.max(row.spend, row.allowed)
+		const ahead = !over && pace != null && row.used > pace
+		const text = over
+			? `${currency(row.spend - row.allowed, 0)} over budget`
+			: `${currency(row.allowed - row.spend, 0)} left${ahead ? `${dot}ahead of pace` : ''}`
+		return (
+			<div className="sp-stack sp-gap-6" key={row.id}>
+				<div className="sp-row-flex sp-gap-8">
+					<span className="sp-data sp-truncate">{row.name}</span>
+					<span className="sp-grow" />
+					<span className="sp-amount">{amount(row.spend, 0)}</span>
+					<span className="sp-meta sp-nowrap">/ {currency(row.allowed, 0)}</span>
+				</div>
+				<Gauge
+					value={share(Math.min(row.spend, row.allowed), scale)}
+					over={over ? share(row.spend - row.allowed, scale) : undefined}
+					marker={pace != null ? share(row.allowed * (pace / 100), scale) : undefined}
+					aria-label={row.name}
+				/>
+				<span className={over || ahead ? 'sp-meta sp-meta--over' : 'sp-meta'}>{text}</span>
+			</div>
+		)
+	})
 	return (
-		<Card footer={footer}>
+		<Card footer={all ? [...(footer ?? []), all] : footer}>
 			{head}
 			<span className="sp-meta">{note}</span>
 			{pace != null
@@ -1115,31 +1291,7 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 					</ListItem>
 				)
 				: null}
-			{rows.map(row => {
-				const over = row.spend > row.allowed
-				const scale = Math.max(row.spend, row.allowed)
-				const ahead = !over && pace != null && row.used > pace
-				const text = over
-					? `${currency(row.spend - row.allowed, 0)} over budget`
-					: `${currency(row.allowed - row.spend, 0)} left${ahead ? `${dot}ahead of pace` : ''}`
-				return (
-					<div className="sp-stack sp-gap-6" key={row.id}>
-						<div className="sp-row-flex sp-gap-8">
-							<span className="sp-data">{row.name}</span>
-							<span className="sp-grow" />
-							<span className="sp-amount">{amount(row.spend, 0)}</span>
-							<span className="sp-meta">/ {currency(row.allowed, 0)}</span>
-						</div>
-						<Gauge
-							value={share(Math.min(row.spend, row.allowed), scale)}
-							over={over ? share(row.spend - row.allowed, scale) : undefined}
-							marker={pace != null ? share(row.allowed * (pace / 100), scale) : undefined}
-							aria-label={row.name}
-						/>
-						<span className={over || ahead ? 'sp-meta sp-meta--over' : 'sp-meta'}>{text}</span>
-					</div>
-				)
-			})}
+			{open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn}
 			{/* the whole window's spend against every limit, the same share Home states */}
 			<CardFooter>
 				<span className="sp-data">All categories</span>
@@ -1173,7 +1325,7 @@ function sliceHead(show) {
 	)
 }
 
-function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, onRetry }) {
+function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onLoadMore, onRetry }) {
 	const column = useRef(null)
 	const show = columnsFor(useWidth(column))
 	let body
@@ -1193,7 +1345,7 @@ function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, o
 					<span className="sp-meta">{dot}{currency(view.spent)}</span>
 					<Saving value={view.saved} variant="help" />
 					<span className="sp-grow" />
-					<span className="sp-meta">newest first</span>
+					<span className="sp-meta">{drilled ? ofPeriod : 'newest first'}</span>
 				</Caption>
 				{sliceHead(show)}
 				<ListRow>

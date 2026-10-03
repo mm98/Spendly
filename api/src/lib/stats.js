@@ -456,7 +456,9 @@ export function getStats(userId, range, windowId, { compare = 'previous', today:
 			}
 		},
 		older: hasOlder ? olderId : null,
-		newer: hasNewer ? newerId : null
+		newer: hasNewer ? newerId : null,
+		// the day of the account's first order, where a range of all time starts
+		firstOrder: earliest == null ? null : fromEpoch(earliest)
 	}
 }
 

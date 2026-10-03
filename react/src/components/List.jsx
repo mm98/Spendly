@@ -403,14 +403,16 @@ export function Facets({ children, ...rest }) {
 }
 
 /** One filter or one drill level. `name` is what the remove control says it removes. An earlier
-    level of a drill path has no remove; `onOpen` goes back to it instead (4c). */
+    level of a drill path has no remove; `onOpen` goes back to it instead (4c), and its `onRemove`
+    is for the keyboard alone. A focused crumb is removed with Backspace (c8). */
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
-	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} {...rest}><span className="sp-truncate">{children}</span></button>
+	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }
+	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} onKeyDown={backspace} {...rest}><span className="sp-truncate">{children}</span></button>
 	return (
 		<span className="sp-crumb" {...rest}>
 			<span className="sp-truncate">{children}</span>
-			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove}>×</button>
+			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove} onKeyDown={backspace}>×</button>
 		</span>
 	)
 }
