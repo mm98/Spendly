@@ -729,8 +729,8 @@ function OrderAmount({ order }) {
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
 
-/** At 640 of list column and under, rows become cards with their box (2c): two rows on a phone
-    (Mobile screens), three lines in a narrow column (2i). `bulk` takes the count's place once picked. */
+/** At 640 of list column and under, rows become cards: two rows on a phone (Mobile screens), with
+    no box since a phone does not select; three lines and the box in a narrow column (2i, 2c). */
 function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, onLoadMore }) {
 	return (
 		<>
@@ -740,31 +740,31 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 				const amount = <span className={o.status === 'Cancelled' ? 'sp-amount sp-void sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(o.total)}</span>
 				const when = `${shortDate(o.date)}${dot}${plural(o.itemCount, 'item')}`
 				return (
-					<div key={o.id} className="ol-pickable">
-						<label className="ol-pick">
-							<Check checked={on} aria-label={`Select ${orderName(o)}`} onChange={ev => onPick(o.id, ev.nativeEvent?.shiftKey)} />
-						</label>
-						{touch
-							? (
-								<ListItem variant="card" selected={on} mark={<span className="ol-pick-room" />} onClick={() => onOpen(o)}>
-									<Stacked>
-										<Line>
-											<OrderPhoto order={o} />
-											<span className="sp-stacked sp-grow">
-												<span className="sp-heading sp-truncate">{o.vendor?.name ?? 'No vendor'}</span>
-												<span className="sp-meta sp-truncate">{orderLine(o)}</span>
-											</span>
-											{amount}
-										</Line>
-										<Line>
-											<span className="sp-meta sp-nowrap sp-grow">{when}</span>
-											<span className="ol-card-chips"><CategoryChips categories={o.categories} variant="solid" /></span>
-											<StatusPill status={o.status} />
-										</Line>
-									</Stacked>
-								</ListItem>
-							)
-							: (
+					touch
+						? (
+							<ListItem key={o.id} variant="card" onClick={() => onOpen(o)}>
+								<Stacked>
+									<Line>
+										<OrderPhoto order={o} />
+										<span className="sp-stacked sp-grow">
+											<span className="sp-heading sp-truncate">{o.vendor?.name ?? 'No vendor'}</span>
+											<span className="sp-meta sp-truncate">{orderLine(o)}</span>
+										</span>
+										{amount}
+									</Line>
+									<Line>
+										<span className="sp-meta sp-nowrap sp-grow">{when}</span>
+										<span className="ol-card-chips"><CategoryChips categories={o.categories} variant="solid" /></span>
+										<StatusPill status={o.status} />
+									</Line>
+								</Stacked>
+							</ListItem>
+						)
+						: (
+							<div key={o.id} className="ol-pickable">
+								<label className="ol-pick">
+									<Check checked={on} aria-label={`Select ${orderName(o)}`} onChange={ev => onPick(o.id, ev.nativeEvent?.shiftKey)} />
+								</label>
 								<ListItem variant="card" selected={on} mark={<><span className="ol-pick-room" /><OrderPhoto order={o} /></>} onClick={() => onOpen(o)}>
 									<Stacked>
 										<Line>
@@ -781,8 +781,8 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 										</Line>
 									</Stacked>
 								</ListItem>
-							)}
-					</div>
+							</div>
+						)
 				)
 			})}
 			<ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
