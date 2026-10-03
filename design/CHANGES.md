@@ -1,4 +1,6 @@
-# Spendly - brief 11 answers (fixed)
+# Spendly - brief 11 answers (fixed again)
+
+**Fixed in this package:** on desktop the notice that asks is now two rows, like the phone: the words take the full width and the two buttons sit on the row under them, at the right. The words no longer squeeze beside the buttons. `.sp-toast--asks` is a grid; the touch rules only change the button row to equal halves. This replaces handoff_2026_10_03n_changes_fixed.
 
 **Fixed in this package:** on desktop the notice that asks centred its mark and buttons on the whole block, so with the list of changes the mark floated beside the bullets. `.sp-toast--asks { align-items: flex-start; }` keeps them level with the title. This replaces handoff_2026_10_03n_changes.
 
