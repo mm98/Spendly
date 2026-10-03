@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card, CardFooter } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
@@ -6,7 +6,7 @@ import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
-import { changePassword, failureMessage, removePicture, uploadPicture } from '../api/client.js'
+import { changePassword, failureMessage } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { MIN_PASSWORD, PasswordHint } from './SignIn.jsx'
 import { Heading } from './SettingsParts.jsx'
@@ -22,36 +22,61 @@ const ago = epoch => {
 	return `${plural(Math.floor(days / 365.25), 'year')} ago`
 }
 
-/** The account's own card (11a): picture, name, the email it signs in with, and the password. */
+// the smallest picture the server keeps, so a picture too small is said at once rather than at Save
+const MIN_PICTURE = 128
+
+/** Whether `file` can be the account's picture: null when it can, else why not. */
+async function pictureProblem(file) {
+	if (!/^image\/(jpeg|png)$/.test(file.type)) return 'That file is not a JPG or PNG picture.'
+	try {
+		const bitmap = await createImageBitmap(file)
+		const small = Math.min(bitmap.width, bitmap.height) < MIN_PICTURE
+		bitmap.close()
+		return small ? `That picture is too small. It must be at least ${MIN_PICTURE} by ${MIN_PICTURE}.` : null
+	} catch {
+		return 'That picture could not be read. Choose a JPG or PNG.'
+	}
+}
+
+/** The address a picture chosen but not yet saved is drawn from, let go when it is replaced. */
+function usePreview(file) {
+	const [url, setUrl] = useState(null)
+	useEffect(() => {
+		if (!(file instanceof Blob)) { setUrl(null); return }
+		const made = URL.createObjectURL(file)
+		setUrl(made)
+		return () => URL.revokeObjectURL(made)
+	}, [file])
+	return url
+}
+
+/** The account's own card (11a): picture, name, the email it signs in with, and the password. The
+    picture applies with the card's Save, like the name (16a): `picture` holds a new file, or null to remove. */
 export function AccountCard({ user, value, change, touch }) {
 	const toast = useToast()
 	const input = useRef(null)
-	const [busy, setBusy] = useState(false)
 	const [problem, setProblem] = useState(null)
 	const [asking, setAsking] = useState(false)
 	const name = value('name') ?? ''
+	const picture = value('picture') ?? null
+	const preview = usePreview(picture)
+	const shown = picture instanceof Blob ? preview : picture
 
-	const upload = file => {
+	const choose = async file => {
+		if (input.current) input.current.value = ''
 		if (!file) return
-		setBusy(true)
-		setProblem(null)
-		uploadPicture(file)
-			.then(() => toast({ message: 'Your picture is saved.' }))
-			.catch(e => setProblem(failureMessage(e, 'The picture was not saved. Try again.')))
-			.finally(() => { setBusy(false); if (input.current) input.current.value = '' })
+		const why = await pictureProblem(file)
+		setProblem(why)
+		if (!why) change('picture', file)
 	}
 	const remove = () => {
-		setBusy(true)
 		setProblem(null)
-		removePicture()
-			.then(() => toast({ message: 'Your picture is removed.' }))
-			.catch(e => setProblem(failureMessage(e, 'The picture was not removed. Try again.')))
-			.finally(() => setBusy(false))
+		change('picture', null)
 	}
 
 	const shownName = name.trim() || user?.email?.split('@')[0] || ''
-	const avatar = user?.picture
-		? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
+	const avatar = shown
+		? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={shown} alt="" /></Mark>
 		: shownName ? <Mark size="large" fill="solid" round>{shownName}</Mark> : <Mark size="large" fill="empty" round aria-label="No picture" />
 
 	const fields = (
@@ -73,9 +98,9 @@ export function AccountCard({ user, value, change, touch }) {
 				<div className="sp-stack sp-gap-6">
 					<div className="sp-row-flex sp-gap-8">
 						<input ref={input} id="account-picture" type="file" accept="image/jpeg,image/png" hidden
-							onChange={ev => upload(ev.target.files?.[0])} />
-						<Button variant="outline" size="small" disabled={busy} onClick={() => input.current?.click()}>Upload a photo</Button>
-						{user?.picture ? <Button variant="outline" size="small" disabled={busy} onClick={remove}>Remove</Button> : null}
+							onChange={ev => choose(ev.target.files?.[0])} />
+						<Button variant="outline" size="small" onClick={() => input.current?.click()}>Upload a photo</Button>
+						{shown ? <Button variant="outline" size="small" onClick={remove}>Remove</Button> : null}
 					</div>
 					<span className={problem ? 'sp-meta sp-ink-danger' : 'sp-meta'} role={problem ? 'alert' : undefined}>
 						{problem ?? 'JPG or PNG, at least 128×128.'}
