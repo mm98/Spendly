@@ -2650,7 +2650,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Touch - selection replaces the header</span>
       <div class="sp-phone sp-touch">
-        <div class="sp-bulkbar">
+        <div class="sp-bulkbar sp-bulkbar--head">
             <span class="sp-bulkbar__count">3 selected</span>
             <span class="sp-grow"></span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Status</button>
@@ -4546,6 +4546,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>On a phone a selection takes the top bar's place</b> (<code>.sp-bulkbar--head</code>): the same slot, edge to edge, so the screen does not shift. It stays at the top while the list scrolls under it. The top bar is not shown while anything is selected and returns, as it was, when the selection is cleared.</div>
     <div class="doc-note"><b>A swatch is not an option.</b> The option (c7) is pressed, focusable and named; the swatch is decoration beside a row that names it. If clicking it should do something, it is an option.</div>
     <div class="doc-note"><b>Steps are rendered from an ordered list</b>, so the numbers cannot disagree with the order. Never hand-write them.</div>
     <div class="doc-note"><b>The rule is an <code>&lt;hr&gt;</code></b>, and the only divider inside a card. Between cards the gap does the work; a rule there reads as a card that failed to close.</div>
