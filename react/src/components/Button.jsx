@@ -4,7 +4,8 @@ import { join, pick, reject } from './variants.js'
 
 const STYLE = { solid: null, outline: 'sp-btn--outline', text: 'sp-btn--text' }
 const COLOR = { primary: true, warning: true, danger: true }
-const SIZE = { standard: null, small: 'sp-btn--small' }
+// xsmall is a rail section header's action; on touch it renders at the small size
+const SIZE = { standard: null, small: 'sp-btn--small', xsmall: 'sp-btn--xsmall' }
 
 const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
 
@@ -44,7 +45,7 @@ export function Button({
 }
 
 const ICON_STYLE = { bare: null, outline: 'sp-icon-btn--outline', quiet: 'sp-icon-btn--quiet' }
-const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field' }
+const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field', xsmall: 'sp-icon-btn--xsmall' }
 
 export function IconButton({
 	icon,

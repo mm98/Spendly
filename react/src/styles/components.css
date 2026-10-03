@@ -721,6 +721,15 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 
 .sp-btn--block { width: 100%; }
 
+/* the smallest button, for the action in a rail section header (Views, Filters);
+   on touch it takes the small size, see the .sp-touch rule */
+.sp-btn--xsmall {
+  height: 22px;
+  padding: 0 var(--sp-6);
+  font-size: var(--t-12);
+  font-weight: 500;
+}
+
 /* icon-only button: row menu, field trail, chip clear */
 .sp-icon-btn {
   display: grid;
@@ -740,6 +749,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .sp-icon-btn--small { width: var(--box); height: var(--box); border-radius: var(--r-marker); }
 .sp-icon-btn--field { width: var(--field-trail); height: var(--field-trail); }
+/* beside an xsmall button, the same 22px; on touch it takes the row size */
+.sp-icon-btn--xsmall { width: 22px; height: 22px; }
+.sp-touch .sp-icon-btn--xsmall { width: 32px; height: 32px; }
 
 /* ---------- pill - LOCKED c6 ---------- */
 
@@ -1491,7 +1503,9 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-touch .sp-input,
 .sp-touch .sp-btn { min-height: var(--control-h-touch); font-size: var(--t-14); }
 .sp-touch .sp-input { font-size: var(--t-16); }
-.sp-touch .sp-btn:not(.sp-btn--small) { width: 100%; }
+.sp-touch .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
+/* xsmall is a desktop size: on touch it is the small button, height and width */
+.sp-touch .sp-btn--xsmall { width: auto; height: 34px; padding: 0 var(--sp-16); font-weight: 600; }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
    without the card padding pushing the bar past the height every other bar holds */
 .sp-phone .sp-savebar { height: var(--phone-bar-h); padding-top: 0; padding-bottom: 0; }
@@ -1518,7 +1532,7 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
   .sp-section { padding: 0 var(--sp-16) var(--sp-16); }
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
-  .sp-btn:not(.sp-btn--small) { width: 100%; }
+  .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 }
 
 /* a measurement arrives as a data attribute with its own rule below, so no
