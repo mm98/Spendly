@@ -95,7 +95,7 @@ const updateBookmark = db.transaction((userId, bookmark, categories) => {
 })
 
 /* One set of clauses for the COUNT and the page, so the two cannot disagree about which rows
-   qualify. No index: the scan is the right plan at the size of one account's bookmarks (docs/defects.md). */
+   qualify. No index: the scan is the right plan at the size of one account's bookmarks. */
 
 const BOOKMARK_SORT_SQL = {
 	'added-desc': 'b.created_at DESC, b.rowid DESC',

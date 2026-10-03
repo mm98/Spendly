@@ -5,7 +5,7 @@
 A rule in this file states a general principle, not a specific past incident. Don't attach unique
 per-incident reasoning, exact numbers, or a story to a rule — that couples the rule to one example
 and someone then has to maintain the prose every time the details shift. State what to do and, if
-needed, the one-line general reason it matters; leave the evidence to `docs/defects.md`.
+needed, the one-line general reason it matters.
 
 Comment only what stops someone breaking the code: a non-obvious constraint, a value another rule
 depends on, a deliberate-looking mistake. One or two lines carrying just the constraint, not the
@@ -22,7 +22,7 @@ directory, and the pages are real ones with the controls wired.
 to it, and no fix needs to reach it. It stays only as a historical artifact.
 
 `README.md` introduces the design system the app implements, whose specification is `design/`; `docs/`
-holds the screenshots that document shows and the defect log its rules link to.
+holds the screenshots that document shows.
 
 ## Whitespace
 
@@ -57,20 +57,17 @@ name the code that draws it happens to have. A raw number is the same failure wi
 
 ## Division of labour
 
-Four documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
+Three documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
 stated twice and obeyed once.
 
 - **`README.md` is the design system** — what the UI must do, in general terms. No implementation
   detail (framework, router, bundler): those are decisions downstream of it and they change.
-- **`docs/defects.md` is the evidence** — the defect a rule cost, the numbers that settled it. Not a
-  changelog: entries are keyed to the section they defend, never to a date.
 - **The app's own README is the app's own business** — its framework, build, chunking, measurements.
   Nothing in it is a rule about the product.
 - **This file holds rules about the work** — how to verify, what counts as done, what may be claimed.
   Nothing here describes the UI.
-- A fix usually teaches three of them: the rule to README, the bug and its numbers to
-  `docs/defects.md`, how it got past us here. Don't copy between them, and don't narrate a fix in any
-  of them.
+- A fix usually teaches two of them: the rule to README, how it got past us here. Don't copy between
+  them, and don't narrate a fix in either.
 - A rule already settled in the README is not re-derived from the diff in front of you — check
   README before inventing a new shape for a form, a list, a validation pattern.
 
