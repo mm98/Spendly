@@ -8,7 +8,9 @@ const VARIANT = {
 	row: 'sp-card--row',
 	shell: 'sp-card--shell',
 	// the sign-in card, the one card that floats on the page rather than in the shell (20a)
-	float: 'sp-card--float'
+	float: 'sp-card--float',
+	// the drill path's bar above the cards it filters (c8)
+	crumbs: 'sp-crumbs-bar'
 }
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }

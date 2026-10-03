@@ -2,7 +2,7 @@ import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
-import { getCurrentUser, getOrder, getOrders, getVendor, getVendors, searchRecords, SEARCH_CAP } from '../api/client.js'
+import { getCategories, getCurrentUser, getOrder, getOrders, getStats, getVendor, getVendors, itemAttachmentThumbnailUrl, overBudget, searchRecords, withMonthSpend } from '../api/client.js'
 import { cachedFetch, forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
 import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
 import { MAC } from './useMedia.js'
@@ -94,11 +94,12 @@ function shape(needle, list, hits, vendors, touch) {
 			return true
 		})
 		.map(i => ({
-			key: 'item-' + i.id, thumb: true, plain: true, name: i.title, to: `/orders/${o.id}`,
+			key: 'item-' + i.id, thumb: i.photo ? itemAttachmentThumbnailUrl(o.id, i.id, i.photo) : true, plain: true, name: i.title, to: `/orders/${o.id}`,
 			meta: 'in ' + (o.reference || [o.vendor?.name, dayShortMonth(o.date)].filter(Boolean).join(dot))
 		})))
 	return {
 		needle,
+		touch,
 		orders: list.orders.map(o => ({
 			key: 'order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor',
 			meta: [o.reference, dayShortMonth(o.date)].filter(Boolean).join(dot), value: amount(o.total), to: `/orders/${o.id}`
@@ -113,11 +114,15 @@ function shape(needle, list, hits, vendors, touch) {
 				meta: [v.alias ? 'matched ' + v.alias : null, ...facts].filter(Boolean).join(dot)
 			}
 		}),
-		vendorsFound: hits.vendors.length,
-		vendorsCount: hits.vendors.length < SEARCH_CAP ? hits.vendors.length : null,
+		vendorsCount: hits.counts.vendors,
+		// under the limit every matching order is here, so its items are counted in the page
+		itemsCount: hits.counts.items ?? items.length,
 		items: items.slice(0, SHOWN),
-		itemsFound: items.length,
-		itemsCount: hits.orders.length < SEARCH_CAP ? items.length : null
+		// what can be done for the one vendor the text names (9b)
+		vendorActions: (hits.vendors.length === 1 ? hits.vendors : []).map(v => ({
+			key: 'vendor-new-' + v.id, icon: 'plus', plain: true, name: <>New order for <b>{v.name}</b></>,
+			to: '/orders/new?vendor=' + encodeURIComponent(v.name)
+		}))
 	}
 }
 
@@ -155,7 +160,7 @@ const GO = [
 ]
 
 // `first` is what the empty palette offers, the rest are found by name; `action` fills the mark (9d)
-const actionsFor = theme => [
+const actionsFor = (theme, onShortcuts, overLimit) => [
 	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', to: '/orders/new?source=scan', first: true, action: true },
 	{ key: 'new', icon: 'plus', name: 'New order', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
@@ -164,8 +169,21 @@ const actionsFor = theme => [
 	{ key: 'add-category', icon: 'category', name: 'Add a category', to: '/categories/new' },
 	theme === 'dark'
 		? { key: 'theme', icon: 'sun', name: 'Switch to light mode', run: () => setTheme('light'), first: true }
-		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true }
+		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true },
+	// a filter rather than a page, offered only while one category is over its limit (9d)
+	...(overLimit ? [{ key: 'over-limit', icon: 'alert-triangle', name: 'Orders over limit this month', to: overLimit }] : []),
+	...(onShortcuts ? [{ key: 'keys', icon: 'keyboard', name: 'Keyboard shortcuts', kbd: '?', run: onShortcuts }] : [])
 ].map(a => ({ ...a, plain: true }))
+
+/* The month's orders in the one category over its limit, as Home's notice opens them. With two or
+   more over, the orders list has no filter that holds them all yet, so nothing is offered. */
+function useOverLimit() {
+	const month = useApi(getStats, ['month', undefined, undefined]).data?.window
+	const categories = useApi(getCategories).data
+	if (!month || !categories) return null
+	const over = withMonthSpend(categories, month.split).filter(overBudget)
+	return over.length === 1 ? `/orders?category=${over[0].id}&from=${month.from}&to=${month.to}` : null
+}
 
 const countLabel = (name, count) => (count == null ? name : name + dot + count)
 
@@ -183,7 +201,8 @@ function groupsFor(text, found, recent, actions) {
 
 	const named = actions.filter(a => (' ' + a.name.toLowerCase()).includes(' ' + lower)).slice(0, SHOWN)
 		.map(a => ({ ...a, match: needle }))
-	const actionGroup = named.length ? [{ key: 'actions', label: 'Actions', entries: named }] : []
+	const offered = [...(found?.vendorActions ?? []), ...named]
+	const actionGroup = offered.length ? [{ key: 'actions', label: 'Actions', entries: offered }] : []
 	// until the first answer arrives the list keeps what it held, so it never blanks (9d)
 	if (!found) return named.length ? actionGroup : groupsFor('', null, recent, actions)
 
@@ -200,11 +219,21 @@ function groupsFor(text, found, recent, actions) {
 			entries: [...found.orders, ...(found.ordersCount > SHOWN
 				? [{ ...all(ordersTo(found.needle)), name: `See all ${found.ordersCount} in Orders` }] : [])]
 		},
-		found.vendors.length && { key: 'vendors', label: countLabel('Vendors', found.vendorsCount), entries: found.vendors },
-		found.items.length && { key: 'items', label: countLabel('Items', found.itemsCount), entries: found.items }
+		found.vendors.length && {
+			key: 'vendors', label: countLabel('Vendors', found.vendorsCount),
+			// the vendor list searches on a desktop only; a phone's has no search field
+			entries: [...found.vendors, ...(found.vendorsCount > SHOWN && !found.touch
+				? [{ ...all('/vendors?q=' + encodeURIComponent(found.needle)), name: `See all ${found.vendorsCount} in Vendors` }] : [])]
+		},
+		found.items.length && {
+			key: 'items', label: countLabel('Items', found.itemsCount),
+			// no page lists items on their own: the orders list finds the orders that hold them
+			entries: [...found.items, ...(found.itemsCount > SHOWN
+				? [{ ...all(ordersTo(found.needle)), key: 'all-items', name: `See the orders with these ${found.itemsCount} items` }] : [])]
+		}
 	].filter(Boolean).map(g => ({ ...g, entries: g.entries.map(e => ({ ...e, match: found.needle })) }))
 
-	if (!records.length && !named.length) return [
+	if (!records.length && !offered.length) return [
 		{ key: 'none', label: `No matches for ${found.needle}`, entries: [{ ...all(ordersTo(found.needle)), name: 'Search all orders' }] },
 		{ key: 'actions', label: 'Actions', entries: defaults }
 	]
@@ -216,15 +245,13 @@ const ordersTo = needle => '/orders?q=' + encodeURIComponent(needle)
 
 function resultCount(found) {
 	if (!found || found.failed) return null
-	const sum = found.ordersCount + found.vendorsFound + found.itemsFound
-	if (!sum) return null
-	const exact = found.vendorsCount != null && found.itemsCount != null
-	return exact ? plural(sum, 'result') : `${sum} or more results`
+	const sum = found.ordersCount + found.vendorsCount + found.itemsCount
+	return sum ? plural(sum, 'result') : null
 }
 
 /** The command palette (9d, c24): over the page on a desktop, the whole screen on a phone (7b),
     where a result replaces the search's step in the history. `onClose` closes it without acting. */
-export function Palette({ query = '', touch = false, onClose }) {
+export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const navigate = useNavigate()
 	const theme = useTheme()
 	const [text, setText] = useState(query)
@@ -238,7 +265,8 @@ export function Palette({ query = '', touch = false, onClose }) {
 	const needle = text.trim()
 	const found = useSearch(needle, touch)
 	const recent = useRecentRows(touch)
-	const groups = groupsFor(text, found, recent, actionsFor(theme))
+	const overLimit = useOverLimit()
+	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit))
 	const flat = groups.flatMap(g => g.entries)
 
 	// the current row goes back to the first whenever the rows change
@@ -311,7 +339,7 @@ export function Palette({ query = '', touch = false, onClose }) {
 				if (e.all) return <PaletteAll key={e.key} {...events}>{e.name}</PaletteAll>
 				return (
 					<PaletteRow key={e.key} icon={e.icon} thumb={e.thumb} plain={e.plain} action={e.action} match={e.match} meta={e.meta}
-						value={e.open && at === index ? 'Open' : e.value} {...events}>
+						value={e.open && at === index ? 'Open' : e.value} kbd={e.kbd} {...events}>
 						{e.name}
 					</PaletteRow>
 				)

@@ -254,12 +254,18 @@ const REQUESTS = [
 	'/categories', `/categories/${ids.category}`, '/categories/uncategorised',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
 	'/stats?range=all', '/stats?range=month&summary=1',
+	'/stats?range=days30', '/stats?range=custom&windowId=2026-03-08~2026-04-19',
+	'/stats?range=year&flow=expenses', '/stats?range=year&flow=net', '/stats?range=year&flow=refunds',
+	`/stats?range=year&flow=expenses&vendorId=${ids.vendor}`, `/stats?range=year&flow=expenses&categoryId=${ids.category}`,
+	'/stats?range=year&flow=expenses&categoryId=none', '/stats?range=year&flow=expenses&status=Delivered&from=2026-08-01&to=2026-08-31',
+	'/stats/orders?range=year&flow=expenses', `/stats/orders?range=year&flow=expenses&vendorId=${ids.vendor}&page=2`,
+	'/stats/lines?range=month&flow=expenses', '/stats/home',
 	'/bookmarks', '/bookmarks?archived=yes',
 	'/bookmarks?sort=added-asc', '/bookmarks?sort=price-desc', '/bookmarks?sort=name-asc',
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/settings', '/statuses',
+	'/settings', '/statuses', '/views',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links'
 ]
@@ -299,6 +305,10 @@ for (const [method, path, body] of [
 	['POST', '/statuses', { name: 'Waiting', tone: 'progress' }],
 	['PATCH', '/statuses/Delivered', { name: 'Received' }],
 	['DELETE', '/statuses/Cancelled'],
+	['POST', '/views', { name: 'This month', query: 'period=month&status=Ordered' }],
+	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true }],
+	['PUT', '/views/shown', { shown: 6 }],
+	['DELETE', `/views/sv-${USER}-receipt`],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
 	['DELETE', `/vendors/v-main-${VENDOR_COUNT - 1}`]

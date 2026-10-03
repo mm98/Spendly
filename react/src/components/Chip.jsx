@@ -8,7 +8,7 @@ const VARIANT = {
 	facet: 'sp-chip--facet'
 }
 
-const COLOR = { default: null, danger: 'danger' }
+const COLOR = { default: null, danger: 'danger', success: 'success' }
 
 export function Chip({
 	variant = 'outline',

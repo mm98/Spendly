@@ -15,15 +15,15 @@ import { useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategoriesThisMonth, getCategory,
-	invalidateCategoryData, invalidateVendorData, overBudget, updateCategory
+	invalidateCategoryData, invalidateVendorData, mergeCategory, overBudget, updateCategory
 } from '../api/client.js'
 import { amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import { glyphOf } from '../app/categoryMark.jsx'
 import {
-	CategoryMark, CommitBar, ConfirmDelete, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
-	SummaryLoading, categoryDeleteNote, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
+	CategoryMark, CommitBar, DeleteCategory, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
+	MergeDialog, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
 
 /* The icons the picker leads with (5e), then the rest of the register. */
@@ -80,6 +80,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const [iconSearch, setIconSearch] = useState('')
 	const [allIcons, setAllIcons] = useState(() => Boolean(ICONS[start.icon]) && !FIRST.includes(start.icon))
 	const [deleting, setDeleting] = useState(false)
+	const [merging, setMerging] = useState(false)
 	const [busy, setBusy] = useState(false)
 	const [saving, setSaving] = useState(false)
 	// the category was deleted after this page opened it: what the save said, and nothing left to save
@@ -153,6 +154,23 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			})
 	}
 
+	const merge = target => {
+		setBusy(true)
+		onGone(true)
+		mergeCategory(category.id, target.id)
+			.then(() => {
+				invalidateCategoryData()
+				invalidateVendorData()
+				toast({ message: `${category.name} is merged into ${target.name}.` })
+				leave()
+			})
+			.catch(e => {
+				setBusy(false)
+				onGone(false)
+				sayFailure(toast, e, 'The categories were not merged. Try again.')
+			})
+	}
+
 	const needle = iconSearch.trim().toLowerCase()
 	const matches = needle ? ICON_NAMES.filter(n => n.replace(/-/g, ' ').includes(needle)) : ICON_NAMES
 	const shown = needle || allIcons ? matches : matches.slice(0, FIRST.length)
@@ -219,7 +237,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				<>
 					<CategorySummary category={category} preview={preview} budget={values.budget} />
 					<RecentOrders filter={{ categoryId: category.id }} to={`/orders?category=${category.id}`} total={category.orders} />
-					<Removing category={category} onDelete={() => setDeleting(true)} />
+					<Removing category={category} onMerge={() => setMerging(true)} onDelete={() => setDeleting(true)} />
 				</>
 			)
 			: (
@@ -244,12 +262,10 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
 			{guard.prompt}
 			{deleting
-				? (
-					<ConfirmDelete title={`Delete ${category.name}?`} action="Delete category" busy={busy}
-						onConfirm={remove} onCancel={() => setDeleting(false)}>
-						{categoryDeleteNote(category.budget)}
-					</ConfirmDelete>
-				)
+				? <DeleteCategory category={category} busy={busy} onConfirm={remove} onCancel={() => setDeleting(false)} />
+				: null}
+			{merging
+				? <MergeDialog kind="category" source={category} options={all.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(false)} />
 				: null}
 		</>
 	)
@@ -292,6 +308,7 @@ function CategorySummary({ category, preview, budget }) {
 					</>
 				)}
 			<div className="sp-stack">
+				<Sum value={currency(category.monthAverage ?? 0, 0)}>12-month average</Sum>
 				<Sum value={amount(category.orders, 0)}>Orders</Sum>
 			</div>
 			<Button variant="outline" size="small" to="/statistics">See more in statistics</Button>
@@ -305,38 +322,36 @@ function RailLoading({ id }) {
 	const month = useApi(getCategoriesThisMonth)
 	const known = month.data?.categories.find(c => c.id === id)
 	const over = known ? overBudget(known) : false
-	const end = known ? removingWords(known) : { title: 'A category in use cannot be deleted', body: 'It is on 10 orders. To keep the grouping under a different name, rename it instead.' }
+	const end = removingWords(known ?? { orders: 10 })
 	return (
 		<>
-			<SummaryLoading label="Category summary" sums={[['Orders', '44']]} action="See more in statistics">
+			<SummaryLoading label="Category summary" sums={[['12-month average', '76'], ['Orders', '44']]} action="See more in statistics">
 				<Held shape={<Stat large figure="0 kr." />}><Skeleton shape="line" data-w="130" data-h="22" /></Held>
 				<Held shape={<Gauge value={0} aria-label="Share of the limit used" />} />
 				{over ? <Held shape={<span className="sp-meta">0 kr. over the limit, on day 1 of 30.</span>} /> : null}
 			</SummaryLoading>
 			{!known || known.orders ? <RecentLoading /> : null}
-			<EndLoading label="Removing it" title={end.title} body={end.body}
-				action={end.free ? <Button color="danger">Delete</Button> : null} />
+			<EndLoading label="Removing it" title={end.title} body={end.body} action={<Button color="danger">Delete</Button>} />
 		</>
 	)
 }
 
-/** What the way-out card says of a category: deleting is offered only when nothing carries it. */
-const removingWords = category => {
-	const free = category.orders === 0 && category.bookmarks === 0
-	const carried = [
-		category.orders ? plural(category.orders, 'order') : null,
-		category.bookmarks ? plural(category.bookmarks, 'bookmark') : null
-	].filter(Boolean).join(' and ')
-	return free
-		? { free, title: 'Nothing carries this category', body: 'Deleting removes it outright.' }
-		: { free, title: 'A category in use cannot be deleted', body: `It is on ${carried}. To keep the grouping under a different name, rename it instead.` }
-}
+/** What the way-out card says (5f): a category can always be merged or deleted, since it is
+    optional on an order. */
+const removingWords = category => (category.orders || category.bookmarks
+	? {
+		title: 'Merge it into another category, or delete it',
+		body: `Merging hands its ${plural(category.orders, 'order')} to the category you pick. Deleting takes the label off them; any other categories they carry stay. To keep the grouping under a different name, rename it instead.`
+	}
+	: { title: 'Nothing carries this category', body: 'Merging or deleting it changes no order. To keep it under a different name, rename it instead.' })
 
-/** The way out (5f): delete, offered only when nothing carries the category. */
-function Removing({ category, onDelete }) {
-	const { free, title, body } = removingWords(category)
+function Removing({ category, onMerge, onDelete }) {
+	const { title, body } = removingWords(category)
 	return (
-		<Card {...(free ? { footer: [<Button key="delete" color="danger" onClick={onDelete}>Delete</Button>], footerCommits: true } : {})}>
+		<Card footer={[
+			<Button key="merge" variant="outline" onClick={onMerge}>Merge…</Button>,
+			<Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
+		]} footerLayout="split" footerCommits>
 			<span className="sp-section-label">Removing it</span>
 			<Well>
 				<span className="sp-title">{title}</span>

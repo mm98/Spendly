@@ -70,10 +70,13 @@ const SIDEBAR = {
 	'slide-out': 'sp-sidebar--slide-out'
 }
 
-export function Sidebar({ variant = 'default', children, ...rest }) {
+const MOTION = { in: 'sp-sidebar--slide-in', out: 'sp-sidebar--slide-out' }
+
+/** `motion` runs the labels in as the column opens, or out before it closes (9i). */
+export function Sidebar({ variant = 'default', motion, children, ...rest }) {
 	reject(rest, 'Sidebar')
 	return (
-		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'))} {...rest}>
+		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'), motion && pick(MOTION, motion, 'motion', 'Sidebar'))} {...rest}>
 			{children}
 		</nav>
 	)
@@ -144,7 +147,7 @@ export function NavItem({ variant = 'default', icon, mark, count, countColor, su
 
 /** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
     sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab. */
-export function SidebarAccount({ name, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
+export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
 	const [hint, tipEvents] = useTip(expanded ? null : tip)
 	const block = useRef(null)
@@ -156,7 +159,7 @@ export function SidebarAccount({ name, email, expanded = false, onClick, onDismi
 		if (!expanded) { setAt(null); return }
 		const place = () => {
 			const r = block.current.getBoundingClientRect()
-			const side = !!block.current.closest('.sp-shell--collapsed, .sp-sidebar--rail')
+			const side = !!block.current.closest('.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek), .sp-sidebar--rail:not(.sp-sidebar--peek)')
 			setAt({ side, left: r.left, top: r.top, width: r.width, height: r.height })
 		}
 		place()
@@ -206,7 +209,9 @@ export function SidebarAccount({ name, email, expanded = false, onClick, onDismi
 					onClick?.(ev)
 				}}
 				{...rest}>
-				<Mark size="medium" fill="solid">{name || (split > 0 ? email.slice(0, split) : email)}</Mark>
+				{picture
+					? <Mark size="medium" fill="photo" aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
+					: <Mark size="medium" fill="solid">{name || (split > 0 ? email.slice(0, split) : email)}</Mark>}
 				<span className="sp-stack sp-grow">
 					{name ? <span className="sp-truncate">{name}</span> : null}
 					{address}
@@ -331,13 +336,14 @@ function marked(text, match) {
 }
 
 /** One record or one action. `icon` or `thumb` leads it (a small mark on a phone, filled for an
-    `action`), `match` is marked in the name, `value` and `kbd` end it; a phone drops both (7b). */
+    `action`); `thumb` is a picture's address, or true for the empty box. `match` is marked in
+    the name, `value` and `kbd` end it; a phone drops both (7b). */
 export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, kbd, selected = false, children, ...rest }) {
 	reject(rest, 'PaletteRow')
 	const screen = useContext(PaletteScreen)
 	const trail = !screen && (value != null || kbd)
 	let lead = null
-	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true" />
+	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true">{typeof thumb === 'string' ? <img src={thumb} alt="" /> : null}</span>
 	else if (icon && screen) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
 	else if (icon) lead = <span className="sp-palette__icon"><Icon name={icon} size={15} /></span>
 	return (

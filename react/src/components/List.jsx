@@ -402,9 +402,11 @@ export function Facets({ children, ...rest }) {
 	return <div className="sp-facets" {...rest}>{children}</div>
 }
 
-/** One filter or one drill level. `name` is what the remove control says it removes. */
-export function Crumb({ name, onRemove, children, ...rest }) {
+/** One filter or one drill level. `name` is what the remove control says it removes. An earlier
+    level of a drill path has no remove; `onOpen` goes back to it instead (4c). */
+export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
+	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} {...rest}>{children}</button>
 	return (
 		<span className="sp-crumb" {...rest}>
 			{children}

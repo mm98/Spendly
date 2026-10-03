@@ -19,7 +19,7 @@ import { cachedFetch, useApi } from '../api/useApi.js'
 import { amount, currency, currencySymbol, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, getBudgetYears, saveBankLink, updateBudgetLine } from '../api/client.js'
 import {
-	DATE_FORMATS, checkPayments, dateFormatsFor, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
+	DATE_FORMATS, checkPayments, dateFormatsFor, describeColumn, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
 	realAmounts
 } from '../api/bankStatement.js'
 
@@ -243,7 +243,12 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 							return (
 								<tr key={i}>
 									<td><span className="sp-title">{name}</span></td>
-									<td><span className="sp-subtitle sp-truncate">{body.slice(0, 3).map(r => r[i] || '(empty)').join(dot)}</span></td>
+									<td>
+										<span className="sp-subtitle sp-truncate">
+											{(role.id === 'none' ? describeColumn(body.map(r => r[i]), mapping.header ? rows[0][i] : '') : null)
+												?? body.slice(0, 3).map(r => r[i] || '(empty)').join(dot)}
+										</span>
+									</td>
 									<td>
 										<div className="sp-stack sp-gap-8">
 											<PickOnly aria-label={`${name} is mapped to`}

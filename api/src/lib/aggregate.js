@@ -7,7 +7,7 @@ const counted = (value, alias = '') => `CASE WHEN ${alias}status IN ('Draft', 'C
    migrations/001_init.sql), not a per-order fetch-and-add-in-JS loop. */
 
 const vendorStatsQuery = db.prepare(`
-	SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved
+	SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved, MAX(date) AS last
 	FROM orders
 	WHERE user_id = ?
 	GROUP BY vendor_id
@@ -17,7 +17,7 @@ const vendorStatsQuery = db.prepare(`
     at a time, so the totals are a plain SUM — no splitting question the way categories have. */
 export function vendorStats(userId) {
 	return new Map(vendorStatsQuery.all(userId).map(r => [r.vendorId, {
-		orders: r.orders, spend: r.spend, saved: r.saved
+		orders: r.orders, spend: r.spend, saved: r.saved, last: r.last
 	}]))
 }
 
@@ -110,4 +110,22 @@ export function bookmarkCategoryCounts(userId) {
 /** How many bookmarks carry no category: all the Bookmarks filter reads of its "Without category" row. */
 export function uncategorisedBookmarks(userId) {
 	return { bookmarks: uncategorisedBookmarksQuery.get(userId).bookmarks }
+}
+
+/* Each category's spend over the twelve whole months before this one, an order's total shared
+   among its categories as everywhere else (lib/stats.js). */
+const categoryYearSpendQuery = db.prepare(`
+	SELECT oc.category_id AS categoryId, SUM(ot.total * 1.0 / ot.category_count) AS spend
+	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+	GROUP BY oc.category_id
+`)
+
+/** Each category's 12-month average, keyed by category id: what it spent in the twelve whole
+    months before the one `today` (epoch seconds, UTC midnight) is in, divided by twelve. */
+export function categoryMonthAverages(userId, today) {
+	const day = new Date(today * 1000)
+	const to = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1) / 1000
+	const from = Date.UTC(day.getUTCFullYear(), day.getUTCMonth() - 12, 1) / 1000
+	return new Map(categoryYearSpendQuery.all({ userId, from, to }).map(r => [r.categoryId, r.spend / 12]))
 }
