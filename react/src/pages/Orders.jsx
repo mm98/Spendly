@@ -343,18 +343,30 @@ function OrderList() {
 			{crumbs.length ? `Filters${dot}${crumbs.length}` : 'Filters'}
 		</Button>
 	)
-	// without the rail, Filters joins the bar before sort (15e, 7a)
-	const controls = (
+	const sortOptions = SORTS.map(s => (
+		<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => update({ sort: s.id })}>
+			{s.label}
+		</ComboboxOption>
+	))
+	// on a phone the search stands alone, and Filters and Sort share one card below it (7a)
+	const controls = touch ? <>
+		<OrderSearch key={searchKey} q={f.q} onSearch={search} touch badged={false} />
+		<ListItem variant="card">
+			<div className="sp-combobox sp-combobox--grow">
+				<button type="button" className="sp-combobox__trigger" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'}
+					onClick={() => setFiltersOpen(true)}>
+					<span className="sp-grow">Filters</span>
+					{crumbs.length ? <span className="sp-list-item__count">{crumbs.length}</span> : null}
+				</button>
+			</div>
+			<Combobox aria-label="Sort" value={sortLabel}>{sortOptions}</Combobox>
+		</ListItem>
+	</> : (
+		// without the rail, Filters joins the bar before sort (15e)
 		<Controls>
 			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} badged={width > KBD} />
 			{railed ? null : filtersButton}
-			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>
-				{SORTS.map(s => (
-					<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => update({ sort: s.id })}>
-						{s.label}
-					</ComboboxOption>
-				))}
-			</Combobox>
+			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>{sortOptions}</Combobox>
 			{narrow
 				? null
 				: <Segmented name="order-view" role="group" aria-label="Show orders as" value={view}

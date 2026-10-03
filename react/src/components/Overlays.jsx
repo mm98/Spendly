@@ -185,10 +185,9 @@ export function MenuItem({ icon, to, onClick, disabled = false, danger = false, 
 		{selected ? <><span className="sp-grow" /><span className="sp-combobox__check"><Icon name="check" size={13} /></span></> : null}
 	</>
 	// a page the item goes to is a link, so a middle click or a new tab works; Space acts like on the button.
-	// The stylesheet has no a.sp-menu__item rule, so the link's underline is taken off here.
 	if (to && !submenu && !disabled) return (
 		<li role="none">
-			<Link to={to} className={join('sp-menu__item', danger && 'sp-ink-danger')} style={{ textDecoration: 'none' }} role="menuitem" onClick={act}
+			<Link to={to} className={join('sp-menu__item', danger && 'sp-ink-danger')} role="menuitem" onClick={act}
 				onKeyDown={ev => { if (ev.key === ' ') { ev.preventDefault(); ev.currentTarget.click() } }} {...rest}>
 				{body}
 			</Link>

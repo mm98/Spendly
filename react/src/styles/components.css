@@ -1819,6 +1819,11 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-combobox--sort .sp-combobox__trigger { border-radius: 10px; }
 .sp-combobox--sort .sp-combobox__chevron,
 .sp-combobox--sort .sp-combobox__trigger > span { white-space: nowrap; }
+/* the compact control: the value and its chevron with no field box, for a bar that has
+   no width to spare (the phone Budget bar's year) */
+.sp-combobox--bare { flex: none; }
+.sp-combobox--bare .sp-combobox__trigger { width: auto; gap: var(--sp-4); padding: 0 var(--sp-4); border-color: transparent; background: none; }
+.sp-combobox--bare .sp-combobox__trigger:hover { border-color: transparent; background: var(--hover); }
 
 /* ---------- Pager: range sentence, size Combobox, two arrows ---------- */
 
@@ -2971,6 +2976,13 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-window__btn:focus-visible { background: var(--green-tint); }
 .sp-window__btn:disabled { color: var(--line-5); cursor: not-allowed; }
 .sp-window__btn:disabled:hover { background: none; }
+/* the window with a select between its arrows (the phone Statistics period): it takes the
+   row's width, and the select is borderless inside the window's own box */
+.sp-window--select { display: flex; width: 100%; flex: 1 1 0; min-width: 0; overflow: visible; }
+.sp-window--select > .sp-combobox { flex: 1; min-width: 0; height: 100%; }
+.sp-window--select .sp-combobox__trigger { height: 100%; border: 0; border-radius: 0; background: none; }
+.sp-window--select > .sp-window__btn:first-child { border-radius: 9px 0 0 9px; }
+.sp-window--select > .sp-window__btn:last-child { border-radius: 0 9px 9px 0; }
 /* fixed by the longest value each preset can show, so the control never resizes as it is stepped */
 /* one width for every window, set by the longest value any of them shows, so the
    stepper is the same size whichever preset is chosen and stepping never resizes it */
@@ -3431,10 +3443,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   clip: rect(0 0 0 0);
 }
 
-/* the editor's slot takes its own size, and the gap follows it so the fields stay aligned */
+/* the editor's slot is the row mark's size (answer 31); the gap follows it so the fields stay aligned */
 .sp-line-editor .sp-mark {
-  width: var(--slot-editor);
-  height: var(--slot-editor);
+  width: var(--mark-medium);
+  height: var(--mark-medium);
 }
 
 /* ---------- toast - LOCKED c18 ---------- */
@@ -4916,6 +4928,15 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* a link's underline is not in 9h's tab bar */
 a.sp-tabbar__item { text-decoration: none; }
+/* a menu row that is a link carries no underline, like a tab bar item */
+a.sp-menu__item { text-decoration: none; }
+/* a menu row's glyph keeps its size when a key cap or a long label shares the row */
+.sp-menu__item > svg { flex: none; }
+/* two controls in one card (the phone list's Filters and Sort): the --grow one takes the
+   spare width, the other keeps its content width */
+.sp-list-item--card > .sp-combobox { flex: none; }
+.sp-combobox--grow,
+.sp-list-item--card > .sp-combobox--grow { flex: 1 1 0; min-width: 0; }
 /* a saving of zero stays grey, on the dark card too */
 .sp-card--shell .sp-stat__figure.sp-ink-5 { color: var(--shell-item); }
 /* a pick-only field in error takes the message's colour, as any field does */

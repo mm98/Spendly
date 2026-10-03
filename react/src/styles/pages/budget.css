@@ -24,8 +24,6 @@
 
 	/* while the budget loads, a bar held at the line box of the text it stands in for */
 	.bg-line { display: flex; align-items: center; height: 1lh; }
-	/* and on touch the year picker's place in the bar */
-	.bg-fill { flex: 1 1 0; min-width: 0; }
 
 	.sp-table .bg-col-map { width: 240px; }
 	/* on a phone the bank check's column table scrolls sideways like the sheet: never narrower than

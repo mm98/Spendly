@@ -252,16 +252,27 @@ export default function Statistics() {
 		show(nextRange, reanchor(range, id, nextRange))
 	}
 	const shown = draft ? 'custom' : range
-	// on a phone the period is one select with its window beside the name, and no stepper (Mobile screens 7b)
+	// on a phone the period is one select with its window beside the name, between the arrows (Mobile screens 7b)
+	const unitName = range === 'days30' ? '30 days' : range === 'custom' ? 'period' : range
 	const period = touch
 		? (
 			<>
 				<Controls>
-					<Combobox value={`${PRESETS.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label="Period">
-						{PRESETS.map(p => (
-							<ComboboxOption key={p.value} selected={p.value === shown} onSelect={() => choose(p.value)}>{p.label}</ComboboxOption>
-						))}
-					</Combobox>
+					<div className="sp-window sp-window--select">
+						<button type="button" className="sp-window__btn" aria-label={`Earlier ${unitName}`}
+							disabled={!older} onClick={older ? () => show(range, older) : undefined}>
+							<Icon name="chevron-left" size={15} />
+						</button>
+						<Combobox value={`${PRESETS.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label="Period">
+							{PRESETS.map(p => (
+								<ComboboxOption key={p.value} selected={p.value === shown} onSelect={() => choose(p.value)}>{p.label}</ComboboxOption>
+							))}
+						</Combobox>
+						<button type="button" className="sp-window__btn" aria-label={`Later ${unitName}`}
+							disabled={!newer} onClick={newer ? () => show(range, newer) : undefined}>
+							<Icon name="chevron-right" size={15} />
+						</button>
+					</div>
 				</Controls>
 				<Controls>{which}</Controls>
 				{draft ? <RangeSheet onClose={() => setDraft(null)}>{rangePicker}</RangeSheet> : null}
@@ -566,7 +577,7 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 		<Card variant="crumbs">
 			<div className="os-crumbs" ref={bar}>
 				<span className="sp-section-label">Showing</span>
-				<Crumbs root={root}>
+				<Crumbs root={root} aria-label="Showing">
 					{crumbs.map((c, i) => {
 						const label = crumbLabel(c, labels)
 						const vendor = c.kind === 'vendor' ? labels.vendors?.find(v => v.id === c.value) : null
@@ -794,7 +805,7 @@ function SpendTip({ column, categories, opens }) {
 		]
 		: []
 	const title = column.crumb?.kind === 'week' ? `Week ${Number(column.crumb.value.slice(6))}` : column.name
-	return <ChartTip title={title} value={currency(column.spend, 0)} rows={rows} note={`${counted(column.orders, 'order')}${opens ? `${dot}press to look closer` : ''}`} />
+	return <ChartTip title={title} value={currency(column.spend, 0)} rows={rows} note={`${counted(column.orders, 'order')}${opens ? `${dot}click to narrow down` : ''}`} />
 }
 
 function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, narrowed, stackable = false, categories = [], limit = 0, onOpen }) {
@@ -1026,7 +1037,7 @@ function CategoryRows({ view, known, name, onOpen, hint = false }) {
 			<div className="sp-row-flex sp-gap-8">
 				<span className="sp-section-label">By category</span>
 				<span className="sp-grow" />
-				{hint && onOpen ? <span className="sp-meta">press one to look closer</span> : name ? <span className="sp-meta">{name}</span> : null}
+				{hint && onOpen ? <span className="sp-meta">click to narrow further</span> : name ? <span className="sp-meta">{name}</span> : null}
 			</div>
 			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} onOpen={onOpen} />
 		</Card>
