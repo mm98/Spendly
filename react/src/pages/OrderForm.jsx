@@ -25,7 +25,7 @@ import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, createOrder,
-	failureMessage, getOrderLimits, getOrders, getScanPages, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
+	failureMessage, getOrderLimits, getOrders, getScanPages, getSettings, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
 	removeItemAttachment, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
 import {
@@ -885,24 +885,43 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			</Card>
 		)
 
-	/* A monthly limit this order takes its category past (8b): said where the save is, amber, and
-	   never in the way of the save. The order's total is shared between its categories. */
+	/* A monthly limit this order takes its category past, or near it from the share the reader chose
+	   in Settings (8b): said where the save is, amber, and never in the way of the save. The order's
+	   total is shared between its categories. Settings can turn it off. */
+	const loud = useApi(getSettings).data ?? {}
+	const warns = loud.notifyWhileSaving ?? true
+	const early = [75, 90, 100].includes(loud.notifyEarly) ? loud.notifyEarly : 90
 	const dated = /^\d{4}-\d{2}-\d{2}$/.test(draft.date ?? '')
-	const limits = useApi(getOrderLimits, [draft.date, draft.categories, orderId ?? ''], { enabled: dated && draft.categories.length > 0 })
+	const limits = useApi(getOrderLimits, [draft.date, draft.categories, orderId ?? ''], { enabled: warns && dated && draft.categories.length > 0 })
 	const share = draft.categories.length ? sums.total / draft.categories.length : 0
-	const crossed = dated && draft.categories.length && limits.data
-		? limits.data.limits.filter(l => l.spend + share > l.budget + 0.005)
+	const flagged = warns && dated && draft.categories.length && limits.data
+		? limits.data.limits
+			.map(l => ({ ...l, after: l.spend + share }))
+			.filter(l => l.after > l.budget + 0.005 || (early < 100 && l.after >= l.budget * early / 100 - 0.005))
 		: []
+	const crossed = flagged.filter(l => l.after > l.budget + 0.005)
 	const monthName = dated ? monthNames('long')[Number(draft.date.slice(5, 7)) - 1] : ''
-	const limitNotice = crossed.length
-		? crossed.map(l => (
-			<ListItem key={l.name} color="warning" count="!">
+	// Adjust takes the reader back to the lines, the part of the order that moves the total
+	const adjust = () => {
+		const row = list.current?.querySelector('[data-line]')
+		const target = (row?.matches('button') ? row : row?.querySelector('[data-edit]')) ?? list.current?.closest('.sp-card')?.querySelector('[data-add]')
+		target?.focus()
+		target?.scrollIntoView?.({ block: 'nearest' })
+	}
+	const limitTitle = l => {
+		if (l.after > l.budget + 0.005)
+			return l.spend > l.budget ? `${l.name} is already over its limit` : `This order puts ${l.name} over its limit`
+		const part = Math.floor(l.after / l.budget * 100)
+		return l.spend >= l.budget * early / 100 ? `${l.name} is already at ${part}% of its limit` : `This order takes ${l.name} to ${part}% of its limit`
+	}
+	const limitNotice = flagged.length
+		? flagged.map((l, i) => (
+			<ListItem key={l.name} color="warning" count="!"
+				actions={i === 0 ? <Button variant="outline" size="small" onClick={adjust}>Adjust</Button> : undefined}>
 				<span className="sp-stack sp-gap-6">
-					<span className="sp-title sp-ink-warning">
-						{l.spend > l.budget ? `${l.name} is already over its limit` : `This order puts ${l.name} over its limit`}
-					</span>
+					<span className="sp-title sp-ink-warning">{limitTitle(l)}</span>
 					<span className="sp-meta sp-ink-warning">
-						{currency(l.spend + share, 0)} of {currency(l.budget, 0)} for {monthName}. You can still save. Nothing is blocked.
+						{currency(l.after, 0)} of {currency(l.budget, 0)} for {monthName}. You can still save. Nothing is blocked.
 					</span>
 				</span>
 			</ListItem>
