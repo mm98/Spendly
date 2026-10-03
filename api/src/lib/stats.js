@@ -151,7 +151,7 @@ function comparisonWindowId(userId, range, id, compare, today) {
 
 const selectWindowTotals = db.prepare(`
 	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spent, COALESCE(SUM(saved), 0) AS saved
-	FROM orders WHERE user_id = @userId AND date >= @from AND date < @to
+	FROM orders WHERE user_id = @userId AND date >= @from AND date < @to AND status NOT IN ('Draft', 'Cancelled')
 `)
 
 function totalsOver(userId, from, to) {
@@ -171,7 +171,7 @@ const selectSplit = db.prepare(`
 	FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	JOIN categories c ON c.id = oc.category_id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Draft', 'Cancelled')
 	GROUP BY c.id
 	ORDER BY spend DESC
 `)
@@ -203,7 +203,7 @@ function splitOver(userId, from, to, trueTotal) {
 const selectVendorSplit = db.prepare(`
 	SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend
 	FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Draft', 'Cancelled')
 	GROUP BY ot.vendor_id
 	ORDER BY spend DESC
 `)
@@ -232,7 +232,7 @@ function monthsIn(from, to) {
 
 const selectDailyTotals = db.prepare(`
 	SELECT date, SUM(total) AS spend, SUM(saved) AS saved FROM orders
-	WHERE user_id = @userId AND date >= @from AND date < @to
+	WHERE user_id = @userId AND date >= @from AND date < @to AND status NOT IN ('Draft', 'Cancelled')
 	GROUP BY date ORDER BY date
 `)
 

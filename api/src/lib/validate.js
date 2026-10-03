@@ -10,7 +10,7 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
    other (import, scan review save). Returns a { field: message } map, empty if the draft is
    valid. `today` is the reader's date (req.today). */
 
-export function validateOrderDraft(draft, today = todayIso()) {
+export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_STATUSES) {
 	const errors = {}
 
 	const vendor = String(draft.vendor ?? '').trim()
@@ -26,8 +26,8 @@ export function validateOrderDraft(draft, today = todayIso()) {
 	else if (!SPEND_KINDS.some(k => k.toLowerCase() === kind.toLowerCase()))
 		errors.kind = 'Kind is one of: ' + SPEND_KINDS.join(', ') + '.'
 
-	if (draft.status && !ORDER_STATUSES.some(s => s.toLowerCase() === String(draft.status).toLowerCase()))
-		errors.status = 'Status is one of: ' + ORDER_STATUSES.join(', ') + '.'
+	if (draft.status && !statuses.some(s => s.toLowerCase() === String(draft.status).toLowerCase()))
+		errors.status = 'That status does not exist. Pick one from the list.'
 
 	// Optional here, like most fields an import can omit (status itself defaults to Delivered)
 	// -- the create/edit/scan forms are what make these required, only once status warrants them.
@@ -86,8 +86,8 @@ export function validateOrderDraft(draft, today = todayIso()) {
 	return errors
 }
 
-export function assertValidOrderDraft(draft, today) {
-	const errors = validateOrderDraft(draft, today)
+export function assertValidOrderDraft(draft, today, statuses) {
+	const errors = validateOrderDraft(draft, today, statuses)
 	if (Object.keys(errors).length) {
 		const err = new Error(Object.values(errors)[0])
 		err.status = 400

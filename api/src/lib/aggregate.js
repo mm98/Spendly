@@ -1,10 +1,13 @@
 import { db } from '../db.js'
 
+// a draft or a cancelled order is listed and counted, but its money is not spend
+const counted = (value, alias = '') => `CASE WHEN ${alias}status IN ('Draft', 'Cancelled') THEN 0 ELSE ${value} END`
+
 /* Real aggregation: SUM/GROUP BY over the orders table's stored totals (see
    migrations/001_init.sql), not a per-order fetch-and-add-in-JS loop. */
 
 const vendorStatsQuery = db.prepare(`
-	SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved
+	SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved
 	FROM orders
 	WHERE user_id = ?
 	GROUP BY vendor_id
@@ -44,6 +47,9 @@ export function categoryOrderCounts(userId) {
    reverting to the probe-per-row plan. */
 const accountTotalQuery = db.prepare(
 	'SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?')
+// the uncounted orders are few, so they are summed apart and taken off, keeping the sum above index-only
+const uncountedTotalQuery = db.prepare(
+	"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND status IN ('Draft', 'Cancelled')")
 
 const uncategorisedBookmarksQuery = db.prepare(`
 	SELECT COUNT(*) AS bookmarks FROM bookmarks b WHERE b.user_id = ?
@@ -58,7 +64,7 @@ const uncategorisedBookmarksQuery = db.prepare(`
    own indexed rows alone: ~2ms and ~5ms. The batched maps stay for the list pages, where
    every entry is read. */
 const vendorStatsForQuery = db.prepare(`
-	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spend, COALESCE(SUM(saved), 0) AS saved
+	SELECT COUNT(*) AS orders, COALESCE(SUM(${counted('total')}), 0) AS spend, COALESCE(SUM(${counted('saved')}), 0) AS saved
 	FROM orders WHERE user_id = ? AND vendor_id = ?
 `)
 /** One vendor's orders/spend/saved -- the same shape one entry of vendorStats holds. */
@@ -72,8 +78,8 @@ export function vendorStatsFor(userId, vendorId) {
    plain JOIN let the planner start from the orders side and probe the links per order, which
    reads the whole account to answer one category. */
 const categoryStatsForQuery = db.prepare(`
-	SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spend,
-		COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved
+	SELECT COUNT(*) AS orders, COALESCE(SUM(${counted('ot.total * 1.0 / ot.category_count', 'ot.')}), 0) AS spend,
+		COALESCE(SUM(${counted('ot.saved * 1.0 / ot.category_count', 'ot.')}), 0) AS saved
 	FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = ? AND ot.user_id = ?
 `)
@@ -81,7 +87,7 @@ const categoryStatsForQuery = db.prepare(`
 /** One category's orders/spend/saved/share, for its own record. */
 export function categoryStatsFor(userId, categoryId) {
 	const r = categoryStatsForQuery.get(categoryId, userId)
-	const total = accountTotalQuery.get(userId).spend
+	const total = accountTotalQuery.get(userId).spend - uncountedTotalQuery.get(userId).spend
 	return { orders: r.orders, spend: r.spend, saved: r.saved, share: total ? (r.spend / total) * 100 : 0 }
 }
 

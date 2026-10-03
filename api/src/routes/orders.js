@@ -7,7 +7,8 @@ import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
-import { MAX_PAGE_SIZE, MAX_UPLOAD_MB, ORDER_STATUSES } from '../lib/constants.js'
+import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
+import { resolveStatus, statusKeys } from '../lib/statuses.js'
 import { processAttachment } from '../lib/images.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
 import { decompressBlob } from '../lib/blobCompression.js'
@@ -22,7 +23,9 @@ export const router = Router()
 // decodes it correctly at the source, for every field this instance parses.
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
-const isStatus = (userId, status) => ORDER_STATUSES.includes(status)
+const isStatus = (userId, status) => statusKeys(userId).includes(status)
+// a status written as its name or in any case is stored as the account's key for it
+const keyed = (userId, draft) => (draft.status ? { ...draft, status: resolveStatus(userId, draft.status) ?? draft.status } : draft)
 
 const notFound = id => Object.assign(new Error('No order ' + id), { status: 404 })
 
@@ -318,8 +321,8 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 })
 
 router.post('/', (req, res) => {
-	const draft = req.body ?? {}
-	assertValidOrderDraft(draft, req.today)
+	const draft = keyed(req.user.id, req.body ?? {})
+	assertValidOrderDraft(draft, req.today, statusKeys(req.user.id))
 	const id = newId('o')
 	insertOrderRows(req.user.id, id, draft)
 	res.status(201).json(getDecoratedOrder(req.user.id, id))
@@ -367,8 +370,8 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 
 router.put('/:id', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
-	const draft = req.body ?? {}
-	assertValidOrderDraft(draft, req.today)
+	const draft = keyed(req.user.id, req.body ?? {})
+	assertValidOrderDraft(draft, req.today, statusKeys(req.user.id))
 
 	updateOrderRows(req.user.id, req.params.id, draft)
 
@@ -598,9 +601,10 @@ router.post('/import', async (req, res) => {
 	}
 
 	const imported = [], failed = []
-	for (const [index, draft] of orders.entries()) {
+	for (const [index, raw] of orders.entries()) {
+		const draft = raw && typeof raw === 'object' ? keyed(req.user.id, raw) : raw
 		try {
-			const errors = validateOrderDraft(draft, req.today)
+			const errors = validateOrderDraft(draft, req.today, statusKeys(req.user.id))
 			if (Object.keys(errors).length) throw new Error(Object.values(errors)[0])
 
 			const attachments = await processImportAttachments(draft.attachments)

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
-import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, SPEND_KINDS, ORDER_STATUSES } from '../lib/constants.js'
+import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, SPEND_KINDS } from '../lib/constants.js'
+import { statusKeys } from '../lib/statuses.js'
 
 export const router = Router()
 
@@ -57,7 +58,7 @@ router.patch('/', (req, res) => {
 		   draft it prefilled), and a non-string JSON value (true, {}) threw at bind time and
 		   answered 500. String() folds those into strings that miss the allowlist. */
 		defaultKind: oneOf(SPEND_KINDS, String(next.defaultKind ?? ''), currentApi.defaultKind),
-		defaultStatus: oneOf(ORDER_STATUSES, String(next.defaultStatus ?? ''), currentApi.defaultStatus),
+		defaultStatus: oneOf(statusKeys(req.user.id), String(next.defaultStatus ?? ''), currentApi.defaultStatus),
 		// Same bounds the list route enforces on its own param -- a stored preference outside
 		// them would save, come back, and be clamped by every read anyway; storing what will
 		// actually be obeyed keeps the settings page honest about what is in force.

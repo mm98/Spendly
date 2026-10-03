@@ -19,13 +19,15 @@ import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setTheme, useTheme } from '../app/theme.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, orderStatuses, saveSettings, sorts, spendKinds
+	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, saveSettings, sorts, spendKinds
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, Heading } from './SettingsParts.jsx'
+import { StatusesCard } from './SettingsStatuses.jsx'
+import { useStatuses } from '../app/statuses.js'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
@@ -35,6 +37,7 @@ const SECTIONS = [
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus'] },
 	{ key: 'lists', label: 'Lists', keys: ['pageSize', 'sort', 'listSort'] },
+	{ key: 'statuses', label: 'Statuses' },
 	{ key: 'import', label: 'Import' },
 	{ key: 'demo', label: 'Demo data' },
 	{ key: 'build', label: 'This build' }
@@ -113,6 +116,7 @@ export default function Settings() {
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
+		statuses: <StatusesCard key="statuses" />,
 		import: <ImportCard key="import" />,
 		demo: <DemoCard key="demo" />,
 		build: <BuildCard key="build" />
@@ -313,6 +317,7 @@ function MoneyCard({ value, change, touch }) {
 }
 
 function DefaultsCard({ value, change, touch }) {
+	const statuses = useStatuses()
 	return (
 		<Card>
 			<Heading section="defaults">Defaults for a new order</Heading>
@@ -323,7 +328,7 @@ function DefaultsCard({ value, change, touch }) {
 				</Field>
 				<Field label="Status">
 					<Choose value={value('defaultStatus')} onChange={v => change('defaultStatus', v)}
-						options={orderStatuses.map(s => ({ id: s, label: s }))} />
+						options={statuses.map(s => ({ id: s.key, label: s.name }))} />
 				</Field>
 			</Pair>
 		</Card>

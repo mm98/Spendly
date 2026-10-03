@@ -418,6 +418,22 @@ export async function deleteOrder(id, signal) {
 	return out
 }
 
+/* ---- the account's statuses (Settings 11a): each answer is the whole list, in order ---- */
+
+export async function getStatuses(signal) {
+	return request('/api/statuses', { signal })
+}
+
+const statusWrite = async (path, method, body) => {
+	const out = await request(path, { method, body })
+	invalidate(getStatuses)
+	return out
+}
+export const addStatus = status => statusWrite('/api/statuses', 'POST', status)
+export const changeStatus = (key, status) => statusWrite(`/api/statuses/${encodeURIComponent(key)}`, 'PATCH', status)
+export const orderStatusesAs = keys => statusWrite('/api/statuses/order', 'PUT', { keys })
+export const deleteStatus = key => statusWrite(`/api/statuses/${encodeURIComponent(key)}`, 'DELETE')
+
 /** One change to several orders at once (Order list 2a, 2e): `{ ids, status, deliveredToday,
     addCategories (names), removeCategories (ids), delete }`. Answers how many were changed. */
 export async function changeOrders(change, signal) {
@@ -584,12 +600,9 @@ export async function searchRecords(query, signal) {
 // the server's MAX_PER_KIND (api/src/routes/search.js): a kind that fills it may hold more
 export const SEARCH_CAP = 8
 
-/* ---- option lists: spendKinds and orderStatuses mirror the server's own ---- */
+/* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses) ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
-
-// in the order a purchase goes through them, wherever the list appears
-export const orderStatuses = ['Ordered', 'Delivered', 'Returned']
 
 // a ranking comes in both directions; Vendor groups rather than ranks, so it has one
 export const sorts = [
@@ -613,7 +626,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats]
+const orderReads = [getOrders, getOrder, getStats, getStatuses]
 const vendorReads = [getVendors, getVendor]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
 const bookmarkReads = [getBookmarks, getBookmark]
