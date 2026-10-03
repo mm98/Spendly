@@ -62,6 +62,13 @@ export function Cards({ fluid = false, children, ...rest }) {
 	return <div className={join('sp-cards', fluid && 'sp-cards--fluid')} {...rest}>{children}</div>
 }
 
+/** A footer row of figures inside the card's body, under its rule, where more follows it: the
+    Monthly limit card's "All categories" total (Order statistics). Actions go in Card's `footer`. */
+export function CardFooter({ children, ...rest }) {
+	reject(rest, 'CardFooter')
+	return <div className="sp-card__footer" {...rest}>{children}</div>
+}
+
 /** A part of a flush card that needs the padding back. */
 export function CardBody({ children, ...rest }) {
 	reject(rest, 'CardBody')
@@ -70,17 +77,19 @@ export function CardBody({ children, ...rest }) {
 
 const TOOLBAR = { default: null, loose: 'sp-list__toolbar--loose', link: 'sp-list__toolbar--link', toggle: 'sp-list__toolbar--toggle' }
 
-export function Toolbar({ variant = 'default', expanded, onClick, children, ...rest }) {
+/** A card's header row. `chevron` ends a link or toggle header (c10): it turns as the card folds. */
+export function Toolbar({ variant = 'default', expanded, onClick, chevron, children, ...rest }) {
 	reject(rest, 'Toolbar')
 	const classes = join('sp-list__toolbar', pick(TOOLBAR, variant, 'variant', 'Toolbar'))
+	const body = <>{children}{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}</>
 	if (variant === 'toggle')
 		return (
 			<button type="button" className={classes} aria-expanded={expanded ? 'true' : 'false'} onClick={onClick} {...rest}>
-				{children}
+				{body}
 			</button>
 		)
-	if (variant === 'link') return <a className={classes} onClick={onClick} {...rest}>{children}</a>
-	return <div className={classes} {...rest}>{children}</div>
+	if (variant === 'link') return <a className={classes} onClick={onClick} {...rest}>{body}</a>
+	return <div className={classes} {...rest}>{body}</div>
 }
 
 /** The foot of a card's own set of things. A List builds its own. `loose` takes the

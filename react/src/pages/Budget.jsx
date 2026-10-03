@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
@@ -189,7 +190,7 @@ export default function Budget() {
 	const years = useApi(getBudgetYears)
 	const [params] = useSearchParams()
 	const touch = useShellShape() === 'touch'
-	if (!years.data && years.error) return <Failed onRetry={years.refresh} />
+	if (!years.data && years.error) return <Failed what="Your budget" error={years.error} onRetry={years.refresh} />
 	if (!years.data) return <><BarLoading view={params.get('view') === 'year' ? 'year' : 'months'} touch={touch} /><Loading view={params.get('view')} touch={touch} /></>
 	if (!years.data.years.length) return <FirstRun onChanged={years.refresh} />
 	return <BudgetYears years={years.data.years} onYearsChanged={years.refresh} />
@@ -352,18 +353,6 @@ function SheetColumns({ short, thisMonth = -1 }) {
 				</tr>
 			</thead>
 		</>
-	)
-}
-
-export function Failed({ onRetry }) {
-	return (
-		<Card>
-			<Empty>
-				<EmptyTitle>The budget could not be read</EmptyTitle>
-				<EmptyBody>Check that you are online, and try again.</EmptyBody>
-				<Button variant="outline" size="small" onClick={onRetry}>Try again</Button>
-			</Empty>
-		</Card>
 	)
 }
 
@@ -622,7 +611,7 @@ function YearView({ year, view, editing, touch, onYearsChanged }) {
 	useEffect(() => { if (!editing) setPanel(null) }, [editing])
 	useGiveBack(panel, was => was.back)
 
-	if (!sheet) return loaded.error ? <Failed onRetry={loaded.refresh} /> : <Loading view={view} touch={touch} />
+	if (!sheet) return loaded.error ? <Failed what="Your budget" error={loaded.error} onRetry={loaded.refresh} /> : <Loading view={view} touch={touch} />
 	const rows = sheet.groups.reduce((n, g) => n + g.lines.length, 0)
 	const removeYear = async () => {
 		setBusy(true)

@@ -165,6 +165,22 @@ const SUM = { default: null, stacked: 'sp-sum--stacked', total: 'sp-sum--total' 
 // expected is a figure that is only planned so far (Budget 21a); the other two are a sign
 const SUM_TONE = { default: null, expected: 'sp-ink-5', success: 'sp-ink-success', danger: 'sp-ink-danger' }
 
+/** What a summary is about (c21), and as a card that opens it (Order create 3a): its mark, its
+    name, one line under it, and the card's chevron when the card is a link. */
+export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
+	reject(rest, 'SumHead')
+	return (
+		<span className="sp-sum-head" {...rest}>
+			{mark}
+			<span className="sp-alert__body">
+				<span className="sp-title">{title}</span>
+				{subtitle ? <span className="sp-subtitle">{subtitle}</span> : null}
+			</span>
+			{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}
+		</span>
+	)
+}
+
 /** A line of a sum: what it is, and what it comes to. `total` is the last line. */
 export function Sum({ variant = 'default', tone = 'default', value, children, ...rest }) {
 	reject(rest, 'Sum')

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
@@ -15,7 +16,7 @@ import { NUMBER_LOCALE, amountRound, currency, dot, plural } from '../api/format
 import { useShellShape } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
-	Bar, CategoryMark, ConfirmDelete, Failed, Held, RowMenu, SortControl, categoryDeleteNote, isGone, monthPace, sayFailure, useRefocus
+	Bar, CategoryMark, ConfirmDelete, Held, RowMenu, SortControl, categoryDeleteNote, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
 const SORTS = [
@@ -111,7 +112,7 @@ export default function Categories() {
 	)
 
 	let body
-	if (!state.data && state.error) body = <Failed title="Your categories could not be loaded" error={state.error} onRetry={state.refresh} />
+	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
 	else if (!state.data) body = <CategoriesLoading touch={touch} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
 		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} />
 	else if (!all.length) body = (

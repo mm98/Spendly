@@ -140,6 +140,8 @@
 .sp-list__toolbar--toggle[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
 .sp-list__toolbar--toggle[aria-expanded="false"] + .sp-card__body { display: none; }
 .sp-card__body { padding: var(--sp-16); }
+/* a card's one statement, centred in the height the card holds for its resting form */
+.sp-card__fill { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .sp-card__footer {
   display: flex;
   align-items: center;
@@ -2147,6 +2149,12 @@ a.sp-tabbar__item { text-decoration: none; }
 .sp-empty__body { font-size: var(--t-14); color: var(--ink-3); max-width: 380px; line-height: var(--lh); }
 
 /* ---------- loading - LOCKED c13 ---------- */
+
+/* a state laid over the resting form, which is kept unseen beneath so the height holds */
+.sp-hold { display: grid; }
+.sp-hold__ghost,
+.sp-hold__state { grid-area: 1 / 1; display: grid; min-width: 0; }
+.sp-hold__ghost { visibility: hidden; }
 
 .sp-skeleton {
   display: block;

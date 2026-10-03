@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
 import { Card } from '../components/Card.jsx'
 import { Sum } from '../components/Data.jsx'
@@ -19,7 +20,7 @@ import {
 import { amount, currency, currencySymbol, shortDate } from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
-	CategoryTokens, CommitBar, ConfirmDelete, Failed, GoneNotice, RecordPage, bookmarkDeleteNote, hold, isGone, sayFailure, useLeaveGuard
+	CategoryTokens, CommitBar, ConfirmDelete, GoneNotice, RecordPage, bookmarkDeleteNote, hold, isGone, sayFailure, useLeaveGuard
 } from './vendorsCategories.jsx'
 
 const rule = name => BOOKMARK_FIELDS.find(f => f.name === name).check
@@ -36,8 +37,8 @@ export default function BookmarkForm() {
 	if (id && existing.data?.id !== id) {
 		if (existing.error) return (
 			<div className="sp-stack sp-gap-12">
-				<Failed title="This bookmark did not load" error={existing.error} onRetry={existing.refresh}
-					list={{ to: list, label: 'Open Bookmarks' }} />
+				<Failed what="This bookmark" error={existing.error} onRetry={existing.refresh}
+					back={{ to: list, label: 'Open Bookmarks' }} />
 			</div>
 		)
 		return <BookmarkFields key="loading" bookmark={LOADING} loading onGone={setGone} />

@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
-import { Card, Panel } from '../components/Card.jsx'
+import { Card, CardFooter, Panel } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Bars, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
@@ -12,17 +13,16 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Alert } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { Halves } from '../components/Well.jsx'
 import { useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
-import { failureMessage, getCategories, getOrders, getStats } from '../api/client.js'
+import { getCategories, getOrders, getStats } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
-	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, longDate, monthNames, percent,
-	shortDate, today
+	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, longDate, monthNames, percent, shortDate, today
 } from '../api/format.js'
 
 /* ---- windows: the ids the API pages through, worked out here so the control answers at once ---- */
@@ -175,7 +175,6 @@ const TOP = 8
 const SLICE = 25
 // the API answers at most 1000 orders at once (MAX_PAGE_SIZE)
 const MOST_PAGES = 1000 / SLICE
-const RETRY_COPY = 'Check your connection, then try again.'
 
 /* useApi keeps its last answer while new arguments load or fail. This returns data only when it
    answers these arguments, so one window's figures never stand under another window's name. */
@@ -297,12 +296,7 @@ export default function Statistics() {
 		return (
 			<>
 				{period}
-				<Empty dashed>
-					<Mark size="medium" fill="none" aria-label="Problem"><Icon name="alert-circle" /></Mark>
-					<EmptyTitle>Your statistics could not be shown</EmptyTitle>
-					<EmptyBody>{failureMessage(stats.error, RETRY_COPY)}</EmptyBody>
-					<Button variant="outline" onClick={retry}>Try again</Button>
-				</Empty>
+				<Failed what="Your statistics" error={stats.error} onRetry={retry} />
 			</>
 		)
 	}
@@ -468,16 +462,6 @@ function busyParts({ range, name, running, touch, comparing, categories }) {
 }
 
 /* ---- cards ---- */
-
-/** A card whose figures did not load, and the way to ask again. */
-function Failed({ label, what, error, onRetry }) {
-	return (
-		<Card footer={[<Button key="retry" variant="outline" size="small" onClick={onRetry}>Try again</Button>]}>
-			<span className="sp-section-label">{label}</span>
-			<Alert color="danger" mark="!" title={what}>{failureMessage(error, RETRY_COPY)}</Alert>
-		</Card>
-	)
-}
 
 // on touch a figure card is its label and figure only (Mobile screens 7a)
 function Kpis({ view, chart, was, by, waiting, touch }) {
@@ -738,7 +722,11 @@ function VendorsCard({ view, name, touch }) {
 
 function StatusCard({ total, counts, onRetry }) {
 	const failed = counts.find(([, state]) => state.error)
-	if (failed) return <Failed label="By status" what="The counts by status did not load." error={failed[1].error} onRetry={onRetry} />
+	if (failed) return (
+		<Hold shape={<StatusCard total={total} counts={counts.map(([status]) => [status, {}])} />}>
+			<Failed variant="card" label="By status" what="The counts by status" error={failed[1].error} onRetry={onRetry} />
+		</Hold>
+	)
 	const busy = counts.some(([, state]) => !state.data)
 	return (
 		<Card aria-busy={busy ? 'true' : undefined}>
@@ -818,7 +806,11 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 	)
 	const limited = categories.data?.filter(category => category.budget > 0)
 	useEffect(() => { if (limited) rememberLimits(limited.length) }, [limited?.length])
-	if (categories.error) return <Failed label="Monthly limit" what="The limits did not load." error={categories.error} onRetry={onRetry} />
+	if (categories.error) return (
+		<Hold shape={<LimitCard range={range} view={view} name={name} running={running} categories={{}} touch={touch} />}>
+			<Failed variant="card" label="Monthly limit" what="The limits" error={categories.error} onRetry={onRetry} />
+		</Hold>
+	)
 	const footer = touch ? [edit] : null
 	// the limits set the card's length, so until they answer it holds the rows last seen, else two lines
 	const held = limited ? limited.length : rememberedLimits()
@@ -853,11 +845,11 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 						<span className="sp-meta">{hold('88', '11')}</span>
 					</div>
 				))}
-				<div className="sp-card__footer" aria-hidden="true">
+				<CardFooter aria-hidden="true">
 					<span className="sp-data">All categories</span>
 					<span className="sp-grow" />
 					<span className="sp-amount">{hold('104')}</span>
-				</div>
+				</CardFooter>
 				{running ?? view?.pace.running ? <div className="sp-row-flex sp-gap-8" aria-hidden="true"><GaugeKey /><span className="sp-meta">{hold('130', '11')}</span></div> : null}
 			</Card>
 		)
@@ -912,12 +904,12 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 				)
 			})}
 			{/* the whole window's spend against every limit, the same share Home states */}
-			<div className="sp-card__footer">
+			<CardFooter>
 				<span className="sp-data">All categories</span>
 				<span className="sp-grow" />
 				<span className="sp-amount">{amount(view.spent, 0)}</span>
 				<span className="sp-meta">/ {currency(allowed, 0)}</span>
-			</div>
+			</CardFooter>
 			{pace != null
 				? (
 					<div className="sp-row-flex sp-gap-8">
@@ -949,15 +941,7 @@ function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry }) {
 	const show = columnsFor(useWidth(column))
 	let body
 	if (!rows.length && failed) {
-		body = (
-			<Card variant="flush">
-				<Empty>
-					<EmptyTitle>The orders in {nameOf(view.range, view.id)} did not load</EmptyTitle>
-					<EmptyBody>{failureMessage(failed, RETRY_COPY)}</EmptyBody>
-					<Button size="small" onClick={onRetry}>Try again</Button>
-				</Empty>
-			</Card>
-		)
+		body = <Failed what={`The orders in ${nameOf(view.range, view.id)}`} error={failed} onRetry={onRetry} />
 	}
 	// a page of rows holds the table's place, or the window's own count once it is known
 	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, SLICE) : SLICE} total={view?.orders} />

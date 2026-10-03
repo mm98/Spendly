@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
@@ -10,7 +11,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { NavItem } from '../components/Shell.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
+import { Skeleton } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
@@ -18,8 +19,7 @@ import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setTheme, useTheme } from '../app/theme.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts,
-	orderStatuses, saveSettings, sorts, spendKinds
+	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, orderStatuses, saveSettings, sorts, spendKinds
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard } from './SettingsImport.jsx'
@@ -141,7 +141,7 @@ export default function Settings() {
 			)
 
 	const body = settings.error && !saved
-		? <LoadFailed onRetry={settings.refresh} />
+		? <Failed what="Your settings" error={settings.error} onRetry={settings.refresh} />
 		: !saved
 			? <><LoadingCard /><LoadingCard /><LoadingCard /></>
 			: null
@@ -360,13 +360,3 @@ function LoadingCard() {
 	)
 }
 
-function LoadFailed({ onRetry }) {
-	return (
-		<Empty>
-			<Mark size="medium" fill="none" aria-label="Problem"><Icon name="alert-circle" /></Mark>
-			<EmptyTitle>Your settings could not be shown</EmptyTitle>
-			<EmptyBody>Try again. If it happens again, Spendly may be down.</EmptyBody>
-			<Button variant="outline" onClick={onRetry}>Try again</Button>
-		</Empty>
-	)
-}

@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
+import { SumHead } from '../components/Data.jsx'
 import { Button } from '../components/Button.jsx'
 import { FILE_TYPES, FileDrop, MAX_FILE_MB, fileProblem } from '../components/FileDrop.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
@@ -52,7 +53,7 @@ const fromBlank = blank => ({
 
 function Blank({ vendor }) {
 	const blank = useApi(getOrderDraft)
-	if (blank.error) return <OrderFailed error={blank.error} retry={blank.refresh} />
+	if (blank.error) return <OrderFailed what="The new order" error={blank.error} retry={blank.refresh} />
 	if (!blank.data) return <Waiting />
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} />
 }
@@ -77,7 +78,7 @@ function Copy({ id }) {
 			}))
 		}
 	}, [order.data, blank.data, id])
-	if (order.error || blank.error) return <OrderFailed error={order.error ?? blank.error} retry={order.error ? order.refresh : blank.refresh} />
+	if (order.error || blank.error) return <OrderFailed what="The order to copy" error={order.error ?? blank.error} retry={order.error ? order.refresh : blank.refresh} />
 	if (!seed) return <Waiting />
 	return (
 		<OrderForm mode="new" region seed={seed}
@@ -237,14 +238,8 @@ function Start({ scanOnly, file, picking }) {
 function StartChoice({ to, icon, title, body }) {
 	return (
 		<Card to={to}>
-			<span className="sp-sum-head">
-				<Mark size="large" aria-label={title} aria-hidden="true"><Icon name={icon} size={24} /></Mark>
-				<span className="sp-alert__body">
-					<span className="sp-title">{title}</span>
-					<span className="sp-subtitle">{body}</span>
-				</span>
-				<span className="sp-card__chevron"><Icon name="chevron-right" size={14} /></span>
-			</span>
+			<SumHead mark={<Mark size="large" aria-label={title} aria-hidden="true"><Icon name={icon} size={24} /></Mark>}
+				title={title} subtitle={body} chevron={<Icon name="chevron-right" size={14} />} />
 		</Card>
 	)
 }

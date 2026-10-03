@@ -1,7 +1,8 @@
+import { Failed } from '../components/Failed.jsx'
 import { Card, Panel, Toolbar } from '../components/Card.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Button } from '../components/Button.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
+
+import { Skeleton } from '../components/Utilities.jsx'
 import { Mark, MarkRemove } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Attachment } from '../components/Attachments.jsx'
@@ -234,16 +235,6 @@ export function OrderLoading({ region = false, form = false }) {
 	return region ? <div className="sp-shell__body--split">{split}</div> : split
 }
 
-export function OrderFailed({ error, retry }) {
-	const missing = error?.status === 404
-	return (
-		<Empty>
-			<Mark size="medium" fill="none" aria-label="Problem"><Icon name="alert-circle" /></Mark>
-			<EmptyTitle>{missing ? 'This order does not exist' : 'The order could not be loaded'}</EmptyTitle>
-			<EmptyBody>{missing ? 'It may have been deleted. The order list has every order you have.' : 'Check your connection, then try again.'}</EmptyBody>
-			{missing
-				? <Button variant="outline" to="/orders">Open the order list</Button>
-				: <Button variant="outline" onClick={retry}>Try again</Button>}
-		</Empty>
-	)
+export function OrderFailed({ what = 'This order', error, retry }) {
+	return <Failed what={what} error={error} onRetry={retry} back={{ to: '/orders', label: 'Open the order list' }} />
 }

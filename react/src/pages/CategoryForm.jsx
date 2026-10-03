@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
@@ -21,7 +22,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import { glyphOf } from '../app/categoryMark.jsx'
 import {
-	CategoryMark, CommitBar, ConfirmDelete, EndLoading, Failed, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
+	CategoryMark, CommitBar, ConfirmDelete, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	SummaryLoading, categoryDeleteNote, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
 
@@ -45,8 +46,8 @@ export default function CategoryForm() {
 	if (id && record.data?.id !== id) {
 		if (record.error) return (
 			<div className="sp-stack sp-gap-12">
-				<Failed title="This category could not be opened" error={record.error} onRetry={record.refresh}
-					list={{ to: list, label: 'Open Categories' }} />
+				<Failed what="This category" error={record.error} onRetry={record.refresh}
+					back={{ to: list, label: 'Open Categories' }} />
 			</div>
 		)
 		return <CategoryFields key="loading" category={LOADING} loading loadingId={id} onGone={setGone} />

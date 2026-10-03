@@ -609,11 +609,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 					: scan && !touch
 						? null
 						: (
-							<ListItem variant="add" onClick={openNew} data-add=""
-								mark={<>
-									{touch ? null : <span className="sp-list-item__handle" aria-hidden="true" />}
-									<Mark size="medium" fill="add" aria-label="Add" aria-hidden="true"><Icon name="plus" /></Mark>
-								</>}>
+							<ListItem variant="add" onClick={openNew} data-add="" handle={!touch}
+								mark={<Mark size="medium" fill="add" aria-label="Add" aria-hidden="true"><Icon name="plus" /></Mark>}>
 								<span className="sp-title">{scan ? 'Add a line the scan missed' : 'Add item'}</span>
 							</ListItem>
 						)}
@@ -715,12 +712,11 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const detailsCard = touch
 		? (
 			<Card variant="flush" data-details="">
-				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)}>
+				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)} chevron={<Icon name="chevron-down" />}>
 					<span className="sp-stacked">
 						<span className="sp-title sp-truncate">Order details</span>
 						<span className="sp-meta">{detailsLine(draft)}</span>
 					</span>
-					<span className="sp-card__chevron"><Icon name="chevron-down" /></span>
 				</Toolbar>
 				<CardBody>
 					<div className="sp-stack sp-gap-12">{fields}</div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
 import { Card } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
@@ -24,7 +25,7 @@ import {
 	getSettings, getUncategorised, setBookmarkArchived
 } from '../api/client.js'
 import { NUMBER_LOCALE, currency, plural, shortDate } from '../api/format.js'
-import { Bar, CategoryMark, ConfirmDelete, Failed, Held, bookmarkDeleteNote, isGone, sayFailure, useFold, useRefocus } from './vendorsCategories.jsx'
+import { Bar, CategoryMark, ConfirmDelete, Held, bookmarkDeleteNote, isGone, sayFailure, useFold, useRefocus } from './vendorsCategories.jsx'
 
 const SORT_LABEL = {
 	'added-desc': 'Newest first',
@@ -237,7 +238,7 @@ export default function Bookmarks() {
 	const data = list.data
 	let body
 	if (list.error) {
-		body = <Failed title="Your bookmarks did not load" error={list.error} onRetry={refresh} />
+		body = <Failed what="Your bookmarks" error={list.error} onRetry={refresh} />
 	} else if (!data || (pricedEmpty && (unpriced.loading || (!unpriced.data && !unpriced.error)))) {
 		body = <BookmarksLoading size={step} />
 	} else if (data.total === 0) {
