@@ -241,11 +241,11 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 			.catch(e => { setBusy(false); toast({ message: failureMessage(e, 'The receipt was not read again. Try again.'), color: 'danger' }) })
 	}
 	const compare = o => setComparing({
-		key: 'new', name: upload.name, kind: upload.kind, label: `New: ${upload.name}`,
+		key: 'new', name: upload.name, kind: upload.kind,
 		src: upload.kind === 'pdf' ? (upload.hasThumbnail ? scanThumbnailUrl(upload.key) : null) : scanFileUrl(upload.key),
 		...(upload.kind === 'pdf' ? { pages: upload.pages, pageSrc: i => scanPageUrl(upload.key, i) } : {}),
 		beside: {
-			key: o.file.id, name: o.file.name, kind: o.file.kind, label: `On ${named(o)}: ${o.file.name}`,
+			key: o.file.id, name: o.file.name, kind: o.file.kind,
 			src: o.file.kind === 'pdf' ? attachmentPageUrl(o.id, o.file.id, 0) : attachmentFileUrl(o.id, o.file.id),
 			...pagesOf(o.id, { ...o.file, pages: null })
 		}

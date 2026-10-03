@@ -193,9 +193,8 @@ export function decorateOrderListRows(totalsRows, { itemTitles = false, listRows
 }
 
 /** The row shape the command palette links from (api/client.js searchRecords(), driven by
-    routes/search.js): id, date, reference, vendor name and each item's id, title and first
-    photo -- what its item rows draw. One query each for items, photos and vendors instead of
-    getDecoratedOrder's five. */
+    routes/search.js): id, date, reference, vendor name and each item's id and title -- what its
+    item rows draw. One query each for items and vendors instead of getDecoratedOrder's five. */
 export function decorateOrderSearchRows(totalsRows) {
 	if (!totalsRows.length) return []
 	const ids = JSON.stringify(totalsRows.map(t => t.id))
@@ -203,7 +202,6 @@ export function decorateOrderSearchRows(totalsRows) {
 
 	const itemsByOrder = groupBy(selectItemTitlesFor.all(ids), 'order_id')
 	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
-	const photosByItem = groupBy(selectLinePhotosFor.all(ids), 'order_item_id')
 
 	return totalsRows.map(totals => {
 		const vendor = vendorById.get(totals.vendor_id)
@@ -212,10 +210,7 @@ export function decorateOrderSearchRows(totalsRows) {
 			date: fromEpoch(totals.date),
 			reference: totals.reference,
 			vendor: vendor ? { name: vendor.name } : null,
-			items: (itemsByOrder.get(totals.id) ?? []).map(i => {
-				const photos = photosByItem.get(i.id)
-				return { id: i.id, title: i.title, photo: photos ? firstPhoto(photos).id : null }
-			})
+			items: (itemsByOrder.get(totals.id) ?? []).map(i => ({ id: i.id, title: i.title }))
 		}
 	})
 }

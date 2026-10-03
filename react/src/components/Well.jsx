@@ -16,9 +16,9 @@ export function Well({ variant = 'default', color = 'default', children, ...rest
 	)
 }
 
-/** Two columns of equal width: two wells in one card (Budget 21a), two fields, two cards. `cards` is a
-    row of cards, which share one height (15a); fields and wells keep their own. */
-export function Halves({ cards = false, children, ...rest }) {
+/** Two columns of equal width, each keeping its own height: two wells in one card (Budget 21a), two
+    fields, two cards. */
+export function Halves({ children, ...rest }) {
 	reject(rest, 'Halves')
-	return <div className={join('sp-halves', cards && 'sp-halves--cards')} {...rest}>{children}</div>
+	return <div className="sp-halves" {...rest}>{children}</div>
 }

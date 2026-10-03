@@ -467,14 +467,9 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 	}
 
 	const actions = buttons => <span className="sp-row-flex sp-wrap sp-gap-8">{buttons}</span>
-	const pickRow = ev => {
-		const row = ev.target.closest('[data-pick]')
-		if (row && !ev.target.closest('button, input, label, a, ul, [role="combobox"]')) row.querySelector('input[type="checkbox"]')?.click()
-	}
 	const small = (label, onClick, extra = {}) => <Button key={label} variant="outline" size="small" disabled={busy} onClick={onClick} {...extra}>{label}</Button>
-	// a row with a box to tick ticks from a press anywhere on it but its own controls (14a)
 	const line = ({ key, group, check, title, subtitle, note, ink, buttons, children, total }) => (
-		<ListItem key={key} variant="top" data-group={group} {...(check?.props.onChange ? { opens: true, 'data-pick': '' } : {})}>
+		<ListItem key={key} variant="top" data-group={group}>
 			{check}
 			<span className="sp-stack sp-gap-8 sp-grow">
 				<span className="sp-stacked">
@@ -494,7 +489,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 		return mine.length ? (
 			<div className="sp-stack sp-gap-8" key={kind}>
 				<ListItemHead label={title} amount={money(Math.abs(mine.reduce((n, i) => n + i.total, 0)))} />
-				<div className="sp-stack sp-gap-8" onClick={pickRow}>{mine.map(render)}</div>
+				<div className="sp-stack sp-gap-8">{mine.map(render)}</div>
 			</div>
 		) : null
 	})

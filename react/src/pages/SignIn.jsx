@@ -81,7 +81,7 @@ export function AuthCard({
 	const warning = alertColor === 'warning'
 	const card = (
 		<Card variant="float" footer={footer}>
-			<div className="sp-stack sp-gap-12 sp-center">
+			<div className="sp-stack sp-gap-12 sp-center au-centred">
 				{mark ? <Mark size="large" fill="solid" aria-label="Spendly"><span>S</span></Mark> : null}
 				<div className="sp-stack sp-gap-6">
 					<span className="sp-heading">{title}</span>

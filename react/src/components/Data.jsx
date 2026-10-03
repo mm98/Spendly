@@ -33,9 +33,9 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
 // the columns that have not arrived, as States 6b draws them
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
-/** `selected` is the pressed column of a chart that filters; `current` holds today (10a), marked, not chosen.
+/** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
     `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `named` ticks truncate. */
-export function Bars({ columns = [], variant = 'default', selected, current, onSelect, loading = false, named = false, ...rest }) {
+export function Bars({ columns = [], variant = 'default', selected, onSelect, loading = false, named = false, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)
 	const tipId = useId()
@@ -77,7 +77,6 @@ export function Bars({ columns = [], variant = 'default', selected, current, onS
 						{column.tick ? <span className={join('sp-bars__tick', named && 'sp-truncate')}>{column.tick}</span> : null}
 					</>
 				)
-				const today = current !== undefined && current === column.key ? { 'aria-current': 'date' } : {}
 				// the readout follows the pointer and the keyboard alike, and Escape puts it away
 				const peeking = column.tip
 					? {
@@ -92,7 +91,7 @@ export function Bars({ columns = [], variant = 'default', selected, current, onS
 				if (!onSelect || column.inert) {
 					// an inert column among buttons is read by its label, as a picture is
 					const read = column.inert && column.label ? { role: 'img', 'aria-label': column.label } : {}
-					return <span className="sp-bars__col" key={column.key} {...today} {...read} {...peeking}>{body}</span>
+					return <span className="sp-bars__col" key={column.key} {...read} {...peeking}>{body}</span>
 				}
 				return (
 					<button
@@ -100,7 +99,6 @@ export function Bars({ columns = [], variant = 'default', selected, current, onS
 						className="sp-bars__col"
 						aria-label={column.label}
 						{...(selected === undefined ? {} : { 'aria-pressed': selected === column.key ? 'true' : 'false' })}
-						{...today}
 						{...peeking}
 						data-from={column.from}
 						data-to={column.to}

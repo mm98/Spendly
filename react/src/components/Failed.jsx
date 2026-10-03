@@ -32,9 +32,7 @@ export function Failed({ variant = 'page', what, label, error, onRetry, back, ..
 	if (form === 'card') return (
 		<Card footer={[action]} {...rest}>
 			<span className="sp-section-label">{label}</span>
-			<div className="sp-card__fill">
-				<Alert color="danger" mark="!" title={title}>{reason}</Alert>
-			</div>
+			<Alert color="danger" mark="!" title={title}>{reason}</Alert>
 		</Card>
 	)
 	return (

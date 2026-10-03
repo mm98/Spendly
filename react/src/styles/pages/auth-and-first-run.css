@@ -2,6 +2,14 @@
 
 @layer base {
 
+	/* the panel as the design's page renders it (20a), full width at the window's inset below 480 */
+	.au-panel { width: 400px; box-shadow: var(--shadow-menu); }
+	.au-panel--wide { width: 420px; }
+	.au-centred { align-items: center; text-align: center; }
+	@media (max-width: 479.98px) {
+		.au-panel { width: 100%; }
+	}
+
 	/* on a phone the link to the other page keeps its drawn line and carries a touch-sized target */
 	@media (max-width: 639.98px) {
 		.au-across { position: relative; }
