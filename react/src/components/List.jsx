@@ -99,8 +99,8 @@ const partsOf = children => {
 }
 
 /** The box that selects every record on the page. It stands in the header row and
-    in the bulk bar, so it is written once. */
-function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
+    in the bulk bar, and over a grid of cards in both their places, so it is written once. */
+export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
 	const all = total > 0 && selectedCount === total
 	return (
 		<Check
@@ -339,7 +339,7 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 
 /** What can be done to the records picked (c1, c12), in place of what sat there before the first pick.
     `loose` carries its own border, for a set with no list around it; `head` stands in for a phone's top bar. */
-export function BulkBar({ loose = false, head = false, count, onClear, children, ...rest }) {
+export function BulkBar({ loose = false, head = false, count, onClear, selectAll, children, ...rest }) {
 	reject(rest, 'BulkBar')
 	if (head)
 		return (
@@ -352,7 +352,7 @@ export function BulkBar({ loose = false, head = false, count, onClear, children,
 		)
 	return (
 		<div className={join('sp-bulkbar', loose && 'sp-bulkbar--loose')} {...rest}>
-			<Check checked aria-label="Clear the selection" onChange={() => onClear?.()} />
+			{selectAll ? <SelectAllBox {...selectAll} /> : <Check checked aria-label="Clear the selection" onChange={() => onClear?.()} />}
 			<span className="sp-bulkbar__count">{count}</span>
 			<span className="sp-grow" />
 			<div className="sp-row-flex sp-gap-8">{children}</div>
@@ -360,10 +360,16 @@ export function BulkBar({ loose = false, head = false, count, onClear, children,
 	)
 }
 
-/** The summary line over a grid of cards (2c), where no list draws one: `loose` carries its own border. */
-export function ListToolbar({ loose = false, children, ...rest }) {
+/** The summary line over a grid of cards (2c), where no list draws one: `loose` carries its own border.
+    `selectAll` leads it with the box that selects the page, as the rows' header row does. */
+export function ListToolbar({ loose = false, selectAll, children, ...rest }) {
 	reject(rest, 'ListToolbar')
-	return <div className={join('sp-list__toolbar', loose && 'sp-list__toolbar--loose')} {...rest}>{children}</div>
+	return (
+		<div className={join('sp-list__toolbar', loose && 'sp-list__toolbar--loose')} {...rest}>
+			{selectAll ? <SelectAllBox {...selectAll} /> : null}
+			{children}
+		</div>
+	)
 }
 
 /** The bar above a list (c20): search, then pickers and the one button, each at its own width. */
