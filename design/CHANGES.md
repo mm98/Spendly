@@ -1,4 +1,6 @@
-# Spendly - brief 8 answers
+# Spendly - brief 8 answers (fixed)
+
+Replaces the first brief 8 package. Fixed since: in 8a the row menu under "Where it is reached from" now shows open (`data-open="true"` on its `.sp-cell-menu`); it rendered empty before.
 
 Copy these files over the brief 7 package (handoff_2026_10_03g_changes).
 
