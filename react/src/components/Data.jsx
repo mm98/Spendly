@@ -44,6 +44,23 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 			{LOADING_BARS.map((h, i) => <Skeleton shape="bar" data-h-pc={h} key={i} />)}
 		</span>
 	)
+	/* A chart's readout stands above its bar, 8 clear of the tallest of that bar and its two
+	   neighbours; with no room above, inside the plot's top edge; near the ends, inside the card (4a). */
+	const placeTip = el => {
+		if (!el || variant !== 'plot') return
+		const col = el.parentElement
+		const bottom = col.getBoundingClientRect().bottom
+		const tops = [col.previousElementSibling, col, col.nextElementSibling].filter(Boolean).map(c => {
+			const bar = c.querySelector('.sp-bars__stack, .sp-bars__pair, .sp-bars__bar')
+			return bar ? bar.getBoundingClientRect().top : bottom
+		})
+		el.style.setProperty('--tip-at', `${bottom - Math.min(...tops)}px`)
+		if (el.getBoundingClientRect().top < col.parentElement.getBoundingClientRect().top) el.dataset.pin = 'top'
+		const card = (el.closest('.sp-card') ?? col.parentElement).getBoundingClientRect()
+		const r = el.getBoundingClientRect()
+		if (r.left < card.left) el.dataset.side = 'start'
+		else if (r.right > card.right) el.dataset.side = 'end'
+	}
 	for (const c of columns) {
 		if (!!c.from !== !!c.to) console.error(`<Bars> column "${c.key}" has ${c.from ? 'from' : 'to'} without the other: a period is the pair`)
 		if (c.from && c.to && c.from > c.to) console.error(`<Bars> column "${c.key}" runs backwards: ${c.from} → ${c.to}`)
@@ -52,9 +69,9 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} {...rest}>
 			{columns.map((column, i) => {
 				const tip = column.tip && peek === column.key ? column.tip : null
-				// it hangs beside its column on the side with room: the left half of a chart carries it on the right
-				const side = i < (columns.length - 1) / 2 ? { 'data-side': 'end' } : {}
-				const readout = tip ? <span className="sp-bars__tip" id={tipId} {...side}>{tip}</span> : null
+				// a figure card's readout keeps to the side with room: the left half of the card carries it on the right
+				const side = variant === 'spark' && i < (columns.length - 1) / 2 ? { 'data-side': 'end' } : {}
+				const readout = tip ? <span className="sp-bars__tip" id={tipId} ref={placeTip} {...side}>{tip}</span> : null
 				// a figure card's readout hangs above the bar itself, a chart's beside its column (4a)
 				const onBar = variant === 'spark'
 				const body = (

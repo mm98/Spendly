@@ -7,6 +7,7 @@ import { Switch } from '../components/Choice.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
+import { TopBarEndSlot } from './topBarEnd.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
@@ -36,6 +37,7 @@ const TABS = [
 const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'settings', 'more']
 
 export function AppShell() {
+	const [topBarEnd, setTopBarEnd] = useState(null)
 	const shape = useShellShape()
 	const touch = shape === 'touch'
 	// below 560 the bottom zone gives Settings and the theme to the account menu (9g)
@@ -150,10 +152,14 @@ export function AppShell() {
 	/* One tree for every shape, so crossing a breakpoint keeps the page mounted with whatever
 	   the reader had not saved. */
 	return (
+		<TopBarEndSlot.Provider value={topBarEnd}>
 		<Toaster notice={update}>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
 				{touch ? null : sidebar({ navKey, fold, short, go, showKeys })}
-				<TopBar touch={touch}>{search}</TopBar>
+				<TopBar touch={touch}>
+					{search}
+					{touch ? null : <><span className="sp-grow" /><span className="sp-row-flex sp-gap-8" ref={setTopBarEnd} /></>}
+				</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
 				{touch
@@ -171,6 +177,7 @@ export function AppShell() {
 			{signedOut}
 			<SavedLater />
 		</Toaster>
+		</TopBarEndSlot.Provider>
 	)
 }
 
