@@ -177,7 +177,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			})
 	}
 
-	// archiving leaves for the list, where the vendor is no longer; bringing it back stays here
+	// archiving returns to the list, which the vendor has left; unarchiving stays on the page
 	const setArchived = to => {
 		setBusy(true)
 		updateVendor(vendor.id, { archived: to })

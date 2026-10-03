@@ -126,9 +126,8 @@ router.patch('/:id', (req, res) => {
 	res.json(fullRecord(req.user.id, selectOne.get(category.id, req.user.id), req))
 })
 
-/* A category is optional on an order and on a bookmark, so one in use is deleted too (5f): the
-   label comes off what carries it, and their other categories stay. A vendor's defaults lose it
-   by their own foreign key. */
+/* A category is optional, so one in use is deleted too (5f): its links go first; a vendor's
+   defaults lose it by their own foreign key. */
 const unlinkOrders = db.prepare(`DELETE FROM order_categories WHERE category_id = ?
 	AND order_id IN (SELECT id FROM orders WHERE user_id = ?)`)
 const unlinkBookmarks = db.prepare(`DELETE FROM bookmark_categories WHERE category_id = ?
@@ -146,9 +145,8 @@ router.delete('/:id', (req, res) => {
 	res.json({ id: category.id })
 })
 
-/* Merge (5j): the source's orders and bookmarks move to the target, which keeps its own limit,
-   and the source is deleted. One carrying both ends with one label. It cannot be undone, so it
-   leaves a record in `merges`. */
+/* Merge (5j): the links move to the target (one carrying both keeps one), the source is
+   deleted, and `merges` keeps a record, since it cannot be undone. */
 const moveOrderLinks = db.prepare(`INSERT OR IGNORE INTO order_categories (order_id, category_id)
 	SELECT oc.order_id, @target FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id
 	WHERE oc.category_id = @source AND o.user_id = @userId`)

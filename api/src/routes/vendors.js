@@ -301,9 +301,8 @@ router.delete('/:id', (req, res) => {
 	res.json({ id: vendor.id })
 })
 
-/* Merge (5j): the source's orders move to the target, its name and aliases become the target's
-   aliases, and the source is deleted. The target keeps each of its own values unless it has none
-   and the source has one. It cannot be undone, so it leaves a record in `merges`. */
+/* Merge (5j): orders move, the source's names become the target's aliases, the target keeps its
+   own values where it has them, and `merges` keeps a record, since it cannot be undone. */
 const moveOrders = db.prepare('UPDATE orders SET vendor_id = ? WHERE vendor_id = ? AND user_id = ?')
 const insertMerge = db.prepare(`INSERT INTO merges (id, user_id, kind, source_name, target_id, orders)
 	VALUES (?, ?, ?, ?, ?, ?)`)
