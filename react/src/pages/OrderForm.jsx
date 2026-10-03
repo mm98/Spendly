@@ -462,9 +462,18 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			if (!saved) return
 			if (line.newPhoto) {
 				const file = line.newPhoto.file
-				const sent = await addItemAttachments(order.id, saved.id, [old && sameName(old.name, file.name) ? renamed(file) : file]).catch(e => refused(file.name, e))
-				if (!sent) return
-				if (!sent.added?.length) return refused(file.name)
+				const twin = old && sameName(old.name, file.name)
+				// the photo sent when it was chosen is filed from there; one that did not arrive is sent now
+				const upload = await line.newPhoto.sent
+				if (upload) {
+					const put = await attachScanDocument(upload.key, order.id, { as: 'file', item: saved.id, name: twin ? renamed(file).name : file.name })
+						.catch(e => refused(file.name, e))
+					if (!put) return
+				} else {
+					const sent = await addItemAttachments(order.id, saved.id, [twin ? renamed(file) : file]).catch(e => refused(file.name, e))
+					if (!sent) return
+					if (!sent.added?.length) return refused(file.name)
+				}
 				if (old) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
 			} else if (old && line.dropPhoto) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
 		}))
@@ -1047,12 +1056,23 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 	const errors = editing.tried ? lineErrors(v) : {}
 	const set = patch => onChange({ ...v, ...patch })
 	const photo = v.newPhoto?.url ?? (v.dropPhoto ? null : photoUrl(v))
+	// the new photo is sent at once (17a); one that does not arrive is sent again by the save
+	const [sending, setSending] = useState(false)
+	useEffect(() => {
+		const sent = v.newPhoto?.sent
+		setSending(Boolean(sent))
+		if (!sent) return
+		let live = true
+		sent.then(() => { if (live) setSending(false) })
+		return () => { live = false }
+	}, [v.newPhoto?.sent])
 	// a file the line cannot take leaves the photo as it was and says why on the slot (17b)
 	const take = file => {
 		const refused = fileProblem(file, PHOTO_TYPES)
 		if (refused) return set({ photoProblem: refused })
 		if (v.newPhoto) URL.revokeObjectURL(v.newPhoto.url)
-		set({ newPhoto: { file, url: URL.createObjectURL(file) }, dropPhoto: false, photoProblem: null })
+		const sent = sendFile(file).catch(() => null)
+		set({ newPhoto: { file, url: URL.createObjectURL(file), sent }, dropPhoto: false, photoProblem: null })
 	}
 	// a pasted picture is the line's photo; pasted words stay with the field they went into
 	const paste = ev => {
@@ -1071,6 +1091,7 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 					name="the line's photo"
 					src={photo}
 					problem={v.photoProblem ?? undefined}
+					busy={sending}
 					onFile={take}
 					onRemove={() => set({ newPhoto: null, dropPhoto: Boolean(v.photo), photoProblem: null })}
 				/>
