@@ -380,7 +380,7 @@ function OrderList() {
 					</EmptyBody>
 					<div className="sp-row-flex sp-gap-8">
 						<Button size="small" to="/orders/new?source=scan">Scan a receipt</Button>
-						<Button variant="outline" size="small" to="/orders/new">Empty order</Button>
+						<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 					</div>
 				</Empty>
 			</Card>

@@ -464,7 +464,7 @@ function RecentCard({ recent }) {
 					<Empty>
 						<span className="sp-heading">No orders yet</span>
 						<span className="sp-meta">Drop a receipt and it becomes your first order. Or start an empty order and type it yourself.</span>
-						<Button size="small" to="/orders/new">Empty order</Button>
+						<Button size="small" to="/orders/new?source=empty">Empty order</Button>
 					</Empty>
 				</div>
 			</Card>
@@ -548,7 +548,7 @@ function CaptureCard({ newest, loading }) {
 			</FileDrop>
 			<div className="sp-fields">
 				<Button size="small" onClick={() => document.getElementById(input)?.click()}>Choose file</Button>
-				<Button variant="outline" size="small" to="/orders/new">Empty order</Button>
+				<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 			</div>
 		</Card>
 	)
@@ -847,7 +847,7 @@ function DayOne({ categories, name, touch }) {
 							: 'Drop a photo or a PDF and the lines are read for you to check.'}
 					</span>
 					<span className="sp-btn">Capture a receipt</span>
-					<Button variant="text" size="small" to="/orders/new">Or enter one by hand</Button>
+					<Button variant="text" size="small" to="/orders/new?source=empty">Or enter one by hand</Button>
 				</FileDrop>
 				<div className={touch ? 'sp-stack sp-gap-12' : 'hm-wells'}>
 					<Well>

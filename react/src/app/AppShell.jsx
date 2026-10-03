@@ -156,7 +156,7 @@ export function AppShell() {
 		<TopBarEndSlot.Provider value={topBarEnd}>
 		<Toaster notice={update}>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
-				{touch ? null : sidebar({ navKey, fold, short, go, showKeys })}
+				{touch ? null : sidebar({ navKey, fold, short, go, showKeys, making: pathname === '/orders/new' })}
 				<TopBar touch={touch}>
 					{search}
 					{touch ? null : <><span className="sp-grow" /><span className="sp-row-flex sp-gap-8" ref={setTopBarEnd} /></>}
@@ -188,7 +188,7 @@ const allOrders = to => (/[?&]saved=(?!all)/.test(to) ? ALL_ORDERS : to)
 
 /* An element rather than a component: the shell places its children by type (9b, 9h). The brand
    and the bottom zone stay put; only the destinations between them scroll (9g). */
-function sidebar({ navKey, fold, short, go, showKeys }) {
+function sidebar({ navKey, fold, short, go, showKeys, making }) {
 	const { rail } = fold
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
@@ -199,9 +199,9 @@ function sidebar({ navKey, fold, short, go, showKeys }) {
 			<NavScroll navKey={navKey}>
 				<Row to="/" icon="home" rail={rail} current={navKey === 'home'}>Home</Row>
 				<ScanReceipt rail={rail} />
-				<NewOrder rail={rail} />
+				<NewOrder rail={rail} current={making} />
 				{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
-				<Counted to={allOrders(go('orders', ALL_ORDERS))} icon="receipt" rail={rail} current={navKey === 'orders' && !onView()} useCount={useOrdersCount}>All orders</Counted>
+				<Counted to={allOrders(go('orders', ALL_ORDERS))} icon="receipt" rail={rail} current={navKey === 'orders' && !making && !onView()} useCount={useOrdersCount}>All orders</Counted>
 				<SidebarViews rail={rail} savedId={navKey === 'orders' ? onView() : null} />
 				{rail ? null : <SidebarGroup>Budget</SidebarGroup>}
 				<Row to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
@@ -323,9 +323,10 @@ function ScanReceipt({ rail }) {
 	)
 }
 
-/* New order is a plain row to step 1 of 3a, where scan, empty and copy are chosen, as the phone's button (9a). */
-function NewOrder({ rail }) {
-	return <NavItem icon="plus" to="/orders/new" tip={rail ? 'New order' : undefined} aria-label="New order">New order</NavItem>
+/* New order is a plain row to step 1 of 3a, where scan, empty and copy are chosen, as the phone's button. It is
+   current while a new order is made, until it is saved (9a). */
+function NewOrder({ rail, current }) {
+	return <NavItem icon="plus" current={current} to="/orders/new" tip={rail ? 'New order' : undefined} aria-label="New order">New order</NavItem>
 }
 
 /* A count is read with its destination; on the rail the label is the tile's only name. */
