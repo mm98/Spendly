@@ -245,7 +245,7 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 									<td><span className="sp-title">{name}</span></td>
 									<td>
 										<span className="sp-subtitle sp-truncate">
-											{(role.id === 'none' && describeColumn(body.map(r => r[i]), mapping.header ? rows[0][i] : ''))
+											{(role.id === 'none' ? describeColumn(body.map(r => r[i]), mapping.header ? rows[0][i] : '') : null)
 												?? body.slice(0, 3).map(r => r[i] || '(empty)').join(dot)}
 										</span>
 									</td>
