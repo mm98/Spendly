@@ -100,6 +100,7 @@
   <div class="doc-lede">The sidebar collapses to icons when a page needs the width - statistics and the wide list benefit. Search is the same field in the top bar; ⌘K opens it as a palette over the page, grouped by kind, with the recent things you touched when the query is empty.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+      <div class="doc-note"><b>Scan receipt and New order go to different places.</b> New order opens step 1 of <a href="Order create.dc.html#3a">3a</a>, where the user picks receipt, empty order or copy. Scan receipt opens the file picker straight away and the chosen file goes to step 2, reading; cancelling the picker changes nothing.</div>
     <div class="doc-note"><b>68px, and the width alone decides it.</b> Rows keep their 40px height and 44px targets; only the labels go. Nothing shrinks - the rail is the expanded sidebar with the text removed, not a scaled copy of it. There is no preference to remember: the viewport produces this state and takes it away again. Whether the user should also be able to choose it is <a href="#9i">9i</a>, and unsettled.</div>
     
     <div class="doc-note"><b>Two greens, and on the rail they are the only thing telling two tiles apart.</b> <code>--green</code> is the capture action; <code>--shell-current</code> is the active destination. With labels gone there is nothing else to distinguish them, so a tile drawn in the wrong green reads as the page you are on.</div>
