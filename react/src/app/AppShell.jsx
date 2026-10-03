@@ -10,7 +10,7 @@ import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { TopBarEndSlot } from './topBarEnd.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getBookmarks, getCategories, getCurrentUser, getOrders, getSettings, getVendors, onSessionEnded, saveSettings } from '../api/client.js'
+import { getBookmarks, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SavedLater } from './SavedLater.jsx'
@@ -340,8 +340,8 @@ function Counted({ useCount, ...rest }) {
 	return <Row count={useCount()} {...rest} />
 }
 const useOrdersCount = () => useApi(getOrders, [{ pageSize: 1 }]).data?.total
-const useVendorsCount = () => useApi(getVendors).data?.filter(v => !v.archived).length
-const useCategoriesCount = () => useApi(getCategories).data?.length
+const useVendorsCount = () => useApi(getVendorPage, [{ pageSize: 1 }]).data?.matched
+const useCategoriesCount = () => useApi(getCategoryPage, [{ pageSize: 1 }]).data?.matched
 const useBookmarksCount = () => useApi(getBookmarks, [{ pageSize: 1 }]).data?.matched
 
 /* A switch beside its label on the wide sidebar; on the rail a tile of its own, which keeps it

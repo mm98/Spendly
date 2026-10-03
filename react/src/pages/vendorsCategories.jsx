@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -15,11 +15,12 @@ import { SaveBar, Sheet } from '../components/Touch.jsx'
 import { Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
 import { useApi } from '../api/useApi.js'
-import { failureMessage, getCategories, getCategory, getOrders, vendorTextMatch } from '../api/client.js'
+import { failureMessage, getCategory, getCategoryPage, getOrders } from '../api/client.js'
 import { amount, currency, dot, fullStop, plural, shortDate } from '../api/format.js'
-import { looksAlike, vendorKey } from '../api/names.js'
+import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
+import { MoreMatches, usePickList } from '../app/pickList.jsx'
 
 /* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
    record stores, the mark it is drawn with, the bars above and around a list, and the parts of a record's form. */
@@ -273,18 +274,13 @@ export function archiveVendor({ vendor, to, update, toast, done }) {
 }
 
 // the records a merge can go into: look-alikes first, then the most recently used (5a)
-function mergeTargets(kind, source, options) {
-	const others = options.filter(o => o.id !== source.id && !o.archived)
-	if (kind !== 'vendor') return others.sort((a, b) => (b.orders ?? 0) - (a.orders ?? 0))
-	const alike = o => o.id === source.duplicateOf || o.duplicateOf === source.id || looksAlike(source, o)
-	return others.map(o => ({ o, alike: alike(o) }))
-		.sort((a, b) => (b.alike - a.alike) || String(b.o.lastOrder ?? '').localeCompare(String(a.o.lastOrder ?? '')))
-		.map(({ o }) => o)
-}
+const mergeRequest = (kind, source) => (kind === 'vendor'
+	? { except: source.id, near: source.id, sort: 'recent' }
+	: { except: source.id, sort: 'orders-desc' })
 
 /** Merge into… (5a, 5d): a popover hung from `anchor` (a sheet on a phone) that picks the target;
     picking is the action, so it has no buttons, and 5j's dialog compares next. */
-export function MergePicker({ kind, source, options, anchor, position = 'end', onPick, onClose }) {
+export function MergePicker({ kind, source, anchor, position = 'end', onPick, onClose }) {
 	const touch = useShellShape() === 'touch'
 	const panel = useRef(null)
 	const sheet = useRef(null)
@@ -294,11 +290,8 @@ export function MergePicker({ kind, source, options, anchor, position = 'end', o
 	usePanelPlace(anchor, panel, !touch)
 	useFocusTrap(sheet, touch, 'input')
 	useEffect(() => { if (!touch) panel.current?.querySelector('input')?.focus({ preventScroll: true }) }, [touch])
-	const targets = useMemo(() => mergeTargets(kind, source, options), [kind, source, options])
-	const needle = find.trim().toLowerCase()
-	const shown = needle
-		? targets.filter(o => (vendor ? vendorTextMatch(o, needle).matches : o.name.toLowerCase().includes(needle)))
-		: targets
+	const targets = usePickList(kind, find, mergeRequest(kind, source))
+	const shown = targets.rows ?? []
 	const back = () => anchor.current?.querySelector('[aria-expanded]')?.focus()
 	const keys = ev => {
 		if (ev.key === 'Escape') { ev.stopPropagation(); back(); onClose() }
@@ -319,10 +312,10 @@ export function MergePicker({ kind, source, options, anchor, position = 'end', o
 				: `${moving ? `${moving}, and` : 'It is merged into the category you pick, and'} ${source.name} is deleted.`}</span>
 		</>
 	)
-	const search = <SearchInput value={find} onChange={setFind} placeholder={`Search ${amount(targets.length, 0)} ${noun}…`} aria-label={`Search ${noun}`} />
+	const search = <SearchInput value={find} onChange={setFind} placeholder={targets.total == null ? `Search ${noun}…` : `Search ${amount(targets.total, 0)} ${noun}…`} aria-label={`Search ${noun}`} />
 	const list = (
 		<Menu position="plain" aria-label={vendor ? 'Vendor to merge into' : 'Category to merge into'}>
-			{shown.length
+			{!targets.rows ? null : shown.length
 				? shown.map(o => (
 					<MenuItem key={o.id} onClick={() => { back(); onPick(o) }}>
 						{markOf(o)}
@@ -332,7 +325,8 @@ export function MergePicker({ kind, source, options, anchor, position = 'end', o
 						<Icon name="chevron-right" size={13} />
 					</MenuItem>
 				))
-				: <ComboboxEmpty role="none">{targets.length ? `No ${vendor ? 'vendor' : 'category'} matches "${find.trim()}".` : `There are no other ${noun} yet.`}</ComboboxEmpty>}
+				: <ComboboxEmpty role="none">{targets.total ? `No ${vendor ? 'vendor' : 'category'} matches "${find.trim()}".` : `There are no other ${noun} yet.`}</ComboboxEmpty>}
+			<MoreMatches role="none" rows={targets.rows} matched={targets.matched} noun={noun} />
 		</Menu>
 	)
 	if (!touch) return (
@@ -371,14 +365,12 @@ export function MergeButton({ merge, size = 'standard', disabled = false, childr
 
 /** Merging a vendor or a category into another (5j): the result is shown before the button, which
     carries the count. `initial` is the target a picker already chose; the source is never offered. */
-export function MergeDialog({ kind, source, options, initial = null, busy, onConfirm, onCancel }) {
-	const [target, setTarget] = useState(initial?.id ?? null)
+export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onCancel }) {
+	const [picked, setPicked] = useState(initial)
 	const [query, setQuery] = useState('')
 	const vendor = kind === 'vendor'
-	const others = options.filter(o => o.id !== source.id)
-	const needle = query.trim().toLowerCase()
-	const shown = others.filter(o => !needle || o.name.toLowerCase().includes(needle))
-	const picked = others.find(o => o.id === target) ?? null
+	const options = usePickList(kind, query, vendor ? { except: source.id, archived: 'all', sort: 'name' } : { except: source.id })
+	const shown = options.rows ?? []
 	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
 	// counted as the merge writes them: one alias per spelling a receipt is matched by
 	// an order carrying both is counted once: the orders in either one
@@ -400,9 +392,10 @@ export function MergeDialog({ kind, source, options, initial = null, busy, onCon
 					placeholder={vendor ? 'Choose a vendor' : 'Choose a category'}
 					value={picked ? picked.name : ''} lead={picked ? markOf(picked) : undefined}>
 					{shown.map(o => (
-						<ComboboxOption key={o.id} selected={o.id === target} mark={markOf(o)} meta={plural(o.orders, 'order')}
-							onSelect={() => { setTarget(o.id); setQuery('') }}>{o.name}</ComboboxOption>
+						<ComboboxOption key={o.id} selected={o.id === picked?.id} mark={markOf(o)} meta={plural(o.orders, 'order')}
+							onSelect={() => { setPicked(o); setQuery('') }}>{o.name}</ComboboxOption>
 					))}
+					<MoreMatches rows={options.rows} matched={options.matched} noun={vendor ? 'vendors' : 'categories'} />
 				</Combobox>
 			</Field>
 			{picked && vendor
@@ -527,26 +520,29 @@ function RecentOrder({ order }) {
 /** Categories typed as tokens and picked from the one set; a name it does not hold is offered as
     Create "…" and becomes a category when the form is saved (22c). */
 export function CategoryTokens({ value, onChange, ...rest }) {
-	const categories = useApi(getCategories)
 	const [typing, setTyping] = useState('')
-	const known = categories.data ?? []
+	const query = typing.trim()
+	const offered = usePickList('category', query, {})
+	// the category the typed name means, wherever it falls in the list
+	const exact = useApi(getCategoryPage, [{ name: query, pageSize: 1 }], { enabled: Boolean(query) }).data?.categories[0]
+	const known = [...(offered.rows ?? []), ...(exact ? [exact] : [])]
 	const same = (a, b) => a.toLowerCase() === b.toLowerCase()
 	// a typed name takes the spelling of the category it names, and names it once
 	const change = next => {
 		const out = []
 		for (const typed of next) {
-			const named = known.find(c => same(c.name, typed))?.name ?? typed
+			const named = known.find(c => same(c.name, typed))?.name ?? (exact && same(typed, query) ? exact.name : typed)
 			if (!out.some(n => same(n, named))) out.push(named)
 		}
 		onChange(out)
 	}
-	const query = typing.trim()
-	const matches = known.filter(c => !value.some(n => same(n, c.name)) && c.name.toLowerCase().includes(query.toLowerCase()))
-	const exists = [...value, ...known.map(c => c.name)].some(n => same(n, query))
+	const matches = (offered.rows ?? []).filter(c => !value.some(n => same(n, c.name)))
+	const exists = value.some(n => same(n, query)) || Boolean(exact)
 	return (
 		<TokensField value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
 			{[
 				...matches.map(c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
+				<MoreMatches key="more" rows={offered.rows} matched={offered.matched} noun="categories" />,
 				query && !exists
 					? <ComboboxOption key="create" create mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>
 					: null

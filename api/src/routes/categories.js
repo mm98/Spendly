@@ -6,6 +6,8 @@ import { todayIso, toEpoch } from '../lib/dates.js'
 import {
 	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, uncategorisedBookmarks, bookmarkCategoryCounts
 } from '../lib/aggregate.js'
+import { wantsPage } from '../lib/listPage.js'
+import { categoryPage, knownCategoryNames } from '../lib/categoryList.js'
 
 export const router = Router()
 
@@ -58,6 +60,7 @@ const listRow = (category, orders = 0, bookmarks = 0) => ({
 /* `?average=1` adds each category's 12-month average: only the Categories page reads it, so the
    pickers that read this list do not pay for it. */
 router.get('/', (req, res) => {
+	if (wantsPage(req.query)) return res.json(categoryPage(req.user.id, req.query, req.today ?? todayIso(), req.acceptsLanguages()))
 	const orderCounts = categoryOrderCounts(req.user.id)
 	const bookmarkCounts = bookmarkCategoryCounts(req.user.id)
 	const averages = req.query.average ? categoryMonthAverages(req.user.id, toEpoch(req.today ?? todayIso())) : null
@@ -73,12 +76,22 @@ router.get('/', (req, res) => {
    A stand-in row there would be offered as something to assign and to edit. */
 router.get('/uncategorised', (req, res) => res.json(uncategorisedBookmarks(req.user.id)))
 
+// the colour a new category's form starts on; registered before /:id for the same reason
+router.get('/colour', (req, res) => res.json({ colour: nextCategoryColour(req.user.id) }))
+
 // The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at
 // all), so a negative budget only ever reached this table by calling the API directly -- but it
 // did reach it, and "budget: -500" survives to render as "100 kr of -500 kr budget" on the row
 // and an inverted share in the against-budget meter. Same non-negative rule, checked again here
 // rather than trusted from the form that happens to enforce it today.
 const nonNegative = n => (Number.isFinite(n) && n >= 0 ? n : 0)
+
+/** Which of the names sent a category already has: `{ known }`, the ones an import would not create. */
+router.post('/known', (req, res) => {
+	const names = Array.isArray(req.body?.names) ? req.body.names.map(n => String(n ?? '').trim()).filter(Boolean) : []
+	if (names.length > 5000) return res.status(400).json({ error: 'Too many names at once.' })
+	res.json({ known: knownCategoryNames(req.user.id, [...new Set(names)]) })
+})
 
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()

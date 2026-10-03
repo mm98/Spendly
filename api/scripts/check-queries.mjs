@@ -257,7 +257,22 @@ const REQUESTS = [
 	`/orders/lines?ids=${ids.order}&sort=date-desc`, '/orders/impact', '/orders/impact?status=Delivered&from=2026-01-01',
 	`/orders/impact?ids=${ids.order}`,
 	'/vendors', `/vendors/${ids.vendor}`,
-	'/categories', `/categories/${ids.category}`, '/categories/uncategorised',
+	// the paged vendor list: each sort, page 2, each filter, and the lookups the pickers and forms make
+	...['name-asc', 'name', 'spend-desc', 'spend-asc', 'orders-desc', 'saved-desc', 'saved-asc', 'use', 'recent'].map(sort => `/vendors?sort=${sort}&pageSize=10`),
+	'/vendors?pageSize=10&page=2', '/vendors?sort=spend-desc&pageSize=10&page=2', '/vendors?archived=yes&pageSize=10',
+	'/vendors?archived=all&sort=spend-desc&pageSize=10', '/vendors?query=bil&pageSize=10', '/vendors?query=bil&sort=spend-desc&pageSize=10',
+	'/vendors?query=æg&pageSize=10', '/vendors?flag=possible-duplicate&pageSize=10', '/vendors?flag=possible-duplicate&sort=spend-desc&pageSize=10',
+	'/vendors?flag=possible-duplicate&query=bil&pageSize=10', `/vendors?ids=${ids.vendor},v-main-1&archived=all&with=duplicates&pageSize=2`,
+	`/vendors?near=${ids.vendor}&except=${ids.vendor}&sort=recent&pageSize=10`, `/vendors?near=${ids.vendor}&except=${ids.vendor}&sort=recent&query=bil&pageSize=10`,
+	'/vendors?name=Netto&pageSize=1', `/vendors?name=Netto&except=${ids.vendor}&pageSize=1`, '/vendors?like=Netto%20ApS&aka=Netto%20Aarhus&pageSize=1',
+	'/categories', `/categories/${ids.category}`, '/categories/uncategorised', '/categories/colour',
+	// the paged category list, as above
+	...['name-asc', 'month-desc', 'month-asc', 'limit-desc', 'orders-desc'].map(sort => `/categories?sort=${sort}&with=month&pageSize=10`),
+	'/categories?pageSize=10&page=2', '/categories?sort=month-desc&with=month&pageSize=10&page=2', '/categories?query=mad&pageSize=10',
+	'/categories?query=æg&sort=orders-desc&pageSize=10', `/categories?ids=${ids.category},c-main-1&with=month,bookmarks&pageSize=2`,
+	`/categories?except=${ids.category}&sort=orders-desc&pageSize=10`, '/categories?name=Groceries&pageSize=1', '/categories?limited=yes&with=month&pageSize=1000',
+	'/categories?over=yes&pageSize=1000', '/categories?bookmarks=open&with=bookmarks&pageSize=10', '/categories?bookmarks=archived&with=bookmarks&query=a&pageSize=10',
+	'/bookmarks/categories', '/bookmarks/categories?archived=yes',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
 	'/stats?range=all', '/stats?range=month&summary=1',
 	'/stats?range=days30', '/stats?range=custom&windowId=2026-03-08~2026-04-19',
@@ -303,6 +318,8 @@ const [group, second] = sheet.groups.filter(g => g.kind === 'expense')
 const line = group.lines[1]
 const [account, other] = sheet.accounts
 for (const [method, path, body] of [
+	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
+	['POST', '/categories/known', { names: ['Groceries', 'groceries', 'Nothing'] }],
 	['PATCH', `/budget/lines/${line.id}`, { month: 3, real: 123.45 }],
 	['PATCH', `/budget/lines/${line.id}`, { name: 'Renamed', accountId: other.id }],
 	['PATCH', `/budget/lines/${line.id}`, { groupId: second.id, index: 0 }],

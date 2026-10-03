@@ -23,20 +23,29 @@ const markAliasMatched = db.prepare(`UPDATE vendor_aliases SET matched_at = unix
 /** The one string-to-vendor lookup: the vendor's own name first, then its aliases -- the
     name it had before a rename, the shortened form an invoice prints (vendor_aliases).
     Exact (any case) first; then compared as vendor keys (lib/names.js), so "INDBO MØBLER A/S"
-    finds "Indbo Møbler". An alias that finds the vendor is marked as the last one that matched. */
-export function findVendorIdByAnyName(userId, name) {
-	const clean = String(name).trim()
-	const named = selectVendorIdByName.get(userId, clean)
-	if (named) return named.id
-	const aliased = selectVendorIdByAlias.get(userId, clean)
-	if (aliased) { markAliasMatched.run(userId, aliased.id, aliased.name); return aliased.id }
+    finds "Indbo Møbler". Answers `{ id, alias }`, `alias` being the alias that found it, or
+    undefined. `except` is a vendor left out, as its own form asks about the others. */
+export function resolveVendor(userId, name, except = null) {
+	const clean = String(name ?? '').trim()
+	if (!clean) return undefined
+	const other = row => (row && row.id !== except ? row : undefined)
+	const named = other(selectVendorIdByName.get(userId, clean))
+	if (named) return { id: named.id, alias: null }
+	const aliased = other(selectVendorIdByAlias.get(userId, clean))
+	if (aliased) return { id: aliased.id, alias: aliased.name }
 	const key = vendorKey(clean)
 	if (!key) return undefined
-	const byName = selectVendorNames.all(userId).find(v => vendorKey(v.name) === key)
-	if (byName) return byName.id
-	const byAlias = selectAliasNames.all(userId).find(a => vendorKey(a.name) === key)
-	if (byAlias) { markAliasMatched.run(userId, byAlias.id, byAlias.name); return byAlias.id }
-	return undefined
+	const byName = selectVendorNames.all(userId).find(v => v.id !== except && vendorKey(v.name) === key)
+	if (byName) return { id: byName.id, alias: null }
+	const byAlias = selectAliasNames.all(userId).find(a => a.id !== except && vendorKey(a.name) === key)
+	return byAlias ? { id: byAlias.id, alias: byAlias.name } : undefined
+}
+
+/** The vendor a string files under, as an id; an alias that finds it is marked as the last one that matched. */
+export function findVendorIdByAnyName(userId, name) {
+	const found = resolveVendor(userId, name)
+	if (found?.alias) markAliasMatched.run(userId, found.id, found.alias)
+	return found?.id
 }
 
 /** The vendor a receipt names, tried as 5h says: its VAT number, then its web address, then the

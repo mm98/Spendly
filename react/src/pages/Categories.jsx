@@ -10,7 +10,7 @@ import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Kbd, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	deleteCategory, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
+	deleteCategory, getCategoryPages, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
 } from '../api/client.js'
 import { NUMBER_LOCALE, amountRound, currency, dot, plural } from '../api/format.js'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
@@ -19,12 +19,13 @@ import {
 	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
+// the server orders the list (api/src/lib/categoryList.js)
 const SORTS = [
-	{ id: 'name-asc', label: 'Name A - Z', by: (a, b) => a.name.localeCompare(b.name) },
-	{ id: 'month-desc', label: 'This month ↓', by: (a, b) => b.monthSpend - a.monthSpend },
-	{ id: 'month-asc', label: 'This month ↑', by: (a, b) => a.monthSpend - b.monthSpend },
-	{ id: 'limit-desc', label: 'Limit ↓', by: (a, b) => b.budget - a.budget },
-	{ id: 'orders-desc', label: 'Orders ↓', by: (a, b) => b.orders - a.orders }
+	{ id: 'name-asc', label: 'Name A - Z' },
+	{ id: 'month-desc', label: 'This month ↓' },
+	{ id: 'month-asc', label: 'This month ↑' },
+	{ id: 'limit-desc', label: 'Limit ↓' },
+	{ id: 'orders-desc', label: 'Orders ↓' }
 ]
 // at this width of the list or under, the monthly limit joins the name's second line (5k)
 const FOLD = 880
@@ -64,8 +65,8 @@ function MonthLine({ category, pace }) {
 export default function Categories() {
 	const touch = useShellShape() === 'touch'
 	const toast = useToast()
-	const state = useApi(getCategoriesThisMonth)
-	const settings = useApi(getSettings).data
+	const settingsRead = useApi(getSettings)
+	const settings = settingsRead.data
 	const step = settings?.pageSize ?? 10
 	// the order Settings names, until the address names another
 	const opening = SORTS.find(s => s.id === FROM_SETTING[settings?.listSort]) ?? SORTS[0]
@@ -86,7 +87,8 @@ export default function Categories() {
 	const pace = monthPace()
 	// a page of rows per Load more, kept for Back along with the scroll
 	const { pages, setPages, restored } = useListMemory(`categories?${query}&${sort.id}`)
-	useEffect(() => { if (state.data) restored() }, [state.data])
+	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month' }, step, pages], { enabled: Boolean(settings || settingsRead.error) })
+	useEffect(() => { if ((state.data || state.error) && !state.loading) restored() }, [state.data, state.error, state.loading, restored])
 
 	const write = (q, sortId) => {
 		const next = {}
@@ -95,10 +97,8 @@ export default function Categories() {
 		setParams(next, { replace: true })
 	}
 
-	const all = state.data?.categories ?? []
-	const needle = query.trim().toLowerCase()
-	const rows = all.filter(c => !needle || c.name.toLowerCase().includes(needle)).sort(sort.by)
-	const shown = rows.slice(0, pages * step)
+	const shown = state.data?.categories ?? []
+	const matched = state.data?.matched ?? 0
 	const refocus = useRefocus(state.data?.categories, '.sp-table [aria-haspopup="menu"]', '.sp-controls a')
 
 	const remove = () => {
@@ -149,7 +149,7 @@ export default function Categories() {
 	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
 	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
 		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
-	else if (!all.length) body = (
+	else if (!matched && !query) body = (
 		<Card>
 			<Empty>
 				<EmptyTitle>No categories yet</EmptyTitle>
@@ -158,7 +158,7 @@ export default function Categories() {
 			</Empty>
 		</Card>
 	)
-	else if (!rows.length) body = (
+	else if (!matched) body = (
 		<Card>
 			<Empty>
 				<EmptyTitle>No category matches "{query}"</EmptyTitle>
@@ -185,13 +185,13 @@ export default function Categories() {
 					</Card>
 				)
 			})}
-			<ListMore loose shown={shown.length} total={rows.length} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
+			<ListMore loose shown={shown.length} total={matched} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
 		</>
 	)
 	else body = (
-		<List data={shown} total={rows.length} onLoadMore={() => setPages(pages + 1)} recordKey={c => c.id} noun="categories" pageSize={step}
+		<List data={shown} total={matched} onLoadMore={() => setPages(pages + 1)} recordKey={c => c.id} noun="categories" pageSize={step}
 			rowTo={c => `/categories/${c.id}/edit`} locale={NUMBER_LOCALE}>
-			<Caption><strong className="sp-data">{plural(rows.length, 'category', 'categories')}</strong></Caption>
+			<Caption><strong className="sp-data">{plural(matched, 'category', 'categories')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
 				<ListCell width="amount">{sort.id.startsWith('month-') ? sort.label : 'This month'}</ListCell>
@@ -226,7 +226,7 @@ export default function Categories() {
 							onToggle={() => { setPicking(null); setMenuFor(menuFor === c.id ? null : c.id) }}
 							onClose={() => { setMenuFor(null); setPicking(null) }}
 							panel={picking === c.id
-								? box => <MergePicker kind="category" source={c} options={all} anchor={box} onClose={() => setPicking(null)}
+								? box => <MergePicker kind="category" source={c} anchor={box} onClose={() => setPicking(null)}
 									onPick={target => { setPicking(null); setMerging({ source: c, target }) }} />
 								: null}>
 							<MenuItem icon="external-link" to={`/orders?category=${c.id}`}>Open in the order list</MenuItem>
@@ -249,7 +249,7 @@ export default function Categories() {
 				? <DeleteCategory category={deleting} busy={busy} onConfirm={remove} onCancel={() => setDeleting(null)} />
 				: null}
 			{merging
-				? <MergeDialog kind="category" source={merging.source} initial={merging.target} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				? <MergeDialog kind="category" source={merging.source} initial={merging.target} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)

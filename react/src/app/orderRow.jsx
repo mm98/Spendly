@@ -3,7 +3,7 @@ import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { getCategories, getStats, itemAttachmentThumbnailUrl, overBudget, withMonthSpend } from '../api/client.js'
+import { getOverLimitCategories, itemAttachmentThumbnailUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { dot, morePhotos, plural } from '../api/format.js'
 import { TONES, useStatuses } from './statuses.js'
@@ -48,13 +48,11 @@ export const columnsFor = width => ({ items: width > 1040, categories: width > 8
 
 const NONE = new Set()
 
-/** The categories over their monthly limit this month (8b), as ids: none until both answers are in.
-    The same reads as the palette's Orders over limit, so the two share their answers. */
+/** The categories over their monthly limit this month (8b), as ids: none until the answer is in.
+    The same read as the palette's Orders over limit, so the two share their answer. */
 export function useOverLimit(enabled = true) {
-	const month = useApi(getStats, ['month', undefined, undefined], { enabled }).data?.window
-	const categories = useApi(getCategories, [], { enabled }).data
-	return useMemo(() => (month && categories ? new Set(withMonthSpend(categories, month.split).filter(overBudget).map(c => c.id)) : NONE),
-		[month, categories])
+	const over = useApi(getOverLimitCategories, [], { enabled }).data
+	return useMemo(() => (over ? new Set(over.map(c => c.id)) : NONE), [over])
 }
 
 /* A list that names many categories asks once, here, for every chip in it; a chip with no list

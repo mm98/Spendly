@@ -10,7 +10,7 @@ import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Kbd, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	deleteVendor, getSettings, getVendors, invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor, vendorTextMatch
+	deleteVendor, getSettings, getVendorPage, getVendorPages, invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor
 } from '../api/client.js'
 import { NUMBER_LOCALE, amount, currency, dayMonth, dot, plural, shortDate } from '../api/format.js'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
@@ -31,37 +31,26 @@ const KBD = 720
 // the address of the look-alike view, as Home links to it (10a)
 const LOOKALIKES = 'possible-duplicate'
 
-/** The look-alike view's rows: each vendor that is probably a duplicate under the one it is like
-    (the API's `duplicateOf`), the pairs in the list's order. */
-function pairedRows(vendors, by) {
-	const under = new Map()
-	for (const v of vendors) if (v.duplicateOf && !v.archived) under.set(v.duplicateOf, [...(under.get(v.duplicateOf) ?? []), v])
-	const rows = []
-	const seen = new Set()
-	for (const keep of vendors.filter(v => under.has(v.id)).sort(by))
-		for (const v of [keep, ...under.get(keep.id).sort(by)]) if (!seen.has(v.id)) { seen.add(v.id); rows.push(v) }
-	return rows
-}
-
 /** A vendor's second line: orders, made by a scan (5a), and the last order when it has no column. */
 const factsOf = (v, last) => [plural(v.orders, 'order'), v.createdByScan ? 'created by receipt scan' : null,
 	last && v.lastOrder ? `last ${last(v.lastOrder)}` : null].filter(Boolean).join(dot)
 
+// the server orders the list, favourites first (api/src/lib/vendorList.js)
 const SORTS = [
-	{ id: 'spend-desc', label: 'Spend ↓', by: (a, b) => b.spend - a.spend },
-	{ id: 'spend-asc', label: 'Spend ↑', by: (a, b) => a.spend - b.spend },
-	{ id: 'name-asc', label: 'Name A - Z', by: (a, b) => a.name.localeCompare(b.name) },
-	{ id: 'orders-desc', label: 'Orders ↓', by: (a, b) => b.orders - a.orders },
-	{ id: 'saved-desc', label: 'Saved ↓', by: (a, b) => b.saved - a.saved },
-	{ id: 'saved-asc', label: 'Saved ↑', by: (a, b) => a.saved - b.saved }
+	{ id: 'spend-desc', label: 'Spend ↓' },
+	{ id: 'spend-asc', label: 'Spend ↑' },
+	{ id: 'name-asc', label: 'Name A - Z' },
+	{ id: 'orders-desc', label: 'Orders ↓' },
+	{ id: 'saved-desc', label: 'Saved ↓' },
+	{ id: 'saved-asc', label: 'Saved ↑' }
 ]
 
 /** Vendors (5a): find a vendor and open it, or create one. Favourites are kept at the top. */
 export default function Vendors() {
 	const touch = useShellShape() === 'touch'
 	const toast = useToast()
-	const vendors = useApi(getVendors)
-	const settings = useApi(getSettings).data
+	const settingsRead = useApi(getSettings)
+	const settings = settingsRead.data
 	const step = settings?.pageSize ?? 10
 	// the order Settings names, until the address names another
 	const opening = SORTS.find(s => s.id === settings?.listSort) ?? SORTS[0]
@@ -84,7 +73,12 @@ export default function Vendors() {
 	const folded = !cards && width > 0 && width <= FOLD
 	// a page of rows per Load more, kept for Back along with the scroll
 	const { pages, setPages, restored } = useListMemory(`vendors?${query}&${sort.id}&${archived}&${alike}`)
-	useEffect(() => { if (vendors.data) restored() }, [vendors.data])
+	const request = { query, sort: sort.id, archived: archived ? 'yes' : '', flag: alike ? LOOKALIKES : '' }
+	const vendors = useApi(getVendorPages, [request, step, pages], { enabled: Boolean(settings || settingsRead.error) })
+	useEffect(() => { if ((vendors.data || vendors.error) && !vendors.loading) restored() }, [vendors.data, vendors.error, vendors.loading, restored])
+	// an empty list with nothing typed asks whether any vendor exists at all, archived or not
+	const empty = vendors.data?.matched === 0 && !query && !archived && !alike
+	const any = useApi(getVendorPage, [{ archived: 'all', pageSize: 1 }], { enabled: empty })
 
 	const write = (q, sortId, view = archived, flag = alike) => {
 		const next = {}
@@ -95,13 +89,9 @@ export default function Vendors() {
 		setParams(next, { replace: true })
 	}
 
-	const all = vendors.data ?? []
-	const order = (a, b) => (b.favourite - a.favourite) || sort.by(a, b)
-	const paired = alike ? pairedRows(all, order) : null
-	const rows = (paired ?? all.filter(v => v.archived === archived).sort(order)).filter(v => vendorTextMatch(v, query).matches)
-	const shown = rows.slice(0, pages * step)
-	const nameOf = id => all.find(v => v.id === id)?.name
-	const refocus = useRefocus(vendors.data, '.sp-table [aria-haspopup="menu"]', '.sp-controls input, .sp-controls a')
+	const shown = vendors.data?.vendors ?? []
+	const matched = vendors.data?.matched ?? 0
+	const refocus = useRefocus(vendors.data?.vendors, '.sp-table [aria-haspopup="menu"]', '.sp-controls input, .sp-controls a')
 
 	const remove = () => {
 		setBusy(true)
@@ -166,13 +156,13 @@ export default function Vendors() {
 		: null
 	// in the look-alike view a probable duplicate leads with the vendor it is like: it is why the row is here
 	const likeNote = v => (alike && v.duplicateOf
-		? <><span className="sp-ink-warning">possible duplicate of {nameOf(v.duplicateOf)}</span>{dot}</>
+		? <><span className="sp-ink-warning">possible duplicate of {v.duplicateName}</span>{dot}</>
 		: null)
 
 	let body
 	if (!vendors.data && vendors.error) body = <Failed what="Your vendors" error={vendors.error} onRetry={vendors.refresh} />
 	else if (!vendors.data) body = <VendorsLoading cards={cards} size={step} folded={folded} spend={sort.id.startsWith('spend') ? sort.label : 'Spend'} />
-	else if (archived && !vendors.data.some(v => v.archived)) body = (
+	else if (archived && !matched && !query) body = (
 		<Card>
 			<Empty>
 				<EmptyTitle>No archived vendors</EmptyTitle>
@@ -181,7 +171,8 @@ export default function Vendors() {
 			</Empty>
 		</Card>
 	)
-	else if (!vendors.data.length) body = (
+	else if (empty && !any.data) body = <VendorsLoading cards={cards} size={step} folded={folded} spend={sort.id.startsWith('spend') ? sort.label : 'Spend'} />
+	else if (empty && !any.data.matched) body = (
 		<Card>
 			<Empty>
 				<EmptyTitle>No vendors yet</EmptyTitle>
@@ -190,7 +181,16 @@ export default function Vendors() {
 			</Empty>
 		</Card>
 	)
-	else if (alike && !paired.length) body = (
+	else if (empty) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No active vendors</EmptyTitle>
+				<EmptyBody>Every vendor is archived.</EmptyBody>
+				<Button variant="outline" size="small" onClick={() => write(query, sort.id, true)}>Show archived vendors</Button>
+			</Empty>
+		</Card>
+	)
+	else if (alike && !matched && !query) body = (
 		<Card>
 			<Empty>
 				<EmptyTitle>No vendors look like duplicates</EmptyTitle>
@@ -199,7 +199,7 @@ export default function Vendors() {
 			</Empty>
 		</Card>
 	)
-	else if (!rows.length) body = (
+	else if (!matched) body = (
 		<Card>
 			<Empty>
 				<EmptyTitle>No vendor matches "{query}"</EmptyTitle>
@@ -221,13 +221,13 @@ export default function Vendors() {
 					</div>
 				</Card>
 			))}
-			<ListMore loose shown={shown.length} total={rows.length} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
+			<ListMore loose shown={shown.length} total={matched} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
 		</>
 	)
 	else body = (
-		<List data={shown} total={rows.length} onLoadMore={() => setPages(pages + 1)} recordKey={v => v.id} noun="vendors" pageSize={step}
+		<List data={shown} total={matched} onLoadMore={() => setPages(pages + 1)} recordKey={v => v.id} noun="vendors" pageSize={step}
 			rowTo={v => `/vendors/${v.id}/edit`} locale={NUMBER_LOCALE}>
-			<Caption><strong className="sp-data">{plural(rows.length, 'vendor')}</strong></Caption>
+			<Caption><strong className="sp-data">{plural(matched, 'vendor')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">Vendor</ListCell>
 				{folded ? null : <ListCell width="date">Last order</ListCell>}
@@ -257,7 +257,7 @@ export default function Vendors() {
 							onToggle={() => { setPicking(null); setMenuFor(menuFor === v.id ? null : v.id) }}
 							onClose={() => { setMenuFor(null); setPicking(null) }}
 							panel={picking === v.id
-								? box => <MergePicker kind="vendor" source={v} options={all} anchor={box} onClose={() => setPicking(null)}
+								? box => <MergePicker kind="vendor" source={v} anchor={box} onClose={() => setPicking(null)}
 									onPick={target => { setPicking(null); setMerging({ source: v, target }) }} />
 								: null}>
 							<MenuItem icon="external-link" to={`/orders?vendor=${v.id}`}>Open in the order list</MenuItem>
@@ -291,7 +291,7 @@ export default function Vendors() {
 				)
 				: null}
 			{merging
-				? <MergeDialog kind="vendor" source={merging.source} initial={merging.target} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				? <MergeDialog kind="vendor" source={merging.source} initial={merging.target} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)

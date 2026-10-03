@@ -186,22 +186,13 @@ async function previewThumbnail(imageUrl) {
 	return `data:${processed.thumbnailContentType};base64,${processed.thumbnail.toString('base64')}`
 }
 
-/* What the Bookmarks category filter lists: how many bookmarks of one view (open, or archived)
-   carry each category, and how many carry none. */
-const selectViewCategoryLinks = db.prepare(`SELECT bc.category_id AS categoryId FROM bookmark_categories bc
-	JOIN bookmarks b ON b.id = bc.bookmark_id WHERE b.user_id = ? AND b.archived = ?`)
+/* How many bookmarks of one view (open, or archived) carry no category: the Bookmarks filter's
+   "Without category". The categories they do carry are a page of /api/categories?bookmarks=. */
 const countViewUncategorised = db.prepare(`SELECT COUNT(*) AS c FROM bookmarks b WHERE b.user_id = ? AND b.archived = ?
 	AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)`)
 
 router.get('/categories', (req, res) => {
-	const archived = req.query.archived === 'yes' ? 1 : 0
-	const counts = new Map()
-	for (const { categoryId } of selectViewCategoryLinks.all(req.user.id, archived))
-		counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1)
-	res.json({
-		categories: [...counts].map(([id, bookmarks]) => ({ id, bookmarks })),
-		without: countViewUncategorised.get(req.user.id, archived).c
-	})
+	res.json({ without: countViewUncategorised.get(req.user.id, req.query.archived === 'yes' ? 1 : 0).c })
 })
 
 router.get('/preview', async (req, res) => {

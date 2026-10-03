@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Card, CardFooter } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
@@ -8,6 +8,9 @@ import { Well } from '../components/Well.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { dot, plural } from '../api/format.js'
+import { useApi } from '../api/useApi.js'
+import { getKnownCategoryNames } from '../api/client.js'
+import { MoreMatches, usePickList } from '../app/pickList.jsx'
 import {
 	DATE_LABELS, DATE_SHAPES, FIELDS, NONE, REQUIRED, dateFormatsOf, decimalOf, fieldsFor, unknownCategories
 } from '../api/orderImport.js'
@@ -30,7 +33,8 @@ export function ImportFooter({ children }) {
 	return <CardFooter><div className="st-wrap st-foot">{children}</div></CardFooter>
 }
 
-/** The facts the mapping decides, worked out from the file: what each check found and what is still missing. */
+/** The facts the mapping decides, worked out from the file: what each check found and what is still missing.
+    `categories` are the file's category names the account has, or null until that is known. */
 export function readMapping(rows, mapping, categories) {
 	const body = rows.slice(1)
 	const columns = mapping[mapping.shape]
@@ -39,21 +43,25 @@ export function readMapping(rows, mapping, categories) {
 	const dateFormats = at('date') >= 0 ? dateFormatsOf(dateValues) : []
 	const dateFormat = mapping.dateFormat && (dateFormats.includes(mapping.dateFormat) || mapping.dateChosen) ? mapping.dateFormat : dateFormats[0] ?? null
 	const amountColumns = ['price', 'total', 'shipping', 'quantity'].map(at).filter(i => i >= 0)
-	const unknown = unknownCategories(body, at('category'), categories ?? [])
+	const unknown = categories === null ? [] : unknownCategories(body, at('category'), categories)
 	const unresolved = unknown.filter(u => !(u.value in (mapping.categories ?? {})))
 	const missing = REQUIRED[mapping.shape].filter(id => at(id) < 0)
 	return {
 		body, columns, dateFormats, dateFormat, unknown, unresolved, missing,
 		decimal: decimalOf(body, amountColumns),
 		mapped: columns.filter(c => c !== NONE).length,
-		ready: !missing.length && Boolean(dateFormat) && !unresolved.length
+		ready: !missing.length && Boolean(dateFormat) && !unresolved.length && categories !== null
 	}
 }
 
 /** Step 2 of 11b: which column is which, checked against the file's own rows. */
-export function MapStep({ box, file, rows, mapping, onChange, categories, onReplace, onPreview }) {
+export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPreview }) {
 	const matchRef = useRef(null)
-	const facts = readMapping(rows, mapping, categories)
+	// the category names the file holds, and which of them the account has already
+	const categoryAt = mapping[mapping.shape].indexOf('category')
+	const named = categoryAt < 0 ? [] : [...new Set(rows.slice(1).map(r => String(r[categoryAt] ?? '').trim()).filter(Boolean))]
+	const known = useApi(getKnownCategoryNames, [named], { enabled: named.length > 0 })
+	const facts = readMapping(rows, mapping, !named.length ? [] : known.data ? known.data.map(name => ({ name })) : null)
 	const { body, columns } = facts
 	const header = rows[0]
 	const shape = mapping.shape
@@ -205,14 +213,8 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 									<span className={'sp-title sp-truncate st-match-name' + (open ? ' sp-ink-warning' : '')}>{u.value}</span>
 									<span className={'sp-meta sp-nowrap' + (open ? ' sp-ink-warning' : '')}>{plural(u.rows, 'row')}</span>
 									<span className="st-push" />
-									<Combobox variant="sort-end" aria-label={`Category for ${u.value}`}
-										value={open ? 'Pick, or create it' : chosen === '' ? 'No category' : chosen === u.value ? `Create ${u.value}` : chosen}>
-										<ComboboxOption create selected={chosen === u.value} onSelect={() => onChange({ categories: { ...mapping.categories, [u.value]: u.value } })}>{`Create ${u.value}`}</ComboboxOption>
-										{(categories ?? []).map(c => (
-											<ComboboxOption key={c.id} selected={chosen === c.name} onSelect={() => onChange({ categories: { ...mapping.categories, [u.value]: c.name } })}>{c.name}</ComboboxOption>
-										))}
-										<ComboboxOption selected={chosen === ''} onSelect={() => onChange({ categories: { ...mapping.categories, [u.value]: '' } })}>No category</ComboboxOption>
-									</Combobox>
+									<CategoryChoice value={u.value} chosen={chosen} open={open}
+										onPick={name => onChange({ categories: { ...mapping.categories, [u.value]: name } })} />
 									</div>
 								</ListItem>
 							)
@@ -228,5 +230,25 @@ export function MapStep({ box, file, rows, mapping, onChange, categories, onRepl
 				<Button disabled={!facts.ready} onClick={() => onPreview(facts)}>Preview</Button>
 			</ImportFooter>
 		</Card>
+	)
+}
+
+/** What one unknown category of the file becomes: a new category, one the account has, or none. The
+    account's categories come a page at a time; past a page the choice is searched. */
+function CategoryChoice({ value, chosen, open, onPick }) {
+	const [find, setFind] = useState('')
+	const page = usePickList('category', find, {})
+	const searched = Boolean(find.trim()) || (page.total ?? 0) > (page.rows?.length ?? 0)
+	return (
+		<Combobox variant="sort-end" aria-label={`Category for ${value}`}
+			value={open ? 'Pick, or create it' : chosen === '' ? 'No category' : chosen === value ? `Create ${value}` : chosen}
+			{...(searched ? { searchable: true, search: find, onSearch: setFind, noun: 'categories' } : {})}>
+			<ComboboxOption create selected={chosen === value} onSelect={() => onPick(value)}>{`Create ${value}`}</ComboboxOption>
+			{(page.rows ?? []).map(c => (
+				<ComboboxOption key={c.id} selected={chosen === c.name} onSelect={() => onPick(c.name)}>{c.name}</ComboboxOption>
+			))}
+			<MoreMatches rows={page.rows} matched={page.matched} noun="categories" />
+			<ComboboxOption selected={chosen === ''} onSelect={() => onPick('')}>No category</ComboboxOption>
+		</Combobox>
 	)
 }

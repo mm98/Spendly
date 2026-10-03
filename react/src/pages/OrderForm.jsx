@@ -25,14 +25,15 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getCategories, getOrder, getOrderLimits, getOrders, getScanPages, getSettings, getVendors,
-	invalidateOrderData, onOrderSavedElsewhere, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorByAnyName, vendorTextMatch
+	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
+	getVendorPage, invalidateOrderData, onOrderSavedElsewhere, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, quantity, shortDate, today
 } from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
-import { OverLimitDot, useOverLimitIds } from '../app/orderRow.jsx'
+import { OverLimitDot } from '../app/orderRow.jsx'
+import { MoreMatches, usePickList } from '../app/pickList.jsx'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses } from '../app/statuses.js'
@@ -126,7 +127,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const toast = useToast()
 	const listAddress = useListReturn('orders')
 	const touch = useShellShape() === 'touch'
-	const vendors = useApi(getVendors)
 	const latest = useApi(getOrders, [{ pageSize: 20 }])
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
@@ -402,8 +402,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	/* ---- the vendor ---- */
 
-	const suggest = (vendor, current) => {
-		const defaults = vendorByAnyName(vendors.data ?? [], vendor)?.defaultCategories ?? []
+	// `known` is the vendor the name files under, or null for a name no vendor has yet
+	const suggest = (known, vendor, current) => {
+		const defaults = known?.defaultCategories ?? []
 		const kept = current.filter(c => !suggested?.names.includes(c))
 		const missing = defaults.filter(c => !kept.includes(c))
 		setSuggested(!kept.length && defaults.length ? { vendor, names: defaults, said: true } : null)
@@ -412,33 +413,37 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	}
 	// a new order's vendor fills empty categories with its defaults or offers them, and another vendor
 	// takes back only what the last one filled in; a saved order is never refilled (5l)
-	const pickVendor = name => {
-		const vendor = vendorByAnyName(vendors.data ?? [], name)?.name ?? name.trim()
-		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(vendor, draft.categories) } : {}) })
+	const pickVendor = async name => {
+		const known = await resolveVendor(name)
+		const vendor = known?.name ?? name.trim()
+		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(known, vendor, draft.categories) } : {}) })
 	}
 	// a vendor just set up from this receipt comes back chosen (Vendors 5b)
 	const returned = here.state?.pickedVendor
 	// a receipt or a link that names the vendor is the first vendor choice
 	const seeded = useRef(false)
 	useEffect(() => {
-		if (seeded.current || !creating || !vendors.data || origin.copy) return
-		if (returned) { seeded.current = true; return pickVendor(returned) }
+		if (seeded.current || !creating || origin.copy) return
+		if (returned) { seeded.current = true; pickVendor(returned); return }
 		if (back) { seeded.current = true; return }
 		if (!draft.vendor) return
 		seeded.current = true
-		const categories = suggest(draft.vendor, draft.categories)
-		// filled in before the reader did anything, so it is where the form starts, not a change
-		setStart(s => ({ ...s, categories }))
-		set({ categories })
-	}, [vendors.data])
+		resolveVendor(draft.vendor).then(known => {
+			const categories = suggest(known, draft.vendor, draft.categories)
+			// filled in before the reader did anything, so it is where the form starts, not a change
+			setStart(s => ({ ...s, categories }))
+			set({ categories })
+		})
+	}, [])
 	// how many of the vendor's latest orders carry every category offered, newest first (5l)
-	const offeredFrom = offer ? vendorByAnyName(vendors.data ?? [], offer.vendor)?.id : null
+	// a receipt's vendor no vendor files under yet can be set up first (5b)
+	const scannedVendor = useApi(getVendorPage, [{ name: draft.vendor, pageSize: 1 }], { enabled: Boolean(scan && creating && draft.vendor) })
+	const offeredFrom = useApi(getVendorPage, [{ name: offer?.vendor, pageSize: 1 }], { enabled: Boolean(offer) }).data?.vendors[0]?.id ?? null
 	const history = useApi(getOrders, [{ vendorId: offeredFrom ?? '', pageSize: 50 }], { enabled: Boolean(offeredFrom) })
 	const carrying = offer && history.data ? (at => (at < 0 ? history.data.orders.length : at))(history.data.orders
 		.findIndex(o => !offer.names.every(n => o.categories.some(c => c.name.toLowerCase() === n.toLowerCase())))) : 0
 	// a category over its monthly limit carries its dot wherever it is named (8b)
-	const over = useOverLimitIds()
-	const overNames = (useApi(getCategories, []).data ?? []).filter(c => over.has(c.id)).map(c => c.name.toLowerCase())
+	const overNames = (useApi(getOverLimitCategories).data ?? []).map(c => c.name.toLowerCase())
 	const trails = Object.fromEntries(draft.categories.filter(n => overNames.includes(n.toLowerCase())).map(n => [n, <OverLimitDot key={n} />]))
 	const setCategories = categories => {
 		setSuggested(s => (s ? { ...s, names: s.names.filter(c => categories.includes(c)), said: false } : s))
@@ -945,9 +950,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const fields = (
 		<>
 			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
-				<VendorPicker vendors={(vendors.data ?? []).filter(v => !v.archived)} recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
+				<VendorPicker recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
 			</Field>
-			{scan && creating && vendors.data && draft.vendor && !vendorByAnyName(vendors.data, draft.vendor)
+			{scan && creating && draft.vendor && scannedVendor.data && !scannedVendor.loading && !scannedVendor.data.matched
 				? <NewVendorFromScan onSetUp={setUpVendor} />
 				: null}
 			<div className="sp-fields">
@@ -1515,18 +1520,27 @@ const bolded = (name, typed) => {
 	return <>{name.slice(0, at)}<b>{name.slice(at, at + typed.length)}</b>{name.slice(at + typed.length)}</>
 }
 
+/** The vendor a name files under, as the server matches it, or null. */
+const resolveVendor = name => getVendorPage({ name, pageSize: 1 }).then(r => r.vendors[0] ?? null, () => null)
+
 /** Vendors as you type their name or an alias, in Favourites, Recent and the rest (c5, 14a); a
-    name that is none of them becomes a new one. `quiet` keeps the list shut while it is held. */
-function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
+    name that is none of them becomes a new one. The server finds them and the list holds its first
+    page. `quiet` keeps the list shut while it is held. */
+function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const typed = query.trim()
-	const found = vendors.map(v => ({ v, hit: vendorTextMatch(v, typed) })).filter(x => x.hit.matches)
+	const page = usePickList('vendor', typed, { sort: 'name-asc' })
+	const found = (page.rows ?? []).map(v => ({ v, hit: vendorTextMatch(v, typed) }))
 	const favourites = found.filter(x => x.v.favourite)
-	const recents = recent.map(name => found.find(x => x.v.name === name && !x.v.favourite)).filter(Boolean)
-	const others = found.filter(x => !favourites.includes(x) && !recents.includes(x)).sort((a, b) => a.v.name.localeCompare(b.v.name))
+	// a recent vendor past the page is still offered by its name
+	const recents = recent.map(name => found.find(x => x.v.name === name)
+		?? (vendorTextMatch({ name }, typed).matches ? { v: { id: 'recent ' + name, name }, hit: { alias: null } } : null))
+		.filter(x => x && !x.v.favourite)
+	const others = found.filter(x => !favourites.includes(x) && !recents.some(r => r.v.name === x.v.name)).sort((a, b) => a.v.name.localeCompare(b.v.name))
 	const groups = [['Favourites', favourites], ['Recent', recents], ['Other vendors', others]].filter(([, xs]) => xs.length)
-	const known = typed && vendorByAnyName(vendors, typed)
+	const exact = useApi(getVendorPage, [{ name: typed, pageSize: 1 }], { enabled: Boolean(typed) })
+	const known = typed && (exact.loading || !exact.data || exact.data.matched > 0)
 	return (
 		<Combobox searchable value={value} placeholder="Choose a vendor" open={open}
 			onOpenChange={next => {
@@ -1545,6 +1559,7 @@ function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
 					))}
 				</Fragment>
 			))}
+			<MoreMatches rows={page.rows} matched={page.matched} noun="vendors" />
 			{typed && !known
 				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption create onSelect={() => onPick(typed)}>Create "{typed}"</ComboboxOption></>
 				: null}

@@ -2,8 +2,8 @@ import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
-import { getCategories, getCurrentUser, getOrder, getOrders, getStats, getVendor, getVendors, overBudget, searchRecords, withMonthSpend } from '../api/client.js'
-import { cachedFetch, forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
+import { getCurrentUser, getOrder, getOrders, getOverLimitCategories, getStats, getVendor, getVendorPage, searchRecords } from '../api/client.js'
+import { forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
 import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
 import { MAC } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
@@ -45,9 +45,15 @@ const vendorRow = v => ({
 const rowsOf = (list, answers, touch) => list.flatMap((r, i) => (answers[i] == null ? []
 	: [r.kind === 'order' ? orderRow(answers[i], touch) : vendorRow(answers[i])]))
 
+// the vendors of Jump back in, by id, archived ones too
+const recentVendors = list => {
+	const ids = list.filter(r => r.kind === 'vendor').map(r => r.id)
+	return { ids: ids.join(','), archived: 'all', pageSize: Math.max(1, ids.length) }
+}
+
 // what the cache already knows, painted while the server is asked; null when any is missing
 function cachedRows(list, touch) {
-	const vendors = peek(getVendors)
+	const vendors = peek(getVendorPage, [recentVendors(list)])?.vendors
 	const answers = list.map(r => (r.kind === 'order' ? peek(getOrder, [r.id]) : vendors?.find(v => v.id === r.id)))
 	return answers.every(Boolean) ? rowsOf(list, answers, touch) : null
 }
@@ -65,7 +71,8 @@ function useRecentRows(touch) {
 		const list = readRecent(user)
 		if (!list.length) return
 		const controller = new AbortController()
-		const vendors = list.some(r => r.kind === 'vendor') ? freshFetch(getVendors, [], controller.signal) : Promise.resolve([])
+		const vendors = list.some(r => r.kind === 'vendor')
+			? freshFetch(getVendorPage, [recentVendors(list)], controller.signal).then(page => page.vendors) : Promise.resolve([])
 		vendors.then(all => Promise.allSettled(list.map(r => (r.kind === 'order'
 			? freshFetch(getOrder, [r.id], controller.signal)
 			: Promise.resolve(all.find(v => v.id === r.id) ?? Promise.reject({ gone: true }))))))
@@ -145,9 +152,13 @@ function useSearch(needle, touch) {
 		const timer = setTimeout(() => {
 			Promise.all([
 				getOrders({ query: needle, pageSize: SHOWN }, controller.signal),
-				searchRecords(needle, controller.signal),
-				cachedFetch(getVendors)
-			]).then(
+				searchRecords(needle, controller.signal)
+			]).then(([list, hits]) => {
+				// the figures of the vendors shown, and whether each looks like another
+				const ids = hits.vendors.slice(0, SHOWN).map(v => v.id)
+				return (ids.length ? getVendorPage({ ids: ids.join(','), archived: 'all', with: 'duplicates', pageSize: ids.length }, controller.signal)
+					: Promise.resolve({ vendors: [] })).then(page => [list, hits, page.vendors])
+			}).then(
 				([list, hits, vendors]) => setFound(shape(needle, list, hits, vendors, touch)),
 				error => { if (error.name !== 'AbortError') setFound({ needle, failed: true }) }
 			)
@@ -192,9 +203,8 @@ const actionsFor = (theme, onShortcuts, overLimit, drafts, scan) => [
 /* The month's orders in every category over its limit, as Home's notice opens them. */
 function useOverLimit() {
 	const month = useApi(getStats, ['month', undefined, undefined]).data?.window
-	const categories = useApi(getCategories).data
-	if (!month || !categories) return null
-	const over = withMonthSpend(categories, month.split).filter(overBudget)
+	const over = useApi(getOverLimitCategories).data
+	if (!month || !over) return null
 	return over.length ? `/orders?category=${over.map(c => c.id).join(',')}&from=${month.from}&to=${month.to}` : null
 }
 
