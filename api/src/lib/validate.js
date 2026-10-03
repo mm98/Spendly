@@ -54,11 +54,13 @@ export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_S
 	if (draft.discount != null && (!Number.isFinite(Number(draft.discount)) || Number(draft.discount) < 0))
 		errors.discount = 'Discount must be a non-negative amount.'
 
+	// a Draft keeps what was read or typed so far (16a): no line yet, or one with no name, waits for later
+	const drafting = String(draft.status ?? '').toLowerCase() === 'draft'
 	const items = Array.isArray(draft.items) ? draft.items : []
-	if (!items.length) errors.items = 'An order needs at least one item.'
+	if (!items.length && !drafting) errors.items = 'An order needs at least one item.'
 	items.forEach((item, i) => {
 		const title = String(item.title ?? '').trim()
-		if (!title) errors[`items.${i}.title`] = 'Describe the item.'
+		if (!title && !drafting) errors[`items.${i}.title`] = 'Describe the item.'
 		else if (title.length > 120) errors[`items.${i}.title`] = '120 characters at most.'
 
 		/* Rounded and compared back, not `quantity * 100` tested for wholeness: 1.1 * 100 is
@@ -84,6 +86,22 @@ export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_S
 	})
 
 	return errors
+}
+
+/** A Draft's lines as the order table stores them: a quantity not given yet is 1 and a price not
+    given yet is 0, until the reader fills them in. Any other status is left as it came. */
+export function fillDraftGaps(draft) {
+	if (String(draft.status ?? '').toLowerCase() !== 'draft' || !Array.isArray(draft.items)) return draft
+	const given = value => value !== null && value !== '' && value !== undefined && Number.isFinite(Number(value))
+	return {
+		...draft,
+		items: draft.items.map(item => ({
+			...item,
+			title: String(item.title ?? ''),
+			quantity: given(item.quantity) && Number(item.quantity) > 0 ? item.quantity : 1,
+			price: given(item.price) ? item.price : 0
+		}))
+	}
 }
 
 export function assertValidOrderDraft(draft, today, statuses) {

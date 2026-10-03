@@ -14,6 +14,7 @@ import { pageCount, pageImage } from '../lib/filePages.js'
 import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
 import { MAX_UPLOAD_MB } from '../lib/constants.js'
+import { createOrderRecord } from './orders.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
@@ -94,8 +95,8 @@ const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND use
 // Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
 // size, kind, thumbnail) plus the cached read, in one row -- the draft handler either has an
 // AI read already or is about to go make one, and both branches want the same row.
-const selectUploadForRead = db.prepare(`SELECT id, name, size, kind, content_type, data, data_is_compressed,
-	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM scan_uploads WHERE id = ? AND user_id = ?`)
+const selectUploadForRead = db.prepare(`SELECT id, user_id, name, size, kind, content_type, data, data_is_compressed,
+	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages, draft_order_id FROM scan_uploads WHERE id = ? AND user_id = ?`)
 const saveAiRead = db.prepare('UPDATE scan_uploads SET ai_read_json = @json WHERE id = @id AND user_id = @userId')
 const selectVendorName = db.prepare('SELECT name FROM vendors WHERE id = ? AND user_id = ?')
 /* A possible duplicate: the same vendor, within two weeks either side of the read date -- close
@@ -195,6 +196,8 @@ router.delete('/documents/:key', (req, res) => {
 router.get('/draft/:key', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
+	// the reader is here to see the reading, so it is theirs to save, not a draft's to become
+	clearLeave.run(upload.id, req.user.id)
 
 	/* ?progress=stream answers in NDJSON: `{ progress: { found, lines } }` lines while the file is
 	   read (3a step 2), then `{ draft }`, the same object the plain answer is. */
@@ -203,18 +206,103 @@ router.get('/draft/:key', async (req, res) => {
 		res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
 		res.flushHeaders()
 	}
-	const hadCachedRead = upload.ai_read_json != null
-	const { read, failure } = hadCachedRead
-		? { read: JSON.parse(upload.ai_read_json), failure: null }
-		: await parseReceipt(upload, req.today, progress => { if (streaming) res.write(JSON.stringify({ progress }) + '\n') })
-	// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
-	if (!hadCachedRead && !failure && read?.lines.length) {
-		saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
-		if (upload.sha256) keepReading.run(req.user.id, upload.sha256, JSON.stringify(read))
+	const drafted = draftedOrder(upload)
+	if (drafted) {
+		// left while it was read, and already a Draft order: that order is the answer
+		const answer = { documentKey: upload.id, draftOrderId: drafted }
+		return streaming ? res.end(JSON.stringify({ draft: answer }) + '\n') : res.json(answer)
 	}
+	const { read, failure } = upload.ai_read_json != null
+		? { read: JSON.parse(upload.ai_read_json), failure: null }
+		: await readOnce(req.user.id, upload, req.today, progress => { if (streaming && !res.writableEnded) res.write(JSON.stringify({ progress }) + '\n') }, res)
 	const draft = draftOf(req, upload, read, failure)
 	if (streaming) res.end(JSON.stringify({ draft }) + '\n')
 	else res.json(draft)
+})
+
+/* ---- a reading the reader left (6e, 3a step 2): it finishes, and becomes a Draft order ---- */
+
+const clearLeave = db.prepare('UPDATE scan_uploads SET leave_as_draft = 0 WHERE id = ? AND user_id = ?')
+const setLeave = db.prepare('UPDATE scan_uploads SET leave_as_draft = 1 WHERE id = ? AND user_id = ?')
+const selectLeave = db.prepare('SELECT leave_as_draft, draft_order_id FROM scan_uploads WHERE id = ?')
+const claimDraft = db.prepare('UPDATE scan_uploads SET draft_order_id = ?, leave_as_draft = 0 WHERE id = ? AND draft_order_id IS NULL AND leave_as_draft = 1')
+const selectOrderOf = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
+const draftedOrder = upload => (upload.draft_order_id && selectOrderOf.get(upload.draft_order_id, upload.user_id) ? upload.draft_order_id : null)
+
+/* One reading per upload at a time, however many ask: a reload during a reading waits for the same
+   one, and each asker hears its progress. `res` is an asker still waiting for the answer; once
+   none is, a reading the reader left becomes a draft when it ends. */
+const readings = new Map()
+function readOnce(userId, upload, today, onProgress, res) {
+	let reading = readings.get(upload.id)
+	if (!reading) {
+		const listeners = new Set()
+		const waiting = new Set()
+		const promise = parseReceipt(upload, today, progress => { for (const fn of listeners) fn(progress) })
+			.then(result => {
+				// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
+				if (!result.failure && result.read?.lines.length) {
+					saveAiRead.run({ id: upload.id, userId, json: JSON.stringify(result.read) })
+					if (upload.sha256) keepReading.run(userId, upload.sha256, JSON.stringify(result.read))
+				}
+				return result
+			})
+		reading = { promise, listeners, waiting }
+		readings.set(upload.id, reading)
+		const own = reading
+		promise.then(result => { if (!own.waiting.size) draftIfLeft(userId, upload, result, today) })
+			.catch(error => console.error('Receipt read failed:', error.message))
+			.finally(() => readings.delete(upload.id))
+	}
+	if (onProgress) reading.listeners.add(onProgress)
+	if (res) {
+		const own = reading
+		own.waiting.add(res)
+		res.on('close', () => { own.waiting.delete(res); if (onProgress) own.listeners.delete(onProgress) })
+	}
+	return reading.promise
+}
+
+/** Files what was read as a Draft order with the receipt on it, once, if the reader left. A
+    reading that found no vendor files it under "Unknown vendor", for the reader to change. */
+function draftIfLeft(userId, upload, { read, failure }, today) {
+	const flag = selectLeave.get(upload.id)
+	if (!flag?.leave_as_draft || flag.draft_order_id) return null
+	const found = draftOf({ user: { id: userId }, today }, upload, read, failure)
+	const body = {
+		vendor: String(found.vendor || 'Unknown vendor').trim().slice(0, 80), date: found.date, status: 'Draft', kind: found.kind,
+		shipping: Number(found.shipping) || 0, discount: Number(found.discount) || 0, reference: found.reference ?? '', note: '',
+		categories: [],
+		items: found.lines.map(l => ({ title: String(l.title ?? '').trim().slice(0, 120), quantity: l.quantity, price: l.price }))
+	}
+	try {
+		return createOrderRecord(userId, body, today, id => {
+			if (!claimDraft.run(id, upload.id).changes) throw Object.assign(new Error('Already drafted'), { drafted: true })
+			const attachment = newId('a')
+			copyUploadToAttachment.run({ id: attachment, orderId: id, itemId: null, name: null,
+				meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, fromScan: 1, uploadId: upload.id, userId })
+			copyUploadPages.run({ id: attachment, uploadId: upload.id })
+		})
+	} catch (error) {
+		if (!error.drafted) console.error('A reading left by its reader was not filed as a draft:', error.message)
+		return null
+	}
+}
+
+/** The reader left while the file was read: when the reading ends it becomes a Draft order. */
+router.post('/documents/:key/leave', (req, res) => {
+	const upload = selectUploadForRead.get(req.params.key, req.user.id)
+	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
+	const drafted = draftedOrder(upload)
+	if (drafted) return res.json({ key: upload.id, orderId: drafted })
+	setLeave.run(upload.id, req.user.id)
+	const reading = readings.get(upload.id)
+	// still being read, for no one now: it is filed when it ends; read already: filed now
+	if (reading) return res.json({ key: upload.id, orderId: null })
+	if (upload.ai_read_json != null)
+		return res.json({ key: upload.id, orderId: draftIfLeft(req.user.id, upload, { read: JSON.parse(upload.ai_read_json), failure: null }, req.today) })
+	if (process.env.ANTHROPIC_API_KEY) readOnce(req.user.id, upload, req.today)
+	res.json({ key: upload.id, orderId: null })
 })
 
 /** The review form's starting values, or the blank draft when nothing was read. `failure` says why
@@ -321,8 +409,8 @@ function draftOf(req, upload, read, failure) {
     on answering a later re-upload of the same bytes -- including one after this very order gets
     deleted -- until the row's own expires_at retires it (scheduleUploadCleanup above). */
 const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
-	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
-	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, from_scan)
+	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, @fromScan
 	FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
 const copyUploadPages = db.prepare(`INSERT INTO attachment_pages (attachment_id, page, image, content_type)
 	SELECT @id, page, image, content_type FROM scan_upload_pages WHERE upload_id = @uploadId`)
@@ -343,7 +431,7 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	db.transaction(() => {
 		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId,
 			name, meta: `${req.query.as === 'file' ? 'Added' : 'Scanned'} today${sep}${fileSizeLabel(upload.size)}`,
-			uploadId: upload.id, userId: req.user.id })
+			fromScan: req.query.as === 'file' ? 0 : 1, uploadId: upload.id, userId: req.user.id })
 		copyUploadPages.run({ id, uploadId: upload.id })
 	})()
 	res.json({ ...getDecoratedOrder(req.user.id, order.id), attached: id })

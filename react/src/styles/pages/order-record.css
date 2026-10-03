@@ -33,7 +33,7 @@
 	.or-receipt > img { display: block; max-width: 100%; max-height: 420px; object-fit: contain; }
 
 	/* the categories as chips once one is over its limit, set to the value's right edge as its text is */
-	.or-chips { justify-content: flex-end; }
+	.or-chips { justify-content: flex-end; font-weight: 400; }
 
 	/* a notice about the whole order, above both columns (3a: the saved state's notice) */
 	.or-span { grid-column: 1 / -1; }

@@ -8,13 +8,13 @@ import { ORDER_STATUSES } from './constants.js'
    time, that every reader here shares. Nothing in this file recomputes subtotal/total/saved in
    JS. Every query below selects only the columns its caller actually reads, not `SELECT *`. */
 
-const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()} FROM orders WHERE id = ? AND user_id = ?`)
+const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()}, revision FROM orders WHERE id = ? AND user_id = ?`)
 const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note FROM order_items WHERE order_id = ? ORDER BY position')
 const selectAttachments = db.prepare(`
-	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages FROM attachments WHERE order_id = ?
+	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages, from_scan FROM attachments WHERE order_id = ?
 `)
 const selectItemAttachments = db.prepare(`
-	SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages
+	SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages, a.from_scan
 	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
 	WHERE oi.order_id = ?
 `)
@@ -41,7 +41,7 @@ const selectOrderStatuses = db.prepare('SELECT status, date FROM order_statuses 
 // sha256 lets the edit form tell the same file added twice (17b); pages is null until counted
 const mapAttachment = a => ({
 	id: a.id, name: a.name, kind: a.kind, meta: a.meta, hasThumbnail: Boolean(a.has_thumbnail),
-	sha256: a.sha256 ?? null, pages: a.pages ?? null
+	sha256: a.sha256 ?? null, pages: a.pages ?? null, fromScan: Boolean(a.from_scan)
 })
 
 const mapItem = (i, itemAttachments) => ({
@@ -81,7 +81,9 @@ export function decorateOrder(totals, { items, attachments, itemAttachments, cat
 		subtotal: totals.subtotal,
 		total: totals.total,
 		saved: totals.saved,
-		savedPercent: totals.saved_percent
+		savedPercent: totals.saved_percent,
+		// raised by every change, so the edit form can tell a save made from an older copy (6d)
+		...(totals.revision != null ? { revision: totals.revision } : {})
 	}
 }
 

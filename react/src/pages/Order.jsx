@@ -76,7 +76,9 @@ function Created({ order, created, onGone }) {
 	return (
 		<div className="or-span">
 			<Alert color="success" mark={<Icon name="check" size={12} />}
-				title={created.file ? `Order created from ${created.file}.` : 'Order created.'}
+				title={created.draft
+					? (created.file ? `Saved as a draft from ${created.file}.` : 'Saved as a draft.')
+					: (created.file ? `Order created from ${created.file}.` : 'Order created.')}
 				action={created.documentKey
 					// after a scan the next receipt is one click away (16a: open the order or scan another)
 					? (

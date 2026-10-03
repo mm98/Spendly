@@ -14,9 +14,9 @@ import { DateField } from '../components/DatePickers.jsx'
 import { Check } from '../components/Choice.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { MAX_FILE_MB, PHOTO_TYPES, Slot, fileProblem } from '../components/FileDrop.jsx'
+import { PHOTO_TYPES, Slot, fileProblem } from '../components/FileDrop.jsx'
 import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
-import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, Toast, useToast } from '../components/Overlays.jsx'
 import { Empty, Spinner, useFocusTrap } from '../components/Utilities.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
@@ -24,9 +24,8 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, createOrder,
-	failureMessage, getOrderLimits, getOrders, getScanPages, getSettings, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
-	removeItemAttachment, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
+	attachmentFileUrl, attachmentThumbnailUrl, failureMessage, getOrder, getOrderLimits, getOrders, getScanPages, getSettings, getVendors,
+	onOrderSavedElsewhere, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, today
@@ -40,12 +39,14 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
 import { useLeaveGuard } from './vendorsCategories.jsx'
+import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Nothing reaches the server until Save or Create writes the order, then its files. */
 
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
 
+/** What blocks a save. Every one of these blocks a Draft too: it is what the order is filed by. */
 const orderErrors = d => {
 	const e = {}
 	if (!d.vendor.trim()) e.vendor = 'A vendor is required. Pick one or create it here.'
@@ -114,8 +115,9 @@ const takeAway = address => {
 }
 
 /** `origin` is `{ copy: { id, vendor, date } }` or `{ scan: answer }`; `region` draws the split
-    itself, for a route whose body is not already the split. */
-export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave }) {
+    itself, for a route whose body is not already the split. `revision` is the saved order's, the
+    copy this form edits (6d). */
+export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const listAddress = useListReturn('orders')
@@ -128,19 +130,31 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const address = here.pathname + here.search
 	const [back] = useState(() => (creating ? takeAway(address) : null))
 
-	const [draft, setDraft] = useState(() => back?.draft ?? { ...seed, lines: undefined })
+	// a change that waited for the connection and found the order changed meanwhile, brought back to choose (6d)
+	const [stuck] = useState(() => (creating ? null : stuckSaveFor(orderId)))
+	const mine = stuck?.plan.form ?? null
+	const [draft, setDraft] = useState(() => back?.draft ?? (mine ? { ...mine.draft, lines: undefined } : { ...seed, lines: undefined }))
 	// the categories a vendor filled in, so another vendor takes back only those (5l); and the
 	// defaults offered as an add when the field already had some
 	const [suggested, setSuggested] = useState(back?.suggested ?? null)
 	const [offer, setOffer] = useState(null)
 	// the order was deleted elsewhere, in the sentence that says so: nothing here can be saved any more
 	const [lost, setLost] = useState(null)
-	const [lines, setLines] = useState(back?.lines ?? seed.lines)
+	const [lines, setLines] = useState(back?.lines ?? mine?.lines ?? seed.lines)
 	const [editing, setEditing] = useState(() => (back ? back.editing : creating && !seed.lines.length && !scan ? newEditing() : null))
 	const [tried, setTried] = useState(false)
 	const [saving, setSaving] = useState(false)
 	const [files, setFiles] = useState(back?.files ?? [])
 	const [gone, setGone] = useState([])
+	// the files the saved order holds, as this form last read them
+	const [saved, setSaved] = useState(savedFiles)
+	// the copy of the order this form edits, and another copy saved since, until the reader picks one (6d)
+	const base = useRef(revision)
+	const [conflict, setConflict] = useState(() => (mine ? { where: 'waited', fromSave: false } : null))
+	// a save that found no connection and waits to be sent (6d), and the form as it was then
+	const [waiting, setWaiting] = useState(null)
+	// a new order whose save went through while the form stayed open: later saves change it
+	const [createdAs, setCreatedAs] = useState(null)
 	const [folded, setFolded] = useFolded(creating ? 'order-new' : 'order-edit', 'details', true)
 	const [reordering, setReordering] = useState(false)
 	const [carried, setCarried] = useState(null)
@@ -167,6 +181,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const statuses = useStatuses()
 
 	const set = patch => setDraft(d => ({ ...d, ...patch }))
+	// a Draft keeps its lines as they are so far (16a): none yet, or one not filled in, waits for later
+	const relaxed = draft.status === 'Draft' || tried === 'draft'
 	const errors = orderErrors(draft)
 	const shown = tried ? errors : {}
 	const included = lines.filter(l => l.include !== false)
@@ -373,23 +389,51 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		patchFile(record.key, { sending: true, sent: 0, failed: null })
 		send(record)
 	}
-	const dropFile = file => setFiles(fs => {
-		if (file.thumb) URL.revokeObjectURL(file.thumb)
-		sends.current.delete(file.key)
-		return fs.filter(f => f.key !== file.key)
-	})
+	/* Removing a file only drops it from what the save files, so Undo always works (17a): one the
+	   reader added goes at once with a toast, one a scan brought confirms first, since it is
+	   evidence they cannot take again. A tile that only holds a refusal just goes. */
+	const [removing, setRemoving] = useState(null)
+	const dropped = useRef([])
+	const dropFile = file => {
+		setFiles(fs => fs.filter(f => f.key !== file.key))
+		if (file.problem || file.failed) {
+			if (file.thumb) URL.revokeObjectURL(file.thumb)
+			sends.current.delete(file.key)
+			return
+		}
+		dropped.current.push(file)
+		const at = files.findIndex(f => f.key === file.key)
+		toast({ message: `${file.name} removed.`, undo: { label: 'Undo', onClick: () => setFiles(fs => [...fs.slice(0, at), file, ...fs.slice(at)]) } })
+	}
+	const removeSaved = file => {
+		if (file.fromScan) return setRemoving({ file })
+		setGone(g => [...g, file.id])
+		toast({ message: `${file.name} removed.`, undo: { label: 'Undo', onClick: () => setGone(g => g.filter(id => id !== file.id)) } })
+	}
+	// a line's photo, while its line is open or after: the patch lands on whichever holds the line
+	const patchLine = (key, patch) => {
+		setEditing(e => (e?.key === key ? { ...e, values: { ...e.values, ...patch } } : e))
+		setLines(ls => ls.map(l => (l.key === key ? { ...l, ...patch } : l)))
+	}
+	const removePhoto = (key, values) => {
+		const before = { newPhoto: values.newPhoto ?? null, dropPhoto: Boolean(values.dropPhoto), photoProblem: values.photoProblem ?? null }
+		const without = { newPhoto: null, dropPhoto: Boolean(values.photo), photoProblem: null }
+		if (!values.newPhoto && values.photo?.fromScan) return setRemoving({ photo: { key, name: values.title, without } })
+		patchLine(key, without)
+		toast({ message: `The photo of ${values.title || 'the line'} removed.`, undo: { label: 'Undo', onClick: () => patchLine(key, before) } })
+	}
 	// the same bytes already on the order or added just before, or one with the same name and size:
 	// warned on its tile, never refused, since two photos of one thing are fine (17b)
 	const twinOf = f => {
 		const hash = f.upload?.sha256
-		if (hash && savedFiles.some(s => !gone.includes(s.id) && s.sha256 === hash)) return true
+		if (hash && saved.some(s => !gone.includes(s.id) && s.sha256 === hash)) return true
 		const earlier = files.slice(0, files.indexOf(f))
 		return earlier.some(o => !o.problem && ((hash && o.upload?.sha256 === hash) || (o.file.name === f.file.name && o.file.size === f.file.size)))
 	}
 	const keptAway = useRef(false)
 	useEffect(() => () => {
 		if (keptAway.current) return
-		for (const f of staged.current) if (f.thumb) URL.revokeObjectURL(f.thumb)
+		for (const f of [...staged.current, ...dropped.current]) if (f.thumb) URL.revokeObjectURL(f.thumb)
 	}, [])
 	// everything typed and added goes with the reader to set up the vendor, and comes back with them
 	const setUpVendor = () => {
@@ -449,14 +493,41 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		else navigate(creating ? '/orders/new' : lost ? listAddress : `/orders/${orderId}`)
 	}
 
-	const save = async () => {
-		setTried(true)
+	// what a waiting save is measured against: the form as it was when the save was asked for
+	const now = useRef(null)
+	now.current = { draft, lines, files, gone }
+	const snapshot = () => JSON.stringify({ draft: now.current.draft, lines: now.current.lines, files: now.current.files.map(f => f.key), gone: now.current.gone })
+	const creatingNow = creating && !createdAs
+
+	/** The save as a plan `writeOrder` carries out, now or once the connection returns. */
+	const planOf = (target, kept, asDraft) => ({
+		key: newSaveKey(), creating: creatingNow, orderId: createdAs ?? orderId, revision: creatingNow ? null : base.current,
+		body: apiDraft(target, kept),
+		scan: scan && creatingNow ? { documentKey: scan.documentKey, vendor: scan.vendor } : null,
+		gone,
+		photos: kept.map((l, index) => ({
+			index, name: l.newPhoto?.file.name ?? null, file: l.newPhoto?.file ?? null, sent: l.newPhoto?.sent ?? null,
+			oldId: l.photo?.id ?? null, oldName: l.photo?.name ?? null, drop: Boolean(l.dropPhoto)
+		})),
+		files: files.map(f => ({
+			name: f.name, problem: f.problem ?? null, file: f.file, upload: f.upload ?? null,
+			sending: f.upload ? null : sends.current.get(f.key) ?? null
+		})),
+		label: target.vendor.trim(), asDraft,
+		// what reopens the form if the save, sent later, finds the order changed meanwhile
+		form: { orderId: createdAs ?? orderId, draft: { ...target, lines: undefined }, lines: kept.map(({ newPhoto, ...l }) => l) }
+	})
+
+	const save = async ({ asDraft = false } = {}) => {
+		const target = asDraft ? { ...draft, status: 'Draft' } : draft
+		const loose = target.status === 'Draft'
+		setTried(asDraft ? 'draft' : 'save')
 		let current = lines
 		const untouched = editing?.isNew && !editing.values.title.trim() && editing.values.price == null && !editing.values.newPhoto
 		reopen.current = null
 		if (untouched) setEditing(null)
 		else if (editing) {
-			if (Object.keys(lineErrors(editing.values)).length) {
+			if (!loose && Object.keys(lineErrors(editing.values)).length) {
 				setEditing(e => ({ ...e, tried: true }))
 				return focusFirst('.sp-line-editor')
 			}
@@ -466,101 +537,151 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			setLines(current)
 			setEditing(null)
 		}
-		if (Object.keys(errors).length) {
+		if (Object.keys(orderErrors(target)).length) {
 			setFolded(false, { keep: false })
 			return focusFirst('[data-details]', quietVendor)
 		}
 		const kept = current.filter(l => l.include !== false)
-		const broken = kept.find(l => Object.keys(lineErrors(l)).length)
-		if (broken) {
-			setEditing({ key: broken.key, isNew: false, values: { ...broken }, tried: true })
-			return focusFirst('.sp-line-editor')
+		if (!loose) {
+			const broken = kept.find(l => Object.keys(lineErrors(l)).length)
+			if (broken) {
+				setEditing({ key: broken.key, isNew: false, values: { ...broken }, tried: true })
+				return focusFirst('.sp-line-editor')
+			}
+			if (!kept.length) return focusFirst('[data-add]')
 		}
-		if (!kept.length) return focusFirst('[data-add]')
-
+		const plan = planOf(target, kept, asDraft)
+		// saving again while an earlier save waits sends this one in its place
+		if (waiting) dropSave(waiting.plan.key)
+		setWaiting(null)
 		setSaving(true)
-		let order
-		try {
-			const body = apiDraft(draft, kept)
-			order = creating ? await createOrder(body) : await updateOrder(orderId, body)
-		} catch (e) {
-			setSaving(false)
-			// a deleted order stays deleted: say so where it stays in view, and offer no second try
-			if (e.gone && !creating) { setLost(e.message); return }
-			const said = failureMessage(e, 'The order was not saved. Try again.')
-			if (said) toast({ message: said, color: 'danger' })
+		const outcome = await writeOrder(plan)
+		setSaving(false)
+		settle(plan, outcome)
+	}
+
+	const offline = () => ({
+		title: navigator.onLine === false ? 'Could not save - you are offline' : 'Could not save - the connection failed',
+		message: 'Your changes are kept and will be sent when the connection returns.',
+		color: 'danger',
+		undo: { label: 'Retry now', onClick: retryNow }
+	})
+	// Retry now that still finds no connection says so again; one that works answers through settle
+	const retryNow = () => flushOutbox().then(() => { if (waitingSaves().some(w => w.state === 'waiting' && owned.current === w.key)) toast(offline()) })
+	const owned = useRef(null)
+
+	/** Where one save ends: on the saved order, or still here with what stopped it. */
+	const settle = (plan, outcome) => {
+		if (outcome.kind === 'offline') {
+			queueSave(plan)
+			owned.current = plan.key
+			setWaiting({ plan, at: snapshot() })
+			toast(offline())
 			return
 		}
-		// the files follow one at a time, each kept or missed on its own (17b); a refusal's own
-		// sentence says why, and one without (no connection) is worth trying again
-		const missed = []
-		const reasons = new Set()
-		let retry = false
-		const refused = (name, e) => {
-			missed.push(name)
-			const said = e && failureMessage(e, '')
-			if (said) reasons.add(said)
-			else if (!e?.signedOut) retry = true
-			return null
+		owned.current = null
+		setWaiting(null)
+		if (outcome.kind === 'conflict') return setConflict({ theirs: outcome.theirs, where: 'elsewhere', fromSave: true })
+		if (outcome.kind === 'gone') return setLost(outcome.message)
+		if (outcome.kind === 'refused') return outcome.message ? toast({ message: outcome.message, color: 'danger' }) : undefined
+		landed(plan, outcome)
+	}
+	const settleNow = useRef(settle)
+	settleNow.current = settle
+
+	const landed = (plan, { order, lapse }) => {
+		base.current = order.revision ?? null
+		// the form changed while its save waited: what was sent is saved, and the rest stays here to save
+		if (waiting?.plan.key === plan.key && waiting.at !== snapshot()) {
+			if (plan.creating) setCreatedAs(order.id)
+			setStart({ ...plan.form.draft, lines: now.current.lines })
+			toast({ message: 'The changes that waited for the connection are saved. Save again for what you changed since.' })
+			return
 		}
-		let receiptMissed = false, notRemoved = 0
-		if (scan) await attachScanDocument(scan.documentKey, order.id).catch(() => { receiptMissed = true })
-		// the server keeps one file per name, so a removed one goes before its namesake arrives
-		await Promise.all(gone.map(id => removeAttachment(order.id, id).catch(() => { notRemoved++ })))
-		// a new photo is stored before the old one goes, so a failed upload leaves the old one (17a)
-		await Promise.all(kept.map(async (line, i) => {
-			const saved = order.items[i], old = line.photo
-			if (!saved) return
-			if (line.newPhoto) {
-				const file = line.newPhoto.file
-				const twin = old && sameName(old.name, file.name)
-				// the photo sent when it was chosen is filed from there; one that did not arrive is sent now
-				const upload = await line.newPhoto.sent
-				if (upload) {
-					const put = await attachScanDocument(upload.key, order.id, { as: 'file', item: saved.id, name: twin ? renamed(file).name : file.name })
-						.catch(e => refused(file.name, e))
-					if (!put) return
-				} else {
-					const sent = await addItemAttachments(order.id, saved.id, [twin ? renamed(file) : file]).catch(e => refused(file.name, e))
-					if (!sent) return
-					if (!sent.added?.length) return refused(file.name)
-				}
-				if (old) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
-			} else if (old && line.dropPhoto) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
-		}))
-		for (const f of files) {
-			if (f.problem) { missed.push(f.name); reasons.add(refusalOf(f)); continue }
-			// one still on its way is waited for; one that failed to send is missed, and can be added again
-			const upload = f.upload ?? await sends.current.get(f.key)
-			if (!upload) { refused(f.name); continue }
-			await attachScanDocument(upload.key, order.id, { as: 'file', name: f.name }).catch(e => refused(f.name, e))
-		}
-		if (scan) learnAlias(scan.vendor, order)
-		invalidateOrderData()
 		guard.release()
-		const lapses = [
-			missed.length ? `${names(missed)} ${missed.length === 1 ? 'was' : 'were'} not added` : null,
-			receiptMissed ? 'the receipt was not kept with it' : null,
-			notRemoved ? `${plural(notRemoved, 'file')} ${notRemoved === 1 ? 'was' : 'were'} not removed` : null
-		].filter(Boolean)
-		if (receiptMissed || notRemoved) retry = true
-		if (lapses.length)
-			toast({ message: [`The order was saved, but ${lapses.join(', and ')}.`, ...reasons, retry ? 'Try again from Edit order.' : null].filter(Boolean).join(' '), color: 'danger' })
-		else if (!creating) toast({ message: 'Changes saved.' })
+		if (lapse) toast({ message: lapse, color: 'danger' })
+		else if (!plan.creating) toast({ message: 'Changes saved.' })
 		// a new order lands on its saved page with the notice that can undo it (3a)
-		const created = creating
-			? { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference }
+		const created = plan.creating
+			? { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference, draft: plan.asDraft }
 			: undefined
-		navigate(`/orders/${order.id}`, { replace: creating, state: created && { created } })
+		navigate(`/orders/${order.id}`, { replace: plan.creating, state: created && { created } })
 	}
 
-	/* A receipt's vendor line that was filed under another name becomes that vendor's alias,
-	   so the next receipt with it matches on its own. */
-	const learnAlias = (read, order) => {
-		const scanned = String(read ?? '').trim()
-		if (scanned && order.vendor?.id && scanned.toLowerCase() !== order.vendor.name.toLowerCase())
-			addVendorAlias(order.vendor.id, scanned).then(invalidateVendorData).catch(() => {})
+	// the waiting save's outcome comes back here while the form is open, and to the shell once it is not
+	useEffect(() => (waiting ? ownSave(waiting.plan.key, outcome => settleNow.current(waiting.plan, outcome)) : undefined), [waiting])
+	// a waiting save shows as being sent while it is
+	useEffect(() => (waiting
+		? watchOutbox(() => setSaving(waitingSaves().some(w => w.key === waiting.plan.key && w.state === 'sending')))
+		: undefined), [waiting])
+
+	/* ---- another copy of the order (6d) ---- */
+
+	// the reader's own copy, set aside by See theirs so Undo can bring it back
+	const adopt = (theirs, said) => {
+		const seen = draftOf(theirs)
+		const kept = { draft, lines, gone, files }
+		base.current = theirs.revision ?? null
+		setStart(seen)
+		setDraft({ ...seen, lines: undefined })
+		setLines(seen.lines)
+		setGone([])
+		setFiles([])
+		setEditing(null)
+		setSaved(savedFilesOf(theirs))
+		setConflict(null)
+		if (said) toast({
+			message: said,
+			undo: { label: 'Undo', onClick: () => { setDraft(kept.draft); setLines(kept.lines); setGone(kept.gone); setFiles(kept.files) } }
+		})
 	}
+	const seeTheirs = () => {
+		if (stuck) dropSave(stuck.key)
+		if (conflict.theirs) return adopt(conflict.theirs, conflict.where === 'tab' ? 'Showing the version saved in the other tab.' : 'Showing the version saved elsewhere.')
+		// brought back from a waiting save: theirs is what the form opened on
+		setDraft({ ...start, lines: undefined })
+		setLines(start.lines)
+		setConflict(null)
+	}
+	const keepMine = () => {
+		if (stuck) dropSave(stuck.key)
+		if (conflict.theirs) base.current = conflict.theirs.revision ?? null
+		const again = conflict.fromSave
+		setConflict(null)
+		if (again) save()
+	}
+	// a save in flight or waiting is the form's own change, not another copy's
+	const busy = useRef(false)
+	busy.current = saving || Boolean(waiting)
+	const dirtyNow = useRef(dirty)
+	dirtyNow.current = dirty
+	useEffect(() => {
+		if (creating || !orderId) return
+		let asked = 0
+		const check = async where => {
+			if (busy.current) return
+			asked = Date.now()
+			const theirs = await getOrder(orderId).catch(e => { if (e.gone) setLost(e.message); return null })
+			if (!theirs || theirs.revision == null || theirs.revision === base.current || busy.current) return
+			// nothing here to keep: the form simply shows the newer copy
+			if (!dirtyNow.current) return adopt(theirs, null)
+			setConflict(c => (c?.fromSave ? { ...c, theirs } : { theirs, where: c?.where === 'tab' ? 'tab' : where, fromSave: false }))
+		}
+		const off = onOrderSavedElsewhere(news => {
+			if (!news.ids?.includes(orderId)) return
+			if (news.gone) return setLost('This order was deleted in another tab. Your changes cannot be saved.')
+			if (news.revision !== base.current) check('tab')
+		})
+		// another device says nothing, so the form asks when the reader comes back to it, at most every 10 seconds
+		const back = () => { if (document.visibilityState === 'visible' && Date.now() - asked > 10000) check('elsewhere') }
+		window.addEventListener('focus', back)
+		document.addEventListener('visibilitychange', back)
+		return () => {
+			off()
+			window.removeEventListener('focus', back)
+			document.removeEventListener('visibilitychange', back)
+		}
+	}, [orderId])
 
 	const discard = () => (scan && lines.length ? setAsking(true) : leave())
 
@@ -570,7 +691,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const receipt = scan ? receiptOf(scan.file) : null
 	const viewable = [
 		...(receipt ? [receipt] : []),
-		...savedFiles.filter(f => !gone.includes(f.id)).map(f => ({
+		...saved.filter(f => !gone.includes(f.id)).map(f => ({
 			key: f.id, name: f.name, kind: f.kind,
 			src: f.kind === 'pdf' ? f.thumb : attachmentFileUrl(orderId, f.id),
 			download: attachmentFileUrl(orderId, f.id),
@@ -595,6 +716,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				sheet={touch}
 				photoUrl={photoUrl}
 				sendPhoto={sendPhoto}
+				onRemovePhoto={values => removePhoto(editing.key, values)}
 				onChange={values => setEditing(e => ({ ...e, values }))}
 				onCommit={() => commit(false)}
 				onCommitNext={() => commit(true)}
@@ -607,7 +729,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const photo = line.newPhoto?.url ?? (line.dropPhoto ? null : photoUrl(line))
 		// a phone's row is itself the button that opens the line, so its photo cannot be another
 		const mark = <LinePhoto src={photo} name={line.title} onOpen={photo && !touch ? () => open(`line:${line.key}`) : undefined} />
-		const warn = line.uncertain || (tried && Object.keys(lineErrors(line)).length)
+		const warn = line.uncertain || (tried && !relaxed && Object.keys(lineErrors(line)).length)
 		const named = line.title || 'the unnamed line'
 		// a line as the receipt gave it says how well it was read (3a); once checked it reads as any line
 		const asRead = scan && !touch && !line.checked && scan.lines.some(r => r.id === line.key)
@@ -672,7 +794,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		)
 	}
 
-	const brokenCount = tried ? lines.filter(l => l.include !== false && Object.keys(lineErrors(l)).length).length : 0
+	const brokenCount = tried && !relaxed ? lines.filter(l => l.include !== false && Object.keys(lineErrors(l)).length).length : 0
 	const itemsHead = (
 		<div className="sp-row-flex sp-wrap sp-gap-8">
 			<span className="sp-section-label">{scan ? 'Lines found' : 'Items'}{dot}{lines.length}</span>
@@ -737,7 +859,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		</Card>
 	)
 
-	const shownFiles = savedFiles.filter(f => !gone.includes(f.id))
+	const shownFiles = saved.filter(f => !gone.includes(f.id))
 	// before the save the receipt is an upload, not an attachment (3a): shown to read the lines against
 	const receiptPages = receipt?.pages > 1 ? `${receipt.pages} pages` : null
 	const attachmentsCard = scan
@@ -772,7 +894,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				<Strip>
 					{shownFiles.map(f => (
 						<AttachmentTile key={f.id} name={f.name} kind={f.kind} thumb={f.thumb} bare={touch}
-							onOpen={() => open(f.id)} onRemove={() => setGone(g => [...g, f.id])} />
+							onOpen={() => open(f.id)} onRemove={() => removeSaved(f)} />
 					))}
 					{files.map(f => (
 						<AttachmentTile key={f.key} name={f.name} kind={f.kind} bare={touch}
@@ -933,14 +1055,18 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const leaveWord = creating ? 'Discard' : 'Cancel'
 	const commitWord = saving ? 'Saving…' : crossed.length ? (creating ? 'Create anyway' : 'Save anyway') : creating ? 'Create' : 'Save'
 	const leaveButton = <Button key="leave" variant="outline" onClick={discard}>{leaveWord}</Button>
-	const commitButton = lost ? null : <Button key="save" disabled={saving} onClick={save}>{commitWord}</Button>
-	const state = lost ? 'Not saved' : dirty ? 'Unsaved changes' : creating ? 'Nothing saved yet' : null
+	const commitButton = lost ? null : <Button key="save" disabled={saving} onClick={() => save()}>{commitWord}</Button>
+	const state = lost ? 'Not saved' : waiting ? 'Waiting for the connection' : dirty ? 'Unsaved changes' : creatingNow ? 'Nothing saved yet' : null
 	const totalsCard = (
 		<Card
 			// once the split folds the commits move to the bar that stays in view (1d)
 			footer={stacked || touch ? [] : [leaveButton, commitButton]}
 			footerLayout="split"
 			footerCommits
+			// a scan's proposal can be kept as it is, file and all, and checked later (16a)
+			after={scan && creatingNow && !lost
+				? <Button variant="outline" size="small" fullWidth disabled={saving} onClick={() => save({ asDraft: true })}>Save as draft</Button>
+				: undefined}
 		>
 			{scan ? <span className="sp-section-label">Totals</span> : null}
 			{touch ? null : limitNotice}
@@ -977,7 +1103,20 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		</ListItem>
 	)
 
-	const lostNotice = lost ? <Alert color="danger" mark="!">{lost}</Alert> : null
+	const lostNotice = lost
+		? <Alert color="danger" mark="!">{lost}</Alert>
+		: conflict
+			? (
+				<Toast asks mark="!" title={conflict.where === 'tab' ? 'This order changed in another tab' : 'This order was changed somewhere else'}
+					actions={<>
+						<Button variant="outline" size="small" onClick={seeTheirs}>See theirs</Button>
+						<Button size="small" color="warning" onClick={keepMine}>Keep mine</Button>
+					</>}>
+					{conflict.theirs ? changedThere(start, draftOf(conflict.theirs), statuses) : 'It was changed while your change waited for the connection.'}
+					{' '}{onlyLines(start, draft, lines) ? 'Your line edits are safe.' : 'Your changes are safe.'}
+				</Toast>
+			)
+			: null
 
 	const notice = notices({ origin, scan, lines, leave, touch })
 
@@ -1012,6 +1151,28 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const read = scan ? lines.filter(l => scan.lines.some(r => r.id === l.key)).length : 0
 	const typed = lines.length - read
 	const lineWord = n => plural(n, 'line')
+	const confirmRemoval = removing
+		? (
+			<Dialog onCancel={() => setRemoving(null)} aria-label={removing.file ? 'Remove the scanned receipt?' : 'Remove the scanned photo?'}>
+				<div className="sp-stack sp-gap-12">
+					<DialogTitle>{removing.file ? 'Remove the scanned receipt?' : 'Remove the scanned photo?'}</DialogTitle>
+					<DialogBody>
+						{removing.file
+							? `${removing.file.name} came from a scan. It is the proof of this order, and it cannot be taken again. It is removed when you save.`
+							: `The photo of ${removing.photo.name || 'this line'} came from a scan, and it cannot be taken again. It is removed when you save.`}
+					</DialogBody>
+					<DialogActions>
+						<Button variant="outline" fullWidth onClick={() => setRemoving(null)}>Keep it</Button>
+						<Button color="danger" fullWidth onClick={() => {
+							if (removing.file) setGone(g => [...g, removing.file.id])
+							else patchLine(removing.photo.key, removing.photo.without)
+							setRemoving(null)
+						}}>{removing.file ? 'Remove receipt' : 'Remove photo'}</Button>
+					</DialogActions>
+				</div>
+			</Dialog>
+		)
+		: null
 	const dialog = asking
 		? (
 			<Dialog onCancel={() => setAsking(false)} aria-label="Discard this scan?">
@@ -1033,14 +1194,14 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{lostNotice}{notice}{itemsCard}{attachmentsCard}{detailsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{viewer}{guard.prompt}
+			{lostNotice}{notice}{itemsCard}{attachmentsCard}{detailsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{confirmRemoval}{viewer}{guard.prompt}
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
 	const main = stacked
-		? <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}{detailsCard}{totalsCard}{stickyBar}{dialog}{viewer}{guard.prompt}</div>
+		? <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}{detailsCard}{totalsCard}{stickyBar}{dialog}{confirmRemoval}{viewer}{guard.prompt}</div>
 		: <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}</div>
-	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}{dialog}{viewer}{guard.prompt}</Panel>
+	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}{dialog}{confirmRemoval}{viewer}{guard.prompt}</Panel>
 	if (!region) return <>{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }
@@ -1058,14 +1219,11 @@ const focusFirst = (selector, quiet) => requestAnimationFrame(() => {
 	box?.scrollIntoView?.({ block: 'nearest' })
 })
 
-// the server's own words for the two refusals, for a file the form refused before sending it
-const refusalOf = f => (f.problem === 'Too large' ? `A file is too large. Each file can be up to ${MAX_FILE_MB} MB.` : `The file "${f.name}" is not an image or a PDF.`)
-
-const sameName = (a, b) => a.toLowerCase() === b.toLowerCase()
-// the server keeps one file per name on a line, so a replacement with the old one's name is sent under another
-const renamed = file => new File([file], file.name.replace(/(\.[^.]*)?$/, ' (2)$1'), { type: file.type })
-/** "a.pdf", "a.pdf and b.jpg", "a.pdf, b.jpg and c.png" */
-const names = list => (list.length < 2 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list.at(-1)}`)
+/** The saved order's own files as the form shows them. */
+export const savedFilesOf = order => order.attachments.map(a => ({
+	id: a.id, name: a.name, kind: a.kind, pages: a.pages, sha256: a.sha256, fromScan: Boolean(a.fromScan),
+	thumb: a.hasThumbnail ? attachmentThumbnailUrl(order.id, a.id) : null
+}))
 
 /** Whether the order's split has folded into one column (components.css folds it at 900). */
 function useStacked(ref) {
@@ -1101,6 +1259,28 @@ const UNCLEAR_LINE = {
 const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${dot}no photo`)
 
 const detailsLine = d => [d.categories.join(', '), d.kind, d.reference].filter(Boolean).join(dot)
+
+const lineShape = l => JSON.stringify([l.title, Number(l.quantity), l.price, l.retail ?? null])
+const FIELD_WORDS = {
+	vendor: 'the vendor', date: 'the date', kind: 'the kind', categories: 'the categories', shipping: 'the shipping fee',
+	discount: 'the discount', reference: 'the reference', note: 'the note'
+}
+/** What another copy of the order changed, against the one this form opened on (6d). */
+function changedThere(was, now, statuses) {
+	const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+	const fields = Object.keys(FIELD_WORDS).filter(k => !same(was[k], now[k]))
+	const status = was.status !== now.status
+	const lines = !same(was.lines.map(lineShape), now.lines.map(lineShape))
+	if (status && !fields.length && !lines)
+		return `The status was set to ${statuses.find(st => st.key === now.status)?.name ?? now.status} there.`
+	const parts = [status ? 'the status' : null, ...fields.map(k => FIELD_WORDS[k]), lines ? 'the lines' : null].filter(Boolean)
+	if (!parts.length) return 'It was saved again there.'
+	const said = names(parts)
+	return `${said.charAt(0).toUpperCase()}${said.slice(1)} ${parts.length === 1 && parts[0] !== 'the lines' && parts[0] !== 'the categories' ? 'was' : 'were'} changed there.`
+}
+/** Whether the reader's own changes are to the lines alone. */
+const onlyLines = (was, draft, lines) => JSON.stringify({ ...was, lines: undefined }) === JSON.stringify({ ...draft, lines: undefined })
+	&& JSON.stringify(was.lines.map(lineShape)) !== JSON.stringify(lines.map(lineShape))
 
 function Include({ line, setLines }) {
 	return (
@@ -1146,7 +1326,7 @@ function notices({ origin, scan, lines, leave, touch }) {
 }
 
 /** The line being edited or added (1b), in place on a desktop and in a sheet on a phone. */
-function LineForm({ editing, sheet, photoUrl, sendPhoto, onChange, onCommit, onCommitNext, onCancel }) {
+function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
 	const v = editing.values
 	const errors = editing.tried ? lineErrors(v) : {}
 	const set = patch => onChange({ ...v, ...patch })
@@ -1188,7 +1368,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, onChange, onCommit, onC
 					busy={sending === 'busy'}
 					onRetry={sending === 'failed' ? () => set({ newPhoto: { ...v.newPhoto, sent: sendPhoto(v.newPhoto.file) } }) : undefined}
 					onFile={take}
-					onRemove={() => set({ newPhoto: null, dropPhoto: Boolean(v.photo), photoProblem: null })}
+					onRemove={() => onRemovePhoto(v)}
 				/>
 			}
 			onCommit={onCommit}

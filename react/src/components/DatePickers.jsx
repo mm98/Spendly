@@ -831,7 +831,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 					? (
 						<div className="sp-range__quick" role="group" aria-label="Days worth one click">
 							{dayShortcuts({ min, max, unavailable }).map(q => (
-								<Chip variant="pill" key={q.label}
+								<Chip key={q.label}
 									onClick={() => (q.pick ? (onChange?.(q.pick), close({ toTrigger: true })) : openTo(q.show))}>{q.label}</Chip>
 							))}
 						</div>

@@ -315,13 +315,17 @@ export function DialogActions({ children, ...rest }) {
 
 const TOAST_COLOR = { default: null, danger: 'danger' }
 
-export function Toast({ icon, color = 'default', compact = false, asks = false, children, ...rest }) {
+/** `title` makes the message its second line (6d: "Could not save - you are offline"). An `asks`
+    toast is a section notice that stays until answered: `mark` stands where the icon would, and
+    `actions` are its answers (6d: "This order changed in another tab"). */
+export function Toast({ icon, mark, title, color = 'default', compact = false, asks = false, actions, children, ...rest }) {
 	reject(rest, 'Toast')
 	// the way back is a child, not a prop: it is the last thing in the row, which is
 	// where it is written, and a page cannot put a plain link there by accident
 	const kids = [].concat(children ?? []).flat()
 	const undo = kids.find(c => c && typeof c === 'object' && c.type === ToastUndo)
 	const message = kids.filter(c => c !== undo)
+	if (actions && !asks) console.error('<Toast> answers belong to a toast that asks: any other toast has at most its way back')
 	return (
 		<div
 			className={join('sp-toast', compact && 'sp-toast--compact', asks && 'sp-toast--asks')}
@@ -329,17 +333,29 @@ export function Toast({ icon, color = 'default', compact = false, asks = false, 
 			{...(color === 'default' ? {} : { 'data-color': pick(TOAST_COLOR, color, 'color', 'Toast') })}
 			{...rest}
 		>
-			{icon ? <span className="sp-toast__icon"><Icon name={icon} /></span> : null}
-			<span>{message}</span>
+			{mark ? <span className="sp-step" data-color="warning" aria-hidden="true">{mark}</span>
+				: icon ? <span className="sp-toast__icon"><Icon name={icon} /></span> : null}
+			{title
+				? (
+					<>
+						<div className="sp-stack sp-gap-6">
+							<span className="sp-title">{title}</span>
+							<span className={join('sp-subtitle', asks ? 'sp-ink-warning' : 'sp-ink-inverse')}>{message}</span>
+						</div>
+						<span className="sp-grow" />
+					</>
+				)
+				: <span>{message}</span>}
+			{actions}
 			{undo}
 		</div>
 	)
 }
 
-/** The way back out of what a toast reports. */
+/** The way back out of what a toast reports, or its one way on (Retry now). */
 export function ToastUndo({ children, onClick, ...rest }) {
 	reject(rest, 'ToastUndo')
-	return <button type="button" className="sp-toast__undo" onClick={onClick} {...rest}>{children}</button>
+	return <button type="button" className="sp-toast__undo sp-nowrap" onClick={onClick} {...rest}>{children}</button>
 }
 
 const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
@@ -368,7 +384,7 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 const ToastContext = createContext(() => {})
 const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:not(.sp-btn--outline, .sp-btn--text)'
 
-/** Shows a toast: `show({ message, icon, color, undo: { label, onClick } })`. */
+/** Shows a toast: `show({ message, title, icon, color, undo: { label, onClick } })`. */
 export const useToast = () => useContext(ToastContext)
 
 export function Toaster({ children }) {
@@ -456,7 +472,7 @@ export function Toaster({ children }) {
 				onBlur={ev => { if (!region.current?.contains(ev.relatedTarget)) setFocused(false) }}>
 				{toast
 					? (
-						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}>
+						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'} title={toast.title}>
 							{toast.message}
 							{toast.undo ? <ToastUndo onClick={() => { toast.undo.onClick(); dismiss() }}>{toast.undo.label ?? 'Undo'}</ToastUndo> : null}
 						</Toast>
