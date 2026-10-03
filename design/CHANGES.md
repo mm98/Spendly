@@ -14,10 +14,17 @@ Copy these files over the brief 4 package. Nothing else changed.
 - **Vendors and categories:** "a glyph from a fixed set" now reads "any icon from the Tabler outline library, picked in c7".
 - **Icon legend:** the register rule covers the interface's icons; a category's icon is the one exception.
 
+- **New order (sidebar row, rail +, phone FAB)** opens New order step 1, Order create 3a: scan a receipt, an empty order, or a copy. Actions inventory 16a said "opens a blank order in edit"; it now matches 3a and the shell notes.
+
+- **Scan receipt** (the sidebar's green row, the rail's capture tile) opens the file picker at once; the chosen file goes to 3a step 2, reading, skipping step 1. Cancelling the picker stays on the current page. Unsaved changes prompt only once a file is chosen. No Scan receipt on a phone; the New order FAB opens step 1. Written in 16a, 3a and 9a.
+
 ## Files
 
 - `Components.dc.html`
 - `Vendors and categories.dc.html`
 - `Icon legend.dc.html`
+- `Actions inventory.dc.html`
+- `Order create.dc.html`
+- `Navigation shell.dc.html`
 
 `styles/check.js` reports the same 84 known findings.
