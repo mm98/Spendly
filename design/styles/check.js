@@ -566,6 +566,20 @@
       if (isCardBody && cls.includes('sp-truncate')) fail('a card body does not truncate', p, m[1] + ' clips prose');
     }
 
+    // a region inside a page body that already has its inset takes the layout variant
+    // alone: a second sp-shell__body adds the page's 16 inset twice
+    for (const m of s.matchAll(/<div class="([^"]*\b(?:os-body|sp-shell__body)\b[^"]*)"/g)) {
+      if (!/(^|\s)(os-body|sp-shell__body)(\s|$)/.test(m[1])) continue;
+      let depth = 0, i = m.index, end = -1;
+      while (i < s.length) {
+        const o = s.indexOf('<div', i + 1), c = s.indexOf('</div>', i + 1);
+        if (c < 0) break;
+        if (o > -1 && o < c) { depth++; i = o; } else { if (!depth) { end = c; break; } depth--; i = c; }
+      }
+      const inner = s.slice(m.index + m[0].length, end);
+      if (/<div class="sp-shell__body(\s|")/.test(inner)) fail('a body is not nested in a body', p, m[1]);
+    }
+
     // a select-all box names its scope (c1): "Select all 25 orders on this page", never "Select all" alone
     for (const m of s.matchAll(/aria-label="(Select all[^"]*)"/g)) {
       if (!/\d/.test(m[1])) fail('a select-all box names its scope', p, m[1]);
@@ -577,7 +591,12 @@
       if (/sav(ed|ing)/i.test(t) && /%/.test(t)) fail('a saving is never a percentage', p, `"${t}"`);
       if (/^saved\b/.test(t)) fail('a saving reads "Saved"', p, `"${t}"`);
     }
-    if (/vs retail|compared to retail/i.test(s)) fail('a saving never says "vs retail"', p, 'phrase present');
+    if (/vs retail|compared to retail|of retail/i.test(s)) fail('a saving never says "vs retail"', p, 'phrase present');
+    // a card headed Saved states amounts only: its figure and every pill under it
+    for (const m of s.matchAll(/<span class="sp-section-label">Saved<\/span>([\s\S]*?)(?=<span class="sp-section-label"|<div class="sp-card|<\/section>)/g)) {
+      for (const q of m[1].matchAll(/>([^<]*%[^<]*)</g)) fail('a saving is never a percentage', p, `Saved card shows "${q[1].trim()}"`);
+      if (/sp-stat__figure(?![^"]*sp-ink-success)/.test(m[1].split('</div>')[0])) fail('a saving is green', p, 'Saved figure is not sp-ink-success');
+    }
     for (const m of s.matchAll(/<span ([^>]*)>\s*(Saved [\d.,]+ kr\.)/g)) {
       const zero = /Saved 0,00/.test(m[2]);
       const green = /data-color="success"|stat__delta|sp-ink-success/.test(m[1]);

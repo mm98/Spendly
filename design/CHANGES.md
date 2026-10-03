@@ -62,6 +62,15 @@ The design is the source of truth. A rule the design does not hold is removed fr
 - Not allowed: any rule that changes a component's size, spacing, colour or type. Each one goes into the full appendix for a decision.
 - The toast region rules in that group are replaced by the B2 answer.
 
+## Later on 3 October
+
+- **Order statistics 4a, outer spacing.** The Spend by month region carried `sp-shell__body` inside `.os-body`, so the page inset was applied twice. It is `sp-shell__body--split` alone now. `check.js` asserts "a body is not nested in a body".
+- **4a stat cards, what a bar is.** Each header ends with the step: "Total spend · by month". The step follows the toolbar's period: by day for 30 days, by week for Quarter, by month for Year; a custom period takes the smallest that gives 12 bars or fewer. The dark bar is the step holding today.
+- **4a stat cards, bar readout.** Hovering a spark bar shows `.sp-tip--panel` with the head only (step and value) and the order count beneath; no category rows, no drill-in. Page rule `.os-spark-tip` places the drawn specimen.
+- **`.sp-bars--spark` is 56px tall**, was 34px.
+- **Saved card shows amounts.** "+25.450 kr. vs 112.960 kr." replaces "22,1% of retail value"; the drilled Saved figure is green. `check.js` catches a percentage on a card headed Saved, and "of retail".
+- **Select-all names.** All 17 boxes state their count; c1 names the ticked state "Clear the N selected orders".
+
 ## Files
 
 - `styles/components.css` - the two variants and their touch rules.

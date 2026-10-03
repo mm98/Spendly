@@ -68,7 +68,7 @@
 
       <div class="os-stats">
           <div class="sp-card">
-            <span class="sp-section-label">Total spend</span>
+            <span class="sp-section-label">Total spend · by month</span>
             <span class="sp-stat__figure">486.320 kr.</span>
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-pill" data-color="danger">+18,4%</span>
@@ -82,11 +82,16 @@
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="80"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
-              <span class="sp-bars__bar" data-h="100"></span>
+              <span class="sp-bars__bar os-col" data-h="100">
+                <span class="sp-tip sp-tip--panel os-spark-tip">
+                  <span class="sp-tip__head"><span>August 2026</span><span>61.480 kr.</span></span>
+                  <span class="sp-meta">18 orders</span>
+                </span>
+              </span>
             </div>
           </div>
           <div class="sp-card">
-            <span class="sp-section-label">Orders</span>
+            <span class="sp-section-label">Orders · by month</span>
             <span class="sp-stat__figure">248</span>
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-pill" data-color="success">+31</span>
@@ -104,7 +109,7 @@
             </div>
           </div>
           <div class="sp-card">
-            <span class="sp-section-label">Average order</span>
+            <span class="sp-section-label">Average order · by month</span>
             <span class="sp-stat__figure">1.961 kr.</span>
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-pill" data-state="progress">+3,6%</span>
@@ -122,11 +127,11 @@
             </div>
           </div>
           <div class="sp-card">
-            <span class="sp-section-label">Saved</span>
+            <span class="sp-section-label">Saved · by month</span>
             <span class="sp-stat__figure sp-ink-success">138.410 kr.</span>
             <div class="sp-row-flex sp-gap-8">
-              <span class="sp-pill" data-color="success">22,1%</span>
-              <span class="sp-meta">of retail value</span>
+              <span class="sp-pill" data-color="success">+25.450 kr.</span>
+              <span class="sp-meta">vs 112.960 kr.</span>
             </div>
             <div class="sp-bars sp-bars--spark" role="img" aria-label="Saved over the last eight months">
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="35"></span>
@@ -141,7 +146,7 @@
           </div>
       </div>
 
-      <div class="sp-shell__body sp-shell__body--split">
+      <div class="sp-shell__body--split">
         <div class="sp-card">
           <div class="sp-row-flex sp-gap-12">
             <span class="sp-section-label">Spend by month</span>
@@ -626,6 +631,12 @@
       </div>
     </div>
   </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short.</div>
+    <div class="doc-note"><b>Hovering a bar shows its readout</b>, the same <code>.sp-tip--panel</code> as Spend by month without the category rows: the step and its value in the head, the step's order count beneath. The bars are not buttons and do not drill in; the chart below does that for the same steps, and keyboard and screen-reader users read the figures there.</div>
+    <div class="doc-note"><b>Saved compares amounts, like the other three.</b> The pill is the change in kroner against the previous period, the meta line that period's saving. Never a percentage.</div>
+  </div>
 </section>
 
 <section class="doc-section">
@@ -702,7 +713,7 @@
         </div>
         <div class="sp-card">
           <span class="sp-section-label">Saved</span>
-          <span class="sp-stat__figure">41.220 kr.</span>
+          <span class="sp-stat__figure sp-ink-success">41.220 kr.</span>
         </div>
       </div>
 

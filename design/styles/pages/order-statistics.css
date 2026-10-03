@@ -14,6 +14,8 @@
   /* the chosen step's readout hangs beside its column, inside the plot */
   .os-tip { position: absolute; right: 100%; bottom: 96px; margin-right: var(--sp-12); z-index: 3; }
   .os-col { position: relative; }
+  /* a stat's bar readout hangs above the bar it describes, its right edge on the bar's */
+  .os-spark-tip { position: absolute; right: 0; bottom: calc(100% + var(--sp-6)); z-index: 3; }
   /* an expanded breakdown scrolls inside its card rather than growing the page */
   .os-scroll { max-height: 322px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-10); padding-right: var(--sp-4); }
   /* the signed chart: positives above the axis, the one negative hanging below it */
