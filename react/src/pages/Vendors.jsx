@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
@@ -15,7 +16,7 @@ import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import { Saving } from '../app/saving.jsx'
-import { Bar, ConfirmDelete, Failed, RowMenu, SortControl, deleteNote, isGone, sayFailure, useRefocus } from './vendorsCategories.jsx'
+import { Bar, ConfirmDelete, RowMenu, SortControl, deleteNote, isGone, sayFailure, useRefocus } from './vendorsCategories.jsx'
 
 const SORTS = [
 	{ id: 'spend-desc', label: 'Spend ↓', by: (a, b) => b.spend - a.spend },
@@ -88,7 +89,7 @@ export default function Vendors() {
 	)
 
 	let body
-	if (!vendors.data && vendors.error) body = <Failed title="Your vendors could not be loaded" error={vendors.error} onRetry={vendors.refresh} />
+	if (!vendors.data && vendors.error) body = <Failed what="Your vendors" error={vendors.error} onRetry={vendors.refresh} />
 	else if (!vendors.data) body = <VendorsLoading touch={touch} size={step} spend={sort.id.startsWith('spend') ? sort.label : 'Spend'} />
 	else if (!vendors.data.length) body = (
 		<Card>

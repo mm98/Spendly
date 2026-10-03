@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField, TokensField } from '../components/Inputs.jsx'
@@ -20,7 +21,7 @@ import { currency, isSaving, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
-	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, Failed, GoneNotice, RecentLoading, RecentOrders, RecordPage, SWATCHES,
+	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	SummaryLoading, deleteNote, focusFirst, hold, isGone, pickedColour, sayFailure, storedColour, useLeaveGuard
 } from './vendorsCategories.jsx'
 
@@ -35,8 +36,8 @@ export default function VendorForm() {
 	if (id && record.data?.id !== id) {
 		if (record.error) return (
 			<div className="sp-stack sp-gap-12">
-				<Failed title="This vendor could not be opened" error={record.error} onRetry={record.refresh}
-					list={{ to: list, label: 'Open Vendors' }} />
+				<Failed what="This vendor" error={record.error} onRetry={record.refresh}
+					back={{ to: list, label: 'Open Vendors' }} />
 			</div>
 		)
 		return <VendorFields key="loading" vendor={LOADING} loading loadingId={id} onGone={setGone} />

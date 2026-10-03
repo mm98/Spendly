@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Card, CardBody, Toolbar } from '../components/Card.jsx'
 import { Bars, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
 import { FILE_TYPES, FileDrop } from '../components/FileDrop.jsx'
@@ -8,14 +9,13 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Alert } from '../components/Overlays.jsx'
-import { Empty, Skeleton } from '../components/Utilities.jsx'
+
+import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrders, getStats, overBudget,
-	withMonthSpend
+	failureMessage, getCategories, getCurrentUser, getOrders, getStats, overBudget, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
@@ -128,9 +128,9 @@ function DesktopHome({ month, categories, view, recent }) {
 			<div className="hm-split sp-gap-12">
 				{month.error
 					? (
-						<Held shape={<MonthCard />}>
-							<Failed label="This month" what="This month did not load." error={month.error} retry={month.refresh} />
-						</Held>
+						<Hold shape={<MonthCard />}>
+							<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={month.refresh} />
+						</Hold>
 					)
 					: <MonthCard w={month.data?.window} view={view} limitsLost={!!categories.error} newest={newest} />}
 				<CaptureCard newest={newest} loading={recent.loading && !recent.data} />
@@ -143,9 +143,9 @@ function DesktopHome({ month, categories, view, recent }) {
 				<div className="sp-stack sp-gap-12">
 					{lost
 						? (
-							<Held shape={<CategoriesCard />}>
-								<Failed label="Categories this month" what="This month's categories did not load." error={lost} retry={retrying(month, categories)} />
-							</Held>
+							<Hold shape={<CategoriesCard />}>
+								<Failed variant="card" label="Categories this month" what="This month's categories" error={lost} onRetry={retrying(month, categories)} />
+							</Hold>
 						)
 						: <CategoriesCard view={view} />}
 					<MonthsCard />
@@ -155,33 +155,12 @@ function DesktopHome({ month, categories, view, recent }) {
 	)
 }
 
-/** Another state of a card, laid over its loading form so the card keeps its resting height. */
-function Held({ shape, children }) {
-	return (
-		<div className="hm-hold">
-			<div className="hm-ghost" aria-hidden="true">{shape}</div>
-			<div className="hm-state">{children}</div>
-		</div>
-	)
-}
-
 /** A skeleton the size of the small text button it stands in for. */
 function ButtonSkeleton({ label }) {
 	return (
-		<Held shape={<Button variant="text" size="small">{label}</Button>}>
+		<Hold shape={<Button variant="text" size="small">{label}</Button>}>
 			<span className="hm-fill"><Skeleton shape="line" data-w="44" data-h="13" /></span>
-		</Held>
-	)
-}
-
-function Failed({ label, what, error, retry }) {
-	return (
-		<Card footer={<Button variant="outline" size="small" onClick={retry} key="retry">Try again</Button>}>
-			<span className="sp-section-label">{label}</span>
-			<div className="sp-stack sp-grow hm-fill">
-				<Alert color="danger" mark="!" title={what}>{failureMessage(error, 'Check the connection, then try again.')}</Alert>
-			</div>
-		</Card>
+		</Hold>
 	)
 }
 
@@ -294,12 +273,12 @@ function RecentCard({ recent }) {
 	)
 	const loading = <RecentList caption={caption} />
 	if (recent.error) return (
-		<Held shape={loading}>
-			<Failed label="Recent orders" what="Your recent orders did not load." error={recent.error} retry={recent.refresh} />
-		</Held>
+		<Hold shape={loading}>
+			<Failed variant="card" label="Recent orders" what="Your recent orders" error={recent.error} onRetry={recent.refresh} />
+		</Hold>
 	)
 	if (orders && !orders.length) return (
-		<Held shape={loading}>
+		<Hold shape={loading}>
 			<Card variant="flush">
 				<Toolbar>{caption}</Toolbar>
 				<div className="sp-stack sp-grow hm-fill">
@@ -310,7 +289,7 @@ function RecentCard({ recent }) {
 					</Empty>
 				</div>
 			</Card>
-		</Held>
+		</Hold>
 	)
 	return <RecentList caption={caption} orders={orders} />
 }
@@ -434,7 +413,7 @@ function CategoriesCard({ view }) {
 		</Card>
 	)
 	return (
-		<Held shape={loading}>
+		<Hold shape={loading}>
 			<Card>
 				{header}
 				<div className="sp-stack sp-grow hm-fill">
@@ -454,7 +433,7 @@ function CategoriesCard({ view }) {
 						)}
 				</div>
 			</Card>
-		</Held>
+		</Hold>
 	)
 }
 
@@ -500,9 +479,9 @@ function MonthsCard() {
 		</Card>
 	)
 	if (year.error) return (
-		<Held shape={card}>
-			<Failed label={`Last ${MONTHS} months`} what="The last months did not load." error={year.error} retry={year.refresh} />
-		</Held>
+		<Hold shape={card}>
+			<Failed variant="card" label={`Last ${MONTHS} months`} what="The last months" error={year.error} onRetry={year.refresh} />
+		</Hold>
 	)
 	return card
 }
@@ -521,9 +500,9 @@ function PhoneHome({ month, categories, view, recent }) {
 			</div>
 			{month.error
 				? (
-					<Held shape={<PhoneMonth />}>
-						<Failed label="This month" what="This month did not load." error={month.error} retry={retrying(month, categories)} />
-					</Held>
+					<Hold shape={<PhoneMonth />}>
+						<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={retrying(month, categories)} />
+					</Hold>
 				)
 				: <PhoneMonth w={w} view={view} limitsLost={categories.error ? categories.refresh : null} />}
 			{month.error || categories.error ? null : <PhoneAlerts view={view} />}
@@ -610,20 +589,20 @@ function PhoneRecent({ recent }) {
 		</Card>
 	)
 	if (recent.error) return (
-		<Held shape={loading}>
-			<Failed label="Recent orders" what="Your recent orders did not load." error={recent.error} retry={recent.refresh} />
-		</Held>
+		<Hold shape={loading}>
+			<Failed variant="card" label="Recent orders" what="Your recent orders" error={recent.error} onRetry={recent.refresh} />
+		</Hold>
 	)
 	if (!orders) return loading
 	if (!orders.length) return (
-		<Held shape={loading}>
+		<Hold shape={loading}>
 			<Card>
 				<span className="sp-section-label">Recent orders</span>
 				<div className="sp-stack sp-grow hm-fill">
 					<span className="sp-meta">No orders yet. Press the plus button to add your first.</span>
 				</div>
 			</Card>
-		</Held>
+		</Hold>
 	)
 	return (
 		<Card>

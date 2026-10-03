@@ -20,11 +20,6 @@
 	.hm-line { display: flex; align-items: center; height: 1lh; }
 	.hm-mark { display: grid; place-items: center; flex: none; width: var(--mark-small); height: var(--mark-small); }
 
-	/* a state laid over the resting form, which is kept unseen beneath so the height holds */
-	.hm-hold { display: grid; }
-	.hm-ghost,
-	.hm-state { grid-area: 1 / 1; display: grid; min-width: 0; }
-	.hm-ghost { visibility: hidden; }
 	.hm-fill { display: flex; flex-direction: column; justify-content: center; }
 
 	/* a recent order on the phone: the whole row is the link, at the touch height. a.hm-order weighs

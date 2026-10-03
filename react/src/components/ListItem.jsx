@@ -52,7 +52,9 @@ export function ListItem({
 	}
 	const body = (
 		<>
-			{handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
+			{/* an add row holds the handle's column empty, so it lines up under rows that can move */}
+			{handle && variant === 'add' ? <span className="sp-list-item__handle" aria-hidden="true" />
+				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
 			{mark}
 			{/* the count leads what it counts, as the attention row draws it (Components) */}
 			{count != null ? <span className="sp-list-item__count">{count}</span> : null}

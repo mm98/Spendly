@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel } from '../components/Choice.jsx'
@@ -17,7 +18,7 @@ import { Anchor, Menu, MenuItem, MenuSeparator } from '../components/Overlays.js
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
-import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
+import { getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
@@ -254,15 +255,7 @@ export default function Orders() {
 	const data = orders.data
 	let body
 	if (orders.error)
-		body = (
-			<Card variant="flush">
-				<Empty>
-					<EmptyTitle>Your orders could not be loaded</EmptyTitle>
-					<EmptyBody>{failureMessage(orders.error, 'Check your connection and try again.')}</EmptyBody>
-					<Button size="small" onClick={orders.refresh}>Try again</Button>
-				</Empty>
-			</Card>
-		)
+		body = <Failed what="Your orders" error={orders.error} onRetry={orders.refresh} />
 	else if (!data) body = narrow ? <CardsLoading size={size} /> : <RowsLoading width={width} size={size} />
 	else if (data.total === 0)
 		body = (

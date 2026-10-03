@@ -20,6 +20,17 @@ export function Kbd({ accent = false, children, ...rest }) {
 	return <kbd className={join('sp-kbd', accent && 'sp-kbd--accent')} {...rest}>{children}</kbd>
 }
 
+/** Another state of a part laid over its resting form, which stays unseen beneath so the height holds (6b). */
+export function Hold({ shape, children, ...rest }) {
+	reject(rest, 'Hold')
+	return (
+		<div className="sp-hold" {...rest}>
+			<div className="sp-hold__ghost" aria-hidden="true">{shape}</div>
+			<div className="sp-hold__state">{children}</div>
+		</div>
+	)
+}
+
 export function Empty({ dashed = false, children, ...rest }) {
 	reject(rest, 'Empty')
 	return <div className={join('sp-empty', dashed && 'sp-empty--dashed')} {...rest}>{children}</div>

@@ -9,7 +9,7 @@ import { TokensField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu } from '../components/Overlays.jsx'
 import { SaveBar } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
+import { Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getCategories, getOrders } from '../api/client.js'
@@ -199,24 +199,6 @@ export function EndLoading({ label, title, body, action }) {
 export function sayFailure(toast, error, fallback) {
 	const message = failureMessage(error, fallback)
 	if (message) toast({ message, color: 'danger' })
-}
-
-/** A read that failed, with the one action that can fix it: asking again, or for a record that
-    is gone, going back to the list it was in. */
-export function Failed({ title, error, onRetry, list }) {
-	const gone = error?.status === 404 && list
-	const why = gone ? 'It may have been deleted.' : failureMessage(error, 'The connection failed. Check it and try again.')
-	return (
-		<Card>
-			<Empty>
-				<EmptyTitle>{title}</EmptyTitle>
-				{why ? <EmptyBody>{why}</EmptyBody> : null}
-				{gone
-					? <Button variant="outline" size="small" to={list.to}>{list.label}</Button>
-					: <Button variant="outline" size="small" onClick={onRetry}>Try again</Button>}
-			</Empty>
-		</Card>
-	)
 }
 
 /** An irreversible delete, confirmed in a dialog that names what goes (6d). */

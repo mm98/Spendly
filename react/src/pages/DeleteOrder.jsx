@@ -40,7 +40,7 @@ export function DeleteOrder({ order, onClose, onDeleted }) {
 	else if (full.error?.status === 404) body = <DialogBody>This order is already deleted.</DialogBody>
 	else if (full.error)
 		body = (
-			<Alert color="danger" mark="!" title="The order could not be loaded."
+			<Alert color="danger" mark="!" title="This order did not load"
 				action={<Button variant="outline" size="small" onClick={full.refresh}>Try again</Button>}>
 				What goes with it is not known yet. Check your connection.
 			</Alert>
