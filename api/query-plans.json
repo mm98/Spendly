@@ -243,6 +243,35 @@
 				"sqlite_autoindex_vendor_default_categories_1"
 			]
 		},
+		"SELECT COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved FROM orders ot WHERE ot.user_id = @userId": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_discount"
+			],
+			"indexes": [
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses))": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
+			]
+		},
 		"SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_total (user_id=?)"
@@ -460,6 +489,38 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) AND (EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)) AND ot.saved > 0": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 3",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"SEARCH a USING COVERING INDEX idx_attachments_item (order_item_id=?)",
+				"SEARCH a EXISTS USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_discount"
+			],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_attachments_order",
+				"idx_order_items_order",
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_discount (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_orders_user_discount"
+			]
+		},
 		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.category_count = 0": {
 			"plan": [
 				"SEARCH ot USING COVERING INDEX idx_orders_user_uncategorised (user_id=?)"
@@ -590,6 +651,24 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses))": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
+			]
+		},
 		"SELECT COUNT(*) c FROM orders WHERE user_id = ?": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_discount (user_id=?)"
@@ -615,6 +694,39 @@
 			"findings": [],
 			"indexes": [
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached FROM orders ot WHERE ot.user_id = @userId": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_discount (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses))": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 4",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
 			]
 		},
 		"SELECT d.vendor_id, c.name FROM vendor_default_categories d JOIN categories c ON c.id = d.category_id JOIN vendors v ON v.id = d.vendor_id WHERE v.user_id = ? ORDER BY c.name": {
@@ -688,6 +800,15 @@
 			],
 			"indexes": []
 		},
+		"SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
 		"SELECT id FROM categories WHERE user_id = ? ORDER BY name LIMIT 1": {
 			"plan": [
 				"SEARCH categories USING INDEX sqlite_autoindex_categories_2 (user_id=?)"
@@ -713,6 +834,24 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_vendors_2"
+			]
+		},
+		"SELECT id, date FROM order_statuses WHERE order_id = ? AND status = ?": {
+			"plan": [
+				"SEARCH order_statuses USING INDEX idx_order_statuses_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_statuses_order"
+			]
+		},
+		"SELECT id, date, status FROM orders WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_orders_1"
 			]
 		},
 		"SELECT id, kind, name, position FROM budget_groups WHERE user_id = ? AND year_id = ?": {
@@ -978,6 +1117,39 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT oc.category_id, COUNT(*) n FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND ot.status IN (SELECT value FROM json_each(@statuses)) GROUP BY oc.category_id": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=?)",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_status",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT oc.category_id, COUNT(*) n FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId GROUP BY oc.category_id": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_discount (user_id=?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_discount",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
 		"SELECT oc.order_id, c.id, c.name FROM categories c JOIN order_categories oc ON oc.category_id = c.id WHERE oc.order_id IN (SELECT value FROM json_each(?)) ORDER BY oc.order_id, c.name": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -1023,6 +1195,19 @@
 			],
 			"indexes": [
 				"idx_order_items_order"
+			]
+		},
+		"SELECT order_id, rowid AS seq, id FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH attachments USING INDEX idx_attachments_order (order_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"idx_attachments_order"
 			]
 		},
 		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit": {
@@ -1127,6 +1312,45 @@
 				"idx_orders_user_date",
 				"idx_vendor_aliases_user_name",
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) AND (EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)) AND ot.saved > 0 ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"CORRELATED SCALAR SUBQUERY 3",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"SEARCH a USING COVERING INDEX idx_attachments_item (order_item_id=?)",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_attachments_order",
+				"idx_order_items_order",
+				"idx_orders_user_date"
+			]
+		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING COVERING INDEX idx_attachments_order (order_id=?)",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_attachments_order",
+				"idx_orders_user_date"
 			]
 		},
 		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ot.category_count = 0 ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
@@ -1307,6 +1531,29 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses)) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_date"
+			]
+		},
 		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId ORDER BY ot.date ASC, ot.created_at ASC, ot.rowid ASC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
@@ -1369,6 +1616,33 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT ot.status, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId AND ot.vendor_id IN (SELECT value FROM json_each(@vendorIds)) AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) GROUP BY ot.status": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_status"
+			],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_status"
+			]
+		},
+		"SELECT ot.status, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId GROUP BY ot.status": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_status"
+			]
+		},
 		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY ot.vendor_id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -1382,6 +1656,33 @@
 			"indexes": [
 				"idx_orders_user_date",
 				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT ot.vendor_id, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId AND (ot.category_count = 0 OR ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)) AND ot.status IN (SELECT value FROM json_each(@statuses)) GROUP BY ot.vendor_id": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_vendor (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_vendor"
+			],
+			"indexes": [
+				"idx_order_categories_cat",
+				"idx_orders_user_vendor"
+			]
+		},
+		"SELECT ot.vendor_id, COUNT(*) n FROM orders ot WHERE ot.user_id = @userId GROUP BY ot.vendor_id": {
+			"plan": [
+				"SEARCH ot USING COVERING INDEX idx_orders_user_vendor (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_vendor"
 			]
 		},
 		"SELECT pattern, kind, line_name FROM bank_links WHERE user_id = ?": {
@@ -1494,21 +1795,21 @@
 			"columns": [
 				"order_item_id"
 			],
-			"readers": 2
+			"readers": 4
 		},
 		"idx_attachments_order": {
 			"table": "attachments",
 			"columns": [
 				"order_id"
 			],
-			"readers": 1
+			"readers": 8
 		},
 		"idx_categories_user": {
 			"table": "categories",
 			"columns": [
 				"user_id"
 			],
-			"readers": 5
+			"readers": 6
 		},
 		"idx_order_categories_cat": {
 			"table": "order_categories",
@@ -1516,21 +1817,21 @@
 				"category_id",
 				"order_id"
 			],
-			"readers": 8
+			"readers": 14
 		},
 		"idx_order_items_order": {
 			"table": "order_items",
 			"columns": [
 				"order_id"
 			],
-			"readers": 4
+			"readers": 6
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",
 			"columns": [
 				"order_id"
 			],
-			"readers": 1
+			"readers": 2
 		},
 		"idx_orders_user_date": {
 			"table": "orders",
@@ -1539,7 +1840,7 @@
 				"date",
 				"id"
 			],
-			"readers": 18
+			"readers": 21
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
@@ -1548,7 +1849,7 @@
 				"discount",
 				"id"
 			],
-			"readers": 8
+			"readers": 13
 		},
 		"idx_orders_user_kind": {
 			"table": "orders",
@@ -1566,7 +1867,7 @@
 				"date",
 				"id"
 			],
-			"readers": 3
+			"readers": 9
 		},
 		"idx_orders_user_total": {
 			"table": "orders",
@@ -1596,7 +1897,7 @@
 				"date",
 				"id"
 			],
-			"readers": 8
+			"readers": 10
 		},
 		"idx_scan_uploads_user": {
 			"table": "scan_uploads",

@@ -418,6 +418,14 @@ export async function deleteOrder(id, signal) {
 	return out
 }
 
+/** One change to several orders at once (Order list 2a, 2e): `{ ids, status, deliveredToday,
+    addCategories (names), removeCategories (ids), delete }`. Answers how many were changed. */
+export async function changeOrders(change, signal) {
+	const out = await request('/api/orders/bulk', { method: 'POST', body: change, signal })
+	if (change.delete) for (const id of change.ids) forgetRecent('order', id)
+	return out
+}
+
 /** Uploads the files picked or dropped, as they are. */
 export async function addAttachments(orderId, files, signal) {
 	const form = new FormData()

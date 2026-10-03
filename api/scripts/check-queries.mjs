@@ -247,6 +247,9 @@ const REQUESTS = [
 	'/orders?query=kaffe', '/orders?query=zzznomatch', '/orders?query=æg',
 	`/orders?vendorId=${ids.vendor}&status=Delivered&sort=amount-desc`,
 	'/orders?pageSize=6&with=itemTitles', '/orders/draft', `/orders/${ids.order}`,
+	'/orders?pageSize=25&with=rows', '/orders?pageSize=1&with=facets',
+	`/orders?pageSize=1&with=facets&status=Delivered,Ordered&vendorId=${ids.vendor},v-main-1&categoryId=${ids.category},none`,
+	'/orders?receipt=missing', '/orders?receipt=attached&files=1&discounted=1',
 	'/vendors', `/vendors/${ids.vendor}`,
 	'/categories', `/categories/${ids.category}`, '/categories/uncategorised',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
@@ -291,6 +294,8 @@ for (const [method, path, body] of [
 	['DELETE', `/budget/accounts/${account.id}`],
 	['PUT', '/budget/links', { pattern: 'betalingsservice aquaren aftalenr', kind: 'expense', line: 'Water' }],
 	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense'],
+	['POST', '/orders/bulk', { ids: [ids.order], status: 'Returned', addCategories: ['Bulk'], removeCategories: [ids.category] }],
+	['POST', '/orders/bulk', { ids: [ids.order], status: 'Delivered', deliveredToday: true }],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
 	['DELETE', `/vendors/v-main-${VENDOR_COUNT - 1}`]

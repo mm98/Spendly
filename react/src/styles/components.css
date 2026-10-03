@@ -1078,6 +1078,22 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
 .sp-record:has(input:checked) { border-color: var(--green); background: var(--green-tint); }
 .sp-record[data-void="true"] { opacity: 0.6; }
+/* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c);
+   its round scrim keeps it legible over any photo */
+.sp-record__photos > .sp-record__pick { opacity: 0; }
+.sp-record:hover .sp-record__pick,
+.sp-record__pick:focus-within,
+.sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
+.sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
+.sp-record__pick > .sp-check { grid-area: 1 / 1; }
+.sp-record__pick::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: calc(var(--box) + var(--sp-10));
+  height: calc(var(--box) + var(--sp-10));
+  border-radius: 50%;
+  background: rgba(27, 26, 23, 0.35);
+}
 
 .sp-list-item .sp-chip,
 .sp-list-item .sp-pill { flex: none; }

@@ -23,6 +23,8 @@ export function Chip({
 	onClick,
 	// a facet value with nothing behind it: in its place, greyed, not hidden (c12)
 	disabled = false,
+	// a facet value's live count, after its name (Order list 2b)
+	count,
 	children,
 	...rest
 }) {
@@ -56,6 +58,7 @@ export function Chip({
 						: { defaultChecked: defaultSelected, onChange: e => onSelect?.(e.target.checked, stored) })}
 				/>
 				<span data-label={children}>{children}</span>
+				{count != null ? <span data-label={count}>{count}</span> : null}
 			</label>
 		)
 	}

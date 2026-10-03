@@ -121,6 +121,14 @@ export function List({
 	rowTo,
 	pageSize = 20,
 	selectionKey,
+	// a page that keeps the selection itself (it outlives this list, as across a view toggle):
+	// the keys picked, and what to do with the next set
+	picked: pickedGiven,
+	onPick,
+	// a record that does not count (a cancelled order), drawn faded (2b)
+	rowVoid,
+	// a line under the bulk bar, as Select all N matching (Order list 2h)
+	bulkNote,
 	compact = false,
 	total,
 	onLoadMore,
@@ -143,12 +151,23 @@ export function List({
 	if (head.filter(c => c.width === 'title').length !== 1)
 		console.error('<List> the head needs exactly one title cell: it is the column that absorbs the slack')
 
-	const [picked, setPicked] = useState([])
+	const [pickedOwn, setPickedOwn] = useState([])
+	const controlled = pickedGiven !== undefined
+	if (controlled && !onPick) console.error('<List picked> needs onPick: the page keeps the selection')
+	const picked = controlled ? pickedGiven : pickedOwn
+	const latest = useRef(picked)
+	latest.current = picked
+	const setPicked = next => {
+		const value = typeof next === 'function' ? next(latest.current) : next
+		latest.current = value
+		if (controlled) onPick(value)
+		else setPickedOwn(value)
+	}
 	const [shown, setShown] = useState(pageSize)
 	const anchor = useRef(null)
 	const warned = useRef(false)
 
-	useEffect(() => { setPicked([]); setShown(pageSize) }, [selectionKey, pageSize])
+	useEffect(() => { if (!controlled) setPickedOwn([]); setShown(pageSize) }, [selectionKey, pageSize, controlled])
 
 	// everything loaded so far: the list grows downward, it does not turn pages
 	const page = served ? data : data.slice(0, shown)
@@ -233,6 +252,7 @@ export function List({
 						{captionContent}
 					</div>
 				)}
+			{picked.length && selecting && bulkNote ? <div className="sp-bulkbar sp-bulkbar--note">{bulkNote}</div> : null}
 
 			<table
 				className={join('sp-table', compact && 'sp-table--compact', allOnPage && 'sp-table--all-selected')}
@@ -264,6 +284,7 @@ export function List({
 							<tr
 								key={key}
 								{...(selecting ? { 'aria-selected': isPicked ? 'true' : 'false' } : {})}
+								{...(rowVoid?.(record) ? { 'data-void': 'true' } : {})}
 								onClick={rowTo ? ev => follow(ev, rowTo(record)) : onRowClick ? () => onRowClick(record) : undefined}
 								onAuxClick={rowTo ? ev => follow(ev, rowTo(record)) : undefined}
 							>
@@ -328,6 +349,12 @@ export function BulkBar({ loose = false, count, onClear, children, ...rest }) {
 			<div className="sp-row-flex sp-gap-8">{children}</div>
 		</div>
 	)
+}
+
+/** The summary line over a grid of cards (2c), where no list draws one: `loose` carries its own border. */
+export function ListToolbar({ loose = false, children, ...rest }) {
+	reject(rest, 'ListToolbar')
+	return <div className={join('sp-list__toolbar', loose && 'sp-list__toolbar--loose')} {...rest}>{children}</div>
 }
 
 /** The bar above a list (c20): search, then pickers and the one button, each at its own width. */
@@ -446,11 +473,13 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 }
 
 /** The list as a grid of Record cards (c1 cards, Order list 2c, Bookmarks 22a): no ground of its
-    own, the grid, then `footer` under it at the grid's width: a `<ListMore loose>`. */
-export function Records({ footer, children, ...rest }) {
+    own, the grid, then `footer` under it at the grid's width: a `<ListMore loose>`. `head` stands
+    above the grid: the summary line or the bulk bar, each `loose` (2c). */
+export function Records({ head, footer, children, ...rest }) {
 	reject(rest, 'Records')
 	return (
 		<div className="sp-list sp-list--cards" {...rest}>
+			{head}
 			<Cards>{children}</Cards>
 			{footer}
 		</div>

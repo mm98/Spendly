@@ -1,7 +1,9 @@
+import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { itemAttachmentThumbnailUrl } from '../api/client.js'
-import { dot } from '../api/format.js'
+import { dot, plural } from '../api/format.js'
+import { TONES, useStatuses } from './statuses.js'
 
 /** An order row's picture (2b): its first line photo with the rest counted over it, or the
     dashed box of an order with none. Hidden from a screen reader: the row's vendor names it. */
@@ -15,15 +17,27 @@ export function OrderPhoto({ order }) {
 	)
 }
 
+/** The paperclip after a row's reference line (2b): only when a file is on the order itself. */
+export function OrderFiles({ count }) {
+	if (!count) return null
+	const label = plural(count, 'attachment')
+	return <Mark size="small" role="img" aria-label={label} title={label}><Icon name="paperclip" size={12} /></Mark>
+}
+
 /** The line under an order's vendor: its reference and its note (2b). */
 export const orderLine = order => [order.reference || 'No reference yet', order.note].filter(Boolean).join(dot)
 
-const PILLS = { Delivered: { color: 'success' }, Returned: { color: 'danger' }, Ordered: { state: 'progress' } }
+/** A status as the account names and colours it, or the stored word when it is not known yet. */
+export function useStatus(key) {
+	const statuses = useStatuses()
+	return statuses.find(s => s.key === key) ?? { key, name: key, tone: 'neutral' }
+}
 
 /** An order's status (2b). */
 export function StatusPill({ status }) {
-	const look = PILLS[status] ?? {}
-	return <Pill color={look.color} state={look.state}>{status}</Pill>
+	const { name, tone } = useStatus(status)
+	const look = TONES[tone] ?? {}
+	return <Pill color={look.color} state={look.state}>{name}</Pill>
 }
 
 /** The columns an order table keeps at its own width (2i): Items goes at 1040 and under, Categories at 880. */
