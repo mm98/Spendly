@@ -1,4 +1,5 @@
-import { cloneElement, useEffect, useId, useRef, useState } from 'react'
+import { cloneElement, useContext, useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
@@ -7,6 +8,7 @@ import { Check } from './Choice.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Cards, ListFooter } from './Card.jsx'
 import { Icon } from './Icon.jsx'
+import { ShellHead } from './Shell.jsx'
 import { formatNumber, singular } from './format.js'
 
 const WIDTH = {
@@ -341,8 +343,9 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
     `loose` carries its own border, for a set with no list around it; `head` stands in for a phone's top bar. */
 export function BulkBar({ loose = false, head = false, count, onClear, selectAll, children, ...rest }) {
 	reject(rest, 'BulkBar')
-	if (head)
-		return (
+	const slot = useContext(ShellHead)
+	if (head) {
+		const bar = (
 			<div className="sp-bulkbar sp-bulkbar--head" {...rest}>
 				<span className="sp-bulkbar__count sp-truncate">{count}</span>
 				<span className="sp-grow" />
@@ -350,6 +353,9 @@ export function BulkBar({ loose = false, head = false, count, onClear, selectAll
 				<IconButton icon="x" aria-label="Clear the selection" onClick={() => onClear?.()} />
 			</div>
 		)
+		// it takes the top bar's slot, edge to edge, rather than sitting inside the page's inset
+		return slot ? createPortal(bar, slot) : bar
+	}
 	return (
 		<div className={join('sp-bulkbar', loose && 'sp-bulkbar--loose')} {...rest}>
 			{selectAll ? <SelectAllBox {...selectAll} /> : <Check checked aria-label="Clear the selection" onChange={() => onClear?.()} />}

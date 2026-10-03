@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
-import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, SidebarSplit, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
+import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Switch } from '../components/Choice.jsx'
@@ -304,25 +304,9 @@ function NavScroll({ navKey, children }) {
 	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
-/* New order is typed in by hand; its chevron offers the other ways to start one (16a, 3b). */
+/* New order is a plain row: the blank order to type in (16a); the other ways in live on its screen (3b). */
 function NewOrder({ rail }) {
-	const navigate = useNavigate()
-	const [open, setOpen] = useState(false)
-	const close = useCallback(() => setOpen(false), [])
-	const go = to => { close(); navigate(to) }
-	return (
-		<SidebarSplit icon="plus" to="/orders/new?source=empty" tip={rail ? 'New order' : undefined} label="Other ways to start an order"
-			expanded={open} onClick={() => setOpen(!open)} onDismiss={close}
-			menu={(
-				<Menu aria-label="Start an order">
-					<MenuItem icon="camera" onClick={() => go('/orders/new?source=scan')}>Scan a receipt</MenuItem>
-					<MenuItem icon="upload" onClick={() => go('/settings/import')}>Import a file</MenuItem>
-					<MenuItem icon="copy" onClick={() => go('/orders/new?pick=copy')}>Copy a previous order</MenuItem>
-				</Menu>
-			)}>
-			New order
-		</SidebarSplit>
-	)
+	return <NavItem icon="plus" to="/orders/new?source=empty" tip={rail ? 'New order' : undefined} aria-label="New order">New order</NavItem>
 }
 
 /* A count is read with its destination; on the rail the label is the tile's only name. */
