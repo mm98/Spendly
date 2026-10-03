@@ -59,13 +59,13 @@
       <span class="sp-strong">Nav item</span><span class="sp-ink-2">Navigates. The count on the right is live and is part of the link, not a separate target.</span><span class="sp-ink-5">Active row fills <b>#1f3d2c</b>. Scroll position resets; returning by Back restores it.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Collapse rail</span><span class="sp-ink-2">Not an action in the shell as it stands - below 1280px the viewport produces the 68px icon rail on its own.</span><span class="sp-ink-5">A control the user could collapse it with is an open question, drawn in <b>9i</b>. Labels become hover tooltips either way.</span>
+      <span class="sp-strong">Collapse rail</span><span class="sp-ink-2">The grip on the sidebar's edge collapses it to the 68px icon rail, and opens it again (<b>9i</b>). Below 1280px the viewport produces the rail on its own.</span><span class="sp-ink-5">The choice is stored per user. Labels become tooltips. No hover peek.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Dark mode toggle</span><span class="sp-ink-2">Switches theme immediately. Writes the same preference as the Settings cards.</span><span class="sp-ink-5">No confirm, no toast. Set to <b>system</b> in Settings, the toggle reflects the OS and switching it pins the choice.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Account block ▾</span><span class="sp-ink-2">Opens the account menu (9c): the email, Account and profile, Keyboard shortcuts, Sign out.</span><span class="sp-ink-5">Chevron flips up. Esc closes and returns focus. Sign out confirms only when there are unsaved changes.</span>
+      <span class="sp-strong">Account block ▾</span><span class="sp-ink-2">Opens the account menu (9c): the email, Account and profile, Keyboard shortcuts, Sign out.</span><span class="sp-ink-5">The chevron points up in both states; aria-expanded carries it. Esc closes and returns focus. Sign out confirms only when there are unsaved changes.</span>
     </div>
   </div>
 </div>
@@ -84,9 +84,6 @@
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Needs-a-look row</span><span class="sp-ink-2">Each row is a link to the filtered list holding those records - not a dismissible notice.</span><span class="sp-ink-5">Lands on the list with the filter chips already applied and removable.</span>
-    </div>
-    <div class="ai-act doc-table__row">
-      <span class="sp-strong">Review / Merge</span><span class="sp-ink-2">On the duplicate-vendors row: Review opens the candidate list in the library; Merge is only offered when there is a single obvious pair.</span><span class="sp-ink-5">Merge still goes through 5a's comparison and its dialog. Never one-click.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Recent order row</span><span class="sp-ink-2">Opens the order's read view (1a). The whole row is the target.</span><span class="sp-ink-5">Cmd-click opens a new tab. "See orders" goes to the unfiltered list.</span>
@@ -140,7 +137,7 @@
       <span class="sp-strong">Attachment tile</span><span class="sp-ink-2">Opens the viewer (12b) with the order's files as the set.</span><span class="sp-ink-5">Arrow keys move between files, Esc closes. "Download all" zips the order's attachments.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Save / Discard</span><span class="sp-ink-2">One request with the whole order and its lines. Discard reverts to the loaded values.</span><span class="sp-ink-5">Success: toast, and you stay on the screen. Server validation maps to fields and scrolls the first error in.</span>
+      <span class="sp-strong">Save / Discard</span><span class="sp-ink-2">One request with the whole order and its lines. Discard reverts to the loaded values.</span><span class="sp-ink-5">Success: toast, and you stay on the screen; on a phone the save bar goes and the tab bar returns. After Create the screen is the same edit screen in its created state (3a), at the order's own address. Server validation maps to fields and scrolls the first error in.</span>
     </div>
   </div>
 </div>
@@ -176,7 +173,7 @@
       <span class="sp-strong">Bulk delete</span><span class="sp-ink-2">Dialog naming the count, as in 6d ("Delete 12 orders?").</span><span class="sp-ink-5">Dialog, no undo. Selection clears on success.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Sort</span><span class="sp-ink-2">Date (default, newest first), amount, vendor, item count.</span><span class="sp-ink-5">In the URL. Ties break on order id descending so paging stays stable.</span>
+      <span class="sp-strong">Sort</span><span class="sp-ink-2">Newest (default), Oldest, Highest total, Lowest total, Vendor A - Z - as 2b draws it. No item count.</span><span class="sp-ink-5">In the URL. Ties break on order id descending so paging stays stable.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Save current</span><span class="sp-ink-2">Saves the filter set, query and sort as a named view, listed above the facets.</span><span class="sp-ink-5">See 16b - this needed defining. A view stores the filter, never the result.</span>
@@ -281,7 +278,7 @@
       <span class="sp-strong">Change password</span><span class="sp-ink-2">Opens a dialog: current password, new, confirm. Not inline fields on the card.</span><span class="sp-ink-5">See 16b. Success is a toast; other sessions are unaffected.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Status rename / reorder / delete</span><span class="sp-ink-2">Renaming is free - orders reference the id. Order is drag or arrow keys. A status with orders cannot be deleted.</span><span class="sp-ink-5">Delete is disabled with a tooltip saying to reassign first. Draft is built in and never deletable.</span>
+      <span class="sp-strong">Status rename / reorder / delete</span><span class="sp-ink-2">Renaming is free - orders reference the id. Order is drag or arrow keys. A status with orders cannot be deleted.</span><span class="sp-ink-5">Delete is absent on a status with orders, not disabled (11a); reassigning them makes it appear. All three wait for the save bar. Draft is built in and never deletable.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Download template</span><span class="sp-ink-2">An XLSX whose columns map themselves, so the mapping step can be skipped.</span><span class="sp-ink-5">Plain download, no state change.</span>

@@ -163,28 +163,14 @@
     <span class="doc-notes__label">What each row action opens</span>
     <div class="doc-note"><b>Drawn flat here; in the app each hangs off the row's kebab.</b> They are popovers - <code>.sp-popover</code> anchored to the trigger, positioned by the one positioner in <a href="Components.dc.html#c9">c9</a>, so they flip up or shift sideways to stay on screen and never cover the row they belong to. This page shows them detached only so the copy can be read. Escape or a click outside closes one, focus returns to the kebab, and nothing is applied on the way out.</div>
     <div class="doc-note"><b>Open in the order list</b> and <b>Edit</b> are routes, so they leave the screen - <code>/orders?vendor=indbo-mobler</code> and <code>/vendors/indbo-mobler/edit</code>. Both middle-click and deep-link.</div>
-    <div class="doc-note"><b>Archive</b> and <b>Merge into…</b> open a popover from the row - the same component the order list's bulk actions use, so the row being acted on stays visible behind it. Each names the record and what will happen to its orders.</div>
+    <div class="doc-note"><b>Archive applies at once</b> from the row, with a toast that names the vendor and offers Undo (<a href="States and confirmations.dc.html#6f">6f</a>): "Indbo Møbler archived. Its 38 orders keep it." The Archived filter brings it back. <b>Merge into…</b> opens a popover from the row - the same component the order list's bulk actions use, so the row being acted on stays visible behind it.</div>
     <div class="doc-note"><b>Merge takes two steps, because it is the one action that shows a comparison before it runs.</b> The popover picks the target; confirming it opens the dialog in <a href="#5j">5j</a>, which states which value wins per field and carries the count in its button.</div>
     <div class="doc-note"><b>The target list is searched, not scrolled.</b> With 200 vendors the list cannot be read, so the popover leads with a search and shows the most recently used beneath it - the same shape as the order list's Add category. The list caps its height and scrolls; it never grows the popover past the viewport.</div>
     <div class="doc-note"><b>Picking a target is the action, so the popover has no buttons.</b> Clicking a row opens <a href="#5j">5j</a> with that target loaded; Escape or a click outside closes it. A radio list with a Continue button would add a press that decides nothing, and the confirmation the user actually needs is the comparison on the next screen.</div>
-    <div class="doc-note"><b>Archive is reversible and says so</b>, which is why it commits in the primary weight rather than the destructive one. Delete is not offered here at all: a vendor with orders cannot be deleted, so the action is absent from the menu rather than shown and refused.</div>
+    <div class="doc-note"><b>Archive is reversible, so it asks nothing</b> and Undo is the way back. Delete is not offered here at all: a vendor with orders cannot be deleted, so the action is absent from the menu rather than shown and refused.</div>
   </div>
 
   <div class="doc-specimens">
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">Archive - reversible, so it confirms rather than warns</span>
-      <div class="sp-popover sp-popover--static">
-        <div class="sp-popover__head">
-          <span class="sp-title">Archive Indbo Møbler?</span>
-          <span class="sp-subtitle">It leaves the list and the facets. Its 38 orders keep it as their vendor, and the Archived filter brings it back.</span>
-        </div>
-        <div class="sp-popover__actions">
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Cancel</button>
-          <button type="button" class="sp-btn sp-btn--block">Archive</button>
-        </div>
-      </div>
-    </div>
-
     <div class="doc-specimen">
       <span class="doc-specimen__label">Merge into… - clicking a vendor opens the comparison in <a href="#5j">5j</a></span>
       <div class="sp-popover sp-popover--static">
@@ -219,7 +205,7 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Name is the only required field.</b> Everything else has a working default, so a vendor created mid-scan costs one field. <b>Save stays enabled.</b> Pressing it with an empty name runs validation and marks the field - the button never explains what is missing better than the field itself can.</div>
     <div class="doc-note"><b>Create and edit are the same page.</b> One route component, one form, one rail. The differences are the crumb, the primary label, and whether the delete card is present. Do not build them separately - they drift.</div>
-    <div class="doc-note"><b>Duplicate names are checked on blur, not on submit.</b> A name within 0.85 of an existing vendor shows an amber notice under the field offering that vendor instead. It does not block: two shops can genuinely share a name.</div>
+    <div class="doc-note"><b>Duplicate names are checked on blur, not on submit.</b> A name within 0.85 of an existing vendor shows an amber notice under the field offering that vendor instead. The same name, compared without case or accents, is an error: two vendors cannot share a name, because a receipt string matching two vendors is how a scan files things wrongly (<a href="#5h">5h</a>).</div>
     <div class="doc-note"><b>Created from a scan, it returns to the scan.</b> The page carries the return in its route state and the new vendor is selected on arrival back - never dropping the user on the vendor list with their receipt abandoned.</div>
     <div class="doc-note"><b>Aliases are on this page, because creating from a scan is when the first one matters most.</b> The receipt name that triggered the create is pre-filled as an alias - the one moment the app knows it. Forcing a second trip to the edit page to keep it means the next receipt from the same shop creates another duplicate.</div>
   </div>
@@ -271,7 +257,7 @@
             <input class="sp-check" type="checkbox" defaultChecked="{{ true }}">
             <span class="sp-choice__text">
               <strong>Favourite</strong>
-              <span class="sp-field__help">Kept at the top of Vendors, leads the list on a new order, and appears in Home's Favourite vendors card.</span>
+              <span class="sp-field__help">Kept at the top of Vendors, and leads the list on a new order.</span>
             </span>
           </label>
           </div>
@@ -332,7 +318,7 @@
     <span class="doc-badge" id="5c">5c</span>
     <span class="doc-section__title">Vendors - edit</span>
   </div>
-  <div class="doc-lede">The same page as <a href="#5b">5b</a> with the record loaded, at <code>/vendors/indbo/edit</code>. Two cards appear that create does not have: aliases, and the end-of-life card.</div>
+  <div class="doc-lede">The same page as <a href="#5b">5b</a> with the record loaded, at <code>/vendors/indbo/edit</code>. One card appears that create does not have: the end-of-life card. Aliases are on create too (<a href="#5b">5b</a>).</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Dirty tracking is per field</b> against the loaded values. Reverting a field by hand clears its flag; when none remain the save bar disappears. Whitespace-only edits do not count.</div>
@@ -391,7 +377,7 @@
             <input class="sp-check" type="checkbox" defaultChecked="{{ true }}">
             <span class="sp-choice__text">
               <strong>Favourite</strong>
-              <span class="sp-field__help">Kept at the top of Vendors, leads the list on a new order, and appears in Home's Favourite vendors card.</span>
+              <span class="sp-field__help">Kept at the top of Vendors, and leads the list on a new order.</span>
             </span>
           </label>
           </div>
@@ -454,7 +440,7 @@
         <div class="sp-card">
           <span class="sp-section-label">END OF ITS LIFE</span>
           <div class="sp-well">
-            <span class="sp-title">Archiving takes it out of the list and the facets.</span>
+            <span class="sp-title">Archiving takes it out of the list and the order list's filters.</span>
             <span class="sp-subtitle">Its 38 orders keep it as their vendor.</span>
           </div>
           <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Archive vendor</button>
@@ -472,10 +458,10 @@
     <span class="sp-section-label">END OF ITS LIFE</span>
     <div class="sp-well">
       <span class="sp-title">A vendor with orders cannot be deleted</span>
-      <span class="sp-subtitle">Every order must name a vendor, so its 38 keep this one. Archiving takes it out of the list and the facets and leaves them intact.</span>
+      <span class="sp-subtitle">Every order must name a vendor, so its 38 orders keep this one. Archiving takes it out of the list and the order list's filters, and leaves the orders as they are.</span>
     </div>
     <div class="sp-card__footer sp-card__footer--commits">
-      <button type="button" class="sp-btn sp-btn--outline">Archive</button>
+      <button type="button" class="sp-btn sp-btn--outline">Archive vendor</button>
     </div>
         </div>
     </div>
@@ -488,7 +474,7 @@
       <span class="sp-subtitle">Archiving keeps it out of the way; deleting removes it outright.</span>
     </div>
     <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
-      <button type="button" class="sp-btn sp-btn--outline">Archive</button>
+      <button type="button" class="sp-btn sp-btn--outline">Archive vendor</button>
       <button type="button" class="sp-btn" data-color="danger">Delete</button>
     </div>
         </div>
@@ -719,7 +705,7 @@
     <div class="doc-note"><b>Name is the only required field.</b> A default icon and the next unused colour are pre-selected, so a category created from a picker costs one field and one Enter.</div>
     <div class="doc-note"><b>The icon is picked, not derived.</b> This is the one asymmetry with a vendor: a vendor gets initials from its name, a category gets any icon from the Tabler outline library, picked in <a href="Components.dc.html#c7">c7</a>. Neither ever accepts an upload.</div>
     <div class="doc-note"><b>Created from a picker, it is selected on return.</b> The picker reopens with the new category chosen, so the order the user was filling in continues.</div>
-    <div class="doc-note"><b>Duplicate names are rejected here, unlike vendors.</b> Two vendors can share a name; two categories with one name make every chart ambiguous. Case- and accent-insensitive.</div>
+    <div class="doc-note"><b>Duplicate names are rejected here, as for vendors.</b> Two categories with one name make every chart ambiguous. Case- and accent-insensitive.</div>
       <div class="doc-note"><b>The message is at the field, and there is no summary card.</b> One place per problem. A short form does not need a second surface repeating what is already marked, and a long one gets focus moved for it instead.</div>
     <div class="doc-note"><b>Save stays clickable.</b> Pressing it moves focus to the first problem rather than doing nothing.</div>
     <div class="doc-note"><b>Marked on leaving the field, or on Save.</b> Never per keystroke, and the error clears on the next valid blur rather than the first character typed. Whatever was typed survives.</div>
@@ -854,7 +840,7 @@
     <div class="doc-note"><b>Delete is offered whatever the count, because a category is optional on an order.</b> Deleting one takes the label off its 64 orders; each keeps whatever other categories it carries, and any left with none is in a state an order is allowed to be in. A vendor is different on both counts: one per order, and required - so the record can be archived but never removed from under it. Without this, a category made by mistake and attached to one order could never be removed without mislabelling that order.</div>
     <div class="doc-note"><b>Three exits, and they do different things.</b> Rename, for a category that should be called something else - orders point at an id, so it reaches every screen at once. Merge, for one that belongs inside another. Delete, for one that should not exist - the label comes off its orders and their other categories stay.</div>
     <div class="doc-note"><b>The confirmation names the consequence, not the count alone.</b> the dialog states &quot;the label comes off 64 orders, 9 of them carry no other category&quot; in its copy, while the button says only <b>Delete category</b> - a count in a destructive button reads as the number of records about to be destroyed. Deleting also removes the limit; nothing about the orders themselves changes but their label.</div>
-    <div class="doc-note"><b>Save returns to the list with this category selected</b>, exactly as the vendor page does. Same route pattern, same return behaviour.</div>
+    <div class="doc-note"><b>Save returns to the list</b>, exactly as the vendor page does. Same route pattern, same return behaviour.</div>
   </div>
   <div class="doc-screen doc-frame">
     <div class="sp-topbar">
@@ -1053,7 +1039,7 @@
             <input class="sp-check" type="checkbox" defaultChecked="{{ true }}">
             <span class="sp-choice__text">
               <strong>Favourite</strong>
-              <span class="sp-field__help">Kept at the top of Vendors, leads the list on a new order, and appears in Home's Favourite vendors card.</span>
+              <span class="sp-field__help">Kept at the top of Vendors, and leads the list on a new order.</span>
             </span>
           </label>
           </div>
@@ -1165,7 +1151,7 @@
               <span class="sp-gauge__fill" data-fill="80"></span>
               <span class="sp-gauge__marker" data-at="65"></span>
             </span>
-            <span class="sp-meta">Past the marker but inside the limit - no amber, nothing said.</span>
+            <span class="sp-meta">Past the marker by less than 10 points - no amber, nothing said. More than 10 points over the pace reads "ahead of pace" in amber.</span>
           </div>
         </div>
       </div>
@@ -1228,7 +1214,7 @@
   <div class="doc-lede">Merging one record into another, for both kinds. The source's orders move to the target and the source is deleted. Irreversible, and confirmed by naming the number of orders that will move.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Merge is vendors only.</b> The source's orders move to the target, its name and aliases become the target's aliases, and the source is deleted. Moving the aliases is the important half - without it the next receipt recreates the duplicate.</div>
+    <div class="doc-note"><b>Merging a vendor:</b> the source's orders move to the target, its name and aliases become the target's aliases, and the source is deleted. Moving the aliases is the important half - without it the next receipt recreates the duplicate.</div>
     <div class="doc-note"><b>The comparison shows which value wins per field.</b> The target keeps its own unless the source has one and the target does not. Nothing is silently blended, and the user can see the result before agreeing to it.</div>
     <div class="doc-note"><b>A category merges the same way, with less to combine.</b> Its orders move to the target and it is deleted; there are no aliases to carry, and the target keeps its own limit. Same dialog, same confirmation shape.</div>
 <div class="doc-note"><b>The target list is every category except the source.</b> Merging a record into itself is the one selection that cannot be allowed, so it is absent from the list rather than shown and refused. Since categories are multi-valued, an order already carrying both ends up with one label, not a duplicate.</div>
@@ -1308,7 +1294,7 @@
               </button>
               
             </div>
-            <span class="sp-field__help">Every category except this one. Totals and charts recompute against the target.</span>
+            <span class="sp-field__help">Every category except this one. Totals and charts count them under the one you pick.</span>
           </div>
           <div class="sp-well" data-color="danger">
             <span class="sp-title">Decor is deleted once its orders have moved</span>
@@ -1605,7 +1591,7 @@
     <div class="doc-note"><b>Changing the vendor clears what the previous vendor suggested</b>, and nothing else. Track which chips arrived as suggestions; a chip the user added by hand survives every vendor change. Without that flag the only correct behaviour is to leave everything, which strands the wrong categories on the order.</div>
     <div class="doc-note"><b>The suggestion notice is not an error, a warning, or a toast.</b> It is one muted line under the field, and it disappears the moment the user edits the field. It never uses amber or red - nothing is wrong, and nothing is blocked.</div>
     <div class="doc-note"><b>Editing a saved order does not re-suggest.</b> Defaults apply to the first vendor choice on a new order. Reopening an order months later and touching the vendor field must not quietly rewrite categories the user settled at the time.</div>
-    <div class="doc-note"><b>Removing a category from the library does not edit past orders.</b> They keep what they were saved with; only the vendor's default list loses it.</div>
+    <div class="doc-note"><b>Deleting a category takes it off its orders</b>, past ones included, and off the vendor's default list (<a href="#5f">5f</a>).</div>
     <div class="doc-note"><b>Nothing is learnt automatically.</b> Filing three orders under Decor does not make Decor a default. The list is only ever what the user typed on the vendor page - a guess that edits itself is one nobody can predict.</div>
   </div>
 

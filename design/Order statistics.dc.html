@@ -55,6 +55,8 @@
       <div class="sp-period">
         <div class="sp-period__presets" role="radiogroup" aria-label="Period">
           <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4a-period"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Week"><input type="radio" name="4a-period"><span class="sp-label">Week</span></label>
+          <label class="sp-period__preset" data-label="Month"><input type="radio" name="4a-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4a-period"><span class="sp-label">Quarter</span></label>
           <label class="sp-period__preset" data-label="Year"><input type="radio" name="4a-period" defaultChecked="{{ true }}"><span class="sp-label">Year</span></label>
           <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4a-period"><span class="sp-label">Custom</span></label>
@@ -304,18 +306,6 @@
                   <span class="sp-gauge__fill" data-fill="20"></span>
                 </span>
               </div>
-              <div class="sp-stack sp-gap-6">
-                <div class="sp-row-flex sp-gap-8">
-                  <span class="sp-data">Returned</span>
-                  <span class="sp-grow"></span>
-                  <span class="sp-amount">18</span>
-                  <span class="sp-meta">7%</span>
-                </div>
-                <span class="sp-gauge">
-                  <meter value="5" min="0" max="100" aria-label="Returned"></meter>
-                  <span class="sp-gauge__fill" data-fill="5"></span>
-                </span>
-              </div>
           </div>
         </div>
       </div>
@@ -326,7 +316,7 @@
             <div class="sp-row-flex sp-gap-12">
               <span class="sp-section-label">Top vendors</span>
               <span class="sp-grow"></span>
-              <span class="sp-meta">August · select a vendor to see its orders</span>
+              <span class="sp-meta">August · top 8 of 10</span>
             </div>
               <div class="sp-stack sp-gap-6">
                 <div class="sp-row-flex sp-gap-8">
@@ -378,18 +368,68 @@
               </div>
               <div class="sp-stack sp-gap-6">
                 <div class="sp-row-flex sp-gap-8">
-                  <span class="sp-data">Other 6 vendors</span>
+                  <span class="sp-data">Normann</span>
                   <span class="sp-grow"></span>
-                  <span class="sp-amount">2.630 kr.</span>
+                  <span class="sp-amount">1.120 kr.</span>
                   <span class="sp-meta">1 order</span>
                 </div>
                 <span class="sp-gauge">
-                  <meter value="10" min="0" max="100" aria-label="Other 6 vendors"></meter>
-                  <span class="sp-gauge__fill" data-fill="10"></span>
+                  <meter value="5" min="0" max="100" aria-label="Normann"></meter>
+                  <span class="sp-gauge__fill" data-fill="5"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Vitra</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">640 kr.</span>
+                  <span class="sp-meta">1 order</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="5" min="0" max="100" aria-label="Vitra"></meter>
+                  <span class="sp-gauge__fill" data-fill="5"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Bolia</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">420 kr.</span>
+                  <span class="sp-meta">1 order</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="5" min="0" max="100" aria-label="Bolia"></meter>
+                  <span class="sp-gauge__fill" data-fill="5"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Kähler</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">260 kr.</span>
+                  <span class="sp-meta">1 order</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="5" min="0" max="100" aria-label="Kähler"></meter>
+                  <span class="sp-gauge__fill" data-fill="5"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Other 2 vendors</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">190 kr.</span>
+                  <span class="sp-meta">2 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="5" min="0" max="100" aria-label="Other 2 vendors"></meter>
+                  <span class="sp-gauge__fill" data-fill="5"></span>
                 </span>
               </div>
             <div class="sp-card__footer">
               <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show all 10 vendors</button>
+              <span class="sp-grow"></span>
+              <span class="sp-meta">61.480 kr. total</span>
             </div>
           </div>
 
@@ -547,20 +587,6 @@
       </div>
 
       <div class="sp-list">
-        <div class="sp-list__toolbar sp-wrap">
-          <span class="sp-meta">Drill path</span>
-          <nav aria-label="Drill path">
-            <ol class="sp-crumbs">
-            <li><span class="sp-crumbs__root">2026</span></li>
-            <li><span class="sp-crumb">August<button type="button" class="sp-crumb__remove" aria-label="Remove August">×</button></span></li>
-            <li><span class="sp-crumb">Indbo Møbler<button type="button" class="sp-crumb__remove" aria-label="Remove Indbo Møbler">×</button></span></li>
-            <li><span class="sp-crumb">Decor<button type="button" class="sp-crumb__remove" aria-label="Remove Decor">×</button></span></li>
-            </ol>
-          </nav>
-          <span class="sp-grow"></span>
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reset</button>
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
-        </div>
 
         <div class="sp-list__toolbar">
           <strong class="sp-data">7 orders in this slice</strong>
@@ -635,7 +661,10 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Edit on category</b> opens the categories overview (<a href="Vendors and categories.dc.html#5d">5d</a>), where each category's limit is set. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
-    <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short.</div>
+    <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short.</div>
+    <div class="doc-note"><b>By category, Top vendors and Monthly limit show the current month</b> of the period, named in each card's meta ("August"): limits are monthly, and the side cards read against them. The four figures and Spend by month cover the whole period.</div>
+    <div class="doc-note"><b>"Ahead of pace" shows when the share used is more than 10 points over the pace</b> - Lighting at 91% against 65%, not Seating at 72%. The same rule holds in the category list (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
+    <div class="doc-note"><b>The drill path is the Showing card under the period row</b> (<a href="#4b">4b</a>), with Reset and Open in orders at its right end. At rest there are no crumbs and no card.</div>
     <div class="doc-note"><b>The pointed column carries a full-height <code>--hover</code> band</b>, and the readout stands in it, so it reads as that month's however tall the bars beside it are. Its head is the month as a word with a capital and the year, "January 2026", in every locale. The same holds for every month name that stands alone or starts a label - the period crumb, chart ticks, row labels - Danish included. Inside running text a month follows the language.</div>
     <div class="doc-note"><b>The monthly limit is named in the legend</b>, beside the series, with a dashed amber key. The dashed line in the plot carries no label of its own, so no bar is ever covered by one.</div>
     <div class="doc-note"><b>Spend by month's readout stands above the bar it describes</b>, centred on it, 8px clear of the top of the tallest of that bar and its two neighbours, so it covers none of the three. Near the chart's left or right end it shifts inward so it stays inside the card, its edge on the bar's edge. When there is not room for it above those bars inside the plot, it sits inside the plot's top edge instead, still centred on the bar, over the tops of the bars beneath it, as August here.</div>
@@ -680,6 +709,8 @@
       <div class="sp-period">
         <div class="sp-period__presets" role="radiogroup" aria-label="Period">
           <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4b-period"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Week"><input type="radio" name="4b-period"><span class="sp-label">Week</span></label>
+          <label class="sp-period__preset" data-label="Month"><input type="radio" name="4b-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4b-period"><span class="sp-label">Quarter</span></label>
           <label class="sp-period__preset" data-label="Year"><input type="radio" name="4b-period" defaultChecked="{{ true }}"><span class="sp-label">Year</span></label>
           <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4b-period"><span class="sp-label">Custom</span></label>
@@ -699,6 +730,10 @@
             <li><span class="sp-crumb"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">IM</span>Indbo Møbler<button type="button" class="sp-crumb__remove" aria-label="Remove Indbo Møbler">×</button></span></li>
           </ol>
         </nav>
+      
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--text sp-btn--small">Reset</button>
+        <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
       </div>
 
       <div class="os-stats">
@@ -923,6 +958,8 @@
       <div class="sp-period">
         <div class="sp-period__presets" role="radiogroup" aria-label="Period">
           <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4c-period"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Week"><input type="radio" name="4c-period"><span class="sp-label">Week</span></label>
+          <label class="sp-period__preset" data-label="Month"><input type="radio" name="4c-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4c-period"><span class="sp-label">Quarter</span></label>
           <label class="sp-period__preset" data-label="Year"><input type="radio" name="4c-period" defaultChecked="{{ true }}"><span class="sp-label">Year</span></label>
           <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4c-period"><span class="sp-label">Custom</span></label>
@@ -943,6 +980,10 @@
             <li><span class="sp-crumb">Decor<button type="button" class="sp-crumb__remove" aria-label="Remove Decor">×</button></span></li>
           </ol>
         </nav>
+      
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--text sp-btn--small">Reset</button>
+        <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
       </div>
 
       <div class="os-stats">
@@ -1115,6 +1156,7 @@
   <div class="doc-lede">A mature account, three years on: 200 vendors and 34 categories in one year. At that scale a breakdown has hundreds of rows, and a 200-row card is unreadable whether it scrolls or not. Every breakdown rests at its top eight with the remainder carried as one row, and expands in place when asked. Nothing on this page is an open-ended list.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>One vendor card everywhere: Top vendors.</b> It rests at its top eight and Other; its meta reads "top 8 of 200", or "all 200" once expanded; its footer carries the total beside Show all.</div>
     <div class="doc-note"><b>Eight rows, then one Other row, then the link.</b> The Other row carries the summed remainder and its count, so the column still adds to the KPI above it. Without it the card silently understates the total and every percentage on it is wrong.</div>
     <div class="doc-note"><b>Expansion happens in the card, not on a new page.</b> The link swaps the eight rows for all of them inside a height-capped scroll region; the card keeps its position in the grid and the crumb state is untouched. A separate ranked page would need its own period control, its own crumbs and its own back behaviour.</div>
     <div class="doc-note"><b>The Other row is not clickable, and once expanded it is gone.</b> Drilling into &quot;192 vendors&quot; has no meaning as a crumb; expanded, the remainder is the rows themselves.</div>
@@ -1134,21 +1176,11 @@
         </div>
       </div>
     <div class="os-body">
-      <div class="sp-card sp-crumbs-bar">
-        <span class="sp-section-label">Showing</span>
-        <nav aria-label="Drill path">
-          <ol class="sp-crumbs">
-            <li><span class="sp-crumbs__root">2029</span></li>
-          </ol>
-        </nav>
-        <span class="sp-grow"></span>
-        <span class="sp-meta">1.960 orders · 200 vendors · 34 categories</span>
-      </div>
 
       <div class="sp-halves">
         <div class="sp-card">
           <div class="sp-row-flex sp-gap-8">
-            <span class="sp-section-label">By vendor</span>
+            <span class="sp-section-label">Top vendors</span>
             <span class="sp-grow"></span>
             <span class="sp-meta">top 8 of 200</span>
           </div>
@@ -1260,7 +1292,7 @@
 
         <div class="sp-card">
           <div class="sp-row-flex sp-gap-8">
-            <span class="sp-section-label">By vendor</span>
+            <span class="sp-section-label">Top vendors</span>
             <span class="sp-grow"></span>
             <span class="sp-meta">expanded · 200 of 200</span>
           </div>
@@ -1558,7 +1590,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Values:</b> <code>expenses</code> (default) · <code>refunds</code> · <code>net</code>. In the URL as <code>flow=</code>, alongside <code>period</code> and <code>crumbs</code>, so a shared link carries it.</div>
-    <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders with a positive total. <code>refunds</code>: returned orders and credit notes - anything whose total is negative. <code>net</code>: both, summed with sign. <b>⚠ CONFIRM</b> whether a partially returned order is one record with a reduced total or two records; if two, <code>expenses</code> shows the original and the option list is correct as drawn.</div>
+    <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders that are Ordered or Delivered. <code>refunds</code>: orders that are Returned. <code>net</code>: both, a return counted against its spend. A returned order is never an expense.</div>
     <div class="doc-note"><b>It filters, it does not change definitions.</b> Average order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
     <div class="doc-note"><b>Under <code>net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
     <div class="doc-note"><b>The menu sits in the top bar with Export, at its right end</b>, not in the period row. The period row holds the period alone, so its presets keep their width at every desktop width.</div>
@@ -1589,7 +1621,7 @@
                 <li role="option"><button type="button" class="sp-combobox__option">
                   <span class="sp-stack sp-grow">
                     <span class="sp-data">Refunds only</span>
-                    <span class="sp-meta">Returns and credit notes.</span>
+                    <span class="sp-meta">Returned orders.</span>
                   </span>
                 </button></li>
                 <li role="option"><button type="button" class="sp-combobox__option">
@@ -1678,12 +1710,12 @@
     <span class="doc-badge" id="4f">4f</span>
     <span class="doc-section__title">Custom - the range picker</span>
   </div>
-  <div class="doc-lede">What the fifth preset opens. The four named windows resolve to a range on their own; Custom is the one that asks, so the control grows a panel under it rather than sending the user to another screen. Everything in it is <a href="Components.dc.html#c14">c14</a>'s period control unchanged - the quick ranges, the two date fields, two months of days, and the count of what is selected.</div>
+  <div class="doc-lede">What the sixth preset opens. The five named windows resolve to a range on their own; Custom is the one that asks, so the control grows a panel under it rather than sending the user to another screen. Everything in it is <a href="Components.dc.html#c14">c14</a>'s period control unchanged - the quick ranges, the two date fields, two months of days, and the count of what is selected.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Nothing recomputes until Apply.</b> The panel is a draft: picking days changes the fields and the count, and the page behind it is untouched. Cancel closes it and leaves the period as it was. This is the one control on the page that does not filter as you touch it, because a half-entered range is not a range.</div>
-    <div class="doc-note"><b>The quick ranges are shortcuts to a range, not presets of their own.</b> This month, Last month, Year to date and All time each fill both fields and leave the panel open, so the user can still adjust before applying. They are not a second set of windows - the four presets are the windows.</div>
+    <div class="doc-note"><b>The quick ranges are shortcuts to a range, not presets of their own.</b> This month, Last month, Year to date and All time each fill both fields and leave the panel open, so the user can still adjust before applying. They are not a second set of windows - the five named presets are the windows.</div>
     <div class="doc-note"><b>Two months, always.</b> A range crosses a month boundary more often than not, and one month means paging back and forth to see both ends. The arrows move the pair together.</div>
     <div class="doc-note"><b>The fields accept typing.</b> Someone who knows the dates should not have to click 43 times. Typing a date moves the calendar to it; the field being edited is marked, so it is clear which end the next click sets.</div>
     <div class="doc-note"><b>Custom stays selected after Apply</b>, with the resolved range beside it and the day count after that - the same two readouts the named windows use. There is no stepper: a range of its own has no next or previous.</div>
@@ -1696,6 +1728,7 @@
       <div class="os-picker">
         <div class="sp-period">
         <div class="sp-period__presets" role="group" aria-label="Window size">
+          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4f-period"><span class="sp-label">30 days</span></label>
           <label class="sp-period__preset" data-label="Week"><input type="radio" name="4f-period"><span class="sp-label">Week</span></label>
           <label class="sp-period__preset" data-label="Month"><input type="radio" name="4f-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4f-period"><span class="sp-label">Quarter</span></label>

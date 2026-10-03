@@ -173,6 +173,10 @@
   --shell-group: #7d9186;    /* group label, dim count */
   --shell-count: #a9bdb1;    /* count on the current item */
   --shell-scroll: #3a5546;   /* scrollbar thumb inside the sidebar */
+  --shell-action: #1d4d33;   /* Scan receipt's fill, and the brand tile */
+  --shell-action-hover: #2f7a51;
+  --shell-mark: #4f7f63;     /* the account mark in the sidebar */
+  --shell-warning: #e2d3ae;  /* a warning count in the sidebar */
 
   /* the thumb every scrolling region shows: the divider ink, so a bar reads as a
      hairline that happens to move rather than as a control */

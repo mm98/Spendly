@@ -178,7 +178,7 @@
     <div class="doc-note"><b>Watch out</b> - Only one row is open at a time; opening another closes the first and keeps its changes in the order draft. The line is never saved to the server on its own - the order save is the only write.</div>
     <div class="doc-note"><b>Watch out</b> - Line total is computed and read-only. Do not make it editable "for convenience" - two sources for one number is how totals start disagreeing with receipts.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - This inline expansion is desktop only. On a phone the same fields open in a bottom sheet (1c), because in one column "expands in place" and "takes over the screen" are the same thing. Same fields, same order, same validation - one form component, two containers.</div>
-    <div class="doc-note"><b>Easy to get wrong</b> - Discoverability. A row must never look inert: pointer cursor, hover fill, and a pencil at the right edge. On touch there is no hover, so the pencil is permanently visible. All three, not one.</div>
+    <div class="doc-note"><b>Easy to get wrong</b> - Discoverability. A row must never look inert: pointer cursor, hover fill, and a pencil at the right edge. All three, not one. On touch there is no hover and no pencil: the whole row opens the sheet (<a href="#1c">1c</a>).</div>
   </div>
 
   <div class="sp-card oe-card">
@@ -207,7 +207,7 @@
         <span class="sp-slot">
           <label class="sp-mark sp-mark--medium sp-mark--photo" for="1b-slot" data-tip="Replace the image">
             <span class="sp-mark__text">Photo</span>
-            <input id="1b-slot" type="file" accept="image/*" capture="environment">
+            <input id="1b-slot" type="file" accept="image/*">
           </label>
           <button type="button" class="sp-slot__remove">Remove</button>
         </span>
@@ -286,10 +286,10 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Intent</b> - The phone is the capture device, so this layout assumes one hand and a receipt in the other. Items lead because that is the work; details fold away.</div>
-    <div class="doc-note"><b>Watch out</b> - The details section is collapsed by default with a summary line ("Indbo Møbler · 12 Aug · Received"). Collapsed must still tell you what is inside, or it reads as an empty accordion.</div>
+    <div class="doc-note"><b>Watch out</b> - The details section is collapsed by default with a summary line of its categories, kind and reference ("Decor · Expense · SPENDLY-447"), as drawn. Collapsed must still tell you what is inside, or it reads as an empty accordion.</div>
     <div class="doc-note"><b>Watch out</b> - 44px minimum on every target, including the row itself and the sheet buttons. Row density in Settings does not apply here - compact affects list rows on desktop only.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - This is not the desktop layout at a smaller width. Fields were removed, not shrunk: vendor and amount on line one, date/items/status on line two, category on line three. Anything else lives one level deeper. Do not reintroduce columns to "use the space".</div>
-    <div class="doc-note"><b>Reorder is a mode, not an action</b> - the same mode the saved-views card uses. Tapping it turns each row into a reorder row: the drag handle appears at the leading edge and an up and a down button at the trailing edge, both required, since drag is awkward on touch inside a scrolling list and the buttons are the accessible path (see <a href="#1d">1d</a>). The button becomes <b>Done</b>, which leaves the mode and saves nothing - each move has already saved, as an explicit position on the line rather than a sort order. Nothing else about the row changes: same height, same content, same 44px targets.</div>
+    <div class="doc-note"><b>Reorder is a mode, not an action</b> - the same mode the saved-views card uses. Tapping it turns each row into a reorder row: the drag handle appears at the leading edge and an up and a down button at the trailing edge, both required, since drag is awkward on touch inside a scrolling list and the buttons are the accessible path (see <a href="#1d">1d</a>). The button becomes <b>Done</b>, which leaves the mode. The moves are changes to the order like any other: they wait for the order's Save, as an explicit position on each line rather than a sort order (<a href="#1b">1b</a>). Nothing else about the row changes: same height, same content, same 44px targets.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Sticky save on iOS. The save bar must sit above the keyboard and the home indicator - use dynamic viewport units and safe-area insets, or it ends up under both.</div>
   </div>
 
@@ -437,7 +437,7 @@
             <span class="sp-slot">
               <label class="sp-mark sp-mark--medium sp-mark--photo" for="1c-slot" data-tip="Replace the image">
                 <span class="sp-mark__text">Photo</span>
-                <input id="1c-slot" type="file" accept="image/*" capture="environment">
+                <input id="1c-slot" type="file" accept="image/*">
               </label>
               <button type="button" class="sp-slot__remove">Remove</button>
             </span>
