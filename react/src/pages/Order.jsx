@@ -77,7 +77,15 @@ function Created({ order, created, onGone }) {
 		<div className="or-span">
 			<Alert color="success" mark={<Icon name="check" size={12} />}
 				title={created.file ? `Order created from ${created.file}.` : 'Order created.'}
-				action={<Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>}>
+				action={created.documentKey
+					// after a scan the next receipt is one click away (16a: open the order or scan another)
+					? (
+						<span className="sp-row-flex sp-gap-8">
+							<Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>
+							<Button variant="outline" size="small" to="/orders/new?source=scan">Scan another</Button>
+						</span>
+					)
+					: <Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>}>
 				{[
 					created.file ? 'The receipt is kept as an attachment.' : null,
 					files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
