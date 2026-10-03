@@ -395,7 +395,7 @@ export function MergeDialog({ kind, source, options, initial = null, busy, onCon
 					: <>Merge <b className="sp-ink">{source.name}</b> and its <b className="sp-ink">{plural(source.orders, 'order')}</b> into</>}
 				message={vendor
 					? `"${source.name}" becomes an alias, so the next receipt printing that name files here.`
-					: 'Every category except this one. Totals and charts count it under the one you pick.'}>
+					: 'Every category except this one. Totals and charts count them under the one you pick.'}>
 				<Combobox searchable search={query} onSearch={setQuery} noun={vendor ? 'vendors' : 'categories'}
 					placeholder={vendor ? 'Choose a vendor' : 'Choose a category'}
 					value={picked ? picked.name : ''} lead={picked ? markOf(picked) : undefined}>

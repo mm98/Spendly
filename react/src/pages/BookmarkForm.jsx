@@ -17,7 +17,7 @@ import {
 	addBookmarkPhoto, addBookmarkPhotoFromUrl, bookmarkPhotoThumbnailUrl, createBookmark, deleteBookmark, failureMessage,
 	getBookmark, getBookmarkPreview, removeBookmarkPhoto, setBookmarkArchived, updateBookmark
 } from '../api/client.js'
-import { amount, currency, currencySymbol, shortDate } from '../api/format.js'
+import { NUMBER_LOCALE, amount, currency, currencySymbol, shortDate } from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
 	CategoryTokens, CommitBar, ConfirmDelete, GoneNotice, RecordPage, bookmarkDeleteNote, hold, isGone, sayFailure, useLeaveGuard
@@ -207,7 +207,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 			</Field>
 			<div className="sp-fields">
 				<Field label="Price" id="bookmark-price" unit={currencySymbol()} message="Leave it empty if you have not looked it up.">
-					{h(<NumberField value={price} onChange={setPrice} decimals={0} min={0} locale="da-DK" />)}
+					{h(<NumberField value={price} onChange={setPrice} decimals={0} min={0} locale={NUMBER_LOCALE} />)}
 				</Field>
 				<Field label="Categories" id="bookmark-categories" message="Type a name that is not on the list to add a new category.">
 					{h(<CategoryTokens value={chosen} onChange={setChosen} />)}

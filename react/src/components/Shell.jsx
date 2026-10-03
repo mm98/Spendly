@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
-import { Mark } from './Mark.jsx'
+import { Mark, initialsOf } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
 import { SearchInput } from './Inputs.jsx'
 import { Kbd } from './Utilities.jsx'
@@ -232,8 +232,8 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents} onKeyDown={opener}
 				{...rest}>
 				{picture
-					? <Mark size="medium" fill="photo" aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
-					: <Mark size="medium" fill="solid">{name || (split > 0 ? email.slice(0, split) : email)}</Mark>}
+					? <Mark size="medium" fill="photo" round aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
+					: <Mark size="medium" fill="solid" swatch="green-3" round role="img" aria-label={name || email}><>{initialsOf(name || (split > 0 ? email.slice(0, split) : email))}</></Mark>}
 				<span className="sp-stack sp-grow">
 					{name ? <span className="sp-truncate">{name}</span> : null}
 					{address}

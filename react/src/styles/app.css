@@ -13,6 +13,8 @@
 	height: 100dvh;
 }
 .sp-shell--viewport > .sp-sidebar.sp-sidebar--peek { position: fixed; height: 100dvh; }
+/* on the rail the brand tile stands alone, and keeps the shell's fill in dark mode too (72) */
+.sp-sidebar > .sp-mark--solid { background: var(--shell-action); color: #fff; }
 .sp-shell--viewport .sp-shell__page > .sp-topbar {
 	position: sticky;
 	top: 0;
@@ -42,7 +44,7 @@
 	padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom));
 }
 .sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
-.sp-shell--touch .sp-shell__body { padding: var(--sp-12); }
+.sp-shell--touch .sp-shell__body { padding: var(--phone-gutter); }
 .sp-shell--touch .sp-shell__body--rail { grid-template-columns: minmax(0, 1fr); }
 .sp-shell--touch > .sp-tabbar {
 	position: fixed;

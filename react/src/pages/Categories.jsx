@@ -49,11 +49,14 @@ function MonthGauge({ category, pace, split = false }) {
 	return <Gauge thin value={(spend / budget) * 100} marker={pace.at} aria-label="Share of the limit used" />
 }
 
-function MonthLine({ category }) {
+function MonthLine({ category, pace }) {
 	const { monthSpend: spend, budget } = category
 	if (!(budget > 0)) return <span className="sp-meta">{currency(spend, 0)} spent</span>
 	if (spend > budget)
 		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{amountRound(spend - budget)} over</span>
+	// ahead of pace only past ten points over the marker (5i)
+	if ((spend / budget) * 100 > pace.at + 10)
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}ahead of pace</span>
 	return <span className="sp-meta">{currency(spend, 0)}{dot}{amountRound(budget - spend)} left</span>
 }
 
@@ -209,7 +212,7 @@ export default function Categories() {
 					<ListCell key="m">
 						<div className="sp-stack sp-gap-6 sp-right">
 							<MonthGauge category={c} pace={pace} split />
-							<MonthLine category={c} />
+							<MonthLine category={c} pace={pace} />
 						</div>
 					</ListCell>,
 					folded ? null : (

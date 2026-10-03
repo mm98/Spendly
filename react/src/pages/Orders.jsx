@@ -1050,7 +1050,7 @@ function AmountFacet({ top, min, max, update }) {
 	}, [range, fromUrl, top, update])
 	return (
 		<FieldGroup facet legend="Amount" meta={`0 - ${currency(top, 0)}`}>
-			<RangeSlider value={range} min={0} max={top} step={100} label="Amount" format={n => amount(n, 0)} onChange={setRange} />
+			<RangeSlider value={range} min={0} max={top} step={100} label="Amount" format={n => amount(n, 0)} locale={NUMBER_LOCALE} onChange={setRange} />
 		</FieldGroup>
 	)
 }

@@ -1,16 +1,26 @@
-/* Danish number grammar: a dot groups thousands and a comma separates decimals. Ore where a
-   figure can be checked against a receipt (24.418,57 kr.), whole kroner in a summary (18.420 kr.). */
+/* Numbers follow the reader's chosen locale, as dates do: "24.418,57 kr." in Danish, "24,418.57 kr."
+   in English. Ore where a figure can be checked against a receipt, whole kroner in a summary. */
 
-const groups = whole => whole.replace(/\B(?=(\d{3})+$)/g, '.')
+const browserLocale = () => new Intl.NumberFormat().resolvedOptions().locale
 
-/** The locale whose grammar this is, for a library control that formats or reads numbers itself. */
-export const NUMBER_LOCALE = 'da-DK'
+/** The locale every figure is written in, for a library control that formats or reads numbers itself. */
+export let NUMBER_LOCALE = browserLocale()
 
-/** 1187.25 -> "1.187,25", and (18420, 0) -> "18.420". */
-export const amount = (n, decimals = 2) => {
-	const [whole, rest] = Math.abs(n).toFixed(decimals).split('.')
-	return (n < 0 ? '-' : '') + groups(whole) + (rest ? ',' + rest : '')
+// built once per locale and precision, never once for good: the locale can change without a reload
+const numberFormats = new Map()
+const numberFormat = (fewest, most) => {
+	const key = `${NUMBER_LOCALE} ${fewest} ${most}`
+	if (!numberFormats.has(key)) numberFormats.set(key, new Intl.NumberFormat(NUMBER_LOCALE, { minimumFractionDigits: fewest, maximumFractionDigits: most }))
+	return numberFormats.get(key)
 }
+// the sign is written here, so a locale's own minus sign never splits one figure from the next
+const signedFigure = (n, fewest, most) => {
+	const figure = numberFormat(fewest, most).format(Math.abs(n))
+	return (n < 0 && /[1-9]/.test(figure) ? '-' : '') + figure
+}
+
+/** 1187.25 -> "1.187,25", and (18420, 0) -> "18.420", in Danish. */
+export const amount = (n, decimals = 2) => signedFigure(n, decimals, decimals)
 
 /** 18420 -> "18.420". */
 export const amountRound = n => amount(n, 0)
@@ -22,7 +32,7 @@ export const countBadge = n => (n > 9999 ? `${amount(9999, 0)}+` : amount(n, 0))
 export const morePhotos = n => `+${Math.min(n, 99)}`
 
 /** 2 -> "2", 1.5 -> "1,5": a count is not money, so trailing zeros go. */
-export const quantity = n => amount(n, 2).replace(/(,\d*?)0+$/, '$1').replace(/,$/, '')
+export const quantity = n => signedFigure(n, 0, 2)
 
 /** 60000 -> "60k", 2500 -> "2,5k", 500 -> "500": a chart axis's own shorthand. */
 export const compactAmount = n => {
@@ -67,10 +77,22 @@ export const fullStop = () => (active.symbol.endsWith('.') ? '' : '.')
 /** 9.4 -> "9,4%", and 4567.8 -> "4.567,8%": grouped as every figure is. */
 export const percent = (n, decimals = 1) => amount(n, decimals) + '%'
 
-/* The amount grammar every money field parses and checks. No field is type=number, which
-   refuses the comma; a dot only groups thousands, so 89.95 is a typo to name, never a number. */
-export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
-export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))
+/* The amount grammar every money field parses and checks, in the reader's locale. No field is
+   type=number, which refuses a comma; the grouping mark only groups, so in Danish 89.95 is a typo to name. */
+const SPACES = ' \u00a0\u202f'
+const escaped = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const markOf = text => (SPACES.includes(text) ? `[${SPACES}]` : escaped(text))
+const marks = () => {
+	const parts = new Intl.NumberFormat(NUMBER_LOCALE).formatToParts(12345.6)
+	return { group: markOf(parts.find(p => p.type === 'group')?.value ?? ','), decimal: escaped(parts.find(p => p.type === 'decimal')?.value ?? '.') }
+}
+const patternOf = ({ group, decimal }) => new RegExp(`^(\\d{1,3}(${group}\\d{3})+|\\d+)(${decimal}\\d{1,2})?$`)
+export let AMOUNT_PATTERN = patternOf(marks())
+export const parseAmount = v => {
+	if (typeof v === 'number') return v
+	const { group, decimal } = marks()
+	return Number(String(v).replace(new RegExp(group, 'g'), '').replace(new RegExp(decimal), '.'))
+}
 
 /* Dates are written in the reader's chosen locale, a setting rather than navigator.language; an
    ISO date is built from its local parts, since new Date("2026-07-18") is UTC and a day early in the west. */
@@ -91,6 +113,8 @@ export const LOCALES = [
 let activeLocale
 export const setLocale = code => {
 	activeLocale = LOCALES.some(l => l.code === code) && code !== 'auto' ? code : undefined
+	NUMBER_LOCALE = activeLocale ?? browserLocale()
+	AMOUNT_PATTERN = patternOf(marks())
 }
 /** What the formatters are actually using: a code, or undefined for the browser's own. */
 export const activeLocaleCode = () => activeLocale

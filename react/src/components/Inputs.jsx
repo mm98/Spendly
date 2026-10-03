@@ -69,7 +69,7 @@ export function PasswordField({ ...rest }) {
 		<Trailed
 			trail={
 				<Trail
-					label={shown ? 'Hide the password' : 'Show the password'}
+					label="Show password"
 					pressed={shown}
 					onClick={() => setShown(!shown)}
 				>

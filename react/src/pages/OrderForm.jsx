@@ -25,8 +25,8 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentThumbnailUrl, failureMessage, getCategories, getOrder, getOrderLimits, getOrders, getScanPages, getSettings, getVendors,
-	onOrderSavedElsewhere, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorByAnyName, vendorTextMatch
+	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getCategories, getOrder, getOrderLimits, getOrders, getScanPages, getSettings, getVendors,
+	invalidateOrderData, onOrderSavedElsewhere, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, quantity, shortDate, today
@@ -164,6 +164,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const [asking, setAsking] = useState(false)
 	const [viewing, setViewing] = useState(null)
 	const [said, setSaid] = useState('')
+	// what the create screen handed over (3a), taken once so a reload or a return does not offer Undo again
+	const [created] = useState(() => (!creating && here.state?.created?.id === orderId ? here.state.created : null))
+	useEffect(() => {
+		if (here.state?.created) navigate(here.pathname, { replace: true, state: null })
+	}, [])
+	// a save that kept the reader here ends the task: on a phone the tab bar is back until the next change (9h)
+	const [rested, setRested] = useState(Boolean(created))
 	// a line moved by hand marks the order changed and waits for the save bar (c1)
 	const reorder = useReorder({
 		items: lines,
@@ -559,14 +566,30 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			toast({ message: 'The changes that waited for the connection are saved. Save again for what you changed since.' })
 			return
 		}
-		guard.release()
 		if (lapse) toast({ message: lapse, color: 'danger' })
 		else if (!plan.creating) toast({ message: 'Changes saved.' })
-		// a new order lands on its saved page with the notice that can undo it (3a)
-		const created = plan.creating
-			? { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference, draft: plan.asDraft }
-			: undefined
-		navigate(`/orders/${order.id}`, { replace: plan.creating, state: created && { created } })
+		if (plan.creating) {
+			// a new order becomes this screen saved, at its own address, with the notice that can undo it (3a)
+			guard.release()
+			const made = { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference, draft: plan.asDraft }
+			return navigate(`/orders/${order.id}/edit`, { replace: true, state: { created: made } })
+		}
+		// a save keeps the reader here (16a), on the order as the server now holds it, files included
+		setSaving(true)
+		getOrder(order.id).catch(() => order).then(fresh => {
+			setSaving(false)
+			base.current = fresh.revision ?? null
+			const seen = draftOf(fresh)
+			for (const f of files) if (f.thumb) URL.revokeObjectURL(f.thumb)
+			setStart(seen)
+			setDraft({ ...seen, lines: undefined })
+			setLines(seen.lines)
+			setGone([])
+			setFiles([])
+			setSaved(savedFilesOf(fresh))
+			setTried(false)
+			setRested(true)
+		})
 	}
 
 	// the waiting save's outcome comes back here while the form is open, and to the shell once it is not
@@ -719,7 +742,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						<span className="sp-subtitle sp-nowrap">{quantity(Number(line.quantity) || 0)} ×</span>
 						<span className="sp-stacked sp-cell-amount">
 							<span className="sp-field__wrap oc-amount-field">
-								<NumberField unit value={line.price} min={0} locale={NUMBER_LOCALE} placeholder="0,00" aria-label={`${named}, price`}
+								<NumberField unit value={line.price} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} aria-label={`${named}, price`}
 									{...(warn ? { 'data-color': 'warning' } : {})}
 									onChange={price => setLines(ls => ls.map(l => (l.key === line.key ? { ...l, price, uncertain: false, checked: true } : l)))} />
 								<span className="sp-field__unit">{currencySymbol()}</span>
@@ -733,11 +756,11 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			</>
 		)
 		const pencil = <IconButton variant="outline" icon="pencil" aria-label={`Edit ${named}`} data-edit="" onClick={() => openLine(line)} />
-		// a phone's scan review is a list to tick (7b): what was read, and a pencil to correct it
+		// a phone's scan review is a list to tick (7b); the row itself opens the line, as every phone row does (1c)
 		if (touch && scan)
 			return (
-				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'}
-					mark={<Include line={line} setLines={setLines} />} actions={pencil}>
+				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} opens
+					mark={<Include line={line} setLines={setLines} />}>
 					{words}
 				</ListItem>
 			)
@@ -800,7 +823,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const itemsCard = (
 		<Card>
 			{itemsHead}
-			<div className="sp-stack sp-gap-8" {...reorder.list} onClick={touch ? undefined : rowClick}>
+			<div className="sp-stack sp-gap-8" {...reorder.list} onClick={touch && !scan ? undefined : rowClick}>
 				<Announce>{said}</Announce>
 				<Announce>{reorder.said}</Announce>
 				{reorder.items.map(line => (
@@ -967,10 +990,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				: null}
 			<div className="sp-fields">
 				<Field label="Discount" unit={currencySymbol()} {...lookAt('discount')}>
-					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={discount => set({ discount })} />
+					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={discount => set({ discount })} />
 				</Field>
 				<Field label="Shipping fee" unit={currencySymbol()} {...lookAt('shipping')}>
-					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={shipping => set({ shipping })} />
+					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
 			<div className="sp-fields">
@@ -1089,7 +1112,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	)
 
 	// on a phone the bar takes the tab bar's place (1c, 5b)
-	const touchBar = (
+	const touchBar = rested && !dirty && !saving && !waiting && !lost ? null : (
 		<SaveBar>
 			<span className="sp-subtitle sp-grow">{state}</span>
 			{leaveButton}
@@ -1205,18 +1228,75 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		)
 		: null
 
+	const createdNotice = created
+		? (
+			<Created created={created} touch={touch} orderId={orderId}
+				files={saved.length + lines.filter(l => l.photo).length - (created.documentKey ? 1 : 0)}
+				typed={{ ...draft, reference: created.reference, lines: lines.map(l => ({ key: `undo-${l.key}`, title: l.title, quantity: l.quantity, price: l.price, retail: l.retail ?? null, note: l.note ?? '' })) }}
+				onGone={guard.release} />
+		)
+		: null
+
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{confirmRemoval}{viewer}{guard.prompt}
+			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{confirmRemoval}{viewer}{guard.prompt}
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
 	const main = stacked
-		? <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}{sheet}{dialog}{confirmRemoval}{viewer}{guard.prompt}</div>
+		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}{sheet}{dialog}{confirmRemoval}{viewer}{guard.prompt}</div>
 		: <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}</div>
 	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}{dialog}{confirmRemoval}{viewer}{guard.prompt}</Panel>
-	if (!region) return <>{main}{rail}</>
+	if (!region) return <>{stacked ? null : createdNotice}{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
+}
+
+/** The saved state's notice (3a): where the order came from, and Undo, which deletes it and goes
+    back to the screen it was created from with what was typed. */
+function Created({ created, touch, orderId, files, typed, onGone }) {
+	const navigate = useNavigate()
+	const toast = useToast()
+	const [busy, setBusy] = useState(false)
+	// the lists forget the order once this page has gone, so the page does not ask for it again
+	const deleted = useRef(false)
+	useEffect(() => () => { if (deleted.current) invalidateOrderData() }, [])
+	const undo = () => {
+		setBusy(true)
+		deleteOrder(orderId)
+			.then(() => {
+				onGone()
+				deleted.current = true
+				if (created.documentKey) navigate(`/orders/new?source=scan&doc=${created.documentKey}`, { replace: true })
+				else navigate('/orders/new?source=empty', { replace: true, state: { seed: typed } })
+				toast({ message: created.documentKey ? 'The order was not kept. The receipt is back for you to check.' : 'The order was not kept. What you typed is back in the form.' })
+			})
+			.catch(e => {
+				setBusy(false)
+				toast({ message: failureMessage(e, 'The order was not removed. Try again.'), color: 'danger' })
+			})
+	}
+	const said = [
+		created.file ? 'The receipt is kept as an attachment.' : null,
+		files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
+	].filter(Boolean).join(' ') || null
+	const undoButton = <Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>
+	// after a scan the next receipt is one click away (16a: open the order or scan another)
+	const actions = created.documentKey
+		? <span className="sp-row-flex sp-gap-8">{undoButton}<Button variant="outline" size="small" to="/orders/new?source=scan">Scan another</Button></span>
+		: undoButton
+	// a phone's notice is too narrow for words and two buttons side by side, so the buttons go under the words
+	const under = touch && created.documentKey
+	return (
+		<div className="or-span">
+			<Alert color="success" mark={<Icon name="check" size={12} />}
+				title={created.draft
+					? (created.file ? `Saved as a draft from ${created.file}.` : 'Saved as a draft.')
+					: (created.file ? `Order created from ${created.file}.` : 'Order created.')}
+				action={actions} below={under}>
+				{said}
+			</Alert>
+		</div>
+	)
 }
 
 const LOOK = '[data-line][data-color="warning"], .sp-field__label + .sp-field__help[data-color="warning"]'
@@ -1414,10 +1494,10 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange
 					<Stepper value={Number(v.quantity) || 0} min={0.01} step={1} decimals={2} locale={NUMBER_LOCALE} aria-label="Quantity" onChange={quantity => set({ quantity })} />
 				</Field>
 				<Field label="Unit price" unit={currencySymbol()} {...problem(errors.price)}>
-					<NumberField value={v.price} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={price => set({ price })} />
+					<NumberField value={v.price} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={price => set({ price })} />
 				</Field>
 				<Field label="Retail price" unit={currencySymbol()}>
-					<NumberField value={v.retail} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={retail => set({ retail })} />
+					<NumberField value={v.retail} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={retail => set({ retail })} />
 				</Field>
 				<Computed label="Line total">{v.price == null ? '-' : money(lineTotal(v))}</Computed>
 			</div>

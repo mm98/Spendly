@@ -7,7 +7,7 @@ import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Field } from '../components/Field.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Mark } from '../components/Mark.jsx'
+import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { NavItem } from '../components/Shell.jsx'
@@ -19,7 +19,7 @@ import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
 import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, removePicture, saveSettings,
+	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getStatuses, getVendors, listSorts, removePicture, saveSettings,
 	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
@@ -28,7 +28,7 @@ import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard } from './SettingsAccount.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, Heading } from './SettingsParts.jsx'
-import { StatusesCard } from './SettingsStatuses.jsx'
+import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
 import { useViews } from '../app/views.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { useLeaveGuard } from './vendorsCategories.jsx'
@@ -41,7 +41,7 @@ const SECTIONS = [
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'sort', 'listSort'] },
 	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEmail', 'notifyEarly'] },
-	{ key: 'statuses', label: 'Statuses' },
+	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
 	{ key: 'import', label: 'Import' },
 	{ key: 'demo', label: 'Demo data' },
 	{ key: 'build', label: 'This build' }
@@ -97,13 +97,14 @@ export default function Settings() {
 	const narrow = useMedia('(max-width: 899.98px)')
 	const settings = useApi(getSettings)
 	const user = useApi(getCurrentUser)
+	const statuses = useApi(getStatuses)
 	const toast = useToast()
 	const [draft, setDraft] = useState({})
 	const [saving, setSaving] = useState(false)
 	// the name is the account's and the sidebar's view count is kept with the views; both save with the rest
 	const shown = useViews().data?.shown
 	const saved = settings.data && user.data
-		? { ...ALERT_DEFAULTS, ...settings.data, name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4 }
+		? { ...ALERT_DEFAULTS, ...settings.data, name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
 		: null
 	const current = SECTIONS.some(s => s.key === section) ? section : null
 
@@ -119,13 +120,16 @@ export default function Settings() {
 
 	const save = () => {
 		setSaving(true)
-		const { name, picture, orderViews, ...prefs } = draft
+		const { name, picture, orderViews, statuses: edited, ...prefs } = draft
 		const account = name !== undefined || picture !== undefined
+		const prefsSaved = Object.keys(prefs).length ? saveSettings(prefs) : null
 		Promise.all([
-			Object.keys(prefs).length ? saveSettings(prefs) : null,
+			prefsSaved,
 			name !== undefined ? updateProfile({ name }) : null,
 			picture !== undefined ? (picture ? uploadPicture(picture) : removePicture()) : null,
-			orderViews ? setViewsShown(orderViews) : null
+			orderViews ? setViewsShown(orderViews) : null,
+			// after the defaults, so a status the default just moved off can be deleted
+			edited ? Promise.resolve(prefsSaved).then(() => saveStatuses(edited)).then(() => freshFetch(getStatuses)) : null
 		])
 			// the account's own answer is in before the draft goes, so the old picture never shows between
 			.then(out => (account ? freshFetch(getCurrentUser).catch(() => {}).then(() => out) : out))
@@ -154,7 +158,7 @@ export default function Settings() {
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
 		alerts: <AlertsCard key="alerts" mail={user.data?.mail} {...fields} />,
-		statuses: <StatusesCard key="statuses" touch={touch} />,
+		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
 		import: <ImportCard key="import" />,
 		demo: <DemoCard key="demo" />,
 		build: <BuildCard key="build" />
@@ -359,7 +363,7 @@ function MoneyCard({ value, change, touch }) {
 					<Choose narrow={!touch} value={value('currency')} onChange={v => change('currency', v)}
 						options={CURRENCIES.map(c => ({ id: c.code, label: currencyLabel(c) }))} />
 				</Field>
-				<Field label="Date and time format" message="How dates and times are written. Times always show in your own clock.">
+				<Field label="Date and time format" message="How dates, times and numbers are written. Times always show in your own clock.">
 					<Choose narrow={!touch} value={value('locale')} onChange={v => change('locale', v)}
 						options={LOCALES.map(l => ({ id: l.code, label: localeLabel(l) }))} />
 				</Field>
@@ -471,7 +475,7 @@ function PhoneIndex({ user }) {
 			<ListItem variant="card" chevron={chevron} to="/settings/account" aria-label="Account and profile"
 				mark={!email ? null : user.picture
 					? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
-					: <Mark size="large" fill="solid" round>{name}</Mark>}>
+					: <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={name}><>{initialsOf(name)}</></Mark>}>
 				{email
 					? (
 						<span className="sp-stack sp-gap-6 sp-grow">

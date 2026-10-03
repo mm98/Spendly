@@ -10,8 +10,8 @@ import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { TopBarEndSlot } from './topBarEnd.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
-import { peek, useApi } from '../api/useApi.js'
+import { getBookmarks, getCategories, getCurrentUser, getOrders, getSettings, getVendors, onSessionEnded, saveSettings } from '../api/client.js'
+import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SavedLater } from './SavedLater.jsx'
 import { countBadge } from '../api/format.js'
@@ -30,7 +30,7 @@ const handleOf = matches => Object.assign({}, ...matches.map(m => m.handle ?? {}
 
 const TABS = [
 	{ to: '/', key: 'home', icon: 'home', label: 'Home' },
-	{ to: '/orders', key: 'orders', icon: 'file-text', label: 'Orders' },
+	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'Orders' },
 	{ to: '/statistics', key: 'statistics', icon: 'chart-bar', label: 'Statistics' },
 	{ to: '/more', key: 'more', icon: 'user', label: 'More' }
 ]
@@ -227,10 +227,9 @@ function sidebar({ navKey, fold, short, go, showKeys, making }) {
 
 const SLIDE_IN_MS = 180
 const SLIDE_OUT_MS = 140
-const foldKey = () => `spendly:sidebar:${peek(getCurrentUser)?.id ?? ''}`
-const readFold = () => { try { return localStorage.getItem(foldKey()) === 'rail' } catch { return false } }
+const readFold = () => peek(getSettings)?.sidebar === 'rail'
 
-/* The grip (9i): on a wide window it folds the sidebar, kept per account in this browser. Below
+/* The grip (9i): on a wide window it folds the sidebar, kept with the account's settings. Below
    1280 it opens the full sidebar over the page until it is closed or a page is opened. */
 function useFold(shape, visit) {
 	const [folded, setFolded] = useState(readFold)
@@ -245,7 +244,8 @@ function useFold(shape, visit) {
 
 	const keep = value => {
 		setFolded(value)
-		try { localStorage.setItem(foldKey(), value ? 'rail' : 'open') } catch { /* storage denied: this tab only */ }
+		// a save that fails keeps the choice in this window only
+		saveSettings({ sidebar: value ? 'rail' : 'open' }).then(() => invalidate(getSettings), () => {})
 	}
 	const open = () => {
 		if (wide) keep(false)

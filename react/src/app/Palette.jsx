@@ -34,11 +34,11 @@ export function useRecentRecords() {
 
 // a phone keeps the name and one line of detail, without the amount (7b)
 const orderRow = (o, touch) => ({
-	key: 'recent-order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor', open: true, read: [getOrder, [o.id]],
+	key: 'recent-order-' + o.id, icon: 'receipt', name: o.vendor?.name ?? 'No vendor', open: true, read: [getOrder, [o.id]],
 	meta: [o.reference, dayShortMonth(o.date), touch ? null : currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
 })
 const vendorRow = v => ({
-	key: 'recent-vendor-' + v.id, icon: 'shopping-bag', name: v.name, open: true, read: [getVendor, [v.id]],
+	key: 'recent-vendor-' + v.id, icon: 'building-store', name: v.name, open: true, read: [getVendor, [v.id]],
 	meta: 'vendor' + dot + plural(v.orders, 'order'), to: `/vendors/${v.id}/edit`
 })
 
@@ -102,7 +102,7 @@ function shape(needle, list, hits, vendors, touch) {
 		needle,
 		touch,
 		orders: list.orders.map(o => ({
-			key: 'order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor',
+			key: 'order-' + o.id, icon: 'receipt', name: o.vendor?.name ?? 'No vendor',
 			meta: [o.reference, dayShortMonth(o.date)].filter(Boolean).join(dot), value: amount(o.total), to: `/orders/${o.id}`
 		})),
 		ordersCount: list.matched,
@@ -112,7 +112,7 @@ function shape(needle, list, hits, vendors, touch) {
 			// the alias leads: it is why a name without the typed text is here at all (9d)
 			const matched = v.alias ? 'matched ' + v.alias : null
 			return {
-				key: 'vendor-' + v.id, icon: 'shopping-bag', name: v.name, to: `/vendors/${v.id}/edit`,
+				key: 'vendor-' + v.id, icon: 'building-store', name: v.name, to: `/vendors/${v.id}/edit`,
 				// a vendor that looks like another one says so in place of its figures (9b)
 				meta: s?.duplicateOf
 					? <>{matched ? matched + dot : null}<span className="sp-field__help" data-color="warning">possible duplicate</span></>

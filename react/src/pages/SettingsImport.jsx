@@ -12,7 +12,7 @@ import { Gauge, Stat } from '../components/Data.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	checkImportDuplicates, failureMessage, getCategories, getImports, getSettings, getVendors, importOrders, startImport,
+	checkImportDuplicates, failureMessage, getCategories, getCurrentUser, getImports, getSettings, getVendors, importOrders, startImport,
 	undoImport, vendorByAnyName
 } from '../api/client.js'
 import { amount, amountRound, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
@@ -115,6 +115,7 @@ export function ImportCard() {
 	const categories = useApi(getCategories)
 	const history = useApi(getImports)
 	const settings = useApi(getSettings)
+	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 	const [stage, setStage] = useState({ name: 'rest' })
 	const [reuse, setReuse] = useState(null)
 	const { box, then } = useStepFocus(stage)
@@ -199,11 +200,21 @@ export function ImportCard() {
 		<>
 			<Card ref={box}>
 				<Heading section="import">Import</Heading>
-				<FileDrop key={stage.attempt ?? 0} id={FILE_ID} accept={ACCEPT} onFiles={read}>
-					<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
-					<span className="sp-title">Drop a file, or choose one</span>
-					<span className="sp-subtitle">CSV, XLSX or a JSON export. One row per item line, or one row per order - both work.</span>
-				</FileDrop>
+				{held
+					? (
+						<FileDrop disabled>
+							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title sp-ink-2">Drop a file, or choose one</span>
+							<span className="sp-meta">Available once your email is confirmed</span>
+						</FileDrop>
+					)
+					: (
+						<FileDrop key={stage.attempt ?? 0} id={FILE_ID} accept={ACCEPT} onFiles={read}>
+							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title">Drop a file, or choose one</span>
+							<span className="sp-subtitle">CSV, XLSX or a JSON export. One row per item line, or one row per order - both work.</span>
+						</FileDrop>
+					)}
 				{reuse && !reuse.replacing
 					? (
 						<ListItem color="success">

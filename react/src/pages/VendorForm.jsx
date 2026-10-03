@@ -276,7 +276,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 						value={values.colour} onChange={v => set('colour', v)} />)}
 				</Field>
-				<Choice variant="described" description="Kept at the top of Vendors."
+				<Choice variant="described" description="Kept at the top of Vendors, and leads the list on a new order."
 					control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
 					Favourite
 				</Choice>
@@ -313,7 +313,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					action="See more in statistics" />
 				{!known || known.orders ? <RecentLoading /> : null}
 				<EndLoading label="End of its life" title={end.title} body={end.body}
-					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive'}</Button>}
+					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive vendor'}</Button>}
 					after={<Button variant="outline" size="small" fullWidth>Merge into…</Button>} />
 			</>
 		)
@@ -390,7 +390,7 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 	const footer = [
 		vendor.archived
 			? <Button key="archive" variant="outline" disabled={busy} onClick={onUnarchive}>Unarchive</Button>
-			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>Archive</Button>,
+			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>Archive vendor</Button>,
 		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
 	].filter(Boolean)
 	return (

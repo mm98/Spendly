@@ -265,7 +265,7 @@ export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest })
 		return () => document.removeEventListener('keydown', keys)
 	}, [step, onClose])
 	if (!shown) return null
-	// on a phone the viewer is the whole screen, and its bar names the file (18b)
+	// on a phone the viewer is the whole screen
 	const touch = document.body.classList.contains('sp-touch')
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose?.() }}>
@@ -274,11 +274,13 @@ export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest })
 				{beside
 					? <div className="sp-viewer__compare"><ViewerFile item={shown} /><ViewerFile item={beside} /></div>
 					: <ViewerFile item={shown} onSwipe={items.length > 1 ? step : undefined} />}
+				{/* on a phone the bar is the file's name, then Previous, Next, download and close (18b) */}
 				<div className="sp-viewer__bar">
+					{touch ? <span className="sp-viewer__count sp-truncate sp-grow">{shown.name}</span> : null}
 					<IconButton icon="chevron-left" aria-label="Previous" disabled={items.length < 2} onClick={() => step(-1)} />
-					<span className="sp-viewer__count">{at + 1} of {items.length}</span>
+					{touch ? null : <span className="sp-viewer__count">{at + 1} of {items.length}</span>}
 					<IconButton icon="chevron-right" aria-label="Next" disabled={items.length < 2} onClick={() => step(1)} />
-					{touch ? <span className="sp-viewer__count sp-truncate sp-grow">{shown.name}</span> : <span className="sp-grow" />}
+					{touch ? null : <span className="sp-grow" />}
 					{shown.download ? <IconButton icon="download" aria-label={`Download ${shown.name}`} href={shown.download} download={shown.name} /> : null}
 					<IconButton icon="x" aria-label="Close" onClick={onClose} />
 				</div>

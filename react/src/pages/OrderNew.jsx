@@ -236,7 +236,6 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 	const [busy, setBusy] = useState(false)
 	const { seen } = upload
 	const newest = seen.orders[0]
-	const named = o => o.reference || `the order from ${o.vendor}`
 	const readAt = seen.readAt ? new Date(seen.readAt) : null
 	// the matched file holds these same bytes, so the upload's own picture is a picture of it
 	const thumb = upload.hasThumbnail ? scanThumbnailUrl(upload.key) : null
@@ -294,9 +293,6 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 						action={<Button size="small" disabled={busy} onClick={onUse}>Use the reading</Button>} />
 					<SeenChoice icon="refresh" title="Read it again" body="Use this if the lines came out wrong last time."
 						action={<Button variant="outline" size="small" disabled={busy} onClick={again}>Scan again</Button>} />
-					<SeenChoice icon="paperclip" title="Attach it to that order instead"
-						body={`Adds the file to ${named(newest)} without creating another order.`}
-						action={<Button variant="outline" size="small" disabled data-tip={`${named(newest).replace(/^t/, 'T')} already has this file`}>Attach</Button>} />
 				</div>
 				<div className="sp-card__footer sp-card__footer--commits">
 					<span className="sp-meta">The upload is kept for 24 hours either way.</span>

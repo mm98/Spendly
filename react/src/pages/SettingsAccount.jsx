@@ -3,7 +3,7 @@ import { Card, CardFooter } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
-import { Mark } from '../components/Mark.jsx'
+import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { changePassword, failureMessage } from '../api/client.js'
@@ -75,9 +75,13 @@ export function AccountCard({ user, value, change, touch }) {
 	}
 
 	const shownName = name.trim() || user?.email?.split('@')[0] || ''
+	const drop = { as: 'label', htmlFor: 'account-picture', onDragOver: ev => ev.preventDefault(), onDrop: ev => { ev.preventDefault(); choose(ev.dataTransfer?.files?.[0]) } }
+	// initials passed as text would pick their own colour; the account's are always on green-3 (11a)
 	const avatar = shown
-		? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={shown} alt="" /></Mark>
-		: shownName ? <Mark size="large" fill="solid" round>{shownName}</Mark> : <Mark size="large" fill="empty" round aria-label="No picture" />
+		? <Mark size="large" fill="photo" round aria-label="Your picture" {...drop}><img src={shown} alt="" /></Mark>
+		: shownName
+			? <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={shownName} {...drop}><>{initialsOf(shownName)}</></Mark>
+			: <Mark size="large" fill="empty" round aria-label="No picture" {...drop} />
 
 	const fields = (
 		<>
