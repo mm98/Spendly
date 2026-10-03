@@ -5,7 +5,7 @@ import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { findOrCreateCategory } from '../lib/findOrCreate.js'
 import { assertValidBookmarkDraft, normaliseUrl } from '../lib/validate.js'
-import { processAttachment, processImage } from '../lib/images.js'
+import { processImage, processPicture } from '../lib/images.js'
 import { detectFileType } from '../lib/fileType.js'
 import { fetchImage, fetchPagePreview } from '../lib/pageTitle.js'
 import { decompressBlob } from '../lib/blobCompression.js'
@@ -272,7 +272,8 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 		const fetched = await fetchImage(String(req.body.url))
 		if (!fetched || detectFileType(fetched.buffer)?.kind !== 'image')
 			return res.json(decorateOne(bookmark))
-		const processed = await processAttachment(fetched.buffer, fetched.contentType, 'picture')
+		const processed = await processPicture(fetched.buffer)
+		if (!processed) return res.json(decorateOne(bookmark))
 		updatePhoto.run({
 			id: bookmark.id, userId: req.user.id, photoId: newId('p'),
 			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
@@ -286,7 +287,8 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 	// here the frame draws the picture, so an unclaimed file would store and then not render.
 	if (detectFileType(req.file.buffer)?.kind !== 'image')
 		return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF, HEIC, TIFF and BMP all work.' })
-	const processed = await processAttachment(req.file.buffer, req.file.mimetype, req.file.originalname)
+	const processed = await processPicture(req.file.buffer)
+	if (!processed) return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF, HEIC, TIFF and BMP all work.' })
 	updatePhoto.run({
 		id: bookmark.id, userId: req.user.id, photoId: newId('p'),
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
