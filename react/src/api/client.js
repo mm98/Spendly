@@ -539,6 +539,27 @@ export async function getStats(range, windowId, compare, signal) {
 	return request('/api/stats' + qs({ range, windowId, compare: compare === 'year' ? 'year' : undefined }), { signal })
 }
 
+/** A window narrowed by a drill path and a lens: `{ range, windowId, compare, flow, vendorId,
+    categoryId, status, from, to }`, every one optional. */
+export async function getStatsSlice(slice, signal) {
+	return request('/api/stats' + qs(slice), { signal })
+}
+
+/** A page of the orders behind a slice, newest first. */
+export async function getSliceOrders(slice, signal) {
+	return request('/api/stats/orders' + qs(slice), { signal })
+}
+
+/** Every item line behind a slice, for the export. Not cached: it is read once per press. */
+export async function getSliceLines(slice, signal) {
+	return request('/api/stats/lines' + qs(slice), { signal })
+}
+
+/** When an order was last added, and the counts behind Home's alerts. */
+export async function getHomeAttention(signal) {
+	return request('/api/stats/home', { signal })
+}
+
 /** The order the vendors and categories lists open in: one setting, so only the orders both lists
     have. A label names the column and the direction; Name has one direction, the one that finds. */
 export const listSorts = [
@@ -605,8 +626,8 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats]
-const vendorReads = [getVendors, getVendor]
+const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention]
+const vendorReads = [getVendors, getVendor, getHomeAttention]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
 const bookmarkReads = [getBookmarks, getBookmark]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }

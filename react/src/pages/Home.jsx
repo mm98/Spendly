@@ -8,6 +8,7 @@ import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
+import { Well } from '../components/Well.jsx'
 import { Icon } from '../components/Icon.jsx'
 
 import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
@@ -15,7 +16,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrders, getStats, overBudget, withMonthSpend
+	getCategories, getCurrentUser, getHomeAttention, getOrders, getStatsSlice, overBudget, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
@@ -23,6 +24,9 @@ import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, month
 const RECENT = 4
 const MONTHS = 8
 const ALERTS = 3
+// Home's figures are what was paid, as Statistics opens on
+const MONTH = { range: 'month', flow: 'expenses' }
+const YEAR = { range: 'year', flow: 'expenses' }
 const CHEVRON = <Icon name="chevron-right" size={15} />
 
 /* ---- reading the data ---- */
@@ -66,6 +70,9 @@ const dayNumbers = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: '2-d
 /** "08/08" in the reader's own order, with the year once it is not this one. */
 const rowDate = iso => (iso.slice(0, 4) === today().slice(0, 4) ? dayNumbers().format(dateOf(iso)) : shortDate(iso))
 
+/** The reader's own calendar day of a moment in epoch seconds. */
+const localDay = seconds => { const at = new Date(seconds * 1000); return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 10) }
+
 function daysAgo(iso) {
 	const days = Math.round((dateOf(today()) - dateOf(iso)) / 86400000)
 	if (days < 0) return null
@@ -100,27 +107,34 @@ function lastMonths(window) {
 	return months.map((c, i) => ({ ...c, height: most ? (c.spend / most) * 100 : 0, muted: i < MONTHS - 1 }))
 }
 
-function greeting() {
+function greeting(name) {
 	const hour = new Date().getHours()
-	return hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening'
+	const words = hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening'
+	return name ? `${words}, ${name}` : words
 }
+
+/** The account's own first name, when it has one. */
+const firstName = user => String(user?.name ?? '').trim().split(/\s+/)[0] || null
 
 /* ---- the page ---- */
 
 export default function Home() {
 	const touch = useShellShape() === 'touch'
-	const month = useApi(getStats, ['month', undefined, undefined])
+	const month = useApi(getStatsSlice, [MONTH])
 	const categories = useApi(getCategories)
 	const recent = useApi(getOrders, [{ pageSize: RECENT }])
+	const attention = useApi(getHomeAttention)
+	const name = firstName(useApi(getCurrentUser).data)
 	const view = monthView(month.data?.window, categories.data)
-	const props = { month, categories, view, recent }
+	if (recent.data && !recent.data.total) return <DayOne categories={categories.data} name={name} touch={touch} />
+	const props = { month, categories, view, recent, attention: attention.data, name }
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} />
 }
 
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, categories, view, recent }) {
+function DesktopHome({ month, categories, view, recent, attention }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error
 	return (
@@ -132,12 +146,12 @@ function DesktopHome({ month, categories, view, recent }) {
 							<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={month.refresh} />
 						</Hold>
 					)
-					: <MonthCard w={month.data?.window} view={view} limitsLost={!!categories.error} newest={newest} />}
+					: <MonthCard w={month.data?.window} view={view} limitsLost={!!categories.error} lastAdded={attention?.lastAdded} />}
 				<CaptureCard newest={newest} loading={recent.loading && !recent.data} />
 			</div>
 			<div className="hm-split hm-split--start sp-gap-12">
 				<div className="sp-stack sp-gap-12">
-					{lost ? null : <AlertsCard view={view} />}
+					{lost ? null : <AlertsCard view={view} attention={attention} />}
 					<RecentCard recent={recent} />
 				</div>
 				<div className="sp-stack sp-gap-12">
@@ -164,8 +178,8 @@ function ButtonSkeleton({ label }) {
 	)
 }
 
-function MonthCard({ w, view, limitsLost = false, newest }) {
-	const ago = newest ? daysAgo(newest.date) : null
+function MonthCard({ w, view, limitsLost = false, lastAdded }) {
+	const ago = lastAdded ? daysAgo(localDay(lastAdded)) : null
 	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
 		<Card variant="shell">
@@ -175,7 +189,7 @@ function MonthCard({ w, view, limitsLost = false, newest }) {
 						? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
 						: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
 					<span className="sp-grow" />
-					{ago ? <span className="sp-meta">last order {ago}</span> : null}
+					{ago ? <span className="sp-meta">last added {ago}</span> : null}
 				</div>
 				<div className="sp-row-flex sp-gap-16 sp-wrap">
 					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
@@ -230,27 +244,51 @@ function AlertSkeleton({ width }) {
 	)
 }
 
-function AlertsCard({ view }) {
-	if (view && !view.over.length) return null
-	const w = view?.window
-	const over = view?.over ?? []
-	const shown = view ? <span className="sp-meta">{plural(Math.min(over.length, ALERTS), 'thing')}</span> : null
-	// past the cap the true total rides on a link, as Recent orders' does
-	const more = over.length > ALERTS
+/** What needs a look, by severity: categories over their limit, then orders without a receipt,
+    then vendors whose names look alike. A count of zero is no row at all. */
+function alertsOf(view, attention) {
+	const w = view.window
+	const over = view.over.map(c => ({
+		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!', phone: 'over',
+		text: <><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(w)}</>
+	}))
+	const receipts = attention?.withoutReceipt
+		? [{
+			key: 'receipt', to: '/orders?view=missing-receipt', count: amount(attention.withoutReceipt, 0),
+			text: `${attention.withoutReceipt === 1 ? 'order' : 'orders'} without a receipt attached`, phone: 'missing a receipt'
+		}]
+		: []
+	const lookalikes = attention?.lookalikeVendors
+		? [{
+			key: 'vendors', to: '/vendors?flag=possible-duplicate', count: amount(attention.lookalikeVendors, 0),
+			text: 'vendors look like duplicates', phone: 'look like duplicates'
+		}]
+		: []
+	return { over, others: [...receipts, ...lookalikes] }
+}
+
+function AlertsCard({ view, attention }) {
+	const alerts = view ? alertsOf(view, attention) : null
+	const all = alerts ? [...alerts.over, ...alerts.others] : []
+	if (alerts && !all.length) return null
+	const shown = all.slice(0, ALERTS)
+	const counted = alerts ? <span className="sp-meta">{all.length > ALERTS ? `${shown.length} of ${amount(all.length, 0)} things` : plural(all.length, 'thing')}</span> : null
+	// past the cap the true total of categories over their limit rides on a link, as Recent orders' does
+	const more = alerts && alerts.over.length > ALERTS
 	return (
 		<Card variant="flush">
 			<Toolbar>
 				<span className="sp-section-label">Needs a look</span>
-				{more ? shown : null}
+				{more ? counted : null}
 				<span className="sp-grow" />
-				{more ? <Button variant="text" size="small" to="/categories">All {amount(over.length, 0)}</Button> : shown}
+				{more ? <Button variant="text" size="small" to="/categories">All {amount(alerts.over.length, 0)}</Button> : counted}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
-					{view
-						? over.slice(0, ALERTS).map(c => (
-							<ListItem key={c.id} to={ordersFor(c, w)} color="warning" chevron={CHEVRON} count="!">
-								<span className="sp-grow"><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(w)}</span>
+					{alerts
+						? shown.map(a => (
+							<ListItem key={a.key} to={a.to} color={a.color} chevron={CHEVRON} count={a.count}>
+								<span className="sp-grow">{a.text}</span>
 							</ListItem>
 						))
 						: ['62pc', '48pc', '55pc'].map(width => <AlertSkeleton key={width} width={width} />)}
@@ -459,7 +497,7 @@ function CategoryLine({ category: c }) {
 
 function MonthsCard() {
 	const navigate = useNavigate()
-	const year = useApi(getStats, ['year', undefined, undefined])
+	const year = useApi(getStatsSlice, [YEAR])
 	const months = year.data ? lastMonths(year.data.window) : null
 	const average = months ? months.reduce((sum, c) => sum + c.spend, 0) / months.length : null
 	const card = (
@@ -488,12 +526,12 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, categories, view, recent }) {
+function PhoneHome({ month, categories, view, recent, attention, name }) {
 	const w = month.data?.window
 	return (
 		<>
 			<div className="sp-stacked">
-				<span className="sp-stat__figure">{greeting()}</span>
+				<span className="sp-stat__figure">{greeting(name)}</span>
 				{w
 					? <span className="sp-data">{capital(monthOf(w))}, day {w.pace.daysIn} of {w.pace.unitDays}</span>
 					: <span className="sp-data hm-line"><Skeleton shape="line" data-w="130" data-h="13" /></span>}
@@ -505,7 +543,7 @@ function PhoneHome({ month, categories, view, recent }) {
 					</Hold>
 				)
 				: <PhoneMonth w={w} view={view} limitsLost={categories.error ? categories.refresh : null} />}
-			{month.error || categories.error ? null : <PhoneAlerts view={view} />}
+			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} />}
 			<PhoneRecent recent={recent} />
 		</>
 	)
@@ -557,17 +595,29 @@ function PhoneMonth({ w, view, limitsLost }) {
 	)
 }
 
-function PhoneAlerts({ view }) {
-	if (view && !view.over.length) return null
+function PhoneAlerts({ view, attention }) {
+	const alerts = view ? alertsOf(view, attention) : null
+	if (alerts && !alerts.over.length && !alerts.others.length) return null
+	const chevron = <Icon name="chevron-right" size={13} />
 	return (
 		<Card>
 			<span className="sp-section-label">Needs a look</span>
-			{view
+			{alerts
 				? (
-					<ListItem to="/categories" color="warning" chevron={<Icon name="chevron-right" size={13} />}
-						count={amount(view.over.length, 0)}>
-						<span className="sp-data sp-ink-warning sp-grow">over {view.over.length === 1 ? 'its' : 'their'} limit</span>
-					</ListItem>
+					<>
+						{alerts.over.length
+							? (
+								<ListItem to="/categories" color="warning" chevron={chevron} count={amount(alerts.over.length, 0)}>
+									<span className="sp-data sp-ink-warning sp-grow">over {alerts.over.length === 1 ? 'its' : 'their'} limit</span>
+								</ListItem>
+							)
+							: null}
+						{alerts.others.map(a => (
+							<ListItem key={a.key} to={a.to} chevron={chevron} count={a.count}>
+								<span className="sp-data sp-grow">{a.phone}</span>
+							</ListItem>
+						))}
+					</>
 				)
 				: <AlertSkeleton width="44pc" />}
 		</Card>
@@ -622,5 +672,53 @@ function PhoneOrder({ order }) {
 			</div>
 			<span className="sp-title sp-nowrap">{amount(order.total)}</span>
 		</Link>
+	)
+}
+
+/* ---- an account with no orders yet: the first-run Home (20d) ---- */
+
+function DayOne({ categories, name, touch }) {
+	const navigate = useNavigate()
+	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0] } }) }
+	const reads = useApi(getCurrentUser).data?.scanAiEnabled
+	const first = categories?.slice(0, 4) ?? []
+	return (
+		<div className={touch ? 'sp-stack sp-gap-12' : 'hm-day-one'}>
+			<Card>
+				<div className="sp-stack">
+					<span className="sp-stat__figure sp-stat__figure--large">{greeting(name)}</span>
+					<span className="sp-data">{capital(monthNames('long')[Number(today().slice(5, 7)) - 1])}{dot}nothing recorded yet</span>
+				</div>
+				<FileDrop accept={FILE_TYPES} onFiles={take} icon="camera">
+					<span className="sp-heading">Start with a receipt</span>
+					<span className="sp-data hm-w300">
+						{reads === false
+							? 'Drop a photo or a PDF. It is attached to a new order, and you type in the details.'
+							: 'Drop a photo or a PDF and the lines are read for you to check.'}
+					</span>
+					<span className="sp-btn">Capture a receipt</span>
+					<Button variant="text" size="small" to="/orders/new">Or enter one by hand</Button>
+				</FileDrop>
+				<div className={touch ? 'sp-stack sp-gap-12' : 'hm-wells'}>
+					<Well>
+						<span className="sp-section-label">This month</span>
+						<span className="sp-stat__figure sp-ink-5">{currency(0)}</span>
+						<Gauge thin value={0} untargeted aria-label="No limit set" />
+						<span className="sp-meta">Set a monthly limit once you have recorded a few orders.</span>
+					</Well>
+					<Well>
+						<span className="sp-section-label">Your categories</span>
+						{first.map(c => (
+							<span className="sp-row-flex sp-gap-10" key={c.id}>
+								<CategoryMark category={c} size="small" />
+								<span className="sp-title">{c.name}</span>
+							</span>
+						))}
+						{categories && !categories.length ? <span className="sp-meta">No categories yet.</span> : null}
+						<Button variant="text" size="small" to="/categories/new">{categories?.length ? 'Add another' : 'Add one'}</Button>
+					</Well>
+				</div>
+			</Card>
+		</div>
 	)
 }
