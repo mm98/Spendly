@@ -15,6 +15,7 @@ import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
 import { MAX_UPLOAD_MB } from '../lib/constants.js'
 import { createOrderRecord } from './orders.js'
+import { forgetReads } from '../lib/readCache.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
@@ -276,33 +277,40 @@ function draftIfLeft(userId, upload, { read, failure }, today) {
 		items: found.lines.map(l => ({ title: String(l.title ?? '').trim().slice(0, 120), quantity: l.quantity, price: l.price }))
 	}
 	try {
-		return createOrderRecord(userId, body, today, id => {
+		const made = createOrderRecord(userId, body, today, id => {
 			if (!claimDraft.run(id, upload.id).changes) throw Object.assign(new Error('Already drafted'), { drafted: true })
 			const attachment = newId('a')
 			copyUploadToAttachment.run({ id: attachment, orderId: id, itemId: null, name: null,
 				meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, fromScan: 1, uploadId: upload.id, userId })
 			copyUploadPages.run({ id: attachment, uploadId: upload.id })
 		})
+		// no request carried this write, so the account's cached answers do not know of it yet
+		forgetReads(userId)
+		return made
 	} catch (error) {
 		if (!error.drafted) console.error('A reading left by its reader was not filed as a draft:', error.message)
 		return null
 	}
 }
 
-/** The reader left while the file was read: when the reading ends it becomes a Draft order. */
-router.post('/documents/:key/leave', (req, res) => {
+/** The reader left while the file was read: when the reading ends it becomes a Draft order, and
+    the answer, sent then, names it. */
+router.post('/documents/:key/leave', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
 	const drafted = draftedOrder(upload)
 	if (drafted) return res.json({ key: upload.id, orderId: drafted })
 	setLeave.run(upload.id, req.user.id)
-	const reading = readings.get(upload.id)
-	// still being read, for no one now: it is filed when it ends; read already: filed now
-	if (reading) return res.json({ key: upload.id, orderId: null })
-	if (upload.ai_read_json != null)
+	let reading = readings.get(upload.id)
+	if (!reading && upload.ai_read_json != null)
 		return res.json({ key: upload.id, orderId: draftIfLeft(req.user.id, upload, { read: JSON.parse(upload.ai_read_json), failure: null }, req.today) })
-	if (process.env.ANTHROPIC_API_KEY) readOnce(req.user.id, upload, req.today)
-	res.json({ key: upload.id, orderId: null })
+	if (!reading && process.env.ANTHROPIC_API_KEY) {
+		readOnce(req.user.id, upload, req.today)
+		reading = readings.get(upload.id)
+	}
+	// the reading's own end files the draft before this answer is sent
+	if (reading) await reading.promise.catch(() => null)
+	res.json({ key: upload.id, orderId: selectLeave.get(upload.id)?.draft_order_id ?? null })
 })
 
 /** The review form's starting values, or the blank draft when nothing was read. `failure` says why

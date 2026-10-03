@@ -4607,7 +4607,8 @@ html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--st
   left: var(--sp-16);
   right: var(--sp-16);
   bottom: var(--sp-16);
-  z-index: 40;
+  /* above a sheet's or a dialog's scrim (50): a toast is never blocked by what is open (6f) */
+  z-index: 60;
   display: flex;
   justify-content: center;
   pointer-events: none;

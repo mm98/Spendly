@@ -35,6 +35,10 @@ const evictInto = (map, max) => { while (map.size > max) map.delete(map.keys().n
 
 const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
+/** Drops one account's answers, for a write no request carries: a reading the reader left,
+    filed as a draft once it ends (routes/scan.js). */
+export const forgetReads = userId => { byUser.delete(userId) }
+
 export function readCache(req, res, next) {
 	if (WRITES.has(req.method)) {
 		byUser.delete(req.user.id)

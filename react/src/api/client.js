@@ -865,12 +865,15 @@ export async function discardScanDocument(documentKey, signal) {
 	return request(`/api/scan/documents/${documentKey}`, { method: 'DELETE', signal })
 }
 
-/** The reader left a receipt still being read: the reading becomes a Draft order when it ends (6e).
-    Sent so that it outlives the page, as a tab closing would otherwise cut it off. */
+/** The reader left a receipt still being read: the reading becomes a Draft order when it ends (6e),
+    and the lists ask again then, so it appears. Sent so that it outlives a closing tab. */
 export function leaveScanDocument(documentKey) {
 	const path = `/api/scan/documents/${documentKey}/leave`
 	try {
-		fetch(path, { method: 'POST', credentials: 'include', keepalive: true, headers: { [TODAY]: today() } }).catch(() => {})
+		fetch(path, { method: 'POST', credentials: 'include', keepalive: true, headers: { [TODAY]: today() } })
+			.then(res => (res.ok ? res.json() : null))
+			.then(answer => { if (answer?.orderId) invalidateOrderData() })
+			.catch(() => {})
 	} catch { /* nothing to tell: the upload stays 24 hours either way */ }
 }
 

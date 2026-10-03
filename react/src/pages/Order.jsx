@@ -49,7 +49,7 @@ export default function Order() {
 
 /** The saved state's notice (3a): where the order came from, and Undo, which deletes it and goes
     back to the screen it was created from. */
-function Created({ order, created, onGone }) {
+function Created({ order, created, touch, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const [busy, setBusy] = useState(false)
@@ -73,25 +73,25 @@ function Created({ order, created, onGone }) {
 			})
 	}
 	const files = order.attachments.length + order.items.filter(i => i.attachments?.length).length - (created.documentKey ? 1 : 0)
+	const said = [
+		created.file ? 'The receipt is kept as an attachment.' : null,
+		files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
+	].filter(Boolean).join(' ') || null
+	const undoButton = <Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>
+	// after a scan the next receipt is one click away (16a: open the order or scan another)
+	const actions = created.documentKey
+		? <span className="sp-row-flex sp-gap-8">{undoButton}<Button variant="outline" size="small" to="/orders/new?source=scan">Scan another</Button></span>
+		: undoButton
+	// a phone's notice is too narrow for words and two buttons side by side, so the buttons go under the words
+	const under = touch && created.documentKey
 	return (
 		<div className="or-span">
 			<Alert color="success" mark={<Icon name="check" size={12} />}
 				title={created.draft
 					? (created.file ? `Saved as a draft from ${created.file}.` : 'Saved as a draft.')
 					: (created.file ? `Order created from ${created.file}.` : 'Order created.')}
-				action={created.documentKey
-					// after a scan the next receipt is one click away (16a: open the order or scan another)
-					? (
-						<span className="sp-row-flex sp-gap-8">
-							<Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>
-							<Button variant="outline" size="small" to="/orders/new?source=scan">Scan another</Button>
-						</span>
-					)
-					: <Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>}>
-				{[
-					created.file ? 'The receipt is kept as an attachment.' : null,
-					files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
-				].filter(Boolean).join(' ') || null}
+				action={actions} below={under}>
+				{said}
 			</Alert>
 		</div>
 	)
@@ -207,7 +207,7 @@ function OrderView({ order, touch, created, onGone }) {
 
 	return (
 		<>
-			{created ? <Created order={order} created={created} onGone={onGone} /> : null}
+			{created ? <Created order={order} created={created} touch={touch} onGone={onGone} /> : null}
 			<div className="sp-stack sp-gap-12">{items}{attachments}</div>
 			<Panel>{details}{totals}{dialog}{viewer}</Panel>
 		</>

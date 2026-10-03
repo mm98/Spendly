@@ -203,8 +203,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		return sent
 	}
 	const photosOnTheirWay = [...lines.map(l => l.newPhoto), editing?.values.newPhoto].filter(p => p && photosSending.has(p.sent)).length
+	// a change kept to send when the connection returns is not lost by leaving (6d), so it does not ask
+	const kept = waiting?.at === JSON.stringify({ draft, lines, files: files.map(f => f.key), gone })
 	// a new order's steps differ only in the query, so a step away asks as a page away does
-	const guard = useLeaveGuard(dirty, { search: creating, uploading: files.filter(f => f.sending).length + photosOnTheirWay })
+	const guard = useLeaveGuard(dirty && !kept, { search: creating, uploading: files.filter(f => f.sending).length + photosOnTheirWay })
 
 	/* ---- lines ---- */
 
@@ -551,13 +553,15 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			if (!kept.length) return focusFirst('[data-add]')
 		}
 		const plan = planOf(target, kept, asDraft)
+		// the form as this save takes it, which leaving can then keep (see `kept` above)
+		const at = JSON.stringify({ draft, lines: current, files: files.map(f => f.key), gone })
 		// saving again while an earlier save waits sends this one in its place
 		if (waiting) dropSave(waiting.plan.key)
 		setWaiting(null)
 		setSaving(true)
 		const outcome = await writeOrder(plan)
 		setSaving(false)
-		settle(plan, outcome)
+		settle(plan, outcome, at)
 	}
 
 	const offline = () => ({
@@ -571,11 +575,11 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const owned = useRef(null)
 
 	/** Where one save ends: on the saved order, or still here with what stopped it. */
-	const settle = (plan, outcome) => {
+	const settle = (plan, outcome, at) => {
 		if (outcome.kind === 'offline') {
 			queueSave(plan)
 			owned.current = plan.key
-			setWaiting({ plan, at: snapshot() })
+			setWaiting({ plan, at })
 			toast(offline())
 			return
 		}
@@ -1084,6 +1088,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					<span className="sp-meta">{itemsWord(included.length)}{dot}discount {amount(draft.discount || 0)}{dot}shipping {amount(draft.shipping || 0)}</span>
 					<Saving value={sums.saved} variant="stat" />
 				</>}
+			{/* the bar that says so on a phone and a narrow window is not drawn here, so the card does */}
+			{waiting && !stacked && !touch ? <span className="sp-meta sp-ink-warning">Waiting for the connection</span> : null}
 		</Card>
 	)
 

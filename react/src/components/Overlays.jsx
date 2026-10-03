@@ -360,8 +360,9 @@ export function ToastUndo({ children, onClick, ...rest }) {
 
 const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
 
-/** `action` is one button at the row's far end, after a spacer (3a, 3b). */
-export function Alert({ color = 'warning', mark, title, action, children, ...rest }) {
+/** `action` is one button at the row's far end, after a spacer (3a, 3b); `below` puts it under the
+    words instead, where a phone's row is too narrow to hold both. */
+export function Alert({ color = 'warning', mark, title, action, below = false, children, ...rest }) {
 	reject(rest, 'Alert')
 	return (
 		<div
@@ -373,8 +374,9 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 			<span className="sp-alert__body">
 				{title ? <span className="sp-alert__title">{title}</span> : null}
 				{children ? <span className="sp-alert__note">{children}</span> : null}
+				{action && below ? <span className="sp-row-flex">{action}</span> : null}
 			</span>
-			{action ? <><span className="sp-grow" />{action}</> : null}
+			{action && !below ? <><span className="sp-grow" />{action}</> : null}
 		</div>
 	)
 }
