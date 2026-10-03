@@ -1,0 +1,502 @@
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { join, pick, reject } from './variants.js'
+import { Icon } from './Icon.jsx'
+import { Scrim, ShellTouch } from './Shell.jsx'
+import { Sheet } from './Touch.jsx'
+import { roomOf, usePanelPlace } from './Combobox.jsx'
+import { menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
+
+const MENU = {
+	floating: 'sp-menu--floating',
+	sub: 'sp-menu__sub',
+	row: 'sp-menu--row',
+	plain: 'sp-menu--plain',
+	// these place a floating panel, so each carries the floating class it modifies
+	up: 'sp-menu--floating sp-menu--up',
+	start: 'sp-menu--floating sp-menu--start',
+	'side-left': 'sp-menu--floating sp-menu--side-left',
+	'side-right': 'sp-menu--floating sp-menu--side-right'
+}
+
+// a menu's own items, not its submenu's: the arrow keys walk one level at a time
+const itemsOf = menu => [...(menu?.querySelectorAll(':scope > li > .sp-menu__item:not(:disabled)') ?? [])]
+
+// the control a floating menu belongs to (Anchor, a record's menu): whether it is open, and its box
+const MenuHost = createContext(null)
+const FLOATS = ['floating', 'up', 'start']
+
+/** The provider an Anchor or a record's menu wraps its menu in. Internal. */
+export function MenuHostOf({ open, box, children }) {
+	const value = useMemo(() => ({ open, box }), [open, box])
+	return <MenuHost.Provider value={value}>{children}</MenuHost.Provider>
+}
+
+/** Places a host's floating menu where it can be read (c9): the one positioner every overlay uses.
+    Internal. */
+export function useMenuPlace(box, open) {
+	const touch = useContext(ShellTouch)
+	const menu = useMemo(() => ({ get current() { return box.current?.querySelector(':scope > .sp-menu--floating') ?? null } }), [box])
+	usePanelPlace(box, menu, open && !touch)
+}
+
+/** On touch a floating menu is the c13 sheet from the bottom edge (c9), holding the same items.
+    A press on the backdrop is a press on the menu's own button, so the press lands on nothing under it. */
+function MenuSheet({ owner, children }) {
+	const sheet = useRef(null)
+	useLayoutEffect(() => own(sheet.current, owner.current), [owner])
+	useFocusTrap(sheet, true, '.sp-menu__item:not(:disabled)')
+	const bare = ev => ev.target === ev.currentTarget
+	return createPortal(
+		<Scrim dialog
+			onPointerDown={ev => { if (bare(ev)) ev.stopPropagation() }}
+			onMouseDown={ev => { if (bare(ev)) ev.preventDefault() }}
+			onClick={ev => { if (bare(ev)) menuTrigger(sheet.current?.querySelector('.sp-menu'))?.click() }}>
+			<Sheet ref={sheet} data-surface="" data-menu-open="true">{children}</Sheet>
+		</Scrim>,
+		document.body
+	)
+}
+
+export function Menu({ position, scrolls = false, children, ...rest }) {
+	reject(rest, 'Menu')
+	const host = useContext(MenuHost)
+	const touch = useContext(ShellTouch)
+	const sheet = touch && !!host && FLOATS.includes(position)
+	const keys = ev => {
+		const items = itemsOf(ev.currentTarget)
+		if (!items.length) return
+		const at = items.indexOf(document.activeElement)
+		const to = { ArrowDown: at < 0 ? 0 : at + 1, ArrowUp: at < 0 ? -1 : at - 1, Home: 0, End: -1 }[ev.key]
+		if (to === undefined) return
+		ev.preventDefault()
+		ev.stopPropagation()
+		items[(to + items.length) % items.length].focus()
+	}
+	const menu = (
+		<menu
+			className={join('sp-menu', sheet ? 'sp-menu--plain' : position && pick(MENU, position, 'position', 'Menu'), scrolls && !sheet && 'sp-menu--scrolls')}
+			role="menu"
+			onKeyDown={keys}
+			{...rest}
+		>
+			{children}
+		</menu>
+	)
+	if (!sheet) return menu
+	return host.open ? <MenuSheet owner={host.box}>{menu}</MenuSheet> : null
+}
+
+/** What a menu's button needs from the keyboard (c9): Enter, Space or Down opens it on its first
+    item, Up on its last. `open` is the page's, so the menu is opened by pressing its own button. */
+export function useMenuButton(box, open) {
+	const want = useRef(null)
+	useEffect(() => {
+		if (!open || !want.current) return
+		const items = itemsOf(box.current?.querySelector('.sp-menu'))
+		;(want.current === 'last' ? items.at(-1) : items[0])?.focus()
+		want.current = null
+	}, [box, open])
+	const trigger = target => {
+		const button = target?.closest?.('[aria-haspopup="menu"]')
+		return button && !button.closest('.sp-menu') && box.current?.contains(button) ? button : null
+	}
+	return {
+		onKeyDown: ev => {
+			const button = trigger(ev.target)
+			if (!button || (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp')) return
+			ev.preventDefault()
+			want.current = ev.key === 'ArrowUp' ? 'last' : 'first'
+			if (!open) return button.click()
+			const items = itemsOf(box.current.querySelector('.sp-menu'))
+			;(want.current === 'last' ? items.at(-1) : items[0])?.focus()
+			want.current = null
+		},
+		// a click with no pointer behind it came from Enter or Space, unless an arrow sent it
+		onClickCapture: ev => { if (ev.detail === 0 && !open && trigger(ev.target) && !want.current) want.current = 'first' }
+	}
+}
+
+/* A submenu opens level with its item and moves up as far as it must to end inside the window; only
+   one taller than the window scrolls. It is laid out while hidden, so it measures before it shows. */
+function fitSubmenu(item) {
+	const sub = item.parentElement?.querySelector(':scope > .sp-menu__sub')
+	if (!sub) return
+	for (const prop of ['top', 'max-height', 'overflow-y']) sub.style.removeProperty(prop)
+	const edge = roomOf(item)
+	const room = edge.bottom - edge.top - 16
+	const r = sub.getBoundingClientRect()
+	const lift = Math.min(r.bottom - (edge.bottom - 8), Math.max(0, r.top - edge.top - 8))
+	if (lift > 0) sub.style.top = parseFloat(getComputedStyle(sub).top) - lift + 'px'
+	if (r.height > room) Object.assign(sub.style, { maxHeight: room + 'px', overflowY: 'auto' })
+}
+
+export function MenuItem({ icon, onClick, disabled = false, danger = false, dot, selected, children, ...rest }) {
+	reject(rest, 'MenuItem')
+	// the nested menu is a child, not a prop: one of these children is a Menu and the
+	// rest is the label, which is how the markup reads and how the DOM nests it
+	const kids = [].concat(children ?? []).flat()
+	const submenu = kids.find(c => c && typeof c === 'object' && c.type === Menu)
+	const label = kids.filter(c => c !== submenu)
+	/* A submenu opens on hover and on focus, and the item says so - the stylesheet
+	   reveals it from the item's own aria-expanded, so the state has to be real. */
+	const [subOpen, setSubOpen] = useState(false)
+	if (dot && !['draft', 'progress', 'done', 'returned', 'cancelled'].includes(dot))
+		console.error(`<MenuItem> dot="${dot}" is not a status the system has`)
+	// the item is hidden once it acts, so focus goes back to the menu's button first: whatever
+	// the page opens next (a dialog) then returns there rather than to nothing
+	const act = ev => {
+		if (!submenu) menuTrigger(ev.currentTarget)?.focus()
+		onClick?.(ev)
+	}
+	return (
+		<li className={submenu ? 'sp-anchor' : undefined} role="none">
+			<button
+				type="button"
+				className={join('sp-menu__item', danger && 'sp-ink-danger')}
+				role="menuitem"
+				onClick={act}
+				disabled={disabled}
+				{...(submenu ? { 'aria-haspopup': 'menu', 'aria-expanded': subOpen ? 'true' : 'false' } : {})}
+				{...(submenu ? { onMouseEnter: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) }, onMouseLeave: () => setSubOpen(false), onFocus: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) } } : {})}
+				{...(selected === undefined ? {} : { 'aria-selected': selected ? 'true' : 'false' })}
+				{...rest}
+			>
+				{dot ? <span className="sp-combobox__dot" data-dot={dot} /> : null}
+				{icon ? <Icon name={icon} size={15} /> : null}
+				{label}
+				{selected ? <><span className="sp-grow" /><span className="sp-combobox__check"><Icon name="check" size={13} /></span></> : null}
+			</button>
+			{submenu}
+		</li>
+	)
+}
+
+/** The heading over a group of items. */
+export function MenuLabel({ children, ...rest }) {
+	reject(rest, 'MenuLabel')
+	return <li className="sp-menu__label" role="presentation" {...rest}>{children}</li>
+}
+
+/** A rule between groups. */
+export function MenuSeparator(props) {
+	reject(props, 'MenuSeparator')
+	return <li className="sp-menu__sep" role="separator" {...props} />
+}
+
+const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--end', static: 'sp-popover--static' }
+
+export function Popover({ position = 'default', head, search, children, summary, note, actions, ...rest }) {
+	reject(rest, 'Popover')
+	return (
+		<div className={join('sp-popover', pick(POPOVER, position, 'position', 'Popover'))} {...rest}>
+			{head ? <div className="sp-popover__head">{head}</div> : null}
+			{search ?? null}
+			{children ? <div className="sp-popover__list">{children}</div> : null}
+			{summary ? <div className="sp-popover__summary">{summary}</div> : null}
+			{note ? <div className="sp-popover__note">{note}</div> : null}
+			{actions ? <div className="sp-popover__actions">{actions}</div> : null}
+		</div>
+	)
+}
+
+/** The element a floating panel hangs from. Open, it lets its menu out of a card that clips
+    (`data-menu-open`), places it above when the room below is short, and on touch makes it a sheet. */
+export function Anchor({ open, ref, children, ...rest }) {
+	reject(rest, 'Anchor')
+	const box = useRef(null)
+	const keys = useMenuButton(box, open)
+	useMenuPlace(box, !!open)
+	const bind = el => {
+		box.current = el
+		if (typeof ref === 'function') ref(el)
+		else if (ref) ref.current = el
+	}
+	return (
+		<span className="sp-anchor" ref={bind} {...keys}
+			{...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false', 'data-menu-open': open ? 'true' : undefined })} {...rest}>
+			<MenuHostOf open={!!open} box={box}>{children}</MenuHostOf>
+		</span>
+	)
+}
+
+// the dialog is named by its title and described by its body, whichever ids those parts take
+const DialogParts = createContext(null)
+
+function useDialogPart(kind) {
+	const register = useContext(DialogParts)
+	const id = useId()
+	useLayoutEffect(() => register?.(kind, id), [register, kind, id])
+	return register ? id : undefined
+}
+
+const isActions = c => c && typeof c === 'object' && c.type === DialogActions
+
+/** `onCancel` is what Escape and a press on the backdrop do: the dialog's own way out (c13). A page
+    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d). */
+export function Dialog({ children, scrim = true, onCancel, ...rest }) {
+	reject(rest, 'Dialog')
+	const box = useRef(null)
+	const backdrop = useRef(null)
+	const pressed = useRef(false)
+	const [parts, setParts] = useState({ title: [], body: [] })
+	const register = useCallback((kind, id) => {
+		setParts(p => ({ ...p, [kind]: [...p[kind], id] }))
+		return () => setParts(p => ({ ...p, [kind]: p[kind].filter(x => x !== id) }))
+	}, [])
+	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)')
+	const keys = ev => { if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() } }
+	// Escape with focus outside the box (on the page's body) still answers as cancel
+	const cancel = useRef(onCancel)
+	useEffect(() => { cancel.current = onCancel })
+	useEffect(() => {
+		if (!scrim) return
+		const key = ev => {
+			if (ev.key !== 'Escape' || !cancel.current) return
+			if (ev.target !== document.body && !within(backdrop.current, ev.target)) return
+			cancel.current()
+		}
+		document.addEventListener('keydown', key)
+		return () => document.removeEventListener('keydown', key)
+	}, [scrim])
+	const kids = [].concat(children ?? []).flat()
+	const actions = kids.find(isActions)
+	const elements = kids.filter(c => c && typeof c === 'object')
+	const stacked = elements.length === 1 && [].concat(elements[0].props?.children ?? []).flat().some(isActions)
+	// plain words passed straight to the dialog are the body, so the common case
+	// stays one sentence rather than a wrapper around one sentence
+	const above = kids.filter(c => c !== actions).map((c, i) =>
+		typeof c === 'string' ? <DialogBody key={'body' + i}>{c}</DialogBody> : c)
+	if (!actions && !stacked) console.error('<Dialog> has no <DialogActions>: a decision with no way out cannot be answered')
+	const named = rest['aria-label'] || !parts.title.length ? {} : { 'aria-labelledby': parts.title.join(' ') }
+	const panel = (
+		<DialogParts.Provider value={register}>
+			<div className="sp-dialog" role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
+				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
+				<div className="sp-stack sp-gap-6">
+					{above}
+					{actions}
+				</div>
+			</div>
+		</DialogParts.Provider>
+	)
+	if (!scrim) return panel
+	// a press on the backdrop keeps focus in the dialog, and cancels it once it is let go there too
+	return createPortal(
+		<Scrim dialog ref={backdrop}
+			onMouseDown={ev => { if (ev.target === ev.currentTarget) ev.preventDefault() }}
+			onPointerDown={ev => { pressed.current = ev.target === ev.currentTarget }}
+			onClick={ev => { if (pressed.current && ev.target === ev.currentTarget) onCancel?.(); pressed.current = false }}>
+			{panel}
+		</Scrim>,
+		document.body
+	)
+}
+
+/** What the dialog asks, as its heading. It names the dialog. */
+export function DialogTitle({ children, ...rest }) {
+	reject(rest, 'DialogTitle')
+	const id = useDialogPart('title')
+	return <span className="sp-heading" id={id} {...rest}>{children}</span>
+}
+
+/** What the decision costs, stated in full. It is read with the dialog's name. */
+export function DialogBody({ children, ...rest }) {
+	reject(rest, 'DialogBody')
+	const id = useDialogPart('body')
+	return <span className="sp-dialog__body" id={id} {...rest}>{children}</span>
+}
+
+/** The way out and the commit. It spaces and aligns its own buttons. */
+export function DialogActions({ children, ...rest }) {
+	reject(rest, 'DialogActions')
+	return <div className="sp-dialog__actions" {...rest}>{children}</div>
+}
+
+const TOAST_COLOR = { default: null, danger: 'danger' }
+
+/** `title` makes the message its second line, and `seconds` is how long its Undo lasts (6d). An
+    `asks` toast is a notice that stays until answered: `mark` stands for the icon, `actions` answer. */
+export function Toast({ icon, mark, title, color = 'default', compact = false, asks = false, actions, seconds, children, ...rest }) {
+	reject(rest, 'Toast')
+	// the way back is a child, not a prop: it is the last thing in the row, which is
+	// where it is written, and a page cannot put a plain link there by accident
+	const kids = [].concat(children ?? []).flat()
+	const undo = kids.find(c => c && typeof c === 'object' && c.type === ToastUndo)
+	const message = kids.filter(c => c !== undo)
+	if (actions && !asks) console.error('<Toast> answers belong to a toast that asks: any other toast has at most its way back')
+	return (
+		<div
+			className={join('sp-toast', compact && 'sp-toast--compact', asks && 'sp-toast--asks')}
+			role="status"
+			{...(color === 'default' ? {} : { 'data-color': pick(TOAST_COLOR, color, 'color', 'Toast') })}
+			{...rest}
+		>
+			{mark ? <span className="sp-step" data-color="warning" aria-hidden="true">{mark}</span>
+				: icon ? <span className="sp-toast__icon"><Icon name={icon} /></span> : null}
+			{title
+				? (
+					<>
+						<div className="sp-stack sp-gap-6">
+							<span className="sp-title">{title}</span>
+							<span className={join('sp-subtitle', asks ? 'sp-ink-warning' : 'sp-ink-inverse')}>{message}</span>
+						</div>
+						<span className="sp-grow" />
+					</>
+				)
+				: <span>{message}</span>}
+			{actions}
+			{undo}
+			{/* not read out: a live region would say it again every second */}
+			{undo && seconds != null ? <span className="sp-meta sp-number" aria-hidden="true">{seconds}s</span> : null}
+		</div>
+	)
+}
+
+/** The way back out of what a toast reports, or its one way on (Retry now). */
+export function ToastUndo({ children, onClick, ...rest }) {
+	reject(rest, 'ToastUndo')
+	return <button type="button" className="sp-toast__undo sp-nowrap" onClick={onClick} {...rest}>{children}</button>
+}
+
+const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
+
+/** `action` is one button at the row's far end, after a spacer (3a, 3b); `below` puts it under the
+    words instead, where a phone's row is too narrow to hold both. */
+export function Alert({ color = 'warning', mark, title, action, below = false, children, ...rest }) {
+	reject(rest, 'Alert')
+	return (
+		<div
+			className="sp-alert"
+			{...(color === 'warning' ? {} : { 'data-color': pick(ALERT_COLOR, color, 'color', 'Alert') })}
+			{...rest}
+		>
+			{mark ? <span className="sp-alert__mark" aria-hidden="true">{mark}</span> : null}
+			<span className="sp-alert__body">
+				{title ? <span className="sp-alert__title">{title}</span> : null}
+				{children ? <span className="sp-alert__note">{children}</span> : null}
+				{action && below ? <span className="sp-row-flex">{action}</span> : null}
+			</span>
+			{action && !below ? <><span className="sp-grow" />{action}</> : null}
+		</div>
+	)
+}
+
+/* One toast at a time, bottom centre, for six seconds, its Undo showing the seconds left (6d); a second
+   replaces it, hover or focus holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18). */
+const TOAST_MS = 6000
+const ToastContext = createContext(() => {})
+const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:not(.sp-btn--outline, .sp-btn--text)'
+
+/** Shows a toast: `show({ message, title, icon, color, undo: { label, onClick } })`. */
+export const useToast = () => useContext(ToastContext)
+
+export function Toaster({ children }) {
+	const [toast, setToast] = useState(null)
+	const [hovered, setHovered] = useState(false)
+	const [focused, setFocused] = useState(false)
+	// where focus was before it came into the toast, so it has somewhere to go when the toast goes
+	const before = useRef(null)
+	const region = useRef(null)
+	// a toast with nothing to say is not shown: a page that has no words for a failure (a session that
+	// ended) leaves the speaking to whatever does
+	const show = useCallback(next => { if (next?.message) setToast({ ...next, key: Date.now() }) }, [])
+	const dismiss = useCallback(() => setToast(null), [])
+	// the time left, which a hold stops and the end of the hold carries on from
+	const [left, setLeft] = useState(TOAST_MS)
+	const leftNow = useRef(TOAST_MS)
+	useLayoutEffect(() => { leftNow.current = TOAST_MS; setLeft(TOAST_MS) }, [toast])
+	useEffect(() => {
+		if (!toast || hovered || focused) return
+		const from = leftNow.current
+		const start = Date.now()
+		const tick = () => {
+			leftNow.current = from - (Date.now() - start)
+			if (leftNow.current <= 0) dismiss()
+			else setLeft(leftNow.current)
+		}
+		const timer = setInterval(tick, 200)
+		return () => clearInterval(timer)
+	}, [toast, hovered, focused, dismiss])
+	useLayoutEffect(() => {
+		if (toast || !focused) return
+		setFocused(false)
+		const lost = document.activeElement === document.body || !document.activeElement
+		if (lost && before.current?.isConnected) before.current.focus()
+	}, [toast, focused])
+	// a bar pinned along the bottom, or a solid button the toast would land on, lifts it to 12 above;
+	// placed again whenever the page under it changes, so it never takes a click meant for a button
+	useLayoutEffect(() => {
+		const el = region.current
+		if (!toast || !el) return
+		const place = () => {
+			el.style.removeProperty('bottom')
+			const shown = el.firstElementChild?.getBoundingClientRect()
+			if (!shown) return
+			const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-12'))
+			const under = [...document.querySelectorAll(UNDER)]
+				.filter(o => !el.contains(o) && o.checkVisibility?.() !== false)
+				.map(o => o.getBoundingClientRect())
+				.filter(r => r.height && r.left < shown.right && r.right > shown.left && r.top < innerHeight)
+			let top = shown.top
+			let bottom = shown.bottom
+			for (let moved = true; moved && top > 0;) {
+				moved = false
+				for (const r of under) {
+					if (r.top < bottom + gap && r.bottom > top) {
+						const lift = bottom + gap - r.top
+						top -= lift
+						bottom -= lift
+						moved = true
+					}
+				}
+			}
+			// never past the window's middle: a page full of buttons keeps the toast at its edge
+			if (bottom === shown.bottom || top < innerHeight / 2) return
+			el.style.bottom = parseFloat(getComputedStyle(el).bottom) + shown.bottom - bottom + 'px'
+		}
+		let frame = 0
+		const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(place) }
+		const watch = new MutationObserver(list => { if (list.some(m => !el.contains(m.target))) later() })
+		watch.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'disabled'] })
+		place()
+		window.addEventListener('scroll', place, true)
+		window.addEventListener('resize', place)
+		return () => {
+			cancelAnimationFrame(frame)
+			watch.disconnect()
+			window.removeEventListener('scroll', place, true)
+			window.removeEventListener('resize', place)
+		}
+	}, [toast])
+	useEffect(() => {
+		if (!toast) return
+		const key = ev => {
+			if (ev.key === 'Escape') dismiss()
+			if (toast.undo && ev.key === 'z' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); toast.undo.onClick(); dismiss() }
+		}
+		document.addEventListener('keydown', key)
+		return () => document.removeEventListener('keydown', key)
+	}, [toast, dismiss])
+	return (
+		<ToastContext.Provider value={show}>
+			{children}
+			<div className="sp-toast-region" aria-live="polite" ref={region}
+				onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+				onFocus={ev => { if (!focused) before.current = ev.relatedTarget; setFocused(true) }}
+				onBlur={ev => { if (!region.current?.contains(ev.relatedTarget)) setFocused(false) }}>
+				{toast
+					? (
+						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}
+							title={toast.title}
+							// the seconds belong to an Undo; a way on (Retry now, Open) is not counted down
+							seconds={(toast.undo?.label ?? 'Undo') === 'Undo' ? Math.ceil(left / 1000) : undefined}>
+							{toast.message}
+							{toast.undo ? <ToastUndo onClick={() => { toast.undo.onClick(); dismiss() }}>{toast.undo.label ?? 'Undo'}</ToastUndo> : null}
+						</Toast>
+					)
+					: null}
+			</div>
+		</ToastContext.Provider>
+	)
+}

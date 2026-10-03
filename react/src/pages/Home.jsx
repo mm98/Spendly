@@ -1,588 +1,874 @@
-import { useLocation } from 'react-router'
-import { Sep } from '../components/Sep.jsx'
-import { Page } from '../components/Shell.jsx'
-import { Async } from '../components/Async.jsx'
-import { SkeletonCard } from '../components/Skeleton.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Donut, DonutBox, SpendChart, WeekdayBars } from '../components/Chart.jsx'
-import { Meter, foldForRing, useListBudget } from '../components/Viz.jsx'
-import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
-import { DashboardCards } from '../components/DashboardCards.jsx'
-import { AiCard, AiCardMark } from '../components/AiCard.jsx'
-import { Button, ButtonLink } from '../components/Button.jsx'
-import { SavingChip } from '../components/Chip.jsx'
-import { useToast } from '../components/Toast.jsx'
-import { invalidate, useApi } from '../api/useApi.js'
+import { useId, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
+import { Card, CardBody, Toolbar } from '../components/Card.jsx'
+import { Bars, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
+import { FILE_TYPES, FileDrop } from '../components/FileDrop.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
+import { ListItem } from '../components/ListItem.jsx'
+import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
+import { Mark } from '../components/Mark.jsx'
+import { useToast } from '../components/Overlays.jsx'
+import { Well } from '../components/Well.jsx'
+import { Icon } from '../components/Icon.jsx'
+
+import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
+import { useShellShape } from '../app/useMedia.js'
+import { CategoryMark, glyphOf } from '../app/categoryMark.jsx'
+import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCurrentUser, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn,
-	saveSettings
+	failureMessage, getCategories, getCurrentUser, getHomeAttention, getMonthlySummary, hideSummaryLine, getOrders, getSettings, getStatsSlice,
+	overBudget, putSummaryAway, withMonthSpend
 } from '../api/client.js'
-import { compactAmount, currency, dayMonth, percent, plural, sep } from '../api/format.js'
+import { useApi } from '../api/useApi.js'
+import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
 
-/* Home.
+const RECENT = 4
+const MONTHS = 8
+const ALERTS = 3
+// Home's figures are what was paid, as Statistics opens on
+const MONTH = { range: 'month', flow: 'expenses' }
+const YEAR = { range: 'year', flow: 'expenses' }
+const CHEVRON = <Icon name="chevron-right" size={15} />
 
-   Two columns: this month, then the cards the user chose, then the rail. The hero is the current
-   month and nothing else -- it carried five range chips, which is Statistics' control, on a
-   screen whose whole job is "where am I this month". Two places to choose a window is two places
-   to be looking at a different one, and only one of them has a pager, a comparison, tiles and a
-   returns card to go with it. The header still opens Statistics, which is where a different
-   stretch of time is chosen. README: Home, Statistics. */
+/* ---- reading the data ---- */
 
-const HERO_HEIGHT = 130
-/* The chart itself is HERO_HEIGHT, but the card also carries a figure, a delta line and a
-   category legend below it -- 582px measured whole on a demo account. The skeleton is one
-   panel standing in for all of it, not just the chart, so it needs the card's height, not the
-   chart's. */
-const HERO_SKELETON_HEIGHT = 450
-
-/* The dashboard's own cards load after everything else on the page (a separate request,
-   getDashboardCards), and how many of them there will be is exactly what that request is
-   answering -- so this can only approximate the count, not the actual set. Three matches a
-   fresh account's own default (seed.js DASHBOARD_CARDS), and only one of the three needs a
-   real height: `.dashboard-cards` is an implicit-row CSS grid, so every card in it stretches
-   to the tallest one's height the same way the loaded cards do (measured at 418px each, all
-   three, on a demo account -- one grid row, default `align-items:stretch`). This skeleton's
-   own 330px panel lands the row within about the same margin dropping the one-line "Loading..."
-   card here cost: 0.386 CLS on Lighthouse, almost all of it this region. */
-const DashboardCardsSkeleton = () => (
-	<div className="dashboard-cards" aria-hidden="true">
-		<SkeletonCard lines={2} bodyHeight={330} />
-		<SkeletonCard bodyHeight={200} />
-		<SkeletonCard bodyVariant="entry-list card-body-tight" lines={4} />
-	</div>
-)
-
-/* The chart's own sentence. It was fixed at "daily spend through July" once, naming a series the
-   tabs above it changed and a span the chips changed -- a label describing a state its controls
-   had moved on from. Both are gone and the sentence still names both lines and the month, because
-   what it describes should not depend on there being a control to keep it honest. */
-const heroLabel = view => `Spent and saved per day, ${view.shortLabel}`
-
-function Hero({ month }) {
-	// This month, always. Statistics is where another one is chosen.
-	const state = useApi(getHomeHero)
-
-	return (
-		<Async state={state} label="Loading your spending"
-			skeleton={<SkeletonCard lines={2} bodyHeight={HERO_SKELETON_HEIGHT} />}>{view => {
-			/* Both series, drawn together rather than one at a time behind a pair of tabs.
-			   Spending and what it saved are the same story told twice, and a control that
-			   showed one or the other made the reader hold the first in their head to compare
-			   it with the second. One scale for the two of them, Recharts' own y-axis. */
-			const spend = view.series.spend
-			const saved = view.series.saved
-			const data = spend.map((y1, i) => ({ x: i, y1, y2: saved[i] }))
-
-			return (
-				<Card aria-label={`Spent, ${view.label}`}>
-					{/* Everything in this band is the window's, including its name. It read "Spent this
-					    month" under every one of the five chips, over a figure that was July's under all
-					    five too -- a heading and a total that a control above them could not move.
-					    README: Home. */}
-					{/* Statistics opens on its own default, which is this same month -- so arriving
-					    there is a continuation, and every other stretch of time is chosen once you
-					    are on the page that has a pager for it. README: Home. */}
-					<CardHeader title={`Spent${sep}${view.label}`} to="/stats"
-						label={`Spent, ${view.label}, open Statistics`} />
-					<CardDivider />
-					{/* No padding-top override. 2px here put the big number 10px under the hairline
-					    against an 18-24px band everywhere else, and a number that close to the rule
-					    reads as a drawing error. README: Cards. */}
-					<CardBody>
-						<div>
-							<div className="figure-headline tabular-figures">{currency(view.spent)}</div>
-							<div className="figure-delta tabular-figures">
-								saved {currency(view.saved)} vs retail ({percent(view.savedPercent)})
-							</div>
-						</div>
-						<div className="chart-wrap">
-							{/* Today, on both lines: they are two facts about the same days, and a
-							    mark on one of them would say the other ends somewhere else. The
-							    comparison lines elsewhere get none, because their days are not
-							    today's. README: Charts. */}
-							{/* Saved drawn second, so the thinner line sits over the thicker one where
-							    they cross rather than under it. Both colours are the split bar's own,
-							    which is what lets the key below name both. */}
-							<SpendChart data={data} days={spend.length} from={view.from} marks={view.axis}
-								height={HERO_HEIGHT} label={heroLabel(view)} todayIndex={view.todayIndex}
-								yFormat={compactAmount}
-								series={[
-									{ key: 'spend', dataKey: 'y1', name: 'Spent', color: 'var(--teal)', strokeWidth: 2, today: true },
-									{ key: 'saved', dataKey: 'y2', name: 'Saved', color: 'var(--green)', strokeWidth: 1.6, today: true }
-								]} />
-						</div>
-						{/* The categories are written per month, which is as fine as the records cut, so the
-						    legend says which month in its own heading rather than borrowing the card's --
-						    the same rule the month-wide cards on Statistics follow under a window that
-						    moves. README: Statistics. */}
-						{/* Drawn only over rows: the heading over an empty list was a label with
-						    nothing under it, on a card whose figures already read 0. */}
-						{month.heroLegend.length ? <>
-						<div className="list-heading">Where it went<Sep />{month.shortLabel}</div>
-						<div className="chart-legend">
-							{month.heroLegend.map(entry => (
-								/* The row names a category, so the link filters by it. "Without category"
-								   is the split's remainder rather than a category -- its id is null, and it
-								   filters as `none`, the orders with no category at all, never the
-								   unfiltered list. */
-								<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-									amount={currency(entry.amount, 0)}
-									/* The month the heading names, carried into the list. The row was a
-									   link to every order in that category since the account was made,
-									   under a card headed "Where it went • Aug" -- a list whose total
-									   contradicts the figure that was clicked. */
-									to={ordersIn({ category: entry.id ?? 'none', from: month.from, to: month.to })} />
-							))}
-						</div>
-						</> : null}
-					</CardBody>
-				</Card>
-			)
-		}}</Async>
-	)
+/** How loudly the limits speak (8b, Settings): the summary on or off, and the share of a limit a
+    warning starts at, where 100 is only once it is passed. A setting not stored yet is the default. */
+function loudness(settings) {
+	const early = Number(settings?.notifyEarly)
+	return { summary: settings?.notifyMonthlySummary ?? true, early: [75, 90, 100].includes(early) ? early : 90 }
 }
 
+/** A category with a limit is near it from the reader's chosen share up to the limit itself. */
+const nearLimit = (c, early) => c.budget > 0 && early < 100 && !overBudget(c) && c.monthSpend >= (c.budget * early) / 100
 
-/* The dashboard's category card, as its own component because it needs a hook: how many rows it
-   can hold depends on how much of the card the donut above them took, and that is measured
-   rather than assumed. Both the arcs and the rows are drawn from the folded array, so the ring
-   still adds up to the figure printed in its middle however few rows the card has room for.
-   README: Home, Charts. */
-function BreakdownCard({ period, monthCategories, hasCategories, rows }) {
-	const [listRef, budget] = useListBudget(rows)
-	const shown = foldForRing(monthCategories, budget)
-	/* A ring with no segments is a grey circle claiming a split of nothing -- the same absence
-	   the vendors card one over already answers with an empty state. Which sentence depends on
-	   which absence: a month with nothing bought, or an account with no categories at all.
-	   README: Empty states. */
-	if (!shown.length) return (
-		<>
-			<CardHeader title="Category breakdown" />
-			<CardDivider />
-			<CardBody>
-				<EmptyState>
-					<p>{hasCategories
-						? `Nothing spent in ${period.shortLabel} yet. Add categories to an order to see the split here.`
-						: 'No categories yet. Add one and your spending splits by category.'}</p>
-				</EmptyState>
-			</CardBody>
-		</>
-	)
+/** The month window and the account's categories, joined: what three cards are drawn from. */
+function monthView(window, list, early) {
+	if (!window || !list) return null
+	const categories = withMonthSpend(list, window.split)
+	const limits = categories.reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
+	const byOverage = c => c.monthSpend - c.budget
+	const spent = categories.filter(c => c.monthSpend > 0).sort((a, b) => b.monthSpend - a.monthSpend)
+	return {
+		window,
+		count: categories.length,
+		withSpend: spent.length,
+		limits,
+		early,
+		over: categories.filter(overBudget).sort((a, b) => byOverage(b) - byOverage(a)),
+		near: categories.filter(c => nearLimit(c, early)).sort((a, b) => b.monthSpend / b.budget - a.monthSpend / a.budget),
+		top: spent.slice(0, 4),
+		pace: window.pace.unitDays ? (window.pace.daysIn / window.pace.unitDays) * 100 : 100
+	}
+}
+
+/** Where a gauge's fill, overage and marker sit: the bar is the larger of spend and limit. */
+function against(spent, limit, pace) {
+	const scale = Math.max(spent, limit) || 1
+	return {
+		value: (Math.min(spent, limit) / scale) * 100,
+		over: spent > limit ? ((spent - limit) / scale) * 100 : undefined,
+		marker: pace === undefined ? undefined : (pace * limit) / scale
+	}
+}
+
+/** The window's month in the account's own language, as Statistics and the month bars write it. */
+const monthOf = w => monthNames('long')[Number(w.from.slice(5, 7)) - 1]
+const capital = text => text.charAt(0).toLocaleUpperCase() + text.slice(1)
+
+const ordersFor = (category, window) => `/orders?category=${category.id}&from=${window.from}&to=${window.to}`
+
+const dateOf = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d) }
+const dayNumbers = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: '2-digit', month: '2-digit' })
+/** "08/08" in the reader's own order, with the year once it is not this one. */
+const rowDate = iso => (iso.slice(0, 4) === today().slice(0, 4) ? dayNumbers().format(dateOf(iso)) : shortDate(iso))
+
+/** The reader's own calendar day of a moment in epoch seconds. */
+const localDay = seconds => { const at = new Date(seconds * 1000); return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 10) }
+
+function daysAgo(iso) {
+	const days = Math.round((dateOf(today()) - dateOf(iso)) / 86400000)
+	if (days < 0) return null
+	return days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
+}
+
+/** The last eight calendar months, ending with this one, from the year's running totals. */
+function lastMonths(window) {
+	const year = Number(window.from.slice(0, 4))
+	const day = (y, m, d) => Math.round((Date.UTC(y, m, d) - Date.UTC(y, 0, 1)) / 86400000)
+	const spendIn = (y, m) => {
+		const series = y === year ? window.series.current : y === year - 1 ? window.series.previous : null
+		if (!series?.length) return 0
+		const end = series[Math.min(day(y, m + 1, 0), series.length - 1)] ?? 0
+		const first = day(y, m, 1)
+		return end - (first > 0 ? series[first - 1] ?? 0 : 0)
+	}
+	const [y0, m0] = today().split('-').map(Number)
+	const short = monthNames('short')
+	const long = monthNames('long')
+	const months = Array.from({ length: MONTHS }, (unused, i) => {
+		const at = new Date(y0, m0 - 1 - (MONTHS - 1 - i), 1)
+		const y = at.getFullYear(), m = at.getMonth()
+		const mm = String(m + 1).padStart(2, '0')
+		const spend = spendIn(y, m)
+		return {
+			key: `${y}-${mm}`, from: `${y}-${mm}-01`, to: `${y}-${mm}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, '0')}`,
+			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}, ${currency(spend, 0)}`, spend
+		}
+	})
+	const most = Math.max(...months.map(c => c.spend), 0)
+	return months.map((c, i) => ({ ...c, height: most ? (c.spend / most) * 100 : 0, muted: i < MONTHS - 1 }))
+}
+
+function greeting(name) {
+	const hour = new Date().getHours()
+	const words = hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening'
+	return name ? `${words}, ${name}` : words
+}
+
+/** The account's own first name, when it has one. */
+const firstName = user => String(user?.name ?? '').trim().split(/\s+/)[0] || null
+
+/* ---- the page ---- */
+
+export default function Home() {
+	const touch = useShellShape() === 'touch'
+	const month = useApi(getStatsSlice, [MONTH])
+	const categories = useApi(getCategories)
+	const recent = useApi(getOrders, [{ pageSize: RECENT }])
+	const attention = useApi(getHomeAttention)
+	const name = firstName(useApi(getCurrentUser).data)
+	const settings = useApi(getSettings)
+	const loud = loudness(settings.data)
+	const view = monthView(month.data?.window, categories.data, loud.early)
+	// the summary waits for the settings, so one switched off never flashes up
+	const known = settings.data !== undefined || !!settings.error
+	const summary = useApi(getMonthlySummary, [], { enabled: known && loud.summary })
+	const toast = useToast()
+	const [putAway, setPutAway] = useState(null)
+	const hide = async month => {
+		setPutAway(month)
+		try {
+			await putSummaryAway(month)
+		} catch (error) {
+			setPutAway(null)
+			toast({ message: failureMessage(error, 'The summary was not hidden. Try again.'), color: 'danger' })
+		}
+	}
+	const due = summary.data
+	// a line hidden or brought back here holds until the server's answer says the same
+	const [lineHidden, setLineHidden] = useState({})
+	const isHidden = id => lineHidden[id] ?? due?.hidden?.includes(id) ?? false
+	const hideLine = async (c, monthName, hidden = true) => {
+		setLineHidden(was => ({ ...was, [c.id]: hidden }))
+		try {
+			await hideSummaryLine(due.month, c.id, hidden)
+			if (hidden) toast({ message: `${c.name} is hidden from the ${monthName} summary.`, undo: { label: 'Undo', onClick: () => hideLine(c, monthName, false) } })
+		} catch (error) {
+			setLineHidden(was => ({ ...was, [c.id]: !hidden }))
+			toast({ message: failureMessage(error, hidden ? 'The line was not hidden. Try again.' : 'The line did not come back. Try again.'), color: 'danger' })
+		}
+	}
+	const notice = known && loud.summary && due?.orders && !due.seen && putAway !== due.month && categories.data
+		? <MonthlySummary summary={due} categories={categories.data} early={loud.early} onHide={() => hide(due.month)} isHidden={isHidden} onHideLine={hideLine} />
+		: null
+	if (recent.data && !recent.data.total) return <DayOne categories={categories.data} name={name} touch={touch} />
+	const props = { month, categories, view, recent, attention: attention.data, name, notice }
+	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} />
+}
+
+/** Asks again only for what failed. */
+const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
+
+function DesktopHome({ month, categories, view, recent, attention, notice }) {
+	const newest = recent.data?.orders[0]
+	const lost = month.error || categories.error
 	return (
-		<>
-			<CardHeader title="Category breakdown" />
-			<CardDivider />
-			<CardBody>
-				<DonutBox>
-					<Donut segments={shown.map(c => ({ share: c.share, colour: c.colour }))}
-						value={currency(period.spent, 0)} label="Spent this month"
-						ariaLabel={`Category split of ${currency(period.spent, 0)} this month`} />
-				</DonutBox>
-				{/* Every category the ring draws, named -- the rows were once sliced to three under a
-				    ring built from the whole list, so on a real account it drew six colours and named
-				    half, and the reader could see that something was a fifth of the month with no way
-				    to find out what. Slicing the ring instead would make it disagree with its own
-				    middle, so the tail folds into one segment worth the sum of what it holds.
-
-				    "Without category" filters as the `none` sentinel -- the orders the month spent
-				    outside every category, the same rows its figure added up. The fold row is the
-				    one stand-in with nothing to filter by: it holds several categories at once, so
-				    it carries the month alone and opens the whole of it. Same rule the hero legend
-				    and Statistics' own version of this row follow. */}
-				<div className="category-rows" ref={listRef}>
-					{shown.map(c =>
-						<CategoryRow key={c.id ?? 'more'} category={c}
-							/* Same month, same reason: the ring in this card reads "Spent this month"
-							   in its middle, so every row's list is that month's. */
-							to={ordersIn({ category: c.id ?? undefined,
-								from: period.from, to: period.to })} />)}
+		<div className="hm-page sp-stack sp-gap-12">
+			{notice}
+			<div className="hm-split sp-gap-12">
+				{month.error
+					? (
+						<Hold shape={<MonthCard />}>
+							<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={month.refresh} />
+						</Hold>
+					)
+					: <MonthCard w={month.data?.window} view={view} limitsLost={!!categories.error} lastAdded={attention?.lastAdded} />}
+				<CaptureCard newest={newest} loading={recent.loading && !recent.data} />
+			</div>
+			<div className="hm-split hm-split--start sp-gap-12">
+				<div className="sp-stack sp-gap-12">
+					{lost ? null : <AlertsCard view={view} attention={attention} />}
+					<RecentCard recent={recent} />
 				</div>
-			</CardBody>
-		</>
-	)
-}
-
-
-/* Two more list cards, components for the same reason BreakdownCard is one: what a card can hold
-   is the entry count less whatever the card drew above the list, and only the list can measure
-   that. Here it is a headline figure and its caption rather than a graphic -- which is the point
-   of measuring instead of tabulating chart heights: the card does not have to be told what kind
-   of thing is above its rows, or that anything is. */
-function TopVendorsCard({ topVendors, rows }) {
-	const [listRef, budget] = useListBudget(rows)
-	if (!topVendors.length) return (
-		<>
-			<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
-			<CardDivider />
-			<CardBody>
-				<EmptyState>
-					<p>No vendors yet. Add an order and its vendor appears here.</p>
-				</EmptyState>
-			</CardBody>
-		</>
-	)
-	return (
-		<>
-			<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
-			<CardDivider />
-			<CardBody>
-				<div className="figure-card tabular-figures">{currency(topVendors[0].spend, 0)}</div>
-				<span className="card-caption">{topVendors[0].name}<Sep />all time</span>
-				<div className="entry-list" ref={listRef}>
-					{topVendors.slice(0, budget).map(v => (
-						<EntryRow key={v.id} avatar={v} name={v.name} meta={plural(v.orders, 'order')}
-							amount={currency(v.spend, 0)} sub={`saved ${currency(v.saved, 0)}`}
-							to={`/orders/all?vendor=${v.id}`} />
-					))}
+				<div className="sp-stack sp-gap-12">
+					{lost
+						? (
+							<Hold shape={<CategoriesCard />}>
+								<Failed variant="card" label="Categories this month" what="This month's categories" error={lost} onRetry={retrying(month, categories)} />
+							</Hold>
+						)
+						: <CategoriesCard view={view} />}
+					<MonthsCard />
 				</div>
-			</CardBody>
-		</>
-	)
-}
-
-/* Top vendors' own question asked of the other thing an order is filed under: not which shop
-   took the money, but what kind of thing it was spent on, over the whole ledger.
-
-   Category breakdown one card over is not this. That one is a ring of *this month*, drawn from
-   the window's own split and adding up to the month's figure; this is the all-time ranking, the
-   same stretch Top vendors covers and the same stretch All categories opens on -- which is why
-   the row keeps its standing "% of expenses" meta, the share All categories prints, rather than
-   the saving the favourites card puts there. Two cards can both be about categories as long as
-   each says which stretch of time it is about, and the caption under the figure says this one.
-   README: Home. */
-function TopCategoriesCard({ topCategories, rows }) {
-	const [listRef, budget] = useListBudget(rows)
-	if (!topCategories.length) return (
-		<>
-			<CardHeader title="Top categories" to="/categories" label="Top categories, open Categories" />
-			<CardDivider />
-			<CardBody>
-				{/* The absence is "no categories", not "nothing spent": this card is all-time, so a
-				    month with nothing bought in it has nothing to do with whether the list is
-				    empty. That is the breakdown card's distinction, one card over. */}
-				<EmptyState>
-					<p>No categories yet. Add one and your spending splits by kind.</p>
-				</EmptyState>
-			</CardBody>
-		</>
-	)
-	return (
-		<>
-			<CardHeader title="Top categories" to="/categories" label="Top categories, open Categories" />
-			<CardDivider />
-			<CardBody>
-				<div className="figure-card tabular-figures">{currency(topCategories[0].spend, 0)}</div>
-				<span className="card-caption">{topCategories[0].name}<Sep />all time</span>
-				<div className="category-rows" ref={listRef}>
-					{topCategories.slice(0, budget).map(c =>
-						/* All time, so no window to pass on -- the row opens the category's whole
-						   history, which is the list the figure beside it adds up. */
-						<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
-				</div>
-			</CardBody>
-		</>
-	)
-}
-
-function FavouriteCategoriesCard({ favouriteCategories, rows }) {
-	const [listRef, budget] = useListBudget(rows)
-	return (
-		<>
-			<CardHeader title="Favourite categories" to="/categories" label="Favourite categories, open Categories" />
-			<CardDivider />
-			<CardBody>
-				{favouriteCategories.length ? (
-					<div className="category-rows" ref={listRef}>
-						{favouriteCategories.slice(0, budget).map(c =>
-							<CategoryRow key={c.id} category={c} meta={`saved ${currency(c.saved, 0)}`}
-								to={`/orders/all?category=${c.id}`} />)}
-					</div>
-				) : (
-					<EmptyState>
-						<p>No favourites yet. Star a category on its edit page and it appears here.</p>
-					</EmptyState>
-				)}
-			</CardBody>
-		</>
-	)
-}
-
-/* The same card for the other thing this app lets you star. Categories had one and vendors did
-   not, on a dashboard where a favourite is the same standing preference either way -- and the
-   Vendors page already spotlights them, so the asymmetry was the dashboard's alone.
-   README: Home.
-
-   The rows are Top vendors' rows exactly: the same list of the same records, ranked the same
-   way, so the two cards cannot draw one vendor two ways on one screen. No headline figure above
-   them -- that one names the vendor at the top of a ranking, and this list is not a ranking of
-   anything, it is the set the reader chose. */
-function FavouriteVendorsCard({ favouriteVendors, rows }) {
-	const [listRef, budget] = useListBudget(rows)
-	return (
-		<>
-			<CardHeader title="Favourite vendors" to="/vendors" label="Favourite vendors, open Vendors" />
-			<CardDivider />
-			<CardBody>
-				{favouriteVendors.length ? (
-					<div className="entry-list" ref={listRef}>
-						{favouriteVendors.slice(0, budget).map(v => (
-							<EntryRow key={v.id} avatar={v} name={v.name} meta={plural(v.orders, 'order')}
-								amount={currency(v.spend, 0)} sub={`saved ${currency(v.saved, 0)}`}
-								to={`/orders/all?vendor=${v.id}`} />
-						))}
-					</div>
-				) : (
-					/* The sentence the Vendors page's own Favourites card uses, because it is the
-					   same absence and the same next step. */
-					<EmptyState>
-						<p>No favourites yet. Star a vendor on its own page and it appears here.</p>
-					</EmptyState>
-				)}
-			</CardBody>
-		</>
-	)
-}
-
-
-/* The Orders card's list, under its chart. Its own component so it can measure: the chart, the
-   caption above it and this list's own heading are all height the rows do not get, and none of
-   those numbers is written down anywhere. */
-function LatestOrders({ latestOrders, rows }) {
-	const location = useLocation()
-	const [listRef, budget] = useListBudget(rows)
-	return (
-		<div className="entry-list" ref={listRef}>
-			<div className="list-heading">Latest orders</div>
-			{latestOrders.slice(0, budget).map(order => (
-				<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-					meta={dayMonth(order.date)} amount={currency(order.total)}
-					sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`}
-					state={{ from: location.pathname + location.search }} />
-			))}
+			</div>
 		</div>
 	)
 }
 
-/* The cards the dashboard can hold -- one branch per key in the server's own catalogue
-   (api/src/lib/constants.js), which is what the tray offers and what the PUT validates
-   against. Each is the body only -- the <section class="card"> around it belongs to
-   DashboardCards, which is what puts the reorder bar inside it. */
-function dashboardCard(key, data) {
-	const { period, topVendors, monthCategories, topCategories, favouriteCategories,
-		favouriteVendors, hasCategories, cardRows } = data
-	switch (key) {
-		case 'spending_rhythm':
-			return (
-				<>
-					<CardHeader title="Spending rhythm" />
-					<CardDivider />
-					{/* Fills the card rather than sitting 112px tall in it: this shares a grid row
-					    with the category breakdown, which is as long as the month has categories.
-					    README: Charts. */}
-					<CardBody variant="card-body-fill">
-						<div className="figure-card tabular-figures">{currency(period.averageOrder)}</div>
-						<span className="card-caption">average order<Sep />{period.shortLabel}</span>
-						<WeekdayBars days={period.weekdays} />
-						<div className="chart-legend-inline">
-							<span className="chart-swatch" />
-							<span className="nowrap">{period.busiestDay} peak</span>
-							<span className="amount tabular-figures nowrap">
-								{currency(period.busiestDaySpend, 0)}</span>
-						</div>
-					</CardBody>
-				</>
-			)
-		case 'category_breakdown':
-			return <BreakdownCard period={period} monthCategories={monthCategories}
-				hasCategories={hasCategories} rows={cardRows} />
-		case 'top_vendors':
-			return <TopVendorsCard topVendors={topVendors} rows={cardRows} />
-		case 'top_categories':
-			return <TopCategoriesCard topCategories={topCategories} rows={cardRows} />
-		case 'favourite_categories':
-			return <FavouriteCategoriesCard favouriteCategories={favouriteCategories} rows={cardRows} />
-		case 'favourite_vendors':
-			return <FavouriteVendorsCard favouriteVendors={favouriteVendors} rows={cardRows} />
-		case 'saved_vs_retail':
-			return (
-				<>
-					<CardHeader title="Saved vs retail" />
-					<CardDivider />
-					<CardBody>
-						<div className="figure-card tabular-figures">{currency(period.saved)}</div>
-						<span className="card-caption">saved this month</span>
-						<div className="saving-chip-row">
-							<SavingChip>{percent(period.savedPercent)} under retail</SavingChip>
-						</div>
-						<div className="chart-legend-inline">
-							<span className="chart-swatch" /><span>Retail value</span>
-							<span className="amount tabular-figures">{currency(period.retail, 0)}</span>
-						</div>
-					</CardBody>
-				</>
-			)
-		case 'monthly_pace':
-			return (
-				<>
-					<CardHeader title="Monthly pace" />
-					<CardDivider />
-					<CardBody>
-						<div className="figure-card tabular-figures">{currency(period.projected, 0)}</div>
-						<span className="card-caption">
-							projected for {period.shortLabel}<Sep />{plural(period.daysIn, 'day')} into the month</span>
-						<Meter className="meter-under-caption"
-							/* projected is 0 exactly when spent is -- nothing bought yet this month --
-							   and 0/0 is NaN, an invalid CSS width the browser drops silently rather
-							   than rejecting: no fill at all instead of an honest 0%. Same reasoning
-							   as Statistics' own Pace meter. The marker gets the same guard, plus the
-							   Math.min(100, ...) clamp Statistics' version already has -- a previous
-							   month that outspent this one's whole projection put the marker past the
-							   track's right edge with nothing to stop it. */
-							fill={period.projected ? Math.round(period.spent / period.projected * 100) : 0}
-							marker={period.projected ? Math.min(100, Math.round(period.previousTotal / period.projected * 100)) : 0}
-							ariaLabel={`Spent ${currency(period.spent, 0)} of a projected ${currency(period.projected, 0)}; the marker is where ${period.previousLabel} ended`} />
-						<div className="chart-legend-inline">
-							<span className="chart-swatch" /><span>{period.previousLabel} ended at</span>
-							<span className="amount tabular-figures">{currency(period.previousTotal, 0)}</span>
-						</div>
-					</CardBody>
-				</>
-			)
-		default:
-			return null
-	}
+/** A skeleton the size of the small text button it stands in for. */
+function ButtonSkeleton({ label }) {
+	return (
+		<Hold shape={<Button variant="text" size="small">{label}</Button>}>
+			<span className="hm-fill"><Skeleton shape="line" data-w="44" data-h="13" /></span>
+		</Hold>
+	)
 }
 
-export default function Home() {
-	const content = useApi(getHomeContent)
-	const cards = useApi(getDashboardCards)
-	// Cached by the route loader already (react/src/routes.jsx), so this costs nothing extra --
-	// see Scan.jsx's own use of it. README: Honest Affordances.
-	const aiEnabled = useApi(getCurrentUser).data?.scanAiEnabled ?? false
-	const toast = useToast()
-
-	/* LATER is a preference, not a state that lives until the next reload. It writes the same
-	   setting the Settings page toggles, so dismissing the card here and turning it back on
-	   there are the same switch seen twice, rather than two that disagree. */
-	const dismissScanCard = () => {
-		saveSettings({ showScanCard: false })
-			.then(() => { invalidate(getSettings); invalidate(getHomeContent); content.refresh() })
-			.catch(e => toast(failureMessage(e, 'That did not save.'), 'negative'))
-		document.getElementById('page-title')?.focus()
-	}
-
+function MonthCard({ w, view, limitsLost = false, lastAdded }) {
+	const ago = lastAdded ? daysAgo(localDay(lastAdded)) : null
+	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
-		<Page variant="content-grid">
-			<Async state={content} label="Loading your month"
-				skeleton={<>
-					<div className="content-column-main">
-						<SkeletonCard lines={2} bodyHeight={HERO_SKELETON_HEIGHT} />
-						<DashboardCardsSkeleton />
+		<Card variant="shell">
+			<div className="sp-stack sp-grow sp-gap-12 hm-spread">
+				<div className="sp-row-flex sp-gap-12">
+					{w
+						? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
+						: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
+					<span className="sp-grow" />
+					{ago ? <span className="sp-meta">last added {ago}</span> : null}
+				</div>
+				<div className="sp-row-flex sp-gap-16 sp-wrap">
+					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
+					<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
+					<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
+				</div>
+				{view
+					? <Limits view={view} />
+					: (
+						<div className="sp-stack sp-gap-8">
+							<Gauge value={0} untargeted={limitsLost} aria-label="Share of this month's limits used" />
+							{limitsLost
+								? <span className="sp-meta">Your limits did not load.</span>
+								: <span className="sp-meta hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
+						</div>
+					)}
+			</div>
+		</Card>
+	)
+}
+
+function Limits({ view }) {
+	const { window: w, limits, pace } = view
+	if (!limits) return (
+		<div className="sp-stack sp-gap-8">
+			<Gauge value={0} untargeted aria-label="No limit set" />
+			<span className="sp-meta">No monthly limits yet. Set one on a category to follow the month here.</span>
+		</div>
+	)
+	const used = (w.spent / limits) * 100
+	const ahead = used > pace
+	return (
+		<div className="sp-stack sp-gap-8">
+			<Gauge {...against(w.spent, limits, pace)} aria-label="Share of this month's limits used" />
+			<div className="sp-row-flex sp-gap-12">
+				<span className="sp-meta">{amount(Math.round(used), 0)}% of {currency(limits, 0)} in limits</span>
+				<span className="sp-grow" />
+				<span className={ahead ? 'sp-meta sp-meta--over sp-row-flex sp-gap-6' : 'sp-meta sp-row-flex sp-gap-6'}>
+					<GaugeKey aria-hidden="true" />{ahead ? 'ahead of pace' : 'below pace'}
+				</span>
+			</div>
+		</div>
+	)
+}
+
+/** An alert row while the month loads: the row's own box, holding bars. */
+function AlertSkeleton({ width }) {
+	return (
+		<ListItem mark={<span className="hm-mark"><Skeleton shape="line" data-w="18" data-h="22" /></span>}>
+			<span className="sp-data sp-grow hm-line"><Skeleton shape="line" data-w={width} data-h="13" /></span>
+		</ListItem>
+	)
+}
+
+/** What needs a look, by severity: categories over their limit, then near it (8b), then orders
+    without a receipt, then vendors whose names look alike. A count of zero is no row at all. */
+function alertsOf(view, attention) {
+	const w = view.window
+	const over = view.over.map(c => ({
+		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!', phone: 'over',
+		text: <><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(w)}</>
+	}))
+	const near = view.near.map(c => ({
+		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!',
+		text: <><b>{c.name} is at {Math.floor((c.monthSpend / c.budget) * 100)}%</b> of its limit for {monthOf(w)}</>
+	}))
+	const receipts = attention?.withoutReceipt
+		? [{
+			key: 'receipt', to: '/orders?view=missing-receipt', count: amount(attention.withoutReceipt, 0),
+			text: `${attention.withoutReceipt === 1 ? 'order' : 'orders'} without a receipt attached`, phone: 'missing a receipt'
+		}]
+		: []
+	const lookalikes = attention?.lookalikeVendors
+		? [{
+			key: 'vendors', to: '/vendors?flag=possible-duplicate', count: amount(attention.lookalikeVendors, 0),
+			text: 'vendors look like duplicates', phone: 'look like duplicates'
+		}]
+		: []
+	return { over, near, others: [...receipts, ...lookalikes] }
+}
+
+function AlertsCard({ view, attention }) {
+	const alerts = view ? alertsOf(view, attention) : null
+	const all = alerts ? [...alerts.over, ...alerts.near, ...alerts.others] : []
+	if (alerts && !all.length) return null
+	const shown = all.slice(0, ALERTS)
+	const counted = alerts ? <span className="sp-meta">{all.length > ALERTS ? `${shown.length} of ${amount(all.length, 0)} things` : plural(all.length, 'thing')}</span> : null
+	// past the cap the true total of categories over their limit rides on a link, as Recent orders' does
+	const more = alerts && alerts.over.length > ALERTS
+	return (
+		<Card variant="flush">
+			<Toolbar>
+				<span className="sp-section-label">Needs a look</span>
+				{more ? counted : null}
+				<span className="sp-grow" />
+				{more ? <Button variant="text" size="small" to="/categories">All {amount(alerts.over.length, 0)}</Button> : counted}
+			</Toolbar>
+			<CardBody>
+				<div className="sp-stack sp-gap-8">
+					{alerts
+						? shown.map(a => (
+							<ListItem key={a.key} to={a.to} color={a.color} chevron={CHEVRON} count={a.count}>
+								<span className="sp-grow sp-truncate">{a.text}</span>
+							</ListItem>
+						))
+						: ['62pc', '48pc', '55pc'].map(width => <AlertSkeleton key={width} width={width} />)}
+				</div>
+			</CardBody>
+		</Card>
+	)
+}
+
+const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
+const ORDINALS = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh']
+const countWord = n => COUNT_WORDS[n] ?? amount(n, 0)
+// the summary says three things at most; the sentence above them counts every category
+const SUMMARY_ROWS = 3
+
+/** "One category went over, one finished close, and Textiles has room to spare." */
+function summarySentence(over, close, room) {
+	const parts = [
+		over.length ? `${countWord(over.length)} ${over.length === 1 ? 'category' : 'categories'} went over` : 'every category stayed under its limit',
+		close.length ? `${countWord(close.length)} finished close` : null,
+		room ? `${room.name} has room to spare` : null
+	].filter(Boolean)
+	const said = parts.length > 2 ? `${parts.slice(0, -1).join(', ')}, and ${parts.at(-1)}` : parts.join(' and ')
+	return `${capital(said)}.`
+}
+
+/** Last month against its limits, said once (8b, 6f): from the first of the month until the reader
+    hides it. Each row opens that month's orders in the category. */
+function MonthlySummary({ summary, categories, early, onHide, isHidden, onHideLine }) {
+	const month = monthNames('long')[Number(summary.month.slice(5)) - 1]
+	const byId = new Map(categories.map(c => [c.id, c]))
+	const rows = summary.limits
+		.map(l => ({ ...byId.get(l.id), spend: l.spend, overs: l.overs }))
+		.filter(c => c.name && c.budget > 0)
+		.map(c => ({ ...c, used: (c.spend / c.budget) * 100 }))
+	const over = rows.filter(c => c.spend > c.budget).sort((a, b) => b.spend - b.budget - (a.spend - a.budget))
+	const close = early < 100 ? rows.filter(c => c.spend <= c.budget && c.used >= early).sort((a, b) => b.used - a.used) : []
+	const room = rows.filter(c => !over.includes(c) && !close.includes(c)).sort((a, b) => a.used - b.used || a.name.localeCompare(b.name))[0]
+	const limits = rows.reduce((sum, c) => sum + c.budget, 0)
+	const of = c => `${amount(c.spend, 0)} of ${currency(c.budget, 0)}`
+	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
+	// a hidden line goes from the rows below, not from what the month came to
+	const shown = c => !isHidden(c.id)
+	const roomShown = rows.filter(c => shown(c) && !over.includes(c) && !close.includes(c)).sort((a, b) => a.used - b.used || a.name.localeCompare(b.name))[0]
+	const lines = [
+		...over.filter(shown).map(c => ({
+			c, color: 'danger', mark: <CategoryMark category={c} size="small" />,
+			said: `went ${currency(c.spend - c.budget, 0)} over`,
+			meta: c.overs >= 12 ? 'Over in all twelve months. The limit may be too low.'
+				: c.overs >= 2 ? `${ORDINALS[c.overs]} time in twelve months.${c.overs >= 3 ? ' The limit may be too low.' : ''}` : of(c),
+			adjust: true
+		})),
+		...close.filter(shown).map(c => ({
+			c, mark: <Mark size="small" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={13} /></Mark>,
+			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
+		})),
+		...(roomShown ? [{ c: roomShown, mark: <Mark size="small" aria-hidden="true" aria-label={roomShown.name}><Icon name={glyphOf(roomShown.icon)} size={13} /></Mark>, said: `used ${Math.round(roomShown.used)}%`, meta: of(roomShown) }] : [])
+	].slice(0, SUMMARY_ROWS)
+	return (
+		<Card footer={[
+			<div className="sp-stack sp-grow" key="saved">
+				<span className="sp-section-label">Saved in {month}</span>
+				<span className={isSaving(summary.saved, 0) ? 'sp-stat__figure sp-ink-accent' : 'sp-stat__figure sp-ink-5'}>{currency(summary.saved, 0)}</span>
+			</div>,
+			<Button key="open" size="small" to={`/statistics?range=month&period=${summary.month}`}>Open statistics</Button>
+		]}>
+			<div className="hm-top">
+				<div className="sp-stack sp-gap-6 sp-grow">
+					<span className="sp-section-label">{month} {summary.month.slice(0, 4)}</span>
+					<span className="sp-heading">
+						{limits ? `You spent ${currency(summary.spent, 0)} against ${amount(limits, 0)} in limits` : `You spent ${currency(summary.spent, 0)} in ${month}`}
+					</span>
+					{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
+				</div>
+				<IconButton icon="x" aria-label={`Hide the summary of ${month}`} onClick={onHide} />
+			</div>
+			{lines.length
+				? (
+					<div className="sp-stack sp-gap-12">
+						{lines.map(line => (
+							<ListItem key={line.c.id} color={line.color} mark={line.mark}
+								actions={<>
+									{line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : null}
+									<IconButton icon="x" aria-label={`Hide ${line.c.name} from the ${month} summary`} onClick={() => onHideLine(line.c, month)} />
+								</>}>
+								<Link className="sp-stack sp-gap-6 sp-grow hm-link" to={link(line.c)}>
+									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span className="sp-nowrap">{line.said}</span></span>
+									<span className="sp-meta">{line.meta}</span>
+								</Link>
+							</ListItem>
+						))}
 					</div>
-					<div className="content-column-side">
-						<SkeletonCard lines={2} bodyHeight={520} />
-						<SkeletonCard lines={2} bodyHeight={150} />
-					</div>
-				</>}>{data => (
+				)
+				: null}
+		</Card>
+	)
+}
+
+function RecentCard({ recent }) {
+	const orders = recent.data?.orders
+	const total = recent.data?.total
+	const caption = (
+		<>
+			<span className="sp-section-label">Recent orders</span>
+			{total ? <span className="sp-meta">newest {Math.min(RECENT, orders.length)}</span> : null}
+			<span className="sp-grow" />
+			{total ? <Button variant="text" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
+		</>
+	)
+	const loading = <RecentList caption={caption} />
+	if (recent.error) return (
+		<Hold shape={loading}>
+			<Failed variant="card" label="Recent orders" what="Your recent orders" error={recent.error} onRetry={recent.refresh} />
+		</Hold>
+	)
+	if (orders && !orders.length) return (
+		<Hold shape={loading}>
+			<Card variant="flush">
+				<Toolbar>{caption}</Toolbar>
+				<div className="sp-stack sp-grow hm-fill">
+					<Empty>
+						<span className="sp-heading">No orders yet</span>
+						<span className="sp-meta">Drop a receipt and it becomes your first order. Or start an empty order and type it yourself.</span>
+						<Button size="small" to="/orders/new">Empty order</Button>
+					</Empty>
+				</div>
+			</Card>
+		</Hold>
+	)
+	return <RecentList caption={caption} orders={orders} />
+}
+
+function RecentList({ caption, orders }) {
+	return (
+		<List data={orders ?? [1, 2, 3, 4]} recordKey={o => o.id ?? o} noun="orders" headless locale={NUMBER_LOCALE}
+			rowTo={orders ? o => `/orders/${o.id}` : undefined}>
+			<Caption>{caption}</Caption>
+			<ListHead>
+				<ListCell width="title" />
+				<ListCell width="date" />
+				<ListCell width="status" />
+				<ListCell width="amount" />
+			</ListHead>
+			<ListRow>{o => (orders ? (
 				<>
-					<div className="content-column-main">
-						<Hero month={data.period} />
-
-						<Async state={cards} label="Loading your cards" skeleton={<DashboardCardsSkeleton />}>
-							{({ all, on }) => (
-								<DashboardCards all={all} initial={on} render={key => dashboardCard(key, data)} />
-							)}
-						</Async>
-					</div>
-
-					<div className="content-column-side">
-						{data.showScanCard ? (
-							<AiCard
-								header={{
-									to: '/scan',
-									title: aiEnabled ? 'Get receipts read for you' : 'Attach a receipt to an order',
-									meta: 'Finish setting up Spendly', destination: 'Scan receipt',
-									progress: data.onboarding
-								}}
-								headline={aiEnabled ? 'Scan receipts, skip typing' : 'Attach a receipt to an order'}
-								body={aiEnabled
-									? 'A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.'
-									: 'A PDF, photo or screenshot attaches to the order. Nothing here reads it for you.'}>
-								<Button variant="invert" to="/scan">SCAN A RECEIPT</Button>
-								{/* The card held the focus, so dismissing it hands focus to the heading. */}
-								<ButtonLink className="button-link-invert" onClick={dismissScanCard}>LATER</ButtonLink>
-								<AiCardMark />
-							</AiCard>
-						) : null}
-
-						<Card aria-label="Orders">
-							<CardHeader title="Orders" to="/orders" label="Orders, open Orders" />
-							<CardDivider />
-							<CardBody>
-								{/* A chart is a claim about data points; a flat line at zero with a lone
-								    marker on it makes that claim about an account with no orders at all.
-								    The same absence dashboard-card('top_vendors') already guards against,
-								    one card over. */}
-								{data.latestOrders.length ? (
-									<>
-										<div className="chart-caption">
-											<div className="chart-caption-label">Spent this month</div>
-											<span className="chart-caption-value tabular-figures">{currency(data.period.spent)}</span>
-										</div>
-										<SpendChart data={data.period.series.cumulative.map((y1, i) => ({ x: i, y1 }))}
-											days={data.period.series.cumulative.length} from={data.period.from}
-											marks={data.period.axis} height={110} className="chart-under-caption"
-											label={`Cumulative spend through ${data.period.shortLabel}`}
-											todayIndex={data.period.todayIndex} yFormat={compactAmount}
-											series={[{ key: 'spend', dataKey: 'y1', name: 'Spent', color: 'var(--green)',
-												strokeGradient: ['var(--green)', 'var(--green-light)'], strokeWidth: 2.4, today: true }]} />
-										{/* The total, in the slot the total goes in -- this list held the
-										    saving there and the total in the meta line beneath the vendor,
-										    which is the same pair of figures the other two lists of orders
-										    draw and the only one drawing them the other way round.
-										    README: Data Rows. */}
-										<LatestOrders latestOrders={data.latestOrders} rows={data.cardRows} />
-									</>
-								) : (
-									<EmptyState>
-										<p>No orders yet. Add one and your spending appears here.</p>
-										<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
-									</EmptyState>
-								)}
-							</CardBody>
-						</Card>
-
-						<Card aria-label="Saved vs retail">
-							<CardHeader title="Saved vs retail" to="/stats" label="Saved vs retail, open Statistics" />
-							<CardDivider />
-							<CardBody>
-								{data.latestOrders.length ? (
-									<>
-										<div className="caption-chip-row">
-											<div className="chart-caption">
-												<div className="chart-caption-label">Total saved</div>
-												<span className="chart-caption-value tabular-figures">{currency(data.period.saved)}</span>
-											</div>
-											<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
-										</div>
-										<SpendChart data={data.period.series.savingsGrowth.map((y1, i) => ({ x: i, y1 }))}
-											days={data.period.series.savingsGrowth.length} from={data.period.from}
-											marks={data.period.axis} height={90} className="chart-under-caption"
-											label={`Savings growth through ${data.period.shortLabel}`}
-											todayIndex={data.period.todayIndex} yFormat={compactAmount}
-											series={[{ key: 'savings', dataKey: 'y1', name: 'Saved', color: 'var(--green)',
-												area: true, strokeWidth: 2.2, today: true }]} />
-									</>
-								) : (
-									<EmptyState>
-										<p>Nothing saved yet. Buy below retail price and your savings appear here.</p>
-									</EmptyState>
-								)}
-							</CardBody>
-						</Card>
-					</div>
+					<ListCell cell="flex"><OrderHead order={o} /></ListCell>
+					<ListCell><span className="sp-data">{rowDate(o.date)}</span></ListCell>
+					<ListCell><StatusPill status={o.status} /></ListCell>
+					<ListCell cell="amount"><span className="sp-amount">{currency(o.total)}</span></ListCell>
 				</>
-			)}</Async>
-		</Page>
+			) : (
+				<>
+					<ListCell cell="flex">
+						<Skeleton shape="mark" />
+						<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w="62pc" data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span>
+					</ListCell>
+					<ListCell><Skeleton shape="line" data-w="44" /></ListCell>
+					<ListCell><Skeleton shape="pill" /></ListCell>
+					<ListCell cell="amount"><Skeleton shape="end" data-w="96" /></ListCell>
+				</>
+			))}</ListRow>
+		</List>
+	)
+}
+
+function OrderHead({ order }) {
+	return (
+		<>
+			<OrderPhoto order={order} />
+			<span className="sp-stacked">
+				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
+				<span className="sp-meta sp-truncate">{order.reference ? `${order.reference}${dot}` : ''}{plural(order.itemCount, 'item')}</span>
+			</span>
+		</>
+	)
+}
+
+function CaptureCard({ newest, loading }) {
+	const navigate = useNavigate()
+	const input = useId()
+	const reads = useApi(getCurrentUser).data?.scanAiEnabled
+	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0] } }) }
+	const footer = newest
+		? [
+			<span className="sp-subtitle sp-grow" key="ask">Bought from {newest.vendor?.name} again?</span>,
+			<Button variant="text" size="small" to={`/orders/new?duplicate=${newest.id}`} key="copy">Duplicate last order</Button>
+		]
+		: loading
+			? [
+				<span className="sp-subtitle sp-grow hm-line" key="ask"><Skeleton shape="line" data-w="130" data-h="13" /></span>,
+				<ButtonSkeleton label="Duplicate last order" key="copy" />
+			]
+			: undefined
+	return (
+		<Card footer={footer}>
+			<span className="sp-section-label">Add an order</span>
+			<FileDrop id={input} accept={FILE_TYPES} onFiles={take}>
+				<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
+				<span className="sp-title">Drop a receipt here</span>
+				<span className="sp-subtitle">
+					{reads === false
+						? 'Image or PDF. It is attached to a new order, and you type in the details.'
+						: 'Image or PDF. The vendor, date and lines are read for you to check.'}
+				</span>
+			</FileDrop>
+			<div className="sp-fields">
+				<Button size="small" onClick={() => document.getElementById(input)?.click()}>Choose file</Button>
+				<Button variant="outline" size="small" to="/orders/new">Empty order</Button>
+			</div>
+		</Card>
+	)
+}
+
+function CategoriesCard({ view }) {
+	const top = view?.top
+	const loading = (
+		<Card>
+			<div className="sp-row-flex sp-gap-8">
+				<span className="sp-section-label">Categories this month</span>
+				<span className="sp-grow" />
+				<ButtonSkeleton label="All 10" />
+			</div>
+			{['96', '76', '88', '64'].map(width => (
+				<div className="sp-stack sp-gap-6" key={width}>
+					<div className="sp-row-flex sp-gap-8">
+						<span className="hm-mark"><Skeleton shape="line" data-w="18" data-h="22" /></span>
+						<span className="sp-data hm-line"><Skeleton shape="line" data-w={width} data-h="13" /></span>
+						<span className="sp-grow" />
+						<span className="sp-meta hm-line"><Skeleton shape="line" data-w="76" data-h="11" /></span>
+					</div>
+					<Gauge value={0} untargeted aria-label="Loading" />
+				</div>
+			))}
+		</Card>
+	)
+	if (!view) return loading
+	const header = (
+		<div className="sp-row-flex sp-gap-8">
+			<span className="sp-section-label">Categories this month</span>
+			{top.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
+			<span className="sp-grow" />
+			{view.withSpend ? <Button variant="text" size="small" to="/categories">All {amount(view.withSpend, 0)}</Button> : null}
+		</div>
+	)
+	if (top.length) return (
+		<Card>
+			{header}
+			{top.map(c => <CategoryLine key={c.id} category={c} early={view.early} />)}
+		</Card>
+	)
+	return (
+		<Hold shape={loading}>
+			<Card>
+				{header}
+				<div className="sp-stack sp-grow hm-fill">
+					{view.count
+						? (
+							<Empty>
+								<span className="sp-heading">Nothing spent in {monthOf(view.window)} yet</span>
+								<span className="sp-meta">Add an order and its categories show here, against their limits.</span>
+							</Empty>
+						)
+						: (
+							<Empty>
+								<span className="sp-heading">No categories yet</span>
+								<span className="sp-meta">Categories group your spend and carry the monthly limit.</span>
+								<Button size="small" to="/categories/new">New category</Button>
+							</Empty>
+						)}
+				</div>
+			</Card>
+		</Hold>
+	)
+}
+
+/* Each row opens Statistics on this month with the category as its crumb (10a). Its figures warn
+   from the share of the limit the reader chose (8b). */
+function CategoryLine({ category: c, early }) {
+	const limited = c.budget > 0
+	const warn = overBudget(c) || nearLimit(c, early)
+	return (
+		<Link className="sp-stack sp-gap-6 hm-link" to={`/statistics?range=month&crumbs=category:${c.id}`}>
+			<div className="sp-row-flex sp-gap-8">
+				<CategoryMark category={c} size="small" />
+				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
+				<span className={warn ? 'sp-meta sp-meta--over' : 'sp-meta'}>
+					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : `${amount(c.monthSpend, 0)}${dot}no limit`}
+				</span>
+			</div>
+			{limited
+				? <Gauge {...against(c.monthSpend, c.budget)} aria-label={`${c.name} against its limit`} />
+				: <Gauge value={0} untargeted aria-label="No limit set" />}
+		</Link>
+	)
+}
+
+function MonthsCard() {
+	const navigate = useNavigate()
+	const year = useApi(getStatsSlice, [YEAR])
+	const months = year.data ? lastMonths(year.data.window) : null
+	const average = months ? months.reduce((sum, c) => sum + c.spend, 0) / months.length : null
+	const card = (
+		<Card footer={[
+			<span className="sp-subtitle sp-grow" key="label">Monthly average</span>,
+			average === null
+				? <span className="sp-amount hm-line" key="value"><Skeleton shape="line" data-w="76" data-h="13" /></span>
+				: <span className="sp-amount" key="value">{currency(average, 0)}</span>
+		]}>
+			<div className="sp-row-flex sp-gap-8">
+				<span className="sp-section-label">Last {MONTHS} months</span>
+				<span className="sp-grow" />
+				<Button variant="text" size="small" to="/statistics">Statistics</Button>
+			</div>
+			<Bars columns={months ?? []} loading={!months} current={today().slice(0, 7)}
+				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
+		</Card>
+	)
+	if (year.error) return (
+		<Hold shape={card}>
+			<Failed variant="card" label={`Last ${MONTHS} months`} what="The last months" error={year.error} onRetry={year.refresh} />
+		</Hold>
+	)
+	return card
+}
+
+/* ---- below 640: the phone's own composition (7a) ---- */
+
+function PhoneHome({ month, categories, view, recent, attention, name, notice }) {
+	const w = month.data?.window
+	return (
+		<>
+			<div className="sp-stacked">
+				<span className="sp-stat__figure">{greeting(name)}</span>
+				{w
+					? <span className="sp-data">{capital(monthOf(w))}, day {w.pace.daysIn} of {w.pace.unitDays}</span>
+					: <span className="sp-data hm-line"><Skeleton shape="line" data-w="130" data-h="13" /></span>}
+			</div>
+			{notice}
+			{month.error
+				? (
+					<Hold shape={<PhoneMonth />}>
+						<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={retrying(month, categories)} />
+					</Hold>
+				)
+				: <PhoneMonth w={w} view={view} limitsLost={categories.error ? categories.refresh : null} />}
+			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} />}
+			<PhoneRecent recent={recent} />
+		</>
+	)
+}
+
+/** `limitsLost` asks for the limits again when only they failed: the month's own figure still shows. */
+function PhoneMonth({ w, view, limitsLost }) {
+	if (w && limitsLost) return (
+		<Card>
+			<span className="sp-section-label">This month</span>
+			<span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>
+			<div className="sp-stack sp-gap-8">
+				<Gauge value={0} untargeted aria-label="Share of this month's limits used" />
+				<div className="sp-row-flex sp-gap-8">
+					<span className="sp-meta sp-grow">Your limits did not load.</span>
+					<Button variant="text" size="small" onClick={limitsLost}>Try again</Button>
+				</div>
+			</div>
+		</Card>
+	)
+	if (!view) return (
+		<Card>
+			<span className="sp-section-label">This month</span>
+			<span className="sp-stat__figure sp-stat__figure--large hm-line"><Skeleton shape="line" data-w="130" data-h="22" /></span>
+			<Gauge value={0} aria-label="Share of this month's limits used" />
+		</Card>
+	)
+	const { limits, pace } = view
+	return (
+		<Card>
+			<span className="sp-section-label">This month</span>
+			{limits
+				? (
+					<div className="sp-row-flex sp-gap-8 sp-baseline">
+						<span className="sp-stat__figure sp-stat__figure--large">{amount(w.spent, 0)}</span>
+						<span className="sp-data sp-ink-5">of {currency(limits, 0)}</span>
+					</div>
+				)
+				: <span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>}
+			{limits
+				? <Gauge {...against(w.spent, limits, pace)} aria-label="Share of this month's limits used" />
+				: (
+					<div className="sp-stack sp-gap-8">
+						<Gauge value={0} untargeted aria-label="No limit set" />
+						<span className="sp-meta">No monthly limits yet. Set one on a category to follow the month here.</span>
+					</div>
+				)}
+		</Card>
+	)
+}
+
+function PhoneAlerts({ view, attention }) {
+	const alerts = view ? alertsOf(view, attention) : null
+	if (alerts && !alerts.over.length && !alerts.near.length && !alerts.others.length) return null
+	const chevron = <Icon name="chevron-right" size={13} />
+	return (
+		<Card>
+			<span className="sp-section-label">Needs a look</span>
+			{alerts
+				? (
+					<>
+						{alerts.over.length
+							? (
+								<ListItem to="/categories" color="warning" chevron={chevron} count={amount(alerts.over.length, 0)}>
+									<span className="sp-data sp-ink-warning sp-grow">over {alerts.over.length === 1 ? 'its' : 'their'} limit</span>
+								</ListItem>
+							)
+							: null}
+						{alerts.near.length
+							? (
+								<ListItem to="/categories" color="warning" chevron={chevron} count={amount(alerts.near.length, 0)}>
+									<span className="sp-data sp-ink-warning sp-grow">near {alerts.near.length === 1 ? 'its' : 'their'} limit</span>
+								</ListItem>
+							)
+							: null}
+						{alerts.others.map(a => (
+							<ListItem key={a.key} to={a.to} chevron={chevron} count={a.count}>
+								<span className="sp-data sp-grow sp-truncate">{a.phone}</span>
+							</ListItem>
+						))}
+					</>
+				)
+				: <AlertSkeleton width="44pc" />}
+		</Card>
+	)
+}
+
+function PhoneRecent({ recent }) {
+	const orders = recent.data?.orders
+	const loading = (
+		<Card>
+			<span className="sp-section-label">Recent orders</span>
+			{[0, 1, 2].map(i => (
+				<div className="sp-row-flex sp-gap-12 hm-order" key={i}>
+					<Skeleton shape="mark" />
+					<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w="62pc" data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span>
+					<Skeleton shape="line" data-w="64" />
+				</div>
+			))}
+		</Card>
+	)
+	if (recent.error) return (
+		<Hold shape={loading}>
+			<Failed variant="card" label="Recent orders" what="Your recent orders" error={recent.error} onRetry={recent.refresh} />
+		</Hold>
+	)
+	if (!orders) return loading
+	if (!orders.length) return (
+		<Hold shape={loading}>
+			<Card>
+				<span className="sp-section-label">Recent orders</span>
+				<div className="sp-stack sp-grow hm-fill">
+					<span className="sp-meta">No orders yet. Press the plus button to add your first.</span>
+				</div>
+			</Card>
+		</Hold>
+	)
+	return (
+		<Card>
+			<span className="sp-section-label">Recent orders</span>
+			{orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)}
+		</Card>
+	)
+}
+
+function PhoneOrder({ order }) {
+	return (
+		<Link className="sp-row-flex sp-gap-12 hm-order" to={`/orders/${order.id}`}>
+			<OrderPhoto order={order} />
+			<div className="sp-stacked sp-grow">
+				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
+				<span className="sp-meta">{rowDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>
+			</div>
+			<span className="sp-title sp-nowrap">{amount(order.total)}</span>
+		</Link>
+	)
+}
+
+/* ---- an account with no orders yet: the first-run Home (20d) ---- */
+
+function DayOne({ categories, name, touch }) {
+	const navigate = useNavigate()
+	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0] } }) }
+	const reads = useApi(getCurrentUser).data?.scanAiEnabled
+	const first = categories?.slice(0, 4) ?? []
+	return (
+		<div className={touch ? 'sp-stack sp-gap-12' : 'hm-day-one'}>
+			<Card>
+				<div className="sp-stack">
+					<span className="sp-stat__figure sp-stat__figure--large">{greeting(name)}</span>
+					<span className="sp-data">{capital(monthNames('long')[Number(today().slice(5, 7)) - 1])}{dot}nothing recorded yet</span>
+				</div>
+				<FileDrop accept={FILE_TYPES} onFiles={take} icon="camera">
+					<span className="sp-heading">Start with a receipt</span>
+					<span className="sp-data hm-w300">
+						{reads === false
+							? 'Drop a photo or a PDF. It is attached to a new order, and you type in the details.'
+							: 'Drop a photo or a PDF and the lines are read for you to check.'}
+					</span>
+					<span className="sp-btn">Capture a receipt</span>
+					<Button variant="text" size="small" to="/orders/new">Or enter one by hand</Button>
+				</FileDrop>
+				<div className={touch ? 'sp-stack sp-gap-12' : 'hm-wells'}>
+					<Well>
+						<span className="sp-section-label">This month</span>
+						<span className="sp-stat__figure sp-ink-5">{currency(0)}</span>
+						<Gauge thin value={0} untargeted aria-label="No limit set" />
+						<span className="sp-meta">Set a monthly limit once you have recorded a few orders.</span>
+					</Well>
+					<Well>
+						<span className="sp-section-label">Your categories</span>
+						{first.map(c => (
+							<span className="sp-row-flex sp-gap-10" key={c.id}>
+								<CategoryMark category={c} size="small" />
+								<span className="sp-title">{c.name}</span>
+							</span>
+						))}
+						{categories && !categories.length ? <span className="sp-meta">No categories yet.</span> : null}
+						<Button variant="text" size="small" to="/categories/new">{categories?.length ? 'Add another' : 'Add one'}</Button>
+					</Well>
+				</div>
+			</Card>
+		</div>
 	)
 }

@@ -8,39 +8,39 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
    the create/scan-review form — that parsing is client.js's job, same as it is today, so a
    value required at one door (manual entry) is required and checked the same way at every
    other (import, scan review save). Returns a { field: message } map, empty if the draft is
-   valid. */
+   valid. `today` is the reader's date (req.today). */
 
-export function validateOrderDraft(draft) {
+export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_STATUSES) {
 	const errors = {}
 
 	const vendor = String(draft.vendor ?? '').trim()
 	if (!vendor) errors.vendor = 'Who did you buy from?'
 	else if (vendor.length > 80) errors.vendor = '80 characters at most.'
 
+	// a date in the future is kept: an order can be booked ahead (6c), so the form only warns
 	const date = String(draft.date ?? '')
 	if (!ISO_DATE.test(date)) errors.date = 'When was the order placed?'
-	else if (date > todayIso()) errors.date = 'An order cannot be dated in the future.'
 
 	const kind = String(draft.kind ?? '')
 	if (!kind) errors.kind = 'Pick a kind.'
 	else if (!SPEND_KINDS.some(k => k.toLowerCase() === kind.toLowerCase()))
 		errors.kind = 'Kind is one of: ' + SPEND_KINDS.join(', ') + '.'
 
-	if (draft.status && !ORDER_STATUSES.some(s => s.toLowerCase() === String(draft.status).toLowerCase()))
-		errors.status = 'Status is one of: ' + ORDER_STATUSES.join(', ') + '.'
+	if (draft.status && !statuses.some(s => s.toLowerCase() === String(draft.status).toLowerCase()))
+		errors.status = 'That status does not exist. Pick one from the list.'
 
 	// Optional here, like most fields an import can omit (status itself defaults to Delivered)
 	// -- the create/edit/scan forms are what make these required, only once status warrants them.
 	if (draft.deliveredDate) {
 		const deliveredDate = String(draft.deliveredDate)
 		if (!ISO_DATE.test(deliveredDate)) errors.deliveredDate = 'That is not a valid date.'
-		else if (deliveredDate > todayIso()) errors.deliveredDate = 'A delivery cannot be dated in the future.'
+		else if (deliveredDate > today && deliveredDate > date) errors.deliveredDate = 'A delivery cannot be dated in the future.'
 		else if (deliveredDate < date) errors.deliveredDate = 'That is before the order date.'
 	}
 	if (draft.returnedDate) {
 		const returnedDate = String(draft.returnedDate)
 		if (!ISO_DATE.test(returnedDate)) errors.returnedDate = 'That is not a valid date.'
-		else if (returnedDate > todayIso()) errors.returnedDate = 'A return cannot be dated in the future.'
+		else if (returnedDate > today && returnedDate > String(draft.deliveredDate || date)) errors.returnedDate = 'A return cannot be dated in the future.'
 		else if (draft.deliveredDate && !errors.deliveredDate && returnedDate < String(draft.deliveredDate))
 			errors.returnedDate = 'That is before the delivery date.'
 	}
@@ -54,11 +54,13 @@ export function validateOrderDraft(draft) {
 	if (draft.discount != null && (!Number.isFinite(Number(draft.discount)) || Number(draft.discount) < 0))
 		errors.discount = 'Discount must be a non-negative amount.'
 
+	// a Draft keeps what was read or typed so far (16a): no line yet, or one with no name, waits for later
+	const drafting = String(draft.status ?? '').toLowerCase() === 'draft'
 	const items = Array.isArray(draft.items) ? draft.items : []
-	if (!items.length) errors.items = 'An order needs at least one item.'
+	if (!items.length && !drafting) errors.items = 'An order needs at least one item.'
 	items.forEach((item, i) => {
 		const title = String(item.title ?? '').trim()
-		if (!title) errors[`items.${i}.title`] = 'Describe the item.'
+		if (!title && !drafting) errors[`items.${i}.title`] = 'Describe the item.'
 		else if (title.length > 120) errors[`items.${i}.title`] = '120 characters at most.'
 
 		/* Rounded and compared back, not `quantity * 100` tested for wholeness: 1.1 * 100 is
@@ -86,8 +88,24 @@ export function validateOrderDraft(draft) {
 	return errors
 }
 
-export function assertValidOrderDraft(draft) {
-	const errors = validateOrderDraft(draft)
+/** A Draft's lines as the order table stores them: a quantity not given yet is 1 and a price not
+    given yet is 0, until the reader fills them in. Any other status is left as it came. */
+export function fillDraftGaps(draft) {
+	if (String(draft.status ?? '').toLowerCase() !== 'draft' || !Array.isArray(draft.items)) return draft
+	const given = value => value !== null && value !== '' && value !== undefined && Number.isFinite(Number(value))
+	return {
+		...draft,
+		items: draft.items.map(item => ({
+			...item,
+			title: String(item.title ?? ''),
+			quantity: given(item.quantity) && Number(item.quantity) > 0 ? item.quantity : 1,
+			price: given(item.price) ? item.price : 0
+		}))
+	}
+}
+
+export function assertValidOrderDraft(draft, today, statuses) {
+	const errors = validateOrderDraft(draft, today, statuses)
 	if (Object.keys(errors).length) {
 		const err = new Error(Object.values(errors)[0])
 		err.status = 400
@@ -96,13 +114,13 @@ export function assertValidOrderDraft(draft) {
 	}
 }
 
-/* Ports react/src/api/rules.js's WISH_FIELDS: one rule in the same words at both doors. */
+/* Ports react/src/api/rules.js's BOOKMARK_FIELDS: one rule in the same words at both doors. */
 
 const MAX_URL = 2048
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i
 
 // A link pasted from an ad, a social app or a newsletter carries the campaign that pointed at
-// it, not a fact about the product -- so it never survives into a saved wish.
+// it, not a fact about the product -- so it never survives into a saved bookmark.
 const TRACKING_PARAMS = new Set([
 	'gclid', 'gclsrc', 'dclid', 'wbraid', 'gbraid', 'fbclid', 'igshid', 'msclkid', 'twclid',
 	'ttclid', 'yclid', 'mc_cid', 'mc_eid', '_ga', '_gl'
@@ -127,11 +145,11 @@ export function normaliseUrl(value) {
 	return stripTracking(url).href
 }
 
-export function validateWishDraft(draft) {
+export function validateBookmarkDraft(draft) {
 	const errors = {}
 
 	const name = String(draft.name ?? '').trim()
-	if (!name) errors.name = 'What do you wish for?'
+	if (!name) errors.name = 'What is it called?'
 	else if (name.length > 120) errors.name = '120 characters at most.'
 
 	const url = String(draft.url ?? '').trim()
@@ -150,8 +168,8 @@ export function validateWishDraft(draft) {
 	return errors
 }
 
-export function assertValidWishDraft(draft) {
-	const errors = validateWishDraft(draft)
+export function assertValidBookmarkDraft(draft) {
+	const errors = validateBookmarkDraft(draft)
 	if (Object.keys(errors).length) {
 		const err = new Error(Object.values(errors)[0])
 		err.status = 400
@@ -230,9 +248,9 @@ export function budgetYears(years) {
 	const seen = new Set()
 	return years.map(y => {
 		const year = budgetYear(y?.year)
-		if (seen.has(year)) throw refuse(`${year} is in the file twice.`)
+		if (seen.has(year)) throw refuse(`The year ${year} is in the file twice.`)
 		seen.add(year)
-		if (!Array.isArray(y.groups)) throw refuse(`${year} has no groups.`)
+		if (!Array.isArray(y.groups)) throw refuse(`The year ${year} has no groups.`)
 		return {
 			year,
 			groups: y.groups.map(g => ({

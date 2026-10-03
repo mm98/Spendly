@@ -3,30 +3,59 @@ import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { hashPassword, verifyPassword, createSession, destroySession, requireAuth } from '../lib/auth.js'
 import { LOCALES } from '../lib/constants.js'
+import { nowEpoch } from '../lib/dates.js'
+import { linkTo, mailAvailable, sendMail } from '../lib/mail.js'
+import { issueToken, readToken, resendWait, useToken } from '../lib/tokens.js'
 import { seedAccountDefaults } from '../seed.js'
 
 export const router = Router()
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const MIN_PASSWORD = 8
+export const MAX_NAME = 80
+export const cleanName = value => String(value ?? '').trim().replace(/\s+/g, ' ')
 
 const findUserByEmail = db.prepare('SELECT id, email, password_hash, needs_setup FROM users WHERE email = ?')
 /* needs_setup named rather than left to its column default, which is 0. The default belongs to
    the accounts that already existed when the column was added; 1 belongs to accounts created
    from here, and writing it out is what keeps those two facts from being one fact
    (migrations/014_first_run.sql). */
-const insertUser = db.prepare('INSERT INTO users (id, email, password_hash, needs_setup) VALUES (?, ?, ?, 1)')
-/* Cleared the moment the reader arrives on the settings page, not when they leave it or save
-   something: the flag records that they were shown the page, and they have been. Anything
-   later -- a save, a navigation away -- makes a reader who reads the page and closes the tab
-   into a reader who gets sent back to it next time, which is the one behaviour a one-time
-   detour must not have. */
-const clearNeedsSetup = db.prepare('UPDATE users SET needs_setup = 0 WHERE id = ?')
+const insertUser = db.prepare(`INSERT INTO users (id, email, password_hash, needs_setup, name, email_confirmed, password_changed_at)
+	VALUES (?, ?, ?, 1, ?, ?, unixepoch())`)
+
+/* Lock-out: this many wrong passwords for one address within the window pauses signing in to it
+   until LOCK_SECONDS after the last one. Keyed by address, whether or not it has an account. */
+const LOCK_AFTER = 5
+const LOCK_WINDOW_SECONDS = 15 * 60
+const LOCK_SECONDS = 5 * 60
+const recentFailures = db.prepare('SELECT COUNT(*) AS n, MAX(at) AS last FROM login_failures WHERE email = ? AND at > ?')
+const insertFailure = db.prepare('INSERT INTO login_failures (email, at) VALUES (?, ?)')
+const purgeFailures = db.prepare('DELETE FROM login_failures WHERE at <= ?')
+const clearFailures = db.prepare('DELETE FROM login_failures WHERE email = ?')
+
+/** Seconds until signing in to this address works again, 0 when it works now. */
+function lockedFor(email, now = nowEpoch()) {
+	const { n, last } = recentFailures.get(email, now - LOCK_WINDOW_SECONDS)
+	return n >= LOCK_AFTER ? Math.max(0, last + LOCK_SECONDS - now) : 0
+}
+const locked = (res, wait) => res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
+
+/** Sends the link that confirms `email` for this account. */
+function sendConfirm(req, userId, email) {
+	const token = issueToken(userId, 'confirm', email)
+	sendMail({
+		to: email, subject: 'Confirm your email for Spendly',
+		text: `Open this link to confirm your email. It works once and expires in 24 hours.\n${linkTo(req, '/confirm/' + token)}`
+	})
+}
 
 router.post('/register', async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
 	const password = String(req.body?.password ?? '')
 	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
-	if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters.' })
+	if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
+	const name = cleanName(req.body?.name)
+	if (name.length > MAX_NAME) return res.status(400).json({ error: `A name is ${MAX_NAME} characters at most.` })
 	if (findUserByEmail.get(email)) return res.status(409).json({ error: 'An account with that email already exists.' })
 
 	/* Where the reader is, as their browser worked it out -- see the client's detectLocale
@@ -38,13 +67,15 @@ router.post('/register', async (req, res) => {
 
 	const id = newId('u')
 	const passwordHash = await hashPassword(password)
+	// an address can only be held unconfirmed when this server can send the link that confirms it
+	const confirmed = mailAvailable() ? 0 : 1
 	/* The pre-check above stays -- it spares the ~65ms scrypt hash on the common duplicate --
 	   but it cannot be the guarantee: two same-email registrations can both pass it during that
 	   await, and the loser's INSERT then hit the UNIQUE constraint and surfaced as a 500. The
 	   constraint is the real check, so its violation gets the same 409 the serialized case gets. */
 	try {
 		db.transaction(() => {
-			insertUser.run(id, email, passwordHash)
+			insertUser.run(id, email, passwordHash, name || null, confirmed)
 			seedAccountDefaults(db, id, { locale })
 		})()
 	} catch (e) {
@@ -53,18 +84,29 @@ router.post('/register', async (req, res) => {
 		throw e
 	}
 
+	if (!confirmed) sendConfirm(req, id, email)
 	const token = createSession(req, res, id)
-	res.status(201).json({ id, email, token, needsSetup: true })
+	res.status(201).json({ id, email, token, needsSetup: true, emailConfirmed: Boolean(confirmed) })
 })
 
 router.post('/login', async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
 	const password = String(req.body?.password ?? '')
+	const wait = lockedFor(email)
+	if (wait) return locked(res, wait)
 	const user = findUserByEmail.get(email)
-	if (!user || !(await verifyPassword(password, user.password_hash)))
-		return res.status(401).json({ error: 'Wrong email or password.' })
+	if (!user || !(await verifyPassword(password, user.password_hash))) {
+		const now = nowEpoch()
+		db.transaction(() => {
+			purgeFailures.run(now - 24 * 60 * 60)
+			insertFailure.run(email, now)
+		})()
+		const after = lockedFor(email, now)
+		return after ? locked(res, after) : res.status(401).json({ error: 'Wrong email or password.' })
+	}
 
-	const token = createSession(req, res, user.id)
+	clearFailures.run(email)
+	const token = createSession(req, res, user.id, { remember: req.body?.remember !== false })
 	res.json({ id: user.id, email: user.email, token, needsSetup: Boolean(user.needs_setup) })
 })
 
@@ -73,9 +115,32 @@ router.post('/logout', (req, res) => {
 	res.status(204).end()
 })
 
+// the operator's own terms and privacy notice, when set; otherwise the app's own pages are linked
+const ownPage = name => (/^https?:\/\//.test(process.env[name] ?? '') ? process.env[name] : null)
+
+/** What the signed-out pages may offer and state: a reset link needs mail; the privacy notice says
+    whether receipts are sent out to be read. */
+router.get('/options', (req, res) => res.json({
+	mail: mailAvailable(),
+	terms: ownPage('SPENDLY_TERMS_URL'),
+	privacy: ownPage('SPENDLY_PRIVACY_URL'),
+	receiptReading: Boolean(process.env.ANTHROPIC_API_KEY)
+}))
+
+const selectProfile = db.prepare(`SELECT u.name, u.pending_email, u.password_changed_at, p.updated_at AS picture_at
+	FROM users u LEFT JOIN user_pictures p ON p.user_id = u.id WHERE u.id = ?`)
+
 router.get('/me', requireAuth, (req, res) => {
+	const profile = selectProfile.get(req.user.id)
 	res.json({
-		id: req.user.id, needsSetup: Boolean(req.user.needs_setup),
+		id: req.user.id, email: req.user.email, needsSetup: Boolean(req.user.needs_setup),
+		name: profile.name ?? null,
+		// the time it changed rides in the address, so a new picture is never answered from a cache
+		picture: profile.picture_at ? `/api/account/picture?v=${profile.picture_at}` : null,
+		emailConfirmed: Boolean(req.user.email_confirmed),
+		pendingEmail: profile.pending_email ?? null,
+		passwordChangedAt: profile.password_changed_at ?? null,
+		mail: mailAvailable(),
 		// An install fact, not an account one -- whether this server can actually read a
 		// scanned document (lib/scanParse.js needs ANTHROPIC_API_KEY) or only store it. Scan
 		// itself works either way; this is what lets the page stop promising a read it can't
@@ -85,10 +150,102 @@ router.get('/me', requireAuth, (req, res) => {
 	})
 })
 
-/** Marks the settings page as seen. A POST rather than a side effect of GET /settings: that
-    route is read by the route loader on every navigation, so hanging a write off it would
-    clear the flag before the reader had been sent anywhere by it. */
-router.post('/setup-seen', requireAuth, (req, res) => {
-	clearNeedsSetup.run(req.user.id)
-	res.status(204).end()
+/* ---- links by email: confirming an address (20b) and resetting a password (20c) ---- */
+
+const selectUser = db.prepare('SELECT id, email, email_confirmed, pending_email FROM users WHERE id = ?')
+const confirmEmail = db.prepare('UPDATE users SET email = ?, email_confirmed = 1, pending_email = NULL WHERE id = ?')
+const setPending = db.prepare('UPDATE users SET pending_email = ? WHERE id = ?')
+const setUnconfirmedEmail = db.prepare('UPDATE users SET email = ?, pending_email = NULL WHERE id = ?')
+const setPassword = db.prepare('UPDATE users SET password_hash = ?, password_changed_at = unixepoch() WHERE id = ?')
+const endSessions = db.prepare('DELETE FROM sessions WHERE user_id = ?')
+const noMail = res => res.status(409).json({ error: 'This server cannot send email.' })
+
+/** Sends the confirming link again, at most once a minute; the earlier link stops working. */
+router.post('/confirm/resend', requireAuth, (req, res) => {
+	if (!mailAvailable()) return noMail(res)
+	const user = selectUser.get(req.user.id)
+	const email = user.pending_email ?? (user.email_confirmed ? null : user.email)
+	if (!email) return res.status(409).json({ error: 'Your email is already confirmed.' })
+	const wait = resendWait(user.id, 'confirm')
+	if (wait) return res.status(429).json({ error: 'A link was sent a moment ago.', retryAfter: wait })
+	sendConfirm(req, user.id, email)
+	res.json({ email, retryAfter: resendWait(user.id, 'confirm') })
+})
+
+/** A new address to confirm. A confirmed address keeps working until the new one is confirmed. */
+router.post('/email', requireAuth, (req, res) => {
+	if (!mailAvailable()) return noMail(res)
+	const email = String(req.body?.email ?? '').trim().toLowerCase()
+	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
+	const user = selectUser.get(req.user.id)
+	const owner = findUserByEmail.get(email)
+	if (owner && owner.id !== user.id) return res.status(409).json({ error: 'There is already an account with this email.' })
+	if (user.email_confirmed) {
+		if (email === user.email) return res.status(400).json({ error: 'That is the address you already have.' })
+		setPending.run(email, user.id)
+	} else {
+		setUnconfirmedEmail.run(email, user.id)
+	}
+	sendConfirm(req, user.id, email)
+	res.json({ email, retryAfter: resendWait(user.id, 'confirm') })
+})
+
+/** Opening a confirming link confirms the address and signs this browser in. Opened twice, it
+    answers "already" rather than an error, since mail programs open links on their own. */
+router.post('/confirm', (req, res) => {
+	const token = String(req.body?.token ?? '')
+	const { state, row } = readToken(token, 'confirm')
+	const user = row ? selectUser.get(row.user_id) : null
+	if (state === 'expired') return res.json({ state, email: user ? user.pending_email ?? user.email : null })
+	if (state === 'used') {
+		const done = user.email === row.email && user.email_confirmed
+		return res.json({ state: done ? 'already' : 'expired', email: user.pending_email ?? user.email })
+	}
+	const owner = findUserByEmail.get(row.email)
+	if (owner && owner.id !== user.id) return res.status(409).json({ error: 'There is already an account with this email.' })
+	db.transaction(() => {
+		confirmEmail.run(row.email, user.id)
+		useToken(token)
+	})()
+	createSession(req, res, user.id)
+	res.json({ state: 'confirmed', email: row.email })
+})
+
+/** Asks for a reset link. The answer is the same whether or not the address has an account. */
+router.post('/reset', (req, res) => {
+	if (!mailAvailable()) return noMail(res)
+	const email = String(req.body?.email ?? '').trim().toLowerCase()
+	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
+	const user = findUserByEmail.get(email)
+	if (user && !resendWait(user.id, 'reset')) {
+		const token = issueToken(user.id, 'reset', email)
+		sendMail({
+			to: email, subject: 'Reset your Spendly password',
+			text: `Open this link to choose a new password. It works once and expires in an hour.\n${linkTo(req, '/reset/' + token)}`
+		})
+	}
+	res.json({ email })
+})
+
+/** What a reset link still allows, read before the new password is asked for. */
+router.get('/reset/:token', (req, res) => {
+	const { state, row } = readToken(req.params.token, 'reset')
+	res.json({ state, email: state === 'valid' ? row.email : null })
+})
+
+/** The new password from a reset link: every other session ends, and this browser is signed in. */
+router.post('/reset/:token', async (req, res) => {
+	const { state, row } = readToken(req.params.token, 'reset')
+	if (state !== 'valid') return res.status(410).json({ error: 'That link has expired.', state })
+	const password = String(req.body?.password ?? '')
+	if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
+	const hash = await hashPassword(password)
+	db.transaction(() => {
+		setPassword.run(hash, row.user_id)
+		endSessions.run(row.user_id)
+		useToken(req.params.token)
+	})()
+	clearFailures.run(row.email)
+	createSession(req, res, row.user_id)
+	res.json({ email: row.email })
 })

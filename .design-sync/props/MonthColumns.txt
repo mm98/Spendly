@@ -1,6 +1,0 @@
-	/** One entry per window, oldest first. `height` is the column's height as a percentage of
-	 *  the tallest column (0-100), not a pixel figure; `spend` is the real amount and is drawn
-	 *  only in the tooltip; `current` marks the one column filled green - the window on
-	 *  screen. `label` is the short tick label and `labelFull` the long one; both travel on
-	 *  every tick and the chart picks one by its own width. */
-	months: { label: string; labelFull?: string; spend: number; height: number; current?: boolean }[];

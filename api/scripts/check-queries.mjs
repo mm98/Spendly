@@ -117,7 +117,7 @@ const BIG_TABLES = new Set(['orders', 'order_items', 'order_categories', 'attach
    lookup by primary key that reached the row through an already-scoped query. The baseline
    carries the ones that are the latter. */
 const SCOPED_TABLES = new Set([...BIG_TABLES, 'vendors', 'categories', 'vendor_aliases', 'settings',
-	'dashboard_cards', 'wishes', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines', 'bank_links'])
+	'dashboard_cards', 'bookmarks', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines', 'bank_links'])
 
 const tmp = mkdtempSync(path.join(tmpdir(), 'spendly-queries-'))
 const DB_PATH = path.join(tmp, 'check.sqlite3')
@@ -229,7 +229,7 @@ const ids = {
 	vendor: db.prepare('SELECT id FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1').get(USER).id,
 	category: db.prepare('SELECT id FROM categories WHERE user_id = ? ORDER BY name LIMIT 1').get(USER).id,
 	order: db.prepare('SELECT id FROM orders WHERE user_id = ? ORDER BY date DESC LIMIT 1').get(USER).id,
-	wish: db.prepare('SELECT id FROM wishes WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').get(USER).id
+	bookmark: db.prepare('SELECT id FROM bookmarks WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').get(USER).id
 }
 
 /* Every read the app serves, and every shape of the orders list -- each filter, each sort, and
@@ -246,19 +246,31 @@ const REQUESTS = [
 	'/orders?from=2026-01-01', '/orders?to=2026-06-30', '/orders?from=2026-01-01&to=2026-06-30',
 	'/orders?query=kaffe', '/orders?query=zzznomatch', '/orders?query=æg',
 	`/orders?vendorId=${ids.vendor}&status=Delivered&sort=amount-desc`,
-	'/orders/overview', '/orders/draft', `/orders/${ids.order}`,
+	'/orders?pageSize=6&with=itemTitles', '/orders/draft', `/orders/${ids.order}`,
+	'/orders?pageSize=25&with=rows', '/orders?pageSize=1&with=facets',
+	`/orders?pageSize=1&with=facets&status=Delivered,Ordered&vendorId=${ids.vendor},v-main-1&categoryId=${ids.category},none`,
+	'/orders?receipt=missing', '/orders?receipt=attached&files=1&discounted=1',
+	'/orders/lines', '/orders/lines?status=Delivered&sort=amount-desc', '/orders/lines?sort=vendor-asc',
+	`/orders/lines?ids=${ids.order}&sort=date-desc`, '/orders/impact', '/orders/impact?status=Delivered&from=2026-01-01',
+	`/orders/impact?ids=${ids.order}`,
 	'/vendors', `/vendors/${ids.vendor}`,
 	'/categories', `/categories/${ids.category}`, '/categories/uncategorised',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
 	'/stats?range=all', '/stats?range=month&summary=1',
-	'/wishes', '/wishes?archived=yes',
-	'/wishes?sort=added-asc', '/wishes?sort=price-desc', '/wishes?sort=name-asc',
-	`/wishes?categoryId=${ids.category}`, '/wishes?categoryId=none',
-	'/wishes?query=sko', '/wishes?query=æg', '/wishes?from=2020-01-01&to=2030-12-31',
-	`/wishes/${ids.wish}`,
-	'/home/hero', '/home/onboarding', '/settings', '/dashboard-cards',
+	'/stats?range=days30', '/stats?range=custom&windowId=2026-03-08~2026-04-19',
+	'/stats?range=year&flow=expenses', '/stats?range=year&flow=net', '/stats?range=year&flow=refunds',
+	`/stats?range=year&flow=expenses&vendorId=${ids.vendor}`, `/stats?range=year&flow=expenses&categoryId=${ids.category}`,
+	'/stats?range=year&flow=expenses&categoryId=none', '/stats?range=year&flow=expenses&status=Delivered&from=2026-08-01&to=2026-08-31',
+	'/stats/orders?range=year&flow=expenses', `/stats/orders?range=year&flow=expenses&vendorId=${ids.vendor}&page=2`,
+	'/stats/lines?range=month&flow=expenses', '/stats/home', '/stats/summary',
+	'/bookmarks', '/bookmarks?archived=yes',
+	'/bookmarks?sort=added-asc', '/bookmarks?sort=price-desc', '/bookmarks?sort=name-asc',
+	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
+	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
+	`/bookmarks/${ids.bookmark}`,
+	'/settings', '/imports', '/statuses', '/views',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
-	'/scan/recent', '/budget', '/budget/2026', '/budget/accounts', '/budget/links'
+	'/budget', '/budget/2026', '/budget/accounts', '/budget/links'
 ]
 
 for (const request of REQUESTS) {
@@ -269,33 +281,21 @@ for (const request of REQUESTS) {
 	}
 	await response.arrayBuffer()
 }
-/* The two bulk moves, run last and in this order because each one rewrites the fixture: every
-   read above is captured against the account as seeded, and a move re-pointing a category's or
-   a vendor's whole order set would otherwise be doing it underneath them. Their targets are read
-   back out of the list responses rather than queried for, so driving them adds no SELECT of this
-   script's own to the baseline. */
-const idsFrom = async (path, not) => {
-	const rows = await (await fetch(BASE + path, { headers: H })).json()
-	return rows.find(r => r.id !== not)?.id
-}
+// a monthly limit's spend for an order's categories (8b), named as the app itself names them
+const limited = (await (await fetch(BASE + '/categories', { headers: H })).json()).filter(c => c.budget > 0).slice(0, 2)
+if (!limited.length) console.error('  no category with a limit: /orders/limits reads nothing to plan')
+await (await fetch(BASE + `/orders/limits?date=2026-08-15&${limited.map(c => `categories=${encodeURIComponent(c.name)}`).join('&')}`, { headers: H })).arrayBuffer()
 
-for (const [path, to] of [
-	[`/categories/${ids.category}/move-orders`, await idsFrom('/categories', ids.category)],
-	[`/vendors/${ids.vendor}/move-orders`, await idsFrom('/vendors', ids.vendor)]
-]) {
-	const response = await fetch(BASE + path, {
-		method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify({ to })
-	})
-	if (!response.ok) {
-		console.error(`  ${path} answered ${response.status} -- the check cannot read plans for it`)
-		process.exitCode = 1
-	}
-	await response.arrayBuffer()
-}
-
-/* The budget's writes, last for the same reason as the moves above. Their ids come out of the
-   sheet the app itself answers with, so no SELECT of this script's own joins the baseline. */
+/* The writes, run last because each one rewrites the fixture every read above is captured
+   against. The budget's ids come out of the sheet the app itself answers with, so no SELECT of
+   this script's own joins the baseline. */
 const sheet = await (await fetch(BASE + '/budget/2026', { headers: H })).json()
+// an order saved from the copy it was read as, and one sent twice under one key (6d)
+const order = await (await fetch(BASE + `/orders/${ids.order}`, { headers: H })).json()
+const asSaved = {
+	vendor: order.vendor.name, date: order.date, status: order.status, kind: order.kind, categories: order.categories.map(c => c.name),
+	items: order.items.map(i => ({ id: i.id, title: i.title, quantity: i.quantity, price: i.price }))
+}
 const [group, second] = sheet.groups.filter(g => g.kind === 'expense')
 const line = group.lines[1]
 const [account, other] = sheet.accounts
@@ -313,7 +313,26 @@ for (const [method, path, body] of [
 	['PATCH', `/budget/accounts/${other.id}`, { name: 'Budget account', index: 0 }],
 	['DELETE', `/budget/accounts/${account.id}`],
 	['PUT', '/budget/links', { pattern: 'betalingsservice aquaren aftalenr', kind: 'expense', line: 'Water' }],
-	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense']
+	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense'],
+	['PUT', `/orders/${ids.order}`, { ...asSaved, note: 'Saved from its copy', revision: order.revision, clientKey: 'check-put' }],
+	['POST', '/orders', { ...asSaved, items: asSaved.items.map(({ id, ...i }) => i), clientKey: 'check-post' }],
+	['POST', '/orders', { ...asSaved, items: asSaved.items.map(({ id, ...i }) => i), clientKey: 'check-post' }],
+	['POST', '/orders/bulk', { ids: [ids.order], status: 'Returned', addCategories: ['Bulk'], removeCategories: [ids.category] }],
+	['POST', '/orders/bulk', { ids: [ids.order], status: 'Delivered', deliveredToday: true }],
+	['POST', '/statuses', { name: 'Waiting', tone: 'progress' }],
+	['PATCH', '/statuses/Delivered', { name: 'Received' }],
+	['DELETE', '/statuses/Cancelled'],
+	['POST', '/views', { name: 'This month', query: 'period=month&status=Ordered', attention: true }],
+	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true, attention: true }],
+	['PUT', '/views/shown', { shown: 6 }],
+	['PUT', '/stats/summary/seen', { month: '2026-07' }],
+	['PUT', '/stats/summary/hidden', { month: '2026-07', categoryId: ids.category, hidden: true }],
+	['DELETE', `/views/sv-${USER}-receipt`],
+	// a padded name with no orders, so each delete runs its in-use counts and then deletes
+	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
+	['DELETE', `/vendors/v-main-${VENDOR_COUNT - 1}`],
+	// last, since it takes the order every write above was made against
+	['POST', '/orders/bulk', { ids: [ids.order], delete: true }]
 ]) {
 	const response = await fetch(BASE + path, {
 		method, headers: { ...H, 'Content-Type': 'application/json' }, body: body && JSON.stringify(body)

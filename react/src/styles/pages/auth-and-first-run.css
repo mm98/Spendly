@@ -1,0 +1,24 @@
+/* Sign in and create an account (20a), the links by email (20b, 20c) and the first run (20d). */
+
+@layer base {
+
+	/* on a phone the link to the other page keeps its drawn line and carries a touch-sized target */
+	@media (max-width: 639.98px) {
+		.au-across { position: relative; }
+		.au-across::after { content: ""; position: absolute; top: 50%; right: 0; left: 0; height: var(--control-h-touch); transform: translateY(-50%); }
+	}
+
+	/* the new password's meter: four segments on the gauge's own track */
+	.au-strength { display: flex; gap: var(--sp-2); height: 100%; border-radius: inherit; overflow: hidden; }
+	.au-fill { background: var(--green); }
+	.au-fill--weak { background: var(--amber); }
+	.au-fill--off { background: var(--green-tint-2); }
+
+	/* the first run's two steps, drawn as segments (20d) */
+	.au-seg { width: 22px; height: 5px; border-radius: var(--r-marker); background: var(--green); }
+	.au-seg--off { background: var(--line-3); }
+
+	/* the unconfirmed address's banner spans every column of a split or railed body */
+	.au-banner { grid-column: 1 / -1; }
+
+}

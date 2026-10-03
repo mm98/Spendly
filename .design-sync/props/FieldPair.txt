@@ -1,7 +1,0 @@
-	/** How the pair behaves as the window narrows:
-	 *  `field-pair-keep` stays two columns on a phone (short values such as two dates) |
-	 *  `field-pair-stack-early` drops to one column sooner than the default.
-	 *  Left out, the pair is two equal columns that stack on a phone. */
-	variant?: "field-pair-keep" | "field-pair-stack-early";
-	/** Exactly two Fields. */
-	children?: React.ReactNode;

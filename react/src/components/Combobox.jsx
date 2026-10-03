@@ -1,283 +1,387 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Children, Fragment, cloneElement, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
+import { useDismiss } from './Utilities.jsx'
+import { singular } from './format.js'
 
-/* One combobox, used by every dropdown in the app: type to search, grouped results, create
-   from the foot. The prototype's own help text promises exactly that, so a second dropdown
-   pattern anywhere would be a promise the app breaks in one place.
-
-   ARIA 1.2 puts role=combobox on the input, so the input is what owns aria-expanded --
-   not the wrapper, and not the shell. Space types a space in a real input, so only Down and
-   Enter open the list; Escape closes it and hands focus back. */
-
-const join = (...parts) => parts.filter(Boolean).join(' ')
-
-// The panel's distance from the field, plus the margin it keeps from the edge it would otherwise touch.
-const PANEL_GAP = 18
-
-/** Marks the typed text inside a result. The prototype hard-codes <mark>Bil</mark>ka, which
-    is right for one query and wrong for every other -- doing it from the value means the
-    highlight always describes what was actually typed. */
-function Marked({ text, query }) {
-	const needle = query.trim()
-	if (!needle) return text
-	const at = text.toLowerCase().indexOf(needle.toLowerCase())
-	if (at < 0) return text
-	return (
-		<>
-			{text.slice(0, at)}
-			<mark>{text.slice(at, at + needle.length)}</mark>
-			{text.slice(at + needle.length)}
-		</>
-	)
+const VARIANT = {
+	default: null,
+	sort: 'sp-combobox--sort',
+	// a sort control last in its bar opens leftward, so its panel stays inside the window
+	'sort-end': 'sp-combobox--sort sp-combobox--end',
+	end: 'sp-combobox--end',
+	stretch: 'sp-combobox--stretch'
 }
 
-/* The value is the selected option's own label whenever nothing is being typed over it --
-   true of every non-searchable list (Sort by has no typing at all) and of a searchable one
-   at rest. That case reads as "this is the selected row", not "this is what was typed", so
-   it gets the row's own sticky highlight rather than a <mark> wrapped around the letters. */
-const isSelected = (label, query) => {
-	const needle = query.trim()
-	return Boolean(needle) && label.toLowerCase() === needle.toLowerCase()
-}
+const DOTS = ['draft', 'progress', 'done', 'returned', 'cancelled']
 
-/* `pickOnly`: Sort by, a currency, a date format -- every list here that is chosen from
-   rather than typed into. The field is still a real `<input>`, because everything about
-   opening and walking the list is the same either way, but without this it looks editable:
-   a click drops a blinking caret in it and invites the letters that `onChange={() => {}}`
-   then quietly discards. `readOnly` on the input is what removes the caret and the mobile
-   keyboard along with it, while leaving the click, the arrow keys and Enter exactly as they
-   were -- none of those go through `onChange`. README: Combobox. */
-export function Combobox({
-	value, onChange, onSelect, groups = [], action, placeholder, label, required,
-	leadingIcon, id, invalid, describedBy, children, chips, trail, className, pickOnly
-}) {
-	const [open, setOpen] = useState(false)
-	const wrapper = useRef(null)
-	const input = useRef(null)
-	const panelId = useId().replace(/:/g, '') + '-panel'
-	// Falls back for a caller that renders this with no id of its own (the toolbar sort,
-	// the Stats window picker).
-	const autoId = useId()
-
-	/* Closing on an outside click is a document listener, so it has to ignore clicks inside
-	   this combobox -- otherwise choosing an option closes the list before the choice lands. */
-	useEffect(() => {
-		if (!open) return
-		const onDocumentClick = e => { if (!wrapper.current?.contains(e.target)) setOpen(false) }
-		const onKey = e => {
-			if (e.key !== 'Escape') return
-			setOpen(false)
-			input.current?.focus()
+/** The list half of every combobox in the library - Combobox, and TokensField's suggestions: the
+    options in order, the one the keyboard is on, and what picking one does. Internal. */
+export function useListbox(children, { panelId, onPick }) {
+	const [active, setActive] = useState(-1)
+	const panel = useRef(null)
+	const options = []
+	// into fragments too: a page groups its options under headings that way
+	const walk = nodes => Children.map(nodes, child => {
+		if (!isValidElement(child)) return child
+		if (child.type === Fragment) return cloneElement(child, {}, walk(child.props.children))
+		if (child.type !== ComboboxOption) return child
+		const index = options.length
+		const pick = () => {
+			if (child.props.disabled) return
+			child.props.onSelect?.()
+			onPick?.()
 		}
-		document.addEventListener('click', onDocumentClick)
-		document.addEventListener('keydown', onKey)
-		return () => {
-			document.removeEventListener('click', onDocumentClick)
-			document.removeEventListener('keydown', onKey)
+		options.push({ ...child.props, pick })
+		return cloneElement(child, { id: panelId + '-' + index, active: index === active, onSelect: pick })
+	})
+	const list = walk(children)
+
+	// pass the starting index: setActive applies only on the next render
+	const step = (by, from = active) => {
+		if (!options.length) return
+		let next = from
+		for (let i = 0; i < options.length; i++) {
+			next = next + by
+			if (next < 0) next = options.length - 1
+			if (next > options.length - 1) next = 0
+			if (!options[next].disabled) break
 		}
-	}, [open])
-
-	/* preventDefault matters here: a Field renders as <label>, so a click anywhere inside it
-	   is forwarded to the labelled control -- and the input's own click handler reopens the
-	   list a beat after this closed it. The option is a div, so nothing is lost by stopping
-	   the default; focus is put back on the input deliberately below. */
-	const choose = useCallback((e, option) => {
-		e.preventDefault()
-		e.stopPropagation()
-		onSelect ? onSelect(option) : onChange?.(option.label)
-		setOpen(false)
-		input.current?.focus()
-	}, [onChange, onSelect])
-
-	/* Chips ride inside the shell, not above it.
-
-	   A field whose values sit in a stack over the input is a field whose input starts lower
-	   than the one beside it, and the pair stops lining up the moment one of them has a value.
-	   The prototype puts them in the same box for that reason: the shell grows downwards from
-	   a shared top edge, so both fields still start on the same line. README: Combobox. */
-	const wrapping = Boolean(chips)
-
-	/* The shell is the whole clickable field -- the border, the chevron, the padding around
-	   the text -- not just the input inside it. Without this, only the input's own onClick
-	   opened the list, so the chevron and the rest of the box did nothing, which reads as a
-	   dead control everywhere the input doesn't fill the shell (the width picker, every
-	   toolbar sort). A click already on a real button here -- a chip's own remove -- keeps
-	   its own effect and does not also reopen the list. */
-	const onShellClick = e => {
-		if (e.target.closest('button')) return
-		input.current?.focus()
-		setOpen(true)
+		setActive(next)
 	}
 
-	/* The action row is "create what was typed," so there is nothing to create until something
-	   is typed -- CREATE VENDOR "" offered a vendor with no name. And typing the name of one
-	   that already exists should pick it, not offer a second one of the same name, which is
-	   the same rule Enter already follows below. */
-	const typed = String(value ?? '').trim()
-	const typedMatches = typed && groups.some(g => g.options.some(o => o.label.toLowerCase() === typed.toLowerCase()))
-	const showAction = Boolean(action) && Boolean(typed) && !typedMatches
-
-	/* Typing filters the list; marking alone left every non-match in place, so a hit on a long
-	   list sat as far below the fold as ever. A value that names an option exactly is the
-	   resting selection rather than a search -- filtering by it would shrink the reopened list
-	   to the one row already chosen -- so the full list returns the moment a choice lands. A
-	   group filtered empty gives up its heading too, Favourites included. An option answers to
-	   more than its own label wherever the caller says so -- `search` is what the typed text is
-	   matched against when present, `label` is only ever what gets drawn and marked. */
-	const searching = Boolean(typed) && !typedMatches
-	const shown = (searching
-		? groups.map(g => ({ ...g, options: g.options.filter(o =>
-			(o.search ?? o.label).toLowerCase().includes(typed.toLowerCase())) }))
-		: groups
-	).filter(g => g.options.length)
-	const noMatch = searching && shown.length === 0
-
-	/* The keyboard walks what the panel shows. `active` indexes the flattened *shown* list --
-	   never `groups` -- so Down after a search lands on the first match, not on whatever the
-	   full list holds at that position. It resets whenever the list under it can have changed
-	   (a keystroke, an open, a close): a highlight that survives a re-filter points at a
-	   different row than the one the user marked. */
-	const [active, setActive] = useState(-1)
-	const flat = shown.flatMap(g => g.options)
-	const activeOption = active >= 0 && active < flat.length ? flat[active] : null
-	useEffect(() => { setActive(-1) }, [value, open])
-
-	/* The marked row keeps itself in view -- the panel scrolls, and an invisible highlight is
-	   no highlight. 'nearest' so walking downwards drags the list the minimum it needs. */
 	useEffect(() => {
-		if (activeOption) document.getElementById(`${panelId}-opt-${active}`)?.scrollIntoView({ block: 'nearest' })
-	}, [active, activeOption, panelId])
+		const box = panel.current
+		if (!box || active < 0) return
+		const at = box.querySelector('[id="' + panelId + '-' + active + '"]')
+		if (!at) return
+		const top = at.offsetTop
+		const bottom = top + at.offsetHeight
+		if (top < box.scrollTop) box.scrollTop = top
+		else if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight
+	}, [active, panelId])
 
-	/* Opens upward when the room below (window, clipping boxes, fixed bars) cannot hold the panel and the
-	   room above is larger; either way the panel is capped to its room. */
-	const panel = useRef(null)
-	const [place, setPlace] = useState(null)
+	return {
+		list,
+		options,
+		active,
+		setActive,
+		step,
+		panel,
+		activeId: active > -1 ? panelId + '-' + active : undefined,
+		// a press on an option must not take focus from the field: it stays where the reader typed
+		hold: ev => { if (ev.target.closest?.('.sp-combobox__option')) ev.preventDefault() }
+	}
+}
+
+// the nearest box that would cut a panel off: an ancestor that clips or scrolls
+const clipperOf = el => {
+	for (let at = el?.parentElement; at && at !== document.body; at = at.parentElement) {
+		const style = getComputedStyle(at)
+		if (style.overflowX !== 'visible' || style.overflowY !== 'visible') return at
+	}
+	return null
+}
+
+// the window's room less the bars pinned over its edges (the top bar, the tab bar, a save bar)
+export const roomOf = root => {
+	let top = 0
+	let bottom = window.innerHeight
+	for (const bar of document.querySelectorAll('.sp-topbar, .sp-tabbar, .sp-savebar')) {
+		if (bar.contains(root) || bar.checkVisibility?.() === false) continue
+		if (!['fixed', 'sticky'].includes(getComputedStyle(bar).position)) continue
+		const r = bar.getBoundingClientRect()
+		if (r.top <= 0.5) top = Math.max(top, r.bottom)
+		else if (r.bottom >= window.innerHeight - 0.5) bottom = Math.min(bottom, r.top)
+	}
+	return { top, bottom }
+}
+
+/** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
+    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it. */
+export function usePanelPlace(root, panel, open, size) {
 	useLayoutEffect(() => {
-		if (!open || !panel.current || !wrapper.current) { setPlace(null); return }
-		let top = 0, bottom = window.innerHeight
-		for (let el = wrapper.current.parentElement; el && el !== document.body; el = el.parentElement) {
-			if (getComputedStyle(el).overflowY === 'visible') continue
-			const box = el.getBoundingClientRect()
-			top = Math.max(top, box.top)
-			bottom = Math.min(bottom, box.bottom)
+		const list = panel.current
+		if (!open || !list || !root.current) return
+		const reset = () => { list.removeAttribute('style'); delete list.dataset.place }
+		const place = () => {
+			reset()
+			const at = root.current.getBoundingClientRect()
+			let drawn = list.getBoundingClientRect()
+			// wider than the room on its side: it hangs from the field's edge with more room beyond it
+			const view = { left: 8, right: document.documentElement.clientWidth - 8 }
+			if (drawn.right > view.right + 0.5 || drawn.left < view.left - 0.5) {
+				const rightward = view.right - at.left
+				const leftward = at.right - view.left
+				Object.assign(list.style, leftward > rightward
+					? { left: 'auto', right: '0px', width: drawn.width + 'px' }
+					: { left: '0px', right: 'auto', width: drawn.width + 'px' })
+				drawn = list.getBoundingClientRect()
+			}
+			// measured as drawn: that holds its own cap (--list-max, --menu-max), and not a hidden submenu laid out beside it
+			const height = drawn.height
+			const gap = drawn.top - at.bottom
+			const edge = roomOf(root.current)
+			const below = edge.bottom - at.bottom - gap - 8
+			const above = at.top - edge.top - gap - 8
+			const up = height > below && above > below
+			// a menu too tall for either side slides along the window until it fits, over its own button;
+			// a list never does, since it would cover the field being typed into
+			const slides = list.getAttribute('role') === 'menu' && height <= edge.bottom - edge.top - 16
+			const room = Math.max(0, slides ? height : up ? above : below)
+			const shown = Math.min(height, room)
+			const top = up ? Math.max(edge.top + 8, at.top - gap - shown) : Math.min(at.bottom + gap, edge.bottom - 8 - shown)
+			const clip = clipperOf(root.current)?.getBoundingClientRect()
+			const outside = drawn.left < view.left - 0.5 || drawn.right > view.right + 0.5
+			const moved = top !== (up ? at.top - gap - shown : at.bottom + gap)
+			const cut = outside || moved || (!!clip && (top < clip.top - 0.5 || top + shown > clip.bottom + 0.5 || drawn.left < clip.left - 0.5 || drawn.right > clip.right + 0.5))
+			if (height > room) Object.assign(list.style, { maxHeight: room + 'px', overflowY: 'auto' })
+			if (!cut) {
+				if (up) list.dataset.place = 'up'
+				return
+			}
+			const left = Math.min(Math.max(view.left, drawn.left), view.right - drawn.width)
+			Object.assign(list.style, { position: 'fixed', top: top + 'px', left: left + 'px', right: 'auto', bottom: 'auto', width: drawn.width + 'px' })
+			// a transformed ancestor moves what fixed is measured from, so correct by where it landed
+			const landed = list.getBoundingClientRect()
+			Object.assign(list.style, { top: top + (top - landed.top) + 'px', left: left + (left - landed.left) + 'px' })
 		}
-		// The bars fixed over the page's edges, as the stylesheet declares them on the panel.
-		const covered = getComputedStyle(panel.current)
-		top += parseFloat(covered.scrollMarginTop) || 0
-		bottom -= parseFloat(covered.scrollMarginBottom) || 0
-		const field = wrapper.current.getBoundingClientRect()
-		panel.current.style.maxHeight = ''
-		const wanted = panel.current.getBoundingClientRect().height
-		const below = bottom - field.bottom - PANEL_GAP
-		const above = field.top - top - PANEL_GAP
-		const up = wanted > below && above > below
-		setPlace({ up, room: Math.floor(up ? above : below) })
-	}, [open, flat.length])
+		place()
+		// a resize comes from the window, which is no node a panel can contain
+		const again = ev => { if (!(ev.target instanceof Node) || !list.contains(ev.target)) place() }
+		window.addEventListener('scroll', again, true)
+		window.addEventListener('resize', again)
+		return () => {
+			window.removeEventListener('scroll', again, true)
+			window.removeEventListener('resize', again)
+			reset()
+		}
+	}, [root, panel, open, size])
+}
 
-	const inputEl = (
-		<input ref={input} type="text" id={id ?? autoId} role="combobox" readOnly={pickOnly}
-			aria-expanded={open} aria-controls={panelId} aria-autocomplete={pickOnly ? 'none' : 'list'}
-			aria-label={label} aria-required={required || undefined}
-			aria-invalid={invalid ? 'true' : undefined}
-			aria-describedby={invalid ? describedBy : undefined}
-			aria-activedescendant={activeOption ? `${panelId}-opt-${active}` : undefined}
-			value={value} placeholder={placeholder}
-			onChange={e => { onChange?.(e.target.value); setOpen(true) }}
-			onClick={() => setOpen(true)}
-			onKeyDown={e => {
-				if (e.key === 'Escape') { setOpen(false); return }
-				if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') return
-				e.preventDefault()
-				/* Down and Up walk the shown options, wrapping at either end. The first Down on
-				   a closed field opens it and stops -- see the list, then walk it. */
-				if (e.key !== 'Enter') {
-					if (!open) { setOpen(true); return }
-					if (!flat.length) return
-					setActive(a => e.key === 'ArrowDown'
-						? (a + 1) % flat.length
-						: a <= 0 ? flat.length - 1 : a - 1)
-					return
-				}
-				/* Enter picks the marked row first; with nothing marked it keeps the old rule --
-				   an exact name picks the thing named, so typing what exists cannot create a
-				   second one, and anything else runs the action at the foot: CREATE VENDOR
-				   "...", ADD "...". */
-				if (activeOption) { choose(e, activeOption); return }
-				if (action && typed) {
-					const match = groups.flatMap(g => g.options)
-						.find(o => o.label.toLowerCase() === typed.toLowerCase())
-					if (match) { choose(e, match); return }
-					action.onSelect?.(typed)
-					setOpen(false)
-					return
-				}
+/** What a filtered list reads out as it narrows (c9: "6 vendors"): its options, less the create row,
+    which is not one of them. `noun` is the plural. Internal. */
+export function countOf(options, noun = 'options') {
+	const n = options.filter(o => !o.create).length
+	return n === 0 ? `No ${noun}` : `${n} ${n === 1 ? singular(noun) : noun}`
+}
+
+/** Picking an option applies it and closes the panel (c5), focus staying on the trigger. `prefix`
+    is the word kept inside the trigger ahead of the value, as the sort control's Sort (c8). `noun`
+    names the options in the count a narrowed list reads out, plural ("vendors"). */
+export function Combobox({
+	variant = 'default',
+	value,
+	lead,
+	prefix,
+	open,
+	defaultOpen = false,
+	onOpenChange,
+	searchable = false,
+	search,
+	onSearch,
+	placeholder,
+	noun,
+	children,
+	// a field's label points at whichever element is the trigger in this mode: the
+	// input when the set is searched, the button when it is only opened
+	id,
+	'aria-label': label,
+	// what Field hands the control belongs on the element that takes focus, not on the box around it
+	'aria-invalid': invalid,
+	'aria-describedby': describedBy,
+	required,
+	trail,
+	unit,
+	...rest
+}) {
+	reject(rest, 'Combobox')
+	const told = { 'aria-describedby': describedBy, ...(invalid === true || invalid === 'true' ? { 'aria-invalid': 'true' } : {}) }
+	if (searchable && !onSearch) console.error('<Combobox searchable> needs onSearch: the page filters its own options, so typing narrows nothing without it')
+	if (!searchable && (onSearch || search !== undefined)) console.error('<Combobox> a query belongs to a searchable one')
+	const [held, setHeld] = useState(defaultOpen)
+	// the text being typed, which is not the value - null means the reader is not
+	// typing, so the field shows what is chosen instead
+	const [typed, setTyped] = useState(null)
+	const root = useRef(null)
+	const isOpen = open ?? held
+	const panelId = useId()
+	const own = useId()
+	const triggerId = id ?? own
+	// a figure drawn before the value is part of what the trigger holds, so it is read with it
+	const leadId = isValidElement(lead) ? lead.props.id ?? triggerId + '-lead' : null
+	const leading = leadId ? cloneElement(lead, { id: leadId }) : lead
+	const setOpen = next => {
+		if (open === undefined) setHeld(next)
+		onOpenChange?.(next)
+	}
+	const query = search ?? typed
+	const box = useListbox(children, { panelId, onPick: () => { setTyped(null); close() } })
+	const { options, active, step } = box
+
+	// closing drops the cursor: the next open starts from what is chosen, not from
+	// wherever the keyboard happened to be left
+	const close = () => { setOpen(false); box.setActive(-1) }
+	const toggle = () => (isOpen ? close() : setOpen(true))
+	useDismiss(root, isOpen, close)
+
+	const { setActive } = box
+	useEffect(() => { setActive(-1) }, [query, setActive])
+	usePanelPlace(root, box.panel, isOpen, options.length)
+
+	const onKeys = ev => {
+		if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+			ev.preventDefault()
+			const by = ev.key === 'ArrowDown' ? 1 : -1
+			if (!isOpen) {
 				setOpen(true)
-			}} />
-	)
+				const at = options.findIndex(o => o.selected)
+				return step(by, at > -1 ? at - by : (by > 0 ? -1 : options.length))
+			}
+			return step(by)
+		}
+		if (ev.key === 'Home' || ev.key === 'End') {
+			if (!isOpen) return
+			ev.preventDefault()
+			return ev.key === 'Home' ? step(1, -1) : step(-1, options.length)
+		}
+		if (ev.key === 'Enter' || (ev.key === ' ' && !searchable)) {
+			if (!isOpen) { ev.preventDefault(); return setOpen(true) }
+			if (active < 0) { if (ev.key === ' ') ev.preventDefault(); return }
+			ev.preventDefault()
+			options[active].pick()
+			return
+		}
+		if (ev.key === 'Escape' && isOpen) {
+			ev.stopPropagation()
+			close()
+		}
+	}
 
-	/* className is the caller's slot, not a second skin: a combobox standing in a layout the
-	   design system has a name for -- the toolbar's sort control -- wears that name itself
-	   rather than sitting in a wrapper div holding an inline width. */
+	const activeId = isOpen ? box.activeId : undefined
+	const shown = query || (typeof value === 'string' ? value : '')
 	return (
-		<div className={join('combobox', open && 'is-open', place?.up && 'opens-up', className)} ref={wrapper}>
-			<div className={join('field-shell', wrapping && 'field-shell-chips')} onClick={onShellClick}>
-				{leadingIcon ? <Icon name={leadingIcon} /> : null}
-				{chips}
-				{inputEl}
-				{/* Trailing chips ride inside the border like FieldShell's do -- the scan review's
-				    "matched" chip sits here, between the input and the chevron. */}
-				{trail}
-				{/* The chevron used to wrap with the chips and the input, so a full line of
-				    chips left it no room and dropped it to a line of its own -- with the input,
-				    left to reserve a flex-basis of its own, overflowing the shell's right edge
-				    uncut instead of shrinking into whatever room that left behind. Taking the
-				    chevron out of the wrapping flow entirely (field-shell-chips in app.css pins
-				    it, absolute, to the shell's corner, and reserves its width in the shell's own
-				    right padding) means chips+input are the only thing that wraps, and the input
-				    -- flex-basis 0, so it competes for room rather than reserving any of its own
-				    -- shrinks into whatever's left on the line, truncating the typed text with an
-				    ellipsis, instead of pushing the chevron anywhere. README: Combobox. */}
-				<Icon name="chevronDown" className="icon chevron-icon" />
-			</div>
-			<div className="combobox-panel" id={panelId} role="listbox" aria-label={label} ref={panel}
-				style={place ? { maxHeight: `min(342px, 60vh, ${place.room}px)` } : undefined}>
-				{shown.map((group, gi) => {
-					/* The flat index this group starts at, so a row's id and the keyboard's
-					   `active` agree on which row is which across group boundaries. */
-					const before = shown.slice(0, gi).reduce((n, g) => n + g.options.length, 0)
-					return (
-					<div className="combobox-group" key={group.heading}>
-						<div className="combobox-group-heading">{group.heading}</div>
-						{group.options.map((option, i) => {
-							const selected = isSelected(option.label, value ?? '')
-							const marked = before + i === active
-							return (
-								<div key={option.id ?? option.label} id={`${panelId}-opt-${before + i}`}
-									className={join('combobox-option', (option.highlighted || marked) && 'combobox-option-highlighted',
-										selected && 'combobox-option-selected')}
-									role="option" aria-selected={option.highlighted || marked || selected ? true : undefined}
-									onClick={e => choose(e, option)}>
-									{option.star ? <span className="combobox-option-star"><Icon name="starFilled" /></span> : null}
-									{selected ? option.label : <Marked text={option.label} query={value ?? ''} />}
-									{option.meta ? <span className="combobox-option-meta">{option.meta}</span> : null}
-								</div>
-							)
-						})}
-					</div>
-					)
-				})}
-				{/* Filtered to nothing is a state to name, not an empty box: the sentence says the
-				    search worked and found none, and the action below it (where a caller offers
-				    one) is what to do about it. */}
-				{noMatch ? <p className="combobox-empty">{`No match for "${typed}".`}</p> : null}
-				{children}
-				{showAction ? (
-					<div className="combobox-action"
-						onClick={e => { e.preventDefault(); e.stopPropagation(); action.onSelect?.(value); setOpen(false) }}>
-						{action.icon ? <Icon name={action.icon} /> : null}{action.label}
-					</div>
-				) : null}
-			</div>
+		<div
+			ref={root}
+			className={join('sp-combobox', pick(VARIANT, variant, 'variant', 'Combobox'))}
+			data-open={isOpen ? 'true' : 'false'}
+			{...rest}
+		>
+			{searchable
+				? (
+					<span className="sp-field__wrap">
+						<input
+							id={id}
+							className="sp-input sp-input--trail"
+							type="text"
+							role="combobox"
+							aria-expanded={isOpen ? 'true' : 'false'}
+							aria-autocomplete="list"
+							aria-controls={panelId}
+							aria-activedescendant={activeId}
+							aria-label={label}
+							required={required}
+							{...told}
+							autoComplete="off"
+							placeholder={placeholder}
+							value={shown}
+							onChange={ev => {
+								if (search === undefined) setTyped(ev.target.value)
+								onSearch?.(ev.target.value)
+								if (!isOpen) setOpen(true)
+							}}
+							// a press opens it, focus alone does not: focus a page moves here must not cover the field
+							onClick={() => { if (!isOpen) setOpen(true) }}
+							// the query is display state, not the value: leaving the field
+							// puts the chosen value back rather than stranding a half-typed one
+							onBlur={() => setTyped(null)}
+							onKeyDown={ev => {
+								// Escape clears a query before it closes the panel: the reader's
+								// first press undoes their typing, which is what they meant
+								if (ev.key === 'Escape' && query) {
+									ev.stopPropagation()
+									setTyped('')
+									onSearch?.('')
+									return
+								}
+								onKeys(ev)
+							}}
+						/>
+						<span className="sp-field__chevron"><Icon name="chevron-down" size={14} /></span>
+						<span className="sp-announce" aria-live="polite">{query ? countOf(options, noun) : ''}</span>
+					</span>
+				)
+				: (
+					/* a select-style trigger (c9): its name is what it picks, then the value it holds,
+					   so the value is read with it however the trigger is labelled */
+					<button
+						id={triggerId}
+						type="button"
+						className="sp-combobox__trigger"
+						role="combobox"
+						aria-haspopup="listbox"
+						aria-expanded={isOpen ? 'true' : 'false'}
+						aria-controls={panelId}
+						aria-activedescendant={activeId}
+						aria-label={label}
+						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'}${leadId ? ' ' + leadId : ''} ${triggerId}-value`}
+						{...told}
+						onClick={toggle}
+						onKeyDown={onKeys}
+					>
+						{prefix ? <span className="sp-combobox__chevron" id={triggerId + '-prefix'}>{prefix}</span> : null}
+						{leading}
+						<span className="sp-grow" id={triggerId + '-value'}>{value}</span>
+						<span className="sp-combobox__chevron"><Icon name="chevron-down" size={14} /></span>
+					</button>
+				)}
+			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={box.panel} onMouseDown={box.hold}>{box.list}</ul>
 		</div>
 	)
+}
+
+/** `create` marks the row that makes the typed value (c5), left out of the count a narrowed list reads out. */
+export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, create = false, children, ...rest }) {
+	reject(rest, 'ComboboxOption')
+	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
+	return (
+		<li>
+			<button
+				type="button"
+				className="sp-combobox__option"
+				id={id}
+				// the keyboard stays on the trigger and names this option through it (c9), so it is no tab stop
+				tabIndex={-1}
+				role="option"
+				aria-selected={selected ? 'true' : 'false'}
+				data-active={active ? 'true' : undefined}
+				onClick={onSelect}
+				{...rest}
+			>
+				{dot ? <span className="sp-combobox__dot" data-dot={dot} /> : null}
+				{mark}
+				<span className="sp-grow">{children}</span>
+				{meta ? <span className="sp-combobox__meta">{meta}</span> : null}
+				{selected ? <span className="sp-combobox__check"><Icon name="check" size={13} /></span> : null}
+			</button>
+		</li>
+	)
+}
+
+/** The heading over a set of options. */
+export function ComboboxGroup({ children, ...rest }) {
+	reject(rest, 'ComboboxGroup')
+	return <li className="sp-combobox__group" {...rest}>{children}</li>
+}
+
+/** A rule between sets of options (c5). */
+export function ComboboxSeparator(props) {
+	reject(props, 'ComboboxSeparator')
+	return <li {...props}><hr /></li>
+}
+
+/** What the panel says when nothing matches. */
+export function ComboboxEmpty({ children, ...rest }) {
+	reject(rest, 'ComboboxEmpty')
+	return <li className="sp-combobox__empty" {...rest}>{children}</li>
 }

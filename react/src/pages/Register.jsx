@@ -1,80 +1,90 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router'
-import { Card, CardBody } from '../components/Card.jsx'
-import { Field, FieldShell, TextInput, FormActions, focusField } from '../components/Form.jsx'
-import { Button } from '../components/Button.jsx'
-import { Icon } from '../components/Icon.jsx'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { Field } from '../components/Field.jsx'
+import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { failureMessage, register } from '../api/client.js'
+import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, landing, onward, useAuthOptions, useSignedOut } from './SignIn.jsx'
 
-/** Sign-up. A new account starts genuinely empty -- no vendor, no category, no order until
-    the person who owns it adds one: seeded demo data would read as someone else's real orders
-    staring back at a new user, which is the one impression a personal-finance app can least
-    afford to give. See api/src/seed.js. */
+const HINT = `At least ${MIN_PASSWORD} characters. Longer beats complicated.`
+
+// a new tab, so what is typed here is still here after reading; the operator's own page when set
+function NoticeLink({ to, page, children }) {
+	return <a className="sp-ink-accent sp-strong" href={to ?? '#' + page} target="_blank" rel="noopener noreferrer">{children}</a>
+}
+
 export default function Register() {
 	const navigate = useNavigate()
+	const [params] = useSearchParams()
+	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
-	const [error, setError] = useState('')
-	const [saving, setSaving] = useState(false)
+	const [emailProblem, setEmailProblem] = useState(null)
+	const [passwordProblem, setPasswordProblem] = useState(null)
+	const [taken, setTaken] = useState(null)
+	const [alert, setAlert] = useState(null)
+	const [busy, setBusy] = useState(false)
+	const options = useAuthOptions()
+	const mail = Boolean(options?.mail)
+	const signedOut = useSignedOut()
 
-	const submit = e => {
-		e.preventDefault()
-		if (password.length < 8) {
-			setError('Password must be at least 8 characters.')
-			focusField('register-password')
-			return
-		}
-		setSaving(true)
-		setError('')
-		/* Straight to the settings page, once, rather than to Home. A new account's ledger is
-		   empty, so Home has nothing to show it; the preferences do, and the date format among
-		   them has just been guessed from the browser's timezone and wants confirming by the
-		   only person who knows. `firstRun` is what tells the page it is being visited for that
-		   reason -- it draws a line saying so and records that the detour has happened. */
-		register(email.trim().toLowerCase(), password)
-			.then(() => navigate('/settings', { replace: true, state: { firstRun: true } }))
-			.catch(err => { setSaving(false)
-				setError(failureMessage(err, 'Could not create the account. Try again.'))
-				focusField('register-password') })
+	const checkEmail = () => {
+		const ok = !email.trim() || EMAIL_PATTERN.test(email.trim())
+		setEmailProblem(ok ? null : EMAIL_PROBLEM)
+		return ok
 	}
 
+	const submit = () => {
+		const emailOk = checkEmail() && EMAIL_PATTERN.test(email.trim())
+		if (!emailOk) setEmailProblem(EMAIL_PROBLEM)
+		const passwordOk = password.length >= MIN_PASSWORD
+		setPasswordProblem(passwordOk ? null : `Use at least ${MIN_PASSWORD} characters.`)
+		if (!emailOk || !passwordOk) return focusField(emailOk ? 'register-password' : 'register-email')
+		setBusy(true)
+		setAlert(null)
+		const address = email.trim().toLowerCase()
+		register(address, password, name.trim())
+			// an address waiting for its link goes to the page that says so (20e); the first run follows
+			.then(user => navigate(user?.emailConfirmed === false ? '/confirm' : onward(user, landing(params)), { replace: true }))
+			.catch(e => {
+				setBusy(false)
+				const said = failureMessage(e, '')
+				if (e?.status === 409) { setTaken(address); focusField('register-email') }
+				else if (e?.status === 400 && /password/i.test(said)) { setPasswordProblem(said); focusField('register-password') }
+				else if (e?.status === 400 && said) { setEmailProblem(said); focusField('register-email') }
+				else setAlert(failureMessage(e, 'Spendly could not be reached. Check your connection and try again.'))
+			})
+	}
+
+	const isTaken = taken !== null && taken === email.trim().toLowerCase()
+	const emailMessage = isTaken
+		? <>There's already an account with this email. <Link className="sp-strong au-across" to="/signin">Sign in instead?</Link></>
+		: emailProblem ?? (mail ? "We'll send a link here to confirm it's yours." : undefined)
+
+	if (!signedOut) return null
 	return (
-		<main className="auth-page">
-			<Card className="auth-card" aria-label="Create an account">
-				<CardBody>
-					<div className="auth-heading">
-						<span className="brand-mark" aria-hidden="true"><Icon name="receipt" /></span>
-						<div>
-							<h1>Create an account</h1>
-							<p className="auth-tagline">Every receipt, order and saving in one place.</p>
-						</div>
-					</div>
-					<form className="form" onSubmit={submit}>
-						<Field label="Email" htmlFor="register-email">
-							<FieldShell>
-								<TextInput id="register-email" type="email" value={email} autoFocus
-									onChange={v => { setEmail(v); setError('') }}
-									aria-label="Email" aria-required="true" />
-							</FieldShell>
-						</Field>
-						<Field label="Password" htmlFor="register-password" help="At least 8 characters."
-							error={error} errorId="register-password-error">
-							<FieldShell>
-								<TextInput id="register-password" type="password" value={password}
-									onChange={v => { setPassword(v); setError('') }}
-									aria-label="Password" aria-required="true"
-									invalid={Boolean(error)} describedBy="register-password-error" />
-							</FieldShell>
-						</Field>
-						<FormActions>
-							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'CREATING...' : 'CREATE ACCOUNT'}</Button>
-						</FormActions>
-					</form>
-					<p className="field-help auth-switch">
-						Already have an account? <Link to="/login">Sign in</Link>.
-					</p>
-				</CardBody>
-			</Card>
-		</main>
+		<AuthCard title="Create your account" lead={isTaken || alert ? null : 'Takes a minute. Nothing to set up afterwards.'}
+			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
+			disabled={isTaken}
+			terms={<>By creating an account you accept the <NoticeLink to={options?.terms} page="/terms">terms</NoticeLink> and <NoticeLink to={options?.privacy} page="/privacy">privacy notice</NoticeLink>.</>}
+			across={<>Already have one? <Link className="sp-strong sp-ink-accent au-across" to="/signin">Sign in</Link></>}>
+			{isTaken ? null : (
+				<Field label="Name" id="register-name">
+					<TextField autoComplete="name" value={name} maxLength={80} onChange={setName} />
+				</Field>
+			)}
+			<Field label="Email" id="register-email" message={emailMessage}
+				messageType={isTaken || emailProblem ? 'danger' : 'hint'}>
+				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
+					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
+			</Field>
+			{isTaken ? null : (
+				<Field label="Password" id="register-password"
+					message={passwordProblem ?? <PasswordHint password={password} hint={HINT} />}
+					messageType={passwordProblem ? 'danger' : 'hint'}>
+					<PasswordField autoComplete="new-password" value={password}
+						onChange={v => { setPassword(v); setPasswordProblem(null) }} />
+				</Field>
+			)}
+		</AuthCard>
 	)
 }

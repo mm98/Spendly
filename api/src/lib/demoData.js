@@ -71,7 +71,7 @@ const ITEMS = {
 
 /* Two are archived, or the filter has nothing to show. `back` is days ago; the prices are what
    a shop asks and reach no total in the app. */
-const WISHES = [
+const BOOKMARKS = [
 	{ name: 'Sony WH-1000XM5', url: 'https://www.proshop.dk/hoeretelefoner/sony-wh-1000xm5', price: 2799,
 		categories: ['Electronics'], back: 3 },
 	{ name: 'Robotstøvsuger', url: 'https://www.elgiganten.dk/robotstoevsuger', price: 3499,
@@ -104,9 +104,9 @@ const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, 
 const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, NULL)`)
-const insertWish = db.prepare(`INSERT INTO wishes (id, user_id, name, url, price, archived, created_at)
+const insertBookmark = db.prepare(`INSERT INTO bookmarks (id, user_id, name, url, price, archived, created_at)
 	VALUES (@id, @userId, @name, @url, @price, @archived, @createdAt)`)
-const insertWishCategory = db.prepare('INSERT INTO wish_categories (wish_id, category_id) VALUES (?, ?)')
+const insertBookmarkCategory = db.prepare('INSERT INTO bookmark_categories (bookmark_id, category_id) VALUES (?, ?)')
 
 /** Populates one account with `months` months of orders ending today. Deterministic for a
     given (seed, today) so two runs of the verification harness can be compared rather than
@@ -119,8 +119,8 @@ const insertWishCategory = db.prepare('INSERT INTO wish_categories (wish_id, cat
 
     `orders` is the total the whole year lands on, exactly: the months split it between them
     with some jitter, and the current month absorbs the rounding. Left off, each month rolls
-    its own 28..44 as before. */
-export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders } = {}) => {
+    its own 28..44 as before. `today` is the reader's date, YYYY-MM-DD. */
+export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders, today: day, onProgress } = {}) => {
 	let s = seed
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
@@ -154,11 +154,14 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 		return { id, ...c }
 	})
 
-	const today = new Date()
+	const today = day ? new Date(day + 'T00:00:00Z') : new Date()
 	today.setUTCHours(0, 0, 0, 0)
 	const todayEpoch = Math.floor(today.getTime() / 1000)
 	let made = 0, reference = 1000
 	let remaining = Number.isFinite(orders) && orders > 0 ? Math.floor(orders) : null
+	// about a hundred progress reports however big the fill, and only when the total is known
+	const total = remaining
+	const every = total ? Math.max(1, Math.floor(total / 100)) : 0
 
 	for (let back = months - 1; back >= 0; back--) {
 		const first = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - back, 1))
@@ -221,6 +224,7 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 					title: src[0], quantity, price, retail })
 			})
 			made++
+			if (onProgress && every && made % every === 0) onProgress(made, total)
 		}
 	}
 
@@ -231,7 +235,7 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	db.prepare(`UPDATE orders SET
 			(item_count, paid, retail) = (
 				SELECT COUNT(*), COALESCE(SUM(price * quantity), 0),
-					COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+					COALESCE(SUM(MAX(COALESCE(retail, price), price) * quantity), 0)
 				FROM order_items WHERE order_id = orders.id),
 			search_text = note || char(10) ||
 				COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = orders.id), ''),
@@ -240,12 +244,12 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	for (const t of triggers) db.exec(t.sql)
 
 	const categoryByName = new Map(categoryIds.map(c => [c.name, c.id]))
-	for (const wish of WISHES) {
-		const id = newId('w')
-		insertWish.run({ id, userId, name: wish.name, url: wish.url, price: wish.price ?? null,
-			archived: wish.archived ?? 0, createdAt: Math.floor(today.getTime() / 1000) - wish.back * 86400 })
-		for (const name of wish.categories) insertWishCategory.run(id, categoryByName.get(name))
+	for (const bookmark of BOOKMARKS) {
+		const id = newId('bm')
+		insertBookmark.run({ id, userId, name: bookmark.name, url: bookmark.url, price: bookmark.price ?? null,
+			archived: bookmark.archived ?? 0, createdAt: Math.floor(today.getTime() / 1000) - bookmark.back * 86400 })
+		for (const name of bookmark.categories) insertBookmarkCategory.run(id, categoryByName.get(name))
 	}
 
-	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, wishes: WISHES.length }
+	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, bookmarks: BOOKMARKS.length }
 })

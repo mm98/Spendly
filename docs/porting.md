@@ -40,7 +40,7 @@ into the implementation. The attribute contracts travel too: `data-go` on anythi
 `react/` is not a test port any more — it is the application, and the design system is built there.
 [`react/README.md`](../react/README.md) documents its framework, build, chunking and measurements;
 nothing in it is a rule about the product. `spendly.html` is the prototype the system was drawn in;
-it is no longer synced or verified against `react/src/styles/app.css` and is kept only as a frozen,
+it is no longer synced or verified against the app's stylesheets and is kept only as a frozen,
 historical artifact — a fix lands in the app and does not need to be carried anywhere else.
 
 That is the second inversion, not the first. The stylesheet used to travel from wherever the system

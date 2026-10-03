@@ -65,11 +65,13 @@ export function readDate(value, formatId) {
 	return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 }
 
-/** Every format that reads all of the column's dates. One when any day is above 12; more only when every
-    date could be read with the day or the month first. */
+/** The formats that read the most of the column's dates, when that is more than half of them (a closing
+    balance line is then one that could not be read). Two only when every date reads day or month first. */
 export const dateFormatsFor = values => {
 	const filled = values.filter(Boolean)
-	return DATE_FORMATS.filter(f => filled.length && filled.every(v => readDate(v, f.id))).map(f => f.id)
+	const read = DATE_FORMATS.map(f => filled.filter(v => readDate(v, f.id)).length)
+	const most = Math.max(...read)
+	return most * 2 > filled.length ? DATE_FORMATS.filter((_, i) => read[i] === most).map(f => f.id) : []
 }
 
 // Day first before month first when both fit, as Danish banks write it.
@@ -78,9 +80,10 @@ export const guessDateFormat = values => dateFormatsFor(values)[0] ?? 'dmy'
 /* ---- amounts ---- */
 
 // One decimal mark for the whole column: comma if any value ends in a comma and one or two digits.
-export const guessDecimal = samples => (samples.some(s => /,\d{1,2}$/.test(clean(s))) ? ',' : '.')
+export const guessDecimal = samples => (samples.some(s => /,\d{1,2}[+-]?$/.test(clean(s))) ? ',' : '.')
 
-const clean = value => String(value ?? '').replace(/[\s ]/g, '').replace(/[^\d,.+-]/g, '')
+// a word such as "kr." goes whole, so its full stop is not read as a decimal mark
+const clean = value => String(value ?? '').replace(/\p{L}+\.?/gu, '').replace(/[\s ]/g, '').replace(/[^\d,.+-]/g, '')
 
 /** A signed number, or null for a cell that holds none. "1.234,56-" is read as negative too. */
 export function readAmount(value, decimal) {
@@ -106,18 +109,78 @@ export function guessColumns(rows, header) {
 	const sample = i => body.slice(0, 20).map(r => r[i] ?? '').filter(Boolean)
 	const named = re => columns.find(i => re.test(names[i] ?? ''))
 	const dates = columns.filter(i => sample(i).length && sample(i).every(s => DATE_FORMATS.some(f => readDate(s, f.id))))
-	const numbers = columns.filter(i => !dates.includes(i) && sample(i).length
-		&& sample(i).every(s => /^[\s \d.,+()-]*\d[\s \d.,+()-]*[a-z.]*$/i.test(s)))
-	const words = columns.filter(i => !dates.includes(i) && !numbers.includes(i))
+	const numbers = columns.filter(i => !dates.includes(i) && sample(i).length && sample(i).every(amountLike))
 
 	const date = named(/dato|date|bogf|booking/) ?? dates[0] ?? null
-	const amount = named(/beløb|belob|amount|beløp/) ?? numbers.find(i => !/saldo|balance/.test(names[i] ?? '')) ?? null
-	const text = named(/tekst|text|beskriv|descr|posteringstekst|modtager|narrative/)
-		?? words.sort((a, b) => avgLength(sample(b)) - avgLength(sample(a)))[0] ?? null
-	return { date, text, amount, out: null }
+	const money = numbers.filter(i => !/saldo|balance/.test(names[i] ?? '') && !sample(i).some(accountLike))
+	const best = money.reduce((b, i) => (moneyScore(sample(i)) > (b == null ? 0 : moneyScore(sample(b))) ? i : b), null)
+	const single = named(/beløb|belob|amount|beløp/)
+	const pair = inAndOut(body, columns, names, dates, single)
+	const amount = pair?.amount ?? single ?? best ?? money[0] ?? null
+	const out = pair?.out ?? null
+	const texts = columns.filter(i => !dates.includes(i) && !numbers.includes(i) && i !== amount && i !== out)
+	// a receiver column often holds an account number, so a text or description column comes first
+	const text = named(/tekst|text|beskriv|descr|narrative/) ?? named(/modtager/)
+		?? texts.sort((a, b) => avgLength(sample(b)) - avgLength(sample(a)))[0] ?? null
+	return { date, text, amount, out }
+}
+
+const amountLike = value => /^[\s\d.,+()-]*\d[\s\d.,+()-]*[a-z.]*$/i.test(value)
+const IN = /^(ind|indsat|indbetal\p{L}*|indgående|in|credit|kredit|deposits?)$/u
+const OUT = /^(ud|udbetal\p{L}*|udgående|hævet|hævning\p{L}*|out|debit|debet|withdrawals?)$/u
+
+/* Money in and out in columns of their own: a pair named so, or (no column named as the amount) two never
+   filled on one line, where money out is the one holding minus amounts, or else the one filled more often. */
+function inAndOut(body, columns, names, dates, single) {
+	const cells = i => body.map(r => (r[i] ?? '').trim())
+	const amounts = i => !dates.includes(i) && !/saldo|balance/.test(names[i] ?? '')
+		&& cells(i).every(v => !v || (amountLike(v) && !accountLike(v)))
+	const namedBy = re => columns.find(i => amounts(i) && words(names[i] ?? '').some(w => re.test(w)))
+	const into = namedBy(IN), from = namedBy(OUT)
+	if (into != null && from != null && into !== from) return { amount: into, out: from }
+	if (single != null) return null
+	const filled = i => cells(i).filter(Boolean)
+	const minus = i => filled(i).some(v => readAmount(v, '.') < 0)
+	const found = columns.filter(i => amounts(i) && filled(i).length)
+	for (const a of found) for (const b of found.filter(b => b > a)) {
+		const both = body.filter(r => r[a]?.trim() && r[b]?.trim()).length
+		const either = body.filter(r => r[a]?.trim() || r[b]?.trim()).length
+		if (both || either * 2 <= body.length) continue
+		const outFirst = minus(a) !== minus(b) ? minus(a) : filled(a).length > filled(b).length
+		return outFirst ? { amount: b, out: a } : { amount: a, out: b }
+	}
+	return null
 }
 
 const avgLength = values => values.reduce((n, v) => n + v.length, 0) / (values.length || 1)
+
+// An account or registration number: digits joined by a minus, or a long run of digits alone.
+const accountLike = value => /\d-\d/.test(value) || /^\d{8,}$/.test(value.trim())
+const signed = value => /^[+-]|-$/.test(clean(value)) || /^\(.*\)$/.test(value.trim())
+// How much a column reads like money: the share of its cells with øre, more when any is signed.
+// On a tie the column further left wins, since banks put the amount before the balance.
+const moneyScore = values => values.filter(v => /\d[.,]\d{2}(?!\d)/.test(v)).length / values.length
+	+ (values.some(signed) ? 0.5 : 0)
+
+/* What a column that names an account, a person or a payment holds, said in words instead of its
+   values (21h): by its name in the header first, else by the shape of every filled cell. */
+const DESCRIBED = [
+	{ said: 'An account number', name: /konto|account|iban|reg\.?nr|regnr/, value: v => /^[A-Z]{2}\d{2}[\dA-Z ]{10,}$/.test(v) || /^\d{4}[- ]\d{6,10}$/.test(v) },
+	{ said: 'A MobilePay number', name: /mobilepay/ },
+	{ said: 'A name', name: /navn|name|modtager|afsender|payee|payer/ },
+	{ said: 'A reference number', name: /reference|^ref|kvittering|transaktions?id|^id$/, value: v => /^\d{8,}$/.test(v) || /\d-\d/.test(v) }
+]
+
+/** How the column table shows a column it does not read: a description instead of values that identify
+    an account, a person or a payment, or null to show the values. */
+export function describeColumn(cells, name = '') {
+	const filled = cells.map(c => String(c ?? '').trim()).filter(Boolean)
+	if (!filled.length) return null
+	const named = String(name).toLocaleLowerCase('da')
+	const found = DESCRIBED.find(d => (named && d.name.test(named)) || (d.value && filled.every(d.value)))
+	if (!found) return null
+	return filled.length < cells.length ? `${found.said}, or empty` : found.said
+}
 
 // A first row is names, not a payment, when none of its cells reads as a date.
 export const hasHeader = rows => rows.length > 1

@@ -1,0 +1,31 @@
+/* The shell (9c, 9g): the account menu's header, and the one scrolling part of the sidebar. */
+
+@layer base {
+
+	.ns-menu-head { padding: var(--sp-8) var(--sp-10); border-bottom: 1px solid var(--line-2); margin-bottom: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-6); }
+
+	/* the nav between the brand and the bottom zone; min-height: 0 lets it shrink and scroll
+	   rather than push the account block off the window (9g) */
+	.ns-scroll {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-6);
+		align-self: stretch;
+		/* reaches to the sidebar's edges, so a row's focus ring is not clipped by the scroll box */
+		margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-14));
+		padding: var(--sp-4) var(--sp-14);
+	}
+	.ns-scroll--faded { mask-image: linear-gradient(to bottom, var(--ink) calc(100% - 22px), transparent); }
+	.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .ns-scroll { margin-inline: 0; padding-inline: 0; align-items: center; }
+
+	/* the keyboard shortcuts list; on a short window it scrolls, never the title or Done */
+	.ns-keys-list { display: flex; flex-direction: column; gap: var(--sp-12); min-height: 0; max-height: calc(100dvh - 180px); overflow-y: auto; }
+	/* what a key does at the left, its key caps at the right */
+	.ns-keys { display: flex; flex-direction: column; gap: var(--sp-6); }
+	.ns-keys__row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); }
+	.ns-keys__caps { display: flex; align-items: center; gap: var(--sp-4); flex: none; }
+
+}

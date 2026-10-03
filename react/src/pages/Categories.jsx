@@ -1,263 +1,292 @@
-import { Page } from '../components/Shell.jsx'
-import { Async } from '../components/Async.jsx'
-import { SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
-import { CategoryRow, LegendRow } from '../components/Rows.jsx'
-import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
-import { Donut } from '../components/Chart.jsx'
-import { foldForRing } from '../components/Viz.jsx'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
+import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
+import { Card } from '../components/Card.jsx'
+import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
-import { Icon } from '../components/Icon.jsx'
+import { Gauge } from '../components/Data.jsx'
+import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	budgetShare, chartPeriodPhrase, getCategoriesThisMonth, getCategoryChartSplit, getUncategorised,
-	ordersIn, overBudget
+	deleteCategory, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
 } from '../api/client.js'
-import { currency, percent, sep } from '../api/format.js'
-import { inkOn } from '../api/colour.js'
+import { NUMBER_LOCALE, amountRound, currency, dot, plural } from '../api/format.js'
+import { useShellShape, useWidth } from '../app/useMedia.js'
+import { useListMemory } from '../app/listMemory.js'
+import {
+	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
+} from './vendorsCategories.jsx'
 
-/* Categories, overview.
+const SORTS = [
+	{ id: 'name-asc', label: 'Name A - Z', by: (a, b) => a.name.localeCompare(b.name) },
+	{ id: 'month-desc', label: 'This month ↓', by: (a, b) => b.monthSpend - a.monthSpend },
+	{ id: 'month-asc', label: 'This month ↑', by: (a, b) => a.monthSpend - b.monthSpend },
+	{ id: 'limit-desc', label: 'Limit ↓', by: (a, b) => b.budget - a.budget },
+	{ id: 'orders-desc', label: 'Orders ↓', by: (a, b) => b.orders - a.orders }
+]
+// at this width of the list or under, the monthly limit joins the name's second line (5k)
+const FOLD = 880
 
-   Stats about the categories, not a list of them -- All categories is its own tab now, the
-   same split All orders has. The page used to be a list with the ring beside it and a Manage
-   tab that was the same list again pointing somewhere else, which is two views of one list and
-   no view of the numbers.
+// Settings' shared sort in this list's terms: spend here is the month's, and a category saves nothing
+const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
 
-   What a category page is for is what the spending looks like by category, and keeping the
-   categories themselves right. Neither is browsing orders, so every row that opens an order
-   list lives on the other tab or inside a legend, and the maintaining is on the record's own
-   page. */
-
-export default function Categories() {
-	/* The same request the All categories tab reads, under the same cache key -- switching
-	   between the two tabs re-uses one answer instead of fetching it once per tab name. The
-	   uncategorised remainder is its own small read (it is not a record, so it is not in the
-	   list), and the KPI row and the Favourites and Budget cards below wait on both: an
-	   all-time total drawn from one and re-drawn when the other lands would show two different
-	   figures a beat apart.
-
-	   It is the joined read rather than the plain list because every card here that names a
-	   budget makes a month-scoped claim ("over this month", a row against its own budget) and a
-	   budget is a monthly allowance, so those compare against `monthSpend`. The all-time
-	   figures on this page go on reading `spend`. */
-	const state = useApi(getCategoriesThisMonth)
-	const uncategorised = useApi(getUncategorised)
-	const both = {
-		error: state.error ?? uncategorised.error,
-		loading: state.loading || uncategorised.loading,
-		data: state.data !== undefined && uncategorised.data !== undefined
-			? { ...state.data, none: uncategorised.data } : undefined
+/* The month against the limit in the thin bar. Past the limit, a table row splits the track into
+   the part up to it and the overage (5i); a phone card fills it, with the overage in words. */
+function MonthGauge({ category, pace, split = false }) {
+	const { monthSpend: spend, budget } = category
+	if (!(budget > 0)) return <Gauge thin untargeted value={0} aria-label="No limit set" />
+	if (spend > budget && !split) return <Gauge thin passed value={100} marker={pace.at} aria-label="Share of the limit used" />
+	if (spend > budget) {
+		const upTo = (budget / spend) * 100
+		return <Gauge thin value={upTo} over={100 - upTo} marker={pace.at} aria-label="Share of the limit used" />
 	}
-	/* The ring's own read, separate from `both` above: it is scoped to settings.chartPeriod,
-	   which the rest of this page's cards are not, and joining it into the same gate would
-	   stall the KPI row and the Favourites and Budget cards on a fetch only the ring needs
-	   (see the Breakdown card below, which gives it its own Async rather than waiting on it
-	   up here). */
-	const chart = useApi(getCategoryChartSplit)
+	return <Gauge thin value={(spend / budget) * 100} marker={pace.at} aria-label="Share of the limit used" />
+}
+
+function MonthLine({ category }) {
+	const { monthSpend: spend, budget } = category
+	if (!(budget > 0)) return <span className="sp-meta">{currency(spend, 0)} spent</span>
+	if (spend > budget)
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{amountRound(spend - budget)} over</span>
+	return <span className="sp-meta">{currency(spend, 0)}{dot}{amountRound(budget - spend)} left</span>
+}
+
+/** Categories (5d): each one against its monthly limit, opened for editing from its row. */
+export default function Categories() {
+	const touch = useShellShape() === 'touch'
+	const navigate = useNavigate()
+	const toast = useToast()
+	const state = useApi(getCategoriesThisMonth)
+	const settings = useApi(getSettings).data
+	const step = settings?.pageSize ?? 10
+	// the order Settings names, until the address names another
+	const opening = SORTS.find(s => s.id === FROM_SETTING[settings?.listSort]) ?? SORTS[0]
+	const [params, setParams] = useSearchParams()
+	const query = touch ? '' : params.get('q') ?? ''
+	const sort = SORTS.find(s => s.id === params.get('sort')) ?? opening
+	const [menuFor, setMenuFor] = useState(null)
+	const [deleting, setDeleting] = useState(null)
+	// the row whose Merge into… popover is open (5d), then the two 5j's dialog compares
+	const [picking, setPicking] = useState(null)
+	const [merging, setMerging] = useState(null)
+	const [busy, setBusy] = useState(false)
+	const column = useRef(null)
+	const width = useWidth(column)
+	const folded = !touch && width > 0 && width <= FOLD
+	const pace = monthPace()
+	// a page of rows per Load more, kept for Back along with the scroll
+	const { pages, setPages, restored } = useListMemory(`categories?${query}&${sort.id}`)
+	useEffect(() => { if (state.data) restored() }, [state.data])
+
+	const write = (q, sortId) => {
+		const next = {}
+		if (q) next.q = q
+		if (sortId !== opening.id) next.sort = sortId
+		setParams(next, { replace: true })
+	}
+
+	const all = state.data?.categories ?? []
+	const needle = query.trim().toLowerCase()
+	const rows = all.filter(c => !needle || c.name.toLowerCase().includes(needle)).sort(sort.by)
+	const shown = rows.slice(0, pages * step)
+	const refocus = useRefocus(state.data?.categories, '.sp-table [aria-haspopup="menu"]', '.sp-controls a')
+
+	const remove = () => {
+		setBusy(true)
+		refocus(deleting, shown.findIndex(r => r.id === deleting.id))
+		deleteCategory(deleting.id)
+			.catch(e => { if (!isGone(e)) throw e })
+			.then(() => {
+				invalidateCategoryData()
+				invalidateVendorData()
+				state.refresh()
+				setDeleting(null)
+			})
+			.catch(e => sayFailure(toast, e, 'The category was not deleted. Try again.'))
+			.finally(() => setBusy(false))
+	}
+
+	const merge = target => {
+		const { source } = merging
+		setBusy(true)
+		refocus(source, shown.findIndex(r => r.id === source.id))
+		mergeCategory(source.id, target.id)
+			.then(() => {
+				invalidateCategoryData()
+				invalidateVendorData()
+				state.refresh()
+				toast({ message: `${source.name} is merged into ${target.name}.` })
+				setMerging(null)
+			})
+			.catch(e => sayFailure(toast, e, 'The categories were not merged. Try again.'))
+			.finally(() => setBusy(false))
+	}
+
+	const bar = (
+		<Controls ref={column}>
+			{touch ? null : (
+				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" />
+			)}
+			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
+			{touch
+				? <Button to="/categories/new" iconStart="plus" aria-label="New category" />
+				: <Button to="/categories/new">New category</Button>}
+		</Controls>
+	)
+
+	let body
+	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
+	else if (!state.data) body = <CategoriesLoading touch={touch} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
+		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
+	else if (!all.length) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No categories yet</EmptyTitle>
+				<EmptyBody>Categories group your spend and carry the monthly limit. Add one now, or type a new one on an order.</EmptyBody>
+				<Button size="small" to="/categories/new">New category</Button>
+			</Empty>
+		</Card>
+	)
+	else if (!rows.length) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No category matches "{query}"</EmptyTitle>
+				<Button variant="outline" size="small" onClick={() => write('', sort.id)}>Clear search</Button>
+			</Empty>
+		</Card>
+	)
+	else if (touch) body = (
+		<>
+			{shown.map(c => {
+				const over = c.budget > 0 && c.monthSpend > c.budget
+				return (
+					<Card key={c.id} to={`/categories/${c.id}/edit`}>
+						<div className="sp-cell-flex">
+							<CategoryMark category={c} />
+							<div className="sp-stack sp-gap-6 sp-grow">
+								<span className="sp-heading sp-truncate">{c.name}</span>
+								<span className="sp-meta">{c.budget > 0 ? `limit ${currency(c.budget, 0)}` : 'no limit'}</span>
+							</div>
+							<span className={over ? 'sp-amount sp-ink-warning sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(c.monthSpend, 0)}</span>
+						</div>
+						<MonthGauge category={c} pace={pace} />
+						{over ? <span className="sp-meta sp-ink-warning">{currency(c.monthSpend - c.budget, 0)} over the limit.</span> : null}
+					</Card>
+				)
+			})}
+			<ListMore loose shown={shown.length} total={rows.length} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
+		</>
+	)
+	else body = (
+		<List data={shown} total={rows.length} onLoadMore={() => setPages(pages + 1)} recordKey={c => c.id} noun="categories" pageSize={step}
+			rowTo={c => `/categories/${c.id}/edit`} locale={NUMBER_LOCALE}>
+			<Caption><strong className="sp-data">{plural(rows.length, 'category', 'categories')}</strong></Caption>
+			<ListHead>
+				<ListCell width="title">Category</ListCell>
+				<ListCell width="amount">{sort.id.startsWith('month-') ? sort.label : 'This month'}</ListCell>
+				{folded ? null : <ListCell width="amount">{sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'}</ListCell>}
+				<ListCell width="menu" />
+			</ListHead>
+			<ListRow>
+				{c => [
+					<ListCell key="t" cell="flex">
+						<CategoryMark category={c} />
+						<Stacked>
+							<span className="sp-title sp-truncate">{c.name}</span>
+							<span className="sp-meta sp-truncate">
+								{plural(c.orders, 'order')}{dot}{currency(c.monthAverage ?? 0, 0)} avg. per month
+								{folded ? `${dot}${c.budget > 0 ? `limit ${currency(c.budget, 0)}` : 'no limit'}` : null}
+							</span>
+						</Stacked>
+					</ListCell>,
+					<ListCell key="m">
+						<div className="sp-stack sp-gap-6 sp-right">
+							<MonthGauge category={c} pace={pace} split />
+							<MonthLine category={c} />
+						</div>
+					</ListCell>,
+					folded ? null : (
+						<ListCell key="l" cell="amount">
+							{c.budget > 0 ? <span className="sp-amount">{currency(c.budget, 0)}</span> : <span className="sp-data sp-ink-5">no limit</span>}
+						</ListCell>
+					),
+					<ListCell key="x" cell="menu">
+						<RowMenu noun="Category" label={c.name} open={menuFor === c.id}
+							onToggle={() => { setPicking(null); setMenuFor(menuFor === c.id ? null : c.id) }}
+							onClose={() => { setMenuFor(null); setPicking(null) }}
+							panel={picking === c.id
+								? box => <MergePicker kind="category" source={c} options={all} anchor={box} onClose={() => setPicking(null)}
+									onPick={target => { setPicking(null); setMerging({ source: c, target }) }} />
+								: null}>
+							<MenuItem icon="external-link" onClick={() => navigate(`/orders?category=${c.id}`)}>Open in the order list</MenuItem>
+							<MenuItem icon="pencil" onClick={() => navigate(`/categories/${c.id}/edit`)}>Edit category</MenuItem>
+							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(c.id) }}>Merge into…</MenuItem>
+							<MenuSeparator />
+							<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
+						</RowMenu>
+					</ListCell>
+				]}
+			</ListRow>
+		</List>
+	)
 
 	return (
-		<Page variant="page-grid">
-			<div className="hero hero-panel">
-				<h2>See how you spend your money.</h2>
-				<p>Categories divide each order's total, so you can see your spending by category instead of by shop.</p>
-				<Button variant="caps" to="/categories/new">ADD CATEGORY</Button>
+		<>
+			{bar}
+			{body}
+			{deleting
+				? <DeleteCategory category={deleting} busy={busy} onConfirm={remove} onCancel={() => setDeleting(null)} />
+				: null}
+			{merging
+				? <MergeDialog kind="category" source={merging.source} initial={merging.target} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				: null}
+		</>
+	)
+}
+
+const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc', '92']]
+
+/* A page of rows held at the loaded rows' places (6b), so nothing moves when the categories land. */
+function CategoriesLoading({ touch, size, month, limit, folded }) {
+	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
+	const gauge = <Held shape={<Gauge thin untargeted value={0} aria-label="No limit set" />} />
+	if (touch) return rows.map(({ id, w }) => (
+		<Card key={id} aria-busy="true">
+			<div className="sp-cell-flex">
+				<Skeleton shape="mark" />
+				<div className="sp-stack sp-gap-6 sp-grow"><Bar role="sp-heading" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></div>
+				<Bar role="sp-amount" w={w[2]} h="13" end />
 			</div>
-
-			<Async state={both} label="Loading your categories"
-				skeleton={<>
-					<SkeletonKpiRow />
-					<SkeletonCard bodyHeight={260} />
-				</>}>{({ categories, none, month, cardRows }) => {
-				/* Spent and saved are the account's, not the categorised part of it -- both used
-				   to leave the uncategorised remainder out, so the KPI read an all-time total
-				   that disagreed with every other all-time total by exactly what no category
-				   claimed. */
-				const spent = categories.reduce((sum, c) => sum + c.spend, 0) + none.spend
-				const saved = categories.reduce((sum, c) => sum + c.saved, 0) + none.saved
-				const budgeted = categories.filter(c => c.budget > 0)
-				const over = budgeted.filter(overBudget)
-				/* Fullest budget first, on the three keys Statistics sorts its own copy by
-				   (api/src/lib/stats.js, budgetRowsOver), so the two cards cannot disagree. */
-				const ranked = [...budgeted].sort((a, b) =>
-					budgetShare(b) - budgetShare(a) || b.monthSpend - a.monthSpend
-					|| a.name.localeCompare(b.name))
-				/* The records' own superlative -- "Without category" is not a category, so it
-				   cannot be the largest one. */
-				const top = categories.reduce((most, c) => (c.spend > (most?.spend ?? 0) ? c : most), null)
-				/* Favourites are a subset of the same array, favourites included in both:
-				   starring pins a category to the spotlight without removing it from the only
-				   sortable, searchable view of them -- the rule Vendors set. */
-				const favourites = categories.filter(c => c.favourite)
-
-				return (
-					<>
-						<div className="kpi-row">
-							<KpiCard label="Categories" value={String(categories.length)}
-								note={top ? `${top.name} is the largest` : null} />
-							<KpiCard label="Spent" value={currency(spent, 0)} note="all time" />
-							<KpiCard label="Saved vs retail" value={currency(saved, 0)}
-								note={spent > 0 ? `${Math.round((saved / (spent + saved)) * 100)}% under retail` : null} />
-							<KpiCard label="With a budget" value={`${budgeted.length} of ${categories.length}`}
-								note={budgeted.length ? `${over.length} over this month` : 'none set yet'} />
+			{gauge}
+		</Card>
+	))
+	return (
+		<List data={rows} recordKey={r => r.id} noun="categories" pageSize={size} aria-busy="true">
+			<Caption><Bar role="sp-data" w="82" h="13" /></Caption>
+			<ListHead>
+				<ListCell width="title">Category</ListCell>
+				<ListCell width="amount">{month}</ListCell>
+				{folded ? null : <ListCell width="amount">{limit}</ListCell>}
+				<ListCell width="menu" />
+			</ListHead>
+			<ListRow>
+				{({ w }) => [
+					<ListCell key="t" cell="flex">
+						<Skeleton shape="mark" />
+						<Stacked><Bar role="sp-title" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></Stacked>
+					</ListCell>,
+					<ListCell key="m">
+						<div className="sp-stack sp-gap-6">
+							{gauge}
+							<Bar role="sp-meta" w={w[2]} h="10" end />
 						</div>
-
-						{/* Its own Async, not folded into the page's outer one above: this card is the
-						    one thing on the page scoped to settings.chartPeriod, so it is the one thing
-						    that waits on that fetch. .async-live is display:contents (app.css), so the
-						    boundary costs no extra box between this Card and the grid it sits in. */}
-						<Async state={chart} label="Loading your categories' split"
-							skeleton={<SkeletonCard bodyHeight={220} />}>{chartData => {
-							/* The window's own split already carries "Without category" as a real row
-							    (api/src/lib/stats.js's splitOver) -- id null, in the same list, ranked by
-							    spend like every other row -- so nothing here rebuilds a remainder. Renamed
-							    onto foldForRing's own field (`amount` -> `spend`), the one shape it reads. */
-							const split = foldForRing(
-								chartData.split.map(c => ({ id: c.id, name: c.name, colour: c.colour, spend: c.amount })),
-								chartData.cardRows)
-							const periodWord = chartPeriodPhrase(chartData.period)
-							return (
-								/* The header opens the list only while the list has rows to show: on an
-								    account with no categories the band is a plain heading, the same degrade
-								    the button below makes. README: Empty states. */
-								<Card aria-label="Breakdown">
-									<CardHeader title={`Breakdown${sep}${periodWord}`}
-										to={categories.length ? '/categories/all' : undefined}
-										label="Breakdown, open all categories" />
-									<CardDivider />
-									{/* The ring and the rows beside it are drawn from one array, which is the
-									    rule the donut's shares and its legend already had to obey. Each row
-									    opens the orders behind its own slice -- the one place on this page
-									    where orders are the useful destination, because the slice is what the
-									    reader just clicked. */}
-									<CardBody variant="ring-row">
-										{split.length ? (
-											<>
-												{/* Shares off spend rather than the API's own `share`, so the arcs
-												    add up to the figure in the middle even once the tail is folded
-												    into one. */}
-												<Donut segments={split.map(c => ({ share: chartData.spent ? (c.spend / chartData.spent) * 100 : 0, colour: c.colour }))}
-													value={currency(chartData.spent, 0)} label={`Spent, ${periodWord}`}
-													ariaLabel={`Category split of ${currency(chartData.spent, 0)}`} />
-												<div className="chart-legend chart-legend-fill">
-													{split.map(c => (
-														/* The folded row stands for several categories at once, so it
-														   opens the list those categories are on rather than a filter
-														   for one that has no id. */
-														<LegendRow key={c.id ?? 'more'} colour={c.colour} title={c.name}
-															amount={currency(c.spend, 0)}
-															to={c.id ? `/orders/all?category=${c.id}` : '/categories/all'} />
-													))}
-												</div>
-											</>
-										) : (
-											/* Two absences, two answers, the rule every empty state on this page
-											    already makes: with categories on record the sentence names the
-											    window that came up empty; with none at all, naming a window
-											    answers a question nobody asked -- the real absence is that no
-											    category exists yet. */
-											<EmptyState>
-												<p>{categories.length
-													? `Nothing spent ${periodWord}.`
-													: 'No categories yet. Add one and your spending splits by kind.'}</p>
-											</EmptyState>
-										)}
-									</CardBody>
-								</Card>
-							)
-						}}</Async>
-
-						{/* The spotlight Vendors has, on this page's own records. README: Favourites. */}
-						<Card aria-label="Favourites">
-							<CardHeader title="Favourites"
-								to={categories.length ? '/categories/all' : undefined}
-								label="Favourites, open all categories" />
-							<CardDivider />
-							<CardBody>
-								{favourites.length ? (
-									<FavouriteTileGrid>
-										{favourites.map(category => (
-											<FavouriteTile key={category.id}
-												mark={<span className="category-icon"
-													style={{ background: category.colour, color: inkOn(category.colour) }}>
-													<Icon name={category.icon} path={category.iconPath} /></span>}
-												name={category.name} to={`/orders/all?category=${category.id}`}
-												linkLabel={`${category.name}, open its orders`}
-												meta={`${percent(category.share)} of expenses`}
-												amount={currency(category.spend, 0)} saved={`saved ${currency(category.saved, 0)}`} />
-										))}
-									</FavouriteTileGrid>
-								) : (
-									/* Two absences, two answers, the same split every empty state on this
-									   page makes: with categories the sentence names the next step and the
-									   button opens the list a favourite is turned on from; with none there
-									   is nothing to favourite and neither claim is made. README: Empty states. */
-									<EmptyState>
-										{categories.length ? (
-											<>
-												<p>No favourites yet. Turn on Favourite when editing a category and it appears here with spend, savings and budget.</p>
-												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
-											</>
-										) : (
-											<p>No categories to favourite yet. Add one and your spending splits by category.</p>
-										)}
-									</EmptyState>
-								)}
-							</CardBody>
-						</Card>
-
-						{/* Full width, like the breakdown above it. It shared a `two-column` row with
-						    the question-of-the-day card; with that gone, keeping the wrapper would leave
-						    one card in a two-column grid and nothing at all beside it.
-						    README: Grids and Breakpoints. */}
-						<Card aria-label="Budget">
-							{/* The month in the header, not in every row: one qualifier for rows that
-							    all share it, so it cannot drift between them. README: Data Rows. */}
-							<CardHeader title={`Against budget${sep}${month.label}`}
-								to={categories.length ? '/categories/all' : undefined}
-								label="Against budget, open all categories" />
-							<CardDivider />
-							<CardBody>
-								{budgeted.length ? (
-									<>
-										{/* One row per budget, fullest first: a budget is a ceiling on the
-										    category it is set on, so nothing here sums them. README: Categories. */}
-										<div className="category-rows">
-											{ranked.slice(0, cardRows).map(c => (
-												/* The month's spend, the month's orders behind the row: the figure
-												   clicked and the list it opens are one stretch of time. */
-												<CategoryRow key={c.id} category={{ ...c, spend: c.monthSpend }}
-													meta={`${percent(budgetShare(c), 0)} of a ${currency(c.budget, 0)} budget`}
-													to={ordersIn({ category: c.id, from: month.from, to: month.to })} />
-											))}
-										</div>
-										<span className="field-help field-help-below">
-											{budgeted.length > cardRows
-												? `${budgeted.length - cardRows} more with a budget${sep}`
-												: ''}Budgets are set on a category's own page.
-										</span>
-									</>
-								) : (
-									/* Two absences, two answers: with categories the sentence names the next
-									   step and the button opens the list where budgets are set; with none, the
-									   step it named ("open a category") did not exist and the button opened an
-									   empty list -- an action that cannot show anything is not drawn.
-									   README: Empty states, Honest Affordances. */
-									<EmptyState>
-										{categories.length ? (
-											<>
-												<p>No budgets set yet. Add a budget to a category to see progress here.</p>
-												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
-											</>
-										) : (
-											<p>No categories yet. A budget is set on a category's own page.</p>
-										)}
-									</EmptyState>
-								)}
-							</CardBody>
-						</Card>
-					</>
-				)
-			}}</Async>
-		</Page>
+					</ListCell>,
+					folded ? null : <ListCell key="l" cell="amount"><Bar role="sp-amount" w="74" h="13" end /></ListCell>,
+					<ListCell key="x" cell="menu"><Skeleton shape="icon" /></ListCell>
+				]}
+			</ListRow>
+		</List>
 	)
 }

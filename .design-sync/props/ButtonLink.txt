@@ -1,9 +1,0 @@
-	/** An in-app route. Renders a react-router link; without it, a real `<button>`.
-	 *  Both forms are underlined and otherwise identical. */
-	to?: string;
-	/** The words, written in capitals: SEE ALL, CLEAR ALL, ADD AN ORDER. */
-	children?: React.ReactNode;
-	/** `button-link-invert` for a dark surface such as AiCard. */
-	className?: string;
-	onClick?: (event: React.MouseEvent) => void;
-	[key: string]: unknown;

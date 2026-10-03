@@ -1,2 +1,0 @@
-	/** The unit, always in short form: `kr.`, `pcs`. Never spelled out. */
-	children?: React.ReactNode;

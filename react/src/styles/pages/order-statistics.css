@@ -1,0 +1,34 @@
+/* Page layout for Statistics (Order statistics.dc.html). In @layer base, so it can never
+   outrank a component rule. */
+
+@layer base {
+
+	/* four figure cards, one per track; the tracks step with the shell (18b), two by two below it (7a) */
+	.os-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
+	@media (max-width: 1279.98px) {
+		.os-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	}
+
+	/* an expanded breakdown scrolls inside its card rather than growing the page (4d); its rows
+	   keep the card's own gap */
+	.os-scroll { max-height: 322px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-12); padding-right: var(--sp-4); }
+
+	/* the drill path's bar wraps rather than scrolls, and never cuts a name (4c) */
+	.os-crumbs { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: var(--sp-12); min-width: 0; }
+
+	/* a ranked row pressed to drill into what it names: the row as drawn, with a button's focus */
+	.os-pick { display: block; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: var(--r-tile); outline: none; }
+	.os-pick:focus-visible { box-shadow: var(--ring); }
+
+	/* the signed chart: a column that returned more than it bought hangs below the axis (4e) */
+	.os-below { display: flex; align-items: flex-start; gap: var(--sp-8); height: 26px; }
+	.os-below > span { flex: 1; }
+	.os-below__bar { background: var(--red-ink); border-radius: 0 0 var(--r-marker) var(--r-marker); height: 22px; }
+
+	/* a skeleton laid over the button it stands in for, which is kept unseen beneath so its size holds */
+	.os-hold { display: grid; flex: 1; }
+	.os-ghost,
+	.os-over { grid-area: 1 / 1; display: grid; }
+	.os-ghost { visibility: hidden; }
+
+}

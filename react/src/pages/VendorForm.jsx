@@ -1,315 +1,432 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
+import { Card } from '../components/Card.jsx'
+import { Field } from '../components/Field.jsx'
+import { TextField, TokensField } from '../components/Inputs.jsx'
+import { Check, Choice, Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
-import { Card, CardBody } from '../components/Card.jsx'
-import { Chip } from '../components/Chip.jsx'
-import { EntryRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { DeleteCard, FormPage, MoveOrdersCard, RecordWait, useDelete } from '../components/FormPage.jsx'
-import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
-import {
-	CheckRow, Field, FieldShell, TextInput, focusField, useFieldErrors
-} from '../components/Form.jsx'
-import { Combobox } from '../components/Combobox.jsx'
-import { useToast } from '../components/Toast.jsx'
+import { Icon } from '../components/Icon.jsx'
+import { VendorMark } from '../app/categoryMark.jsx'
+import { Sum } from '../components/Data.jsx'
+import { Well } from '../components/Well.jsx'
+import { Stacked } from '../components/Utilities.jsx'
+import { Alert, useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getCategories, getOrders, getVendor, getVendors,
-	invalidateOrderData, invalidateVendorData, moveVendorOrders, updateVendor
+	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendors,
+	invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor
 } from '../api/client.js'
-import { currency, plural, sep } from '../api/format.js'
-import { vendorGroups } from '../api/pickerGroups.js'
-import { categoryGroups } from '../api/pickerGroups.js'
+import { currency, dot, isSaving, plural } from '../api/format.js'
+import { likeness, looksAlike, vendorKey } from '../api/names.js'
+import { useShellShape } from '../app/useMedia.js'
+import { useListReturn } from '../app/listMemory.js'
+import {
+	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, MergeButton, MergeDialog, MergePicker, RecentLoading, RecentOrders, RecordPage, SWATCHES,
+	SummaryLoading, archiveVendor, deleteNote, focusFirst, hold, isGone, pickedColour, sayFailure, storedColour, useLeaveGuard
+} from './vendorsCategories.jsx'
 
-/* A vendor, on its own page -- the same page component as a category and as an order, because
-   there is one way to edit a record in this app rather than one per screen. The inline version
-   put a bordered section inside a card inside a horizontal scroller, which on a phone is a form
-   about as wide as its own labels. See components/FormPage.jsx. */
-
-export default function VendorForm({ mode = 'create' }) {
+/** A vendor, created (5b) or edited (5c): one page, one form, one rail. */
+export default function VendorForm() {
 	const { id } = useParams()
-	const existing = useApi(getVendor, [id], { enabled: mode === 'edit' })
-
-	if (mode === 'edit' && !existing.data) {
-		return <RecordWait state={existing} label="Loading the vendor" />
+	// once deleted or merged, that record is not read again (the page is on its way out); another one is
+	const [gone, setGone] = useState(null)
+	const record = useApi(getVendor, [id], { enabled: Boolean(id) && gone !== id })
+	const going = on => setGone(on ? id : null)
+	const list = useListReturn('vendors')
+	// the last record stays in hand while the next one loads, so it has to be the one the address names
+	if (id && record.data?.id !== id) {
+		if (record.error) return (
+			<div className="sp-stack sp-gap-12">
+				<Failed what="This vendor" error={record.error} onRetry={record.refresh}
+					back={{ to: list, label: 'Open Vendors' }} />
+			</div>
+		)
+		return <VendorFields key="loading" vendor={LOADING} loading loadingId={id} onGone={going} />
 	}
-	return <VendorFields mode={mode} vendor={existing.data ?? null} reload={existing.refresh} />
+	return <VendorFields key={id ?? 'new'} vendor={id ? record.data ?? null : null} onGone={going} />
 }
 
-function VendorFields({ mode, vendor, reload }) {
+// the form while the vendor is on its way: an existing record's form, every value held by a skeleton
+const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], orders: 0 }
+
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+const lower = s => String(s).trim().toLowerCase()
+
+function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
+	const list = useListReturn('vendors')
+	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
+	const fromScan = useLocation().state?.fromScan ?? null
 	const all = useApi(getVendors)
-	const categories = useApi(getCategories)
-	const [name, setName] = useState('')
-	const [colour, setColour] = useState(VENDOR_COLOURS[0].id)
-	const [favourite, setFavourite] = useState(false)
-	const [aliases, setAliases] = useState([])
-	const [aliasQuery, setAliasQuery] = useState('')
-	const [defaultCategories, setDefaultCategories] = useState([])
-	const [categoryQuery, setCategoryQuery] = useState('')
+	const h = loading ? hold : control => control
+	const editing = Boolean(vendor)
+	const start = useMemo(() => ({
+		name: vendor?.name ?? '',
+		aliases: vendor?.aliases ?? (fromScan?.name ? [fromScan.name] : []),
+		colour: vendor ? pickedColour(vendor.colour) : 'green-2',
+		favourite: Boolean(vendor?.favourite),
+		defaultCategories: vendor?.defaultCategories ?? []
+	}), [vendor])
+	const [values, setValues] = useState(start)
+	const [errors, setErrors] = useState({})
+	const [deleting, setDeleting] = useState(false)
+	// Merge into… (5d: nothing lives only in a row's menu): the picker, then the two 5j's dialog compares
+	const [picking, setPicking] = useState(false)
+	const [merging, setMerging] = useState(null)
+	// aliases another vendor holds, which this save moves here; and the one on offer to move
+	const [moves, setMoves] = useState([])
+	const [offer, setOffer] = useState(null)
+	// a vendor whose name is close to the one typed, offered instead (5b)
+	const [close, setClose] = useState(null)
+	const [busy, setBusy] = useState(false)
 	const [saving, setSaving] = useState(false)
+	// the vendor was deleted after this page opened it: what the save said, and nothing left to save
+	const [lost, setLost] = useState(null)
+	const writing = useRef(false)
+	const set = (key, value) => setValues(v => ({ ...v, [key]: value }))
 
-	useEffect(() => {
-		if (!vendor) return
-		setName(vendor.name)
-		setColour(vendor.colour)
-		setFavourite(Boolean(vendor.favourite))
-		setAliases(vendor.aliases ?? [])
-		setDefaultCategories(vendor.defaultCategories ?? [])
-	}, [vendor])
+	const changed = values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
+		|| values.colour !== start.colour || values.favourite !== start.favourite
+		|| !same(values.defaultCategories, start.defaultCategories)
+	const guard = useLeaveGuard(changed)
+	const leave = () => { guard.release(); navigate(list) }
+	// back to the receipt, with the vendor just made chosen on it
+	const back = name => { guard.release(); navigate(fromScan.to, { state: { pickedVendor: name } }) }
 
-	const fields = useMemo(() => {
-		const taken = (all.data ?? [])
-			.filter(v => v.id !== vendor?.id)
-			.map(v => v.name.toLowerCase())
-		return [
-			{ name: 'vendor-name', label: 'Name', check: v =>
-				!v ? 'Who do you buy from?'
-				: v.length > 80 ? '80 characters at most.'
-				: taken.includes(v.toLowerCase()) ? `You already have a vendor called ${v}.` : '' }
-		]
-	}, [all.data, vendor?.id])
-
-	const formValues = useMemo(() => ({ 'vendor-name': name }), [name])
-	const { check, recheck, propsFor } = useFieldErrors(fields, formValues)
-	const nameField = propsFor('vendor-name')
-
-	const initials = (name.trim() || 'NY').slice(0, 2).toUpperCase()
-
-	/* An alias is another string that resolves to this vendor, so one equal to the name says
-	   nothing, and one already in the list is already there -- neither is addable, and Enter
-	   with nothing addable does nothing rather than pretending. Clashes with *other* vendors'
-	   names are the server's to refuse; its sentence reaches the toast on save. */
-	const aliasClean = aliasQuery.trim()
-	const aliasAddable = Boolean(aliasClean)
-		&& aliasClean.length <= 80
-		&& aliasClean.toLowerCase() !== name.trim().toLowerCase()
-		&& !aliases.some(a => a.toLowerCase() === aliasClean.toLowerCase())
-	const addAlias = () => {
-		if (!aliasAddable) return
-		setAliases([...aliases, aliasClean])
-		setAliasQuery('')
+	const others = (all.data ?? []).filter(v => v.id !== vendor?.id)
+	// compared as receipts are matched: case, accents, punctuation and a legal form set aside (5h)
+	const owner = text => others.find(v => vendorKey(v.name) === vendorKey(text) || (v.aliases ?? []).some(a => vendorKey(a) === vendorKey(text)))
+	const nameProblem = name => {
+		if (!name.trim()) return 'Give the vendor a name.'
+		const taken = owner(name)
+		if (!taken) return null
+		return vendorKey(taken.name) === vendorKey(name)
+			? lower(taken.name) === lower(name) ? `You already have a vendor called ${taken.name}.` : `${taken.name} already has that name. Pick a different name.`
+			: `Another vendor, ${taken.name}, already matches "${name.trim()}". Pick a different name.`
+	}
+	// on leaving the field: the vendor most like this one, when the two look like one shop (5j)
+	const lookAlike = name => {
+		if (!name.trim() || name.trim() === start.name.trim()) return null
+		const typed = { name, aliases: values.aliases }
+		return others.filter(v => vendorKey(v.name) !== vendorKey(name) && looksAlike(v, typed))
+			.sort((a, b) => likeness(b.name, name) - likeness(a.name, name))[0] ?? null
 	}
 
-	const addDefaultCategory = value => {
-		const clean = String(value).trim()
-		if (clean && !defaultCategories.includes(clean)) setDefaultCategories([...defaultCategories, clean])
-		setCategoryQuery('')
+	/* A name another vendor already matches would file receipts in two places, so it is
+	   stopped where it is typed: another vendor's alias can be moved here, its name cannot. */
+	const changeAliases = next => {
+		const added = next.find(a => !values.aliases.includes(a))
+		setOffer(null)
+		if (added) {
+			const taken = owner(added)
+			if (taken && vendorKey(taken.name) === vendorKey(added)) return setErrors(e => ({
+				...e, aliases: `Another vendor is called ${taken.name}. Pick a different one.`
+			}))
+			if (taken) {
+				setOffer({ alias: added, holder: taken })
+				return setErrors(e => ({ ...e, aliases: `${taken.name} already matches "${added}". Move it here, or pick a different one.` }))
+			}
+			if (vendorKey(added) === vendorKey(values.name))
+				return setErrors(e => ({ ...e, aliases: 'That is already the vendor\'s name. Add the other names it uses.' }))
+		}
+		setErrors(e => ({ ...e, aliases: null }))
+		setMoves(m => m.filter(a => next.includes(a)))
+		set('aliases', next)
 	}
-
-	const refresh = () => invalidateVendorData()
+	const moveHere = () => {
+		setMoves(m => [...m, offer.alias])
+		set('aliases', [...values.aliases, offer.alias])
+		setErrors(e => ({ ...e, aliases: null }))
+		setOffer(null)
+	}
+	const keepThere = () => { setErrors(e => ({ ...e, aliases: null })); setOffer(null) }
 
 	const save = () => {
-		const failed = check()
-		if (failed.length) {
-			focusField(failed[0].name)
-			return
-		}
+		if (writing.current) return
+		const nameError = nameProblem(values.name)
+		setErrors(e => ({ ...e, name: nameError }))
+		if (nameError) return focusFirst(['vendor-name'])
+		writing.current = true
 		setSaving(true)
-		const patch = { name: name.trim(), colour, initials, favourite, aliases, defaultCategories }
-		const written = mode === 'edit' ? updateVendor(vendor.id, patch) : createVendor(patch.name, patch)
+		const name = values.name.trim()
+		const look = {
+			// an alias the name already matches says nothing more, and the API refuses it
+			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
+			favourite: values.favourite, defaultCategories: values.defaultCategories,
+			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {}),
+			...(fromScan && !editing ? { origin: 'scan' } : {})
+		}
+		const written = editing ? updateVendor(vendor.id, look) : createVendor(name, look)
 		written
 			.then(saved => {
-				refresh()
-				toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
-				navigate('/vendors/all')
+				invalidateVendorData()
+				invalidateCategoryData()
+				if (fromScan && !editing) return back(saved.name)
+				leave()
 			})
-			.catch(e => { setSaving(false); toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
+			.catch(e => {
+				writing.current = false
+				setSaving(false)
+				if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
+				const message = failureMessage(e, 'The vendor was not saved. Check the connection and try again.')
+				if (!message) return
+				const about = !e?.status || e.status >= 500 ? null
+					: message.startsWith(`You already have a vendor called ${name}.`) || message.endsWith('Pick a different name.')
+						|| /needs a name/.test(message) ? 'name'
+						: /alias|vendor called|already matches/.test(message) ? 'aliases' : null
+				if (!about) return toast({ message, color: 'danger' })
+				setErrors(err => ({ ...err, [about]: message }))
+				focusFirst([about === 'name' ? 'vendor-name' : 'vendor-aliases'])
+			})
 	}
 
-	/* Order rows carry the vendor's own name and colour, so moving them re-reads the order side
-	   as well as the two vendors. */
-	const moveOrders = target => moveVendorOrders(vendor.id, target.id)
-		.then(r => {
-			/* Same as the category form: the page stays open on this record, so its own two reads
-			   are asked again rather than only dropped from the cache. */
-			invalidateOrderData()
-			reload()
-			all.refresh()
-			toast(`${plural(r.moved, 'order')} moved to ${r.name}.`)
-		})
-		.catch(e => toast(failureMessage(e, 'Those orders did not move.'), 'negative'))
+	/* Archiving asks nothing and offers Undo in its toast (6f). It returns to the list, which the
+	   vendor has left; unarchiving stays on the page. */
+	const setArchived = to => {
+		setBusy(true)
+		archiveVendor({ vendor, to, update: updateVendor, toast, done: invalidateVendorData })
+			.then(() => {
+				setBusy(false)
+				if (to) leave()
+			})
+			.catch(e => {
+				setBusy(false)
+				if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
+				sayFailure(toast, e, 'That did not change. Try again.')
+			})
+	}
 
-	const del = useDelete({
-		what: 'vendor',
-		detail: vendor ? `${vendor.name}, ${vendor.orders} order${vendor.orders === 1 ? '' : 's'}.` : '',
-		onDelete: () => deleteVendor(vendor.id)
-			.then(() => { refresh(); toast(`${vendor.name} removed.`); navigate('/vendors/all') })
-			/* A vendor with orders on it cannot go: the orders would point at nothing. The API
-			   refuses with a 409 that names the reason rather than failing silently. */
-			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
-	})
+	// the vendor is gone once merged, so the page goes back to the list
+	const merge = target => {
+		setBusy(true)
+		onGone(true)
+		mergeVendor(vendor.id, target.id)
+			.then(() => {
+				invalidateVendorData()
+				invalidateCategoryData()
+				toast({ message: `${vendor.name} is merged into ${target.name}.` })
+				leave()
+			})
+			.catch(e => {
+				setBusy(false)
+				onGone(false)
+				sayFailure(toast, e, 'The vendors were not merged. Try again.')
+			})
+	}
+
+	const remove = () => {
+		setBusy(true)
+		onGone(true)
+		deleteVendor(vendor.id)
+			.catch(e => { if (!isGone(e)) throw e })
+			.then(() => {
+				invalidateVendorData()
+				invalidateCategoryData()
+				leave()
+			})
+			.catch(e => {
+				setBusy(false)
+				onGone(false)
+				sayFailure(toast, e, 'The vendor was not deleted. Try again.')
+			})
+	}
+
+	const marked = vendor?.lastMatched && values.aliases.includes(vendor.lastMatched) ? vendor.lastMatched : null
+
+	const cards = (
+		<>
+			<Card>
+				<span className="sp-section-label">The vendor</span>
+				<Field id="vendor-name" label="Name"
+					message={errors.name ?? (editing ? undefined : 'The name you will recognise in a list. Receipts can spell it differently.')}
+					messageType={errors.name ? 'danger' : 'hint'}>
+					{h(<TextField value={values.name} onChange={v => { set('name', v); setClose(null) }}
+						onBlur={() => { const problem = nameProblem(values.name); setErrors(e => ({ ...e, name: problem })); setClose(problem ? null : lookAlike(values.name)) }}
+						placeholder={editing ? undefined : 'Where you bought it'} />)}
+				</Field>
+				{close
+					? (
+						<Alert color="warning" mark="!" action={<Button variant="outline" size="small" to={`/vendors/${close.id}/edit`}>Open {close.name}</Button>}>
+							You already have {close.name}, a name very like this one. If it is the same shop, use that vendor instead.
+						</Alert>
+					)
+					: null}
+			</Card>
+
+			<Card>
+				<span className="sp-section-label">Aliases</span>
+				<Field id="vendor-aliases" label="Also matches"
+					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
+						? 'Other names this vendor uses on receipts. The name the scan read is already here. Keep it, so the next receipt is filed here by itself.'
+						: `Other names this vendor uses on receipts. A receipt with one of these is filed here.${marked ? ' The green one is the name the last receipt matched.' : ''}`)}
+					messageType={errors.aliases ? 'danger' : 'hint'}>
+					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
+				</Field>
+				{offer
+					? (
+						<div className="sp-row-flex sp-gap-8">
+							<Button variant="outline" size="small" onClick={moveHere}>Move it here</Button>
+							<Button variant="outline" size="small" onClick={keepThere}>Keep it on {offer.holder.name}</Button>
+						</div>
+					)
+					: null}
+				<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
+					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
+						value={values.colour} onChange={v => set('colour', v)} />)}
+				</Field>
+				<Choice variant="described" description="Kept at the top of Vendors."
+					control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
+					Favourite
+				</Choice>
+			</Card>
+
+			<Card>
+				<span className="sp-section-label">Defaults for its orders</span>
+				<Field id="vendor-defaults" label="Default categories"
+					message="Suggested on a new order from this vendor. Not applied automatically.">
+					{h(<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder="none" />)}
+				</Field>
+			</Card>
+		</>
+	)
+
+	const touch = useShellShape() === 'touch'
+	// a phone always shows its save bar, since it stands in the tab bar's place (Mobile 5b)
+	const bar = touch || !editing || changed
+		? (
+			<CommitBar status={!editing ? 'Nothing saved yet' : changed ? 'Unsaved changes' : null} quiet={!editing}
+				onCancel={() => navigate(fromScan && !editing ? fromScan.to : list)} onSave={lost ? null : save} commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save vendor' : 'Create'}
+				saving={saving} disabled={loading} />
+		)
+		: null
+
+	const name = values.name.trim()
+	// the list answer, when in hand, says whether the loaded rail has recent orders and a Delete
+	const known = loading ? all.data?.find(v => v.id === loadingId) : null
+	const end = endWords(known ?? { orders: 10 })
+	const rail = loading
+		? (
+			<>
+				<SummaryLoading label="Vendor summary" sums={[['Spend this year', '76'], ['Average order', '76'], ['Saved', '76'], ['Returned', '64']]}
+					action="See more in statistics" />
+				{!known || known.orders ? <RecentLoading /> : null}
+				<EndLoading label="End of its life" title={end.title} body={end.body}
+					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive'}</Button>}
+					after={<Button variant="outline" size="small" fullWidth>Merge into…</Button>} />
+			</>
+		)
+		: editing
+			? (
+				<>
+					<VendorSummary vendor={vendor} name={name || vendor.name} colour={storedColour(values.colour)} />
+					<RecentOrders filter={{ vendorId: vendor.id }} to={`/orders?vendor=${vendor.id}`} total={vendor.orders} />
+					<EndOfLife vendor={vendor} busy={busy} onArchive={() => setArchived(true)} onUnarchive={() => setArchived(false)}
+						onDelete={() => setDeleting(true)}
+						merge={{
+							open: picking, onToggle: () => setPicking(!picking), onClose: () => setPicking(false),
+							picker: box => <MergePicker kind="vendor" source={vendor} options={all.data ?? []} anchor={box} position="start"
+								onClose={() => setPicking(false)} onPick={target => { setPicking(false); setMerging(target) }} />
+						}} />
+				</>
+			)
+			: (
+				<Card>
+					<span className="sp-section-label">Vendor summary</span>
+					<div className="sp-row-flex sp-gap-12">
+						<VendorMark name={name || 'New vendor'} colour={storedColour(values.colour)} />
+						<Stacked>
+							<span className="sp-title sp-truncate">{name || 'New vendor'}</span>
+							<span className="sp-meta">Nothing saved yet</span>
+						</Stacked>
+					</div>
+					<div className="sp-stack">
+						<Sum value={name || '-'}>Name</Sum>
+						<Sum value={values.aliases.length}>Aliases</Sum>
+						<Sum value={values.defaultCategories.length}>Default categories</Sum>
+					</div>
+				</Card>
+			)
 
 	return (
-		<FormPage
-			title={mode === 'edit' ? 'Edit vendor' : 'New vendor'}
-			lead={mode === 'edit'
-				? 'Its name, the tile its initials sit on, and whether it stays on top.'
-				: 'It is added to your list immediately, with no orders yet.'}
-			cancel={{ to: '/vendors/all' }}
-			submit={{
-				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',
-				onClick: save, disabled: saving
-			}}
-			rail={
-				<>
-					<VendorSummary name={name} colour={colour} initials={initials}
-						favourite={favourite} aliases={aliases} defaultCategories={defaultCategories}
-						vendor={vendor} />
-					{mode === 'edit' ? (
-						<MoveOrdersCard what="vendor" from={vendor.name} count={vendor.orders}
-							groups={vendorGroups((all.data ?? []).filter(v => v.id !== vendor.id))}
-							onMove={moveOrders}>
-							{vendor.orders
-								? 'Every order from this vendor moves to the vendor you pick. Nothing else on the orders changes.'
-								: 'This vendor has no orders, so there is nothing to move.'}
-						</MoveOrdersCard>
-					) : null}
-					{mode === 'edit' ? (
-						<DeleteCard what="vendor" del={del}>
-							A vendor that still has orders on it cannot be removed: the orders would
-							point at nothing.
-						</DeleteCard>
-					) : null}
-				</>
-			}>
-
-			<Field label="Name" error={nameField.error} errorId={nameField.errorId} htmlFor="vendor-name">
-				<FieldShell>
-					<TextInput id="vendor-name" value={name} autoFocus
-						onChange={v => { setName(v); recheck('vendor-name', v) }}
-						aria-label="Vendor name" aria-required="true"
-						invalid={nameField.invalid} describedBy={nameField.describedBy}
-						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
-				</FieldShell>
-			</Field>
-
-			{/* htmlFor, because the chips are labelable and come first -- same reason as the
-			    categories field on the order form (components/Form.jsx): without it the label
-			    points at the first chip's remove button and a tap anywhere in the field that is
-			    not itself a control deletes an alias. */}
-			<Field label="Aliases" optional htmlFor="vendor-aliases"
-				help={'Other names for this vendor: the name it had before a rename, or the short '
-					+ 'form an invoice prints. An order or scanned receipt with one of these names is '
-					+ 'filed under this vendor. Type a name and press Enter; it must be different from the vendor\'s name.'}>
-				<FieldShell className="field-shell-chips field-shell-no-chevron">
-					{aliases.map(a => (
-						<Chip key={a} label={`Remove alias ${a}`}
-							onRemove={() => setAliases(aliases.filter(x => x !== a))}>{a}</Chip>
-					))}
-					<TextInput id="vendor-aliases" value={aliasQuery} onChange={setAliasQuery}
-						aria-label="Add alias" placeholder="Add alias..."
-						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAlias() } }} />
-				</FieldShell>
-			</Field>
-
-			{/* htmlFor for the same reason the aliases field above has one: the chips come first
-			    and are labelable, so without it the label points at a chip's remove button. */}
-			<Field label="Default categories" optional htmlFor="vendor-categories"
-				help={'A new order naming this vendor starts with these categories filled in. They '
-					+ 'are a starting point, not a rule: the order form can add or remove any of them '
-					+ 'before it is saved, and changing them here never touches orders already saved.'}>
-				<Combobox id="vendor-categories" label="Add default category" placeholder="Add category..."
-					chips={defaultCategories.map(c => (
-						<Chip key={c} label={`Remove default category ${c}`}
-							onRemove={() => setDefaultCategories(defaultCategories.filter(x => x !== c))}>
-							{c}</Chip>
-					))}
-					value={categoryQuery} onChange={setCategoryQuery}
-					onSelect={o => addDefaultCategory(o.label)}
-					groups={categoryGroups(categories.data, { exclude: defaultCategories })}
-					action={categoryQuery.trim()
-						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
-							onSelect: addDefaultCategory }
-						: undefined} />
-			</Field>
-
-			<Field label="Colour" group
-				help="Pick one of the eight colours shown, or choose any colour in the last box.">
-				<ColourPicker value={colour} onChange={setColour} colours={VENDOR_COLOURS}
-					label="Vendor colour" />
-			</Field>
-
-			{/* Favourite is a form choice: it lands when SAVE CHANGES runs, and a switch that
-			    needs a save is a checkbox wearing the wrong costume -- the README's own words,
-			    which this row obeyed only after the Import tab did. Every binary option in the
-			    app is this row now, Settings' immediate ones included: one shape to learn,
-			    and what follows the click is what differs. README: Checkbox Row. */}
-			<CheckRow id="vendor-favourite" checked={favourite} onChange={setFavourite}
-				label="Favourite"
-				help="Spotlighted at the top of the Vendors page, leads the vendor list on a new order, and appears in Home's Favourite vendors card." />
-		</FormPage>
+		<>
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Vendors' }} /> : null}
+				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
+			{guard.prompt}
+			{deleting
+				? (
+					<ConfirmDelete title={`Delete ${vendor.name}?`} action="Delete vendor" busy={busy}
+						onConfirm={remove} onCancel={() => setDeleting(false)}>
+						{deleteNote(vendor)}
+					</ConfirmDelete>
+				)
+				: null}
+			{merging
+				? <MergeDialog kind="vendor" source={vendor} initial={merging} options={all.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				: null}
+		</>
 	)
 }
 
-/** The rail card that mirrors the form: the row as it will be drawn, then its values, then
-    what the vendor has cost all told. */
-function VendorSummary({ name, colour, initials, favourite, aliases, defaultCategories, vendor }) {
-	const navigate = useNavigate()
-	const toast = useToast()
-	const [finding, setFinding] = useState(false)
-
-	/* One row of the order list, sorted the way it already sorts. Asked on the click: a reader
-	   who came to rename a vendor is not owed a query about its orders. */
-	const copyLatest = () => {
-		setFinding(true)
-		getOrders({ vendorId: vendor.id, sort: 'date-desc', pageSize: 1 })
-			.then(({ orders }) => {
-				const latest = orders[0]
-				if (!latest) {
-					setFinding(false)
-					toast(`${vendor.name} has no orders to copy.`, 'negative')
-					return
-				}
-				navigate(`/orders/${latest.id}/copy`)
-			})
-			.catch(e => { setFinding(false)
-				toast(failureMessage(e, 'That did not open. Try again.'), 'negative') })
+/** What the end-of-life card says (5c): archiving always works and can be undone; only a vendor
+    with no orders can be deleted. */
+const endWords = ({ orders, archived = false }) => {
+	if (archived) return {
+		title: 'This vendor is archived',
+		body: orders
+			? `It is out of the vendor list and the order list's filters. Its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} it as their vendor.`
+			: 'It is out of the vendor list and the order list\'s filters. Deleting removes it outright.'
 	}
+	return orders
+		? { title: 'A vendor with orders cannot be deleted', body: `Every order must name a vendor, so its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} this one. Archiving takes it out of the list and the order list's filters, and leaves the orders as they are. If it is the same shop as another vendor, merge it into that one.` }
+		: { title: 'Nothing points at this vendor any more', body: 'Archiving keeps it out of the way; deleting removes it outright.' }
+}
 
+/** The end-of-life card (5c): Archive, or Unarchive once archived, and Delete at zero orders; under
+    them Merge into… (5d), whose picker `merge` holds. */
+function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
+	const { title, body } = endWords(vendor)
+	const footer = [
+		vendor.archived
+			? <Button key="archive" variant="outline" disabled={busy} onClick={onUnarchive}>Unarchive</Button>
+			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>Archive</Button>,
+		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
+	].filter(Boolean)
 	return (
-		<Card aria-label="Vendor summary">
-			<CardBody>
-				<div className="card-subheading">Vendor summary</div>
-				<span className="section-label">How it will look</span>
-				<div className="entry-list summary-preview">
-					<EntryRow avatar={{ colour, initials }} name={name || 'Your vendor'}
-						meta={vendor
-							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'}${sep}saved ${currency(vendor.saved, 0)}`
-							: 'no orders yet'} />
-				</div>
-				<SummaryRow label="Name" value={name || '-'} />
-				<SummaryRow label="Initials" value={initials} />
-				<SummaryRow label="Favourite" value={favourite ? 'Yes' : 'No'} />
-				<SummaryRow label="Aliases" value={aliases.length ? aliases.join(', ') : '-'} />
-				<SummaryRow label="Default categories"
-					value={defaultCategories.length ? defaultCategories.join(', ') : '-'} />
-				{vendor ? <SummaryRow label="Saved vs retail" value={currency(vendor.saved, 0)} /> : null}
-				<div className="card-divider card-divider-tight" />
-				<SummaryTotal label="Spent all time" value={currency(vendor?.spend ?? 0, 0)}
-					estimate={!vendor} />
-				<span className="field-help">
-					The initials are inked light or dark from the tile colour, so they stay readable
-					whatever you pick.
-				</span>
-				{/* The way into the orders the figure above is the sum of, on the page that holds
-				    every other action on this record. At the foot, because a card ending
-				    in a link into a longer list ends in the block button, like the six that
-				    already do. README: Cards, Create and Edit. Only when there is a record: a
-				    vendor being created has no orders to list. */}
-				{vendor ? (
-					<Button variant="block" icon="receipt" to={`/orders/all?vendor=${vendor.id}`}>
-						VIEW ORDERS
-					</Button>
-				) : null}
-				{/* A shop visited on a schedule is the same order every time. Hidden with no
-				    orders, since there is no last one to open. README: Copying an Order. */}
-				{vendor?.orders ? (
-					<Button variant="block" icon="copy" onClick={copyLatest} disabled={finding}>
-						{finding ? 'OPENING...' : 'COPY LATEST ORDER'}
-					</Button>
-				) : null}
-			</CardBody>
+		<Card footer={footer} footerLayout={footer.length > 1 ? 'split' : 'fill'} footerCommits
+			after={<MergeButton merge={merge} size="small" disabled={busy}>Merge into…</MergeButton>}>
+			<span className="sp-section-label">End of its life</span>
+			<Well>
+				<span className="sp-title">{title}</span>
+				<span className="sp-subtitle">{body}</span>
+			</Well>
+		</Card>
+	)
+}
+
+/** What the vendor has cost, beside the fields that describe it (5c). */
+function VendorSummary({ vendor, name, colour }) {
+	const year = useApi(getStats, ['year', undefined, undefined])
+	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: 'Returned', pageSize: 1 }])
+	const thisYear = year.data ? year.data.window.vendorSplit.find(v => v.id === vendor.id)?.amount ?? 0 : null
+	return (
+		<Card>
+			<span className="sp-section-label">Vendor summary</span>
+			<div className="sp-row-flex sp-gap-12">
+				<VendorMark name={name} colour={colour} />
+				<Stacked>
+					<span className="sp-title sp-truncate">{name}</span>
+					<span className="sp-meta sp-truncate">{plural(vendor.orders, 'order')}{vendor.createdByScan ? `${dot}created by receipt scan` : null}</span>
+				</Stacked>
+			</div>
+			<div className="sp-stack">
+				<Sum value={thisYear === null ? '' : currency(thisYear, 0)}>Spend this year</Sum>
+				<Sum value={currency(vendor.orders ? vendor.spend / vendor.orders : 0, 0)}>Average order</Sum>
+				<Sum value={<span className={isSaving(vendor.saved, 0) ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>Saved</Sum>
+				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>Returned</Sum>
+			</div>
+			<Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>See more in statistics</Button>
 		</Card>
 	)
 }

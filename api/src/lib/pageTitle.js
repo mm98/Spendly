@@ -90,7 +90,7 @@ export function titleFrom(html) {
 		?? html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim()
 	if (!raw) return null
 	const text = decode(raw)
-	// The wish's own name field takes 120 characters, and a page title that runs longer than
+	// The bookmark's own name field takes 120 characters, and a page title that runs longer than
 	// that is a sentence about the shop rather than a name for the thing.
 	return text ? text.slice(0, 120) : null
 }
@@ -123,7 +123,7 @@ export async function fetchPagePreview(url) {
 				signal: AbortSignal.timeout(TIMEOUT_MS),
 				headers: {
 					// Named honestly. A shop that would rather not be read this way can say so.
-					'User-Agent': 'Spendly/1.0 (+wishlist link preview)',
+					'User-Agent': 'Spendly/1.0 (+bookmark link preview)',
 					'Accept': 'text/html,application/xhtml+xml'
 				}
 			})
@@ -179,7 +179,7 @@ export async function fetchImage(url) {
 			res = await fetch(at, {
 				redirect: 'manual',
 				signal: AbortSignal.timeout(TIMEOUT_MS),
-				headers: { 'User-Agent': 'Spendly/1.0 (+wishlist link preview)', 'Accept': 'image/*' }
+				headers: { 'User-Agent': 'Spendly/1.0 (+bookmark link preview)', 'Accept': 'image/*' }
 			})
 		} catch { return null }
 

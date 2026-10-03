@@ -1,9 +1,0 @@
-	/** The record in words, lower case: "vendor", "category", "wish". It is uppercased into
-	 *  the header and the button label. */
-	what?: string;
-	/** One or two sentences on what removing it does, and what stops it. */
-	children?: React.ReactNode;
-	/** The object `useDelete({ what, detail, onDelete })` returns. The card draws `del.button`
-	 *  and `del.dialog`; the hook owns the confirmation and reads the account's
-	 *  "ask before deleting" setting. */
-	del?: { button: React.ReactNode; dialog: React.ReactNode; confirming?: boolean; iconButton?: React.ReactNode };

@@ -1,0 +1,38 @@
+/* Layout for the budget's whole-year sheet (21b) and the bank check's column table (21h).
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+	/* the whole year shows at full height; only the months scroll sideways, under the names */
+	.bg-scroll { overflow-x: auto; }
+	.bg-sheet thead th { background: var(--surface); }
+	.bg-sheet tbody td:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+	.bg-sheet thead th:first-child { position: sticky; left: 0; z-index: 3; }
+	/* a section or group row spans the sheet, so its label is what holds still, at the card's inset */
+	.bg-sheet tbody td[colspan] { position: static; }
+	.bg-sheet tbody td[colspan] > span { position: sticky; left: var(--card-pad); display: inline-block; }
+	/* an open editor or an add row spans the sheet; what it holds stays still across the box in view, at the card's inset */
+	.bg-view { container-type: inline-size; }
+	.bg-sheet tbody td.bg-hold > .bg-held { position: sticky; left: var(--card-pad); z-index: 1; width: calc(100cqi - 2 * var(--card-pad)); }
+	/* an editor with a list open lies over the sticky cells after it, so the list is what a press reaches */
+	.bg-sheet tbody td.bg-hold > .bg-held:has([aria-expanded="true"]) { z-index: 4; }
+	.bg-sheet .bg-col-name { width: 180px; }
+	.bg-sheet .bg-col-account { width: 120px; }
+	.bg-sheet tbody td.bg-opens { cursor: pointer; }
+	/* on touch an account's name, which opens its editor, is a target as tall as a control */
+	.sp-touch .bg-opens-account { min-height: var(--control-h-touch); justify-content: center; }
+
+	/* while the budget loads, a bar held at the line box of the text it stands in for */
+	.bg-line { display: flex; align-items: center; height: 1lh; }
+	/* and on touch the year picker's place in the bar */
+	.bg-fill { flex: 1 1 0; min-width: 0; }
+
+	.sp-table .bg-col-map { width: 240px; }
+	/* on a phone the bank check's column table scrolls sideways like the sheet: never narrower than
+	   twice the Spendly column, so the other two share at least its width and part of it shows */
+	@media (max-width: 639.98px) {
+		.bg-sideways { overflow-x: auto; }
+		.bg-map { min-width: 480px; }
+	}
+
+}

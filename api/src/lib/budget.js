@@ -46,8 +46,6 @@ const renameGroup = db.prepare('UPDATE budget_groups SET name = ? WHERE id = ? A
 const setGroupPosition = db.prepare('UPDATE budget_groups SET position = ? WHERE id = ? AND user_id = ?')
 const updateLineText = db.prepare('UPDATE budget_lines SET name = ?, account_id = ? WHERE id = ? AND user_id = ?')
 const setLinePlace = db.prepare('UPDATE budget_lines SET group_id = ?, position = ? WHERE id = ? AND user_id = ?')
-const deleteAllYears = db.prepare('DELETE FROM budget_years WHERE user_id = ?')
-const deleteAllAccounts = db.prepare('DELETE FROM budget_accounts WHERE user_id = ?')
 const renameAccountRow = db.prepare('UPDATE budget_accounts SET name = ? WHERE id = ? AND user_id = ?')
 const setAccountGrey = db.prepare('UPDATE budget_accounts SET grey = ? WHERE id = ? AND user_id = ?')
 const setAccountPosition = db.prepare('UPDATE budget_accounts SET position = ? WHERE id = ? AND user_id = ?')
@@ -56,7 +54,6 @@ const selectLinks = db.prepare('SELECT pattern, kind, line_name FROM bank_links 
 const upsertLink = db.prepare(`INSERT INTO bank_links (user_id, pattern, kind, line_name) VALUES (?, ?, ?, ?)
 	ON CONFLICT (user_id, pattern, kind) DO UPDATE SET line_name = excluded.line_name`)
 const deleteLinkRow = db.prepare('DELETE FROM bank_links WHERE user_id = ? AND pattern = ? AND kind = ?')
-const deleteAllLinks = db.prepare('DELETE FROM bank_links WHERE user_id = ?')
 
 /* ---- reading ---- */
 
@@ -143,16 +140,17 @@ const COPY = {
 	none: () => ({ expected: null, real: null })
 }
 
-/** A new year, empty or copied from another. Refuses a year that is already there. */
+/** A new year, copied from another, or with no groups: each side already carries its own heading,
+    so a starter group would only repeat it. Refuses a year that is already there. */
 export const createYear = db.transaction((userId, year, { from, amounts = 'same' } = {}) => {
-	if (selectYear.get(userId, year)) throw Object.assign(new Error(`${year} is already there.`), { status: 409 })
+	if (selectYear.get(userId, year)) throw Object.assign(new Error(`There is already a budget for ${year}.`), { status: 409 })
 	const source = from == null ? null : readYear(userId, from)
 	if (from != null && !source) throw notFound('year to copy from')
 	const yearId = newId('by')
 	insertYear.run(yearId, userId, year)
 	const groups = source
 		? source.groups.map(g => ({ ...g, lines: g.lines.map(l => ({ ...l, months: l.months.map(COPY[amounts]) })) }))
-		: [{ kind: 'income', name: 'Income', lines: [] }, { kind: 'expense', name: 'Costs', lines: [] }]
+		: []
 	groups.forEach((group, i) => addGroupRows(userId, yearId, group, i))
 })
 
@@ -289,11 +287,3 @@ export const listLinks = userId =>
 export const saveLink = (userId, { pattern, kind, line }) => upsertLink.run(userId, pattern, kind, line)
 
 export const forgetLink = (userId, { pattern, kind }) => deleteLinkRow.run(userId, pattern, kind)
-
-/** Forgets every year, the whole account list and every placed payment -- the reset that
-    starts a login afresh. */
-export const wipeBudget = db.transaction(userId => {
-	deleteAllYears.run(userId)
-	deleteAllAccounts.run(userId)
-	deleteAllLinks.run(userId)
-})

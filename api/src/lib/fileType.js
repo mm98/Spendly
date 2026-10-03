@@ -19,8 +19,8 @@
    Deliberately not a security boundary. It says what a container claims to be, not whether it
    is safe: sharp and mupdf are still the things parsing untrusted bytes, and a valid PDF can
    still be a malicious one. It is here for correctness -- so the pipeline treats a file as
-   what it is -- and nothing below rejects an upload for failing to match. An unrecognised file
-   is stored exactly as it arrives, the same as before. */
+   what it is. A file picked or dropped in the app must be one of these (assertImageOrPdf); the
+   bulk import still stores an unrecognised attachment as it arrives. */
 
 const ascii = text => [...text].map(c => c.charCodeAt(0))
 
@@ -64,4 +64,11 @@ export function detectKind(buffer, declaredType, name) {
 	const detected = detectFileType(buffer)
 	if (detected) return detected.kind
 	return declaredType === 'application/pdf' || /\.pdf$/i.test(name ?? '') ? 'pdf' : 'image'
+}
+
+/** Refuses an upload, with a sentence, when any of its files is not an image or a PDF by its
+    own bytes -- before anything is stored, so a refused upload adds nothing. */
+export function assertImageOrPdf(files) {
+	const other = files.find(file => !detectFileType(file.buffer))
+	if (other) throw Object.assign(new Error(`The file "${other.originalname}" is not an image or a PDF. Nothing was added.`), { status: 415 })
 }

@@ -1,77 +1,37 @@
 import { lazy } from 'react'
 import { redirect } from 'react-router'
-import { AppShell } from './components/Shell.jsx'
-import { RouteError } from './components/RouteError.jsx'
-import { ListState } from './components/ListState.jsx'
-import { Waiting } from './components/Async.jsx'
+import { AppShell } from './app/AppShell.jsx'
+import { RouteError, ShellError } from './app/RouteError.jsx'
+import { SignedOut } from './app/SignedOut.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
 import { cachedFetch } from './api/useApi.js'
 import { setCurrency, setLocale } from './api/format.js'
-import Login from './pages/Login.jsx'
-import Register from './pages/Register.jsx'
+import { setDensity } from './app/theme.js'
 
-/* Every route under the app shell requires a signed-in session — checked once per navigation
-   by this loader, rather than by every page guessing at whether its own data will 401. A
-   session-less visitor is sent to /login before the shell (sidebar, rail, command palette)
-   ever mounts, so none of that chrome has to handle "no user" as a state of its own.
-
-   React Router reruns a matched loader on every navigation, including one that only changes
-   the URL's search params -- a pagination click, a filter -- so this ran on every page turn of
-   All orders and fired /api/auth/me plus /api/settings each time, cache or no cache, because it
-   called the client functions directly rather than through it. `cachedFetch` is the same
-   trusted-within-FRESH_MS cache useApi gives a page (useApi.js): once this account has been
-   checked, a hit here costs nothing until the entry goes stale or a write invalidates it
-   (login, logout and settings-save already do, in client.js), so a reader who is already known
-   to be signed in is not re-asked on every navigation -- only the first one, and then again
-   only after the horizon. */
-const requireAuth = async () => {
+/* Every route under the shell needs a signed-in session, checked once per navigation; the
+   account's currency and date format are read on the same wait, before any figure is drawn. */
+const requireAuth = async ({ request }) => {
 	try {
-		await cachedFetch(getCurrentUser)
-		/* The account's currency and date format, resolved before the first page renders
-		   rather than by whichever page happens to load settings. Every figure and every date
-		   in the product is printed through them, and most pages never read settings at all --
-		   opening /stats directly would otherwise draw a whole screen of totals in the shipped
-		   default before anything corrected them, or after it, which is worse: a figure that
-		   changes currency, or a date that changes shape, a moment after it is read. Here it
-		   is one await on a path every page already waits for. Its own failure is not the
-		   shell's: a settings read that falls over should not send a signed-in reader to the
-		   login screen, so both stay at their defaults and the page still renders. Cached under
-		   the same key useApi(getSettings) uses, so a page that reads settings itself (Settings,
-		   AllOrders, ...) shares this answer instead of asking twice. */
-		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale) }).catch(() => {})
+		const user = await cachedFetch(getCurrentUser)
+		// an account that has not had its first run is sent there from every page (20e)
+		if (user?.needsSetup) {
+			const { pathname, search } = new URL(request.url)
+			throw redirect(pathname === '/' ? '/welcome' : `/welcome?next=${encodeURIComponent(pathname + search)}`)
+		}
+		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale); setDensity(s?.density) }).catch(() => {})
 		return null
 	} catch (e) {
-		if (e.status === 401) throw redirect('/login')
+		if (e instanceof Response) throw e
+		if (e.status === 401) {
+			const { pathname, search } = new URL(request.url)
+			throw redirect(pathname === '/' ? '/signin' : `/signin?next=${encodeURIComponent(pathname + search)}`)
+		}
 		throw e
 	}
 }
 
-/* Every page is loaded when it is first opened, not when the app is.
-
-   Ten page modules held one chunk between them, so opening Home downloaded the scan flow, both
-   forms, the statistics pager and every page's charts. They are `lazy` here rather than
-   imported: the bundler gives each module a chunk, the shell has one Suspense boundary for the
-   lot (see components/Shell.jsx), and a page arrives when it is navigated to.
-
-   `handle` stays right here, static, and that is the point rather than an oversight -- the
-   title, the rail item, the back button and the sub-tabs are known before a page's chunk is
-   requested, so the shell is never drawn nameless while one is in flight. A page that named
-   itself from inside its own module would put those four back where the prototype had them.
-
-   A module with more than one page in it (NewOrder, Scan, EditOrder) is named once per export
-   and still fetched once: they resolve to the same chunk. */
-
-/* A deploy gives every chunk a new content hash, and the index.html that names them is
-   replaced in the same breath -- but a tab opened before the deploy is still running the old
-   one, and the first lazy route it navigates to asks for a file that no longer exists. React's
-   lazy caches the rejected promise, so the page is dead until someone reloads by hand; what
-   they see is "error loading dynamically imported module" and a route that never arrives.
-
-   Reloading fetches the new index.html and, with it, chunk names that exist. The flag makes it
-   at most one reload: if the fresh copy cannot load the chunk either, the problem is not
-   staleness and the error belongs on screen (RouteError) rather than in a refresh loop. It is
-   cleared by any successful load, so the next deploy can recover the same way. sessionStorage
-   rather than a module variable, since the reload is what discards module state. */
+/* A deploy renames every chunk; a tab opened before it asks for a file that is gone. One
+   reload fetches the new names, and the flag stops it becoming a loop. */
 const RELOAD_FLAG = 'spendly:stale-chunk-reloaded'
 const flag = {
 	get: () => { try { return sessionStorage.getItem(RELOAD_FLAG) } catch { return null } },
@@ -79,190 +39,102 @@ const flag = {
 	clear: () => { try { sessionStorage.removeItem(RELOAD_FLAG) } catch { /* storage denied */ } }
 }
 
-const page = (load, name = 'default') => lazy(() => load()
-	.then(m => { flag.clear(); return { default: m[name] } })
+const page = load => lazy(() => load()
+	.then(m => { flag.clear(); return m })
 	.catch(error => {
 		if (flag.get()) throw error
 		flag.set()
 		window.location.reload()
-		// Never settles: the reload replaces the document before React can render anything.
 		return new Promise(() => {})
 	}))
 
+const SignIn = page(() => import('./pages/SignIn.jsx'))
+const Register = page(() => import('./pages/Register.jsx'))
+const Welcome = page(() => import('./pages/Welcome.jsx'))
+const ConfirmSent = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmSent })))
+const ConfirmLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmLink })))
+const ResetAsk = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetAsk })))
+const ResetLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetLink })))
+const Terms = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Terms })))
+const Privacy = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Privacy })))
 const Home = page(() => import('./pages/Home.jsx'))
 const Orders = page(() => import('./pages/Orders.jsx'))
-const AllOrders = page(() => import('./pages/AllOrders.jsx'))
-const OrderDetail = page(() => import('./pages/OrderDetail.jsx'))
-const NewOrderLayout = page(() => import('./pages/NewOrder.jsx'), 'NewOrderLayout')
-const NewOrderDetails = page(() => import('./pages/NewOrder.jsx'), 'NewOrderDetails')
-const NewOrderItems = page(() => import('./pages/NewOrder.jsx'), 'NewOrderItems')
-const EditOrder = page(() => import('./pages/EditOrder.jsx'))
-const CopyOrder = page(() => import('./pages/EditOrder.jsx'), 'CopyOrder')
-const Wishlist = page(() => import('./pages/Wishlist.jsx'))
-const WishForm = page(() => import('./pages/WishForm.jsx'))
-const Settings = page(() => import('./pages/Settings.jsx'))
-const SettingsImport = page(() => import('./pages/SettingsImport.jsx'))
-const CategoryForm = page(() => import('./pages/CategoryForm.jsx'))
-const VendorForm = page(() => import('./pages/VendorForm.jsx'))
-const ScanUpload = page(() => import('./pages/Scan.jsx'), 'ScanUpload')
-const ScanReading = page(() => import('./pages/Scan.jsx'), 'ScanReading')
-const ScanReview = page(() => import('./pages/Scan.jsx'), 'ScanReview')
+const Order = page(() => import('./pages/Order.jsx'))
+const OrderEdit = page(() => import('./pages/OrderEdit.jsx'))
+const OrderNew = page(() => import('./pages/OrderNew.jsx'))
+const Statistics = page(() => import('./pages/Statistics.jsx'))
 const Vendors = page(() => import('./pages/Vendors.jsx'))
-const AllVendors = page(() => import('./pages/AllVendors.jsx'))
+const VendorForm = page(() => import('./pages/VendorForm.jsx'))
 const Categories = page(() => import('./pages/Categories.jsx'))
-const AllCategories = page(() => import('./pages/AllCategories.jsx'))
-const Stats = page(() => import('./pages/Stats.jsx'))
+const CategoryForm = page(() => import('./pages/CategoryForm.jsx'))
+const Bookmarks = page(() => import('./pages/Bookmarks.jsx'))
+const BookmarkForm = page(() => import('./pages/BookmarkForm.jsx'))
 const Budget = page(() => import('./pages/Budget.jsx'))
 const BudgetCheck = page(() => import('./pages/BudgetCheck.jsx'))
+const Settings = page(() => import('./pages/Settings.jsx'))
+const More = page(() => import('./pages/More.jsx'))
+const SavedViews = page(() => import('./pages/OrderViews.jsx'))
 
-/* The routes, and the four things the shell reads off each one.
-
-   `handle` is where a page says what it is called, which rail item it belongs to, whether it
-   has a back button and what its sub-tabs are. Putting them here rather than in the shell is
-   what makes a page impossible to reach and leave unnamed -- the prototype kept those four
-   in four places, and eleven of twelve pages could render carrying home's title and home's
-   tabs without anything failing. See components/Shell.jsx.
-
-   `back.label` names the actual destination, not a fixed origin -- pages differ in where "back"
-   goes, so a label that doesn't ask each page would announce the wrong place. README:
-   Accessibility. */
-
-const ORDER_TABS = at => [
-	{ label: 'Overview', to: '/orders', on: at === 'overview' },
-	{ label: 'All orders', to: '/orders/all', on: at === 'all' }
-]
-
-/* Vendors and Categories tab the way Orders does: to another URL, not to a view held in Shell
-   state. A view-state tab cannot be linked to, cannot be opened in a new tab and does not
-   survive a reload -- and both pages now have a real second page behind the tab rather than
-   the same list pointing somewhere else. */
-const VENDOR_TABS = at => [
-	{ label: 'Overview', to: '/vendors', on: at === 'overview' },
-	{ label: 'All vendors', to: '/vendors/all', on: at === 'all' }
-]
-
-const CATEGORY_TABS = at => [
-	{ label: 'Overview', to: '/categories', on: at === 'overview' },
-	{ label: 'All categories', to: '/categories/all', on: at === 'all' }
-]
-
-/* Settings tabs the same way: importing is an act, not a preference, so it gets a page of its
-   own rather than two more cards among the switches -- and a URL, so it can be linked to and
-   survives a reload, like every other tab in the app. */
-const SETTINGS_TABS = at => [
-	{ label: 'Overview', to: '/settings', on: at === 'overview' },
-	{ label: 'Import', to: '/settings/import', on: at === 'import' }
-]
-
+/* handle: `title` names the tab and is never drawn, `navKey` the sidebar row, `layout` the body
+   (default, split, rail), `fab` the phone's New order button, `remember` a return as it was left. */
 export const routes = [
-	{ path: 'login', element: <Login /> },
-	{ path: 'register', element: <Register /> },
+	{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
+	{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
+	{ path: 'welcome', element: <Welcome />, handle: { title: 'Welcome' } },
+	{ path: 'confirm', element: <ConfirmSent />, handle: { title: 'Confirm your email' } },
+	{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
+	{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
+	{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
+	{ path: 'terms', element: <Terms />, handle: { title: 'Terms of use' } },
+	{ path: 'privacy', element: <Privacy />, handle: { title: 'Privacy notice' } },
 	{
 		element: <AppShell />,
-		errorElement: <RouteError />,
+		errorElement: <ShellError />,
 		loader: requireAuth,
-		/* What the first paint is, while requireAuth is still asking the server who this is.
-		   Without one the router renders nothing at all for that round trip -- a blank page on
-		   every reload, not a slow one -- and says so on the console: "No `HydrateFallback`
-		   element provided to render during initial hydration". It is the same wait a page's
-		   own chunk shows (Shell.jsx hangs Waiting off the Suspense boundary for that), because
-		   a session being checked and a chunk being fetched are the same wait to the reader. */
-		HydrateFallback: () => <Waiting label="Loading Spendly" />,
-		children: [
-			{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home' } },
+		// the same address again (the phone's search opening and closing) asks nothing new
+		shouldRevalidate: ({ currentUrl, nextUrl, defaultShouldRevalidate }) =>
+			currentUrl.href !== nextUrl.href && defaultShouldRevalidate,
+		HydrateFallback: () => null,
+		children: [{
+			// a page that fails shows its problem in the content column, under the shell
+			errorElement: <RouteError />,
+			children: [
+				{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } },
 
-			{ path: 'orders', handle: { title: 'Orders', navKey: 'orders' }, children: [
-				{ index: true, element: <Orders />, handle: { title: 'Orders', navKey: 'orders', tabs: ORDER_TABS('overview') } },
-				{ path: 'all', element: <ListState name="all-orders"><AllOrders /></ListState>,
-					handle: { title: 'Orders', navKey: 'orders', tabs: ORDER_TABS('all') } },
-				{ path: 'new', element: <NewOrderLayout />, handle: { title: 'New order', navKey: 'orders' }, children: [
-					{ index: true, element: <NewOrderDetails />, handle: { title: 'New order', navKey: 'orders' } },
-					{ path: 'items', element: <NewOrderItems />, handle: { title: 'New order', navKey: 'orders' } }
+				{ path: 'orders', children: [
+					{ index: true, element: <Orders />, handle: { title: 'Orders', navKey: 'orders', layout: 'rail', fab: true, remember: true } },
+					{ path: 'new', element: <OrderNew />, handle: { title: 'New order', navKey: 'orders' } },
+					{ path: ':id', element: <Order />, handle: { title: 'Order', navKey: 'orders', layout: 'split' } },
+					{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'Edit order', navKey: 'orders', layout: 'split' } }
 				] },
-				{ path: ':id', children: [
-					{ index: true, element: <OrderDetail />,
-						/* The fallback for a reader who opened this order some other way -- a
-						   bookmark, a reload, a link pasted in -- with no page behind it to return
-						   to. Whoever navigated here from a list passes where they came from
-						   (see components/Rows.jsx), and AppShell reads that over this default. */
-						handle: { title: 'Order details', navKey: 'orders', back: { to: '/orders/all', label: 'all orders' } } },
-					/* New order stays a two-step wizard: a brand-new draft has no items yet, so
-					   step 1 gathers the facts the item form needs and step 2 is the only place
-					   they can be added. An edit starts from an order that already has both --
-					   forcing it through the same two pages meant "Add the items" printed over
-					   lines being edited, not added, and nothing could be saved without walking
-					   through a step that touched nothing. EditOrder is its own page: one form,
-					   one save, for details and items together. See EditOrder.jsx. */
-					{ path: 'edit', element: <EditOrder />,
-						handle: { title: 'Edit order', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },
-					/* Under the source order's id because that is what is being copied: the record
-					   this creates has none of its own until it is saved. See EditOrder.jsx. */
-					{ path: 'copy', element: <CopyOrder />,
-						handle: { title: 'Copy order', navKey: 'orders', back: { to: '/orders', label: 'orders' } } }
-				] }
-			] },
 
-			/* Its own section because a wish never reaches a total. No sub-tabs: archived is a
-			   filter on the list, so it composes with the search, the category and the dates. */
-			{ path: 'wishlist', children: [
-				{ index: true, element: <ListState name="wishlist"><Wishlist /></ListState>,
-					handle: { title: 'Wishlist', navKey: 'wishlist' } },
-				/* A wish is a record, so it is created and edited on its own page -- the rule the
-				   vendor and category routes above already follow. */
-				{ path: 'new', element: <WishForm mode="create" />,
-					handle: { title: 'New wish', navKey: 'wishlist', back: { to: '/wishlist', label: 'wishlist' } } },
-				{ path: ':id/edit', element: <WishForm mode="edit" />,
-					handle: { title: 'Edit wish', navKey: 'wishlist', back: { to: '/wishlist', label: 'wishlist' } } }
-			] },
+				{ path: 'statistics', element: <Statistics />, handle: { title: 'Statistics', navKey: 'statistics', remember: true } },
 
-			{ path: 'scan', handle: { title: 'Scan receipt', navKey: 'orders' }, children: [
-				{ index: true, element: <ScanUpload />, handle: { title: 'Scan receipt', navKey: 'orders' } },
-				{ path: 'reading', element: <ScanReading />,
-					handle: { title: 'Scan receipt', navKey: 'orders', back: { to: '/scan', label: 'scan receipt' } } },
-				{ path: 'review', element: <ScanReview />,
-					handle: { title: 'Review scan', navKey: 'orders', back: { to: '/scan', label: 'scan receipt' } } }
-			] },
+				{ path: 'vendors', children: [
+					{ index: true, element: <Vendors />, handle: { title: 'Vendors', navKey: 'vendors', remember: true } },
+					{ path: 'new', element: <VendorForm />, handle: { title: 'New vendor', navKey: 'vendors', layout: 'split' } },
+					{ path: ':id/edit', element: <VendorForm />, handle: { title: 'Edit vendor', navKey: 'vendors', layout: 'split' } }
+				] },
+				{ path: 'categories', children: [
+					{ index: true, element: <Categories />, handle: { title: 'Categories', navKey: 'categories', remember: true } },
+					{ path: 'new', element: <CategoryForm />, handle: { title: 'New category', navKey: 'categories', layout: 'split' } },
+					{ path: ':id/edit', element: <CategoryForm />, handle: { title: 'Edit category', navKey: 'categories', layout: 'split' } }
+				] },
+				{ path: 'bookmarks', children: [
+					{ index: true, element: <Bookmarks />, handle: { title: 'Bookmarks', navKey: 'bookmarks', remember: true } },
+					{ path: 'new', element: <BookmarkForm />, handle: { title: 'New bookmark', navKey: 'bookmarks', layout: 'split' } },
+					{ path: ':id/edit', element: <BookmarkForm />, handle: { title: 'Edit bookmark', navKey: 'bookmarks', layout: 'split' } }
+				] },
 
-			/* A vendor and a category are edited on their own page, the same as an order. Two
-			   patterns for one job is a system with a hole in it -- and the inline one nested a
-			   bordered section inside a card body inside a card, which at 390px leaves the fields
-			   about as wide as their own labels. */
-			{ path: 'vendors', children: [
-				{ index: true, element: <Vendors />,
-					handle: { title: 'Vendors', navKey: 'vendors', tabs: VENDOR_TABS('overview') } },
-				{ path: 'all', element: <ListState name="all-vendors"><AllVendors /></ListState>,
-					handle: { title: 'Vendors', navKey: 'vendors', tabs: VENDOR_TABS('all') } },
-				{ path: 'new', element: <VendorForm mode="create" />,
-					handle: { title: 'New vendor', navKey: 'vendors', back: { to: '/vendors', label: 'vendors' } } },
-				{ path: ':id/edit', element: <VendorForm mode="edit" />,
-					handle: { title: 'Edit vendor', navKey: 'vendors', back: { to: '/vendors', label: 'vendors' } } }
-			] },
-			{ path: 'categories', children: [
-				{ index: true, element: <Categories />,
-					handle: { title: 'Categories', navKey: 'categories', tabs: CATEGORY_TABS('overview') } },
-				{ path: 'all', element: <ListState name="all-categories"><AllCategories /></ListState>,
-					handle: { title: 'Categories', navKey: 'categories', tabs: CATEGORY_TABS('all') } },
-				{ path: 'new', element: <CategoryForm mode="create" />,
-					handle: { title: 'New category', navKey: 'categories', back: { to: '/categories', label: 'categories' } } },
-				{ path: ':id/edit', element: <CategoryForm mode="edit" />,
-					handle: { title: 'Edit category', navKey: 'categories', back: { to: '/categories', label: 'categories' } } }
-			] },
-			{ path: 'stats', element: <Stats />, handle: { title: 'Statistics', navKey: 'stats' } },
-			/* One page for every year: /budget opens this year, or the newest there is. */
-			{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget' } },
-			{ path: 'budget/check', element: <BudgetCheck />,
-				handle: { title: 'Check a bank statement', navKey: 'budget', back: { to: '/budget', label: 'budget' } } },
-			/* No `back` and no rail key: settings is reached from the top bar on every page now,
-			   not from a button at the foot of the Orders rail, so there is no one page it came
-			   from to send the reader back to and no sidebar item it belongs under. It was
-			   titled "Order settings" for the same reason it lived there, and it has never only
-			   been about orders. */
-			{ path: 'settings', handle: { title: 'Settings' }, children: [
-				{ index: true, element: <Settings />, handle: { title: 'Settings', tabs: SETTINGS_TABS('overview') } },
-				{ path: 'import', element: <SettingsImport />, handle: { title: 'Settings', tabs: SETTINGS_TABS('import') } }
-			] },
+				{ path: 'budget/check', element: <BudgetCheck />, handle: { title: 'Check a bank statement', navKey: 'budget' } },
+				{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget', remember: true } },
 
-			{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home' } }
-		]
+				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings' } },
+				{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
+				{ path: 'more/views', element: <SavedViews />, handle: { title: 'Saved views', navKey: 'more' } },
+
+				{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } }
+			]
+		}]
 	}
 ]

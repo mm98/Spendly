@@ -1,169 +1,335 @@
-import { Page } from '../components/Shell.jsx'
-import { Async } from '../components/Async.jsx'
-import { SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
-import { LegendRow } from '../components/Rows.jsx'
-import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
-import { Donut } from '../components/Chart.jsx'
-import { foldForRing } from '../components/Viz.jsx'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
+import { Failed } from '../components/Failed.jsx'
+import { Caption, Controls, Crumb, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
+import { Card } from '../components/Card.jsx'
+import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
+import { Segmented } from '../components/Segmented.jsx'
+import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
-import { chartPeriodPhrase, getVendorChartSplit, getVendors } from '../api/client.js'
-import { currency, plural, sep } from '../api/format.js'
-import { inkOn } from '../api/colour.js'
+import {
+	deleteVendor, getSettings, getVendors, invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor, vendorTextMatch
+} from '../api/client.js'
+import { NUMBER_LOCALE, amount, currency, dayMonth, dot, plural, shortDate } from '../api/format.js'
+import { useShellShape, useWidth } from '../app/useMedia.js'
+import { useListMemory } from '../app/listMemory.js'
+import { Saving } from '../app/saving.jsx'
+import { VendorMark } from '../app/categoryMark.jsx'
+import {
+	Bar, ConfirmDelete, MergeDialog, MergePicker, RowMenu, SortControl, archiveVendor, deleteNote, isGone, sayFailure, useRefocus
+} from './vendorsCategories.jsx'
 
-/* Vendors, overview.
+const SHOWN = [{ value: 'active', label: 'Active' }, { value: 'archived', label: 'Archived' }]
+// at this width of the list or under, the last order joins the name's second line (5k)
+const FOLD = 880
+// the address of the look-alike view, as Home links to it (10a)
+const LOOKALIKES = 'possible-duplicate'
 
-   Stats about the vendors, not a list of them -- the list is its own tab, the same split All
-   orders has. This page is what the numbers say; a list of records belongs on the tab built to
-   scan one.
+/** The look-alike view's rows: each vendor that is probably a duplicate under the one it is like
+    (the API's `duplicateOf`), the pairs in the list's order. */
+function pairedRows(vendors, by) {
+	const under = new Map()
+	for (const v of vendors) if (v.duplicateOf && !v.archived) under.set(v.duplicateOf, [...(under.get(v.duplicateOf) ?? []), v])
+	const rows = []
+	const seen = new Set()
+	for (const keep of vendors.filter(v => under.has(v.id)).sort(by))
+		for (const v of [keep, ...under.get(keep.id).sort(by)]) if (!seen.has(v.id)) { seen.add(v.id); rows.push(v) }
+	return rows
+}
 
-   A vendor page is for two things, and browsing orders is neither: it is for what the spending
-   looks like across the shops, and for keeping the records right. So the ring splits spend by
-   vendor, the tiles count what there is, and every way into a record is on the other tab. */
+/** A vendor's second line: favourite, orders, made by a scan (5a), and the last order when it has no column. */
+const factsOf = (v, last) => [v.favourite ? 'Favourite' : null, plural(v.orders, 'order'), v.createdByScan ? 'created by receipt scan' : null,
+	last && v.lastOrder ? `last ${last(v.lastOrder)}` : null].filter(Boolean).join(dot)
 
+const SORTS = [
+	{ id: 'spend-desc', label: 'Spend ↓', by: (a, b) => b.spend - a.spend },
+	{ id: 'spend-asc', label: 'Spend ↑', by: (a, b) => a.spend - b.spend },
+	{ id: 'name-asc', label: 'Name A - Z', by: (a, b) => a.name.localeCompare(b.name) },
+	{ id: 'orders-desc', label: 'Orders ↓', by: (a, b) => b.orders - a.orders },
+	{ id: 'saved-desc', label: 'Saved ↓', by: (a, b) => b.saved - a.saved },
+	{ id: 'saved-asc', label: 'Saved ↑', by: (a, b) => a.saved - b.saved }
+]
+
+/** Vendors (5a): find a vendor and open it, or create one. Favourites are kept at the top. */
 export default function Vendors() {
-	/* The same request the All vendors tab reads, under the same cache key -- the spotlight/
-	   list split is this page's own reshape of that one answer, below. */
-	const state = useApi(getVendors)
-	/* The ring's own read, separate from `state` above: it is scoped to settings.chartPeriod,
-	   which the KPI row and the Favourites tiles are not, and joining it into the same gate
-	   would stall both of those on a fetch only the ring needs -- see the Where it goes card
-	   below, which gives it its own Async rather than waiting on it up here. Same split as
-	   Categories.jsx. */
-	const chart = useApi(getVendorChartSplit)
+	const touch = useShellShape() === 'touch'
+	const navigate = useNavigate()
+	const toast = useToast()
+	const vendors = useApi(getVendors)
+	const settings = useApi(getSettings).data
+	const step = settings?.pageSize ?? 10
+	// the order Settings names, until the address names another
+	const opening = SORTS.find(s => s.id === settings?.listSort) ?? SORTS[0]
+	const [params, setParams] = useSearchParams()
+	const query = touch ? '' : params.get('q') ?? ''
+	const sort = SORTS.find(s => s.id === params.get('sort')) ?? opening
+	const archived = params.get('archived') === 'yes'
+	// only the vendors that look like another, in pairs (10a): Home's "look like duplicates" opens it
+	const alike = !archived && params.get('flag') === LOOKALIKES
+	const [menuFor, setMenuFor] = useState(null)
+	const [deleting, setDeleting] = useState(null)
+	// the row whose Merge into… popover is open, then the two vendors 5j's dialog compares
+	const [picking, setPicking] = useState(null)
+	const [merging, setMerging] = useState(null)
+	const [busy, setBusy] = useState(false)
+	const column = useRef(null)
+	const width = useWidth(column)
+	const folded = !touch && width > 0 && width <= FOLD
+	// a page of rows per Load more, kept for Back along with the scroll
+	const { pages, setPages, restored } = useListMemory(`vendors?${query}&${sort.id}&${archived}&${alike}`)
+	useEffect(() => { if (vendors.data) restored() }, [vendors.data])
+
+	const write = (q, sortId, view = archived, flag = alike) => {
+		const next = {}
+		if (q) next.q = q
+		if (sortId !== opening.id) next.sort = sortId
+		if (view) next.archived = 'yes'
+		if (flag && !view) next.flag = LOOKALIKES
+		setParams(next, { replace: true })
+	}
+
+	const all = vendors.data ?? []
+	const order = (a, b) => (b.favourite - a.favourite) || sort.by(a, b)
+	const paired = alike ? pairedRows(all, order) : null
+	const rows = (paired ?? all.filter(v => v.archived === archived).sort(order)).filter(v => vendorTextMatch(v, query).matches)
+	const shown = rows.slice(0, pages * step)
+	const nameOf = id => all.find(v => v.id === id)?.name
+	const refocus = useRefocus(vendors.data, '.sp-table [aria-haspopup="menu"]', '.sp-controls input, .sp-controls a')
+
+	const remove = () => {
+		setBusy(true)
+		refocus(deleting, shown.findIndex(r => r.id === deleting.id))
+		deleteVendor(deleting.id)
+			.catch(e => { if (!isGone(e)) throw e })
+			.then(() => {
+				invalidateVendorData()
+				invalidateCategoryData()
+				vendors.refresh()
+				setDeleting(null)
+			})
+			.catch(e => sayFailure(toast, e, 'The vendor was not deleted. Try again.'))
+			.finally(() => setBusy(false))
+	}
+
+	// archiving can be undone, so it asks nothing and says so in a toast that offers the way back (6f)
+	const setArchived = (vendor, to) => {
+		setBusy(true)
+		refocus(vendor, shown.findIndex(r => r.id === vendor.id))
+		archiveVendor({ vendor, to, update: updateVendor, toast, done: () => { invalidateVendorData(); vendors.refresh() } })
+			.catch(e => {
+				if (isGone(e)) vendors.refresh()
+				sayFailure(toast, e, 'That did not change. Try again.')
+			})
+			.finally(() => setBusy(false))
+	}
+
+	const merge = target => {
+		const { source } = merging
+		setBusy(true)
+		refocus(source, shown.findIndex(r => r.id === source.id))
+		mergeVendor(source.id, target.id)
+			.then(() => {
+				invalidateVendorData()
+				invalidateCategoryData()
+				vendors.refresh()
+				toast({ message: `${source.name} is merged into ${target.name}.` })
+				setMerging(null)
+			})
+			.catch(e => sayFailure(toast, e, 'The vendors were not merged. Try again.'))
+			.finally(() => setBusy(false))
+	}
+
+	const bar = (
+		<Controls ref={column}>
+			{touch ? null : (
+				<SearchInput value={query} onChange={q => write(q, sort.id)}
+					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias" />
+			)}
+			<Segmented name="vendors-shown" options={SHOWN} value={archived ? 'archived' : 'active'} variant={touch ? 'facet' : 'default'}
+				onChange={v => write(query, sort.id, v === 'archived')} role="radiogroup" aria-label="Which vendors" />
+			{/* on a phone the view takes the first row, and sort and New share the second */}
+			{touch ? <span className="sp-grow" /> : null}
+			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
+			{touch
+				? <Button to="/vendors/new" iconStart="plus" aria-label="New vendor" />
+				: <Button to="/vendors/new">New vendor</Button>}
+		</Controls>
+	)
+	const crumbs = alike
+		? <Filters><Crumb name="the possible duplicates filter" onRemove={() => write(query, sort.id, false, false)}>Possible duplicates</Crumb></Filters>
+		: null
+	// in the look-alike view a probable duplicate leads with the vendor it is like: it is why the row is here
+	const likeNote = v => (alike && v.duplicateOf
+		? <><span className="sp-ink-warning">possible duplicate of {nameOf(v.duplicateOf)}</span>{dot}</>
+		: null)
+
+	let body
+	if (!vendors.data && vendors.error) body = <Failed what="Your vendors" error={vendors.error} onRetry={vendors.refresh} />
+	else if (!vendors.data) body = <VendorsLoading touch={touch} size={step} folded={folded} spend={sort.id.startsWith('spend') ? sort.label : 'Spend'} />
+	else if (archived && !vendors.data.some(v => v.archived)) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No archived vendors</EmptyTitle>
+				<EmptyBody>Archive a vendor from its menu to keep it out of the list. Its orders keep it.</EmptyBody>
+				<Button variant="outline" size="small" onClick={() => write(query, sort.id, false)}>Show active vendors</Button>
+			</Empty>
+		</Card>
+	)
+	else if (!vendors.data.length) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No vendors yet</EmptyTitle>
+				<EmptyBody>A vendor is added when an order names it, or add one now.</EmptyBody>
+				<Button size="small" to="/vendors/new">New vendor</Button>
+			</Empty>
+		</Card>
+	)
+	else if (alike && !paired.length) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No vendors look like duplicates</EmptyTitle>
+				<EmptyBody>Two vendors look alike when their names are almost the same, or when they have the same VAT number.</EmptyBody>
+				<Button variant="outline" size="small" onClick={() => write(query, sort.id, false, false)}>Show all vendors</Button>
+			</Empty>
+		</Card>
+	)
+	else if (!rows.length) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>No vendor matches "{query}"</EmptyTitle>
+				<Button variant="outline" size="small" onClick={() => write('', sort.id)}>Clear search</Button>
+			</Empty>
+		</Card>
+	)
+	else if (touch) body = (
+		<>
+			{shown.map(v => (
+				<Card key={v.id} to={`/vendors/${v.id}/edit`}>
+					<div className="sp-cell-flex">
+						<VendorMark name={v.name} colour={v.colour} />
+						<Stacked>
+							<span className="sp-heading sp-truncate">{v.name}</span>
+							<span className="sp-meta sp-truncate">{likeNote(v)}{factsOf(v, shortDate)}</span>
+						</Stacked>
+						<span className="sp-amount sp-nowrap">{amount(v.spend)}</span>
+					</div>
+				</Card>
+			))}
+			<ListMore loose shown={shown.length} total={rows.length} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
+		</>
+	)
+	else body = (
+		<List data={shown} total={rows.length} onLoadMore={() => setPages(pages + 1)} recordKey={v => v.id} noun="vendors" pageSize={step}
+			rowTo={v => `/vendors/${v.id}/edit`} locale={NUMBER_LOCALE}>
+			<Caption><strong className="sp-data">{plural(rows.length, 'vendor')}</strong></Caption>
+			<ListHead>
+				<ListCell width="title">Vendor</ListCell>
+				{folded ? null : <ListCell width="date">Last order</ListCell>}
+				<ListCell width="amount">{sort.id.startsWith('spend') ? sort.label : 'Spend'}</ListCell>
+				<ListCell width="menu" />
+			</ListHead>
+			<ListRow>
+				{v => [
+					<ListCell key="t" cell="flex">
+						<VendorMark name={v.name} colour={v.colour} />
+						<Stacked>
+							<span className="sp-title sp-truncate">{v.name}</span>
+							<span className="sp-meta sp-truncate">{likeNote(v)}{factsOf(v, folded ? dayMonth : null)}</span>
+						</Stacked>
+					</ListCell>,
+					folded ? null : (
+						<ListCell key="d">
+							{v.lastOrder ? <span className="sp-data">{shortDate(v.lastOrder)}</span> : <span className="sp-data sp-ink-5">none</span>}
+						</ListCell>
+					),
+					<ListCell key="a" cell="amount">
+						<span className="sp-amount">{currency(v.spend)}</span>
+						<Saving value={v.saved} />
+					</ListCell>,
+					<ListCell key="m" cell="menu">
+						<RowMenu noun="Vendor" label={v.name} open={menuFor === v.id}
+							onToggle={() => { setPicking(null); setMenuFor(menuFor === v.id ? null : v.id) }}
+							onClose={() => { setMenuFor(null); setPicking(null) }}
+							panel={picking === v.id
+								? box => <MergePicker kind="vendor" source={v} options={all} anchor={box} onClose={() => setPicking(null)}
+									onPick={target => { setPicking(null); setMerging({ source: v, target }) }} />
+								: null}>
+							<MenuItem icon="external-link" onClick={() => navigate(`/orders?vendor=${v.id}`)}>Open in the order list</MenuItem>
+							<MenuItem icon="pencil" onClick={() => navigate(`/vendors/${v.id}/edit`)}>Edit vendor</MenuItem>
+							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(v.id) }}>Merge into…</MenuItem>
+							<MenuSeparator />
+							{v.archived
+								? <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, false) }}>Unarchive</MenuItem>
+								: <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, true) }}>Archive</MenuItem>}
+							{v.orders === 0
+								? <MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(v) }}>Delete</MenuItem>
+								: null}
+						</RowMenu>
+					</ListCell>
+				]}
+			</ListRow>
+		</List>
+	)
 
 	return (
-		<Page variant="page-grid">
-			<div className="hero hero-panel">
-				<h2>Every shop you buy from, in one place.</h2>
-				<p>Vendors collect their orders, totals and savings automatically. Favourites stay on top.</p>
-				<Button variant="caps" to="/vendors/new">ADD VENDOR</Button>
-			</div>
-
-			<Async state={state} label="Loading your vendors"
-				skeleton={<>
-					<SkeletonKpiRow />
-					<SkeletonCard bodyHeight={220} />
-					<SkeletonCard bodyHeight={160} />
-				</>}>{all => {
-				/* `favourites` is drawn from the same array it is a subset of, favourites
-				   included in both: starring a vendor pins it to the spotlight without removing
-				   it from the only searchable, sortable view of them. A favourite is drawn
-				   twice -- once where it was pinned, and once in the list it never left. */
-				const favourites = all.filter(v => v.favourite)
-				const spend = all.reduce((sum, v) => sum + v.spend, 0)
-				const saved = all.reduce((sum, v) => sum + v.saved, 0)
-				const orders = all.reduce((sum, v) => sum + v.orders, 0)
-				const busiest = all.reduce((most, v) => (v.orders > (most?.orders ?? 0) ? v : most), null)
-
-				return (
-					<>
-						<div className="kpi-row">
-							<KpiCard label="Vendors" value={String(all.length)}
-								note={busiest ? `${busiest.name} is the most frequent` : null} />
-							<KpiCard label="Spent" value={currency(spend, 0)} note="all time" />
-							<KpiCard label="Saved vs retail" value={currency(saved, 0)}
-								note={spend > 0 ? `${Math.round((saved / (spend + saved)) * 100)}% under retail` : null} />
-							<KpiCard label="Orders" value={String(orders)}
-								note={all.length ? `${Math.round(orders / all.length)} per vendor on average` : null} />
-						</div>
-
-						{/* Its own Async, not folded into the page's outer one above: this card is the
-						    one thing on the page scoped to settings.chartPeriod, so it is the one thing
-						    that waits on that fetch. .async-live is display:contents (app.css), so the
-						    boundary costs no extra box between this Card and the grid it sits in. */}
-						<Async state={chart} label="Loading your vendors' split"
-							skeleton={<SkeletonCard bodyHeight={220} />}>{chartData => {
-							/* The ring and the rows beside it are one list of numbers, drawn from one
-							    array -- the rule every other ring in this app already follows. Renamed
-							    onto foldForRing's own field (`amount` -> `spend`), the one shape it reads. */
-							const split = foldForRing(
-								chartData.split.map(v => ({ id: v.id, name: v.name, colour: v.colour, spend: v.amount })),
-								chartData.cardRows)
-							const periodWord = chartPeriodPhrase(chartData.period)
-							return (
-								/* Same rule as Categories: the header band and the closing buttons open the
-								    vendors list only while it has rows -- on an empty account each degrades to
-								    its passive form rather than opening a list that answers "No vendors yet".
-								    README: Empty states. */
-								<Card aria-label="Where it goes">
-									<CardHeader title={`Where it goes${sep}${periodWord}`}
-										to={all.length ? '/vendors/all' : undefined}
-										label="Where it goes, open all vendors" />
-									<CardDivider />
-									<CardBody variant="ring-row">
-										{split.length ? (
-											<>
-												<Donut segments={split.map(v => ({ share: chartData.spent ? (v.spend / chartData.spent) * 100 : 0, colour: v.colour }))}
-													value={currency(chartData.spent, 0)} label={`Spent, ${periodWord}`}
-													ariaLabel={`Vendor split of ${currency(chartData.spent, 0)}`} />
-												<div className="chart-legend chart-legend-fill">
-													{split.map(v => (
-														/* The folded row stands for several vendors at once, so it opens
-														   the list where those vendors actually are instead of an
-														   orders filter for a vendor that does not exist. */
-														<LegendRow key={v.id ?? 'more'} colour={v.colour} title={v.name}
-															amount={currency(v.spend, 0)}
-															to={v.id ? `/orders/all?vendor=${v.id}` : '/vendors/all'} />
-													))}
-												</div>
-											</>
-										) : (
-											/* Two absences, two answers, the rule every empty state on this page
-											    already makes: with vendors on record the sentence names the window
-											    that came up empty; with none at all, naming a window answers a
-											    question nobody asked -- the real absence is that no vendor exists
-											    yet. */
-											<EmptyState>
-												<p>{all.length
-													? `Nothing spent ${periodWord}.`
-													: 'Nothing spent yet. Your first order creates its vendor.'}</p>
-											</EmptyState>
-										)}
-									</CardBody>
-								</Card>
-							)
-						}}</Async>
-
-						<Card aria-label="Favourites">
-							<CardHeader title="Favourites"
-								to={all.length ? '/vendors/all' : undefined}
-								label="Favourites, open all vendors" />
-							<CardDivider />
-							<CardBody>
-								{favourites.length ? (
-									<FavouriteTileGrid>
-										{favourites.map(vendor => (
-											<FavouriteTile key={vendor.id}
-												mark={<span className="entry-avatar"
-													style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>}
-												name={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
-												linkLabel={`${vendor.name}, open their orders`}
-												meta={plural(vendor.orders, 'order')}
-												amount={currency(vendor.spend, 0)} saved={`saved ${currency(vendor.saved, 0)}`} />
-										))}
-									</FavouriteTileGrid>
-								) : (
-									/* With vendors, the sentence names the next step and the button opens the
-									   list a favourite is turned on from; with none there is no vendor to
-									   favourite and nothing for the button to show, so neither claim is made. */
-									<EmptyState>
-										{all.length ? (
-											<>
-												<p>No favourites yet. Turn on Favourite when editing a vendor and it appears here.</p>
-												<Button variant="block" to="/vendors/all">ALL VENDORS</Button>
-											</>
-										) : (
-											<p>No vendors to favourite yet. Your first order creates its vendor.</p>
-										)}
-									</EmptyState>
-								)}
-							</CardBody>
-						</Card>
-					</>
+		<>
+			{bar}
+			{crumbs}
+			{body}
+			{deleting
+				? (
+					<ConfirmDelete title={`Delete ${deleting.name}?`} action="Delete vendor" busy={busy}
+						onConfirm={remove} onCancel={() => setDeleting(null)}>
+						{deleteNote(deleting)}
+					</ConfirmDelete>
 				)
-			}}</Async>
-		</Page>
+				: null}
+			{merging
+				? <MergeDialog kind="vendor" source={merging.source} initial={merging.target} options={all} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				: null}
+		</>
+	)
+}
+
+const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc', '92']]
+
+/* A page of rows held at the loaded rows' places (6b), so nothing moves when the vendors land. */
+function VendorsLoading({ touch, size, spend, folded }) {
+	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
+	if (touch) return rows.map(({ id, w }) => (
+		<Card key={id} aria-busy="true">
+			<div className="sp-cell-flex">
+				<Skeleton shape="mark" />
+				<Stacked><Bar role="sp-heading" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></Stacked>
+				<Bar role="sp-amount" w={w[2]} h="13" end />
+			</div>
+		</Card>
+	))
+	return (
+		<List data={rows} recordKey={r => r.id} noun="vendors" pageSize={size} aria-busy="true">
+			<Caption><Bar role="sp-data" w="82" h="13" /></Caption>
+			<ListHead>
+				<ListCell width="title">Vendor</ListCell>
+				{folded ? null : <ListCell width="date">Last order</ListCell>}
+				<ListCell width="amount">{spend}</ListCell>
+				<ListCell width="menu" />
+			</ListHead>
+			<ListRow>
+				{({ w }) => [
+					<ListCell key="t" cell="flex">
+						<Skeleton shape="mark" />
+						<Stacked><Bar role="sp-title" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></Stacked>
+					</ListCell>,
+					folded ? null : <ListCell key="d"><Bar role="sp-data" w="74" h="11" /></ListCell>,
+					<ListCell key="a" cell="amount">
+						<Bar role="sp-amount" w={w[2]} h="13" end />
+						<Bar role="sp-amount-secondary" w="74" h="10" end />
+					</ListCell>,
+					<ListCell key="m" cell="menu"><Skeleton shape="icon" /></ListCell>
+				]}
+			</ListRow>
+		</List>
 	)
 }

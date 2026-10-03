@@ -1,62 +1,18 @@
 import { Router } from 'express'
+import { Worker } from 'node:worker_threads'
 import { db } from '../db.js'
-import { seedAccountDefaults } from '../seed.js'
-import { populateDemoData } from '../lib/demoData.js'
-import { wipeBudget } from '../lib/budget.js'
+import { replaceWithDemo } from '../lib/demoFill.js'
+
+const FILL_WORKER = new URL('../lib/demoFill.worker.js', import.meta.url)
 
 export const router = Router()
 
-/* The ledger: what the demo fill replaces. Settings and dashboard cards are preferences, not
-   data -- filling the account with demo orders must not hand back someone's page size, sort
-   order or card layout, so the fill uses this narrower wipe rather than the full one below. */
-const wipeLedger = userId => {
-	// orders first: cascades order_items, order_categories, attachments
-	db.prepare('DELETE FROM orders WHERE user_id = ?').run(userId)
-	// then wishes, which cascade their own category links -- before categories, or the delete
-	// below hits a link still pointing at one and the whole fill fails on a foreign key.
-	db.prepare('DELETE FROM wishes WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM vendors WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM categories WHERE user_id = ?').run(userId)
-}
-
-const wipe = db.transaction(userId => {
-	wipeLedger(userId)
-	wipeBudget(userId)
-	db.prepare('DELETE FROM settings WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM dashboard_cards WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM scan_uploads WHERE user_id = ?').run(userId)
-	seedAccountDefaults(db, userId)
-})
-
-/** Forgets everything this account has added and returns it to the empty state a fresh
-    registration starts from -- settings and dashboard cards reset to their defaults, every
-    order, wish, vendor, category and budget year gone. */
-router.post('/reset', (req, res) => {
-	wipe(req.user.id)
-	refreshStatistics()
-	res.json({ cleared: true })
-})
-
-/* The two routes here are the only ones that rewrite a whole ledger in one request, which is
-   exactly the move that dates the planner statistics db.js gathered at boot: statistics taken
-   over an empty account say every table is tiny, and plans made from those over the 50,000
-   orders a fill just wrote pick the wrong index the same way no statistics did. Re-gathered
-   here, after the transaction commits -- ~90ms at 50,000 orders under the analysis_limit
-   db.js sets, on requests that already spend seconds writing. */
+/* The demo fill rewrites a whole ledger in one request, which dates the planner statistics
+   db.js gathered at boot: statistics taken over an empty account say every table is tiny, and
+   plans made from those over the 50,000 orders a fill just wrote pick the wrong index the same
+   way no statistics did. Re-gathered here, after the transaction commits -- ~90ms at 50,000
+   orders under the analysis_limit db.js sets, on requests that already spend seconds writing. */
 const refreshStatistics = () => db.exec('ANALYZE')
-
-/* Fills the account with a year of demo orders. Replaces rather than appends: pressed twice,
-   appending would double a year of orders and leave every per-month figure quietly wrong,
-   which is a worse answer than the obvious one. It replaces the ledger only -- the button
-   promises "every order, wish, vendor and category is removed first" and keeps exactly that
-   promise; CLEAR STORED DATA is the button that resets preferences too.
-
-   Only ever this account -- populateDemoData writes every row against req.user.id, the same
-   rule every other route here follows. */
-const replaceWithDemo = db.transaction((userId, seed, orders, months) => {
-	wipeLedger(userId)
-	return populateDemoData(userId, { seed, orders, months })
-})
 
 /* A different year every time it is pressed.
 
@@ -85,7 +41,49 @@ router.post('/demo-data', (req, res) => {
 	const askedMonths = Number(req.body?.months)
 	const months = Number.isFinite(askedMonths) && askedMonths > 0
 		? Math.min(288, Math.floor(askedMonths)) : undefined
-	const result = replaceWithDemo(req.user.id, seed, orders, months)
-	refreshStatistics()
-	res.json({ ...result, seed })
+	const options = { seed, orders, months, today: req.today }
+	if (req.query.progress !== 'stream') {
+		const result = replaceWithDemo(req.user.id, options)
+		refreshStatistics()
+		return res.json({ ...result, seed })
+	}
+
+	/* ?progress=stream answers NDJSON: a {done, total} line as orders are written, closed by
+	   the result or an {error}. The fill runs on a worker so this process can send the lines. */
+	res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
+	res.flushHeaders()
+	const worker = new Worker(FILL_WORKER, { workerData: { userId: req.user.id, ...options } })
+	let ended = false
+	const end = line => {
+		if (ended) return
+		ended = true
+		res.end(JSON.stringify(line) + '\n')
+	}
+	worker.on('message', message => {
+		if ('done' in message) res.write(JSON.stringify(message) + '\n')
+		else if (message.result) { refreshStatistics(); end({ ...message.result, seed }) }
+		else end({ error: 'The demo data could not be written. Nothing was changed.' })
+	})
+	worker.on('error', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
+	worker.on('exit', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
+})
+
+/* Update and reload (11d): the updater beside this container (SPENDLY_UPDATER_URL, docker-compose.yml) swaps
+   it, stopping this process, so an updater still busy after a moment has taken the job. */
+const UPDATER_ANSWER_MS = 3000
+
+export const updaterAvailable = () => /^https?:\/\//.test(process.env.SPENDLY_UPDATER_URL ?? '')
+
+router.post('/version/update', async (req, res) => {
+	if (!updaterAvailable()) return res.status(409).json({ error: 'This copy of Spendly cannot install an update by itself.' })
+	const asked = fetch(process.env.SPENDLY_UPDATER_URL, {
+		headers: process.env.SPENDLY_UPDATER_TOKEN ? { Authorization: `Bearer ${process.env.SPENDLY_UPDATER_TOKEN}` } : {}
+	})
+	const answer = await Promise.race([asked.then(r => r, e => e), new Promise(done => setTimeout(() => done(null), UPDATER_ANSWER_MS))])
+	asked.catch(() => {})
+	if (answer instanceof Error || (answer && !answer.ok)) {
+		console.error('The updater refused or could not be reached:', answer instanceof Error ? answer.message : answer.status)
+		return res.status(502).json({ error: 'The update could not be started.' })
+	}
+	res.status(202).json({ started: true })
 })

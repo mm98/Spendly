@@ -1,7 +1,11 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { categoryStats, categoryStatsFor, uncategorisedStats, wishCategoryCounts } from '../lib/aggregate.js'
+import { findCategoryByFold, nextCategoryColour } from '../lib/findOrCreate.js'
+import { todayIso, toEpoch } from '../lib/dates.js'
+import {
+	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, uncategorisedBookmarks, bookmarkCategoryCounts
+} from '../lib/aggregate.js'
 
 export const router = Router()
 
@@ -16,50 +20,58 @@ const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon
    start from the orders side and read all 50,000 of an account's rows to count one category's
    links: 12.2ms against 1.5ms, same count. */
 const countOrders = db.prepare('SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?')
-// A wish holds a category in use the same way an order does; without this the delete below
+// A bookmark holds a category in use the same way an order does; without this the delete below
 // reaches SQLite's foreign key and answers 500 instead of a sentence.
-const countWishes = db.prepare('SELECT COUNT(*) c FROM wish_categories wc CROSS JOIN wishes w ON w.id = wc.wish_id WHERE wc.category_id = ? AND w.user_id = ?')
+const countBookmarks = db.prepare('SELECT COUNT(*) c FROM bookmark_categories bc CROSS JOIN bookmarks b ON b.id = bc.bookmark_id WHERE bc.category_id = ? AND b.user_id = ?')
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
-/* Driven from idx_order_categories_cat like countOrders above. OR IGNORE leans on the
-   (order_id, category_id) key: an order already on the target keeps the one link it has. */
-const linkOrdersTo = db.prepare(`INSERT OR IGNORE INTO order_categories (order_id, category_id)
-	SELECT oc.order_id, ? FROM order_categories oc
-	WHERE oc.category_id = ? AND EXISTS (SELECT 1 FROM orders o WHERE o.id = oc.order_id AND o.user_id = ?)`)
-const unlinkOrders = db.prepare(`DELETE FROM order_categories WHERE category_id = ?
-	AND EXISTS (SELECT 1 FROM orders o WHERE o.id = order_categories.order_id AND o.user_id = ?)`)
-
-/* One transaction, so an interrupted move cannot leave an order on neither category. The count
-   is read inside it for the same reason: it is what the answer reports as moved. */
-const moveOrders = db.transaction((fromId, toId, userId) => {
-	const moved = countOrders.get(fromId, userId).c
-	linkOrdersTo.run(toId, fromId, userId)
-	unlinkOrders.run(fromId, userId)
-	return moved
-})
-
 const ZERO_STATS = { orders: 0, spend: 0, share: 0, saved: 0 }
 
-// Order and wish usage ride beside spend/share -- the filter panels' own answer to "is this
-// category worth offering," read for free by every consumer that already fetches the list.
-const withStats = (category, stats = ZERO_STATS, wishes = 0) => ({
+// The single record, in full: its form and rail read it.
+const withStats = (category, stats = ZERO_STATS, bookmarks = 0, extra = {}) => ({
 	id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
 	colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
-	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, wishes
+	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, bookmarks,
+	monthAverage: extra.monthAverage ?? 0, monthSpends: extra.monthSpends ?? [], alone: extra.alone ?? 0
 })
 
+/* How many of a category's orders carry no other category: the delete dialog says how many are
+   left with none. */
+const countAlone = db.prepare(`SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id
+	WHERE oc.category_id = ? AND o.user_id = ? AND o.category_count = 1`)
+
+/** The single record as its page reads it: its 12-month average from its own months, not the account's rollup. */
+function fullRecord(userId, category, req) {
+	const monthSpends = categoryMonthSpends(userId, category.id, toEpoch(req.today ?? todayIso()))
+	return withStats(category, categoryStatsFor(userId, category.id), countBookmarks.get(category.id, userId).c, {
+		monthAverage: monthSpends.reduce((sum, n) => sum + n, 0) / 12, monthSpends,
+		alone: countAlone.get(category.id, userId).c
+	})
+}
+
+// A list row: what the lists, filters and pickers read; the counts say whether a filter is worth offering.
+const listRow = (category, orders = 0, bookmarks = 0) => ({
+	id: category.id, name: category.name, icon: category.icon, colour: category.colour, budget: category.budget, orders, bookmarks
+})
+
+/* `?average=1` adds each category's 12-month average: only the Categories page reads it, so the
+   pickers that read this list do not pay for it. */
 router.get('/', (req, res) => {
-	const stats = categoryStats(req.user.id)
-	const wishCounts = wishCategoryCounts(req.user.id)
-	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats.get(c.id), wishCounts.get(c.id) ?? 0)))
+	const orderCounts = categoryOrderCounts(req.user.id)
+	const bookmarkCounts = bookmarkCategoryCounts(req.user.id)
+	const averages = req.query.average ? categoryMonthAverages(req.user.id, toEpoch(req.today ?? todayIso())) : null
+	res.json(selectAll.all(req.user.id).map(c => {
+		const row = listRow(c, orderCounts.get(c.id), bookmarkCounts.get(c.id))
+		return averages ? { ...row, monthAverage: averages.get(c.id) ?? 0 } : row
+	}))
 })
 
 /* Registered before /:id, or that route would answer it with "No category uncategorised".
    Its own resource rather than a row in the list above: the list is the account's category
    records, and every reader of it -- comboboxes, order forms, settings -- maps records.
    A stand-in row there would be offered as something to assign and to edit. */
-router.get('/uncategorised', (req, res) => res.json(uncategorisedStats(req.user.id)))
+router.get('/uncategorised', (req, res) => res.json(uncategorisedBookmarks(req.user.id)))
 
 // The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at
 // all), so a negative budget only ever reached this table by calling the API directly -- but it
@@ -71,14 +83,14 @@ const nonNegative = n => (Number.isFinite(n) && n >= 0 ? n : 0)
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
 	if (!name) return res.status(400).json({ error: 'A category needs a name.' })
-	if (selectByNameExists.get(req.user.id, name))
-		return res.status(409).json({ error: `You already have a category called ${name}.` })
+	const taken = selectByNameExists.get(req.user.id, name) ? { name } : findCategoryByFold(req.user.id, name)
+	if (taken) return res.status(409).json({ error: `You already have a category called ${taken.name}.` })
 
 	const look = req.body?.look ?? {}
 	const category = {
 		id: newId('c'), userId: req.user.id, name,
 		icon: look.icon ?? 'tag', iconPath: look.iconPath ?? null,
-		colour: look.colour ?? '#C43F2A', budget: nonNegative(Number(look.budget)),
+		colour: look.colour ?? nextCategoryColour(req.user.id), budget: nonNegative(Number(look.budget)),
 		favourite: look.favourite ? 1 : 0
 	}
 	insert.run(category)
@@ -88,7 +100,7 @@ router.post('/', (req, res) => {
 router.get('/:id', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
-	res.json(withStats(category, categoryStatsFor(req.user.id, category.id), countWishes.get(category.id, req.user.id).c))
+	res.json(fullRecord(req.user.id, category, req))
 })
 
 router.patch('/:id', (req, res) => {
@@ -101,8 +113,8 @@ router.patch('/:id', (req, res) => {
 	const nextName = patch.name !== undefined ? String(patch.name).trim() : category.name
 	if (!nextName) return res.status(400).json({ error: 'A category needs a name.' })
 	if (nextName.toLowerCase() !== category.name.toLowerCase()) {
-		const clash = selectByNameExists.get(req.user.id, nextName)
-		if (clash) return res.status(409).json({ error: `You already have a category called ${nextName}.` })
+		const clash = findCategoryByFold(req.user.id, nextName)
+		if (clash && clash.id !== category.id) return res.status(409).json({ error: `You already have a category called ${clash.name}.` })
 	}
 	const next = {
 		name: nextName,
@@ -113,30 +125,57 @@ router.patch('/:id', (req, res) => {
 		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : category.favourite
 	}
 	update.run({ ...next, id: category.id, userId: req.user.id })
-	const updated = selectOne.get(category.id, req.user.id)
-	res.json(withStats(updated, categoryStatsFor(req.user.id, category.id), countWishes.get(category.id, req.user.id).c))
+	res.json(fullRecord(req.user.id, selectOne.get(category.id, req.user.id), req))
 })
 
-/* The delete below refuses while a category is on an order, so this is the way out of it.
-   Wishes are not touched: they carry categories through a table of their own. */
-router.post('/:id/move-orders', (req, res) => {
-	const category = selectOne.get(req.params.id, req.user.id)
-	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
-	const toId = String(req.body?.to ?? '')
-	if (toId === category.id) return res.status(400).json({ error: 'Pick a different category.' })
-	const target = toId ? selectOne.get(toId, req.user.id) : null
-	if (!target) return res.status(404).json({ error: 'No category ' + (toId || req.body?.to) })
-	const moved = moveOrders(category.id, target.id, req.user.id)
-	res.json({ moved, from: category.id, to: target.id, name: target.name })
+/* A category is optional, so one in use is deleted too (5f): its links go first; a vendor's
+   defaults lose it by their own foreign key. */
+const unlinkOrders = db.prepare(`DELETE FROM order_categories WHERE category_id = ?
+	AND order_id IN (SELECT id FROM orders WHERE user_id = ?)`)
+const unlinkBookmarks = db.prepare(`DELETE FROM bookmark_categories WHERE category_id = ?
+	AND bookmark_id IN (SELECT id FROM bookmarks WHERE user_id = ?)`)
+const removeCategory = db.transaction((userId, id) => {
+	unlinkOrders.run(id, userId)
+	unlinkBookmarks.run(id, userId)
+	deleteOne.run(id, userId)
 })
 
 router.delete('/:id', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
-	const used = countOrders.get(category.id, req.user.id).c
-	if (used) return res.status(409).json({ error: `That category is on ${used} order${used === 1 ? '' : 's'}.` })
-	const wished = countWishes.get(category.id, req.user.id).c
-	if (wished) return res.status(409).json({ error: `That category is on ${wished} wish${wished === 1 ? '' : 'es'}.` })
-	deleteOne.run(category.id, req.user.id)
+	removeCategory(req.user.id, category.id)
 	res.json({ id: category.id })
+})
+
+/* Merge (5j): the links move to the target (one carrying both keeps one), the source is
+   deleted, and `merges` keeps a record, since it cannot be undone. */
+const moveOrderLinks = db.prepare(`INSERT OR IGNORE INTO order_categories (order_id, category_id)
+	SELECT oc.order_id, @target FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id
+	WHERE oc.category_id = @source AND o.user_id = @userId`)
+const moveBookmarkLinks = db.prepare(`INSERT OR IGNORE INTO bookmark_categories (bookmark_id, category_id)
+	SELECT bc.bookmark_id, @target FROM bookmark_categories bc CROSS JOIN bookmarks b ON b.id = bc.bookmark_id
+	WHERE bc.category_id = @source AND b.user_id = @userId`)
+const moveDefaults = db.prepare(`INSERT OR IGNORE INTO vendor_default_categories (vendor_id, category_id)
+	SELECT d.vendor_id, @target FROM vendor_default_categories d WHERE d.category_id = @source`)
+const insertMerge = db.prepare(`INSERT INTO merges (id, user_id, kind, source_name, target_id, orders)
+	VALUES (?, ?, ?, ?, ?, ?)`)
+
+const mergeCategories = db.transaction((userId, source, target) => {
+	const moved = countOrders.get(source.id, userId).c
+	const ids = { source: source.id, target: target.id, userId }
+	moveOrderLinks.run(ids)
+	moveBookmarkLinks.run(ids)
+	moveDefaults.run(ids)
+	removeCategory(userId, source.id)
+	insertMerge.run(newId('mg'), userId, 'category', source.name, target.id, moved)
+})
+
+router.post('/:id/merge', (req, res) => {
+	const source = selectOne.get(req.params.id, req.user.id)
+	if (!source) return res.status(404).json({ error: 'No category ' + req.params.id })
+	const target = selectOne.get(String(req.body?.into ?? ''), req.user.id)
+	if (!target) return res.status(400).json({ error: 'Pick the category to merge into.' })
+	if (target.id === source.id) return res.status(400).json({ error: 'A category cannot be merged into itself.' })
+	mergeCategories(req.user.id, source, target)
+	res.json(fullRecord(req.user.id, selectOne.get(target.id, req.user.id), req))
 })

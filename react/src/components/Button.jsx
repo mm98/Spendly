@@ -1,51 +1,71 @@
 import { Link } from 'react-router'
 import { Icon } from './Icon.jsx'
+import { join, pick, reject } from './variants.js'
 
-/* Buttons, and the one rule that decides which element to render.
+const STYLE = { solid: null, outline: 'sp-btn--outline', text: 'sp-btn--text' }
+const COLOR = { primary: true, warning: true, danger: true }
+const SIZE = { standard: null, small: 'sp-btn--small' }
 
-   A control that goes somewhere is a link and a control that acts in place is a button --
-   pass `to` and you get the first, pass `onClick` and you get the second. That is not
-   pedantry about elements: an <a href> fires click on Enter itself and leaves Space to
-   scroll the page, which is what the prototype's rows used to hand-roll and get wrong, and
-   only a link offers open-in-new-tab. README: Honest Affordances.
+const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
 
-   `data-go` rides along on every link because the stylesheet keys the row treatment off it
-   (`a[data-go] { color:inherit; text-decoration:none }`), and it still says what it said in
-   the prototype: where this element goes. */
-
-const join = (...parts) => parts.filter(Boolean).join(' ')
-
-export function Button({ variant = '', to, href, icon, iconAfter, children, className, ...rest }) {
-	const classes = join('button', variant && variant.split(' ').map(v => 'button-' + v).join(' '), className)
+export function Button({
+	variant = 'solid',
+	color = 'primary',
+	size = 'standard',
+	border = 'line',
+	fullWidth = false,
+	to,
+	href,
+	iconStart,
+	iconEnd,
+	children,
+	...rest
+}) {
+	reject(rest, 'Button')
+	pick(COLOR, color, 'color', 'Button')
+	const classes = join(
+		'sp-btn',
+		pick(STYLE, variant, 'variant', 'Button'),
+		pick(SIZE, size, 'size', 'Button'),
+		pick(BORDER, border, 'border', 'Button'),
+		fullWidth && 'sp-btn--block'
+	)
+	const paint = color === 'primary' ? {} : { 'data-color': color }
 	const content = (
 		<>
-			{icon ? <Icon name={icon} /> : null}
+			{iconStart ? <Icon name={iconStart} /> : null}
 			{children}
-			{iconAfter ? <Icon name={iconAfter} /> : null}
+			{iconEnd ? <Icon name={iconEnd} /> : null}
 		</>
 	)
-	if (to) return <Link className={classes} to={to} data-go={to} {...rest}>{content}</Link>
-	// A real URL outside this app's routes takes a plain <a>: middle-click, open-in-new-tab and
-	// the status bar all have to work, which a button calling window.open takes away.
-	if (href) return <a className={classes} href={href} {...rest}>{content}</a>
-	return <button type="button" className={classes} {...rest}>{content}</button>
+	if (to) return <Link className={classes} to={to} data-go={to} {...paint} {...rest}>{content}</Link>
+	if (href) return <a className={classes} href={href} {...paint} {...rest}>{content}</a>
+	return <button type="button" className={classes} {...paint} {...rest}>{content}</button>
 }
 
-/** A square control carrying nothing but a glyph, so the label has to be given. `href` is the
-    same third case `Button` above takes: a real URL outside this app's own routes (an API file
-    download, a shop's page), which is what lets a caller pass `download` or `target` through
-    `...rest` and get a real link rather than a navigation. */
-export function IconButton({ variant = 'arrow', icon, label, to, href, className, ...rest }) {
-	const classes = join('icon-button', variant && 'icon-button-' + variant, className)
-	if (to) return <Link className={classes} to={to} data-go={to} aria-label={label} {...rest}><Icon name={icon} /></Link>
-	if (href) return <a className={classes} href={href} aria-label={label} {...rest}><Icon name={icon} /></a>
-	return <button type="button" className={classes} aria-label={label} {...rest}><Icon name={icon} /></button>
-}
+const ICON_STYLE = { bare: null, outline: 'sp-icon-btn--outline', quiet: 'sp-icon-btn--quiet' }
+const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field' }
 
-/** The underlined text action -- SEE ALL, SCAN A RECEIPT, CLEAR ALL. */
-export function ButtonLink({ to, children, className, ...rest }) {
-	const classes = join('button-link', className)
-	return to
-		? <Link className={classes} to={to} data-go={to} {...rest}>{children}</Link>
-		: <button type="button" className={classes} {...rest}>{children}</button>
+export function IconButton({
+	icon,
+	variant = 'bare',
+	size = 'row',
+	danger = false,
+	to,
+	href,
+	...rest
+}) {
+	reject(rest, 'IconButton')
+	if (!rest['aria-label']) console.error('<IconButton> needs an aria-label: a glyph names nothing')
+	const classes = join(
+		'sp-icon-btn',
+		pick(ICON_STYLE, variant, 'variant', 'IconButton'),
+		pick(ICON_SIZE, size, 'size', 'IconButton'),
+		danger && 'sp-ink-danger'
+	)
+	// an element passes through; a string is a name the register knows
+	const glyph = typeof icon === 'string' ? <Icon name={icon} /> : icon
+	if (to) return <Link className={classes} to={to} data-go={to} {...rest}>{glyph}</Link>
+	if (href) return <a className={classes} href={href} {...rest}>{glyph}</a>
+	return <button type="button" className={classes} {...rest}>{glyph}</button>
 }

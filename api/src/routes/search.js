@@ -34,10 +34,10 @@ const searchVendors = perMatcher(match => `
 `)
 const searchCategories = perMatcher(match =>
 	`SELECT id, name FROM categories WHERE user_id = @userId AND ${match('name')} ORDER BY name LIMIT @limit`)
-/* The name only. A wish's address holds the shop's domain, which is the vendor's own name in
-   most rows, so matching it would answer "bilka" with the vendor and every wish bought there. */
-const searchWishes = perMatcher(match =>
-	`SELECT id, name, archived FROM wishes WHERE user_id = @userId AND ${match('name')}
+/* The name only. A bookmark's address holds the shop's domain, which is the vendor's own name in
+   most rows, so matching it would answer "bilka" with the vendor and every bookmark bought there. */
+const searchBookmarks = perMatcher(match =>
+	`SELECT id, name, archived FROM bookmarks WHERE user_id = @userId AND ${match('name')}
 		ORDER BY name COLLATE NOCASE LIMIT @limit`)
 /* Whether the account has any uncategorised order at all -- the palette offers the
    "Without category" filter only when there is something behind it, the same honesty rule
@@ -52,17 +52,28 @@ const searchOrders = perMatcher(match => `
 	SELECT ${orderTotalsSelectList('ot')} FROM orders ot
 	WHERE ot.user_id = @userId AND (
 		${match('ot.search_text')}
+		OR ${match('ot.reference')}
 		OR ot.vendor_id IN (${vendorIdsMatching(match)})
 	)
-	ORDER BY ot.date DESC LIMIT @limit
+	ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit
+`)
+/* Full counts once a kind fills the limit. An item counts once per order and name, as the
+   palette lists it; search_text holds every title, so it narrows the orders first. */
+const countVendors = perMatcher(match =>
+	`SELECT COUNT(*) AS c FROM vendors v WHERE v.user_id = @userId AND v.id IN (${vendorIdsMatching(match)})`)
+const countItems = perMatcher(match => `
+	SELECT COUNT(*) AS c FROM (
+		SELECT DISTINCT oi.order_id, lower(oi.title) FROM orders ot JOIN order_items oi ON oi.order_id = ot.id
+		WHERE ot.user_id = @userId AND ${match('ot.search_text')} AND ${match('oi.title')}
+	)
 `)
 
-/** Cross-entity search for the command palette: vendors, categories, wishes and orders
-    (matched by vendor name, note, or an item's title) that the query text appears in, each
+/** Cross-entity search for the command palette: vendors, categories, bookmarks and orders
+    (matched by vendor name, reference, note, or an item's title) that the query text appears in, each
     scoped to the account's own rows via an indexed user_id lookup. */
 router.get('/', (req, res) => {
 	const needle = String(req.query.query ?? '').trim().toLowerCase()
-	if (!needle) return res.json({ vendors: [], categories: [], wishes: [], orders: [] })
+	if (!needle) return res.json({ vendors: [], categories: [], bookmarks: [], orders: [] })
 	const shape = asciiNeedle(needle) ? 'ascii' : 'fold'
 	const params = { userId: req.user.id, limit: MAX_PER_KIND,
 		needle: shape === 'ascii' ? `%${escapeLike(needle)}%` : needle }
@@ -75,10 +86,17 @@ router.get('/', (req, res) => {
 	   exist. */
 	if ('without category'.includes(needle) && hasUncategorised.get(req.user.id))
 		categories.push({ id: 'none', name: 'Without category' })
+	const vendors = searchVendors[shape].all(params)
 	res.json({
-		vendors: searchVendors[shape].all(params),
+		vendors,
 		categories,
-		wishes: searchWishes[shape].all(params),
-		orders: decorateOrderSearchRows(orderRows)
+		bookmarks: searchBookmarks[shape].all(params),
+		orders: decorateOrderSearchRows(orderRows),
+		/* Under the limit the rows themselves are the whole answer, so the client counts them;
+		   at the limit the full count comes from here. */
+		counts: {
+			vendors: vendors.length < MAX_PER_KIND ? vendors.length : countVendors[shape].get(params).c,
+			items: orderRows.length < MAX_PER_KIND ? null : countItems[shape].get(params).c
+		}
 	})
 })

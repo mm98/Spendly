@@ -1,6 +1,0 @@
-	/** The optional fields, stacked with the same gap the section around them uses. */
-	children?: React.ReactNode;
-	/** The body's id, so the control that shows and hides it can name it in `aria-controls`. */
-	id?: string;
-	/** Closes it. The fields stay in the DOM with their values and take no height. */
-	hidden?: boolean;

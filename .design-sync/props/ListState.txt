@@ -1,6 +1,0 @@
-	/** The list's own storage key, one per listing page — "all-orders", "all-vendors",
-	 *  "all-categories", "wishlist". Two lists sharing a name would restore each other's
-	 *  filters. */
-	name?: string;
-	/** The listing page. It is rendered untouched; nothing is drawn around it. */
-	children?: React.ReactNode;

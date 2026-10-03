@@ -13,10 +13,10 @@
 
    States (settled in CLAUDE.md):
    - home.png        1440x900 dSF2, Home
-   - all-orders.png  1440x900 dSF2, /orders/all?vendor=bilka&status=Delivered&from=2026-08-01&to=2026-08-31,
-                     FILTERS panel open, finder open with 'bil' typed. 3 matching.
+   - all-orders.png  1440x900 dSF2, /orders?vendor=<Bilka>&status=Delivered&from=2026-08-01&to=2026-08-31,
+                     the facet rail beside the list, the palette open with 'bil' typed. 3 matching.
    - phone.png       iPhone 15 descriptor, dSF overridden to 2, Home. 786x1318.
-   Account: fresh, demo fill {seed: SEED, months: 2, orders: 30} -- the dataset is a function of
+   Account: fresh, demo fill {seed: SEED, months: MONTHS, orders: 30} -- the dataset is a function of
    (seed, today), so the seed is re-picked on a render day to give the all-orders state its
    3 August Bilka Delivered matches, and the render refuses to shoot when it does not hold. */
 import { readFileSync, mkdirSync } from 'node:fs'
@@ -32,6 +32,8 @@ const BASE = 'http://localhost:5173'
    one that puts three August Bilka deliveries in the account, which is the all-orders shot's
    state. Nothing else in the three shots depends on which seed it is. */
 const SEED = 2
+// the fill counts calendar months back from today, and the all-orders shot is filtered to August 2026
+const MONTHS = Math.max(2, (new Date().getFullYear() - 2026) * 12 + new Date().getMonth() - 7 + 1)
 const MATCHES = 3
 const DOCS = new URL('../../docs', import.meta.url).pathname
 const outdir = process.argv[2]
@@ -41,10 +43,12 @@ mkdirSync(outdir, { recursive: true })
 const browser = await chromium.launch()
 
 async function freshAccount(ctx) {
-	const email = `docs-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`
+	// one fixed address: the sidebar's account mark is drawn from it, so a new one per run moves pixels
+	const email = 'docs@example.com'
 	let r = await ctx.request.post(BASE + '/api/auth/register', { data: { email, password: 'docs-pass-1' } })
-	if (r.status() !== 201) throw new Error('register ' + r.status())
-	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: SEED, months: 2, orders: 30 } })
+	if (r.status() !== 201) r = await ctx.request.post(BASE + '/api/auth/login', { data: { email, password: 'docs-pass-1' } })
+	if (!r.ok()) throw new Error('sign in ' + r.status())
+	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: SEED, months: MONTHS, orders: 30 } })
 	if (!r.ok()) throw new Error('demo-data ' + r.status())
 	console.log('demo-data:', await r.text())
 	/* The list filters on `vendorId`. The page's own address spells the same filter `vendor`,
@@ -122,31 +126,26 @@ page.setDefaultTimeout(2000)
 page.setDefaultNavigationTimeout(2000)
 
 await page.goto(BASE + '/#/', { timeout: 15000 })
-await page.waitForSelector('.chart-wrap path', { state: 'attached', timeout: 5000 })
+await page.waitForSelector('.sp-bars__col', { timeout: 5000 })
 await shoot(page, 'home.png')
 
 /* Vendor ids are generated per account now, so the id is read back from the API rather than
    hardcoded -- the committed shot's state is "filtered to Bilka", not any literal id. */
 const vendors = await (await desktop.request.get(BASE + '/api/vendors')).json()
 const bilka = vendors.find(v => v.name === 'Bilka').id
-await page.goto(BASE + `/#/orders/all?vendor=${bilka}&status=Delivered&from=2026-08-01&to=2026-08-31`, { timeout: 15000 })
-await page.waitForSelector('.pager-row .field-help')
-const matchLine = await page.locator('text=MATCH').first().innerText().catch(() => '?')
-console.log('all-orders header:', JSON.stringify(matchLine))
-await page.click('[data-filters-toggle]')
-await page.waitForSelector('#filter-panel:not([hidden])')
+await page.goto(BASE + `/#/orders?vendor=${bilka}&status=Delivered&from=2026-08-01&to=2026-08-31`, { timeout: 15000 })
+await page.waitForFunction(n => document.querySelectorAll('.sp-table tbody tr').length === n, MATCHES, { timeout: 5000 })
 /* Typed keys upgrade a pointer focus to :focus-visible in Blink and the committed shot has
-   no ring -- set the value natively and fire input, so the dropdown opens over a field whose
-   focus stays pointer-shaped. */
-await page.locator('input[aria-label="Search everything"]').click()
+   no ring -- the palette opens from a click, and its field takes the text natively. */
+await page.locator('.sp-topbar input[type=search]').click()
+await page.waitForSelector('.sp-palette input', { timeout: 3000 })
 await page.evaluate(() => {
-	const el = document.querySelector('input[aria-label="Search everything"]')
+	const el = document.querySelector('.sp-palette input')
 	const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
 	set.call(el, 'bil')
 	el.dispatchEvent(new Event('input', { bubbles: true }))
 })
-await page.waitForSelector('text=SEARCH ALL ORDERS', { timeout: 3000 }).catch(() => {})
-await page.waitForTimeout(400)
+await page.waitForSelector('.sp-palette mark', { timeout: 3000 })
 await shoot(page, 'all-orders.png')
 
 await diff(page, 'home.png')
@@ -160,7 +159,7 @@ const phone = await phoneCtx.newPage()
 phone.setDefaultTimeout(2000)
 phone.setDefaultNavigationTimeout(2000)
 await phone.goto(BASE + '/#/', { timeout: 15000 })
-await phone.waitForSelector('.chart-wrap path', { state: 'attached', timeout: 5000 })
+await phone.waitForSelector('.sp-gauge', { timeout: 5000 })
 await settle(phone)
 await phone.screenshot({ path: join(outdir, 'phone.png') })
 await diff(phone, 'phone.png')

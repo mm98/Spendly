@@ -1,0 +1,41 @@
+/* One order, read and edited (1a, 1d): the boxes its loading form holds open. Layout only. */
+
+@layer base {
+
+	/* a field's or a button's box while the order loads, at the height it will have; small is
+	   the library's small button, which a card's commits and the rail's Delete order are */
+	.or-control { display: flex; height: var(--control-h); }
+	.or-control--small { height: 34px; }
+	.sp-touch .or-control { height: var(--control-h-touch); }
+	/* the attachment strip with its add tile */
+	.or-tiles { display: flex; height: calc(var(--mark-xlarge) + var(--sp-6)); }
+
+	/* an item row: the name takes what is left, the amount at most 45% and then ends in "…" */
+	.or-line { flex: 1 1 0; }
+	.or-line-amount { flex: 0 1 auto; max-width: 45%; }
+	.or-line-amount > * { max-width: 100%; }
+	/* a vendor name that is one long word breaks inside the row rather than widening the page */
+	.or-wrap { min-width: 0; overflow-wrap: anywhere; }
+
+	/* the scanned receipt beside the values read off it (17d): letterboxed at its own proportion,
+	   never toned, and the whole of it a button that opens it at full size */
+	.or-receipt {
+		display: grid;
+		place-items: center;
+		padding: var(--sp-8);
+		border: 1px solid var(--line);
+		border-radius: var(--r-tile);
+		background: var(--surface-2);
+		min-height: 220px;
+		cursor: zoom-in;
+	}
+	.or-receipt > * { grid-area: 1 / 1; }
+	.or-receipt > img { display: block; max-width: 100%; max-height: 420px; object-fit: contain; }
+
+	/* the categories as chips once one is over its limit, set to the value's right edge as its text is */
+	.or-chips { justify-content: flex-end; font-weight: 400; }
+
+	/* a notice about the whole order, above both columns (3a: the saved state's notice) */
+	.or-span { grid-column: 1 / -1; }
+
+}

@@ -1,508 +1,397 @@
-import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { Sep } from './Sep.jsx'
-import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
+import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Link } from 'react-router'
+import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
-import { Button, IconButton } from './Button.jsx'
-import { Waiting } from './Async.jsx'
-import { ToastProvider } from './Toast.jsx'
-import { PullToRefresh } from './PullToRefresh.jsx'
-import { Tooltip } from './Tooltip.jsx'
-import { UpdateNoticeProvider } from './UpdateNotice.jsx'
-import { getVersion, search, SEARCH_FROM } from '../api/client.js'
-import { useApi } from '../api/useApi.js'
+import { Mark } from './Mark.jsx'
+import { Fab, TabBar } from './Touch.jsx'
+import { SearchInput } from './Inputs.jsx'
+import { Kbd } from './Utilities.jsx'
+import { Button } from './Button.jsx'
 
-/* The shell every page sits in: the rail, the top bar, the sub-tab band, and the sheet.
+/** Whether the page sits in the touch shell: what a part that changes its form on touch reads. */
+export const ShellTouch = createContext(false)
 
-   The prototype's router toggles a class, and the note in CLAUDE.md about it is the reason
-   this file exists in the shape it does -- showing a page there also builds the sub-tab bar,
-   sets the page title, moves the sidebar highlight and retargets the back button, and a
-   harness that only toggled the class rendered eleven of twelve pages carrying home's title
-   and home's tabs. Here all four read from one place: the `handle` on each route. A page
-   cannot be reachable and unnamed, because the router is what names it. */
-
-/* ---- the view a page is in ----
-   Vendors and Categories have sub-tabs that switch what is on the page rather than
-   navigating, and the stylesheet reads that as [data-view] on the page element. The tab bar
-   is in the shell and the attribute is on the page, so the state is shared here and reset
-   whenever the route changes -- a view left over from the last page is a filter nobody
-   applied. */
-const ViewContext = createContext({ view: 'overview', setView: () => {} })
-export const useView = () => useContext(ViewContext)
-
-/** The wrapper every page uses as its root. `.page.is-on` is the grid that lays a page out;
-    `page-grid` and `content-grid` are the two variants that differ in their columns. */
-export function Page({ variant, children, ...rest }) {
-	const { view } = useView()
+/** `viewport` fills the window; `touch` is the shell below 640: top bar, content, tab bar, one
+    floating action. `cover` owns the whole touch screen (7b's search), the page mounted under it. */
+export function Shell({ collapsed = false, viewport = false, touch = false, cover, children, ...rest }) {
+	reject(rest, 'Shell')
+	let menu = null, topbar = null, content = null, tabbar = null, fab = null
+	for (const child of [].concat(children ?? []).flat()) {
+		if (!child || typeof child !== 'object') continue
+		if (child.type === Sidebar) menu = child
+		else if (child.type === TopBar) topbar = child
+		else if (child.type === ShellContent) content = child
+		else if (child.type === TabBar) tabbar = child
+		else if (child.type === Fab) fab = child
+		else console.error('<Shell> takes Sidebar, TopBar, ShellContent, TabBar and Fab - nothing else')
+	}
+	// sheets, dialogs and the viewer render on the body, so the touch sizes have to reach it too
+	useEffect(() => {
+		if (!touch) return
+		document.body.classList.add('sp-touch')
+		return () => document.body.classList.remove('sp-touch')
+	}, [touch])
+	/* Both shapes keep the page in the same slot of the same tree, so crossing 640 re-styles
+	   the page rather than mounting it again and losing what the reader had not saved. */
 	return (
-		<div className={['page', 'is-on', variant].filter(Boolean).join(' ')} data-view={view} {...rest}>
+		<ShellTouch.Provider value={touch}>
+			<div className={touch ? 'sp-shell--touch sp-touch' : join('sp-shell', collapsed && 'sp-shell--collapsed', viewport && 'sp-shell--viewport')} {...rest}>
+				{touch ? null : menu}
+				<div className="sp-shell__page" hidden={touch && !!cover}>
+					{topbar}
+					{content}
+				</div>
+				{touch && cover ? <div className="sp-shell__page">{cover}</div> : null}
+				{touch && !cover ? fab : null}
+				{touch && !cover ? tabbar : null}
+			</div>
+		</ShellTouch.Provider>
+	)
+}
+
+export function TopBar({ touch = false, children, ...rest }) {
+	reject(rest, 'TopBar')
+	return <div className={join('sp-topbar', touch && 'sp-topbar--touch')} {...rest}>{children}</div>
+}
+
+const BODY = { default: null, split: 'sp-shell__body--split', rail: 'sp-shell__body--rail' }
+
+export function ShellContent({ layout = 'default', children, ...rest }) {
+	reject(rest, 'ShellContent')
+	return <main className={join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))} {...rest}>{children}</main>
+}
+
+const SIDEBAR = {
+	default: null,
+	rail: 'sp-sidebar--rail',
+	peek: 'sp-sidebar--rail sp-sidebar--peek',
+	'slide-in': 'sp-sidebar--slide-in',
+	'slide-out': 'sp-sidebar--slide-out'
+}
+
+const MOTION = { in: 'sp-sidebar--slide-in', out: 'sp-sidebar--slide-out' }
+
+/** `motion` runs the labels in as the column opens, or out before it closes (9i). */
+export function Sidebar({ variant = 'default', motion, children, ...rest }) {
+	reject(rest, 'Sidebar')
+	return (
+		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'), motion && pick(MOTION, motion, 'motion', 'Sidebar'))} {...rest}>
 			{children}
+		</nav>
+	)
+}
+
+/** The product's own mark and name, as the menu's top block. */
+export function SidebarBrand({ children, ...rest }) {
+	reject(rest, 'SidebarBrand')
+	return <div className="sp-sidebar__brand" {...rest}>{children}</div>
+}
+
+export function SidebarGroup({ children, ...rest }) {
+	reject(rest, 'SidebarGroup')
+	return <div className="sp-sidebar__group" {...rest}>{children}</div>
+}
+
+export function SidebarGrip({ expanded = true, onClick, ...rest }) {
+	reject(rest, 'SidebarGrip')
+	return (
+		<button
+			type="button"
+			className="sp-sidebar__grip"
+			aria-label={expanded ? 'Collapse the menu' : 'Expand the menu'}
+			aria-expanded={expanded ? 'true' : 'false'}
+			onClick={onClick}
+			{...rest}
+		/>
+	)
+}
+
+/** The rule between the destinations and the pinned zone at the bottom. */
+export function SidebarDivider(props) {
+	reject(props, 'SidebarDivider')
+	return <span className="sp-sidebar__divider" {...props} />
+}
+
+// edited is a light row whose saved view differs from the list (2g), so it carries both classes
+const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item--light', edited: 'sp-nav-item--light sp-nav-item--edited' }
+
+/** `tip` is the label shown while the row's own is hidden, on the rail; `control` is a Switch
+    at the row's end, which makes the row its label. */
+export function NavItem({ variant = 'default', icon, mark, count, countColor, sub, current = false, to, onClick, tip, control, children, ...rest }) {
+	reject(rest, 'NavItem')
+	const [hint, tipEvents] = useTip(tip)
+	const classes = join('sp-nav-item', pick(NAV, variant, 'variant', 'NavItem'))
+	const body = (
+		<>
+			{mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
+			{/* a light row holds its current, bold label's room in every state, as Segmented does */}
+			{(variant === 'light' || variant === 'edited') && typeof children === 'string'
+				? <span className="sp-grow" data-label={children}><span>{children}</span></span>
+				: <span className="sp-grow">{children}</span>}
+			{sub ? <span className="sp-nav-item__sub">{sub}</span> : null}
+			{count != null
+				? <span className="sp-nav-item__count" {...(countColor ? { 'data-color': countColor } : {})}>{count}</span>
+				: null}
+			{control}
+			{hint}
+		</>
+	)
+	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest }
+	if (control) return <label className={classes} {...state}>{body}</label>
+	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{body}</Link>
+	if (!onClick) return <span className={classes} {...state}>{body}</span>
+	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
+}
+
+/* A menu a sidebar row opens, fixed to the window so the sidebar's scroll cannot clip it, placed against
+   `block`; Up and Down on its button open it at either end (c9), a press outside, Escape or Tab dismisses it. */
+function useSidebarMenu({ expanded, onClick, onDismiss }) {
+	const block = useRef(null)
+	const button = useRef(null)
+	const panel = useRef(null)
+	// which end of the menu an arrow on the closed button asked for (c9: Up opens on the last item)
+	const end = useRef('first')
+	const [at, setAt] = useState(null)
+	useLayoutEffect(() => {
+		if (!expanded) { setAt(null); return }
+		const place = () => {
+			const r = block.current.getBoundingClientRect()
+			const side = !!block.current.closest('.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek), .sp-sidebar--rail:not(.sp-sidebar--peek)')
+			setAt({ side, left: r.left, top: r.top, width: r.width, height: r.height })
+		}
+		place()
+		window.addEventListener('resize', place)
+		return () => window.removeEventListener('resize', place)
+	}, [expanded])
+	const shown = !!at
+	useEffect(() => {
+		if (!shown) return
+		const items = panel.current?.querySelectorAll('.sp-menu__item:not(:disabled)') ?? []
+		;(end.current === 'last' ? items[items.length - 1] : items[0])?.focus()
+		end.current = 'first'
+		const away = ev => {
+			if (!block.current?.contains(ev.target) && !panel.current?.contains(ev.target)) onDismiss?.()
+		}
+		document.addEventListener('pointerdown', away)
+		return () => document.removeEventListener('pointerdown', away)
+	}, [shown, onDismiss])
+	const keys = ev => {
+		const items = [...panel.current.querySelectorAll('.sp-menu__item:not(:disabled)')]
+		const i = items.indexOf(document.activeElement)
+		if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+			ev.preventDefault()
+			items[(i + (ev.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
+		} else if (ev.key === 'Escape' || ev.key === 'Tab') {
+			// Tab goes on from the button, where the menu sits in the reading order
+			if (ev.key === 'Escape') ev.preventDefault()
+			button.current?.focus()
+			onDismiss?.()
+		}
+	}
+	const opener = ev => {
+		if (expanded || (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp')) return
+		ev.preventDefault()
+		end.current = ev.key === 'ArrowUp' ? 'last' : 'first'
+		onClick?.(ev)
+	}
+	// the menu drops below the box, or opens beside it on the rail; `up` opens it above, from the foot
+	const drawn = (menu, way) => (at && menu
+		? createPortal(
+			<div ref={panel} className={join('sp-sidebar__menu', at.side ? 'sp-sidebar__menu--side' : way === 'up' ? 'sp-sidebar__menu--up' : 'sp-sidebar__menu--down')}
+				style={{ left: at.left, top: at.top, width: at.width, height: at.height }} onKeyDown={keys}>
+				{menu}
+			</div>,
+			document.body)
+		: null)
+	return { block, button, opener, drawn }
+}
+
+/** A sidebar row with a second way in: the row goes to `to`, and the chevron at its end opens `menu`
+    (16a: New order, then Scan a receipt, Import a file, Copy a previous order). The rail keeps the row only. */
+export function SidebarSplit({ icon, to, current = false, tip, label, expanded = false, onClick, onDismiss, menu, children, ...rest }) {
+	reject(rest, 'SidebarSplit')
+	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
+	return (
+		<div className="sp-nav-split" ref={block}>
+			<NavItem icon={icon} to={to} current={current} tip={tip} aria-label={children} {...rest}>{children}</NavItem>
+			<button type="button" className="sp-nav-item sp-nav-split__more" ref={button} aria-label={label} aria-haspopup="menu"
+				aria-expanded={expanded ? 'true' : 'false'} onClick={onClick} onKeyDown={opener}>
+				<Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={14} />
+			</button>
+			{drawn(menu)}
 		</div>
 	)
 }
 
-const NAV = [
-	/* The entry the five-column phone bar leaves out, because it is the only one with another
-	   door there: the top bar's chevron goes here from every page that is not already it. */
-	{ to: '/', key: 'home', icon: 'home', label: 'Home', wide: true },
-	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'Orders' },
-	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist', short: 'Wish' },
-	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
-	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
-	// Leaves the phone bar to Budget: Home's Spent card is its door there.
-	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', wide: true },
-	{ to: '/budget', key: 'budget', icon: 'budget', label: 'Budget' }
-]
-
-function Sidebar({ navKey }) {
-	return (
-		<aside className="sidebar">
-			{/* draggable={false} beside the stylesheet's own rule: Gecko reads the attribute and
-			    not -webkit-user-drag, so the rail behaves the same in every engine. */}
-			<Link className="brand" to="/" data-go="/" draggable={false} aria-label="Spendly, go to home">
-				<span className="brand-mark" aria-hidden="true"><Icon name="receipt" className="" /></span>
-				<span className="brand-name">Spendly</span>
-			</Link>
-			<nav className="sidebar-nav" aria-label="Primary">
-				{NAV.map(item => {
-					const on = item.key === navKey
-					return (
-						<Link key={item.key} to={item.to} draggable={false}
-							className={[on && 'is-on', item.wide && 'wide-only'].filter(Boolean).join(' ') || undefined}
-							aria-current={on ? 'page' : undefined}>
-							{/* One word per column in the five-column bar. Both forms are in the markup and
-							    the hidden one is out of the tree, so the spoken name is the printed one. */}
-							<Icon name={item.icon} />
-							{item.short ? (<>
-								<span className="wide-only">{item.label}</span>
-								<span className="narrow-only">{item.short}</span>
-							</>) : item.label}
-						</Link>
-					)
-				})}
-			</nav>
-			<div className="sidebar-footer"><BuildQuality /></div>
-		</aside>
-	)
-}
-
-/* The band at the foot of the rail, and what it is hiding: the Lighthouse scores this image
-   was measured at, on hover or focus. Same shape as the chart callout -- not drawn at rest,
-   revealed by asking, `visibility` rather than `display` so the phone rule that hides this
-   whole band stays in charge.
-
-   The scores come from /api/version, which the Settings page already reads, and useApi keys
-   its cache by endpoint -- so the band costs a request only on a load where Settings has not
-   made one, and never a second. Outside the Docker image there is nothing to show and the
-   band is the plain line it always was: a tooltip that opens onto "unknown" is worse than no
-   tooltip, and a dev server has no build to have been measured. */
-/* No SEO row: the check stopped measuring it (react/scripts/lighthouse.mjs -- a sign-in-gated
-   ledger has no crawler to rank it), so new stamps do not carry the key, and a row reading a
-   key only old stamps hold would render its label over a blank. */
-const SCORES = [
-	['Performance', 'performance'], ['Accessibility', 'accessibility'],
-	['Best practices', 'bestPractices']
-]
-
-function BuildQuality() {
-	const version = useApi(getVersion)
-	const rail = useRef(null)
-	const [band, setBand] = useState(null)
-	const scores = version.data?.lighthouse
-	if (!scores) return <span>Spendly<Sep />your spending</span>
-
-	/* Focusable, or the label is hover-only and a keyboard never reaches it. */
-	/* Pointed at the rail's own block, not at the inline run of text in it: that run is only as
-	   wide as its words, so the scores would centre on the words rather than on the rail. */
-	const show = () => setBand(rail.current.getBoundingClientRect())
-	const hide = () => setBand(null)
-
-	return (
-		<span className="build-quality" ref={rail}>
-			<span className="build-quality-band" tabIndex={0}
-				onPointerEnter={show} onPointerLeave={hide} onFocus={show} onBlur={hide}>
-				Spendly<Sep />your spending
-			</span>
-			<Tooltip anchor={band} title="This build scored" matchWidth>
-				{SCORES.map(([label, key]) => (
-					<span className="tooltip-row" key={key}>
-						<span className="tooltip-name">{label}</span>
-						<span className="tooltip-value tabular-figures">{scores[key]}</span>
-					</span>
-				))}
-				<span className="tooltip-title">
-					Lighthouse {scores.lighthouse ?? '?'}<Sep />FCP {Math.round(scores.firstContentfulPaintMs)} ms
-				</span>
-			</Tooltip>
+/** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
+    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab. */
+export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
+	reject(rest, 'SidebarAccount')
+	const [hint, tipEvents] = useTip(expanded ? null : tip)
+	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
+	const bind = el => { block.current = el; button.current = el }
+	const split = email.lastIndexOf('@')
+	const address = (
+		<span className="sp-nav-item__sub sp-nav-item__sub--email">
+			<span className="sp-nav-item__local">{split > 0 ? email.slice(0, split) : email}</span>
+			{split > 0 ? <span className="sp-nav-item__domain">{email.slice(split)}</span> : null}
 		</span>
 	)
+	return (
+		<>
+			<button type="button" className="sp-nav-item" ref={bind} onClick={onClick} aria-haspopup="menu"
+				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents} onKeyDown={opener}
+				{...rest}>
+				{picture
+					? <Mark size="medium" fill="photo" aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
+					: <Mark size="medium" fill="solid">{name || (split > 0 ? email.slice(0, split) : email)}</Mark>}
+				<span className="sp-stack sp-grow">
+					{name ? <span className="sp-truncate">{name}</span> : null}
+					{address}
+				</span>
+				<span className="sp-combobox__chevron"><Icon name="chevron-up" size={14} /></span>
+				{hint}
+			</button>
+			{drawn(menu, 'up')}
+		</>
+	)
 }
 
-/* ---- the command palette ----
-
-   The top bar prints CTRL K, and a key cap is a promise: Ctrl+K (Cmd+K on a Mac) opens this
-   from anywhere and puts the caret in it, Escape closes it and hands focus back to whatever
-   had it, Up and Down walk the results, and Enter opens the one that is highlighted -- or,
-   with none highlighted, searches all orders for the typed text, which is what the line at the
-   foot of the panel says.
-
-   It searches orders, vendors, categories, wishes, item lines and notes, and it lists the commands
-   the app can run -- so it is the one control that reaches every page and every create flow.
-   The results come from the API on each keystroke, aborted when the next one lands, which is
-   why a slow answer cannot overwrite a fast one typed after it.
-
-   aria-activedescendant is how a combobox says which option is current without moving focus
-   out of the input. The listbox owns the ids; the input points at one of them. */
-function GlobalFinder() {
-	const [query, setQuery] = useState('')
-	const [open, setOpen] = useState(false)
-	const [groups, setGroups] = useState([])
-	/* -1 is nothing chosen, and every new set of results starts there: a row is chosen by the
-	   arrow keys or the mouse, never by arriving. Nothing chosen is what hands Enter to the line
-	   at the foot of the panel, so choosing a row here silently changes what that line does. */
-	const [at, setAt] = useState(-1)
-	const wrapper = useRef(null)
-	const input = useRef(null)
-	const returnFocusTo = useRef(null)
-	const navigate = useNavigate()
-	const panelId = 'global-finder-panel'
-
-	/* One flat list behind the grouped rendering, because the arrow keys walk results and not
-	   headings. Index into this is what aria-activedescendant names. */
-	const flat = useMemo(() => groups.flatMap(g => g.options), [groups])
-	const current = at < 0 ? undefined : flat[Math.min(at, flat.length - 1)]
-
-	useEffect(() => {
-		if (!open) return
-		const controller = new AbortController()
-		search(query, controller.signal)
-			.then(r => { setGroups(r.groups); setAt(-1) })
-			.catch(e => { if (e.name !== 'AbortError') setGroups([]) })
-		return () => controller.abort()
-	}, [query, open])
-
-	const close = useCallback(() => {
-		setOpen(false)
-		/* Focus goes back where it came from. A palette that closes onto the body drops the
-		   keyboard user at the top of the document. */
-		const back = returnFocusTo.current
-		returnFocusTo.current = null
-		queueMicrotask(() => (back ?? input.current)?.focus?.())
-	}, [])
-
-	const go = useCallback(to => {
-		setOpen(false)
-		returnFocusTo.current = null
-		navigate(to)
-	}, [navigate])
-
-	/* The shortcut. Bound on the document because a palette you have to click into first is
-	   not a shortcut, and preventDefault because Ctrl+K is the browser's own in some builds. */
-	useEffect(() => {
-		const onKey = e => {
-			if (!((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) return
-			e.preventDefault()
-			/* The stylesheet hides this whole control below 1100px, so on a phone the shortcut
-			   cannot open it -- focusing a display:none input puts focus on the body. There the
-			   honest answer is the page that does the same job with room to do it. */
-			if (!input.current?.offsetParent) { navigate('/orders/all'); return }
-			returnFocusTo.current = document.activeElement
-			setOpen(true)
-			queueMicrotask(() => { input.current?.focus(); input.current?.select() })
-		}
-		document.addEventListener('keydown', onKey)
-		return () => document.removeEventListener('keydown', onKey)
-	}, [navigate])
-
-	useEffect(() => {
-		if (!open) return
-		const onDocumentClick = e => { if (!wrapper.current?.contains(e.target)) setOpen(false) }
-		document.addEventListener('click', onDocumentClick)
-		return () => document.removeEventListener('click', onDocumentClick)
-	}, [open])
-
-	const optionId = i => `${panelId}-option-${i}`
-
-	/* The panel scrolls at a fixed height (app.css's .combobox-panel), and a result list long
-	   enough to need that -- Vendors and Categories rows doubled once each row also opened an
-	   edit page, plus the "Show all ..." row under each -- can arrow the highlight straight past
-	   the bottom of it: the class moved, the panel did not, and the highlighted row read as
-	   deselected because it could no longer be seen.
-
-	   Not scrollIntoView: it reads the scroll container's own edge as the visible bound, and
-	   the sticky "SEARCH ALL ORDERS FOR ..." row (app.css's .combobox-action, position:sticky)
-	   sits opaque over that same edge regardless of scroll position -- a row scrolled flush to
-	   the panel's bottom is still hidden under it. Down never carried the highlight past the
-	   fifth-or-so row for exactly this reason: every row past it was scrolled to a position
-	   scrollIntoView called visible and the sticky bar was covering. The footer's own current
-	   top, not the panel's, is the real reachable bottom, and getBoundingClientRect reads both
-	   in the same viewport pixels a manual scrollTop adjustment can use directly. */
-	useEffect(() => {
-		if (at < 0) return
-		const panel = document.getElementById(panelId)
-		const option = document.getElementById(optionId(at))
-		if (!panel || !option) return
-		const footer = panel.querySelector('.combobox-action')
-		const panelRect = panel.getBoundingClientRect()
-		const optionRect = option.getBoundingClientRect()
-		const visibleBottom = footer ? footer.getBoundingClientRect().top : panelRect.bottom
-		if (optionRect.bottom > visibleBottom) panel.scrollTop += optionRect.bottom - visibleBottom
-		else if (optionRect.top < panelRect.top) panel.scrollTop -= panelRect.top - optionRect.top
+/* The rail's label where [data-tip] draws it, but fixed to the window so the sidebar's scroll cannot
+   clip it, and held inside the window's edge. Only its position is set here. */
+function useTip(tip) {
+	const [at, setAt] = useState(null)
+	const box = useRef(null)
+	useEffect(() => { if (!tip) setAt(null) }, [tip])
+	useLayoutEffect(() => {
+		const el = box.current
+		if (!at || !el) return
+		const edge = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-8'))
+		const half = el.offsetWidth / 2
+		const left = Math.min(Math.max(at.left, edge + half), window.innerWidth - edge - half)
+		if (left !== at.left) setAt({ ...at, left })
 	}, [at])
-
-	/* Too short to search (SEARCH_FROM). Without this the panel shows the starter commands, which
-	   reads as a search that found none of what was typed. */
-	const typed = query.trim()
-	const tooShort = typed.length > 0 && typed.length < SEARCH_FROM
-
-	return (
-		<div className={['global-finder', open && 'is-open'].filter(Boolean).join(' ')} ref={wrapper}>
-			<div className="field-shell">
-				<Icon name="search" />
-				{/* aria-expanded is only allowed on a handful of roles and `search` is not one of
-				    them -- axe calls that critical, and the attribute is simply ignored. This is a
-				    combobox, so it says so, the same as every other one in the app. */}
-				<input ref={input} type="search" id="global-finder-search" value={query}
-					placeholder="Search orders, vendors, notes..."
-					role="combobox" aria-autocomplete="list" aria-controls={panelId}
-					aria-label="Search everything" aria-expanded={open}
-					aria-activedescendant={open && current ? optionId(flat.indexOf(current)) : undefined}
-					onChange={e => { setQuery(e.target.value); setOpen(true) }}
-					onClick={() => setOpen(true)}
-					onKeyDown={e => {
-						if (e.key === 'Escape') {
-							/* preventDefault, because this is input[type=search] and Chromium's own
-							   Escape clears the field -- which fires change, which is what reopens the
-							   panel a beat after this closed it. The palette stayed open on Escape for
-							   exactly that reason, and the keydown handler looked correct throughout. */
-							e.preventDefault()
-							close()
-							return
-						}
-						if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-							e.preventDefault()
-							if (!open) { setOpen(true); return }
-							if (!flat.length) return
-							/* From "nothing chosen", Down takes the first row and Up the last. The plain
-							   modulo step lands on the second-to-last one going up from -1. */
-							setAt(i => i < 0
-								? (e.key === 'ArrowDown' ? 0 : flat.length - 1)
-								: (i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)
-							return
-						}
-						if (e.key !== 'Enter') return
-						e.preventDefault()
-						/* Enter opens what is highlighted; with nothing highlighted it does what the
-						   foot of the panel says it does, which is search all orders for the text. */
-						if (current) go(current.to)
-						else if (query.trim()) go('/orders/all?q=' + encodeURIComponent(query))
-					}} />
-				<span className="key-cap key-cap-push">CTRL K</span>
-			</div>
-			<div className="combobox-panel" id={panelId} role="listbox" aria-label="Search everything">
-				{tooShort ? (
-					<div className="combobox-group">
-						<div className="combobox-group-heading">Keep typing</div>
-						<div className="combobox-option">Type at least {SEARCH_FROM} letters to search.</div>
-					</div>
-				) : null}
-				{groups.map(group => (
-					<div className="combobox-group" key={group.heading}>
-						<div className="combobox-group-heading">{group.heading}</div>
-						{group.options.map(option => {
-							const i = flat.indexOf(option)
-							const on = option === current
-							return (
-								<div key={option.id} id={optionId(i)} role="option" aria-selected={on}
-									className={['combobox-option', on && 'combobox-option-highlighted']
-										.filter(Boolean).join(' ')}
-									onMouseEnter={() => setAt(i)}
-									onClick={e => { e.preventDefault(); e.stopPropagation(); go(option.to) }}>
-									{option.before}
-									{option.mark ? (
-										<mark className={[/\s$/.test(option.before) && 'mark-lead',
-											/^\s/.test(option.rest) && 'mark-trail'].filter(Boolean).join(' ')}>
-											{option.mark}
-										</mark>
-									) : null}
-									{option.rest}
-									<span className="combobox-option-meta">{option.meta}</span>
-								</div>
-							)
-						})}
-					</div>
-				))}
-				{query.trim() && !flat.length ? (
-					<div className="combobox-group">
-						<div className="combobox-group-heading">Nothing found</div>
-						<div className="combobox-option">No order, vendor, category, wish or note matches "{query}".</div>
-					</div>
-				) : null}
-				{query.trim() ? (
-					<div className="combobox-action"
-						onClick={e => { e.preventDefault(); e.stopPropagation(); go('/orders/all?q=' + encodeURIComponent(query)) }}>
-						SEARCH ALL ORDERS FOR "{query.toUpperCase()}"
-						<span className="combobox-option-meta">Enter</span>
-					</div>
-				) : null}
-			</div>
-		</div>
-	)
-}
-
-/* ---- sub-tabs ----
-   A real tablist: buttons, roving tabindex, arrow keys, and a selection that changes what is
-   on screen. Every tab does something -- it either goes to another page or switches the view
-   within this one. Anything that could do neither was removed rather than left as chrome
-   that looks live and is not. README: Honest Affordances. */
-function SubTabs({ tabs, view, setView }) {
-	const navigate = useNavigate()
-	const refs = useRef([])
-	if (!tabs?.length) return <div className="page-bar"><div className="segmented" id="subtabs" role="tablist" /></div>
-
-	const activeIndex = Math.max(0, tabs.findIndex(t => (t.view ? t.view === view : t.on)))
-
-	const select = i => {
-		const tab = tabs[i]
-		if (tab.to) { navigate(tab.to); return }
-		setView(tab.view)
-		refs.current[i]?.focus()
+	if (!tip) return [null, {}]
+	const show = ev => {
+		const r = ev.currentTarget.getBoundingClientRect()
+		setAt({ left: r.left + r.width / 2, top: r.top })
 	}
-
-	return (
-		<div className="page-bar">
-			<div className="segmented" id="subtabs" role="tablist">
-				{tabs.map((tab, i) => (
-					<button key={tab.label} type="button" role="tab" ref={el => { refs.current[i] = el }}
-						aria-selected={i === activeIndex}
-						tabIndex={i === activeIndex ? 0 : -1}
-						className={i === activeIndex ? 'is-on' : undefined}
-						onClick={() => select(i)}
-						onKeyDown={e => {
-							const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
-							if (!step) return
-							e.preventDefault()
-							select((i + step + tabs.length) % tabs.length)
-						}}>{tab.label}</button>
-				))}
-			</div>
-		</div>
-	)
+	const hide = () => setAt(null)
+	const hint = at
+		? createPortal(<span ref={box} className="sp-tip sp-tip--float" role="tooltip" style={{ left: at.left, top: at.top }}>{tip}</span>, document.body)
+		: null
+	return [hint, { onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: hide }]
 }
 
-/* The way out, the page's name, the finder, and the two things the app does from anywhere.
-   `titleRef` is the shell's: it hands that heading out as the focus target through its context. */
-function TopBar({ handle, titleRef }) {
-	const location = useLocation()
-	const navigate = useNavigate()
-	const bar = useRef(null)
-
-	// A page's sticky strip stops under this bar, whose height follows what it holds, so the bar says it.
-	useEffect(() => {
-		const el = bar.current
-		const watch = new ResizeObserver(() => el.parentElement.style.setProperty('--topbar-height', `${el.offsetHeight}px`))
-		watch.observe(el)
-		return () => watch.disconnect()
-	}, [])
-
-	return (
-		<header className="topbar" ref={bar}>
-			{handle.back ? (
-				/* A row passes where it opened this page from as navigation state (Rows.jsx), so
-				   leaving closes that; `handle.back.to` is the fallback. README: Accessibility. */
-				<IconButton icon="chevronLeft"
-					label={location.state?.from ? 'Back' : 'Back to ' + handle.back.label}
-					onClick={() => navigate(location.state?.from ?? handle.back.to)} />
-			) : handle.navKey === 'home' ? null : (
-				/* Home's door on a phone, where the five columns go elsewhere. Drawn only on a
-				   phone: a wide screen has the rail, which carries Home. README: Chrome. */
-				<IconButton icon="chevronLeft" to="/" label="Home" className="topbar-up" />
-			)}
-			<h1 id="page-title" tabIndex={-1} ref={titleRef}>{handle.title ?? 'Spendly'}</h1>
-			<GlobalFinder />
-			<div className="topbar-actions">
-				<Button variant="primary" to="/scan" icon="scan" aria-label="Scan receipt">
-					<span>SCAN <span className="wide-only">RECEIPT</span></span>
-				</Button>
-				<Button variant="outline" to="/orders/new" icon="plus" aria-label="New order">
-					<span>NEW <span className="wide-only">ORDER</span></span>
-				</Button>
-				{/* Settings reaches every page from every page, because that is what it is
-				    about: the order form's defaults, both lists' opening order, how many
-				    entries a card holds, whether a trash asks first. It used to be a
-				    full-width ORDER SETTINGS button at the foot of the Orders rail --
-				    findable only from one tab of one page, and named for the one part of
-				    itself that page happened to own. A glyph, beside the two actions the
-				    bar already carries, since it is a destination rather than a thing to
-				    do here. README: Chrome, Settings. */}
-				<IconButton icon="settings" to="/settings" label="Settings" />
-			</div>
-		</header>
-	)
+/** The dimmed page a sheet or a dialog sits over. It fills the frame it is in. */
+export function Scrim({ dialog = false, children, ...rest }) {
+	reject(rest, 'Scrim')
+	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...rest}>{children}</div>
 }
 
-export function AppShell() {
-	const matches = useMatches()
-	const location = useLocation()
-	const handle = useMemo(() => matches.filter(m => m.handle).at(-1)?.handle ?? {}, [matches])
-	const [view, setView] = useState('overview')
-	const title = useRef(null)
+/* ---------- command palette (c24) ---------- */
 
-	/* Navigation resets the sheet to the top and the view to the tab that is drawn selected.
-	   The title is not focused on arrival: moving focus on every route change talks over a
-	   screen-reader user mid-sentence, and it is only taken deliberately -- when a control
-	   that had focus has just been removed. */
-	useEffect(() => {
-		window.scrollTo(0, 0)
-		setView('overview')
-	}, [location.pathname])
+const PaletteScreen = createContext(false)
 
-	const focusTitle = useCallback(() => title.current?.focus(), [])
-
-	const value = useMemo(() => ({ view, setView, focusTitle }), [view, focusTitle])
-
-	/* The toast layer wraps the shell rather than sitting inside a page, because what it reports
-	   outlives the page that caused it -- saving an order navigates away from the form that
-	   saved it, and the confirmation has to survive the move. */
+/** The command palette (c24): query line, results as one listbox, keys at its foot. `screen`
+    fills a phone (7b): the search field with `onCancel` beside it, rows without figures or keys. */
+export function Palette({ screen = false, value, onChange, onCancel, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
+	reject(rest, 'Palette')
+	const list = useId()
+	const term = {
+		role: 'combobox',
+		'aria-expanded': 'true',
+		'aria-controls': list,
+		'aria-label': label,
+		...(activeId ? { 'aria-activedescendant': activeId } : {})
+	}
 	return (
-		<ViewContext.Provider value={value}>
-		<ToastProvider>
-		<UpdateNoticeProvider>
-			{/* Pulling down at the top moves the whole page as one -- sidebar/tab-bar, top bar and
-			    content together -- so PullToRefresh wraps the shell itself rather than just the
-			    part below the top bar. README: Chrome. */}
-			<PullToRefresh>
-			<div className="app-shell">
-				<Sidebar navKey={handle.navKey} />
-				<div className="main-panel">
-					<TopBar handle={handle} titleRef={title} />
-
-					{/* The one <main> per document. Everything below the top bar is the page: the
-					    sub-tab band selects within it, so it is inside rather than beside. Without
-					    it the sheet was a bare <div> and every card, heading and row on twelve
-					    pages sat in no landmark at all -- 108 of them by axe's count. README: Accessibility. */}
-					<main>
-						<SubTabs tabs={handle.tabs} view={view} setView={setView} />
-						{/* One boundary for every route, because every page is its own chunk --
-						    see routes.jsx. It sits inside <main> and below the sub-tab band so
-						    the title, the rail highlight and the tabs are already right while
-						    the page is still arriving: those come off the route's `handle`,
-						    which is static, and a page that announced itself only once its
-						    JavaScript landed would be the unnamed-page defect again. */}
-						<div className="content-sheet"><div className="content-sheet-inner"><div id="pages">
-							<Suspense fallback={<Waiting label="Loading this page" />}>
-								<Outlet />
-							</Suspense>
-						</div></div></div>
-					</main>
+		<PaletteScreen.Provider value={screen}>
+			<div className={join('sp-palette', screen && 'sp-palette--screen')} role="dialog" aria-modal="true" {...rest}>
+				<div className="sp-palette__search">
+					{screen
+						? (
+							<>
+								<SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
+								{onCancel ? <Button variant="text" onClick={onCancel}>Cancel</Button> : null}
+							</>
+						)
+						: (
+							<>
+								<span className="sp-palette__icon"><Icon name="search" /></span>
+								<input ref={inputRef} className="sp-palette__term" type="search" value={value}
+									onChange={ev => onChange?.(ev.target.value)} placeholder={placeholder} {...term} />
+								{count ? <span className="sp-note" aria-live="polite">{count}</span> : null}
+							</>
+						)}
 				</div>
+				<div className="sp-palette__body" id={list} role="listbox" aria-label="Results">{children}</div>
+				{!screen && foot?.length
+					? <div className="sp-palette__foot">{foot.map(key => <span key={key}>{key}</span>)}</div>
+					: null}
 			</div>
-			</PullToRefresh>
-			{/* The bar and its dialog render inside UpdateNoticeProvider itself, outside the
-			    shell a pull moves: it announces a build the whole app is running, not a state
-			    of the page under it, so it holds its place on the screen while the page slides
-			    down and back. */}
-		</UpdateNoticeProvider>
-		</ToastProvider>
-		</ViewContext.Provider>
+		</PaletteScreen.Provider>
 	)
 }
+
+/** The label over a group of rows. */
+export function PaletteGroup({ children, ...rest }) {
+	reject(rest, 'PaletteGroup')
+	return <span className="sp-palette__group" role="presentation" {...rest}>{children}</span>
+}
+
+/** The rule between two groups. */
+export function PaletteRule(props) {
+	reject(props, 'PaletteRule')
+	return <div className="sp-palette__rule" role="presentation" {...props} />
+}
+
+/* The typed text inside a name, at the start of a word where it sits at one, otherwise wherever
+   it first appears: a Danish compound puts the match mid-word. */
+function marked(text, match) {
+	if (typeof text !== 'string' || !match) return text
+	const hay = text.toLowerCase()
+	const needle = match.toLowerCase()
+	if (hay.length !== text.length) return text
+	let at = -1
+	for (let i = hay.indexOf(needle); i >= 0; i = hay.indexOf(needle, i + 1))
+		if (i === 0 || /[\s\-/(]/.test(hay[i - 1])) { at = i; break }
+	if (at < 0) at = hay.indexOf(needle)
+	if (at < 0) return text
+	return <>{text.slice(0, at)}<mark>{text.slice(at, at + needle.length)}</mark>{text.slice(at + needle.length)}</>
+}
+
+/** One record or one action, led by `icon` or `thumb` (a picture's address, or true for the empty box).
+    `match` is marked in the name; `value` and `kbd` end it, and a phone drops both (7b). */
+export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, kbd, selected = false, children, ...rest }) {
+	reject(rest, 'PaletteRow')
+	const screen = useContext(PaletteScreen)
+	const trail = !screen && (value != null || kbd)
+	let lead = null
+	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true">{typeof thumb === 'string' ? <img src={thumb} alt="" /> : null}</span>
+	else if (icon && screen) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
+	else if (icon) lead = <span className="sp-palette__icon"><Icon name={icon} size={15} /></span>
+	return (
+		<button type="button" className="sp-palette__row" role="option" aria-selected={selected ? 'true' : 'false'} tabIndex={-1} {...rest}>
+			{lead}
+			{/* truncated, so a long name keeps the row one line and the list from scrolling sideways */}
+			<span className={join('sp-palette__name', plain && 'sp-palette__name--plain', 'sp-truncate')}>{marked(children, match)}</span>
+			{meta ? <span className="sp-meta sp-truncate">{meta}</span> : null}
+			{trail ? <span className="sp-grow" /> : null}
+			{trail && value != null ? <span className="sp-data">{value}</span> : null}
+			{trail && kbd ? <Kbd>{kbd}</Kbd> : null}
+		</button>
+	)
+}
+
+/** The way from a group to the rest of its records, in their own list. */
+export function PaletteAll({ selected = false, children, ...rest }) {
+	reject(rest, 'PaletteAll')
+	return (
+		<button type="button" className="sp-palette__all" role="option" aria-selected={selected ? 'true' : 'false'} tabIndex={-1} {...rest}>
+			{children}
+		</button>
+	)
+}
+

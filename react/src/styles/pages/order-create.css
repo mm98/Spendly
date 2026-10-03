@@ -1,0 +1,61 @@
+/* Order create (3a, 3b): the start screen's measure, the receipt beside its progress, and the
+   copy picker's list. Layout only, from the design's own order-create.css. */
+
+@layer base {
+	.oc-narrow { width: 720px; max-width: 100%; margin: 0 auto; }
+	.oc-choices {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: var(--sp-12);
+		width: 720px;
+		max-width: 100%;
+		text-align: left;
+	}
+	.sp-touch .oc-choices { grid-template-columns: minmax(0, 1fr); }
+	/* a notice under the drop zone reads from its left edge, not centred like the zone */
+	.oc-left { text-align: left; }
+
+	/* the preview leads the row from the top, and the column beside it fills the preview's height,
+	   so Cancel sits on the preview's bottom edge */
+	.oc-row-top { display: flex; align-items: flex-start; gap: var(--sp-12); }
+	.oc-read {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-12);
+		flex: 1;
+		min-width: 0;
+		align-self: stretch;
+	}
+	.oc-read__foot {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: auto;
+	}
+	/* the receipt on its own while it is read: a page's proportion, not an attachment tile */
+	.oc-preview {
+		display: grid;
+		place-items: center;
+		width: 156px;
+		height: 220px;
+		flex: none;
+		align-self: flex-start;
+		border: 1px solid var(--line);
+		border-radius: var(--r-field);
+		background: var(--surface-2);
+		color: var(--ink-3);
+		font-size: var(--t-12);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+	}
+	.oc-preview > img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+
+	/* the picker's rows sit in a list, at the 6 the design's group of options keeps */
+	.oc-options {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-6);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+}

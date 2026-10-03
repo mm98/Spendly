@@ -1,16 +1,21 @@
 import { Router } from 'express'
 import multer from 'multer'
+import { createHash } from 'crypto'
 import { db } from '../db.js'
-import { cardRowsFor } from '../lib/prefs.js'
+import { requireConfirmed } from '../lib/auth.js'
 import { newId } from '../lib/ids.js'
-import { toEpoch, todayIso } from '../lib/dates.js'
-import { getDecoratedOrder, decorateOrderSummaryRows, decorateOrderListRows } from '../lib/decorate.js'
-import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
-import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
+import { fromEpoch, toEpoch } from '../lib/dates.js'
+import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
+import { assertValidOrderDraft, fillDraftGaps, validateOrderDraft } from '../lib/validate.js'
+import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
-import { MAX_PAGE_SIZE } from '../lib/constants.js'
+import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
+import { resolveStatus, statusKeys } from '../lib/statuses.js'
 import { processAttachment } from '../lib/images.js'
+import { assertImageOrPdf } from '../lib/fileType.js'
 import { decompressBlob } from '../lib/blobCompression.js'
+import { pageCount, pageImage } from '../lib/filePages.js'
+import { restoreOrder, trashOrder } from '../lib/orderTrash.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
 
@@ -20,7 +25,11 @@ export const router = Router()
 // comes back mojibake ("rengÃ¸ringsplaner.pdf" for "rengøringsplaner.pdf") -- browsers never
 // send the RFC 5987 encoding that would tell busboy otherwise. Declaring the charset here
 // decodes it correctly at the source, for every field this instance parses.
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
+
+const isStatus = (userId, status) => statusKeys(userId).includes(status)
+// a status written as its name or in any case is stored as the account's key for it
+const keyed = (userId, draft) => (draft.status ? { ...draft, status: resolveStatus(userId, draft.status) ?? draft.status } : draft)
 
 const notFound = id => Object.assign(new Error('No order ' + id), { status: 404 })
 
@@ -30,7 +39,6 @@ const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND use
 const selectItemExists = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
 const countAllOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
-const deleteOrder = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 const deleteOrderCategories = db.prepare('DELETE FROM order_categories WHERE order_id = ?')
 const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded)
 	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, @discount, @note, @reference, @refunded)`)
@@ -46,8 +54,10 @@ const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, t
 	price=@price, retail=@retail, note=@note WHERE id=@id AND order_id=@orderId`)
 const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
 const insertAttachment = db.prepare(`INSERT INTO attachments
-	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
-	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
+	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @sha256, @pages)`)
+/** The hash of a file's bytes as they arrived, before any resizing. */
+export const sourceHash = buffer => createHash('sha256').update(buffer).digest('hex')
 const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
@@ -56,34 +66,14 @@ const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_co
 const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
 const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectLatestOrders = db.prepare(
-	`SELECT ${orderTotalsSelectList()} FROM orders WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
-)
-
-/* ---- overview / draft ---- */
-
-/** "Latest N orders" — N defaults to the account's entries-per-card setting, which is what
-    every card holding a list of things is cut to, so the same card reads the same length on
-    every page that shows it. A caller may still ask for a specific count (the scan flow wants a
-    handful regardless), and it is clamped so nobody can ask for an unbounded scan. */
-router.get('/overview', (req, res) => {
-	const asked = Number(req.query.count)
-	const count = Math.min(Math.max(1, asked || cardRowsFor(req.user.id)), 100)
-	const totalsRows = selectLatestOrders.all({ userId: req.user.id, count })
-	// `latestOrders`, not `latest`: the two pages that read this each hold four other lists,
-	// and a field whose name is only an adjective is one they all answer to.
-	// decorateOrderSummaryRows, not decorateOrderRows: the card this feeds (Home.jsx
-	// LatestOrders, Orders.jsx overview) draws a vendor, a date and two figures, never an
-	// order's items or attachments.
-	res.json({ latestOrders: decorateOrderSummaryRows(totalsRows), total: countAllOrders.get(req.user.id).c })
-})
+/* ---- draft ---- */
 
 router.get('/draft', (req, res) => {
 	const settings = selectDraftDefaults.get(req.user.id)
 	res.json({
-		vendor: '', date: todayIso(),
+		vendor: '', date: req.today,
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-		deliveredDate: todayIso(), returnedDate: todayIso(),
+		deliveredDate: req.today, returnedDate: req.today,
 		categories: [], shipping: '', discount: '', reference: '', note: '', items: []
 	})
 })
@@ -92,11 +82,13 @@ router.get('/draft', (req, res) => {
    Built as parameterized clauses reused between the COUNT (matched) and the SELECT (page), so
    the two can never disagree about which rows qualify. LIMIT/OFFSET does the paging in SQLite
    rather than in JS, and only the resulting page (not the whole table) is passed to
-   decorateOrderListRows for its 2 batched child-row queries. */
+   decorateOrderListRows for its batched child-row queries. */
 
+/* A day holds several orders, so the day's own ties go to when each was added, then the rowid
+   (insertion order, since created_at has whole seconds): "newest" means the one added last. */
 const SORT_SQL = {
-	'date-desc': 'ot.date DESC, ot.id DESC',
-	'date-asc': 'ot.date ASC, ot.id ASC',
+	'date-desc': 'ot.date DESC, ot.created_at DESC, ot.rowid DESC',
+	'date-asc': 'ot.date ASC, ot.created_at ASC, ot.rowid ASC',
 	'amount-desc': 'ot.total DESC, ot.id DESC',
 	'amount-asc': 'ot.total ASC, ot.id ASC',
 	'discount-desc': 'ot.discount DESC, ot.id DESC',
@@ -116,29 +108,62 @@ const SORT_SQL = {
 
    `filtered` reports whether any clause beyond the account's own was added, so the route can
    reuse its unconditional COUNT instead of running the identical query twice. */
-function buildOrderFilter(userId, q) {
+function buildOrderFilter(userId, q, except = null) {
 	const sortKey = SORT_SQL[q.sort] ? q.sort : 'date-desc'
 	const where = ['ot.user_id = @userId']
 	const params = { userId }
 
 	if (sortKey.startsWith('discount-')) where.push('ot.discount > 0')
 
-	if (q.vendorId) { where.push('ot.vendor_id = @vendorId'); params.vendorId = q.vendorId }
-	if (q.categoryId === 'none') {
+	// a facet takes several values, comma-separated; `except` leaves one facet out, for its own counts
+	const vendorIds = listOf(q.vendorId)
+	if (vendorIds.length && except !== 'vendor') {
+		if (vendorIds.length === 1) { where.push('ot.vendor_id = @vendorId'); params.vendorId = vendorIds[0] }
+		else { where.push('ot.vendor_id IN (SELECT value FROM json_each(@vendorIds))'); params.vendorIds = JSON.stringify(vendorIds) }
+	}
+	const categoryIds = listOf(q.categoryId)
+	if (categoryIds.length && except !== 'category') {
+		const parts = []
 		// The sentinel every "Without category" row links with. Real ids are newId()-prefixed,
 		// so nothing an account creates can collide with it. category_count is the stored,
 		// trigger-maintained column the split's own remainder is computed from (lib/stats.js),
 		// so the rows this matches are exactly the orders that remainder added up.
-		where.push('ot.category_count = 0')
-	} else if (q.categoryId) {
+		if (categoryIds.includes('none')) parts.push('ot.category_count = 0')
 		// IN driven from the category's own (indexed, covering) links rather than an EXISTS
-		// probe per order row: the filter reads the few thousand rows the category actually
-		// has, not every order the account has.
-		where.push('ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)')
-		params.categoryId = q.categoryId
+		// probe per order row: the filter reads the rows the category actually has.
+		const real = categoryIds.filter(id => id !== 'none')
+		if (real.length === 1) {
+			parts.push('ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)')
+			params.categoryId = real[0]
+		} else if (real.length) {
+			parts.push('ot.id IN (SELECT order_id FROM order_categories WHERE category_id IN (SELECT value FROM json_each(@categoryIds)))')
+			params.categoryIds = JSON.stringify(real)
+		}
+		where.push(parts.length > 1 ? `(${parts.join(' OR ')})` : parts[0])
 	}
-	if (q.status && q.status !== 'Any') { where.push('ot.status = @status'); params.status = q.status }
+	const statuses = listOf(q.status).filter(s => s !== 'Any')
+	if (statuses.length && except !== 'status') {
+		if (statuses.length === 1) { where.push('ot.status = @status'); params.status = statuses[0] }
+		else { where.push('ot.status IN (SELECT value FROM json_each(@statuses))'); params.statuses = JSON.stringify(statuses) }
+	}
 	if (q.kind) { where.push('ot.kind = @kind'); params.kind = q.kind }
+	// the orders picked by hand, as Export and Delete in the bulk bar name them: the ids lead, and
+	// the + keeps the planner from walking the whole account's index to find a handful of them
+	const orderIds = listOf(q.ids)
+	if (orderIds.length) {
+		where[0] = '+ot.user_id = @userId'
+		where.push('ot.id IN (SELECT value FROM json_each(@orderIds))')
+		params.orderIds = JSON.stringify(orderIds)
+	}
+
+	// the receipt is a file on the order itself; both values chosen is no filter at all
+	const receipt = listOf(q.receipt).filter(r => r === 'attached' || r === 'missing')
+	if (receipt.length === 1 && except !== 'receipt')
+		where.push(`${receipt[0] === 'missing' ? 'NOT ' : ''}EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)`)
+	// any file at all: the order's own, or one on any of its lines
+	if (q.files === '1') where.push(`(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
+		OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id))`)
+	if (q.discounted === '1') where.push('ot.saved > 0')
 
 	/* Finite or absent -- never NaN. better-sqlite3 binds NaN as NULL, and `date >= NULL`
 	   matches nothing, so `?from=2020/01/01` (toEpoch answers NaN for a date it cannot parse,
@@ -153,7 +178,8 @@ function buildOrderFilter(userId, q) {
 	if (Number.isFinite(maxAmount)) { where.push('ot.total <= @maxAmount'); params.maxAmount = maxAmount }
 
 	/* One LIKE over the order's trigger-maintained search_text (its note and item titles --
-	   see migrations/002) instead of a correlated scan of order_items per order row, plus the
+	   see migrations/002) and one over its reference, instead of a correlated scan of
+	   order_items per order row, plus the
 	   two renameable names reached through their own small tables: matching vendors and
 	   categories resolve to id sets first (a dozen rows and ten), and the orders side is an
 	   indexed IN. LIKE is already case-insensitive for ASCII, which is exactly what lower()
@@ -172,6 +198,7 @@ function buildOrderFilter(userId, q) {
 		params.needle = asciiNeedle(needle) ? `%${escapeLike(needle)}%` : needle
 		where.push(`(
 			${match('ot.search_text')}
+			OR ${match('ot.reference')}
 			OR ot.vendor_id IN (${vendorIdsMatching(match)})
 			OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id
 				WHERE c.user_id = @userId AND ${match('c.name')})
@@ -179,6 +206,36 @@ function buildOrderFilter(userId, q) {
 	}
 
 	return { whereSql: where.join(' AND '), params, sortKey, filtered: where.length > 1 }
+}
+
+/** How many orders a list request matches: a saved view's live count (routes/views.js). */
+export function countMatching(userId, q) {
+	const { whereSql, params } = buildOrderFilter(userId, q)
+	return db.prepare(`SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}`).get(params).c
+}
+
+const listOf = v => [...new Set([].concat(v ?? []).flatMap(x => String(x).split(',')).map(x => x.trim()).filter(Boolean))]
+
+/* with=facets: each facet's counts under every other filter (what ticking a value would add), and
+   the matched set's sum and saving without cancelled orders, which never count toward spend. */
+function orderFacets(userId, q) {
+	const counts = (except, select, group, join = '') => {
+		const { whereSql, params } = buildOrderFilter(userId, q, except)
+		return db.prepare(`SELECT ${select} FROM orders ot ${join} WHERE ${whereSql}${group ? ` GROUP BY ${group}` : ''}`).all(params)
+	}
+	const byKey = (rows, key) => Object.fromEntries(rows.map(r => [r[key], r.n]))
+	const [receipt] = counts('receipt', 'COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached')
+	const [sum] = counts(null, `COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total,
+		COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved`)
+	return {
+		summary: { total: sum.total, saved: sum.saved },
+		facets: {
+			status: byKey(counts('status', 'ot.status, COUNT(*) n', 'ot.status'), 'status'),
+			vendor: byKey(counts('vendor', 'ot.vendor_id, COUNT(*) n', 'ot.vendor_id'), 'vendor_id'),
+			category: byKey(counts('category', 'oc.category_id, COUNT(*) n', 'oc.category_id', 'JOIN order_categories oc ON oc.order_id = ot.id'), 'category_id'),
+			receipt: { attached: receipt.attached, missing: receipt.n - receipt.attached }
+		}
+	}
 }
 
 router.get('/', (req, res) => {
@@ -225,15 +282,98 @@ router.get('/', (req, res) => {
 		LIMIT @limit OFFSET @offset
 	`).all({ ...params, limit: size, offset: (at - 1) * size })
 
-	/* decorateOrderListRows, not decorateOrderRows: the list row (components/Rows.jsx
-	   OrderRow) never shows an order's items or attachments, so this route never fetches
-	   them -- 2 batched child queries (categories, vendors) instead of 4. */
+	// `with=itemTitles` is the copy picker's: each row's first line names. The order list asks
+	// `with=rows` for what only its rows and cards draw, and `with=facets` for its rail and sum.
+	const wants = listOf(q.with)
 	res.json({
-		orders: decorateOrderListRows(totalsRows),
-		matched, total, page: at, pages,
-		from: matched ? (at - 1) * size + 1 : 0,
-		to: Math.min(at * size, matched)
+		orders: decorateOrderListRows(totalsRows, { itemTitles: wants.includes('itemTitles'), listRows: wants.includes('rows') }),
+		matched, total, pages,
+		...(wants.includes('facets') ? orderFacets(req.user.id, q) : {})
 	})
+})
+
+/* Every item line of the orders a list request matches, in the list's order, the order's fields
+   repeated on each (16b): the column set an import reads back. A lineless order is one row. */
+router.get('/lines', (req, res) => {
+	const { whereSql, params, sortKey } = buildOrderFilter(req.user.id, req.query)
+	const lines = db.prepare(`
+		SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total,
+			(SELECT group_concat(name, ', ') FROM (SELECT c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id
+				WHERE oc.order_id = ot.id ORDER BY c.name)) AS categories,
+			oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote
+		FROM orders ot
+		LEFT JOIN vendors v ON v.id = ot.vendor_id
+		LEFT JOIN order_items oi ON oi.order_id = ot.id
+		WHERE ${whereSql}
+		ORDER BY ${SORT_SQL[sortKey]}, oi.position
+	`).all(params)
+	res.json({ lines: lines.map(line => ({ ...line, date: fromEpoch(line.date) })) })
+})
+
+/* What deleting the orders a request names takes with it (6d): how many, their sum (a cancelled one
+   never counts), how many carry a file, and this month's part of it beside the month's total. */
+const selectMonthSpend = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status = 'Cancelled' THEN 0 ELSE total END), 0)
+	FROM orders WHERE user_id = ? AND date >= ? AND date < ?`).pluck()
+router.get('/impact', (req, res) => {
+	const { whereSql, params } = buildOrderFilter(req.user.id, req.query)
+	const [year, month] = req.today.split('-').map(Number)
+	const monthFrom = Date.UTC(year, month - 1, 1) / 1000, monthTo = Date.UTC(year, month, 1) / 1000
+	const counted = "CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END"
+	const row = db.prepare(`
+		SELECT COUNT(*) orders, COALESCE(SUM(${counted}), 0) total,
+			COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
+				OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles,
+			COALESCE(SUM(ot.date >= @monthFrom AND ot.date < @monthTo), 0) monthOrders,
+			COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo THEN ${counted} ELSE 0 END), 0) monthTotal
+		FROM orders ot WHERE ${whereSql}
+	`).get({ ...params, monthFrom, monthTo })
+	res.json({
+		orders: row.orders, total: row.total, withFiles: row.withFiles,
+		month: { orders: row.monthOrders, total: row.monthTotal, spend: selectMonthSpend.get(req.user.id, monthFrom, monthTo) }
+	})
+})
+
+/* "You order these often" (3b): the latest 1,000 orders grouped by vendor and item names, where
+   a group came back twice or more; each answers with its newest order, the one a copy starts from. */
+const selectShapes = db.prepare(`
+	SELECT o.id, o.vendor_id, o.date,
+		(SELECT group_concat(t, char(31)) FROM (SELECT lower(trim(title)) AS t FROM order_items WHERE order_id = o.id ORDER BY t)) AS shape
+	FROM orders o WHERE o.user_id = ? AND o.item_count > 0
+	ORDER BY o.date DESC, o.created_at DESC LIMIT 1000`)
+const selectTotalsRow = db.prepare(`SELECT ${orderTotalsSelectList('ot')} FROM orders ot WHERE ot.id = ? AND ot.user_id = ?`)
+router.get('/often', (req, res) => {
+	const groups = new Map()
+	for (const row of selectShapes.all(req.user.id)) {
+		const key = row.vendor_id + '\u0000' + row.shape
+		const group = groups.get(key)
+		if (group) group.times++
+		else groups.set(key, { newest: row.id, last: row.date, times: 1 })
+	}
+	const often = [...groups.values()].filter(g => g.times > 1)
+		.sort((a, b) => b.times - a.times || b.last - a.last).slice(0, 3)
+	const rows = decorateOrderListRows(often.map(g => selectTotalsRow.get(g.newest, req.user.id)), { itemTitles: true })
+	res.json({ orders: rows.map((order, i) => ({ ...order, times: often[i].times })) })
+})
+
+/* The monthly limits an order counts against (8b): each category's limit and its month's spend
+   without this order, shared as statistics shares it, where drafts and cancelled orders spend nothing. */
+const selectCategoryLimit = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
+const selectCategoryMonthSpend = db.prepare(`
+	SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc
+	JOIN orders ot ON ot.id = oc.order_id
+	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
+		AND ot.status NOT IN ('Cancelled', 'Draft')`).pluck()
+router.get('/limits', (req, res) => {
+	const day = String(req.query.date ?? '')
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'A date is needed, as YYYY-MM-DD.' })
+	const [year, month] = day.split('-').map(Number)
+	const from = Date.UTC(year, month - 1, 1) / 1000, to = Date.UTC(year, month, 1) / 1000
+	const names = [req.query.categories ?? []].flat().map(String).filter(Boolean).slice(0, 50)
+	const limits = names.map(name => selectCategoryLimit.get(req.user.id, name)).filter(Boolean).map(c => ({
+		name: c.name, budget: c.budget,
+		spend: selectCategoryMonthSpend.get({ categoryId: c.id, userId: req.user.id, from, to, exclude: String(req.query.exclude ?? '') })
+	}))
+	res.json({ month: day.slice(0, 7), limits })
 })
 
 router.get('/:id', (req, res) => {
@@ -258,7 +398,7 @@ function saveOrderStatuses(orderId, draft) {
 /** Turns a validated draft into inserted rows. Shared by manual create, update (which first
     clears whatever it's replacing) and import. */
 const insertOrderRows = db.transaction((userId, id, draft) => {
-	const vendorId = findOrCreateVendor(userId, draft.vendor)
+	const vendorId = findOrCreateVendor(userId, draft.vendor, id)
 	const categoryIds = (draft.categories ?? []).map(name => findOrCreateCategory(userId, name))
 
 	insertOrder.run({
@@ -285,11 +425,39 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 	})
 })
 
-router.post('/', (req, res) => {
-	const draft = req.body ?? {}
-	assertValidOrderDraft(draft)
+/* An order saved without a reference gets the account's next number. The first one counts on
+   from the orders the account already has, so it reads like the ledger's own position. */
+const nextReference = db.prepare(`INSERT INTO order_reference_counters (user_id, last)
+	VALUES (@userId, (SELECT COUNT(*) FROM orders WHERE user_id = @userId) + 1)
+	ON CONFLICT (user_id) DO UPDATE SET last = last + 1
+	RETURNING last`).pluck()
+export const REFERENCE_PREFIX = 'SPENDLY-'
+
+/* A save carries a key its browser chose (`clientKey`), stored on what it wrote: a save sent again
+   because its answer never arrived (6d) finds that key and answers with what is there. */
+const selectOrderByClientKey = db.prepare('SELECT id FROM orders WHERE user_id = ? AND client_key = ?')
+const setClientKey = db.prepare('UPDATE orders SET client_key = ? WHERE id = ?')
+const clientKeyOf = body => (typeof body?.clientKey === 'string' && body.clientKey ? body.clientKey.slice(0, 64) : null)
+
+/** Writes a new order from a draft as POST takes it, given the next reference when it has none;
+    `also` runs inside the same transaction with the new id. Answers the id. */
+export function createOrderRecord(userId, body, today, also = () => {}) {
+	const draft = fillDraftGaps(keyed(userId, body ?? {}))
+	assertValidOrderDraft(draft, today, statusKeys(userId))
 	const id = newId('o')
-	insertOrderRows(req.user.id, id, draft)
+	db.transaction(() => {
+		const reference = String(draft.reference ?? '').trim() || REFERENCE_PREFIX + nextReference.get({ userId })
+		insertOrderRows(userId, id, { ...draft, reference })
+		also(id)
+	})()
+	return id
+}
+
+router.post('/', (req, res) => {
+	const clientKey = clientKeyOf(req.body)
+	const sent = clientKey ? selectOrderByClientKey.get(req.user.id, clientKey) : null
+	if (sent) return res.status(200).json(getDecoratedOrder(req.user.id, sent.id))
+	const id = createOrderRecord(req.user.id, req.body, req.today, made => { if (clientKey) setClientKey.run(clientKey, made) })
 	res.status(201).json(getDecoratedOrder(req.user.id, id))
 })
 
@@ -333,20 +501,95 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 	for (const existingId of existingItemIds) if (!keptItemIds.has(existingId)) deleteOrderItem.run(existingId, id)
 })
 
+/* `revision` is the one the saving form started from: an order changed since then is answered
+   with a 409 and the order as it is now, so the form can ask which version to keep (6d). */
+const selectOrderRevision = db.prepare('SELECT revision, client_key FROM orders WHERE id = ? AND user_id = ?')
 router.put('/:id', (req, res) => {
-	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
-	const draft = req.body ?? {}
-	assertValidOrderDraft(draft)
+	const row = selectOrderRevision.get(req.params.id, req.user.id)
+	if (!row) throw notFound(req.params.id)
+	const clientKey = clientKeyOf(req.body)
+	if (clientKey && row.client_key === clientKey) return res.json(getDecoratedOrder(req.user.id, req.params.id))
+	const asked = Number(req.body?.revision)
+	if (Number.isInteger(asked) && asked > 0 && asked !== row.revision)
+		return res.status(409).json({ error: 'This order was changed somewhere else.', order: getDecoratedOrder(req.user.id, req.params.id) })
+	const draft = fillDraftGaps(keyed(req.user.id, req.body ?? {}))
+	assertValidOrderDraft(draft, req.today, statusKeys(req.user.id))
 
-	updateOrderRows(req.user.id, req.params.id, draft)
+	db.transaction(() => {
+		updateOrderRows(req.user.id, req.params.id, draft)
+		if (clientKey) setClientKey.run(clientKey, req.params.id)
+	})()
 
 	res.json(getDecoratedOrder(req.user.id, req.params.id))
 })
 
+// `undo` names the kept copy that POST /trash/:undo/restore puts back (6d)
 router.delete('/:id', (req, res) => {
-	const result = deleteOrder.run(req.params.id, req.user.id)
-	if (!result.changes) throw notFound(req.params.id)
-	res.json({ id: req.params.id })
+	const undo = trashOrder(req.user.id, req.params.id)
+	if (!undo) throw notFound(req.params.id)
+	res.json({ id: req.params.id, undo })
+})
+
+router.post('/trash/:trashId/restore', (req, res) => {
+	const id = restoreOrder(req.user.id, req.params.trashId)
+	res.json(getDecoratedOrder(req.user.id, id))
+})
+
+/* ---- several orders at once (2a, 2e): one transaction, so a bulk edit never half-lands ----
+   A status keeps the log true: Delivered and Returned gain their events, dated today. */
+
+const selectOrderForBulk = db.prepare('SELECT id, date, status FROM orders WHERE id = ? AND user_id = ?')
+const updateOrderStatus = db.prepare('UPDATE orders SET status = ? WHERE id = ?')
+const selectStatusEvent = db.prepare('SELECT id, date FROM order_statuses WHERE order_id = ? AND status = ?')
+const deleteStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ? AND status = ?')
+const insertOrderCategoryOnce = db.prepare('INSERT OR IGNORE INTO order_categories (order_id, category_id) VALUES (?, ?)')
+const deleteOrderCategory = db.prepare('DELETE FROM order_categories WHERE order_id = ? AND category_id = ?')
+// a bulk delete is not kept to undo (6d): its dialog asked for the number first
+const deleteOrderRow = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
+
+const applyBulk = db.transaction((userId, ids, change, today) => {
+	const day = Math.max(toEpoch(today), 0)
+	const categoryIds = (change.addCategories ?? []).map(name => findOrCreateCategory(userId, name))
+	let changed = 0
+	for (const id of ids) {
+		const order = selectOrderForBulk.get(id, userId)
+		if (!order) continue
+		changed++
+		if (change.delete) { deleteOrderRow.run(id, userId); continue }
+		if (change.status) {
+			updateOrderStatus.run(change.status, id)
+			const at = Math.max(day, order.date)
+			const event = (status, move) => {
+				const had = selectStatusEvent.get(id, status)
+				if (had && !move) return
+				deleteStatusEvents.run(id, status)
+				insertOrderStatus.run(newId('os'), id, status, at)
+			}
+			if (change.status === 'Ordered') { deleteStatusEvents.run(id, 'Delivered'); deleteStatusEvents.run(id, 'Returned') }
+			if (change.status === 'Delivered') { deleteStatusEvents.run(id, 'Returned'); event('Delivered', !!change.deliveredToday) }
+			if (change.status === 'Returned') { event('Delivered', false); event('Returned', false) }
+		}
+		for (const categoryId of categoryIds) insertOrderCategoryOnce.run(id, categoryId)
+		for (const categoryId of change.removeCategories ?? []) deleteOrderCategory.run(id, categoryId)
+	}
+	return changed
+})
+
+router.post('/bulk', (req, res) => {
+	const body = req.body ?? {}
+	const ids = [...new Set(Array.isArray(body.ids) ? body.ids.map(String) : [])]
+	if (!ids.length) return res.status(400).json({ error: 'Choose at least one order.' })
+	if (ids.length > MAX_PAGE_SIZE * 10) return res.status(400).json({ error: 'Too many orders at once. Choose fewer orders.' })
+	const change = {
+		delete: body.delete === true,
+		status: body.status ? String(body.status) : null,
+		deliveredToday: body.deliveredToday === true,
+		addCategories: Array.isArray(body.addCategories) ? body.addCategories.map(n => String(n).trim()).filter(Boolean) : [],
+		removeCategories: Array.isArray(body.removeCategories) ? body.removeCategories.map(String) : []
+	}
+	if (change.status && !isStatus(req.user.id, change.status)) return res.status(400).json({ error: 'That status does not exist.' })
+	const changed = applyBulk(req.user.id, ids, change, req.today)
+	res.json({ changed })
 })
 
 /* ---- attachments ----
@@ -378,7 +621,8 @@ async function saveAttachments(files, owner, existingNames) {
 			contentType: processed.contentType ?? file.mimetype, size: processed.size,
 			data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
-			thumbnailContentType: processed.thumbnailContentType
+			thumbnailContentType: processed.thumbnailContentType,
+			sha256: sourceHash(file.buffer), pages: processed.pages ?? null
 		})
 	}
 	insertAttachmentRows(rows)
@@ -388,6 +632,7 @@ async function saveAttachments(files, owner, existingNames) {
 router.post('/:id/attachments', upload.array('files'), async (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	const orderId = req.params.id
+	assertImageOrPdf(req.files ?? [])
 	const existingNames = new Set(selectExistingAttachmentNames.all(orderId).map(r => r.n))
 	const { added, skipped } = await saveAttachments(req.files, { orderId }, existingNames)
 	res.status(201).json({ order: getDecoratedOrder(req.user.id, orderId), added, skipped })
@@ -417,6 +662,29 @@ router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
 	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_is_compressed))
 })
 
+/* A file's pages for the viewer (12b): `{ pages }`, then each page as an image. The file may be
+   the order's own or one of its lines' photos. */
+const selectAttachmentOwner = db.prepare(`SELECT a.id FROM attachments a
+	LEFT JOIN order_items oi ON oi.id = a.order_item_id
+	WHERE a.id = @id AND (a.order_id = @orderId OR oi.order_id = @orderId)`)
+const ownedAttachment = req => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	if (!selectAttachmentOwner.get({ id: req.params.attachmentId, orderId: req.params.id })) throw notFound(req.params.attachmentId)
+	return req.params.attachmentId
+}
+
+router.get('/:id/attachments/:attachmentId/pages', async (req, res) => {
+	res.json({ pages: await pageCount('attachment', ownedAttachment(req)) })
+})
+
+router.get('/:id/attachments/:attachmentId/pages/:page', async (req, res) => {
+	const page = await pageImage('attachment', ownedAttachment(req), Number(req.params.page))
+	if (!page) return res.status(404).json({ error: 'No such page.' })
+	res.set('Content-Type', page.contentType)
+	res.set('Cache-Control', 'private, max-age=31536000, immutable')
+	res.send(page.image)
+})
+
 /* ---- item attachments ----
    The same shape as the order's own attachments above, one level down: a photo (or a PDF) of a
    single line item rather than the whole receipt. Nested under the order in the URL because an
@@ -427,6 +695,7 @@ router.post('/:id/items/:itemId/attachments', upload.array('files'), async (req,
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
 	const itemId = req.params.itemId
+	assertImageOrPdf(req.files ?? [])
 	const existingNames = new Set(selectExistingItemAttachmentNames.all(itemId).map(r => r.n))
 	const { added, skipped } = await saveAttachments(req.files, { orderItemId: itemId }, existingNames)
 	res.status(201).json({ order: getDecoratedOrder(req.user.id, req.params.id), added, skipped })
@@ -479,7 +748,7 @@ async function processImportAttachments(list) {
 		if (!a?.data) continue
 		const buffer = Buffer.from(a.data, 'base64')
 		const processed = await processAttachment(buffer, a.contentType || 'application/octet-stream', a.filename)
-		out.push({ name: a.filename || 'attachment', ...processed })
+		out.push({ name: a.filename || 'attachment', ...processed, sha256: sourceHash(buffer) })
 	}
 	return out
 }
@@ -488,12 +757,25 @@ const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
 	name: a.name, kind: a.kind, meta: `Imported${sep}${fileSizeLabel(a.size)}`,
 	contentType: a.contentType, size: a.size, data: a.data, dataCompressed: a.dataCompressed ? 1 : 0,
-	thumbnail: a.thumbnail, thumbnailCompressed: a.thumbnailCompressed ? 1 : 0, thumbnailContentType: a.thumbnailContentType
+	thumbnail: a.thumbnail, thumbnailCompressed: a.thumbnailCompressed ? 1 : 0, thumbnailContentType: a.thumbnailContentType,
+	sha256: a.sha256, pages: a.pages ?? null
 })
 
-router.post('/import', async (req, res) => {
+const selectImport = db.prepare('SELECT id, undone_at FROM imports WHERE id = ? AND user_id = ?')
+const selectCategoryByName = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
+const tagOrder = db.prepare('UPDATE orders SET import_id = ? WHERE id = ?')
+const tagVendor = db.prepare('UPDATE vendors SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
+const tagCategory = db.prepare('UPDATE categories SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
+const countImport = db.prepare(`UPDATE imports SET orders = orders + @orders, lines = lines + @lines,
+	skipped = skipped + @skipped, vendors = vendors + @vendors WHERE id = @id`)
+
+router.post('/import', requireConfirmed, async (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders : []
 	if (!orders.length) return res.status(400).json({ error: 'Provide a non-empty "orders" array.' })
+	// ?importId= tags what this batch writes with an import record, so the import can be undone
+	const importId = req.query.importId ? String(req.query.importId) : null
+	const importRow = importId ? selectImport.get(importId, req.user.id) : null
+	if (importId && (!importRow || importRow.undone_at)) return res.status(400).json({ error: 'That import is not open any more. Start it again.' })
 
 	/* ?progress=stream turns the response into NDJSON: a {done, total} line as rows land --
 	   at most ~100 of them however big the batch, so a 25k-row import is not spent writing
@@ -509,9 +791,11 @@ router.post('/import', async (req, res) => {
 	}
 
 	const imported = [], failed = []
-	for (const [index, draft] of orders.entries()) {
+	let createdVendors = 0, lines = 0
+	for (const [index, raw] of orders.entries()) {
+		const draft = raw && typeof raw === 'object' ? keyed(req.user.id, raw) : raw
 		try {
-			const errors = validateOrderDraft(draft)
+			const errors = validateOrderDraft(draft, req.today, statusKeys(req.user.id))
 			if (Object.keys(errors).length) throw new Error(Object.values(errors)[0])
 
 			const attachments = await processImportAttachments(draft.attachments)
@@ -520,7 +804,15 @@ router.post('/import', async (req, res) => {
 
 			const id = newId('o')
 			db.transaction(() => {
+				const newVendor = importId && !findVendorIdByAnyName(req.user.id, draft.vendor)
+				const newCategories = importId ? (draft.categories ?? []).filter(name => !selectCategoryByName.get(req.user.id, String(name).trim())) : []
 				const itemIds = insertOrderRows(req.user.id, id, draft)
+				if (importId) {
+					tagOrder.run(importId, id)
+					if (newVendor) { tagVendor.run(importId, req.user.id, String(draft.vendor).trim()); createdVendors++ }
+					for (const name of newCategories) tagCategory.run(importId, req.user.id, String(name).trim())
+					lines += draft.items.length
+				}
 				for (const a of attachments) insertImportedAttachment(a, { orderId: id })
 				itemIds.forEach((itemId, position) => {
 					for (const a of itemAttachments[position]) insertImportedAttachment(a, { orderItemId: itemId })
@@ -530,10 +822,14 @@ router.post('/import', async (req, res) => {
 		} catch (e) {
 			failed.push({ index, error: e.message })
 		}
-		if (streaming && ((index + 1) % step === 0 || index + 1 === orders.length))
+		if (streaming && ((index + 1) % step === 0 || index + 1 === orders.length)) {
 			res.write(JSON.stringify({ done: index + 1, total: orders.length }) + '\n')
+			// A write leaves the socket only once the loop yields; without this every line lands at the end.
+			await new Promise(resolve => setImmediate(resolve))
+		}
 	}
 
+	if (importId) countImport.run({ id: importId, orders: imported.length, lines, skipped: failed.length, vendors: createdVendors })
 	const result = { imported: imported.length, orders: imported, failed }
 	if (streaming) res.end(JSON.stringify(result) + '\n')
 	else res.status(failed.length && !imported.length ? 400 : 200).json(result)

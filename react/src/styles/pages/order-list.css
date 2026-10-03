@@ -1,0 +1,42 @@
+/* Order list (2b, c12, 18b). In @layer base, so a component rule always wins. */
+
+@layer base {
+
+	/* with no rail beside it, the list takes both columns of the rail body */
+	.ol-alone { grid-column: 1 / -1; }
+
+	/* two category chips share their cell: a short name keeps its width, a long one takes the
+	   rest and truncates (2i) */
+	.ol-chip-slot { display: flex; flex: 1 1 0; min-width: 0; max-width: max-content; }
+
+	/* a narrow card's box sits in a hit target of its own over the card's leading edge, centred on
+	   the room the card keeps for it: a press there picks the order, anywhere else opens it (2c) */
+	.ol-pickable { position: relative; display: flex; flex-direction: column; }
+	.ol-pick {
+		position: absolute;
+		z-index: 1;
+		top: 0;
+		bottom: 0;
+		left: calc(var(--card-pad) + var(--box) / 2 - var(--control-h-touch) / 2);
+		width: var(--control-h-touch);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+	.ol-pick-room { flex: none; width: var(--box); }
+
+	/* the facets scroll between the sheet's heading and its Apply row (18b), 12 apart as the sheet's
+	   parts are; the body reaches the sheet's edges so no focus ring or touch target is cut */
+	.ol-sheet-body {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-12);
+		margin: calc(var(--sp-6) * -1) calc(var(--card-pad) * -1);
+		padding: var(--sp-6) var(--card-pad);
+	}
+
+}

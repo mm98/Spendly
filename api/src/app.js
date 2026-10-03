@@ -6,22 +6,27 @@ import { router as authRouter } from './routes/auth.js'
 import { router as vendorsRouter } from './routes/vendors.js'
 import { router as categoriesRouter } from './routes/categories.js'
 import { router as ordersRouter } from './routes/orders.js'
-import { router as wishesRouter } from './routes/wishes.js'
+import { router as bookmarksRouter } from './routes/bookmarks.js'
 import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
-import { router as dashboardCardsRouter } from './routes/dashboardCards.js'
-import { router as accountRouter } from './routes/account.js'
+import { router as accountRouter, updaterAvailable } from './routes/account.js'
+import { router as profileRouter } from './routes/profile.js'
+import { router as importsRouter } from './routes/imports.js'
 import { router as statsRouter } from './routes/stats.js'
-import { router as homeRouter } from './routes/home.js'
 import { router as scanRouter } from './routes/scan.js'
 import { router as searchRouter } from './routes/search.js'
+import { router as statusesRouter } from './routes/statuses.js'
+import { router as viewsRouter } from './routes/views.js'
 import { requireAuth } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
+import { readTodayHeader } from './lib/dates.js'
+import { MAX_UPLOAD_MB } from './lib/constants.js'
+import { fileSizeLabel } from './lib/copy.js'
 
 export const app = express()
 
 /* The browser reaches this origin and nowhere else -- a shop's picture is fetched server-side
-   into a data: URI (routes/wishes.js). No inline or eval escape, so injected markup cannot run. */
+   into a data: URI (routes/bookmarks.js). No inline or eval escape, so injected markup cannot run. */
 const CSP = [
 	"default-src 'self'",
 	"script-src 'self'",
@@ -63,7 +68,7 @@ const smallJson = express.json()
 const importJson = express.json({ limit: '50mb' })
 // A budget file of many years outgrows the default 100 kB, though it carries no images.
 const budgetJson = express.json({ limit: '2mb' })
-app.use((req, res, next) => (req.path === '/api/orders/import' ? importJson
+app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '/api/imports/check' ? importJson
 	: req.path === '/api/budget/import' ? budgetJson : smallJson)(req, res, next))
 
 // Debug request log, off unless asked for (node src/server.js --debug, or DEBUG=1) -- one line
@@ -86,13 +91,6 @@ if (process.argv.includes('--debug') || process.env.DEBUG) {
 		next()
 	})
 }
-
-/* The build that answered, on every API response -- react/src/api/build.js compares it against
-   the bundle's own commit. Above every route: one registered first would answer without it. */
-app.use('/api', (req, res, next) => {
-	if (process.env.SPENDLY_BUILD_SHA) res.setHeader('Build', process.env.SPENDLY_BUILD_SHA)
-	next()
-})
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
@@ -117,7 +115,9 @@ const LIGHTHOUSE = (() => {
 app.get('/api/version', (req, res) => res.json({
 	builtAt: process.env.SPENDLY_BUILD_TIME || null,
 	commit: process.env.SPENDLY_BUILD_SHA || null,
-	lighthouse: LIGHTHOUSE
+	lighthouse: LIGHTHOUSE,
+	// whether Settings may offer "Update and reload": an updater to ask is set up (routes/account.js)
+	canUpdate: updaterAvailable()
 }))
 
 /* Whether the newest published image is this one, asked of GHCR itself rather than of the
@@ -183,21 +183,21 @@ app.use('/api/auth', authRouter)
    in the same line. Anything meant to be reachable *without* auth (like /api/health) has to
    be registered above this line, and /api/auth handles its own routes before the gate is
    reached. */
-app.use('/api', requireAuth, readCache)
+app.use('/api', requireAuth, readTodayHeader, readCache)
 
 app.use('/api/vendors', vendorsRouter)
 app.use('/api/categories', categoriesRouter)
 app.use('/api/orders', ordersRouter)
-app.use('/api/wishes', wishesRouter)
+app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
-app.use('/api/dashboard-cards', dashboardCardsRouter)
-/* accountRouter only defines POST /reset, but it's mounted at the bare /api prefix (the route
-   itself, /api/reset, needs the full path) — every route above is registered first, so this
-   still can't shadow any of them. */
+app.use('/api/account', profileRouter)
+app.use('/api/imports', importsRouter)
+app.use('/api/statuses', statusesRouter)
+app.use('/api/views', viewsRouter)
+// Mounted at the bare /api prefix: its one route is POST /api/demo-data, which shadows nothing.
 app.use('/api', accountRouter)
 app.use('/api/stats', statsRouter)
-app.use('/api/home', homeRouter)
 app.use('/api/scan', scanRouter)
 app.use('/api/search', searchRouter)
 
@@ -299,10 +299,22 @@ if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST, {
 	}
 }))
 
-/* Central error handler. A route error.status (400/404/409) is trusted verbatim; anything else
-   is a bug, logged and reported as a plain 500 rather than leaking a stack to the client. */
+/* What the body parsers refuse before a route runs, in words the reader can act on. Their own
+   messages ("File too large", "request entity too large") are written for a programmer. */
+function parserRefusal(err) {
+	if (err.code === 'LIMIT_FILE_SIZE') return { status: 413, message: `A file is too large. Each file can be up to ${MAX_UPLOAD_MB} MB.` }
+	if (err.name === 'MulterError') return { status: 400, message: 'The files could not be read. Add them again.' }
+	if (err.type === 'entity.too.large') return { status: 413, message: `That is too much to send at once. The most is ${fileSizeLabel(err.limit)}.` }
+	if (err.type === 'entity.parse.failed') return { status: 400, message: 'What was sent could not be read.' }
+	return null
+}
+
+/* Central error handler. A route error.status (400/404/409/415) is trusted verbatim; anything
+   else is a bug, logged and reported as a plain 500 rather than leaking a stack to the client. */
 app.use((err, req, res, next) => {
 	if (res.headersSent) return next(err)
+	const refusal = parserRefusal(err)
+	if (refusal) return res.status(refusal.status).json({ error: refusal.message })
 	const status = err.status ?? 500
 	if (status === 500) console.error(err)
 	res.status(status).json({ error: status === 500 ? 'Something went wrong.' : err.message })
