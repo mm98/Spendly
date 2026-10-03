@@ -257,7 +257,7 @@ export function List({
 			{picked.length && selecting && bulkNote ? <div className="sp-bulkbar sp-bulkbar--note">{bulkNote}</div> : null}
 
 			<table
-				className={join('sp-table', compact && 'sp-table--compact', allOnPage && 'sp-table--all-selected')}
+				className={join('sp-table', compact && 'sp-table--compact')}
 				onKeyDown={ev => {
 					if (ev.key === 'Escape' && picked.length) { ev.stopPropagation(); setPicked([]) }
 					// up and down walk the rows' links (c1)

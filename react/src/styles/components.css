@@ -982,7 +982,6 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 /* the rounded corners need the clip, but an open menu must not be cut off by it */
 .sp-list:has([data-menu-open="true"]) { overflow: visible; }
-.sp-table--all-selected thead tr { background: var(--green-tint); }
 
 .sp-list__toolbar {
   display: flex;
@@ -1061,7 +1060,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table tbody tr:has(input:checked) { background: var(--green-tint); }
 .sp-table tbody tr[aria-selected="true"]:hover,
 .sp-table tbody tr:has(input:checked):hover { background: var(--green-tint-2); }
-.sp-table tbody tr[data-void="true"] { opacity: 0.6; }
+/* a cancelled row dims every cell but its status, so the label that tells it from a draft keeps full contrast (2b) */
+.sp-table tbody tr[data-void="true"] > td:not(.sp-col-status) { opacity: 0.6; }
 .sp-table td.sp-col-number,
 .sp-table th.sp-col-number { text-align: right; font-variant-numeric: tabular-nums; }
 /* a column is as wide as its own content needs; the title and the flexible column
@@ -1231,7 +1231,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-record__foot > .sp-stack > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-record__foot .sp-cell-menu { margin: -12px 0; align-self: center; }
 .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
-.sp-record:has(input:checked) { border-color: var(--green); background: var(--green-tint); }
+/* a picked card: a 2px green edge, the second pixel drawn inside so nothing moves, and no fill (2c) */
+.sp-record:has(input:checked) { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
 .sp-record[data-void="true"] { opacity: 0.6; }
 
 
@@ -2076,13 +2077,16 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 }
 /* the sidebar's own gap spaces every item alike, the action included - a margin here
    put 12 between this item and the next where every other pair in the column is 6 */
+/* the sidebar keeps literal values in both themes (12a), so its action, marks and counts take --shell-* */
 .sp-nav-item--action {
-  background: var(--green);
+  background: var(--shell-action);
   color: #fff;
   font-weight: 600;
 }
 a.sp-nav-item--action:hover,
-button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
+button.sp-nav-item--action:hover { background: var(--shell-action-hover); color: #fff; }
+.sp-sidebar__brand > .sp-mark--solid { background: var(--shell-action); color: #fff; }
+.sp-sidebar .sp-nav-item > .sp-mark--solid { background: var(--shell-mark); color: #fff; }
 /* One leading slot for every row, the width of an inline mark, so an icon and a set of
    initials share a centre line and neither moves when the column collapses. */
 .sp-nav-item__icon {
@@ -4152,7 +4156,7 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
    A saved view whose count is work waiting (orders with no receipt) carries the
    in-progress tone on the number itself. The row stays a row. */
 
-.sp-nav-item__count[data-color="warning"] { color: var(--amber-3); }
+.sp-nav-item__count[data-color="warning"] { color: var(--shell-warning); }
 .sp-nav-item--light .sp-nav-item__count[data-color="warning"] { color: var(--amber-ink); }
 
 /* ---------- the rail's glyph centres on the tile - c11 ----------
