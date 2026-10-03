@@ -118,8 +118,8 @@ export function usePanelPlace(root, panel, open, size) {
 					: { left: '0px', right: 'auto', width: drawn.width + 'px' })
 				drawn = list.getBoundingClientRect()
 			}
-			// a box that does not scroll is measured as drawn: a hidden submenu is laid out beside it, not in it
-			const height = getComputedStyle(list).overflowY === 'visible' ? drawn.height : list.scrollHeight
+			// measured as drawn: that holds its own cap (--list-max, --menu-max), and not a hidden submenu laid out beside it
+			const height = drawn.height
 			const gap = drawn.top - at.bottom
 			const edge = roomOf(root.current)
 			const below = edge.bottom - at.bottom - gap - 8

@@ -105,6 +105,7 @@
   --phone-bar-h: 68px;     /* every bar a phone pins: top, tab, save, selection */
   --commit-bar-h: 68px;    /* a form's commit bar on a page: the sticky row (c27) */
   --menu-max: 176px;       /* a menu that scrolls: five rows and a hint of the sixth */
+  --list-max: 420px;       /* a long list of records in a panel: the search's body, a dropdown */
   --dialog-w: 420px;       /* a dialog, and a sheet opened off touch */
   --fab: 56px;             /* the one floating action, on touch */
   --box: 16px;

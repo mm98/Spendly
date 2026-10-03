@@ -1585,6 +1585,9 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
   border: 1px solid var(--line);
   border-radius: 10px;
   box-shadow: var(--shadow-menu);
+  /* a long list stops at --list-max and scrolls inside, however tall the window */
+  max-height: var(--list-max);
+  overflow-y: auto;
 }
 .sp-combobox[data-open="true"] .sp-combobox__panel { display: flex; }
 /* with no room below and more above, the panel opens upward from the field (c9) */
@@ -3517,7 +3520,7 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 }
 .sp-palette__term::placeholder { color: var(--ink-5); }
 .sp-palette__term::-webkit-search-cancel-button { appearance: none; }
-.sp-palette__body { padding: var(--sp-10) 0; max-height: 420px; overflow-y: auto; }
+.sp-palette__body { padding: var(--sp-10) 0; max-height: var(--list-max); overflow-y: auto; }
 .sp-palette__group {
   display: block;
   padding: var(--sp-6) var(--sp-16);
