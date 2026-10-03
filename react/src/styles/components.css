@@ -2600,6 +2600,8 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-legend {
   display: flex;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
   gap: var(--sp-12);
   font-size: var(--t-12);
   color: var(--ink-3);

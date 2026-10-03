@@ -288,7 +288,7 @@ function AlertsCard({ view, attention }) {
 					{alerts
 						? shown.map(a => (
 							<ListItem key={a.key} to={a.to} color={a.color} chevron={CHEVRON} count={a.count}>
-								<span className="sp-grow">{a.text}</span>
+								<span className="sp-grow sp-truncate">{a.text}</span>
 							</ListItem>
 						))
 						: ['62pc', '48pc', '55pc'].map(width => <AlertSkeleton key={width} width={width} />)}
@@ -483,8 +483,7 @@ function CategoryLine({ category: c }) {
 		<Link className="sp-stack sp-gap-6 hm-link" to={`/statistics?range=month&crumbs=category:${c.id}`}>
 			<div className="sp-row-flex sp-gap-8">
 				<CategoryMark category={c} size="small" />
-				<span className="sp-data">{c.name}</span>
-				<span className="sp-grow" />
+				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
 				<span className={over ? 'sp-meta sp-meta--over' : 'sp-meta'}>
 					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : `${amount(c.monthSpend, 0)}${dot}no limit`}
 				</span>

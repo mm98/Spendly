@@ -261,12 +261,13 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 	)
 }
 
-/** A line of a sum: what it is, and what it comes to. `total` is the last line. */
-export function Sum({ variant = 'default', tone = 'default', value, children, ...rest }) {
+/** A line of a sum: what it is, and what it comes to. `total` is the last line. A `named` line is
+    a name the reader typed, which ends in an ellipsis rather than wrapping. */
+export function Sum({ variant = 'default', tone = 'default', named = false, value, children, ...rest }) {
 	reject(rest, 'Sum')
 	return (
 		<div className={join('sp-sum', pick(SUM, variant, 'variant', 'Sum'))} {...rest}>
-			<span className="sp-ink-2">{children}</span>
+			<span className={join('sp-ink-2', named && 'sp-grow sp-truncate')}>{children}</span>
 			<span className={join('sp-sum__value', pick(SUM_TONE, tone, 'tone', 'Sum'))}>{value}</span>
 		</div>
 	)

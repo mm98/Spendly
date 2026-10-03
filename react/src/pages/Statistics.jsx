@@ -953,15 +953,14 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 				{touch
 					? (
 						<div className="sp-stack">
-							<Sum value={amount(entry.amount, 0)}>{entry.other ? <span className="sp-subtitle">{entry.name}</span> : entry.name}</Sum>
+							<Sum named value={amount(entry.amount, 0)}>{entry.other ? <span className="sp-subtitle">{entry.name}</span> : entry.name}</Sum>
 							{gauge}
 						</div>
 					)
 					: (
 						<div className="sp-stack sp-gap-6">
 							<div className="sp-row-flex sp-gap-8">
-								<span className={entry.other ? 'sp-data sp-subtitle' : 'sp-data'}>{entry.name}</span>
-								<span className="sp-grow" />
+								<span className={entry.other ? 'sp-data sp-subtitle sp-grow sp-truncate' : 'sp-data sp-grow sp-truncate'}>{entry.name}</span>
 								<span className={ink(entry)}>{currency(entry.amount, 0)}</span>
 								{counts ? <span className="sp-meta">{counted(entry.orders, 'order')}</span> : null}
 							</div>
@@ -1263,8 +1262,7 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 		return (
 			<div className="sp-stack sp-gap-6" key={row.id}>
 				<div className="sp-row-flex sp-gap-8">
-					<span className="sp-data sp-truncate">{row.name}</span>
-					<span className="sp-grow" />
+					<span className="sp-data sp-grow sp-truncate">{row.name}</span>
 					<span className="sp-amount">{amount(row.spend, 0)}</span>
 					<span className="sp-meta sp-nowrap">/ {currency(row.allowed, 0)}</span>
 				</div>
@@ -1279,7 +1277,7 @@ function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 		)
 	})
 	return (
-		<Card footer={all ? [...(footer ?? []), all] : footer}>
+		<Card footer={all ? [...(footer ?? []), all] : footer} footerLayout={touch && all ? 'stack' : 'fill'}>
 			{head}
 			<span className="sp-meta">{note}</span>
 			{pace != null

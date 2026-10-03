@@ -6,7 +6,7 @@
 	.hm-page { container-type: inline-size; }
 
 	/* both rows share one column split, so the second row starts level on both sides */
-	.hm-split { display: grid; grid-template-columns: 1.35fr 1fr; align-items: stretch; }
+	.hm-split { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: stretch; }
 	.hm-split--start { align-items: start; }
 
 	@container (max-width: 900px) {
