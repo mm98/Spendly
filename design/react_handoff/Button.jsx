@@ -10,7 +10,7 @@ import { join, pick, reject } from './variants.js'
 
 const STYLE = { solid: null, outline: 'sp-btn--outline', text: 'sp-btn--text' }
 const COLOR = { primary: true, warning: true, danger: true }
-const SIZE = { standard: null, small: 'sp-btn--small' }
+const SIZE = { standard: null, small: 'sp-btn--small', xsmall: 'sp-btn--xsmall' }
 
 /** Where the border takes its colour. Omitted it is the grey line, as everywhere
     else; `inherit` takes it from the button's own `color`, for a button on a tinted
@@ -22,7 +22,8 @@ const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
  * @param {object} props
  * @param {'solid'|'outline'|'text'} [props.variant]
  * @param {'primary'|'warning'|'danger'} [props.color]
- * @param {'standard'|'small'} [props.size]
+ * @param {'standard'|'small'|'xsmall'} [props.size] `xsmall` is for a rail section
+ *   header; on touch it renders at the small size.
  * @param {'line'|'inherit'} [props.border] `inherit` takes the border from `color`.
  * @param {boolean} [props.fullWidth]
  * @param {string} [props.to] An in-app route. Renders a link.
@@ -69,7 +70,7 @@ export function Button({
 }
 
 const ICON_STYLE = { bare: null, outline: 'sp-icon-btn--outline', quiet: 'sp-icon-btn--quiet' }
-const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field' }
+const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field', xsmall: 'sp-icon-btn--xsmall' }
 
 /**
  * `aria-label` is required: an icon alone is silent to a screen reader. It is
@@ -83,7 +84,7 @@ const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn-
  *   first form took one.
  * @param {string} props['aria-label'] What the control does.
  * @param {'bare'|'outline'|'quiet'} [props.variant]
- * @param {'row'|'small'|'field'} [props.size]
+ * @param {'row'|'small'|'field'|'xsmall'} [props.size]
  * @param {boolean} [props.danger] An action that removes something: the red ink,
  *   on the same outline. The same state MenuItem has.
  * @param {string} [props.to] An in-app route. Renders a link.

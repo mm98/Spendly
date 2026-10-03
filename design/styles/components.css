@@ -853,6 +853,16 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 
 .sp-btn--block { width: 100%; }
 
+/* The smallest button: the action a rail section header carries (Views - Edit,
+   Filters - Clear all), where 34px stands taller than the 11px label beside it.
+   Desktop only - on touch it takes the small size, see the .sp-touch rule. */
+.sp-btn--xsmall {
+  height: 22px;
+  padding: 0 var(--sp-6);
+  font-size: var(--t-12);
+  font-weight: 500;
+}
+
 /* icon-only button: row menu, field trail, chip clear */
 .sp-icon-btn {
   display: grid;
@@ -872,6 +882,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .sp-icon-btn--small { width: var(--box); height: var(--box); border-radius: var(--r-marker); }
 .sp-icon-btn--field { width: var(--field-trail); height: var(--field-trail); }
+/* beside an xsmall button, the same 22px; on touch it takes the row size */
+.sp-icon-btn--xsmall { width: 22px; height: 22px; }
+.sp-touch .sp-icon-btn--xsmall { width: 32px; height: 32px; }
 
 /* ---------- pill - LOCKED c6 ---------- */
 
@@ -1577,6 +1590,8 @@ label.sp-option--swatch[aria-pressed="true"] {
    A bar lays its own buttons out in a row, so a button in one keeps its own width -
    otherwise two commits and their label cannot share 375px. */
 .sp-touch .sp-btn:not(.sp-btn--small) { width: 100%; }
+/* xsmall is a desktop size: on touch it is the small button, height and width */
+.sp-touch .sp-btn--xsmall { width: auto; height: 34px; padding: 0 var(--sp-16); font-weight: 600; }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
    without the card padding pushing the bar past the height every other bar holds */
 .sp-phone .sp-savebar { height: var(--phone-bar-h); padding-top: 0; padding-bottom: 0; }
@@ -1684,9 +1699,6 @@ label.sp-option--swatch[aria-pressed="true"] {
   border: 1px solid var(--line);
   border-radius: 10px;
   box-shadow: var(--shadow-menu);
-  /* a long list stops at --list-max and scrolls inside, however tall the window */
-  max-height: var(--list-max);
-  overflow-y: auto;
 }
 .sp-combobox[data-open="true"] .sp-combobox__panel { display: flex; }
 /* the panel overlays: it is anchored under the trigger and never changes the layout behind it */
@@ -3678,7 +3690,7 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 }
 .sp-palette__term::placeholder { color: var(--ink-5); }
 .sp-palette__term::-webkit-search-cancel-button { appearance: none; }
-.sp-palette__body { padding: var(--sp-10) 0; max-height: var(--list-max); overflow-y: auto; }
+.sp-palette__body { padding: var(--sp-10) 0; max-height: 420px; overflow-y: auto; }
 .sp-palette__group {
   display: block;
   padding: var(--sp-6) var(--sp-16);
@@ -4377,21 +4389,6 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   border-radius: var(--r-tile);
   box-shadow: var(--shadow-menu);
   transform: rotate(-0.6deg);
-  /* it passes over the rows it is carried across */
-  position: relative;
-  z-index: 1;
-}
-/* the handle under the pointer darkens and its row takes the row hover; a carried row stays white */
-.sp-list-item__handle:hover { color: var(--ink-3); }
-.sp-list-item:not(.sp-list-item--carried):has(> .sp-list-item__handle:hover) { background: var(--hover); }
-/* a row the keyboard picked up wears the selected-row tint until it is dropped */
-.sp-list-item--picked { background: var(--green-tint); }
-/* on touch a handle is held before it drags, so holding it selects nothing and opens no callout */
-.sp-list-item__handle { -webkit-touch-callout: none; user-select: none; }
-.sp-touch .sp-list-item__handle { width: 24px; }
-.sp-touch .sp-list-item:has(> .sp-list-item__handle) { min-height: var(--control-h-touch); }
-@media (prefers-reduced-motion: reduce) {
-  .sp-list-item--carried { transform: none; }
 }
 /* Where it will land. */
 .sp-list-item__insertion {

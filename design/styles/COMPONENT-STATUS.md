@@ -366,6 +366,7 @@ A component is **locked** when its appearance has been reviewed and accepted. Af
 - 2026-09-10 - `.sp-mark--plain` added as a c2 variant: a mark's box without its paint, so a list mixing coloured marks with bare glyphs keeps one text edge. Order list 2g's icon mapping needs it.
 - 2026-09-10 - `.sp-bulkbar--note` added as a c12 variant: the second line of the bulk bar, stating what the page selection covers and offering to widen it to everything the filter matches. Order list 2h specifies it.
 - 2026-09-10 - `.sp-card__footer--split` added as a c10 variant: a card footer holding two equal actions, as Order list 2g's Update view / Revert pair needs.
+- 2026-10-03 - `.sp-btn--xsmall` and `.sp-icon-btn--xsmall` added as c6 variants: 22px, 6px padding, 12px type at 500, for the action in a rail section header (Order list Views and Filters). On touch they take the small button and row icon sizes. Button and IconButton take `size="xsmall"`.
 - 2026-10-02 - `.sp-slot--start` added as a c17 variant: a slot that is a field of its own aligns to the start edge under its label. Bookmarks 22c and 22d use it.
 - 2026-10-02 - `.sp-record__foot--single` added as a c1 variant: a foot with one line on each side (a bookmark's date and price) aligns on the baseline. The order card foot is unchanged. Bookmarks 22a uses it.
 - 2026-09-10 - `.sp-record__photos--empty` added as a c1 variant: the card strip when an order has no item photos, drawn as the band with a glyph and the words rather than an empty panel. Order list 2c specifies it.

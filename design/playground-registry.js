@@ -36,7 +36,7 @@ export const COMPONENTS = [
 	C('Button', 'Button.jsx', 'Controls', 'text', 'Save order', [
 		['variant', 'enum', 'solid', ['solid', 'outline', 'text']],
 		['color', 'enum', 'primary', ['primary', 'warning', 'danger']],
-		['size', 'enum', 'standard', ['standard', 'small']],
+		['size', 'enum', 'standard', ['standard', 'small', 'xsmall']],
 		['border', 'enum', 'line', ['line', 'inherit']],
 		['fullWidth', 'bool', false],
 		['iconStart', 'icon', ''],
@@ -48,7 +48,7 @@ export const COMPONENTS = [
 		['icon', 'icon', 'dots-vertical'],
 		['label', 'text', 'More'],
 		['variant', 'enum', 'bare', ['bare', 'outline', 'quiet']],
-		['size', 'enum', 'row', ['row', 'small', 'field']],
+		['size', 'enum', 'row', ['row', 'small', 'field', 'xsmall']],
 		['to', 'text', ''],
 		['href', 'text', '']
 	]),
