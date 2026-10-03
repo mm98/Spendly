@@ -386,3 +386,6 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-input.sp-input--cell[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
 /* 9h draws the tab bar's items as links; a link's underline is not in the drawing */
 a.sp-tabbar__item { text-decoration: none; }
+/* the period row holds presets, stepper, dates, comparison, note and actions: on one line its
+   presets are squeezed into each other at every desktop width, so it wraps as touch does */
+.sp-period { flex-wrap: wrap; }
