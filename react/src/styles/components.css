@@ -3347,6 +3347,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   color: var(--ink);
 }
 [data-theme="dark"] .sp-toast__undo { color: var(--green-2); }
+/* the readout's rows are a quiet light ink on its lifted surface; the light theme's line tone is dark here */
+[data-theme="dark"] .sp-tip__row { color: var(--ink-3); }
 
 /* ---------- summary rows - DRAFT c21 ----------
    The right-hand panel's contents: a fact per row, then the total. */
