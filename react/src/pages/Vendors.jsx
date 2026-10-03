@@ -24,8 +24,8 @@ import {
 const SHOWN = [{ value: 'active', label: 'Active' }, { value: 'archived', label: 'Archived' }]
 // at this width of the list or under, the last order joins the name's second line (5k)
 const FOLD = 880
-// at this width of the list or under, the table becomes cards (5k)
-const CARDS = 900
+// at this width of the list or under, the table becomes cards, as the order list does (2i)
+const CARDS = 640
 // the search drops its shortcut badge at this width of the list or under (15e)
 const KBD = 720
 // the address of the look-alike view, as Home links to it (10a)
@@ -78,7 +78,8 @@ export default function Vendors() {
 	const [merging, setMerging] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const column = useRef(null)
-	const width = useWidth(column)
+	// the bar spans the list, so its outer width is the list's; the hook reports the inner one
+	const width = useWidth(column) && column.current.offsetWidth
 	const cards = touch || (width > 0 && width <= CARDS)
 	const folded = !cards && width > 0 && width <= FOLD
 	// a page of rows per Load more, kept for Back along with the scroll

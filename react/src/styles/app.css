@@ -291,6 +291,3 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 /* a single date's shortcuts sit in a calendar that pads itself, so the row keeps its gap and rule
    but not the range panel's own inset, and lines up with the month below */
 .sp-calendar > .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }
-
-/* a menu row's icon keeps its size: a long label beside a key cap would otherwise squeeze it to nothing */
-.sp-menu__item > svg { flex: none; }

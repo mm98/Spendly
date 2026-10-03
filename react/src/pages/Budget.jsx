@@ -203,13 +203,20 @@ const bar = (w, h = '13', ink = '') => <span className={join(ink, 'bg-line')}><S
 const VIEWS = [{ value: 'months', label: 'Months' }, { value: 'year', label: 'Whole year' }]
 
 function BarLoading({ view, touch }) {
-	const views = <Segmented name="budget-view-loading" aria-label="View" value={view} variant={touch ? 'facet' : 'default'} options={VIEWS.map(v => ({ ...v, disabled: true }))} />
+	const views = <Segmented name="budget-view-loading" aria-label="View" value={view} options={VIEWS.map(v => ({ ...v, disabled: true }))} />
 	return (
-		<Controls aria-busy="true">
-			{touch
-				? <><span className="bg-fill">{bar('130', '22')}</span><IconButton icon="dots-vertical" aria-label="Budget actions" disabled />{views}</>
-				: <>{bar('130', '22')}{views}<span className="sp-grow" /><Button variant="outline" disabled>Check a bank statement</Button><Button variant="outline" disabled>Edit</Button></>}
-		</Controls>
+		touch
+			? (
+				<ListItem variant="card" aria-busy="true">
+					{bar('52', '22')}<span className="sp-flex-none">{views}</span>
+					<IconButton icon="dots-vertical" aria-label="Budget actions" disabled />
+				</ListItem>
+			)
+			: (
+				<Controls aria-busy="true">
+					{bar('130', '22')}{views}<span className="sp-grow" /><Button variant="outline" disabled>Check a bank statement</Button><Button variant="outline" disabled>Edit</Button>
+				</Controls>
+			)
 	)
 }
 
@@ -449,7 +456,7 @@ function BudgetYears({ years, onYearsChanged }) {
 
 	const yearPicker = touch || years.length > 4
 		? (
-			<Combobox value={String(year)} aria-label="Year">
+			<Combobox value={String(year)} aria-label="Year" variant={touch ? 'bare' : 'default'}>
 				{years.map(y => (
 					<ComboboxOption key={y} selected={y === year} onSelect={() => goYear(y)}>{y}</ComboboxOption>
 				))}
@@ -460,38 +467,40 @@ function BudgetYears({ years, onYearsChanged }) {
 				options={years.map(y => ({ value: y, label: String(y) }))} />
 		)
 	const viewPicker = editing ? null : (
-		<Segmented name="budget-view" aria-label="View" value={view} onChange={setView} variant={touch ? 'facet' : 'default'}
-			options={VIEWS} />
+		<Segmented name="budget-view" aria-label="View" value={view} onChange={setView} options={VIEWS} />
 	)
 
 	return (
 		<>
-			<Controls>
-				{yearPicker}
-				{touch ? null : viewPicker}
-				{touch ? null : <span className="sp-grow" />}
-				{touch
-					? (
-						// at a phone's control size the three do not fit one line, so the view takes the next one in full
-						<>
-							<Actions editing={editing} onEdit={() => setEditing(!editing)} onNewYear={() => setStarting(true)} />
-							{viewPicker}
-						</>
-					)
-					: editing
-						? (
-							<>
-								<Button variant="outline" onClick={() => setStarting(true)}>New year</Button>
-								<Button onClick={() => setEditing(false)}>Done</Button>
-							</>
-						)
-						: (
-							<>
-								<Button variant="outline" to="/budget/check">Check a bank statement</Button>
-								<Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>
-							</>
-						)}
-			</Controls>
+			{touch
+				? (
+					// on a phone the year, the view and the actions share one bar (Mobile screens 7a)
+					<ListItem variant="card">
+						{yearPicker}
+						{viewPicker ? <span className="sp-flex-none">{viewPicker}</span> : null}
+						<Actions editing={editing} onEdit={() => setEditing(!editing)} onNewYear={() => setStarting(true)} />
+					</ListItem>
+				)
+				: (
+					<Controls>
+						{yearPicker}
+						{viewPicker}
+						<span className="sp-grow" />
+						{editing
+							? (
+								<>
+									<Button variant="outline" onClick={() => setStarting(true)}>New year</Button>
+									<Button onClick={() => setEditing(false)}>Done</Button>
+								</>
+							)
+							: (
+								<>
+									<Button variant="outline" to="/budget/check">Check a bank statement</Button>
+									<Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>
+								</>
+							)}
+					</Controls>
+				)}
 			{years.includes(year)
 				? <YearView key={year} year={year} view={view} editing={editing} touch={touch} onYearsChanged={onYearsChanged} />
 				: (
