@@ -667,8 +667,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			if (!theirs || theirs.revision == null || theirs.revision === base.current || busy.current) return
 			// nothing here to keep: the form simply shows the newer copy
 			if (!dirtyNow.current) return adopt(theirs, null)
-			setConflict(c => (c?.fromSave ? { ...c, theirs } : { theirs, where: c?.where === 'tab' ? 'tab' : where, fromSave: false }))
+			setConflict(c => (c?.fromSave ? { ...c, theirs } : { theirs, where: c?.where === 'tab' || c?.where === 'waited' ? c.where : where, fromSave: false }))
 		}
+		// a change brought back from waiting is weighed against the order as it is now, not as last read here
+		if (stuck) check('waited')
 		const off = onOrderSavedElsewhere(news => {
 			if (!news.ids?.includes(orderId)) return
 			if (news.gone) return setLost('This order was deleted in another tab. Your changes cannot be saved.')
