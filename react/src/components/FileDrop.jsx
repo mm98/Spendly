@@ -55,9 +55,9 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 	)
 }
 
-/** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove (17b);
-    `busy` draws the spinner over the picture while it is sent (17a). */
-export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, busy = false, onFile, onRemove, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
+/** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove, or a
+    Retry when `onRetry` is given (17b); `busy` draws the spinner over the picture while it is sent (17a). */
+export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)
 	const take = file => {
@@ -96,7 +96,8 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 			</Mark>
 			{refused
 				? <button type="button" className="sp-slot__remove" aria-label={`Remove ${refused.name}`} onClick={() => setRefused(null)}>Remove</button>
-				: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
+				: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={`Send ${name} again`} onClick={onRetry}>Retry</button>
+					: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
 		</span>
 	)
 }

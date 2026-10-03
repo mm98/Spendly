@@ -1084,14 +1084,14 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 	const errors = editing.tried ? lineErrors(v) : {}
 	const set = patch => onChange({ ...v, ...patch })
 	const photo = v.newPhoto?.url ?? (v.dropPhoto ? null : photoUrl(v))
-	// the new photo is sent at once (17a); one that does not arrive is sent again by the save
-	const [sending, setSending] = useState(false)
+	// the new photo is sent at once (17a); one that did not arrive keeps its failure and a Retry (17b)
+	const [sending, setSending] = useState(null)
 	useEffect(() => {
 		const sent = v.newPhoto?.sent
-		setSending(Boolean(sent))
+		setSending(sent ? 'busy' : null)
 		if (!sent) return
 		let live = true
-		sent.then(() => { if (live) setSending(false) })
+		sent.then(upload => { if (live) setSending(upload ? null : 'failed') })
 		return () => { live = false }
 	}, [v.newPhoto?.sent])
 	// a file the line cannot take leaves the photo as it was and says why on the slot (17b)
@@ -1118,8 +1118,9 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 					size="medium"
 					name="the line's photo"
 					src={photo}
-					problem={v.photoProblem ?? undefined}
-					busy={sending}
+					problem={v.photoProblem ?? (sending === 'failed' ? 'Failed' : undefined)}
+					busy={sending === 'busy'}
+					onRetry={sending === 'failed' ? () => set({ newPhoto: { ...v.newPhoto, sent: sendFile(v.newPhoto.file).catch(() => null) } }) : undefined}
 					onFile={take}
 					onRemove={() => set({ newPhoto: null, dropPhoto: Boolean(v.photo), photoProblem: null })}
 				/>
