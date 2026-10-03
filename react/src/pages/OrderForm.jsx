@@ -50,13 +50,15 @@ const orderErrors = d => {
 	if (!d.vendor.trim()) e.vendor = 'A vendor is required. Pick one or create it here.'
 	else if (d.vendor.trim().length > 80) e.vendor = '80 characters at most.'
 	if (!d.date) e.date = 'When was the order placed?'
-	else if (d.date > today()) e.date = 'An order cannot be dated in the future.'
 	if (!spendKinds.includes(d.kind)) e.kind = 'Pick a kind.'
 	return e
 }
 
 /** A message that blocks the save, or nothing: a danger type alone marks the field invalid. */
 const problem = message => (message ? { message, messageType: 'danger' } : {})
+
+/** A date after today is kept, since an order can be booked ahead; amber says so (6c). */
+const ahead = date => (date > today() ? { message: 'That is in the future. Keep it if the order is pre-booked.', messageType: 'warning' } : {})
 
 const lineErrors = v => {
 	const e = {}
@@ -777,8 +779,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				? <NewVendorFromScan onSetUp={setUpVendor} />
 				: null}
 			<div className="sp-fields">
-				<Field label="Date" {...lookAt('date')} {...problem(shown.date)}>
-					<DateField value={draft.date} max={today()} danger={!!shown.date} locale={activeLocaleCode()}
+				<Field label="Date" {...lookAt('date')} {...(shown.date ? problem(shown.date) : ahead(draft.date))}>
+					<DateField value={draft.date} danger={!!shown.date} locale={activeLocaleCode()}
 						onChange={date => set({ date })} />
 				</Field>
 				<Field label="Kind" {...problem(shown.kind)}>

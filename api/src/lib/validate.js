@@ -17,9 +17,9 @@ export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_S
 	if (!vendor) errors.vendor = 'Who did you buy from?'
 	else if (vendor.length > 80) errors.vendor = '80 characters at most.'
 
+	// a date in the future is kept: an order can be booked ahead (6c), so the form only warns
 	const date = String(draft.date ?? '')
 	if (!ISO_DATE.test(date)) errors.date = 'When was the order placed?'
-	else if (date > today) errors.date = 'An order cannot be dated in the future.'
 
 	const kind = String(draft.kind ?? '')
 	if (!kind) errors.kind = 'Pick a kind.'
@@ -34,13 +34,13 @@ export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_S
 	if (draft.deliveredDate) {
 		const deliveredDate = String(draft.deliveredDate)
 		if (!ISO_DATE.test(deliveredDate)) errors.deliveredDate = 'That is not a valid date.'
-		else if (deliveredDate > today) errors.deliveredDate = 'A delivery cannot be dated in the future.'
+		else if (deliveredDate > today && deliveredDate > date) errors.deliveredDate = 'A delivery cannot be dated in the future.'
 		else if (deliveredDate < date) errors.deliveredDate = 'That is before the order date.'
 	}
 	if (draft.returnedDate) {
 		const returnedDate = String(draft.returnedDate)
 		if (!ISO_DATE.test(returnedDate)) errors.returnedDate = 'That is not a valid date.'
-		else if (returnedDate > today) errors.returnedDate = 'A return cannot be dated in the future.'
+		else if (returnedDate > today && returnedDate > String(draft.deliveredDate || date)) errors.returnedDate = 'A return cannot be dated in the future.'
 		else if (draft.deliveredDate && !errors.deliveredDate && returnedDate < String(draft.deliveredDate))
 			errors.returnedDate = 'That is before the delivery date.'
 	}
