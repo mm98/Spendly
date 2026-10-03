@@ -106,14 +106,15 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 			{all.length >= SEARCH_FROM
 				? <li role="none"><SearchInput value={find} onChange={setFind} placeholder="Find a category…" aria-label="Find a category" /></li>
 				: null}
-			{shown.map(c => (
-				<li key={c.id} role="none">
-					<Choice variant="row" control={<Check checked={has.has(c.id)} onChange={ev => tick(c, ev.target.checked)} />}>
+			{/* the search and Create stay put; only the categories between them scroll, as 2a's picker does */}
+			<li role="none" className="sp-popover__list">
+				{shown.map(c => (
+					<Choice key={c.id} variant="row" control={<Check checked={has.has(c.id)} onChange={ev => tick(c, ev.target.checked)} />}>
 						<CategoryMark category={c} size="small" />
 						<span>{c.name}</span>
 					</Choice>
-				</li>
-			))}
+				))}
+			</li>
 			<MenuSeparator />
 			<MenuItem icon="plus" onClick={go(`/categories/new${find ? `?name=${encodeURIComponent(find)}` : ''}`)}>Create a category</MenuItem>
 		</>
