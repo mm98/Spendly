@@ -28,6 +28,11 @@
 	.hm-wells { display: flex; gap: var(--sp-14); }
 	.hm-wells > * { flex: 1 1 0; }
 
+	/* a category row is a link into Statistics, drawn as the row it is */
+	a.hm-link,
+	a.hm-link:hover { color: inherit; text-decoration: none; border-radius: var(--r-tile); }
+	a.hm-link:focus-visible { outline: none; box-shadow: var(--ring); }
+
 	/* a recent order on the phone: the whole row is the link, at the touch height. a.hm-order weighs
 	   the same as the base link ink, which loads before this file, so these win the tie */
 	.hm-order { min-height: var(--control-h-touch); }

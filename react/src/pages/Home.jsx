@@ -475,11 +475,12 @@ function CategoriesCard({ view }) {
 	)
 }
 
+/* Each row opens Statistics on this month with the category as its crumb (10a). */
 function CategoryLine({ category: c }) {
 	const limited = c.budget > 0
 	const over = overBudget(c)
 	return (
-		<div className="sp-stack sp-gap-6">
+		<Link className="sp-stack sp-gap-6 hm-link" to={`/statistics?range=month&crumbs=category:${c.id}`}>
 			<div className="sp-row-flex sp-gap-8">
 				<CategoryMark category={c} size="small" />
 				<span className="sp-data">{c.name}</span>
@@ -491,7 +492,7 @@ function CategoryLine({ category: c }) {
 			{limited
 				? <Gauge {...against(c.monthSpend, c.budget)} aria-label={`${c.name} against its limit`} />
 				: <Gauge value={0} untargeted aria-label="No limit set" />}
-		</div>
+		</Link>
 	)
 }
 
@@ -513,7 +514,7 @@ function MonthsCard() {
 				<Button variant="text" size="small" to="/statistics">Statistics</Button>
 			</div>
 			<Bars columns={months ?? []} loading={!months} current={today().slice(0, 7)}
-				onSelect={(key, from, to) => navigate(`/orders?from=${from}&to=${to}`)} />
+				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
 		</Card>
 	)
 	if (year.error) return (
