@@ -4787,6 +4787,19 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a toast that needs an answer stays on the page's own surface, so it does not
    read as something that will disappear on its own - c23 */
 .sp-toast--asks { background: var(--surface); border: 1px solid var(--amber); color: var(--amber-ink-2); }
+/* the notice that asks can run to several lines: the mark and the buttons stay level with the title */
+.sp-toast--asks { align-items: flex-start; }
+/* what changed in the newer version: a short list under the notice's words, in the subtitle's size and ink */
+.sp-toast__changes { margin: 0; padding: 0 0 0 var(--sp-16); display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--t-12); }
+/* on touch the mark sits at the title, the words take the row, and the two buttons share the
+   row under them in equal halves, on the words' left edge */
+.sp-touch .sp-toast--asks { display: grid; grid-template-columns: var(--step) minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); align-items: start; }
+.sp-touch .sp-toast--asks > .sp-step { grid-column: 1; grid-row: 1; }
+.sp-touch .sp-toast--asks > .sp-stack { grid-column: 2 / 4; grid-row: 1; min-width: 0; }
+.sp-touch .sp-toast--asks > .sp-grow { display: none; }
+.sp-touch .sp-toast--asks > .sp-btn { grid-row: 2; width: 100%; min-width: 0; }
+.sp-touch .sp-toast--asks > .sp-btn:first-of-type { grid-column: 2; }
+.sp-touch .sp-toast--asks > .sp-btn:last-of-type { grid-column: 3; }
 /* where toasts appear: a column, so a notice that stays until answered sits above a
    passing toast instead of under it - c23. On touch both take the full width. */
 .sp-toast-region { display: flex; flex-direction: column; align-items: center; gap: var(--sp-8); }

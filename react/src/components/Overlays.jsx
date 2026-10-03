@@ -360,7 +360,8 @@ const TOAST_COLOR = { default: null, danger: 'danger' }
 
 /** `title` makes the message its second line, and `seconds` is how long its Undo lasts (6d). An
     `asks` toast is a notice that stays until answered: `mark` stands for the icon, `actions` answer. */
-export function Toast({ icon, mark, title, color = 'default', compact = false, asks = false, actions, seconds, children, ...rest }) {
+/** `list` is a short list under the words of a toast that asks, read out as `listLabel` (6d). */
+export function Toast({ icon, mark, title, color = 'default', compact = false, asks = false, actions, list, listLabel, seconds, children, ...rest }) {
 	reject(rest, 'Toast')
 	// the way back is a child, not a prop: it is the last thing in the row, which is
 	// where it is written, and a page cannot put a plain link there by accident
@@ -383,6 +384,9 @@ export function Toast({ icon, mark, title, color = 'default', compact = false, a
 						<div className="sp-stack sp-gap-6">
 							<span className="sp-title">{title}</span>
 							<span className={join('sp-subtitle', asks ? 'sp-ink-warning' : 'sp-ink-inverse')}>{message}</span>
+							{list?.length
+								? <ul className="sp-toast__changes sp-ink-warning" aria-label={listLabel}>{list.map((item, i) => <li key={i}>{item}</li>)}</ul>
+								: null}
 						</div>
 						<span className="sp-grow" />
 					</>

@@ -372,6 +372,9 @@ constraints (one file, no build step, no external asset) are git history, not ac
   rendered it. Mid-work, "not rendered yet" is a complete, honest status.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag what you couldn't close, in the same breath as what you did.
+- **Every pull request opens with `## What changed for you`:** up to three lines, in the user's
+  words, about what they will notice; empty when nothing changes for them. The update notice shows
+  these lines, and the PR notes check fails without the section.
 - **The pull request is where the session ends. Never offer to watch it.** This has been asked and
   declined repeatedly across this repo's history — it isn't a default choice to offer. If watching is
   wanted, it will be asked for explicitly, and then the PR is subscribed to and driven to merge.
