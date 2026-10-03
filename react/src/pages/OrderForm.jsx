@@ -241,6 +241,18 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			}
 		})
 	}
+	// a copy goes below its line, as a new line: its photo stays with the one it was taken of
+	const duplicateLine = (line, values = line) => {
+		const key = freshKey()
+		const { id, photo, newPhoto, dropPhoto, photoProblem, ...kept } = values
+		setLines(ls => {
+			const at = ls.findIndex(l => l.key === line.key)
+			const copy = { ...kept, key, photo: null, newPhoto: null, dropPhoto: false, uncertain: false, checked: true, include: true }
+			return [...ls.slice(0, at + 1), copy, ...ls.slice(at + 1)]
+		})
+		reopen.current = key
+		setSaid(`${values.title || 'The line'} copied below itself`)
+	}
 	const moveTo = (key, to) => setLines(ls => {
 		const at = ls.findIndex(l => l.key === key)
 		if (at < 0 || to < 0 || to >= ls.length || to === at) return ls
@@ -639,6 +651,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 					</>
 					: <>
 						{pencil}
+						{scan ? null : <IconButton variant="outline" icon="copy" aria-label={`Duplicate ${named}`} onClick={() => duplicateLine(line)} />}
 						{scan ? null : <IconButton variant="outline" danger icon="trash" aria-label={`Delete ${named}`} onClick={() => removeLine(line)} />}
 					</>}
 			>
@@ -936,6 +949,14 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	const notice = notices({ origin, scan, lines, leave, touch })
 
+	// on a phone the sheet's line is copied as it stands in the sheet, once it reads as a whole line
+	const copyEditing = () => {
+		if (Object.keys(lineErrors(editing.values)).length) return setEditing(e => ({ ...e, tried: true }))
+		const line = lines.find(l => l.key === editing.key)
+		commitInto(editing)
+		setEditing(null)
+		duplicateLine(line, editing.values)
+	}
 	const sheet = touch && editing
 		? createPortal(
 			<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) cancelLine() }}>
@@ -943,6 +964,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 					<div className="sp-row-flex sp-gap-8">
 						<span className="sp-heading">{editing.isNew ? 'Add a line' : 'Edit line'}</span>
 						<span className="sp-grow" />
+						{editing.isNew || scan ? null : <IconButton variant="outline" icon="copy" aria-label={`Duplicate ${editing.values.title || 'the unnamed line'}`}
+							onClick={copyEditing} />}
 						{editing.isNew ? null : <IconButton variant="outline" danger icon="trash" aria-label={`Delete ${editing.values.title || 'the unnamed line'}`}
 							onClick={() => removeLine(lines.find(l => l.key === editing.key))} />}
 					</div>
