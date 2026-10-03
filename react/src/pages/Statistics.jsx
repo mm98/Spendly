@@ -283,9 +283,11 @@ export default function Statistics() {
 				? null
 				: (
 					<Selected>
-						<Choice control={<Switch checked={compareOn} onChange={ev => show(range, id, ev.target.checked)} />}>
-							Compare with {nameOf(range, before)}
-						</Choice>
+						{shape => (
+							<Choice control={<Switch checked={compareOn} onChange={ev => show(range, id, ev.target.checked)} />}>
+								Compare with {nameOf(range, yearEarlier(range, windowIdAt(range, Date.parse(shape.selected.from + 'T00:00:00Z'))))}
+							</Choice>
+						)}
 					</Selected>
 				)}
 		</PeriodPicker>
