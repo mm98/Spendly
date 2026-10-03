@@ -214,6 +214,9 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-chip--facet > span { grid-template-columns: minmax(0, 1fr); }
 .sp-chip--facet > span > span { overflow: hidden; text-overflow: ellipsis; }
 .sp-chip--facet > span + span { flex: none; }
+/* a value with no orders is disabled rather than hidden (c12), as a disabled choice reads */
+.sp-chip--facet:has(input:disabled),
+.sp-chip--facet:has(input:disabled):hover { border-color: var(--line-3); color: var(--ink-5); cursor: not-allowed; }
 /* on touch the period stepper is a control at the touch height (c0, Mobile screens 7a) */
 .sp-touch .sp-window { height: var(--control-h-touch); }
 /* the palette never grows past 60vh; its results scroll inside it (9d). Full screen on a phone (7b) */
@@ -226,6 +229,17 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 @media (prefers-reduced-motion: reduce) {
 	.sp-sheet { transition: none; }
 }
+
+/* the item editor measures its own width: below 640 its thirds become fixed + fluid (15b, .rr-f-thirds) */
+.sp-line-editor__form { container-type: inline-size; }
+@container (max-width: 640px) {
+	.sp-line-editor__grid { grid-template-columns: 132px minmax(0, 1fr); }
+}
+
+/* a budget amount is clicked to type it in place (Budget 21a, 21b), so its row takes focus */
+.sp-sum[role="button"] { outline: none; }
+.sp-sum[role="button"]:focus-visible { border-radius: var(--r-marker); box-shadow: var(--ring); }
+.sp-sum__value > .sp-input.sp-input--cell { width: calc(12ch + var(--sp-4)); }
 
 /* a live region, read out and drawn nowhere (c1, c9, 14a) */
 .sp-announce {
@@ -313,3 +327,6 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 
 /* not yet built as drawn: c14 puts two fields over one scrolling month in a phone's sheet */
 .sp-range--single { width: auto; }
+
+/* the design's drawing where its own stylesheet does not give it: 1c's phone editor spans the sheet */
+.sp-line-editor--sheet > .sp-line-editor__form { align-self: stretch; }

@@ -312,7 +312,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 						? (
 							<>
 								<SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
-								{onCancel ? <Button variant="text" onClick={onCancel}>Cancel</Button> : null}
+								{onCancel ? <Button variant="text" size="small" onClick={onCancel}>Cancel</Button> : null}
 							</>
 						)
 						: (
