@@ -45,11 +45,11 @@
     <div class="doc-note"><b class="sp-ink">Tapping search opens the palette over the whole screen</b> - the same palette as <b>9d</b>, full bleed, its search row standing at the top bar's own height and gutter so the field does not move. The field keeps what was typed and carries a clear control at its right edge, where the keyboard hint sits on desktop. Rows keep the name and one line of detail and drop the amount and the key hints: 375px has room for what the row is, not for everything the row could say. It is drawn in <b>7b</b>.</div>
     <div class="doc-note"><b class="sp-ink">More is a list of the areas the tab bar has no room for</b> - the account, Budget, Vendors, Categories, Bookmarks, saved views and Settings, in the sidebar's order. It is the fourth tab, so it keeps the tab bar and shows More as current; everything it opens keeps More current too, which is why the Vendors, Categories and Settings frames below show it that way. The theme is under Settings, in Appearance.</div>
     <div class="doc-note"><b class="sp-ink">A create or edit screen is the order edit frame with a different form.</b> Back control and title in the bar, cards of fields in the scroll, the save bar at the bottom - <b>5b</b> is drawn here to show it; 5c, 5e and 5f are the same frame.</div>
-    <div class="doc-note"><b class="sp-ink">Rows become cards, and cards drop fields rather than shrinking them.</b> An order card carries vendor and amount on line one, reference beneath, then date, category and status. Everything else lives one level deeper.</div>
+    <div class="doc-note"><b class="sp-ink">Rows become cards, and cards drop fields rather than shrinking them.</b> An order card is the card from <a href="Order list.dc.html#2i">2i</a>: vendor and amount on line one, then the date and items with the saving under the amount. The reference, the status and the category are not on the card; the order page shows them. Everything else lives one level deeper.</div>
     <div class="doc-note"><b class="sp-ink">Filters and sort become two controls above the list</b>, not a facet rail. Filters opens the bottom sheet in <b>7b</b> and carries a count when any are applied.</div>
     <div class="doc-note"><b class="sp-ink">Anything that creates or edits gets a sticky save bar</b> at the bottom of the content, clear of the safe-area inset. It takes the tab bar's place rather than sitting above it - the screen is a task until it is saved or cancelled. The primary reads <b>Create</b> on a new record and <b>Save</b> on an existing one, and the page title already says which record it is.</div>
     <div class="doc-note"><b class="sp-ink">These frames are drawn at 375px</b>, but the rule is the 640px threshold in 9h - not this device.</div>
-    <div class="doc-note"><b class="sp-ink">Budget shows one month at a time.</b> The twelve-month strip from 21a does not fit, so the window control steps through the months and the halves become a single well. Year, the Months / Whole year switch and the actions share one bar, the year as the compact select (<code>sp-combobox--bare</code>: the value and its chevron, no field box) so the three fit 328px; the kebab holds <b>Edit</b> and <b>Check a bank statement</b>, the two buttons the desktop bar carries.</div>
+    <div class="doc-note"><b class="sp-ink">Budget shows one month at a time.</b> The twelve-month strip from 21a does not fit, so the window control steps through the months and the halves become a single well. Year, the Months / Whole year switch and the actions share one bar, the year as the compact select (<code>sp-combobox--bare</code>: the value and its chevron, no field box), which saves 20px; the menu button ends 4px into the card's padding and stays inside the card; the kebab holds <b>Edit</b> and <b>Check a bank statement</b>, the two buttons the desktop bar carries.</div>
     <div class="doc-note"><b class="sp-ink">The whole year is the 21b sheet, unchanged.</b> It scrolls sideways inside its card and opens on the month it is now, with the row names held at the left, so the frame shows what is in view on arrival: Row, then October onwards. The account column and the earlier months are to the left, one swipe away.</div>
     <div class="doc-note"><b class="sp-ink">Editing a budget row and the bank check keep their desktop behaviour</b> (21c, 21g): the row editor opens in place of the row, and the bank check's table scrolls sideways like the sheet.</div>
     <div class="doc-note"><b class="sp-ink">Bookmarks is the 22a card list in one column</b> - the card grid already drops to one column below 640px. Filters opens the bottom sheet from 7b holding Category and Open / Archived; <b>+</b> in the list head is New bookmark, as on Vendors. New and edit bookmark are the create frame shown for 5b.</div>
@@ -107,11 +107,60 @@
                 </div>
           </div></div>
         <div class="ms-head sp-meta">18 orders · 61.480,00 kr.</div>
-        <div class="ms-scroll ms-scroll--pad"><div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-top"><div class="sp-mark sp-mark--medium sp-mark--photo"></div><div class="sp-stacked sp-grow"><span class="sp-heading sp-truncate">Indbo Møbler</span><span class="sp-meta">SPENDLY-447</span></div><span class="sp-amount sp-nowrap">7.635,00</span></div>
-          <div class="sp-row-flex sp-gap-8"><span class="sp-meta sp-grow">12/08 · 4 items</span><span class="sp-chip sp-chip--solid">Decor</span><span class="sp-pill" data-color="success">Delivered</span></div></div><div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-top"><div class="sp-mark sp-mark--medium sp-mark--photo"></div><div class="sp-stacked sp-grow"><span class="sp-heading sp-truncate">Hay Danmark ApS</span><span class="sp-meta">SPENDLY-446</span></div><span class="sp-amount sp-nowrap">3.240,00</span></div>
-          <div class="sp-row-flex sp-gap-8"><span class="sp-meta sp-grow">03/08 · 2 items</span><span class="sp-chip sp-chip--solid">Seating</span><span class="sp-pill" data-state="progress">Ordered</span></div></div><div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-top"><div class="sp-mark sp-mark--medium sp-mark--photo"></div><div class="sp-stacked sp-grow"><span class="sp-heading sp-truncate">Muuto</span><span class="sp-meta">SPENDLY-441</span></div><span class="sp-amount sp-nowrap">5.120,00</span></div>
-          <div class="sp-row-flex sp-gap-8"><span class="sp-meta sp-grow">01/08 · 3 items</span><span class="sp-chip sp-chip--solid">Lighting</span><span class="sp-pill" data-color="danger">Returned</span></div></div><div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-top"><div class="sp-mark sp-mark--medium sp-mark--photo"></div><div class="sp-stacked sp-grow"><span class="sp-heading sp-truncate">Ferm Living</span><span class="sp-meta">SPENDLY-438</span></div><span class="sp-amount sp-nowrap">890,00</span></div>
-          <div class="sp-row-flex sp-gap-8"><span class="sp-meta sp-grow">28/07 · 1 item</span><span class="sp-chip sp-chip--solid">Textiles</span><span class="sp-pill" data-color="success">Delivered</span></div></div></div></div>
+        <div class="ms-scroll ms-scroll--pad"><div class="sp-list sp-list--cards">
+        <button type="button" class="sp-list-item sp-list-item--card">
+          <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+          <span class="sp-stacked sp-stacked--fill">
+            <span class="sp-list-item__line">
+              <span class="sp-title sp-truncate sp-grow">Indbo Møbler</span>
+              <span class="sp-amount">7.635,00 kr.</span>
+            </span>
+            <span class="sp-list-item__line">
+              <span class="sp-subtitle sp-grow">12/08/2026 · 4 items</span>
+              <span class="sp-amount-secondary" data-color="success">Saved 1.320,00 kr.</span>
+            </span>
+          </span>
+        </button>
+        <button type="button" class="sp-list-item sp-list-item--card">
+          <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+          <span class="sp-stacked sp-stacked--fill">
+            <span class="sp-list-item__line">
+              <span class="sp-title sp-truncate sp-grow">Hay Danmark ApS</span>
+              <span class="sp-amount">3.240,00 kr.</span>
+            </span>
+            <span class="sp-list-item__line">
+              <span class="sp-subtitle sp-grow">03/08/2026 · 2 items</span>
+              <span class="sp-amount-secondary" data-color="success">Saved 480,00 kr.</span>
+            </span>
+          </span>
+        </button>
+        <button type="button" class="sp-list-item sp-list-item--card">
+          <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+          <span class="sp-stacked sp-stacked--fill">
+            <span class="sp-list-item__line">
+              <span class="sp-title sp-truncate sp-grow">Muuto</span>
+              <span class="sp-amount">5.120,00 kr.</span>
+            </span>
+            <span class="sp-list-item__line">
+              <span class="sp-subtitle sp-grow">01/08/2026 · 3 items</span>
+              <span class="sp-amount-secondary">Saved 0,00 kr.</span>
+            </span>
+          </span>
+        </button>
+        <button type="button" class="sp-list-item sp-list-item--card">
+          <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+          <span class="sp-stacked sp-stacked--fill">
+            <span class="sp-list-item__line">
+              <span class="sp-title sp-truncate sp-grow">Ferm Living</span>
+              <span class="sp-amount">890,00 kr.</span>
+            </span>
+            <span class="sp-list-item__line">
+              <span class="sp-subtitle sp-grow">28/07/2026 · 1 item</span>
+              <span class="sp-amount-secondary" data-color="success">Saved 135,00 kr.</span>
+            </span>
+          </span>
+        </button>
+    </div></div></div>
           <button type="button" class="sp-fab ms-fab" aria-label="New order"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></button><div class="sp-tabbar"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
               </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta sp-strong">Orders</span>
               </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta">Statistics</span>
