@@ -33,7 +33,7 @@ import { useListReturn } from '../app/listMemory.js'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
-	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, totalsOf
+	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
@@ -482,9 +482,10 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	// what the viewer walks (17b): the attachments, saved then staged, then the lines' photos
 	const viewable = [
 		...savedFiles.filter(f => !gone.includes(f.id)).map(f => ({
-			key: f.id, name: f.name,
+			key: f.id, name: f.name, kind: f.kind,
 			src: f.kind === 'pdf' ? f.thumb : attachmentFileUrl(orderId, f.id),
-			download: attachmentFileUrl(orderId, f.id)
+			download: attachmentFileUrl(orderId, f.id),
+			...pagesOf(orderId, f)
 		})),
 		...files.filter(f => !f.problem).map(f => ({ key: f.key, name: f.name, src: f.thumb })),
 		...lines.flatMap(l => {

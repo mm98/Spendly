@@ -21,7 +21,8 @@ export default function OrderEdit() {
 			orderId={order.id}
 			seed={draftOf(order)}
 			files={order.attachments.map(a => ({
-				id: a.id, name: a.name, kind: a.kind, thumb: a.hasThumbnail ? attachmentThumbnailUrl(order.id, a.id) : null
+				id: a.id, name: a.name, kind: a.kind, pages: a.pages, sha256: a.sha256,
+				thumb: a.hasThumbnail ? attachmentThumbnailUrl(order.id, a.id) : null
 			}))}
 			photoUrl={line => (line.id && line.photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, line.id, line.photo.id) : null)}
 		/>

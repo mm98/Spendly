@@ -12,7 +12,7 @@ import { SaveBar } from '../components/Touch.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
-	attachmentFileUrl, attachmentThumbnailUrl, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
+	attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, getAttachmentPages, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
 } from '../api/client.js'
 import { currency, dot, quantity, plural } from '../api/format.js'
 
@@ -81,23 +81,36 @@ export const itemPhoto = (orderId, item) => {
 
 const kindOf = file => (file.kind === 'pdf' ? 'PDF' : String(file.name).split('.').pop().toUpperCase().slice(0, 4))
 
+/** What the viewer needs to page through a stored PDF (12b): its pages, or how to count them. */
+export const pagesOf = (orderId, file) => (file.kind === 'pdf'
+	? {
+		pages: file.pages ?? null,
+		pageSrc: i => attachmentPageUrl(orderId, file.id, i),
+		countPages: () => getAttachmentPages(orderId, file.id).then(r => r.pages)
+	}
+	: {})
+
 /** The order's files as the viewer walks them: its attachments, then its lines' photos. */
 export function filesOf(order) {
 	const files = order.attachments.map(a => ({
 		key: a.id,
 		name: a.name,
+		kind: a.kind,
 		src: a.kind === 'pdf'
 			? (a.hasThumbnail ? attachmentThumbnailUrl(order.id, a.id) : null)
 			: attachmentFileUrl(order.id, a.id),
-		download: attachmentFileUrl(order.id, a.id)
+		download: attachmentFileUrl(order.id, a.id),
+		...pagesOf(order.id, a)
 	}))
 	for (const item of order.items) {
 		const photo = item.attachments?.[0]
 		if (photo) files.push({
 			key: photo.id,
 			name: item.title,
+			kind: photo.kind,
 			src: photo.kind === 'pdf' ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : itemAttachmentFileUrl(order.id, item.id, photo.id),
-			download: itemAttachmentFileUrl(order.id, item.id, photo.id)
+			download: itemAttachmentFileUrl(order.id, item.id, photo.id),
+			...pagesOf(order.id, photo)
 		})
 	}
 	return files
