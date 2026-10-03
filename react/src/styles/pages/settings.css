@@ -12,6 +12,8 @@
 		padding: 0 var(--card-pad);
 		border-right: 1px solid var(--line-3);
 	}
+	/* the section list stays in view under the top bar (12 + field + 12 + its rule) while the cards scroll */
+	.st-subnav__list { position: sticky; top: calc(var(--sp-12) + var(--control-h) + var(--sp-12) + 1px + var(--sp-16)); }
 
 	/* where /settings/<section> lands focus (9c): the system's ring for a keyboard reader, never
 	   the browser's own outline */

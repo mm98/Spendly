@@ -5,7 +5,6 @@ import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '
 import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
-import { Mark } from '../components/Mark.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
@@ -16,6 +15,7 @@ import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import { Saving } from '../app/saving.jsx'
+import { VendorMark } from '../app/categoryMark.jsx'
 import { Bar, ConfirmDelete, RowMenu, SortControl, deleteNote, isGone, sayFailure, useRefocus } from './vendorsCategories.jsx'
 
 const SORTS = [
@@ -113,7 +113,7 @@ export default function Vendors() {
 			{shown.map(v => (
 				<Card key={v.id} to={`/vendors/${v.id}/edit`}>
 					<div className="sp-cell-flex">
-						<Mark size="medium" aria-hidden="true">{v.name}</Mark>
+						<VendorMark name={v.name} colour={v.colour} />
 						<Stacked>
 							<span className="sp-heading sp-truncate">{v.name}</span>
 							<span className="sp-meta">{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}</span>
@@ -137,7 +137,7 @@ export default function Vendors() {
 			<ListRow>
 				{v => [
 					<ListCell key="t" cell="flex">
-						<Mark size="medium" aria-hidden="true">{v.name}</Mark>
+						<VendorMark name={v.name} colour={v.colour} />
 						<Stacked>
 							<span className="sp-title sp-truncate">{v.name}</span>
 							<span className="sp-meta sp-truncate">{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}</span>

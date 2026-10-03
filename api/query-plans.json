@@ -782,7 +782,7 @@
 			],
 			"indexes": []
 		},
-		"SELECT id, name, favourite FROM vendors WHERE user_id = ? ORDER BY name": {
+		"SELECT id, name, colour, favourite FROM vendors WHERE user_id = ? ORDER BY name": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_2 (user_id=?)"
 			],

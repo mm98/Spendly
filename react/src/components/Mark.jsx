@@ -19,7 +19,7 @@ const FILL = {
 
 const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
 
-const initialsOf = name => {
+export const initialsOf = name => {
 	const words = String(name).trim().split(/\s+/).filter(Boolean)
 	if (!words.length) return ''
 	if (words.length === 1) return words[0].slice(0, 2).toLocaleUpperCase()

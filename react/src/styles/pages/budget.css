@@ -3,10 +3,11 @@
 
 @layer base {
 
-	.bg-scroll { overflow: auto; max-height: 560px; }
-	.bg-sheet thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+	/* the whole year shows at full height; only the months scroll sideways, under the names */
+	.bg-scroll { overflow-x: auto; }
+	.bg-sheet thead th { background: var(--surface); }
 	.bg-sheet tbody td:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
-	.bg-sheet thead th:first-child { left: 0; z-index: 3; }
+	.bg-sheet thead th:first-child { position: sticky; left: 0; z-index: 3; }
 	/* a section or group row spans the sheet, so its label is what holds still, at the card's inset */
 	.bg-sheet tbody td[colspan] { position: static; }
 	.bg-sheet tbody td[colspan] > span { position: sticky; left: var(--card-pad); display: inline-block; }

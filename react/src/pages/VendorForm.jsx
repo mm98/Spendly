@@ -7,7 +7,7 @@ import { TextField, TokensField } from '../components/Inputs.jsx'
 import { Check, Choice, Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Mark } from '../components/Mark.jsx'
+import { VendorMark } from '../app/categoryMark.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Stacked } from '../components/Utilities.jsx'
@@ -231,7 +231,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		: editing
 			? (
 				<>
-					<VendorSummary vendor={vendor} name={name || vendor.name} />
+					<VendorSummary vendor={vendor} name={name || vendor.name} colour={storedColour(values.colour)} />
 					<RecentOrders filter={{ vendorId: vendor.id }} to={`/orders?vendor=${vendor.id}`} total={vendor.orders} />
 					<Card {...(vendor.orders ? {} : { footer: [<Button key="delete" color="danger" onClick={() => setDeleting(true)}>Delete</Button>], footerCommits: true })}>
 						<span className="sp-section-label">End of its life</span>
@@ -246,7 +246,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<Card>
 					<span className="sp-section-label">Vendor summary</span>
 					<div className="sp-row-flex sp-gap-12">
-						<Mark size="medium" aria-hidden="true">{name || 'New vendor'}</Mark>
+						<VendorMark name={name || 'New vendor'} colour={storedColour(values.colour)} />
 						<Stacked>
 							<span className="sp-title sp-truncate">{name || 'New vendor'}</span>
 							<span className="sp-meta">Nothing saved yet</span>
@@ -283,7 +283,7 @@ const endWords = orders => (orders
 	: { title: 'Nothing points at this vendor any more', body: 'Deleting removes it outright.' })
 
 /** What the vendor has cost, beside the fields that describe it (5c). */
-function VendorSummary({ vendor, name }) {
+function VendorSummary({ vendor, name, colour }) {
 	const year = useApi(getStats, ['year', undefined, undefined])
 	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: 'Returned', pageSize: 1 }])
 	const thisYear = year.data ? year.data.window.vendorSplit.find(v => v.id === vendor.id)?.amount ?? 0 : null
@@ -291,7 +291,7 @@ function VendorSummary({ vendor, name }) {
 		<Card>
 			<span className="sp-section-label">Vendor summary</span>
 			<div className="sp-row-flex sp-gap-12">
-				<Mark size="medium" aria-hidden="true">{name}</Mark>
+				<VendorMark name={name} colour={colour} />
 				<Stacked>
 					<span className="sp-title sp-truncate">{name}</span>
 					<span className="sp-meta">{plural(vendor.orders, 'order')}</span>

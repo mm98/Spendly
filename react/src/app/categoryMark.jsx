@@ -1,4 +1,4 @@
-import { Mark } from '../components/Mark.jsx'
+import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { ICONS } from '../components/icons.js'
 
@@ -33,6 +33,15 @@ export function CategoryMark({ category, size = 'medium' }) {
 	return (
 		<Mark size={size} fill="solid" swatch={swatchOf(category.colour)} aria-hidden="true" aria-label={category.name}>
 			<Icon name={glyphOf(category.icon)} size={GLYPH[size]} />
+		</Mark>
+	)
+}
+
+/** A vendor as its lists draw it: its initials on the colour the vendor stored. */
+export function VendorMark({ name, colour, size = 'medium' }) {
+	return (
+		<Mark size={size} fill="solid" swatch={swatchOf(colour)} aria-hidden="true" aria-label={name}>
+			<span>{initialsOf(name)}</span>
 		</Mark>
 	)
 }

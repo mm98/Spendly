@@ -140,6 +140,7 @@ export default function Settings() {
 				</ListItem>
 			)
 
+	const seen = useSeenSection(!touch && saved != null, current)
 	const body = settings.error && !saved
 		? <Failed what="Your settings" error={settings.error} onRetry={settings.refresh} />
 		: !saved
@@ -160,9 +161,9 @@ export default function Settings() {
 
 	return (
 		<div className="sp-row-flex sp-top sp-gap-16">
-			{narrow ? null : <SectionNav current={current} />}
+			{narrow ? null : <SectionNav current={seen ?? current} />}
 			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
-				{narrow ? <SectionPicker current={current} /> : null}
+				{narrow ? <SectionPicker current={seen ?? current} /> : null}
 				{body ?? <Arrive section={current}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
 			</div>
@@ -171,11 +172,43 @@ export default function Settings() {
 	)
 }
 
+/* The section whose heading has passed the upper 40% of the window is the one the nav marks; at the
+   end of the page, the last one. The address stays as it is, so nothing scrolls. */
+function useSeenSection(active, current) {
+	const [seen, setSeen] = useState(null)
+	useEffect(() => {
+		setSeen(null)
+		if (!active) return
+		let frame = 0
+		const look = () => {
+			frame = 0
+			const heads = [...document.querySelectorAll('[data-section]')]
+			if (!heads.length) return
+			const bar = document.querySelector('.sp-topbar')?.getBoundingClientRect().bottom ?? 0
+			const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
+			const line = bar + (window.innerHeight - bar) * 0.4
+			const passed = heads.filter(h => h.getBoundingClientRect().top <= line)
+			const head = atEnd ? heads.at(-1) : passed.at(-1) ?? heads[0]
+			setSeen(head.dataset.section)
+		}
+		const onScroll = () => { if (!frame) frame = requestAnimationFrame(look) }
+		window.addEventListener('scroll', onScroll, { passive: true })
+		window.addEventListener('resize', onScroll)
+		onScroll()
+		return () => {
+			window.removeEventListener('scroll', onScroll)
+			window.removeEventListener('resize', onScroll)
+			if (frame) cancelAnimationFrame(frame)
+		}
+	}, [active, current])
+	return seen
+}
+
 function SectionNav({ current }) {
 	return (
 		<nav className="st-subnav sp-stack sp-gap-8" aria-label="Settings">
 			<span className="sp-section-label">Settings</span>
-			<div className="sp-nav-list">
+			<div className="sp-nav-list st-subnav__list">
 				{SECTIONS.map(s => (
 					<Fragment key={s.key}>
 						{s.key === TOOLS ? <span className="sp-rule" role="separator" /> : null}

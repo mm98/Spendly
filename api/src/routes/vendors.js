@@ -8,7 +8,7 @@ import { colourFor } from '../lib/palette.js'
 export const router = Router()
 
 const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead'
-const selectAll = db.prepare('SELECT id, name, favourite FROM vendors WHERE user_id = ? ORDER BY name')
+const selectAll = db.prepare('SELECT id, name, colour, favourite FROM vendors WHERE user_id = ? ORDER BY name')
 const selectOne = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
 const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead)
@@ -123,11 +123,11 @@ const withStats = (vendor, stats, aliases = [], defaultCategories = []) => {
 }
 
 /* The list's own shape: what the vendor list, the pickers, the filters and the palette read.
-   The record's look (initials, colour, lead) is the single-record route's. */
+   The colour is the list's mark; initials and lead are the single-record route's. */
 const listRow = (vendor, stats, aliases, defaultCategories) => {
 	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0 }
 	return {
-		id: vendor.id, name: vendor.name, favourite: Boolean(vendor.favourite), aliases, defaultCategories,
+		id: vendor.id, name: vendor.name, colour: vendor.colour, favourite: Boolean(vendor.favourite), aliases, defaultCategories,
 		orders: s.orders, spend: s.spend, saved: s.saved
 	}
 }
