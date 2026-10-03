@@ -4789,3 +4789,6 @@ body > .sp-scrim:has(> .sp-palette) { place-items: start center; padding-top: 15
 .sp-column--form { max-width: 640px; }
 /* a mark in a colour the user picked outside the set, as the picker's own custom cell wears it */
 .sp-mark--solid[data-swatch="custom"] { background: var(--swatch); }
+/* the ink is worked out from the fill (components/colour.js): whichever of the two reads better on it */
+.sp-mark--solid[data-ink="surface"] { color: var(--surface); }
+.sp-mark--solid[data-ink="ink"] { color: var(--ink); }

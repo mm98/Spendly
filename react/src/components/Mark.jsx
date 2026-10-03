@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from 'react'
+import { inkFor, onThemeChange, themeNow } from './colour.js'
 import { join, pick, reject } from './variants.js'
 
 const SIZE = {
@@ -50,6 +52,7 @@ export function Mark({
 	...rest
 }) {
 	reject(rest, 'Mark')
+	useSyncExternalStore(onThemeChange, themeNow)
 	// a string is a name to derive from; an element is the thing to draw
 	const derives = typeof children === 'string'
 	const paints = fill === 'solid'
@@ -70,6 +73,8 @@ export function Mark({
 	)
 	// a colour the user picked outside the set rides in the hook its rule reads
 	const paint = !chosen ? {} : SWATCHES.includes(chosen) ? { 'data-swatch': chosen } : { 'data-swatch': 'custom', style: { '--swatch': chosen } }
+	// its glyph or initials take whichever ink reads better on the fill
+	if (chosen) paint['data-ink'] = inkFor(chosen)
 	if (!derives && !rest['aria-label'])
 		console.error('<Mark> needs a name: a string child it derives from, or an aria-label')
 	const named = derives && !rest['aria-label']
