@@ -21,9 +21,8 @@ const StatusLook = ({ tone, children }) => {
 	return <Pill color={look.color} state={look.state}>{children}</Pill>
 }
 
-/** Statuses (Settings 11a), each saved as it is made: drag or key a row to move it, the pencil
-    renames and recolours, and a status no order carries can be deleted; Draft is built in.
-    On a phone (`touch`) a row moves with up and down buttons instead of the handle (18b). */
+/** Statuses (11a), each saved as made: a row moves by drag or keys (on a phone by up and down buttons,
+    18b), the pencil renames and recolours, a status no order carries can be deleted; Draft is built in. */
 export function StatusesCard({ touch = false }) {
 	const loaded = useApi(getStatuses)
 	const toast = useToast()

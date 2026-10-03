@@ -366,9 +366,8 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 	)
 }
 
-/* One toast at a time, bottom centre, for six seconds; a second replaces the first and
-   restarts the time, hovering or focus inside holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18).
-   An Undo shows the seconds it has left (6d). */
+/* One toast at a time, bottom centre, for six seconds, its Undo showing the seconds left (6d); a second
+   replaces it, hover or focus holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18). */
 const TOAST_MS = 6000
 const ToastContext = createContext(() => {})
 const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:not(.sp-btn--outline, .sp-btn--text)'
