@@ -130,6 +130,7 @@ Not re-run since the redesign. The CI job and the scoring of the built image are
 
 ## Not covered
 
-- Checked in Chromium only. Firefox and WebKit (Safari) were not run.
+- Checked in Chromium. WebKit (Safari) was run for the date fields and the phone's custom range
+  sheet only. Firefox was not run.
 - No tests are committed; the checks above are scripts, and the screen checks were run outside
   the repository.

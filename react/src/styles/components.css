@@ -495,6 +495,12 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
      column, so width: 100% is ignored and the field runs past the card's edge. */
   min-width: 0;
   -webkit-min-logical-width: 0;
+  /* With the native appearance gone, WebKit leaves the value at the top edge of
+     the field. Flex centring puts it back in the middle, in line with the trail
+     button, at any field height. Only visible in WebKit; Blink and Gecko already
+     centre it. */
+  display: flex;
+  align-items: center;
 }
 
 .sp-input[type="color"] {
