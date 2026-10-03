@@ -9,6 +9,23 @@
 	   rest and truncates (2i) */
 	.ol-chip-slot { display: flex; flex: 1 1 0; min-width: 0; max-width: max-content; }
 
+	/* a narrow card's box sits in a hit target of its own over the card's leading edge, centred on
+	   the room the card keeps for it: a press there picks the order, anywhere else opens it (2c) */
+	.ol-pickable { position: relative; display: flex; flex-direction: column; }
+	.ol-pick {
+		position: absolute;
+		z-index: 1;
+		top: 0;
+		bottom: 0;
+		left: calc(var(--card-pad) + var(--box) / 2 - var(--control-h-touch) / 2);
+		width: var(--control-h-touch);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+	.ol-pick-room { flex: none; width: var(--box); }
+
 	/* the facets scroll between the sheet's heading and its Apply row (18b), 12 apart as the sheet's
 	   parts are; the body reaches the sheet's edges so no focus ring or touch target is cut */
 	.ol-sheet-body {

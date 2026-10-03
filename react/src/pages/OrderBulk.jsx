@@ -1,28 +1,26 @@
-import { useCallback, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Button } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { Check, Choice, Radio, Switch } from '../components/Choice.jsx'
-import { Icon } from '../components/Icon.jsx'
-import { SearchInput } from '../components/Inputs.jsx'
-import { ListItem } from '../components/ListItem.jsx'
-import { Mark } from '../components/Mark.jsx'
-import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Popover, useToast } from '../components/Overlays.jsx'
+import { Field } from '../components/Field.jsx'
+import { NumberField, SearchInput } from '../components/Inputs.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Popover, useToast } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
-import { useDismiss, useFocusTrap } from '../components/Utilities.jsx'
-import { changeOrders, failureMessage, getCategories, invalidateOrderData } from '../api/client.js'
+import { Skeleton, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
+import { changeOrders, failureMessage, getCategories, getOrderImpact, invalidateOrderData } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { plural } from '../api/format.js'
+import { NUMBER_LOCALE, amount, currency, fullStop, monthNames, plural, today } from '../api/format.js'
 import { useStatuses } from '../app/statuses.js'
-import { allMatching, ordersCsv, saveCsv } from '../app/ordersCsv.js'
+import { allMatching, idGroups, linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
 
 /* "both orders", "all 5 orders", "this order": how a popover names what it writes to. */
 const which = n => (n === 1 ? 'this order' : n === 2 ? 'both orders' : `all ${n} orders`)
 
-/** The bulk bar's actions (2a): a popover writes nothing until Apply; delete asks first (6d).
-    `chosen` is the picked orders loaded; `all` means every order `request` matches. */
-export function BulkActions({ chosen, all, count, request, touch, onDone }) {
+/** The bulk bar's actions (2a): a popover writes nothing until Apply; delete asks first (6d). `chosen` is
+    the picked orders loaded; `all`, every order `request` matches; `icons`, the phone's head (c12). */
+export function BulkActions({ chosen, all, count, request, filtered, touch, icons = false, onDone }) {
 	const toast = useToast()
 	const [open, setOpen] = useState(null)
 	const [busy, setBusy] = useState(false)
@@ -33,7 +31,9 @@ export function BulkActions({ chosen, all, count, request, touch, onDone }) {
 
 	// the orders written to: the picked rows, or every match fetched when the whole filter is picked
 	const records = async () => (all ? allMatching(request) : chosen)
+	const ids = all ? null : chosen.map(o => o.id)
 
+	// a dialog closing is the delete's confirmation, so a delete says nothing more (6f)
 	const write = async (change, done, failed) => {
 		setBusy(true)
 		try {
@@ -43,7 +43,7 @@ export function BulkActions({ chosen, all, count, request, touch, onDone }) {
 			setOpen(null)
 			setDeleting(false)
 			onDone()
-			toast({ message: done(ids.length) })
+			if (done) toast({ message: done(ids.length) })
 		} catch (e) {
 			toast({ message: failureMessage(e, failed), color: 'danger' })
 		} finally {
@@ -52,9 +52,10 @@ export function BulkActions({ chosen, all, count, request, touch, onDone }) {
 	}
 
 	const statusName = useStatusName()
+	// the picked orders only, never the filter around them (c1), one row per item line (16b)
 	const exportCsv = async () => {
 		setBusy(true)
-		try { saveCsv(ordersCsv(await records(), statusName)) }
+		try { saveCsv(linesCsv(await linesOf(request, ids), statusName)) }
 		catch (e) { toast({ message: failureMessage(e, 'The file was not made. Try again.'), color: 'danger' }) }
 		finally { setBusy(false) }
 	}
@@ -67,40 +68,114 @@ export function BulkActions({ chosen, all, count, request, touch, onDone }) {
 				onApply={names => write({ addCategories: names }, n => `${names.join(', ')} added to ${plural(n, 'order')}.`, 'No category was added. Try again.')} />
 			: null
 
+	const toggle = name => ({
+		'aria-expanded': open === name ? 'true' : 'false', 'aria-haspopup': 'dialog', disabled: busy,
+		onClick: () => setOpen(open === name ? null : name)
+	})
+	const remove = () => { setOpen(null); setDeleting(true) }
+	const actions = icons
+		? (
+			<div className="sp-row-flex sp-gap-6">
+				<IconButton icon="clock" aria-label="Set status" {...toggle('status')} />
+				<IconButton icon="tag" aria-label="Add category" {...toggle('category')} />
+				<IconButton icon="download" aria-label="Export" disabled={busy} onClick={exportCsv} />
+				<IconButton icon="trash" aria-label="Delete" danger disabled={busy} onClick={remove} />
+			</div>
+		)
+		: (
+			<div className="sp-row-flex sp-gap-8">
+				<Button variant="outline" size="small" {...toggle('status')}>Set status</Button>
+				<Button variant="outline" size="small" {...toggle('category')}>Add category</Button>
+				<Button variant="outline" size="small" disabled={busy} onClick={exportCsv}>Export</Button>
+				<Button size="small" color="danger" disabled={busy} onClick={remove}>Delete</Button>
+			</div>
+		)
+
 	return (
 		<Anchor ref={anchor} open={!!open && !touch}>
-			<div className="sp-row-flex sp-gap-8">
-				<Button variant="outline" size="small" aria-expanded={open === 'status' ? 'true' : 'false'} aria-haspopup="dialog" disabled={busy}
-					onClick={() => setOpen(open === 'status' ? null : 'status')}>Set status</Button>
-				<Button variant="outline" size="small" aria-expanded={open === 'category' ? 'true' : 'false'} aria-haspopup="dialog" disabled={busy}
-					onClick={() => setOpen(open === 'category' ? null : 'category')}>Add category</Button>
-				<Button variant="outline" size="small" disabled={busy} onClick={exportCsv}>Export</Button>
-				<Button size="small" color="danger" disabled={busy} onClick={() => { setOpen(null); setDeleting(true) }}>Delete</Button>
-			</div>
+			{actions}
 			{panel && touch ? <SheetOf label={open === 'status' ? 'Set status' : 'Add category'} onClose={close}>{panel}</SheetOf> : null}
 			{panel && !touch ? panel : null}
 			{deleting
-				? (
-					<Dialog onCancel={() => setDeleting(false)} aria-label={`Delete ${plural(count, 'order')}?`}>
-						<div className="sp-stack sp-gap-12">
-							<div className="sp-row-flex sp-gap-12">
-								<Mark size="medium" aria-hidden="true" aria-label="Delete"><Icon name="trash" size={17} /></Mark>
-								<DialogTitle>Delete {plural(count, 'order')}?</DialogTitle>
-							</div>
-							<DialogBody>Their lines and files are deleted with them.</DialogBody>
-							<ListItem>This cannot be undone.</ListItem>
-							<DialogActions>
-								<Button variant="outline" fullWidth disabled={busy} onClick={() => setDeleting(false)}>Keep them</Button>
-								<Button color="danger" fullWidth disabled={busy}
-									onClick={() => write({ delete: true }, n => `${plural(n, 'order')} deleted.`, 'Nothing was deleted. Try again.')}>
-									Delete {plural(count, 'order')}
-								</Button>
-							</DialogActions>
-						</div>
-					</Dialog>
-				)
+				? <DeleteOrders count={count} request={request} ids={ids} filtered={filtered} busy={busy} onCancel={() => setDeleting(false)}
+					onDelete={() => write({ delete: true }, null, 'Nothing was deleted. Try again.')} />
 				: null}
 		</Anchor>
+	)
+}
+
+/* Named getOrderImpact so a write that forgets the orders forgets this too (useApi keys by name).
+   Orders picked by hand are asked about a group at a time, and the groups added up. */
+const impactOf = {
+	async getOrderImpact(request, ids, signal) {
+		if (!ids) return getOrderImpact(request, signal)
+		const parts = await Promise.all(idGroups(ids).map(group => getOrderImpact({ ids: group.join(',') }, signal)))
+		return parts.reduce((a, b) => ({
+			orders: a.orders + b.orders, total: a.total + b.total, withFiles: a.withFiles + b.withFiles,
+			month: { orders: a.month.orders + b.month.orders, total: a.month.total + b.month.total, spend: a.month.spend }
+		}))
+	}
+}.getOrderImpact
+
+/** What a bulk delete takes, in numbers (6d): how many, what they come to, how many carry files,
+    and what this month's total becomes. */
+function consequence(n, impact, filtered) {
+	const from = filtered ? 'Selected from the current filter' : 'Selected from all your orders'
+	const files = impact.withFiles === 0 ? ''
+		: impact.withFiles === n ? (n === 1 ? ', with attachments' : ', all of them with attachments')
+			: `, ${amount(impact.withFiles, 0)} of them with attachments`
+	const said = [`${from}: ${plural(n, 'order')}, ${currency(impact.total)}${files ? `${files}.` : fullStop()}`]
+	const month = impact.month
+	if (month.orders > 0 && month.total > 0) {
+		const name = monthNames('long')[Number(today().slice(5, 7)) - 1]
+		const whose = month.orders === n ? (n === 1 ? 'It is' : 'All of them are')
+			: `Of these, ${amount(month.orders, 0)} ${month.orders === 1 ? 'is' : 'are'}`
+		said.push(`${whose} from this month, so ${name} drops to ${currency(Math.max(0, month.spend - month.total))}${fullStop()}`)
+	}
+	return said.join(' ')
+}
+
+/** Bulk delete (6d): it cannot be undone, so the dialog names what goes, and Delete waits until
+    the number of orders is typed. Every number is the server's, so the sentence waits for it. */
+function DeleteOrders({ count, request, ids, filtered, busy, onCancel, onDelete }) {
+	const impact = useApi(impactOf, [request, ids])
+	const [typed, setTyped] = useState(null)
+	const field = useRef(null)
+	// the field has focus when the dialog opens, never the destructive button (c13)
+	useEffect(() => { field.current?.focus() }, [])
+	const known = !!impact.data && !impact.loading
+	const ready = known && typed === count && !busy
+	let body
+	if (known) body = <DialogBody>{consequence(count, impact.data, filtered)}</DialogBody>
+	else if (impact.error)
+		body = (
+			<Alert color="danger" mark="!" title="The numbers did not load"
+				action={<Button variant="outline" size="small" onClick={impact.refresh}>Try again</Button>}>
+				What goes with these orders is not known yet. Check your connection.
+			</Alert>
+		)
+	else
+		body = (
+			<div className="sp-stack sp-gap-6" aria-busy="true" aria-label="Counting what goes with the orders">
+				<Skeleton shape="line" />
+				<Skeleton shape="short" />
+			</div>
+		)
+	return (
+		<Dialog onCancel={onCancel} aria-label={`Delete ${plural(count, 'order')}?`}>
+			<div className="sp-stack sp-gap-12">
+				<DialogTitle>Delete {plural(count, 'order')}?</DialogTitle>
+				{body}
+				<Field label="Type the number to confirm">
+					<NumberField inputRef={field} value={typed} onChange={setTyped} decimals={0} locale={NUMBER_LOCALE}
+						onKeyDown={ev => { if (ev.key === 'Enter' && ready) onDelete() }} />
+				</Field>
+				<DialogActions>
+					<Button variant="outline" fullWidth disabled={busy} onClick={onCancel}>Cancel</Button>
+					<Button color="danger" fullWidth disabled={!ready} onClick={onDelete}>Delete {plural(count, 'order')}</Button>
+				</DialogActions>
+			</div>
+		</Dialog>
 	)
 }
 

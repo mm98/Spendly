@@ -1648,6 +1648,8 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-combobox__dot[data-dot="done"] { background: var(--green); }
 .sp-combobox__dot[data-dot="returned"] { background: var(--amber-2); }
 .sp-combobox__dot[data-dot="cancelled"] { background: var(--red); }
+/* a category over its monthly limit carries this wherever it is named (8b, c19) */
+.sp-combobox__dot[data-dot="problem"] { background: var(--red); }
 .sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
 .sp-combobox__empty { padding: var(--sp-8) var(--sp-12); font-size: var(--t-13); color: var(--ink-5); }
@@ -2135,6 +2137,16 @@ a.sp-tabbar__item { text-decoration: none; }
   font-size: var(--t-12);
   color: var(--ink-2);
 }
+/* on a phone a selection takes the top bar's place (c12): stuck to the top of the screen, out to
+   its edges over the body's own inset, while the top bar steps aside until the selection empties */
+.sp-bulkbar--head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: calc(var(--sp-12) * -1) calc(var(--sp-12) * -1) 0;
+  gap: var(--sp-8);
+}
+.sp-shell--touch:has(.sp-bulkbar--head) > .sp-shell__page > .sp-topbar { display: none; }
 
 /* ---------- facets - LOCKED c12 ---------- */
 
@@ -2156,11 +2168,45 @@ a.sp-tabbar__item { text-decoration: none; }
   display: flex;
   align-items: center;
   gap: var(--sp-8);
+  /* a legend shrinks to its words unless told, which would keep the count and the chevron off the end */
+  width: 100%;
   font-size: var(--t-12);
   font-weight: 600;
   color: var(--ink-2);
 }
 .sp-field-group__count { font-size: var(--t-11); color: var(--ink-5); font-variant-numeric: tabular-nums; }
+/* a facet group folds from its head (c12, 16a): the whole head is one button, Enter or a press
+   folds it, and the chevron turns as the card's does */
+.sp-field-group__fold {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--sp-8);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-marker);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+.sp-field-group__fold:focus-visible { box-shadow: var(--ring); }
+/* a facet's values scroll inside the group rather than lengthen the rail (16a); the inset is room
+   for a value's focus ring, which the scroll box would otherwise cut */
+.sp-field-group__values {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  max-height: var(--list-max);
+  overflow-y: auto;
+  margin: calc(var(--sp-4) * -1);
+  padding: var(--sp-4);
+}
+.sp-field-group__fold[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
+.sp-touch .sp-field-group__fold { min-height: var(--control-h-touch); }
 .sp-filters {
   display: flex;
   align-items: center;
@@ -2263,6 +2309,18 @@ a.sp-tabbar__item { text-decoration: none; }
   border-radius: var(--r-card) var(--r-card) 0 0;
   box-shadow: var(--shadow-sheet);
   margin-top: auto;
+}
+/* on a phone a popover is a sheet from the bottom edge holding the same panel (c13): the sheet is
+   its surface, so the panel drops its own place, frame and width */
+.sp-sheet > .sp-popover {
+  position: static;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
 .sp-sheet__handle {
   flex: none;

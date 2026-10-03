@@ -250,6 +250,9 @@ const REQUESTS = [
 	'/orders?pageSize=25&with=rows', '/orders?pageSize=1&with=facets',
 	`/orders?pageSize=1&with=facets&status=Delivered,Ordered&vendorId=${ids.vendor},v-main-1&categoryId=${ids.category},none`,
 	'/orders?receipt=missing', '/orders?receipt=attached&files=1&discounted=1',
+	'/orders/lines', '/orders/lines?status=Delivered&sort=amount-desc', '/orders/lines?sort=vendor-asc',
+	`/orders/lines?ids=${ids.order}&sort=date-desc`, '/orders/impact', '/orders/impact?status=Delivered&from=2026-01-01',
+	`/orders/impact?ids=${ids.order}`,
 	'/vendors', `/vendors/${ids.vendor}`,
 	'/categories', `/categories/${ids.category}`, '/categories/uncategorised',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
@@ -305,14 +308,16 @@ for (const [method, path, body] of [
 	['POST', '/statuses', { name: 'Waiting', tone: 'progress' }],
 	['PATCH', '/statuses/Delivered', { name: 'Received' }],
 	['DELETE', '/statuses/Cancelled'],
-	['POST', '/views', { name: 'This month', query: 'period=month&status=Ordered' }],
-	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true }],
+	['POST', '/views', { name: 'This month', query: 'period=month&status=Ordered', attention: true }],
+	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true, attention: true }],
 	['PUT', '/views/shown', { shown: 6 }],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
 	['DELETE', `/views/sv-${USER}-receipt`],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
-	['DELETE', `/vendors/v-main-${VENDOR_COUNT - 1}`]
+	['DELETE', `/vendors/v-main-${VENDOR_COUNT - 1}`],
+	// last, since it takes the order every write above was made against
+	['POST', '/orders/bulk', { ids: [ids.order], delete: true }]
 ]) {
 	const response = await fetch(BASE + path, {
 		method, headers: { ...H, 'Content-Type': 'application/json' }, body: body && JSON.stringify(body)

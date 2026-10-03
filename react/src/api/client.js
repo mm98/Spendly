@@ -496,6 +496,17 @@ export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })
 }
 
+/** Every item line of the orders a list request names (`ids` for orders picked by hand), in the
+    list's order: what an export writes. */
+export async function getOrderLines(params = {}, signal) {
+	return request('/api/orders/lines' + qs(params), { signal })
+}
+
+/** What deleting the orders a list request names takes with it, and this month's share (6d). */
+export async function getOrderImpact(params = {}, signal) {
+	return request('/api/orders/impact' + qs(params), { signal })
+}
+
 export async function getOrder(id, signal) {
 	return request(`/api/orders/${id}`, { signal }).catch(forgetGone('order', id))
 }
@@ -909,7 +920,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendors, getVendor, getHomeAttention]
 const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]
