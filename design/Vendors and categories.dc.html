@@ -717,7 +717,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Name is the only required field.</b> A default icon and the next unused colour are pre-selected, so a category created from a picker costs one field and one Enter.</div>
-    <div class="doc-note"><b>The icon is picked, not derived.</b> This is the one asymmetry with a vendor: a vendor gets initials from its name, a category gets a glyph from a fixed set - the icon picker in <a href="Components.dc.html#c7">c7</a>. Neither ever accepts an upload.</div>
+    <div class="doc-note"><b>The icon is picked, not derived.</b> This is the one asymmetry with a vendor: a vendor gets initials from its name, a category gets any icon from the Tabler outline library, picked in <a href="Components.dc.html#c7">c7</a>. Neither ever accepts an upload.</div>
     <div class="doc-note"><b>Created from a picker, it is selected on return.</b> The picker reopens with the new category chosen, so the order the user was filling in continues.</div>
     <div class="doc-note"><b>Duplicate names are rejected here, unlike vendors.</b> Two vendors can share a name; two categories with one name make every chart ambiguous. Case- and accent-insensitive.</div>
       <div class="doc-note"><b>The message is at the field, and there is no summary card.</b> One place per problem. A short form does not need a second surface repeating what is already marked, and a long one gets focus moved for it instead.</div>

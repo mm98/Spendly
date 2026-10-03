@@ -1,20 +1,23 @@
-# Spendly - brief 4 answers
+# Spendly - brief 5 answers: category icons from the whole Tabler library
 
-Copy these files over the 3 October part 2 package. Nothing else changed.
+Copy these files over the brief 4 package. Nothing else changed.
 
-1. **Account menu (9c).** On the window, not in the sidebar. `.sp-sidebar__menu` is fixed at the account block's box; `--up` hangs the menu above it at the block's width, 4 above; `--side` opens it right of the avatar on the rail, 4 clear, bottom edges aligned. The app's rules are taken as written.
-2. **New order arrow menu.** It goes. New order is a plain row everywhere. 16a and 3b no longer mention a split; 3b lists two ways into the copy dialog. Remove the arrow, its menu and `.sp-nav-split` from the app.
-3. **Rail labels (9b, 9f).** The c18 chip to the right of the icon, 6 clear, centred on it, on hover and keyboard focus. On the window: `.sp-tip--float` (position fixed, translateY(-50%)); the app sets left to the icon's right + 6 and top to its centre. `data-tip` is removed from every rail item. 9f draws the label. This replaces the app's above-the-icon placement.
-4. **Phone selection bar (c11, c12).** `.sp-bulkbar--head` takes the top bar's slot, edge to edge, sticky at the top while the list scrolls; `.sp-touch:has(.sp-bulkbar--head) .sp-topbar--touch { display: none }`. The top bar returns when the selection clears. c12's touch specimen carries the class.
-5. **Failed card (6b).** Drawn. It keeps its full height (`.sp-hold`), keeps its label, shows the red c19 alert under it ("This month did not load" / "Check the connection and try again.") and **Try again** (outline, small) in its footer. Try again turns the card back into its skeleton; nothing else reloads.
+- **Accepted.** A category's icon can be any Tabler outline icon, stored by its Tabler name. The interface still uses register icons only.
+- **c7 (Components)** now draws and notes the category icon picker:
+  - Before typing: 24 common, general icons, the current icon first if it is not among them. No Show all; search reaches the rest. The list: tag, home, shopping-cart, basket, tools-kitchen-2, car, bike, gas-station, bus, plane, paw, plant, baby-carriage, shirt, first-aid-kit, pill, school, device-laptop, device-mobile, gift, armchair, lamp, tool, wallet.
+  - Search: the whole library, matching the Tabler name, its tags (aliases in Tabler's icons.json) and its category; names rank before tags before categories. "fuel" finds gas-station. 48 results at a time, best first, then a More cell for the next 48.
+  - No match: one line, `No icon matches "...". Try another word, in English.`
+  - Loading: skeleton tiles at --mark-medium in the same grid; the field works at once and filters what has arrived.
+  - A saved name Tabler no longer has shows as `tag` everywhere; the picker opens on tag; the saved name is kept until the user picks again.
+  - Outline only, unmodified, never uploaded, never drawn by hand, the same mark on every page.
+- **Where the catalogue lives:** beside `icons.js`, not in it. A separate set of files shipped with the app: an index (name, tags, category) and the path data in parts. The picker loads the index when it opens; a category mark elsewhere loads only the icons its page shows, and caches them. In README, `icons.js` stays "the icon register" (the interface's); add the catalogue as its own entry.
+- **Vendors and categories:** "a glyph from a fixed set" now reads "any icon from the Tabler outline library, picked in c7".
+- **Icon legend:** the register rule covers the interface's icons; a category's icon is the one exception.
 
 ## Files
 
-- `styles/components.css`
-- `Navigation shell.dc.html`
 - `Components.dc.html`
-- `States and confirmations.dc.html`
-- `Order create.dc.html`
-- `Actions inventory.dc.html`
+- `Vendors and categories.dc.html`
+- `Icon legend.dc.html`
 
 `styles/check.js` reports the same 84 known findings.
