@@ -9,9 +9,9 @@ import { dot, morePhotos, plural } from '../api/format.js'
 import { TONES, useStatuses } from './statuses.js'
 
 /** An order row's picture (2b): its first line photo with the rest counted over it, or the
-    dashed box of an order with none. Hidden from a screen reader: the vendor names it. */
+    empty photo mark of c2 for an order with none. Hidden from a screen reader: the vendor names it. */
 export function OrderPhoto({ order }) {
-	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true" />
+	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="photo" size={16} /></Mark>
 	const more = order.photoCount > 1 ? morePhotos(order.photoCount - 1) : null
 	return (
 		<Mark size="medium" fill="photo" goods count={more} aria-label={`Photo from ${order.vendor?.name ?? 'this order'}`} aria-hidden="true">

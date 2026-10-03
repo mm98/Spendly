@@ -67,9 +67,9 @@ export function LineText({ line, compact = false }) {
 	)
 }
 
-/** A line's photo at the row's size, or the dashed mark with a camera when it has none. */
+/** A line's photo at the row's size, or c2's empty photo mark when it has none (17d). */
 export function LinePhoto({ src, name, onOpen }) {
-	if (!src) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="camera" /></Mark>
+	if (!src) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="photo" size={16} /></Mark>
 	if (onOpen) return <Mark size="medium" fill="photo" goods aria-label={`Open the photo of ${name}`} onClick={onOpen}><img src={src} alt="" /></Mark>
 	return <Mark size="medium" fill="photo" goods aria-label={`Photo of ${name}`}><img src={src} alt="" /></Mark>
 }
