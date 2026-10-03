@@ -315,9 +315,8 @@ export function DialogActions({ children, ...rest }) {
 
 const TOAST_COLOR = { default: null, danger: 'danger' }
 
-/** `title` makes the message its second line (6d: "Could not save - you are offline"). An `asks`
-    toast is a section notice that stays until answered: `mark` stands where the icon would, and
-    `actions` are its answers (6d: "This order changed in another tab"). */
+/** `title` makes the message its second line (6d). An `asks` toast is a notice that stays until
+    answered (6d): `mark` stands where the icon would, and `actions` are its answers. */
 export function Toast({ icon, mark, title, color = 'default', compact = false, asks = false, actions, children, ...rest }) {
 	reject(rest, 'Toast')
 	// the way back is a child, not a prop: it is the last thing in the row, which is

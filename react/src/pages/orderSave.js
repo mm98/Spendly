@@ -6,14 +6,8 @@ import { plural } from '../api/format.js'
 import { peek } from '../api/useApi.js'
 import { MAX_FILE_MB } from '../components/FileDrop.jsx'
 
-/* One save of the order form (1d, 3a), as a plan that can be carried out now or later: the order
-   itself, then its files one at a time. A save that finds no connection waits here and is sent
-   when the connection returns (6d), whether or not its form is still open.
-
-   A plan: { key, creating, orderId, revision, body, scan: { documentKey, vendor }, gone,
-   photos: [{ index, name, file, sent, upload, oldId, oldName, drop }],
-   files: [{ name, problem, file, sending, upload }], label, form: { draft, lines } }.
-   `file`, `sent` and `sending` live only in this tab; the rest is kept in the browser too. */
+/* One save of the order form as a plan, carried out now or once the connection returns (6d). Its
+   files (`file`, `sent`, `sending`) live in this tab only; the rest is kept in the browser too. */
 
 export const newSaveKey = () => `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 

@@ -230,9 +230,8 @@ const claimDraft = db.prepare('UPDATE scan_uploads SET draft_order_id = ?, leave
 const selectOrderOf = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
 const draftedOrder = upload => (upload.draft_order_id && selectOrderOf.get(upload.draft_order_id, upload.user_id) ? upload.draft_order_id : null)
 
-/* One reading per upload at a time, however many ask: a reload during a reading waits for the same
-   one, and each asker hears its progress. `res` is an asker still waiting for the answer; once
-   none is, a reading the reader left becomes a draft when it ends. */
+/* One reading per upload, however many ask, each hearing its progress. `res` is an asker waiting
+   for the answer; with none left, a reading its reader left becomes a draft when it ends. */
 const readings = new Map()
 function readOnce(userId, upload, today, onProgress, res) {
 	let reading = readings.get(upload.id)

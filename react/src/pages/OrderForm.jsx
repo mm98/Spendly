@@ -114,9 +114,8 @@ const takeAway = address => {
 	return kept?.address === address ? kept : null
 }
 
-/** `origin` is `{ copy: { id, vendor, date } }` or `{ scan: answer }`; `region` draws the split
-    itself, for a route whose body is not already the split. `revision` is the saved order's, the
-    copy this form edits (6d). */
+/** `origin` is `{ copy: { id, vendor, date } }` or `{ scan: answer }`; `region` draws the split for
+    a route whose body is not one. `revision` is the saved copy this form edits (6d). */
 export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave }) {
 	const navigate = useNavigate()
 	const toast = useToast()
@@ -391,9 +390,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		patchFile(record.key, { sending: true, sent: 0, failed: null })
 		send(record)
 	}
-	/* Removing a file only drops it from what the save files, so Undo always works (17a): one the
-	   reader added goes at once with a toast, one a scan brought confirms first, since it is
-	   evidence they cannot take again. A tile that only holds a refusal just goes. */
+	/* Removing only drops a file from what the save files, so Undo always works (17a): one the reader
+	   added goes with a toast, one a scan brought asks first, being evidence they cannot take again. */
 	const [removing, setRemoving] = useState(null)
 	const dropped = useRef([])
 	const dropFile = file => {
@@ -1011,9 +1009,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			</Card>
 		)
 
-	/* A monthly limit this order takes its category past, or near it from the share the reader chose
-	   in Settings (8b): said where the save is, amber, and never in the way of the save. The order's
-	   total is shared between its categories. Settings can turn it off. */
+	/* A limit this order takes its category past, or near from the share chosen in Settings (8b):
+	   amber where the save is, never in its way. The total is shared between the categories. */
 	const loud = useApi(getSettings).data ?? {}
 	const warns = loud.notifyWhileSaving ?? true
 	const early = [75, 90, 100].includes(loud.notifyEarly) ? loud.notifyEarly : 90
