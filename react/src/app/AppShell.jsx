@@ -7,7 +7,7 @@ import { Switch } from '../components/Choice.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
-import { FILE_TYPES } from '../components/FileDrop.jsx'
+import { useScanPicker } from './scanPicker.jsx'
 import { TopBarEndSlot } from './topBarEnd.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
@@ -305,22 +305,10 @@ function NavScroll({ navKey, children }) {
 	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
-/* Scan receipt opens the file picker at once; a chosen file goes straight to reading, 3a step 2,
-   and cancelling the picker stays on the page (16a). */
+/* Scan receipt opens the file picker at once (16a). */
 function ScanReceipt({ rail }) {
-	const navigate = useNavigate()
-	const input = useRef(null)
-	const take = ev => {
-		const file = ev.target.files?.[0]
-		ev.target.value = ''
-		if (file) navigate('/orders/new?source=scan', { state: { file } })
-	}
-	return (
-		<>
-			<Row icon="camera" variant="action" rail={rail} onClick={() => input.current?.click()}>Scan receipt</Row>
-			<input ref={input} type="file" accept={FILE_TYPES} hidden tabIndex={-1} onChange={take} />
-		</>
-	)
+	const scan = useScanPicker()
+	return <><Row icon="camera" variant="action" rail={rail} onClick={scan.open}>Scan receipt</Row>{scan.input}</>
 }
 
 /* New order is a plain row to step 1 of 3a, where scan, empty and copy are chosen, as the phone's button. It is
