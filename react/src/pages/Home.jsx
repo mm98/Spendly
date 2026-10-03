@@ -568,7 +568,12 @@ function PhoneMonth({ w, view, limitsLost }) {
 				: <span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>}
 			{limits
 				? <Gauge {...against(w.spent, limits, pace)} aria-label="Share of this month's limits used" />
-				: <Gauge value={0} untargeted aria-label="No limit set" />}
+				: (
+					<div className="sp-stack sp-gap-8">
+						<Gauge value={0} untargeted aria-label="No limit set" />
+						<span className="sp-meta">No monthly limits yet. Set one on a category to follow the month here.</span>
+					</div>
+				)}
 		</Card>
 	)
 }

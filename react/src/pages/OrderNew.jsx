@@ -7,7 +7,7 @@ import { SearchInput } from '../components/Inputs.jsx'
 import { ComboboxEmpty, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Alert, Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
@@ -155,7 +155,6 @@ function Reading({ file, onCancel }) {
 /** Step 1 (3a): the receipt zone, then an empty order or a copy. */
 function Start({ scanOnly, file, picking }) {
 	const navigate = useNavigate()
-	const toast = useToast()
 	const any = useApi(getOrders, [{ pageSize: 1 }])
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [sending, setSending] = useState(null)
@@ -183,7 +182,10 @@ function Start({ scanOnly, file, picking }) {
 			})
 			.catch(e => {
 				setSending(null)
-				toast({ message: failureMessage(e, 'The receipt was not sent. Try again.'), color: 'danger' })
+				// said on the zone, as the checks above are; a refusal gives the server's own reason
+				const refusal = e?.status >= 400 && e?.status < 500
+				const note = failureMessage(e, refusal ? 'Images and PDF only. Nothing was added.' : 'Check your connection, then try again.')
+				if (note) setRefused({ title: refusal ? `${f.name} was not accepted` : 'The receipt was not sent', note })
 			})
 	}
 

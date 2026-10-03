@@ -47,7 +47,7 @@ function OrderView({ order, touch, onGone }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label sp-nowrap">Items{dot}{order.items.length}</span>
 				{/* a narrow phone wraps the line rather than cutting the date */}
-				<span className={touch ? 'sp-meta' : 'sp-meta sp-truncate'}>{order.vendor?.name}{dot}{shortDate(order.date)}</span>
+				<span className={touch ? 'sp-meta or-wrap' : 'sp-meta sp-truncate'}>{order.vendor?.name}{dot}{shortDate(order.date)}</span>
 				<span className="sp-grow" />
 				<StatusPill status={order.status} />
 			</div>
@@ -61,14 +61,12 @@ function OrderView({ order, touch, onGone }) {
 							<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} />} onClick={() => open(fileKey)}
 								aria-label={`Open the photo of ${item.title}, ${lineMeta(item, true)}, ${money(lineTotal(item))}`}>
 								<LineText line={item} compact />
-								<span className="sp-grow" />
 								<LineAmount line={item} compact />
 							</ListItem>
 						)
 					return (
 						<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} onOpen={photo ? () => open(fileKey) : undefined} />}>
 							<LineText line={item} compact={touch} />
-							<span className="sp-grow" />
 							<LineAmount line={item} compact={touch} />
 						</ListItem>
 					)

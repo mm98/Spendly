@@ -48,8 +48,8 @@ export const isPdf = file => file.type === 'application/pdf' || /\.pdf$/i.test(f
 export function LineAmount({ line, compact = false }) {
 	const saved = compact ? null : lineSaving(line)
 	return (
-		<span className="sp-stacked sp-cell-amount sp-flex-none">
-			<span className="sp-amount">{money(lineTotal(line))}</span>
+		<span className="sp-stacked sp-cell-amount or-line-amount">
+			<span className="sp-amount sp-truncate">{money(lineTotal(line))}</span>
 			{saved == null ? null : <Saving value={saved} />}
 		</span>
 	)
@@ -59,7 +59,7 @@ export function LineAmount({ line, compact = false }) {
     quantity and price rather than cut them. */
 export function LineText({ line, compact = false }) {
 	return (
-		<span className="sp-stacked">
+		<span className="sp-stacked or-line">
 			<span className="sp-title sp-truncate">{line.title}</span>
 			<span className={compact ? 'sp-subtitle' : 'sp-subtitle sp-truncate'}>{lineMeta(line, compact)}</span>
 		</span>
@@ -209,7 +209,7 @@ export function OrderLoading({ region = false, form = false }) {
 				<Card aria-hidden="true" footer={[control('leave', true), control('save', true)]} footerLayout="split" footerCommits>
 					<div className="sp-stack">{sum('Total', 'total')}</div>
 					<span className="sp-row-flex">{strut('sp-meta')}<Skeleton shape="line" data-w="130" data-h="11" /></span>
-					<span className="sp-row-flex">{strut('sp-amount-secondary')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
+					<span className="sp-row-flex">{strut('sp-stat__delta')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
 				</Card>
 			</>
 		)
@@ -224,7 +224,7 @@ export function OrderLoading({ region = false, form = false }) {
 					after={control('delete', true)}>
 					<span className="sp-section-label">Totals</span>
 					<div className="sp-stack">{['Items', 'Discount', 'Shipping'].map(k => sum(k))}{sum('Total', 'total')}</div>
-					<span className="sp-row-flex">{strut('sp-amount-secondary')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
+					<span className="sp-row-flex">{strut('sp-stat__delta')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
 				</Card>
 			</>
 		)

@@ -10,4 +10,11 @@
 	/* the attachment strip with its add tile */
 	.or-tiles { display: flex; height: calc(var(--mark-xlarge) + var(--sp-6)); }
 
+	/* an item row: the name takes what is left, the amount at most 45% and then ends in "…" */
+	.or-line { flex: 1 1 0; }
+	.or-line-amount { flex: 0 1 auto; max-width: 45%; }
+	.or-line-amount > * { max-width: 100%; }
+	/* a vendor name that is one long word breaks inside the row rather than widening the page */
+	.or-wrap { min-width: 0; overflow-wrap: anywhere; }
+
 }
