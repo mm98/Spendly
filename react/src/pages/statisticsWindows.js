@@ -161,9 +161,11 @@ export function filterOf(crumbs) {
 
 /* ---- the window's own days, cut into the columns the charts draw ---- */
 
-// a chart stays within about ten columns (4d), so a month is drawn by its weeks
-const UNIT = { week: 'day', month: 'week', quarter: 'month', year: 'month', days30: 'week' }
-export const unitOf = (range, days) => UNIT[range] ?? (days <= 14 ? 'day' : days <= 92 ? 'week' : 'month')
+// a step of the period (4a): a day for 30 days, a week for a quarter, a month for a year; any other
+// period takes the smallest step that draws 12 bars or fewer
+const UNIT = { week: 'day', month: 'week', quarter: 'week', year: 'month', days30: 'day' }
+const weekColumns = (first, days) => 1 + Array.from({ length: days - 1 }, (_, d) => d + 1).filter(d => mondayFirst(first + d * DAY_MS) === 0).length
+export const unitOf = (range, days, first) => UNIT[range] ?? (days <= 12 ? 'day' : weekColumns(first, days) <= 12 ? 'week' : 'month')
 
 const weekday = iso => new Intl.DateTimeFormat(activeLocaleCode(), { weekday: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
 // a clipped week holds only the window's own days, so a week's column is named by its days
@@ -176,8 +178,8 @@ export function chartOf(view) {
 	const saved = view.series.savedCumulative
 	const orders = view.series.ordersCumulative
 	const days = spend.length
-	const unit = unitOf(view.range, days)
 	const first = utcOf(view.from)
+	const unit = unitOf(view.range, days, first)
 	const starts = unit === 'month'
 		? view.axis.map(mark => mark.day)
 		: spend.map((unused, day) => day).filter(day => unit === 'day' || day === 0 || mondayFirst(first + day * DAY_MS) === 0)
@@ -193,7 +195,8 @@ export function chartOf(view) {
 			key: from,
 			from,
 			to,
-			tick: unit === 'month' ? monthNames()[month] : unit === 'week' ? daySpan(from, to) : weekday(from),
+			// more than a week of days is named by date: thirty weekday names do not fit their columns
+			tick: unit === 'month' ? monthNames()[month] : unit === 'week' ? daySpan(from, to) : days > 7 ? String(Number(from.slice(8))) : weekday(from),
 			name: unit === 'month'
 				? `${monthNames('long')[month]} ${new Date(at).getUTCFullYear()}`
 				: unit === 'week' ? `Week ${week}, ${shortDate(from)} - ${shortDate(to)}` : longDate(from),

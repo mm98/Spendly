@@ -347,6 +347,10 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-bars__col:has(> .sp-bars__tip) { position: relative; }
 .sp-bars--plot .sp-bars__tip { position: absolute; right: 100%; bottom: 96px; z-index: 3; margin-right: var(--sp-12); pointer-events: none; }
 .sp-bars--plot .sp-bars__tip[data-side="end"] { right: auto; left: 100%; margin-right: 0; margin-left: var(--sp-12); }
+/* a figure card's bar readout hangs above its bar, right edges together (Order statistics .os-spark-tip) */
+.sp-bars--spark .sp-bars__bar:has(> .sp-bars__tip) { position: relative; }
+.sp-bars--spark .sp-bars__tip { position: absolute; right: 0; bottom: calc(100% + var(--sp-6)); z-index: 3; pointer-events: none; }
+.sp-bars--spark .sp-bars__tip[data-side="end"] { right: auto; left: 0; }
 
 /* a line row never looks inert: pointer and hover fill (c15) */
 .sp-list-item--opens { cursor: pointer; }
