@@ -41,6 +41,14 @@
           <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
           <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
         </div>
+        <span class="sp-grow"></span>
+        <div class="sp-combobox">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Expenses only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
 
     <div class="os-body">
@@ -56,14 +64,6 @@
           <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
           <span class="sp-data">Compare with 2025</span>
         </label>
-        <span class="sp-grow"></span>
-        <div class="sp-combobox">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
 
       <div class="os-stats">
@@ -236,8 +236,8 @@
                   </span>
                   <span class="sp-bars__tick">Jul</span>
                 </button>
-                <button type="button" class="sp-bars__col os-col" aria-pressed="true" data-from="2026-08-01" data-to="2026-08-31" aria-label="Aug">
-                  <div class="sp-tip sp-tip--panel os-tip">
+                <button type="button" class="sp-bars__col" aria-pressed="true" data-from="2026-08-01" data-to="2026-08-31" aria-label="Aug">
+                  <div class="sp-tip sp-tip--panel sp-bars__tip" data-side="end" data-pin="top">
                     <div class="sp-tip__head"><span>August 2026</span><span>61.480 kr.</span></div>
                     <div class="sp-tip__row"><span class="sp-legend__key" data-key="1"></span><span>Decor</span><span>24.100</span></div>
                     <div class="sp-tip__row"><span class="sp-legend__key" data-key="2"></span><span>Seating</span><span>17.320</span></div>
@@ -634,6 +634,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short.</div>
+    <div class="doc-note"><b>Spend by month's readout stands above the bar it describes</b>, centred on it, 8px clear of the top of the tallest of that bar and its two neighbours, so it covers none of the three. Near the chart's left or right end it shifts inward so it stays inside the card, its edge on the bar's edge. When there is not room for it above those bars inside the plot, it sits inside the plot's top edge instead, still centred on the bar, over the tops of the bars beneath it, as August here.</div>
     <div class="doc-note"><b>Hovering a bar shows its readout</b>, the same <code>.sp-tip--panel</code> as Spend by month without the category rows: the step and its value in the head, the step's order count beneath. The bars are not buttons and do not drill in; the chart below does that for the same steps, and keyboard and screen-reader users read the figures there.</div>
     <div class="doc-note"><b>Saved compares amounts, like the other three.</b> The pill is the change in kroner against the previous period, the meta line that period's saving. Never a percentage.</div>
   </div>
@@ -662,6 +663,14 @@
           <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
           <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
         </div>
+        <span class="sp-grow"></span>
+        <div class="sp-combobox">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Expenses only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
     <div class="os-body">
       <div class="sp-period">
@@ -676,14 +685,6 @@
           <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
           <span class="sp-data">Compare with 2025</span>
         </label>
-        <span class="sp-grow"></span>
-        <div class="sp-combobox">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
 
       <div class="sp-card sp-crumbs-bar">
@@ -905,6 +906,14 @@
           <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
           <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
         </div>
+        <span class="sp-grow"></span>
+        <div class="sp-combobox">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Expenses only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
     <div class="os-body">
       <div class="sp-period">
@@ -919,14 +928,6 @@
           <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
           <span class="sp-data">Compare with 2025</span>
         </label>
-        <span class="sp-grow"></span>
-        <div class="sp-combobox">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
 
       <div class="sp-card sp-crumbs-bar">
@@ -1556,6 +1557,7 @@
     <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders with a positive total. <code>refunds</code>: returned orders and credit notes - anything whose total is negative. <code>net</code>: both, summed with sign. <b>⚠ CONFIRM</b> whether a partially returned order is one record with a reduced total or two records; if two, <code>expenses</code> shows the original and the option list is correct as drawn.</div>
     <div class="doc-note"><b>It filters, it does not change definitions.</b> Average order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
     <div class="doc-note"><b>Under <code>net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
+    <div class="doc-note"><b>The menu sits in the top bar with Export, at its right end</b>, not in the period row. The period row holds the period alone, so its presets keep their width at every desktop width.</div>
     <div class="doc-note"><b>The choice survives crumb and period changes</b> and is not reset by them. It is a lens on the data, not part of the drill path, so it never appears as a crumb.</div>
     <div class="doc-note"><b>Budget limits only apply under <code>expenses</code> and <code>net</code>.</b> A limit compared against refunds is meaningless, so the limit cards and the pace marker come out under <code>refunds</code>.</div>
     <div class="doc-note"><b>Not a multi-select.</b> Two of three checked is either <code>net</code> or a single value, so checkboxes would offer a state that has no answer.</div>
@@ -1565,9 +1567,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Open</span>
       <div class="os-menu-stage doc-frame">
-        <div class="os-body">
-          <div class="sp-period">
-            <span class="sp-period__resolved">01/01/2026 - 20/08/2026</span>
+        <div class="sp-topbar">
             <span class="sp-grow"></span>
             <div class="sp-combobox sp-combobox--end" data-open="true">
               <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" aria-label="Lens">
@@ -1596,8 +1596,9 @@
                 </button></li>
               </ul>
             </div>
+            <button type="button" class="sp-btn sp-btn--outline">Export</button>
           </div>
-        </div>
+      
       </div>
     </div>
 

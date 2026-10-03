@@ -112,9 +112,10 @@ const useInk = (paints, deps) => {
  *   one vendor looks the same in every list. An element instead, an icon, for a thing
  *   whose look the user picked. There is no prop for the name: the mark's accessible
  *   name is `aria-label`, and this is the thing itself.
- * @param {string} [props.swatch] Which colour a solid mark takes - a token name
- *   from the library's set, or any colour value. For a mark whose colour the user
- *   picked; a mark with a `name` derives its own, so passing both is how two lists
+ * @param {string} [props.swatch] Which colour a solid mark takes - a swatch name
+ *   from the library's set. A colour the user picked outside the set is not a swatch:
+ *   pass it as style={{ background }} and the ink is worked out from it the same way.
+ *   For a mark whose colour the user picked; a mark with a `name` derives its own, so passing both is how two lists
  *   end up showing the same record in two colours.
  * @param {boolean} [props.round] A circle rather than a rounded square. The shape
  *   says what kind of thing it is - a person is a circle everywhere, a record is

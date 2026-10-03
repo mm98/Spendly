@@ -12,7 +12,8 @@
      --card-pad and off the spacing scale, which tops out at 16: this card carries
      a whole screen's content with nothing around it, so it is stated here as a
      page decision rather than pretending to be a scale step. */
-  .au-panel { width: 400px; padding: 32px; gap: var(--sp-16); box-shadow: var(--shadow-menu); }
+  /* the card's own 16 padding and 12 gap stand, as the page draws them */
+  .au-panel { width: 400px; box-shadow: var(--shadow-menu); }
   .au-panel--wide { width: 420px; }
   .au-centred { align-items: center; text-align: center; }
 

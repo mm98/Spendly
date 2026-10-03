@@ -53,7 +53,7 @@
     <div class="doc-note"><b class="sp-ink">The whole year is the 21b sheet, unchanged.</b> It scrolls sideways inside its card and opens on the month it is now, with the row names held at the left, so the frame shows what is in view on arrival: Row, then October onwards. The account column and the earlier months are to the left, one swipe away.</div>
     <div class="doc-note"><b class="sp-ink">Editing a budget row and the bank check keep their desktop behaviour</b> (21c, 21g): the row editor opens in place of the row, and the bank check's table scrolls sideways like the sheet.</div>
     <div class="doc-note"><b class="sp-ink">Bookmarks is the 22a card list in one column</b> - the card grid already drops to one column below 640px. Filters opens the bottom sheet from 7b holding Category and Open / Archived; <b>+</b> in the list head is New bookmark, as on Vendors. New and edit bookmark are the create frame shown for 5b.</div>
-    <div class="doc-note"><b class="sp-ink">The controls here are drawn at their desktop heights.</b> The library has a touch mode that raises a control to a 44px target, and a real build applies it on every phone screen; these frames show it only where the control's shape changes with it, as the period presets do. Read the heights from Input types <b>14d</b>, not off these frames.</div>
+    <div class="doc-note"><b class="sp-ink">The controls here are drawn at their desktop heights.</b> The library has a touch mode that raises a control to a 44px target, and a real build applies it on every phone screen; these frames show it only where the control's shape changes with it, as the period presets do. Read the heights from <a href="Components.dc.html#c0">Components c0</a> (<code>--control-h-touch</code>), not off these frames.</div>
   </div>
   <div class="doc-specimens">
     <div class="sp-stack sp-gap-12 ms-w375">
@@ -780,6 +780,7 @@
               <input class="sp-input sp-input--lead sp-input--search sp-input--trail" type="search" defaultValue="møb" aria-label="Search everything">
               <button type="button" class="sp-field__trail" aria-label="Clear the search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
             </span>
+            <button type="button" class="sp-btn sp-btn--text">Cancel</button>
           </div>
           <div class="sp-palette__body">
             <span class="sp-palette__group">Orders · 8</span>
@@ -1171,6 +1172,10 @@
       </div>
     </div>
 
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Cancel closes the full-screen search</b> and returns to the screen it was opened from, as it was. It is the only way out: the tab bar is absent while the search is open (9h). The clear button inside the field empties the query and keeps the search open.</div>
   </div>
 </section>
 
