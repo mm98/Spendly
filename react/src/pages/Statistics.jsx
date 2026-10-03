@@ -751,7 +751,9 @@ function segmentsOf(column) {
 
 /** A step of the spend chart, read out (4a): its name and total, each category the bars are split
     by and the rest, and how many orders it holds. */
-function SpendTip({ column, categories, opens, years }) {
+const capital = word => word.charAt(0).toUpperCase() + word.slice(1)
+
+function SpendTip({ column, categories, opens }) {
 	const parts = categories ? column.byCategory.slice(0, categories.length) : []
 	const rest = column.spend - parts.reduce((sum, n) => sum + n, 0)
 	const rows = categories
@@ -760,9 +762,9 @@ function SpendTip({ column, categories, opens, years }) {
 			{ key: 'other', series: 4, name: 'Other', value: amount(rest, 0) }
 		]
 		: []
-	// the panel's head holds a six-figure total beside the name, so a month carries its year only when the chart spans two
+	// a month's head is its name and year, "January 2026", in every locale (4a)
 	const title = column.crumb?.kind === 'week' ? `Week ${Number(column.crumb.value.slice(6))}`
-		: column.crumb?.kind === 'month' && !years ? monthNames('long')[Number(column.from.slice(5, 7)) - 1]
+		: column.crumb?.kind === 'month' ? `${capital(monthNames('long')[Number(column.from.slice(5, 7)) - 1])} ${column.from.slice(0, 4)}`
 			: column.name
 	return <ChartTip title={title} value={currency(column.spend, 0)} rows={rows} note={`${counted(column.orders, 'order')}${opens ? `${dot}press to look closer` : ''}`} />
 }
@@ -780,7 +782,6 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 	// before the window answers, the calendar says whether it is still running
 	const running = chart ? columns.some(column => column.running) : soon
 	const select = unit === 'day' || !onOpen ? undefined : key => onOpen(columns.find(column => column.key === key))
-	const years = columns.length > 0 && columns[0].from.slice(0, 4) !== columns.at(-1).from.slice(0, 4)
 	const drawn = columns.map(column => {
 		const height = share(Math.max(0, column.spend), top) * fit
 		return {
@@ -792,7 +793,7 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 			muted: !stackedNow && column.running,
 			tick: tickOf(chart, column, touch),
 			// a pointer reads a step in a panel beside it (4a); a phone has no pointer to hover with
-			tip: touch ? undefined : <SpendTip column={column} categories={stackedNow ? categories : null} opens={!!select} years={years} />,
+			tip: touch ? undefined : <SpendTip column={column} categories={stackedNow ? categories : null} opens={!!select} />,
 			...(stackedNow && column.spend > 0 ? { segments: segmentsOf(column) } : {})
 		}
 	})
@@ -806,21 +807,18 @@ function SpendChart({ range, chart, running: soon, touch, selected, narrowed, st
 				<span className="sp-section-label">Spend by {unit}</span>
 				<span className="sp-grow" />
 				{narrowed ? <span className="sp-meta">{narrowed}</span> : null}
-				{stackedNow
+				{stackedNow || (running && !narrowed) || limitLine
 					? (
 						<Legend>
-							{categories.map((c, i) => <LegendItem series={i + 1} key={c.id}>{c.name}</LegendItem>)}
-							<LegendItem series={4}>Other</LegendItem>
+							{stackedNow
+								? <>{categories.map((c, i) => <LegendItem series={i + 1} key={c.id}>{c.name}</LegendItem>)}<LegendItem series={4}>Other</LegendItem></>
+								: running && !narrowed
+									? <><LegendItem series={1}>Spend</LegendItem><LegendItem series={4}>Not yet complete</LegendItem></>
+									: null}
+							{limitLine ? <LegendItem series="limit">{limitLine.label}</LegendItem> : null}
 						</Legend>
 					)
-					: running && !narrowed
-						? (
-							<Legend>
-								<LegendItem series={1}>Spend</LegendItem>
-								<LegendItem series={4}>Not yet complete</LegendItem>
-							</Legend>
-						)
-						: null}
+					: null}
 				{splits && !touch
 					? <Segmented name="statistics-bar-shape" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" />
 					: null}

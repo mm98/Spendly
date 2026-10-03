@@ -208,11 +208,14 @@ export function Legend({ children, ...rest }) {
 	return <div className="sp-legend" {...rest}>{children}</div>
 }
 
+/** `series="limit"` is the plot's limit line, named here rather than on the line (4a). */
 export function LegendItem({ series = 1, children, ...rest }) {
 	reject(rest, 'LegendItem')
 	return (
 		<span className="sp-legend__item" {...rest}>
-			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'LegendItem')} />
+			{series === 'limit'
+				? <span className="sp-legend__key sp-legend__key--limit" />
+				: <span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'LegendItem')} />}
 			<span className="sp-truncate">{children}</span>
 		</span>
 	)
@@ -227,7 +230,7 @@ export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 				<div className="sp-plot__grid">
 					{Array.from({ length: gridlines }, (unused, i) => <span key={i} />)}
 				</div>
-				{limit ? <div className="sp-plot__limit" style={{ top: limit.at }}><span>{limit.label}</span></div> : null}
+				{limit ? <div className="sp-plot__limit" style={{ top: limit.at }} aria-hidden="true" /> : null}
 				{children}
 			</div>
 		</div>
