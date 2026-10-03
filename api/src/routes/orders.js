@@ -6,7 +6,7 @@ import { requireConfirmed } from '../lib/auth.js'
 import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
-import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
+import { assertValidOrderDraft, fillDraftGaps, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
@@ -355,13 +355,14 @@ router.get('/often', (req, res) => {
 	res.json({ orders: rows.map((order, i) => ({ ...order, times: often[i].times })) })
 })
 
-/* The monthly limits a saved order counts against (8b): each named category's limit and what its
-   month spent without this order, an order's total shared between its categories as in statistics. */
+/* The monthly limits an order counts against (8b): each category's limit and its month's spend
+   without this order, shared as statistics shares it, where drafts and cancelled orders spend nothing. */
 const selectCategoryLimit = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
 const selectCategoryMonthSpend = db.prepare(`
 	SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
-	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude`).pluck()
+	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
+		AND ot.status NOT IN ('Cancelled', 'Draft')`).pluck()
 router.get('/limits', (req, res) => {
 	const day = String(req.query.date ?? '')
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'A date is needed, as YYYY-MM-DD.' })
@@ -432,14 +433,31 @@ const nextReference = db.prepare(`INSERT INTO order_reference_counters (user_id,
 	RETURNING last`).pluck()
 export const REFERENCE_PREFIX = 'SPENDLY-'
 
-router.post('/', (req, res) => {
-	const draft = keyed(req.user.id, req.body ?? {})
-	assertValidOrderDraft(draft, req.today, statusKeys(req.user.id))
+/* A save carries a key its browser chose (`clientKey`), stored on what it wrote: a save sent again
+   because its answer never arrived (6d) finds that key and answers with what is there. */
+const selectOrderByClientKey = db.prepare('SELECT id FROM orders WHERE user_id = ? AND client_key = ?')
+const setClientKey = db.prepare('UPDATE orders SET client_key = ? WHERE id = ?')
+const clientKeyOf = body => (typeof body?.clientKey === 'string' && body.clientKey ? body.clientKey.slice(0, 64) : null)
+
+/** Writes a new order from a draft as POST takes it, given the next reference when it has none;
+    `also` runs inside the same transaction with the new id. Answers the id. */
+export function createOrderRecord(userId, body, today, also = () => {}) {
+	const draft = fillDraftGaps(keyed(userId, body ?? {}))
+	assertValidOrderDraft(draft, today, statusKeys(userId))
 	const id = newId('o')
 	db.transaction(() => {
-		const reference = String(draft.reference ?? '').trim() || REFERENCE_PREFIX + nextReference.get({ userId: req.user.id })
-		insertOrderRows(req.user.id, id, { ...draft, reference })
+		const reference = String(draft.reference ?? '').trim() || REFERENCE_PREFIX + nextReference.get({ userId })
+		insertOrderRows(userId, id, { ...draft, reference })
+		also(id)
 	})()
+	return id
+}
+
+router.post('/', (req, res) => {
+	const clientKey = clientKeyOf(req.body)
+	const sent = clientKey ? selectOrderByClientKey.get(req.user.id, clientKey) : null
+	if (sent) return res.status(200).json(getDecoratedOrder(req.user.id, sent.id))
+	const id = createOrderRecord(req.user.id, req.body, req.today, made => { if (clientKey) setClientKey.run(clientKey, made) })
 	res.status(201).json(getDecoratedOrder(req.user.id, id))
 })
 
@@ -483,12 +501,24 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 	for (const existingId of existingItemIds) if (!keptItemIds.has(existingId)) deleteOrderItem.run(existingId, id)
 })
 
+/* `revision` is the one the saving form started from: an order changed since then is answered
+   with a 409 and the order as it is now, so the form can ask which version to keep (6d). */
+const selectOrderRevision = db.prepare('SELECT revision, client_key FROM orders WHERE id = ? AND user_id = ?')
 router.put('/:id', (req, res) => {
-	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
-	const draft = keyed(req.user.id, req.body ?? {})
+	const row = selectOrderRevision.get(req.params.id, req.user.id)
+	if (!row) throw notFound(req.params.id)
+	const clientKey = clientKeyOf(req.body)
+	if (clientKey && row.client_key === clientKey) return res.json(getDecoratedOrder(req.user.id, req.params.id))
+	const asked = Number(req.body?.revision)
+	if (Number.isInteger(asked) && asked > 0 && asked !== row.revision)
+		return res.status(409).json({ error: 'This order was changed somewhere else.', order: getDecoratedOrder(req.user.id, req.params.id) })
+	const draft = fillDraftGaps(keyed(req.user.id, req.body ?? {}))
 	assertValidOrderDraft(draft, req.today, statusKeys(req.user.id))
 
-	updateOrderRows(req.user.id, req.params.id, draft)
+	db.transaction(() => {
+		updateOrderRows(req.user.id, req.params.id, draft)
+		if (clientKey) setClientKey.run(clientKey, req.params.id)
+	})()
 
 	res.json(getDecoratedOrder(req.user.id, req.params.id))
 })

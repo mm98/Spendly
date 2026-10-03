@@ -697,8 +697,24 @@ function fromReadable(text, locale, { short = true } = {}) {
 	return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
+/** The one-click days a single date offers (14a): Today and Yesterday pick, This month turns the
+    calendar to it. A day the field cannot take is not offered. */
+function dayShortcuts({ min, max, unavailable }) {
+	const now = new Date()
+	const today = iso(now)
+	const yesterday = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
+	const first = iso(new Date(now.getFullYear(), now.getMonth(), 1))
+	const last = iso(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+	const takes = s => !(min && s < min) && !(max && s > max) && !(typeof unavailable === 'function' && unavailable(s))
+	return [
+		takes(today) ? { label: 'Today', pick: today } : null,
+		takes(yesterday) ? { label: 'Yesterday', pick: yesterday } : null,
+		!(min && last < min) && !(max && first > max) ? { label: 'This month', show: today } : null
+	].filter(Boolean)
+}
+
 /** `placeholder` is what the empty field says, as an open end reads Today (c12). */
-export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, locale, id, placeholder, ...rest }) {
+export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, shortcuts = true, locale, id, placeholder, ...rest }) {
 	reject(rest, 'DateField')
 	// what Field hands the control: its message and its state, on the input that takes focus
 	const { 'aria-describedby': message, 'aria-invalid': invalid, required, lead, trail, unit, ...unused } = rest
@@ -811,6 +827,16 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				/>
 			</span>
 			<div className="sp-calendar" role="dialog" aria-label="Choose a date">
+				{shortcuts
+					? (
+						<div className="sp-range__quick" role="group" aria-label="Days worth one click">
+							{dayShortcuts({ min, max, unavailable }).map(q => (
+								<Chip key={q.label}
+									onClick={() => (q.pick ? (onChange?.(q.pick), close({ toTrigger: true })) : openTo(q.show))}>{q.label}</Chip>
+							))}
+						</div>
+					)
+					: null}
 				<Month
 					year={shown.year}
 					month={shown.month}

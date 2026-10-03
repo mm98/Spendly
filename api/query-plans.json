@@ -16,7 +16,7 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
+		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages, a.from_scan FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
 			"plan": [
 				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
 				"SEARCH a USING INDEX idx_attachments_item (order_item_id=?)"
@@ -401,6 +401,17 @@
 			],
 			"findings": [],
 			"indexes": [
+				"idx_orders_user_date"
+			]
+		},
+		"SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude AND ot.status NOT IN ('Cancelled', 'Draft')": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
 				"idx_orders_user_date"
 			]
 		},
@@ -1188,6 +1199,26 @@
 				"sqlite_autoindex_categories_2"
 			]
 		},
+		"SELECT id FROM order_items WHERE order_id = ?": {
+			"plan": [
+				"SEARCH order_items USING INDEX idx_order_items_order (order_id=?)"
+			],
+			"findings": [
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"idx_order_items_order"
+			]
+		},
+		"SELECT id FROM orders WHERE user_id = ? AND client_key = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX idx_orders_client_key (user_id=? AND client_key=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_client_key"
+			]
+		},
 		"SELECT id FROM orders WHERE user_id = ? ORDER BY date DESC LIMIT 1": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_date (user_id=?)"
@@ -1204,6 +1235,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_saved_views_1"
+			]
+		},
+		"SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)": {
+			"plan": [
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendors_user_name"
 			]
 		},
 		"SELECT id FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1": {
@@ -1348,6 +1388,15 @@
 			],
 			"indexes": []
 		},
+		"SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
 		"SELECT id, name, colour, favourite, archived, origin FROM vendors WHERE user_id = ? ORDER BY name": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_2 (user_id=?)"
@@ -1395,7 +1444,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages FROM attachments WHERE order_id = ?": {
+		"SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages, from_scan FROM attachments WHERE order_id = ?": {
 			"plan": [
 				"SEARCH attachments USING INDEX idx_attachments_order (order_id=?)"
 			],
@@ -1469,7 +1518,7 @@
 				"idx_order_items_order"
 			]
 		},
-		"SELECT id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded, item_count, subtotal, total, saved, saved_percent FROM orders WHERE id = ? AND user_id = ?": {
+		"SELECT id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded, item_count, subtotal, total, saved, saved_percent, revision FROM orders WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
 			],
@@ -2699,6 +2748,15 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT revision, client_key FROM orders WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_orders_1"
+			]
+		},
 		"SELECT shown FROM saved_view_prefs WHERE user_id = ?": {
 			"plan": [
 				"SEARCH saved_view_prefs USING INDEX sqlite_autoindex_saved_view_prefs_1 (user_id=?)"
@@ -2865,7 +2923,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 9
+			"readers": 10
 		},
 		"idx_imports_user_created": {
 			"table": "imports",
@@ -2889,14 +2947,14 @@
 				"category_id",
 				"order_id"
 			],
-			"readers": 26
+			"readers": 27
 		},
 		"idx_order_items_order": {
 			"table": "order_items",
 			"columns": [
 				"order_id"
 			],
-			"readers": 16
+			"readers": 17
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",
@@ -2912,6 +2970,14 @@
 			],
 			"readers": 0
 		},
+		"idx_orders_client_key": {
+			"table": "orders",
+			"columns": [
+				"user_id",
+				"client_key"
+			],
+			"readers": 1
+		},
 		"idx_orders_import": {
 			"table": "orders",
 			"columns": [
@@ -2926,7 +2992,7 @@
 				"date",
 				"id"
 			],
-			"readers": 45
+			"readers": 46
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
@@ -3043,7 +3109,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 12
+			"readers": 13
 		}
 	}
 }

@@ -3209,6 +3209,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 }
 [data-open="true"] > .sp-calendar { display: block; }
 .sp-calendar .sp-range__month { gap: var(--sp-8); }
+/* a single date's one-click days (14a): the range's quick row, inside the popover's own padding */
+.sp-calendar .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }
 
 /* the same grid, scrolling, inside a sheet */
 .sp-calendar--sheet {
@@ -4477,6 +4479,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a toast that needs an answer stays on the page's own surface, so it does not
    read as something that will disappear on its own - c23 */
 .sp-toast--asks { background: var(--surface); border: 1px solid var(--amber); color: var(--amber-ink-2); }
+/* a phone's row is too narrow for the words and two answers: the answers go under the words */
+.sp-touch .sp-toast--asks { flex-wrap: wrap; }
+.sp-touch .sp-toast--asks > .sp-stack { flex: 1 1 0; min-width: calc(100% - var(--step) - var(--sp-12)); }
 
 /* a pill carrying a problem - c6 variant */
 
@@ -4707,7 +4712,8 @@ html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--st
   left: var(--sp-16);
   right: var(--sp-16);
   bottom: var(--sp-16);
-  z-index: 40;
+  /* above a sheet's or a dialog's scrim (50): a toast is never blocked by what is open (6f) */
+  z-index: 60;
   display: flex;
   justify-content: center;
   pointer-events: none;

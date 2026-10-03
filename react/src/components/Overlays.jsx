@@ -315,14 +315,16 @@ export function DialogActions({ children, ...rest }) {
 
 const TOAST_COLOR = { default: null, danger: 'danger' }
 
-/** `seconds` is how long the Undo in it lasts, drawn after it (6d). */
-export function Toast({ icon, color = 'default', compact = false, asks = false, seconds, children, ...rest }) {
+/** `title` makes the message its second line, and `seconds` is how long its Undo lasts (6d). An
+    `asks` toast is a notice that stays until answered: `mark` stands for the icon, `actions` answer. */
+export function Toast({ icon, mark, title, color = 'default', compact = false, asks = false, actions, seconds, children, ...rest }) {
 	reject(rest, 'Toast')
 	// the way back is a child, not a prop: it is the last thing in the row, which is
 	// where it is written, and a page cannot put a plain link there by accident
 	const kids = [].concat(children ?? []).flat()
 	const undo = kids.find(c => c && typeof c === 'object' && c.type === ToastUndo)
 	const message = kids.filter(c => c !== undo)
+	if (actions && !asks) console.error('<Toast> answers belong to a toast that asks: any other toast has at most its way back')
 	return (
 		<div
 			className={join('sp-toast', compact && 'sp-toast--compact', asks && 'sp-toast--asks')}
@@ -330,8 +332,20 @@ export function Toast({ icon, color = 'default', compact = false, asks = false, 
 			{...(color === 'default' ? {} : { 'data-color': pick(TOAST_COLOR, color, 'color', 'Toast') })}
 			{...rest}
 		>
-			{icon ? <span className="sp-toast__icon"><Icon name={icon} /></span> : null}
-			<span>{message}</span>
+			{mark ? <span className="sp-step" data-color="warning" aria-hidden="true">{mark}</span>
+				: icon ? <span className="sp-toast__icon"><Icon name={icon} /></span> : null}
+			{title
+				? (
+					<>
+						<div className="sp-stack sp-gap-6">
+							<span className="sp-title">{title}</span>
+							<span className={join('sp-subtitle', asks ? 'sp-ink-warning' : 'sp-ink-inverse')}>{message}</span>
+						</div>
+						<span className="sp-grow" />
+					</>
+				)
+				: <span>{message}</span>}
+			{actions}
 			{undo}
 			{/* not read out: a live region would say it again every second */}
 			{undo && seconds != null ? <span className="sp-meta sp-number" aria-hidden="true">{seconds}s</span> : null}
@@ -339,16 +353,17 @@ export function Toast({ icon, color = 'default', compact = false, asks = false, 
 	)
 }
 
-/** The way back out of what a toast reports. */
+/** The way back out of what a toast reports, or its one way on (Retry now). */
 export function ToastUndo({ children, onClick, ...rest }) {
 	reject(rest, 'ToastUndo')
-	return <button type="button" className="sp-toast__undo" onClick={onClick} {...rest}>{children}</button>
+	return <button type="button" className="sp-toast__undo sp-nowrap" onClick={onClick} {...rest}>{children}</button>
 }
 
 const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
 
-/** `action` is one button at the row's far end, after a spacer (3a, 3b). */
-export function Alert({ color = 'warning', mark, title, action, children, ...rest }) {
+/** `action` is one button at the row's far end, after a spacer (3a, 3b); `below` puts it under the
+    words instead, where a phone's row is too narrow to hold both. */
+export function Alert({ color = 'warning', mark, title, action, below = false, children, ...rest }) {
 	reject(rest, 'Alert')
 	return (
 		<div
@@ -360,8 +375,9 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 			<span className="sp-alert__body">
 				{title ? <span className="sp-alert__title">{title}</span> : null}
 				{children ? <span className="sp-alert__note">{children}</span> : null}
+				{action && below ? <span className="sp-row-flex">{action}</span> : null}
 			</span>
-			{action ? <><span className="sp-grow" />{action}</> : null}
+			{action && !below ? <><span className="sp-grow" />{action}</> : null}
 		</div>
 	)
 }
@@ -372,7 +388,7 @@ const TOAST_MS = 6000
 const ToastContext = createContext(() => {})
 const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:not(.sp-btn--outline, .sp-btn--text)'
 
-/** Shows a toast: `show({ message, icon, color, undo: { label, onClick } })`. */
+/** Shows a toast: `show({ message, title, icon, color, undo: { label, onClick } })`. */
 export const useToast = () => useContext(ToastContext)
 
 export function Toaster({ children }) {
@@ -472,7 +488,9 @@ export function Toaster({ children }) {
 				{toast
 					? (
 						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}
-							seconds={Math.ceil(left / 1000)}>
+							title={toast.title}
+							// the seconds belong to an Undo; a way on (Retry now, Open) is not counted down
+							seconds={(toast.undo?.label ?? 'Undo') === 'Undo' ? Math.ceil(left / 1000) : undefined}>
 							{toast.message}
 							{toast.undo ? <ToastUndo onClick={() => { toast.undo.onClick(); dismiss() }}>{toast.undo.label ?? 'Undo'}</ToastUndo> : null}
 						</Toast>

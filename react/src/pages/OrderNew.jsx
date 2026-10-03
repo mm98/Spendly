@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Gauge, SumHead } from '../components/Data.jsx'
 import { Button } from '../components/Button.jsx'
@@ -15,7 +15,7 @@ import { Viewer } from '../components/Attachments.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	attachmentFileUrl, attachmentPageUrl, discardScanDocument, failureMessage, getCurrentUser, getOftenOrders, getOrder,
-	getOrderDraft, getOrders, getScanDraft, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
+	getOrderDraft, getOrders, getScanDraft, leaveScanDocument, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
 	watchScanProgress
 } from '../api/client.js'
 import { activeLocaleCode, amount, dayShortMonth, dot, plural, sep, shortDate } from '../api/format.js'
@@ -94,6 +94,8 @@ function Copy({ id }) {
 	)
 }
 
+const leaving = new Map()
+
 function Scanned({ documentKey, upload }) {
 	const navigate = useNavigate()
 	// a file read before is asked about first (3c); "Use the reading" goes on to the review
@@ -102,7 +104,7 @@ function Scanned({ documentKey, upload }) {
 	const [manual, setManual] = useState(false)
 	const read = useApi(getScanDraft, [documentKey], { enabled: !asking })
 	const answer = read.data?.documentKey === documentKey ? read.data : null
-	const seed = useMemo(() => (answer
+	const seed = useMemo(() => (answer && !answer.draftOrderId
 		? {
 			vendor: answer.vendor ?? '', date: answer.date, status: answer.status, kind: answer.kind,
 			deliveredDate: answer.deliveredDate, returnedDate: answer.returnedDate, categories: [],
@@ -116,6 +118,20 @@ function Scanned({ documentKey, upload }) {
 		: null), [answer])
 	const back = () => navigate('/orders/new?source=scan')
 	const discard = () => discardScanDocument(documentKey).catch(() => {}).finally(back)
+	/* Leaving while the file is read leaves the reading to finish and become a Draft order (6e, 3a
+	   step 2): another page, or a closed tab. Cancel abandons it, upload and all (16a). */
+	const reading = !asking && !answer && !read.error
+	const away = useRef({ reading, cancelled: false })
+	away.current.reading = reading
+	useEffect(() => {
+		// a page that comes straight back (a remount, not a visit away) has not left
+		clearTimeout(leaving.get(documentKey))
+		const left = () => { if (away.current.reading && !away.current.cancelled) leaveScanDocument(documentKey) }
+		window.addEventListener('pagehide', left)
+		return () => { window.removeEventListener('pagehide', left); leaving.set(documentKey, setTimeout(left, 0)) }
+	}, [documentKey])
+	const cancel = () => { away.current.cancelled = true; discard() }
+	if (answer?.draftOrderId) return <Navigate to={`/orders/${answer.draftOrderId}`} replace />
 	if (asking) return <SeenBefore upload={upload} onUse={() => setAsking(false)} onDiscard={discard} />
 	if (read.error)
 		return (
@@ -124,7 +140,7 @@ function Scanned({ documentKey, upload }) {
 				{failureMessage(read.error, 'Check your connection, then try again.')}
 			</Alert>
 		)
-	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onCancel={back} />
+	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onCancel={cancel} />
 	if (answer.failure && answer.failure !== 'unread' && !manual)
 		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={back} onDiscard={discard} />
 	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer }} onLeave={back} />
@@ -194,7 +210,7 @@ function Reading({ file, documentKey, onCancel }) {
 						<Mark size="small" aria-hidden="true" aria-label="Slow"><Icon name="wifi" size={15} /></Mark>
 						<div className="sp-stack sp-gap-6">
 							<span className="sp-title">Reading is taking longer than usual</span>
-							<span className="sp-subtitle">You can keep waiting. If you leave, the reading still finishes, and adding the same file again uses it at once.</span>
+							<span className="sp-subtitle">You can leave this page - the order appears in the list when it is done.</span>
 						</div>
 					</Card>
 				)
@@ -273,7 +289,8 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 						action={<Button variant="outline" size="small" disabled>Attach</Button>} />
 				</div>
 				<div className="sp-card__footer sp-card__footer--commits">
-					<span className="sp-meta sp-grow">If you do nothing, the upload is removed after 7 days.</span>
+					<span className="sp-meta">The upload is kept for 24 hours either way.</span>
+					<span className="sp-grow" />
 					<Button variant="outline" disabled={busy} onClick={onDiscard}>Discard the upload</Button>
 				</div>
 			</Card>

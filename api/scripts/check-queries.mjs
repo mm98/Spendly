@@ -281,10 +281,21 @@ for (const request of REQUESTS) {
 	}
 	await response.arrayBuffer()
 }
+// a monthly limit's spend for an order's categories (8b), named as the app itself names them
+const limited = (await (await fetch(BASE + '/categories', { headers: H })).json()).filter(c => c.budget > 0).slice(0, 2)
+if (!limited.length) console.error('  no category with a limit: /orders/limits reads nothing to plan')
+await (await fetch(BASE + `/orders/limits?date=2026-08-15&${limited.map(c => `categories=${encodeURIComponent(c.name)}`).join('&')}`, { headers: H })).arrayBuffer()
+
 /* The writes, run last because each one rewrites the fixture every read above is captured
    against. The budget's ids come out of the sheet the app itself answers with, so no SELECT of
    this script's own joins the baseline. */
 const sheet = await (await fetch(BASE + '/budget/2026', { headers: H })).json()
+// an order saved from the copy it was read as, and one sent twice under one key (6d)
+const order = await (await fetch(BASE + `/orders/${ids.order}`, { headers: H })).json()
+const asSaved = {
+	vendor: order.vendor.name, date: order.date, status: order.status, kind: order.kind, categories: order.categories.map(c => c.name),
+	items: order.items.map(i => ({ id: i.id, title: i.title, quantity: i.quantity, price: i.price }))
+}
 const [group, second] = sheet.groups.filter(g => g.kind === 'expense')
 const line = group.lines[1]
 const [account, other] = sheet.accounts
@@ -303,6 +314,9 @@ for (const [method, path, body] of [
 	['DELETE', `/budget/accounts/${account.id}`],
 	['PUT', '/budget/links', { pattern: 'betalingsservice aquaren aftalenr', kind: 'expense', line: 'Water' }],
 	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense'],
+	['PUT', `/orders/${ids.order}`, { ...asSaved, note: 'Saved from its copy', revision: order.revision, clientKey: 'check-put' }],
+	['POST', '/orders', { ...asSaved, items: asSaved.items.map(({ id, ...i }) => i), clientKey: 'check-post' }],
+	['POST', '/orders', { ...asSaved, items: asSaved.items.map(({ id, ...i }) => i), clientKey: 'check-post' }],
 	['POST', '/orders/bulk', { ids: [ids.order], status: 'Returned', addCategories: ['Bulk'], removeCategories: [ids.category] }],
 	['POST', '/orders/bulk', { ids: [ids.order], status: 'Delivered', deliveredToday: true }],
 	['POST', '/statuses', { name: 'Waiting', tone: 'progress' }],

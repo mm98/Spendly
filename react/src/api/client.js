@@ -338,6 +338,9 @@ const toApiDraft = draft => ({
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
 	discount: draft.discount ? parseAmount(draft.discount) : 0,
 	reference: draft.reference ?? '', note: draft.note ?? '', refunded: Boolean(draft.refunded),
+	// the copy the form started from and the save's own key: a save over another tab's, or one sent twice, is told apart (6d)
+	...(draft.revision ? { revision: draft.revision } : {}),
+	...(draft.clientKey ? { clientKey: draft.clientKey } : {}),
 	// a saved line keeps its id, so PUT edits it in place and its photo stays; a new line sends none
 	items: (draft.items ?? []).map(i => ({
 		...(i.id ? { id: i.id } : {}),
@@ -512,22 +515,49 @@ export async function getOrder(id, signal) {
 }
 
 export async function createOrder(draft, signal) {
-	return request('/api/orders', { method: 'POST', body: toApiDraft(draft), signal })
+	const order = await request('/api/orders', { method: 'POST', body: toApiDraft(draft), signal })
+	tellTabs({ ids: [order.id], revision: order.revision })
+	return order
 }
 
+/** A 409 is an order changed since `draft.revision`: the error's `body.order` is the order as it is now. */
 export async function updateOrder(id, draft, signal) {
-	return request(`/api/orders/${id}`, { method: 'PUT', body: toApiDraft(draft), signal })
+	const order = await request(`/api/orders/${id}`, { method: 'PUT', body: toApiDraft(draft), signal })
+	tellTabs({ ids: [id], revision: order.revision })
+	return order
 }
 
 /** Deletes an order; the answer's `undo` names the copy `restoreOrder` puts back (6d). */
 export async function deleteOrder(id, signal) {
 	const out = await request(`/api/orders/${id}`, { method: 'DELETE', signal })
 	forgetRecent('order', id)
+	tellTabs({ ids: [id], gone: true })
 	return out
 }
 
+/* Other tabs of this browser hear of every order saved here (6d): their lists ask again, and an
+   edit form open on the same order learns it changed. */
+const tabs = typeof BroadcastChannel === 'function' ? new BroadcastChannel('spendly:orders') : null
+const tabListeners = new Set()
+const tellTabs = news => { try { tabs?.postMessage(news) } catch { /* a closed channel: nobody to tell */ } }
+if (tabs) tabs.onmessage = ev => {
+	invalidateOrderData()
+	for (const fn of tabListeners) fn(ev.data)
+}
+/** Calls `fn({ ids, revision, gone })` when another tab saves or deletes orders; returns the way to stop. */
+export function onOrderSavedElsewhere(fn) {
+	tabListeners.add(fn)
+	return () => tabListeners.delete(fn)
+}
+
+/** True when a request failed for want of a connection, so sending it again later can work. */
+export const lostConnection = error => error?.name === 'TypeError'
+	|| (error?.name === 'NoAnswer' && [0, 502, 503, 504].includes(error.status))
+
 export async function restoreOrder(undo, signal) {
-	return request(`/api/orders/trash/${undo}/restore`, { method: 'POST', signal })
+	const order = await request(`/api/orders/trash/${undo}/restore`, { method: 'POST', signal })
+	tellTabs({ ids: [order.id], revision: order.revision })
+	return order
 }
 
 /** The orders the account repeats, newest of each, with how many `times` (3b). */
@@ -587,6 +617,7 @@ export const setViewsShown = shown => viewWrite('/api/views/shown', 'PUT', { sho
 export async function changeOrders(change, signal) {
 	const out = await request('/api/orders/bulk', { method: 'POST', body: change, signal })
 	if (change.delete) for (const id of change.ids) forgetRecent('order', id)
+	tellTabs({ ids: change.ids, gone: Boolean(change.delete) })
 	return out
 }
 
@@ -862,6 +893,18 @@ export async function rereadScanDocument(documentKey, signal) {
 
 export async function discardScanDocument(documentKey, signal) {
 	return request(`/api/scan/documents/${documentKey}`, { method: 'DELETE', signal })
+}
+
+/** The reader left a receipt still being read: the reading becomes a Draft order when it ends (6e),
+    and the lists ask again then, so it appears. Sent so that it outlives a closing tab. */
+export function leaveScanDocument(documentKey) {
+	const path = `/api/scan/documents/${documentKey}/leave`
+	try {
+		fetch(path, { method: 'POST', credentials: 'include', keepalive: true, headers: { [TODAY]: today() } })
+			.then(res => (res.ok ? res.json() : null))
+			.then(answer => { if (answer?.orderId) invalidateOrderData() })
+			.catch(() => {})
+	} catch { /* nothing to tell: the upload stays 24 hours either way */ }
 }
 
 /** Sends one file to be kept until a save files it (17a). `onSent` hears the fraction sent, 0 to 1. */

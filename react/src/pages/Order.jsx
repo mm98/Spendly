@@ -5,6 +5,7 @@ import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
 import { Sum } from '../components/Data.jsx'
+import { Chip } from '../components/Chip.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Alert, useToast } from '../components/Overlays.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -12,11 +13,11 @@ import { useApi } from '../api/useApi.js'
 import {
 	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, invalidateOrderData
 } from '../api/client.js'
-import { dot, plural, shortDate } from '../api/format.js'
+import { dot, plural, shortDate, today } from '../api/format.js'
 import { draftOf } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
 import { useShellShape } from '../app/useMedia.js'
-import { StatusPill } from '../app/orderRow.jsx'
+import { OverLimitDot, StatusPill, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
@@ -48,7 +49,7 @@ export default function Order() {
 
 /** The saved state's notice (3a): where the order came from, and Undo, which deletes it and goes
     back to the screen it was created from. */
-function Created({ order, created, onGone }) {
+function Created({ order, created, touch, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const [busy, setBusy] = useState(false)
@@ -72,15 +73,25 @@ function Created({ order, created, onGone }) {
 			})
 	}
 	const files = order.attachments.length + order.items.filter(i => i.attachments?.length).length - (created.documentKey ? 1 : 0)
+	const said = [
+		created.file ? 'The receipt is kept as an attachment.' : null,
+		files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
+	].filter(Boolean).join(' ') || null
+	const undoButton = <Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>
+	// after a scan the next receipt is one click away (16a: open the order or scan another)
+	const actions = created.documentKey
+		? <span className="sp-row-flex sp-gap-8">{undoButton}<Button variant="outline" size="small" to="/orders/new?source=scan">Scan another</Button></span>
+		: undoButton
+	// a phone's notice is too narrow for words and two buttons side by side, so the buttons go under the words
+	const under = touch && created.documentKey
 	return (
 		<div className="or-span">
 			<Alert color="success" mark={<Icon name="check" size={12} />}
-				title={created.file ? `Order created from ${created.file}.` : 'Order created.'}
-				action={<Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>}>
-				{[
-					created.file ? 'The receipt is kept as an attachment.' : null,
-					files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
-				].filter(Boolean).join(' ') || null}
+				title={created.draft
+					? (created.file ? `Saved as a draft from ${created.file}.` : 'Saved as a draft.')
+					: (created.file ? `Order created from ${created.file}.` : 'Order created.')}
+				action={actions} below={under}>
+				{said}
 			</Alert>
 		</div>
 	)
@@ -158,7 +169,7 @@ function OrderView({ order, touch, created, onGone }) {
 				<Sum value={order.vendor?.name}>Vendor</Sum>
 				<Sum value={shortDate(order.date)}>Date</Sum>
 				<Sum value={order.kind}>Kind</Sum>
-				<Sum value={order.categories.length ? order.categories.map(c => c.name).join(dot) : 'None'}>Categories</Sum>
+				<Sum value={<OrderCategories order={order} />}>Categories</Sum>
 				{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
 				{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
 			</div>
@@ -196,10 +207,26 @@ function OrderView({ order, touch, created, onGone }) {
 
 	return (
 		<>
-			{created ? <Created order={order} created={created} onGone={onGone} /> : null}
+			{created ? <Created order={order} created={created} touch={touch} onGone={onGone} /> : null}
 			<div className="sp-stack sp-gap-12">{items}{attachments}</div>
 			<Panel>{details}{totals}{dialog}{viewer}</Panel>
 		</>
+	)
+}
+
+/** The order's categories; one over its limit this month carries the problem dot, the mark that
+    travels with a category wherever it is named, the order list's rows included (8b). */
+function OrderCategories({ order }) {
+	const over = useOverLimitIds()
+	if (!order.categories.length) return 'None'
+	if (!order.categories.some(c => over.has(c.id))) return order.categories.map(c => c.name).join(dot)
+	// the dot speaks of this month; an order from another month says which month that is
+	const thisMonth = order.date.slice(0, 7) === today().slice(0, 7)
+	return (
+		<span className="sp-row-flex sp-wrap sp-gap-6 or-chips">
+			{order.categories.map(c => <Chip key={c.id} trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{c.name}</Chip>)}
+			<span className="sp-meta">{thisMonth ? 'over limit' : 'over limit this month'}</span>
+		</span>
 	)
 }
 

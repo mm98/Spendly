@@ -11,6 +11,7 @@ import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
+import { SavedLater } from './SavedLater.jsx'
 import { countBadge } from '../api/format.js'
 import { MAC, useMedia, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
@@ -165,6 +166,7 @@ export function AppShell() {
 			{touch ? null : overlay}
 			{keySheet}
 			{signedOut}
+			<SavedLater />
 		</Toaster>
 	)
 }
