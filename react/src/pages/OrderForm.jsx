@@ -858,7 +858,7 @@ const focusFirst = (selector, quiet) => requestAnimationFrame(() => {
 })
 
 // the server's own words for the two refusals, for a file the form refused before sending it
-const refusalOf = f => (f.problem === 'Too large' ? `A file is too large. Each file can be up to ${MAX_FILE_MB} MB.` : `${f.name} is not an image or a PDF.`)
+const refusalOf = f => (f.problem === 'Too large' ? `A file is too large. Each file can be up to ${MAX_FILE_MB} MB.` : `The file "${f.name}" is not an image or a PDF.`)
 
 const sameName = (a, b) => a.toLowerCase() === b.toLowerCase()
 // the server keeps one file per name on a line, so a replacement with the old one's name is sent under another
