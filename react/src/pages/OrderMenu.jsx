@@ -11,7 +11,6 @@ import { useDismiss } from '../components/Utilities.jsx'
 import { attachmentFileUrl, changeOrders, failureMessage, getCategories, invalidateOrderData, itemAttachmentThumbnailUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { currency, dot, plural, shortDate } from '../api/format.js'
-import { CategoryMark } from '../app/categoryMark.jsx'
 import { StatusPill, orderLine } from '../app/orderRow.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
@@ -110,8 +109,9 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 			<li role="none" className="sp-popover__list">
 				{shown.map(c => (
 					<Choice key={c.id} variant="row" control={<Check checked={has.has(c.id)} onChange={ev => tick(c, ev.target.checked)} />}>
-						<CategoryMark category={c} size="small" />
-						<span>{c.name}</span>
+						<span className="sp-truncate">{c.name}</span>
+						<span className="sp-grow" />
+						<span className="sp-meta sp-nowrap">{plural(c.orders ?? 0, 'order')}</span>
 					</Choice>
 				))}
 			</li>

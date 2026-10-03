@@ -1,3 +1,4 @@
+import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
@@ -42,3 +43,16 @@ export function StatusPill({ status }) {
 
 /** The columns an order table keeps at its own width (2i): Items goes at 1040 and under, Categories at 880. */
 export const columnsFor = width => ({ items: width > 1040, categories: width > 880 })
+
+/* Two categories fit a row; past two the first stands for the rest, with their count (2b).
+   One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
+export function CategoryChips({ categories }) {
+	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">No category</Chip></div>
+	const shown = categories.length > 2 ? categories.slice(0, 1) : categories
+	return (
+		<div className="sp-row-flex sp-gap-6">
+			{shown.map(c => <span key={c.id} className="ol-chip-slot"><Chip><span className="sp-truncate">{c.name}</span></Chip></span>)}
+			{categories.length > 2 ? <span className="sp-flex-none"><Chip>{`+${categories.length - 1}`}</Chip></span> : null}
+		</div>
+	)
+}

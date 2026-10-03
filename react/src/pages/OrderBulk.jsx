@@ -147,9 +147,9 @@ function SetStatus({ chosen, count, busy, onCancel, onApply }) {
 				const on = chosen ? chosen.filter(o => o.status === s.key).length : 0
 				return (
 					<Choice key={s.key} variant="row" control={<Radio name={name} checked={status === s.key} onChange={() => setStatus(s.key)} />}>
-						<span>{s.name}</span>
+						<span className="sp-truncate">{s.name}</span>
 						<span className="sp-grow" />
-						{on ? <span className="sp-meta">{on} of {count} today</span> : null}
+						{on ? <span className="sp-meta sp-nowrap">{on} of {count} today</span> : null}
 					</Choice>
 				)
 			})}
@@ -188,9 +188,9 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 				return (
 					<Choice key={c.id} variant="row" control={<Check checked={everywhere || ticked} indeterminate={!everywhere && !ticked && on > 0}
 						disabled={everywhere} onChange={ev => toggle(c.name, ev.target.checked)} />}>
-						<span>{c.name}</span>
+						<span className="sp-truncate">{c.name}</span>
 						<span className="sp-grow" />
-						<span className="sp-meta">{on ? `on ${on} of ${count}` : plural(c.orders ?? 0, 'order')}</span>
+						<span className="sp-meta sp-nowrap">{on ? `on ${on} of ${count}` : plural(c.orders ?? 0, 'order')}</span>
 					</Choice>
 				)
 			})}

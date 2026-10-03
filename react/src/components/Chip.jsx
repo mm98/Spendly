@@ -57,7 +57,7 @@ export function Chip({
 						? { checked: selected, onChange: e => onSelect?.(e.target.checked, stored) }
 						: { defaultChecked: defaultSelected, onChange: e => onSelect?.(e.target.checked, stored) })}
 				/>
-				<span data-label={children}>{children}</span>
+				<span data-label={children}><span>{children}</span></span>
 				{count != null ? <span data-label={count}>{count}</span> : null}
 			</label>
 		)

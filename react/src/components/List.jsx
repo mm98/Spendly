@@ -406,10 +406,10 @@ export function Facets({ children, ...rest }) {
     level of a drill path has no remove; `onOpen` goes back to it instead (4c). */
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
-	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} {...rest}>{children}</button>
+	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} {...rest}><span className="sp-truncate">{children}</span></button>
 	return (
 		<span className="sp-crumb" {...rest}>
-			{children}
+			<span className="sp-truncate">{children}</span>
 			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove}>×</button>
 		</span>
 	)

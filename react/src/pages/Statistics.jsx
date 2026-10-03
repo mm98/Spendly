@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
 import { Card, CardFooter, Panel } from '../components/Card.jsx'
-import { Chip } from '../components/Chip.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Bars, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
@@ -22,7 +21,7 @@ import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked, useFocusTrap } f
 import { Halves } from '../components/Well.jsx'
 import { useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
-import { StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
+import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { failureMessage, getCategories, getSliceLines, getSliceOrders, getStatsSlice, getVendors } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -1205,9 +1204,7 @@ function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, o
 							{show.categories
 								? (
 									<ListCell>
-										<span className="sp-row-flex sp-gap-6 sp-wrap">
-											{order.categories.map(category => <Chip key={category.id}>{category.name}</Chip>)}
-										</span>
+										<CategoryChips categories={order.categories} />
 									</ListCell>
 								)
 								: null}

@@ -1357,7 +1357,11 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
   min-height: var(--crumb-h);
 }
 .sp-crumbs__root { font-size: var(--t-13); font-weight: 600; color: var(--ink-3); }
-.sp-crumbs li { display: flex; align-items: center; gap: var(--sp-8); }
+.sp-crumbs li { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; max-width: 100%; }
+/* a level the reader drilled into can have any name: it ends in an ellipsis, and its remove keeps its size */
+:has(> .sp-crumbs) { min-width: 0; }
+.sp-crumb { max-width: 100%; min-width: 0; }
+.sp-crumb__remove { flex: none; }
 .sp-crumbs li + li::before {
   content: "";
   width: 5px;
@@ -2377,7 +2381,7 @@ a.sp-tabbar__item { text-decoration: none; }
 }
 
 /* each label is measured at its selected weight, so selecting one shifts nothing */
-.sp-chip--facet > span { display: grid; }
+.sp-chip--facet > span { display: grid; grid-template-columns: minmax(0, 1fr); }
 .sp-chip--facet > span::before {
   content: attr(data-label);
   font-weight: 600;
@@ -2386,6 +2390,9 @@ a.sp-tabbar__item { text-decoration: none; }
   visibility: hidden;
   pointer-events: none;
 }
+/* a value the reader named can be any length: its name ends in an ellipsis and its count keeps its room */
+.sp-chip--facet > span > span { overflow: hidden; text-overflow: ellipsis; }
+.sp-chip--facet > span + span { flex: none; }
 .sp-chip--facet {
   border-radius: var(--r-pill);
   padding: var(--sp-6) var(--pill-pad-x);
@@ -3640,6 +3647,8 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 /* the list caps its height and scrolls inside the panel, so a search that matches
    forty records cannot grow the popover past the viewport */
 .sp-popover__list { display: flex; flex-direction: column; gap: var(--sp-6); max-height: 216px; overflow-y: auto; }
+/* a submenu that holds a picker's list is that picker, so it takes the popover's widths (2a) */
+.sp-menu__sub:has(> .sp-popover__list) { min-width: 240px; max-width: 320px; }
 .sp-popover__summary {
   display: flex;
   align-items: center;

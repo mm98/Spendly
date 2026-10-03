@@ -24,7 +24,7 @@ import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useShellShape, useWidth } from '../app/useMedia.js'
-import { OrderFiles, OrderPhoto, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
+import { CategoryChips, OrderFiles, OrderPhoto, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { allMatching, ordersCsv, saveCsv } from '../app/ordersCsv.js'
@@ -583,19 +583,6 @@ function OrderAmount({ order }) {
 	if (order.status === 'Cancelled')
 		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">not counted</span></>
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
-}
-
-/* Two categories fit a row; past two the first stands for the rest, with their count (2b).
-   One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
-function CategoryChips({ categories }) {
-	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">No category</Chip></div>
-	const shown = categories.length > 2 ? categories.slice(0, 1) : categories
-	return (
-		<div className="sp-row-flex sp-gap-6">
-			{shown.map(c => <span key={c.id} className="ol-chip-slot"><Chip><span className="sp-truncate">{c.name}</span></Chip></span>)}
-			{categories.length > 2 ? <span className="sp-flex-none"><Chip>{`+${categories.length - 1}`}</Chip></span> : null}
-		</div>
-	)
 }
 
 /** At 640 of list column and under, rows become cards (2i): the photo, then name and total,
