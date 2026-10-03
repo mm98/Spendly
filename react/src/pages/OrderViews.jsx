@@ -82,10 +82,10 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 		}
 	})
 
-	const slot = mode === 'editing' ? <Button size="small" onClick={() => setMode('rest')}>Done</Button>
-		: mode === 'naming' ? <Button variant="outline" size="small" onMouseDown={ev => ev.preventDefault()} onClick={() => setMode('rest')}>Cancel</Button>
-			: now && (!active || edited) ? <Button variant="outline" size="small" onClick={() => setMode('naming')}>Save</Button>
-				: <Button variant="outline" size="small" onClick={() => setMode('editing')}>Edit</Button>
+	const slot = mode === 'editing' ? <Button size="xsmall" onClick={() => setMode('rest')}>Done</Button>
+		: mode === 'naming' ? <Button variant="outline" size="xsmall" onMouseDown={ev => ev.preventDefault()} onClick={() => setMode('rest')}>Cancel</Button>
+			: now && (!active || edited) ? <Button variant="outline" size="xsmall" onClick={() => setMode('naming')}>Save</Button>
+				: <Button variant="outline" size="xsmall" onClick={() => setMode('editing')}>Edit</Button>
 	const count = n => (n == null ? undefined : amount(n, 0))
 
 	return (
