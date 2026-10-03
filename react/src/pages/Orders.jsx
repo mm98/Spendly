@@ -1,10 +1,10 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Navigate, useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel, Switch } from '../components/Choice.jsx'
+import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel, FieldGroupValues, Switch } from '../components/Choice.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { DateField } from '../components/DatePickers.jsx'
@@ -24,13 +24,13 @@ import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useShellShape, useWidth } from '../app/useMedia.js'
-import { CategoryChips, OrderFiles, OrderPhoto, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
+import { CategoryChips, OrderFiles, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses } from '../app/statuses.js'
-import { allMatching, ordersCsv, saveCsv } from '../app/ordersCsv.js'
+import { linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
 import { DeleteOrder } from './DeleteOrder.jsx'
 import { BulkActions, useStatusName } from './OrderBulk.jsx'
-import { OrderCard, RowMenu } from './OrderMenu.jsx'
+import { OrderCard, RowMenu, orderName } from './OrderMenu.jsx'
 import { SheetViews, ViewsCard } from './OrderViews.jsx'
 import { useViews, viewLink } from '../app/views.jsx'
 
@@ -41,6 +41,10 @@ const SORTS = [
 	{ id: 'amount-asc', label: 'Lowest total' },
 	{ id: 'vendor-asc', label: 'Vendor A - Z' }
 ]
+
+/* The column a sort orders by, and which way: its head says so (2b). */
+const SORTED = { 'date-desc': ['date', '↓'], 'date-asc': ['date', '↑'], 'amount-desc': ['amount', '↓'], 'amount-asc': ['amount', '↑'], 'vendor-asc': ['title', '↑'] }
+const headOf = (sort, column, label) => (SORTED[sort]?.[0] === column ? `${label} ${SORTED[sort][1]}` : label)
 
 const FACETS = ['vendor', 'category', 'status', 'receipt', 'files', 'discounted', 'period', 'from', 'to', 'kind', 'min', 'max']
 const FILTERS = ['q', ...FACETS]
@@ -122,6 +126,21 @@ const RECEIPT = { attached: 'Receipt attached', missing: 'Receipt missing' }
 
 const daysBetween = (from, to) => Math.round((new Date(to) - new Date(from)) / 864e5) + 1
 
+/* What was picked, per step in the history, so opening an order and coming back finds it (c1);
+   reaching the list any other way starts with nothing picked. Kept while the app is open. */
+const pickedAt = new Map()
+const PICKS_KEPT = 50
+
+/* A right-click on a row or a card opens its own menu, as its ⋮ does (c1). */
+const menuHere = ev => {
+	if (ev.target.closest('.sp-menu, input, textarea')) return
+	const button = ev.target.closest('tr, .sp-record')?.querySelector('[aria-haspopup="menu"]')
+	if (!button) return
+	ev.preventDefault()
+	if (button.getAttribute('aria-expanded') === 'true') button.focus()
+	else button.click()
+}
+
 /* Addresses other pages link to by name (Home's alerts), as the filters they stand for */
 const NAMED = { 'missing-receipt': 'receipt=missing' }
 
@@ -193,9 +212,17 @@ function OrderList() {
 	// rows or cards (2b, 2c): in the address, as the filters are; a narrow column always draws cards
 	const view = params.get('view') === 'cards' ? 'cards' : 'rows'
 
-	// picked orders are this filter's own: any filter, search or sort change starts with none (2h)
+	// picked orders are this filter's own: any filter, search or sort change starts with none (2h);
+	// they are kept for this step in the history, so an order opened and left finds them again (c1)
+	const { key: step } = useLocation()
 	const selectionKey = JSON.stringify(request)
-	const [selection, setSelection] = useState({ key: selectionKey, ids: [], all: false })
+	const [selection, setSelectionNow] = useState(() => pickedAt.get(step) ?? { key: selectionKey, ids: [], all: false })
+	const setSelection = next => {
+		pickedAt.delete(step)
+		pickedAt.set(step, next)
+		while (pickedAt.size > PICKS_KEPT) pickedAt.delete(pickedAt.keys().next().value)
+		setSelectionNow(next)
+	}
 	const current = selection.key === selectionKey ? selection : { ids: [], all: false }
 	const setPicked = ids => setSelection({ key: selectionKey, ids, all: false })
 	const clearPicked = () => setPicked([])
@@ -203,10 +230,11 @@ function OrderList() {
 	const toast = useToast()
 	const statusName = useStatusName()
 	const [exporting, setExporting] = useState(false)
+	// everything the filter matches, one row per item line (16b)
 	const exportCsv = () => {
 		setExporting(true)
-		allMatching(request)
-			.then(rows => saveCsv(ordersCsv(rows, statusName)))
+		linesOf(request)
+			.then(lines => saveCsv(linesCsv(lines, statusName)))
 			.catch(e => toast({ message: failureMessage(e, 'The file was not made. Try again.'), color: 'danger' }))
 			.finally(() => setExporting(false))
 	}
@@ -320,10 +348,25 @@ function OrderList() {
 
 	const open = order => navigate(`/orders/${order.id}`)
 	const data = orders.data
+	const chosen = data ? data.orders.filter(o => current.ids.includes(o.id)) : []
+	const count = current.all ? data?.matched ?? 0 : chosen.length
+	const bulk = (
+		<BulkActions chosen={chosen} all={current.all} count={count} request={request} filtered={crumbs.length > 0 || !!f.q}
+			touch={touch} icons={narrow} onDone={clearPicked} />
+	)
+	// shift takes the run from the last one picked to this one, in the order shown (c1, 2h)
+	const anchor = useRef(null)
+	const pickRun = (id, shift) => {
+		const shown = data.orders.map(o => o.id)
+		const [a, b] = [shown.indexOf(anchor.current), shown.indexOf(id)]
+		if (shift && a >= 0 && b >= 0) return setPicked([...new Set([...current.ids, ...shown.slice(Math.min(a, b), Math.max(a, b) + 1)])])
+		anchor.current = id
+		setPicked(current.ids.includes(id) ? current.ids.filter(x => x !== id) : [...current.ids, id])
+	}
 	let body
 	if (orders.error)
 		body = <Failed what="Your orders" error={orders.error} onRetry={orders.refresh} />
-	else if (!data) body = narrow ? <CardsLoading size={size} /> : <RowsLoading width={width} size={size} />
+	else if (!data) body = narrow ? <CardsLoading size={size} /> : <RowsLoading width={width} size={size} sort={sort} />
 	else if (data.total === 0)
 		body = (
 			<Card variant="flush">
@@ -354,15 +397,8 @@ function OrderList() {
 		)
 	else if (data.matched === 0)
 		body = (
-			<Card variant="flush">
-				<Empty>
-					<EmptyTitle>No orders match these filters</EmptyTitle>
-					<EmptyBody>{f.q
-						? 'Remove one of the filters, or clear all of them to see every order that matches the search.'
-						: 'Remove one of the filters, or clear all of them to see every order.'}</EmptyBody>
-					<Button variant="outline" size="small" onClick={clearCrumbs}>Clear filters</Button>
-				</Empty>
-			</Card>
+			<NoMatch f={f} request={request} total={data.total} vendors={vendors.data} categories={categories.data} statusName={statusName}
+				onWiden={period => { setCustom(false); update({ period, from: '', to: '' }) }} onClear={clearCrumbs} />
 		)
 	else {
 		// the summary line (2b): how many, what they come to, what was saved, and the file of them
@@ -373,12 +409,9 @@ function OrderList() {
 				{summary ? <span className="sp-subtitle">{dot.trimStart()}{currency(summary.total)}</span> : null}
 				{summary ? <Saving value={summary.saved} /> : null}
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" disabled={exporting} onClick={exportCsv}>Export CSV</Button>
+				<Button variant="outline" size="small" disabled={exporting} onClick={exportCsv}>Export {plural(data.matched, 'order')}</Button>
 			</>
 		)
-		const chosen = data.orders.filter(o => current.ids.includes(o.id))
-		const count = current.all ? data.matched : chosen.length
-		const bulk = <BulkActions chosen={chosen} all={current.all} count={count} request={request} touch={touch} onDone={clearPicked} />
 		const pickedAll = chosen.length > 0 && chosen.length === data.orders.length
 		const note = pickedAll && data.matched > data.orders.length
 			? (current.all
@@ -390,18 +423,20 @@ function OrderList() {
 					</Button>
 				</>)
 			: null
-		const pickOne = id => setPicked(current.ids.includes(id) ? current.ids.filter(x => x !== id) : [...current.ids, id])
 		if (narrow)
-			body = <OrderCards data={data} size={size} summary={summary} onOpen={open} onLoadMore={loadMore} />
+			body = (
+				<OrderCards data={data} size={size} summary={summary} picked={current.ids} onPick={pickRun} onOpen={open} onLoadMore={loadMore}
+					bulk={touch || !chosen.length ? null : <BulkBar loose count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar>} />
+			)
 		else if (view === 'cards')
 			body = (
 				<OrderGrid data={data} size={size} touch={touch} caption={caption} picked={current.ids} count={count} bulk={bulk} note={note}
-					onPick={pickOne} onClear={clearPicked} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
+					onPick={pickRun} onClear={clearPicked} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
 					onCategory={id => update({ category: toggled(f.category, id, true) })} />
 			)
 		else
 			body = (
-				<OrderRows data={data} width={width} size={size} touch={touch} caption={caption} picked={current.ids} onPick={setPicked}
+				<OrderRows data={data} width={width} size={size} sort={sort} touch={touch} caption={caption} picked={current.ids} onPick={setPicked}
 					count={count} bulk={bulk} note={note} onLoadMore={loadMore} onDelete={setDeleting} />
 			)
 	}
@@ -411,6 +446,8 @@ function OrderList() {
 	const alone = !railed || none
 	const main = (
 		<div className={alone ? 'sp-grow sp-stack sp-gap-12 ol-alone' : 'sp-grow sp-stack sp-gap-12'} ref={column}>
+			{/* on a phone a selection takes the top bar's place (c12) */}
+			{touch && narrow && chosen.length ? <BulkBar head count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar> : null}
 			{none ? null : controls}
 			{none || !touch ? null : <div className="sp-row-flex sp-gap-8">{filtersButton}</div>}
 			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
@@ -436,16 +473,17 @@ function OrderList() {
 	)
 
 	// the route's rail layout takes two children, the rail first
-	if (alone) return main
+	// every category chip on the page asks once, here, whether it is over its limit (8b)
+	if (alone) return <OverLimitProvider>{main}</OverLimitProvider>
 	return (
-		<>
+		<OverLimitProvider>
 			<div className="sp-rail sp-stack sp-gap-12">
 				<ViewsCard params={params} matched={orders.data?.matched}
 					summary={[...crumbs.map(c => c.props.children), sortLabel.toLowerCase()].join(dot)} />
 				{filtersCard}
 			</div>
 			{main}
-		</>
+		</OverLimitProvider>
 	)
 }
 
@@ -532,12 +570,12 @@ function useSettled(value, ms = 250) {
 
 /** The orders as rows (2b): the summary line, which the bulk bar takes over once a row is
     picked (2h), the table, and Load more. */
-function OrderRows({ data, width, size, touch, caption, picked, onPick, count, bulk, note, onLoadMore, onDelete }) {
+function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, count, bulk, note, onLoadMore, onDelete }) {
 	const show = columnsFor(width)
 	return (
 		<List data={data.orders} recordKey={o => o.id} noun="orders" rowTo={o => `/orders/${o.id}`} locale={NUMBER_LOCALE}
 			pageSize={size} total={data.matched} onLoadMore={onLoadMore} picked={picked} onPick={onPick} bulkNote={note}
-			rowVoid={o => o.status === 'Cancelled'}>
+			rowVoid={o => o.status === 'Cancelled'} onContextMenu={menuHere}>
 			<Caption>{caption}</Caption>
 			<Selected>
 				<span className="sp-bulkbar__count">{amount(count, 0)} selected</span>
@@ -546,12 +584,12 @@ function OrderRows({ data, width, size, touch, caption, picked, onPick, count, b
 			</Selected>
 			<ListHead>
 				<ListCell cell="checkbox" />
-				<ListCell width="title">Order</ListCell>
-				<ListCell width="date">Date</ListCell>
+				<ListCell width="title">{headOf(sort, 'title', 'Order')}</ListCell>
+				<ListCell width="date">{headOf(sort, 'date', 'Date')}</ListCell>
 				{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
 				{show.items ? <ListCell width="number">Items</ListCell> : null}
 				<ListCell width="status">Status</ListCell>
-				<ListCell width="amount">Total</ListCell>
+				<ListCell width="amount">{headOf(sort, 'amount', 'Total')}</ListCell>
 				<ListCell width="menu" />
 			</ListHead>
 			<ListRow>{o => (
@@ -577,6 +615,79 @@ function OrderRows({ data, width, size, touch, caption, picked, onPick, count, b
 	)
 }
 
+/* The statuses whose own name says what happened to an order ("none returned"); any other, or one
+   the account renamed, is named as a status. */
+const PAST = ['Ordered', 'Delivered', 'Returned', 'Cancelled']
+
+/* The periods a narrow date filter widens to, smallest first, each holding the range in force. */
+const widerThan = (from, to) => [
+	...PRESETS.map(p => { const [a, b] = p.range(new Date()); return { key: p.key, label: p.label.toLowerCase(), from: a, to: b } }),
+	{ key: '', label: 'all dates', from: '', to: '' }
+].filter(c => !c.key || (from && to && c.from <= from && c.to >= to && !(c.from === from && c.to === to)))
+
+/* Named getOrders so a write that forgets the orders forgets these counts too (useApi keys by name). */
+const widened = {
+	async getOrders(request, periods, signal) {
+		const answers = await Promise.all(periods.map(p => getOrders({ ...request, from: p.from, to: p.to, page: 1, pageSize: 1 }, signal)))
+		return answers.map(a => a.matched)
+	}
+}.getOrders
+
+/** A filtered list that holds nothing says why, and offers the smallest wider period that finds
+    something (6a). Every number in the sentence waits for its answer. */
+function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, onClear }) {
+	const vendorIds = listOf(f.vendor)
+	const categoryIds = listOf(f.category)
+	const statuses = listOf(f.status)
+	const vendor = vendorIds.length === 1 ? vendors?.find(v => v.id === vendorIds[0]) : null
+	const category = !vendorIds.length && categoryIds.length === 1 ? categories?.find(c => c.id === categoryIds[0]) : null
+	const subject = vendor ?? category
+	// what narrows the list besides who it is from and when
+	const others = [
+		...statuses, ...(vendor ? [] : vendorIds), ...(category ? [] : categoryIds), ...listOf(f.receipt),
+		f.files, f.discounted, f.kind, f.min || f.max, f.q
+	].filter(Boolean)
+	const dated = !!(f.from || f.to)
+	const periods = dated ? widerThan(f.from, f.to) : []
+	const counts = useApi(widened, [request, periods.map(p => ({ from: p.from, to: p.to }))], { enabled: dated })
+	const wider = counts.data ? periods.find((p, i) => counts.data[i] > 0) : null
+	const found = wider ? counts.data[periods.indexOf(wider)] : 0
+	const waiting = (dated && !counts.data && !counts.error) || (vendorIds.length === 1 && !vendors) || (categoryIds.length === 1 && !categories)
+
+	const preset = PRESETS.find(p => p.key === f.period) ?? presetOf(f.from, f.to)
+	const when = !dated ? '' : preset ? preset.label.toLowerCase()
+		: f.from && f.to ? `between ${shortDate(f.from)} and ${shortDate(f.to)}`
+			: f.from ? `since ${shortDate(f.from)}` : `up to ${shortDate(f.to)}`
+	const what = others.length === 1 && statuses.length === 1
+		? (PAST.includes(statuses[0]) && statusName(statuses[0]) === statuses[0] ? statuses[0].toLowerCase() : `with the status ${statusName(statuses[0])}`)
+		: others.length ? 'match the other filters' : null
+	// the period is named only when it is what leaves the list empty
+	const period = wider ? ` ${what || !preset ? '' : 'from '}${when}` : ''
+	let said
+	if (subject && !subject.orders) said = `${subject.name} has no orders yet.`
+	else if (subject && (what || wider)) said = `${subject.name} has ${plural(subject.orders, 'order')}, but none${what ? ` ${what}` : ''}${period}.`
+	else if (wider && !subject) said = others.length
+		? `None of your ${plural(total, 'order')} match these filters ${when}.`
+		: `None of your ${plural(total, 'order')} are ${preset ? 'from' : 'dated'} ${when}.`
+	else said = f.q
+		? 'Remove one of the filters, or clear all of them to see every order that matches the search.'
+		: 'Remove one of the filters, or clear all of them to see every order.'
+	if (wider) said += ` Widening the period finds ${amount(found, 0)}.`
+
+	return (
+		<Card variant="flush">
+			<Empty>
+				<EmptyTitle>No orders match these filters</EmptyTitle>
+				{waiting ? <Skeleton shape="line" /> : <EmptyBody>{said}</EmptyBody>}
+				<div className="sp-row-flex sp-gap-8">
+					{wider ? <Button size="small" onClick={() => onWiden(wider.key)}>Search {wider.label}</Button> : null}
+					<Button variant="outline" size="small" onClick={onClear}>Clear filters</Button>
+				</div>
+			</Empty>
+		</Card>
+	)
+}
+
 /* A cancelled order did not happen, so its amount is struck and says it is not counted, where a
    saving would stand (2b). */
 function OrderAmount({ order }) {
@@ -585,30 +696,38 @@ function OrderAmount({ order }) {
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
 
-/** At 640 of list column and under, rows become cards (2i): the photo, then name and total,
-    reference and status, date and saving. */
-function OrderCards({ data, size, summary, onOpen, onLoadMore }) {
+/** At 640 of list column and under, rows become cards (2i), each with its box always there (2c). `bulk`
+    takes the count's place once one is picked, where a phone's top bar does not. */
+function OrderCards({ data, size, summary, picked, bulk, onPick, onOpen, onLoadMore }) {
 	return (
 		<>
-			<span className="sp-meta">{plural(data.matched, 'order')}{summary ? `${dot}${currency(summary.total)}` : ''}</span>
-			{data.orders.map(o => (
-				<ListItem key={o.id} variant="card" mark={<OrderPhoto order={o} />} onClick={() => onOpen(o)}>
-					<Stacked>
-						<Line>
-							<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
-							<span className="sp-amount">{currency(o.total)}</span>
-						</Line>
-						<Line>
-							<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
-							<StatusPill status={o.status} />
-						</Line>
-						<Line>
-							<span className="sp-subtitle sp-grow">{shortDate(o.date)}{dot}{plural(o.itemCount, 'item')}</span>
-							<Saving value={o.saved} />
-						</Line>
-					</Stacked>
-				</ListItem>
-			))}
+			{bulk ?? <span className="sp-meta">{plural(data.matched, 'order')}{summary ? `${dot}${currency(summary.total)}` : ''}</span>}
+			{data.orders.map(o => {
+				const on = picked.includes(o.id)
+				return (
+					<div key={o.id} className="ol-pickable">
+						<label className="ol-pick">
+							<Check checked={on} aria-label={`Select ${orderName(o)}`} onChange={ev => onPick(o.id, ev.nativeEvent?.shiftKey)} />
+						</label>
+						<ListItem variant="card" selected={on} mark={<><span className="ol-pick-room" /><OrderPhoto order={o} /></>} onClick={() => onOpen(o)}>
+							<Stacked>
+								<Line>
+									<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
+									<span className="sp-amount">{currency(o.total)}</span>
+								</Line>
+								<Line>
+									<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
+									<StatusPill status={o.status} />
+								</Line>
+								<Line>
+									<span className="sp-subtitle sp-grow">{shortDate(o.date)}{dot}{plural(o.itemCount, 'item')}</span>
+									<Saving value={o.saved} />
+								</Line>
+							</Stacked>
+						</ListItem>
+					</div>
+				)
+			})}
 			<ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
 		</>
 	)
@@ -628,9 +747,9 @@ function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPi
 		: <ListToolbar loose>{caption}</ListToolbar>
 	const footer = <ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
 	return (
-		<Records head={head} footer={footer}>
+		<Records head={head} footer={footer} onContextMenu={menuHere}>
 			{data.orders.map(o => (
-				<OrderCard key={o.id} order={o} touch={touch} picked={picked.includes(o.id)} onPick={() => onPick(o.id)}
+				<OrderCard key={o.id} order={o} touch={touch} picked={picked.includes(o.id)} onPick={shift => onPick(o.id, shift)}
 					menuOpen={menuFor === o.id} onMenu={setMenuFor} onOpen={onOpen} onDelete={onDelete} onCategory={onCategory} />
 			))}
 		</Records>
@@ -641,19 +760,19 @@ const LOADING = [['62pc', '58', '88', '44pc'], ['48pc', '74', '74', '36pc'], ['5
 const loadingRows = size => Array.from({ length: size }, (_, i) => ({ id: i, r: LOADING[i % LOADING.length] }))
 
 /* Skeletons hold the real rows' places, a page of them, so nothing moves when the orders land (6b). */
-function RowsLoading({ width, size }) {
+function RowsLoading({ width, size, sort }) {
 	const show = columnsFor(width)
 	const rows = loadingRows(size)
 	return (
 		<List data={rows} recordKey={x => x.id} noun="orders">
 			<Caption><Skeleton shape="line" data-w="82" data-h="13" /></Caption>
 			<ListHead>
-				<ListCell width="title">Order</ListCell>
-				<ListCell width="date">Date</ListCell>
+				<ListCell width="title">{headOf(sort, 'title', 'Order')}</ListCell>
+				<ListCell width="date">{headOf(sort, 'date', 'Date')}</ListCell>
 				{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
 				{show.items ? <ListCell width="number">Items</ListCell> : null}
 				<ListCell width="status">Status</ListCell>
-				<ListCell width="amount">Total</ListCell>
+				<ListCell width="amount">{headOf(sort, 'amount', 'Total')}</ListCell>
 				<ListCell width="menu" />
 			</ListHead>
 			<ListRow>{({ r }) => (
@@ -696,6 +815,7 @@ const countOf = n => (n == null ? null : <><span className="sp-grow" /><span cla
     behind it stays, greyed. `bare` gives the groups alone, for the sheet (7b). */
 function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, categories, highest, matched, counts }) {
 	const statuses = useStatuses()
+	const over = useOverLimitIds()
 	const live = (group, key) => (counts ? counts[group]?.[key] ?? 0 : undefined)
 	// every vendor and category, so a group's total is the count the sidebar shows (2b); one
 	// with no orders comes last
@@ -707,6 +827,12 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 	const found = find ? shownVendors.filter(v => v.name.toLowerCase().includes(find.toLowerCase())) : shownVendors
 	const vendorsPicked = listOf(f.vendor)
 	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || vendorsPicked.includes(v.id))
+	// the categories the same way: their first few, then the rest on asking, found by name past twenty
+	const [allCategories, setAllCategories] = useState(false)
+	const [findCategory, setFindCategory] = useState('')
+	const categoriesFound = findCategory ? shownCategories.filter(c => c.name.toLowerCase().includes(findCategory.toLowerCase())) : shownCategories
+	const categoriesPicked = listOf(f.category)
+	const categoriesListed = allCategories || findCategory ? categoriesFound : categoriesFound.filter((c, i) => i < 6 || categoriesPicked.includes(c.id))
 	const empty = (n, total, on) => !on && (n === undefined ? !total : n === 0)
 	const switches = useId()
 
@@ -747,14 +873,18 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 							: null}
 						{shownVendors.length > 20 ? <Announce>{find ? (found.length ? plural(found.length, 'vendor') : 'No vendor by that name.') : ''}</Announce> : null}
 						{find && !found.length ? <span className="sp-subtitle">No vendor by that name.</span> : null}
-						{listed.map(v => {
-							const on = vendorsPicked.includes(v.id)
-							const n = live('vendor', v.id)
-							return (
-								<Choice key={v.id} control={<Check checked={on} disabled={empty(n, v.orders, on)}
-									onChange={ev => update({ vendor: toggled(f.vendor, v.id, ev.target.checked) })} />}>{v.name}{countOf(n)}</Choice>
-							)
-						})}
+						<FieldGroupValues>
+							{listed.map(v => {
+								const on = vendorsPicked.includes(v.id)
+								const n = live('vendor', v.id)
+								return (
+									<Choice key={v.id} control={<Check checked={on} disabled={empty(n, v.orders, on)}
+										onChange={ev => update({ vendor: toggled(f.vendor, v.id, ev.target.checked) })} />}>
+										<span className="sp-truncate">{v.name}</span>{countOf(n)}
+									</Choice>
+								)
+							})}
+						</FieldGroupValues>
 						{!allVendors && !find && found.length > listed.length
 							? <FieldGroupMore onClick={() => setAllVendors(true)}>Show {found.length - listed.length} more</FieldGroupMore>
 							: null}
@@ -765,17 +895,33 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 			{shownCategories.length
 				? (
 					<FieldGroup facet legend="Categories">
-						<Filters>
-							{shownCategories.map(c => {
-								const on = listOf(f.category).includes(c.id)
-								const n = live('category', c.id)
-								return (
-									<Chip key={c.id} variant="facet" value={c.id} selected={on} disabled={empty(n, c.orders, on)}
-										count={n == null ? null : amount(n, 0)}
-										onSelect={next => update({ category: toggled(f.category, c.id, next) })}>{c.name}</Chip>
-								)
-							})}
-						</Filters>
+						{shownCategories.length > 20
+							? <SearchInput value={findCategory} onChange={setFindCategory} placeholder="Find a category…" aria-label="Find a category" />
+							: null}
+						{shownCategories.length > 20
+							? <Announce>{findCategory ? (categoriesFound.length ? plural(categoriesFound.length, 'category', 'categories') : 'No category by that name.') : ''}</Announce>
+							: null}
+						{findCategory && !categoriesFound.length ? <span className="sp-subtitle">No category by that name.</span> : null}
+						{categoriesListed.length
+							? (
+								<FieldGroupValues>
+									<Filters>
+										{categoriesListed.map(c => {
+											const on = categoriesPicked.includes(c.id)
+											const n = live('category', c.id)
+											return (
+												<Chip key={c.id} variant="facet" value={c.id} selected={on} disabled={empty(n, c.orders, on)}
+													count={n == null ? null : amount(n, 0)} trail={over.has(c.id) ? <OverLimitDot /> : undefined}
+													onSelect={next => update({ category: toggled(f.category, c.id, next) })}>{c.name}</Chip>
+											)
+										})}
+									</Filters>
+								</FieldGroupValues>
+							)
+							: null}
+						{!allCategories && !findCategory && categoriesFound.length > categoriesListed.length
+							? <FieldGroupMore onClick={() => setAllCategories(true)}>Show {categoriesFound.length - categoriesListed.length} more</FieldGroupMore>
+							: null}
 					</FieldGroup>
 				)
 				: null}

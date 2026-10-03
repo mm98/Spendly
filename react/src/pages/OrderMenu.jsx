@@ -10,8 +10,8 @@ import { Icon } from '../components/Icon.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
 import { attachmentFileUrl, changeOrders, failureMessage, getCategories, invalidateOrderData, itemAttachmentThumbnailUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { currency, dot, plural, shortDate } from '../api/format.js'
-import { StatusPill, orderLine } from '../app/orderRow.jsx'
+import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
+import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
 
@@ -116,7 +116,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 				))}
 			</li>
 			<MenuSeparator />
-			<MenuItem icon="plus" onClick={go(`/categories/new${find ? `?name=${encodeURIComponent(find)}` : ''}`)}>Create a category</MenuItem>
+			<MenuItem icon="plus" onClick={go(`/categories/new?for=${order.id}${find ? `&name=${encodeURIComponent(find)}` : ''}`)}>Create a category</MenuItem>
 		</>
 	)
 
@@ -175,8 +175,9 @@ export function RowMenu({ order, touch, onDelete }) {
 /** One order as a card (2c): its first three line photos, then the row's facts; the card's menu
     is the row's menu, and its box picks it as a row's does. */
 export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
+	const over = useOverLimitIds()
 	const photos = order.photos ?? []
-	const more = order.photoCount > photos.length ? `+${order.photoCount - photos.length}` : null
+	const more = order.photoCount > photos.length ? morePhotos(order.photoCount - photos.length) : null
 	return (
 		<Record
 			onClick={() => onOpen(order)}
@@ -188,7 +189,11 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 			subtitle={orderLine(order)}
 			status={<StatusPill status={order.status} />}
 			chips={order.categories.length
-				? order.categories.map(c => <Chip key={c.id} onClick={() => onCategory(c.id)}>{c.name}</Chip>)
+				? order.categories.map(c => (
+					<Chip key={c.id} onClick={() => onCategory(c.id)}>
+						{over.has(c.id) ? <><span className="sp-truncate">{c.name}</span><OverLimitDot /></> : c.name}
+					</Chip>
+				))
 				: <Chip variant="dashed">No category</Chip>}
 			meta={[
 				<span key="when" className="sp-subtitle">{shortDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>,

@@ -58,6 +58,7 @@ export function Chip({
 						: { defaultChecked: defaultSelected, onChange: e => onSelect?.(e.target.checked, stored) })}
 				/>
 				<span data-label={children}><span>{children}</span></span>
+				{trail}
 				{count != null ? <span data-label={count}>{count}</span> : null}
 			</label>
 		)

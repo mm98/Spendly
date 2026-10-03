@@ -4,7 +4,7 @@ import { newId } from '../lib/ids.js'
 import { findCategoryByFold, nextCategoryColour } from '../lib/findOrCreate.js'
 import { todayIso, toEpoch } from '../lib/dates.js'
 import {
-	categoryMonthAverages, categoryOrderCounts, categoryStatsFor, uncategorisedBookmarks, bookmarkCategoryCounts
+	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, uncategorisedBookmarks, bookmarkCategoryCounts
 } from '../lib/aggregate.js'
 
 export const router = Router()
@@ -33,7 +33,7 @@ const withStats = (category, stats = ZERO_STATS, bookmarks = 0, extra = {}) => (
 	id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
 	colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
 	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, bookmarks,
-	monthAverage: extra.monthAverage ?? 0, alone: extra.alone ?? 0
+	monthAverage: extra.monthAverage ?? 0, monthSpends: extra.monthSpends ?? [], alone: extra.alone ?? 0
 })
 
 /* How many of a category's orders carry no other category: the delete dialog says how many are
@@ -41,12 +41,14 @@ const withStats = (category, stats = ZERO_STATS, bookmarks = 0, extra = {}) => (
 const countAlone = db.prepare(`SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id
 	WHERE oc.category_id = ? AND o.user_id = ? AND o.category_count = 1`)
 
-/** The single record as its page reads it. */
-const fullRecord = (userId, category, req) => withStats(category, categoryStatsFor(userId, category.id),
-	countBookmarks.get(category.id, userId).c, {
-		monthAverage: categoryMonthAverages(userId, toEpoch(req.today ?? todayIso())).get(category.id) ?? 0,
+/** The single record as its page reads it: its 12-month average from its own months, not the account's rollup. */
+function fullRecord(userId, category, req) {
+	const monthSpends = categoryMonthSpends(userId, category.id, toEpoch(req.today ?? todayIso()))
+	return withStats(category, categoryStatsFor(userId, category.id), countBookmarks.get(category.id, userId).c, {
+		monthAverage: monthSpends.reduce((sum, n) => sum + n, 0) / 12, monthSpends,
 		alone: countAlone.get(category.id, userId).c
 	})
+}
 
 // A list row: what the lists, filters and pickers read; the counts say whether a filter is worth offering.
 const listRow = (category, orders = 0, bookmarks = 0) => ({

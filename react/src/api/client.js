@@ -499,6 +499,17 @@ export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })
 }
 
+/** Every item line of the orders a list request names (`ids` for orders picked by hand), in the
+    list's order: what an export writes. */
+export async function getOrderLines(params = {}, signal) {
+	return request('/api/orders/lines' + qs(params), { signal })
+}
+
+/** What deleting the orders a list request names takes with it, and this month's share (6d). */
+export async function getOrderImpact(params = {}, signal) {
+	return request('/api/orders/impact' + qs(params), { signal })
+}
+
 export async function getOrder(id, signal) {
 	return request(`/api/orders/${id}`, { signal }).catch(forgetGone('order', id))
 }
@@ -726,7 +737,8 @@ export async function getSettings(signal) {
 	return request('/api/settings', { signal })
 }
 
-/** The running build: { builtAt, commit }, both null outside the Docker image. */
+/** The running build: { builtAt, commit }, both null outside the Docker image, and `canUpdate`, whether
+    this server can install a newer one itself. */
 export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
@@ -735,6 +747,12 @@ export async function getVersion(signal) {
     server asks the registry, which a browser cannot. */
 export async function checkVersion(signal) {
 	return request('/api/version/check', { signal })
+}
+
+/** Asks the server to install the newest published version (11d). It restarts to do so, so the answer
+    says only that the update started; /api/version names the new commit once it is back. */
+export async function startUpdate(signal) {
+	return request('/api/version/update', { method: 'POST', signal })
 }
 
 export async function saveSettings(patch, signal) {
@@ -776,6 +794,18 @@ export async function getSliceLines(slice, signal) {
 /** When an order was last added, and the counts behind Home's alerts. */
 export async function getHomeAttention(signal) {
 	return request('/api/stats/home', { signal })
+}
+
+/** Last month's summary for Home (8b): its totals, each limited category's spend and how often it
+    went over in twelve months, and whether the reader put it away. */
+export async function getMonthlySummary(signal) {
+	return request('/api/stats/summary', { signal })
+}
+
+export async function putSummaryAway(month, signal) {
+	const answer = await request('/api/stats/summary/seen', { method: 'PUT', body: { month }, signal })
+	invalidate(getMonthlySummary)
+	return answer
 }
 
 /** The order the vendors and categories lists open in: one setting, so only the orders both lists
@@ -933,9 +963,9 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendors, getVendor, getHomeAttention]
-const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
+const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 

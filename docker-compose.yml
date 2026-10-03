@@ -24,6 +24,10 @@ services:
       SPENDLY_PLAIN_HTTP: "1"
       # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...
+      # Lets Settings > This build install a newer version with "Update and reload": the app asks
+      # the watchtower service below to do it. The token must match WATCHTOWER_HTTP_API_TOKEN.
+      SPENDLY_UPDATER_URL: "http://watchtower:8080/v1/update"
+      SPENDLY_UPDATER_TOKEN: "change-this-demo-key"
     volumes:
       # Absolute path -- a relative one breaks if this file moves. On QNAP: /share/Container/spendly:/data
       - /share/Container/spendly:/data

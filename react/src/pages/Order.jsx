@@ -11,13 +11,13 @@ import { Alert, useToast } from '../components/Overlays.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, invalidateOrderData
+	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, invalidateOrderData
 } from '../api/client.js'
-import { dot, plural, shortDate } from '../api/format.js'
+import { dot, plural, shortDate, today } from '../api/format.js'
 import { draftOf } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
 import { useShellShape } from '../app/useMedia.js'
-import { StatusPill } from '../app/orderRow.jsx'
+import { OverLimitDot, StatusPill, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
@@ -214,20 +214,18 @@ function OrderView({ order, touch, created, onGone }) {
 	)
 }
 
-/** The order's categories; one its month took past its limit carries the problem dot, the mark
-    that travels with a category wherever it shows (8b). */
+/** The order's categories; one over its limit this month carries the problem dot, the mark that
+    travels with a category wherever it is named, the order list's rows included (8b). */
 function OrderCategories({ order }) {
-	const names = order.categories.map(c => c.name)
-	const limits = useApi(getOrderLimits, [order.date, names, ''], { enabled: names.length > 0 })
-	const over = new Set((limits.data?.limits ?? []).filter(l => l.spend > l.budget + 0.005).map(l => l.name.toLowerCase()))
-	if (!names.length) return 'None'
-	if (!over.size) return names.join(dot)
+	const over = useOverLimitIds()
+	if (!order.categories.length) return 'None'
+	if (!order.categories.some(c => over.has(c.id))) return order.categories.map(c => c.name).join(dot)
+	// the dot speaks of this month; an order from another month says which month that is
+	const thisMonth = order.date.slice(0, 7) === today().slice(0, 7)
 	return (
 		<span className="sp-row-flex sp-wrap sp-gap-6 or-chips">
-			{order.categories.map(c => (over.has(c.name.toLowerCase())
-				? <Chip key={c.id} trail={<span className="sp-combobox__dot" data-dot="problem" />}>{c.name}</Chip>
-				: <Chip key={c.id}>{c.name}</Chip>))}
-			<span className="sp-meta">over limit</span>
+			{order.categories.map(c => <Chip key={c.id} trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{c.name}</Chip>)}
+			<span className="sp-meta">{thisMonth ? 'over limit' : 'over limit this month'}</span>
 		</span>
 	)
 }

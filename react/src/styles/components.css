@@ -1099,6 +1099,10 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 
 .sp-list-item .sp-chip,
 .sp-list-item .sp-pill { flex: none; }
+/* a pill naming what the reader typed gives way before the row does: the name ends in an ellipsis */
+.sp-pill:has(> .sp-truncate) { min-width: 0; max-width: 100%; }
+.sp-list-item .sp-pill:has(> .sp-truncate) { flex: 0 1 auto; }
+.sp-pill > .sp-truncate { display: block; }
 
 /* ---------- menu - LOCKED c9 ---------- */
 
@@ -1644,7 +1648,7 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-combobox__dot[data-dot="done"] { background: var(--green); }
 .sp-combobox__dot[data-dot="returned"] { background: var(--amber-2); }
 .sp-combobox__dot[data-dot="cancelled"] { background: var(--red); }
-/* the over-limit mark a category carries wherever it shows (8b) */
+/* a category over its monthly limit carries this wherever it is named (8b, c19) */
 .sp-combobox__dot[data-dot="problem"] { background: var(--red); }
 .sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
@@ -2133,6 +2137,16 @@ a.sp-tabbar__item { text-decoration: none; }
   font-size: var(--t-12);
   color: var(--ink-2);
 }
+/* on a phone a selection takes the top bar's place (c12): stuck to the top of the screen, out to
+   its edges over the body's own inset, while the top bar steps aside until the selection empties */
+.sp-bulkbar--head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: calc(var(--sp-12) * -1) calc(var(--sp-12) * -1) 0;
+  gap: var(--sp-8);
+}
+.sp-shell--touch:has(.sp-bulkbar--head) > .sp-shell__page > .sp-topbar { display: none; }
 
 /* ---------- facets - LOCKED c12 ---------- */
 
@@ -2154,11 +2168,45 @@ a.sp-tabbar__item { text-decoration: none; }
   display: flex;
   align-items: center;
   gap: var(--sp-8);
+  /* a legend shrinks to its words unless told, which would keep the count and the chevron off the end */
+  width: 100%;
   font-size: var(--t-12);
   font-weight: 600;
   color: var(--ink-2);
 }
 .sp-field-group__count { font-size: var(--t-11); color: var(--ink-5); font-variant-numeric: tabular-nums; }
+/* a facet group folds from its head (c12, 16a): the whole head is one button, Enter or a press
+   folds it, and the chevron turns as the card's does */
+.sp-field-group__fold {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--sp-8);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-marker);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+.sp-field-group__fold:focus-visible { box-shadow: var(--ring); }
+/* a facet's values scroll inside the group rather than lengthen the rail (16a); the inset is room
+   for a value's focus ring, which the scroll box would otherwise cut */
+.sp-field-group__values {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  max-height: var(--list-max);
+  overflow-y: auto;
+  margin: calc(var(--sp-4) * -1);
+  padding: var(--sp-4);
+}
+.sp-field-group__fold[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
+.sp-touch .sp-field-group__fold { min-height: var(--control-h-touch); }
 .sp-filters {
   display: flex;
   align-items: center;
@@ -2262,6 +2310,18 @@ a.sp-tabbar__item { text-decoration: none; }
   box-shadow: var(--shadow-sheet);
   margin-top: auto;
 }
+/* on a phone a popover is a sheet from the bottom edge holding the same panel (c13): the sheet is
+   its surface, so the panel drops its own place, frame and width */
+.sp-sheet > .sp-popover {
+  position: static;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
 .sp-sheet__handle {
   flex: none;
   width: 32px;
@@ -2269,6 +2329,14 @@ a.sp-tabbar__item { text-decoration: none; }
   border-radius: var(--r-marker);
   background: var(--line-3);
   align-self: center;
+}
+/* the handle is pulled down to close the sheet (c13): a thumb-sized grip around the drawn bar,
+   reaching the sheet's top edge and the gap under it; short of closing, the sheet slides back */
+.sp-sheet__handle { position: relative; touch-action: none; cursor: grab; }
+.sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
+.sp-sheet { transition: transform 160ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .sp-sheet { transition: none; }
 }
 
 /* ---------- dialog - LOCKED c13 ---------- */
@@ -2602,11 +2670,14 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-legend {
   display: flex;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
   gap: var(--sp-12);
   font-size: var(--t-12);
   color: var(--ink-3);
 }
-.sp-legend__item { display: flex; align-items: center; gap: var(--sp-6); }
+/* a series the reader named can be long: the item keeps to the legend's width and its name ends in an ellipsis */
+.sp-legend__item { display: flex; align-items: center; gap: var(--sp-6); min-width: 0; max-width: 100%; }
 .sp-legend__key {
   width: 10px;
   height: 10px;
@@ -3348,6 +3419,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   color: var(--ink);
 }
 [data-theme="dark"] .sp-toast__undo { color: var(--green-2); }
+/* the readout's rows are a quiet light ink on its lifted surface; the light theme's line tone is dark here */
+[data-theme="dark"] .sp-tip__row { color: var(--ink-3); }
 
 /* ---------- summary rows - DRAFT c21 ----------
    The right-hand panel's contents: a fact per row, then the total. */
@@ -3649,6 +3722,8 @@ li.sp-anchor { display: flex; }
 li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-popover--start { left: 0; }
 .sp-popover--end { right: 0; }
+/* the positioner (c9) flips a popover above its trigger when only above has room */
+.sp-popover[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
 .sp-popover--static { position: static; box-shadow: none; }
 .sp-popover__head { display: flex; flex-direction: column; gap: var(--sp-6); }
 /* the list caps its height and scrolls inside the panel, so a search that matches
@@ -3851,6 +3926,14 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-sidebar__menu > .sp-menu { position: absolute; box-shadow: var(--shadow-menu); }
 .sp-sidebar__menu--up > .sp-menu { left: 0; right: 0; bottom: calc(100% + var(--sp-4)); min-width: 0; }
 .sp-sidebar__menu--side > .sp-menu { left: calc(100% + var(--sp-4)); bottom: 0; }
+.sp-sidebar__menu--down > .sp-menu { left: 0; right: 0; top: calc(100% + var(--sp-4)); min-width: 0; }
+/* a row with a second way in (16a): the row, then a chevron that opens a short menu, each its own
+   target; the rail keeps the row alone */
+.sp-nav-split { display: flex; gap: var(--sp-2); }
+.sp-nav-split > .sp-nav-item:first-child { flex: 1; min-width: 0; }
+.sp-nav-split > .sp-nav-split__more { flex: none; width: var(--menu-col); justify-content: center; padding: 0; }
+.sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-nav-split__more,
+.sp-sidebar--rail:not(.sp-sidebar--peek) .sp-nav-split__more { display: none; }
 
 .sp-nav-item__count[data-color="warning"] { color: var(--amber-3); }
 .sp-nav-item--light .sp-nav-item__count[data-color="warning"] { color: var(--amber-ink); }
@@ -3989,6 +4072,12 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-tip__head > :last-child { margin-left: auto; font-weight: 700; }
 .sp-tip__row { display: flex; align-items: center; gap: var(--sp-6); font-size: var(--t-11); color: var(--line-4); }
 .sp-tip__row > :last-child { margin-left: auto; }
+/* the readout hangs beside the column it reads, inside the chart (4a); a column in the chart's left
+   half carries it on its right, where there is room. It takes no pointer, so the next column does */
+.sp-bars__col:has(> .sp-bars__tip) { position: relative; }
+.sp-bars__tip { position: absolute; top: 50%; right: 100%; z-index: 3; margin-right: var(--sp-12); transform: translateY(-50%); pointer-events: none; }
+.sp-bars__tip[data-side="end"] { right: auto; left: 100%; margin-right: 0; margin-left: var(--sp-12); }
+.sp-bars--plot .sp-bars__tip { top: auto; bottom: 96px; transform: none; }
 
 /* the gauge reads its measurement from the same 5% scale the charts use */
 .sp-gauge__fill[data-fill="0"] { width: 0%; }
@@ -4598,7 +4687,20 @@ html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--st
 .sp-mark--photo > .sp-mark__open > img { position: absolute; inset: 0; }
 .sp-mark--photo:has(> img),
 .sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }
-.sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; }
+/* Thumbnail tone (17b, 12b): on light, goods only (paper is read), saturate(0.88) under --bg at 8%, which is
+   the picture at 92% over --bg; on dark every thumbnail is edged and at 90%. Never in the viewer or an avatar. */
+[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo, .sp-palette__thumb):has(> img) { background: var(--bg); }
+[data-theme="light"] :is(.sp-mark--goods, .sp-record__photo, .sp-palette__thumb) > img { filter: saturate(0.88); opacity: 0.92; }
+[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img) { border-color: var(--line-3); }
+[data-theme="dark"] :is(.sp-record__photo, .sp-palette__thumb) > img { outline: 1px solid var(--line-3); outline-offset: -1px; }
+[data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo, .sp-palette__thumb) > img { opacity: 0.9; }
+[data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo, .sp-palette__thumb):hover > img { opacity: 1; }
+.sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; cursor: zoom-in; user-select: none; }
+/* a picture at full size zooms where it is pressed (17d); a finger on it swipes or pinches, so the
+   page under it does not scroll or zoom instead. Zoomed, it keeps the stage's size and moves inside it */
+.sp-viewer__stage:has(> img) { touch-action: none; }
+.sp-viewer__stage--zoomed { display: flex; overflow: auto; }
+.sp-viewer__stage--zoomed > img { flex: none; margin: auto; max-width: none; max-height: none; cursor: zoom-out; }
 .sp-viewer__stage:has(> img),
 .sp-viewer__stage:has(> .sp-mark) { background: none; }
 /* the rail's label, fixed to the window where [data-tip] would clip inside a scrolling sidebar */

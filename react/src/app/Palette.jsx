@@ -108,21 +108,31 @@ function shape(needle, list, hits, vendors, touch) {
 		vendors: hits.vendors.slice(0, SHOWN).map(v => {
 			const s = stats.get(v.id)
 			const facts = s ? [plural(s.orders, 'order'), touch ? null : currency(s.spend, 0)].filter(Boolean) : []
+			// the alias leads: it is why a name without the typed text is here at all (9d)
+			const matched = v.alias ? 'matched ' + v.alias : null
 			return {
 				key: 'vendor-' + v.id, icon: 'shopping-bag', name: v.name, to: `/vendors/${v.id}/edit`,
-				// the alias leads: it is why a name without the typed text is here at all (9d)
-				meta: [v.alias ? 'matched ' + v.alias : null, ...facts].filter(Boolean).join(dot)
+				// a vendor that looks like another one says so in place of its figures (9b)
+				meta: s?.duplicateOf
+					? <>{matched ? matched + dot : null}<span className="sp-field__help" data-color="warning">possible duplicate</span></>
+					: [matched, ...facts].filter(Boolean).join(dot)
 			}
 		}),
 		vendorsCount: hits.counts.vendors,
 		// under the limit every matching order is here, so its items are counted in the page
 		itemsCount: hits.counts.items ?? items.length,
 		items: items.slice(0, SHOWN),
-		// what can be done for the one vendor the text names (9b)
-		vendorActions: (hits.vendors.length === 1 ? hits.vendors : []).map(v => ({
-			key: 'vendor-new-' + v.id, icon: 'plus', plain: true, name: <>New order for <b>{v.name}</b></>,
-			to: '/orders/new?vendor=' + encodeURIComponent(v.name)
-		}))
+		// what can be done for the one vendor the text names (9b, 4b)
+		vendorActions: (hits.vendors.length === 1 ? hits.vendors : []).flatMap(v => [
+			{
+				key: 'vendor-new-' + v.id, icon: 'plus', plain: true, name: <>New order for <b>{v.name}</b></>,
+				to: '/orders/new?vendor=' + encodeURIComponent(v.name)
+			},
+			{
+				key: 'vendor-stats-' + v.id, icon: 'chart-bar', plain: true, name: <>See <b>{v.name}</b> in Statistics</>,
+				to: '/statistics?crumbs=vendor:' + encodeURIComponent(v.id)
+			}
+		])
 	}
 }
 

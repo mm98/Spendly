@@ -6,15 +6,16 @@ import { vendorStats, vendorStatsFor } from '../lib/aggregate.js'
 import { findOrCreateCategory } from '../lib/findOrCreate.js'
 import { colourFor } from '../lib/palette.js'
 import { vendorKey } from '../lib/names.js'
+import { lookalikePairs } from '../lib/vendorLookalikes.js'
 
 export const router = Router()
 
-const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead, archived'
-const selectAll = db.prepare('SELECT id, name, colour, favourite, archived FROM vendors WHERE user_id = ? ORDER BY name')
+const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead, archived, origin'
+const selectAll = db.prepare('SELECT id, name, colour, favourite, archived, origin FROM vendors WHERE user_id = ? ORDER BY name')
 const selectOne = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
-const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead)
-	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead)`)
+const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead, origin)
+	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead, @origin)`)
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE vendor_id = ? AND user_id = ?')
 const deleteOne = db.prepare('DELETE FROM vendors WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead, archived=@archived WHERE id=@id AND user_id=@userId')
@@ -141,7 +142,7 @@ const withStats = (vendor, stats, aliases = [], defaultCategories = [], lastMatc
 	return {
 		id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour,
 		favourite: Boolean(vendor.favourite), lead: vendor.lead ?? undefined, archived: Boolean(vendor.archived),
-		aliases, lastMatched, defaultCategories,
+		createdByScan: vendor.origin === 'scan', aliases, lastMatched, defaultCategories,
 		orders: s.orders, spend: s.spend, saved: s.saved
 	}
 }
@@ -151,12 +152,13 @@ const fullRecord = (userId, vendor) => withStats(vendor, statsForOne(userId, ven
 	defaultCategoriesFor(userId, vendor.id), lastMatchedFor(userId, vendor.id))
 
 /* The list's own shape: what the vendor list, the pickers, the filters and the palette read.
-   The colour is the list's mark; initials and lead are the single-record route's. */
-const listRow = (vendor, stats, aliases, defaultCategories) => {
+   `duplicateOf` is the vendor this one probably duplicates (lib/vendorLookalikes.js). */
+const listRow = (vendor, stats, aliases, defaultCategories, duplicateOf) => {
 	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0, last: null }
 	return {
 		id: vendor.id, name: vendor.name, colour: vendor.colour, favourite: Boolean(vendor.favourite),
-		archived: Boolean(vendor.archived), aliases, defaultCategories,
+		archived: Boolean(vendor.archived), createdByScan: vendor.origin === 'scan', duplicateOf: duplicateOf ?? null,
+		aliases, defaultCategories,
 		orders: s.orders, spend: s.spend, saved: s.saved, lastOrder: s.last ? fromEpoch(s.last) : null
 	}
 }
@@ -176,8 +178,10 @@ router.get('/', (req, res) => {
 	   list to fill its categories field, so a per-vendor query would be one round of SQL per
 	   row of a list that is already in hand. */
 	const defaultsBy = groupByVendor(selectAllDefaultCategories.all(req.user.id))
+	const duplicates = new Map(lookalikePairs(req.user.id, new Map([...stats].map(([id, s]) => [id, s.orders])))
+		.map(p => [p.merge, p.keep]))
 	res.json(selectAll.all(req.user.id)
-		.map(v => listRow(v, stats, aliasesBy.get(v.id) ?? [], defaultsBy.get(v.id) ?? [])))
+		.map(v => listRow(v, stats, aliasesBy.get(v.id) ?? [], defaultsBy.get(v.id) ?? [], duplicates.get(v.id))))
 })
 
 router.post('/', (req, res) => {
@@ -199,7 +203,9 @@ router.post('/', (req, res) => {
 		id: newId('v'), userId: req.user.id, name,
 		initials: look.initials ?? name.slice(0, 2).toUpperCase(),
 		colour: look.colour ?? colourFor(name),
-		favourite: look.favourite ? 1 : 0, lead: look.lead ?? null
+		favourite: look.favourite ? 1 : 0, lead: look.lead ?? null,
+		// made on the way back from a scanned receipt (5b): it says so in the list (5a)
+		origin: look.origin === 'scan' ? 'scan' : null
 	}
 	saveVendor(() => insert.run(vendor), req.user.id, vendor.id, cleaned.aliases, defaults.names, cleaned.moves)
 	// Read back rather than echoed, so the answer holds the stored order (alphabetical).

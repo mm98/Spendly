@@ -6,7 +6,7 @@
 	.hm-page { container-type: inline-size; }
 
 	/* both rows share one column split, so the second row starts level on both sides */
-	.hm-split { display: grid; grid-template-columns: 1.35fr 1fr; align-items: stretch; }
+	.hm-split { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: stretch; }
 	.hm-split--start { align-items: start; }
 
 	@container (max-width: 900px) {
@@ -21,6 +21,12 @@
 	.hm-mark { display: grid; place-items: center; flex: none; width: var(--mark-small); height: var(--mark-small); }
 
 	.hm-fill { display: flex; flex-direction: column; justify-content: center; }
+
+	/* the monthly summary's head: its close button stays level with the month, not the sentence */
+	.hm-top { display: flex; align-items: flex-start; gap: var(--sp-12); }
+	/* a summary line: what the category did stays whole, on a line of its own when the name leaves
+	   no room, and a name longer than the line is cut; the gap is a word space */
+	.hm-said { display: flex; flex-wrap: wrap; column-gap: var(--sp-4); min-width: 0; }
 
 	/* the first-run Home (20d): one card at the width the drawing gives it, its two wells level */
 	.hm-day-one { max-width: 620px; }

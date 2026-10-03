@@ -1,7 +1,7 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
 import { VENDOR_PALETTE, colourFor, nextUnused } from './palette.js'
-import { foldName, vendorKey } from './names.js'
+import { foldName, vatNumberOf, vendorKey, webAddressOf } from './names.js'
 
 /* Shared by manual order create/update and bulk import: a vendor or category named by string
    is matched case-insensitively against what the user already has, and created if nothing
@@ -12,8 +12,8 @@ import { foldName, vendorKey } from './names.js'
 
 const selectVendorIdByName = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
 const selectVendorIdByAlias = db.prepare('SELECT vendor_id AS id, name FROM vendor_aliases WHERE user_id = ? AND lower(name) = lower(?)')
-const insertVendor = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite)
-	VALUES (@id, @userId, @name, @initials, @colour, 0)`)
+const insertVendor = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, made_by_order)
+	VALUES (@id, @userId, @name, @initials, @colour, 0, @orderId)`)
 
 const selectVendorNames = db.prepare('SELECT id, name FROM vendors WHERE user_id = ?')
 const selectAliasNames = db.prepare('SELECT vendor_id AS id, name FROM vendor_aliases WHERE user_id = ?')
@@ -39,13 +39,24 @@ export function findVendorIdByAnyName(userId, name) {
 	return undefined
 }
 
-export function findOrCreateVendor(userId, name) {
+/** The vendor a receipt names, tried as 5h says: its VAT number, then its web address, then the
+    name it printed. Each is matched against every vendor's name and aliases. */
+export function findVendorIdForReceipt(userId, { vendor, website, vatNumber }) {
+	const vat = vatNumberOf(vatNumber)
+	const web = webAddressOf(website)
+	return (vat ? findVendorIdByAnyName(userId, 'CVR ' + vat) : undefined)
+		?? (web ? findVendorIdByAnyName(userId, web) : undefined)
+		?? findVendorIdByAnyName(userId, vendor)
+}
+
+/** `orderId` is the order being saved, kept on a vendor it makes (migrations/190). */
+export function findOrCreateVendor(userId, name, orderId = null) {
 	const clean = String(name).trim()
 	const existing = findVendorIdByAnyName(userId, clean)
 	if (existing) return existing
 	const id = newId('v')
 	insertVendor.run({ id, userId, name: clean, initials: clean.slice(0, 2).toUpperCase(),
-		colour: colourFor(clean, VENDOR_PALETTE) })
+		colour: colourFor(clean, VENDOR_PALETTE), orderId })
 	return id
 }
 

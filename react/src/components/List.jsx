@@ -4,7 +4,7 @@ import { join, pick, reject } from './variants.js'
 import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
 import { within } from './Utilities.jsx'
 import { Check } from './Choice.jsx'
-import { Button } from './Button.jsx'
+import { Button, IconButton } from './Button.jsx'
 import { Cards, ListFooter } from './Card.jsx'
 import { Icon } from './Icon.jsx'
 import { formatNumber, singular } from './format.js'
@@ -337,10 +337,19 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 }
 
 
-/** What can be done to the records picked (c1, c12), standing in for whatever sat there before
-    the first pick. `loose` carries its own border, for a set with no list around it. */
-export function BulkBar({ loose = false, count, onClear, children, ...rest }) {
+/** What can be done to the records picked (c1, c12), in place of what sat there before the first pick.
+    `loose` carries its own border, for a set with no list around it; `head` stands in for a phone's top bar. */
+export function BulkBar({ loose = false, head = false, count, onClear, children, ...rest }) {
 	reject(rest, 'BulkBar')
+	if (head)
+		return (
+			<div className="sp-bulkbar sp-bulkbar--head" {...rest}>
+				<span className="sp-bulkbar__count sp-truncate">{count}</span>
+				<span className="sp-grow" />
+				{children}
+				<IconButton icon="x" aria-label="Clear the selection" onClick={() => onClear?.()} />
+			</div>
+		)
 	return (
 		<div className={join('sp-bulkbar', loose && 'sp-bulkbar--loose')} {...rest}>
 			<Check checked aria-label="Clear the selection" onChange={() => onClear?.()} />
@@ -402,15 +411,16 @@ export function Facets({ children, ...rest }) {
 	return <div className="sp-facets" {...rest}>{children}</div>
 }
 
-/** One filter or one drill level. `name` is what the remove control says it removes. An earlier
-    level of a drill path has no remove; `onOpen` goes back to it instead (4c). */
+/** One filter or drill level; `name` is what its remove says. An earlier level opens with `onOpen` (4c)
+    and has no remove: its `onRemove` is Backspace on the focused crumb (c8), as the last level's is. */
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
-	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} {...rest}><span className="sp-truncate">{children}</span></button>
+	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }
+	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} onKeyDown={backspace} {...rest}><span className="sp-truncate">{children}</span></button>
 	return (
 		<span className="sp-crumb" {...rest}>
 			<span className="sp-truncate">{children}</span>
-			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove}>×</button>
+			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove} onKeyDown={backspace}>×</button>
 		</span>
 	)
 }
@@ -448,6 +458,11 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
 				: <div className={stripClass}>{strip}{extras}</div>}
 			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open ? 'true' : undefined} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
+				onKeyDown={ev => {
+					menuKeys.onKeyDown(ev)
+					// Escape closes the menu and hands focus back to its button (c1)
+					if (ev.key === 'Escape' && menu.open) { ev.stopPropagation(); menuBox.current?.querySelector('.sp-record__act')?.focus(); menu.onClose?.() }
+				}}
 				onBlur={ev => { if (menu.open && ev.relatedTarget && !within(menuBox.current, ev.relatedTarget)) menu.onClose?.() }}>
 				<button type="button" className="sp-record__act" aria-label={menu.label} aria-haspopup="menu" aria-expanded={menu.open ? 'true' : 'false'} onClick={menu.onToggle}>
 					<Icon name="dots-vertical" size={12} />

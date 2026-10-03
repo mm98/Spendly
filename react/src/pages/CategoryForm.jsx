@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
@@ -14,8 +14,8 @@ import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createCategory, deleteCategory, failureMessage, getCategories, getCategoriesThisMonth, getCategory,
-	invalidateCategoryData, invalidateVendorData, mergeCategory, overBudget, updateCategory
+	changeOrders, createCategory, deleteCategory, failureMessage, getCategories, getCategoriesThisMonth, getCategory,
+	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeCategory, overBudget, updateCategory
 } from '../api/client.js'
 import { amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
@@ -23,7 +23,7 @@ import { useListReturn } from '../app/listMemory.js'
 import { glyphOf } from '../app/categoryMark.jsx'
 import {
 	CategoryMark, CommitBar, DeleteCategory, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
-	MergeDialog, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
+	MergeButton, MergeDialog, MergePicker, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
 
 /* The icons the picker leads with (5e), then the rest of the register. */
@@ -38,9 +38,10 @@ const fold = s => String(s).normalize('NFD').replace(/\p{M}/gu, '').trim().toLow
 /** A category, created (5e) or edited (5f): one page, one form, one rail. */
 export default function CategoryForm() {
 	const { id } = useParams()
-	// once deleted, the record is not read again: the page is on its way out
-	const [gone, setGone] = useState(false)
-	const record = useApi(getCategory, [id], { enabled: Boolean(id) && !gone })
+	// once deleted or merged, that record is not read again (the page is on its way out); another one is
+	const [gone, setGone] = useState(null)
+	const record = useApi(getCategory, [id], { enabled: Boolean(id) && gone !== id })
+	const going = on => setGone(on ? id : null)
 	const list = useListReturn('categories')
 	// the last record stays in hand while the next one loads, so it has to be the one the address names
 	if (id && record.data?.id !== id) {
@@ -50,9 +51,9 @@ export default function CategoryForm() {
 					back={{ to: list, label: 'Open Categories' }} />
 			</div>
 		)
-		return <CategoryFields key="loading" category={LOADING} loading loadingId={id} onGone={setGone} />
+		return <CategoryFields key="loading" category={LOADING} loading loadingId={id} onGone={going} />
 	}
-	return <CategoryFields key={id ?? 'new'} category={id ? record.data ?? null : null} onGone={setGone} />
+	return <CategoryFields key={id ?? 'new'} category={id ? record.data ?? null : null} onGone={going} />
 }
 
 // the form while the category is on its way: an existing record's form, every value held by a skeleton
@@ -69,6 +70,9 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	// a name typed where the category was asked for (Order list 2e) starts the new one
 	const [params] = useSearchParams()
 	const named = params.get('name') ?? ''
+	// opened from an order's category picker (5e): the order the new category is chosen on, back there
+	const forOrder = editing ? null : params.get('for')
+	const location = useLocation()
 	const start = useMemo(() => ({
 		name: category?.name ?? named,
 		icon: glyphOf(category?.icon),
@@ -80,7 +84,9 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const [iconSearch, setIconSearch] = useState('')
 	const [allIcons, setAllIcons] = useState(() => Boolean(ICONS[start.icon]) && !FIRST.includes(start.icon))
 	const [deleting, setDeleting] = useState(false)
-	const [merging, setMerging] = useState(false)
+	// Merge…: the picker from its button, then the category 5j's dialog compares against
+	const [picking, setPicking] = useState(false)
+	const [merging, setMerging] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const [saving, setSaving] = useState(false)
 	// the category was deleted after this page opened it: what the save said, and nothing left to save
@@ -97,6 +103,23 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		|| values.colour !== start.colour || values.budget !== start.budget
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
+	// back to the page the picker was on, or to the order when this page was opened on its own
+	const returnToOrder = () => (location.key !== 'default' ? navigate(-1) : navigate(`/orders/${forOrder}`))
+	const back = () => { guard.release(); returnToOrder() }
+	/* The new category goes on the order whose picker asked for it, with Undo. Created but not
+	   added, it says so, and the way back is the same. */
+	const chooseOnOrder = saved => changeOrders({ ids: [forOrder], addCategories: [saved.name] })
+		.then(() => {
+			invalidateOrderData()
+			toast({
+				message: `${saved.name} is created and added to the order.`,
+				undo: {
+					onClick: () => changeOrders({ ids: [forOrder], removeCategories: [saved.id] })
+						.then(invalidateOrderData, e => sayFailure(toast, e, 'The category was not taken off. Try again.'))
+				}
+			})
+		}, e => sayFailure(toast, e, `${saved.name} is created, but it was not added to the order. Add it from the order's menu.`))
+		.finally(back)
 
 	const nameProblem = name => {
 		if (!name.trim()) return 'Give the category a name.'
@@ -104,6 +127,12 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		return taken ? `You already have a category called ${taken.name}.` : null
 	}
 	const budgetProblem = budget => (budget === 0 ? 'Use an amount above zero, or leave it empty for no limit.' : null)
+	// a limit most of the last twelve months went past (6c): said in amber on leaving the field, and saving is not stopped
+	const [checkedBudget, setCheckedBudget] = useState(start.budget)
+	const passedMonths = checkedBudget > 0 ? (category?.monthSpends ?? []).filter(spend => spend > checkedBudget).length : 0
+	const limitWarning = passedMonths > 6
+		? `${values.name.trim() || category.name} averaged ${currency(category.monthAverage, 0)} a month over the last 12 months. This limit will be passed most months.`
+		: null
 
 	const save = () => {
 		if (writing.current) return
@@ -119,8 +148,9 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		}
 		const written = editing ? updateCategory(category.id, look) : createCategory(name, look)
 		written
-			.then(() => {
+			.then(saved => {
 				invalidateCategoryData()
+				if (forOrder) return chooseOnOrder(saved)
 				leave()
 			})
 			.catch(e => {
@@ -209,10 +239,10 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			<Card>
 				<span className="sp-section-label">Monthly limit</span>
 				{/* the field's own blur formats the amount, so the check listens from around it */}
-				<div onBlur={() => setErrors(e => ({ ...e, budget: budgetProblem(values.budget) }))}>
+				<div onBlur={() => { setErrors(e => ({ ...e, budget: budgetProblem(values.budget) })); setCheckedBudget(values.budget) }}>
 					<Field id="category-limit" label="Limit"
-						message={errors.budget ?? (editing ? 'One amount for every month. Statistics reads this.' : 'One amount that applies to every month. Leave empty for no limit.')}
-						messageType={errors.budget ? 'danger' : 'hint'}>
+						message={errors.budget ?? limitWarning ?? (editing ? 'One amount for every month. Statistics reads this.' : 'One amount that applies to every month. Leave empty for no limit.')}
+						messageType={errors.budget ? 'danger' : limitWarning ? 'warning' : 'hint'}>
 						{/* money is written the Danish way everywhere it is shown (api/format.js), so it is typed that way too */}
 						{h(<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale="da-DK" placeholder="no limit" />)}
 					</Field>
@@ -225,7 +255,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const bar = touch || !editing || changed
 		? (
 			<CommitBar status={!editing ? 'Nothing saved yet' : changed ? 'Unsaved changes' : null} quiet={!editing}
-				onCancel={() => navigate(list)} onSave={lost ? null : save}
+				onCancel={() => (forOrder ? returnToOrder() : navigate(list))} onSave={lost ? null : save}
 				commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save category' : 'Create'} saving={saving} disabled={loading} />
 		)
 		: null
@@ -237,7 +267,12 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				<>
 					<CategorySummary category={category} preview={preview} budget={values.budget} />
 					<RecentOrders filter={{ categoryId: category.id }} to={`/orders?category=${category.id}`} total={category.orders} />
-					<Removing category={category} onMerge={() => setMerging(true)} onDelete={() => setDeleting(true)} />
+					<Removing category={category} onDelete={() => setDeleting(true)}
+						merge={{
+							open: picking, onToggle: () => setPicking(!picking), onClose: () => setPicking(false),
+							picker: box => <MergePicker kind="category" source={category} options={all.data ?? []} anchor={box} position="start"
+								onClose={() => setPicking(false)} onPick={target => { setPicking(false); setMerging(target) }} />
+						}} />
 				</>
 			)
 			: (
@@ -265,7 +300,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				? <DeleteCategory category={category} busy={busy} onConfirm={remove} onCancel={() => setDeleting(false)} />
 				: null}
 			{merging
-				? <MergeDialog kind="category" source={category} options={all.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(false)} />
+				? <MergeDialog kind="category" source={category} initial={merging} options={all.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)
@@ -311,7 +346,7 @@ function CategorySummary({ category, preview, budget }) {
 				<Sum value={currency(category.monthAverage ?? 0, 0)}>12-month average</Sum>
 				<Sum value={amount(category.orders, 0)}>Orders</Sum>
 			</div>
-			<Button variant="outline" size="small" to="/statistics">See more in statistics</Button>
+			<Button variant="outline" size="small" to={`/statistics?crumbs=category:${category.id}`}>See more in statistics</Button>
 		</Card>
 	)
 }
@@ -345,11 +380,11 @@ const removingWords = category => (category.orders || category.bookmarks
 	}
 	: { title: 'Nothing carries this category', body: 'Merging or deleting it changes no order. To keep it under a different name, rename it instead.' })
 
-function Removing({ category, onMerge, onDelete }) {
+function Removing({ category, merge, onDelete }) {
 	const { title, body } = removingWords(category)
 	return (
 		<Card footer={[
-			<Button key="merge" variant="outline" onClick={onMerge}>Merge…</Button>,
+			<MergeButton key="merge" merge={merge}>Merge…</MergeButton>,
 			<Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
 		]} footerLayout="split" footerCommits>
 			<span className="sp-section-label">Removing it</span>

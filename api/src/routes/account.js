@@ -67,3 +67,23 @@ router.post('/demo-data', (req, res) => {
 	worker.on('error', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
 	worker.on('exit', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
 })
+
+/* Update and reload (11d): the updater beside this container (SPENDLY_UPDATER_URL, docker-compose.yml) swaps
+   it, stopping this process, so an updater still busy after a moment has taken the job. */
+const UPDATER_ANSWER_MS = 3000
+
+export const updaterAvailable = () => /^https?:\/\//.test(process.env.SPENDLY_UPDATER_URL ?? '')
+
+router.post('/version/update', async (req, res) => {
+	if (!updaterAvailable()) return res.status(409).json({ error: 'This copy of Spendly cannot install an update by itself.' })
+	const asked = fetch(process.env.SPENDLY_UPDATER_URL, {
+		headers: process.env.SPENDLY_UPDATER_TOKEN ? { Authorization: `Bearer ${process.env.SPENDLY_UPDATER_TOKEN}` } : {}
+	})
+	const answer = await Promise.race([asked.then(r => r, e => e), new Promise(done => setTimeout(() => done(null), UPDATER_ANSWER_MS))])
+	asked.catch(() => {})
+	if (answer instanceof Error || (answer && !answer.ok)) {
+		console.error('The updater refused or could not be reached:', answer instanceof Error ? answer.message : answer.status)
+		return res.status(502).json({ error: 'The update could not be started.' })
+	}
+	res.status(202).json({ started: true })
+})

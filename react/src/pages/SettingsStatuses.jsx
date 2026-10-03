@@ -21,9 +21,9 @@ const StatusLook = ({ tone, children }) => {
 	return <Pill color={look.color} state={look.state}>{children}</Pill>
 }
 
-/** Statuses (Settings 11a), each saved as it is made: drag or key a row to move it, the pencil
-    renames and recolours, and a status no order carries can be deleted; Draft is built in. */
-export function StatusesCard() {
+/** Statuses (11a), each saved as made: a row moves by drag or keys (on a phone by up and down buttons,
+    18b), the pencil renames and recolours, a status no order carries can be deleted; Draft is built in. */
+export function StatusesCard({ touch = false }) {
 	const loaded = useApi(getStatuses)
 	const toast = useToast()
 	const [list, setList] = useState(null)
@@ -33,6 +33,17 @@ export function StatusesCard() {
 	const [held, setHeld] = useState(null)
 	const [said, setSaid] = useState('')
 	const rows = useRef(null)
+	// the row and the way it was last moved by a button, so focus can follow it to its new place
+	const moved = useRef(null)
+	useEffect(() => {
+		const last = moved.current
+		if (!last || !list) return
+		moved.current = null
+		const at = list.findIndex(s => s.key === last.key)
+		// the pressed button again, or the other one where the pressed one is now disabled at an end
+		const way = at <= 0 ? 'down' : at >= list.length - 1 ? 'up' : last.way
+		rows.current?.querySelector(`[data-status="${CSS.escape(last.key)}"] [data-move="${way}"]`)?.focus()
+	}, [list])
 
 	const write = async (send, optimistic) => {
 		if (optimistic) setList(optimistic)
@@ -113,6 +124,13 @@ export function StatusesCard() {
 		}
 	})
 
+	const step = (status, way) => {
+		const at = list.findIndex(s => s.key === status.key)
+		moved.current = { key: status.key, way }
+		moveTo(status, at + (way === 'up' ? -1 : 1))
+		setSaid(`${status.name}, position ${at + (way === 'up' ? 0 : 2)} of ${list.length}`)
+	}
+
 	const remove = status => write(() => deleteStatus(status.key), list.filter(s => s.key !== status.key))
 		.then(ok => { if (ok) toast({ message: `${status.name} was deleted.` }) })
 
@@ -122,7 +140,7 @@ export function StatusesCard() {
 			<div className="sp-row-flex">
 				<Heading section="statuses">Statuses</Heading>
 				<span className="sp-grow" />
-				<span className="sp-meta">Drag to reorder</span>
+				{touch ? null : <span className="sp-meta">Drag to reorder</span>}
 			</div>
 			<div className="sp-stack sp-gap-6" ref={rows}>
 				<Announce>{said}</Announce>
@@ -134,11 +152,23 @@ export function StatusesCard() {
 								onSave={next => write(() => changeStatus(status.key, next)).then(ok => { if (ok) setEditing(null) })} />
 							: (
 								<ListItem variant={drag?.key === status.key || held?.key === status.key ? 'carried' : 'default'}
-									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
-									data-status={status.key} {...handleEvents(status)}>
-									<StatusLook tone={status.tone}>{status.name}</StatusLook>
-									<span className="sp-grow" />
-									<span className="sp-meta">{plural(status.orders ?? 0, 'order')}</span>
+									handle={touch ? undefined : <Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
+									data-status={status.key} {...(touch ? {} : handleEvents(status))}>
+									{touch
+										? (
+											// on a phone the count goes under the name, so the name keeps its room beside the buttons
+											<span className="sp-stack sp-grow">
+												<StatusLook tone={status.tone}><span className="sp-truncate">{status.name}</span></StatusLook>
+												<span className="sp-meta">{plural(status.orders ?? 0, 'order')}</span>
+											</span>
+										)
+										: (
+											<>
+												<StatusLook tone={status.tone}><span className="sp-truncate">{status.name}</span></StatusLook>
+												<span className="sp-grow" />
+												<span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>
+											</>
+										)}
 									{status.builtIn
 										? <Pill>built in</Pill>
 										: (
@@ -149,6 +179,16 @@ export function StatusesCard() {
 												</Mark>
 											</>
 										)}
+									{touch
+										? (
+											<>
+												<IconButton variant="outline" icon="chevron-up" aria-label={`Move ${status.name} up`} data-move="up"
+													disabled={i === 0} onClick={() => step(status, 'up')} />
+												<IconButton variant="outline" icon="chevron-down" aria-label={`Move ${status.name} down`} data-move="down"
+													disabled={i === list.length - 1} onClick={() => step(status, 'down')} />
+											</>
+										)
+										: null}
 								</ListItem>
 							)}
 					</Fragment>

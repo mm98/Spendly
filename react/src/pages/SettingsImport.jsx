@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { FileDrop } from '../components/FileDrop.jsx'
@@ -19,6 +20,7 @@ import { buildOrders, download, guessMapping, readSheet, reuseMapping, skippedCs
 import { Heading, useStepFocus } from './SettingsParts.jsx'
 import { ImportFooter, MapStep } from './SettingsImportMap.jsx'
 import { useStatuses } from '../app/statuses.js'
+import { ImportButton } from './BudgetImport.jsx'
 
 /* The server takes 50 MB per request and a receipt rides along as base64, so orders are sent
    in slices under this many bytes of JSON. */
@@ -221,7 +223,22 @@ export function ImportCard() {
 				</div>
 			</Card>
 			<History history={history} onReuse={item => { setReuse({ ...item.mapping, fileName: item.fileName }); then(FILE_ID) }} />
+			<BudgetImport />
 		</>
+	)
+}
+
+/** The budget's own Excel import, the same button Budget has (21f): it opens the newest year it brought in. */
+function BudgetImport() {
+	const navigate = useNavigate()
+	return (
+		<Card>
+			<span className="sp-section-label">Budget</span>
+			<span className="sp-data">An Excel workbook with one sheet for each year, named like 2026. You see the years it holds before anything is written.</span>
+			<div className="sp-row-flex">
+				<ImportButton onImported={years => navigate(`/budget/${Math.max(...years)}`)} />
+			</div>
+		</Card>
 	)
 }
 

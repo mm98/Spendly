@@ -8,8 +8,9 @@ import { getDecoratedOrder } from '../lib/decorate.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
-import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
+import { findVendorIdForReceipt } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
+import { resolveStatus } from '../lib/statuses.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
@@ -91,7 +92,22 @@ const selectUploadByHash = db.prepare(`
 const selectUploadMeta = db.prepare(
 	'SELECT id, name, size, kind, (thumbnail IS NOT NULL) AS has_thumbnail FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
-const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
+const selectDraftDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM settings WHERE user_id = ?')
+
+// what each kind of document sets when the account lets a scan override its defaults (Settings, Defaults)
+const FROM_DOCUMENT = {
+	receipt: { status: 'Delivered' }, order_confirmation: { status: 'Ordered' },
+	return: { status: 'Returned' }, sale: { kind: 'Sold' }
+}
+
+/** The new order's status and kind: the account's defaults, or what the document shows when the
+    account lets a scan override them. A status the account has deleted keeps the default. */
+function startingValues(userId, settings, read) {
+	const own = { status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense' }
+	const found = FROM_DOCUMENT[read?.documentType]
+	if (!found || (settings && !settings.scan_overrides)) return own
+	return { status: (found.status && resolveStatus(userId, found.status)) || own.status, kind: found.kind ?? own.kind }
+}
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
 // Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
 // size, kind, thumbnail) plus the cached read, in one row -- the draft handler either has an
@@ -282,6 +298,7 @@ function draftIfLeft(userId, upload, { read, failure }, today) {
 			copyUploadToAttachment.run({ id: attachment, orderId: id, itemId: null, name: null,
 				meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, fromScan: 1, uploadId: upload.id, userId })
 			copyUploadPages.run({ id: attachment, uploadId: upload.id })
+			markVendorScanned.run({ order: id, userId })
 		})
 		// no request carried this write, so the account's cached answers do not know of it yet
 		forgetReads(userId)
@@ -322,12 +339,12 @@ function draftOf(req, upload, read, failure) {
 	}
 
 	if (!read?.lines.length) {
-		const partial = read ? findVendorIdByAnyName(req.user.id, read.vendor) : null
+		const partial = read ? findVendorIdForReceipt(req.user.id, read) : null
 		return {
 			documentKey: upload.id, file,
 			vendor: read ? (partial ? selectVendorName.get(partial, req.user.id)?.name : read.vendor) : '',
 			vendorMatched: Boolean(partial), date: read?.date ?? req.today,
-			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+			...startingValues(req.user.id, settings, read),
 			deliveredDate: req.today, returnedDate: req.today, reference: read?.reference ?? '',
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: null,
 			failure: read ? 'empty' : failure === 'billing' ? 'billing' : process.env.ANTHROPIC_API_KEY ? 'failed' : 'unread',
@@ -341,7 +358,7 @@ function draftOf(req, upload, read, failure) {
 		}
 	}
 
-	const vendorId = findVendorIdByAnyName(req.user.id, read.vendor)
+	const vendorId = findVendorIdForReceipt(req.user.id, read)
 	const vendorMatched = Boolean(vendorId)
 	const vendorName = vendorId ? selectVendorName.get(vendorId, req.user.id)?.name : null
 
@@ -367,7 +384,7 @@ function draftOf(req, upload, read, failure) {
 		// there was no vendor to match it to.
 		vendor: vendorMatched ? vendorName : read.vendor, vendorMatched,
 		date: read.date ?? req.today,
-		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+		...startingValues(req.user.id, settings, read),
 		deliveredDate: read.date ?? req.today, returnedDate: req.today,
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({
@@ -384,7 +401,8 @@ function draftOf(req, upload, read, failure) {
 			{
 				id: 'vendor', warning: !vendorMatched,
 				title: vendorMatched ? `Matched to ${vendorName}` : 'New vendor — will be created',
-				meta: read.vendor
+				// all three things a receipt is matched by (5h), as it printed them
+				meta: [read.vendor, read.vatNumber ? `CVR ${read.vatNumber}` : null, read.website].filter(Boolean).join(sep)
 			},
 			{
 				id: 'total', warning: read.total == null,
@@ -422,6 +440,8 @@ const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
 const copyUploadPages = db.prepare(`INSERT INTO attachment_pages (attachment_id, page, image, content_type)
 	SELECT @id, page, image, content_type FROM scan_upload_pages WHERE upload_id = @uploadId`)
 const selectItemOfOrder = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
+const markVendorScanned = db.prepare(`UPDATE vendors SET origin = 'scan'
+	WHERE id = (SELECT vendor_id FROM orders WHERE id = @order) AND made_by_order = @order AND user_id = @userId`)
 
 /* Also commits a file a form staged on drop (17a): `?as=file` files it as added, `?item=` puts it
    on one line, `?name=` keeps the name it was chosen under (equal bytes share one upload row). */
@@ -435,11 +455,14 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const name = typeof req.query.name === 'string' && req.query.name.trim() ? req.query.name.trim().slice(0, 200) : null
 
 	const id = newId('a')
+	const scanned = req.query.as !== 'file'
 	db.transaction(() => {
 		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId,
-			name, meta: `${req.query.as === 'file' ? 'Added' : 'Scanned'} today${sep}${fileSizeLabel(upload.size)}`,
-			fromScan: req.query.as === 'file' ? 0 : 1, uploadId: upload.id, userId: req.user.id })
+			name, meta: `${scanned ? 'Scanned' : 'Added'} today${sep}${fileSizeLabel(upload.size)}`,
+			fromScan: scanned ? 1 : 0, uploadId: upload.id, userId: req.user.id })
 		copyUploadPages.run({ id, uploadId: upload.id })
+		// the receipt this order was created from: a vendor that order's save made came from the scan (5a)
+		if (scanned && !itemId) markVendorScanned.run({ order: order.id, userId: req.user.id })
 	})()
 	res.json({ ...getDecoratedOrder(req.user.id, order.id), attached: id })
 })

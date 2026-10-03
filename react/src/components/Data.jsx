@@ -1,3 +1,4 @@
+import { useId, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Skeleton } from './Utilities.jsx'
 
@@ -32,10 +33,12 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
 // the columns that have not arrived, as States 6b draws them
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
-/** `selected` is the column a chart that filters by its columns has chosen: only such a chart has a
-    pressed one. `current` is the column holding today (10a), its label marked without being chosen. */
-export function Bars({ columns = [], variant = 'default', selected, current, onSelect, loading = false, ...rest }) {
+/** `selected` is the pressed column of a chart that filters; `current` holds today (10a), marked, not chosen.
+    `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `named` ticks truncate. */
+export function Bars({ columns = [], variant = 'default', selected, current, onSelect, loading = false, named = false, ...rest }) {
 	reject(rest, 'Bars')
+	const [peek, setPeek] = useState(null)
+	const tipId = useId()
 	if (loading) return (
 		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} {...rest}>
 			{LOADING_BARS.map((h, i) => <Skeleton shape="bar" data-h-pc={h} key={i} />)}
@@ -47,9 +50,13 @@ export function Bars({ columns = [], variant = 'default', selected, current, onS
 	}
 	return (
 		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} {...rest}>
-			{columns.map(column => {
+			{columns.map((column, i) => {
+				const tip = column.tip && peek === column.key ? column.tip : null
+				// it hangs beside its column on the side with room: the left half of a chart carries it on the right
+				const side = i < (columns.length - 1) / 2 ? { 'data-side': 'end' } : {}
 				const body = (
 					<>
+						{tip ? <span className="sp-bars__tip" id={tipId} {...side}>{tip}</span> : null}
 						{column.segments
 							? (
 								<span className="sp-bars__stack" style={{ height: pct(column.height) }}>
@@ -67,11 +74,26 @@ export function Bars({ columns = [], variant = 'default', selected, current, onS
 									</span>
 								)
 								: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }} />}
-						{column.tick ? <span className="sp-bars__tick">{column.tick}</span> : null}
+						{column.tick ? <span className={join('sp-bars__tick', named && 'sp-truncate')}>{column.tick}</span> : null}
 					</>
 				)
 				const today = current !== undefined && current === column.key ? { 'aria-current': 'date' } : {}
-				if (!onSelect) return <span className="sp-bars__col" key={column.key} {...today}>{body}</span>
+				// the readout follows the pointer and the keyboard alike, and Escape puts it away
+				const peeking = column.tip
+					? {
+						onPointerEnter: () => setPeek(column.key),
+						onPointerLeave: () => setPeek(was => (was === column.key ? null : was)),
+						onFocus: () => setPeek(column.key),
+						onBlur: () => setPeek(was => (was === column.key ? null : was)),
+						onKeyDown: ev => { if (ev.key === 'Escape' && peek === column.key) { ev.stopPropagation(); setPeek(null) } },
+						...(tip ? { 'aria-describedby': tipId } : {})
+					}
+					: {}
+				if (!onSelect || column.inert) {
+					// an inert column among buttons is read by its label, as a picture is
+					const read = column.inert && column.label ? { role: 'img', 'aria-label': column.label } : {}
+					return <span className="sp-bars__col" key={column.key} {...today} {...read} {...peeking}>{body}</span>
+				}
 				return (
 					<button
 						type="button"
@@ -79,6 +101,7 @@ export function Bars({ columns = [], variant = 'default', selected, current, onS
 						aria-label={column.label}
 						{...(selected === undefined ? {} : { 'aria-pressed': selected === column.key ? 'true' : 'false' })}
 						{...today}
+						{...peeking}
 						data-from={column.from}
 						data-to={column.to}
 						onClick={() => onSelect(column.key, column.from, column.to)}
@@ -94,6 +117,54 @@ export function Bars({ columns = [], variant = 'default', selected, current, onS
 
 const SERIES = { 1: '1', 2: '2', 3: '3', 4: '4' }
 
+/** A chart step's readout (c18, the tooltip as a panel): its name and total, a row per series
+    drawn, and a line under them. Bars hangs it beside the column it reads. */
+export function ChartTip({ title, value, rows = [], note, ...rest }) {
+	reject(rest, 'ChartTip')
+	return (
+		<span className="sp-tip sp-tip--panel" role="tooltip" {...rest}>
+			<span className="sp-tip__head"><span className="sp-truncate">{title}</span><span className="sp-nowrap">{value}</span></span>
+			{rows.map(row => (
+				<span className="sp-tip__row" key={row.key}>
+					<span className="sp-legend__key" data-key={pick(SERIES, row.series, 'series', 'ChartTip')} />
+					<span className="sp-truncate">{row.name}</span>
+					<span>{row.value}</span>
+				</span>
+			))}
+			{note ? <span className="sp-meta">{note}</span> : null}
+		</span>
+	)
+}
+
+const RING = { 1: 'var(--green)', 2: 'var(--green-3)', 3: 'var(--green-4)', 4: 'var(--green-5)' }
+
+/** The ring a share list is read from (c14, 4a): a slice per share in that share's series key, and
+    the whole named in its hole. `loading` holds its place before the shares arrive. */
+export function Donut({ shares = [], figure, label, loading = false, ...rest }) {
+	reject(rest, 'Donut')
+	let at = 0
+	const stops = shares.map(s => {
+		const from = at
+		at += Math.max(0, s.value)
+		return `${RING[pick(SERIES, s.series, 'series', 'Donut')]} ${pct(from)} ${pct(at)}`
+	})
+	const background = loading ? 'var(--line-2)' : stops.length ? `conic-gradient(${stops.join(', ')})` : undefined
+	return (
+		<div className="sp-donut" {...(loading ? { 'aria-hidden': 'true' } : { role: 'img' })} style={{ background }} {...rest}>
+			<div className="sp-donut__hole">
+				{loading
+					? null
+					: (
+						<>
+							<span className="sp-donut__figure">{figure}</span>
+							{label ? <span className="sp-meta">{label}</span> : null}
+						</>
+					)}
+			</div>
+		</div>
+	)
+}
+
 /** The share list a donut is read from (c14), one ShareRow per share. */
 export function Shares({ children, ...rest }) {
 	reject(rest, 'Shares')
@@ -106,7 +177,7 @@ export function ShareRow({ series = 1, value, onClick, children, ...rest }) {
 	return (
 		<button type="button" className="sp-shares__row" onClick={onClick} {...rest}>
 			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'ShareRow')} />
-			<span>{children}</span>
+			<span className="sp-truncate">{children}</span>
 			<span className="sp-grow" />
 			<span className="sp-shares__value">{value}</span>
 		</button>
@@ -124,7 +195,7 @@ export function LegendItem({ series = 1, children, ...rest }) {
 	return (
 		<span className="sp-legend__item" {...rest}>
 			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'LegendItem')} />
-			{children}
+			<span className="sp-truncate">{children}</span>
 		</span>
 	)
 }
@@ -187,12 +258,13 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 	)
 }
 
-/** A line of a sum: what it is, and what it comes to. `total` is the last line. */
-export function Sum({ variant = 'default', tone = 'default', value, children, ...rest }) {
+/** A line of a sum: what it is, and what it comes to. `total` is the last line. A `named` line is
+    a name the reader typed, which ends in an ellipsis rather than wrapping. */
+export function Sum({ variant = 'default', tone = 'default', named = false, value, children, ...rest }) {
 	reject(rest, 'Sum')
 	return (
 		<div className={join('sp-sum', pick(SUM, variant, 'variant', 'Sum'))} {...rest}>
-			<span className="sp-ink-2">{children}</span>
+			<span className={join('sp-ink-2', named && 'sp-grow sp-truncate')}>{children}</span>
 			<span className={join('sp-sum__value', pick(SUM_TONE, tone, 'tone', 'Sum'))}>{value}</span>
 		</div>
 	)

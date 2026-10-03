@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
-import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
+import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, SidebarSplit, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Switch } from '../components/Choice.jsx'
@@ -12,7 +12,7 @@ import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onS
 import { peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SavedLater } from './SavedLater.jsx'
-import { amount } from '../api/format.js'
+import { countBadge } from '../api/format.js'
 import { MAC, useMedia, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
@@ -188,7 +188,7 @@ function sidebar({ navKey, fold, short, go, showKeys }) {
 			<NavScroll navKey={navKey}>
 				<Row to="/" icon="home" rail={rail} current={navKey === 'home'}>Home</Row>
 				<Row to="/orders/new?source=scan" icon="camera" variant="action" rail={rail}>Scan receipt</Row>
-				<Row to="/orders/new" icon="plus" rail={rail}>New order</Row>
+				<NewOrder rail={rail} />
 				{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
 				<Counted to={allOrders(go('orders', ALL_ORDERS))} icon="receipt" rail={rail} current={navKey === 'orders' && !onView()} useCount={useOrdersCount}>All orders</Counted>
 				<SidebarViews rail={rail} savedId={navKey === 'orders' ? onView() : null} />
@@ -294,9 +294,30 @@ function NavScroll({ navKey, children }) {
 	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
+/* New order is typed in by hand; its chevron offers the other ways to start one (16a, 3b). */
+function NewOrder({ rail }) {
+	const navigate = useNavigate()
+	const [open, setOpen] = useState(false)
+	const close = useCallback(() => setOpen(false), [])
+	const go = to => { close(); navigate(to) }
+	return (
+		<SidebarSplit icon="plus" to="/orders/new?source=empty" tip={rail ? 'New order' : undefined} label="Other ways to start an order"
+			expanded={open} onClick={() => setOpen(!open)} onDismiss={close}
+			menu={(
+				<Menu aria-label="Start an order">
+					<MenuItem icon="camera" onClick={() => go('/orders/new?source=scan')}>Scan a receipt</MenuItem>
+					<MenuItem icon="upload" onClick={() => go('/settings/import')}>Import a file</MenuItem>
+					<MenuItem icon="copy" onClick={() => go('/orders/new?pick=copy')}>Copy a previous order</MenuItem>
+				</Menu>
+			)}>
+			New order
+		</SidebarSplit>
+	)
+}
+
 /* A count is read with its destination; on the rail the label is the tile's only name. */
 function Row({ rail, count, children, ...rest }) {
-	const shown = count == null ? count : amount(count, 0)
+	const shown = count == null ? count : countBadge(count)
 	return <NavItem tip={rail ? children : undefined} aria-label={shown != null ? `${children}, ${shown}` : children} count={shown} {...rest}>{children}</NavItem>
 }
 
