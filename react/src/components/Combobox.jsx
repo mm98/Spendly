@@ -98,7 +98,8 @@ const roomOf = root => {
 }
 
 /** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
-    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it. */
+    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it.
+    Sideways, a panel too wide for its side of the window hangs from whichever edge of the field has more room. */
 export function usePanelPlace(root, panel, open, size) {
 	useLayoutEffect(() => {
 		const list = panel.current
@@ -107,7 +108,17 @@ export function usePanelPlace(root, panel, open, size) {
 		const place = () => {
 			reset()
 			const at = root.current.getBoundingClientRect()
-			const drawn = list.getBoundingClientRect()
+			let drawn = list.getBoundingClientRect()
+			// wider than the room on its side: it hangs from the field's edge with more room beyond it
+			const view = { left: 8, right: document.documentElement.clientWidth - 8 }
+			if (drawn.right > view.right + 0.5 || drawn.left < view.left - 0.5) {
+				const rightward = view.right - at.left
+				const leftward = at.right - view.left
+				Object.assign(list.style, leftward > rightward
+					? { left: 'auto', right: '0px', width: drawn.width + 'px' }
+					: { left: '0px', right: 'auto', width: drawn.width + 'px' })
+				drawn = list.getBoundingClientRect()
+			}
 			const height = list.scrollHeight
 			const gap = drawn.top - at.bottom
 			const edge = roomOf(root.current)
@@ -118,13 +129,14 @@ export function usePanelPlace(root, panel, open, size) {
 			const shown = Math.min(height, room)
 			const top = up ? at.top - gap - shown : at.bottom + gap
 			const clip = clipperOf(root.current)?.getBoundingClientRect()
-			const cut = !!clip && (top < clip.top - 0.5 || top + shown > clip.bottom + 0.5 || drawn.left < clip.left - 0.5 || drawn.right > clip.right + 0.5)
+			const outside = drawn.left < view.left - 0.5 || drawn.right > view.right + 0.5
+			const cut = outside || (!!clip && (top < clip.top - 0.5 || top + shown > clip.bottom + 0.5 || drawn.left < clip.left - 0.5 || drawn.right > clip.right + 0.5))
 			if (height > room) Object.assign(list.style, { maxHeight: room + 'px', overflowY: 'auto' })
 			if (!cut) {
 				if (up) list.dataset.place = 'up'
 				return
 			}
-			const left = Math.min(Math.max(8, drawn.left), window.innerWidth - 8 - drawn.width)
+			const left = Math.min(Math.max(view.left, drawn.left), view.right - drawn.width)
 			Object.assign(list.style, { position: 'fixed', top: top + 'px', left: left + 'px', right: 'auto', bottom: 'auto', width: drawn.width + 'px' })
 			// a transformed ancestor moves what fixed is measured from, so correct by where it landed
 			const landed = list.getBoundingClientRect()
