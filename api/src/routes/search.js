@@ -57,9 +57,8 @@ const searchOrders = perMatcher(match => `
 	)
 	ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit
 `)
-/* The exact sizes of the two groups whose rows stop at the limit, asked only when a kind fills
-   it. An item counts once per order and name, as the palette lists it; search_text holds every
-   item title, so it narrows the orders before their items are read. */
+/* Full counts once a kind fills the limit. An item counts once per order and name, as the
+   palette lists it; search_text holds every title, so it narrows the orders first. */
 const countVendors = perMatcher(match =>
 	`SELECT COUNT(*) AS c FROM vendors v WHERE v.user_id = @userId AND v.id IN (${vendorIdsMatching(match)})`)
 const countItems = perMatcher(match => `

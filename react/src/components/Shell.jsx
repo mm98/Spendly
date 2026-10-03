@@ -143,9 +143,8 @@ export function NavItem({ variant = 'default', icon, count, countColor, sub, cur
 	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
 }
 
-/** The account at the sidebar's foot (9c): the picture or initials, the name over the email.
-    `menu` shows while `expanded`, fixed to the window so the sidebar cannot clip it;
-    `onDismiss` is a press outside both, Escape or Tab. */
+/** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
+    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab. */
 export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
 	const [hint, tipEvents] = useTip(expanded ? null : tip)

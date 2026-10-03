@@ -205,9 +205,8 @@ const SLIDE_OUT_MS = 140
 const foldKey = () => `spendly:sidebar:${peek(getCurrentUser)?.id ?? ''}`
 const readFold = () => { try { return localStorage.getItem(foldKey()) === 'rail' } catch { return false } }
 
-/* The grip (9i). On a wide window it folds the sidebar to the rail and back, and the choice is
-   kept for the account in this browser. Below 1280 the rail is the layout whatever the choice,
-   and the grip opens the full sidebar over the page until it is closed or a page is opened. */
+/* The grip (9i): on a wide window it folds the sidebar, kept per account in this browser. Below
+   1280 it opens the full sidebar over the page until it is closed or a page is opened. */
 function useFold(shape, visit) {
 	const [folded, setFolded] = useState(readFold)
 	const [over, setOver] = useState(false)
