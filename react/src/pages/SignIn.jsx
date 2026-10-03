@@ -72,7 +72,7 @@ export function useCountdown() {
     slot, the fields, the primary action and what sits under it. A warning alert carries a title. */
 export function AuthCard({
 	title, lead, mark = true, alert, alertColor = 'danger', alertTitle, onSubmit, submit, submitVariant = 'solid',
-	busy, busyLabel, disabled = false, across, note, footer, children
+	busy, busyLabel, disabled = false, across, note, terms, footer, children
 }) {
 	const shape = useShellShape()
 	// outside the shell, so the tab is named here, from the route's own title
@@ -109,6 +109,7 @@ export function AuthCard({
 					<Button type="submit" size="small" variant={submitVariant} fullWidth disabled={busy || disabled}>
 						{busy ? <><Spinner />{busyLabel}</> : submit}
 					</Button>
+					{terms ? <span className="sp-meta sp-center">{terms}</span> : null}
 					{across ? <span className="sp-data sp-center">{across}</span> : null}
 					{note ? <span className="sp-meta sp-center">{note}</span> : null}
 				</div>
@@ -147,9 +148,14 @@ export function useSignedOut() {
 
 /** Whether this server can send a link by email, which decides if a reset is offered at all. */
 export function useMail() {
-	const [mail, setMail] = useState(false)
-	useEffect(() => { getAuthOptions().then(o => setMail(Boolean(o?.mail))).catch(() => {}) }, [])
-	return mail
+	return Boolean(useAuthOptions()?.mail)
+}
+
+/** The server's answer for the signed-out pages, or null until it comes. */
+export function useAuthOptions() {
+	const [options, setOptions] = useState(null)
+	useEffect(() => { getAuthOptions().then(setOptions).catch(() => {}) }, [])
+	return options
 }
 
 export default function SignIn() {

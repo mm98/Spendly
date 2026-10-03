@@ -120,7 +120,8 @@ export async function login(email, password, remember = true, signal) {
 	return user
 }
 
-/** What the signed-out pages may offer: `mail` says whether this server can send a link. */
+/** What the signed-out pages may offer: `mail` (this server can send a link), `terms` and
+    `privacy` (the operator's own pages, or null), `receiptReading` (receipts are sent out to be read). */
 export async function getAuthOptions(signal) {
 	return request('/api/auth/options', { signal })
 }

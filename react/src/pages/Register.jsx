@@ -3,9 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { failureMessage, register } from '../api/client.js'
-import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, landing, onward, useMail, useSignedOut } from './SignIn.jsx'
+import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, landing, onward, useAuthOptions, useSignedOut } from './SignIn.jsx'
 
 const HINT = `At least ${MIN_PASSWORD} characters. Longer beats complicated.`
+
+// a new tab, so what is typed here is still here after reading; the operator's own page when set
+function NoticeLink({ to, page, children }) {
+	return <a className="sp-ink-accent sp-strong" href={to ?? '#' + page} target="_blank" rel="noopener noreferrer">{children}</a>
+}
 
 export default function Register() {
 	const navigate = useNavigate()
@@ -18,7 +23,8 @@ export default function Register() {
 	const [taken, setTaken] = useState(null)
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
-	const mail = useMail()
+	const options = useAuthOptions()
+	const mail = Boolean(options?.mail)
 	const signedOut = useSignedOut()
 
 	const checkEmail = () => {
@@ -59,6 +65,7 @@ export default function Register() {
 		<AuthCard title="Create your account" lead={isTaken || alert ? null : 'Takes a minute. Nothing to set up afterwards.'}
 			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
 			disabled={isTaken}
+			terms={<>By creating an account you accept the <NoticeLink to={options?.terms} page="/terms">terms</NoticeLink> and <NoticeLink to={options?.privacy} page="/privacy">privacy notice</NoticeLink>.</>}
 			across={<>Already have one? <Link className="sp-strong sp-ink-accent au-across" to="/signin">Sign in</Link></>}>
 			{isTaken ? null : (
 				<Field label="Name" id="register-name">

@@ -115,8 +115,17 @@ router.post('/logout', (req, res) => {
 	res.status(204).end()
 })
 
-/** What the sign-in page may offer before anyone is signed in: a reset link needs mail. */
-router.get('/options', (req, res) => res.json({ mail: mailAvailable() }))
+// the operator's own terms and privacy notice, when set; otherwise the app's own pages are linked
+const ownPage = name => (/^https?:\/\//.test(process.env[name] ?? '') ? process.env[name] : null)
+
+/** What the signed-out pages may offer and state: a reset link needs mail; the privacy notice says
+    whether receipts are sent out to be read. */
+router.get('/options', (req, res) => res.json({
+	mail: mailAvailable(),
+	terms: ownPage('SPENDLY_TERMS_URL'),
+	privacy: ownPage('SPENDLY_PRIVACY_URL'),
+	receiptReading: Boolean(process.env.ANTHROPIC_API_KEY)
+}))
 
 const selectProfile = db.prepare(`SELECT u.name, u.pending_email, u.password_changed_at, p.updated_at AS picture_at
 	FROM users u LEFT JOIN user_pictures p ON p.user_id = u.id WHERE u.id = ?`)

@@ -55,6 +55,8 @@ const ConfirmSent = page(() => import('./pages/AccountLinks.jsx').then(m => ({ d
 const ConfirmLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmLink })))
 const ResetAsk = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetAsk })))
 const ResetLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetLink })))
+const Terms = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Terms })))
+const Privacy = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Privacy })))
 const Home = page(() => import('./pages/Home.jsx'))
 const Orders = page(() => import('./pages/Orders.jsx'))
 const Order = page(() => import('./pages/Order.jsx'))
@@ -83,6 +85,8 @@ export const routes = [
 	{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
 	{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
 	{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
+	{ path: 'terms', element: <Terms />, handle: { title: 'Terms of use' } },
+	{ path: 'privacy', element: <Privacy />, handle: { title: 'Privacy notice' } },
 	{
 		element: <AppShell />,
 		errorElement: <ShellError />,
