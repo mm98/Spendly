@@ -132,6 +132,19 @@ export async function processPdfPage(buffer, index) {
 	}
 }
 
+/* A bookmark's one stored picture is drawn across a card's photo strip, so it is kept at a size
+   that stays sharp there on a 2x screen, not at the row thumbnail's. */
+const PICTURE_MAX = 800
+
+/** { thumbnail, thumbnailCompressed, thumbnailContentType } for a bookmark picture, or null when
+    the bytes are not a decodable image. */
+export async function processPicture(buffer) {
+	let image
+	try { image = await resizeTo(buffer, PICTURE_MAX) } catch { return null }
+	const stored = await compressBlob(image, 'image/webp')
+	return { thumbnail: stored.blob, thumbnailCompressed: stored.compressed, thumbnailContentType: 'image/webp' }
+}
+
 /** { data, dataCompressed, contentType, size, thumbnail, thumbnailCompressed, thumbnailContentType }
     for any uploaded attachment — the one place this branches by kind (image → resized copies;
     pdf → original bytes plus a rendered-page thumbnail where that succeeds), used by every
