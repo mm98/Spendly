@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useReducer, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Fragment, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
@@ -67,6 +67,8 @@ const dropStale = () => {
 
 export default function Settings() {
 	const { section } = useParams()
+	// each opening of a section is its own visit, so opening the one already open goes back to it
+	const visit = useLocation().key
 	const shape = useShellShape()
 	const narrow = useMedia('(max-width: 899.98px)')
 	const settings = useApi(getSettings)
@@ -140,7 +142,7 @@ export default function Settings() {
 				</ListItem>
 			)
 
-	const seen = useSeenSection(!touch && saved != null, current)
+	const seen = useSeenSection(!touch && saved != null)
 	const body = settings.error && !saved
 		? <Failed what="Your settings" error={settings.error} onRetry={settings.refresh} />
 		: !saved
@@ -152,7 +154,7 @@ export default function Settings() {
 		const open = current && current !== 'account' ? current : null
 		return (
 			<>
-				{open ? <Arrive section={open}>{cards[open]}</Arrive> : <PhoneIndex email={user.data?.email} />}
+				{open ? <Arrive section={open} visit={visit}>{cards[open]}</Arrive> : <PhoneIndex email={user.data?.email} />}
 				{saveBar}
 				{guard.prompt}
 			</>
@@ -164,7 +166,7 @@ export default function Settings() {
 			{narrow ? null : <SectionNav current={seen ?? current} />}
 			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
 				{narrow ? <SectionPicker current={seen ?? current} /> : null}
-				{body ?? <Arrive section={current}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
+				{body ?? <Arrive section={current} visit={visit} room>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
 			</div>
 			{guard.prompt}
@@ -172,24 +174,20 @@ export default function Settings() {
 	)
 }
 
-/* The section whose heading has passed the upper 40% of the window is the one the nav marks; at the
-   end of the page, the last one. The address stays as it is, so nothing scrolls. */
-function useSeenSection(active, current) {
+/* The section the nav marks is the last one whose heading has reached where opening a section puts
+   it; the room under the last card lets every heading get there. The address stays as it is. */
+function useSeenSection(active) {
 	const [seen, setSeen] = useState(null)
 	useEffect(() => {
-		setSeen(null)
 		if (!active) return
 		let frame = 0
 		const look = () => {
 			frame = 0
 			const heads = [...document.querySelectorAll('[data-section]')]
 			if (!heads.length) return
-			const bar = document.querySelector('.sp-topbar')?.getBoundingClientRect().bottom ?? 0
-			const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
-			const line = bar + (window.innerHeight - bar) * 0.4
-			const passed = heads.filter(h => h.getBoundingClientRect().top <= line)
-			const head = atEnd ? heads.at(-1) : passed.at(-1) ?? heads[0]
-			setSeen(head.dataset.section)
+			const tops = heads.map(h => h.getBoundingClientRect().top)
+			const line = tops[0] + window.scrollY + 24
+			setSeen(heads[Math.max(0, tops.findLastIndex(t => t <= line))].dataset.section)
 		}
 		const onScroll = () => { if (!frame) frame = requestAnimationFrame(look) }
 		window.addEventListener('scroll', onScroll, { passive: true })
@@ -200,7 +198,7 @@ function useSeenSection(active, current) {
 			window.removeEventListener('resize', onScroll)
 			if (frame) cancelAnimationFrame(frame)
 		}
-	}, [active, current])
+	}, [active])
 	return seen
 }
 
@@ -235,8 +233,31 @@ function SectionPicker({ current }) {
 
 /* Arriving at /settings/<section> brings that card to where the first card sits and moves
    focus to its heading (9c), so a keyboard reader knows where they landed. */
-function Arrive({ section, children }) {
+function Arrive({ section, visit, room = false, children }) {
 	const column = useRef(null)
+	useLayoutEffect(() => {
+		const box = column.current
+		if (!room || !box) return
+		// room under the last card so its heading too can scroll up to where the first one sits;
+		// measured, so it is set where it is measured
+		const fit = () => {
+			const heads = box.querySelectorAll('[data-section]')
+			if (heads.length < 2) return
+			const pad = parseFloat(box.style.paddingBottom) || 0
+			const end = document.documentElement.scrollHeight - pad - window.innerHeight
+			const need = Math.max(0, Math.ceil(heads[heads.length - 1].getBoundingClientRect().top - heads[0].getBoundingClientRect().top - end))
+			if (need !== pad) box.style.paddingBottom = need ? need + 'px' : ''
+		}
+		fit()
+		const watch = new ResizeObserver(fit)
+		watch.observe(document.body)
+		window.addEventListener('resize', fit)
+		return () => {
+			watch.disconnect()
+			window.removeEventListener('resize', fit)
+			box.style.paddingBottom = ''
+		}
+	}, [room])
 	useEffect(() => {
 		const box = column.current
 		const target = section && box?.querySelector(`[data-section="${section}"]`)
@@ -247,7 +268,7 @@ function Arrive({ section, children }) {
 		const first = box.querySelector('[data-section]')
 		window.scrollTo({ top: target.getBoundingClientRect().top - first.getBoundingClientRect().top })
 		target.focus({ preventScroll: true })
-	}, [section])
+	}, [section, visit])
 	return <div className="sp-stack sp-gap-12" ref={column}>{children}</div>
 }
 
