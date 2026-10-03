@@ -1,27 +1,21 @@
-# Spendly - brief 11 answers (fixed again)
+# Spendly - date field on iOS
 
-**Fixed in this package:** on desktop the notice that asks is now two rows, like the phone: the words take the full width and the two buttons sit on the row under them, at the right. The words no longer squeeze beside the buttons. `.sp-toast--asks` is a grid; the touch rules only change the button row to equal halves. This replaces handoff_2026_10_03n_changes_fixed.
+Copy these files over handoff_2026_10_03n_changes_fixed_fixed.
 
-**Fixed in this package:** on desktop the notice that asks centred its mark and buttons on the whole block, so with the list of changes the mark floated beside the bullets. `.sp-toast--asks { align-items: flex-start; }` keeps them level with the title. This replaces handoff_2026_10_03n_changes.
-
-Copy these files over handoff_2026_10_03m_changes_fixed.
-
-`Brief 11 answers.md` answers the two points, and the "what changed" list added to the update notice.
+On iOS the date field had three faults: the date was centred, the field was shorter than the fields around it, and it ran past the card's right edge.
 
 **Stylesheet changes the app takes (components.css)**
-- `.sp-touch .sp-toast--asks` and its children - the phone layout of the notice that asks. Drop the four app.css workaround rules (1).
-- `.sp-toast__changes` - the list of what changed in "A newer version is available".
+- `.sp-input::-webkit-date-and-time-value` - `text-align: left; margin: 0;`. iOS 15+ draws the value in this pseudo-element, which defaults to full width and centred text, and `text-align` on the input does not reach it.
+- `.sp-input[type="date"]`, `[type="time"]`, `[type="month"]`, `[type="datetime-local"]` - `appearance: none` so the field takes `.sp-input`'s own min-height, border and radius instead of the native height; `min-width: 0` and `-webkit-min-logical-width: 0` so iOS's intrinsic minimum width no longer pushes the field past its column. Tapping still opens the native picker.
+
+Blink and Gecko already left-align and size these fields correctly, so nothing changes off WebKit.
 
 **What the app changes**
-- "A newer version is available" shows up to three lines from the new version's release notes, and no list when there are none.
-- Order statistics: the order table text says one page (Rows per page) (2).
+- Drop any app-side workaround for the date value alignment (the old `.field-shell > input::-webkit-date-and-time-value` rule); the stylesheet covers it.
+- The date field in the order form shows no calendar icon. It should sit in `sp-field__wrap` with the `sp-field__trail` button, as in Components (Date - touch keeps the native picker).
 
 ## Files
 
-- `States and confirmations.dc.html`
-- `Order statistics.dc.html`
 - `styles/components.css`
-- `styles/doc.css` (the 361px specimen width)
-- `Brief 11 answers.md`
 
-`styles/check.js` reports 84 known findings: the 82 from before, plus the two phone notices, which repeat the desktop notices' "stacked pair truncates" finding (their words wrap by design).
+`styles/check.js` reports the same 84 known findings as handoff_2026_10_03n_changes_fixed_fixed.
