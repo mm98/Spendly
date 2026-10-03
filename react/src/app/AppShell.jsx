@@ -317,12 +317,15 @@ function DarkMode({ rail }) {
 
 /** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
     ends on the sign-in page, once the reader has been let go. */
-export function AccountMenu({ email, position, short = false, onShortcuts, onClose }) {
+export function AccountMenu({ name, email, position, short = false, onShortcuts, onClose }) {
 	const navigate = useNavigate()
 	const theme = useTheme()
 	return (
 		<Menu position={position} aria-label="Account">
-			<li className="ns-menu-head" role="presentation"><span className="sp-meta sp-truncate">{email}</span></li>
+			<li className="ns-menu-head" role="presentation">
+				{name ? <span className="sp-data sp-truncate">{name}</span> : null}
+				<span className="sp-meta sp-truncate">{email}</span>
+			</li>
 			<MenuItem icon="user" onClick={() => { onClose(); navigate('/settings/account') }}>Account and profile</MenuItem>
 			{/* on a short window the sidebar has no room for these two, so they live here (9g) */}
 			{short ? <MenuItem icon="settings" onClick={() => { onClose(); navigate('/settings') }}>Settings</MenuItem> : null}
@@ -333,7 +336,7 @@ export function AccountMenu({ email, position, short = false, onShortcuts, onClo
 				: null}
 			{onShortcuts
 				? <MenuItem icon="keyboard" onClick={() => { onClose(); onShortcuts() }}>
-					<span>Keyboard shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
+					<span className="sp-nowrap">Keyboard shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
 				</MenuItem>
 				: null}
 			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
@@ -346,9 +349,12 @@ function Account({ rail, short, onShortcuts }) {
 	const [open, setOpen] = useState(false)
 	const close = useCallback(() => setOpen(false), [])
 	const email = user.data?.email
+	// an account without a name or picture shows its email and initials, as before either existed
+	const name = user.data?.name || null
+	const picture = user.data?.picture || null
 	if (!email) return null
 	return (
-		<SidebarAccount email={email} expanded={open} tip={rail ? email : undefined} aria-label={email}
-			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu email={email} short={short} onShortcuts={onShortcuts} onClose={close} />} />
+		<SidebarAccount name={name} picture={picture} email={email} expanded={open} tip={rail ? name || email : undefined} aria-label={name ? `${name}, ${email}` : email}
+			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu name={name} email={email} short={short} onShortcuts={onShortcuts} onClose={close} />} />
 	)
 }
