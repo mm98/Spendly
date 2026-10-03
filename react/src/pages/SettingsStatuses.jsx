@@ -116,13 +116,13 @@ export function StatusesCard({ touch = false }) {
 										? (
 											// on a phone the count goes under the name, so the name keeps its room beside the buttons
 											<span className="sp-stack sp-grow">
-												<StatusLook tone={status.tone}><span className="sp-truncate">{status.name}</span></StatusLook>
+												<StatusLook tone={status.tone}>{status.name}</StatusLook>
 												<span className="sp-meta">{plural(status.orders ?? 0, 'order')}</span>
 											</span>
 										)
 										: (
 											<>
-												<StatusLook tone={status.tone}><span className="sp-truncate">{status.name}</span></StatusLook>
+												<StatusLook tone={status.tone}>{status.name}</StatusLook>
 												<span className="sp-grow" />
 												<span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>
 											</>

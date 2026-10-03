@@ -115,6 +115,8 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 
 @layer base {
 	body.sp { margin: 0; }
+	/* a stacked pair on a phone is tighter than the scale's smallest step (Mobile screens .ms-device) */
+	.sp-touch .sp-stack { gap: var(--sp-2); }
 }
 
 /* ---------- what a design note states in words, with no rule in the design's stylesheet yet ---------- */
@@ -241,6 +243,54 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-sum[role="button"]:focus-visible { border-radius: var(--r-marker); box-shadow: var(--ring); }
 .sp-sum__value > .sp-input.sp-input--cell { width: calc(12ch + var(--sp-4)); }
 
+/* a small control keeps its drawing and carries an invisible 44px target on touch (19b, 18b) */
+.sp-touch button.sp-field__trail::after,
+.sp-touch .sp-icon-btn--small::after,
+.sp-touch .sp-icon-btn--field::after,
+.sp-touch .sp-crumb__remove::after,
+.sp-touch .sp-list-item__handle::after,
+.sp-touch .sp-slot__remove::after,
+.sp-touch .sp-toast__undo::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: var(--control-h-touch);
+	height: var(--control-h-touch);
+	transform: translate(-50%, -50%);
+}
+.sp-touch .sp-icon-btn--small,
+.sp-touch .sp-icon-btn--field:not(.sp-field__trail),
+.sp-touch .sp-crumb__remove,
+.sp-touch .sp-list-item__handle,
+.sp-touch .sp-slot__remove,
+.sp-touch .sp-toast__undo { position: relative; }
+/* the presets' track is the target, not only the pill drawn in it (Mobile screens 7a) */
+.sp-touch .sp-segmented__item::before,
+.sp-touch .sp-period__preset::before { content: ""; position: absolute; inset: calc(var(--sp-6) * -1) 0; }
+/* a card's menu sits in a hit target of its own, larger than its glyph (c1) */
+.sp-record__menu > .sp-record__act::after { content: ""; position: absolute; inset: 0; }
+/* on touch a phone's paired fields stack (18b; Responsive reference .rr-f-halves) */
+.sp-touch .sp-fields { grid-template-columns: minmax(0, 1fr); }
+/* on a phone a popover is a bottom sheet holding the same panel (c9, c13): the sheet is its surface */
+.sp-sheet > .sp-popover {
+	position: static;
+	width: auto;
+	min-width: 0;
+	max-width: none;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+}
+/* compact rows are 8px vertical (15a; Settings 11a) */
+[data-density="compact"] .sp-table tbody td { padding-top: var(--sp-8); padding-bottom: var(--sp-8); }
+/* a bookmark's picture strip is the link to its page (22a) */
+a.sp-record__photos { color: inherit; text-decoration: none; }
+/* a pick-only field in error takes the message's colour, as any field does (handoff Field) */
+.sp-combobox__trigger[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
+.sp-combobox__trigger[aria-invalid="true"]:focus-visible { border-color: var(--red-ink); box-shadow: var(--ring-error); }
+
 /* a live region, read out and drawn nowhere (c1, c9, 14a) */
 .sp-announce {
 	position: absolute;
@@ -330,3 +380,9 @@ button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 
 /* the design's drawing where its own stylesheet does not give it: 1c's phone editor spans the sheet */
 .sp-line-editor--sheet > .sp-line-editor__form { align-self: stretch; }
+/* readable in dark: the readout's rows take --line-4, which on the dark surface is near invisible */
+[data-theme="dark"] .sp-tip__row { color: var(--ink-3); }
+/* a budget figure that was not saved reads as invalid: .sp-input--cell otherwise cancels the red */
+.sp-input.sp-input--cell[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
+/* 9h draws the tab bar's items as links; a link's underline is not in the drawing */
+a.sp-tabbar__item { text-decoration: none; }
