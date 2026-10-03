@@ -12,7 +12,7 @@
    keep alive, so each render gets a clean heap that goes away with it, and mupdf's native
    allocations cannot accumulate across uploads.
 
-   This file is the whole worker: bytes in, a PNG of page one out, and nothing else. sharp is
+   This file is the whole worker: bytes in, a PNG of one page and the page count out, and nothing else. sharp is
    deliberately left in the parent -- it is already asynchronous (libvips has its own
    threadpool), so importing it here would add startup for work that never blocked the loop. */
 
@@ -24,13 +24,16 @@ import * as mupdf from 'mupdf'
 mupdf.setLog(() => {})
 
 const PDF_RENDER_LONG_EDGE = workerData.longEdge
+// the page to render, counted from 0; the page count travels back with it
+const PAGE = workerData.page ?? 0
 
 let doc, page, pixmap
 try {
 	doc = mupdf.Document.openDocument(Buffer.from(workerData.buffer), 'application/pdf')
-	if (doc.needsPassword() || doc.countPages() < 1) parentPort.postMessage({ png: null })
+	const pages = doc.needsPassword() ? 0 : doc.countPages()
+	if (pages < 1 || PAGE >= pages) parentPort.postMessage({ png: null, pages })
 	else {
-		page = doc.loadPage(0)
+		page = doc.loadPage(PAGE)
 		const [x0, y0, x1, y1] = page.getBounds()
 		const scale = PDF_RENDER_LONG_EDGE / Math.max(x1 - x0, y1 - y0, 1)
 		pixmap = page.toPixmap(mupdf.Matrix.scale(scale, scale), mupdf.ColorSpace.DeviceRGB, false, false)
@@ -39,7 +42,7 @@ try {
 		// only side that needs it once this thread is done.
 		const bytes = png instanceof Uint8Array ? png : new Uint8Array(png)
 		const copy = new Uint8Array(bytes)   // detach from WASM memory before it is freed below
-		parentPort.postMessage({ png: copy.buffer }, [copy.buffer])
+		parentPort.postMessage({ png: copy.buffer, pages }, [copy.buffer])
 	}
 } catch (e) {
 	// Encrypted, corrupt, zero pages, or not a PDF at all -- the caller draws the document icon,
