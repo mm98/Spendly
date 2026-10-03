@@ -807,6 +807,11 @@ export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
 
+/** What changed between the build made at `since` and the server's, at most three lines. */
+export async function getVersionChanges(since, signal) {
+	return (await request('/api/version/changes' + qs({ since }), { signal })).changes
+}
+
 /** The running build against the newest published one, asked of the registry by the server:
     { current, published, commit, latestBuiltAt }, the last null when it is this one or unknown. */
 export async function checkVersion(signal) {

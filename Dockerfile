@@ -12,10 +12,12 @@ COPY react/package.json react/package-lock.json react/
 # --include=dev regardless of NODE_ENV: vite is a devDependency and is the build.
 RUN npm --prefix react ci --include=dev
 COPY react react
-# the commit is baked into the bundle too, so an open tab can see the server was updated under it;
+# the commit and build time are baked into the bundle too, so an open tab can see the server was
+# updated under it and ask what changed since;
 # an ARG is per stage, so the final stage declares its own
 ARG GIT_SHA
-ENV GIT_SHA=$GIT_SHA
+ARG BUILD_TIME
+ENV GIT_SHA=$GIT_SHA BUILD_TIME=$BUILD_TIME
 RUN npm --prefix react run build
 
 # api deps in their own stage with a toolchain: better-sqlite3 falls back to a node-gyp
