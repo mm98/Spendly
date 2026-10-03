@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Chip } from './Chip.jsx'
@@ -264,7 +264,8 @@ function standardRanges(locale) {
 // what the typed-text hook hands an input, less its own `invalid` flag, which is no attribute
 const field = ({ invalid, ...props }) => props
 
-/** `single` is the touch sheet's form (c14): one month, paged, where two do not fit. */
+/** `single` is the touch sheet's form (c14): the heading, From and To, the months scrolling under them,
+    the day count and Apply - the sheet itself is the way out, so there is no Cancel. */
 export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, single = false, ...rest }) {
 	reject(rest, 'RangePicker')
 	if (minDays !== undefined && minDays < 1) console.error('<RangePicker> minDays counts days inclusively, so the smallest range is 1')
@@ -367,6 +368,48 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 		locale
 	}
 
+	// the sheet scrolls through months up to the last day that can be picked, and opens on From's
+	const fieldId = useId()
+	const scroller = useRef(null)
+	const last = parse(max) || new Date()
+	const firstShown = new Date(Math.min(new Date(last.getFullYear(), last.getMonth() - 11, 1), start))
+	const sheetMonths = []
+	for (let at = new Date(firstShown.getFullYear(), firstShown.getMonth(), 1); at <= last; at = new Date(at.getFullYear(), at.getMonth() + 1, 1))
+		sheetMonths.push(at)
+	useLayoutEffect(() => {
+		if (!single || !scroller.current) return
+		const at = scroller.current.querySelector(`[data-month="${start.getFullYear()}-${start.getMonth()}"]`)
+		if (at) scroller.current.scrollTop = at.offsetTop - scroller.current.offsetTop
+	}, [single])
+
+	if (single)
+		return (
+			<>
+				<span className="sp-heading">Custom range</span>
+				<div className="sp-row-flex sp-gap-12">
+					<div className="sp-field sp-grow">
+						<label className="sp-field__label" htmlFor={`${fieldId}-from`}>From</label>
+						<input id={`${fieldId}-from`} className="sp-input sp-number" inputMode="numeric" onFocus={() => setEditing('from')}
+							{...field(fromText)} {...(fromText.invalid ? { 'aria-invalid': 'true' } : {})} />
+					</div>
+					<div className="sp-field sp-grow">
+						<label className="sp-field__label" htmlFor={`${fieldId}-to`}>To</label>
+						<input id={`${fieldId}-to`} className="sp-input sp-number" inputMode="numeric" onFocus={() => setEditing('to')}
+							{...field(toText)} {...(toText.invalid ? { 'aria-invalid': 'true' } : {})} />
+					</div>
+				</div>
+				<div className="sp-calendar sp-calendar--sheet" ref={scroller}>
+					{sheetMonths.map(at => (
+						<div key={`${at.getFullYear()}-${at.getMonth()}`} data-month={`${at.getFullYear()}-${at.getMonth()}`}>
+							<Month year={at.getFullYear()} month={at.getMonth()} {...shared} showWeeks={false} />
+						</div>
+					))}
+				</div>
+				<span className="sp-note">{days === 1 ? '1 day selected' : `${days} days selected`}</span>
+				<Button size="small" onClick={apply}>Apply</Button>
+			</>
+		)
+
 	return (
 		<div
 			className="sp-range"
@@ -402,8 +445,8 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 				</label>
 			</div>
 			<div className="sp-range__months">
-				<Month year={shown.year} month={shown.month} showPrevious showNext={single} {...shared} />
-				{single ? null : <Month year={second.getFullYear()} month={second.getMonth()} showNext {...shared} />}
+				<Month year={shown.year} month={shown.month} showPrevious {...shared} />
+				<Month year={second.getFullYear()} month={second.getMonth()} showNext {...shared} />
 			</div>
 			{/* the foot is the control's, not the caller's: the count says what applying
 			    will do, and a range picker without a way to cancel is a trap */}
@@ -731,21 +774,31 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 		return () => document.removeEventListener('pointerdown', away)
 	}, [open])
 
+	// the trail opens the same platform picker the field does, drawn with the register's calendar
+	const pickNative = () => {
+		const input = wrap.current?.querySelector('input')
+		try { input?.showPicker() } catch { input?.focus() }
+	}
 	if (isNative)
 		return (
-			<input
-				id={id}
-				type="date"
-				className="sp-input"
-				value={value}
-				min={min}
-				max={max}
-				onChange={ev => onChange?.(ev.target.value)}
-				aria-describedby={message}
-				required={required}
-				{...(marked ? { 'aria-invalid': 'true' } : {})}
-				{...unused}
-			/>
+			<span className="sp-field__wrap" ref={wrap}>
+				<input
+					id={id}
+					type="date"
+					className="sp-input"
+					value={value}
+					min={min}
+					max={max}
+					onChange={ev => onChange?.(ev.target.value)}
+					aria-describedby={message}
+					required={required}
+					{...(marked ? { 'aria-invalid': 'true' } : {})}
+					{...unused}
+				/>
+				<button type="button" className="sp-field__trail" aria-label="Open the calendar" onClick={pickNative}>
+					<Icon name="calendar" size={15} />
+				</button>
+			</span>
 		)
 
 	const hintId = id ? `${id}-format` : undefined
