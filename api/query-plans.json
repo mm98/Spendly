@@ -265,6 +265,40 @@
 				"sqlite_autoindex_bookmark_categories_1"
 			]
 		},
+		"SELECT COUNT(*) AS c FROM ( SELECT DISTINCT oi.order_id, lower(oi.title) FROM orders ot JOIN order_items oi ON oi.order_id = ot.id WHERE ot.user_id = @userId AND contains_fold(ot.search_text, @needle) AND contains_fold(oi.title, @needle) )": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"USE TEMP B-TREE FOR DISTINCT",
+				"SCAN (subquery-1)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_discount",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_items_order",
+				"idx_orders_user_discount"
+			]
+		},
+		"SELECT COUNT(*) AS c FROM ( SELECT DISTINCT oi.order_id, lower(oi.title) FROM orders ot JOIN order_items oi ON oi.order_id = ot.id WHERE ot.user_id = @userId AND ot.search_text LIKE @needle ESCAPE '\\' AND oi.title LIKE @needle ESCAPE '\\' )": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"USE TEMP B-TREE FOR DISTINCT",
+				"SCAN (subquery-1)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_discount",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_items_order",
+				"idx_orders_user_discount"
+			]
+		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spend, COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = ? AND ot.user_id = ?": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
@@ -406,7 +440,7 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
-		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) )": {
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR contains_fold(ot.reference, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) )": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
 				"LIST SUBQUERY 2",
@@ -433,7 +467,7 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') )": {
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.reference LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') )": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
 				"LIST SUBQUERY 2",
@@ -1025,7 +1059,7 @@
 				"idx_order_items_order"
 			]
 		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit": {
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR contains_fold(ot.reference, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
 				"LIST SUBQUERY 2",
@@ -1048,7 +1082,7 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR contains_fold(ot.reference, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
 				"LIST SUBQUERY 2",
@@ -1077,7 +1111,7 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit": {
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.reference LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
 				"LIST SUBQUERY 2",
@@ -1100,7 +1134,7 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.reference LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') ) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
 				"LIST SUBQUERY 2",
@@ -1523,7 +1557,7 @@
 			"columns": [
 				"order_id"
 			],
-			"readers": 4
+			"readers": 6
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",
@@ -1548,7 +1582,7 @@
 				"discount",
 				"id"
 			],
-			"readers": 8
+			"readers": 10
 		},
 		"idx_orders_user_kind": {
 			"table": "orders",

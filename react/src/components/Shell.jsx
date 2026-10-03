@@ -335,13 +335,14 @@ function marked(text, match) {
 }
 
 /** One record or one action. `icon` or `thumb` leads it (a small mark on a phone, filled for an
-    `action`), `match` is marked in the name, `value` and `kbd` end it; a phone drops both (7b). */
+    `action`); `thumb` is a picture's address, or true for the empty box. `match` is marked in
+    the name, `value` and `kbd` end it; a phone drops both (7b). */
 export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, kbd, selected = false, children, ...rest }) {
 	reject(rest, 'PaletteRow')
 	const screen = useContext(PaletteScreen)
 	const trail = !screen && (value != null || kbd)
 	let lead = null
-	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true" />
+	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true">{typeof thumb === 'string' ? <img src={thumb} alt="" /> : null}</span>
 	else if (icon && screen) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
 	else if (icon) lead = <span className="sp-palette__icon"><Icon name={icon} size={15} /></span>
 	return (
