@@ -143,6 +143,13 @@ function Reading({ file, documentKey, onCancel }) {
 	const doing = sending ? 'Sending the receipt…' : !reads ? 'Opening the receipt…' : found ? 'Reading the lines…' : 'Reading the receipt…'
 	const value = sending ? (file.sent ?? 0) * 33 : found ? 67 : 34
 	const meta = [file.meta?.replaceAll(sep, dot), file.pages > 1 ? `${file.pages} pages` : null].filter(Boolean).join(dot)
+	// a reading still going well past its usual time says so (6e); the server finishes and keeps it either way
+	const [slow, setSlow] = useState(false)
+	useEffect(() => {
+		if (!reads || sending) return
+		const timer = setTimeout(() => setSlow(true), SLOW_READING_MS)
+		return () => clearTimeout(timer)
+	}, [reads, sending])
 	const done = text => (
 		<div className="sp-row-flex sp-gap-8">
 			<Mark size="small" fill="solid" aria-hidden="true" aria-label="Done"><Icon name="check" size={11} /></Mark>
@@ -150,7 +157,7 @@ function Reading({ file, documentKey, onCancel }) {
 		</div>
 	)
 	return (
-		<div className="oc-narrow">
+		<div className="oc-narrow sp-stack sp-gap-12">
 			<Card aria-busy="true">
 				<div className="oc-row-top">
 					<div className="oc-preview" role="img" aria-label={file.name ?? 'The receipt'}>
@@ -181,9 +188,22 @@ function Reading({ file, documentKey, onCancel }) {
 					</div>
 				</div>
 			</Card>
+			{slow
+				? (
+					<Card variant="row" role="status">
+						<Mark size="small" aria-hidden="true" aria-label="Slow"><Icon name="wifi" size={15} /></Mark>
+						<div className="sp-stack sp-gap-6">
+							<span className="sp-title">Reading is taking longer than usual</span>
+							<span className="sp-subtitle">You can keep waiting. If you leave, the reading still finishes, and adding the same file again uses it at once.</span>
+						</div>
+					</Card>
+				)
+				: null}
 		</div>
 	)
 }
+
+const SLOW_READING_MS = 20000
 
 const timeFormat = () => new Intl.DateTimeFormat(activeLocaleCode(), { hour: '2-digit', minute: '2-digit' })
 const localDay = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
