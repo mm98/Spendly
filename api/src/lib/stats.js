@@ -1,5 +1,9 @@
 import { db } from '../db.js'
 import { fromEpoch, toEpoch, todayIso } from './dates.js'
+import { MAX_PAGE_SIZE } from './constants.js'
+import { decorateOrderListRows } from './decorate.js'
+import { orderTotalsSelectList } from './orderColumns.js'
+import { lookalikeVendors } from './vendorLookalikes.js'
 
 /* Statistics, computed by real SQL aggregation over the user's own orders — SUM/GROUP BY
    within a [from, to) window, never a per-order JS loop and never a synthetic "spread a
@@ -32,6 +36,14 @@ function mondayOfIsoWeek(year, week) {
 
 const earliestOrderDate = db.prepare('SELECT MIN(date) d FROM orders WHERE user_id = ?')
 
+const MAX_CUSTOM_DAYS = 3660
+/** A real calendar day as epoch seconds, or null. */
+const dayOf = iso => {
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(iso ?? '')) return null
+	const at = toEpoch(iso)
+	return Number.isFinite(at) && fromEpoch(at) === iso ? at : null
+}
+
 /** The [from, to) epoch bounds of one window. `all` spans the user's own order history (or
     just today, if they have none yet) rather than a fixed demo range. */
 export function windowBounds(userId, range, id, today) {
@@ -60,6 +72,17 @@ export function windowBounds(userId, range, id, today) {
 		const y = Number(id)
 		return { from: Date.UTC(y, 0, 1) / 1000, to: Date.UTC(y + 1, 0, 1) / 1000 }
 	}
+	// a 30-day window is named by its last day
+	if (range === 'days30') {
+		const end = dayOf(id)
+		if (end == null) return null
+		return { from: end - 29 * DAY, to: end + DAY }
+	}
+	if (range === 'custom') {
+		const [a, b] = String(id ?? '').split('~').map(dayOf)
+		if (a == null || b == null || b < a || b - a > MAX_CUSTOM_DAYS * DAY) return null
+		return { from: a, to: b + DAY }
+	}
 	// 'all': the user's whole order history through today, at least a week wide. Every other
 	// range has a fixed calendar width regardless of how little data is in it, which is what
 	// lets one order sit amid real zero-days and draw as a spike -- 'all' is the only one sized
@@ -80,6 +103,8 @@ export function windowIdAt(range, at) {
 	if (range === 'month') return `${day.getUTCFullYear()}-${pad(day.getUTCMonth() + 1)}`
 	if (range === 'quarter') return `${day.getUTCFullYear()}-Q${Math.floor(day.getUTCMonth() / 3) + 1}`
 	if (range === 'year') return String(day.getUTCFullYear())
+	if (range === 'days30') return fromEpoch(at)
+	if (range === 'custom') return `${fromEpoch(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1) / 1000)}~${fromEpoch(at)}`
 	return 'all'
 }
 
@@ -91,6 +116,8 @@ export function rangeOfWindowId(id) {
 	if (/^\d{4}-\d{2}$/.test(id)) return 'month'
 	if (/^\d{4}-Q[1-4]$/.test(id)) return 'quarter'
 	if (/^\d{4}$/.test(id)) return 'year'
+	if (/^\d{4}-\d{2}-\d{2}$/.test(id)) return 'days30'
+	if (/^\d{4}-\d{2}-\d{2}~\d{4}-\d{2}-\d{2}$/.test(id)) return 'custom'
 	if (id === 'all') return 'all'
 	return null
 }
@@ -116,7 +143,8 @@ function reanchorWindowId(userId, width, id, today) {
 /** The window `delta` steps away (±1), same width — what the pager arrows call. Null for
     `all`, which has nothing to page through. */
 export function shiftWindowId(range, id, delta) {
-	if (range === 'all') return null
+	if (range === 'all' || range === 'custom') return null
+	if (range === 'days30') return fromEpoch(toEpoch(id) + delta * 30 * DAY)
 	if (range === 'week') {
 		const [, y, w] = /^(\d{4})-W(\d{2})$/.exec(id)
 		const at = mondayOfIsoWeek(Number(y), Number(w)) + delta * 7 * DAY * 1000
@@ -142,20 +170,59 @@ export function shiftWindowId(range, id, delta) {
     history's worth of orders up against. */
 function comparisonWindowId(userId, range, id, compare, today) {
 	if (range === 'all') return null
-	if (compare !== 'year') return shiftWindowId(range, id, -1)
 	const bounds = windowBounds(userId, range, id, today)
+	const yearBack = at => { const d = new Date(at * 1000); return Date.UTC(d.getUTCFullYear() - 1, d.getUTCMonth(), d.getUTCDate()) / 1000 }
+	if (range === 'custom') {
+		const [from, last] = compare === 'year'
+			? [yearBack(bounds.from), yearBack(bounds.to - DAY)]
+			: [2 * bounds.from - bounds.to, bounds.from - DAY]
+		return `${fromEpoch(from)}~${fromEpoch(last)}`
+	}
+	if (range === 'days30' && compare === 'year') return fromEpoch(yearBack(bounds.to - DAY))
+	if (compare !== 'year') return shiftWindowId(range, id, -1)
 	const at = new Date(bounds.from * 1000)
 	const yearAgo = Date.UTC(at.getUTCFullYear() - 1, at.getUTCMonth(), at.getUTCDate()) / 1000
 	return windowIdAt(range, yearAgo)
 }
 
-const selectWindowTotals = db.prepare(`
-	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spent, COALESCE(SUM(saved), 0) AS saved
-	FROM orders WHERE user_id = @userId AND date >= @from AND date < @to
-`)
+/* The statuses that are money out, money back, or neither: a draft or a cancelled order moved no money. */
+const FLOW_WHERE = {
+	all: '',
+	expenses: " AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft')",
+	refunds: " AND ot.status = 'Returned'",
+	net: " AND ot.status NOT IN ('Cancelled', 'Draft')"
+}
+export const FLOWS = Object.keys(FLOW_WHERE)
 
-function totalsOver(userId, from, to) {
-	const r = selectWindowTotals.get({ userId, from, to })
+/** What narrows every query below: the lens (flow) and the drill path's vendor, category and
+    status. Under a category, an order counts its share of that category, as the split does. */
+function scopeOf({ flow = 'all', vendorId, categoryId, status } = {}) {
+	const lens = FLOW_WHERE[flow] === undefined ? 'all' : flow
+	let and = FLOW_WHERE[lens]
+	const params = {}
+	if (vendorId) { and += ' AND ot.vendor_id = @vendorId'; params.vendorId = vendorId }
+	if (categoryId === 'none') and += ' AND ot.category_count = 0'
+	else if (categoryId) {
+		and += ' AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)'
+		params.categoryId = categoryId
+	}
+	if (status) { and += ' AND ot.status = @status'; params.status = status }
+	const signed = col => (lens === 'net' ? `(CASE WHEN ot.status = 'Returned' THEN -ot.${col} ELSE ot.${col} END)` : `ot.${col}`)
+	const share = categoryId && categoryId !== 'none' ? ' * 1.0 / ot.category_count' : ''
+	return { and, params, signed, amount: col => `${signed(col)}${share}` }
+}
+
+const statements = new Map()
+const prepared = sql => {
+	if (!statements.has(sql)) statements.set(sql, db.prepare(sql))
+	return statements.get(sql)
+}
+
+function totalsOver(userId, from, to, scope) {
+	const r = prepared(`
+		SELECT COUNT(*) AS orders, COALESCE(SUM(${scope.amount('total')}), 0) AS spent, COALESCE(SUM(${scope.amount('saved')}), 0) AS saved
+		FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+	`).get({ userId, from, to, ...scope.params })
 	return { orders: r.orders, spent: r.spent, saved: r.saved, average: r.orders ? r.spent / r.orders : 0 }
 }
 
@@ -165,16 +232,18 @@ function totalsOver(userId, from, to) {
    it counted every account's links to answer one window. On a 5.1M-order database that was
    ~1.9s per stats read, for any account; the stored count is ~8ms, identical rows. Same fix
    in lib/aggregate.js. */
-const selectSplit = db.prepare(`
-	SELECT c.id, c.name,
-		SUM(ot.total * 1.0 / ot.category_count) AS spend
-	FROM order_categories oc
-	JOIN orders ot ON ot.id = oc.order_id
-	JOIN categories c ON c.id = oc.category_id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
-	GROUP BY c.id
-	ORDER BY spend DESC
-`)
+function selectSplit(scope) {
+	return prepared(`
+		SELECT c.id, c.name,
+			SUM(${scope.signed('total')} * 1.0 / ot.category_count) AS spend
+		FROM order_categories oc
+		JOIN orders ot ON ot.id = oc.order_id
+		JOIN categories c ON c.id = oc.category_id
+		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+		GROUP BY c.id
+		ORDER BY spend DESC
+	`)
+}
 
 /** `trueTotal` is the window's real spend (every order, categorised or not) -- passed in
     rather than summed from `rows` here, because an order with no category at all never joins
@@ -184,13 +253,13 @@ const selectSplit = db.prepare(`
     the window. The remainder becomes its own "Without category" row rather than vanishing --
     the ring and the list beside it are drawn from the one list, so nothing here can silently
     add up to less than the total both claim to break down. */
-function splitOver(userId, from, to, trueTotal) {
-	const rows = selectSplit.all({ userId, from, to })
+function splitOver(userId, from, to, trueTotal, scope) {
+	const rows = selectSplit(scope).all({ userId, from, to, ...scope.params })
 	const categorised = rows.reduce((s, r) => s + r.spend, 0)
 	const total = trueTotal ?? categorised
 	const split = rows.map(r => ({ id: r.id, name: r.name, amount: r.spend, share: total ? (r.spend / total) * 100 : 0 }))
 	const uncategorised = total - categorised
-	if (uncategorised > 0.005) {
+	if (Math.abs(uncategorised) > 0.005) {
 		split.push({ id: null, name: 'Without category', amount: uncategorised,
 			share: total ? (uncategorised / total) * 100 : 0 })
 	}
@@ -200,17 +269,22 @@ function splitOver(userId, from, to, trueTotal) {
 /* A vendor belongs to exactly one order at a time (unlike a category), so this is a plain
    GROUP BY with no division and no remainder row -- every order's total counts once, toward
    its one vendor, and the rows already sum to the window's real spend. */
-const selectVendorSplit = db.prepare(`
-	SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend
-	FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
-	GROUP BY ot.vendor_id
-	ORDER BY spend DESC
-`)
+function vendorSplitOver(userId, from, to, scope) {
+	return prepared(`
+		SELECT ot.vendor_id AS id, v.name, SUM(${scope.amount('total')}) AS spend, COUNT(*) AS orders
+		FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
+		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+		GROUP BY ot.vendor_id
+		ORDER BY spend DESC
+	`).all({ userId, from, to, ...scope.params }).map(r => ({ id: r.id, name: r.name, amount: r.spend, orders: r.orders }))
+}
 
-/** Spend per vendor over a window, the vendor equivalent of `splitOver` above. */
-function vendorSplitOver(userId, from, to) {
-	return selectVendorSplit.all({ userId, from, to }).map(r => ({ id: r.id, name: r.name, amount: r.spend }))
+function statusSplitOver(userId, from, to, scope) {
+	return prepared(`
+		SELECT ot.status, COUNT(*) AS orders FROM orders ot
+		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+		GROUP BY ot.status
+	`).all({ userId, from, to, ...scope.params })
 }
 
 /** How many months a window is, as a real number: every day counts as its own share of its own
@@ -230,22 +304,40 @@ function monthsIn(from, to) {
 	return Math.round(months * 1e6) / 1e6
 }
 
-const selectDailyTotals = db.prepare(`
-	SELECT date, SUM(total) AS spend, SUM(saved) AS saved FROM orders
-	WHERE user_id = @userId AND date >= @from AND date < @to
-	GROUP BY date ORDER BY date
-`)
-
 /** One row per day of [from, to), zero-filled where nothing was bought -- what the running
     totals below are summed from. */
-function dailyRowsOver(userId, from, to) {
-	const byDate = new Map(selectDailyTotals.all({ userId, from, to }).map(r => [r.date, r]))
+function dailyRowsOver(userId, from, to, scope) {
+	const found = prepared(`
+		SELECT ot.date, SUM(${scope.amount('total')}) AS spend, SUM(${scope.amount('saved')}) AS saved, COUNT(*) AS orders
+		FROM orders ot
+		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+		GROUP BY ot.date ORDER BY ot.date
+	`).all({ userId, from, to, ...scope.params })
+	const byDate = new Map(found.map(r => [r.date, r]))
 	const rows = []
 	for (let d = from; d < to; d += DAY) {
 		const r = byDate.get(d)
-		rows.push({ date: d, spend: r?.spend ?? 0, saved: r?.saved ?? 0 })
+		rows.push({ date: d, spend: r?.spend ?? 0, saved: r?.saved ?? 0, orders: r?.orders ?? 0 })
 	}
 	return rows
+}
+
+/** Running totals per day for a few categories, so a chart's columns can be split by them. */
+function categorySeriesOver(userId, from, to, ids, scope) {
+	if (!ids.length) return []
+	const found = prepared(`
+		SELECT ot.date, oc.category_id AS id, SUM(${scope.signed('total')} * 1.0 / ot.category_count) AS spend
+		FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id
+		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+			AND oc.category_id IN (SELECT value FROM json_each(@ids))
+		GROUP BY ot.date, oc.category_id
+	`).all({ userId, from, to, ids: JSON.stringify(ids), ...scope.params })
+	return ids.map(id => {
+		const byDate = new Map(found.filter(r => r.id === id).map(r => [r.date, r.spend]))
+		const rows = []
+		for (let d = from; d < to; d += DAY) rows.push({ spend: byDate.get(d) ?? 0 })
+		return cumulate(rows, 'spend')
+	})
 }
 
 /** The running-total line a window's chart draws, from daily rows already in hand — split
@@ -257,10 +349,6 @@ function cumulate(rows, key) {
 	let sum = 0
 	for (const row of rows) { sum += row[key]; points.push(sum) }
 	return points
-}
-
-function seriesOver(userId, from, to, key = 'spend') {
-	return cumulate(dailyRowsOver(userId, from, to), key)
 }
 
 /** Today's day index inside [from, to), or null if today is outside it. */
@@ -291,10 +379,9 @@ function axisFor(from, to) {
 	return marks
 }
 
-/** Statistics for one window: the fields Home, Statistics, Categories and a vendor's page read. */
-export function getStats(userId, range, windowId, { compare = 'previous', today: day = todayIso() } = {}) {
-	const today = toEpoch(day)
-	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
+/** The window an id names for a width, or the current one when the id does not fit it. */
+function resolveWindow(userId, range, windowId, today) {
+	const width = ['week', 'month', 'quarter', 'year', 'all', 'days30', 'custom'].includes(range) ? range : 'month'
 	/* 'all' has one window, so it has one id -- windowBounds ignores the id it is handed for
 	   that width, so a month id left in the URL (`?range=all&period=2022-05`) cannot pin a
 	   window that is not a month. */
@@ -302,9 +389,28 @@ export function getStats(userId, range, windowId, { compare = 'previous', today:
 		: !windowId ? windowIdAt(width, today)
 			: windowBounds(userId, width, windowId, today) ? windowId
 				: reanchorWindowId(userId, width, windowId, today)
-	const bounds = windowBounds(userId, width, id, today)
+	return { width, id, bounds: windowBounds(userId, width, id, today) }
+}
 
-	const now = totalsOver(userId, bounds.from, bounds.to)
+/** The drill path's own stretch of time inside the window: a month or a week crumb. */
+function focusOf(bounds, from, to) {
+	const a = dayOf(from)
+	const b = dayOf(to)
+	const start = a == null ? bounds.from : Math.max(bounds.from, a)
+	const end = b == null ? bounds.to : Math.min(bounds.to, b + DAY)
+	return end > start ? { from: start, to: end } : bounds
+}
+
+/** Statistics for one window: the fields Home, Statistics, Categories and a vendor's page read.
+    `filter` is the drill path (vendorId, categoryId, status, from, to) and the lens (flow). */
+export function getStats(userId, range, windowId, { compare = 'previous', today: day = todayIso(), filter = {} } = {}) {
+	const today = toEpoch(day)
+	const { width, id, bounds } = resolveWindow(userId, range, windowId, today)
+	const scope = scopeOf(filter)
+	const focus = focusOf(bounds, filter.from, filter.to)
+	const narrowed = focus.from !== bounds.from || focus.to !== bounds.to
+
+	const now = totalsOver(userId, focus.from, focus.to, scope)
 	const previousId = comparisonWindowId(userId, width, id, compare, today)
 	const previousBounds = previousId ? windowBounds(userId, width, previousId, today) : null
 
@@ -319,28 +425,106 @@ export function getStats(userId, range, windowId, { compare = 'previous', today:
 	const hasOlder = olderBounds && earliest != null && olderBounds.to > earliest
 
 	// One fetch for both cumulative series below -- the rows carry spend and saved together.
-	const dailyRows = dailyRowsOver(userId, bounds.from, bounds.to)
+	const dailyRows = dailyRowsOver(userId, bounds.from, bounds.to, scope)
+	const split = splitOver(userId, focus.from, focus.to, now.spent, scope)
+	// the chart splits its columns by the window's own top three categories, not the crumb's
+	const chartSplit = narrowed ? splitOver(userId, bounds.from, bounds.to, null, scope) : split
+	const stacked = chartSplit.filter(entry => entry.id).slice(0, 3)
 
 	return {
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
+			slice: { from: fromEpoch(focus.from), to: fromEpoch(focus.to - DAY) },
 			axis: axisFor(bounds.from, bounds.to),
 			spent: now.spent, saved: now.saved, orders: now.orders, average: now.average,
-			pace: paceFor(bounds.from, bounds.to, today),
+			pace: paceFor(focus.from, focus.to, today),
 			/* Which point on the chart is today, or null when the window is entirely in the past
 			   or entirely ahead. Day index, so a bucketed series maps it through its own cut. */
 			todayIndex: todayIn(bounds.from, bounds.to, today),
-			split: splitOver(userId, bounds.from, bounds.to, now.spent),
-			vendorSplit: vendorSplitOver(userId, bounds.from, bounds.to),
+			split,
+			vendorSplit: vendorSplitOver(userId, focus.from, focus.to, scope),
+			statusSplit: statusSplitOver(userId, focus.from, focus.to, scope),
 			// The months the window holds, which a monthly budget is multiplied by.
-			budgets: { months: monthsIn(bounds.from, bounds.to) },
+			budgets: { months: monthsIn(focus.from, focus.to) },
 			series: {
 				current: cumulate(dailyRows, 'spend'),
-				previous: previousBounds ? seriesOver(userId, previousBounds.from, previousBounds.to) : null,
-				savedCumulative: cumulate(dailyRows, 'saved')
+				previous: previousBounds ? cumulate(dailyRowsOver(userId, previousBounds.from, previousBounds.to, scope), 'spend') : null,
+				savedCumulative: cumulate(dailyRows, 'saved'),
+				ordersCumulative: cumulate(dailyRows, 'orders'),
+				categories: stacked.map(entry => ({ id: entry.id, name: entry.name })),
+				byCategory: categorySeriesOver(userId, bounds.from, bounds.to, stacked.map(entry => entry.id), scope)
 			}
 		},
 		older: hasOlder ? olderId : null,
 		newer: hasNewer ? newerId : null
+	}
+}
+
+/** The drill path and lens out of a query string. Unknown values filter nothing. */
+export function filterOf(q) {
+	const day = v => (dayOf(v) == null ? undefined : v)
+	return {
+		flow: FLOWS.includes(q.flow) ? q.flow : 'all',
+		vendorId: q.vendorId || undefined,
+		categoryId: q.categoryId || undefined,
+		status: q.status || undefined,
+		from: day(q.from),
+		to: day(q.to)
+	}
+}
+
+/** The stretch of time a request's crumbs narrow its window to, and what else narrows it. */
+function sliceOf(userId, query, day = todayIso()) {
+	const { bounds } = resolveWindow(userId, query.range, query.windowId, toEpoch(day))
+	const filter = filterOf(query)
+	return { focus: focusOf(bounds, filter.from, filter.to), scope: scopeOf(filter) }
+}
+
+/** One page of the orders behind a slice, newest first, in the order list's row shape. */
+export function sliceOrders(userId, query, day) {
+	const { focus, scope } = sliceOf(userId, query, day)
+	const where = `ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}`
+	const params = { userId, from: focus.from, to: focus.to, ...scope.params }
+	const matched = prepared(`SELECT COUNT(*) c FROM orders ot WHERE ${where}`).get(params).c
+	const size = Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(Number(query.pageSize) || 25)))
+	const page = Math.max(1, Math.floor(Number(query.page) || 1))
+	const rows = prepared(`
+		SELECT ${orderTotalsSelectList('ot')} FROM orders ot WHERE ${where}
+		ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC
+		LIMIT @limit OFFSET @offset
+	`).all({ ...params, limit: size, offset: (page - 1) * size })
+	return { orders: decorateOrderListRows(rows), matched }
+}
+
+/** Every item line of every order behind a slice, the order's own fields repeated on each. */
+export function sliceLines(userId, query, day) {
+	const { focus, scope } = sliceOf(userId, query, day)
+	return prepared(`
+		SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total,
+			(SELECT group_concat(c.name, ', ') FROM order_categories oc JOIN categories c ON c.id = oc.category_id
+				WHERE oc.order_id = ot.id) AS categories,
+			oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote
+		FROM orders ot
+		JOIN vendors v ON v.id = ot.vendor_id
+		LEFT JOIN order_items oi ON oi.order_id = ot.id
+		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+		ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC, oi.position
+	`).all({ userId, from: focus.from, to: focus.to, ...scope.params })
+		.map(line => ({ ...line, date: fromEpoch(line.date) }))
+}
+
+const selectLastAdded = db.prepare('SELECT created_at AS at FROM orders WHERE rowid = (SELECT MAX(rowid) FROM orders WHERE user_id = ?)')
+const countWithoutReceipt = db.prepare(`
+	SELECT COUNT(*) c FROM orders ot
+	WHERE ot.user_id = ? AND ot.status NOT IN ('Cancelled', 'Draft')
+		AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
+`)
+
+/** What Home reads beyond the month: when an order was last added, and what needs a look. */
+export function homeAttention(userId) {
+	return {
+		lastAdded: selectLastAdded.get(userId)?.at ?? null,
+		withoutReceipt: countWithoutReceipt.get(userId).c,
+		lookalikeVendors: lookalikeVendors(userId).reduce((n, group) => n + group.length, 0)
 	}
 }

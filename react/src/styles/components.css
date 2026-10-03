@@ -1362,6 +1362,10 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
   font-weight: 600;
   cursor: default;
 }
+/* an earlier level of the path, pressed to go back to it */
+button.sp-crumb { cursor: pointer; outline: none; }
+button.sp-crumb:hover { background: var(--green-5); }
+button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 .sp-crumb__remove {
   display: grid;
   place-items: center;
@@ -2978,6 +2982,7 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   height: var(--control-h);
   padding-bottom: var(--sp-2);
 }
+.sp-range--single { width: auto; }
 .sp-range__months { display: flex; gap: var(--sp-16); padding: 0 var(--sp-12) var(--sp-12); }
 .sp-range__month { flex: 1; display: flex; flex-direction: column; gap: var(--sp-8); }
 .sp-range__month-head { display: flex; align-items: center; gap: var(--sp-8); font-size: var(--t-12); font-weight: 600; }
