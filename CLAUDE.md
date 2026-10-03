@@ -180,6 +180,11 @@ A threshold, or a claim that something fits or is safe, is a claim about the ful
 to, not the one point you happened to check. Sweep the range and find the real boundary before
 writing a number down; don't call a guess "measured" because it passed once.
 
+### Never size a design on demo data or on any one account
+
+Spendly has many accounts, and their data sizes are unknown. Every list that can grow per account is
+paged or searched on the server, and is tested with more rows than the demo data has.
+
 ### The environment, settled — do not re-derive it
 
 - **A rendered account with real records is one flow.** No seed script, no shortcut route: register
