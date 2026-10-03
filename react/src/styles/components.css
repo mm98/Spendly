@@ -901,6 +901,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table td:last-child { padding-right: var(--sp-16); }
 .sp-table th + th,
 .sp-table td + td { padding-left: var(--sp-12); }
+/* the compact row density (Settings, Appearance): more rows on screen, same columns */
+[data-density="compact"] .sp-table tbody td { padding-top: var(--sp-6); padding-bottom: var(--sp-6); }
 
 .sp-table thead th {
   padding-top: var(--sp-8);
@@ -4609,6 +4611,7 @@ body > .sp-scrim { position: fixed; z-index: 50; border-radius: 0; }
 .sp-auth { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--sp-16); background: var(--bg); }
 .sp-card--float { width: 400px; max-width: 100%; box-shadow: var(--shadow-menu); }
 .sp-card--float > .sp-stack.sp-center { align-items: center; }
+.sp-card--float-wide { width: 420px; }
 
 /* ---------- the shell's layouts below their thresholds (Responsive reference 18a) ----------
    A railed body is one column on a phone (a split one folds at 900, beside its rules). */

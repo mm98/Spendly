@@ -39,3 +39,8 @@ system.addEventListener('change', applyTheme)
 export function useTheme() {
 	return useSyncExternalStore(fn => { listeners.add(fn); return () => listeners.delete(fn) }, currentTheme)
 }
+
+/** The lists' row density, a stored setting: compact draws each table row closer to the next. */
+export const setDensity = density => {
+	document.documentElement.dataset.density = density === 'compact' ? 'compact' : 'comfortable'
+}

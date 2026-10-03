@@ -6,23 +6,23 @@ import { statusKeys } from '../lib/statuses.js'
 export const router = Router()
 
 const selectSettings = db.prepare(`
-	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale
+	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density
 	FROM settings WHERE user_id = ?
 `)
 // show_scan_card and confirm_delete are NOT NULL without a default, so a first write fills them
 const upsertSettings = db.prepare(`
 	INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
-		confirm_delete, list_sort, currency, locale)
-	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale)
+		confirm_delete, list_sort, currency, locale, density)
+	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale, @density)
 	ON CONFLICT (user_id) DO UPDATE SET
 		default_kind = excluded.default_kind, default_status = excluded.default_status,
 		page_size = excluded.page_size, sort = excluded.sort, list_sort = excluded.list_sort,
-		currency = excluded.currency, locale = excluded.locale
+		currency = excluded.currency, locale = excluded.locale, density = excluded.density
 `)
 
 const toApi = row => ({
 	defaultKind: row.default_kind, defaultStatus: row.default_status, pageSize: row.page_size,
-	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale
+	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -36,6 +36,7 @@ export const ORDER_SORTS = [
 ]
 export const LIST_SORTS = ['name-asc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
 const CURRENCY_CODES = CURRENCIES.map(c => c.code)
+const DENSITIES = ['comfortable', 'compact']
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)
 
 router.get('/', (req, res) => {
@@ -47,7 +48,7 @@ router.patch('/', (req, res) => {
 	const current = selectSettings.get(req.user.id)
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
-		listSort: 'name-asc', currency: 'DKK', locale: 'auto'
+		listSort: 'name-asc', currency: 'DKK', locale: 'auto', density: 'comfortable'
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
@@ -76,7 +77,8 @@ router.patch('/', (req, res) => {
 		   locale reaching Intl.DateTimeFormat throws a RangeError rather than falling back,
 		   so a stored value nothing validates is every date in the product replaced by an
 		   error boundary. */
-		locale: oneOf(LOCALES, String(next.locale ?? ''), currentApi.locale)
+		locale: oneOf(LOCALES, String(next.locale ?? ''), currentApi.locale),
+		density: oneOf(DENSITIES, String(next.density ?? ''), currentApi.density)
 	})
 	res.json(toApi(selectSettings.get(req.user.id)))
 })

@@ -15,6 +15,8 @@ export function Field({
 	chevron,
 	message,
 	messageType = 'hint',
+	// a small button at the label's right end: sign in's Forgot it? (20a)
+	labelAction,
 	// a word beside the label about where the value came from (3a: "matched existing vendor")
 	note,
 	noteType = 'hint',
@@ -94,14 +96,16 @@ export function Field({
 	const noteColor = note ? pick(NOTE, noteType, 'noteType', 'Field') : null
 	return (
 		<div className="sp-field">
-			{note
-				? (
-					<div className="sp-row-flex sp-gap-8">
-						{labelled}
-						<span className="sp-field__help" {...(noteColor ? { 'data-color': noteColor } : {})}>{note}</span>
-					</div>
-				)
-				: labelled}
+			{labelAction
+				? <div className="sp-row-flex sp-baseline">{labelled}<span className="sp-grow" />{labelAction}</div>
+				: note
+					? (
+						<div className="sp-row-flex sp-gap-8">
+							{labelled}
+							<span className="sp-field__help" {...(noteColor ? { 'data-color': noteColor } : {})}>{note}</span>
+						</div>
+					)
+					: labelled}
 			{wrapped}
 			{message
 				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>

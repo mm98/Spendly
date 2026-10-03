@@ -5,7 +5,6 @@ import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Field } from '../components/Field.jsx'
-import { TextField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -16,14 +15,16 @@ import { useToast } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
-import { chosenTheme, followSystem, setTheme, useTheme } from '../app/theme.js'
+import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, saveSettings, setViewsShown, sorts, spendKinds
+	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts, saveSettings, setViewsShown, sorts, spendKinds,
+	updateProfile
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
+import { AccountCard } from './SettingsAccount.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, Heading } from './SettingsParts.jsx'
 import { StatusesCard } from './SettingsStatuses.jsx'
@@ -33,8 +34,8 @@ import { useLeaveGuard } from './vendorsCategories.jsx'
 
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
-	{ key: 'account', label: 'Account and profile' },
-	{ key: 'appearance', label: 'Appearance' },
+	{ key: 'account', label: 'Account and profile', keys: ['name'] },
+	{ key: 'appearance', label: 'Appearance', keys: ['density'] },
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'sort', 'listSort'] },
@@ -55,6 +56,11 @@ const THEMES = [
 	{ value: 'light', label: 'Light' },
 	{ value: 'dark', label: 'Dark' },
 	{ value: 'system', label: 'Follow system' }
+]
+
+const DENSITIES = [
+	{ value: 'comfortable', label: 'Comfortable' },
+	{ value: 'compact', label: 'Compact' }
 ]
 
 const currencyLabel = c => `${c.label} (${c.symbol})`
@@ -83,9 +89,9 @@ export default function Settings() {
 	const toast = useToast()
 	const [draft, setDraft] = useState({})
 	const [saving, setSaving] = useState(false)
-	// the sidebar's view count is kept with the views, and saved with them
+	// the name is the account's and the sidebar's view count is kept with the views; both save with the rest
 	const shown = useViews().data?.shown
-	const saved = settings.data && { ...settings.data, orderViews: shown ?? 4 }
+	const saved = settings.data && user.data ? { ...settings.data, name: user.data.name ?? '', orderViews: shown ?? 4 } : null
 	const current = SECTIONS.some(s => s.key === section) ? section : null
 
 	const value = key => (key in draft ? draft[key] : saved?.[key])
@@ -100,12 +106,16 @@ export default function Settings() {
 
 	const save = () => {
 		setSaving(true)
-		const { orderViews, ...rest } = draft
-		Promise.all([orderViews ? setViewsShown(orderViews) : null, Object.keys(rest).length ? saveSettings(rest) : null])
-			.then(([, next]) => next)
-			.then(next => {
+		const { name, orderViews, ...prefs } = draft
+		Promise.all([
+			Object.keys(prefs).length ? saveSettings(prefs) : null,
+			name !== undefined ? updateProfile({ name }) : null,
+			orderViews ? setViewsShown(orderViews) : null
+		])
+			.then(([next]) => {
 				setCurrency(next?.currency ?? value('currency'))
 				setLocale(next?.locale ?? value('locale'))
+				setDensity(next?.density ?? value('density'))
 				dropStale()
 				settings.refresh()
 				setDraft({})
@@ -121,8 +131,8 @@ export default function Settings() {
 	const touch = shape === 'touch'
 	const fields = { value, change, touch }
 	const cards = {
-		account: <AccountCard key="account" email={user.data?.email} />,
-		appearance: <AppearanceCard key="appearance" touch={touch} />,
+		account: <AccountCard key="account" user={user.data} {...fields} />,
+		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
@@ -155,18 +165,18 @@ export default function Settings() {
 			)
 
 	const seen = useSeenSection(!touch && saved != null)
-	const body = settings.error && !saved
-		? <Failed what="Your settings" error={settings.error} onRetry={settings.refresh} />
+	const failed = settings.error ?? user.error
+	const body = failed && !saved
+		? <Failed what="Your settings" error={failed} onRetry={() => { settings.refresh(); user.refresh() }} />
 		: !saved
 			? <><LoadingCard /><LoadingCard /><LoadingCard /></>
 			: null
 
 	if (touch) {
 		if (body) return body
-		const open = current && current !== 'account' ? current : null
 		return (
 			<>
-				{open ? <Arrive section={open} visit={visit}>{cards[open]}</Arrive> : <PhoneIndex email={user.data?.email} />}
+				{current ? <Arrive section={current} visit={visit}>{cards[current]}</Arrive> : <PhoneIndex user={user.data} />}
 				{saveBar}
 				{guard.prompt}
 			</>
@@ -294,21 +304,8 @@ function Arrive({ section, visit, room, children }) {
 	return <div className="sp-stack sp-gap-12" ref={column}>{children}</div>
 }
 
-function AccountCard({ email }) {
-	return (
-		<Card>
-			<Heading section="account">Account and profile</Heading>
-			<Halves>
-				<Field label="Email">
-					<TextField type="email" variant="readonly" readOnly value={email ?? ''} />
-				</Field>
-			</Halves>
-		</Card>
-	)
-}
-
 /* The theme lives in this browser, and applies the moment it is picked, as the sidebar's switch does. */
-function AppearanceCard({ touch }) {
+function AppearanceCard({ value, change, touch }) {
 	useTheme()
 	const [, redraw] = useReducer(n => n + 1, 0)
 	const pick = next => {
@@ -321,6 +318,9 @@ function AppearanceCard({ touch }) {
 			<Heading section="appearance">Appearance</Heading>
 			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
 				<Segmented name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
+			</Field>
+			<Field label="Row density" message="Compact fits more rows on screen.">
+				<Segmented name="density" options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
 			</Field>
 		</Card>
 	)
@@ -407,17 +407,24 @@ function ListsCard({ value, change, touch }) {
 }
 
 /* Below 640 the panes are a list (7a): the account first, then one row per pane. */
-function PhoneIndex({ email }) {
+function PhoneIndex({ user }) {
 	const chevron = <Icon name="chevron-right" />
+	const email = user?.email
+	const name = user?.name || email?.split('@')[0]
 	return (
 		<>
-			<Card>
+			<Card to="/settings/account" chevron={chevron} aria-label="Account and profile">
 				<span className="sp-section-label">Account</span>
 				{email
 					? (
 						<div className="sp-cell-flex">
-							<Mark size="large" fill="solid" round>{email.split('@')[0]}</Mark>
-							<div className="sp-stack sp-gap-6 sp-grow"><span className="sp-meta sp-truncate">{email}</span></div>
+							{user.picture
+								? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
+								: <Mark size="large" fill="solid" round>{name}</Mark>}
+							<div className="sp-stack sp-gap-6 sp-grow">
+								{user.name ? <span className="sp-title sp-truncate">{user.name}</span> : null}
+								<span className="sp-meta sp-truncate">{email}</span>
+							</div>
 						</div>
 					)
 					: <Skeleton shape="line" />}

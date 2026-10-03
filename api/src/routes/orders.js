@@ -2,11 +2,12 @@ import { Router } from 'express'
 import multer from 'multer'
 import { createHash } from 'crypto'
 import { db } from '../db.js'
+import { requireConfirmed } from '../lib/auth.js'
 import { newId } from '../lib/ids.js'
 import { toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
-import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
+import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
 import { resolveStatus, statusKeys } from '../lib/statuses.js'
@@ -679,9 +680,21 @@ const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	sha256: a.sha256, pages: a.pages ?? null
 })
 
-router.post('/import', async (req, res) => {
+const selectImport = db.prepare('SELECT id, undone_at FROM imports WHERE id = ? AND user_id = ?')
+const selectCategoryByName = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
+const tagOrder = db.prepare('UPDATE orders SET import_id = ? WHERE id = ?')
+const tagVendor = db.prepare('UPDATE vendors SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
+const tagCategory = db.prepare('UPDATE categories SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
+const countImport = db.prepare(`UPDATE imports SET orders = orders + @orders, lines = lines + @lines,
+	skipped = skipped + @skipped, vendors = vendors + @vendors WHERE id = @id`)
+
+router.post('/import', requireConfirmed, async (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders : []
 	if (!orders.length) return res.status(400).json({ error: 'Provide a non-empty "orders" array.' })
+	// ?importId= tags what this batch writes with an import record, so the import can be undone
+	const importId = req.query.importId ? String(req.query.importId) : null
+	const importRow = importId ? selectImport.get(importId, req.user.id) : null
+	if (importId && (!importRow || importRow.undone_at)) return res.status(400).json({ error: 'That import is not open any more. Start it again.' })
 
 	/* ?progress=stream turns the response into NDJSON: a {done, total} line as rows land --
 	   at most ~100 of them however big the batch, so a 25k-row import is not spent writing
@@ -697,6 +710,7 @@ router.post('/import', async (req, res) => {
 	}
 
 	const imported = [], failed = []
+	let createdVendors = 0, lines = 0
 	for (const [index, raw] of orders.entries()) {
 		const draft = raw && typeof raw === 'object' ? keyed(req.user.id, raw) : raw
 		try {
@@ -709,7 +723,15 @@ router.post('/import', async (req, res) => {
 
 			const id = newId('o')
 			db.transaction(() => {
+				const newVendor = importId && !findVendorIdByAnyName(req.user.id, draft.vendor)
+				const newCategories = importId ? (draft.categories ?? []).filter(name => !selectCategoryByName.get(req.user.id, String(name).trim())) : []
 				const itemIds = insertOrderRows(req.user.id, id, draft)
+				if (importId) {
+					tagOrder.run(importId, id)
+					if (newVendor) { tagVendor.run(importId, req.user.id, String(draft.vendor).trim()); createdVendors++ }
+					for (const name of newCategories) tagCategory.run(importId, req.user.id, String(name).trim())
+					lines += draft.items.length
+				}
 				for (const a of attachments) insertImportedAttachment(a, { orderId: id })
 				itemIds.forEach((itemId, position) => {
 					for (const a of itemAttachments[position]) insertImportedAttachment(a, { orderItemId: itemId })
@@ -726,6 +748,7 @@ router.post('/import', async (req, res) => {
 		}
 	}
 
+	if (importId) countImport.run({ id: importId, orders: imported.length, lines, skipped: failed.length, vendors: createdVendors })
 	const result = { imported: imported.length, orders: imported, failed }
 	if (streaming) res.end(JSON.stringify(result) + '\n')
 	else res.status(failed.length && !imported.length ? 400 : 200).json(result)

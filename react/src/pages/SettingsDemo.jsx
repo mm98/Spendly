@@ -5,6 +5,7 @@ import { Field } from '../components/Field.jsx'
 import { Well } from '../components/Well.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { Gauge } from '../components/Data.jsx'
 import { invalidate } from '../api/useApi.js'
 import { populateDemoData } from '../api/client.js'
 import { amount, plural } from '../api/format.js'
@@ -21,8 +22,7 @@ const COUNT_ID = 'demo-count'
 
 const INTRO = 'Fill the account with made-up orders so the lists and charts have something to show. Each fill creates a new, different set.'
 
-/* Demo data, through the five states of 11c. A fill is one request, so there is no running
-   count to show while it works. */
+/* Demo data, through the five states of 11c. The fill reports its count as it writes. */
 export function DemoCard() {
 	const [stage, setStage] = useState({ name: 'rest' })
 	const [count, setCount] = useState(COUNTS[0])
@@ -33,8 +33,8 @@ export function DemoCard() {
 	const choose = () => go({ name: 'choosing' }, COUNT_ID)
 
 	const fill = () => {
-		go({ name: 'filling' })
-		populateDemoData(count, months)
+		go({ name: 'filling', done: 0 })
+		populateDemoData(count, months, { onRows: done => setStage(s => (s.name === 'filling' ? { ...s, done } : s)) })
 			.then(made => {
 				invalidate()
 				go({ name: 'done', made })
@@ -70,7 +70,12 @@ export function DemoCard() {
 		<Card ref={box} aria-busy="true">
 			{heading}
 			<span className="sp-data">Creating {orders(count)} over {lastSpan(months)}.</span>
-			<span className="sp-meta">This can take a moment.</span>
+			<Gauge thin value={(stage.done / count) * 100} aria-label="Demo data progress" />
+			<div className="sp-row-flex sp-gap-8">
+				<span className="sp-meta">{amount(stage.done, 0)} of {amount(count, 0)}</span>
+				<span className="sp-grow" />
+				<span className="sp-meta">This can take a moment.</span>
+			</div>
 		</Card>
 	)
 

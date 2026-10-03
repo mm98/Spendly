@@ -1,19 +1,11 @@
 import { Router } from 'express'
+import { Worker } from 'node:worker_threads'
 import { db } from '../db.js'
-import { populateDemoData } from '../lib/demoData.js'
+import { replaceWithDemo } from '../lib/demoFill.js'
+
+const FILL_WORKER = new URL('../lib/demoFill.worker.js', import.meta.url)
 
 export const router = Router()
-
-/* The ledger: what the demo fill replaces. Settings are preferences, not data, and stay. */
-const wipeLedger = userId => {
-	// orders first: cascades order_items, order_categories, attachments
-	db.prepare('DELETE FROM orders WHERE user_id = ?').run(userId)
-	// then bookmarks, which cascade their own category links -- before categories, or the delete
-	// below hits a link still pointing at one and the whole fill fails on a foreign key.
-	db.prepare('DELETE FROM bookmarks WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM vendors WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM categories WHERE user_id = ?').run(userId)
-}
 
 /* The demo fill rewrites a whole ledger in one request, which dates the planner statistics
    db.js gathered at boot: statistics taken over an empty account say every table is tiny, and
@@ -21,19 +13,6 @@ const wipeLedger = userId => {
    way no statistics did. Re-gathered here, after the transaction commits -- ~90ms at 50,000
    orders under the analysis_limit db.js sets, on requests that already spend seconds writing. */
 const refreshStatistics = () => db.exec('ANALYZE')
-
-/* Fills the account with a year of demo orders. Replaces rather than appends: pressed twice,
-   appending would double a year of orders and leave every per-month figure quietly wrong,
-   which is a worse answer than the obvious one. It replaces the ledger only -- the button
-   promises "every order, bookmark, vendor and category is removed first" and keeps exactly that
-   promise.
-
-   Only ever this account -- populateDemoData writes every row against req.user.id, the same
-   rule every other route here follows. */
-const replaceWithDemo = db.transaction((userId, seed, orders, months, today) => {
-	wipeLedger(userId)
-	return populateDemoData(userId, { seed, orders, months, today })
-})
 
 /* A different year every time it is pressed.
 
@@ -62,7 +41,29 @@ router.post('/demo-data', (req, res) => {
 	const askedMonths = Number(req.body?.months)
 	const months = Number.isFinite(askedMonths) && askedMonths > 0
 		? Math.min(288, Math.floor(askedMonths)) : undefined
-	const result = replaceWithDemo(req.user.id, seed, orders, months, req.today)
-	refreshStatistics()
-	res.json({ ...result, seed })
+	const options = { seed, orders, months, today: req.today }
+	if (req.query.progress !== 'stream') {
+		const result = replaceWithDemo(req.user.id, options)
+		refreshStatistics()
+		return res.json({ ...result, seed })
+	}
+
+	/* ?progress=stream answers NDJSON: a {done, total} line as orders are written, closed by
+	   the result or an {error}. The fill runs on a worker so this process can send the lines. */
+	res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
+	res.flushHeaders()
+	const worker = new Worker(FILL_WORKER, { workerData: { userId: req.user.id, ...options } })
+	let ended = false
+	const end = line => {
+		if (ended) return
+		ended = true
+		res.end(JSON.stringify(line) + '\n')
+	}
+	worker.on('message', message => {
+		if ('done' in message) res.write(JSON.stringify(message) + '\n')
+		else if (message.result) { refreshStatistics(); end({ ...message.result, seed }) }
+		else end({ error: 'The demo data could not be written. Nothing was changed.' })
+	})
+	worker.on('error', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
+	worker.on('exit', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
 })

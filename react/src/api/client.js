@@ -105,19 +105,93 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 /* ---- auth: each clears the whole read cache, since crossing accounts makes every answer someone else's ---- */
 
 // the locale guess rides with the registration: the first settings row is written in the same transaction
-export async function register(email, password, signal) {
+export async function register(email, password, name, signal) {
 	const user = await request('/api/auth/register',
-		{ method: 'POST', body: { email, password, locale: detectLocale() }, signal })
+		{ method: 'POST', body: { email, password, name, locale: detectLocale() }, signal })
 	signedOut = false
 	invalidate()
 	return user
 }
 
-export async function login(email, password, signal) {
-	const user = await request('/api/auth/login', { method: 'POST', body: { email, password }, signal })
+export async function login(email, password, remember = true, signal) {
+	const user = await request('/api/auth/login', { method: 'POST', body: { email, password, remember }, signal })
 	signedOut = false
 	invalidate()
 	return user
+}
+
+/** What the signed-out pages may offer: `mail` (this server can send a link), `terms` and
+    `privacy` (the operator's own pages, or null), `receiptReading` (receipts are sent out to be read). */
+export async function getAuthOptions(signal) {
+	return request('/api/auth/options', { signal })
+}
+
+export async function askPasswordReset(email, signal) {
+	return request('/api/auth/reset', { method: 'POST', body: { email }, signal })
+}
+
+/** { state: 'valid' | 'used' | 'expired', email } for a reset link. */
+export async function readResetLink(token, signal) {
+	return request(`/api/auth/reset/${encodeURIComponent(token)}`, { signal })
+}
+
+export async function resetPassword(token, password, signal) {
+	const out = await request(`/api/auth/reset/${encodeURIComponent(token)}`, { method: 'POST', body: { password }, signal })
+	signedOut = false
+	invalidate()
+	return out
+}
+
+/** { state: 'confirmed' | 'already' | 'expired', email }; a confirmed link signs this browser in. */
+export async function confirmEmail(token, signal) {
+	const out = await request('/api/auth/confirm', { method: 'POST', body: { token }, signal })
+	signedOut = false
+	invalidate()
+	return out
+}
+
+export async function resendConfirmation(signal) {
+	return request('/api/auth/confirm/resend', { method: 'POST', signal })
+}
+
+export async function changeEmail(email, signal) {
+	const out = await request('/api/auth/email', { method: 'POST', body: { email }, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+/* ---- the account's own profile ---- */
+
+export async function updateProfile(patch, signal) {
+	const out = await request('/api/account', { method: 'PATCH', body: patch, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function uploadPicture(file, signal) {
+	const form = new FormData()
+	form.append('file', file)
+	const out = await request('/api/account/picture', { method: 'PUT', form, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function removePicture(signal) {
+	const out = await request('/api/account/picture', { method: 'DELETE', signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function changePassword(current, password, signal) {
+	const out = await request('/api/account/password', { method: 'POST', body: { current, password }, signal })
+	invalidate(getCurrentUser)
+	return out
+}
+
+export async function finishSetup(signal) {
+	const out = await request('/api/account/setup-done', { method: 'POST', signal })
+	invalidate(getCurrentUser)
+	return out
 }
 
 /* The page still on screen is leaving: its readers are not asked again, since every answer
@@ -538,7 +612,7 @@ export const itemAttachmentFileUrl = (orderId, itemId, attachmentId) =>
 
 /** A POST by XMLHttpRequest, for the sent fraction of the body and an NDJSON answer read line by
     line as it arrives; a stream is 200 throughout, so its last line carries the verdict. */
-function uploadJson(path, body, { signal, onSent, onLine } = {}) {
+function uploadJson(path, body, { signal, onSent, onLine, isResult = o => 'imported' in o } = {}) {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest()
 		xhr.open('POST', path)
@@ -566,7 +640,8 @@ function uploadJson(path, body, { signal, onSent, onLine } = {}) {
 			if (streamed()) {
 				drain()
 				take(xhr.responseText.slice(read))
-				if (last && 'imported' in last) resolve(last)
+				if (last && isResult(last)) resolve(last)
+				else if (last?.error) reject(new ApiError(last.error, xhr.status, undefined, last))
 				else reject(new ApiError('The import ended before its result arrived.', xhr.status, undefined, last))
 			} else {
 				let data = null
@@ -581,11 +656,33 @@ function uploadJson(path, body, { signal, onSent, onLine } = {}) {
 
 /** Imports whole orders from a file. `onSent` reports the fraction sent, 0 to 1; `onRows` the
     rows the server has processed so far. */
-export async function importOrders(orders, { signal, onSent, onRows } = {}) {
-	return uploadJson('/api/orders/import?progress=stream', { orders }, {
+export async function importOrders(orders, { signal, onSent, onRows, importId } = {}) {
+	return uploadJson('/api/orders/import' + qs({ progress: 'stream', importId }), { orders }, {
 		signal, onSent,
 		onLine: o => { if (onRows && o && 'done' in o && 'total' in o) onRows(o.done, o.total) }
 	})
+}
+
+/** The account's last few imports: what each wrote, its mapping, and whether it can still be undone. */
+export async function getImports(signal) {
+	return request('/api/imports', { signal })
+}
+
+/** An import record the orders about to be sent are tagged with: { id }. */
+export async function startImport(fileName, mapping, skipped = 0, signal) {
+	return request('/api/imports', { method: 'POST', body: { fileName, mapping, skipped }, signal })
+}
+
+/** Removes what an import wrote, within a day of it. */
+export async function undoImport(id, signal) {
+	const out = await request(`/api/imports/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+	invalidate()
+	return out
+}
+
+/** Which of `orders` ({ vendor, date, total }) look like orders the account already has: their positions. */
+export async function checkImportDuplicates(orders, signal) {
+	return request('/api/imports/check', { method: 'POST', body: { orders }, signal })
 }
 
 export async function getOrderDraft(signal) {
@@ -613,11 +710,14 @@ export async function saveSettings(patch, signal) {
 	return request('/api/settings', { method: 'PATCH', body: patch, signal })
 }
 
-/** Replaces the ledger with `orders` demo orders over the last `months`. Given up after 30 s, six
-    times the largest fill; the server still finishes, so a late fill has still happened. */
-export async function populateDemoData(orders, months, signal) {
-	return request('/api/demo-data', { method: 'POST', body: { orders, months },
-		signal: signal ?? AbortSignal.timeout(30000) })
+/** Replaces the ledger with `orders` demo orders over the last `months`; `onRows(done, total)` hears
+    its progress. A timed-out wait does not stop the server, so a late fill has still happened. */
+export async function populateDemoData(orders, months, { signal, onRows } = {}) {
+	return uploadJson('/api/demo-data?progress=stream', { orders, months }, {
+		signal: signal ?? AbortSignal.timeout(120000),
+		onLine: o => { if (onRows && o && 'done' in o && 'total' in o) onRows(o.done, o.total) },
+		isResult: o => 'orders' in o && 'vendors' in o
+	})
 }
 
 /* ---- statistics ---- */

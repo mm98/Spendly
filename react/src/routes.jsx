@@ -6,15 +6,22 @@ import { SignedOut } from './app/SignedOut.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
 import { cachedFetch } from './api/useApi.js'
 import { setCurrency, setLocale } from './api/format.js'
+import { setDensity } from './app/theme.js'
 
 /* Every route under the shell needs a signed-in session, checked once per navigation; the
    account's currency and date format are read on the same wait, before any figure is drawn. */
 const requireAuth = async ({ request }) => {
 	try {
-		await cachedFetch(getCurrentUser)
-		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale) }).catch(() => {})
+		const user = await cachedFetch(getCurrentUser)
+		// an account that has not had its first run is sent there from every page (20e)
+		if (user?.needsSetup) {
+			const { pathname, search } = new URL(request.url)
+			throw redirect(pathname === '/' ? '/welcome' : `/welcome?next=${encodeURIComponent(pathname + search)}`)
+		}
+		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale); setDensity(s?.density) }).catch(() => {})
 		return null
 	} catch (e) {
+		if (e instanceof Response) throw e
 		if (e.status === 401) {
 			const { pathname, search } = new URL(request.url)
 			throw redirect(pathname === '/' ? '/signin' : `/signin?next=${encodeURIComponent(pathname + search)}`)
@@ -43,6 +50,13 @@ const page = load => lazy(() => load()
 
 const SignIn = page(() => import('./pages/SignIn.jsx'))
 const Register = page(() => import('./pages/Register.jsx'))
+const Welcome = page(() => import('./pages/Welcome.jsx'))
+const ConfirmSent = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmSent })))
+const ConfirmLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmLink })))
+const ResetAsk = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetAsk })))
+const ResetLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetLink })))
+const Terms = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Terms })))
+const Privacy = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Privacy })))
 const Home = page(() => import('./pages/Home.jsx'))
 const Orders = page(() => import('./pages/Orders.jsx'))
 const Order = page(() => import('./pages/Order.jsx'))
@@ -66,6 +80,13 @@ const SavedViews = page(() => import('./pages/OrderViews.jsx'))
 export const routes = [
 	{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
 	{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
+	{ path: 'welcome', element: <Welcome />, handle: { title: 'Welcome' } },
+	{ path: 'confirm', element: <ConfirmSent />, handle: { title: 'Confirm your email' } },
+	{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
+	{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
+	{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
+	{ path: 'terms', element: <Terms />, handle: { title: 'Terms of use' } },
+	{ path: 'privacy', element: <Privacy />, handle: { title: 'Privacy notice' } },
 	{
 		element: <AppShell />,
 		errorElement: <ShellError />,

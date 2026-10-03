@@ -38,6 +38,27 @@
 	.st-tone:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
 
 	.st-quad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
+
+	/* import step 2 (11b): a column in the file, an arrow on the field's line, the field it maps to */
+	.st-map { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: var(--sp-10); align-items: stretch; }
+	.st-map > svg { align-self: center; justify-self: center; }
+	.st-map--head { padding: 0 var(--sp-2) var(--sp-2); }
+	.st-map:not(.st-map--head) > :first-child { min-height: var(--control-h); box-sizing: border-box; }
+
+	/* the preview's two columns the list component has no width for */
+	.st-table .st-w-lines { width: 48px; }
+	.st-table[data-cols="preview"] th:nth-child(4) { width: 100px; }
+	/* a line of controls that breaks onto more lines when it does not fit; .st-push sends the rest to the end */
+	.st-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12); flex: 1 1 auto; min-width: 0; }
+	.st-push { flex: 1 0 0; }
+	.st-match-name { flex: 0 1 auto; min-width: 0; }
+	.st-foot { gap: var(--sp-8); }
+	.st-foot-note { flex: 1 1 240px; }
+	/* on a touch screen each button fills the width, so each takes a line of its own */
+	.sp-touch .st-foot > .st-push { display: none; }
+	/* the preview table scrolls sideways on a phone rather than squeezing the vendor column to nothing */
+	.st-sideways { overflow-x: auto; }
+	.st-table[data-cols="preview"] { min-width: 540px; }
 	/* a phone holds four figures two by two, as Statistics does (Mobile screens) */
 	@media (max-width: 639.98px) {
 		.st-quad { grid-template-columns: repeat(2, minmax(0, 1fr)); }
