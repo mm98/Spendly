@@ -11,7 +11,7 @@ import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { amount } from '../api/format.js'
-import { MAC, useShellShape } from './useMedia.js'
+import { MAC, useMedia, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
 import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
@@ -33,6 +33,8 @@ const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'settings', 
 export function AppShell() {
 	const shape = useShellShape()
 	const touch = shape === 'touch'
+	// below 560 the bottom zone gives Settings and the theme to the account menu (9g)
+	const short = useMedia('(max-height: 559.98px)')
 	const handle = handleOf(useMatches())
 	const { navKey, layout = 'default', fab = false, title, remember = false } = handle
 	const navigate = useNavigate()
@@ -135,7 +137,7 @@ export function AppShell() {
 	return (
 		<Toaster>
 			<Shell touch={touch} viewport={!touch} collapsed={shape === 'rail'} cover={touch ? overlay : undefined}>
-				{touch ? null : sidebar({ navKey, rail: shape === 'rail', go })}
+				{touch ? null : sidebar({ navKey, rail: shape === 'rail', short, go })}
 				<TopBar touch={touch}>{search}</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
@@ -156,33 +158,64 @@ export function AppShell() {
 }
 
 /* An element rather than a component: the shell places its children by type. On the rail the
-   groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). */
-function sidebar({ navKey, rail, go }) {
+   groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). The brand
+   and the bottom zone stay put; only the destinations between them scroll (9g). */
+function sidebar({ navKey, rail, short, go }) {
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
 		<Sidebar aria-label="Sections">
 			{rail
 				? <>{brand}<SidebarDivider /></>
 				: <SidebarBrand>{brand}<span>Spendly</span></SidebarBrand>}
-			<Row to="/" icon="home" rail={rail} current={navKey === 'home'}>Home</Row>
-			<Row to="/orders/new?source=scan" icon="camera" variant="action" rail={rail}>Scan receipt</Row>
-			<Row to="/orders/new" icon="plus" rail={rail}>New order</Row>
-			{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
-			<Counted to={go('orders', '/orders')} icon="receipt" rail={rail} current={navKey === 'orders'} useCount={useOrdersCount}>All orders</Counted>
-			{rail ? null : <SidebarGroup>Budget</SidebarGroup>}
-			<Row to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
-			{rail ? null : <SidebarGroup>Library</SidebarGroup>}
-			<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
-			<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
-			<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
-			<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
-			<span className="sp-grow" />
-			<Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>
+			<NavScroll navKey={navKey}>
+				<Row to="/" icon="home" rail={rail} current={navKey === 'home'}>Home</Row>
+				<Row to="/orders/new?source=scan" icon="camera" variant="action" rail={rail}>Scan receipt</Row>
+				<Row to="/orders/new" icon="plus" rail={rail}>New order</Row>
+				{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
+				<Counted to={go('orders', '/orders')} icon="receipt" rail={rail} current={navKey === 'orders'} useCount={useOrdersCount}>All orders</Counted>
+				{rail ? null : <SidebarGroup>Budget</SidebarGroup>}
+				<Row to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
+				{rail ? null : <SidebarGroup>Library</SidebarGroup>}
+				<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
+				<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
+				<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
+				<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
+			</NavScroll>
+			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}
 			{rail ? null : <SidebarDivider />}
-			<DarkMode rail={rail} />
-			<Account rail={rail} />
+			{short ? null : <DarkMode rail={rail} />}
+			<Account rail={rail} short={short} />
 		</Sidebar>
 	)
+}
+
+/* The one scrolling part of the sidebar. The fade at its foot shows only while there is more
+   below, and the current row is brought into view on arrival, at the nearest edge (9g). */
+function NavScroll({ navKey, children }) {
+	const box = useRef(null)
+	const [more, setMore] = useState(false)
+	const current = useRef(null)
+	current.current = () => {
+		const el = box.current
+		const row = el.querySelector('[aria-current="page"]')
+		if (!row) return
+		const r = row.getBoundingClientRect()
+		const top = r.top - el.getBoundingClientRect().top + el.scrollTop
+		if (top < el.scrollTop) el.scrollTop = top
+		else if (top + r.height > el.scrollTop + el.clientHeight) el.scrollTop = top + r.height - el.clientHeight
+	}
+	useLayoutEffect(() => {
+		const el = box.current
+		const check = () => setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 1)
+		// the region settles as the account block arrives and the window changes height
+		const resized = () => { current.current(); check() }
+		el.addEventListener('scroll', check, { passive: true })
+		const watch = new ResizeObserver(resized)
+		watch.observe(el)
+		return () => { el.removeEventListener('scroll', check); watch.disconnect() }
+	}, [])
+	useLayoutEffect(() => current.current(), [navKey])
+	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
 /* A count is read with its destination; on the rail the label is the tile's only name. */
@@ -216,18 +249,26 @@ function DarkMode({ rail }) {
 
 /** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
     ends on the sign-in page, once the reader has been let go. */
-export function AccountMenu({ email, position, onClose }) {
+export function AccountMenu({ email, position, short = false, onClose }) {
 	const navigate = useNavigate()
+	const theme = useTheme()
 	return (
 		<Menu position={position} aria-label="Account">
 			<li className="ns-menu-head" role="presentation"><span className="sp-meta sp-truncate">{email}</span></li>
 			<MenuItem icon="user" onClick={() => { onClose(); navigate('/settings/account') }}>Account and profile</MenuItem>
+			{/* on a short window the sidebar has no room for these two, so they live here (9g) */}
+			{short ? <MenuItem icon="settings" onClick={() => { onClose(); navigate('/settings') }}>Settings</MenuItem> : null}
+			{short
+				? <MenuItem icon={theme === 'dark' ? 'sun' : 'moon'} onClick={() => { onClose(); setTheme(theme === 'dark' ? 'light' : 'dark') }}>
+					{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+				</MenuItem>
+				: null}
 			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
 		</Menu>
 	)
 }
 
-function Account({ rail }) {
+function Account({ rail, short }) {
 	const user = useApi(getCurrentUser)
 	const [open, setOpen] = useState(false)
 	const close = useCallback(() => setOpen(false), [])
@@ -235,6 +276,6 @@ function Account({ rail }) {
 	if (!email) return null
 	return (
 		<SidebarAccount email={email} expanded={open} tip={rail ? email : undefined} aria-label={email}
-			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu email={email} onClose={close} />} />
+			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu email={email} short={short} onClose={close} />} />
 	)
 }
