@@ -9,7 +9,7 @@ import { router as ordersRouter } from './routes/orders.js'
 import { router as bookmarksRouter } from './routes/bookmarks.js'
 import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
-import { router as accountRouter } from './routes/account.js'
+import { router as accountRouter, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
 import { router as importsRouter } from './routes/imports.js'
 import { router as statsRouter } from './routes/stats.js'
@@ -115,7 +115,9 @@ const LIGHTHOUSE = (() => {
 app.get('/api/version', (req, res) => res.json({
 	builtAt: process.env.SPENDLY_BUILD_TIME || null,
 	commit: process.env.SPENDLY_BUILD_SHA || null,
-	lighthouse: LIGHTHOUSE
+	lighthouse: LIGHTHOUSE,
+	// whether Settings may offer "Update and reload": an updater to ask is set up (routes/account.js)
+	canUpdate: updaterAvailable()
 }))
 
 /* Whether the newest published image is this one, asked of GHCR itself rather than of the
