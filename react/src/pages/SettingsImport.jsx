@@ -72,7 +72,6 @@ const REASONS = [
 	[/^Who did you buy from\?$/, 'The vendor is missing.'],
 	[/^80 characters at most\.$/, 'The vendor name is longer than 80 characters.'],
 	[/^When was the order placed\?$/, 'The date is missing, or is not written like 2026-08-18.'],
-	[/^An order cannot be dated in the future\.$/, 'The date is in the future.'],
 	[/^Pick a kind\.$/, 'The kind is missing.'],
 	[/^Kind is one of: (.+)$/, m => `The kind is not one Spendly knows. Use one of: ${m[1]}`],
 	[/^Status is one of: (.+)$/, m => `The status is not one Spendly knows. Use one of: ${m[1]}`],

@@ -111,8 +111,7 @@ export function buildOrders(body, mapping, { status, kind } = {}) {
 		const vendor = text(cell(row, 'vendor'))
 		const rawDate = cell(row, 'date')
 		const date = rawDate === '' ? null : dateOf(rawDate, mapping.dateFormat)
-		const problem = !vendor ? 'no vendor' : rawDate === '' ? 'no date' : !date ? 'a date that cannot be read'
-			: date > new Date().toISOString().slice(0, 10) ? 'a date in the future' : null
+		const problem = !vendor ? 'no vendor' : rawDate === '' ? 'no date' : !date ? 'a date that cannot be read' : null
 		if (problem) return skipped.push({ rows: [line], reason: problem })
 
 		if (mapping.shape === 'order') {
