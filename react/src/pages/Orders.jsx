@@ -453,7 +453,7 @@ function OrderList() {
 			: null
 		if (narrow)
 			body = (
-				<OrderCards data={data} size={size} summary={summary} picked={current.ids} onPick={pickRun} onOpen={open} onLoadMore={loadMore}
+				<OrderCards data={data} size={size} summary={summary} touch={touch} picked={current.ids} onPick={pickRun} onOpen={open} onLoadMore={loadMore}
 					bulk={touch || !chosen.length ? null : <BulkBar loose count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar>} />
 			)
 		else if (view === 'cards')
@@ -729,37 +729,60 @@ function OrderAmount({ order }) {
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
 
-/** At 640 of list column and under, rows become cards (2i), each with its box always there (2c). `bulk`
-    takes the count's place once one is picked, where a phone's top bar does not. */
-function OrderCards({ data, size, summary, picked, bulk, onPick, onOpen, onLoadMore }) {
+/** At 640 of list column and under, rows become cards: two rows on a phone (Mobile screens), with
+    no box since a phone does not select; three lines and the box in a narrow column (2i, 2c). */
+function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, onLoadMore }) {
 	return (
 		<>
 			{bulk ?? <span className="sp-meta">{plural(data.matched, 'order')}{summary ? `${dot}${currency(summary.total)}` : ''}</span>}
 			{data.orders.map(o => {
 				const on = picked.includes(o.id)
+				const amount = <span className={o.status === 'Cancelled' ? 'sp-amount sp-void sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(o.total)}</span>
+				const when = `${shortDate(o.date)}${dot}${plural(o.itemCount, 'item')}`
 				return (
-					<div key={o.id} className="ol-pickable">
-						<label className="ol-pick">
-							<Check checked={on} aria-label={`Select ${orderName(o)}`} onChange={ev => onPick(o.id, ev.nativeEvent?.shiftKey)} />
-						</label>
-						<ListItem variant="card" selected={on} mark={<><span className="ol-pick-room" /><OrderPhoto order={o} /></>} onClick={() => onOpen(o)}>
-							<Stacked>
-								<Line>
-									<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
-									<span className={o.status === 'Cancelled' ? 'sp-amount sp-void' : 'sp-amount'}>{currency(o.total)}</span>
-								</Line>
-								<Line>
-									<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
-									{o.status === 'Cancelled' ? <span className="sp-amount-secondary">not counted</span> : <Saving value={o.saved} />}
-									<StatusPill status={o.status} />
-								</Line>
-								<Line>
-									<span className="sp-subtitle sp-nowrap">{shortDate(o.date)}{dot}{plural(o.itemCount, 'item')}</span>
-									<span className="ol-card-chips"><CategoryChips categories={o.categories} /></span>
-								</Line>
-							</Stacked>
-						</ListItem>
-					</div>
+					touch
+						? (
+							<ListItem key={o.id} variant="card" onClick={() => onOpen(o)}>
+								<Stacked>
+									<Line>
+										<OrderPhoto order={o} />
+										<span className="sp-stacked sp-grow">
+											<span className="sp-heading sp-truncate">{o.vendor?.name ?? 'No vendor'}</span>
+											<span className="sp-meta sp-truncate">{orderLine(o)}</span>
+										</span>
+										{amount}
+									</Line>
+									<Line>
+										<span className="sp-meta sp-nowrap sp-grow">{when}</span>
+										<span className="ol-card-chips"><CategoryChips categories={o.categories} variant="solid" /></span>
+										<StatusPill status={o.status} />
+									</Line>
+								</Stacked>
+							</ListItem>
+						)
+						: (
+							<div key={o.id} className="ol-pickable">
+								<label className="ol-pick">
+									<Check checked={on} aria-label={`Select ${orderName(o)}`} onChange={ev => onPick(o.id, ev.nativeEvent?.shiftKey)} />
+								</label>
+								<ListItem variant="card" selected={on} mark={<><span className="ol-pick-room" /><OrderPhoto order={o} /></>} onClick={() => onOpen(o)}>
+									<Stacked>
+										<Line>
+											<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
+											{amount}
+										</Line>
+										<Line>
+											<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
+											<StatusPill status={o.status} />
+										</Line>
+										<Line>
+											<span className="sp-subtitle sp-nowrap sp-grow">{when}</span>
+											{o.status === 'Cancelled' ? <span className="sp-amount-secondary">not counted</span> : <Saving value={o.saved} />}
+										</Line>
+									</Stacked>
+								</ListItem>
+							</div>
+						)
 				)
 			})}
 			<ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
