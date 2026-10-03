@@ -259,7 +259,7 @@ const REQUESTS = [
 	`/stats?range=year&flow=expenses&vendorId=${ids.vendor}`, `/stats?range=year&flow=expenses&categoryId=${ids.category}`,
 	'/stats?range=year&flow=expenses&categoryId=none', '/stats?range=year&flow=expenses&status=Delivered&from=2026-08-01&to=2026-08-31',
 	'/stats/orders?range=year&flow=expenses', `/stats/orders?range=year&flow=expenses&vendorId=${ids.vendor}&page=2`,
-	'/stats/lines?range=month&flow=expenses', '/stats/home',
+	'/stats/lines?range=month&flow=expenses', '/stats/home', '/stats/summary',
 	'/bookmarks', '/bookmarks?archived=yes',
 	'/bookmarks?sort=added-asc', '/bookmarks?sort=price-desc', '/bookmarks?sort=name-asc',
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
@@ -308,6 +308,7 @@ for (const [method, path, body] of [
 	['POST', '/views', { name: 'This month', query: 'period=month&status=Ordered' }],
 	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true }],
 	['PUT', '/views/shown', { shown: 6 }],
+	['PUT', '/stats/summary/seen', { month: '2026-07' }],
 	['DELETE', `/views/sv-${USER}-receipt`],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],

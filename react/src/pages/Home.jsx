@@ -1,22 +1,24 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardBody, Toolbar } from '../components/Card.jsx'
 import { Bars, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
 import { FILE_TYPES, FileDrop } from '../components/FileDrop.jsx'
-import { Button } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
+import { useToast } from '../components/Overlays.jsx'
 import { Well } from '../components/Well.jsx'
 import { Icon } from '../components/Icon.jsx'
 
 import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
-import { CategoryMark } from '../app/categoryMark.jsx'
+import { CategoryMark, glyphOf } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	getCategories, getCurrentUser, getHomeAttention, getOrders, getStatsSlice, overBudget, withMonthSpend
+	failureMessage, getCategories, getCurrentUser, getHomeAttention, getMonthlySummary, getOrders, getSettings, getStatsSlice,
+	overBudget, putSummaryAway, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
@@ -31,8 +33,18 @@ const CHEVRON = <Icon name="chevron-right" size={15} />
 
 /* ---- reading the data ---- */
 
+/** How loudly the limits speak (8b, Settings): the summary on or off, and the share of a limit a
+    warning starts at, where 100 is only once it is passed. A setting not stored yet is the default. */
+function loudness(settings) {
+	const early = Number(settings?.notifyEarly)
+	return { summary: settings?.notifyMonthlySummary ?? true, early: [75, 90, 100].includes(early) ? early : 90 }
+}
+
+/** A category with a limit is near it from the reader's chosen share up to the limit itself. */
+const nearLimit = (c, early) => c.budget > 0 && early < 100 && !overBudget(c) && c.monthSpend >= (c.budget * early) / 100
+
 /** The month window and the account's categories, joined: what three cards are drawn from. */
-function monthView(window, list) {
+function monthView(window, list, early) {
 	if (!window || !list) return null
 	const categories = withMonthSpend(list, window.split)
 	const limits = categories.reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
@@ -43,7 +55,9 @@ function monthView(window, list) {
 		count: categories.length,
 		withSpend: spent.length,
 		limits,
+		early,
 		over: categories.filter(overBudget).sort((a, b) => byOverage(b) - byOverage(a)),
+		near: categories.filter(c => nearLimit(c, early)).sort((a, b) => b.monthSpend / b.budget - a.monthSpend / a.budget),
 		top: spent.slice(0, 4),
 		pace: window.pace.unitDays ? (window.pace.daysIn / window.pace.unitDays) * 100 : 100
 	}
@@ -125,20 +139,41 @@ export default function Home() {
 	const recent = useApi(getOrders, [{ pageSize: RECENT }])
 	const attention = useApi(getHomeAttention)
 	const name = firstName(useApi(getCurrentUser).data)
-	const view = monthView(month.data?.window, categories.data)
+	const settings = useApi(getSettings)
+	const loud = loudness(settings.data)
+	const view = monthView(month.data?.window, categories.data, loud.early)
+	// the summary waits for the settings, so one switched off never flashes up
+	const known = settings.data !== undefined || !!settings.error
+	const summary = useApi(getMonthlySummary, [], { enabled: known && loud.summary })
+	const toast = useToast()
+	const [putAway, setPutAway] = useState(null)
+	const hide = async month => {
+		setPutAway(month)
+		try {
+			await putSummaryAway(month)
+		} catch (error) {
+			setPutAway(null)
+			toast({ message: failureMessage(error, 'The summary was not hidden. Try again.'), color: 'danger' })
+		}
+	}
+	const due = summary.data
+	const notice = known && loud.summary && due?.orders && !due.seen && putAway !== due.month && categories.data
+		? <MonthlySummary summary={due} categories={categories.data} early={loud.early} onHide={() => hide(due.month)} />
+		: null
 	if (recent.data && !recent.data.total) return <DayOne categories={categories.data} name={name} touch={touch} />
-	const props = { month, categories, view, recent, attention: attention.data, name }
+	const props = { month, categories, view, recent, attention: attention.data, name, notice }
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} />
 }
 
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, categories, view, recent, attention }) {
+function DesktopHome({ month, categories, view, recent, attention, notice }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error
 	return (
 		<div className="hm-page sp-stack sp-gap-12">
+			{notice}
 			<div className="hm-split sp-gap-12">
 				{month.error
 					? (
@@ -244,13 +279,17 @@ function AlertSkeleton({ width }) {
 	)
 }
 
-/** What needs a look, by severity: categories over their limit, then orders without a receipt,
-    then vendors whose names look alike. A count of zero is no row at all. */
+/** What needs a look, by severity: categories over their limit, then near it (8b), then orders
+    without a receipt, then vendors whose names look alike. A count of zero is no row at all. */
 function alertsOf(view, attention) {
 	const w = view.window
 	const over = view.over.map(c => ({
 		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!', phone: 'over',
 		text: <><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(w)}</>
+	}))
+	const near = view.near.map(c => ({
+		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!',
+		text: <><b>{c.name} is at {Math.floor((c.monthSpend / c.budget) * 100)}%</b> of its limit for {monthOf(w)}</>
 	}))
 	const receipts = attention?.withoutReceipt
 		? [{
@@ -264,12 +303,12 @@ function alertsOf(view, attention) {
 			text: 'vendors look like duplicates', phone: 'look like duplicates'
 		}]
 		: []
-	return { over, others: [...receipts, ...lookalikes] }
+	return { over, near, others: [...receipts, ...lookalikes] }
 }
 
 function AlertsCard({ view, attention }) {
 	const alerts = view ? alertsOf(view, attention) : null
-	const all = alerts ? [...alerts.over, ...alerts.others] : []
+	const all = alerts ? [...alerts.over, ...alerts.near, ...alerts.others] : []
 	if (alerts && !all.length) return null
 	const shown = all.slice(0, ALERTS)
 	const counted = alerts ? <span className="sp-meta">{all.length > ALERTS ? `${shown.length} of ${amount(all.length, 0)} things` : plural(all.length, 'thing')}</span> : null
@@ -294,6 +333,89 @@ function AlertsCard({ view, attention }) {
 						: ['62pc', '48pc', '55pc'].map(width => <AlertSkeleton key={width} width={width} />)}
 				</div>
 			</CardBody>
+		</Card>
+	)
+}
+
+const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
+const ORDINALS = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh']
+const countWord = n => COUNT_WORDS[n] ?? amount(n, 0)
+// the summary says three things at most; the sentence above them counts every category
+const SUMMARY_ROWS = 3
+
+/** "One category went over, one finished close, and Textiles has room to spare." */
+function summarySentence(over, close, room) {
+	const parts = [
+		over.length ? `${countWord(over.length)} ${over.length === 1 ? 'category' : 'categories'} went over` : 'every category stayed under its limit',
+		close.length ? `${countWord(close.length)} finished close` : null,
+		room ? `${room.name} has room to spare` : null
+	].filter(Boolean)
+	const said = parts.length > 2 ? `${parts.slice(0, -1).join(', ')}, and ${parts.at(-1)}` : parts.join(' and ')
+	return `${capital(said)}.`
+}
+
+/** Last month against its limits, said once (8b, 6f): from the first of the month until the reader
+    hides it. Each row opens that month's orders in the category. */
+function MonthlySummary({ summary, categories, early, onHide }) {
+	const month = monthNames('long')[Number(summary.month.slice(5)) - 1]
+	const byId = new Map(categories.map(c => [c.id, c]))
+	const rows = summary.limits
+		.map(l => ({ ...byId.get(l.id), spend: l.spend, overs: l.overs }))
+		.filter(c => c.name && c.budget > 0)
+		.map(c => ({ ...c, used: (c.spend / c.budget) * 100 }))
+	const over = rows.filter(c => c.spend > c.budget).sort((a, b) => b.spend - b.budget - (a.spend - a.budget))
+	const close = early < 100 ? rows.filter(c => c.spend <= c.budget && c.used >= early).sort((a, b) => b.used - a.used) : []
+	const room = rows.filter(c => !over.includes(c) && !close.includes(c)).sort((a, b) => a.used - b.used || a.name.localeCompare(b.name))[0]
+	const limits = rows.reduce((sum, c) => sum + c.budget, 0)
+	const of = c => `${amount(c.spend, 0)} of ${currency(c.budget, 0)}`
+	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
+	const lines = [
+		...over.map(c => ({
+			c, color: 'danger', mark: <CategoryMark category={c} size="small" />,
+			said: `went ${currency(c.spend - c.budget, 0)} over`,
+			meta: c.overs >= 12 ? 'Over in all twelve months. The limit may be too low.'
+				: c.overs >= 2 ? `${ORDINALS[c.overs]} time in twelve months.${c.overs >= 3 ? ' The limit may be too low.' : ''}` : of(c),
+			adjust: true
+		})),
+		...close.map(c => ({
+			c, mark: <Mark size="small" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={13} /></Mark>,
+			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
+		})),
+		...(room ? [{ c: room, mark: <Mark size="small" aria-hidden="true" aria-label={room.name}><Icon name={glyphOf(room.icon)} size={13} /></Mark>, said: `used ${Math.round(room.used)}%`, meta: of(room) }] : [])
+	].slice(0, SUMMARY_ROWS)
+	return (
+		<Card footer={[
+			<div className="sp-stack sp-grow" key="saved">
+				<span className="sp-section-label">Saved in {month}</span>
+				<span className={isSaving(summary.saved, 0) ? 'sp-stat__figure sp-ink-accent' : 'sp-stat__figure sp-ink-5'}>{currency(summary.saved, 0)}</span>
+			</div>,
+			<Button key="open" size="small" to={`/statistics?range=month&period=${summary.month}`}>Open statistics</Button>
+		]}>
+			<div className="hm-top">
+				<div className="sp-stack sp-gap-6 sp-grow">
+					<span className="sp-section-label">{month} {summary.month.slice(0, 4)}</span>
+					<span className="sp-heading">
+						{limits ? `You spent ${currency(summary.spent, 0)} against ${amount(limits, 0)} in limits` : `You spent ${currency(summary.spent, 0)} in ${month}`}
+					</span>
+					{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
+				</div>
+				<IconButton icon="x" aria-label={`Hide the summary of ${month}`} onClick={onHide} />
+			</div>
+			{lines.length
+				? (
+					<div className="sp-stack sp-gap-12">
+						{lines.map(line => (
+							<ListItem key={line.c.id} color={line.color} mark={line.mark}
+								actions={line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : null}>
+								<Link className="sp-stack sp-gap-6 sp-grow hm-link" to={link(line.c)}>
+									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span className="sp-nowrap">{line.said}</span></span>
+									<span className="sp-meta">{line.meta}</span>
+								</Link>
+							</ListItem>
+						))}
+					</div>
+				)
+				: null}
 		</Card>
 	)
 }
@@ -447,7 +569,7 @@ function CategoriesCard({ view }) {
 	if (top.length) return (
 		<Card>
 			{header}
-			{top.map(c => <CategoryLine key={c.id} category={c} />)}
+			{top.map(c => <CategoryLine key={c.id} category={c} early={view.early} />)}
 		</Card>
 	)
 	return (
@@ -475,16 +597,17 @@ function CategoriesCard({ view }) {
 	)
 }
 
-/* Each row opens Statistics on this month with the category as its crumb (10a). */
-function CategoryLine({ category: c }) {
+/* Each row opens Statistics on this month with the category as its crumb (10a). Its figures warn
+   from the share of the limit the reader chose (8b). */
+function CategoryLine({ category: c, early }) {
 	const limited = c.budget > 0
-	const over = overBudget(c)
+	const warn = overBudget(c) || nearLimit(c, early)
 	return (
 		<Link className="sp-stack sp-gap-6 hm-link" to={`/statistics?range=month&crumbs=category:${c.id}`}>
 			<div className="sp-row-flex sp-gap-8">
 				<CategoryMark category={c} size="small" />
 				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
-				<span className={over ? 'sp-meta sp-meta--over' : 'sp-meta'}>
+				<span className={warn ? 'sp-meta sp-meta--over' : 'sp-meta'}>
 					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : `${amount(c.monthSpend, 0)}${dot}no limit`}
 				</span>
 			</div>
@@ -526,7 +649,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, categories, view, recent, attention, name }) {
+function PhoneHome({ month, categories, view, recent, attention, name, notice }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -536,6 +659,7 @@ function PhoneHome({ month, categories, view, recent, attention, name }) {
 					? <span className="sp-data">{capital(monthOf(w))}, day {w.pace.daysIn} of {w.pace.unitDays}</span>
 					: <span className="sp-data hm-line"><Skeleton shape="line" data-w="130" data-h="13" /></span>}
 			</div>
+			{notice}
 			{month.error
 				? (
 					<Hold shape={<PhoneMonth />}>
@@ -597,7 +721,7 @@ function PhoneMonth({ w, view, limitsLost }) {
 
 function PhoneAlerts({ view, attention }) {
 	const alerts = view ? alertsOf(view, attention) : null
-	if (alerts && !alerts.over.length && !alerts.others.length) return null
+	if (alerts && !alerts.over.length && !alerts.near.length && !alerts.others.length) return null
 	const chevron = <Icon name="chevron-right" size={13} />
 	return (
 		<Card>
@@ -609,6 +733,13 @@ function PhoneAlerts({ view, attention }) {
 							? (
 								<ListItem to="/categories" color="warning" chevron={chevron} count={amount(alerts.over.length, 0)}>
 									<span className="sp-data sp-ink-warning sp-grow">over {alerts.over.length === 1 ? 'its' : 'their'} limit</span>
+								</ListItem>
+							)
+							: null}
+						{alerts.near.length
+							? (
+								<ListItem to="/categories" color="warning" chevron={chevron} count={amount(alerts.near.length, 0)}>
+									<span className="sp-data sp-ink-warning sp-grow">near {alerts.near.length === 1 ? 'its' : 'their'} limit</span>
 								</ListItem>
 							)
 							: null}

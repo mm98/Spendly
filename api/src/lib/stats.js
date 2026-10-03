@@ -522,6 +522,55 @@ const countWithoutReceipt = db.prepare(`
 		AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
 `)
 
+const selectLimited = db.prepare('SELECT id, budget FROM categories WHERE user_id = ? AND budget > 0')
+// what each limited category came to in each month, as Home's figures count it: what was paid
+const selectLimitedMonths = db.prepare(`
+	SELECT oc.category_id AS id, strftime('%Y-%m', ot.date, 'unixepoch') AS month,
+		SUM(ot.total * 1.0 / ot.category_count) AS spend
+	FROM order_categories oc
+	JOIN orders ot ON ot.id = oc.order_id
+	JOIN categories c ON c.id = oc.category_id
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+		AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND c.budget > 0
+	GROUP BY oc.category_id, month
+`)
+const selectSummarySeen = db.prepare('SELECT month FROM monthly_summary_seen WHERE user_id = ?')
+const upsertSummarySeen = db.prepare(`
+	INSERT INTO monthly_summary_seen (user_id, month) VALUES (?, ?)
+	ON CONFLICT (user_id) DO UPDATE SET month = excluded.month
+`)
+
+/** Home's summary of the month before the reader's own (8b): what it came to, and each limited
+    category's spend in it with how many of the twelve months up to it went over. */
+export function monthlySummary(userId, day = todayIso()) {
+	const [y, m] = day.split('-').map(Number)
+	const from = Date.UTC(y, m - 2, 1) / 1000
+	const to = Date.UTC(y, m - 1, 1) / 1000
+	const month = fromEpoch(from).slice(0, 7)
+	const totals = totalsOver(userId, from, to, scopeOf({ flow: 'expenses' }))
+	const limited = selectLimited.all(userId)
+	const budgetOf = new Map(limited.map(c => [c.id, c.budget]))
+	const spendOf = new Map()
+	const overs = new Map()
+	for (const row of selectLimitedMonths.all({ userId, from: Date.UTC(y, m - 13, 1) / 1000, to })) {
+		if (row.month === month) spendOf.set(row.id, row.spend)
+		if (row.spend > budgetOf.get(row.id)) overs.set(row.id, (overs.get(row.id) ?? 0) + 1)
+	}
+	return {
+		month, from: fromEpoch(from), to: fromEpoch(to - DAY),
+		spent: totals.spent, saved: totals.saved, orders: totals.orders,
+		seen: selectSummarySeen.get(userId)?.month === month,
+		limits: limited.map(c => ({ id: c.id, spend: spendOf.get(c.id) ?? 0, overs: overs.get(c.id) ?? 0 }))
+	}
+}
+
+/** The reader put a month's summary away; it stays away until the next month's. */
+export function markSummarySeen(userId, month) {
+	if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(month ?? ''))) return false
+	upsertSummarySeen.run(userId, month)
+	return true
+}
+
 /** What Home reads beyond the month: when an order was last added, and what needs a look. */
 export function homeAttention(userId) {
 	return {
