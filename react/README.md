@@ -124,7 +124,9 @@ build: entry 63.94 kB (20.30 kB gzipped), vendor 285.12 kB (90.45 kB gzipped), s
 
 `node scripts/lighthouse.mjs <url>` scores a served build (`npm run build`, then
 `node api/src/server.js` over `react/dist`), never the dev server. It runs twice and prints both.
-Not re-run since the redesign.
+Not re-run since the redesign. The CI job and the scoring of the built image are switched off
+(`if: false` in `.github/workflows`); nothing in the app shows the score, so the image answers
+"never measured".
 
 ## Not covered
 
