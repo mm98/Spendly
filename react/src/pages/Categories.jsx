@@ -85,8 +85,8 @@ export default function Categories() {
 	const cards = touch || (width > 0 && width <= CARDS)
 	const folded = !cards && width > 0 && width <= FOLD
 	const pace = monthPace()
-	// a page of rows per Load more, kept for Back along with the scroll
-	const { pages, setPages, restored } = useListMemory(`categories?${query}&${sort.id}`)
+	// a page of rows per Load more, held in the address
+	const { pages, setPages, restored } = useListMemory()
 	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month' }, step, pages], { enabled: Boolean(settings || settingsRead.error) })
 	useEffect(() => { if ((state.data || state.error) && !state.loading) restored() }, [state.data, state.error, state.loading, restored])
 

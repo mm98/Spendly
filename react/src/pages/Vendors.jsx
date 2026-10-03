@@ -71,8 +71,8 @@ export default function Vendors() {
 	const width = useWidth(column) && column.current.offsetWidth
 	const cards = touch || (width > 0 && width <= CARDS)
 	const folded = !cards && width > 0 && width <= FOLD
-	// a page of rows per Load more, kept for Back along with the scroll
-	const { pages, setPages, restored } = useListMemory(`vendors?${query}&${sort.id}&${archived}&${alike}`)
+	// a page of rows per Load more, held in the address
+	const { pages, setPages, restored } = useListMemory()
 	const request = { query, sort: sort.id, archived: archived ? 'yes' : '', flag: alike ? LOOKALIKES : '' }
 	const vendors = useApi(getVendorPages, [request, step, pages], { enabled: Boolean(settings || settingsRead.error) })
 	useEffect(() => { if ((vendors.data || vendors.error) && !vendors.loading) restored() }, [vendors.data, vendors.error, vendors.loading, restored])

@@ -1,8 +1,8 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation, useNavigationType } from 'react-router'
+import { useLocation, useNavigationType, useSearchParams } from 'react-router'
 
-/* Each section's list address as last shown (c11), and per history step the window's scroll and
-   each list's loaded pages, so Back returns to the same rows at the same place. */
+/* Each section's list address as last shown (c11), and per history step the window's scroll, so Back
+   returns to the same rows at the same place. A list's loaded pages are in its address. */
 
 const STORE = 'spendly:places'
 // history steps remembered; the oldest go first
@@ -14,7 +14,6 @@ const load = () => {
 const saved = load()
 const lists = new Map(Object.entries(saved.lists ?? {}))
 const scrolls = new Map(Object.entries(saved.scrolls ?? {}))
-const pageCounts = new Map(Object.entries(saved.pages ?? {}))
 
 const trim = map => { while (map.size > KEEP) map.delete(map.keys().next().value) }
 const keep = (map, key, value) => { map.delete(key); map.set(key, value); trim(map) }
@@ -22,7 +21,7 @@ const keep = (map, key, value) => { map.delete(key); map.set(key, value); trim(m
 const persist = () => {
 	try {
 		sessionStorage.setItem(STORE, JSON.stringify({
-			lists: Object.fromEntries(lists), scrolls: Object.fromEntries(scrolls), pages: Object.fromEntries(pageCounts)
+			lists: Object.fromEntries(lists), scrolls: Object.fromEntries(scrolls)
 		}))
 	} catch { /* storage denied: this tab's memory only */ }
 }
@@ -121,13 +120,12 @@ export function useScrollMemory() {
 	}, [key, pathname, navigation])
 }
 
-/** How many pages a list had loaded at this history step, given back on Back. Call `restored()`
-    once the rows for `pages` are drawn; the window then returns to where it was. */
-export function useListMemory(name) {
+/** A list's loaded pages, held in its address as `pages`; a page writing its own filters drops it.
+    Call `restored()` once the rows for `pages` are drawn; the window then returns to where it was. */
+export function useListMemory() {
 	const { key } = useLocation()
-	const id = key + '\n' + name
-	const [own, setOwn] = useState(() => ({ id, pages: pageCounts.get(id) ?? 1 }))
-	const pages = own.id === id ? own.pages : pageCounts.get(id) ?? 1
+	const [params, setParams] = useSearchParams()
+	const pages = Math.max(1, Math.floor(Number(params.get('pages'))) || 1)
 	const drawn = useRef(false)
 
 	useLayoutEffect(() => {
@@ -139,12 +137,13 @@ export function useListMemory(name) {
 		}
 	}, [key])
 
-	const setPages = useCallback(next => setOwn(was => {
-		const before = was.id === id ? was.pages : pageCounts.get(id) ?? 1
-		const n = typeof next === 'function' ? next(before) : next
-		keep(pageCounts, id, n)
-		return { id, pages: n }
-	}), [id])
+	// from the address itself, so a filter written just before is not undone
+	const setPages = useCallback(n => {
+		const next = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
+		if (n > 1) next.set('pages', String(n))
+		else next.delete('pages')
+		setParams(next, { replace: true })
+	}, [setParams])
 
 	const restored = useCallback(() => {
 		if (drawn.current) return

@@ -56,8 +56,8 @@ export default function Bookmarks() {
 
 	const settings = useApi(getSettings)
 	const step = settings.data?.pageSize ?? 10
-	// a page of cards per Load more, kept for Back along with the scroll
-	const { pages, setPages, restored } = useListMemory(`bookmarks?${query}&${category}&${sort}&${archived}`)
+	// a page of cards per Load more, held in the address
+	const { pages, setPages, restored } = useListMemory()
 	const shown = pages * step
 
 	const [findCategory, setFindCategory] = useState('')
