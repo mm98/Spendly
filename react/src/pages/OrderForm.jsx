@@ -35,6 +35,7 @@ import { useListReturn } from '../app/listMemory.js'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses } from '../app/statuses.js'
+import { useFolded } from '../app/folded.js'
 import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
@@ -140,7 +141,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const [saving, setSaving] = useState(false)
 	const [files, setFiles] = useState(back?.files ?? [])
 	const [gone, setGone] = useState([])
-	const [folded, setFolded] = useState(true)
+	const [folded, setFolded] = useFolded(creating ? 'order-new' : 'order-edit', 'details', true)
 	const [reordering, setReordering] = useState(false)
 	const [carried, setCarried] = useState(null)
 	const [asking, setAsking] = useState(false)
@@ -466,7 +467,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			setEditing(null)
 		}
 		if (Object.keys(errors).length) {
-			setFolded(false)
+			setFolded(false, { keep: false })
 			return focusFirst('[data-details]', quietVendor)
 		}
 		const kept = current.filter(l => l.include !== false)
