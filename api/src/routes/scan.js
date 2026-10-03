@@ -12,7 +12,6 @@ import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
-import { msUntilEndOfDay } from '../lib/backup.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
 import { MAX_UPLOAD_MB } from '../lib/constants.js'
 
@@ -56,31 +55,23 @@ const uploadAnswer = (row, name, userId) => ({
 })
 /* A pending upload nobody came back to (DISCARD, or a tab just closed), or one that already
    became an order's attachment (attach below leaves the row in place either way) -- both are
-   swept by scheduleDailyUploadCleanup once expires_at passes, not deleted on the spot. Set once
+   swept by scheduleUploadCleanup once expires_at passes, not deleted on the spot. Set once
    at upload time, same shape as sessions.expires_at (migrations/001_init.sql, lib/auth.js), rather
    than recomputed from created_at on every sweep: the row's lifetime -- and so the hash lookup
    below, which trusts any row that has not yet expired -- survives whatever happens to any order
-   it went on to help create. Delete that order and scan the same receipt again before expires_at,
-   and the hash still matches that same row, still holding its cached AI read. */
-const UPLOAD_TTL_SECONDS = 7 * 24 * 60 * 60
+   it went on to help create. Its reading outlives it in scan_readings, keyed by the same hash.
+   The 3c and 17a screens promise the reader this lifetime: 24 hours. */
+const UPLOAD_TTL_SECONDS = 24 * 60 * 60
 const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE expires_at <= ?')
-/* Swept once a day rather than opportunistically on the write path that grows the table -- a
-   week-long retention window means most uploads in the table are still well within it on any
-   given write, so sweeping on every upload would mostly re-run a DELETE that matches nothing.
-   Same shape as scheduleDailyBackups (lib/backup.js): a sweep at startup catches up a container
-   that was stopped over a day boundary, then one timer fires just before local midnight and
-   re-arms itself every 24 hours after that -- the exact second doesn't carry any meaning here
-   the way it does for the backup's date-stamped filename, but sharing msUntilEndOfDay keeps the
-   app's two daily jobs on one clock instead of two. */
+/* Swept every hour rather than on the write path that grows the table, so an upload goes within
+   an hour of its 24, and a sweep at startup catches up a server that was stopped meanwhile. */
+const SWEEP_MS = 60 * 60 * 1000
 function cleanupExpiredUploads() {
 	deleteExpiredUploads.run(nowEpoch())
 }
-export function scheduleDailyUploadCleanup() {
+export function scheduleUploadCleanup() {
 	cleanupExpiredUploads()
-	const timer = setTimeout(function runAndReschedule() {
-		cleanupExpiredUploads()
-		setInterval(cleanupExpiredUploads, 24 * 60 * 60 * 1000).unref()
-	}, msUntilEndOfDay())
+	const timer = setInterval(cleanupExpiredUploads, SWEEP_MS)
 	timer.unref()
 	return timer
 }
@@ -328,7 +319,7 @@ function draftOf(req, upload, read, failure) {
     inside SQLite instead of surfacing into a JS Buffer just to be handed straight back. The
     scan_uploads row is left in place rather than deleted: its sha256 and cached ai_read_json go
     on answering a later re-upload of the same bytes -- including one after this very order gets
-    deleted -- until the row's own expires_at retires it (scheduleDailyUploadCleanup above). */
+    deleted -- until the row's own expires_at retires it (scheduleUploadCleanup above). */
 const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
 	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
 	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages

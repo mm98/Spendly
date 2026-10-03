@@ -273,7 +273,8 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 						action={<Button variant="outline" size="small" disabled>Attach</Button>} />
 				</div>
 				<div className="sp-card__footer sp-card__footer--commits">
-					<span className="sp-meta sp-grow">If you do nothing, the upload is removed after 7 days.</span>
+					<span className="sp-meta">The upload is kept for 24 hours either way.</span>
+					<span className="sp-grow" />
 					<Button variant="outline" disabled={busy} onClick={onDiscard}>Discard the upload</Button>
 				</div>
 			</Card>
