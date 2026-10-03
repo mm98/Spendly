@@ -4239,6 +4239,18 @@ body.sp-touch > .sp-scrim--dialog > .sp-dialog {
   box-shadow: var(--shadow-menu);
   transform: rotate(-0.6deg);
 }
+/* the handle under the pointer darkens and its row takes the row hover; a carried row stays white */
+.sp-list-item__handle:hover { color: var(--ink-3); }
+.sp-list-item:not(.sp-list-item--carried):has(> .sp-list-item__handle:hover) { background: var(--hover); }
+/* a row the keyboard picked up wears the selected-row tint until it is dropped */
+.sp-list-item--picked { background: var(--green-tint); }
+/* on touch a handle is held before it drags, so holding it selects nothing and opens no callout */
+.sp-list-item__handle { -webkit-touch-callout: none; user-select: none; }
+.sp-touch .sp-list-item__handle { width: 24px; }
+.sp-touch .sp-list-item:has(> .sp-list-item__handle) { min-height: var(--control-h-touch); }
+@media (prefers-reduced-motion: reduce) {
+  .sp-list-item--carried { transform: none; }
+}
 /* a line read out to a screen reader and drawn nowhere */
 .sp-announce {
   position: absolute;

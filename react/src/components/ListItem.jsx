@@ -9,6 +9,8 @@ const VARIANT = {
 	top: 'sp-list-item--top',
 	add: 'sp-list-item--add',
 	carried: 'sp-list-item--carried',
+	// picked up from the keyboard, waiting for Space to drop it
+	picked: 'sp-list-item--picked',
 	card: 'sp-list-item--card',
 	// the card row that stays put while the page scrolls under it, lifted off what it
 	// covers and a little taller - which is what a form's commit bar is

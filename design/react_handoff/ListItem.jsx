@@ -16,6 +16,8 @@ const VARIANT = {
 	top: 'sp-list-item--top',
 	add: 'sp-list-item--add',
 	carried: 'sp-list-item--carried',
+	// picked up from the keyboard, waiting for Space to drop it
+	picked: 'sp-list-item--picked',
 	card: 'sp-list-item--card',
 	// the card row that stays put while the page scrolls under it, lifted off what it
 	// covers and a little taller - which is what a form's commit bar is
@@ -26,7 +28,7 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 's
 
 /**
  * @param {object} props
- * @param {'default'|'outline'|'primary'|'stack'|'top'|'add'|'carried'|'card'|'sticky'} [props.variant]
+ * @param {'default'|'outline'|'primary'|'stack'|'top'|'add'|'carried'|'picked'|'card'|'sticky'} [props.variant]
  *   `card` puts the row on a surface ground with a surface's edge and padding, for
  *   a list with no columns to align. Which body a list shows is a question about the
  *   list's own width, answered by a container query - not about a device, and never
