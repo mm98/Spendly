@@ -4738,8 +4738,8 @@ html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--st
 .sp-viewer__stage:has(> .sp-mark) { background: none; }
 /* the rail's label, fixed to the window where [data-tip] would clip inside a scrolling sidebar */
 .sp-tip--float { position: fixed; z-index: 30; transform: translate(-50%, calc(-100% - var(--sp-6))); pointer-events: none; }
-/* one toast at a time, bottom centre of the window, taking no press but its own; above the tab
-   bar on touch, where it spans the window inside a 16 inset (c18). A bar it would cover lifts it. */
+/* one toast at a time, under any notice waiting for an answer, bottom centre, taking no press but its
+   own; above the tab bar on touch, spanning the window inside a 16 inset (c18). A bar it would cover lifts it. */
 .sp-toast-region {
   position: fixed;
   left: var(--sp-16);
@@ -4748,11 +4748,13 @@ html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--st
   /* above a sheet's or a dialog's scrim (50): a toast is never blocked by what is open (6f) */
   z-index: 60;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-8);
   pointer-events: none;
 }
 .sp-toast-region > * { pointer-events: auto; }
-body:has(.sp-shell--touch) .sp-toast-region { bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom)); }
+body:has(.sp-shell--touch) .sp-toast-region { bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom)); align-items: stretch; }
 body:has(.sp-shell--touch) .sp-toast-region > .sp-toast { flex: 1; min-width: 0; }
 /* a scrim over the whole document covers the window, not the first screen of it */
 body > .sp-scrim { position: fixed; z-index: 50; border-radius: 0; }

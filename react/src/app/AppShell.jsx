@@ -19,6 +19,7 @@ import { Palette, useRecentRecords } from './Palette.jsx'
 import { ALL_ORDERS, SidebarViews } from './views.jsx'
 import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
 import { ShortcutSheet, useShortcutKeys } from './Shortcuts.jsx'
+import { useUpdateNotice } from './UpdateNotice.jsx'
 
 
 /* The route's handle names the page for the browser tab, the sidebar row it belongs to, the
@@ -51,6 +52,8 @@ export function AppShell() {
 	useRecentRecords()
 
 	useScrollMemory()
+
+	const update = useUpdateNotice()
 
 	// a section's destination returns to its list as it was left; from that very list, it starts
 	// it over (c11)
@@ -147,7 +150,7 @@ export function AppShell() {
 	/* One tree for every shape, so crossing a breakpoint keeps the page mounted with whatever
 	   the reader had not saved. */
 	return (
-		<Toaster>
+		<Toaster notice={update}>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
 				{touch ? null : sidebar({ navKey, fold, short, go, showKeys })}
 				<TopBar touch={touch}>{search}</TopBar>

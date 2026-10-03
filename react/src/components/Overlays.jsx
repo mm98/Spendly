@@ -391,7 +391,8 @@ const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:
 /** Shows a toast: `show({ message, title, icon, color, undo: { label, onClick } })`. */
 export const useToast = () => useContext(ToastContext)
 
-export function Toaster({ children }) {
+/** `notice` is a notice that stays until answered (6d), held in the same place above any toast. */
+export function Toaster({ notice, children }) {
 	const [toast, setToast] = useState(null)
 	const [hovered, setHovered] = useState(false)
 	const [focused, setFocused] = useState(false)
@@ -428,11 +429,15 @@ export function Toaster({ children }) {
 	// placed again whenever the page under it changes, so it never takes a click meant for a button
 	useLayoutEffect(() => {
 		const el = region.current
-		if (!toast || !el) return
+		if ((!toast && !notice) || !el) return
 		const place = () => {
 			el.style.removeProperty('bottom')
-			const shown = el.firstElementChild?.getBoundingClientRect()
-			if (!shown) return
+			const boxes = [...el.children].map(c => c.getBoundingClientRect())
+			if (!boxes.length) return
+			const shown = {
+				top: Math.min(...boxes.map(b => b.top)), bottom: Math.max(...boxes.map(b => b.bottom)),
+				left: Math.min(...boxes.map(b => b.left)), right: Math.max(...boxes.map(b => b.right))
+			}
 			const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-12'))
 			const under = [...document.querySelectorAll(UNDER)]
 				.filter(o => !el.contains(o) && o.checkVisibility?.() !== false)
@@ -468,7 +473,7 @@ export function Toaster({ children }) {
 			window.removeEventListener('scroll', place, true)
 			window.removeEventListener('resize', place)
 		}
-	}, [toast])
+	}, [toast, notice])
 	useEffect(() => {
 		if (!toast) return
 		const key = ev => {
@@ -485,6 +490,7 @@ export function Toaster({ children }) {
 				onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
 				onFocus={ev => { if (!focused) before.current = ev.relatedTarget; setFocused(true) }}
 				onBlur={ev => { if (!region.current?.contains(ev.relatedTarget)) setFocused(false) }}>
+				{notice}
 				{toast
 					? (
 						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}
