@@ -27,9 +27,8 @@ export function webAddressOf(text) {
 	return found ? found[1] : null
 }
 
-/** A vendor name or alias as receipts are matched on it: case and accents set aside, punctuation
-    and a closing legal form ("A/S", "ApS", "Ltd", "GmbH") removed, spaces collapsed. An alias can
-    also be a web address or a VAT number (5h): each has one form, however it is written. */
+/** A vendor name or alias as receipts match it: case, accents, punctuation and a closing legal form
+    set aside. A web address or VAT number (5h) has one form, however it is written. */
 export function vendorKey(name) {
 	const vat = vatNumberOf(name)
 	if (vat) return 'cvr ' + vat

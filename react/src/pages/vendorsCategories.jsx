@@ -48,9 +48,8 @@ export function SortControl({ sorts, value, onChange }) {
 	)
 }
 
-/** A row's kebab and its menu. A click inside stays out of the row, which opens the record. The
-    button names its row (c9), so a list of the page's buttons tells the rows apart. `panel` draws a
-    popover an item opened (5a) in the menu's place: `box => <MergePicker anchor={box} />`. */
+/** A row's kebab and its menu, named by its row (c9); a click inside stays out of the row. `panel`
+    draws a popover an item opened (5a) in the menu's place: `box => <MergePicker anchor={box} />`. */
 export function RowMenu({ noun, label, open, onToggle, onClose, panel, children }) {
 	const box = useRef(null)
 	useDismiss(box, open || !!panel, onClose)
@@ -370,9 +369,8 @@ export function MergeButton({ merge, size = 'standard', disabled = false, childr
 	)
 }
 
-/** Merging a vendor or a category into another (5j). The target is searched, never the source
-    itself; what the result will be is shown before the button, which carries the count. `initial`
-    is the target a picker already chose. */
+/** Merging a vendor or a category into another (5j): the result is shown before the button, which
+    carries the count. `initial` is the target a picker already chose; the source is never offered. */
 export function MergeDialog({ kind, source, options, initial = null, busy, onConfirm, onCancel }) {
 	const [target, setTarget] = useState(initial?.id ?? null)
 	const [query, setQuery] = useState('')
@@ -411,7 +409,7 @@ export function MergeDialog({ kind, source, options, initial = null, busy, onCon
 						<table className="sp-table sp-table--compact sp-table--static">
 							<thead><tr><th /><th>Source</th><th>Result</th></tr></thead>
 							<tbody>
-								<tr><td className="sp-ink-2">Name</td><td className="sp-ink-5">{source.name}</td><td className="sp-strong">{picked.name}</td></tr>
+								<tr><td className="sp-ink-2">Name</td><td className="sp-ink-5"><span className="sp-truncate">{source.name}</span></td><td className="sp-strong"><span className="sp-truncate">{picked.name}</span></td></tr>
 								<tr><td className="sp-ink-2">Aliases</td><td className="sp-ink-5">{source.aliases?.length ?? 0}</td><td className="sp-strong">{aliasCount}</td></tr>
 								<tr><td className="sp-ink-2">Orders</td><td className="sp-ink-5">{source.orders}</td><td className="sp-strong">{source.orders + picked.orders}</td></tr>
 							</tbody>

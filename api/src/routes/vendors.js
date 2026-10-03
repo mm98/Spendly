@@ -152,9 +152,7 @@ const fullRecord = (userId, vendor) => withStats(vendor, statsForOne(userId, ven
 	defaultCategoriesFor(userId, vendor.id), lastMatchedFor(userId, vendor.id))
 
 /* The list's own shape: what the vendor list, the pickers, the filters and the palette read.
-   The colour is the list's mark; initials and lead are the single-record route's. `duplicateOf` is
-   the vendor this one probably duplicates (lib/vendorLookalikes.js), for the list's look-alike view,
-   the palette and the merge picker. */
+   `duplicateOf` is the vendor this one probably duplicates (lib/vendorLookalikes.js). */
 const listRow = (vendor, stats, aliases, defaultCategories, duplicateOf) => {
 	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0, last: null }
 	return {
