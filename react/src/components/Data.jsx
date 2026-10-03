@@ -54,9 +54,12 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 				const tip = column.tip && peek === column.key ? column.tip : null
 				// it hangs beside its column on the side with room: the left half of a chart carries it on the right
 				const side = i < (columns.length - 1) / 2 ? { 'data-side': 'end' } : {}
+				const readout = tip ? <span className="sp-bars__tip" id={tipId} {...side}>{tip}</span> : null
+				// a figure card's readout hangs above the bar itself, a chart's beside its column (4a)
+				const onBar = variant === 'spark'
 				const body = (
 					<>
-						{tip ? <span className="sp-bars__tip" id={tipId} {...side}>{tip}</span> : null}
+						{onBar ? null : readout}
 						{column.segments
 							? (
 								<span className="sp-bars__stack" style={{ height: pct(column.height) }}>
@@ -73,7 +76,7 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 										))}
 									</span>
 								)
-								: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }} />}
+								: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }}>{onBar ? readout : null}</span>}
 						{column.tick ? <span className={join('sp-bars__tick', named && 'sp-truncate')}>{column.tick}</span> : null}
 					</>
 				)

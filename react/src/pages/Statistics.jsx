@@ -617,20 +617,29 @@ function busyParts({ range, name, running, touch, comparing, categories, drilled
 
 /* ---- cards ---- */
 
-/** A small chart of the window's columns under a figure card (4a). */
-function Spark({ columns, value, label }) {
+/** A small chart of the window's steps under a figure card (4a): the step holding today is the dark
+    one, and a bar shows its step, value and order count on hover. It opens nothing; the chart below does. */
+function Spark({ columns, value, format, label }) {
 	const values = columns.map(value)
 	const most = Math.max(...values, 0)
 	return (
 		<Bars variant="spark" role="img" aria-label={label}
-			columns={columns.map((column, i) => ({ key: column.key, height: share(Math.max(0, values[i]), most), muted: i < columns.length - 1 }))} />
+			columns={columns.map((column, i) => ({
+				key: column.key,
+				height: share(Math.max(0, values[i]), most),
+				muted: !column.running,
+				tip: <ChartTip title={column.name} value={format(values[i])} note={counted(column.orders, 'order')} />
+			}))} />
 	)
 }
 
 // on touch a figure card is its label and figure only (Mobile screens 7a)
 function Kpis({ view, chart, was, by, waiting, touch }) {
 	const shown = chart.columns
-	const spark = (value, label) => (touch ? null : <Spark columns={shown} value={value} label={label} />)
+	const spark = (value, format, label) => (touch ? null : <Spark columns={shown} value={value} format={format} label={label} />)
+	// the header names the step its bars are drawn in (4a); a phone tile has no bars
+	const per = label => (touch ? label : `${label}${dot}by ${chart.unit}`)
+	const money = n => currency(n, 0)
 	const compared = line => (was ? line(was) : waiting ? <Skeleton shape="pill" /> : null)
 	// a phone tile draws the figure without its currency (Mobile screens 7a), so a million still fits on one line
 	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
@@ -639,36 +648,36 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 	const cost = (now, then) => (!then || now === then ? 'default' : now > then ? 'danger' : 'success')
 	return [
 		<Card key="spend">
-			<Stat label="Total spend" figure={figure(view.spent)} />
+			<Stat label={per('Total spend')} figure={figure(view.spent)} />
 			{compared(then => <Change tone={cost(view.spent, then.spent)} against={currency(then.spent, 0)} by={by}>{rise(view.spent, then.spent)}</Change>)}
-			{spark(c => c.spend, `Total spend in each ${chart.unit}`)}
+			{spark(c => c.spend, money, `Total spend in each ${chart.unit}`)}
 		</Card>,
 		<Card key="orders">
-			<Stat label="Orders" figure={amount(view.orders, 0)} />
+			<Stat label={per('Orders')} figure={amount(view.orders, 0)} />
 			{compared(then => (
 				<Change tone={view.orders > then.orders ? 'success' : 'default'} against={amount(then.orders, 0)} by={by}>
 					{signed(view.orders - then.orders, amount(Math.abs(view.orders - then.orders), 0))}
 				</Change>
 			))}
-			{spark(c => c.orders, `Orders in each ${chart.unit}`)}
+			{spark(c => c.orders, n => amount(n, 0), `Orders in each ${chart.unit}`)}
 		</Card>,
 		<Card key="average">
-			<Stat label="Average order" figure={figure(view.average)} />
+			<Stat label={per('Average order')} figure={figure(view.average)} />
 			{compared(then => (
 				<Change state={then.average && Math.round(view.average) !== Math.round(then.average) ? 'progress' : undefined} against={currency(then.average, 0)} by={by}>
 					{rise(view.average, then.average)}
 				</Change>
 			))}
-			{spark(c => (c.orders ? c.spend / c.orders : 0), `Average order in each ${chart.unit}`)}
+			{spark(c => (c.orders ? c.spend / c.orders : 0), money, `Average order in each ${chart.unit}`)}
 		</Card>,
 		<Card key="saved">
-			<Stat label="Saved" color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
+			<Stat label={per('Saved')} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
 			{compared(then => (
 				<Change tone={view.saved > then.saved ? 'success' : 'default'} against={currency(then.saved, 0)} by={by}>
 					{signed(view.saved - then.saved, currency(Math.abs(view.saved - then.saved), 0))}
 				</Change>
 			))}
-			{spark(c => c.saved, `Saved in each ${chart.unit}`)}
+			{spark(c => c.saved, money, `Saved in each ${chart.unit}`)}
 		</Card>
 	]
 }
