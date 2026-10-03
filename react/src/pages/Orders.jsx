@@ -193,7 +193,8 @@ function OrderList() {
 	// starts from the address itself: the page can still be drawing the one before it, and
 	// building on that would undo the change made just before this one
 	const update = useCallback(changes => {
-		setParams(withChanges(window.location.hash.split('?')[1] ?? '', changes), { replace: true })
+		// a changed filter or sort starts the list again from its first page
+		setParams(withChanges(window.location.hash.split('?')[1] ?? '', { pages: '', ...changes }), { replace: true })
 	}, [setParams])
 
 	// a new key starts the search field over from the address, dropping text not yet written
@@ -208,8 +209,8 @@ function OrderList() {
 	const clearSearch = () => { setSearchKey(n => n + 1); update({ q: '' }) }
 
 	const request = requestOf(f, sort)
-	// the pages loaded for this history step and these filters, so Back returns to the same rows
-	const { pages, setPages, restored } = useListMemory(`orders?${JSON.stringify(request)}`)
+	// the pages loaded, held in the address
+	const { pages, setPages, restored } = useListMemory()
 	const orders = useApi(loaded, [{ ...request, with: 'rows' }, size, pages])
 	const loadMore = () => setPages(pages + 1)
 	useEffect(() => { if ((orders.data || orders.error) && !orders.loading) restored() }, [orders.data, orders.error, orders.loading, restored])

@@ -153,7 +153,7 @@ export default function Statistics() {
 	const known = useApi(getCategoryPage, [{ pageSize: 1 }]).data?.matched
 
 	// the table pages on the server; what Load more added is card-local, so a reload starts at one page (4d)
-	const { restored } = useListMemory('orders')
+	const { restored } = useListMemory()
 	const size = usePageSize()
 	const slice = JSON.stringify({ base, filter, size })
 	const [more, setMore] = useState({ slice, pages: [], count: 0 })
