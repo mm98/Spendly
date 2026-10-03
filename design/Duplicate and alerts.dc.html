@@ -173,6 +173,12 @@
       </div>
     </div>
   </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Create copy</b> opens the copy in the edit screen, not saved yet, as <a href="Order create.dc.html#3a">3a</a> step 3 does. Save creates it; leaving discards, with a confirm.</div>
+    <div class="doc-note"><b>Discard</b> and <b>Cancel</b> close the sheet; nothing is created.</div>
+    <div class="doc-note"><b>Add files</b> adds files to the copy only.</div>
+  </div>
 </section>
 
 <section class="doc-section">
@@ -184,6 +190,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Open statistics</b> opens Statistics (<a href="Order statistics.dc.html#4a">4a</a>) for the current month with that category as a crumb.</div>
     <div class="doc-note"><b class="sp-ink">A limit is a fact about the month, not a validation rule.</b> Crossing one never disables Save and never routes through the validation layer - keep the check out of that code path entirely, or it eventually starts blocking. Amber informs; red blocks.</div>
     <div class="doc-note"><b class="sp-ink">The over-limit chip travels.</b> The same dot renders wherever the category appears - list rows, facet lists and order details - so the state is recognisable without reading the number.</div>
     <div class="doc-note"><b class="sp-ink">Attachments do not follow a duplicate</b> because a receipt is evidence of one specific purchase; copying it to another order makes the record lie. Items, vendor, category, reference and notes do carry over.</div>

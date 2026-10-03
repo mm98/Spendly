@@ -97,6 +97,12 @@
       </div>
     </div>
   </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Search this year</b> widens the period to this year and keeps every other filter.</div>
+    <div class="doc-note"><b>Clear filters</b> removes every filter and keeps the sort.</div>
+    <div class="doc-note"><b>Scan a receipt</b> takes the Scan receipt path: the file picker, then <a href="Order create.dc.html#3a">3a</a> step 2. <b>Empty order</b> opens 3a as an empty order. <b>New category</b> opens a new category (<a href="Vendors and categories.dc.html#5f">5f</a>).</div>
+  </div>
 </section>
 
 <section class="doc-section">
@@ -380,12 +386,11 @@
         <span class="sp-section-label">DUPLICATE NAME</span>
         <div class="sp-field">
         <label class="sp-field__label" for="sc-f7">Category name</label>
-        <input class="sp-input" data-color="warning" id="sc-f7" type="text" defaultValue="decor">
-        <span class="sp-field__help" data-color="warning">&quot;Decor&quot; already exists with 64 orders. Use it instead?</span>
+        <input class="sp-input" aria-invalid="true" id="sc-f7" type="text" defaultValue="decor">
+        <span class="sp-field__help" data-color="danger">&quot;Decor&quot; already exists, with 64 orders. Use it, or choose another name.</span>
       </div>
         <div class="sp-row-flex sp-gap-8">
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Keep both</button>
-          <button type="button" class="sp-btn sp-btn--small">Use decor</button>
+          <button type="button" class="sp-btn sp-btn--small">Use Decor</button>
         </div>
       </div>
 
@@ -401,6 +406,10 @@
       </div>
       </div>
     </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>A category name is unique.</b> Typing one that exists is an error, not a warning: the field turns red, Save stays clickable and moves focus here, and <b>Use Decor</b> puts the existing category in place of the new one. Names compare without case.</div>
   </div>
 </section>
 
@@ -534,6 +543,7 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>See theirs</b> reloads the order as the other tab saved it; your unsaved line edits are kept and shown on top. <b>Keep mine</b> saves your version over theirs, status included.</div>
     <div class="doc-note"><b>A newer version is available</b> appears when the server runs a newer version than the open app. The app loads once per session, so a tab left open, or Spendly kept on a phone's home screen, would otherwise go on running the old app against the new server. The words are the Settings update card's (<a href="Settings and import.dc.html#11d">11d</a>).</div>
     <div class="doc-note"><b>It sits at the bottom, where toasts appear, above any toast,</b> and does not block the page. The toast area is a column (<code>.sp-toast-region</code>, <code>--sp-8</code> between items), so the notice and a toast never cover each other; on touch both take the full width. The lift that keeps a toast clear of a save bar or a floating button measures everything in the area, not only the first item.</div>
     <div class="doc-note"><b>Update reloads. Wait for later hides it until the next page</b>, where it asks again, on every page, until the app is updated. It waits while a save is going out. A build without a version, a development server, never shows it.</div>
@@ -609,6 +619,12 @@
         </div>
       </div>
     </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Continue manually</b> opens <a href="Order create.dc.html#3a">3a</a> step 3 with whatever was read and the file attached.</div>
+    <div class="doc-note"><b>Try another photo</b> opens the file picker; the new file replaces the failed one and reading starts again.</div>
+    <div class="doc-note"><b>Discard</b> deletes the file and returns to the page the scan started from.</div>
   </div>
 </section>
 

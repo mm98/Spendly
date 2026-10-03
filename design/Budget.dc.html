@@ -1466,6 +1466,9 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Use TV antenna</b> places the payment on the suggested row and marks it saved.</div>
+    <div class="doc-note"><b>Pick from budget</b> opens a searchable list of the budget's rows; picking one places the payment there.</div>
+    <div class="doc-note"><b>Always leave out</b> hides this text in every future file; <b>Leave out once</b> hides it for this file only.</div>
     <div class="doc-note"><b>Each side's heading is the list head</b> (<code>sp-list-head</code>): inset like the rows, so Costs starts on the boxes and its total ends on the amounts. <b>The same three parts as the months view:</b> the controls bar, the dark card and its stats and gauge, then cards. Each payment line is the list row (<a href="Components.dc.html#c15">c15</a>) in its top-aligned form, with its actions as small outline buttons (<a href="Components.dc.html#c6">c6</a>), so they read as controls on the row rather than floating text.</div>
     <div class="doc-note"><b>Money coming in from another of your accounts is a transfer, not income.</b> The monthly Fast overførsel is placed once as Always left out, so it never asks again; income is typed in the budget by hand. A payment refunded the same day, like Codan forsikring and the Overførsel back, is left out once on both sides.</div>
     <div class="doc-note"><b>The file is read on the device and never sent.</b> Only the choices are saved: a text placed on a row, or always left out, and a payment left out once.</div>
@@ -1727,6 +1730,8 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Close columns</b> returns to the payment list with the chosen mapping.</div>
+    <div class="doc-note"><b>Another file</b> opens the file picker; the new file replaces the current one, and payments already placed stay placed.</div>
     <div class="doc-note"><b>The mapping is the table (<a href="Components.dc.html#c1">c1</a>), static</b>, with a pick-only Combobox (<a href="Components.dc.html#c5">c5</a>) per column. It is page markup, not a component.</div>
     <div class="doc-note"><b>Each Spendly role is taken by one column at most:</b> Date, Text, Amount, and Money out as its own column. Picking a role for a column takes it from the column that had it.</div>
     <div class="doc-note"><b>When every date in the file reads two ways</b>, a second Combobox under Date asks which is right. This file writes 02-10-2026, and a date like 30-09-2026 can only be day first, so it is not asked. When the dates cannot be read, the date row carries the danger message: These are not dates Spendly can read.</div>

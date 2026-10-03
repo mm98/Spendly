@@ -1599,6 +1599,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Add both</b> adds the suggested categories to the order's category field. Nothing else changes.</div>
     <div class="doc-note"><b>Offered, never applied.</b> Choosing a vendor fills the categories field with the vendor's defaults and says where they came from. The user can remove any of them before saving, and the order stores what is in the field at save - not a reference to the vendor's list.</div>
     <div class="doc-note"><b>It fills only when the field is empty.</b> If the user already picked categories, or a scan read one, choosing a vendor leaves them alone and offers its defaults as an add - a suggestion the user acts on, not a replacement.</div>
     <div class="doc-note"><b>Changing the vendor clears what the previous vendor suggested</b>, and nothing else. Track which chips arrived as suggestions; a chip the user added by hand survives every vendor change. Without that flag the only correct behaviour is to leave everything, which strands the wrong categories on the order.</div>

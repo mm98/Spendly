@@ -271,6 +271,12 @@
       </div>
     </div>
   </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Set status</b> and <b>Add category</b> open their flyouts. Apply writes to every selected order; above 10 orders it asks first (<a href="States and confirmations.dc.html#6d">6d</a>). Cancel closes without writing.</div>
+    <div class="doc-note"><b>Export</b> downloads the selected orders as CSV, in the columns the list shows.</div>
+    <div class="doc-note"><b>Delete</b> is the 6d confirmation, naming the count.</div>
+  </div>
 </section>
 
 <section class="doc-section">
@@ -986,6 +992,10 @@
     <div class="doc-note"><b>One flyout at a time.</b> Moving to another parent item closes the open one immediately - no two-level cascade anywhere in this app, and a submenu never has a submenu.</div>
     <div class="doc-note"><b>Single-row edits apply immediately and offer Undo; bulk edits confirm.</b> That is the difference between the flyouts here and the popovers in <a href="#2a">2a</a>, and it follows the rule that undo is preferred over confirmation where the action is cheap to reverse.</div>
     <div class="doc-note"><b>Both flyouts are the Combobox from 14a</b> in its two modes - pick-only for status, searchable multi-select for category. They are not new components, and they inherit its keyboard table and its flat traversal.</div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Create a category</b> is the combobox's inline create (<a href="Input types.dc.html#14a">14a</a>). The new category is ticked on that order at once.</div>
   </div>
 </section>
 

@@ -2622,6 +2622,8 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
 label.sp-mark { cursor: pointer; }
 label.sp-mark:hover { outline: 2px solid var(--green); outline-offset: 1px; }
 label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1px; }
+/* the add tile answers as every add control does: green dashed edge and tint, no outline */
+label.sp-mark--add:hover { outline: none; border-color: var(--green); background: var(--green-tint-2); }
 .sp-slot__remove {
   padding: 0;
   border: 0;
@@ -3101,7 +3103,11 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   /* siblings in a card sit on the card's rhythm, the same 12 the rows use */
   gap: var(--sp-12);
   overflow-x: auto;
-  padding-bottom: var(--sp-6);
+  /* a scrolling strip clips at its box, so it carries 4 of room on every side for the
+     hover outline and focus ring of its tiles, and gives it back as margin: the tiles
+     sit where they did */
+  padding: var(--sp-4) var(--sp-4) calc(var(--sp-6) + var(--sp-4));
+  margin: calc(var(--sp-4) * -1);
 }
 .sp-strip::-webkit-scrollbar { display: none; }
 
@@ -4184,18 +4190,6 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-plot__grid > span:last-child { background: var(--line); }
 /* the limit is drawn across the plot, and names itself where it starts */
 .sp-plot__limit { position: absolute; left: 0; right: 0; z-index: 2; border-top: 2px dashed var(--amber); }
-.sp-plot__limit > span {
-  position: absolute;
-  left: 0;
-  bottom: var(--sp-2);
-  font-size: var(--t-10);
-  letter-spacing: var(--ls-eyebrow);
-  font-weight: 600;
-  color: var(--amber-ink);
-  background: var(--surface);
-  padding: 0 var(--sp-4);
-  text-transform: uppercase;
-}
 .sp-plot__limit[data-at="34"] { top: 34px; }
 .sp-bars--plot { height: var(--plot-h); gap: var(--sp-16); position: relative; }
 
@@ -5009,3 +5003,11 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    is cleared. */
 .sp-bulkbar--head { position: sticky; top: 0; z-index: 5; }
 .sp-touch:has(.sp-bulkbar--head) .sp-topbar--touch { display: none; }
+
+/* the pointed column carries a full-height band, and its readout stands in it, so the
+   readout reads as that column's whatever the neighbouring heights (4a) */
+.sp-bars--plot .sp-bars__col:hover,
+.sp-bars--plot .sp-bars__col:focus-visible,
+.sp-bars--plot .sp-bars__col:has(> .sp-bars__tip) { background: var(--hover); border-radius: var(--r-tile); }
+/* the limit is named in the legend, not on the line, so no bar is ever under its label */
+.sp-legend__key--limit { width: 14px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--amber); }

@@ -223,6 +223,10 @@
       <div class="sp-meta au-w400">Register names the field, unlike sign in - there is no account to protect yet, and the useful next step is a link across.</div>
     </div>
   </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Forgot it?</b> opens the forgotten password flow (<a href="#20c">20c</a>) with the email already in its field.</div>
+  </div>
 </section>
 
 <section class="doc-section">
@@ -441,6 +445,13 @@
       </div>
       <div class="sp-meta au-w400">Same shape as 20b's expiry, one token component behind both. Reset links are shorter-lived than confirmation links - an hour against a day - because this one can change a password.</div>
     </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Send the link</b> always answers with the same "check your inbox" state, whether or not the address has an account.</div>
+    <div class="doc-note"><b>Send it again</b> is available 60 seconds after the last send; until then it reads "Send again in 0:47" and counts down.</div>
+    <div class="doc-note"><b>Save and sign in</b> sets the new password, signs in and opens Home. Every other session on the account is signed out.</div>
+    <div class="doc-note"><b>Start again</b>, on an expired or used link, returns to the email step with the address filled in.</div>
   </div>
 </section>
 
