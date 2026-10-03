@@ -8,7 +8,7 @@ import { getDecoratedOrder } from '../lib/decorate.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
-import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
+import { findVendorIdForReceipt } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
 import { resolveStatus } from '../lib/statuses.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
@@ -252,7 +252,7 @@ function draftOf(req, upload, read, failure) {
 	}
 
 	if (!read?.lines.length) {
-		const partial = read ? findVendorIdByAnyName(req.user.id, read.vendor) : null
+		const partial = read ? findVendorIdForReceipt(req.user.id, read) : null
 		return {
 			documentKey: upload.id, file,
 			vendor: read ? (partial ? selectVendorName.get(partial, req.user.id)?.name : read.vendor) : '',
@@ -271,7 +271,7 @@ function draftOf(req, upload, read, failure) {
 		}
 	}
 
-	const vendorId = findVendorIdByAnyName(req.user.id, read.vendor)
+	const vendorId = findVendorIdForReceipt(req.user.id, read)
 	const vendorMatched = Boolean(vendorId)
 	const vendorName = vendorId ? selectVendorName.get(vendorId, req.user.id)?.name : null
 
@@ -314,7 +314,8 @@ function draftOf(req, upload, read, failure) {
 			{
 				id: 'vendor', warning: !vendorMatched,
 				title: vendorMatched ? `Matched to ${vendorName}` : 'New vendor — will be created',
-				meta: read.vendor
+				// all three things a receipt is matched by (5h), as it printed them
+				meta: [read.vendor, read.vatNumber ? `CVR ${read.vatNumber}` : null, read.website].filter(Boolean).join(sep)
 			},
 			{
 				id: 'total', warning: read.total == null,
@@ -352,6 +353,8 @@ const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
 const copyUploadPages = db.prepare(`INSERT INTO attachment_pages (attachment_id, page, image, content_type)
 	SELECT @id, page, image, content_type FROM scan_upload_pages WHERE upload_id = @uploadId`)
 const selectItemOfOrder = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
+const markVendorScanned = db.prepare(`UPDATE vendors SET origin = 'scan'
+	WHERE id = (SELECT vendor_id FROM orders WHERE id = @order) AND made_by_order = @order AND user_id = @userId`)
 
 /* Also commits a file a form staged on drop (17a): `?as=file` files it as added, `?item=` puts it
    on one line, `?name=` keeps the name it was chosen under (equal bytes share one upload row). */
@@ -365,11 +368,14 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const name = typeof req.query.name === 'string' && req.query.name.trim() ? req.query.name.trim().slice(0, 200) : null
 
 	const id = newId('a')
+	const scanned = req.query.as !== 'file'
 	db.transaction(() => {
 		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId,
-			name, meta: `${req.query.as === 'file' ? 'Added' : 'Scanned'} today${sep}${fileSizeLabel(upload.size)}`,
+			name, meta: `${scanned ? 'Scanned' : 'Added'} today${sep}${fileSizeLabel(upload.size)}`,
 			uploadId: upload.id, userId: req.user.id })
 		copyUploadPages.run({ id, uploadId: upload.id })
+		// the receipt this order was created from: a vendor that order's save made came from the scan (5a)
+		if (scanned && !itemId) markVendorScanned.run({ order: order.id, userId: req.user.id })
 	})()
 	res.json({ ...getDecoratedOrder(req.user.id, order.id), attached: id })
 })

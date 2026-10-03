@@ -3,7 +3,7 @@ import { fromEpoch, toEpoch, todayIso } from './dates.js'
 import { MAX_PAGE_SIZE } from './constants.js'
 import { decorateOrderListRows } from './decorate.js'
 import { orderTotalsSelectList } from './orderColumns.js'
-import { lookalikeVendors } from './vendorLookalikes.js'
+import { lookalikePairs, vendorsIn } from './vendorLookalikes.js'
 
 /* Statistics, computed by real SQL aggregation over the user's own orders — SUM/GROUP BY
    within a [from, to) window, never a per-order JS loop and never a synthetic "spread a
@@ -571,11 +571,14 @@ export function markSummarySeen(userId, month) {
 	return true
 }
 
-/** What Home reads beyond the month: when an order was last added, and what needs a look. */
+/** What Home reads beyond the month: when an order was last added, and what needs a look. One
+    pair of look-alike vendors is named, so Home can offer to merge it (16a). */
 export function homeAttention(userId) {
+	const pairs = lookalikePairs(userId)
 	return {
 		lastAdded: selectLastAdded.get(userId)?.at ?? null,
 		withoutReceipt: countWithoutReceipt.get(userId).c,
-		lookalikeVendors: lookalikeVendors(userId).reduce((n, group) => n + group.length, 0)
+		lookalikeVendors: vendorsIn(pairs),
+		lookalikePair: pairs.length === 1 ? pairs[0] : null
 	}
 }

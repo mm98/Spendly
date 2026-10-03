@@ -116,7 +116,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 				))}
 			</li>
 			<MenuSeparator />
-			<MenuItem icon="plus" onClick={go(`/categories/new${find ? `?name=${encodeURIComponent(find)}` : ''}`)}>Create a category</MenuItem>
+			<MenuItem icon="plus" onClick={go(`/categories/new?for=${order.id}${find ? `&name=${encodeURIComponent(find)}` : ''}`)}>Create a category</MenuItem>
 		</>
 	)
 
