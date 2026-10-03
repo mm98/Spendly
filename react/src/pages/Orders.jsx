@@ -19,7 +19,7 @@ import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Kbd, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
-import { failureMessage, getCategories, getCurrentUser, getImport, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
+import { failureMessage, getCategoryPage, getCurrentUser, getImport, getOrders, getSettings, getVendorPage, spendKinds } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today, withShortMonth } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
@@ -177,8 +177,9 @@ function OrderList() {
 	const railed = shape === 'wide'
 
 	const settings = useApi(getSettings)
-	const vendors = useApi(getVendors)
-	const categories = useApi(getCategories)
+	// the vendors and categories the filters name, for their crumbs
+	const vendors = usePicked('vendor', listOf(f.vendor))
+	const categories = usePicked('category', listOf(f.category))
 	const highest = useApi(getOrders, [{ sort: 'amount-desc', pageSize: 1 }])
 	const fromImport = useApi(getImport, [f.import], { enabled: !!f.import })
 	const user = useApi(getCurrentUser).data
@@ -275,8 +276,8 @@ function OrderList() {
 		clearAll()
 	}
 
-	const vendorName = id => vendors.data?.find(v => v.id === id)?.name ?? 'Vendor'
-	const categoryName = id => (id === 'none' ? 'No category' : categories.data?.find(c => c.id === id)?.name ?? 'Category')
+	const vendorName = id => vendors?.find(v => v.id === id)?.name ?? 'Vendor'
+	const categoryName = id => (id === 'none' ? 'No category' : categories?.find(c => c.id === id)?.name ?? 'Category')
 	const crumbOf = {
 		date: () => {
 			if (!f.from && !f.to) return null
@@ -320,12 +321,7 @@ function OrderList() {
 		target?.focus()
 	}, [crumbFocus, crumbs.length])
 
-	const facetData = {
-		// an archived vendor leaves the facet, unless the list is filtered by it
-		vendors: vendors.data?.filter(v => !v.archived || v.id === f.vendor),
-		categories: categories.data,
-		highest: highest.data?.orders?.[0]?.total
-	}
+	const facetData = { highest: highest.data?.orders?.[0]?.total }
 	const filtersCard = (
 		<Card>
 			<div className="sp-row-flex">
@@ -428,7 +424,7 @@ function OrderList() {
 		)
 	else if (data.matched === 0)
 		body = (
-			<NoMatch f={f} request={request} total={data.total} vendors={vendors.data} categories={categories.data} statusName={statusName}
+			<NoMatch f={f} request={request} total={data.total} vendors={vendors} categories={categories} statusName={statusName}
 				onWiden={period => { setCustom(false); update({ period, from: '', to: '' }) }} onClear={clearCrumbs} />
 		)
 	else {
@@ -853,28 +849,54 @@ function CardsLoading({ size }) {
 /* A value's live count at the end of its row (2b): left out while it is not known (6b). */
 const countOf = n => (n == null ? null : <><span className="sp-grow" /><span className="sp-field-group__count">{amount(n, 0)}</span></>)
 
+/** The vendors or categories with these ids, archived ones too: what the filters name. */
+function usePicked(kind, ids) {
+	const real = ids.filter(id => id !== 'none')
+	const read = kind === 'vendor' ? getVendorPage : getCategoryPage
+	const page = useApi(read, [{ ids: real.join(','), archived: 'all', pageSize: Math.max(1, real.length) }], { enabled: real.length > 0 })
+	return real.length ? page.data?.[kind === 'vendor' ? 'vendors' : 'categories'] : []
+}
+
+/** A facet group's values, most used first, read a page at a time: `rows` (the page, then any picked
+    value it does not hold), how many match the typed text, and how many the group holds in all. */
+function useFacetValues(kind, find, limit, picked) {
+	const vendor = kind === 'vendor'
+	const read = vendor ? getVendorPage : getCategoryPage
+	const request = { sort: vendor ? 'use' : 'orders-desc', pageSize: limit }
+	const needle = find.trim()
+	const all = useApi(read, [request])
+	const found = useApi(read, [{ ...request, query: needle }], { enabled: Boolean(needle) })
+	const list = needle ? found : all
+	const held = usePicked(kind, picked) ?? []
+	const rows = list.data?.[vendor ? 'vendors' : 'categories'] ?? []
+	const extra = needle ? [] : held.filter(r => !rows.some(x => x.id === r.id))
+	return { rows: [...rows, ...extra], paged: rows.length, matched: list.data?.matched ?? 0, total: all.data?.matched ?? 0 }
+}
+
 /** The rail's groups (c12, 2b): several values each, with live counts; a value with nothing
     behind it stays, greyed. `bare` gives the groups alone, for the sheet (7b). */
-function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, categories, highest, matched, counts }) {
+function OrderFacets({ bare = false, f, update, custom, setCustom, highest, matched, counts }) {
 	const statuses = useStatuses()
 	const over = useOverLimitIds()
+	const size = useApi(getSettings).data?.pageSize ?? 10
 	const live = (group, key) => (counts ? counts[group]?.[key] ?? 0 : undefined)
-	// every vendor and category, so a group's total is the count the sidebar shows (2b); one
-	// with no orders comes last
-	const byUse = list => [...(list ?? [])].sort((a, b) => b.orders - a.orders)
-	const shownVendors = byUse(vendors)
-	const shownCategories = byUse(categories)
-	const [allVendors, setAllVendors] = useState(false)
+	// a group's total is the count the sidebar shows (2b); its first few values rest, more come a page at a time
+	// at rest a group shows its first few, searched a page; each "more" adds a page
+	const limitOf = (pages, typing, rest) => (typing ? size : rest) + size * pages
+	const moreOf = (values, pages, typing, rest) => Math.min(limitOf(pages + 1, typing, rest), values.matched) - values.paged
+	const [vendorPages, setVendorPages] = useState(0)
 	const [find, setFind] = useState('')
-	const found = find ? shownVendors.filter(v => v.name.toLowerCase().includes(find.toLowerCase())) : shownVendors
 	const vendorsPicked = listOf(f.vendor)
-	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || vendorsPicked.includes(v.id))
+	const vendorValues = useFacetValues('vendor', find, limitOf(vendorPages, find.trim(), 4), vendorsPicked)
+	const listed = vendorValues.rows
 	// the categories the same way: their first few, then the rest on asking, found by name past twenty
-	const [allCategories, setAllCategories] = useState(false)
+	const [categoryPages, setCategoryPages] = useState(0)
 	const [findCategory, setFindCategory] = useState('')
-	const categoriesFound = findCategory ? shownCategories.filter(c => c.name.toLowerCase().includes(findCategory.toLowerCase())) : shownCategories
 	const categoriesPicked = listOf(f.category)
-	const categoriesListed = allCategories || findCategory ? categoriesFound : categoriesFound.filter((c, i) => i < 6 || categoriesPicked.includes(c.id))
+	const categoryValues = useFacetValues('category', findCategory, limitOf(categoryPages, findCategory.trim(), 6), categoriesPicked)
+	const categoriesListed = categoryValues.rows
+	const vendorsMore = moreOf(vendorValues, vendorPages, find.trim(), 4)
+	const categoriesMore = moreOf(categoryValues, categoryPages, findCategory.trim(), 6)
 	const empty = (n, total, on) => !on && (n === undefined ? !total : n === 0)
 	const switches = useId()
 
@@ -907,14 +929,14 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 				})}
 			</FieldGroup>
 
-			{shownVendors.length
+			{vendorValues.total
 				? (
-					<FieldGroup facet legend="Vendor" count={`${shownVendors.length} total`}>
-						{shownVendors.length > 20
+					<FieldGroup facet legend="Vendor" count={`${vendorValues.total} total`}>
+						{vendorValues.total > 20
 							? <SearchInput value={find} onChange={setFind} placeholder="Find a vendor…" aria-label="Find a vendor" />
 							: null}
-						{shownVendors.length > 20 ? <Announce>{find ? (found.length ? plural(found.length, 'vendor') : 'No vendor by that name.') : ''}</Announce> : null}
-						{find && !found.length ? <span className="sp-subtitle">No vendor by that name.</span> : null}
+						{vendorValues.total > 20 ? <Announce>{find ? (vendorValues.matched ? plural(vendorValues.matched, 'vendor') : 'No vendor by that name.') : ''}</Announce> : null}
+						{find && !vendorValues.matched ? <span className="sp-subtitle">No vendor by that name.</span> : null}
 						<FieldGroupValues>
 							{listed.map(v => {
 								const on = vendorsPicked.includes(v.id)
@@ -927,23 +949,23 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 								)
 							})}
 						</FieldGroupValues>
-						{!allVendors && !find && found.length > listed.length
-							? <FieldGroupMore onClick={() => setAllVendors(true)}>Show {found.length - listed.length} more</FieldGroupMore>
+						{vendorsMore > 0
+							? <FieldGroupMore onClick={() => setVendorPages(vendorPages + 1)}>Show {vendorsMore} more</FieldGroupMore>
 							: null}
 					</FieldGroup>
 				)
 				: null}
 
-			{shownCategories.length
+			{categoryValues.total
 				? (
 					<FieldGroup facet legend="Categories">
-						{shownCategories.length > 20
+						{categoryValues.total > 20
 							? <SearchInput value={findCategory} onChange={setFindCategory} placeholder="Find a category…" aria-label="Find a category" />
 							: null}
-						{shownCategories.length > 20
-							? <Announce>{findCategory ? (categoriesFound.length ? plural(categoriesFound.length, 'category', 'categories') : 'No category by that name.') : ''}</Announce>
+						{categoryValues.total > 20
+							? <Announce>{findCategory ? (categoryValues.matched ? plural(categoryValues.matched, 'category', 'categories') : 'No category by that name.') : ''}</Announce>
 							: null}
-						{findCategory && !categoriesFound.length ? <span className="sp-subtitle">No category by that name.</span> : null}
+						{findCategory && !categoryValues.matched ? <span className="sp-subtitle">No category by that name.</span> : null}
 						{categoriesListed.length
 							? (
 								<FieldGroupValues>
@@ -961,8 +983,8 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, cate
 								</FieldGroupValues>
 							)
 							: null}
-						{!allCategories && !findCategory && categoriesFound.length > categoriesListed.length
-							? <FieldGroupMore onClick={() => setAllCategories(true)}>Show {categoriesFound.length - categoriesListed.length} more</FieldGroupMore>
+						{categoriesMore > 0
+							? <FieldGroupMore onClick={() => setCategoryPages(categoryPages + 1)}>Show {categoriesMore} more</FieldGroupMore>
 							: null}
 					</FieldGroup>
 				)

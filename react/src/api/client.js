@@ -2,9 +2,8 @@
    paths are relative, since the dev server proxies /api (vite.config.js). */
 
 import { detectLocale, parseAmount, today } from './format.js'
-import { forgetAll, invalidate } from './useApi.js'
+import { forgetAll, invalidate, peek } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
-import { vendorKey } from './names.js'
 import { noteServerBuild, writeSettled, writeStarted } from './build.js'
 
 class ApiError extends Error {
@@ -223,8 +222,41 @@ export async function getCurrentUser(signal) {
 
 /* ---- vendors ---- */
 
-export async function getVendors(signal) {
-	return request('/api/vendors', { signal })
+/** One page of vendors, `{ vendors, matched }`. The filters and sorts it takes are listed in
+    api/src/lib/vendorList.js. */
+export async function getVendorPage(params = {}, signal) {
+	return request('/api/vendors' + qs(params), { signal })
+}
+
+/** Which of these names a vendor already files under. */
+export async function getKnownVendorNames(names, signal) {
+	return (await request('/api/vendors/known', { method: 'POST', body: { names }, signal })).known
+}
+
+/* The server answers at most this many rows at once. */
+const MOST = 1000
+
+/** Pages 1 to `pages` of a paged list, as Load more holds them: one more page onto those held, or
+    from the start in blocks of whole pages up to MOST. `self` is the reader whose cache holds them. */
+async function gathered(self, read, rows, request, size, pages, signal) {
+	const before = pages > 1 ? peek(self, [request, size, pages - 1]) : null
+	if (before && before[rows].length === size * (pages - 1)) {
+		const next = await read({ ...request, page: pages, pageSize: size }, signal)
+		return { ...next, [rows]: [...before[rows], ...next[rows]] }
+	}
+	const block = size * Math.max(1, Math.floor(MOST / size))
+	const want = size * pages
+	const parts = []
+	for (let page = 1; (page - 1) * block < want; page++) {
+		parts.push(await read({ ...request, page, pageSize: Math.min(block, want) }, signal))
+		if (parts.at(-1)[rows].length < Math.min(block, want)) break
+	}
+	return { ...parts.at(-1), [rows]: parts.flatMap(p => p[rows]).slice(0, want) }
+}
+
+/** The vendor list's pages 1 to `pages`, `size` rows each. */
+export async function getVendorPages(request, size, pages, signal) {
+	return gathered(getVendorPages, getVendorPage, 'vendors', request, size, pages, signal)
 }
 
 export async function createVendor(name, look = {}, signal) {
@@ -264,23 +296,8 @@ export async function addVendorAlias(id, name, signal) {
 	return request('/api/vendors/aliases', { method: 'POST', body: { vendorId: id, name }, signal })
 }
 
-/* A vendor matches on its name and every alias, by the same rules as the server's
-   findVendorIdByAnyName (exact) and its search query (part of the text). */
-
-/** The vendor a string is: its name or an alias, exactly, in any case. */
-export const vendorByAnyName = (vendors, name) => {
-	const needle = String(name ?? '').trim().toLowerCase()
-	if (!needle) return undefined
-	const exact = vendors.find(v => v.name.toLowerCase() === needle
-		|| (v.aliases ?? []).some(a => a.toLowerCase() === needle))
-	if (exact) return exact
-	// then as the API matches receipts: case, accents, punctuation and a legal form set aside
-	const key = vendorKey(name)
-	return vendors.find(v => vendorKey(v.name) === key) ?? vendors.find(v => (v.aliases ?? []).some(a => vendorKey(a) === key))
-}
-
-/** Whether typed text finds this vendor, and the alias that did; `alias` is null when the name
-    matched. Empty text matches everything. */
+/** Whether typed text finds this vendor, on its name or any alias as the server's search does, and the
+    alias that did; `alias` is null when the name matched. Empty text matches everything. */
 export const vendorTextMatch = (vendor, text) => {
 	const needle = String(text ?? '').trim().toLowerCase()
 	if (!needle || vendor.name.toLowerCase().includes(needle)) return { matches: true, alias: null }
@@ -290,8 +307,45 @@ export const vendorTextMatch = (vendor, text) => {
 
 /* ---- categories ---- */
 
-export async function getCategories(signal) {
-	return request('/api/categories', { signal })
+/** One page of categories, `{ categories, matched }`. The filters and sorts it takes are listed in
+    api/src/lib/categoryList.js. */
+export async function getCategoryPage(params = {}, signal) {
+	return request('/api/categories' + qs(params), { signal })
+}
+
+/** The category list's pages 1 to `pages`, `size` rows each. */
+export async function getCategoryPages(request, size, pages, signal) {
+	return gathered(getCategoryPages, getCategoryPage, 'categories', request, size, pages, signal)
+}
+
+/** The colour a new category starts on: the first of the eight no category wears yet. */
+export async function getNextCategoryColour(signal) {
+	return (await request('/api/categories/colour', { signal })).colour
+}
+
+/** What Home's category cards are drawn from: every category with a limit, and how many categories there are. */
+export async function getHomeCategories(signal) {
+	const [limited, all] = await Promise.all([
+		request('/api/categories' + qs({ limited: 'yes', pageSize: MOST }), { signal }),
+		request('/api/categories' + qs({ pageSize: 1 }), { signal })
+	])
+	return { limited: limited.categories, count: all.matched }
+}
+
+/** The categories over their monthly limit this month: limits are set by hand, so the server's largest page holds them. */
+export async function getOverLimitCategories(signal) {
+	return (await request('/api/categories' + qs({ over: 'yes', pageSize: MOST }), { signal })).categories
+}
+
+/** Which of these names a category already has, in any case. */
+export async function getKnownCategoryNames(names, signal) {
+	return (await request('/api/categories/known', { method: 'POST', body: { names }, signal })).known
+}
+
+/** Every category with a monthly limit, this month's spend on each: the limits are set by hand, one
+    category at a time, so the server's largest page holds them. */
+export async function getLimitedCategories(signal) {
+	return (await request('/api/categories' + qs({ limited: 'yes', with: 'month', pageSize: MOST }), { signal })).categories
 }
 
 /** Whether a category has spent past its monthly limit: `monthSpend`, never the all-time `spend`. */
@@ -302,15 +356,6 @@ export const overBudget = category => category.budget > 0 && category.monthSpend
 export const withMonthSpend = (categories, split) => {
 	const byId = new Map(split.map(s => [s.id, s]))
 	return categories.map(c => ({ ...c, monthSpend: byId.get(c.id)?.amount ?? 0 }))
-}
-
-/** The category list with this month's spend joined on: a join of two requests, so its own cache entry. */
-export async function getCategoriesThisMonth(signal) {
-	const [categories, { window }] = await Promise.all([
-		request('/api/categories?average=1', { signal }),
-		request('/api/stats' + qs({ range: 'month', summary: 1 }), { signal })
-	])
-	return { categories: withMonthSpend(categories, window.split) }
 }
 
 /** The account's orders with no category, summed: a filter, not a record of the list. */
@@ -365,9 +410,9 @@ export async function getBookmarks(params = {}, signal) {
 	return request('/api/bookmarks' + qs(params), { signal })
 }
 
-/** How many bookmarks of one view carry each category, and how many carry none: the category filter's counts. */
-export async function getBookmarkCategoryCounts(archived, signal) {
-	return request('/api/bookmarks/categories' + qs({ archived: archived ? 'yes' : 'no' }), { signal })
+/** How many bookmarks of one view carry no category: the category filter's "Without category". */
+export async function getBookmarksWithoutCategory(archived, signal) {
+	return (await request('/api/bookmarks/categories' + qs({ archived: archived ? 'yes' : 'no' }), { signal })).without
 }
 
 export async function getBookmark(id, signal) {
@@ -986,9 +1031,9 @@ export const bookmarkSorts = [
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
 const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
-const vendorReads = [getVendors, getVendor, getHomeAttention]
-const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised, getMonthlySummary]
-const bookmarkReads = [getBookmarks, getBookmark, getBookmarkCategoryCounts]
+const vendorReads = [getVendorPage, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
+const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getUncategorised, getMonthlySummary]
+const bookmarkReads = [getBookmarks, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 
 /** An order changed: everything sums orders, and saving one can create a vendor or a category. */

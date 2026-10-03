@@ -14,11 +14,11 @@ import { Stacked } from '../components/Utilities.jsx'
 import { Alert, useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendors,
+	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendorPage,
 	invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor
 } from '../api/client.js'
 import { currency, dot, isSaving, plural } from '../api/format.js'
-import { likeness, looksAlike, vendorKey } from '../api/names.js'
+import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
@@ -59,7 +59,6 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const list = useListReturn('vendors')
 	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
 	const fromScan = useLocation().state?.fromScan ?? null
-	const all = useApi(getVendors)
 	const h = loading ? hold : control => control
 	const editing = Boolean(vendor)
 	const start = useMemo(() => ({
@@ -95,32 +94,41 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	// back to the receipt, with the vendor just made chosen on it
 	const back = name => { guard.release(); navigate(fromScan.to, { state: { pickedVendor: name } }) }
 
-	const others = (all.data ?? []).filter(v => v.id !== vendor?.id)
-	// compared as receipts are matched: case, accents, punctuation and a legal form set aside (5h)
-	const owner = text => others.find(v => vendorKey(v.name) === vendorKey(text) || (v.aliases ?? []).some(a => vendorKey(a) === vendorKey(text)))
-	const nameProblem = name => {
+	// the other vendor a name already files under, compared as receipts are matched (5h); none when it cannot be asked
+	const owner = text => getVendorPage({ name: text, except: vendor?.id, pageSize: 1 }).then(r => r.vendors[0] ?? null, () => null)
+	const nameProblem = async name => {
 		if (!name.trim()) return 'Give the vendor a name.'
-		const taken = owner(name)
+		const taken = await owner(name)
 		if (!taken) return null
 		return vendorKey(taken.name) === vendorKey(name)
 			? lower(taken.name) === lower(name) ? `You already have a vendor called ${taken.name}.` : `${taken.name} already has that name. Pick a different name.`
 			: `Another vendor, ${taken.name}, already matches "${name.trim()}". Pick a different name.`
 	}
 	// on leaving the field: the vendor most like this one, when the two look like one shop (5j)
-	const lookAlike = name => {
+	const lookAlike = async name => {
 		if (!name.trim() || name.trim() === start.name.trim()) return null
-		const typed = { name, aliases: values.aliases }
-		return others.filter(v => vendorKey(v.name) !== vendorKey(name) && looksAlike(v, typed))
-			.sort((a, b) => likeness(b.name, name) - likeness(a.name, name))[0] ?? null
+		const like = await getVendorPage({ like: name, aka: values.aliases.join('\n'), except: vendor?.id, pageSize: 1 }).catch(() => null)
+		return like?.vendors[0] ?? null
+	}
+	// what leaving the name field found, kept only while the name is still the one it was asked about
+	const named = useRef(values.name)
+	named.current = values.name
+	const checkName = async () => {
+		const asked = values.name
+		const problem = await nameProblem(asked)
+		const like = problem ? null : await lookAlike(asked)
+		if (named.current !== asked) return
+		setErrors(e => ({ ...e, name: problem }))
+		setClose(like)
 	}
 
 	/* A name another vendor already matches would file receipts in two places, so it is
 	   stopped where it is typed: another vendor's alias can be moved here, its name cannot. */
-	const changeAliases = next => {
+	const changeAliases = async next => {
 		const added = next.find(a => !values.aliases.includes(a))
 		setOffer(null)
 		if (added) {
-			const taken = owner(added)
+			const taken = await owner(added)
 			if (taken && vendorKey(taken.name) === vendorKey(added)) return setErrors(e => ({
 				...e, aliases: `Another vendor is called ${taken.name}. Pick a different one.`
 			}))
@@ -143,12 +151,12 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	}
 	const keepThere = () => { setErrors(e => ({ ...e, aliases: null })); setOffer(null) }
 
-	const save = () => {
+	const save = async () => {
 		if (writing.current) return
-		const nameError = nameProblem(values.name)
-		setErrors(e => ({ ...e, name: nameError }))
-		if (nameError) return focusFirst(['vendor-name'])
 		writing.current = true
+		const nameError = await nameProblem(values.name)
+		setErrors(e => ({ ...e, name: nameError }))
+		if (nameError) { writing.current = false; return focusFirst(['vendor-name']) }
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
@@ -243,7 +251,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					message={errors.name ?? (editing ? undefined : 'The name you will recognise in a list. Receipts can spell it differently.')}
 					messageType={errors.name ? 'danger' : 'hint'}>
 					{h(<TextField value={values.name} onChange={v => { set('name', v); setClose(null) }}
-						onBlur={() => { const problem = nameProblem(values.name); setErrors(e => ({ ...e, name: problem })); setClose(problem ? null : lookAlike(values.name)) }}
+						onBlur={checkName}
 						placeholder={editing ? undefined : 'Where you bought it'} />)}
 				</Field>
 				{close
@@ -304,7 +312,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 
 	const name = values.name.trim()
 	// the list answer, when in hand, says whether the loaded rail has recent orders and a Delete
-	const known = loading ? all.data?.find(v => v.id === loadingId) : null
+	const known = useApi(getVendorPage, [{ ids: loadingId, archived: 'all', pageSize: 1 }], { enabled: loading && Boolean(loadingId) }).data?.vendors[0]
 	const end = endWords(known ?? { orders: 10 })
 	const rail = loading
 		? (
@@ -326,7 +334,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 						onDelete={() => setDeleting(true)}
 						merge={{
 							open: picking, onToggle: () => setPicking(!picking), onClose: () => setPicking(false),
-							picker: box => <MergePicker kind="vendor" source={vendor} options={all.data ?? []} anchor={box} position="start"
+							picker: box => <MergePicker kind="vendor" source={vendor} anchor={box} position="start"
 								onClose={() => setPicking(false)} onPick={target => { setPicking(false); setMerging(target) }} />
 						}} />
 				</>
@@ -363,7 +371,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				)
 				: null}
 			{merging
-				? <MergeDialog kind="vendor" source={vendor} initial={merging} options={all.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				? <MergeDialog kind="vendor" source={vendor} initial={merging} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)

@@ -13,7 +13,7 @@ import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	changeOrders, createCategory, deleteCategory, failureMessage, getCategories, getCategoriesThisMonth, getCategory,
+	changeOrders, createCategory, deleteCategory, failureMessage, getCategory, getCategoryPage, getNextCategoryColour,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeCategory, overBudget, updateCategory
 } from '../api/client.js'
 import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
@@ -24,9 +24,6 @@ import {
 	CategoryMark, CommitBar, DeleteCategory, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	MergeButton, MergeDialog, MergePicker, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
-
-// case and accents do not make two names different: "Decor" and "décor" chart as one
-const fold = s => String(s).normalize('NFD').replace(/\p{M}/gu, '').trim().toLowerCase()
 
 /** A category, created (5e) or edited (5f): one page, one form, one rail. */
 export default function CategoryForm() {
@@ -57,7 +54,6 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
 	const list = useListReturn('categories')
-	const all = useApi(getCategories)
 	const h = loading ? hold : control => control
 	const editing = Boolean(category)
 	// a name typed where the category was asked for (Order list 2e) starts the new one
@@ -89,10 +85,13 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const writing = useRef(false)
 	const set = (key, value) => setValues(v => ({ ...v, [key]: value }))
 
-	const others = (all.data ?? []).filter(c => c.id !== category?.id)
 	// a new category starts on the first of the eight no other category has
-	const used = new Set(others.map(c => swatchOf(c.colour)))
-	const colour = values.colour ?? Object.keys(SWATCHES).find(s => !used.has(s)) ?? 'green'
+	const next = useApi(getNextCategoryColour, [], { enabled: !editing && !loading }).data
+	const colour = values.colour ?? (next ? swatchOf(next) : 'green')
+	// the other category a name already means, case and accents set aside
+	const sameAs = name => getCategoryPage({ name, except: category?.id, pageSize: 1 }).then(r => r.categories[0] ?? null, () => null)
+	const typed = values.name.trim()
+	const holder = useApi(getCategoryPage, [{ name: typed, except: category?.id, pageSize: 1 }], { enabled: !editing && Boolean(typed) })
 
 	const changed = values.name.trim() !== start.name.trim() || values.icon !== start.icon
 		|| values.colour !== start.colour || values.budget !== start.budget
@@ -119,16 +118,16 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		.finally(back)
 
 	// a new category's name that is already taken (6c): the existing one can be used in its place
-	const taken = editing ? null : others.find(c => fold(c.name) === fold(values.name)) ?? null
+	const taken = editing || !typed ? null : holder.data?.categories[0] ?? null
 	const takeExisting = () => {
 		if (forOrder) return chooseOnOrder(taken, false)
 		guard.release()
 		navigate(`/categories/${taken.id}/edit`, { replace: true })
 	}
 
-	const nameProblem = name => {
+	const nameProblem = async name => {
 		if (!name.trim()) return 'Give the category a name.'
-		const same = others.find(c => fold(c.name) === fold(name))
+		const same = await sameAs(name.trim())
 		return same ? `"${same.name}" already exists, with ${plural(same.orders ?? 0, 'order')}. Use it, or choose another name.` : null
 	}
 	const budgetProblem = budget => (budget === 0 ? 'Use an amount above zero, or leave it empty for no limit.' : null)
@@ -139,12 +138,12 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		? `${values.name.trim() || category.name} averaged ${currency(category.monthAverage, 0)} a month over the last 12 months. This limit will be passed most months.`
 		: null
 
-	const save = () => {
+	const save = async () => {
 		if (writing.current) return
-		const found = { name: nameProblem(values.name), budget: budgetProblem(values.budget) }
-		setErrors(found)
-		if (found.name || found.budget) return focusFirst([found.name && 'category-name', found.budget && 'category-limit'])
 		writing.current = true
+		const found = { name: await nameProblem(values.name), budget: budgetProblem(values.budget) }
+		setErrors(found)
+		if (found.name || found.budget) { writing.current = false; return focusFirst([found.name && 'category-name', found.budget && 'category-limit']) }
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
@@ -216,7 +215,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 					message={errors.name ?? (editing ? undefined : 'Appears on chips, filters and charts, so short wins - "Decor", not "Home decoration items".')}
 					messageType={errors.name ? 'danger' : 'hint'}>
 					{h(<TextField value={values.name} onChange={v => set('name', v)}
-						onBlur={() => setErrors(e => ({ ...e, name: nameProblem(values.name) }))}
+						onBlur={() => { const asked = values.name; nameProblem(asked).then(problem => setErrors(e => ({ ...e, name: problem }))) }}
 						placeholder={editing ? undefined : 'What you spent it on'} />)}
 				</Field>
 				{errors.name && taken
@@ -275,7 +274,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 					<Removing category={category} onDelete={() => setDeleting(true)}
 						merge={{
 							open: picking, onToggle: () => setPicking(!picking), onClose: () => setPicking(false),
-							picker: box => <MergePicker kind="category" source={category} options={all.data ?? []} anchor={box} position="start"
+							picker: box => <MergePicker kind="category" source={category} anchor={box} position="start"
 								onClose={() => setPicking(false)} onPick={target => { setPicking(false); setMerging(target) }} />
 						}} />
 				</>
@@ -305,7 +304,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				? <DeleteCategory category={category} busy={busy} onConfirm={remove} onCancel={() => setDeleting(false)} />
 				: null}
 			{merging
-				? <MergeDialog kind="category" source={category} initial={merging} options={all.data ?? []} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
+				? <MergeDialog kind="category" source={category} initial={merging} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
 				: null}
 		</>
 	)
@@ -314,8 +313,8 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 /** This month against the limit, and what the category has carried (5f). The limit is the
     form's own value, so the bar answers the number being typed. */
 function CategorySummary({ category, preview, budget }) {
-	const month = useApi(getCategoriesThisMonth)
-	const spend = month.data?.categories.find(c => c.id === category.id)?.monthSpend
+	const month = useApi(getCategoryPage, [{ ids: category.id, with: 'month', pageSize: 1 }])
+	const spend = month.data?.categories[0]?.monthSpend
 	const pace = monthPace()
 	const limit = budget > 0 ? budget : null
 	const over = limit !== null && spend > limit
@@ -359,8 +358,8 @@ function CategorySummary({ category, preview, budget }) {
 /** The rail while the category loads. The list answer, when in hand, gives each card the shape
     the loaded one takes: the over-the-limit line, the recent orders, the words of the way out. */
 function RailLoading({ id }) {
-	const month = useApi(getCategoriesThisMonth)
-	const known = month.data?.categories.find(c => c.id === id)
+	const month = useApi(getCategoryPage, [{ ids: id, with: 'month', pageSize: 1 }], { enabled: Boolean(id) })
+	const known = month.data?.categories[0]
 	const over = known ? overBudget(known) : false
 	const end = removingWords(known ?? { orders: 10 })
 	return (

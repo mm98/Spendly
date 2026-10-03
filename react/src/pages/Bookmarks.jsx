@@ -18,11 +18,12 @@ import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Kbd, useFocusTrap } from '../components/Utilities.jsx'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
+import { MoreMatches, moreText, usePickList } from '../app/pickList.jsx'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
 import {
-	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarks, getCategories,
-	getBookmarkCategoryCounts, getSettings, setBookmarkArchived
+	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarks, getBookmarksWithoutCategory,
+	getCategoryPage, getSettings, setBookmarkArchived
 } from '../api/client.js'
 import { NUMBER_LOCALE, currency, dot, plural, shortDate } from '../api/format.js'
 import { Bar, CategoryMark, ConfirmDelete, Held, bookmarkDeleteNote, isGone, sayFailure, useFold, useRefocus } from './vendorsCategories.jsx'
@@ -59,8 +60,12 @@ export default function Bookmarks() {
 	const { pages, setPages, restored } = useListMemory(`bookmarks?${query}&${category}&${sort}&${archived}`)
 	const shown = pages * step
 
-	const categories = useApi(getCategories)
-	const counts = useCategoryCounts(categories.data, archived)
+	const [findCategory, setFindCategory] = useState('')
+	const counts = useCategoryCounts(archived, findCategory)
+	// the category the address names: its name, and how many bookmarks it holds in all and in this view
+	const one = category && category !== NONE ? category : null
+	const chosen = useApi(getCategoryPage, [{ ids: one, with: 'bookmarks', pageSize: 1 }], { enabled: Boolean(one) })
+	const chosenHere = useApi(getCategoryPage, [{ ids: one, bookmarks: archived ? 'archived' : 'open', with: 'bookmarks', pageSize: 1 }], { enabled: Boolean(one) })
 	const list = useApi(getBookmarks, [{
 		query, categoryId: category, sort, archived: archived ? 'yes' : 'no', page: 1, pageSize: shown
 	}])
@@ -100,18 +105,15 @@ export default function Bookmarks() {
 	const clearAll = () => write({ q: '', category: '', archived: '' })
 
 	const { used, withoutCount } = counts
-	const idOf = name => categories.data?.find(c => c.name === name)?.id
-	const nameOf = id => id === NONE ? 'Without category' : categories.data?.find(c => c.id === id)?.name ?? ''
-	const categoryName = nameOf(category)
+	const idOf = name => getCategoryPage({ name, pageSize: 1 }).then(r => r.categories[0]?.id, () => null)
+	const categoryName = category === NONE ? 'Without category' : chosen.data?.categories[0]?.name ?? ''
 	const sortLabel = SORTS.find(s => s.id === sort).label
 
-	const refresh = () => { list.refresh(); categories.refresh(); counts.refresh() }
+	const refresh = () => { list.refresh(); counts.refresh() }
 
 	// a link to a category that is gone (or never was) falls back to every category
-	const known = categories.data
-	useEffect(() => {
-		if (known && category && category !== NONE && !known.some(c => c.id === category)) write({ category: '' })
-	}, [known, category])
+	const gone = Boolean(one) && chosen.data?.categories.length === 0 && !chosen.loading
+	useEffect(() => { if (gone) write({ category: '' }) }, [gone])
 
 	const archive = async (bookmark, to) => {
 		closeMenus()
@@ -156,6 +158,7 @@ export default function Bookmarks() {
 			<ComboboxOption key={c.id} selected={category === c.id} mark={<CategoryMark category={c} size="small" />} meta={c.bookmarks}
 				onSelect={choose({ category: c.id })}>{c.name}</ComboboxOption>
 		)),
+		<MoreMatches key="more" rows={counts.page.rows} matched={counts.page.matched} noun="categories" />,
 		withoutCount > 0 ? <ComboboxSeparator key="without" /> : null,
 		withoutCount > 0
 			? <ComboboxOption key={NONE} selected={category === NONE} meta={withoutCount} onSelect={choose({ category: NONE })}>Without category</ComboboxOption>
@@ -199,7 +202,8 @@ export default function Bookmarks() {
 				{folded
 					? <Button {...filtersButtonProps}>{filtersLabel}</Button>
 					: (
-						<Combobox variant="sort" aria-label="Category" value={category ? categoryName : 'Any'} prefix="Category">
+						<Combobox variant="sort" aria-label="Category" value={category ? categoryName : 'Any'} prefix="Category"
+							{...(counts.searched ? { searchable: true, search: findCategory, onSearch: setFindCategory, noun: 'categories' } : {})}>
 							{categoryOptions}
 						</Combobox>
 					)}
@@ -228,7 +232,7 @@ export default function Bookmarks() {
 	const sheet = draft
 		? createPortal(
 			<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) closeSheet() }}>
-				<FilterSheet draft={draft} setDraft={setDraft} categories={categories.data} onClose={closeSheet}
+				<FilterSheet draft={draft} setDraft={setDraft} onClose={closeSheet}
 					onApply={() => { write({ category: draft.category, archived: draft.archived ? 'yes' : '' }); closeSheet() }} />
 			</Scrim>,
 			document.body
@@ -253,8 +257,8 @@ export default function Bookmarks() {
 		)
 	} else if (!data.bookmarks.length) {
 		// each sentence states only what an empty answer to this exact request proves
-		const holds = used.find(c => c.id === category)?.bookmarks ?? 0
-		const ever = categories.data?.find(c => c.id === category)?.bookmarks ?? 0
+		const holds = chosenHere.data?.categories[0]?.bookmarks ?? 0
+		const ever = chosen.data?.categories[0]?.bookmarks ?? 0
 		const filtered = Boolean(query || category || archived)
 		const why = query && category && category !== NONE
 			? `Nothing in ${categoryName} matches "${query}". ${categoryName} holds ${plural(holds, 'bookmark')}.`
@@ -293,7 +297,7 @@ export default function Bookmarks() {
 							title={bookmark.name}
 							subtitle={site}
 							chips={bookmark.categories.map(name => (
-								<Chip key={name} onClick={() => { const id = idOf(name); if (id && id !== category) write({ category: id }) }}>{name}</Chip>
+								<Chip key={name} onClick={() => idOf(name).then(id => { if (id && id !== category) write({ category: id }) })}>{name}</Chip>
 							))}
 							meta={<span className="sp-subtitle">Added {shortDate(bookmark.createdAt)}</span>}
 							amount={bookmark.price != null ? currency(bookmark.price, 0) : null}
@@ -342,9 +346,10 @@ export default function Bookmarks() {
 }
 
 /** The phone's filters (Mobile screens 22a, c12): a sheet over the list, applied together. */
-function FilterSheet({ draft, setDraft, categories, onClose, onApply }) {
+function FilterSheet({ draft, setDraft, onClose, onApply }) {
 	// the categories of the view the sheet is set to, which can differ from the list behind it
-	const { used, withoutCount } = useCategoryCounts(categories, draft.archived)
+	const [find, setFind] = useState('')
+	const { used, withoutCount, page, searched } = useCategoryCounts(draft.archived, find)
 	const box = useRef(null)
 	// modal while open; closing gives focus back to the Filters button that opened it
 	useFocusTrap(box)
@@ -357,9 +362,10 @@ function FilterSheet({ draft, setDraft, categories, onClose, onApply }) {
 				<Segmented name="bookmarks-shown-sheet" options={SHOWN} value={draft.archived ? 'archived' : 'open'}
 					onChange={v => pick({ archived: v === 'archived' })} role="radiogroup" aria-label="Which bookmarks" />
 			</FieldGroup>
-			{used.length || withoutCount
+			{used.length || withoutCount || find
 				? (
 					<FieldGroup facet legend="Category">
+						{searched ? <SearchInput value={find} onChange={setFind} placeholder="Find a category…" aria-label="Find a category" /> : null}
 						<Filters>
 							{used.map(c => (
 								<Chip key={c.id} variant="facet" value={c.id} selected={draft.category === c.id}
@@ -369,6 +375,7 @@ function FilterSheet({ draft, setDraft, categories, onClose, onApply }) {
 								? <Chip variant="facet" value={NONE} selected={draft.category === NONE} onSelect={on => pick({ category: on ? NONE : '' })}>Without category</Chip>
 								: null}
 						</Filters>
+						{moreText(page.rows, page.matched, 'categories') ? <span className="sp-subtitle">{moreText(page.rows, page.matched, 'categories')}</span> : null}
 					</FieldGroup>
 				)
 				: null}
@@ -380,12 +387,13 @@ function FilterSheet({ draft, setDraft, categories, onClose, onApply }) {
 	)
 }
 
-/** The categories bookmarks of one view carry, each with its count there, and how many carry none. */
-function useCategoryCounts(categories, archived) {
-	const counts = useApi(getBookmarkCategoryCounts, [archived])
-	const by = new Map((counts.data?.categories ?? []).map(c => [c.id, c.bookmarks]))
-	const used = (categories ?? []).filter(c => by.has(c.id)).map(c => ({ ...c, bookmarks: by.get(c.id) }))
-	return { used, withoutCount: counts.data?.without ?? 0, refresh: counts.refresh }
+/** The categories bookmarks of one view carry, a page of those matching `find`, each with its count
+    there; how many carry none; and whether there are more than a page, so the filter is searched. */
+function useCategoryCounts(archived, find = '') {
+	const page = usePickList('category', find, { bookmarks: archived ? 'archived' : 'open', with: 'bookmarks' })
+	const without = useApi(getBookmarksWithoutCategory, [archived])
+	const searched = Boolean(find.trim()) || (page.total ?? 0) > (page.rows?.length ?? 0)
+	return { used: page.rows ?? [], page, searched, withoutCount: without.data ?? 0, refresh: without.refresh }
 }
 
 const noop = () => {}

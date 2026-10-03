@@ -26,7 +26,7 @@ import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRo
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { failureMessage, getCategories, getCurrentUser, getSettings, getSliceLines, getSliceOrders, getStatsSlice, getVendors } from '../api/client.js'
+import { failureMessage, getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceLines, getSliceOrders, getStatsSlice, getVendorPage } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, quantity, shortDate, today
@@ -76,6 +76,12 @@ function useCurrent(fn, args, options) {
 	const answers = seen.data === state.data ? seen.key : key
 	const current = state.data !== undefined && answers === key && !state.loading && !state.error
 	return { ...state, data: current ? state.data : undefined }
+}
+
+/** The vendors or the categories the crumbs name, by id, archived ones too. */
+function useCrumbRecords(read, crumbs, kind) {
+	const ids = crumbs.filter(c => c.kind === kind && c.value !== 'none').map(c => c.value)
+	return useApi(read, [{ ids: ids.join(','), archived: 'all', pageSize: Math.max(1, ids.length) }], { enabled: ids.length > 0 }).data
 }
 
 /** The name a crumb shows: a month, a week, or the record it filters by. A month is capitalised
@@ -140,8 +146,11 @@ export default function Statistics() {
 	const month = range === 'month' ? stats : ownMonth
 	const monthName = stepLabel('month', monthId)
 	const monthRunning = monthId === defaultId('month')
-	const categories = useApi(getCategories)
-	const vendors = useApi(getVendors, [], { enabled: crumbs.some(c => c.kind === 'vendor') })
+	// every category with a limit, the records the crumbs name, and how many categories there are
+	const categories = useApi(getLimitedCategories)
+	const vendors = useCrumbRecords(getVendorPage, crumbs, 'vendor')?.vendors
+	const crumbCategories = useCrumbRecords(getCategoryPage, crumbs, 'category')?.categories
+	const known = useApi(getCategoryPage, [{ pageSize: 1 }]).data?.matched
 
 	// the table pages on the server; what Load more added is card-local, so a reload starts at one page (4d)
 	const { restored } = useListMemory('orders')
@@ -321,7 +330,7 @@ export default function Statistics() {
 
 	const name = nameOf(range, id)
 	const nameInText = nameOf(range, id, true)
-	const labels = { vendors: vendors.data, categories: categories.data, windowYear: id.slice(0, 4) }
+	const labels = { vendors, categories: crumbCategories, windowYear: id.slice(0, 4) }
 	const crumbsBar = drilled
 		? <CrumbsBar root={name} crumbs={crumbs} labels={labels} link={ordersLink(view?.slice ?? { from, to }, crumbs)}
 			onTruncate={i => write({ crumbs: crumbs.slice(0, i + 1) })}
@@ -341,7 +350,7 @@ export default function Statistics() {
 
 	if (!view) {
 		const running = fromMs <= todayUtc() && todayUtc() <= toMs
-		return arrange({ shape, stacked, period, crumbsBar, drilled, ...busyParts({ unit: unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs), name, monthName, monthRunning, running, touch, comparing, categories, drilled, flow }) })
+		return arrange({ shape, stacked, period, crumbsBar, drilled, ...busyParts({ unit: unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs), name, monthName, monthRunning, running, touch, comparing, categories, known, drilled, flow }) })
 	}
 
 	if (!view.orders && !drilled) {
@@ -402,7 +411,7 @@ export default function Statistics() {
 	const vendorCrumb = crumbs.find(c => c.kind === 'vendor')
 	const categoryCrumb = crumbs.find(c => c.kind === 'category')
 	const statusCrumb = crumbs.find(c => c.kind === 'status')
-	const category = categoryCrumb && categories.data?.find(c => c.id === categoryCrumb.value)
+	const category = categoryCrumb && crumbCategories?.find(c => c.id === categoryCrumb.value)
 	const limit = flow === 'refunds' || vendorCrumb || statusCrumb ? 0
 		: categoryCrumb ? category?.budget ?? 0
 			: (categories.data ?? []).reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
@@ -468,8 +477,8 @@ export default function Statistics() {
 		byCategory: month.error
 			? <Failed variant="card" label="By category" what={`${monthName} by category`} error={month.error} onRetry={retry} />
 			: touch
-				? <CategoryRows key={`category ${monthId}`} view={monthView} known={categories.data?.length} name={monthName} onOpen={drillTo('category')} />
-				: <CategoryShares view={monthView} known={categories.data?.length} name={monthName} ring={flow !== 'net'} onOpen={drillTo('category')} />,
+				? <CategoryRows key={`category ${monthId}`} view={monthView} known={known} name={monthName} onOpen={drillTo('category')} />
+				: <CategoryShares view={monthView} known={known} name={monthName} ring={flow !== 'net'} onOpen={drillTo('category')} />,
 		byStatus: <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />,
 		vendors: month.error
 			? <Failed variant="card" label="Top vendors" what={`${monthName} by vendor`} error={month.error} onRetry={retry} />
@@ -643,9 +652,8 @@ const buttonHold = key => (
 	</span>
 )
 
-function busyParts({ unit, name, monthName, monthRunning, running, touch, comparing, categories, drilled, flow }) {
+function busyParts({ unit, name, monthName, monthRunning, running, touch, comparing, categories, known, drilled, flow }) {
 	// the account's categories bound a breakdown's length before its window answers
-	const known = categories.data?.length
 	return {
 		kpis: (drilled ? ['Spend', 'Orders', 'Average order', 'Saved'] : ['Total spend', 'Orders', 'Average order', 'Saved']).map(label => (
 			<Card key={label} aria-busy="true">

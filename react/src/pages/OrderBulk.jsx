@@ -9,7 +9,8 @@ import { Pill } from '../components/Pill.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Skeleton, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
-import { changeOrders, failureMessage, getCategories, getOrderImpact, invalidateOrderData } from '../api/client.js'
+import { changeOrders, failureMessage, getCategoryPage, getOrderImpact, invalidateOrderData } from '../api/client.js'
+import { moreText, usePickList } from '../app/pickList.jsx'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, amount, currency, fullStop, monthNames, plural, today } from '../api/format.js'
 import { useStatuses } from '../app/statuses.js'
@@ -117,9 +118,9 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 
 /* A category comes off only the orders that did not carry it before. */
 async function removeAdded(orders, names) {
-	const categories = await getCategories()
-	return Promise.all(names.map(name => {
-		const category = categories.find(c => c.name.toLowerCase() === name.toLowerCase())
+	const categories = await Promise.all(names.map(name => getCategoryPage({ name, pageSize: 1 }).then(r => r.categories[0])))
+	return Promise.all(names.map((name, i) => {
+		const category = categories[i]
 		const ids = category ? orders.filter(o => !o.categories.some(x => x.id === category.id)).map(o => o.id) : []
 		return ids.length ? changeOrders({ ids, removeCategories: [category.id] }) : null
 	}))
@@ -256,13 +257,14 @@ function SetStatus({ chosen, count, busy, onCancel, onApply }) {
 /** Add category (2a): adds, never removes, so a category some picked orders carry shows mixed
     until it is ticked. A name nobody has yet becomes a new category. */
 function AddCategory({ chosen, count, busy, onCancel, onApply }) {
-	const categories = useApi(getCategories)
 	const [find, setFind] = useState('')
 	const [adding, setAdding] = useState([])
-	const all = categories.data ?? []
+	const categories = usePickList('category', find, {})
 	const needle = find.trim().toLowerCase()
-	const shown = needle ? all.filter(c => c.name.toLowerCase().includes(needle)) : all
-	const known = all.some(c => c.name.toLowerCase() === needle)
+	const shown = categories.rows ?? []
+	// the category the typed name means, wherever it falls in the list
+	const exact = useApi(getCategoryPage, [{ name: find.trim(), pageSize: 1 }], { enabled: Boolean(needle) }).data?.categories[0]
+	const known = exact?.name.toLowerCase() === needle
 	const toggle = (name, on) => setAdding(a => (on ? [...a.filter(n => n !== name), name] : a.filter(n => n !== name)))
 	return (
 		<Popover position="end" role="dialog" aria-label="Add category"
@@ -273,6 +275,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 			</>}
 			search={<SearchInput value={find} onChange={setFind} placeholder="Find a category…" aria-label="Search categories" />}
 			summary={adding.length ? <><span className="sp-subtitle">Will add</span>{adding.map(n => <Pill key={n} color="success">{n}</Pill>)}</> : null}
+			note={moreText(categories.rows, categories.matched, 'categories')}
 			actions={<>
 				<Button variant="outline" fullWidth onClick={onCancel}>Cancel</Button>
 				<Button fullWidth disabled={!adding.length || busy} onClick={() => onApply(adding)}>Apply</Button>

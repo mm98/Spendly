@@ -17,7 +17,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCategories, getCurrentUser, getHomeAttention, getMonthlySummary, hideSummaryLine, getOrders, getSettings, getStatsSlice,
+	failureMessage, getCategoryPage, getCurrentUser, getHomeCategories, getHomeAttention, getMonthlySummary, hideSummaryLine, getOrders, getSettings, getStatsSlice,
 	overBudget, putSummaryAway, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -43,17 +43,18 @@ function loudness(settings) {
 /** A category with a limit is near it from the reader's chosen share up to the limit itself. */
 const nearLimit = (c, early) => c.budget > 0 && early < 100 && !overBudget(c) && c.monthSpend >= (c.budget * early) / 100
 
-/** The month window and the account's categories, joined: what three cards are drawn from. */
-function monthView(window, list, early) {
-	if (!window || !list) return null
-	const categories = withMonthSpend(list, window.split)
+/** The month window and the account's categories, joined: what three cards are drawn from. `list`
+    is getHomeCategories' answer; `top` the four that spent most, in the window's order. */
+function monthView(window, list, early, top) {
+	if (!window || !list || !top) return null
+	const categories = withMonthSpend(list.limited, window.split)
 	const limits = categories.reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
 	const byOverage = c => c.monthSpend - c.budget
-	const spent = categories.filter(c => c.monthSpend > 0).sort((a, b) => b.monthSpend - a.monthSpend)
+	const spent = withMonthSpend(top, window.split)
 	return {
 		window,
-		count: categories.length,
-		withSpend: spent.length,
+		count: list.count,
+		withSpend: window.split.filter(s => s.id && s.amount > 0).length,
 		limits,
 		early,
 		over: categories.filter(overBudget).sort((a, b) => byOverage(b) - byOverage(a)),
@@ -135,13 +136,18 @@ const firstName = user => String(user?.name ?? '').trim().split(/\s+/)[0] || nul
 export default function Home() {
 	const touch = useShellShape() === 'touch'
 	const month = useApi(getStatsSlice, [MONTH])
-	const categories = useApi(getCategories)
+	const categories = useApi(getHomeCategories)
 	const recent = useApi(getOrders, [{ pageSize: RECENT }])
 	const attention = useApi(getHomeAttention)
 	const name = firstName(useApi(getCurrentUser).data)
 	const settings = useApi(getSettings)
 	const loud = loudness(settings.data)
-	const view = monthView(month.data?.window, categories.data, loud.early)
+	// the four categories that spent most this month, by the window's own figures, ties by name
+	const topIds = (month.data?.window.split ?? []).filter(s => s.id && s.amount > 0)
+		.sort((a, b) => b.amount - a.amount || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).slice(0, 4).map(s => s.id)
+	const topRead = useApi(getCategoryPage, [{ ids: topIds.join(','), pageSize: 4 }], { enabled: topIds.length > 0 })
+	const top = !topIds.length ? [] : topRead.data ? topIds.map(id => topRead.data.categories.find(c => c.id === id)).filter(Boolean) : topRead.error ? [] : null
+	const view = monthView(month.data?.window, categories.data, loud.early, top)
 	// the summary waits for the settings, so one switched off never flashes up
 	const known = settings.data !== undefined || !!settings.error
 	const summary = useApi(getMonthlySummary, [], { enabled: known && loud.summary })
@@ -171,9 +177,9 @@ export default function Home() {
 		}
 	}
 	const notice = known && loud.summary && due?.orders && !due.seen && putAway !== due.month && categories.data
-		? <MonthlySummary summary={due} categories={categories.data} early={loud.early} onHide={() => hide(due.month)} isHidden={isHidden} onHideLine={hideLine} />
+		? <MonthlySummary summary={due} categories={categories.data.limited} early={loud.early} onHide={() => hide(due.month)} isHidden={isHidden} onHideLine={hideLine} />
 		: null
-	if (recent.data && !recent.data.total) return <DayOne categories={categories.data} name={name} touch={touch} />
+	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	const props = { month, categories, view, recent, attention: attention.data, name, notice }
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} />
 }
@@ -840,12 +846,13 @@ function PhoneOrder({ order }) {
 
 /* ---- an account with no orders yet: the first-run Home (20d) ---- */
 
-function DayOne({ categories, name, touch }) {
+function DayOne({ name, touch }) {
 	const navigate = useNavigate()
 	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const user = useApi(getCurrentUser).data
 	const reads = user?.scanAiEnabled
-	const first = categories?.slice(0, 4) ?? []
+	const page = useApi(getCategoryPage, [{ pageSize: 4 }]).data
+	const first = page?.categories ?? []
 	return (
 		<div className={touch ? 'sp-stack sp-gap-12' : 'hm-day-one'}>
 			<Card>
@@ -890,8 +897,8 @@ function DayOne({ categories, name, touch }) {
 								<span className="sp-title">{c.name}</span>
 							</span>
 						))}
-						{categories && !categories.length ? <span className="sp-meta">No categories yet.</span> : null}
-						<Button variant="text" size="small" to="/categories/new">{categories?.length ? 'Add another' : 'Add one'}</Button>
+						{page && !page.matched ? <span className="sp-meta">No categories yet.</span> : null}
+						<Button variant="text" size="small" to="/categories/new">{page?.matched ? 'Add another' : 'Add one'}</Button>
 					</Well>
 				</div>
 			</Card>

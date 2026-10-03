@@ -1,5 +1,5 @@
 import { db } from '../db.js'
-import { LIKENESS, letterPairs, likeness, vatNumberOf } from './names.js'
+import { LIKENESS, letterPairs, likeness, vatNumberOf, vendorKey } from './names.js'
 
 const selectVendors = db.prepare('SELECT id, name, origin, rowid AS made FROM vendors WHERE user_id = ? AND archived = 0')
 const selectAliases = db.prepare('SELECT vendor_id AS id, name FROM vendor_aliases WHERE user_id = ?')
@@ -60,3 +60,39 @@ export function lookalikePairs(userId, orders = null) {
 
 /** How many vendors the pairs name, each once: the count Home shows and the vendor list filters to. */
 export const vendorsIn = pairs => new Set(pairs.flatMap(p => [p.merge, p.keep])).size
+
+const selectAllNames = db.prepare('SELECT id, name, archived FROM vendors WHERE user_id = ? ORDER BY name')
+
+const vatsOf = names => new Set(names.map(vatNumberOf).filter(Boolean))
+
+/** Every vendor of the account with its aliases, as the two look-alike questions below read them. */
+function namedVendors(userId) {
+	const aliases = new Map()
+	for (const { id, name } of selectAliases.all(userId)) aliases.set(id, [...(aliases.get(id) ?? []), name])
+	return selectAllNames.all(userId).map(v => ({ ...v, aliases: aliases.get(v.id) ?? [] }))
+}
+
+/** The vendors that look like one being typed (`name`, `aliases`), most alike first, a vendor whose
+    name is the same as the typed one left out: the form's "very like this one" (5b). */
+export function vendorsLike(userId, { name, aliases = [], except = null }) {
+	const typed = letterPairs(name)
+	const theirs = vatsOf([name, ...aliases])
+	return namedVendors(userId)
+		.filter(v => v.id !== except && vendorKey(v.name) !== vendorKey(name))
+		.map(v => ({ id: v.id, score: likeness(letterPairs(v.name), typed), vat: [...vatsOf([v.name, ...v.aliases])].some(n => theirs.has(n)) }))
+		.filter(v => v.score >= LIKENESS || v.vat)
+		.sort((a, b) => b.score - a.score)
+		.map(v => v.id)
+}
+
+/** The vendors one vendor looks like, by name or VAT number, or paired with it as a duplicate (5j). */
+export function vendorsAlikeTo(userId, sourceId) {
+	const all = namedVendors(userId)
+	const source = all.find(v => v.id === sourceId)
+	if (!source) return []
+	const pairs = lookalikePairs(userId).filter(p => p.merge === sourceId || p.keep === sourceId).flatMap(p => [p.merge, p.keep])
+	const letters = letterPairs(source.name)
+	const vats = vatsOf([source.name, ...source.aliases])
+	return all.filter(v => v.id !== sourceId && (pairs.includes(v.id) || likeness(letterPairs(v.name), letters) >= LIKENESS
+		|| [...vatsOf([v.name, ...v.aliases])].some(n => vats.has(n)))).map(v => v.id)
+}

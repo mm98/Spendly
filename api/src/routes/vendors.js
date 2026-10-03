@@ -7,6 +7,8 @@ import { findOrCreateCategory } from '../lib/findOrCreate.js'
 import { colourFor } from '../lib/palette.js'
 import { vendorKey } from '../lib/names.js'
 import { lookalikePairs } from '../lib/vendorLookalikes.js'
+import { wantsPage } from '../lib/listPage.js'
+import { knownVendorNames, vendorPage } from '../lib/vendorList.js'
 
 export const router = Router()
 
@@ -164,6 +166,7 @@ const listRow = (vendor, stats, aliases, defaultCategories, duplicateOf) => {
 }
 
 router.get('/', (req, res) => {
+	if (wantsPage(req.query)) return res.json(vendorPage(req.user.id, req.query, req.acceptsLanguages()))
 	const stats = vendorStats(req.user.id)
 	const groupByVendor = rows => {
 		const by = new Map()
@@ -182,6 +185,13 @@ router.get('/', (req, res) => {
 		.map(p => [p.merge, p.keep]))
 	res.json(selectAll.all(req.user.id)
 		.map(v => listRow(v, stats, aliasesBy.get(v.id) ?? [], defaultsBy.get(v.id) ?? [], duplicates.get(v.id))))
+})
+
+/** Which of the names sent a vendor already files under: `{ known }`, the ones an import would not create. */
+router.post('/known', (req, res) => {
+	const names = Array.isArray(req.body?.names) ? req.body.names.map(n => String(n ?? '').trim()).filter(Boolean) : []
+	if (names.length > 5000) return res.status(400).json({ error: 'Too many names at once.' })
+	res.json({ known: knownVendorNames(req.user.id, [...new Set(names)]) })
 })
 
 router.post('/', (req, res) => {

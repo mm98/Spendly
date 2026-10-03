@@ -8,13 +8,14 @@ import { Record } from '../components/List.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
-import { attachmentFileUrl, changeOrders, failureMessage, getCategories, invalidateOrderData, itemAttachmentThumbnailUrl } from '../api/client.js'
+import { attachmentFileUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentThumbnailUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
 import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
 import { CategoryMark } from '../app/categoryMark.jsx'
+import { MoreMatches, usePickList } from '../app/pickList.jsx'
 
 // the dot a status carries in a pick list, by its tone (2e)
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
@@ -40,9 +41,12 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const statuses = useStatuses()
-	const categories = useApi(getCategories)
 	const [level, setLevel] = useState('main')
 	const [find, setFind] = useState('')
+	const categories = usePickList('category', find, {})
+	// the category the typed name means, wherever it falls in the list
+	const typedName = find.trim()
+	const exact = useApi(getCategoryPage, [{ name: typedName, pageSize: 1 }], { enabled: Boolean(typedName) }).data?.categories[0]
 	// what the category ticks have changed since the menu opened, so one toast undoes them all
 	const changes = useRef({ added: [], removed: [] })
 	const [has, setHas] = useState(() => new Set(order.categories.map(c => c.id)))
@@ -103,8 +107,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 		changeOrders({ ids: [order.id], addCategories: [name] })
 			.then(async () => {
 				invalidateOrderData()
-				categories.refresh()
-				const made = (await getCategories()).find(c => c.name.toLowerCase() === name.toLowerCase())
+				const made = (await getCategoryPage({ name, pageSize: 1 })).categories[0]
 				if (!made) return
 				setHas(h => new Set(h).add(made.id))
 				changes.current.added.push(made)
@@ -122,14 +125,13 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 		</MenuItem>
 	))
 
-	const all = categories.data ?? []
-	const typed = find.trim()
+	const typed = typedName
 	const needle = typed.toLowerCase()
-	const shown = needle ? all.filter(c => c.name.toLowerCase().includes(needle)) : all
-	const known = all.some(c => c.name.toLowerCase() === needle)
+	const shown = categories.rows ?? []
+	const known = Boolean(exact) && exact.name.toLowerCase() === needle
 	const categoryItems = (
 		<>
-			{all.length >= SEARCH_FROM || naming > 0
+			{categories.total >= SEARCH_FROM || naming > 0
 				? <li role="none"><SearchInput inputRef={search} value={find} onChange={setFind} placeholder="Find a category…" aria-label="Find a category" /></li>
 				: null}
 			{/* the search and Create stay put; only the categories between them scroll, as 2a's picker does */}
@@ -141,6 +143,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 					</Choice>
 				))}
 			</li>
+			<MoreMatches role="none" rows={categories.rows} matched={categories.matched} noun="categories" />
 			<MenuSeparator />
 			{needle && !known
 				? <MenuItem icon="plus" onClick={() => create(typed)}><span><strong>Create "{typed}"</strong> as a new category</span></MenuItem>

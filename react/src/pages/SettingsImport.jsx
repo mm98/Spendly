@@ -12,8 +12,8 @@ import { Gauge, Stat } from '../components/Data.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	checkImportDuplicates, failureMessage, getCategories, getCurrentUser, getImports, getSettings, getVendors, importOrders, startImport,
-	undoImport, vendorByAnyName
+	checkImportDuplicates, failureMessage, getCurrentUser, getImports, getKnownVendorNames, getSettings, importOrders, startImport,
+	undoImport
 } from '../api/client.js'
 import { amount, amountRound, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
 import { buildOrders, download, guessMapping, readSheet, reuseMapping, skippedCsv, templateWorkbook } from '../api/orderImport.js'
@@ -52,12 +52,12 @@ const totalOne = o => itemsOf(o).reduce((n, i) => n + (Number(i?.price) * Number
 	+ (Number(o?.shipping) || 0) - (Number(o?.discount) || 0)
 const totalOf = orders => orders.reduce((sum, o) => sum + totalOne(o), 0)
 
-// names the account has no vendor for yet, matched the way the server files them
-const newVendors = (orders, vendors) => {
+// names the account has no vendor for yet; `known` holds the names the server files under a vendor
+const newVendors = (orders, known) => {
 	const seen = new Set()
 	for (const o of orders) {
 		const name = String(o?.vendor ?? '').trim()
-		if (name && !vendorByAnyName(vendors, name)) seen.add(name.toLowerCase())
+		if (name && !known.has(name)) seen.add(name.toLowerCase())
 	}
 	return seen.size
 }
@@ -111,8 +111,6 @@ const where = (source, rows) => (source.kind === 'json' ? `Order ${rows[0]} in t
 /* Import, as 11b: pick a file, map a spreadsheet's columns, check what it holds, then write it,
    with the last few imports listed for their mapping and their undo. Nothing is written before Import is pressed. */
 export function ImportCard() {
-	const vendors = useApi(getVendors)
-	const categories = useApi(getCategories)
 	const history = useApi(getImports)
 	const settings = useApi(getSettings)
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
@@ -165,7 +163,7 @@ export function ImportCard() {
 	}
 
 	if (stage.name === 'map') return (
-		<MapStep box={box} file={stage.file} rows={stage.rows} mapping={stage.mapping} categories={categories.data}
+		<MapStep box={box} file={stage.file} rows={stage.rows} mapping={stage.mapping}
 			onChange={patch => setStage(s => ({ ...s, mapping: { ...s.mapping, ...patch } }))}
 			onReplace={replace}
 			onPreview={facts => {
@@ -179,7 +177,7 @@ export function ImportCard() {
 	)
 
 	if (stage.name === 'review' || stage.name === 'importing')
-		return <ReviewStep box={box} stage={stage} setStage={setStage} then={then} vendors={vendors} restart={restart} />
+		return <ReviewStep box={box} stage={stage} setStage={setStage} then={then} restart={restart} />
 
 	if (stage.name === 'done') return <DoneStep box={box} stage={stage} setStage={setStage} restart={restart} history={history} />
 
@@ -307,8 +305,12 @@ function History({ history, onReuse }) {
 }
 
 /** Step 3 (11b): what will be written, what looks like it is already here, what cannot be read. */
-function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
+function ReviewStep({ box, stage, setStage, then, restart }) {
 	const { source } = stage
+	// which of the file's vendor names the account already has
+	const names = [...new Set(source.orders.map(o => String(o.draft?.vendor ?? '').trim()).filter(Boolean))]
+	const vendors = useApi(getKnownVendorNames, [names], { enabled: names.length > 0 })
+	const known = names.length ? (vendors.data ? new Set(vendors.data) : null) : new Set()
 	const busy = stage.name === 'importing'
 	const [duplicates, setDuplicates] = useState(null)
 	const [withDuplicates, setWithDuplicates] = useState(false)
@@ -326,7 +328,7 @@ function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
 	const canDraft = statuses.some(s => s.key === 'Draft')
 	const sending = source.orders.filter((_, i) => withDuplicates || !duplicates?.has(i))
 	const drafts$ = sending.map(o => (canDraft && drafts && source.kind === 'sheet' ? { ...o.draft, status: 'Draft' } : o.draft))
-	const fresh = vendors.data && !vendors.loading ? newVendors(drafts$, vendors.data) : null
+	const fresh = known && !vendors.loading ? newVendors(drafts$, known) : null
 	const reasons = new Map()
 	for (const s of source.skipped) reasons.set(s.reason, [...(reasons.get(s.reason) ?? []), s])
 	const toggle = key => setOpen(o => (o === key ? null : key))
@@ -470,7 +472,7 @@ function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
 											</thead>
 											<tbody>
 												{preview.map((o, i) => {
-													const isNew = vendors.data && !vendorByAnyName(vendors.data, String(o.vendor ?? ''))
+													const isNew = known && !known.has(String(o.vendor ?? '').trim())
 													return (
 														<tr key={i}>
 															<td className="sp-col-title"><span className="sp-title sp-truncate">{o.vendor}</span></td>

@@ -1,6 +1,6 @@
 import { Icon } from '../components/Icon.jsx'
 import { NavItem } from '../components/Shell.jsx'
-import { getCategories, getViews } from '../api/client.js'
+import { getCategoryPage, getViews } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { countBadge } from '../api/format.js'
 import { CategoryMark } from './categoryMark.jsx'
@@ -31,15 +31,13 @@ const ICON = { status: 'clock', vendor: 'building-store', amount: 'wallet' }
 /** A view's mark, derived from what it filters (2g): one facet group gives that group's glyph, a
     single category borrows the category's own mark, the date alone is the calendar, else the bookmark. */
 export function ViewMark({ query }) {
-	const categories = useApi(getCategories).data
 	const p = new URLSearchParams(query)
 	const groups = [...new Set([...p.keys()].map(k => GROUPS[k]).filter(Boolean))]
 	const dated = p.has('period') || p.has('from') || p.has('to')
-	if (groups.length === 1 && groups[0] === 'category') {
-		const ids = p.get('category').split(',')
-		const category = ids.length === 1 ? categories?.find(c => c.id === ids[0]) : null
-		if (category) return <CategoryMark category={category} size="small" />
-	}
+	const ids = groups.length === 1 && groups[0] === 'category' ? p.get('category').split(',') : []
+	const one = ids.length === 1 && ids[0] !== 'none' ? ids[0] : null
+	const category = useApi(getCategoryPage, [{ ids: one, pageSize: 1 }], { enabled: Boolean(one) }).data?.categories[0]
+	if (one && category) return <CategoryMark category={category} size="small" />
 	const icon = groups.length === 1 ? ICON[groups[0]] ?? 'bookmark' : groups.length ? 'bookmark' : dated ? 'calendar' : 'bookmark'
 	return <span className="sp-nav-item__icon"><Icon name={icon} /></span>
 }
