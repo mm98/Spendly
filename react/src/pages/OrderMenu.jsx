@@ -14,6 +14,7 @@ import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
 import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
+import { CategoryMark } from '../app/categoryMark.jsx'
 
 // the dot a status carries in a pick list, by its tone (2e)
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
@@ -135,9 +136,8 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 			<li role="none" className="sp-popover__list">
 				{shown.map(c => (
 					<Choice key={c.id} variant="row" control={<Check checked={has.has(c.id)} onChange={ev => tick(c, ev.target.checked)} />}>
+						<CategoryMark category={c} size="small" />
 						<span className="sp-truncate">{c.name}</span>
-						<span className="sp-grow" />
-						<span className="sp-meta sp-nowrap">{plural(c.orders ?? 0, 'order')}</span>
 					</Choice>
 				))}
 			</li>
@@ -204,11 +204,14 @@ export function RowMenu({ order, touch, onDelete }) {
     is the row's menu, and its box picks it as a row's does. */
 export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
 	const over = useOverLimitIds()
+	// a cancelled order did not happen: the card is struck and says so where the saving would stand (2b)
+	const cancelled = order.status === 'Cancelled'
 	const photos = order.photos ?? []
 	const more = order.photoCount > photos.length ? morePhotos(order.photoCount - photos.length) : null
 	return (
 		<Record
 			onClick={() => onOpen(order)}
+			void={cancelled}
 			photos={photos.map(p => <img key={p.attachmentId} src={itemAttachmentThumbnailUrl(order.id, p.itemId, p.attachmentId)} alt="" />)}
 			empty="No photos"
 			more={more}
@@ -225,9 +228,9 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 				: <Chip variant="dashed">No category</Chip>}
 			meta={[
 				<span key="when" className="sp-subtitle">{shortDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>,
-				<Saving key="saved" value={order.saved} />
+				cancelled ? <span key="saved" className="sp-amount-secondary">not counted</span> : <Saving key="saved" value={order.saved} />
 			]}
-			amount={currency(order.total)}
+			amount={cancelled ? <span className="sp-void">{currency(order.total)}</span> : currency(order.total)}
 			menu={{
 				open: menuOpen,
 				label: `Order menu, ${orderName(order)}`,

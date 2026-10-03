@@ -107,10 +107,24 @@ const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, posit
 const insertBookmark = db.prepare(`INSERT INTO bookmarks (id, user_id, name, url, price, archived, created_at)
 	VALUES (@id, @userId, @name, @url, @price, @archived, @createdAt)`)
 const insertBookmarkCategory = db.prepare('INSERT INTO bookmark_categories (bookmark_id, category_id) VALUES (?, ?)')
+// orders per commit: each commit rewrites every index page its random ids touched, so small batches are slow
+const BATCH = 5000
+
+// every stored column on one batch's orders, from the rows underneath; by id alone, as a user_id
+// filter walks the whole account's orders once per batch
+const storeColumns = db.prepare(`UPDATE orders SET
+		(item_count, paid, retail) = (
+			SELECT COUNT(*), COALESCE(SUM(price * quantity), 0),
+				COALESCE(SUM(MAX(COALESCE(retail, price), price) * quantity), 0)
+			FROM order_items WHERE order_id = orders.id),
+		search_text = note || char(10) ||
+			COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = orders.id), ''),
+		category_count = (SELECT COUNT(*) FROM order_categories oc WHERE oc.order_id = orders.id)
+	WHERE id IN (SELECT value FROM json_each(?))`)
 
 /** Populates one account with `months` months of orders ending today. Deterministic for a
     given (seed, today) so two runs of the verification harness can be compared rather than
-    merely eyeballed. Runs in one transaction: a half-written year is worse than none.
+    merely eyeballed.
 
     The seed belongs to the caller. The default here is a fallback for a caller that has no
     opinion, not the dataset: the route behind FILL WITH DEMO DATA picks a fresh one per press,
@@ -119,49 +133,70 @@ const insertBookmarkCategory = db.prepare('INSERT INTO bookmark_categories (book
 
     `orders` is the total the whole year lands on, exactly: the months split it between them
     with some jitter, and the current month absorbs the rounding. Left off, each month rolls
-    its own 28..44 as before. `today` is the reader's date, YYYY-MM-DD. */
-export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders, today: day, onProgress } = {}) => {
+    its own 28..44 as before. `today` is the reader's date, YYYY-MM-DD.
+
+    Orders commit in batches, so a fill that fails keeps every batch before the one that
+    failed. `onProgress(done, total)` hears the orders made; `onLanded(count)` the orders kept. */
+export function populateDemoData(userId, { months = 12, seed = 424242, orders, today: day, onProgress, onLanded } = {}) {
 	let s = seed
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
 
-	/* Every trigger the fill would fire per row is off for the bulk insert -- the item-totals
-	   set, the orders search_text pair, the order_categories count pair -- and one UPDATE
-	   rebuilds all the stored columns at the end. Not because the recomputes are expensive --
-	   because a statement that fires a trigger keeps a statement journal sized by what the
-	   transaction has already changed, so a big fill inside the route's replace transaction
-	   went quadratic: 30s for 10K orders over an existing 10K, over five minutes at 50K.
-	   Trigger-free, the same shape is 0.65s. DDL is transactional in SQLite, so a rollback
-	   anywhere in here restores the triggers untouched; the recreate below is from
-	   sqlite_master's own copy, never a second statement of them. Single connection,
-	   synchronous driver: nothing else can write while they are off. */
+	/* Every trigger the fill would fire per row is off while a batch is written -- the
+	   item-totals set, the orders search_text pair, the order_categories count pair -- and
+	   one UPDATE rebuilds the batch's stored columns before they come back. A statement that
+	   fires a trigger keeps a statement journal sized by what the transaction has already
+	   changed, so per-row triggers make a big fill quadratic. DDL is transactional in SQLite,
+	   so a failed batch restores the triggers untouched; the recreate is from sqlite_master's
+	   own copy. Single connection, synchronous driver: nothing else writes while they are off. */
 	const triggers = db.prepare(
 		`SELECT name, sql FROM sqlite_master WHERE type = 'trigger'
 		 AND tbl_name IN ('order_items', 'orders', 'order_categories')`).all()
-	for (const t of triggers) db.exec(`DROP TRIGGER ${t.name}`)
 
-	const vendorIds = VENDORS.map((v, i) => {
-		const id = newId('v')
-		insertVendor.run({ id, userId, name: v.name, initials: v.initials,
-			colour: nthColour(i, VENDOR_PALETTE), favourite: v.favourite ?? 0, lead: v.lead ?? null })
-		return { id, ...v }
-	})
-	const categoryIds = CATEGORIES.map((c, i) => {
-		const id = newId('c')
-		insertCategory.run({ id, userId, name: c.name, icon: c.icon,
-			colour: nthColour(i, CATEGORY_PALETTE), budget: c.budget,
-			favourite: i < 3 ? 1 : 0 })
-		return { id, ...c }
-	})
+	const { vendorIds, categoryIds } = db.transaction(() => ({
+		vendorIds: VENDORS.map((v, i) => {
+			const id = newId('v')
+			insertVendor.run({ id, userId, name: v.name, initials: v.initials,
+				colour: nthColour(i, VENDOR_PALETTE), favourite: v.favourite ?? 0, lead: v.lead ?? null })
+			return { id, ...v }
+		}),
+		categoryIds: CATEGORIES.map((c, i) => {
+			const id = newId('c')
+			insertCategory.run({ id, userId, name: c.name, icon: c.icon,
+				colour: nthColour(i, CATEGORY_PALETTE), budget: c.budget,
+				favourite: i < 3 ? 1 : 0 })
+			return { id, ...c }
+		})
+	}))()
 
 	const today = day ? new Date(day + 'T00:00:00Z') : new Date()
 	today.setUTCHours(0, 0, 0, 0)
 	const todayEpoch = Math.floor(today.getTime() / 1000)
-	let made = 0, reference = 1000
+	let made = 0, landed = 0, reference = 1000
 	let remaining = Number.isFinite(orders) && orders > 0 ? Math.floor(orders) : null
 	// about a hundred progress reports however big the fill, and only when the total is known
 	const total = remaining
 	const every = total ? Math.max(1, Math.floor(total / 100)) : 0
+	let batch = []
+
+	const land = db.transaction(rows => {
+		for (const t of triggers) db.exec(`DROP TRIGGER ${t.name}`)
+		for (const { order, statuses, categories, items } of rows) {
+			insertOrder.run(order)
+			for (const status of statuses) insertOrderStatus.run(...status)
+			for (const category of categories) insertOrderCategory.run(order.id, category)
+			for (const item of items) insertOrderItem.run(item)
+		}
+		storeColumns.run(JSON.stringify(rows.map(r => r.order.id)))
+		for (const t of triggers) db.exec(t.sql)
+	})
+	const flush = () => {
+		if (!batch.length) return
+		land(batch)
+		landed += batch.length
+		batch = []
+		if (onLanded) onLanded(landed)
+	}
 
 	for (let back = months - 1; back >= 0; back--) {
 		const first = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - back, 1))
@@ -195,61 +230,50 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 			const shipping = rnd() < 0.3 ? pick([29, 39, 49]) : 0
 			const status = pick(STATUSES)
 			const orderEpoch = toEpoch(date)
-			insertOrder.run({
+			const order = {
 				id, userId, vendorId: pick(vendorIds).id, date: orderEpoch,
 				status, kind: pick(KINDS), shipping,
 				reference: String(reference++)
-			})
+			}
 			// A real gap, not same-day-as-ordered for every Delivered/Returned order, so the
 			// timeline this seeds is one the app's own screenshots can show something on.
-			insertOrderStatus.run(newId('os'), id, 'Ordered', orderEpoch)
+			const statuses = [[newId('os'), id, 'Ordered', orderEpoch]]
 			if (status === 'Delivered' || status === 'Returned') {
 				const deliveredEpoch = Math.min(orderEpoch + (1 + Math.floor(rnd() * 4)) * 86400, todayEpoch)
-				insertOrderStatus.run(newId('os'), id, 'Delivered', deliveredEpoch)
+				statuses.push([newId('os'), id, 'Delivered', deliveredEpoch])
 				if (status === 'Returned')
-					insertOrderStatus.run(newId('os'), id, 'Returned',
-						Math.min(deliveredEpoch + (1 + Math.floor(rnd() * 6)) * 86400, todayEpoch))
+					statuses.push([newId('os'), id, 'Returned',
+						Math.min(deliveredEpoch + (1 + Math.floor(rnd() * 6)) * 86400, todayEpoch)])
 			}
-			insertOrderCategory.run(id, category.id)
+			const categories = [category.id]
 			// A second category on some orders, so the breakdown has multi-category spend to split.
 			if (rnd() < 0.22) {
 				const other = pick(categoryIds)
-				if (other.id !== category.id) insertOrderCategory.run(id, other.id)
+				if (other.id !== category.id) categories.push(other.id)
 			}
-			draft.forEach(({ src, quantity }, position) => {
+			const items = draft.map(({ src, quantity }, position) => {
 				const price = round2(Math.max(4, src[1] * scale))
 				// Most lines were bought under retail; some at it, so "saved" is not a constant.
 				const retail = rnd() < 0.78 ? round2(price * (1.05 + rnd() * 0.35)) : null
-				insertOrderItem.run({ id: newId('i'), orderId: id, position,
-					title: src[0], quantity, price, retail })
+				return { id: newId('i'), orderId: id, position, title: src[0], quantity, price, retail }
 			})
+			batch.push({ order, statuses, categories, items })
 			made++
 			if (onProgress && every && made % every === 0) onProgress(made, total)
+			if (batch.length === BATCH) flush()
 		}
 	}
-
-	/* The one recompute the triggers would have done 150,000 times: every stored column on
-	   this account's orders -- the totals, the searchable text, the category count -- from
-	   the rows underneath, then the triggers back in place -- rebuild first, or recreating
-	   them would fire them once per row for nothing. */
-	db.prepare(`UPDATE orders SET
-			(item_count, paid, retail) = (
-				SELECT COUNT(*), COALESCE(SUM(price * quantity), 0),
-					COALESCE(SUM(MAX(COALESCE(retail, price), price) * quantity), 0)
-				FROM order_items WHERE order_id = orders.id),
-			search_text = note || char(10) ||
-				COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = orders.id), ''),
-			category_count = (SELECT COUNT(*) FROM order_categories oc WHERE oc.order_id = orders.id)
-		WHERE user_id = ?`).run(userId)
-	for (const t of triggers) db.exec(t.sql)
+	flush()
 
 	const categoryByName = new Map(categoryIds.map(c => [c.name, c.id]))
-	for (const bookmark of BOOKMARKS) {
-		const id = newId('bm')
-		insertBookmark.run({ id, userId, name: bookmark.name, url: bookmark.url, price: bookmark.price ?? null,
-			archived: bookmark.archived ?? 0, createdAt: Math.floor(today.getTime() / 1000) - bookmark.back * 86400 })
-		for (const name of bookmark.categories) insertBookmarkCategory.run(id, categoryByName.get(name))
-	}
+	db.transaction(() => {
+		for (const bookmark of BOOKMARKS) {
+			const id = newId('bm')
+			insertBookmark.run({ id, userId, name: bookmark.name, url: bookmark.url, price: bookmark.price ?? null,
+				archived: bookmark.archived ?? 0, createdAt: Math.floor(today.getTime() / 1000) - bookmark.back * 86400 })
+			for (const name of bookmark.categories) insertBookmarkCategory.run(id, categoryByName.get(name))
+		}
+	})()
 
 	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, bookmarks: BOOKMARKS.length }
-})
+}

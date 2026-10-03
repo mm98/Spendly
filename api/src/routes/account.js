@@ -10,7 +10,7 @@ export const router = Router()
 /* The demo fill rewrites a whole ledger in one request, which dates the planner statistics
    db.js gathered at boot: statistics taken over an empty account say every table is tiny, and
    plans made from those over the 50,000 orders a fill just wrote pick the wrong index the same
-   way no statistics did. Re-gathered here, after the transaction commits -- ~90ms at 50,000
+   way no statistics did. Re-gathered here, after the fill commits -- ~90ms at 50,000
    orders under the analysis_limit db.js sets, on requests that already spend seconds writing. */
 const refreshStatistics = () => db.exec('ANALYZE')
 
@@ -48,24 +48,31 @@ router.post('/demo-data', (req, res) => {
 		return res.json({ ...result, seed })
 	}
 
-	/* ?progress=stream answers NDJSON: a {done, total} line as orders are written, closed by
-	   the result or an {error}. The fill runs on a worker so this process can send the lines. */
+	/* ?progress=stream answers NDJSON: {done, total} lines from a worker, then the result or an
+	   {error}, which carries `landed` (the orders kept) once the wipe has committed. */
 	res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
 	res.flushHeaders()
 	const worker = new Worker(FILL_WORKER, { workerData: { userId: req.user.id, ...options } })
-	let ended = false
+	let ended = false, landed = null
 	const end = line => {
 		if (ended) return
 		ended = true
 		res.end(JSON.stringify(line) + '\n')
 	}
+	const failed = () => {
+		if (ended) return
+		if (landed == null) return end({ error: 'The demo data could not be written. Nothing was changed.' })
+		refreshStatistics()
+		end({ error: 'The demo data stopped partway.', landed })
+	}
 	worker.on('message', message => {
-		if ('done' in message) res.write(JSON.stringify(message) + '\n')
+		if ('landed' in message) landed = message.landed
+		else if ('done' in message) res.write(JSON.stringify(message) + '\n')
 		else if (message.result) { refreshStatistics(); end({ ...message.result, seed }) }
-		else end({ error: 'The demo data could not be written. Nothing was changed.' })
+		else failed()
 	})
-	worker.on('error', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
-	worker.on('exit', () => end({ error: 'The demo data could not be written. Nothing was changed.' }))
+	worker.on('error', failed)
+	worker.on('exit', failed)
 })
 
 /* Update and reload (11d): the updater beside this container (SPENDLY_UPDATER_URL, docker-compose.yml) swaps

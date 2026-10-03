@@ -16,7 +16,7 @@ import {
 	changeOrders, createCategory, deleteCategory, failureMessage, getCategories, getCategoriesThisMonth, getCategory,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeCategory, overBudget, updateCategory
 } from '../api/client.js'
-import { amount, currency, dot, plural } from '../api/format.js'
+import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import { CategoryIconPicker } from '../app/categoryMark.jsx'
@@ -213,7 +213,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			<Card>
 				<span className="sp-section-label">The category</span>
 				<Field id="category-name" label="Name"
-					message={errors.name ?? (editing ? undefined : 'Appears on chips, facets and charts, so short wins - "Decor", not "Home decoration items".')}
+					message={errors.name ?? (editing ? undefined : 'Appears on chips, filters and charts, so short wins - "Decor", not "Home decoration items".')}
 					messageType={errors.name ? 'danger' : 'hint'}>
 					{h(<TextField value={values.name} onChange={v => set('name', v)}
 						onBlur={() => setErrors(e => ({ ...e, name: nameProblem(values.name) }))}
@@ -249,7 +249,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 						message={errors.budget ?? limitWarning ?? (editing ? 'One amount for every month. Statistics reads this.' : 'One amount that applies to every month. Leave empty for no limit.')}
 						messageType={errors.budget ? 'danger' : limitWarning ? 'warning' : 'hint'}>
 						{/* money is written the Danish way everywhere it is shown (api/format.js), so it is typed that way too */}
-						{h(<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale="da-DK" placeholder="no limit" />)}
+						{h(<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale={NUMBER_LOCALE} placeholder="no limit" />)}
 					</Field>
 				</div>
 			</Card>

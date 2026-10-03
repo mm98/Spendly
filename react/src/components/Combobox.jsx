@@ -1,7 +1,11 @@
-import { Children, Fragment, cloneElement, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Children, Fragment, cloneElement, isValidElement, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
-import { useDismiss } from './Utilities.jsx'
+import { SearchInput } from './Inputs.jsx'
+import { Scrim, ShellTouch } from './Shell.jsx'
+import { Sheet } from './Touch.jsx'
+import { own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
 import { singular } from './format.js'
 
 const VARIANT = {
@@ -159,6 +163,30 @@ export function usePanelPlace(root, panel, open, size) {
 	}, [root, panel, open, size])
 }
 
+// a basis past the sheet's cap holds the sheet at its full height; the list scrolls inside it, under the search
+const SHEET_LIST = { flex: '1 1 100vh', minHeight: 0, overflowY: 'auto' }
+
+/** On touch the panel is a sheet from the bottom edge (15b): the search at the top, the options
+    under it. A press on the backdrop closes it and lands on nothing under it. */
+function ComboboxSheet({ owner, name, search, onClose, children }) {
+	const sheet = useRef(null)
+	useLayoutEffect(() => ownedBy(sheet.current, owner.current), [owner])
+	useFocusTrap(sheet, true, search ? 'input' : '[role="listbox"]')
+	const bare = ev => ev.target === ev.currentTarget
+	return createPortal(
+		<Scrim dialog
+			onPointerDown={ev => { if (bare(ev)) ev.stopPropagation() }}
+			onMouseDown={ev => { if (bare(ev)) ev.preventDefault() }}
+			onClick={ev => { if (bare(ev)) onClose() }}>
+			<Sheet ref={sheet} data-surface="" role="dialog" aria-modal="true" {...name}>
+				{search}
+				{children}
+			</Sheet>
+		</Scrim>,
+		document.body
+	)
+}
+
 /** What a filtered list reads out as it narrows (c9: "6 vendors"): its options, less the create row,
     which is not one of them. `noun` is the plural. Internal. */
 export function countOf(options, noun = 'options') {
@@ -204,6 +232,11 @@ export function Combobox({
 	// typing, so the field shows what is chosen instead
 	const [typed, setTyped] = useState(null)
 	const root = useRef(null)
+	// a page outside the shell (the first run) marks its own touch surface, as a date field reads it
+	const shellTouch = useContext(ShellTouch)
+	const [near, setNear] = useState(false)
+	useLayoutEffect(() => { setNear(!!root.current?.closest('.sp-touch')) })
+	const touch = shellTouch || near
 	const isOpen = open ?? held
 	const panelId = useId()
 	const own = useId()
@@ -221,13 +254,13 @@ export function Combobox({
 
 	// closing drops the cursor: the next open starts from what is chosen, not from
 	// wherever the keyboard happened to be left
-	const close = () => { setOpen(false); box.setActive(-1) }
+	const close = () => { setOpen(false); setTyped(null); box.setActive(-1) }
 	const toggle = () => (isOpen ? close() : setOpen(true))
 	useDismiss(root, isOpen, close)
 
 	const { setActive } = box
 	useEffect(() => { setActive(-1) }, [query, setActive])
-	usePanelPlace(root, box.panel, isOpen, options.length)
+	usePanelPlace(root, box.panel, isOpen && !touch, options.length)
 
 	const onKeys = ev => {
 		if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
@@ -259,7 +292,24 @@ export function Combobox({
 	}
 
 	const activeId = isOpen ? box.activeId : undefined
-	const shown = query || (typeof value === 'string' ? value : '')
+	// on touch the query is typed in the sheet, and the field under it keeps showing what is chosen
+	const shown = (!touch && query) || (typeof value === 'string' ? value : '')
+	const typeQuery = text => {
+		if (search === undefined) setTyped(text)
+		onSearch?.(text)
+	}
+	// Escape clears a query before it closes the panel: the reader's first press undoes their typing
+	const searchKeys = ev => {
+		if (ev.key === 'Escape' && query) {
+			ev.stopPropagation()
+			typeQuery('')
+			return
+		}
+		onKeys(ev)
+	}
+	// on touch the keyboard works in the sheet, so the field on the page names no option
+	const pointed = touch ? undefined : activeId
+	const named = label ? { 'aria-label': label } : { 'aria-labelledby': prefix ? triggerId + '-prefix' : triggerId + '-label' }
 	return (
 		<div
 			ref={root}
@@ -278,16 +328,17 @@ export function Combobox({
 							aria-expanded={isOpen ? 'true' : 'false'}
 							aria-autocomplete="list"
 							aria-controls={panelId}
-							aria-activedescendant={activeId}
+							aria-activedescendant={pointed}
 							aria-label={label}
 							required={required}
 							{...told}
 							autoComplete="off"
 							placeholder={placeholder}
 							value={shown}
+							// on touch the typing happens in the sheet's own search
+							readOnly={touch}
 							onChange={ev => {
-								if (search === undefined) setTyped(ev.target.value)
-								onSearch?.(ev.target.value)
+								typeQuery(ev.target.value)
 								if (!isOpen) setOpen(true)
 							}}
 							// a press opens it, focus alone does not: focus a page moves here must not cover the field
@@ -295,17 +346,7 @@ export function Combobox({
 							// the query is display state, not the value: leaving the field
 							// puts the chosen value back rather than stranding a half-typed one
 							onBlur={() => setTyped(null)}
-							onKeyDown={ev => {
-								// Escape clears a query before it closes the panel: the reader's
-								// first press undoes their typing, which is what they meant
-								if (ev.key === 'Escape' && query) {
-									ev.stopPropagation()
-									setTyped('')
-									onSearch?.('')
-									return
-								}
-								onKeys(ev)
-							}}
+							onKeyDown={searchKeys}
 						/>
 						<span className="sp-field__chevron"><Icon name="chevron-down" size={14} /></span>
 						<span className="sp-announce" aria-live="polite">{query ? countOf(options, noun) : ''}</span>
@@ -322,7 +363,7 @@ export function Combobox({
 						aria-haspopup="listbox"
 						aria-expanded={isOpen ? 'true' : 'false'}
 						aria-controls={panelId}
-						aria-activedescendant={activeId}
+						aria-activedescendant={pointed}
 						aria-label={label}
 						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'}${leadId ? ' ' + leadId : ''} ${triggerId}-value`}
 						{...told}
@@ -335,7 +376,20 @@ export function Combobox({
 						<span className="sp-combobox__chevron"><Icon name="chevron-down" size={14} /></span>
 					</button>
 				)}
-			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={box.panel} onMouseDown={box.hold}>{box.list}</ul>
+			{!touch ? <ul className="sp-combobox__panel" id={panelId} role="listbox" ref={box.panel} onMouseDown={box.hold}>{box.list}</ul> : null}
+			{touch && isOpen
+				? (
+					<ComboboxSheet owner={root} name={named} onClose={close}
+						search={searchable
+							? <SearchInput value={query ?? ''} onChange={typeQuery} placeholder={placeholder} role="combobox" aria-expanded="true"
+								aria-autocomplete="list" aria-controls={panelId} aria-activedescendant={activeId} autoComplete="off" onKeyDown={searchKeys} {...named} />
+							: null}>
+						{/* a select-style list takes the keys itself, as its trigger does off touch */}
+						<ul className="sp-menu sp-menu--plain" id={panelId} role="listbox" ref={box.panel} onMouseDown={box.hold} style={SHEET_LIST}
+							{...(searchable ? {} : { tabIndex: -1, 'aria-activedescendant': activeId, onKeyDown: onKeys })}>{box.list}</ul>
+					</ComboboxSheet>
+				)
+				: null}
 		</div>
 	)
 }

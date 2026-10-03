@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Navigate } from 'react-router'
 import { ListItem } from '../components/ListItem.jsx'
-import { Mark } from '../components/Mark.jsx'
+import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Anchor } from '../components/Overlays.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
@@ -54,7 +54,7 @@ function Account({ name, picture, email, chevron }) {
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} aria-label={name ? `${name}, ${email}` : email}
 				mark={picture
 					? <Mark size="large" fill="photo" round aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
-					: <Mark size="large" fill="solid" round>{name || email.split('@')[0]}</Mark>}>
+					: <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={name || email}><>{initialsOf(name || email.split('@')[0])}</></Mark>}>
 				<span className="sp-stack sp-gap-6 sp-grow">
 					{name ? <span className="sp-data sp-truncate">{name}</span> : null}
 					<span className="sp-meta sp-truncate">{email}</span>

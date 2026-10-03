@@ -39,9 +39,13 @@ export function DemoCard() {
 				invalidate()
 				go({ name: 'done', made })
 			})
-			// the fill is one transaction: any answer from Spendly itself means nothing changed; a
-			// gateway's (502 to 504) or none means it may still be running
-			.catch(error => go({ name: 'failed', answered: error?.status > 0 && !(error.status >= 502 && error.status <= 504) }))
+			// `landed` comes only after the wipe: without it, an answer from Spendly itself means
+			// nothing changed; a gateway's (502 to 504) or none means it may still be running
+			.catch(error => {
+				const landed = error?.body?.landed
+				if (Number.isFinite(landed)) invalidate()
+				go({ name: 'failed', landed, answered: error?.status > 0 && !(error.status >= 502 && error.status <= 504) })
+			})
 	}
 
 	const heading = <Heading section="demo">Demo data</Heading>
@@ -71,7 +75,7 @@ export function DemoCard() {
 			{heading}
 			<span className="sp-data">Creating {orders(count)} over {lastSpan(months)}.</span>
 			<Gauge thin value={(stage.done / count) * 100} aria-label="Demo data progress" />
-			<div className="sp-row-flex sp-gap-8">
+			<div className="sp-sum">
 				<span className="sp-meta">{amount(stage.done, 0)} of {amount(count, 0)}</span>
 				<span className="sp-grow" />
 				<span className="sp-meta">This can take a moment.</span>
@@ -103,9 +107,13 @@ export function DemoCard() {
 			<Well color="danger">
 				<span className="sp-title sp-ink-danger">Couldn't finish filling.</span>
 				<span className="sp-meta sp-ink-danger">
-					{stage.answered
-						? 'Nothing was changed. Your lists are as they were.'
-						: 'Spendly did not answer. The fill may still finish, so look at your orders in a minute.'}
+					{stage.landed > 0
+						? `${orders(stage.landed)} ${stage.landed === 1 ? 'was' : 'were'} created before it stopped. They are in your lists now.`
+						: stage.landed === 0
+							? 'No orders were created before it stopped. Everything you had added was removed first.'
+							: stage.answered
+								? 'Nothing was changed. Your lists are as they were.'
+								: 'Spendly did not answer. The fill may still finish, so look at your orders in a minute.'}
 				</span>
 			</Well>
 		</Card>

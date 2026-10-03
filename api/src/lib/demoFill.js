@@ -16,9 +16,14 @@ const wipeLedger = userId => {
 const finishSetup = db.prepare('UPDATE users SET needs_setup = 0 WHERE id = ?')
 
 /* Replaces this account's ledger with demo orders, never appends: pressed twice, appending would
-   double every monthly figure. One transaction, so a fill that fails changes nothing. */
-export const replaceWithDemo = db.transaction((userId, { seed, orders, months, today, onProgress }) => {
-	wipeLedger(userId)
-	finishSetup.run(userId)
-	return populateDemoData(userId, { seed, orders, months, today, onProgress })
-})
+   double every monthly figure. The wipe commits on its own and the fill in batches, so a fill
+   that fails keeps what it wrote; `onLanded(0)` says the wipe has committed. */
+export function replaceWithDemo(userId, { seed, orders, months, today, onProgress, onLanded }) {
+	db.transaction(wipeLedger)(userId)
+	if (onLanded) onLanded(0)
+	try {
+		return populateDemoData(userId, { seed, orders, months, today, onProgress, onLanded })
+	} finally {
+		finishSetup.run(userId)
+	}
+}

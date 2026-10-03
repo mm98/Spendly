@@ -427,7 +427,7 @@ function MonthlySummary({ summary, categories, early, onHide, isHidden, onHideLi
 									<IconButton icon="x" aria-label={`Hide ${line.c.name} from the ${month} summary`} onClick={() => onHideLine(line.c, month)} />
 								</>}>
 								<Link className="sp-stack sp-gap-6 sp-grow hm-link" to={link(line.c)}>
-									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span className="sp-nowrap">{line.said}</span></span>
+									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span>{line.said}</span></span>
 									<span className="sp-meta">{line.meta}</span>
 								</Link>
 							</ListItem>
@@ -521,7 +521,10 @@ function OrderHead({ order }) {
 function CaptureCard({ newest, loading }) {
 	const navigate = useNavigate()
 	const input = useId()
-	const reads = useApi(getCurrentUser).data?.scanAiEnabled
+	const user = useApi(getCurrentUser).data
+	const reads = user?.scanAiEnabled
+	// the server takes no receipt before the email is confirmed, so the zone says so first (20b)
+	const held = user?.emailConfirmed === false
 	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const footer = newest
 		? [
@@ -537,17 +540,27 @@ function CaptureCard({ newest, loading }) {
 	return (
 		<Card footer={footer}>
 			<span className="sp-section-label">Add an order</span>
-			<FileDrop id={input} accept={FILE_TYPES} onFiles={take}>
-				<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
-				<span className="sp-title">Drop a receipt here</span>
-				<span className="sp-subtitle">
-					{reads === false
-						? 'Image or PDF. It is attached to a new order, and you type in the details.'
-						: 'Image or PDF. The vendor, date and lines are read for you to check.'}
-				</span>
-			</FileDrop>
+			{held
+				? (
+					<FileDrop disabled>
+						<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
+						<span className="sp-title sp-ink-2">Capture a receipt</span>
+						<span className="sp-meta">Available once your email is confirmed</span>
+					</FileDrop>
+				)
+				: (
+					<FileDrop id={input} accept={FILE_TYPES} onFiles={take}>
+						<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
+						<span className="sp-title">Drop a receipt here</span>
+						<span className="sp-subtitle">
+							{reads === false
+								? 'Image or PDF. It is attached to a new order, and you type in the details.'
+								: 'Image or PDF. The vendor, date and lines are read for you to check.'}
+						</span>
+					</FileDrop>
+				)}
 			<div className="sp-fields">
-				<Button size="small" onClick={() => document.getElementById(input)?.click()}>Choose file</Button>
+				<Button size="small" disabled={held} onClick={() => document.getElementById(input)?.click()}>Choose file</Button>
 				<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 			</div>
 		</Card>
@@ -830,7 +843,8 @@ function PhoneOrder({ order }) {
 function DayOne({ categories, name, touch }) {
 	const navigate = useNavigate()
 	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
-	const reads = useApi(getCurrentUser).data?.scanAiEnabled
+	const user = useApi(getCurrentUser).data
+	const reads = user?.scanAiEnabled
 	const first = categories?.slice(0, 4) ?? []
 	return (
 		<div className={touch ? 'sp-stack sp-gap-12' : 'hm-day-one'}>
@@ -839,16 +853,28 @@ function DayOne({ categories, name, touch }) {
 					<span className="sp-stat__figure sp-stat__figure--large">{greeting(name)}</span>
 					<span className="sp-data">{capital(monthNames('long')[Number(today().slice(5, 7)) - 1])}{dot}nothing recorded yet</span>
 				</div>
-				<FileDrop accept={FILE_TYPES} onFiles={take} icon="camera">
-					<span className="sp-heading">Start with a receipt</span>
-					<span className="sp-data hm-w300">
-						{reads === false
-							? 'Drop a photo or a PDF. It is attached to a new order, and you type in the details.'
-							: 'Drop a photo or a PDF and the lines are read for you to check.'}
-					</span>
-					<span className="sp-btn">Capture a receipt</span>
-					<Button variant="text" size="small" to="/orders/new?source=empty">Or enter one by hand</Button>
-				</FileDrop>
+				{user?.emailConfirmed === false
+					? (
+						<>
+							<FileDrop disabled icon="camera">
+								<span className="sp-title sp-ink-2">Capture a receipt</span>
+								<span className="sp-meta">Available once your email is confirmed</span>
+							</FileDrop>
+							<Button variant="text" size="small" to="/orders/new?source=empty">Or enter one by hand</Button>
+						</>
+					)
+					: (
+						<FileDrop accept={FILE_TYPES} onFiles={take} icon="camera">
+							<span className="sp-heading">Start with a receipt</span>
+							<span className="sp-data hm-w300">
+								{reads === false
+									? 'Drop a photo or a PDF. It is attached to a new order, and you type in the details.'
+									: 'Drop a photo or a PDF and the lines are read for you to check.'}
+							</span>
+							<span className="sp-btn">Capture a receipt</span>
+							<Button variant="text" size="small" to="/orders/new?source=empty">Or enter one by hand</Button>
+						</FileDrop>
+					)}
 				<div className={touch ? 'sp-stack sp-gap-12' : 'hm-wells'}>
 					<Well>
 						<span className="sp-section-label">This month</span>

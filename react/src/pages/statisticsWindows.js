@@ -1,4 +1,4 @@
-import { activeLocaleCode, longDate, monthNames, shortDate, today } from '../api/format.js'
+import { activeLocaleCode, longDate, monthNames, shortDate, today, withShortMonth } from '../api/format.js'
 
 /* ---- windows: the ids the API pages through, worked out here so the control answers at once ---- */
 
@@ -102,7 +102,7 @@ export function nameOf(range, id, inText = false) {
 }
 
 // "2 Oct": the compare switch already names the earlier window's year
-export const dayAndMonth = iso => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
+export const dayAndMonth = iso => withShortMonth(new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', timeZone: 'UTC' }), new Date(utcOf(iso)))
 
 // the stepper's own short name; its width is set by the longest month
 export function stepLabel(range, id) {
@@ -162,9 +162,9 @@ export function filterOf(crumbs) {
 
 /* ---- the window's own days, cut into the columns the charts draw ---- */
 
-// a step of the period (4a): a day for 30 days, a week for a quarter, a month for a year; any other
-// period takes the smallest step that draws 12 bars or fewer
-const UNIT = { week: 'day', month: 'week', quarter: 'week', year: 'month', days30: 'day' }
+// a step of the period (4a): a day for 30 days, a week and a month, a week for a quarter, a month for a
+// year; any other period takes the smallest step that draws 12 bars or fewer
+const UNIT = { week: 'day', month: 'day', quarter: 'week', year: 'month', days30: 'day' }
 const weekColumns = (first, days) => 1 + Array.from({ length: days - 1 }, (_, d) => d + 1).filter(d => mondayFirst(first + d * DAY_MS) === 0).length
 export const unitOf = (range, days, first) => UNIT[range] ?? (days <= 12 ? 'day' : weekColumns(first, days) <= 12 ? 'week' : 'month')
 
@@ -172,7 +172,7 @@ const weekday = iso => new Intl.DateTimeFormat(activeLocaleCode(), { weekday: 's
 // a clipped week holds only the window's own days, so a week's column is named by its days
 const daySpan = (from, to) => (from === to ? String(Number(from.slice(8))) : `${Number(from.slice(8))}-${Number(to.slice(8))}`)
 
-/** Months for a quarter or a year, weeks for a month, days for a week, up to the one holding today
+/** Months for a year, weeks for a quarter, days for a month, a week or 30 days, up to the one holding today
     (4a), each with its spend, saving, order count and top categories from the API's running totals. */
 export function chartOf(view) {
 	const spend = view.series.current

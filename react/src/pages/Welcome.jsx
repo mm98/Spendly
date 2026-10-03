@@ -14,7 +14,7 @@ import { CategoryIconPicker, SWATCHES } from '../app/categoryMark.jsx'
 import {
 	createCategory, failureMessage, finishSetup, getCategories, getCurrentUser, getOrders, getSettings, saveSettings
 } from '../api/client.js'
-import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
+import { CURRENCIES, LOCALES, amount, detectLocale, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { landing } from './SignIn.jsx'
 
 // the currency a browser's region most likely keeps its books in
@@ -39,6 +39,12 @@ export default function Welcome() {
 	const shape = useShellShape()
 	const named = useMatches().at(-1)?.handle?.title
 	useEffect(() => { if (named) document.title = `${named} - Spendly` }, [named])
+	// a picker's sheet renders on the body, so the touch sizes have to reach it there too
+	useEffect(() => {
+		if (shape !== 'touch') return
+		document.body.classList.add('sp-touch')
+		return () => document.body.classList.remove('sp-touch')
+	}, [shape])
 	const [ready, setReady] = useState(false)
 	const [step, setStep] = useState(1)
 	const [currency, setCurrencyCode] = useState('DKK')
@@ -53,9 +59,10 @@ export default function Welcome() {
 		Promise.all([getCurrentUser(), getSettings()])
 			.then(([me, settings]) => {
 				if (!me.needsSetup) return navigate(next, { replace: true })
-				const guessed = settings?.locale && settings.locale !== 'auto' ? settings.locale : null
+				// the account's own region first, then the browser's
+				const guessed = [settings?.locale, detectLocale(), navigator.language].find(l => CURRENCY_OF[l])
 				setLocaleCode(settings?.locale ?? 'auto')
-				setCurrencyCode(guessed ? CURRENCY_OF[guessed] ?? settings.currency : settings?.currency ?? 'DKK')
+				setCurrencyCode(CURRENCY_OF[guessed] ?? settings?.currency ?? 'DKK')
 				setReady(true)
 			})
 			.catch(e => navigate(e?.status === 401 ? '/signin' : next, { replace: true }))

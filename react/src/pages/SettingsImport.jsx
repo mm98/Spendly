@@ -12,7 +12,7 @@ import { Gauge, Stat } from '../components/Data.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	checkImportDuplicates, failureMessage, getCategories, getImports, getSettings, getVendors, importOrders, startImport,
+	checkImportDuplicates, failureMessage, getCategories, getCurrentUser, getImports, getSettings, getVendors, importOrders, startImport,
 	undoImport, vendorByAnyName
 } from '../api/client.js'
 import { amount, amountRound, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
@@ -43,6 +43,9 @@ function slices(orders) {
 }
 
 const itemsOf = order => (Array.isArray(order?.items) ? order.items : [])
+// the item name orderImport.js gives a whole order with no description
+const UNNAMED = 'Imported order'
+const dateOf = o => (/^\d{4}-\d{2}-\d{2}$/.test(String(o.date)) ? shortDate(o.date) : o.date)
 const linesIn = orders => orders.reduce((n, o) => n + itemsOf(o).length, 0)
 // summed as a saved order's total is: its lines, plus shipping, less discount
 const totalOne = o => itemsOf(o).reduce((n, i) => n + (Number(i?.price) * Number(i?.quantity) || 0), 0)
@@ -112,6 +115,7 @@ export function ImportCard() {
 	const categories = useApi(getCategories)
 	const history = useApi(getImports)
 	const settings = useApi(getSettings)
+	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 	const [stage, setStage] = useState({ name: 'rest' })
 	const [reuse, setReuse] = useState(null)
 	const { box, then } = useStepFocus(stage)
@@ -163,7 +167,7 @@ export function ImportCard() {
 	if (stage.name === 'map') return (
 		<MapStep box={box} file={stage.file} rows={stage.rows} mapping={stage.mapping} categories={categories.data}
 			onChange={patch => setStage(s => ({ ...s, mapping: { ...s.mapping, ...patch } }))}
-			onReplace={replace} onCancel={restart}
+			onReplace={replace}
 			onPreview={facts => {
 				const mapping = { ...stage.mapping, columns: facts.columns, dateFormat: facts.dateFormat, decimal: facts.decimal }
 				// a spreadsheet names no kind or status, so each order takes the account's defaults for a new one
@@ -196,11 +200,21 @@ export function ImportCard() {
 		<>
 			<Card ref={box}>
 				<Heading section="import">Import</Heading>
-				<FileDrop key={stage.attempt ?? 0} id={FILE_ID} accept={ACCEPT} onFiles={read}>
-					<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
-					<span className="sp-title">Drop a file, or choose one</span>
-					<span className="sp-subtitle">CSV, XLSX or a JSON export. One row per item line, or one row per order. Both work.</span>
-				</FileDrop>
+				{held
+					? (
+						<FileDrop disabled>
+							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title sp-ink-2">Drop a file, or choose one</span>
+							<span className="sp-meta">Available once your email is confirmed</span>
+						</FileDrop>
+					)
+					: (
+						<FileDrop key={stage.attempt ?? 0} id={FILE_ID} accept={ACCEPT} onFiles={read}>
+							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title">Drop a file, or choose one</span>
+							<span className="sp-subtitle">CSV, XLSX or a JSON export. One row per item line, or one row per order - both work.</span>
+						</FileDrop>
+					)}
 				{reuse && !reuse.replacing
 					? (
 						<ListItem color="success">
@@ -225,10 +239,11 @@ export function ImportCard() {
 				<div className="sp-stack sp-gap-8">
 					<span className="sp-section-label">Or start from a template</span>
 					<ListItem variant="outline">
+						<span className="sp-row-flex sp-flex-none"><Icon name="file" /></span>
 						<span className="sp-data sp-grow sp-truncate">{TEMPLATE}</span>
 						<Button variant="outline" size="small" onClick={() => download(TEMPLATE, templateWorkbook(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}>Download</Button>
 					</ListItem>
-					<span className="sp-meta">Fill it in and upload it. The columns already have the right names.</span>
+					<span className="sp-meta">Fill it in and upload it - the columns are already named correctly.</span>
 				</div>
 			</Card>
 			<History history={history} onReuse={item => { setReuse({ ...item.mapping, fileName: item.fileName }); then(FILE_ID) }} />
@@ -354,13 +369,10 @@ function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
 
 	const heading = <Heading section="import">Import</Heading>
 	const preview = drafts$.slice(0, 5)
+	const wholeOrders = source.mapping?.shape === 'order'
 	return (
 		<Card ref={box}>
 			{heading}
-			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-row-flex sp-flex-none"><Icon name="file" /></span>
-				<span className="sp-title sp-truncate">{source.file}</span>
-			</div>
 			<div className="st-quad">
 				<Stat large label="Orders" figure={amount(drafts$.length, 0)} />
 				<Stat large label="Item lines" figure={amount(linesIn(drafts$), 0)} />
@@ -400,7 +412,7 @@ function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
 								return (
 									<div key={why} className="sp-stack sp-gap-8">
 										<ListItem color="danger" count={amount(count, 0)}>
-											<span className="sp-data sp-ink-danger sp-grow">{count === 1 ? 'row' : 'rows'} can't be imported: {why}</span>
+											<span className="sp-data sp-ink-danger sp-grow">{count === 1 ? 'row' : 'rows'} can't be imported - {why}</span>
 											<Button variant="text" size="small" color="danger" onClick={() => toggle(why)}>{open === why ? 'Hide' : 'See them'}</Button>
 										</ListItem>
 										{open === why ? <span className="sp-meta">{list.slice(0, 40).map(s => where(source, s.rows)).join(dot)}{list.length > 40 ? `${dot}and ${amount(list.length - 40, 0)} more` : ''}</span> : null}
@@ -419,34 +431,62 @@ function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
 						<div className="sp-stack sp-gap-8">
 							<span className="sp-section-label">{preview.length === 5 ? 'First five orders, as they will be saved' : 'The orders, as they will be saved'}</span>
 							<div className="sp-list st-sideways">
-								<table className="sp-table sp-table--static st-table" data-cols="preview">
-									<thead>
-										<tr>
-											<th scope="col" className="sp-col-title">Vendor</th>
-											<th scope="col" className="sp-col-date">Date</th>
-											<th scope="col" className="st-w-lines">Lines</th>
-											<th scope="col">Category</th>
-											<th scope="col" className="sp-col-amount">Amount</th>
-										</tr>
-									</thead>
-									<tbody>
-										{preview.map((o, i) => {
-											const isNew = vendors.data && !vendorByAnyName(vendors.data, String(o.vendor ?? ''))
-											return (
-												<tr key={i}>
-													<td className="sp-col-title"><span className="sp-title sp-truncate">{o.vendor}</span></td>
-													<td><span className="sp-data sp-ink-2">{/^\d{4}-\d{2}-\d{2}$/.test(String(o.date)) ? shortDate(o.date) : o.date}</span></td>
-													<td><span className="sp-data sp-ink-2">{itemsOf(o).length}</span></td>
-													<td>{o.categories?.length
-														? <span className="sp-data sp-ink-2 sp-truncate">{o.categories.join(', ')}</span>
-														: isNew ? <span className="sp-data sp-ink-warning">New vendor</span>
-														: <span className="sp-data sp-ink-5">None</span>}</td>
-													<td className="sp-col-amount"><div className="sp-stacked sp-cell-amount"><span className="sp-amount">{amountRound(totalOne(o))}</span></div></td>
+								{wholeOrders
+									? (
+										<table className="sp-table sp-table--static st-table" data-cols="imports">
+											<thead>
+												<tr>
+													<th scope="col" className="sp-col-title">Vendor</th>
+													<th scope="col" className="sp-col-date">Date</th>
+													<th scope="col">Item line</th>
+													<th scope="col" className="sp-col-amount">Total</th>
 												</tr>
-											)
-										})}
-									</tbody>
-								</table>
+											</thead>
+											<tbody>
+												{preview.map((o, i) => {
+													const line = itemsOf(o)[0]
+													return (
+														<tr key={i}>
+															<td className="sp-col-title"><span className="sp-title sp-truncate">{o.vendor}</span></td>
+															<td><span className="sp-data sp-ink-2">{dateOf(o)}</span></td>
+															<td><span className={'sp-data sp-truncate ' + (line?.title === UNNAMED ? 'sp-ink-5' : 'sp-ink-2')}>{line ? `${line.title} × ${line.quantity}` : ''}</span></td>
+															<td className="sp-col-amount"><div className="sp-stacked sp-cell-amount"><span className="sp-amount">{amountRound(totalOne(o))}</span></div></td>
+														</tr>
+													)
+												})}
+											</tbody>
+										</table>
+									)
+									: (
+										<table className="sp-table sp-table--static st-table" data-cols="preview">
+											<thead>
+												<tr>
+													<th scope="col" className="sp-col-title">Vendor</th>
+													<th scope="col" className="sp-col-date">Date</th>
+													<th scope="col" className="st-w-lines">Lines</th>
+													<th scope="col">Category</th>
+													<th scope="col" className="sp-col-amount">Amount</th>
+												</tr>
+											</thead>
+											<tbody>
+												{preview.map((o, i) => {
+													const isNew = vendors.data && !vendorByAnyName(vendors.data, String(o.vendor ?? ''))
+													return (
+														<tr key={i}>
+															<td className="sp-col-title"><span className="sp-title sp-truncate">{o.vendor}</span></td>
+															<td><span className="sp-data sp-ink-2">{dateOf(o)}</span></td>
+															<td><span className="sp-data sp-ink-2">{itemsOf(o).length}</span></td>
+															<td>{o.categories?.length
+																? <span className="sp-data sp-ink-2 sp-truncate">{o.categories.join(', ')}</span>
+																: isNew ? <span className="sp-data sp-ink-warning">New vendor</span>
+																: <span className="sp-data sp-ink-5">None</span>}</td>
+															<td className="sp-col-amount"><div className="sp-stacked sp-cell-amount"><span className="sp-amount">{amountRound(totalOne(o))}</span></div></td>
+														</tr>
+													)
+												})}
+											</tbody>
+										</table>
+									)}
 							</div>
 						</div>
 					</>
@@ -464,7 +504,7 @@ function ReviewStep({ box, stage, setStage, then, vendors, restart }) {
 				? (
 					<>
 						<Gauge thin value={(stage.done / Math.max(1, drafts$.length)) * 100} aria-label="Import progress" />
-						<div className="sp-row-flex sp-gap-8">
+						<div className="sp-sum">
 							<span className="sp-meta">{amount(stage.done, 0)} of {amount(drafts$.length, 0)}</span>
 							<span className="sp-grow" />
 							<span className="sp-meta">This can take a moment.</span>

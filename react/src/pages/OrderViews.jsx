@@ -101,7 +101,6 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
 			<div className={mode === 'editing' ? 'sp-stack sp-gap-8' : 'sp-nav-list'} {...reorder.list}>
 				<Announce>{reorder.said}</Announce>
-				{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
 				{mode === 'editing'
 					? (
 						<ListItem mark={<span className="sp-nav-item__icon"><Icon name="receipt" /></span>}>
@@ -110,6 +109,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 						</ListItem>
 					)
 					: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={onList && !active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
+				{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
 				{reorder.items.map(view => (
 					<Fragment key={view.id}>
 						{reorder.lands(view) ? <Insertion /> : null}

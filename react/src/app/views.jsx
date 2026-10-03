@@ -25,7 +25,7 @@ export const ALL_ORDERS = '/orders?saved=all'
 
 export const useViews = () => useApi(getViews)
 
-const GROUPS = { status: 'status', vendor: 'vendor', category: 'category', min: 'amount', max: 'amount', receipt: 'other', files: 'other', discounted: 'other', kind: 'other', q: 'other' }
+const GROUPS = { status: 'status', vendor: 'vendor', category: 'category', min: 'amount', max: 'amount', receipt: 'other', files: 'other', discounted: 'other', kind: 'other' }
 const ICON = { status: 'clock', vendor: 'building-store', amount: 'wallet' }
 
 /** A view's mark, derived from what it filters (2g): one facet group gives that group's glyph, a

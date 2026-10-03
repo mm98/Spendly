@@ -11,7 +11,7 @@ import { seedAccountDefaults } from '../seed.js'
 export const router = Router()
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-export const MIN_PASSWORD = 8
+export const MIN_PASSWORD = 12
 export const MAX_NAME = 80
 export const cleanName = value => String(value ?? '').trim().replace(/\s+/g, ' ')
 

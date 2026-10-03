@@ -45,8 +45,8 @@ const browser = await chromium.launch()
 async function freshAccount(ctx) {
 	// one fixed address: the sidebar's account mark is drawn from it, so a new one per run moves pixels
 	const email = 'docs@example.com'
-	let r = await ctx.request.post(BASE + '/api/auth/register', { data: { email, password: 'docs-pass-1' } })
-	if (r.status() !== 201) r = await ctx.request.post(BASE + '/api/auth/login', { data: { email, password: 'docs-pass-1' } })
+	let r = await ctx.request.post(BASE + '/api/auth/register', { data: { email, password: 'docs-pass-12345' } })
+	if (r.status() !== 201) r = await ctx.request.post(BASE + '/api/auth/login', { data: { email, password: 'docs-pass-12345' } })
 	if (!r.ok()) throw new Error('sign in ' + r.status())
 	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: SEED, months: MONTHS, orders: 30 } })
 	if (!r.ok()) throw new Error('demo-data ' + r.status())

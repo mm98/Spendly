@@ -259,24 +259,24 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<span className="sp-section-label">Aliases</span>
 				<Field id="vendor-aliases" label="Also matches"
 					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
-						? 'Other names this vendor uses on receipts. The name the scan read is already here. Keep it, so the next receipt is filed here by itself.'
-						: `Other names this vendor uses on receipts. A receipt with one of these is filed here.${marked ? ' The green one is the name the last receipt matched.' : ''}`)}
-					messageType={errors.aliases ? 'danger' : 'hint'}>
+						? 'Other names this vendor uses on receipts. The name the scan read is already here - keep it so the next receipt files itself.'
+						: 'Other names this vendor uses on receipts. A receipt with one of these is filed here.')}
+					messageType={errors.aliases ? 'danger' : 'hint'}
+					after={offer
+						? (
+							<div className="sp-row-flex sp-gap-8">
+								<Button variant="outline" size="small" onClick={moveHere}>Move it here</Button>
+								<Button variant="outline" size="small" onClick={keepThere}>Keep it on {offer.holder.name}</Button>
+							</div>
+						)
+						: null}>
 					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
 				</Field>
-				{offer
-					? (
-						<div className="sp-row-flex sp-gap-8">
-							<Button variant="outline" size="small" onClick={moveHere}>Move it here</Button>
-							<Button variant="outline" size="small" onClick={keepThere}>Keep it on {offer.holder.name}</Button>
-						</div>
-					)
-					: null}
 				<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
 					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 						value={values.colour} onChange={v => set('colour', v)} />)}
 				</Field>
-				<Choice variant="described" description="Kept at the top of Vendors."
+				<Choice variant="described" description="Kept at the top of Vendors, and leads the list on a new order."
 					control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
 					Favourite
 				</Choice>
@@ -313,7 +313,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					action="See more in statistics" />
 				{!known || known.orders ? <RecentLoading /> : null}
 				<EndLoading label="End of its life" title={end.title} body={end.body}
-					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive'}</Button>}
+					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive vendor'}</Button>}
 					after={<Button variant="outline" size="small" fullWidth>Merge into…</Button>} />
 			</>
 		)
@@ -322,7 +322,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<>
 					<VendorSummary vendor={vendor} name={name || vendor.name} colour={storedColour(values.colour)} />
 					<RecentOrders filter={{ vendorId: vendor.id }} to={`/orders?vendor=${vendor.id}`} total={vendor.orders} />
-					<EndOfLife vendor={vendor} busy={busy} onArchive={() => setArchived(true)} onUnarchive={() => setArchived(false)}
+					<EndOfLife vendor={vendor} busy={busy} onArchive={() => guard.ask(() => setArchived(true))} onUnarchive={() => setArchived(false)}
 						onDelete={() => setDeleting(true)}
 						merge={{
 							open: picking, onToggle: () => setPicking(!picking), onClose: () => setPicking(false),
@@ -390,7 +390,7 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 	const footer = [
 		vendor.archived
 			? <Button key="archive" variant="outline" disabled={busy} onClick={onUnarchive}>Unarchive</Button>
-			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>Archive</Button>,
+			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>Archive vendor</Button>,
 		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
 	].filter(Boolean)
 	return (

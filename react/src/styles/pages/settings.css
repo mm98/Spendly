@@ -37,6 +37,8 @@
 	.st-tone:has(input:checked) { outline: 2px solid var(--green); outline-offset: 1px; }
 	.st-tone:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
 
+	.st-w280 { max-width: 280px; }
+
 	.st-quad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
 
 	/* import step 2 (11b): a column in the file, an arrow on the field's line, the field it maps to */
@@ -48,6 +50,8 @@
 	/* the preview's two columns the list component has no width for */
 	.st-table .st-w-lines { width: 48px; }
 	.st-table[data-cols="preview"] th:nth-child(4) { width: 100px; }
+	/* the item line is the longest text, so it states its width and the title column takes the rest */
+	.st-table[data-cols="imports"] th:nth-child(3) { width: 152px; }
 	/* a line of controls that breaks onto more lines when it does not fit; .st-push sends the rest to the end */
 	.st-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-12); flex: 1 1 auto; min-width: 0; }
 	.st-push { flex: 1 0 0; }
@@ -58,7 +62,7 @@
 	.sp-touch .st-foot > .st-push { display: none; }
 	/* the preview table scrolls sideways on a phone rather than squeezing the vendor column to nothing */
 	.st-sideways { overflow-x: auto; }
-	.st-table[data-cols="preview"] { min-width: 540px; }
+	.st-table[data-cols="preview"], .st-table[data-cols="imports"] { min-width: 540px; }
 	/* a phone holds four figures two by two, as Statistics does (Mobile screens) */
 	@media (max-width: 639.98px) {
 		.st-quad { grid-template-columns: repeat(2, minmax(0, 1fr)); }

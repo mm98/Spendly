@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-route
 import { Card } from '../components/Card.jsx'
 import { Gauge, SumHead } from '../components/Data.jsx'
 import { Button } from '../components/Button.jsx'
-import { FILE_TYPES, FileDrop, MAX_FILE_MB, fileProblem } from '../components/FileDrop.jsx'
+import { FILE_TYPES, FileDrop, MAX_FILE_MB, fileProblem, sniffedProblem } from '../components/FileDrop.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { ComboboxEmpty, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -65,8 +65,8 @@ function Blank({ vendor, restored }) {
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} />
 }
 
-/* A copy carries the vendor, categories, kind, note and priced lines; the date is today, the
-   status the account's default, the reference a new one (8a), and the files stay where they are. */
+/* A copy carries the vendor, categories, kind, reference, note and priced lines; the date is today,
+   the status the account's default (3b, 8b), and the files stay where they are. */
 function Copy({ id }) {
 	const order = useApi(getOrder, [id])
 	const blank = useApi(getOrderDraft)
@@ -78,7 +78,7 @@ function Copy({ id }) {
 			...fromBlank(blank.data),
 			vendor: from.vendor?.name ?? '', kind: from.kind, categories: from.categories.map(c => c.name),
 			shipping: from.shipping || null, discount: from.discount || null,
-			note: from.note ?? '',
+			reference: from.reference ?? '', note: from.note ?? '',
 			lines: from.items.map((item, i) => ({
 				key: `copy-${i}`, title: item.title, quantity: item.quantity, price: item.price,
 				retail: item.retail ?? null, note: item.note ?? ''
@@ -118,7 +118,6 @@ function Scanned({ documentKey, upload, from }) {
 		: null), [answer])
 	const back = () => navigate('/orders/new?source=scan')
 	const dropThen = to => discardScanDocument(documentKey).catch(() => {}).finally(() => navigate(to))
-	const discard = () => dropThen('/orders/new?source=scan')
 	// a new file takes the failed one's place and is read from the start (6e)
 	const another = file => discardScanDocument(documentKey).catch(() => {})
 		.finally(() => navigate('/orders/new?source=scan', { replace: true, state: { file, from } }))
@@ -134,7 +133,8 @@ function Scanned({ documentKey, upload, from }) {
 		window.addEventListener('pagehide', left)
 		return () => { window.removeEventListener('pagehide', left); leaving.set(documentKey, setTimeout(left, 0)) }
 	}, [documentKey])
-	const cancel = () => { away.current.cancelled = true; discard() }
+	// Cancel goes back to where the scan started: New order's first step, or the page Scan receipt was used on
+	const cancel = () => { away.current.cancelled = true; dropThen(from ?? '/orders/new') }
 	if (answer?.draftOrderId) return <Navigate to={`/orders/${answer.draftOrderId}`} replace />
 	if (asking) return <SeenBefore upload={upload} onUse={() => setAsking(false)} onDiscard={() => dropThen('/orders/new')} />
 	if (read.error)
@@ -200,7 +200,7 @@ function Reading({ file, documentKey, onCancel }) {
 								<Spinner />
 								<strong className="sp-data">{doing}</strong>
 							</div>
-							{reads && file.key ? <span className="sp-meta">Usually 5 - 10 seconds.</span> : null}
+							{reads && file.key ? <span className="sp-meta">Usually 5 - 10 seconds. You can keep working.</span> : null}
 						</div>
 						<div className="oc-read__foot">
 							<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
@@ -236,8 +236,9 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 	const [busy, setBusy] = useState(false)
 	const { seen } = upload
 	const newest = seen.orders[0]
-	const named = o => o.reference || `the order from ${o.vendor}`
 	const readAt = seen.readAt ? new Date(seen.readAt) : null
+	// the matched file holds these same bytes, so the upload's own picture is a picture of it
+	const thumb = upload.hasThumbnail ? scanThumbnailUrl(upload.key) : null
 	const again = () => {
 		setBusy(true)
 		rereadScanDocument(upload.key)
@@ -258,20 +259,24 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 		<div className="oc-narrow">
 			<Card>
 				<div className="sp-stack sp-gap-6">
-					<span className="sp-heading">This receipt has been added before</span>
+					<span className="sp-heading">This receipt has been scanned before</span>
 					<span className="sp-meta">
 						{seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`}
 					</span>
 				</div>
 				{seen.orders.map(o => (
-					<ListItem key={o.id} variant="top" mark={<Mark size="medium" fill="none" aria-hidden="true" aria-label="Receipt"><span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span></Mark>}>
+					<ListItem key={o.id} variant="top" mark={
+						<Mark size="medium" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label="Receipt">
+							{thumb ? <img src={thumb} alt="" /> : <span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
+						</Mark>
+					}>
 						<span className="sp-stack sp-gap-8 sp-grow">
 							<span className="sp-stacked">
 								<span className="sp-title sp-truncate">{o.vendor}</span>
 								<span className="sp-subtitle">{[o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)}</span>
 							</span>
 							<span className="sp-meta">
-								{[readAt && o === newest ? `Read ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)}
+								{[readAt && o === newest ? `Scanned ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)}
 							</span>
 							<span className="sp-row-flex sp-gap-8 sp-wrap">
 								<Button size="small" to={`/orders/${o.id}`}>Open that order</Button>
@@ -288,9 +293,6 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 						action={<Button size="small" disabled={busy} onClick={onUse}>Use the reading</Button>} />
 					<SeenChoice icon="refresh" title="Read it again" body="Use this if the lines came out wrong last time."
 						action={<Button variant="outline" size="small" disabled={busy} onClick={again}>Scan again</Button>} />
-					<SeenChoice icon="paperclip" title="Attach it to that order instead"
-						body={`${named(newest).replace(/^t/, 'T')} already has this file, so there is nothing to add.`}
-						action={<Button variant="outline" size="small" disabled>Attach</Button>} />
 				</div>
 				<div className="sp-card__footer sp-card__footer--commits">
 					<span className="sp-meta">The upload is kept for 24 hours either way.</span>
@@ -390,26 +392,31 @@ function Start({ scanOnly, file, from, picking }) {
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [sending, setSending] = useState(null)
 	const [refused, setRefused] = useState(null)
+	const origin = from ?? (scanOnly ? '/orders/new?source=scan' : '/orders/new')
+	const cancelled = useRef(false)
 
-	const send = picked => {
+	const send = async picked => {
 		const f = picked?.[0]
 		if (!f) return
 		const kind = f.name.split('.').pop()
-		const problem = fileProblem(f, FILE_TYPES)
+		const named = fileProblem(f, FILE_TYPES)
+		const problem = named ?? await sniffedProblem(f, FILE_TYPES)
 		if (problem === 'Not a supported type')
-			return setRefused({ title: `.${kind} is not supported`, note: 'Images and PDF only. The file was not sent.' })
+			return setRefused({ title: named ? `.${kind} is not supported` : 'Not a supported type', note: 'Images and PDF only. The file was not sent.' })
 		if (problem === 'Too large')
 			return setRefused({
 				title: `File is ${Math.ceil(f.size / 1024 / 1024)} MB - too large`,
 				note: `Up to ${MAX_FILE_MB} MB per file. A PDF export or a smaller photo will go through.`
 			})
 		setRefused(null)
+		cancelled.current = false
 		const pdf = isPdf(f)
 		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${dot}${sizeLabel(f.size)}` })
 		sendFile(f, { onSent: sent => setSending(s => (s ? { ...s, sent } : s)) })
 			.then(upload => {
+				if (cancelled.current) return discardScanDocument(upload.key).catch(() => {})
 				invalidate(getScanDraft)
-				navigate(`/orders/new?source=scan&doc=${upload.key}`, { replace: true, state: { upload, from } })
+				navigate(`/orders/new?source=scan&doc=${upload.key}`, { replace: true, state: { upload, from: origin } })
 			})
 			.catch(e => {
 				setSending(null)
@@ -427,7 +434,7 @@ function Start({ scanOnly, file, from, picking }) {
 		send([file])
 	}, [file])
 
-	if (sending) return <Reading file={sending} onCancel={() => navigate('/orders/new?source=scan', { replace: true })} />
+	if (sending) return <Reading file={sending} onCancel={() => { cancelled.current = true; setSending(null); navigate(origin, { replace: true }) }} />
 
 	const copyable = (any.data?.total ?? 0) > 0
 	return (
@@ -540,7 +547,7 @@ function CopyPicker({ onClose }) {
 			<div className="sp-stack sp-gap-12">
 				<div className="sp-stack sp-gap-6">
 					<DialogTitle>Copy a previous order</DialogTitle>
-					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, the copy gets a new order number, and the receipt stays on the original order.</DialogBody>
+					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
 				</div>
 				<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders"
 					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"

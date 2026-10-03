@@ -34,11 +34,11 @@ export function useRecentRecords() {
 
 // a phone keeps the name and one line of detail, without the amount (7b)
 const orderRow = (o, touch) => ({
-	key: 'recent-order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor', open: true, read: [getOrder, [o.id]],
+	key: 'recent-order-' + o.id, icon: 'receipt', name: o.vendor?.name ?? 'No vendor', open: true, read: [getOrder, [o.id]],
 	meta: [o.reference, dayShortMonth(o.date), touch ? null : currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
 })
 const vendorRow = v => ({
-	key: 'recent-vendor-' + v.id, icon: 'shopping-bag', name: v.name, open: true, read: [getVendor, [v.id]],
+	key: 'recent-vendor-' + v.id, icon: 'building-store', name: v.name, open: true, read: [getVendor, [v.id]],
 	meta: 'vendor' + dot + plural(v.orders, 'order'), to: `/vendors/${v.id}/edit`
 })
 
@@ -102,7 +102,7 @@ function shape(needle, list, hits, vendors, touch) {
 		needle,
 		touch,
 		orders: list.orders.map(o => ({
-			key: 'order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor',
+			key: 'order-' + o.id, icon: 'receipt', name: o.vendor?.name ?? 'No vendor',
 			meta: [o.reference, dayShortMonth(o.date)].filter(Boolean).join(dot), value: amount(o.total), to: `/orders/${o.id}`
 		})),
 		ordersCount: list.matched,
@@ -112,7 +112,7 @@ function shape(needle, list, hits, vendors, touch) {
 			// the alias leads: it is why a name without the typed text is here at all (9d)
 			const matched = v.alias ? 'matched ' + v.alias : null
 			return {
-				key: 'vendor-' + v.id, icon: 'shopping-bag', name: v.name, to: `/vendors/${v.id}/edit`,
+				key: 'vendor-' + v.id, icon: 'building-store', name: v.name, to: `/vendors/${v.id}/edit`,
 				// a vendor that looks like another one says so in place of its figures (9b)
 				meta: s?.duplicateOf
 					? <>{matched ? matched + dot : null}<span className="sp-field__help" data-color="warning">possible duplicate</span></>
@@ -172,8 +172,10 @@ const GO = [
 
 // `first` is what the empty palette offers, the rest are found by name; `action` fills the mark (9d)
 const actionsFor = (theme, onShortcuts, overLimit, drafts, scan) => [
-	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', run: scan, first: true, action: true },
-	{ key: 'new', icon: 'plus', name: 'New order', to: '/orders/new', first: true, action: true },
+	scan
+		? { key: 'scan', icon: 'camera', name: 'Scan a receipt', kbd: 'S', run: scan, first: true, action: true }
+		: { key: 'scan', icon: 'camera', name: 'Scan a receipt', meta: 'Available once your email is confirmed', off: true, first: true, action: true },
+	{ key: 'new', icon: 'plus', name: 'New order', kbd: 'N', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
 	...GO.map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
 	{ key: 'add-vendor', icon: 'building-store', name: 'Add a vendor', to: '/vendors/new' },
@@ -247,8 +249,7 @@ function groupsFor(text, found, recent, actions) {
 	].filter(Boolean).map(g => ({ ...g, entries: g.entries.map(e => ({ ...e, match: found.needle })) }))
 
 	if (!records.length && !offered.length) return [
-		{ key: 'none', label: `No matches for ${found.needle}`, entries: [{ ...all(ordersTo(found.needle)), name: 'Search all orders' }] },
-		{ key: 'actions', label: 'Actions', entries: defaults }
+		{ key: 'none', label: `No matches for ${found.needle}`, entries: [{ ...all(ordersTo(found.needle)), name: 'Search all orders' }] }
 	]
 	// actions come first only when the text is the start of a command's name
 	return named.some(a => a.name.toLowerCase().startsWith(lower)) ? [...actionGroup, ...records] : [...records, ...actionGroup]
@@ -281,7 +282,8 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const overLimit = useOverLimit()
 	const drafts = useHasDrafts()
 	const scan = useScanPicker()
-	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts, scan.open))
+	const held = useApi(getCurrentUser).data?.emailConfirmed === false
+	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts, held ? null : scan.open))
 	const flat = groups.flatMap(g => g.entries)
 
 	// the current row goes back to the first whenever the rows change
@@ -306,6 +308,7 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 		if (!touch) back.current?.focus?.()
 	}
 	const run = (entry, newTab) => {
+		if (entry.off) return
 		if (entry.run) { entry.run(); cancel(); return }
 		if (entry.read) forgetOlder(...entry.read, opened)
 		if (newTab) {
@@ -354,7 +357,7 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 				if (e.all) return <PaletteAll key={e.key} {...events}>{e.name}</PaletteAll>
 				return (
 					<PaletteRow key={e.key} icon={e.icon} thumb={e.thumb} plain={e.plain} action={e.action} match={e.match} meta={e.meta}
-						value={e.open && at === index ? 'Open' : e.value} kbd={e.kbd} {...events}>
+						value={e.value} note={e.open && at === index ? 'Open' : undefined} kbd={e.kbd} disabled={e.off} aria-disabled={e.off ? 'true' : undefined} {...events}>
 						{e.name}
 					</PaletteRow>
 				)

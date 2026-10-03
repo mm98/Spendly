@@ -40,6 +40,7 @@ export function BuildCard() {
 	const version = useApi(getVersion)
 	const [state, setState] = useState('rest')
 	const [why, setWhy] = useState(null)
+	const [newest, setNewest] = useState(null)
 	const card = useRef(null)
 
 	useEffect(() => {
@@ -54,6 +55,7 @@ export function BuildCard() {
 		setState('checking')
 		Promise.allSettled([checkVersion(), new Promise(done => setTimeout(done, HOLD_MS))]).then(([answer]) => {
 			if (answer.status === 'rejected') return setState('failed')
+			setNewest(answer.value.latestBuiltAt ? stampOf(answer.value.latestBuiltAt) : null)
 			setState(answer.value.current ? 'current' : answer.value.published ? 'behind' : 'unpublished')
 		})
 	}
@@ -118,7 +120,7 @@ export function BuildCard() {
 						<span className="sp-title sp-ink-warning">A newer version is available.</span>
 						<span className="sp-meta sp-ink-warning">
 							{canUpdate
-								? 'Updating reloads the app. Nothing you have saved is affected.'
+								? `${newest ? `Installed ${newest}. ` : ''}Updating reloads the app; nothing you have saved is affected.`
 								: 'The person who manages your Spendly can install it. Nothing you have saved is affected.'}
 						</span>
 					</Well>

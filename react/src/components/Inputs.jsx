@@ -69,7 +69,7 @@ export function PasswordField({ ...rest }) {
 		<Trailed
 			trail={
 				<Trail
-					label={shown ? 'Hide the password' : 'Show the password'}
+					label="Show password"
 					pressed={shown}
 					onClick={() => setShown(!shown)}
 				>
@@ -254,8 +254,9 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 }
 
 /** Typed values as chips, offering `children` (ComboboxOption) in a panel filtered by `onSearch` (22c);
-    `noun` (plural) names the count read out. `marked` is one token drawn in green (5h). */
-export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, children, ...rest }) {
+    `noun` (plural) names the count read out. `marked` is one token drawn in green (5h); `trails` maps a
+    token to a mark drawn before its remove, as an over-limit category's dot (8b). */
+export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it
 	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
@@ -287,14 +288,15 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 				<Chip
 					key={token}
 					{...(token === marked ? { color: 'success' } : {})}
-					trail={
+					trail={<>
+						{trails?.[token]}
 						<IconButton
 							icon={<Icon name="x" size={9} />}
 							aria-label={`Remove ${token}`}
 							size="small"
 							onClick={() => onChange?.(value.filter(t => t !== token))}
 						/>
-					}
+					</>}
 				>
 					{token}
 				</Chip>

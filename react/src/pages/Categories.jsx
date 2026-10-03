@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { Card } from '../components/Card.jsx'
@@ -7,13 +7,13 @@ import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Gauge } from '../components/Data.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Kbd, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	deleteCategory, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
 } from '../api/client.js'
 import { NUMBER_LOCALE, amountRound, currency, dot, plural } from '../api/format.js'
-import { useShellShape, useWidth } from '../app/useMedia.js'
+import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
 	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
@@ -28,6 +28,10 @@ const SORTS = [
 ]
 // at this width of the list or under, the monthly limit joins the name's second line (5k)
 const FOLD = 880
+// at this width of the list or under, the table becomes cards (5k)
+const CARDS = 900
+// the search drops its shortcut badge at this width of the list or under (15e)
+const KBD = 720
 
 // Settings' shared sort in this list's terms: spend here is the month's, and a category saves nothing
 const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
@@ -45,18 +49,20 @@ function MonthGauge({ category, pace, split = false }) {
 	return <Gauge thin value={(spend / budget) * 100} marker={pace.at} aria-label="Share of the limit used" />
 }
 
-function MonthLine({ category }) {
+function MonthLine({ category, pace }) {
 	const { monthSpend: spend, budget } = category
 	if (!(budget > 0)) return <span className="sp-meta">{currency(spend, 0)} spent</span>
 	if (spend > budget)
 		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{amountRound(spend - budget)} over</span>
+	// ahead of pace only past ten points over the marker (5i)
+	if ((spend / budget) * 100 > pace.at + 10)
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}ahead of pace</span>
 	return <span className="sp-meta">{currency(spend, 0)}{dot}{amountRound(budget - spend)} left</span>
 }
 
 /** Categories (5d): each one against its monthly limit, opened for editing from its row. */
 export default function Categories() {
 	const touch = useShellShape() === 'touch'
-	const navigate = useNavigate()
 	const toast = useToast()
 	const state = useApi(getCategoriesThisMonth)
 	const settings = useApi(getSettings).data
@@ -74,7 +80,8 @@ export default function Categories() {
 	const [busy, setBusy] = useState(false)
 	const column = useRef(null)
 	const width = useWidth(column)
-	const folded = !touch && width > 0 && width <= FOLD
+	const cards = touch || (width > 0 && width <= CARDS)
+	const folded = !cards && width > 0 && width <= FOLD
 	const pace = monthPace()
 	// a page of rows per Load more, kept for Back along with the scroll
 	const { pages, setPages, restored } = useListMemory(`categories?${query}&${sort.id}`)
@@ -127,7 +134,8 @@ export default function Categories() {
 	const bar = (
 		<Controls ref={column}>
 			{touch ? null : (
-				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" />
+				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories"
+					kbd={width > KBD ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined} />
 			)}
 			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
 			{touch
@@ -138,7 +146,7 @@ export default function Categories() {
 
 	let body
 	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
-	else if (!state.data) body = <CategoriesLoading touch={touch} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
+	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
 		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
 	else if (!all.length) body = (
 		<Card>
@@ -157,7 +165,7 @@ export default function Categories() {
 			</Empty>
 		</Card>
 	)
-	else if (touch) body = (
+	else if (cards) body = (
 		<>
 			{shown.map(c => {
 				const over = c.budget > 0 && c.monthSpend > c.budget
@@ -204,7 +212,7 @@ export default function Categories() {
 					<ListCell key="m">
 						<div className="sp-stack sp-gap-6 sp-right">
 							<MonthGauge category={c} pace={pace} split />
-							<MonthLine category={c} />
+							<MonthLine category={c} pace={pace} />
 						</div>
 					</ListCell>,
 					folded ? null : (
@@ -220,8 +228,8 @@ export default function Categories() {
 								? box => <MergePicker kind="category" source={c} options={all} anchor={box} onClose={() => setPicking(null)}
 									onPick={target => { setPicking(null); setMerging({ source: c, target }) }} />
 								: null}>
-							<MenuItem icon="external-link" onClick={() => navigate(`/orders?category=${c.id}`)}>Open in the order list</MenuItem>
-							<MenuItem icon="pencil" onClick={() => navigate(`/categories/${c.id}/edit`)}>Edit category</MenuItem>
+							<MenuItem icon="external-link" to={`/orders?category=${c.id}`}>Open in the order list</MenuItem>
+							<MenuItem icon="pencil" to={`/categories/${c.id}/edit`}>Edit category</MenuItem>
 							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(c.id) }}>Merge into…</MenuItem>
 							<MenuSeparator />
 							<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
@@ -249,10 +257,10 @@ export default function Categories() {
 const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc', '92']]
 
 /* A page of rows held at the loaded rows' places (6b), so nothing moves when the categories land. */
-function CategoriesLoading({ touch, size, month, limit, folded }) {
+function CategoriesLoading({ cards, size, month, limit, folded }) {
 	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
 	const gauge = <Held shape={<Gauge thin untargeted value={0} aria-label="No limit set" />} />
-	if (touch) return rows.map(({ id, w }) => (
+	if (cards) return rows.map(({ id, w }) => (
 		<Card key={id} aria-busy="true">
 			<div className="sp-cell-flex">
 				<Skeleton shape="mark" />

@@ -757,8 +757,8 @@ export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
 
-/** The running build against the newest published one: { current, published, commit }. The
-    server asks the registry, which a browser cannot. */
+/** The running build against the newest published one, asked of the registry by the server:
+    { current, published, commit, latestBuiltAt }, the last null when it is this one or unknown. */
 export async function checkVersion(signal) {
 	return request('/api/version/check', { signal })
 }
@@ -774,7 +774,8 @@ export async function saveSettings(patch, signal) {
 }
 
 /** Replaces the ledger with `orders` demo orders over the last `months`; `onRows(done, total)` hears
-    its progress. A timed-out wait does not stop the server, so a late fill has still happened. */
+    its progress. A timed-out wait does not stop the server, so a late fill has still happened. A failure
+    after the old ledger was removed carries `landed` in its body: the orders it kept. */
 export async function populateDemoData(orders, months, { signal, onRows } = {}) {
 	return uploadJson('/api/demo-data?progress=stream', { orders, months }, {
 		signal: signal ?? AbortSignal.timeout(120000),

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
@@ -73,8 +74,25 @@ export function Menu({ position, scrolls = false, children, ...rest }) {
 		ev.stopPropagation()
 		items[(to + items.length) % items.length].focus()
 	}
+	// a submenu hands the keys back to its item; the open menu's own Escape listens on a box above it
+	const box = useRef(null)
+	useEffect(() => {
+		const sub = box.current
+		if (position !== 'sub' || !sub) return
+		const back = ev => {
+			if (ev.key !== 'ArrowLeft' && ev.key !== 'Escape') return
+			// in the submenu's search field the left arrow moves the caret until it is at the start
+			if (ev.key === 'ArrowLeft' && ev.target.selectionStart > 0) return
+			ev.preventDefault()
+			ev.stopPropagation()
+			sub.parentElement?.querySelector(':scope > .sp-menu__item')?.focus()
+		}
+		sub.addEventListener('keydown', back)
+		return () => sub.removeEventListener('keydown', back)
+	}, [position])
 	const menu = (
 		<menu
+			ref={box}
 			className={join('sp-menu', sheet ? 'sp-menu--plain' : position && pick(MENU, position, 'position', 'Menu'), scrolls && !sheet && 'sp-menu--scrolls')}
 			role="menu"
 			onKeyDown={keys}
@@ -131,7 +149,7 @@ function fitSubmenu(item) {
 	if (r.height > room) Object.assign(sub.style, { maxHeight: room + 'px', overflowY: 'auto' })
 }
 
-export function MenuItem({ icon, onClick, disabled = false, danger = false, dot, selected, children, ...rest }) {
+export function MenuItem({ icon, to, onClick, disabled = false, danger = false, dot, selected, children, ...rest }) {
 	reject(rest, 'MenuItem')
 	// the nested menu is a child, not a prop: one of these children is a Menu and the
 	// rest is the label, which is how the markup reads and how the DOM nests it
@@ -149,6 +167,33 @@ export function MenuItem({ icon, onClick, disabled = false, danger = false, dot,
 		if (!submenu) menuTrigger(ev.currentTarget)?.focus()
 		onClick?.(ev)
 	}
+	const enter = ev => {
+		if (ev.key !== 'ArrowRight' && ev.key !== 'Enter') return
+		ev.preventDefault()
+		ev.stopPropagation()
+		fitSubmenu(ev.currentTarget)
+		setSubOpen(true)
+		// the key opens it at once, without the wait a passing pointer gets; hidden, it takes no focus
+		const sub = ev.currentTarget.nextElementSibling
+		sub.getAnimations().forEach(a => a.finish())
+		sub.querySelector(':scope > li > input, :scope > li > * > input, :scope > li > .sp-menu__item:not(:disabled)')?.focus()
+	}
+	const body = <>
+		{dot ? <span className="sp-combobox__dot" data-dot={dot} /> : null}
+		{icon ? <Icon name={icon} size={15} /> : null}
+		{label}
+		{selected ? <><span className="sp-grow" /><span className="sp-combobox__check"><Icon name="check" size={13} /></span></> : null}
+	</>
+	// a page the item goes to is a link, so a middle click or a new tab works; Space acts like on the button.
+	// The stylesheet has no a.sp-menu__item rule, so the link's underline is taken off here.
+	if (to && !submenu && !disabled) return (
+		<li role="none">
+			<Link to={to} className={join('sp-menu__item', danger && 'sp-ink-danger')} style={{ textDecoration: 'none' }} role="menuitem" onClick={act}
+				onKeyDown={ev => { if (ev.key === ' ') { ev.preventDefault(); ev.currentTarget.click() } }} {...rest}>
+				{body}
+			</Link>
+		</li>
+	)
 	return (
 		<li className={submenu ? 'sp-anchor' : undefined} role="none">
 			<button
@@ -158,14 +203,11 @@ export function MenuItem({ icon, onClick, disabled = false, danger = false, dot,
 				onClick={act}
 				disabled={disabled}
 				{...(submenu ? { 'aria-haspopup': 'menu', 'aria-expanded': subOpen ? 'true' : 'false' } : {})}
-				{...(submenu ? { onMouseEnter: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) }, onMouseLeave: () => setSubOpen(false), onFocus: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) } } : {})}
+				{...(submenu ? { onMouseEnter: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) }, onMouseLeave: () => setSubOpen(false), onFocus: ev => { fitSubmenu(ev.currentTarget); setSubOpen(true) }, onKeyDown: enter } : {})}
 				{...(selected === undefined ? {} : { 'aria-selected': selected ? 'true' : 'false' })}
 				{...rest}
 			>
-				{dot ? <span className="sp-combobox__dot" data-dot={dot} /> : null}
-				{icon ? <Icon name={icon} size={15} /> : null}
-				{label}
-				{selected ? <><span className="sp-grow" /><span className="sp-combobox__check"><Icon name="check" size={13} /></span></> : null}
+				{body}
 			</button>
 			{submenu}
 		</li>

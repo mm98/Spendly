@@ -1,21 +1,19 @@
-import { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router'
-import { Card, Panel } from '../components/Card.jsx'
+import { useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
+import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
-import { Alert, useToast } from '../components/Overlays.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
-import {
-	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, invalidateOrderData
-} from '../api/client.js'
-import { dot, plural, shortDate, today } from '../api/format.js'
-import { draftOf } from './OrderForm.jsx'
+import { attachmentFileUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
+import { dot, shortDate, today } from '../api/format.js'
+import { useStacked } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
+import { useFolded } from '../app/folded.js'
 import { useShellShape } from '../app/useMedia.js'
 import { OverLimitDot, StatusPill, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
@@ -29,81 +27,27 @@ import { DeleteOrder } from './DeleteOrder.jsx'
 
 export default function Order() {
 	const { id } = useParams()
-	const location = useLocation()
-	const navigate = useNavigate()
 	// off once the order is deleted, so the page never asks for it again on its way out
 	const [gone, setGone] = useState(false)
-	// what the create screen handed over, taken once so a reload or a return does not offer Undo again
-	const [created] = useState(() => (location.state?.created?.id === id ? location.state.created : null))
-	useEffect(() => {
-		if (location.state?.created) navigate(location.pathname, { replace: true, state: null })
-	}, [])
 	const state = useApi(getOrder, [id], { enabled: !gone })
 	const touch = useShellShape() === 'touch'
 	const order = state.data?.id === id ? state.data : null
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
 	if (!order) return <OrderLoading />
-	return <OrderView key={order.id} order={order} touch={touch} created={created} onGone={() => setGone(true)} />
+	return <OrderView key={order.id} order={order} touch={touch} onGone={() => setGone(true)} />
 }
 
-/** The saved state's notice (3a): where the order came from, and Undo, which deletes it and goes
-    back to the screen it was created from. */
-function Created({ order, created, touch, onGone }) {
-	const navigate = useNavigate()
-	const toast = useToast()
-	const [busy, setBusy] = useState(false)
-	const undo = () => {
-		setBusy(true)
-		deleteOrder(order.id)
-			.then(() => {
-				onGone()
-				invalidateOrderData()
-				if (created.documentKey) navigate(`/orders/new?source=scan&doc=${created.documentKey}`, { replace: true })
-				else {
-					const draft = draftOf(order)
-					const lines = draft.lines.map(({ id, photo, ...line }) => ({ ...line, key: `undo-${id}` }))
-					navigate('/orders/new?source=empty', { replace: true, state: { seed: { ...draft, lines, reference: created.reference } } })
-				}
-				toast({ message: created.documentKey ? 'The order was not kept. The receipt is back for you to check.' : 'The order was not kept. What you typed is back in the form.' })
-			})
-			.catch(e => {
-				setBusy(false)
-				toast({ message: failureMessage(e, 'The order was not removed. Try again.'), color: 'danger' })
-			})
-	}
-	const files = order.attachments.length + order.items.filter(i => i.attachments?.length).length - (created.documentKey ? 1 : 0)
-	const said = [
-		created.file ? 'The receipt is kept as an attachment.' : null,
-		files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
-	].filter(Boolean).join(' ') || null
-	const undoButton = <Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>
-	// after a scan the next receipt is one click away (16a: open the order or scan another)
-	const actions = created.documentKey
-		? <span className="sp-row-flex sp-gap-8">{undoButton}<Button variant="outline" size="small" to="/orders/new?source=scan">Scan another</Button></span>
-		: undoButton
-	// a phone's notice is too narrow for words and two buttons side by side, so the buttons go under the words
-	const under = touch && created.documentKey
-	return (
-		<div className="or-span">
-			<Alert color="success" mark={<Icon name="check" size={12} />}
-				title={created.draft
-					? (created.file ? `Saved as a draft from ${created.file}.` : 'Saved as a draft.')
-					: (created.file ? `Order created from ${created.file}.` : 'Order created.')}
-				action={actions} below={under}>
-				{said}
-			</Alert>
-		</div>
-	)
-}
-
-function OrderView({ order, touch, created, onGone }) {
+function OrderView({ order, touch, onGone }) {
 	const navigate = useNavigate()
 	const list = useListReturn('orders')
 	const [viewing, setViewing] = useState(null)
 	const [asking, setAsking] = useState(false)
 	const files = filesOf(order)
 	const open = key => setViewing(files.findIndex(f => f.key === key))
+	const column = useRef(null)
+	const stacked = useStacked(column)
+	const [folded, setFolded] = useFolded('order', 'details', true)
 
 	const items = (
 		<Card>
@@ -162,19 +106,35 @@ function OrderView({ order, touch, created, onGone }) {
 		)
 		: null
 
-	const details = (
-		<Card>
-			<span className="sp-section-label">Order details</span>
-			<div className="sp-stack">
-				<Sum value={order.vendor?.name}>Vendor</Sum>
-				<Sum value={shortDate(order.date)}>Date</Sum>
-				<Sum value={order.kind}>Kind</Sum>
-				<Sum value={<OrderCategories order={order} />}>Categories</Sum>
-				{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
-				{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
-			</div>
-		</Card>
+	const sums = (
+		<div className="sp-stack">
+			<Sum value={order.vendor?.name}>Vendor</Sum>
+			<Sum value={shortDate(order.date)}>Date</Sum>
+			<Sum value={order.kind}>Kind</Sum>
+			<Sum value={<OrderCategories order={order} />}>Categories</Sum>
+			{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
+			{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
+		</div>
 	)
+	// in one column the details fold to a line above the items (18b)
+	const details = stacked
+		? (
+			<Card variant="flush">
+				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)} chevron={<Icon name="chevron-down" />}>
+					<span className="sp-stacked">
+						<span className="sp-title sp-truncate">Order details</span>
+						<span className="sp-meta sp-truncate">{[order.categories.map(c => c.name).join(', '), order.kind, order.reference].filter(Boolean).join(dot)}</span>
+					</span>
+				</Toolbar>
+				<CardBody>{sums}</CardBody>
+			</Card>
+		)
+		: (
+			<Card>
+				<span className="sp-section-label">Order details</span>
+				{sums}
+			</Card>
+		)
 
 	const totals = (
 		<Card
@@ -207,9 +167,8 @@ function OrderView({ order, touch, created, onGone }) {
 
 	return (
 		<>
-			{created ? <Created order={order} created={created} touch={touch} onGone={onGone} /> : null}
-			<div className="sp-stack sp-gap-12">{items}{attachments}</div>
-			<Panel>{details}{totals}{dialog}{viewer}</Panel>
+			<div className="sp-stack sp-gap-12" ref={column}>{stacked ? details : null}{items}{attachments}</div>
+			<Panel>{stacked ? null : details}{totals}{dialog}{viewer}</Panel>
 		</>
 	)
 }

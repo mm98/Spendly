@@ -5,12 +5,10 @@ import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { useToast } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { useReorder } from '../components/Reorder.js'
 import { Skeleton } from '../components/Utilities.jsx'
-import { addStatus, changeStatus, deleteStatus, failureMessage, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
-import { useApi } from '../api/useApi.js'
+import { addStatus, changeStatus, deleteStatus, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { TONES } from '../app/statuses.js'
 import { Heading } from './SettingsParts.jsx'
@@ -23,21 +21,40 @@ const StatusLook = ({ tone, children }) => {
 	return <Pill color={look.color} state={look.state} truncate>{children}</Pill>
 }
 
-/** Statuses (11a), each saved as made: a row moves by drag or keys (on a phone by up and down buttons,
-    18b), the pencil renames and recolours, a status no order carries can be deleted; Draft is built in. */
-export function StatusesCard({ touch = false }) {
-	const loaded = useApi(getStatuses)
-	const toast = useToast()
-	const [list, setList] = useState(null)
-	useEffect(() => { if (loaded.data) setList(loaded.data) }, [loaded.data])
+// a list equal to the stored one in these is no change, so the save bar goes again
+const sameAs = (a, b) => JSON.stringify(a.map(s => [s.key, s.name, s.tone])) === JSON.stringify(b.map(s => [s.key, s.name, s.tone]))
+
+/** Writes `after` over what is stored now, so a save that stopped partway can be sent again. A new
+    status has a `new-` key and `fresh` until stored; names are unique, so it is found again by name. */
+export async function saveStatuses(after) {
+	let stored = await getStatuses()
+	const named = a => stored.find(s => s.name.toLowerCase() === a.name.toLowerCase())
+	for (const gone of stored.filter(s => !after.some(a => a.key === s.key)))
+		stored = await deleteStatus(gone.key)
+	for (const s of after.filter(a => stored.some(b => b.key === a.key && (b.name !== a.name || b.tone !== a.tone))))
+		stored = await changeStatus(s.key, { name: s.name, tone: s.tone })
+	for (const s of after.filter(a => a.fresh && !named(a)))
+		stored = await addStatus({ name: s.name, tone: s.tone })
+	const keys = after.map(a => (a.fresh ? named(a)?.key : a.key))
+	if (keys.join('\n') !== stored.map(s => s.key).join('\n')) stored = await orderStatusesAs(keys)
+	invalidateOrderData()
+	return stored
+}
+
+/** Statuses (11a): every move, rename, delete and new status waits for the page's save bar.
+    `value('statuses')` is the list as edited, `saved` as stored; Draft is built in. */
+export function StatusesCard({ value, change, saved, touch = false }) {
+	const list = value('statuses') ?? null
 	const [editing, setEditing] = useState(null)
 	const [said, setSaid] = useState('')
+	const made = useRef(0)
+	const edit = next => change('statuses', saved && sameAs(next, saved) ? saved : next)
 	// a phone moves a status with its up and down buttons, so the handle is the desktop's (18b)
 	const reorder = useReorder({
 		items: list ?? [],
 		keyOf: status => status.key,
 		nameOf: status => status.name,
-		onMove: next => write(() => orderStatusesAs(next.map(s => s.key)), next)
+		onMove: edit
 	})
 	const rows = reorder.list.ref
 	// the row and the way it was last moved by a button, so focus can follow it to its new place
@@ -52,20 +69,6 @@ export function StatusesCard({ touch = false }) {
 		rows.current?.querySelector(`[data-status="${CSS.escape(last.key)}"] [data-move="${way}"]`)?.focus()
 	}, [list])
 
-	const write = async (send, optimistic) => {
-		if (optimistic) setList(optimistic)
-		try {
-			const fresh = await send()
-			setList(fresh)
-			invalidateOrderData()
-			return true
-		} catch (e) {
-			toast({ message: failureMessage(e, 'That was not saved. Try again.'), color: 'danger' })
-			loaded.refresh()
-			return false
-		}
-	}
-
 	if (!list)
 		return (
 			<Card>
@@ -76,22 +79,22 @@ export function StatusesCard({ touch = false }) {
 			</Card>
 		)
 
-	const moveTo = (status, to) => {
-		const from = list.findIndex(s => s.key === status.key)
-		if (to === from || to < 0 || to >= list.length) return
-		const next = [...list]
-		next.splice(to, 0, next.splice(from, 1)[0])
-		write(() => orderStatusesAs(next.map(s => s.key)), next)
-	}
 	const step = (status, way) => {
 		const at = list.findIndex(s => s.key === status.key)
+		const to = at + (way === 'up' ? -1 : 1)
+		if (to < 0 || to >= list.length) return
+		const next = [...list]
+		next.splice(to, 0, next.splice(at, 1)[0])
 		moved.current = { key: status.key, way }
-		moveTo(status, at + (way === 'up' ? -1 : 1))
-		setSaid(`${status.name}, position ${at + (way === 'up' ? 0 : 2)} of ${list.length}`)
+		edit(next)
+		setSaid(`${status.name}, position ${to + 1} of ${list.length}`)
 	}
-
-	const remove = status => write(() => deleteStatus(status.key), list.filter(s => s.key !== status.key))
-		.then(ok => { if (ok) toast({ message: `${status.name} was deleted.` }) })
+	const remove = status => edit(list.filter(s => s.key !== status.key))
+	const keep = (status, next) => {
+		edit(status ? list.map(s => (s.key === status.key ? { ...s, ...next } : s))
+			: [...list, { key: `new-${++made.current}`, ...next, orders: 0, fresh: true }])
+		setEditing(null)
+	}
 
 	return (
 		<Card footer={editing === 'new' ? null : <Button variant="outline" onClick={() => setEditing('new')}>Add a status</Button>}
@@ -107,8 +110,7 @@ export function StatusesCard({ touch = false }) {
 					<Fragment key={status.key}>
 						{reorder.lands(status) ? <Insertion /> : null}
 						{editing === status.key
-							? <StatusEditor status={status} onCancel={() => setEditing(null)}
-								onSave={next => write(() => changeStatus(status.key, next)).then(ok => { if (ok) setEditing(null) })} />
+							? <StatusEditor status={status} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
 							: (
 								<ListItem variant={reorder.variant(status)}
 									handle={touch ? undefined : <Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
@@ -132,10 +134,16 @@ export function StatusesCard({ touch = false }) {
 										? <Pill>built in</Pill>
 										: (
 											<>
-												{status.orders ? null : <IconButton icon="trash" aria-label={`Delete ${status.name}`} onClick={() => remove(status)} />}
 												<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
 													<Icon name="pencil" size={14} />
 												</Mark>
+												{status.orders
+													? null
+													: (
+														<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
+															<Icon name="trash" size={14} />
+														</Mark>
+													)}
 											</>
 										)}
 									{touch
@@ -153,8 +161,7 @@ export function StatusesCard({ touch = false }) {
 					</Fragment>
 				))}
 				{editing === 'new'
-					? <StatusEditor onCancel={() => setEditing(null)}
-						onSave={next => write(() => addStatus(next)).then(ok => { if (ok) setEditing(null) })} />
+					? <StatusEditor onCancel={() => setEditing(null)} onSave={next => keep(null, next)} />
 					: null}
 			</div>
 		</Card>
@@ -165,14 +172,11 @@ export function StatusesCard({ touch = false }) {
 function StatusEditor({ status, onCancel, onSave }) {
 	const [name, setName] = useState(status?.name ?? '')
 	const [tone, setTone] = useState(status?.tone ?? 'neutral')
-	const [busy, setBusy] = useState(false)
 	const field = useRef(null)
 	useEffect(() => { field.current?.focus() }, [])
 	const empty = !name.trim()
 	const save = () => {
-		if (empty) return
-		setBusy(true)
-		Promise.resolve(onSave({ name: name.trim(), tone })).finally(() => setBusy(false))
+		if (!empty) onSave({ name: name.trim(), tone })
 	}
 	return (
 		<ListItem variant="outline" selected>
@@ -188,8 +192,8 @@ function StatusEditor({ status, onCancel, onSave }) {
 				))}
 			</div>
 			<div className="sp-row-flex sp-gap-8 sp-flex-none">
-				<Button variant="outline" size="small" disabled={busy} onClick={onCancel}>Cancel</Button>
-				<Button size="small" disabled={busy || empty} onClick={save}>Save</Button>
+				<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
+				<Button size="small" disabled={empty} onClick={save}>Save</Button>
 			</div>
 		</ListItem>
 	)
