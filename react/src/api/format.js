@@ -141,12 +141,16 @@ const sampleFormat = formatter({ dateStyle: 'short', timeStyle: 'short' })
 const shortMonthFormat = formatter({ month: 'short' })
 const longMonthFormat = formatter({ month: 'long' })
 
-/** The twelve month names in the reader's own locale: short ones head a column, long ones are
-    what a screen reader says. A locale's closing full stop ("okt.") is left off a heading. */
-export const monthNames = (style = 'short') => Array.from({ length: 12 }, (_, m) => {
+/** The twelve month names in the reader's own locale; a short one drops its closing full stop ("okt.").
+    `head` is a month that stands alone or starts a label: capitalised in every locale, unlike running text. */
+export const monthNames = (style = 'short', head = false) => Array.from({ length: 12 }, (_, m) => {
 	const name = (style === 'long' ? longMonthFormat : shortMonthFormat)().format(new Date(2026, m, 1))
-	return style === 'long' ? name : name.replace(/\.$/, '')
+	const shown = style === 'long' ? name : name.replace(/\.$/, '')
+	return head ? capitalised(shown) : shown
 })
+
+/** "august" -> "August": the first letter in the reader's own locale's capital. */
+export const capitalised = text => text.charAt(0).toLocaleUpperCase(activeLocale) + text.slice(1)
 
 const dateOf = iso => {
 	const [y, m, d] = String(iso).split('-').map(Number)

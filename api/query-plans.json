@@ -873,6 +873,15 @@
 				"idx_orders_user_discount"
 			]
 		},
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.import_id = @importId": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_import (import_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_import"
+			]
+		},
 		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ot.kind = @kind": {
 			"plan": [
 				"SEARCH ot USING COVERING INDEX idx_orders_user_kind (user_id=? AND kind=?)"
@@ -1280,6 +1289,15 @@
 			"findings": [],
 			"indexes": [
 				"idx_categories_user"
+			]
+		},
+		"SELECT id, created_at, undone_at FROM imports WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH imports USING INDEX sqlite_autoindex_imports_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_imports_1"
 			]
 		},
 		"SELECT id, date FROM order_statuses WHERE order_id = ? AND status = ?": {
@@ -2319,6 +2337,18 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ot.import_id = @importId ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_import (import_id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_import"
+			]
+		},
 		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ot.kind = @kind ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_kind (user_id=? AND kind=?)",
@@ -3001,7 +3031,7 @@
 			"columns": [
 				"import_id"
 			],
-			"readers": 0
+			"readers": 2
 		},
 		"idx_orders_user_date": {
 			"table": "orders",

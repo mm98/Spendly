@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { IconButton } from '../components/Button.jsx'
 import { Check, Choice } from '../components/Choice.jsx'
@@ -45,6 +45,10 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 	// what the category ticks have changed since the menu opened, so one toast undoes them all
 	const changes = useRef({ added: [], removed: [] })
 	const [has, setHas] = useState(() => new Set(order.categories.map(c => c.id)))
+	// Create with nothing typed brings the search forward, since the typed name is what it creates
+	const [naming, setNaming] = useState(0)
+	const search = useRef(null)
+	useEffect(() => { if (naming) search.current?.focus() }, [naming])
 
 	const go = to => () => { close(); navigate(to) }
 	const fail = (e, what) => toast({ message: failureMessage(e, what), color: 'danger' })
@@ -65,6 +69,21 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 			.catch(e => fail(e, 'The status was not changed. Try again.'))
 	}
 
+	// one toast for every category change since the menu opened, so its Undo takes them all back
+	const report = () => {
+		const { added, removed } = changes.current
+		const words = [added.length ? `Added ${added.map(x => x.name).join(', ')}.` : '', removed.length ? `Removed ${removed.map(x => x.name).join(', ')}.` : ''].filter(Boolean).join(' ')
+		if (!words) return
+		const add = removed.map(x => x.name), remove = added.map(x => x.id)
+		toast({
+			message: words,
+			undo: {
+				onClick: () => changeOrders({ ids: [order.id], addCategories: add, removeCategories: remove })
+					.then(invalidateOrderData, e => fail(e, 'The categories were not changed back. Try again.'))
+			}
+		})
+	}
+
 	const tick = (category, on) => {
 		const next = new Set(has)
 		if (on) next.add(category.id); else next.delete(category.id)
@@ -72,21 +91,25 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 		const c = changes.current
 		if (on) { c.removed = c.removed.filter(x => x.id !== category.id); if (!order.categories.some(x => x.id === category.id)) c.added.push(category) }
 		else { c.added = c.added.filter(x => x.id !== category.id); if (order.categories.some(x => x.id === category.id)) c.removed.push(category) }
-		const added = [...c.added], removed = [...c.removed]
 		changeOrders(on ? { ids: [order.id], addCategories: [category.name] } : { ids: [order.id], removeCategories: [category.id] })
-			.then(() => {
-				invalidateOrderData()
-				const words = [added.length ? `Added ${added.map(x => x.name).join(', ')}.` : '', removed.length ? `Removed ${removed.map(x => x.name).join(', ')}.` : ''].filter(Boolean).join(' ')
-				if (!words) return
-				toast({
-					message: words,
-					undo: {
-						onClick: () => changeOrders({ ids: [order.id], addCategories: removed.map(x => x.name), removeCategories: added.map(x => x.id) })
-							.then(invalidateOrderData, e => fail(e, 'The categories were not changed back. Try again.'))
-					}
-				})
-			})
+			.then(() => { invalidateOrderData(); report() })
 			.catch(e => fail(e, 'The category was not changed. Try again.'))
+	}
+
+	// the server makes the category from its name; its id is read back so the tick and Undo can use it
+	const create = name => {
+		setFind('')
+		changeOrders({ ids: [order.id], addCategories: [name] })
+			.then(async () => {
+				invalidateOrderData()
+				categories.refresh()
+				const made = (await getCategories()).find(c => c.name.toLowerCase() === name.toLowerCase())
+				if (!made) return
+				setHas(h => new Set(h).add(made.id))
+				changes.current.added.push(made)
+				report()
+			})
+			.catch(e => fail(e, 'The category was not made. Try again.'))
 	}
 
 	const statusItems = statuses.map(s => (
@@ -99,11 +122,14 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 	))
 
 	const all = categories.data ?? []
-	const shown = find ? all.filter(c => c.name.toLowerCase().includes(find.toLowerCase())) : all
+	const typed = find.trim()
+	const needle = typed.toLowerCase()
+	const shown = needle ? all.filter(c => c.name.toLowerCase().includes(needle)) : all
+	const known = all.some(c => c.name.toLowerCase() === needle)
 	const categoryItems = (
 		<>
-			{all.length >= SEARCH_FROM
-				? <li role="none"><SearchInput value={find} onChange={setFind} placeholder="Find a category…" aria-label="Find a category" /></li>
+			{all.length >= SEARCH_FROM || naming > 0
+				? <li role="none"><SearchInput inputRef={search} value={find} onChange={setFind} placeholder="Find a category…" aria-label="Find a category" /></li>
 				: null}
 			{/* the search and Create stay put; only the categories between them scroll, as 2a's picker does */}
 			<li role="none" className="sp-popover__list">
@@ -116,7 +142,9 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 				))}
 			</li>
 			<MenuSeparator />
-			<MenuItem icon="plus" onClick={go(`/categories/new?for=${order.id}${find ? `&name=${encodeURIComponent(find)}` : ''}`)}>Create a category</MenuItem>
+			{needle && !known
+				? <MenuItem icon="plus" onClick={() => create(typed)}><span><strong>Create "{typed}"</strong> as a new category</span></MenuItem>
+				: <MenuItem icon="plus" onClick={() => setNaming(n => n + 1)}>Create a category</MenuItem>}
 		</>
 	)
 

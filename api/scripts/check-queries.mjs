@@ -215,6 +215,9 @@ replaceYears(USER, [2024, 2025, 2026].map(fixtureBudget), fixtureAccounts)
 for (let i = 0; i < NEIGHBOURS; i++)
 	replaceYears(`u-neighbour${String(i).padStart(6, '0')}`, [fixtureBudget(2026)], fixtureAccounts)
 
+// one import on record, so the single-import read answers rather than 404s
+db.prepare('INSERT INTO imports (id, user_id, file_name, created_at) VALUES (?, ?, ?, ?)').run('im-fixture', USER, 'fixture.csv', 1)
+
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
 db.exec('ANALYZE')
@@ -249,7 +252,7 @@ const REQUESTS = [
 	'/orders?pageSize=6&with=itemTitles', '/orders/draft', `/orders/${ids.order}`,
 	'/orders?pageSize=25&with=rows', '/orders?pageSize=1&with=facets',
 	`/orders?pageSize=1&with=facets&status=Delivered,Ordered&vendorId=${ids.vendor},v-main-1&categoryId=${ids.category},none`,
-	'/orders?receipt=missing', '/orders?receipt=attached&files=1&discounted=1',
+	'/orders?receipt=missing', '/orders?receipt=attached&files=1&discounted=1', '/orders?importId=im-fixture',
 	'/orders/lines', '/orders/lines?status=Delivered&sort=amount-desc', '/orders/lines?sort=vendor-asc',
 	`/orders/lines?ids=${ids.order}&sort=date-desc`, '/orders/impact', '/orders/impact?status=Delivered&from=2026-01-01',
 	`/orders/impact?ids=${ids.order}`,
@@ -268,7 +271,7 @@ const REQUESTS = [
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/settings', '/imports', '/statuses', '/views',
+	'/settings', '/imports', '/imports/im-fixture', '/statuses', '/views',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links'
 ]
@@ -319,6 +322,7 @@ for (const [method, path, body] of [
 	['POST', '/orders', { ...asSaved, items: asSaved.items.map(({ id, ...i }) => i), clientKey: 'check-post' }],
 	['POST', '/orders/bulk', { ids: [ids.order], status: 'Returned', addCategories: ['Bulk'], removeCategories: [ids.category] }],
 	['POST', '/orders/bulk', { ids: [ids.order], status: 'Delivered', deliveredToday: true }],
+	['POST', '/orders/bulk', { restore: [{ id: ids.order, status: 'Ordered', events: [{ status: 'Ordered', date: 1 }] }] }],
 	['POST', '/statuses', { name: 'Waiting', tone: 'progress' }],
 	['PATCH', '/statuses/Delivered', { name: 'Received' }],
 	['DELETE', '/statuses/Cancelled'],

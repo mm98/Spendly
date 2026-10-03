@@ -11,8 +11,11 @@ const parse = s => {
 	const at = new Date(y, m - 1, d)
 	return Number.isNaN(at.getTime()) ? null : at
 }
-const monthName = (year, month, locale) =>
-	new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(year, month, 1))
+// a calendar's heading starts with its month, capitalised in every locale
+const monthName = (year, month, locale) => {
+	const name = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(year, month, 1))
+	return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1)
+}
 
 const weekdays = locale => {
 	const first = firstDayOfWeek(locale)

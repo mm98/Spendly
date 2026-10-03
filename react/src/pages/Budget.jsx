@@ -240,7 +240,7 @@ const LOADING_GROUPS = { income: [2], expense: [4, 3] }
 function MonthsLoading({ touch }) {
 	const card = useRef(null)
 	const count = useMonthsThatFit(card, touch)
-	const short = useMemo(() => monthNames('short'), [])
+	const short = useMemo(() => monthNames('short', true), [])
 	const stepper = <PeriodWindow unit="month" label={bar('82', '13')} previousLabel="Earlier month" nextLabel="Later month" />
 	const well = key => (
 		<Well key={key}>
@@ -292,7 +292,7 @@ function MonthsLoading({ touch }) {
 }
 
 function SheetLoading({ touch }) {
-	const short = useMemo(() => monthNames('short'), [])
+	const short = useMemo(() => monthNames('short', true), [])
 	const figures = n => Array.from({ length: n }, (_, m) => <td key={m} className="sp-col-number">{bar('52', '11')}</td>)
 	const label = (key, text) => <tr key={key}><td colSpan={MONTHS + 4}><span className="sp-section-label">{text}</span></td></tr>
 	return (
@@ -599,8 +599,9 @@ function useMonthsThatFit(ref, touch) {
 }
 
 function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete }) {
-	const short = useMemo(() => monthNames('short'), [])
+	const short = useMemo(() => monthNames('short', true), [])
 	const long = useMemo(() => monthNames('long'), [])
+	const head = useMemo(() => monthNames('long', true), [])
 	const card = useRef(null)
 	const count = useMonthsThatFit(card, touch)
 	const thisMonth = nowMonthOf(sheet.year)
@@ -612,7 +613,7 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 	const reveal = m => { if (m < from || m >= from + count) go(m) }
 	const amounts = useAmounts(sheet, write, long, reveal)
 	const stepper = (
-		<PeriodWindow unit="month" label={count === 1 ? long[from] : `${short[from]} to ${short[from + 1]}`}
+		<PeriodWindow unit="month" label={count === 1 ? head[from] : `${short[from]} to ${short[from + 1]}`}
 			previousLabel="Earlier month" nextLabel="Later month"
 			onPrevious={month === 0 ? undefined : () => go(month - 1)} onNext={month === MONTHS - 1 ? undefined : () => go(month + 1)} />
 	)
@@ -661,7 +662,7 @@ function MonthHero({ sheet, month, totals, long, touch }) {
 	const waiting = withAmount.length - real
 	return (
 		<Card variant="shell">
-			<span className="sp-section-label">{long[month]} {sheet.year}</span>
+			<span className="sp-section-label">{head[month]} {sheet.year}</span>
 			<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 				<Stat label="Left over" figure={currency(cents(totals.left[month]), 0)} />
 				<Stat label="Income" figure={currency(cents(totals.income[month]), 0)}
@@ -799,7 +800,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 			}
 		}
 		return (
-			<Sum key={line.id} data-row={`${line.id}-${month}`} tone={!typing && m.real == null && m.expected != null ? 'expected' : 'default'}
+			<Sum key={line.id} edits data-row={`${line.id}-${month}`} tone={!typing && m.real == null && m.expected != null ? 'expected' : 'default'}
 				value={typing ? amounts.field(line, month) : value != null ? money(value) : null} {...control}>
 				<span className="sp-stacked">
 					<span>{line.name}</span>
@@ -830,7 +831,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 	return (
 		<Well>
 			<div className="sp-row-flex sp-gap-8">
-				<span className="sp-title">{long[month]}</span>
+				<span className="sp-title">{head[month]}</span>
 				{month === thisMonth ? <Pill>Now</Pill> : null}
 				<span className="sp-grow" />
 				<Pill color={toneOf(left)}>Left {money(left)}</Pill>
@@ -1153,7 +1154,7 @@ function AccountEditor({ account, index = 0, list, write, onMove, onClose }) {
 /* ---- the whole year (21b) ---- */
 
 function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
-	const short = useMemo(() => monthNames('short'), [])
+	const short = useMemo(() => monthNames('short', true), [])
 	const long = useMemo(() => monthNames('long'), [])
 	const toast = useToast()
 	const scroller = useRef(null)

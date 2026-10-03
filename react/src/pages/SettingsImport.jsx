@@ -59,6 +59,10 @@ const newVendors = (orders, vendors) => {
 	return seen.size
 }
 
+// the same column names in any order, matched as reuseMapping matches them
+const columnKey = names => (names ?? []).map(n => String(n).trim().toLowerCase()).sort().join('\n')
+const sameColumns = (a, b) => columnKey(a) === columnKey(b)
+
 const FILE_ID = 'import-file'
 const ACCEPT = '.csv,.xlsx,.json,text/csv,application/json'
 const TEMPLATE = 'Spendly_import_template.xlsx'
@@ -138,8 +142,9 @@ export function ImportCard() {
 			shape: 'line', line: guessMapping(rows, 'line'), order: guessMapping(rows, 'order'),
 			group: 'reference', categories: {}
 		}
-		const mapping = reuse ? reuseMapping(reuse, rows) : fresh
-		if (reuse) {
+		const kept = reuse && (!reuse.replacing || sameColumns(reuse.names, rows[0])) ? reuse : null
+		const mapping = kept ? reuseMapping(kept, rows) : fresh
+		if (kept) {
 			mapping.line = mapping.shape === 'line' ? mapping.columns : fresh.line
 			mapping.order = mapping.shape === 'order' ? mapping.columns : fresh.order
 		}
@@ -149,11 +154,16 @@ export function ImportCard() {
 	}
 
 	const restart = () => { then(FILE_ID); setStage({ name: 'rest' }) }
+	const replace = () => {
+		const { mapping } = stage
+		setReuse({ ...mapping, columns: mapping[mapping.shape], names: stage.rows[0], fileName: stage.file, replacing: true })
+		restart()
+	}
 
 	if (stage.name === 'map') return (
 		<MapStep box={box} file={stage.file} rows={stage.rows} mapping={stage.mapping} categories={categories.data}
 			onChange={patch => setStage(s => ({ ...s, mapping: { ...s.mapping, ...patch } }))}
-			onReplace={restart} onCancel={restart}
+			onReplace={replace} onCancel={restart}
 			onPreview={facts => {
 				const mapping = { ...stage.mapping, columns: facts.columns, dateFormat: facts.dateFormat, decimal: facts.decimal }
 				// a spreadsheet names no kind or status, so each order takes the account's defaults for a new one
@@ -191,7 +201,7 @@ export function ImportCard() {
 					<span className="sp-title">Drop a file, or choose one</span>
 					<span className="sp-subtitle">CSV, XLSX or a JSON export. One row per item line, or one row per order. Both work.</span>
 				</FileDrop>
-				{reuse
+				{reuse && !reuse.replacing
 					? (
 						<ListItem color="success">
 							<span className="sp-row-flex sp-flex-none"><Icon name="check" /></span>
@@ -493,7 +503,7 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 		if (source.kind === 'sheet') {
 			download(source.file.replace(/\.(csv|xlsx)$/i, '') + ' - skipped.csv', skippedCsv(source.header, source.body, skipped), 'text/csv;charset=utf-8')
 		} else {
-			const orders = failed.map(f => sent[f.index]?.draft).filter(Boolean)
+			const orders = failed.filter(f => sent[f.index]?.draft).map(f => ({ ...sent[f.index].draft, reason: reason(f.error) }))
 			download(source.file.replace(/\.json$/i, '') + ' - skipped.json', JSON.stringify({ orders }, null, '\t'), 'application/json')
 		}
 	}
@@ -560,7 +570,7 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 				<Button variant="outline" disabled={undoing} onClick={undo}>{undoing ? 'Undoing…' : 'Undo this import'}</Button>
 				<span className="st-push" />
 				{downloadButton}
-				<Button to="/orders">See the {ordersWord(imported)}</Button>
+				<Button to={`/orders?import=${encodeURIComponent(importId)}`}>See the {ordersWord(imported)}</Button>
 			</ImportFooter>
 		</Card>
 	)

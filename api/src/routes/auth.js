@@ -230,7 +230,7 @@ router.post('/reset', (req, res) => {
 /** What a reset link still allows, read before the new password is asked for. */
 router.get('/reset/:token', (req, res) => {
 	const { state, row } = readToken(req.params.token, 'reset')
-	res.json({ state, email: state === 'valid' ? row.email : null })
+	res.json({ state, email: row?.email ?? null })
 })
 
 /** The new password from a reset link: every other session ends, and this browser is signed in. */

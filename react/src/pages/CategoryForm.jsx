@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
@@ -66,6 +66,9 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	// opened from an order's category picker (5e): the order the new category is chosen on, back there
 	const forOrder = editing ? null : params.get('for')
 	const location = useLocation()
+	// Statistics' Edit on a category's limit (4a) opens here with the limit field ready to type in
+	const focusLimit = editing && !loading && params.get('focus') === 'limit'
+	useEffect(() => { if (focusLimit) focusFirst(['category-limit']) }, [focusLimit])
 	const start = useMemo(() => ({
 		name: category?.name ?? named,
 		// a saved name missing from Tabler is kept until the user picks again (c7)
@@ -100,23 +103,33 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const back = () => { guard.release(); returnToOrder() }
 	/* The new category goes on the order whose picker asked for it, with Undo. Created but not
 	   added, it says so, and the way back is the same. */
-	const chooseOnOrder = saved => changeOrders({ ids: [forOrder], addCategories: [saved.name] })
+	const chooseOnOrder = (saved, made = true) => changeOrders({ ids: [forOrder], addCategories: [saved.name] })
 		.then(() => {
 			invalidateOrderData()
 			toast({
-				message: `${saved.name} is created and added to the order.`,
+				message: made ? `${saved.name} is created and added to the order.` : `${saved.name} is added to the order.`,
 				undo: {
 					onClick: () => changeOrders({ ids: [forOrder], removeCategories: [saved.id] })
 						.then(invalidateOrderData, e => sayFailure(toast, e, 'The category was not taken off. Try again.'))
 				}
 			})
-		}, e => sayFailure(toast, e, `${saved.name} is created, but it was not added to the order. Add it from the order's menu.`))
+		}, e => sayFailure(toast, e, made
+			? `${saved.name} is created, but it was not added to the order. Add it from the order's menu.`
+			: `${saved.name} was not added to the order. Add it from the order's menu.`))
 		.finally(back)
+
+	// a new category's name that is already taken (6c): the existing one can be used in its place
+	const taken = editing ? null : others.find(c => fold(c.name) === fold(values.name)) ?? null
+	const takeExisting = () => {
+		if (forOrder) return chooseOnOrder(taken, false)
+		guard.release()
+		navigate(`/categories/${taken.id}/edit`, { replace: true })
+	}
 
 	const nameProblem = name => {
 		if (!name.trim()) return 'Give the category a name.'
-		const taken = others.find(c => fold(c.name) === fold(name))
-		return taken ? `You already have a category called ${taken.name}.` : null
+		const same = others.find(c => fold(c.name) === fold(name))
+		return same ? `"${same.name}" already exists, with ${plural(same.orders ?? 0, 'order')}. Use it, or choose another name.` : null
 	}
 	const budgetProblem = budget => (budget === 0 ? 'Use an amount above zero, or leave it empty for no limit.' : null)
 	// a limit most of the last twelve months went past (6c): said in amber on leaving the field, and saving is not stopped
@@ -206,6 +219,13 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 						onBlur={() => setErrors(e => ({ ...e, name: nameProblem(values.name) }))}
 						placeholder={editing ? undefined : 'What you spent it on'} />)}
 				</Field>
+				{errors.name && taken
+					? (
+						<div className="sp-row-flex sp-gap-8">
+							<Button size="small" onClick={takeExisting}>Use {taken.name}</Button>
+						</div>
+					)
+					: null}
 			</Card>
 
 			<Card>

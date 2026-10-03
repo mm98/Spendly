@@ -247,9 +247,7 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 	.sp-line-editor__grid { grid-template-columns: 132px minmax(0, 1fr); }
 }
 
-/* a budget amount is clicked to type it in place (Budget 21a, 21b), so its row takes focus */
-.sp-sum[role="button"] { outline: none; }
-.sp-sum[role="button"]:focus-visible { border-radius: var(--r-marker); box-shadow: var(--ring); }
+/* an amount typed in place keeps room for the figure it holds (Budget 21a) */
 .sp-sum__value > .sp-input.sp-input--cell { width: calc(12ch + var(--sp-4)); }
 
 /* compact rows are 8px vertical (15a; Settings 11a) */
@@ -262,7 +260,3 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 .sp-bars--spark .sp-bars__bar:has(> .sp-bars__tip) { position: relative; }
 .sp-bars--spark .sp-bars__tip { position: absolute; right: 0; bottom: calc(100% + var(--sp-6)); z-index: 3; pointer-events: none; }
 .sp-bars--spark .sp-bars__tip[data-side="end"] { right: auto; left: 0; }
-
-/* label.sp-mark's hover and focus outline reaches 3px past the tile, and .sp-strip scrolls, so it clips
-   the outline at the top and left: room for it inside the strip, given back outside. */
-.sp-strip { padding: var(--sp-4) var(--sp-4) var(--sp-6); margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-4)) 0; }

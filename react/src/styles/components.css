@@ -2622,6 +2622,8 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
 label.sp-mark { cursor: pointer; }
 label.sp-mark:hover { outline: 2px solid var(--green); outline-offset: 1px; }
 label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1px; }
+/* the add tile answers as every add control does: green dashed edge and tint, no outline */
+label.sp-mark--add:hover { outline: none; border-color: var(--green); background: var(--green-tint-2); }
 .sp-slot__remove {
   padding: 0;
   border: 0;
@@ -3101,7 +3103,11 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   /* siblings in a card sit on the card's rhythm, the same 12 the rows use */
   gap: var(--sp-12);
   overflow-x: auto;
-  padding-bottom: var(--sp-6);
+  /* a scrolling strip clips at its box, so it carries 4 of room on every side for the
+     hover outline and focus ring of its tiles, and gives it back as margin: the tiles
+     sit where they did */
+  padding: var(--sp-4) var(--sp-4) calc(var(--sp-6) + var(--sp-4));
+  margin: calc(var(--sp-4) * -1);
 }
 .sp-strip::-webkit-scrollbar { display: none; }
 
@@ -3576,6 +3582,23 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 .sp-sum--total:first-child { padding-top: 0; border-top: 0; }
 .sp-sum--total .sp-ink-2 { font-size: var(--t-14); font-weight: 600; color: var(--ink); }
 .sp-sum--total .sp-sum__value { font-size: var(--t-20); font-weight: 700; }
+/* A budget line whose amount opens in place (21a). The whole line is the target, so the
+   whole line takes the --hover ground under the pointer, at --r-tile, bled 8 past the text
+   on both sides so the figure keeps its column. The same in edit mode, where the name opens
+   the row editor and the amount its field. The focus ring shows with it; on touch, where
+   nothing hovers, nothing changes. */
+.sp-sum--edits {
+  margin-inline: calc(var(--sp-8) * -1);
+  padding-inline: var(--sp-8);
+  border-radius: var(--r-tile);
+  cursor: pointer;
+  outline: none;
+}
+@media (hover: hover) {
+  .sp-sum--edits:hover { background: var(--hover); }
+}
+.sp-sum--edits[data-hover="true"] { background: var(--hover); }
+.sp-sum--edits:focus-visible { box-shadow: var(--ring); }
 
 /* ---------- light nav row - DRAFT c22 ----------
    The same row as the sidebar's, on a light surface: saved views, section nav. */
@@ -4184,18 +4207,6 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-plot__grid > span:last-child { background: var(--line); }
 /* the limit is drawn across the plot, and names itself where it starts */
 .sp-plot__limit { position: absolute; left: 0; right: 0; z-index: 2; border-top: 2px dashed var(--amber); }
-.sp-plot__limit > span {
-  position: absolute;
-  left: 0;
-  bottom: var(--sp-2);
-  font-size: var(--t-10);
-  letter-spacing: var(--ls-eyebrow);
-  font-weight: 600;
-  color: var(--amber-ink);
-  background: var(--surface);
-  padding: 0 var(--sp-4);
-  text-transform: uppercase;
-}
 .sp-plot__limit[data-at="34"] { top: 34px; }
 .sp-bars--plot { height: var(--plot-h); gap: var(--sp-16); position: relative; }
 
@@ -4872,7 +4883,11 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   font-size: inherit;
   text-align: right;
 }
-.sp-input.sp-input--cell:hover { border-color: var(--line-3); }
+/* hover shows where to click: the --hover ground inside the cell, only where a pointer can hover (21b) */
+@media (hover: hover) {
+  .sp-input.sp-input--cell:hover { background: var(--hover); }
+}
+.sp-input.sp-input--cell[data-hover="true"] { background: var(--hover); }
 .sp-input.sp-input--cell:focus,
 .sp-input.sp-input--cell[data-focus="true"] { border-color: var(--green); background: var(--surface); box-shadow: var(--ring); }
 /* a figure that was not saved stays marked: the cell rule above would otherwise cancel the field's red (21) */
@@ -5009,3 +5024,11 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    is cleared. */
 .sp-bulkbar--head { position: sticky; top: 0; z-index: 5; }
 .sp-touch:has(.sp-bulkbar--head) .sp-topbar--touch { display: none; }
+
+/* the pointed column carries a full-height band, and its readout stands in it, so the
+   readout reads as that column's whatever the neighbouring heights (4a) */
+.sp-bars--plot .sp-bars__col:hover,
+.sp-bars--plot .sp-bars__col:focus-visible,
+.sp-bars--plot .sp-bars__col:has(> .sp-bars__tip) { background: var(--hover); border-radius: var(--r-tile); }
+/* the limit is named in the legend, not on the line, so no bar is ever under its label */
+.sp-legend__key--limit { width: 14px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--amber); }

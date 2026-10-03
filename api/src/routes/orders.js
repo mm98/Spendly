@@ -147,6 +147,7 @@ function buildOrderFilter(userId, q, except = null) {
 		else { where.push('ot.status IN (SELECT value FROM json_each(@statuses))'); params.statuses = JSON.stringify(statuses) }
 	}
 	if (q.kind) { where.push('ot.kind = @kind'); params.kind = q.kind }
+	if (q.importId) { where.push('ot.import_id = @importId'); params.importId = String(q.importId) }
 	// the orders picked by hand, as Export and Delete in the bulk bar name them: the ids lead, and
 	// the + keeps the planner from walking the whole account's index to find a handful of them
 	const orderIds = listOf(q.ids)
@@ -544,6 +545,11 @@ const selectStatusEvent = db.prepare('SELECT id, date FROM order_statuses WHERE 
 const deleteStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ? AND status = ?')
 const insertOrderCategoryOnce = db.prepare('INSERT OR IGNORE INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const deleteOrderCategory = db.prepare('DELETE FROM order_categories WHERE order_id = ? AND category_id = ?')
+// the statuses the order's log dates, as its table allows
+const LOGGED = ['Ordered', 'Delivered', 'Returned']
+// what a status change replaces, kept for its Undo: the status and every dated event (6d)
+const selectStatusEvents = db.prepare('SELECT status, date FROM order_statuses WHERE order_id = ?')
+const deleteAllStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
 // a bulk delete is not kept to undo (6d): its dialog asked for the number first
 const deleteOrderRow = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 
@@ -551,12 +557,14 @@ const applyBulk = db.transaction((userId, ids, change, today) => {
 	const day = Math.max(toEpoch(today), 0)
 	const categoryIds = (change.addCategories ?? []).map(name => findOrCreateCategory(userId, name))
 	let changed = 0
+	const kept = []
 	for (const id of ids) {
 		const order = selectOrderForBulk.get(id, userId)
 		if (!order) continue
 		changed++
 		if (change.delete) { deleteOrderRow.run(id, userId); continue }
 		if (change.status) {
+			kept.push({ id, status: order.status, events: selectStatusEvents.all(id) })
 			updateOrderStatus.run(change.status, id)
 			const at = Math.max(day, order.date)
 			const event = (status, move) => {
@@ -572,11 +580,34 @@ const applyBulk = db.transaction((userId, ids, change, today) => {
 		for (const categoryId of categoryIds) insertOrderCategoryOnce.run(id, categoryId)
 		for (const categoryId of change.removeCategories ?? []) deleteOrderCategory.run(id, categoryId)
 	}
+	return { changed, kept }
+})
+
+// an Undo puts back exactly what a status change kept: each order's status and its dated events
+const applyRestore = db.transaction((userId, orders) => {
+	let changed = 0
+	for (const { id, status, events } of orders) {
+		if (!selectOrderForBulk.get(id, userId)) continue
+		changed++
+		updateOrderStatus.run(status, id)
+		deleteAllStatusEvents.run(id)
+		for (const event of events) insertOrderStatus.run(newId('os'), id, event.status, event.date)
+	}
 	return changed
 })
 
 router.post('/bulk', (req, res) => {
 	const body = req.body ?? {}
+	if (Array.isArray(body.restore)) {
+		const orders = body.restore.slice(0, MAX_PAGE_SIZE * 10).map(o => ({
+			id: String(o?.id), status: String(o?.status),
+			events: (Array.isArray(o?.events) ? o.events : []).map(e => ({ status: String(e?.status), date: Math.trunc(Number(e?.date)) }))
+				.filter(e => Number.isFinite(e.date))
+		}))
+		if (orders.some(o => !isStatus(req.user.id, o.status) || o.events.some(e => !LOGGED.includes(e.status))))
+			return res.status(400).json({ error: 'That status does not exist.' })
+		return res.json({ changed: applyRestore(req.user.id, orders) })
+	}
 	const ids = [...new Set(Array.isArray(body.ids) ? body.ids.map(String) : [])]
 	if (!ids.length) return res.status(400).json({ error: 'Choose at least one order.' })
 	if (ids.length > MAX_PAGE_SIZE * 10) return res.status(400).json({ error: 'Too many orders at once. Choose fewer orders.' })
@@ -588,8 +619,8 @@ router.post('/bulk', (req, res) => {
 		removeCategories: Array.isArray(body.removeCategories) ? body.removeCategories.map(String) : []
 	}
 	if (change.status && !isStatus(req.user.id, change.status)) return res.status(400).json({ error: 'That status does not exist.' })
-	const changed = applyBulk(req.user.id, ids, change, req.today)
-	res.json({ changed })
+	const { changed, kept } = applyBulk(req.user.id, ids, change, req.today)
+	res.json(change.status ? { changed, kept } : { changed })
 })
 
 /* ---- attachments ----

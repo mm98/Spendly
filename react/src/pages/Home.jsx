@@ -106,7 +106,7 @@ function lastMonths(window) {
 	}
 	const [y0, m0] = today().split('-').map(Number)
 	const short = monthNames('short')
-	const long = monthNames('long')
+	const long = monthNames('long', true)
 	const months = Array.from({ length: MONTHS }, (unused, i) => {
 		const at = new Date(y0, m0 - 1 - (MONTHS - 1 - i), 1)
 		const y = at.getFullYear(), m = at.getMonth()
@@ -464,7 +464,7 @@ function RecentCard({ recent }) {
 					<Empty>
 						<span className="sp-heading">No orders yet</span>
 						<span className="sp-meta">Drop a receipt and it becomes your first order. Or start an empty order and type it yourself.</span>
-						<Button size="small" to="/orders/new">Empty order</Button>
+						<Button size="small" to="/orders/new?source=empty">Empty order</Button>
 					</Empty>
 				</div>
 			</Card>
@@ -522,7 +522,7 @@ function CaptureCard({ newest, loading }) {
 	const navigate = useNavigate()
 	const input = useId()
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled
-	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0] } }) }
+	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const footer = newest
 		? [
 			<span className="sp-subtitle sp-grow" key="ask">Bought from {newest.vendor?.name} again?</span>,
@@ -548,7 +548,7 @@ function CaptureCard({ newest, loading }) {
 			</FileDrop>
 			<div className="sp-fields">
 				<Button size="small" onClick={() => document.getElementById(input)?.click()}>Choose file</Button>
-				<Button variant="outline" size="small" to="/orders/new">Empty order</Button>
+				<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 			</div>
 		</Card>
 	)
@@ -829,7 +829,7 @@ function PhoneOrder({ order }) {
 
 function DayOne({ categories, name, touch }) {
 	const navigate = useNavigate()
-	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0] } }) }
+	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled
 	const first = categories?.slice(0, 4) ?? []
 	return (
@@ -847,7 +847,7 @@ function DayOne({ categories, name, touch }) {
 							: 'Drop a photo or a PDF and the lines are read for you to check.'}
 					</span>
 					<span className="sp-btn">Capture a receipt</span>
-					<Button variant="text" size="small" to="/orders/new">Or enter one by hand</Button>
+					<Button variant="text" size="small" to="/orders/new?source=empty">Or enter one by hand</Button>
 				</FileDrop>
 				<div className={touch ? 'sp-stack sp-gap-12' : 'hm-wells'}>
 					<Well>
