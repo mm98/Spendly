@@ -707,8 +707,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				key={editing.key}
 				editing={editing}
 				sheet={sheeted}
-				// the open line keeps the handle column its row has, so the fields stay under the row's title
-				handle={!scan}
 				photoUrl={photoUrl}
 				sendPhoto={sendPhoto}
 				onRemovePhoto={values => removePhoto(editing.key, values)}
@@ -1439,7 +1437,7 @@ function notices({ origin, scan, lines, leave, touch, jump }) {
 }
 
 /** The line being edited or added (1b), in place on a desktop and in a sheet on a phone. */
-function LineForm({ editing, sheet, handle, photoUrl, sendPhoto, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
+function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
 	const v = editing.values
 	const errors = editing.tried ? lineErrors(v) : {}
 	const set = patch => onChange({ ...v, ...patch })
@@ -1473,7 +1471,6 @@ function LineForm({ editing, sheet, handle, photoUrl, sendPhoto, onRemovePhoto, 
 		<LineEditor
 			onPaste={paste}
 			sheet={sheet}
-			handle={handle}
 			hint={`Enter saves${dot}Escape cancels${dot}${MAC ? '⌘↵' : 'Ctrl ↵'} saves and opens the next line`}
 			commit={editing.isNew ? 'Add line' : 'Save line'}
 			photo={
