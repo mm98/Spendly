@@ -47,9 +47,10 @@ export function ViewMark({ query }) {
 export function SidebarViews({ rail, savedId }) {
 	const answer = useViews().data
 	if (rail || !answer) return null
-	// the view open now is listed even past the chosen number (Settings 11a)
-	const shown = answer.views.filter((v, i) => i < answer.shown || v.id === savedId)
+	// always the first chosen number of views; a view past it is open inside the "more" row (9e)
+	const shown = answer.views.slice(0, answer.shown)
 	const more = answer.views.length - shown.length
+	const openPast = more > 0 && answer.views.slice(answer.shown).some(v => v.id === savedId)
 	return (
 		<>
 			{shown.map(view => (
@@ -57,7 +58,7 @@ export function SidebarViews({ rail, savedId }) {
 					count={countBadge(view.count)} countColor={view.attention ? 'warning' : undefined}
 					aria-label={`${view.name}, ${countBadge(view.count)}`}>{view.name}</NavItem>
 			))}
-			{more > 0 ? <NavItem mark={<span className="sp-nav-item__icon" />} sub={`${more} more in Orders`} /> : null}
+			{more > 0 ? <NavItem mark={<span className="sp-nav-item__icon" />} sub={`${more} more in Orders`} current={openPast} /> : null}
 		</>
 	)
 }

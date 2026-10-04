@@ -4179,6 +4179,8 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
    so the second line is its own class rather than a reused count. */
 
 .sp-nav-item__sub { font-size: var(--t-11); color: var(--shell-group); }
+/* the "N more in Orders" row is current when the open view is one of the N (brief 13) */
+.sp-nav-item[aria-current="page"] > .sp-nav-item__sub { color: #fff; }
 /* An email on that second line truncates from the middle, not the right: the local
    part shrinks and the domain never does, because the domain is what says which
    account is signed in. text-overflow alone cannot express that - it needs the two
