@@ -22,6 +22,7 @@ import { Palette, useRecentRecords } from './Palette.jsx'
 import { ALL_ORDERS, SidebarViews } from './views.jsx'
 import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
 import { ShortcutSheet, useShortcutKeys } from './Shortcuts.jsx'
+import { pasteAnywhere } from '../components/FileDrop.jsx'
 import { useUpdateNotice } from './UpdateNotice.jsx'
 
 
@@ -140,6 +141,11 @@ export function AppShell() {
 		onScan: held ? null : scan.open, onNew: () => navigate('/orders/new')
 	})
 	const keySheet = keysShown ? <ShortcutSheet onClose={() => setKeysShown(false)} /> : null
+	// a picture pasted anywhere goes to the place on screen that takes one (17a)
+	useEffect(() => {
+		window.addEventListener('paste', pasteAnywhere)
+		return () => window.removeEventListener('paste', pasteAnywhere)
+	}, [])
 
 	const account = useApi(getCurrentUser).data
 	const signedOut = ended

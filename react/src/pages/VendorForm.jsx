@@ -12,7 +12,7 @@ import { Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Stacked } from '../components/Utilities.jsx'
 import { Alert, useToast } from '../components/Overlays.jsx'
-import { Slot, usePastedImage } from '../components/FileDrop.jsx'
+import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendorPage,
@@ -82,8 +82,6 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			return { src: URL.createObjectURL(file), file, drop: false, problem: null }
 		})
 	}
-	// a picture pasted anywhere on the page is the vendor's image, as on any page with one slot
-	usePastedImage(file => { if (!loading) takeImage(file) })
 	const removeImage = () => setImage(i => {
 		if (i.problem) return { ...i, problem: null }
 		if (i.file) URL.revokeObjectURL(i.src)
