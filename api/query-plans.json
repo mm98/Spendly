@@ -331,6 +331,42 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT c.id, c.name FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND c.budget > 0 AND COALESCE(m.spend, 0) > c.budget AND COALESCE(m.spend, 0) > 0": {
+			"plan": [
+				"MATERIALIZE m",
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
+				"SEARCH m USING AUTOMATIC COVERING INDEX (category_id=?) LEFT-JOIN"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_categories_user",
+				"idx_orders_user_date",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT c.id, c.name FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft') GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND COALESCE(m.spend, 0) > 0": {
+			"plan": [
+				"MATERIALIZE m",
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
+				"SEARCH m USING AUTOMATIC COVERING INDEX (category_id=?) LEFT-JOIN"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_categories_user",
+				"idx_orders_user_date",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
 		"SELECT c.id, c.name FROM categories c WHERE c.user_id = @userId": {
 			"plan": [
 				"SEARCH c USING INDEX idx_categories_user (user_id=?)"
@@ -3857,7 +3893,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 26
+			"readers": 28
 		},
 		"idx_imports_user_created": {
 			"table": "imports",
@@ -3926,7 +3962,7 @@
 				"date",
 				"id"
 			],
-			"readers": 51
+			"readers": 53
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",

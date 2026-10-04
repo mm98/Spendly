@@ -271,7 +271,7 @@ const REQUESTS = [
 	'/categories?pageSize=10&page=2', '/categories?sort=month-desc&with=month&pageSize=10&page=2', '/categories?query=mad&pageSize=10',
 	'/categories?query=æg&sort=orders-desc&pageSize=10', `/categories?ids=${ids.category},c-main-1&with=month,bookmarks&pageSize=2`,
 	`/categories?except=${ids.category}&sort=orders-desc&pageSize=10`, '/categories?name=Groceries&pageSize=1', '/categories?limited=yes&with=month&pageSize=1000',
-	'/categories?over=yes&pageSize=1000', '/categories?bookmarks=open&with=bookmarks&pageSize=10', '/categories?bookmarks=archived&with=bookmarks&query=a&pageSize=10',
+	'/categories?flag=over-limit&pageSize=1000', '/categories?month=2026-09&with=month&pageSize=10', '/categories?flag=over-limit&month=2026-09&with=month&pageSize=10', '/categories?bookmarks=open&with=bookmarks&pageSize=10', '/categories?bookmarks=archived&with=bookmarks&query=a&pageSize=10',
 	'/bookmarks/categories', '/bookmarks/categories?archived=yes',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
 	'/stats?range=all', '/stats?range=month&summary=1',
