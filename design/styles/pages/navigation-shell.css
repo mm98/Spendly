@@ -7,11 +7,16 @@
 @layer base {
 
   /* viewport stand-ins */
-  .ns-screen { width: 1400px; height: 880px; }
+  /* a fixed height above the sidebar's tallest state (expanded, about 1010): the frame
+     stands in for a viewport, so collapsing changes the width and never the height, and
+     the whole sidebar is drawn down to the account row. height, not min-height: the
+     component's own min-height on .sp-shell outranks this layer */
+  .ns-screen { width: 1400px; height: 1024px; }
   .ns-frame { border-radius: var(--r-card); overflow: hidden; }
-  /* the frame is a fixed viewport stand-in, never a flex item that resizes to its
-     content; the rail's own content sets the floor, as 9b's standalone rail states */
-  .ns-frame--768 { width: 768px; height: 600px; flex: none; }
+  /* a fixed-width viewport stand-in, never a flex item that resizes to its content;
+     tall enough for the whole rail (about 695), down to the account mark. height, not
+     min-height, for the same reason as .ns-screen */
+  .ns-frame--768 { width: 768px; height: 704px; flex: none; }
   .ns-frame--390 {
     width: 390px;
     height: 520px;
