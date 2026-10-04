@@ -140,7 +140,7 @@ export default function Vendors() {
 		<Controls ref={column}>
 			{touch ? null : (
 				<SearchInput value={query} onChange={q => write(q, sort.id)}
-					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias"
+					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias" data-page-search="vendors"
 					kbd={width > KBD ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined} />
 			)}
 			<Segmented name="vendors-shown" options={SHOWN} value={archived ? 'archived' : 'active'} variant={touch ? 'facet' : 'default'}

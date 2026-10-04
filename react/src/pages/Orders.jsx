@@ -584,6 +584,7 @@ function OrderSearch({ q, onSearch, touch, badged }) {
 			onChange={setText}
 			placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
 			aria-label="Search orders"
+			data-page-search="orders"
 			kbd={badged ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined}
 		/>
 	)
