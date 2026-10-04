@@ -132,8 +132,8 @@ export function NavItem({ variant = 'default', icon, mark, count, countColor, su
 	const body = (
 		<>
 			{mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
-			{/* a long name ends in an ellipsis on one line (9f) */}
-			<span className="sp-grow sp-truncate">{children}</span>
+			{/* a long name ends in an ellipsis on one line (9f); an empty box would push the sub text away */}
+			{children != null ? <span className="sp-grow sp-truncate">{children}</span> : null}
 			{sub ? <span className="sp-nav-item__sub">{sub}</span> : null}
 			{count != null
 				? <span className="sp-nav-item__count" {...(countColor ? { 'data-color': countColor } : {})}>{count}</span>
