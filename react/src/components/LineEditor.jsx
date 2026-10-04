@@ -59,7 +59,8 @@ export function LineEditor({
 			</div>
 		</>
 	)
-	const handleCol = handle ? <span className="sp-list-item__handle" aria-hidden="true"><Icon name="grip-vertical" /></span> : null
+	// an open row is not dragged: the column stays empty so the row's text keeps its line
+	const handleCol = handle ? <span className="sp-list-item__handle" aria-hidden="true" /> : null
 	if (photo) return (
 		<div className={join('sp-line-editor', sheet && 'sp-line-editor--sheet')} onKeyDown={keys} {...rest}>
 			{handleCol}
