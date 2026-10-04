@@ -207,7 +207,7 @@
     <div class="doc-note"><b>Create and edit are the same page.</b> One route component, one form, one rail. The differences are the crumb, the primary label, and whether the delete card is present. Do not build them separately - they drift.</div>
     <div class="doc-note"><b>Duplicate names are checked on blur, not on submit.</b> A name within 0.85 of an existing vendor shows an amber notice under the field offering that vendor instead. The same name, compared without case or accents, is an error: two vendors cannot share a name, because a receipt string matching two vendors is how a scan files things wrongly (<a href="#5h">5h</a>).</div>
     <div class="doc-note"><b>Created from a scan, it returns to the scan.</b> The page carries the return in its route state and the new vendor is selected on arrival back - never dropping the user on the vendor list with their receipt abandoned.</div>
-    <div class="doc-note"><b>The image is optional, can be any picture - a logo, a shop front, anything - and its only use is the faded fallback on this vendor's orders with no item photo. It is the c17 thumb slot at <code>--mark-large</code>, unchanged.</b> Empty it is the dashed add frame; filled it is <code>.sp-mark--vendor</code> with Remove beneath it, and choosing a new file replaces it. Validation, sizes, renditions and every place it appears are in <a href="Images and files.dc.html#17e">17e</a>. The vendor's own mark stays initials everywhere, with or without an image.</div>
+    <div class="doc-note"><b>The image is optional, can be any picture - a logo, a shop front, anything - and its only use is in place of the item photo on this vendor's orders that have none, drawn as an item photo and faded. It is the c17 thumb slot at <code>--mark-large</code>, unchanged.</b> Empty it is the dashed add frame; filled it is <code>.sp-mark--photo</code>, as an item photo slot with Remove beneath it, and choosing a new file replaces it. Validation, sizes, renditions and every place it appears are in <a href="Images and files.dc.html#17e">17e</a>. The vendor's own mark stays initials everywhere, with or without an image.</div>
     <div class="doc-note"><b>Aliases are on this page, because creating from a scan is when the first one matters most.</b> The receipt name that triggered the create is pre-filled as an alias - the one moment the app knows it. Forcing a second trip to the edit page to keep it means the next receipt from the same shop creates another duplicate.</div>
   </div>
   <div class="doc-screen doc-frame">
@@ -359,7 +359,7 @@
           <div class="sp-field">
             <label class="sp-field__label" for="vc-image2">Image</label>
             <span class="sp-slot sp-slot--start">
-              <label class="sp-mark sp-mark--large sp-mark--vendor" for="vc-image2" data-tip="Replace the image">
+              <label class="sp-mark sp-mark--large sp-mark--photo" for="vc-image2" data-tip="Replace the image">
                 <input id="vc-image2" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml">
               </label>
               <button type="button" class="sp-slot__remove">Remove</button>

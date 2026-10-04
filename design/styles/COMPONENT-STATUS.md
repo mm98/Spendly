@@ -713,4 +713,4 @@ first.
 
 - 2026-10-04 - Card grid (Brief 19): new token `--card-min-w: 280px`; `.sp-cards--fluid` reads it with `min(..., 100%)`. No maximum. Order list, Bookmarks and the phone Bookmarks frame use the fluid grid. The base four-across `.sp-cards` is unchanged.
 
-- 2026-10-04 - c2 mark: two new variants, nothing existing changed. `.sp-mark--vendor` is a vendor's uploaded image, cover and centred on `--surface-2` with a 1px `--line` border. `.sp-mark--faded` (opacity 0.6, grayscale) is only ever on `.sp-mark--vendor`, always a span: the fallback on an order with no item photo. c1 record strip: `.sp-record__photos--fallback` centres one faded `--mark-large` vendor mark in the 116px band. `styles/check.js` asserts the faded rule.
+- 2026-10-04 - Vendor image (Images and files 17e): no new component. On an order with no item photo it is drawn exactly as an item photo - `.sp-mark--photo` in rows, a `.sp-record__photo` in the card band - and faded: one state on each, `.sp-mark--faded` and `.sp-record__photo--faded`, `filter: opacity(var(--photo-fallback-opacity))` (new token, 0.6). Nothing else differs. `styles/check.js` asserts both states sit only on a photo.

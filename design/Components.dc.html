@@ -791,11 +791,11 @@
     </div>
 
     <div class="doc-specimen">
-      <span class="doc-specimen__label">Vendor image - and standing in for a missing photo</span>
+      <span class="doc-specimen__label">Photo, and faded - a vendor image standing in</span>
       <div class="sp-card">
       <div class="sp-row-flex sp-gap-12">
-        <span class="sp-mark sp-mark--large sp-mark--vendor"></span>
-        <span class="sp-mark sp-mark--medium sp-mark--vendor sp-mark--faded" aria-hidden="true"></span>
+        <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+        <span class="sp-mark sp-mark--medium sp-mark--photo sp-mark--faded"></span>
       </div>
     </div>
     </div>
@@ -819,7 +819,7 @@
     <div class="doc-notes__label">States</div>
     <div class="doc-note"><b>A photo mark can name what it holds.</b> <code>.sp-mark__text</code> is a banner across the foot of the image - full width, flush to the bottom, uppercase, on a translucent dark ground so it stays legible over any photograph. Use it where the image alone does not say what it is: a receipt scan among item photos, or a slot whose subject is being changed. Leave it off at rest, where the image is its own label.</div>
       <div class="doc-note"><b>The same banner in the danger colour.</b> <code>.sp-mark__text</code> with <code>data-color="danger"</code> changes only the colour, to <code>--red-ink</code>, so a failed upload keeps its image and its layout and reads as failed. It carries the reason - <b>Failed</b>, <b>Too large</b> - not an icon: the banner is already the marker, and a glyph beside the words repeats it.</div>
-      <div class="doc-note">The mark does not change on touch: it carries no hit target of its own, so its three sizes hold at every width and there is no touch variant of it. Filled · empty photo <code>.sp-mark--empty</code> · no value yet <code>.sp-mark--none</code> · selected inside a picker, which is the option's own <code>aria-pressed</code>. A mark never shrinks to make a row fit; a record with initials never has a photo. <b>Image</b> <code>.sp-mark--vendor</code>: a vendor's uploaded image, whatever the user picked, centre-cropped with cover like a photo mark, on <code>--surface-2</code>, 1px <code>--line</code> border. <b>Faded</b> <code>.sp-mark--faded</code>, only on a vendor image, and the only way it is shown outside the vendor form: opacity 0.6 and grayscale, the vendor's image standing in on an order that has no item photo - a span, never a button, no count (<a href="Images and files.dc.html#17e">17e</a>).</div>
+      <div class="doc-note">The mark does not change on touch: it carries no hit target of its own, so its three sizes hold at every width and there is no touch variant of it. Filled · empty photo <code>.sp-mark--empty</code> · no value yet <code>.sp-mark--none</code> · selected inside a picker, which is the option's own <code>aria-pressed</code>. A mark never shrinks to make a row fit; a record with initials never has a photo. <b>Faded</b> <code>.sp-mark--faded</code>, only on a photo mark: the vendor image on an order with no item photo, drawn as the photo and faded with <code>filter: opacity(var(--photo-fallback-opacity))</code>. The band photo has the same state as <code>.sp-record__photo--faded</code> (<a href="Images and files.dc.html#17e">17e</a>).</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>Click a photo mark</b> - opens the viewer at that photo, which is why it is a <code>&lt;button&gt;</code>. <b>Drop a file on it, or click an empty one</b> - uploads and becomes the first photo; an empty mark in an editable context is a <code>&lt;label&gt;</code> over a hidden file input, so it needs no separate button. <b>Click an icon mark in a form</b> - focuses its picker. An initials mark is display only and stays a <code>&lt;span&gt;</code>. The mark is decorative where the row already names the record, so it carries <code>aria-hidden</code> there and no duplicate name is read. Where the mark is the only thing shown, its accessible name is the record's name. Initials and colour are derived from the name, so they never need entering and never disagree between two places the record appears.</div>
   </div>

@@ -1,5 +1,13 @@
 # Spendly - changes since handoff_2026_10_04m_changes
 
+## Fixed in this package (replaces handoff_2026_10_04n_changes, _fixed, _fixed_2 and _fixed_3)
+
+- **04n_fixed_2 and _fixed_3** described the fade below, but their CSS, token, check and page files did not contain it. This package does.
+
+- **04n** gave the vendor image its own look: a grey, small mark centred in the card band, with `.sp-mark--vendor`, `.sp-mark--faded` (opacity + grayscale) and `.sp-record__photos--fallback`. Wrong.
+- **04n_fixed** drew it exactly as an item photo with no fade. Also wrong.
+- **Correct, this package:** drawn exactly as an item photo, filling the band, and faded. The fade is the only difference. Delete `.sp-mark--vendor` and `.sp-record__photos--fallback` if built; render through the item photo component with the faded state below.
+
 Copy these files over handoff_2026_10_04m_changes. The HTML files are design references; rebuild them in the app's own code.
 
 ## 1. Copying an order copies the item photos (Brief 20)
@@ -17,18 +25,18 @@ Duplicate (Duplicate and alerts 8a) and Copy a previous order (Order create 3b) 
 
 ## 2. Vendor image - fallback for orders with no item photo
 
-A vendor can carry one optional image: a logo, the shop, any picture. Its only use is as a faded stand-in on that vendor's orders where no item line has a photo. The vendor's own mark stays initials everywhere.
+A vendor can carry one optional image: a logo, the shop, any picture. Its only use: on that vendor's orders where no item line has a photo, it is shown in place of the item photo, **drawn exactly as an item photo, faded**. The fade is the only difference: no new component, no grayscale, no other styling. The vendor's own mark stays initials everywhere.
 
 Full spec: Images and files 17e. Upload slot: Vendors and categories 5b (empty) and 5c (filled).
 
 **Where it shows**
-- Order row thumbnail (2b, 10a, 8a): `.sp-mark--medium.sp-mark--vendor.sp-mark--faded`.
-- Order card photo band (2c): `.sp-record__photos.sp-record__photos--fallback` holding one `.sp-mark--large.sp-mark--vendor.sp-mark--faded` at its centre. No "No photos" label.
-- Precedence: first item line with a photo, then the vendor image faded, then the existing empty state.
-- Faded means opacity 0.6 and `grayscale(1)`. A `<span aria-hidden="true">`: no count, does not open the viewer, not counted as a photo by the No photos filter, the photo count or the paperclip. The row or card click still opens the order.
+- Order row thumbnail (2b, 10a, 8a): the same `.sp-mark--photo` an item photo uses, plus `.sp-mark--faded`.
+- Order card photo band (2c): the band's one `.sp-record__photo`, filling it as a single item photo does, plus `.sp-record__photo--faded`, instead of "No photos".
+- Precedence: first item line with a photo, then the vendor image, then the existing empty state.
+- Same crop, tone and click as an item photo in that spot. The fade says the picture belongs to the vendor, not the order. Data: the order's photo count and the No photos filter count item photos only.
 
 **Form field** (5b, 5c, in THE VENDOR card under Name)
-- The c17 thumb slot at `--mark-large`, unchanged. Label "Image". Help: "Shown on this vendor's orders that have no item photo. A logo, the shop, anything you know it by."
+- The c17 thumb slot at `--mark-large`, as an item photo slot. Label "Image". Help: "Shown on this vendor's orders that have no item photo. A logo, the shop, anything you know it by."
 - `accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml"`.
 - Empty, uploading, filled (Remove beneath), rejected (banner with the reason). Lifecycle as 17a: staged upload, committed on save, replace is upload-swap-release, Remove needs no confirmation.
 
@@ -45,8 +53,8 @@ Sniff type; SVG is sanitised (scripts, event handlers, external references, `for
 
 **Renditions - one set for every picture of goods (17a, new)**
 Item photos and the vendor image share one resize job:
-- `square-128` (centre crop): `--mark-medium` at up to 3x.
-- `square-256` (centre crop): `--mark-large` at up to 3x.
+- `square-128` (centre crop): `--mark-medium` at up to 3x, the order row.
+- `square-256` (centre crop): `--mark-large` at up to 3x, the form slot.
 - `wide-1080` (aspect kept): the card photo band at up to 3x.
 - `view-2560` (longest side, aspect kept): the image viewer. Not made for the vendor image.
 WebP, quality 85, alpha kept, never upscaled. Served with srcset; immutable, addressed by content hash.
@@ -58,20 +66,24 @@ WebP, quality 85, alpha kept, never upscaled. Served with srcset; immutable, add
 **Open, not designed: dark mode**
 A transparent image on `--surface-2` can disappear in the dark theme. This needs implementation and testing with real images before it can be designed. Until then the dark theme shows it as the light theme does, and nothing is added for it.
 
-**CSS** (`styles/components.css`, unlayered, beside the existing mark rules)
+**Token** (`styles/tokens.css`, new)
 ```css
-.sp-mark--vendor { border: 1px solid var(--line); background: repeating-linear-gradient(45deg, var(--hatch-a) 0 6px, var(--hatch-b) 6px 12px); }
-.sp-mark--vendor > img { width: 100%; height: 100%; object-fit: cover; background: var(--surface-2); }
-.sp-mark--faded { opacity: 0.6; filter: grayscale(1); }
-.sp-record__photos--fallback { display: grid; place-items: center; }
+--photo-fallback-opacity: 0.6;
 ```
-The hatch is the mockup stand-in, as on `.sp-mark--photo`; the app renders the `<img>`.
+
+**CSS** (`styles/components.css`, unlayered, beside `.sp-record__photos--empty`)
+```css
+.sp-mark--photo.sp-mark--faded,
+.sp-record__photo--faded { filter: opacity(var(--photo-fallback-opacity)); }
+```
+`filter: opacity()` rather than `opacity`, so it compounds with an opacity the element already has (the void row's 0.6) instead of replacing it.
+
+**Check** (`styles/check.js`): `.sp-mark--faded` only with `.sp-mark--photo`; `.sp-record__photo--faded` only with `.sp-record__photo`.
 
 **Docs updated**
-- Images and files: 17a (five upload places, renditions table), 17c (four thumbnail states), 17d (order thumbnail, card strip and vendor mark rows), 17e (new).
-- Components c2: new specimen and state note.
+- Images and files: 17a (five upload places, renditions table), 17c (four thumbnail states), 17d (order thumbnail and card strip rows), 17e (new).
 - Order list 2b note: four thumbnail states.
-- `styles/check.js`: new rule, "a faded mark is a logo fallback" - `.sp-mark--faded` only on `.sp-mark--vendor`, never on a photo or empty mark, always a span.
+- Components c2: faded photo specimen and state note. Vendors 5b note.
 
 ## Files
 
@@ -79,10 +91,11 @@ The hatch is the mockup stand-in, as on `.sp-mark--photo`; the app renders the `
 - `Order create.dc.html`
 - `Images and files.dc.html`
 - `Vendors and categories.dc.html`
-- `Components.dc.html`
+- `Components.dc.html` (04n specimen removed)
 - `Order list.dc.html`
 - `Brief 20.md`
 - `styles/components.css`
+- `styles/tokens.css`
 - `styles/check.js`
 - `styles/COMPONENT-STATUS.md`
 

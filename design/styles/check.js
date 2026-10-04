@@ -777,16 +777,16 @@
       if (new Set(lines).size > 1) fail('a stat row aligns to the top', f.replace('.dc.html', ''), `stats of ${lines.join('/')} lines in a centred row`);
     }
 
-  /* The faded mark is the vendor-image fallback on an order with no item photo. It is
-     only ever a vendor image, and never a control: a faded photo would read as a real one,
-     and a faded mark that opens the viewer would open a photo that does not exist. */
-  for (const [f, s] of Object.entries(src))
-    for (const m of s.matchAll(/<(\w+)\b[^>]*class="([^"]*\bsp-mark--faded\b[^"]*)"/g)) {
-      const cls = m[2].split(/\s+/);
-      if (!cls.includes('sp-mark--vendor')) fail('a faded mark is a vendor-image fallback', f.replace('.dc.html', ''), 'sp-mark--faded without sp-mark--vendor');
-      if (cls.includes('sp-mark--photo') || cls.includes('sp-mark--empty')) fail('a faded mark is a vendor-image fallback', f.replace('.dc.html', ''), 'sp-mark--faded on a photo or empty mark');
-      if (m[1] !== 'span') fail('a faded mark is a vendor-image fallback', f.replace('.dc.html', ''), 'sp-mark--faded on <' + m[1] + '>; it opens nothing, so it is a span');
-    }
+
+  /* A faded photo is the vendor image standing in for a missing item photo: the photo
+     drawn as it always is, faded. On anything that is not a photo the fade has no
+     meaning. */
+  for (const [f, s] of Object.entries(src)) {
+    for (const m of s.matchAll(/class="([^"]*\bsp-mark--faded\b[^"]*)"/g))
+      if (!m[1].split(/\s+/).includes('sp-mark--photo')) fail('a faded mark is a photo', f.replace('.dc.html', ''), m[1]);
+    for (const m of s.matchAll(/class="([^"]*\bsp-record__photo--faded\b[^"]*)"/g))
+      if (!m[1].split(/\s+/).includes('sp-record__photo')) fail('a faded band photo is a photo', f.replace('.dc.html', ''), m[1]);
+  }
 
   /* ---- report ------------------------------------------------------------ */
 
