@@ -74,7 +74,8 @@ a wishlist.
 | `/budget/check` | Check a bank statement against the budget |
 | `/settings`, `/settings/:section` | Settings, import, demo data, this build |
 | `/more` | The phone's list of what the tab bar does not hold |
-| `/signin`, `/register` | Outside the shell |
+| `/more/views` | Saved order views |
+| `/signin`, `/register`, `/welcome`, `/confirm`, `/reset`, `/terms`, `/privacy` | Outside the shell: sign in, create an account, first run, the links in emails, and the notices |
 
 The category list also reads two filters from the address, with no control on the page: `flag=over-limit`
 keeps the categories past their limit, and `month=2026-10` keeps those with spend in that month and shows
@@ -111,12 +112,11 @@ session has ended opens the "You've been signed out" dialog.
 ## The build
 
 Every page is its own chunk, loaded when its route is first opened. React, the DOM renderer and
-the router are one `vendor` chunk, so an edit to a page leaves them cached. Measured on this
-build: entry 63.94 kB (20.30 kB gzipped), vendor 285.12 kB (90.45 kB gzipped), stylesheet
-119.46 kB (20.94 kB gzipped). `npm run build` prints the current numbers.
+the router are one `vendor` chunk, so an edit to a page leaves them cached. `npm run build` prints
+the current sizes.
 
 - `scripts/precompress.mjs` writes `.gz` and `.br` beside every text file; the API serves the
-  smallest one the browser accepts. Measured: 792 kB of text, 216 kB as brotli.
+  smallest one the browser accepts.
 - No source maps. A stack trace is read against the commit `/api/version` names.
 - The four Poppins faces are preloaded from `index.html`, so they load with the stylesheet
   rather than after it.
