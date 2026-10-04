@@ -186,7 +186,6 @@ export function AppShell() {
 
 // the saved view the list was opened from (9e); All orders never returns to one
 const onView = () => { const id = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('saved'); return id && id !== 'all' ? id : null }
-const allOrders = to => (/[?&]saved=(?!all)/.test(to) ? ALL_ORDERS : to)
 
 /* An element rather than a component: the shell places its children by type (9b, 9h). The brand
    and the bottom zone stay put; only the destinations between them scroll (9g). */
@@ -203,7 +202,7 @@ function sidebar({ navKey, fold, short, go, showKeys, making }) {
 				<ScanReceipt rail={rail} />
 				<NewOrder rail={rail} current={making} />
 				{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
-				<Counted to={allOrders(go('orders', ALL_ORDERS))} icon="receipt" rail={rail} current={navKey === 'orders' && !making && !onView()} useCount={useOrdersCount}>All orders</Counted>
+				<Counted to={ALL_ORDERS} icon="receipt" rail={rail} current={navKey === 'orders' && !making && !onView()} useCount={useOrdersCount}>All orders</Counted>
 				<SidebarViews rail={rail} savedId={navKey === 'orders' ? onView() : null} />
 				{rail ? null : <SidebarGroup>Budget</SidebarGroup>}
 				<Row to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
