@@ -59,16 +59,18 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
     `disabled` draws the zone muted with no file input (20b); its children say why. */
 export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, grow = false, disabled = false, id, ...rest }) {
 	reject(rest, 'FileDrop')
+	const field = useRef(null)
+	const take = async list => {
+		const files = [...(list ?? [])].slice(0, multiple ? undefined : 1)
+		if (files.length) onFiles?.(files, await Promise.all(files.map(file => sniffedProblem(file, accept ?? FILE_TYPES, maxMb))))
+	}
+	usePastePlace(field, file => take([file]))
 	if (disabled) return (
 		<div className={join('sp-filedrop', grow && 'sp-grow', 'sp-muted')} aria-disabled="true" {...rest}>
 			{icon ? <Icon name={icon} /> : null}
 			{children}
 		</div>
 	)
-	const take = async list => {
-		const files = [...(list ?? [])].slice(0, multiple ? undefined : 1)
-		if (files.length) onFiles?.(files, await Promise.all(files.map(file => sniffedProblem(file, accept ?? FILE_TYPES, maxMb))))
-	}
 	const dropping = onFiles
 		? {
 			onDragOver: ev => ev.preventDefault(),
@@ -81,6 +83,7 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 			{children}
 			{action ? <span className="sp-btn sp-btn--small">{action}</span> : null}
 			<input
+				ref={field}
 				id={id}
 				type="file"
 				accept={accept}
@@ -91,20 +94,40 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 	)
 }
 
-/** A picture pasted anywhere on a page with one slot goes to `onImage`: a paste goes to the focused
-    field, never to the slot. One a nearer handler took (a focused slot, an open line) is left alone. */
-export function usePastedImage(onImage) {
-	const latest = useRef(onImage)
-	latest.current = onImage
+/* A picture pasted anywhere goes to the place on screen that takes pictures (17a), so no page has to
+   ask for it: the newest place shown wins, inside an open window when there is one. */
+const places = []
+function usePastePlace(input, take) {
+	const latest = useRef(take)
+	latest.current = take
 	useEffect(() => {
-		const paste = ev => {
-			if (ev.defaultPrevented) return
-			const image = [...(ev.clipboardData?.files ?? [])].find(f => f.type.startsWith('image/'))
-			if (image) { ev.preventDefault(); latest.current(image) }
-		}
-		window.addEventListener('paste', paste)
-		return () => window.removeEventListener('paste', paste)
-	}, [])
+		const place = { input, take: file => latest.current(file) }
+		places.push(place)
+		return () => { places.splice(places.indexOf(place), 1) }
+	}, [input])
+}
+const shown = el => Boolean(el?.isConnected && el.getClientRects().length)
+// a file field is hidden behind its frame or its button, so what is seen is what holds it
+const holderOf = input => input.labels?.[0] ?? input.closest('label') ?? input.parentElement
+
+/** The page's one paste listener (AppShell). A place built from these components takes the picture
+    itself; any other file field shown is handed it as if it had been chosen. */
+export function pasteAnywhere(ev) {
+	if (ev.defaultPrevented) return
+	const file = [...(ev.clipboardData?.files ?? [])].find(f => f.type.startsWith('image/'))
+	if (!file) return
+	const open = [...document.querySelectorAll('[aria-modal="true"]')].filter(shown).at(-1)
+	const takes = input => Boolean(input && !input.disabled && shown(holderOf(input)) && (!open || open.contains(input))
+		&& fileProblem(file, input.accept || FILE_TYPES, Infinity) !== 'Not a supported type')
+	const place = places.findLast(p => takes(p.input.current))
+	if (place) { ev.preventDefault(); return place.take(file) }
+	const input = [...(open ?? document).querySelectorAll('input[type="file"]')].find(takes)
+	if (!input) return
+	ev.preventDefault()
+	const chosen = new DataTransfer()
+	chosen.items.add(file)
+	input.files = chosen.files
+	input.dispatchEvent(new Event('change', { bubbles: true }))
 }
 
 /** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove, or a
@@ -113,12 +136,14 @@ export function usePastedImage(onImage) {
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)
+	const field = useRef(null)
 	const take = async file => {
 		if (!file) return
 		const own = inspect ? await inspect(file) : await sniffedProblem(file, accept)
 		setRefused(own ? { name: file.name, problem: own } : null)
 		if (!own) onFile?.(file)
 	}
+	usePastePlace(field, take)
 	const failed = refused?.problem ?? problem
 	const what = src ? `Replace ${name}` : `Add ${name}`
 	return (
@@ -145,7 +170,7 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 			>
 				{src ? <img src={src} alt="" /> : <Icon name="camera" size={26} />}
 				{src && busy ? <Spinner /> : null}
-				<input id={id} type="file" accept={accept} aria-describedby={describedBy}
+				<input ref={field} id={id} type="file" accept={accept} aria-describedby={describedBy}
 					onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
 			</Mark>
 			{refused

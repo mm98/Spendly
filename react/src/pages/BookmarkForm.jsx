@@ -5,7 +5,7 @@ import { Button } from '../components/Button.jsx'
 import { Card } from '../components/Card.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
-import { Slot, usePastedImage } from '../components/FileDrop.jsx'
+import { Slot } from '../components/FileDrop.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { Skeleton } from '../components/Utilities.jsx'
@@ -82,7 +82,6 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 		setOffered(null)
 		setCleared(false)
 	}
-	usePastedImage(choose)
 	const picture = picked ? picked.src
 		: cleared ? null
 		: bookmark?.photoId ? bookmarkPhotoThumbnailUrl(bookmark.id, bookmark.photoId)
