@@ -1217,6 +1217,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   height: var(--control-h-touch);
 }
 .sp-record__menu .sp-menu--floating { top: 100%; right: 0; }
+/* a card's menu is the menu's own width, and a label too long for it - "Open at" a long
+   domain - ends in an ellipsis on one line rather than wrapping */
+.sp-record__menu .sp-menu { width: 214px; }
+.sp-record__menu .sp-menu__item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-record__act {
   display: grid;
   place-items: center;

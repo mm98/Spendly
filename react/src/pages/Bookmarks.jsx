@@ -285,6 +285,7 @@ export default function Bookmarks() {
 					return (
 						<Record
 							key={bookmark.id}
+							onClick={() => navigate(`/bookmarks/${bookmark.id}/edit`)}
 							href={href ?? undefined}
 							hrefLabel={href ? `Open ${bookmark.name} at ${site}` : undefined}
 							photos={bookmark.photoId
@@ -313,7 +314,7 @@ export default function Bookmarks() {
 									? (
 										<Menu position="floating" aria-label={`${bookmark.name} actions`}>
 											{href
-												? <MenuItem icon="external-link" onClick={() => { closeMenus(); window.open(href, '_blank', 'noopener') }}>Open at {site}</MenuItem>
+												? <MenuItem icon="external-link" title={new URL(href).hostname} onClick={() => { closeMenus(); window.open(href, '_blank', 'noopener') }}><span>Open at {site}</span></MenuItem>
 												: null}
 											<MenuItem icon="pencil" onClick={() => navigate(`/bookmarks/${bookmark.id}/edit`)}>Edit bookmark</MenuItem>
 											<MenuItem icon="archive" onClick={() => archive(bookmark, !bookmark.archived)}>{bookmark.archived ? 'Unarchive' : 'Archive'}</MenuItem>
