@@ -15,7 +15,7 @@ import { DateField } from '../components/DatePickers.jsx'
 import { Check } from '../components/Choice.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { FILE_TYPES, PHOTO_TYPES, Slot, sniffedProblem } from '../components/FileDrop.jsx'
+import { FILE_TYPES, PHOTO_TYPES, Slot, sniffedProblem, usePastedImage } from '../components/FileDrop.jsx'
 import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, Toast, useToast } from '../components/Overlays.jsx'
 import { Empty, Spinner, useFocusTrap } from '../components/Utilities.jsx'
@@ -1464,6 +1464,8 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange
 		if (v.newPhoto) URL.revokeObjectURL(v.newPhoto.url)
 		set({ newPhoto: { file, url: URL.createObjectURL(file), sent: sendPhoto(file) }, dropPhoto: false, photoProblem: null })
 	}
+	// with a line open, a picture pasted anywhere on the page is that line's photo (c15)
+	usePastedImage(take)
 	// a pasted picture is the line's photo; pasted words stay with the field they went into
 	const paste = ev => {
 		const image = [...(ev.clipboardData?.files ?? [])].find(f => f.type.startsWith('image/'))
