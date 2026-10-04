@@ -293,7 +293,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					message={image.problem?.help ?? (image.src ? 'Shown on this vendor\'s orders that have no item photo.'
 						: 'Shown on this vendor\'s orders that have no item photo. A logo, the shop, anything you know it by.')}
 					messageType={image.problem ? 'danger' : 'hint'}>
-					{h(<Slot start size="large" filled="vendor" kind={null} name="the image" accept={VENDOR_IMAGE_TYPES}
+					{h(<Slot start size="large" kind={null} name="the image" accept={VENDOR_IMAGE_TYPES}
 						src={image.src} problem={image.problem?.banner} inspect={() => null} onFile={takeImage} onRemove={removeImage} />)}
 				</Field>
 			</Card>

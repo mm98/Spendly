@@ -8,20 +8,15 @@ import { useApi } from '../api/useApi.js'
 import { dot, morePhotos, plural } from '../api/format.js'
 import { TONES, useStatuses } from './statuses.js'
 
-/** A vendor's image standing in, faded, for the photo of an order that has none (17e). It opens
-    nothing and counts as no photo. */
-export function VendorImageMark({ image, vendor, size = 'medium' }) {
-	return (
-		<Mark size={size} fill="vendor" faded aria-label={`Image of ${vendor ?? 'the vendor'}`} aria-hidden="true">
-			<img src={vendorImageUrl(image.vendorId, image.hash, size === 'medium' ? 'square-128' : 'square-256')} alt="" />
-		</Mark>
-	)
-}
-
 /** An order row's picture (2b): its first line photo with the rest counted over it, the vendor's
     image faded, or the empty photo mark of c2. Hidden from a screen reader: the vendor names it. */
 export function OrderPhoto({ order }) {
-	if (!order.photo && order.vendorImage) return <VendorImageMark image={order.vendorImage} vendor={order.vendor?.name} />
+	// the vendor's image stands in as the photo, faded, and counts as no photo (17e)
+	if (!order.photo && order.vendorImage) return (
+		<Mark size="medium" fill="photo" goods faded aria-label={`Image of ${order.vendor?.name ?? 'the vendor'}`} aria-hidden="true">
+			<img src={vendorImageUrl(order.vendorImage.vendorId, order.vendorImage.hash, 'square-128')} alt="" />
+		</Mark>
+	)
 	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="photo" size={16} /></Mark>
 	const more = order.photoCount > 1 ? morePhotos(order.photoCount - 1) : null
 	return (
