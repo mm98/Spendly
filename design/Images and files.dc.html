@@ -32,11 +32,11 @@
     <span class="doc-badge" id="17a">17a</span>
     <span class="doc-section__title">Images and files - upload, replace, delete</span>
   </div>
-  <div class="doc-lede">Four places in the app take a file, and they behave the same way underneath. Written out because the obvious shortcuts here are all wrong in ways that lose the user's file - and a lost receipt is the one thing this product cannot do.</div>
+  <div class="doc-lede">Five places in the app take a file, and they behave the same way underneath. Written out because the obvious shortcuts here are all wrong in ways that lose the user's file - and a lost receipt is the one thing this product cannot do.</div>
 
   <div class="doc-notes">
-    <span class="doc-notes__label">The four places, one mechanism</span>
-    <div class="doc-note"><b class="sp-ink">Item photo</b> (one per line, 1b) · <b class="sp-ink">order attachments</b> (many, 1a) · <b class="sp-ink">receipt scan</b> (one, feeds 3a) · <b class="sp-ink">avatar</b> (one, 11a). All four are the same FileDrop component with different <b>accept</b>, <b>multiple</b> and <b>compact</b> settings. Do not write four uploaders.</div>
+    <span class="doc-notes__label">The five places, one mechanism</span>
+    <div class="doc-note"><b class="sp-ink">Item photo</b> (one per line, 1b) · <b class="sp-ink">order attachments</b> (many, 1a) · <b class="sp-ink">receipt scan</b> (one, feeds 3a) · <b class="sp-ink">avatar</b> (one, 11a) · <b class="sp-ink">vendor image</b> (one per vendor, 5b, 5c, specified in <a href="#17e">17e</a>). All five are the same FileDrop component with different <b>accept</b>, <b>multiple</b> and <b>compact</b> settings. Do not write five uploaders.</div>
   </div>
 </section>
 
@@ -61,7 +61,7 @@
         </div>
         <div class="sp-row-flex sp-gap-12 sp-top">
           <div class="sp-list-item__count">4</div>
-          <div class="doc-note"><b class="sp-ink">Server derives what it needs</b> - EXIF-corrected orientation, a stripped copy without GPS and camera metadata, a thumbnail, and for PDFs a first-page render. HEIC is converted for display; the original is kept as uploaded.</div>
+          <div class="doc-note"><b class="sp-ink">Server derives what it needs</b> - EXIF-corrected orientation, a stripped copy without GPS and camera metadata, the renditions below, and for PDFs a first-page render. HEIC is converted for display; the original is kept as uploaded.</div>
         </div>
         <div class="sp-row-flex sp-gap-12 sp-top">
           <div class="sp-list-item__count">5</div>
@@ -90,6 +90,50 @@
     <div class="doc-note"><b>Attaching straight to the record on drop.</b> Writes to an order the user may abandon, and means an unsaved order already has state on the server. The staged-id approach gets the immediate upload without the write.</div>
     <div class="doc-note"><b>Replace as delete-then-upload.</b> Turns a non-destructive action into a destructive one whenever the network hiccups. Always upload, swap, release.</div>
     <div class="doc-note"><b>And a fourth:</b> reusing the browser's file input styling. Every one of these is the same FileDrop component - the hidden input is an implementation detail, and the drop target, the keyboard focus ring and the per-file error rows are the design.</div>
+  </div>
+<div class="sp-list">
+    <table class="sp-table sp-table--static if-spec">
+      <thead>
+        <tr>
+          <th scope="col" class="if-col-position">Rendition</th>
+          <th scope="col" class="if-col-size">Size</th>
+          <th scope="col">Serves</th>
+          <th scope="col">How it is made</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">square-128</span></td>
+          <td class="if-col-size"><span class="sp-data">128 x 128</span></td>
+          <td><span class="sp-data"><code>--mark-medium</code> 42 at up to 3x (126): the item line, the order row.</span></td>
+          <td><span class="sp-meta">Centre square crop.</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">square-256</span></td>
+          <td class="if-col-size"><span class="sp-data">256 x 256</span></td>
+          <td><span class="sp-data"><code>--mark-large</code> 64 at up to 3x (192): the form slot, and the vendor image in the card band.</span></td>
+          <td><span class="sp-meta">Centre square crop.</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">wide-1080</span></td>
+          <td class="if-col-size"><span class="sp-data">1080 px wide</span></td>
+          <td><span class="sp-data">The card photo band (2c) at up to 3x: one photo across a 360px band, or three side by side.</span></td>
+          <td><span class="sp-meta">Aspect kept; the band crops it with cover, centred.</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">view-2560</span></td>
+          <td class="if-col-size"><span class="sp-data">2560 px longest side</span></td>
+          <td><span class="sp-data">The image viewer (12b), fitted and zoomed.</span></td>
+          <td><span class="sp-meta">Aspect kept. Zoom past it loads the stripped original.</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Renditions - one set for every picture of goods</span>
+    <div class="doc-note"><b class="sp-ink">Item photos and the vendor image (<a href="#17e">17e</a>) share this set and one resize job,</b> because the vendor image stands in for an item photo in the same places. All four are WebP, quality 85, alpha kept, never upscaled - an image smaller than a rendition is stored at its own size. Attachments and the receipt scan are paper, not goods, and keep their own page renders.</div>
+    <div class="doc-note"><b class="sp-ink">Serve with srcset</b> over the renditions that fit the slot, width descriptors and <code>sizes</code> set to the slot's CSS size, so the browser picks by pixel density. Renditions are immutable and addressed by content hash: they cache forever, and a replace changes the URL.</div>
   </div>
 </section>
 
@@ -227,11 +271,11 @@
     <span class="doc-badge" id="17c">17c</span>
     <span class="doc-section__title">Thumbnails in a list row</span>
   </div>
-  <div class="doc-lede">Three states, one width. The mark is the same square on every row whether it holds a photo, nothing, or a photo and a count - the count sits inside it - so the text beside it always starts at the same x.</div>
+  <div class="doc-lede">Four states, one width. The mark is the same square on every row whether it holds a photo, the vendor's image, nothing, or a photo and a count - the count sits inside it - so the text beside it always starts at the same x.</div>
 
   <div class="doc-specimens">
     <div class="sp-card if-w430">
-      <span class="sp-section-label">The three states</span>
+      <span class="sp-section-label">The four states</span>
 
       <div class="sp-cell-flex">
         <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
@@ -250,9 +294,17 @@
       </div>
 
       <div class="sp-cell-flex">
+        <span class="sp-mark sp-mark--medium sp-mark--vendor sp-mark--faded" aria-hidden="true"></span>
+        <span class="sp-stack sp-gap-6">
+          <span class="sp-title sp-truncate">No photo, vendor has an image</span>
+          <span class="sp-meta">The vendor's image, faded and without colour, no count. It opens nothing.</span>
+        </span>
+      </div>
+
+      <div class="sp-cell-flex">
         <span class="sp-mark sp-mark--medium sp-mark--empty"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8h.01" /><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" /><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" /></svg></span>
         <span class="sp-stack sp-gap-6">
-          <span class="sp-title sp-truncate">No photo</span>
+          <span class="sp-title sp-truncate">No photo, no vendor image</span>
           <span class="sp-meta">The empty mark - dashed, with the image symbol in <code>--ink-6</code> and no label.</span>
         </span>
       </div>
@@ -272,7 +324,8 @@
     <div class="doc-note"><b class="sp-ink">The diagonal hatch is not a state.</b> It is how these mockups draw a photo they do not have. Wherever it appears, a real image renders. Only the dashed square is literal.</div>
     <div class="doc-note"><b class="sp-ink">No stacked pairs, no ring, no second image.</b> An earlier draft stacked two squares with a white ring and switched to a badge past two - three treatments for one idea, and the column read as inconsistent. One square plus a count is the whole rule.</div>
     <div class="doc-note"><b class="sp-ink">The count is photos; the paperclip is attachments.</b> They can disagree - four item photos and no receipt, or a receipt and no photos. Never derive one from the other.</div>
-    <div class="doc-note"><b class="sp-ink">On a cancelled row</b> the thumbnail dims with the rest of the cells at opacity 0.6. It is not a fourth state.</div>
+    <div class="doc-note"><b class="sp-ink">On a cancelled row</b> the thumbnail dims with the rest of the cells at opacity 0.6. It is not a fifth state.</div>
+    <div class="doc-note"><b class="sp-ink">Order of precedence:</b> the first item line with a photo, then the vendor's image as <code>.sp-mark--vendor.sp-mark--faded</code>, then <code>.sp-mark--empty</code>. Resolved at render from the order's lines and its vendor - nothing is stored on the order (<a href="#17e">17e</a>).</div>
   </div>
 </section>
 
@@ -319,7 +372,7 @@
       </span></td>
               <td class="if-col-size"><span class="sp-data"><code>--mark-medium</code><br>42px square</span></td>
               <td><span class="sp-data">One image standing for the whole order in a row: <b>the first item line's photo</b>, by position, not by price or by which happens to have one. Deterministic, so the same order always shows the same face. Used in 2b, 10a and 8a.</span></td>
-              <td><span class="sp-meta">The empty mark, <code>.sp-mark--empty</code>, at <code>--mark-medium</code>: dashed, with the image symbol in <code>--ink-6</code>, as <a href="Order list.dc.html#2b">2b</a> and <a href="Components.dc.html#c2">c2</a> draw it. Not the category mark: a row already names its category, and a mark in the photo cell would read as a photo.</span></td>
+              <td><span class="sp-meta">The empty mark, <code>.sp-mark--empty</code>, at <code>--mark-medium</code>: dashed, with the image symbol in <code>--ink-6</code>, as <a href="Order list.dc.html#2b">2b</a> and <a href="Components.dc.html#c2">c2</a> draw it. Not the category mark: a row already names its category, and a mark in the photo cell would read as a photo. <b>If the vendor has an image</b>, that image comes first, faded: <code>.sp-mark--vendor.sp-mark--faded</code> (<a href="#17e">17e</a>).</span></td>
             </tr>
             <tr>
               <td class="if-col-position"><span class="sp-stack sp-gap-6">
@@ -333,7 +386,7 @@
       </span></td>
               <td class="if-col-size"><span class="sp-data"><code>.sp-record__photos</code><br>116px tall, full width</span></td>
               <td><span class="sp-data">The order's item photos across the top of a card in <a href="Order list.dc.html#2c">2c</a> - the first three lines that have one, in item order, each <b>object-fit: cover</b>. The count badge carries the rest.</span></td>
-              <td><span class="sp-meta"><code>.sp-record__photos--empty</code> - the image symbol in <code>--ink-6</code> over "No photos", centred in the same 116px band on <code>--surface-3</code>, so the grid keeps its rhythm and no card is shorter than its neighbours (<a href="Order list.dc.html#2c">2c</a>).</span></td>
+              <td><span class="sp-meta"><code>.sp-record__photos--empty</code> - the image symbol in <code>--ink-6</code> over "No photos", centred in the same 116px band on <code>--surface-3</code>, so the grid keeps its rhythm and no card is shorter than its neighbours (<a href="Order list.dc.html#2c">2c</a>). <b>If the vendor has an image</b>, the band is <code>.sp-record__photos--fallback</code> instead: the same band holding one faded <code>--mark-large</code> image mark at its centre, and no "No photos" (<a href="#17e">17e</a>).</span></td>
             </tr>
             <tr>
               <td class="if-col-position"><span class="sp-stack sp-gap-6">
@@ -377,8 +430,8 @@
         <span class="sp-mark sp-mark--medium sp-mark--plain">IM</span>
       </span></td>
               <td class="if-col-size"><span class="sp-data"><code>--mark-medium</code><br>42px square</span></td>
-              <td><span class="sp-data">A vendor never gets a photo. The mark is <b>always</b> initials - a letterform identity mark, <code>.sp-mark--plain</code>, from the vendor's first two significant words.</span></td>
-              <td><span class="sp-meta">Not applicable. There is no image case, which is the point: no favicon scraping, no logo upload, no fetched brand asset. A grid of scraped logos is the fastest way to wreck a muted palette.</span></td>
+              <td><span class="sp-data">A vendor never gets a photo. The mark is <b>always</b> initials - a letterform identity mark, <code>.sp-mark--plain</code>, from the vendor's first two significant words. The vendor image (<a href="#17e">17e</a>) is never shown here; it is only the fallback on the vendor's orders.</span></td>
+              <td><span class="sp-meta">Not applicable. There is no image case: no favicon scraping, no fetched brand asset.</span></td>
             </tr>
             <tr>
               <td class="if-col-position"><span class="sp-stack sp-gap-6">
@@ -399,9 +452,143 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b class="sp-ink">Every hatched block in these files is one of these nine.</b> The hatch pattern carries no meaning beyond "an image belongs here" - match the position to this table rather than inferring intent from the placeholder's size or colour.</div>
     <div class="doc-note"><b class="sp-ink">Two things are photos of goods; two are photos of paper.</b> Item photo and card strip show what was bought. Attachment tile and receipt preview show the document proving it. They are separate fields on separate models and must not share a picker, a viewer entry point, or a count.</div>
-    <div class="doc-note"><b class="sp-ink">Every fallback is a mark, never a broken-image glyph or a grey box with a mountain icon.</b> Either the IdentityMark (order thumbnail, card strip, avatar, vendor) or nothing at all (attachment strip, page rail). An empty tile appears in exactly one position - the item photo - because a list of item lines is where a missing photo is genuinely unremarkable.</div>
+    <div class="doc-note"><b class="sp-ink">Every fallback is a mark, never a broken-image glyph or a grey box with a mountain icon.</b> Either the IdentityMark (order thumbnail, card strip, avatar, vendor) or nothing at all (attachment strip, page rail). The vendor image fallback on an order is the IdentityMark too, faded. An empty tile appears in exactly one position - the item photo - because a list of item lines is where a missing photo is genuinely unremarkable.</div>
     <div class="doc-note"><b class="sp-ink">Crop is centre, cover, everywhere except the receipt preview and page thumbnails</b>, which letterbox at page aspect because cropping a receipt can hide the total.</div>
     <div class="doc-note"><b class="sp-ink">The tone from above applies to the first four positions only.</b> Goods get toned; paper does not, and neither does anything in the viewer - those exist to be read.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="17e">17e</span>
+    <span class="doc-section__title">Vendor image - validation, renditions, where it shows</span>
+  </div>
+  <div class="doc-lede">One optional image per vendor, uploaded in <a href="Vendors and categories.dc.html#5b">5b</a> and <a href="Vendors and categories.dc.html#5c">5c</a>. It can be the vendor's logo, its shop, or any picture the user connects with it. It has one use: it stands in, faded, for the photo on any of that vendor's orders where no item line has one.</div>
+
+  <div class="doc-specimens">
+    <div class="sp-stack sp-gap-12 doc-w400">
+      <span class="sp-section-label">The form slot, in every state</span>
+      <div class="sp-card">
+
+        <div class="sp-row-flex sp-gap-16 sp-top">
+          <span class="sp-slot">
+            <label class="sp-mark sp-mark--large sp-mark--empty" for="if-e1" data-tip="Add an image"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg><input id="if-e1" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml" aria-label="Add an image"></label>
+            <span class="sp-meta">Add</span>
+          </span>
+          <div class="doc-note"><b class="sp-ink">Empty.</b> The c17 thumb slot, unchanged. Click, drop or paste.</div>
+        </div>
+
+        <div class="sp-row-flex sp-gap-16 sp-top">
+          <span class="sp-slot">
+            <span class="sp-mark sp-mark--large sp-mark--vendor"><span class="sp-spinner" aria-label="Uploading"></span></span>
+          </span>
+          <div class="doc-note"><b class="sp-ink">Uploading.</b> The local preview with the ring over it, as 17b. During a replace, the old image stays under the ring.</div>
+        </div>
+
+        <div class="sp-row-flex sp-gap-16 sp-top">
+          <span class="sp-slot">
+            <label class="sp-mark sp-mark--large sp-mark--vendor" for="if-e2" data-tip="Replace the image"><input id="if-e2" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml" aria-label="Replace the image"></label>
+            <button type="button" class="sp-slot__remove">Remove</button>
+          </span>
+          <div class="doc-note"><b class="sp-ink">Filled.</b> Centre-cropped to the square, like every image in a mark. Choosing a file replaces it; Remove clears it, undoable until the vendor is saved.</div>
+        </div>
+
+        <div class="sp-row-flex sp-gap-16 sp-top">
+          <span class="sp-slot">
+            <span class="sp-mark sp-mark--large sp-mark--empty"><span class="sp-mark__text" data-color="danger">Too small</span></span>
+            <button type="button" class="sp-slot__remove">Remove</button>
+          </span>
+          <div class="doc-note"><b class="sp-ink">Rejected.</b> The banner names the reason; the field's help line gives the full sentence from the table below. A rejected first upload leaves no image behind, so the frame stays the empty one under the banner.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-12 doc-w400">
+      <span class="sp-section-label">Where it shows</span>
+      <div class="sp-card">
+        <div class="sp-cell-flex">
+          <span class="sp-mark sp-mark--medium sp-mark--vendor sp-mark--faded" aria-hidden="true"></span>
+          <span class="sp-stack sp-gap-6">
+            <span class="sp-title sp-truncate">An order with no item photo</span>
+            <span class="sp-meta">Faded and grey, no count: order row (2b), Home recent (10a), duplicate (8a).</span>
+          </span>
+        </div>
+        <span class="sp-record__photos sp-record__photos--fallback">
+          <span class="sp-mark sp-mark--large sp-mark--vendor sp-mark--faded" aria-hidden="true"></span>
+        </span>
+        <span class="sp-meta">The order card's photo band (2c) with no item photo: one faded large image at its centre.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-list">
+    <table class="sp-table sp-table--static if-spec">
+      <thead>
+        <tr>
+          <th scope="col" class="if-col-position">Rule</th>
+          <th scope="col" class="if-col-size">Value</th>
+          <th scope="col">Checked where</th>
+          <th scope="col">Message when it fails</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">Type</span></td>
+          <td class="if-col-size"><span class="sp-data">PNG, JPEG, WebP, HEIC, SVG</span></td>
+          <td><span class="sp-data">Browser by extension and sniffed magic bytes; server again on the bytes. HEIC is converted, as 17a. GIF, AVIF and PDF are rejected. <code>accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml"</code>.</span></td>
+          <td><span class="sp-meta">Banner "Not supported". Help: "Use a PNG, JPEG, WebP, HEIC or SVG file."</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">File size</span></td>
+          <td class="if-col-size"><span class="sp-data">5 MB max</span></td>
+          <td><span class="sp-data">Browser before upload, server again.</span></td>
+          <td><span class="sp-meta">Banner "Too large". Help: "The image is over 5 MB. Use a smaller file."</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">Smallest</span></td>
+          <td class="if-col-size"><span class="sp-data">128 px on the shorter side</span></td>
+          <td><span class="sp-data">Browser decodes with <code>createImageBitmap</code> before upload; server confirms. SVG is exempt, being drawn at any size.</span></td>
+          <td><span class="sp-meta">Banner "Too small". Help: "The image needs to be at least 128 px on its shorter side."</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">Largest</span></td>
+          <td class="if-col-size"><span class="sp-data">8000 px either side, 40 MP</span></td>
+          <td><span class="sp-data">Server, before decoding fully, to refuse decompression bombs.</span></td>
+          <td><span class="sp-meta">Banner "Too large". Help: "The image is too large to use. Use one under 8000 px."</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">Unreadable</span></td>
+          <td class="if-col-size"><span class="sp-data">Decode fails</span></td>
+          <td><span class="sp-data">Browser or server. A corrupt file, or an SVG that fails sanitising.</span></td>
+          <td><span class="sp-meta">Banner "Failed". Help: "This file could not be read. Try another."</span></td>
+        </tr>
+        <tr>
+          <td class="if-col-position"><span class="sp-title">Network</span></td>
+          <td class="if-col-size"><span class="sp-data">Upload fails</span></td>
+          <td><span class="sp-data">The 17b failed state: banner "Failed", Retry beneath. During a replace the old image is kept.</span></td>
+          <td><span class="sp-meta">Help: "The image did not upload. Retry, or save without it."</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Renditions</span>
+    <div class="doc-note"><b class="sp-ink">The same set and the same resize job as an item photo</b> (<a href="#17a">17a</a>), since it stands in for one in the same places. It uses <code>square-128</code> in the order row and <code>square-256</code> in the card band and the form slot; <code>view-2560</code> is not made, as it never opens the viewer.</div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b class="sp-ink">Lifecycle is 17a, unchanged.</b> Validate in the browser, show the local preview, upload to staging for an id, save commits it, orphans are cleaned after 24 hours. Replace is upload, swap, release. Remove has no confirmation, since the user added it; it only drops the id until save.</div>
+    <div class="doc-note"><b class="sp-ink">Processing on the server, in order:</b> sniff type; for SVG, sanitise (strip scripts, event handlers, external references and <code>foreignObject</code>) and rasterise to PNG at 1024 px - an SVG is never served as SVG; apply EXIF orientation and strip all metadata; convert HEIC; take the first frame of an animated WebP; check the smallest and largest rules; write the renditions of 17a. The original is kept as uploaded and never served.</div>
+    <div class="doc-note"><b class="sp-ink">Data model:</b> <code>vendor.image_file_id</code>, nullable. Nothing is stored on orders. An order's thumbnail is resolved at render: first item line with a photo, else the vendor's image faded, else the empty mark. Changing or removing a vendor's image therefore changes every one of its orders at once.</div>
+    <div class="doc-note"><b class="sp-ink">The fallback is not a photo.</b> It is <code>.sp-mark--vendor.sp-mark--faded</code> as a <code>&lt;span aria-hidden="true"&gt;</code>: no count, does not open the viewer, not counted as a photo anywhere. The No photos filter, the photo count and the paperclip all ignore it. A click on the row still opens the order.</div>
+    <div class="doc-note"><b class="sp-ink">The fade is two values already in use:</b> opacity 0.6, the dim a void record uses, and <code>grayscale(1)</code>. No new colour. On a void row it compounds with the row's own 0.6, which is correct - both say "not the real thing".</div>
+    <div class="doc-note"><b class="sp-ink">No tone.</b> It is only ever shown faded, and the grayscale replaces the 17b thumbnail tone. The form slot shows it at full strength so the user can see what they picked.</div>
+    <div class="doc-note"><b class="sp-ink">Vendor lifecycle.</b> Archive keeps the image. Delete releases it. Merge (<a href="Vendors and categories.dc.html#5j">5j</a>) keeps the target's image; if the target has none, the source's moves to it. Duplicating an order (<a href="Duplicate and alerts.dc.html#8a">8a</a>) does not touch it - the image belongs to the vendor.</div>
+    <div class="doc-note"><b class="sp-ink">Open question - dark mode, not designed yet.</b> A vendor image with transparent areas (a cut-out logo, a PNG with no background) sits on <code>--surface-2</code>. In the light theme that ground is pale, so a dark logo reads. In the dark theme it is dark, and a dark logo on it can disappear, which the fade and grayscale make worse. The same applies to item photos with transparency, though they are rarer. How often this happens and how bad it looks is unknown: these mockups only draw the hatch stand-in, and no real images have been tried against the dark surface.</div>
+    <div class="doc-note"><b class="sp-ink">This needs implementation and testing before it can be designed.</b> Build the vendor image as specified above, then test real images in the dark theme: dark logos on transparency, light logos on transparency, and ordinary photos, each at full strength in the form slot and faded in the order row and the card band. Until then, the dark theme shows the image on <code>--surface-2</code> exactly as the light theme does, and nothing is added for it - no light ground, no outline, no detection of transparent images. The result of the test decides the design; it is not decided here.</div>
   </div>
 </section>
 

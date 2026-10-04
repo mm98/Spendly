@@ -777,6 +777,17 @@
       if (new Set(lines).size > 1) fail('a stat row aligns to the top', f.replace('.dc.html', ''), `stats of ${lines.join('/')} lines in a centred row`);
     }
 
+  /* The faded mark is the vendor-image fallback on an order with no item photo. It is
+     only ever a vendor image, and never a control: a faded photo would read as a real one,
+     and a faded mark that opens the viewer would open a photo that does not exist. */
+  for (const [f, s] of Object.entries(src))
+    for (const m of s.matchAll(/<(\w+)\b[^>]*class="([^"]*\bsp-mark--faded\b[^"]*)"/g)) {
+      const cls = m[2].split(/\s+/);
+      if (!cls.includes('sp-mark--vendor')) fail('a faded mark is a vendor-image fallback', f.replace('.dc.html', ''), 'sp-mark--faded without sp-mark--vendor');
+      if (cls.includes('sp-mark--photo') || cls.includes('sp-mark--empty')) fail('a faded mark is a vendor-image fallback', f.replace('.dc.html', ''), 'sp-mark--faded on a photo or empty mark');
+      if (m[1] !== 'span') fail('a faded mark is a vendor-image fallback', f.replace('.dc.html', ''), 'sp-mark--faded on <' + m[1] + '>; it opens nothing, so it is a span');
+    }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

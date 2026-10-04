@@ -712,3 +712,5 @@ first.
 - 2026-10-04 - Record card, picked state: only the card's own 1px border turns green. The inner second pixel (inset shadow) is removed: the photo strip painted over it, so the card read as a thin edge beside the photos and a double one below.
 
 - 2026-10-04 - Card grid (Brief 19): new token `--card-min-w: 280px`; `.sp-cards--fluid` reads it with `min(..., 100%)`. No maximum. Order list, Bookmarks and the phone Bookmarks frame use the fluid grid. The base four-across `.sp-cards` is unchanged.
+
+- 2026-10-04 - c2 mark: two new variants, nothing existing changed. `.sp-mark--vendor` is a vendor's uploaded image, cover and centred on `--surface-2` with a 1px `--line` border. `.sp-mark--faded` (opacity 0.6, grayscale) is only ever on `.sp-mark--vendor`, always a span: the fallback on an order with no item photo. c1 record strip: `.sp-record__photos--fallback` centres one faded `--mark-large` vendor mark in the 116px band. `styles/check.js` asserts the faded rule.

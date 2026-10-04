@@ -32,7 +32,7 @@
     <span class="doc-badge" id="8a">8a</span>
     <span class="doc-section__title">Duplicate an order</span>
   </div>
-  <div class="doc-lede">Reached from Duplicate on the read view, or from the order row menu. There is no dialog: the source is already chosen, so Duplicate opens the copy straight in the edit screen, unsaved, where anything can still be changed or the copy abandoned. Lines and prices come, the date becomes today, the status resets and attachments do not follow - the copy rules of <a href="Order create.dc.html#3b">3b</a>.</div>
+  <div class="doc-lede">Reached from Duplicate on the read view, or from the order row menu. There is no dialog: the source is already chosen, so Duplicate opens the copy straight in the edit screen, unsaved, where anything can still be changed or the copy abandoned. Each line comes whole, with its photo; the date becomes today, the status resets and the order's files are not copied - the copy rules of <a href="Order create.dc.html#3b">3b</a>.</div>
 
   <div class="doc-specimens">
     <div class="sp-stack sp-gap-14 da-w640">
@@ -106,7 +106,7 @@
             <span class="sp-title">1.780,00 kr.</span>
           </div>
           <div class="sp-list-item sp-list-item--outline">
-            <span class="sp-data">Attachments were not copied - add this trip's receipt</span>
+            <span class="sp-data">The receipt was not copied - add this trip's receipt</span>
             <span class="sp-grow"></span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap">Add files</button>
           </div>
@@ -117,7 +117,8 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Duplicate</b> opens the copy in the edit screen, not saved yet, as <a href="Order create.dc.html#3a">3a</a> step 3 does. Save creates it; Discard, or leaving with a confirm, throws it away. If the copy takes a category over its limit, the edit screen says so as any order does (<a href="#8b">8b</a>); it never blocks.</div>
-        <div class="doc-note"><b>Add files</b> adds files to the copy only.</div>
+        <div class="doc-note"><b>Add files</b> adds files to the copy only. The row shows only when the original order had files.</div>
+        <div class="doc-note"><b>A line is copied with everything on it</b>, its photo included: the photo shows in the line row and in the open line editor, and Remove and replace work as on any line. Save stores the copy's own pictures, so deleting the original order later does not change the copy.</div>
   </div>
 </section>
 
@@ -135,7 +136,7 @@
     <div class="doc-note"><b>Open statistics</b> opens Statistics (<a href="Order statistics.dc.html#4a">4a</a>) for the month the summary is about, with no crumb: the card names several categories, and the page shows them all.</div>
     <div class="doc-note"><b class="sp-ink">A limit is a fact about the month, not a validation rule.</b> Crossing one never disables Save and never routes through the validation layer - keep the check out of that code path entirely, or it eventually starts blocking. Amber informs; red blocks.</div>
     <div class="doc-note"><b class="sp-ink">The over-limit chip travels.</b> The same dot renders wherever the category appears - list rows, facet lists and order details - so the state is recognisable without reading the number.</div>
-    <div class="doc-note"><b class="sp-ink">Attachments do not follow a duplicate</b> because a receipt is evidence of one specific purchase; copying it to another order makes the record lie. Items, vendor, category, reference and notes do carry over.</div>
+    <div class="doc-note"><b class="sp-ink">The order's files are not copied</b> because a receipt is evidence of one specific purchase; copying it to another order makes the record lie. A line's photo is a picture of the product, which is the same, so every line comes with its photo. Vendor, category, reference and notes carry over too.</div>
   </div>
 
   <div class="doc-specimens">

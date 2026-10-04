@@ -512,7 +512,7 @@
           <div class="sp-dialog sp-stack sp-gap-16" role="dialog" aria-label="Copy a previous order">
             <div class="sp-stack sp-gap-6">
               <span class="sp-heading sp-truncate">Copy a previous order</span>
-              <span class="sp-dialog__body">The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</span>
+              <span class="sp-dialog__body">The vendor, category and item lines are copied, with each item's photo. The date becomes today, the status resets, and the receipt stays on the original order.</span>
             </div>
             <div class="sp-picker__search">
               <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
@@ -618,7 +618,7 @@
         <div class="doc-note"><b>Two groups, not a flat list.</b> <b>You order these often</b> is orders whose vendor and line shape have recurred, with the repeat count - that is the case this feature exists for, so it comes first. <b>Recent</b> is the fallback. Same grouped pattern as the vendor Combobox in 14a: arrow keys cross both groups as one list, headers are never focusable.</div>
         <div class="doc-note"><b>Search covers vendor and item name</b>, because the thing you remember is often "the order with the oak chairs" rather than the shop. Same 300ms debounce and prefix matching as every other search.</div>
         <div class="doc-note"><b>Picking opens the edit screen unsaved.</b> No confirm - nothing exists yet, and the notice's Discard is the way out. This is the same reason the duplicate in 8a needs no dialog.</div>
-        <div class="doc-note"><b>The copy rules are 8a's, unchanged.</b> Vendor, category, reference, notes and all lines with quantities and prices carry over; date becomes today, status resets, attachments do not follow. The dialog states this up front, because "copy" otherwise implies the receipt comes with it.</div>
+        <div class="doc-note"><b>The copy rules are 8a's, unchanged.</b> Vendor, category, reference, notes and all lines carry over whole - quantities, prices and each line's photo; date becomes today, status resets, the order's files are not copied. The dialog states this up front, because "copy" otherwise implies the receipt comes with it.</div>
         <div class="doc-note"><b>Amounts are copied, not re-priced.</b> They are what you paid last time, and they are editable like any other field. Nothing looks up a current price - this is a record of what happened, not a shopping basket.</div>
       </div>
 
