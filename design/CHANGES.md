@@ -1,53 +1,27 @@
-# Spendly - changes since handoff_2026_10_04b_changes
+# Spendly - changes since handoff_2026_10_04c_changes_fixed
 
-Copy these files over handoff_2026_10_04b_changes. Decisions are in `Brief 14 answers.md`.
+Copy these files over handoff_2026_10_04c_changes_fixed.
 
-## 1. No monthly summary on a phone
+## 1. Bookmark cards: categories in the head
 
-Home on a phone does not show the monthly summary, and nothing replaces it. Needs a look covers this month's limits; the summary still goes out by email when that switch is on.
+The categories move from their own row under the name into the card head, right of the name. Every bookmark card is one row shorter.
 
-- Mobile screens 7a (Home frame, 10a): note added. The frame itself is unchanged apart from point 3.
-- Duplicate and alerts 8b, 3: note says the summary is desktop only.
-- Actions inventory: Monthly summary row updated.
-
-**What the app changes**
-- Remove the summary card from phone Home.
-
-## 2. The summary hides as a whole, never per row
-
-- Duplicate and alerts 8b, 3: a close button (`sp-icon-btn`, aria-label "Hide the August summary") at the right of the card head. It hides the summary for that month on every device, and it does not come back.
-- Rows have no close button. Adjust stays on the over-limit row.
+- New variant `sp-record__head--chips` on `.sp-record__head`, in `styles/components.css` (unlayered, beside the record rules). The `.sp-chip` and `.sp-record` rules themselves are unchanged.
+- The chip column takes what it needs, at most a third of the head's width, on one line, aligned right. The name takes the rest and truncates as before.
+- The first category is an `sp-chip` (a button that sets the category filter, as before) and truncates when it must. Further categories show as one static chip, `sp-chip sp-chip--static`, reading "+N" with `aria-label="Also Seating"` (the names it stands for). The bookmark page lists them all.
+- A bookmark with no category has no chip column; the head is the plain `sp-record__head`.
+- The order card is unchanged and keeps its chip row.
+- Pages: Bookmarks (all cards, 22a notes updated), Mobile screens (the Bookmarks frame).
+- Logged in `styles/COMPONENT-STATUS.md`.
 
 **What the app changes**
-- Keep the head close button; remember the hide per month across devices.
-- Remove the per-row close button and its Undo message.
-
-## 3. Recent orders on a phone links to the full list
-
-Mobile screens 7a (Home frame): the card head reads "RECENT ORDERS", muted "newest 3", then "All 248" (`sp-btn sp-btn--text sp-btn--small`, the desktop link) opening the order list.
-
-**What the app changes**
-- Add the link with the true total, as on desktop.
-
-## 4. Categories: two URL filters
-
-Vendors and categories 5d, new specimens under the row action popovers.
-
-- `flag=over-limit` cuts the list to the categories over their limit.
-- `month=YYYY-MM` measures every row against that month. The column reads the month (AUGUST) instead of THIS MONTH, and the pace marker goes.
-- Both exist only in the URL; the page has no control for either. Each applied filter shows as a removable `sp-crumb` in `sp-filters` above the list, the order list's component. Removing a crumb drops that parameter. With nothing matching, the empty state shows and the crumbs stay.
-- Needs a look's "N over their limit" opens `/categories?flag=over-limit`, on Home and on a phone (Mobile screens note added).
-
-**What the app changes**
-- Support both parameters on `/categories`, with the crumbs.
-- Point "N over their limit" at `/categories?flag=over-limit`.
+- Render bookmark cards with the categories in the head as above, and remove the separate chip row.
 
 ## Files
 
+- `Bookmarks.dc.html`
 - `Mobile screens.dc.html`
-- `Duplicate and alerts.dc.html`
-- `Vendors and categories.dc.html`
-- `Actions inventory.dc.html`
-- `Brief 14 answers.md`
+- `styles/components.css`
+- `styles/COMPONENT-STATUS.md`
 
-No CSS changed. `styles/check.js` reports 84 findings, the same known set as handoff_2026_10_04b_changes.
+`styles/check.js` reports 84 findings, the same known set as handoff_2026_10_04c_changes_fixed.

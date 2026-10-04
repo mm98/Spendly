@@ -1241,6 +1241,12 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-record__head { display: flex; align-items: flex-start; gap: var(--sp-10); }
 .sp-record__chips { display: flex; gap: var(--sp-6); flex-wrap: wrap; }
+/* chips in the head, at the right of the name (bookmark card): one line, at most a third of
+   the width, the first category truncating before the +N beside it */
+.sp-record__head--chips > .sp-record__chips { flex: 0 1 auto; max-width: 33.333%; min-width: 0; flex-wrap: nowrap; justify-content: flex-end; }
+.sp-record__head--chips > .sp-record__chips > .sp-chip { flex: 0 1 auto; min-width: 0; }
+.sp-record__head--chips > .sp-record__chips > .sp-chip--static { flex: none; }
+.sp-record__head--chips > .sp-record__chips > .sp-chip > span { overflow: hidden; text-overflow: ellipsis; }
 .sp-record__foot {
   display: flex;
   align-items: flex-start;

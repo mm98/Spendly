@@ -37,7 +37,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The record is a bookmark everywhere.</b> Routes are <code>/bookmarks</code>, <code>/bookmarks/new</code> and <code>/bookmarks/:id/edit</code>; every label, title and button says bookmark.</div>
-    <div class="doc-note"><b>The card is <code>.sp-record</code>, unchanged.</b> A bookmark has exactly one picture, never several. The strip holds that one picture filling its whole width, exactly as an order with one item photo does; there is never a second cell, a divider or a <b>+N</b> count. The form in <a href="#22c">22c</a> has one picture slot for the same reason. No picture draws the empty band with <b>No picture</b>, so every card keeps the same height.</div>
+    <div class="doc-note"><b>The card is <code>.sp-record</code> with the <code>sp-record__head--chips</code> variant</b> (categories in the head; see below). A bookmark has exactly one picture, never several. The strip holds that one picture filling its whole width, exactly as an order with one item photo does; there is never a second cell, a divider or a <b>+N</b> count. The form in <a href="#22c">22c</a> has one picture slot for the same reason. No picture draws the empty band with <b>No picture</b>, so every card keeps the same height.</div>
     <div class="doc-note"><b>Only the picture strip opens the link.</b> The strip at the top of the card is a link to the bookmark's URL, opening in a new tab, so it middle-clicks and copies like one. The rest of the card is not a link: the category chips filter the list by that category, and editing is <b>Edit bookmark</b> in the menu. The link is required and validated on save, so every strip has one to open, including the empty No picture band.</div>
     <div class="doc-note"><b>The menu holds what the edit page does:</b> Open at the shop, Edit, Archive, Delete. With <b>Archived</b> selected, Archive becomes <b>Unarchive</b> in the same position; it applies at once and the card leaves the archived list. Delete confirms in a popover from the card, the same component the category list uses in <a href="Vendors and categories.dc.html#5d">5d</a>.</div>
     <div class="doc-note"><b>No checkbox and no bulk bar.</b> There are no bulk actions on bookmarks, so <code>.sp-record__pick</code> is left out rather than shown with nothing behind it.</div>
@@ -46,6 +46,7 @@
     <div class="doc-note"><b>Prices are whole kroner</b> on bookmarks - the card, the summary and the field - since a price is what a shop is asking, not a settled amount. Typed decimals are kept and rounded only for display.</div>
     <div class="doc-note"><b>No toolbar row above the cards.</b> A bookmark never reaches a total and has no bulk actions, so there is nothing to sum or act on; the footer states how many are shown. The price is what the shop asked when it was saved, and nothing adds it up.</div>
     <div class="doc-note"><b>Search</b> matches the name, the shop and the category names. <b>Sort</b> offers Newest first, Oldest first, Price high to low, Price low to high and Name A - Z; under a price sort, bookmarks with no price go last.</div>
+    <div class="doc-note"><b>Categories sit in the card head, right of the name</b> (<code>sp-record__head--chips</code>), taking at most a third of the width. The first category is a chip and truncates when it must; more show as a static "+N" chip, and the bookmark page lists them all. A bookmark with no category has no chip column. The order card keeps its chip row.</div>
     <div class="doc-note"><b>Open / Archived</b> is the vendor list's Active / Archived control. It composes with the search and the category filter.</div>
     <div class="doc-note"><b>In the sidebar</b> Bookmarks is a row in the Library group, after Categories. See <a href="Navigation shell.dc.html#10a">10a</a>.</div>
   </div>
@@ -131,15 +132,15 @@
               </menu>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Palissade Lounge Chair</span>
                 <span class="sp-subtitle sp-truncate">hay.dk</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Decor</span></button>
-              <button type="button" class="sp-chip"><span>Seating</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Decor</span></button>
+                <span class="sp-chip sp-chip--static" aria-label="Also Seating"><span>+1</span></span>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -157,14 +158,14 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Nuage Pendant 50</span>
                 <span class="sp-subtitle sp-truncate">normann-copenhagen.com</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Lighting</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Lighting</span></button>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -183,14 +184,14 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Linen bedding set</span>
                 <span class="sp-subtitle sp-truncate">fermliving.com</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Textiles</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Textiles</span></button>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -208,14 +209,14 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Outline Sofa, 3 seater</span>
                 <span class="sp-subtitle sp-truncate">muuto.com</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Seating</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Seating</span></button>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -233,14 +234,14 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Storage boxes, set of 3</span>
                 <span class="sp-subtitle sp-truncate">hay.dk</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Storage</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Storage</span></button>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -265,8 +266,6 @@
                 <span class="sp-subtitle sp-truncate">indbo.dk</span>
               </span>
             </div>
-            <div class="sp-record__chips">
-            </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
               <span class="sp-subtitle">Added 19/08/2026</span>
@@ -283,14 +282,14 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Flowerpot VP3 table lamp</span>
                 <span class="sp-subtitle sp-truncate">andtradition.com</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Lighting</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Lighting</span></button>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -308,15 +307,15 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Wool throw, sand</span>
                 <span class="sp-subtitle sp-truncate">fermliving.com</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Textiles</span></button>
-              <button type="button" class="sp-chip"><span>Seating</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Textiles</span></button>
+                <span class="sp-chip sp-chip--static" aria-label="Also Seating"><span>+1</span></span>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -355,15 +354,15 @@
               </menu>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Palissade Lounge Chair</span>
                 <span class="sp-subtitle sp-truncate">hay.dk</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Decor</span></button>
-              <button type="button" class="sp-chip"><span>Seating</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Decor</span></button>
+                <span class="sp-chip sp-chip--static" aria-label="Also Seating"><span>+1</span></span>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -498,14 +497,14 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Nuage Pendant 50</span>
                 <span class="sp-subtitle sp-truncate">normann-copenhagen.com</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Lighting</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Lighting</span></button>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
@@ -523,14 +522,14 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head">
+            <div class="sp-record__head sp-record__head--chips">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Flowerpot VP3 table lamp</span>
                 <span class="sp-subtitle sp-truncate">andtradition.com</span>
               </span>
-            </div>
-            <div class="sp-record__chips">
-              <button type="button" class="sp-chip"><span>Lighting</span></button>
+              <div class="sp-record__chips">
+                <button type="button" class="sp-chip"><span>Lighting</span></button>
+              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">

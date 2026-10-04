@@ -679,3 +679,5 @@ first.
   never changed appearance. It still does not: the register has no struck-through eye,
   and the button states its position through `aria-pressed` and its label. That gap
   is now visible rather than hidden behind two props that looked different.
+
+- 2026-10-04 - `.sp-record__head--chips` added as a variant of the record card for bookmarks: the categories move from their own row into the head, right of the name, at most a third of the width. The first category shows as a chip and truncates; more show as a static "+N" chip. A bookmark with no category has no chip column. The order card is unchanged.
