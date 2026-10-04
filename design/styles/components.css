@@ -1146,7 +1146,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* The same grid with no query at all: the track floor decides how many fit, so it
    reflows at every width instead of stepping at two. Two classes, so it outranks the
    base track and the queries that step it. */
-.sp-cards.sp-cards--fluid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+/* the card grid the app draws: as many cards as fit at --card-min-w or wider, with no query
+   and no maximum. Two need 2 x 280 + 12 = 572px; below that it is one column, and below
+   280 the one card takes the full width (Brief 19) */
+.sp-cards.sp-cards--fluid { grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min-w), 100%), 1fr)); }
 .sp-record {
   display: flex;
   flex-direction: column;
@@ -1276,8 +1279,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-record__foot > .sp-stack > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-record__foot .sp-cell-menu { margin: -12px 0; align-self: center; }
 .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
-/* a picked card: a 2px green edge, the second pixel drawn inside so nothing moves, and no fill (2c) */
-.sp-record:has(input:checked) { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+/* a picked card: its own border turns green, and nothing else - no second pixel, no fill (2c) */
+.sp-record:has(input:checked) { border-color: var(--green); }
 .sp-record[data-void="true"] { opacity: 0.6; }
 
 
