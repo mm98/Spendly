@@ -213,8 +213,8 @@ function sidebar({ navKey, fold, short, go, showKeys, making }) {
 				<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
 				<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
 			</NavScroll>
+			<SidebarDivider />
 			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}
-			{rail ? null : <SidebarDivider />}
 			{short ? null : <DarkMode rail={rail} />}
 			<Account rail={rail} short={short} onShortcuts={showKeys} />
 			<SidebarGrip expanded={!rail} onClick={fold.toggle} />

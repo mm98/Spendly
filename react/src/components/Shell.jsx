@@ -120,24 +120,36 @@ export function SidebarDivider(props) {
 	return <span className="sp-sidebar__divider" {...props} />
 }
 
-// edited is a light row whose saved view differs from the list (2g), so it carries both classes
-const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item--light', edited: 'sp-nav-item--light sp-nav-item--edited' }
+// edited is a light row whose saved view differs from the list (2g), so it carries both classes;
+// carried and picked are a light row being moved, wearing the list rows' own moving states (c1)
+const NAV = {
+	default: null,
+	action: 'sp-nav-item--action',
+	light: 'sp-nav-item--light',
+	edited: 'sp-nav-item--light sp-nav-item--edited',
+	carried: 'sp-nav-item--light sp-list-item--carried',
+	picked: 'sp-nav-item--light sp-list-item--picked'
+}
 
 /** `tip` is the label shown while the row's own is hidden, on the rail; `control` is a Switch
-    at the row's end, which makes the row its label. */
-export function NavItem({ variant = 'default', icon, mark, count, countColor, sub, current = false, to, onClick, tip, control, children, ...rest }) {
+    at the row's end, which makes the row its label. `handle` takes the icon's slot with a grip that
+    moves the row, and `trail` takes the count's slot, so a row in edit mode keeps its height (2g). */
+export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, children, ...rest }) {
 	reject(rest, 'NavItem')
 	const [hint, tipEvents] = useTip(tip)
 	const classes = join('sp-nav-item', pick(NAV, variant, 'variant', 'NavItem'))
 	const body = (
 		<>
-			{mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
+			{handle
+				? <span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button></span>
+				: mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
 			{/* a long name ends in an ellipsis on one line (9f); an empty box would push the sub text away */}
 			{children != null ? <span className="sp-grow sp-truncate">{children}</span> : null}
 			{sub ? <span className="sp-nav-item__sub">{sub}</span> : null}
 			{count != null
 				? <span className="sp-nav-item__count" {...(countColor ? { 'data-color': countColor } : {})}>{count}</span>
 				: null}
+			{trail}
 			{control}
 			{hint}
 		</>
