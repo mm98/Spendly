@@ -80,15 +80,3 @@ export function Totals({ children, ...rest }) {
 	reject(rest, 'Totals')
 	return <div className="sp-totals" {...rest}>{children}</div>
 }
-
-/** A value the editor works out rather than takes (c15's Line total): a label over a figure
-    with no box, on the line the boxes beside it sit on. */
-export function Computed({ label, children, ...rest }) {
-	reject(rest, 'Computed')
-	return (
-		<div className="sp-field" {...rest}>
-			<span className="sp-field__label">{label}</span>
-			<span className="sp-line-editor__computed">{children}</span>
-		</div>
-	)
-}
