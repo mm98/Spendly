@@ -453,8 +453,9 @@ export function Crumbs({ root, children, ...rest }) {
 }
 
 /** A record as a card (2c, 22a). No `photos` draws the `empty` band, `meta` is one line or two;
-    `href` makes the strip a link out, named by `hrefLabel`; `menu.onClose` runs as focus leaves. */
-export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, meta, amount, onClick, void: isVoid = false, ...rest }) {
+    `href` makes the strip a link out, named by `hrefLabel`; `menu.onClose` runs as focus leaves.
+    `headChips` puts the chips in the head, right of the name, instead of a row of their own (22a). */
+export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, headChips = false, meta, amount, onClick, void: isVoid = false, ...rest }) {
 	reject(rest, 'Record')
 	const menuBox = useRef(null)
 	const menuKeys = useMenuButton(menuBox, !!menu?.open)
@@ -465,6 +466,7 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 	const stripClass = join('sp-record__photos', !photos.length && 'sp-record__photos--empty')
 	const extras = <>{more ? <span className="sp-mark__count">{more}</span> : null}{pick ? <label className="sp-record__pick">{pick}</label> : null}</>
 	const lines = [].concat(meta ?? [])
+	const chipBox = chips ? <div className="sp-record__chips" onClick={ev => ev.stopPropagation()}>{chips}</div> : null
 	return (
 		<article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...rest}>
 			{href
@@ -483,14 +485,15 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 				<MenuHostOf open={!!menu.open} box={menuBox}>{menu.children}</MenuHostOf>
 			</div> : null}
 			<div className="sp-record__body">
-				<div className="sp-record__head">
+				<div className={join('sp-record__head', headChips && chips && 'sp-record__head--chips')}>
 					<span className="sp-stacked sp-grow">
 						<span className="sp-title sp-truncate">{title}</span>
 						{subtitle ? <span className="sp-subtitle sp-truncate">{subtitle}</span> : null}
 					</span>
 					{status}
+					{headChips ? chipBox : null}
 				</div>
-				{chips ? <div className="sp-record__chips" onClick={ev => ev.stopPropagation()}>{chips}</div> : null}
+				{headChips ? null : chipBox}
 				<span className="sp-grow" />
 				<div className={join('sp-record__foot', lines.length < 2 && 'sp-record__foot--single')}>
 					{lines.length < 2 ? lines[0] : <span className="sp-stack sp-gap-6">{lines}</span>}

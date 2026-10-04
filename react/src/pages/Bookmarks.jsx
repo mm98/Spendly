@@ -293,9 +293,15 @@ export default function Bookmarks() {
 							empty="No picture"
 							title={bookmark.name}
 							subtitle={site}
-							chips={bookmark.categories.map(name => (
-								<Chip key={name} onClick={() => idOf(name).then(id => { if (id && id !== category) write({ category: id }) })}>{name}</Chip>
-							))}
+							headChips
+							chips={bookmark.categories.length
+								? [
+									<Chip key={bookmark.categories[0]} onClick={() => idOf(bookmark.categories[0]).then(id => { if (id && id !== category) write({ category: id }) })}>{bookmark.categories[0]}</Chip>,
+									bookmark.categories.length > 1
+										? <Chip key="more" aria-label={`Also ${bookmark.categories.slice(1).join(', ')}`}>{`+${bookmark.categories.length - 1}`}</Chip>
+										: null
+								]
+								: undefined}
 							meta={<span className="sp-subtitle">Added {shortDate(bookmark.createdAt)}</span>}
 							amount={bookmark.price != null ? currency(bookmark.price, 0) : null}
 							menu={{
@@ -406,6 +412,7 @@ function BookmarksLoading({ size }) {
 					<Record key={i} photos={['']}
 						title={<Bar role="sp-title" w={title} h="13" />}
 						subtitle={<Bar role="sp-subtitle" w={shop} h="11" />}
+						headChips
 						chips={<Held shape={<Chip onClick={noop}>Decor</Chip>} />}
 						meta={<Bar role="sp-subtitle" w="96" h="11" />}
 						amount={<Bar role="sp-amount" w="64" h="20" end />} />

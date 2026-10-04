@@ -1241,6 +1241,17 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-record__head { display: flex; align-items: flex-start; gap: var(--sp-10); }
 .sp-record__chips { display: flex; gap: var(--sp-6); flex-wrap: wrap; }
+/* chips in the head, at the right of the name (bookmark card): one line, at most a third of
+   the width, the first category truncating before the +N beside it */
+.sp-record__head--chips > .sp-record__chips { flex: 0 1 auto; max-width: 33.333%; min-width: 0; flex-wrap: nowrap; justify-content: flex-end; }
+.sp-record__head--chips > .sp-record__chips > .sp-chip { flex: 0 1 auto; min-width: 0; }
+.sp-record__head--chips > .sp-record__chips > .sp-chip--static { flex: none; }
+.sp-record__head--chips > .sp-record__chips > .sp-chip > span { overflow: hidden; text-overflow: ellipsis; }
+/* on touch the acting chip keeps the chip's own height, level with the +N beside it, and
+   takes the touch height as a hit area above and below, so the head never grows (Brief 15).
+   The area is placed from the padding box, so it reaches out past the 1px border too. */
+.sp-touch .sp-record__head--chips > .sp-record__chips > .sp-chip:not(.sp-chip--static) { height: var(--field-trail); min-height: 0; position: relative; overflow: visible; }
+.sp-touch .sp-record__head--chips > .sp-record__chips > .sp-chip:not(.sp-chip--static)::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--field-trail)) / -2 - 1px) -1px; }
 .sp-record__foot {
   display: flex;
   align-items: flex-start;
