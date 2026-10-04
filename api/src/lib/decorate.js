@@ -118,7 +118,10 @@ const selectCategoriesFor = db.prepare(`
 	WHERE oc.order_id IN (SELECT value FROM json_each(?))
 	ORDER BY oc.order_id, c.name
 `)
-const selectVendorsFor = db.prepare(`SELECT id, name FROM vendors WHERE id IN (SELECT value FROM json_each(?))`)
+// the vendor's image hash stands in, faded, for the picture of an order with no line photo (17e)
+const selectVendorsFor = db.prepare(`SELECT v.id, v.name, vi.hash AS image FROM vendors v
+	LEFT JOIN vendor_images vi ON vi.vendor_id = v.id AND vi.user_id = v.user_id
+	WHERE v.id IN (SELECT value FROM json_each(?))`)
 // An order row's pictures, for the thumbnail and the count; the first is chosen in code, which
 // spares the page a sort over every photo it carries
 const selectLinePhotosFor = db.prepare(`
@@ -182,6 +185,7 @@ export function decorateOrderListRows(totalsRows, { itemTitles = false, listRows
 			photo: photos.length ? (p => ({ itemId: p.order_item_id, attachmentId: p.id }))(firstPhoto(photos)) : null,
 			photoCount: photos.length,
 			vendor: vendor ? { name: vendor.name } : null,
+			vendorImage: !photos.length && vendor?.image ? { vendorId: vendor.id, hash: vendor.image } : null,
 			categories: (categoriesByOrder.get(totals.id) ?? []).map(({ order_id, ...c }) => c),
 			itemCount: totals.item_count,
 			total: totals.total,

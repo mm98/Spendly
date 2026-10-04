@@ -913,15 +913,15 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		: (
 			<Card>
 				<span className="sp-section-label">Attachments{dot}{shownFiles.length + files.length}</span>
-				{/* a copy starts with no files (8a): the row offers them until one is added */}
-				{origin.copy && !shownFiles.length && !files.length
+				{/* a copy of an order with files starts with none (8a): the row offers them until one is added */}
+				{origin.copy?.files && !shownFiles.length && !files.length
 					? (
 						<ListItem variant="outline" actions={<>
 							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>Add files</Button>
 							<input ref={picker} type="file" accept={FILE_TYPES} multiple hidden tabIndex={-1}
 								onChange={async ev => { const picked = [...ev.target.files]; ev.target.value = ''; addFiles(picked, await Promise.all(picked.map(f => sniffedProblem(f)))) }} />
 						</>}>
-							<span className="sp-data">Attachments were not copied - add this trip's receipt</span>
+							<span className="sp-data">The receipt was not copied - add this trip's receipt</span>
 						</ListItem>
 					)
 					: <Strip>

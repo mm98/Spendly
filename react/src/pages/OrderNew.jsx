@@ -95,7 +95,7 @@ function Copy({ id }) {
 	return (
 		<OrderForm mode="new" region seed={seed}
 			photoUrl={line => (line.copiedFrom && line.photo?.hasThumbnail ? itemAttachmentThumbnailUrl(line.copiedFrom.orderId, line.copiedFrom.itemId, line.copiedFrom.attachmentId) : null)}
-			origin={{ copy: { id, vendor: order.data.vendor?.name ?? 'the order', date: order.data.date } }}
+			origin={{ copy: { id, vendor: order.data.vendor?.name ?? 'the order', date: order.data.date, files: (order.data.attachments?.length ?? 0) > 0 } }}
 			onLeave={() => navigate(`/orders/${id}`)} />
 	)
 }
@@ -553,7 +553,7 @@ function CopyPicker({ onClose }) {
 			<div className="sp-stack sp-gap-12">
 				<div className="sp-stack sp-gap-6">
 					<DialogTitle>Copy a previous order</DialogTitle>
-					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
+					<DialogBody>The vendor, category and item lines are copied, with each item's photo. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
 				</div>
 				<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders"
 					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"

@@ -11,7 +11,7 @@ import { useDismiss } from '../components/Utilities.jsx'
 import { attachmentFileUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentThumbnailUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
-import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
+import { OverLimitDot, StatusPill, VendorImageMark, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
 import { CategoryMark } from '../app/categoryMark.jsx'
@@ -217,6 +217,7 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 			void={cancelled}
 			photos={photos.map(p => <img key={p.attachmentId} src={itemAttachmentThumbnailUrl(order.id, p.itemId, p.attachmentId)} alt="" />)}
 			empty="No photos"
+			fallback={order.vendorImage ? <VendorImageMark image={order.vendorImage} vendor={order.vendor?.name} size="large" /> : null}
 			more={more}
 			pick={<Check checked={picked} aria-label={`Select ${orderName(order)}`} onClick={ev => ev.stopPropagation()} onChange={ev => onPick(ev.nativeEvent?.shiftKey)} />}
 			title={order.vendor?.name ?? 'No vendor'}
