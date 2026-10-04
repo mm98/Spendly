@@ -142,7 +142,10 @@
      named rather than repeated */
   --pill-pad-x: var(--sp-10);
   --shell-pad: var(--sp-16) var(--sp-14);
-  --shell-item-pad: var(--sp-8) var(--sp-8);
+  /* the right inset is 12, not 8: the icon is centred in its 24 slot, so its glyph
+     reads about 13 in from the left edge, and a count, switch or chevron at 8 sat
+     visibly closer to the right edge than the icon to the left */
+  --shell-item-pad: var(--sp-8) var(--sp-12) var(--sp-8) var(--sp-8);
   /* 14 of column inset + 8 of row inset + half the 24 slot = 34, which is also half
      the 68 rail - so an icon sits on the same centre line in both states */
   --shell-gap: var(--sp-10);

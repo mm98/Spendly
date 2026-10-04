@@ -5,7 +5,7 @@ import { Card } from '../components/Card.jsx'
 import { FieldGroup } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
-import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
+import { Announce, Insertion } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { NavItem } from '../components/Shell.jsx'
@@ -99,15 +99,10 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 				{slot}
 			</div>
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
-			<div className={mode === 'editing' ? 'sp-stack sp-gap-8' : 'sp-nav-list'} {...reorder.list}>
+			<div className="sp-nav-list" {...reorder.list}>
 				<Announce>{reorder.said}</Announce>
 				{mode === 'editing'
-					? (
-						<ListItem mark={<span className="sp-nav-item__icon"><Icon name="receipt" /></span>}>
-							<span className="sp-subtitle sp-grow sp-truncate">All orders</span>
-							<span className="sp-meta">locked</span>
-						</ListItem>
-					)
+					? <NavItem variant="light" icon="receipt" current={onList && !active && !now} trail={<span className="sp-meta">locked</span>}>All orders</NavItem>
 					: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={onList && !active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
 				{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
 				{reorder.items.map(view => (
@@ -117,11 +112,11 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 							? <ViewName name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
 							: mode === 'editing'
 								? (
-									<ListItem handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Reorder ${view.name}`} {...reorder.row(view)}
-										variant={reorder.variant(view)}>
-										<span className="sp-data sp-grow sp-truncate">{view.name}</span>
-										<ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onDelete={() => setDeleting(view)} />
-									</ListItem>
+									<NavItem variant={reorder.variant(view, active?.id === view.id && edited ? 'edited' : 'light')} handle={<Icon name="grip-vertical" size={12} />}
+										handleLabel={`Reorder ${view.name}`} current={active?.id === view.id} {...reorder.row(view)}
+										trail={<span className="sp-cell-menu"><ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onDelete={() => setDeleting(view)} /></span>}>
+										{view.name}
+									</NavItem>
 								)
 								: (
 									<NavItem variant={active?.id === view.id && edited ? 'edited' : 'light'} to={viewLink(view)} mark={<ViewMark query={view.query} />}
