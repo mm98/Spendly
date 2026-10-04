@@ -375,7 +375,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 	return (
 		<Card ref={box}>
 			{heading}
-			<div className="st-quad">
+			<div className="sp-stats">
 				<Stat large label="Orders" figure={amount(drafts$.length, 0)} />
 				<Stat large label="Item lines" figure={amount(linesIn(drafts$), 0)} />
 				{fresh === null ? null : <Stat large label="New vendors" figure={amount(fresh, 0)} />}

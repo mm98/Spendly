@@ -729,8 +729,8 @@ function OrderAmount({ order }) {
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
 
-/** At 640 of list column and under, rows become the 2i card: in a narrow column with its box and the
-    reference and status line; on a phone without them, since a phone does not select (2c, Mobile screens). */
+/** At 640 of list column and under, rows become the 2i card, two lines: in a narrow column with its box;
+    on a phone without it, since a phone does not select (2c, Mobile screens). */
 function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, onLoadMore }) {
 	return (
 		<>
@@ -766,10 +766,6 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 										<Line>
 											<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
 											{amount}
-										</Line>
-										<Line>
-											<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
-											<StatusPill status={o.status} />
 										</Line>
 										<Line>
 											<span className="sp-subtitle sp-nowrap sp-grow">{when}</span>
@@ -859,7 +855,6 @@ function CardsLoading({ size }) {
 		<ListItem key={id} variant="card" mark={<Skeleton shape="mark" />}>
 			<Stacked>
 				<Line><Skeleton shape="line" data-w={title} data-h="22" />{strut('sp-title')}<span className="sp-grow" /><Skeleton shape="line" data-w={figure} data-h="22" /></Line>
-				<Line><Skeleton shape="line" data-w="44pc" data-h="22" /><span className="sp-grow" /><Skeleton shape="line" data-w="74" data-h="22" /></Line>
 				<Line><Skeleton shape="line" data-w="36pc" data-h="18" /><span className="sp-grow" /><Skeleton shape="line" data-w="88" data-h="18" /></Line>
 			</Stacked>
 		</ListItem>

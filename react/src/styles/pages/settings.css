@@ -39,8 +39,6 @@
 
 	.st-w280 { max-width: 280px; }
 
-	.st-quad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
-
 	/* import step 2 (11b): a column in the file, an arrow on the field's line, the field it maps to */
 	.st-map { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: var(--sp-10); align-items: stretch; }
 	.st-map > svg { align-self: center; justify-self: center; }
@@ -63,9 +61,4 @@
 	/* the preview table scrolls sideways on a phone rather than squeezing the vendor column to nothing */
 	.st-sideways { overflow-x: auto; }
 	.st-table[data-cols="preview"], .st-table[data-cols="imports"] { min-width: 540px; }
-	/* a phone holds four figures two by two, as Statistics does (Mobile screens) */
-	@media (max-width: 639.98px) {
-		.st-quad { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-	}
-
 }
