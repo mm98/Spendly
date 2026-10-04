@@ -1,4 +1,4 @@
-/* Renders the three docs/ screenshots from the running app, and diffs each render
+/* Renders the four docs/ screenshots from the running app, and diffs each render
    against a reference PNG in the same browser (a <canvas> decodes; no PNG library here).
 
    Needs the app up (npm run dev in react/, api/) and Playwright's chromium; a local
@@ -13,6 +13,8 @@
 
    States (settled in CLAUDE.md):
    - home.png        1440x900 dSF2, Home
+   - order-list.png  1440x900 dSF2, /orders?status=Delivered&from=2026-08-01&to=2026-08-31: the facet rail with
+                     its Views card beside the list, the filters as crumbs, nothing open over it.
    - all-orders.png  1440x900 dSF2, /orders?vendor=<Bilka>&status=Delivered&from=2026-08-01&to=2026-08-31,
                      the facet rail beside the list, the palette open with 'bil' typed. 3 matching.
    - phone.png       iPhone 15 descriptor, dSF overridden to 2, Home. 786x1318.
@@ -133,6 +135,11 @@ await shoot(page, 'home.png')
    hardcoded -- the committed shot's state is "filtered to Bilka", not any literal id. */
 const vendors = await (await desktop.request.get(BASE + '/api/vendors')).json()
 const bilka = vendors.find(v => v.name === 'Bilka').id
+// the list as its own page shows it: the dates are August's, so the shot does not move with the day
+await page.goto(BASE + '/#/orders?status=Delivered&from=2026-08-01&to=2026-08-31', { timeout: 15000 })
+await page.waitForSelector('.sp-table tbody tr', { timeout: 5000 })
+await page.waitForSelector('.sp-filters .sp-crumb', { timeout: 3000 })
+await shoot(page, 'order-list.png')
 await page.goto(BASE + `/#/orders?vendor=${bilka}&status=Delivered&from=2026-08-01&to=2026-08-31`, { timeout: 15000 })
 await page.waitForFunction(n => document.querySelectorAll('.sp-table tbody tr').length === n, MATCHES, { timeout: 5000 })
 /* Typed keys upgrade a pointer focus to :focus-visible in Blink and the committed shot has
@@ -150,6 +157,7 @@ await shoot(page, 'all-orders.png')
 
 await diff(page, 'home.png')
 await diff(page, 'all-orders.png')
+await diff(page, 'order-list.png')
 await desktop.close()
 
 // -- phone: home --

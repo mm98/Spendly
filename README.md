@@ -44,6 +44,8 @@ then `design/index.html`, the map of every page.
 
 ![All orders, filtered, with the search open](docs/all-orders.png)
 
+![The order list with its filters and saved views beside it](docs/order-list.png)
+
 The app in [`react/`](react/) builds these screens on the API in [`api/`](api/). Its own
 README says how it is put together and how to run it. Where the design shows something the app
 cannot do yet, the app leaves it out rather than drawing a control that does nothing.
