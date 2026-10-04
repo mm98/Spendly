@@ -84,8 +84,9 @@ function rowsFor(userId, ids, extras, month, view = null) {
 
 export function categoryPage(userId, q, today, languages = []) {
 	const extras = listOf(q.with)
-	// `month=2026-10` measures every row against that month; anything else measures against this month
-	const month = monthOf(MONTH_PARAM.test(q.month) ? q.month : today)
+	// `month=2026-10` reads the list as that month and keeps the categories with spend in it; anything else reads it as this month
+	const named = MONTH_PARAM.test(q.month)
+	const month = monthOf(named ? q.month : today)
 	const except = q.except ? String(q.except) : null
 	// the categories the bookmarks of one view carry
 	const view = q.bookmarks === 'archived' ? 1 : q.bookmarks === 'open' ? 0 : null
@@ -108,6 +109,7 @@ export function categoryPage(userId, q, today, languages = []) {
 	const over = q.flag === 'over-limit'
 	if (q.limited === 'yes' || over) where.push('c.budget > 0')
 	if (over) where.push('COALESCE(m.spend, 0) > c.budget')
+	if (named) where.push('COALESCE(m.spend, 0) > 0')
 	if (q.ids !== undefined) { where.push('c.id IN (SELECT value FROM json_each(@ids))'); params.ids = JSON.stringify(listOf(q.ids)) }
 	if (except) { where.push('c.id <> @except'); params.except = except }
 	if (view !== null) {
@@ -121,7 +123,7 @@ export function categoryPage(userId, q, today, languages = []) {
 		where.push(MATCHERS[asciiNeedle(needle) ? 'ascii' : 'fold']('c.name'))
 	}
 
-	const joinMonth = sort.month || over
+	const joinMonth = sort.month || over || named
 	if (joinMonth) Object.assign(params, { from: month.from, to: month.to })
 	const from = `categories c
 		${joinMonth ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}
@@ -131,8 +133,8 @@ export function categoryPage(userId, q, today, languages = []) {
 		const found = db.prepare(`SELECT c.id, c.name FROM ${from} WHERE ${where.join(' AND ')}`).all(params)
 		return ranked(found.sort((a, b) => compare(a.name, b.name)).map(c => c.id))
 	}
-	// the count needs the month's spend only to find the categories over their limit
-	const counted = `categories c ${over ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}`
+	// the count needs the month's spend only to find the categories over their limit or with spend in it
+	const counted = `categories c ${over || named ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}`
 	const matched = db.prepare(`SELECT COUNT(*) c FROM ${counted} WHERE ${where.join(' AND ')}`).get(params).c
 	const { limit, offset } = pageOf(q, matched)
 	const page = db.prepare(`SELECT c.id FROM ${from} WHERE ${where.join(' AND ')} ORDER BY ${sort.by} LIMIT @limit OFFSET @offset`)
