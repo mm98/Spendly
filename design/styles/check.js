@@ -566,6 +566,17 @@
       if (isCardBody && cls.includes('sp-truncate')) fail('a card body does not truncate', p, m[1] + ' clips prose');
     }
 
+    // the sidebar's foot is the divider, then Settings, Dark mode and the account (9a),
+    // in the rail too: the divider sits above Settings, never between Settings and Dark mode
+    for (const m of s.matchAll(/(<[^>]*>)\s*<a class="sp-nav-item"(?:(?!<\/a>)[\s\S])*?(?:<span>Settings<\/span>|aria-label="Settings")/g)) {
+      if (!/^<hr class="sp-sidebar__divider"/.test(m[1])) fail('the sidebar divider sits above Settings', p, 'Settings follows ' + m[1].slice(0, 40));
+    }
+
+    // the Views card in edit mode is the at-rest list with two slots swapped (Order list 2g):
+    // a different list component there changes the row height and shifts the rail
+    for (const m of s.matchAll(/<span class="sp-section-label">Views<\/span>[\s\S]{0,200}?>Done<\/button>\s*<\/div>\s*<div class="([^"]*)"/g))
+      if (m[1] !== 'sp-nav-list') fail('the Views card keeps its rows in edit mode', p, 'edit mode lists in .' + m[1]);
+
     // a region inside a page body that already has its inset takes the layout variant
     // alone: a second sp-shell__body adds the page's 16 inset twice
     for (const m of s.matchAll(/<div class="([^"]*\b(?:os-body|sp-shell__body)\b[^"]*)"/g)) {
