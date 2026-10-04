@@ -1,5 +1,7 @@
 # Spendly - changes since handoff_2026_10_04d_changes
 
+**Fixed in this package:** the touch area on the bookmark head's chip measured 46px, not 48. An absolute `::before` is placed from the padding box, inside the chip's 1px border, so the inset now subtracts the border: `inset: calc((var(--control-h-touch) - var(--field-trail)) / -2 - 1px) -1px`. The Mobile screens note said 44px; it now says 48px.
+
 Copy these files over handoff_2026_10_04d_changes. Decisions are in `Brief 15 answers.md`.
 
 ## 1. Bookmark card head on a phone: chips level, one card height
@@ -8,7 +10,7 @@ On touch, the acting category chip in `sp-record__head--chips` keeps the chip's 
 
 - `styles/components.css`, beside the `sp-record__head--chips` rules:
   - `.sp-touch .sp-record__head--chips > .sp-record__chips > .sp-chip:not(.sp-chip--static)`: `height: var(--field-trail); min-height: 0; position: relative; overflow: visible;`
-  - the same selector `::before`: the hit area. `overflow` is lifted so it is not clipped; the label inside still truncates with an ellipsis.
+  - the same selector `::before`: the hit area, `inset: calc((var(--control-h-touch) - var(--field-trail)) / -2 - 1px) -1px`, so it is exactly 48px tall and the chip's full width. `overflow` is lifted so it is not clipped; the label inside still truncates with an ellipsis.
 - `.sp-touch .sp-chip:not(.sp-chip--static)` (Brief 10, point 4) is unchanged everywhere else.
 - Mobile screens, Bookmarks frame: drawn in touch mode; Linen bedding set has two categories (Textiles, +1), Outline Sofa has none. Note added.
 - Logged in `styles/COMPONENT-STATUS.md`.
