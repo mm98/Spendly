@@ -587,7 +587,7 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 /** Where each card sits: beside the chart on a wide screen, in pairs on a narrower one, and one
     column below 900 and on a phone. Inside a crumb, the chart and one breakdown, then the orders (4b). */
 function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = null, kpis, chart, side, byCategory, byStatus, vendors, saving, limits, vendorChart, slice }) {
-	const figures = <div className="os-stats">{kpis}</div>
+	const figures = <div className="sp-stats sp-stats--fold">{kpis}</div>
 	if (drilled) {
 		if (shape === 'touch' || stacked) return <>{period}{crumbsBar}{figures}{chart}{side}{slice}</>
 		return <>{period}{crumbsBar}{figures}<Halves>{chart}{side}</Halves>{slice}</>
