@@ -56,6 +56,7 @@
     <div class="doc-note"><b class="sp-ink">Home on a phone has no monthly summary</b>, and nothing replaces it. Needs a look already covers this month's limits, and the summary still goes out by email when that switch is on.</div>
     <div class="doc-note"><b class="sp-ink">"N over their limit" opens <code>/categories?flag=over-limit</code></b>: Categories cut to the categories over their limit this month (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
     <div class="doc-note"><b class="sp-ink">Recent orders carries "All 248" in its head</b>, the same text link and true total as the desktop card, opening the order list (<b>2b</b>). The muted label says the card shows the newest 3.</div>
+    <div class="doc-note"><b class="sp-ink">A bookmark card keeps its desktop head on a phone.</b> Both chips in the head stay at the chip's own height and sit level; the first, which acts, gets its 44px touch target as an invisible area above and below it, so the head does not grow. Every bookmark card is the same height, with two categories, one or none. The Bookmarks frame is drawn in touch mode to show it: Linen bedding set has two categories, Outline Sofa none.</div>
     <div class="doc-note"><b class="sp-ink">The controls here are drawn at their desktop heights.</b> The library has a touch mode that raises a control to a 44px target, and a real build applies it on every phone screen; these frames show it only where the control's shape changes with it, as the period presets do. Read the heights from <a href="Components.dc.html#c0">Components c0</a> (<code>--control-h-touch</code>), not off these frames.</div>
   </div>
   <div class="doc-specimens">
@@ -619,7 +620,7 @@
                 </div>
           <button type="button" class="sp-btn sp-flex-none" aria-label="New bookmark"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></button>
           </div></div>
-        <div class="ms-scroll ms-scroll--pad"><div class="sp-list sp-list--cards"><div class="sp-cards"><article class="sp-record">
+        <div class="ms-scroll ms-scroll--pad"><div class="sp-list sp-list--cards sp-touch"><div class="sp-cards"><article class="sp-record">
           <div class="sp-record__photos">
             <span class="sp-record__photo"></span>
           </div>
@@ -659,6 +660,7 @@
               </span>
               <div class="sp-record__chips">
                 <button type="button" class="sp-chip"><span>Textiles</span></button>
+                <span class="sp-chip sp-chip--static" aria-label="Also Decor"><span>+1</span></span>
               </div>
             </div>
             <span class="sp-grow"></span>
@@ -676,14 +678,11 @@
             <button type="button" class="sp-record__act" aria-label="Bookmark menu" aria-haspopup="menu" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
           </div>
           <div class="sp-record__body">
-            <div class="sp-record__head sp-record__head--chips">
+            <div class="sp-record__head">
               <span class="sp-stacked sp-grow">
                 <span class="sp-title sp-truncate">Outline Sofa, 3 seater</span>
                 <span class="sp-subtitle sp-truncate">muuto.com</span>
               </span>
-              <div class="sp-record__chips">
-                <button type="button" class="sp-chip"><span>Seating</span></button>
-              </div>
             </div>
             <span class="sp-grow"></span>
             <div class="sp-record__foot sp-record__foot--single">
