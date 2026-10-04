@@ -166,10 +166,10 @@ export default function Categories() {
 	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
 	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={named?.name ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}
 		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
-	else if (!matched && !query && (over || month)) body = (
+	else if (!matched && !query && over) body = (
 		<Card>
 			<Empty>
-				<EmptyTitle>{over ? 'No category is over its limit' : 'No category has spend'} {named ? `in ${named.full}` : 'this month'}</EmptyTitle>
+				<EmptyTitle>No category is over its limit {named ? `in ${named.full}` : 'this month'}</EmptyTitle>
 			</Empty>
 		</Card>
 	)

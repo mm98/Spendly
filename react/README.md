@@ -77,8 +77,7 @@ a wishlist.
 | `/signin`, `/register` | Outside the shell |
 
 The category list also reads two filters from the address, with no control on the page: `flag=over-limit`
-keeps the categories past their limit, and `month=2026-10` keeps those with spend in that month and shows
-every figure for it. Each shows as a crumb above the list, and they combine.
+keeps the categories past their limit, and `month=2026-10` shows every figure for that month. Each shows as a crumb above the list, and they combine.
 
 The router is a hash router (`#/orders`), so a built copy opens from any path or a `file://`
 URL. Each route's `handle` carries the browser tab's title, the sidebar row it belongs to, the
