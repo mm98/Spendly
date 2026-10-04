@@ -1,5 +1,5 @@
 import {
-	addItemAttachments, addVendorAlias, attachScanDocument, createOrder, failureMessage, getCurrentUser, invalidateOrderData,
+	addItemAttachments, addVendorAlias, attachScanDocument, copyItemAttachment, createOrder, failureMessage, getCurrentUser, invalidateOrderData,
 	invalidateVendorData, lostConnection, removeAttachment, removeItemAttachment, sendFile, updateOrder
 } from '../api/client.js'
 import { plural } from '../api/format.js'
@@ -68,6 +68,11 @@ export async function writeOrder(plan) {
 	await Promise.all(plan.photos.map(async p => {
 		const saved = order.items[p.index]
 		if (!saved) return
+		if (p.copy) {
+			const { name, ...from } = p.copy
+			await copyItemAttachment(order.id, saved.id, from).catch(e => refused(name, e))
+			return
+		}
 		if (p.name) {
 			const twin = p.oldName && sameName(p.oldName, p.name)
 			// the photo sent when it was chosen is filed from there; one that did not arrive is sent now

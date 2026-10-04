@@ -14,7 +14,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Viewer } from '../components/Attachments.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentPageUrl, discardScanDocument, failureMessage, getCurrentUser, getOftenOrders, getOrder,
+	attachmentFileUrl, attachmentPageUrl, discardScanDocument, failureMessage, getCurrentUser, getOftenOrders, getOrder, itemAttachmentThumbnailUrl,
 	getOrderDraft, getOrders, getScanDraft, leaveScanDocument, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
 	watchScanProgress
 } from '../api/client.js'
@@ -65,8 +65,8 @@ function Blank({ vendor, restored }) {
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} />
 }
 
-/* A copy carries the vendor, categories, kind, reference, note and priced lines; the date is today,
-   the status the account's default (3b, 8b), and the files stay where they are. */
+/* A copy carries the vendor, categories, kind, reference, note and priced lines with their photos; the
+   date is today, the status the account's default (3b, 8b), and the order's own files stay behind. */
 function Copy({ id }) {
 	const order = useApi(getOrder, [id])
 	const blank = useApi(getOrderDraft)
@@ -79,16 +79,22 @@ function Copy({ id }) {
 			vendor: from.vendor?.name ?? '', kind: from.kind, categories: from.categories.map(c => c.name),
 			shipping: from.shipping || null, discount: from.discount || null,
 			reference: from.reference ?? '', note: from.note ?? '',
-			lines: from.items.map((item, i) => ({
-				key: `copy-${i}`, title: item.title, quantity: item.quantity, price: item.price,
-				retail: item.retail ?? null, note: item.note ?? ''
-			}))
+			lines: from.items.map((item, i) => {
+				const photo = item.attachments?.find(a => a.kind === 'image') ?? null
+				return {
+					key: `copy-${i}`, title: item.title, quantity: item.quantity, price: item.price,
+					retail: item.retail ?? null, note: item.note ?? '',
+					photo: photo && { id: photo.id, name: photo.name, hasThumbnail: photo.hasThumbnail },
+					copiedFrom: photo && { orderId: id, itemId: item.id, attachmentId: photo.id }
+				}
+			})
 		}
 	}, [order.data, blank.data, id])
 	if (order.error || blank.error) return <OrderFailed what="The order to copy" error={order.error ?? blank.error} retry={order.error ? order.refresh : blank.refresh} />
 	if (!seed) return <Waiting />
 	return (
 		<OrderForm mode="new" region seed={seed}
+			photoUrl={line => (line.copiedFrom && line.photo?.hasThumbnail ? itemAttachmentThumbnailUrl(line.copiedFrom.orderId, line.copiedFrom.itemId, line.copiedFrom.attachmentId) : null)}
 			origin={{ copy: { id, vendor: order.data.vendor?.name ?? 'the order', date: order.data.date } }}
 			onLeave={() => navigate(`/orders/${id}`)} />
 	)
