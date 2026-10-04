@@ -1247,6 +1247,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-record__head--chips > .sp-record__chips > .sp-chip { flex: 0 1 auto; min-width: 0; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip--static { flex: none; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip > span { overflow: hidden; text-overflow: ellipsis; }
+/* on touch the acting chip keeps the chip's own height, level with the +N beside it, and
+   takes the touch height as a hit area above and below, so the head never grows (Brief 15) */
+.sp-touch .sp-record__head--chips > .sp-record__chips > .sp-chip:not(.sp-chip--static) { height: var(--field-trail); min-height: 0; position: relative; overflow: visible; }
+.sp-touch .sp-record__head--chips > .sp-record__chips > .sp-chip:not(.sp-chip--static)::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--field-trail)) / -2) 0; }
 .sp-record__foot {
   display: flex;
   align-items: flex-start;
