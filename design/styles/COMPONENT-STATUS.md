@@ -4,12 +4,12 @@
 
 This library is the whole vocabulary. A screen that needs something outside it is a signal to reconsider the screen - not to add a value.
 
-- **Image sizes - five.** 64 in a form, 42 on a panel header, 36 in a list row, 24 in a chip or field, and 104 for an attachment tile. Nothing between them, and nothing outside them.
-- **Spacing - six.** 6, 8, 10, 12, 14, 16, and nothing else. Two smaller insets exist for what the scale cannot express - `--sp-2` for a badge in a corner or a switch thumb, `--sp-4` for a tile's corner control. Component-specific numbers that already exist in the implementation (a 14px row padding, a 34×38 stepper button) live inside that component and are named in its notes; they are not new spacing steps.
-- **Radius - five.** 4 marker, 8 tile, 9 field, 12 card, 999 pill, plus 10 where the implementation already uses it (SortControl, a line row, the photo menu).
-- **Type - seven sizes.** 10 eyebrow, 11 meta, 12 small, 13 body, 14 base, 15 large, 20/24/26/34 for headings and figures.
+- **Image sizes - four.** 64 in a form, 42 in a list row and on a panel header, 24 in a chip or field, and 104 for an attachment tile. Nothing between them, and nothing outside them. The open line editor's photo (70) is worked out from the row's own layout, not a fifth size.
+- **Spacing - six.** 6, 8, 10, 12, 14, 16, and nothing else. Two smaller insets exist for what the scale cannot express - `--sp-2` for a badge in a corner or a switch thumb, `--sp-4` for a tile's corner control. Component-specific numbers that already exist in the implementation (a 14px row padding, a 34 wide stepper button, as tall as the control) live inside that component and are named in its notes; they are not new spacing steps.
+- **Radius - six.** 4 marker, 8 tile, 9 field, 12 card, 28 phone frame, 999 pill, plus 10 where the implementation already uses it (SortControl, a line row, the photo menu).
+- **Type - ten sizes.** 10 eyebrow, 11 meta, 12 small, 13 body, 14 base, 15 large, 16 a field on touch, 20/24/34 for headings and figures.
 - **Tones - four.** Positive green, in-progress amber, problem red, neutral. There is no fifth tone and no second green for the same meaning.
-- **Controls - the twenty named in Input types 14d.** A control that is not on that list does not exist yet; adding one is a decision to take with the design, not in passing.
+- **Controls - the twenty named in Input types 14a.** A control that is not on that list does not exist yet; adding one is a decision to take with the design, not in passing.
 
 Adding to any of these lists is a change to the system: put it in the list, say why, and log it below.
 

@@ -18,9 +18,6 @@ Spendly is an application and its documentation. **`react/` is the source.** The
 what a change is made in and what a claim is measured against: `npm install && npm run dev` in that
 directory, and the pages are real ones with the controls wired.
 
-`spendly.html` is the prototype the first design system was drawn in. It is frozen: nothing syncs
-to it, and no fix needs to reach it. It stays only as a historical artifact.
-
 `README.md` introduces the design system the app implements, whose specification is `design/`; `docs/`
 holds the screenshots that document shows.
 
@@ -99,7 +96,7 @@ have to. Putting screens together from its patterns is the build's job:
 reads back SQLite's plan for each, and compares against `api/query-plans.json`. Runs in CI on every
 PR. `npm run queries:bless` records the current plans as accepted.
 
-It reports only what changed, so review only has to judge the new plan, not re-litigate the old 96.
+It reports only what changed, so review only has to judge the new plan, not re-litigate every plan already accepted.
 A finding fires when a new/changed statement scans a big table, sorts in a temp B-tree, walks a whole
 account's table through an index that doesn't cover what it selects, or reads a per-account table
 without filtering on `user_id`.
@@ -238,8 +235,7 @@ guessing a cause from an opaque `Download failure` message.
 Render the app, screenshot at desktop and 390px, and say what was measured rather than that it looks
 right.
 
-**Render the app, not the prototype.** `npm run dev` in `react/`, drive `http://localhost:5173/` by
-clicking real routes. The prototype (`spendly.html`) is a CSS reference only — nothing in it is wired.
+**Render the app.** `npm run dev` in `react/`, drive `http://localhost:5173/` by clicking real routes.
 
 **The router is a hash router — every URL needs the `#`.** A bare `/orders/all` serves index.html
 with an empty hash and silently renders Home; the address is `BASE + '/#/orders/all?...'`, and the
@@ -300,7 +296,7 @@ isn't mistaken for a real change.
 
 **Drive the app the way a real user and a real device would**: real navigation (not a shortcut that
 skips app state), a real device descriptor for phone/touch behavior, the actual wired control rather
-than a prototype stand-in, every engine a change could be shaped by. Say exactly what was and wasn't
+than a stand-in, every engine a change could be shaped by. Say exactly what was and wasn't
 covered — never let a report imply more than was run.
 
 ## Measuring
@@ -325,8 +321,7 @@ dispatch the event, assert it fired). Screenshots are for the reader; the number
 
 `docs/` shots are rendered from the running app, never hand-cropped or touched up: Chromium at
 1440x900 for the three desktop shots, an iPhone 15 descriptor for the phone shot, all at
-`deviceScaleFactor: 2`, via the same harness used for measuring. All four are the app's render —
-`spendly.html` is not a baseline for any of them.
+`deviceScaleFactor: 2`, via the same harness used for measuring. All four are the app's render.
 
 The phone shot needs the actual device descriptor, not a narrow viewport, since `pointer: coarse`
 media queries key off it. A change that moves one of these four is regenerated in the same pass that
@@ -363,11 +358,6 @@ competing rules — check the match count and any properties it now competes ove
 
 **Comments that name a specific value go stale silently** — nothing renders a comment, so no
 verification catches a drifted one. When a value moves, grep for it in prose too.
-
-## spendly.html is frozen
-
-No longer edited: react/ is the one place the design system is built, with no sync step left. Its old
-constraints (one file, no build step, no external asset) are git history, not active rules.
 
 ## Reporting
 
