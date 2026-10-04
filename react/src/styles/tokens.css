@@ -18,6 +18,10 @@
   --surface-3: #f2f1eb;    /* a line item row inside a card */
   --hatch-a: #dcdad2;      /* stand-in for a photo these mockups do not have */
   --hatch-b: #e8e6de;
+  /* a vendor image standing in for a missing item photo is drawn as the photo, faded
+     to this strength. Applied as filter: opacity() so it compounds with any opacity
+     the element already has (the void row's 0.6, the hatch stand-in's 0.5). */
+  --photo-fallback-opacity: 0.6;
   --hover: #f0efe9;        /* hover and selected row */
 
   /* ---- line ---- */

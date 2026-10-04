@@ -452,19 +452,19 @@ export function Crumbs({ root, children, ...rest }) {
 	)
 }
 
-/** A record as a card (2c, 22a). No `photos` draws `fallback` at the band's centre when given (17e),
-    else the `empty` band; `meta` is one line or two;
+/** A record as a card (2c, 22a). No `photos` draws the `empty` band; `faded` draws the photos as a
+    stand-in for the record's own (17e); `meta` is one line or two;
     `href` makes the strip a link out, named by `hrefLabel`; `menu.onClose` runs as focus leaves.
     `headChips` puts the chips in the head, right of the name, instead of a row of their own (22a). */
-export function Record({ photos = [], empty, fallback, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, headChips = false, meta, amount, onClick, void: isVoid = false, ...rest }) {
+export function Record({ photos = [], empty, faded = false, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, headChips = false, meta, amount, onClick, void: isVoid = false, ...rest }) {
 	reject(rest, 'Record')
 	const menuBox = useRef(null)
 	const menuKeys = useMenuButton(menuBox, !!menu?.open)
 	useMenuPlace(menuBox, !!menu?.open)
 	const strip = photos.length
-		? photos.map((photo, i) => <span className="sp-record__photo" key={i}>{photo}</span>)
-		: fallback ?? <><Icon name="photo" size={22} /><span className="sp-meta">{empty}</span></>
-	const stripClass = join('sp-record__photos', !photos.length && (fallback ? 'sp-record__photos--fallback' : 'sp-record__photos--empty'))
+		? photos.map((photo, i) => <span className={join('sp-record__photo', faded && 'sp-record__photo--faded')} key={i}>{photo}</span>)
+		: <><Icon name="photo" size={22} /><span className="sp-meta">{empty}</span></>
+	const stripClass = join('sp-record__photos', !photos.length && 'sp-record__photos--empty')
 	const extras = <>{more ? <span className="sp-mark__count">{more}</span> : null}{pick ? <label className="sp-record__pick">{pick}</label> : null}</>
 	const lines = [].concat(meta ?? [])
 	const chipBox = chips ? <div className="sp-record__chips" onClick={ev => ev.stopPropagation()}>{chips}</div> : null
