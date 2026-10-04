@@ -68,7 +68,7 @@
         </label>
       </div>
 
-      <div class="sp-stats">
+      <div class="sp-stats sp-stats--fold">
           <div class="sp-card">
             <span class="sp-section-label">Total spend · by month</span>
             <span class="sp-stat__figure">486.320 kr.</span>
@@ -658,8 +658,96 @@
       </div>
     </div>
   </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">The stats row below 996px - two by two (shown at 880)</span>
+      <div class="doc-w880">
+        <div class="sp-stats sp-stats--fold">
+          <div class="sp-card">
+            <span class="sp-section-label">Total spend · by month</span>
+            <span class="sp-stat__figure">486.320 kr.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-color="danger">+18,4%</span>
+              <span class="sp-meta">vs 410.700 kr.</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Total spend over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="80"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar os-col" data-h="100">
+                <span class="sp-tip sp-tip--panel os-spark-tip">
+                  <span class="sp-tip__head"><span>August 2026</span><span>61.480 kr.</span></span>
+                  <span class="sp-meta">18 orders</span>
+                </span>
+              </span>
+            </div>
+          </div>
+          <div class="sp-card">
+            <span class="sp-section-label">Orders · by month</span>
+            <span class="sp-stat__figure">248</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-color="success">+31</span>
+              <span class="sp-meta">vs 217</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Orders over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="55"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="90"></span>
+              <span class="sp-bars__bar" data-h="75"></span>
+            </div>
+          </div>
+          <div class="sp-card">
+            <span class="sp-section-label">Average order · by month</span>
+            <span class="sp-stat__figure">1.961 kr.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-state="progress">+3,6%</span>
+              <span class="sp-meta">vs 1.893 kr.</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Average order over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="75"></span>
+              <span class="sp-bars__bar" data-h="80"></span>
+            </div>
+          </div>
+          <div class="sp-card">
+            <span class="sp-section-label">Saved · by month</span>
+            <span class="sp-stat__figure sp-ink-success">138.410 kr.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-color="success">+25.450 kr.</span>
+              <span class="sp-meta">vs 112.960 kr.</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Saved over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="35"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="55"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="85"></span>
+              <span class="sp-bars__bar" data-h="90"></span>
+            </div>
+          </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The four stats fold to two by two below a 996px row</b> (<code>sp-stats--fold</code>): four of 240 and three gaps. The row is 998 in a 1280 shell, so it folds as soon as the shell is narrower. It is always four across or two, never three over one. On a phone every stats row is two by two.</div>
     <div class="doc-note"><b>Edit on category</b> opens the categories overview (<a href="Vendors and categories.dc.html#5d">5d</a>), where each category's limit is set. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
     <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short.</div>
     <div class="doc-note"><b>By category, Top vendors and Monthly limit show the current month</b> of the period, named in each card's meta ("August"): limits are monthly, and the side cards read against them. The four figures and Spend by month cover the whole period.</div>
@@ -736,7 +824,7 @@
         <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
       </div>
 
-      <div class="sp-stats">
+      <div class="sp-stats sp-stats--fold">
         <div class="sp-card">
           <span class="sp-section-label">Spend</span>
           <span class="sp-stat__figure">142.310 kr.</span>
@@ -986,7 +1074,7 @@
         <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
       </div>
 
-      <div class="sp-stats">
+      <div class="sp-stats sp-stats--fold">
         <div class="sp-card">
           <span class="sp-section-label">Spend</span>
           <span class="sp-stat__figure">62.400 kr.</span>
