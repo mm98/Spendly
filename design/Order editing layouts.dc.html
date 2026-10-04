@@ -178,6 +178,7 @@
     <div class="doc-note"><b>Watch out</b> - Only one row is open at a time; opening another closes the first and keeps its changes in the order draft. The line is never saved to the server on its own - the order save is the only write.</div>
     <div class="doc-note"><b>Watch out</b> - Line total is computed and read-only. Do not make it editable "for convenience" - two sources for one number is how totals start disagreeing with receipts.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - This inline expansion is desktop only. On a phone the same fields open in a bottom sheet (1c), because in one column "expands in place" and "takes over the screen" are the same thing. Same fields, same order, same validation - one form component, two containers.</div>
+    <div class="doc-note"><b>The open editor keeps the row's handle column</b>, so the photo slot sits where the row's photo sits and the Item label lines up with the titles of the rows around it. A list that does not reorder has no handle in its rows or its editor.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Discoverability. A row must never look inert: pointer cursor, hover fill, and a pencil at the right edge. All three, not one. On touch there is no hover and no pencil: the whole row opens the sheet (<a href="#1c">1c</a>).</div>
   </div>
 
@@ -204,6 +205,7 @@
       </div>
 
       <div class="sp-line-editor">
+        <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
         <span class="sp-slot">
           <label class="sp-mark sp-mark--medium sp-mark--photo" for="1b-slot" data-tip="Replace the image">
             <span class="sp-mark__text">Photo</span>
@@ -240,8 +242,11 @@
               </span>
             </div>
             <div class="sp-field">
-              <span class="sp-field__label">Line total</span>
-              <span class="sp-line-editor__computed">1.780,00 kr.</span>
+              <label class="sp-field__label" for="1b-total">Line total</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input sp-input--unit sp-number" id="1b-total" type="text" readOnly defaultValue="1.780,00">
+                <span class="sp-field__unit">kr.</span>
+              </span>
             </div>
           </div>
           <div class="sp-dialog__actions">
@@ -470,8 +475,11 @@
                   </span>
                 </div>
                 <div class="sp-field">
-                  <span class="sp-field__label">Line total</span>
-                  <span class="sp-line-editor__computed">1.780,00 kr.</span>
+                  <label class="sp-field__label" for="1c-total">Line total</label>
+                  <span class="sp-field__wrap">
+                    <input class="sp-input sp-input--unit sp-number" id="1c-total" type="text" readOnly defaultValue="1.780,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
                 </div>
               </div>
               <div class="sp-dialog__actions">

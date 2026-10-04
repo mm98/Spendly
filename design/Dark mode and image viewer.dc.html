@@ -307,6 +307,7 @@
           </div>
           
           <div class="sp-line-editor">
+          <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
           <span class="sp-slot">
           <label class="sp-mark sp-mark--medium sp-mark--photo" for="dk1-1b-slot" data-tip="Replace the image">
           <span class="sp-mark__text">Photo</span>
@@ -343,8 +344,11 @@
           </span>
           </div>
           <div class="sp-field">
-          <span class="sp-field__label">Line total</span>
-          <span class="sp-line-editor__computed">1.780,00 kr.</span>
+          <label class="sp-field__label" for="dk1-1b-total">Line total</label>
+          <span class="sp-field__wrap">
+            <input class="sp-input sp-input--unit sp-number" id="dk1-1b-total" type="text" readOnly defaultValue="1.780,00">
+            <span class="sp-field__unit">kr.</span>
+          </span>
           </div>
           </div>
           <div class="sp-dialog__actions">

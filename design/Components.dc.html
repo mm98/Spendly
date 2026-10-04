@@ -3223,6 +3223,7 @@
           </span>
         </div>
         <div class="sp-line-editor">
+          <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
           <span class="sp-slot">
             <label class="sp-mark sp-mark--medium sp-mark--photo" for="c15-slot-1" data-tip="Replace the image">
               <span class="sp-mark__text">Photo</span>
@@ -3259,8 +3260,11 @@
                 </span>
               </div>
               <div class="sp-field">
-                <span class="sp-field__label">Line total</span>
-                <span class="sp-line-editor__computed">0.000,00 kr.</span>
+                <label class="sp-field__label" for="c15-total">Line total</label>
+                <span class="sp-field__wrap">
+                  <input class="sp-input sp-input--unit sp-number" id="c15-total" type="text" readOnly defaultValue="0.000,00">
+                  <span class="sp-field__unit">kr.</span>
+                </span>
               </div>
             </div>
             <div class="sp-dialog__actions">
@@ -3321,6 +3325,7 @@
       <div class="sp-card">
         <div class="sp-stack sp-gap-8">
           <div class="sp-line-editor">
+            <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
             <span class="sp-slot">
               <label class="sp-mark sp-mark--medium sp-mark--empty" for="c15-slot-2" data-tip="Add an image">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
@@ -3357,8 +3362,11 @@
                   </span>
                 </div>
                 <div class="sp-field">
-                  <span class="sp-field__label">Line total</span>
-                  <span class="sp-line-editor__computed">0,00 kr.</span>
+                  <label class="sp-field__label" for="c15-new-total">Line total</label>
+                  <span class="sp-field__wrap">
+                    <input class="sp-input sp-input--unit sp-number" id="c15-new-total" type="text" readOnly defaultValue="0,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
                 </div>
               </div>
               <div class="sp-dialog__actions">

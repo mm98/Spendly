@@ -2741,16 +2741,6 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
 /* a quiet line of explanation beside a control: the count under a range, the hint
    under a line editor, the result count in the palette */
 .sp-note { font-size: var(--t-12); color: var(--ink-5); }
-/* the computed total is read, not typed, so it has no box - but it sits on the
-   line the boxes beside it sit on */
-.sp-line-editor__computed {
-  display: flex;
-  align-items: center;
-  min-height: var(--control-h);
-  font-size: var(--t-15);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
 
 /* the same editor, in a sheet: it stacks, and the sheet owns the surface */
 .sp-line-editor--sheet {
@@ -3492,6 +3482,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   width: var(--mark-medium);
   height: var(--mark-medium);
 }
+/* the slot column is the mark's width, not Remove's, so the photo and the fields beside it
+   sit on the row's photo and title lines; Remove centres under the photo and may overhang */
+.sp-line-editor .sp-slot { width: var(--mark-medium); flex: none; }
+.sp-line-editor .sp-slot__remove { white-space: nowrap; }
 
 /* ---------- toast - LOCKED c18 ---------- */
 

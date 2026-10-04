@@ -1,41 +1,45 @@
-# Spendly - changes since handoff_2026_10_04e_changes_fixed
+# Spendly - changes since handoff_2026_10_04g_changes
 
-Copy these files over handoff_2026_10_04e_changes_fixed.
+Copy these files over handoff_2026_10_04g_changes.
 
-## 1. The bookmark card has two click targets
+## 1. Line editor (c15): Line total is a read-only field
 
-- The picture strip is a link to the bookmark's URL, opening in a new tab (unchanged).
-- Everything below the strip opens the bookmark at `/bookmarks/:id/edit`, as a click on an order card opens the order. Before, the rest of the card did nothing while still showing the pointer and hover border.
-- A category chip filters the list, and the menu button over the strip opens the menu; both stop the click there.
-- No CSS change: the card's pointer and hover border now match what it does.
-- Documented in Bookmarks 22a and Components c1 (Actions).
+Line total was bold text with no box. It is now a read-only amount field, the same markup as Unit price, so it sits in the row of boxes beside it:
+
+```html
+<div class="sp-field">
+  <label class="sp-field__label" for="ID-total">Line total</label>
+  <span class="sp-field__wrap">
+    <input class="sp-input sp-input--unit sp-number" id="ID-total" type="text" readonly value="1.780,00">
+    <span class="sp-field__unit">kr.</span>
+  </span>
+</div>
+```
+
+- It takes the established read-only look from `.sp-input:read-only` (surface-2 fill, line border). No new style.
+- The label is now a `<label for>`.
+- Before an amount exists (States and confirmations, the new-line state) the field is empty.
+- `.sp-line-editor__computed` is removed from `styles/components.css`; nothing uses it.
+- Applies wherever the line editor appears: Order editing layouts (1b, 1c), Components c15, Dark mode and image viewer, States and confirmations, Responsive reference.
+- Logged in `styles/COMPONENT-STATUS.md`.
+
+An interim right-aligned version of the total was made and reverted in this round; nothing of it ships.
 
 **What the app changes**
-- Make the card body (below the strip) open the edit page. Stop propagation on the chips and the menu button.
+- Render Line total as the read-only field above, updated as quantity and unit price change. Remove the computed-text element and its CSS.
 
-## 2. A card's menu truncates long labels
+## 2. Responsive reference: duplicate id
 
-"Open at" a long domain wrapped over several lines in the bookmark menu.
-
-- `styles/components.css`, beside the record menu rules:
-  - `.sp-record__menu .sp-menu { width: 214px; }` (the menu's own minimum width)
-  - `.sp-record__menu .sp-menu__item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }`
-- The menu component (c9) is unchanged elsewhere. Applies to every card menu, orders and bookmarks.
-- "Open at" names the domain without `www.`; the full domain goes in the item's `title`.
-- Documented in Bookmarks 22a and Components c9 (Fixed). Logged in `styles/COMPONENT-STATUS.md`.
-
-**What the app changes**
-- Take the new components.css. Set `title` on the Open at item to the full domain.
-
-## 3. Components documents the bookmark card head
-
-Components c1 gains a note on `sp-record__head--chips` and its touch behaviour (handoff_2026_10_04d and 04e). Documentation only.
+The two line editors on the page now have distinct total ids (`rr-total-a`, `rr-total-b`).
 
 ## Files
 
-- `Bookmarks.dc.html`
+- `Order editing layouts.dc.html`
 - `Components.dc.html`
+- `Dark mode and image viewer.dc.html`
+- `States and confirmations.dc.html`
+- `Responsive reference.dc.html`
 - `styles/components.css`
 - `styles/COMPONENT-STATUS.md`
 
-`styles/check.js`: 84 finding(s) across 26 pages.
+`styles/check.js`: 84 finding(s) across 26 pages, the same known set as handoff_2026_10_04g_changes.
