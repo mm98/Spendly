@@ -5,7 +5,7 @@ import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { useReorder } from '../components/Reorder.js'
-import { Computed, LineEditor } from '../components/LineEditor.jsx'
+import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField, TokensField } from '../components/Inputs.jsx'
 import { Stepper } from '../components/Stepper.jsx'
@@ -1504,7 +1504,9 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange
 				<Field label="Retail price" unit={currencySymbol()}>
 					<NumberField value={v.retail} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={retail => set({ retail })} />
 				</Field>
-				<Computed label="Line total">{v.price == null ? '-' : money(lineTotal(v))}</Computed>
+				<Field label="Line total" unit={currencySymbol()}>
+					<NumberField readOnly value={v.price == null ? null : lineTotal(v)} locale={NUMBER_LOCALE} />
+				</Field>
 			</div>
 		</LineEditor>
 	)

@@ -84,15 +84,14 @@ export function PasswordField({ ...rest }) {
 
 /** `cell` is the amount in a sheet's cell (Budget 21b): it reads as the figure until it is
     clicked or focused, then takes the field's border inside its own cell. */
-export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale, computed = false, expected = false, cell = false, ...rest }) {
+export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale, expected = false, cell = false, ...rest }) {
 	const [typing, setTyping] = useState(null)
 	return (
 		<Box
 			type="text"
 			inputMode="decimal"
-			classes={join('sp-number', computed && 'sp-input--readonly', expected && 'sp-ink-5', cell && 'sp-input--cell')}
+			classes={join('sp-number', expected && 'sp-ink-5', cell && 'sp-input--cell')}
 			component="NumberField"
-			readOnly={computed}
 			value={typing ?? formatNumber(value, { locale, decimals })}
 			onChange={text => {
 				setTyping(text)
