@@ -2757,7 +2757,7 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
 .sp-line-editor--sheet .sp-slot { align-self: flex-start; }
 /* a slot that is a field of its own sits at the field's start edge, under its label, instead of centring across the card */
 .sp-slot--start { align-self: flex-start; }
-.sp-line-editor--sheet .sp-line-editor__grid { grid-template-columns: 132px 1fr; }
+.sp-line-editor--sheet .sp-line-editor__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .sp-line-editor--sheet .sp-note { display: none; }
 
@@ -3478,13 +3478,15 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 }
 
 /* the editor's slot is the row mark's size (answer 31); the gap follows it so the fields stay aligned */
+/* the open editor has no handle: its photo spans the row's handle, gap and photo, so the
+   photo starts on the row's handle line and the fields start on the row's title line */
 .sp-line-editor .sp-mark {
-  width: var(--mark-medium);
-  height: var(--mark-medium);
+  width: calc(var(--box) + var(--sp-12) + var(--mark-medium));
+  height: calc(var(--box) + var(--sp-12) + var(--mark-medium));
 }
-/* the slot column is the mark's width, not Remove's, so the photo and the fields beside it
-   sit on the row's photo and title lines; Remove centres under the photo and may overhang */
-.sp-line-editor .sp-slot { width: var(--mark-medium); flex: none; }
+/* the slot column is the photo's width, not Remove's; Remove centres under the photo */
+.sp-line-editor .sp-slot { width: calc(var(--box) + var(--sp-12) + var(--mark-medium)); flex: none; }
+
 .sp-line-editor .sp-slot__remove { white-space: nowrap; }
 
 /* ---------- toast - LOCKED c18 ---------- */
