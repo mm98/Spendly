@@ -1,35 +1,31 @@
-# Spendly - design brief 12 answers
+# Spendly - design brief 13 answers
 
-Copy these files over handoff_2026_10_03o_changes.
+Copy these files over handoff_2026_10_03p_changes.
 
-## 1. The date value on iOS
+## 1. The order views in the sidebar: option B
+
+The sidebar always shows All orders and the first N views (Settings, "Order views in the menu"), then "N more in Orders". Opening a view never adds, removes or moves a row, and the count does not change.
 
 **Stylesheet (components.css)**
-- `.sp-input[type="date"]`, `[type="time"]`, `[type="month"]`, `[type="datetime-local"]` - now also `display: flex; align-items: center`, in the same rule as `appearance: none`. WebKit leaves the value at the top edge once the native appearance is gone; this centres it at any field height.
+- New state: `.sp-nav-item[aria-current="page"] > .sp-nav-item__sub { color: #fff; }`. The "N more in Orders" row takes `aria-current="page"` when the open view is one of the N, and gets the same fill and weight as any current item. Its text is unchanged and it still takes no click.
 
 **What the app changes**
-- Remove the workaround from `app.css`.
+- Remove the extra row for the open view. Set `aria-current="page"` on the "N more in Orders" span when the open view is past the limit.
 
 **Documented**
-- Components c3, the date field note: why the four rules are there, and that the fault shows only in WebKit, so a drawing or a check in Chromium cannot show it. Check in WebKit with the iPhone 15 profile.
-- Input types, DateField row: the same point.
-- COMPONENT-STATUS.md: dated entries for this and for the earlier iOS date field change.
+- Navigation shell 9e: the sidebar with a view past the limit open, beside the sidebar at rest.
+- Settings and import, the "Order views in the menu" note: now states this behaviour.
+- COMPONENT-STATUS.md: dated entry.
 
-## 2. The order filters' custom dates on a phone
+## 2. Navigation shell 9a: wrong row fixed
 
-One date range sheet for the whole app. On a phone, Custom in the order filters opens the c14 range sheet, the same one Statistics uses: heading, From and To side by side, the months scrolling, the day count and Apply. It replaces the two stacked native date fields.
-
-- Inside the filter sheet, the range sheet's Apply sets From and To and returns to the filter sheet. The filter sheet's Apply runs the filter, with everything else in it.
-- On Statistics, which has no filter sheet around it, the range sheet's Apply applies the range at once.
-
-No markup or CSS change: the sheet is `sp-sheet` with `sp-calendar--sheet` as drawn in c14. Documented in the notes of Components c12 and c14 and Order list.
+The second row under ORDERS read "All orders 248" with a wallet icon and linked to Budget. It is now "Hay this month 18" with the store icon, linking to the order list, matching 9e.
 
 ## Files
 
 - `styles/components.css`
 - `styles/COMPONENT-STATUS.md`
-- `Components.dc.html`
-- `Input types.dc.html`
-- `Order list.dc.html`
+- `Navigation shell.dc.html`
+- `Settings and import.dc.html`
 
-`styles/check.js` reports the same 84 known findings as handoff_2026_10_03o_changes.
+`styles/check.js` reports the same 84 known findings as handoff_2026_10_03p_changes.
