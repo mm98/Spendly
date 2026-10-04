@@ -692,6 +692,106 @@
       </div>
     </div>
   </div>
+<div class="doc-notes">
+    <span class="doc-notes__label">URL filters - over the limit, and a month</span>
+    <div class="doc-note"><b>Two filters that exist only in the URL.</b> The page has no control for either. <code>flag=over-limit</code> cuts the list to the categories over their limit; <code>month=2026-08</code> measures every row against that month instead of this one. Either or both arrive from a link.</div>
+    <div class="doc-note"><b>Each applied URL filter shows as a removable crumb</b> above the list, the same <code>sp-crumb</code> in <code>sp-filters</code> the order list uses (<a href="Order list.dc.html#2b">2b</a>), so the user can see why the list is short and get back to all of it. Removing a crumb drops that parameter. Search and sort keep working.</div>
+    <div class="doc-note"><b>Needs a look's "N over their limit" opens <code>/categories?flag=over-limit</code></b>, on Home and on a phone. The toolbar count matches the count on Home.</div>
+    <div class="doc-note"><b>With a month set, the column names it</b> - AUGUST in place of THIS MONTH - and the pace marker goes, since the month is over. The limit column shows the limit as it stands today.</div>
+    <div class="doc-note"><b>When nothing matches</b> the list shows its empty state and the crumbs stay. On a phone the crumb row sits above the category cards in <a href="Mobile screens.dc.html#7a">7a</a> (Categories).</div>
+  </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">/categories?flag=over-limit - from Needs a look</span>
+      <div class="sp-stack doc-w1040">
+        <div class="sp-filters">
+          <span class="sp-crumb">Over the limit<button type="button" class="sp-crumb__remove" aria-label="Remove Over the limit">×</button></span>
+        </div>
+        <div class="sp-list">
+          <div class="sp-list__toolbar">
+            <strong class="sp-data">1 category</strong>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sp-col-title">CATEGORY</th>
+                <th scope="col" class="sp-col-amount">THIS MONTH</th>
+                <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+                <th class="sp-col-menu" aria-label="Row actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">/categories?flag=over-limit&amp;month=2026-08</span>
+      <div class="sp-stack doc-w1040">
+        <div class="sp-filters">
+          <span class="sp-crumb">Over the limit<button type="button" class="sp-crumb__remove" aria-label="Remove Over the limit">×</button></span>
+          <span class="sp-crumb">August 2026<button type="button" class="sp-crumb__remove" aria-label="Remove August 2026">×</button></span>
+        </div>
+        <div class="sp-list">
+          <div class="sp-list__toolbar">
+            <strong class="sp-data">1 category</strong>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sp-col-title">CATEGORY</th>
+                <th scope="col" class="sp-col-amount">AUGUST</th>
+                <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+                <th class="sp-col-menu" aria-label="Row actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section class="doc-section">
