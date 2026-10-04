@@ -1,45 +1,34 @@
-# Spendly - changes since handoff_2026_10_04g_changes
+# Spendly - changes since handoff_2026_10_04i_changes
 
-Copy these files over handoff_2026_10_04g_changes.
+Copy these files over handoff_2026_10_04i_changes. handoff_2026_10_04i_changes is unchanged; this package follows it.
 
-## 1. Line editor (c15): Line total is a read-only field
+## 1. Line editor in the sheet (c15): the 70px photo
 
-Line total was bold text with no box. It is now a read-only amount field, the same markup as Unit price, so it sits in the row of boxes beside it:
+The sheet now uses the same photo slot as the desktop editor, `calc(var(--box) + var(--sp-12) + var(--mark-medium))` square (70px). The `.sp-line-editor--sheet .sp-mark` and `.sp-line-editor--sheet .sp-slot` size overrides from 04i are removed.
 
-```html
-<div class="sp-field">
-  <label class="sp-field__label" for="ID-total">Line total</label>
-  <span class="sp-field__wrap">
-    <input class="sp-input sp-input--unit sp-number" id="ID-total" type="text" readonly value="1.780,00">
-    <span class="sp-field__unit">kr.</span>
-  </span>
-</div>
-```
+## 2. Line editor in the sheet (c15): fields 50/50
 
-- It takes the established read-only look from `.sp-input:read-only` (surface-2 fill, line border). No new style.
-- The label is now a `<label for>`.
-- Before an amount exists (States and confirmations, the new-line state) the field is empty.
-- `.sp-line-editor__computed` is removed from `styles/components.css`; nothing uses it.
-- Applies wherever the line editor appears: Order editing layouts (1b, 1c), Components c15, Dark mode and image viewer, States and confirmations, Responsive reference.
-- Logged in `styles/COMPONENT-STATUS.md`.
+`.sp-line-editor--sheet .sp-line-editor__grid` is `repeat(2, minmax(0, 1fr))` instead of `132px 1fr`. Quantity and Unit price share one row, Retail price and Line total the next, each half the width (167px in the 1c phone).
 
-An interim right-aligned version of the total was made and reverted in this round; nothing of it ships.
+## 3. Add row: the handle spacer only where rows have handles
+
+`sp-list-item--add` carried a hidden `sp-list-item__handle` spacer in every list. In a list whose rows have no handle (the phone order lists), it pushed the + 28px right of the photos above.
+
+- **Markup:** render the spacer in the add row only when the rows above carry handles. Removed from Order editing layouts 1c and one Components specimen.
+- No CSS change; `.sp-list-item--add .sp-list-item__handle { visibility: hidden; }` stays for lists that reorder.
+- Note added to Order editing layouts 1b.
 
 **What the app changes**
-- Render Line total as the read-only field above, updated as quantity and unit price change. Remove the computed-text element and its CSS.
+- Take the new components.css.
+- Omit the add row's handle spacer when the list does not reorder.
 
-## 2. Responsive reference: duplicate id
-
-The two line editors on the page now have distinct total ids (`rr-total-a`, `rr-total-b`).
+All three are logged in `styles/COMPONENT-STATUS.md`.
 
 ## Files
 
 - `Order editing layouts.dc.html`
 - `Components.dc.html`
-- `Dark mode and image viewer.dc.html`
-- `States and confirmations.dc.html`
-- `Responsive reference.dc.html`
 - `styles/components.css`
 - `styles/COMPONENT-STATUS.md`
 
-`styles/check.js`: 84 finding(s) across 26 pages, the same known set as handoff_2026_10_04g_changes.
+`styles/check.js`: 84 finding(s) across 26 pages, the same known set as handoff_2026_10_04i_changes.

@@ -691,3 +691,11 @@ first.
 - 2026-10-04 - c15 line editor: the open editor keeps the row's handle column when the list reorders, and the slot column is fixed at `--mark-medium` (Remove centres under it and may overhang). The slot had taken Remove's width, 46px, which put the photo 2px and the fields 4px right of the row's photo and title. Measured: photo and Item label now sit exactly on the row's photo and title.
 
 - 2026-10-04 - c15 line editor: Line total is a read-only amount field, the same markup as Unit price (`sp-field__wrap`, `sp-input sp-input--unit sp-number`, `kr.` unit) with `readonly`, so it takes the established read-only input look. Its label is a `<label for>`. `.sp-line-editor__computed` (bold text with no box) is removed. Before an amount exists the field is empty.
+
+- 2026-10-04 - c15 line editor, replacing the handle entry above: the open editor has no handle. Its photo slot is `calc(var(--box) + var(--sp-12) + var(--mark-medium))` square (70px), spanning the row's handle, gap and photo, so the fields start on the rows' title line. The sheet keeps `--mark-medium`.
+
+- 2026-10-04 - c15 line editor: the sheet uses the same 70px photo slot as the desktop editor; the `--sheet` size override is removed.
+
+- 2026-10-04 - Add row (`sp-list-item--add`): the hidden handle spacer is in the markup only when the rows above carry handles. Removed from the add rows in lists without handles (the phone order lists), where it pushed the + 28px right of the photos.
+
+- 2026-10-04 - c15 line editor in the sheet: the field grid is two equal columns, `repeat(2, minmax(0, 1fr))`, instead of `132px 1fr`.
