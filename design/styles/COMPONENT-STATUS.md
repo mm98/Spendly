@@ -699,3 +699,10 @@ first.
 - 2026-10-04 - Add row (`sp-list-item--add`): the hidden handle spacer is in the markup only when the rows above carry handles. Removed from the add rows in lists without handles (the phone order lists), where it pushed the + 28px right of the photos.
 
 - 2026-10-04 - c15 line editor in the sheet: the field grid is two equal columns, `repeat(2, minmax(0, 1fr))`, instead of `132px 1fr`.
+
+- 2026-10-04 - Narrow order list card (`sp-list-item--card`, Order list 420px column): two lines, not three. The reference and status line is removed; the card reads vendor and amount, then date and item count with the saving under the amount.
+
+- 2026-10-04 - c15 plain line editor (Brief 16): an open row draws no grip. The handle column stays as an empty spacer when the list reorders. Budget 21d and the c15 specimen updated.
+
+- 2026-10-04 - React: `Picker` keeps its name. It renders `.sp-options`, the options part of the picker; `styles/check.js` lists it as a named exception beside `DialogTitle` and `RangeSlider`.
+- 2026-10-04 - Order list, narrow card: the saving is now the second line of the right column (the card is two lines); CLAUDE.md updated to say so.

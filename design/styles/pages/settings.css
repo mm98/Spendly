@@ -29,7 +29,6 @@
 
   .st-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-12); }
   .st-trio > .sp-well { position: relative; }
-  .st-quad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
 
   /* Import step 2: a column in the file, an arrow, and the field it maps to. The
      two sides start at the top rather than being centred: a row whose right side

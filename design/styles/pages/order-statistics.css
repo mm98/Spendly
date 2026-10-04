@@ -10,7 +10,6 @@
   /* the picker's panel is absolute, so the specimen needs room beneath it */
   .os-picker { width: 1240px; padding-bottom: 420px; }
 
-  .os-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
   .os-col { position: relative; }
   /* a stat's bar readout hangs above the bar it describes, its right edge on the bar's */
   .os-spark-tip { position: absolute; right: 0; bottom: calc(100% + var(--sp-6)); z-index: 3; }

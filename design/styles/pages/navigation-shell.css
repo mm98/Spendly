@@ -80,7 +80,6 @@
   /* the email case, drawn at the width that forces it */
   .ns-email { width: 220px; }
   /* the one floating action on a phone */
-  .ns-fab { position: absolute; right: var(--sp-12); bottom: 80px; }
 
   /* The documentation tables: doc.css draws the row and the head, c1's .sp-list is the
      box around them, and the page states only which columns each table has. */

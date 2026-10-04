@@ -187,8 +187,14 @@
   gap: var(--sp-12);
   align-items: start;
   padding: var(--sp-12) var(--sp-16);
-  font-size: var(--t-12);
 }
+.doc-table__row { font-size: var(--t-12); }
+.doc-eyebrow {
+    font-size: var(--t-11);
+    letter-spacing: var(--ls-eyebrow);
+    color: var(--ink-4);
+    text-transform: uppercase;
+  }
 .doc-table__head {
   padding-top: var(--sp-8);
   padding-bottom: var(--sp-8);
@@ -212,12 +218,6 @@
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--r-card);
-  }
-  .doc-eyebrow {
-    font-size: var(--t-11);
-    letter-spacing: var(--ls-eyebrow);
-    color: var(--ink-4);
-    text-transform: uppercase;
   }
 
 }

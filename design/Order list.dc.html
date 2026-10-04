@@ -2265,10 +2265,6 @@
               <span class="sp-amount">3.980,00 kr.</span>
             </span>
             <span class="sp-list-item__line">
-              <span class="sp-subtitle sp-truncate sp-grow">SPENDLY-447</span>
-              <span class="sp-pill" data-color="success">Delivered</span>
-            </span>
-            <span class="sp-list-item__line">
               <span class="sp-subtitle sp-grow">12/08/2026 · 4 items</span>
               <span class="sp-amount-secondary" data-color="success">Saved 995,00 kr.</span>
             </span>
@@ -2280,10 +2276,6 @@
             <span class="sp-list-item__line">
               <span class="sp-title sp-truncate sp-grow">Hay Danmark ApS</span>
               <span class="sp-amount">3.240,00 kr.</span>
-            </span>
-            <span class="sp-list-item__line">
-              <span class="sp-subtitle sp-truncate sp-grow">SPENDLY-446</span>
-              <span class="sp-pill" data-state="progress">Ordered</span>
             </span>
             <span class="sp-list-item__line">
               <span class="sp-subtitle sp-grow">09/08/2026 · 2 items</span>
@@ -2299,10 +2291,6 @@
               <span class="sp-amount">7.240,00 kr.</span>
             </span>
             <span class="sp-list-item__line">
-              <span class="sp-subtitle sp-truncate sp-grow">SPENDLY-441</span>
-              <span class="sp-pill" data-color="success">Delivered</span>
-            </span>
-            <span class="sp-list-item__line">
               <span class="sp-subtitle sp-grow">03/08/2026 · 6 items</span>
               <span class="sp-amount-secondary" data-color="success">Saved 2.170,00 kr.</span>
             </span>
@@ -2313,6 +2301,7 @@
 
   <div class="doc-notes">
     <div class="doc-notes__label">Notes for implementation</div>
+    <div class="doc-note"><b>The narrow card is two lines.</b> Vendor and amount, then date and item count with the saving under the amount. Reference and status are left to the order itself.</div>
     <div class="doc-note"><b>A column is a header cell and a body cell, dropped together as one unit.</b> Removing the header while the rows still render the cell puts every cell after it one place to the left, and leaves the row with more children than the grid has columns - the surplus wraps to a second line, which is what a <b>⋮</b> appearing underneath a row means. It is not a wrapping bug in the menu; it is a column-count mismatch upstream of it. Write the drop as one conditional covering both, never two.</div>
     <div class="doc-note"><b>The check is arithmetic, not visual.</b> Count the header's children and every row's children at each breakpoint and require them equal. A row that is suddenly twice as tall is the symptom; the count is the cause, and it is the only reliable way to catch a cell landing in the wrong column when both happen to hold short text.</div>
     <div class="doc-note"><b>A chip's width follows its label, and that is intended.</b> Decor, Seating and Lighting come out 52, 61 and 62px wide; they are left-aligned in the cell, so their left edges stack and only their right edges differ. <b>Do not force them to a common width</b> - a fixed-width chip either truncates a long category name or pads a short one out with dead space, and the category column is fluid precisely so several chips can sit in it. What must be identical is the chip itself: <b>2px 8px</b>, radius <b>6px</b>, 22px tall, 11px text, matching <a href="#2b">2b</a> and every other chip in the app.</div>

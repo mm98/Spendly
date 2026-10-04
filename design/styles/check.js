@@ -197,6 +197,9 @@
     if (decls < 3) continue;
     const key = group.join(' == ');
     if (COINCIDENCE.includes(key)) continue;
+    // documentation chrome (doc-) is kept out of the app's stylesheets on purpose, so a
+    // doc class matching a product class is a deliberate copy, not a second name
+    if (group.some(x => x.startsWith('doc-')) && group.some(x => !x.startsWith('doc-'))) continue;
     fail('one name per role', 'stylesheets', key);
   }
 
@@ -561,7 +564,14 @@
         if (o > -1 && o < c) { depth++; i = o; } else { if (!depth) { end = c; break; } depth--; i = c; }
       }
       const inner = s.slice(tagStart, end);
-      const isCardBody = CONTROL.test(inner) || /class="sp-field__help\b/.test(inner);
+      /* A pair is a title or heading with one metadata line under it. A label over an
+         object (a mark, a control, a specimen) is not one, nor is a heading over prose:
+         a second line that is `sp-data`, or that ends a sentence, is a message and wraps. */
+      const lines = [...inner.matchAll(/<(span|div)[^>]*class="(sp-[\w-]+)[^"]*"[^>]*>([\s\S]*?)<\/\1>/g)];
+      const second = lines[1];
+      const secondText = second ? second[3].replace(/<[^>]+>/g, '').trim() : '';
+      const notAPair = !second || !/^sp-(subtitle|meta)$/.test(second[2]) || /[.!?]$/.test(secondText);
+      const isCardBody = notAPair || CONTROL.test(inner) || /class="sp-(field__help|combobox|period)\b/.test(inner);
       if (!isCardBody && !cls.includes('sp-truncate')) fail('a stacked pair truncates', p, m[1]);
       if (isCardBody && cls.includes('sp-truncate')) fail('a card body does not truncate', p, m[1] + ' clips prose');
     }
@@ -703,9 +713,10 @@
 
        Two exports name a slot and take a shared primitive for its look, which is the
        library working as intended rather than two vocabularies: a dialog's title is
-       the system's heading, and a slider's bar is the system's track. Reuse is the
+       the system's heading, a slider's bar is the system's track, and a picker's
+       cells are the system's options. Reuse is the
        rule those two follow, so they are named here rather than left to trip it. */
-    const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track' };
+    const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options' };
     for (const [cls, names] of Object.entries(roots))
       for (const n of names) {
         if (REUSED[n] === cls) continue;

@@ -107,7 +107,6 @@
 
   /* Where the floating action sits. What it looks like is .sp-fab's, not the page's:
      one 56px round button, the same on every screen that shows it. */
-  .ms-fab { position: absolute; right: var(--sp-12); bottom: 80px; }
 
   /* how far a sheet may rise on these screens; its corners are the component's - its
      own at the top, the frame's at the bottom */

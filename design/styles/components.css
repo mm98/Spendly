@@ -382,7 +382,6 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   width: 100%;
   display: block;
   min-height: var(--control-h);
-  padding: 0 var(--sp-12);
   border: 1px solid var(--line-3);
   border-radius: var(--r-field);
   background: var(--surface);
@@ -391,6 +390,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   font-size: var(--t-14);
   outline: none;
 }
+/* the input's padding; the textarea sets its own below */
+.sp-input { padding: 0 var(--sp-12); }
 .sp-textarea {
   padding: var(--sp-12);
   line-height: var(--lh);
@@ -1648,7 +1649,8 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
    the small variant included - it stays narrow rather than short, since the width
    rule below is the one that excludes it. */
 .sp-touch .sp-input,
-.sp-touch .sp-btn { min-height: var(--control-h-touch); font-size: var(--t-14); }
+.sp-touch .sp-btn { min-height: var(--control-h-touch); }
+.sp-touch .sp-btn { font-size: var(--t-14); }
 .sp-touch .sp-input { font-size: var(--t-16); }
 /* A button on touch fills its column, so a finger has the whole width to aim at.
    A bar lays its own buttons out in a row, so a button in one keeps its own width -
@@ -1857,6 +1859,8 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 }
 .sp-fab:hover { background: var(--green-2); }
 .sp-fab:focus-visible { box-shadow: var(--ring), 0 8px 22px rgba(27, 26, 23, 0.18); }
+/* docked: over a phone screen's content, right-aligned above the tab bar */
+.sp-fab--docked { position: absolute; right: var(--sp-12); bottom: 80px; }
 
 /* ---------- SortControl: a Combobox in pick-only mode, radius 10 ---------- */
 
@@ -2764,8 +2768,9 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
 /* ---------- line editor, plain - c15 variant ----------
    The same editor for any list row that has no photo: a budget row, a group, an
    account. Same frame, same form column, same action row; the photo slot is absent,
-   and a head names what is open and carries its move and delete controls. The handle
-   column stays when the list reorders, so the row's text does not move when it opens. */
+   and a head names what is open and carries its move and delete controls. When the list
+   reorders, the handle column stays as an empty spacer, so the row's text does not move
+   when it opens; an open row is not dragged, so no grip is drawn in it (Brief 16). */
 .sp-line-editor--plain { padding-top: var(--sp-12); }
 .sp-line-editor--plain .sp-list-item__handle { padding-top: 0; height: 30px; }
 .sp-line-editor__head { display: flex; align-items: center; gap: var(--sp-8); }
@@ -2778,6 +2783,9 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
 .sp-line-editor--plain .sp-line-editor__grid--one { grid-template-columns: minmax(0, 1fr); }
 
 /* ---------- stat - LOCKED c14 ---------- */
+
+/* four stats side by side, in equal columns on the cards' gap */
+.sp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
 
 .sp-stat { display: flex; flex-direction: column; gap: var(--sp-6); }
 .sp-stat__figure {
@@ -4145,8 +4153,6 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
    with. It states what its contents become, the way the viewer does for its buttons. */
 
 .sp-card--shell { background: var(--shell); border-color: var(--shell); color: #fff; }
-.sp-card--shell .sp-section-label,
-.sp-card--shell .sp-meta,
 .sp-card--shell .sp-section-label { color: var(--shell-group); }
 .sp-card--shell .sp-stat__figure { color: #fff; }
 .sp-card--shell .sp-meta { color: var(--shell-item); }

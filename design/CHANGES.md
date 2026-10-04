@@ -1,34 +1,65 @@
-# Spendly - changes since handoff_2026_10_04i_changes
+# Spendly - changes since handoff_2026_10_04j_changes
 
-Copy these files over handoff_2026_10_04i_changes. handoff_2026_10_04i_changes is unchanged; this package follows it.
+Copy these files over handoff_2026_10_04j_changes. Decisions are in `Brief 16 answers.md`.
 
-## 1. Line editor in the sheet (c15): the 70px photo
+## 1. Brief 16: no grip on an open budget account
 
-The sheet now uses the same photo slot as the desktop editor, `calc(var(--box) + var(--sp-12) + var(--mark-medium))` square (70px). The `.sp-line-editor--sheet .sp-mark` and `.sp-line-editor--sheet .sp-slot` size overrides from 04i are removed.
+Answer A. The plain line editor (`sp-line-editor--plain`) draws no grip when a row is open: an open row is not dragged, and the grip did nothing. The handle column stays as an empty `sp-list-item__handle` span (no icon, `aria-hidden`), so the name keeps its line. Moving an open account is the head's Move up / Move down.
 
-## 2. Line editor in the sheet (c15): fields 50/50
-
-`.sp-line-editor--sheet .sp-line-editor__grid` is `repeat(2, minmax(0, 1fr))` instead of `132px 1fr`. Quantity and Unit price share one row, Retail price and Line total the next, each half the width (167px in the 1c phone).
-
-## 3. Add row: the handle spacer only where rows have handles
-
-`sp-list-item--add` carried a hidden `sp-list-item__handle` spacer in every list. In a list whose rows have no handle (the phone order lists), it pushed the + 28px right of the photos above.
-
-- **Markup:** render the spacer in the add row only when the rows above carry handles. Removed from Order editing layouts 1c and one Components specimen.
-- No CSS change; `.sp-list-item--add .sp-list-item__handle { visibility: hidden; }` stays for lists that reorder.
-- Note added to Order editing layouts 1b.
+- Budget 21d and the Components c15 plain-editor specimen updated; note added to Budget. The c15 CSS comment now says the same. No CSS rule changed.
 
 **What the app changes**
-- Take the new components.css.
-- Omit the add row's handle spacer when the list does not reorder.
+- Render the open plain editor's handle column empty, with no grip icon and no drag.
 
-All three are logged in `styles/COMPONENT-STATUS.md`.
+## 2. Order list: the narrow card is two lines
+
+The 420px list-column card (`sp-list-item--card`) loses its reference and status line. It reads vendor and amount, then date and item count with the saving under the amount. Note added to Order list.
+
+- `CLAUDE.md`: the saving in the narrow list card is now "the second line of the right column".
+
+**What the app changes**
+- Drop the reference + status line from the narrow order card.
+
+## 3. Stylesheet cleanup (no visual change)
+
+`styles/check.js` now reports **0 findings** (was 84).
+
+**Duplicate declarations split**, so each value is set once:
+- `.sp-input, .sp-textarea`: `padding` moved to `.sp-input` alone (the textarea sets its own).
+- `.sp-touch .sp-input, .sp-touch .sp-btn`: `font-size` moved to each (`--t-16` input, `--t-14` button).
+- `.sp-card--shell .sp-meta`: removed from the `--shell-group` group; it keeps its own `--shell-item`.
+- `doc.css`: `.doc-table__head, .doc-table__row`: `font-size` moved to `.doc-table__row`.
+
+**Two names for one job, merged into the component library:**
+
+| Old (page CSS) | New (components.css) | Pages |
+|---|---|---|
+| `ms-fab`, `ns-fab` | `sp-fab--docked` | Mobile screens, Navigation shell |
+| `os-stats`, `st-quad` | `sp-stats` | Order statistics, Responsive reference, Settings and import |
+
+The page rules are removed from `styles/pages/mobile-screens.css`, `navigation-shell.css`, `order-statistics.css` and `settings.css`.
+
+**Kept apart on purpose:** `doc-eyebrow` (documentation card labels, `styles/doc.css`) stays separate from `sp-section-label`. Documentation chrome never goes in the app's stylesheets; the checker now skips doc-to-product matches.
+
+**Truncation:** 15 title-and-subtitle pairs that lacked `sp-truncate` now have it (Components, Mobile screens, Order editing layouts, Settings and import).
+
+**What the app changes**
+- Take the new components.css. Use `sp-fab--docked` and `sp-stats` where the page classes were.
+
+## 4. React
+
+- `Picker` keeps its name. It renders `.sp-options`; the checker lists it as a named exception beside `DialogTitle` and `RangeSlider`. Ignore any mention of an `Options` rename: it was made and reverted, and no file in this package carries it.
+- React components page: the harness scope now supplies `useLayoutEffect` (Mark.jsx needs it; the page rendered nothing without it). The Button sizes specimen adds Xsmall.
+
+## 5. Checker (`styles/check.js`)
+
+- A title or heading over a picture, a control or a paragraph is no longer treated as a stacked pair; `sp-combobox` and `sp-period` count as controls.
+- Documentation (`doc-`) classes are not compared against product classes.
+- `Picker: 'sp-options'` added to the named exceptions.
 
 ## Files
 
-- `Order editing layouts.dc.html`
-- `Components.dc.html`
-- `styles/components.css`
-- `styles/COMPONENT-STATUS.md`
-
-`styles/check.js`: 84 finding(s) across 26 pages, the same known set as handoff_2026_10_04i_changes.
+- `Budget.dc.html`, `Components.dc.html`, `Mobile screens.dc.html`, `Order editing layouts.dc.html`, `Order list.dc.html`, `Order create.dc.html`, `Navigation shell.dc.html`, `Order statistics.dc.html`, `Responsive reference.dc.html`, `Settings and import.dc.html`, `React components.dc.html`
+- `styles/components.css`, `styles/doc.css`, `styles/check.js`, `styles/COMPONENT-STATUS.md`
+- `styles/pages/mobile-screens.css`, `navigation-shell.css`, `order-statistics.css`, `settings.css`
+- `Brief 16 answers.md`, `CLAUDE.md`
