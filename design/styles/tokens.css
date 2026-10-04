@@ -133,6 +133,7 @@
   --step: 20px;
   --mark-medium: 42px;
   --mark-small: 24px;
+  --card-min-w: 280px;         /* the narrowest a card in a card grid gets; the row holds as many as fit */
   --window-w: 190px;           /* the period stepper, sized by its longest label - September - so it never resizes */
   --field-trail: calc(var(--control-h) - var(--sp-6) - var(--sp-6));  /* a button inside a field, inset one step on every side */
   --card-header-h: calc(var(--control-h) + var(--sp-6) + var(--sp-6));  /* holds a full-height input or button with 6 above and below */   /* fixed, so a header is the same height with or without its action,
