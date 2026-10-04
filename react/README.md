@@ -76,6 +76,10 @@ a wishlist.
 | `/more` | The phone's list of what the tab bar does not hold |
 | `/signin`, `/register` | Outside the shell |
 
+The category list also reads two filters from the address, with no control on the page: `flag=over-limit`
+keeps the categories past their limit, and `month=2026-10` keeps those with spend in that month and shows
+every figure for it. They combine, and a change of search or order drops both.
+
 The router is a hash router (`#/orders`), so a built copy opens from any path or a `file://`
 URL. Each route's `handle` carries the browser tab's title, the sidebar row it belongs to, the
 body layout (`default`, `split` or `rail`) and whether the phone shows the New order button.

@@ -334,7 +334,7 @@ export async function getHomeCategories(signal) {
 
 /** The categories over their monthly limit this month: limits are set by hand, so the server's largest page holds them. */
 export async function getOverLimitCategories(signal) {
-	return (await request('/api/categories' + qs({ over: 'yes', pageSize: MOST }), { signal })).categories
+	return (await request('/api/categories' + qs({ flag: 'over-limit', pageSize: MOST }), { signal })).categories
 }
 
 /** Which of these names a category already has, in any case. */

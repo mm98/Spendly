@@ -12,7 +12,7 @@ import { useApi } from '../api/useApi.js'
 import {
 	deleteCategory, getCategoryPages, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
 } from '../api/client.js'
-import { NUMBER_LOCALE, amountRound, currency, dot, plural } from '../api/format.js'
+import { NUMBER_LOCALE, amountRound, currency, dot, monthNames, plural } from '../api/format.js'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
@@ -61,6 +61,19 @@ function MonthLine({ category, pace }) {
 	return <span className="sp-meta">{currency(spend, 0)}{dot}{amountRound(budget - spend)} left</span>
 }
 
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
+const OVER_LIMIT = 'over-limit'
+
+/* Address-only filters with no control, so a change of search or order drops both. The pace marker
+   is all of a month gone and none of one to come. */
+function monthPaceFor(month) {
+	const now = new Date()
+	const current = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+	if (!month || month === current) return { pace: monthPace(), label: null }
+	const [year, number] = month.split('-').map(Number)
+	return { pace: { at: month < current ? 100 : 0 }, label: `${monthNames('long', true)[number - 1]} ${year}` }
+}
+
 /** Categories (5d): each one against its monthly limit, opened for editing from its row. */
 export default function Categories() {
 	const touch = useShellShape() === 'touch'
@@ -84,10 +97,13 @@ export default function Categories() {
 	const width = useWidth(column) && column.current.offsetWidth
 	const cards = touch || (width > 0 && width <= CARDS)
 	const folded = !cards && width > 0 && width <= FOLD
-	const pace = monthPace()
+	const over = params.get('flag') === OVER_LIMIT
+	const month = MONTH.test(params.get('month')) ? params.get('month') : null
+	const { pace, label: monthLabel } = monthPaceFor(month)
 	// a page of rows per Load more, held in the address
 	const { pages, setPages, restored } = useListMemory()
-	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month' }, step, pages], { enabled: Boolean(settings || settingsRead.error) })
+	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month', ...(over ? { flag: OVER_LIMIT } : {}), ...(month ? { month } : {}) }, step, pages],
+		{ enabled: Boolean(settings || settingsRead.error) })
 	useEffect(() => { if ((state.data || state.error) && !state.loading) restored() }, [state.data, state.error, state.loading, restored])
 
 	const write = (q, sortId) => {
@@ -147,8 +163,16 @@ export default function Categories() {
 
 	let body
 	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
-	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={sort.id.startsWith('month-') ? sort.label : 'This month'}
+	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={monthLabel ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}
 		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
+	else if (!matched && !query && (over || month)) body = (
+		<Card>
+			<Empty>
+				<EmptyTitle>{over ? 'No category is over its limit' : 'No category has spend'} {monthLabel ? `in ${monthLabel}` : 'this month'}</EmptyTitle>
+				<Button variant="outline" size="small" to="/categories">Show all categories</Button>
+			</Empty>
+		</Card>
+	)
 	else if (!matched && !query) body = (
 		<Card>
 			<Empty>
@@ -194,7 +218,7 @@ export default function Categories() {
 			<Caption><strong className="sp-data">{plural(matched, 'category', 'categories')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
-				<ListCell width="amount">{sort.id.startsWith('month-') ? sort.label : 'This month'}</ListCell>
+				<ListCell width="amount">{monthLabel ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}</ListCell>
 				{folded ? null : <ListCell width="amount">{sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'}</ListCell>}
 				<ListCell width="menu" />
 			</ListHead>
