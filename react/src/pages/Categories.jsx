@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
+import { Caption, Controls, Crumb, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
@@ -42,12 +42,12 @@ const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
 function MonthGauge({ category, pace, split = false }) {
 	const { monthSpend: spend, budget } = category
 	if (!(budget > 0)) return <Gauge thin untargeted value={0} aria-label="No limit set" />
-	if (spend > budget && !split) return <Gauge thin passed value={100} marker={pace.at} aria-label="Share of the limit used" />
+	if (spend > budget && !split) return <Gauge thin passed value={100} marker={pace?.at} aria-label="Share of the limit used" />
 	if (spend > budget) {
 		const upTo = (budget / spend) * 100
-		return <Gauge thin value={upTo} over={100 - upTo} marker={pace.at} aria-label="Share of the limit used" />
+		return <Gauge thin value={upTo} over={100 - upTo} marker={pace?.at} aria-label="Share of the limit used" />
 	}
-	return <Gauge thin value={(spend / budget) * 100} marker={pace.at} aria-label="Share of the limit used" />
+	return <Gauge thin value={(spend / budget) * 100} marker={pace?.at} aria-label="Share of the limit used" />
 }
 
 function MonthLine({ category, pace }) {
@@ -56,7 +56,7 @@ function MonthLine({ category, pace }) {
 	if (spend > budget)
 		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{amountRound(spend - budget)} over</span>
 	// ahead of pace only past ten points over the marker (5i)
-	if ((spend / budget) * 100 > pace.at + 10)
+	if (pace && (spend / budget) * 100 > pace.at + 10)
 		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}ahead of pace</span>
 	return <span className="sp-meta">{currency(spend, 0)}{dot}{amountRound(budget - spend)} left</span>
 }
@@ -64,14 +64,12 @@ function MonthLine({ category, pace }) {
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
 const OVER_LIMIT = 'over-limit'
 
-/* Address-only filters with no control, so a change of search or order drops both. The pace marker
-   is all of a month gone and none of one to come. */
-function monthPaceFor(month) {
-	const now = new Date()
-	const current = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-	if (!month || month === current) return { pace: monthPace(), label: null }
+/* A month named in the address measures every row against it, so the pace marker, which belongs to
+   the month in progress, goes. */
+const monthWords = month => {
 	const [year, number] = month.split('-').map(Number)
-	return { pace: { at: month < current ? 100 : 0 }, label: `${monthNames('long', true)[number - 1]} ${year}` }
+	const name = monthNames('long', true)[number - 1]
+	return { name, full: `${name} ${year}` }
 }
 
 /** Categories (5d): each one against its monthly limit, opened for editing from its row. */
@@ -99,16 +97,19 @@ export default function Categories() {
 	const folded = !cards && width > 0 && width <= FOLD
 	const over = params.get('flag') === OVER_LIMIT
 	const month = MONTH.test(params.get('month')) ? params.get('month') : null
-	const { pace, label: monthLabel } = monthPaceFor(month)
+	const named = month ? monthWords(month) : null
+	const pace = named ? null : monthPace()
 	// a page of rows per Load more, held in the address
 	const { pages, setPages, restored } = useListMemory()
 	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month', ...(over ? { flag: OVER_LIMIT } : {}), ...(month ? { month } : {}) }, step, pages],
 		{ enabled: Boolean(settings || settingsRead.error) })
 	useEffect(() => { if ((state.data || state.error) && !state.loading) restored() }, [state.data, state.error, state.loading, restored])
 
-	const write = (q, sortId) => {
+	const write = (q, sortId, kept = { over, month }) => {
 		const next = {}
 		if (q) next.q = q
+		if (kept.over) next.flag = OVER_LIMIT
+		if (kept.month) next.month = kept.month
 		if (sortId !== opening.id) next.sort = sortId
 		setParams(next, { replace: true })
 	}
@@ -163,13 +164,12 @@ export default function Categories() {
 
 	let body
 	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
-	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={monthLabel ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}
+	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={named?.name ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}
 		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
 	else if (!matched && !query && (over || month)) body = (
 		<Card>
 			<Empty>
-				<EmptyTitle>{over ? 'No category is over its limit' : 'No category has spend'} {monthLabel ? `in ${monthLabel}` : 'this month'}</EmptyTitle>
-				<Button variant="outline" size="small" to="/categories">Show all categories</Button>
+				<EmptyTitle>{over ? 'No category is over its limit' : 'No category has spend'} {named ? `in ${named.full}` : 'this month'}</EmptyTitle>
 			</Empty>
 		</Card>
 	)
@@ -218,7 +218,7 @@ export default function Categories() {
 			<Caption><strong className="sp-data">{plural(matched, 'category', 'categories')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
-				<ListCell width="amount">{monthLabel ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}</ListCell>
+				<ListCell width="amount">{named?.name ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}</ListCell>
 				{folded ? null : <ListCell width="amount">{sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'}</ListCell>}
 				<ListCell width="menu" />
 			</ListHead>
@@ -265,9 +265,15 @@ export default function Categories() {
 		</List>
 	)
 
+	const crumbs = [
+		over ? <Crumb key="over" onRemove={() => write(query, sort.id, { over: false, month })}>Over the limit</Crumb> : null,
+		named ? <Crumb key="month" onRemove={() => write(query, sort.id, { over, month: null })}>{named.full}</Crumb> : null
+	].filter(Boolean)
+
 	return (
 		<>
 			{bar}
+			{crumbs.length ? <Filters>{crumbs}</Filters> : null}
 			{body}
 			{deleting
 				? <DeleteCategory category={deleting} busy={busy} onConfirm={remove} onCancel={() => setDeleting(null)} />
