@@ -685,3 +685,5 @@ first.
 - 2026-10-04 - `.sp-record__head--chips` on touch: the acting chip keeps `--field-trail` and takes the touch height as a `::before` hit area, so it sits level with the "+N" label chip and the head is the same height with or without categories (Brief 15). The general touch rule for chips is unchanged elsewhere.
 
 - 2026-10-04 - The bookmark head chip's touch area measured 46px, not 48: an absolute `::before` is placed from the padding box, inside the chip's 1px border. The inset now subtracts the border, so the area is exactly `--control-h-touch` tall and the chip's full width.
+
+- 2026-10-04 - A card's menu (`.sp-record__menu .sp-menu`) is fixed at the menu's minimum width, 214px, and its item labels truncate on one line with an ellipsis. A bookmark's "Open at" a long domain wrapped over several lines. The menu component itself is unchanged.

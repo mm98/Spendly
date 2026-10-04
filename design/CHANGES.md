@@ -1,28 +1,41 @@
-# Spendly - changes since handoff_2026_10_04d_changes
+# Spendly - changes since handoff_2026_10_04e_changes_fixed
 
-**Fixed in this package:** the touch area on the bookmark head's chip measured 46px, not 48. An absolute `::before` is placed from the padding box, inside the chip's 1px border, so the inset now subtracts the border: `inset: calc((var(--control-h-touch) - var(--field-trail)) / -2 - 1px) -1px`. The Mobile screens note said 44px; it now says 48px.
+Copy these files over handoff_2026_10_04e_changes_fixed.
 
-Copy these files over handoff_2026_10_04d_changes. Decisions are in `Brief 15 answers.md`.
+## 1. The bookmark card has two click targets
 
-## 1. Bookmark card head on a phone: chips level, one card height
-
-On touch, the acting category chip in `sp-record__head--chips` keeps the chip's own height (`--field-trail`), the same as the "+N" label chip beside it, so the two sit level. Its touch target is a `::before` hit area `--control-h-touch` tall, centred on the chip. The head no longer grows, so a bookmark card on a phone is the same height with two categories, one or none.
-
-- `styles/components.css`, beside the `sp-record__head--chips` rules:
-  - `.sp-touch .sp-record__head--chips > .sp-record__chips > .sp-chip:not(.sp-chip--static)`: `height: var(--field-trail); min-height: 0; position: relative; overflow: visible;`
-  - the same selector `::before`: the hit area, `inset: calc((var(--control-h-touch) - var(--field-trail)) / -2 - 1px) -1px`, so it is exactly 48px tall and the chip's full width. `overflow` is lifted so it is not clipped; the label inside still truncates with an ellipsis.
-- `.sp-touch .sp-chip:not(.sp-chip--static)` (Brief 10, point 4) is unchanged everywhere else.
-- Mobile screens, Bookmarks frame: drawn in touch mode; Linen bedding set has two categories (Textiles, +1), Outline Sofa has none. Note added.
-- Logged in `styles/COMPONENT-STATUS.md`.
+- The picture strip is a link to the bookmark's URL, opening in a new tab (unchanged).
+- Everything below the strip opens the bookmark at `/bookmarks/:id/edit`, as a click on an order card opens the order. Before, the rest of the card did nothing while still showing the pointer and hover border.
+- A category chip filters the list, and the menu button over the strip opens the menu; both stop the click there.
+- No CSS change: the card's pointer and hover border now match what it does.
+- Documented in Bookmarks 22a and Components c1 (Actions).
 
 **What the app changes**
-- Take the new components.css. Drop any workaround for the chip heights in the bookmark head.
+- Make the card body (below the strip) open the edit page. Stop propagation on the chips and the menu button.
+
+## 2. A card's menu truncates long labels
+
+"Open at" a long domain wrapped over several lines in the bookmark menu.
+
+- `styles/components.css`, beside the record menu rules:
+  - `.sp-record__menu .sp-menu { width: 214px; }` (the menu's own minimum width)
+  - `.sp-record__menu .sp-menu__item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }`
+- The menu component (c9) is unchanged elsewhere. Applies to every card menu, orders and bookmarks.
+- "Open at" names the domain without `www.`; the full domain goes in the item's `title`.
+- Documented in Bookmarks 22a and Components c9 (Fixed). Logged in `styles/COMPONENT-STATUS.md`.
+
+**What the app changes**
+- Take the new components.css. Set `title` on the Open at item to the full domain.
+
+## 3. Components documents the bookmark card head
+
+Components c1 gains a note on `sp-record__head--chips` and its touch behaviour (handoff_2026_10_04d and 04e). Documentation only.
 
 ## Files
 
-- `Mobile screens.dc.html`
+- `Bookmarks.dc.html`
+- `Components.dc.html`
 - `styles/components.css`
 - `styles/COMPONENT-STATUS.md`
-- `Brief 15 answers.md`
 
-`styles/check.js` reports 84 findings, the same known set as handoff_2026_10_04d_changes.
+`styles/check.js`: 84 finding(s) across 26 pages.
