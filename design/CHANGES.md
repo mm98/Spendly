@@ -1,27 +1,26 @@
-# Spendly - changes since handoff_2026_10_04c_changes_fixed
+# Spendly - changes since handoff_2026_10_04d_changes
 
-Copy these files over handoff_2026_10_04c_changes_fixed.
+Copy these files over handoff_2026_10_04d_changes. Decisions are in `Brief 15 answers.md`.
 
-## 1. Bookmark cards: categories in the head
+## 1. Bookmark card head on a phone: chips level, one card height
 
-The categories move from their own row under the name into the card head, right of the name. Every bookmark card is one row shorter.
+On touch, the acting category chip in `sp-record__head--chips` keeps the chip's own height (`--field-trail`), the same as the "+N" label chip beside it, so the two sit level. Its touch target is a `::before` hit area `--control-h-touch` tall, centred on the chip. The head no longer grows, so a bookmark card on a phone is the same height with two categories, one or none.
 
-- New variant `sp-record__head--chips` on `.sp-record__head`, in `styles/components.css` (unlayered, beside the record rules). The `.sp-chip` and `.sp-record` rules themselves are unchanged.
-- The chip column takes what it needs, at most a third of the head's width, on one line, aligned right. The name takes the rest and truncates as before.
-- The first category is an `sp-chip` (a button that sets the category filter, as before) and truncates when it must. Further categories show as one static chip, `sp-chip sp-chip--static`, reading "+N" with `aria-label="Also Seating"` (the names it stands for). The bookmark page lists them all.
-- A bookmark with no category has no chip column; the head is the plain `sp-record__head`.
-- The order card is unchanged and keeps its chip row.
-- Pages: Bookmarks (all cards, 22a notes updated), Mobile screens (the Bookmarks frame).
+- `styles/components.css`, beside the `sp-record__head--chips` rules:
+  - `.sp-touch .sp-record__head--chips > .sp-record__chips > .sp-chip:not(.sp-chip--static)`: `height: var(--field-trail); min-height: 0; position: relative; overflow: visible;`
+  - the same selector `::before`: the hit area. `overflow` is lifted so it is not clipped; the label inside still truncates with an ellipsis.
+- `.sp-touch .sp-chip:not(.sp-chip--static)` (Brief 10, point 4) is unchanged everywhere else.
+- Mobile screens, Bookmarks frame: drawn in touch mode; Linen bedding set has two categories (Textiles, +1), Outline Sofa has none. Note added.
 - Logged in `styles/COMPONENT-STATUS.md`.
 
 **What the app changes**
-- Render bookmark cards with the categories in the head as above, and remove the separate chip row.
+- Take the new components.css. Drop any workaround for the chip heights in the bookmark head.
 
 ## Files
 
-- `Bookmarks.dc.html`
 - `Mobile screens.dc.html`
 - `styles/components.css`
 - `styles/COMPONENT-STATUS.md`
+- `Brief 15 answers.md`
 
-`styles/check.js` reports 84 findings, the same known set as handoff_2026_10_04c_changes_fixed.
+`styles/check.js` reports 84 findings, the same known set as handoff_2026_10_04d_changes.

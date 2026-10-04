@@ -681,3 +681,5 @@ first.
   is now visible rather than hidden behind two props that looked different.
 
 - 2026-10-04 - `.sp-record__head--chips` added as a variant of the record card for bookmarks: the categories move from their own row into the head, right of the name, at most a third of the width. The first category shows as a chip and truncates; more show as a static "+N" chip. A bookmark with no category has no chip column. The order card is unchanged.
+
+- 2026-10-04 - `.sp-record__head--chips` on touch: the acting chip keeps `--field-trail` and takes the touch height as a `::before` hit area, so it sits level with the "+N" label chip and the head is the same height with or without categories (Brief 15). The general touch rule for chips is unchanged elsewhere.
