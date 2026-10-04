@@ -620,15 +620,6 @@
 				"sqlite_autoindex_vendor_default_categories_1"
 			]
 		},
-		"SELECT category_id AS id FROM monthly_summary_hidden WHERE user_id = ? AND month = ?": {
-			"plan": [
-				"SEARCH monthly_summary_hidden USING COVERING INDEX sqlite_autoindex_monthly_summary_hidden_1 (user_id=? AND month=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_monthly_summary_hidden_1"
-			]
-		},
 		"SELECT COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved FROM orders ot WHERE ot.user_id = @userId": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)"
@@ -1599,15 +1590,6 @@
 				"sorts in a temp B-tree"
 			],
 			"indexes": []
-		},
-		"SELECT id FROM categories WHERE id = ? AND user_id = ?": {
-			"plan": [
-				"SEARCH categories USING INDEX sqlite_autoindex_categories_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_categories_1"
-			]
 		},
 		"SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)": {
 			"plan": [
