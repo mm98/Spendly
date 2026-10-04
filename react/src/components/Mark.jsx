@@ -16,7 +16,8 @@ const FILL = {
 	photo: 'sp-mark--photo',
 	empty: 'sp-mark--empty',
 	none: 'sp-mark--none',
-	add: 'sp-mark--add'
+	add: 'sp-mark--add',
+	vendor: 'sp-mark--vendor'
 }
 
 const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
@@ -42,6 +43,8 @@ export function Mark({
 	round = false,
 	// a photo of goods (an item, an order, a bookmark) rather than paper, which the light theme tones (17b)
 	goods = false,
+	// a vendor's image standing in for a missing photo (17e): grey and dim, never a photo of the goods
+	faded = false,
 	count,
 	text,
 	danger,
@@ -69,7 +72,8 @@ export function Mark({
 		pick(SIZE, size, 'size', 'Mark'),
 		pick(FILL, fill, 'fill', 'Mark'),
 		round && 'sp-mark--round',
-		goods && 'sp-mark--goods'
+		goods && 'sp-mark--goods',
+		faded && 'sp-mark--faded'
 	)
 	// a colour the user picked outside the set is painted on the mark itself
 	const paint = !chosen ? {} : SWATCHES.includes(chosen) ? { 'data-swatch': chosen } : { style: { background: chosen } }

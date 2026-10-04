@@ -4042,6 +4042,38 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   color: var(--ink-6);
 }
 
+/* ---------- mark, a vendor's image - c2 variant ----------
+   Whatever the user picked for the vendor: a logo, a shop front, anything. Shown only
+   in the vendor form and, faded, on its orders with no item photo - never in place of
+   the vendor's initials. Cropped
+   like every other image in a mark, cover and centred, on --surface-2 so a
+   transparent image still has a ground. The hatch is the mockup stand-in, as on the
+   photo mark; a real image is an <img> over it. */
+
+.sp-mark--vendor {
+  border: 1px solid var(--line);
+  background: repeating-linear-gradient(45deg, var(--hatch-a) 0 6px, var(--hatch-b) 6px 12px);
+}
+.sp-mark--vendor > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+/* ---------- mark, standing in for a missing photo - c2 variant ----------
+   The vendor's image on an order with no item photo. Without colour and at the dim a
+   void record already uses, so it is never read as a photo of the goods. Only ever
+   on .sp-mark--vendor, and never a button: it opens nothing. */
+
+.sp-mark--faded { opacity: 0.6; filter: grayscale(1); }
+
+/* ---------- record strip, standing in for missing photos - c1 variant ----------
+   The card band with no item photo but a vendor image: the band keeps its 116px and
+   its --surface-3 ground, and holds one faded large image mark at its centre. */
+
+.sp-record__photos--fallback { display: grid; place-items: center; }
+
 /* ---------- card footer, two equal actions - c10 variant ----------
    A pair the user chooses between (commit or discard) shares the footer evenly,
    so neither reads as the larger target. */

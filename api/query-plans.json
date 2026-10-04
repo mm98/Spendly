@@ -1581,6 +1581,15 @@
 				"sqlite_autoindex_budget_years_1"
 			]
 		},
+		"SELECT hash FROM vendor_images WHERE vendor_id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH vendor_images USING INDEX sqlite_autoindex_vendor_images_1 (vendor_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_vendor_images_1"
+			]
+		},
 		"SELECT id FROM bookmarks WHERE user_id = ? ORDER BY created_at DESC LIMIT 1": {
 			"plan": [
 				"SCAN bookmarks",
@@ -1772,19 +1781,6 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_categories_2"
-			]
-		},
-		"SELECT id, name FROM vendors WHERE id IN (SELECT value FROM json_each(?))": {
-			"plan": [
-				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)",
-				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:"
-			],
-			"findings": [
-				"reads a per-account table without naming user_id"
-			],
-			"indexes": [
-				"sqlite_autoindex_vendors_1"
 			]
 		},
 		"SELECT id, name FROM vendors WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))": {
@@ -3664,6 +3660,19 @@
 			"findings": [],
 			"indexes": [
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT v.id, v.name, vi.hash AS image FROM vendors v LEFT JOIN vendor_images vi ON vi.vendor_id = v.id AND vi.user_id = v.user_id WHERE v.id IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"SEARCH vi USING INDEX sqlite_autoindex_vendor_images_1 (vendor_id=?) LEFT-JOIN"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_vendor_images_1",
+				"sqlite_autoindex_vendors_1"
 			]
 		},
 		"SELECT vendor_id AS id, name FROM vendor_aliases WHERE user_id = ?": {

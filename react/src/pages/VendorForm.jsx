@@ -12,11 +12,13 @@ import { Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Stacked } from '../components/Utilities.jsx'
 import { Alert, useToast } from '../components/Overlays.jsx'
+import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendorPage,
-	invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor
+	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeVendor, putVendorImage, removeVendorImage, updateVendor, vendorImageUrl
 } from '../api/client.js'
+import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
 import { currency, dot, isSaving, plural } from '../api/format.js'
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
@@ -70,6 +72,21 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	}), [vendor])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
+	// the vendor's image (17e): staged here, sent once the vendor is saved; `problem` is why a file was refused
+	const [image, setImage] = useState(() => ({ src: vendor?.image ? vendorImageUrl(vendor.id, vendor.image, 'square-256') : null, file: null, drop: false, problem: null }))
+	const takeImage = async file => {
+		const problem = await inspectVendorImage(file)
+		if (problem) return setImage(i => ({ ...i, problem }))
+		setImage(i => {
+			if (i.file) URL.revokeObjectURL(i.src)
+			return { src: URL.createObjectURL(file), file, drop: false, problem: null }
+		})
+	}
+	const removeImage = () => setImage(i => {
+		if (i.problem) return { ...i, problem: null }
+		if (i.file) URL.revokeObjectURL(i.src)
+		return { src: null, file: null, drop: Boolean(vendor?.image), problem: null }
+	})
 	const [deleting, setDeleting] = useState(false)
 	// Merge into… (5d: nothing lives only in a row's menu): the picker, then the two 5j's dialog compares
 	const [picking, setPicking] = useState(false)
@@ -88,7 +105,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 
 	const changed = values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
 		|| values.colour !== start.colour || values.favourite !== start.favourite
-		|| !same(values.defaultCategories, start.defaultCategories)
+		|| !same(values.defaultCategories, start.defaultCategories) || Boolean(image.file) || image.drop
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
 	// back to the receipt, with the vendor just made chosen on it
@@ -167,8 +184,19 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			...(fromScan && !editing ? { origin: 'scan' } : {})
 		}
 		const written = editing ? updateVendor(vendor.id, look) : createVendor(name, look)
+		// the image follows the vendor it belongs to; a refusal there keeps the vendor and says why
+		const sendImage = saved => (image.file
+			? putVendorImage(saved.id, image.file).then(() => null, e => (e.status === 400
+				? `${saved.name} was saved without its image. ${refusalOf(e.body?.reason).help}`
+				: `${saved.name} was saved, but its image did not upload. Open the vendor and add it again.`))
+			: image.drop
+				? removeVendorImage(saved.id).then(() => null, () => `${saved.name} was saved, but its image was not removed. Try again.`)
+				: Promise.resolve(null))
 		written
-			.then(saved => {
+			.then(async saved => {
+				const imageSaid = await sendImage(saved)
+				if (image.file || image.drop) invalidateOrderData()
+				if (imageSaid) toast({ message: imageSaid, color: 'danger' })
 				invalidateVendorData()
 				invalidateCategoryData()
 				if (fromScan && !editing) return back(saved.name)
@@ -261,6 +289,13 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 						</Alert>
 					)
 					: null}
+				<Field id="vendor-image" label="Image"
+					message={image.problem?.help ?? (image.src ? 'Shown on this vendor\'s orders that have no item photo.'
+						: 'Shown on this vendor\'s orders that have no item photo. A logo, the shop, anything you know it by.')}
+					messageType={image.problem ? 'danger' : 'hint'}>
+					{h(<Slot start size="large" filled="vendor" kind={null} name="the image" accept={VENDOR_IMAGE_TYPES}
+						src={image.src} problem={image.problem?.banner} inspect={() => null} onFile={takeImage} onRemove={removeImage} />)}
+				</Field>
 			</Card>
 
 			<Card>

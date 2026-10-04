@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { fromEpoch } from '../lib/dates.js'
@@ -9,6 +10,7 @@ import { vendorKey } from '../lib/names.js'
 import { lookalikePairs } from '../lib/vendorLookalikes.js'
 import { wantsPage } from '../lib/listPage.js'
 import { knownVendorNames, vendorPage } from '../lib/vendorList.js'
+import { VENDOR_IMAGE_MAX_MB, VendorImageRefusal, processVendorImage } from '../lib/vendorImage.js'
 
 export const router = Router()
 
@@ -150,8 +152,12 @@ const withStats = (vendor, stats, aliases = [], defaultCategories = [], lastMatc
 }
 
 // The single record as its page reads it: stats, aliases, which alias matched last, and its defaults.
-const fullRecord = (userId, vendor) => withStats(vendor, statsForOne(userId, vendor.id), aliasesFor(userId, vendor.id),
-	defaultCategoriesFor(userId, vendor.id), lastMatchedFor(userId, vendor.id))
+const selectImageHash = db.prepare('SELECT hash FROM vendor_images WHERE vendor_id = ? AND user_id = ?')
+const fullRecord = (userId, vendor) => ({
+	...withStats(vendor, statsForOne(userId, vendor.id), aliasesFor(userId, vendor.id),
+		defaultCategoriesFor(userId, vendor.id), lastMatchedFor(userId, vendor.id)),
+	image: selectImageHash.get(vendor.id, userId)?.hash ?? null
+})
 
 /* The list's own shape: what the vendor list, the pickers, the filters and the palette read.
    `duplicateOf` is the vendor this one probably duplicates (lib/vendorLookalikes.js). */
@@ -323,6 +329,8 @@ const moveOrders = db.prepare('UPDATE orders SET vendor_id = ? WHERE vendor_id =
 const insertMerge = db.prepare(`INSERT INTO merges (id, user_id, kind, source_name, target_id, orders)
 	VALUES (?, ?, ?, ?, ?, ?)`)
 
+const moveImage = db.prepare('UPDATE vendor_images SET vendor_id = ? WHERE vendor_id = ? AND user_id = ?')
+
 const mergeVendors = db.transaction((userId, source, target) => {
 	const moved = countOrders.get(source.id, userId).c
 	const seen = new Set([vendorKey(target.name)])
@@ -336,6 +344,8 @@ const mergeVendors = db.transaction((userId, source, target) => {
 	const defaults = defaultCategoriesFor(userId, target.id)
 	const sourceDefaults = defaultCategoriesFor(userId, source.id)
 	moveOrders.run(target.id, source.id, userId)
+	// the target keeps its own image; one without takes the source's before the source goes
+	if (!selectImageHash.get(target.id, userId)) moveImage.run(target.id, source.id, userId)
 	deleteOne.run(source.id, userId)
 	update.run({
 		id: target.id, userId, name: target.name, initials: target.initials, colour: target.colour,
@@ -354,4 +364,48 @@ router.post('/:id/merge', (req, res) => {
 	if (target.id === source.id) return res.status(400).json({ error: 'A vendor cannot be merged into itself.' })
 	mergeVendors(req.user.id, source, target)
 	res.json(fullRecord(req.user.id, selectOne.get(target.id, req.user.id)))
+})
+
+/* The vendor's image (17e), replaced whole on every upload. A refusal answers with the form's
+   reason; a rendition is addressed by the upload's hash, so a changed image is a new address. */
+const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: VENDOR_IMAGE_MAX_MB * 1024 * 1024, files: 1 } }).single('file')
+const upsertImage = db.prepare(`INSERT INTO vendor_images (vendor_id, user_id, hash, original, original_type, square_128, square_256, wide_1080, created_at)
+	VALUES (@vendorId, @userId, @hash, @original, @originalType, @square128, @square256, @wide1080, @createdAt)
+	ON CONFLICT (vendor_id) DO UPDATE SET hash = excluded.hash, original = excluded.original, original_type = excluded.original_type,
+		square_128 = excluded.square_128, square_256 = excluded.square_256, wide_1080 = excluded.wide_1080, created_at = excluded.created_at`)
+const deleteImage = db.prepare('DELETE FROM vendor_images WHERE vendor_id = ? AND user_id = ?')
+const RENDITIONS = { 'square-128': 'square_128', 'square-256': 'square_256', 'wide-1080': 'wide_1080' }
+const selectRendition = Object.fromEntries(Object.entries(RENDITIONS).map(([name, column]) =>
+	[name, db.prepare(`SELECT hash, ${column} AS image FROM vendor_images WHERE vendor_id = ? AND user_id = ?`)]))
+
+router.put('/:id/image', (req, res, next) => imageUpload(req, res, async error => {
+	try {
+		const vendor = selectOne.get(req.params.id, req.user.id)
+		if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
+		if (error?.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ reason: 'large', error: 'The image is over 5 MB.' })
+		if (error || !req.file) return res.status(400).json({ reason: 'failed', error: 'The image could not be read.' })
+		const image = await processVendorImage(req.file.buffer)
+		upsertImage.run({ vendorId: vendor.id, userId: req.user.id, createdAt: Date.now(), ...image })
+		res.json(fullRecord(req.user.id, vendor))
+	} catch (e) {
+		if (e instanceof VendorImageRefusal) return res.status(400).json({ reason: e.reason, error: 'The image was refused.' })
+		next(e)
+	}
+}))
+
+router.delete('/:id/image', (req, res) => {
+	const vendor = selectOne.get(req.params.id, req.user.id)
+	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
+	deleteImage.run(vendor.id, req.user.id)
+	res.json(fullRecord(req.user.id, vendor))
+})
+
+router.get('/:id/image/:rendition', (req, res) => {
+	const select = selectRendition[req.params.rendition]
+	const row = select?.get(req.params.id, req.user.id)
+	if (!row) return res.status(404).json({ error: 'No image.' })
+	res.set('Content-Type', 'image/webp')
+	// the address carries the hash, so an image asked for by its hash never changes
+	res.set('Cache-Control', req.query.v === row.hash ? 'private, max-age=31536000, immutable' : 'private, no-cache')
+	res.send(row.image)
 })

@@ -285,6 +285,20 @@ export async function mergeVendor(id, into, signal) {
 	return out
 }
 
+/** A vendor's image (17e): sent whole, refused with a `reason` the form names. */
+export async function putVendorImage(id, file, signal) {
+	const form = new FormData()
+	form.append('file', file)
+	return request(`/api/vendors/${id}/image`, { method: 'PUT', form, signal })
+}
+
+export async function removeVendorImage(id, signal) {
+	return request(`/api/vendors/${id}/image`, { method: 'DELETE', signal })
+}
+
+/** One of the image's renditions: 'square-128', 'square-256' or 'wide-1080', addressed by its hash. */
+export const vendorImageUrl = (vendorId, hash, rendition) => `/api/vendors/${vendorId}/image/${rendition}?v=${hash}`
+
 export async function deleteVendor(id, signal) {
 	const out = await request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 	forgetRecent('vendor', id)

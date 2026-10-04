@@ -108,13 +108,15 @@ export function usePastedImage(onImage) {
 }
 
 /** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove, or a
-    Retry when `onRetry` is given (17b); `busy` draws the spinner over the picture while it is sent (17a). */
-export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
+    Retry when `onRetry` is given (17b); `busy` draws the spinner over the picture while it is sent (17a).
+    `filled` is the mark a filled slot draws, 'photo' or 'vendor' (17e); `inspect(file)` answers the
+    reason a file is refused, or null, in place of the type and size check. */
+export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, filled = 'photo', inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)
 	const take = async file => {
 		if (!file) return
-		const own = await sniffedProblem(file, accept)
+		const own = inspect ? await inspect(file) : await sniffedProblem(file, accept)
 		setRefused(own ? { name: file.name, problem: own } : null)
 		if (!own) onFile?.(file)
 	}
@@ -132,8 +134,8 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 			<Mark
 				as="label"
 				size={size}
-				fill={src ? 'photo' : 'empty'}
-				goods={Boolean(src)}
+				fill={src ? filled : 'empty'}
+				goods={Boolean(src) && filled === 'photo'}
 				text={src && !failed && !busy ? kind : undefined}
 				danger={failed || undefined}
 				htmlFor={id}
