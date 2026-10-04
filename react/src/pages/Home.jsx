@@ -17,7 +17,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCategoryPage, getCurrentUser, getHomeCategories, getHomeAttention, getMonthlySummary, hideSummaryLine, getOrders, getSettings, getStatsSlice,
+	failureMessage, getCategoryPage, getCurrentUser, getHomeCategories, getHomeAttention, getMonthlySummary, getOrders, getSettings, getStatsSlice,
 	overBudget, putSummaryAway, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -163,25 +163,13 @@ export default function Home() {
 		}
 	}
 	const due = summary.data
-	// a line hidden or brought back here holds until the server's answer says the same
-	const [lineHidden, setLineHidden] = useState({})
-	const isHidden = id => lineHidden[id] ?? due?.hidden?.includes(id) ?? false
-	const hideLine = async (c, monthName, hidden = true) => {
-		setLineHidden(was => ({ ...was, [c.id]: hidden }))
-		try {
-			await hideSummaryLine(due.month, c.id, hidden)
-			if (hidden) toast({ message: `${c.name} is hidden from the ${monthName} summary.`, undo: { label: 'Undo', onClick: () => hideLine(c, monthName, false) } })
-		} catch (error) {
-			setLineHidden(was => ({ ...was, [c.id]: !hidden }))
-			toast({ message: failureMessage(error, hidden ? 'The line was not hidden. Try again.' : 'The line did not come back. Try again.'), color: 'danger' })
-		}
-	}
 	const notice = known && loud.summary && due?.orders && !due.seen && putAway !== due.month && categories.data
-		? <MonthlySummary summary={due} categories={categories.data.limited} early={loud.early} onHide={() => hide(due.month)} isHidden={isHidden} onHideLine={hideLine} />
+		? <MonthlySummary summary={due} categories={categories.data.limited} early={loud.early} onHide={() => hide(due.month)} />
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
-	const props = { month, categories, view, recent, attention: attention.data, name, notice }
-	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} />
+	const props = { month, categories, view, recent, attention: attention.data, name }
+	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
+	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
 }
 
 /** Asks again only for what failed. */
@@ -339,7 +327,7 @@ function AlertsCard({ view, attention }) {
 				<span className="sp-section-label">Needs a look</span>
 				{more ? counted : null}
 				<span className="sp-grow" />
-				{more ? <Button variant="text" size="small" to="/categories">All {amount(alerts.over.length, 0)}</Button> : counted}
+				{more ? <Button variant="text" size="small" to="/categories?flag=over-limit">All {amount(alerts.over.length, 0)}</Button> : counted}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
@@ -375,7 +363,7 @@ function summarySentence(over, close, room) {
 
 /** Last month against its limits, said once (8b, 6f): from the first of the month until the reader
     hides it. Each row opens that month's orders in the category. */
-function MonthlySummary({ summary, categories, early, onHide, isHidden, onHideLine }) {
+function MonthlySummary({ summary, categories, early, onHide }) {
 	const month = monthNames('long')[Number(summary.month.slice(5)) - 1]
 	const byId = new Map(categories.map(c => [c.id, c]))
 	const rows = summary.limits
@@ -388,22 +376,19 @@ function MonthlySummary({ summary, categories, early, onHide, isHidden, onHideLi
 	const limits = rows.reduce((sum, c) => sum + c.budget, 0)
 	const of = c => `${amount(c.spend, 0)} of ${currency(c.budget, 0)}`
 	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
-	// a hidden line goes from the rows below, not from what the month came to
-	const shown = c => !isHidden(c.id)
-	const roomShown = rows.filter(c => shown(c) && !over.includes(c) && !close.includes(c)).sort((a, b) => a.used - b.used || a.name.localeCompare(b.name))[0]
 	const lines = [
-		...over.filter(shown).map(c => ({
+		...over.map(c => ({
 			c, color: 'danger', mark: <CategoryMark category={c} size="small" />,
 			said: `went ${currency(c.spend - c.budget, 0)} over`,
 			meta: c.overs >= 12 ? 'Over in all twelve months. The limit may be too low.'
 				: c.overs >= 2 ? `${ORDINALS[c.overs]} time in twelve months.${c.overs >= 3 ? ' The limit may be too low.' : ''}` : of(c),
 			adjust: true
 		})),
-		...close.filter(shown).map(c => ({
+		...close.map(c => ({
 			c, mark: <Mark size="small" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={13} /></Mark>,
 			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
 		})),
-		...(roomShown ? [{ c: roomShown, mark: <Mark size="small" aria-hidden="true" aria-label={roomShown.name}><CategoryIcon name={roomShown.icon} size={13} /></Mark>, said: `used ${Math.round(roomShown.used)}%`, meta: of(roomShown) }] : [])
+		...(room ? [{ c: room, mark: <Mark size="small" aria-hidden="true" aria-label={room.name}><CategoryIcon name={room.icon} size={13} /></Mark>, said: `used ${Math.round(room.used)}%`, meta: of(room) }] : [])
 	].slice(0, SUMMARY_ROWS)
 	return (
 		<Card footer={[
@@ -421,17 +406,14 @@ function MonthlySummary({ summary, categories, early, onHide, isHidden, onHideLi
 					</span>
 					{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
 				</div>
-				<IconButton icon="x" aria-label={`Hide the summary of ${month}`} onClick={onHide} />
+				<IconButton icon="x" aria-label={`Hide the ${month} summary`} onClick={onHide} />
 			</div>
 			{lines.length
 				? (
 					<div className="sp-stack sp-gap-12">
 						{lines.map(line => (
 							<ListItem key={line.c.id} color={line.color} mark={line.mark}
-								actions={<>
-									{line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : null}
-									<IconButton icon="x" aria-label={`Hide ${line.c.name} from the ${month} summary`} onClick={() => onHideLine(line.c, month)} />
-								</>}>
+								actions={line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : undefined}>
 								<Link className="sp-stack sp-gap-6 sp-grow hm-link" to={link(line.c)}>
 									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span>{line.said}</span></span>
 									<span className="sp-meta">{line.meta}</span>
@@ -687,7 +669,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, categories, view, recent, attention, name, notice }) {
+function PhoneHome({ month, categories, view, recent, attention, name }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -697,7 +679,6 @@ function PhoneHome({ month, categories, view, recent, attention, name, notice })
 					? <span className="sp-data">{capital(monthOf(w))}, day {w.pace.daysIn} of {w.pace.unitDays}</span>
 					: <span className="sp-data hm-line"><Skeleton shape="line" data-w="130" data-h="13" /></span>}
 			</div>
-			{notice}
 			{month.error
 				? (
 					<Hold shape={<PhoneMonth />}>
@@ -769,7 +750,7 @@ function PhoneAlerts({ view, attention }) {
 					<>
 						{alerts.over.length
 							? (
-								<ListItem to="/categories" color="warning" chevron={chevron} count={amount(alerts.over.length, 0)}>
+								<ListItem to="/categories?flag=over-limit" color="warning" chevron={chevron} count={amount(alerts.over.length, 0)}>
 									<span className="sp-data sp-ink-warning sp-grow">over {alerts.over.length === 1 ? 'its' : 'their'} limit</span>
 								</ListItem>
 							)
@@ -825,7 +806,12 @@ function PhoneRecent({ recent }) {
 	)
 	return (
 		<Card>
-			<span className="sp-section-label">Recent orders</span>
+			<div className="sp-row-flex sp-gap-8 sp-baseline">
+				<span className="sp-section-label">Recent orders</span>
+				<span className="sp-meta">newest {Math.min(3, orders.length)}</span>
+				<span className="sp-grow" />
+				<Button variant="text" size="small" to="/orders">All {amount(recent.data.total, 0)}</Button>
+			</div>
 			{orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)}
 		</Card>
 	)

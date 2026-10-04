@@ -535,11 +535,6 @@ const selectLimitedMonths = db.prepare(`
 	GROUP BY oc.category_id, month
 `)
 const selectSummarySeen = db.prepare('SELECT month FROM monthly_summary_seen WHERE user_id = ?')
-const selectSummaryHidden = db.prepare('SELECT category_id AS id FROM monthly_summary_hidden WHERE user_id = ? AND month = ?')
-const selectOwnCategory = db.prepare('SELECT id FROM categories WHERE id = ? AND user_id = ?')
-const insertSummaryHidden = db.prepare('INSERT OR IGNORE INTO monthly_summary_hidden (user_id, month, category_id) VALUES (?, ?, ?)')
-const deleteSummaryHidden = db.prepare('DELETE FROM monthly_summary_hidden WHERE user_id = ? AND month = ? AND category_id = ?')
-const deleteOlderHidden = db.prepare('DELETE FROM monthly_summary_hidden WHERE user_id = ? AND month < ?')
 const upsertSummarySeen = db.prepare(`
 	INSERT INTO monthly_summary_seen (user_id, month) VALUES (?, ?)
 	ON CONFLICT (user_id) DO UPDATE SET month = excluded.month
@@ -565,7 +560,6 @@ export function monthlySummary(userId, day = todayIso()) {
 		month, from: fromEpoch(from), to: fromEpoch(to - DAY),
 		spent: totals.spent, saved: totals.saved, orders: totals.orders,
 		seen: selectSummarySeen.get(userId)?.month === month,
-		hidden: selectSummaryHidden.all(userId, month).map(r => r.id),
 		limits: limited.map(c => ({ id: c.id, spend: spendOf.get(c.id) ?? 0, overs: overs.get(c.id) ?? 0 }))
 	}
 }
@@ -574,15 +568,6 @@ export function monthlySummary(userId, day = todayIso()) {
 export function markSummarySeen(userId, month) {
 	if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(month ?? ''))) return false
 	upsertSummarySeen.run(userId, month)
-	return true
-}
-
-/** The reader hid one line of a month's summary, or brought it back; lines of earlier months go. */
-export function setSummaryLineHidden(userId, month, categoryId, hidden) {
-	if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(month ?? '')) || !selectOwnCategory.get(String(categoryId ?? ''), userId)) return false
-	if (hidden) insertSummaryHidden.run(userId, month, categoryId)
-	else deleteSummaryHidden.run(userId, month, categoryId)
-	deleteOlderHidden.run(userId, month)
 	return true
 }
 

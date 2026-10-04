@@ -347,7 +347,6 @@ for (const [method, path, body] of [
 	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true, attention: true }],
 	['PUT', '/views/shown', { shown: 6 }],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
-	['PUT', '/stats/summary/hidden', { month: '2026-07', categoryId: ids.category, hidden: true }],
 	['DELETE', `/views/sv-${USER}-receipt`],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
