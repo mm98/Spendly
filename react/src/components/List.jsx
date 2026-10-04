@@ -514,7 +514,7 @@ export function Records({ head, footer, children, ...rest }) {
 	return (
 		<div className="sp-list sp-list--cards" {...rest}>
 			{head}
-			<Cards>{children}</Cards>
+			<Cards fluid>{children}</Cards>
 			{footer}
 		</div>
 	)
