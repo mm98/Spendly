@@ -2786,6 +2786,21 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
 
 /* four stats side by side, in equal columns on the cards' gap */
 .sp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
+/* --fold: four across while the row is at least 996px - four stats of 240 and three
+   gaps - and two by two below it. It answers to the row's own width, not the window:
+   on Statistics the row is 998 in a 1280 shell, so it folds as soon as the shell is
+   narrower. The minimum is a quarter of the row or a half, never between, so the row
+   is always four or two and never three over one. */
+.sp-stats--fold {
+  --stats-fold: 996px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(
+    calc((100% - 3 * var(--sp-12)) / 4 - 0.1px),
+    (var(--stats-fold) - 100%) * 999,
+    calc((100% - var(--sp-12)) / 2 - 0.1px)
+  ), 1fr));
+}
+/* on a phone every stats row is two by two */
+.sp-touch .sp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .sp-stat { display: flex; flex-direction: column; gap: var(--sp-6); }
 .sp-stat__figure {
@@ -3066,6 +3081,8 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   color: var(--line-5);
   cursor: grab;
 }
+/* an empty handle column is a spacer: nothing to grab, so no grab cursor */
+.sp-list-item__handle:empty { cursor: auto; }
 
 
 /* in a row at rest, the handle, the mark and the actions are centred against the two lines */

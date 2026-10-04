@@ -706,3 +706,5 @@ first.
 
 - 2026-10-04 - React: `Picker` keeps its name. It renders `.sp-options`, the options part of the picker; `styles/check.js` lists it as a named exception beside `DialogTitle` and `RangeSlider`.
 - 2026-10-04 - Order list, narrow card: the saving is now the second line of the right column (the card is two lines); CLAUDE.md updated to say so.
+
+- 2026-10-04 - Brief 17: `.sp-stats--fold` (four across at a row of 996px or more, two by two below; Statistics) and `.sp-touch .sp-stats` (two by two on a phone). `.sp-list-item__handle:empty` takes `cursor: auto`.
