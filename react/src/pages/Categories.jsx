@@ -152,7 +152,7 @@ export default function Categories() {
 	const bar = (
 		<Controls ref={column}>
 			{touch ? null : (
-				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories"
+				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" data-page-search="categories"
 					kbd={width > KBD ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined} />
 			)}
 			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
