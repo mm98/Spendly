@@ -21,6 +21,12 @@ directory, and the pages are real ones with the controls wired.
 `README.md` introduces the design system the app implements, whose specification is `design/`; `docs/`
 holds the screenshots that document shows.
 
+## Branches
+
+A branch is named for the change it carries: a type, a slash, then a short kebab-case description
+(`fix/bookmark-title-charset`, `feat/order-export`). Types: `fix`, `feat`, `docs`, `chore`, `refactor`.
+Never a generated or random name, even when the session hands one over: rename it before pushing.
+
 ## Whitespace
 
 Tabs indent, always. Spaces only where something aligns under something else. `.editorconfig`

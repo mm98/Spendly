@@ -83,6 +83,18 @@ const decode = text => text
 	.replace(/\s+/g, ' ')
 	.trim()
 
+/** The charset a page declares: its Content-Type header first, then a <meta> in its head.
+    Latin-1 bytes read as UTF-8 turn every æ, ø and å into a broken character. */
+export function decodeBody(buffer, contentType) {
+	const head = buffer.subarray(0, 4096).toString('latin1')
+	const name = contentType.match(/charset\s*=\s*["']?([\w:.-]+)/i)?.[1]
+		?? head.match(/<meta[^>]+charset\s*=\s*["']?([\w:.-]+)/i)?.[1]
+		?? 'utf-8'
+	let decoder
+	try { decoder = new TextDecoder(name) } catch { decoder = new TextDecoder('utf-8') }
+	return decoder.decode(buffer)
+}
+
 /** The name a page gives itself: what it tells a link preview first, then its own <title>.
     Returns null when it says neither. */
 export function titleFrom(html) {
@@ -139,24 +151,27 @@ export async function fetchPagePreview(url) {
 		if (!(res.headers.get('content-type') ?? '').includes('html')) return NOTHING
 
 		/* Read in chunks and stop at the cap rather than trusting content-length, which a page
-		   may not send and may not mean. The body is dropped the moment the title is out of it. */
+		   may not send and may not mean. The body is dropped the moment the title is out of it.
+		   Kept as bytes: the page's own charset is only known once its head has been read. */
 		const reader = res.body?.getReader()
 		if (!reader) return NOTHING
-		const decoder = new TextDecoder('utf-8')
-		let html = '', bytes = 0
+		const chunks = []
+		let bytes = 0, seen = ''
 		try {
 			for (;;) {
 				const { done, value } = await reader.read()
 				if (done) break
 				bytes += value.byteLength
-				html += decoder.decode(value, { stream: true })
+				chunks.push(value)
+				seen += Buffer.from(value).toString('latin1')
 				// Both answers live in <head>, so the read stops there rather than at </title>:
 				// og:image is often written after the title tag.
-				if (/<\/head>/i.test(html) || bytes >= MAX_BYTES) break
+				if (/<\/head>/i.test(seen) || bytes >= MAX_BYTES) break
 			}
 		} finally {
 			await reader.cancel().catch(() => {})
 		}
+		const html = decodeBody(Buffer.concat(chunks), res.headers.get('content-type') ?? '')
 		return { title: titleFrom(html), image: imageFrom(html, at) }
 	}
 	return NOTHING   // redirected past the cap
