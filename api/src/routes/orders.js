@@ -732,6 +732,26 @@ router.post('/:id/items/:itemId/attachments', upload.array('files'), async (req,
 	res.status(201).json({ order: getDecoratedOrder(req.user.id, req.params.id), added, skipped })
 })
 
+/* A copy of an order takes each line's photo inside the database: nothing is sent again and the
+   copy owns its bytes. Only a picture on one of the user's own lines can be the source. */
+const copyItemAttachment = db.prepare(`INSERT INTO attachments
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
+	SELECT @newId, NULL, @itemId, a.name, a.kind, a.meta, a.content_type, a.size, a.data, a.data_is_compressed, a.thumbnail, a.thumbnail_is_compressed, a.thumbnail_content_type, a.sha256, a.pages
+	FROM attachments a
+	JOIN order_items oi ON oi.id = a.order_item_id
+	JOIN orders o ON o.id = oi.order_id
+	WHERE a.id = @attachmentId AND a.kind = 'image' AND oi.order_id = @fromOrderId AND o.user_id = @userId`)
+
+router.post('/:id/items/:itemId/attachments/copy', (req, res) => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
+	const { fromOrderId, attachmentId } = req.body ?? {}
+	if (typeof fromOrderId !== 'string' || typeof attachmentId !== 'string') return res.status(400).json({ error: 'Say which photo to copy.' })
+	const made = copyItemAttachment.run({ newId: newId('a'), itemId: req.params.itemId, attachmentId, fromOrderId, userId: req.user.id })
+	if (!made.changes) throw notFound(attachmentId)
+	res.status(201).json(getDecoratedOrder(req.user.id, req.params.id))
+})
+
 router.delete('/:id/items/:itemId/attachments/:attachmentId', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)

@@ -702,6 +702,11 @@ export async function addItemAttachments(orderId, itemId, files, signal) {
 	return request(`/api/orders/${orderId}/items/${itemId}/attachments`, { method: 'POST', form, signal })
 }
 
+/** A line's photo copied from another of the account's orders, without sending it again. */
+export async function copyItemAttachment(orderId, itemId, from, signal) {
+	return request(`/api/orders/${orderId}/items/${itemId}/attachments/copy`, { method: 'POST', body: from, signal })
+}
+
 export async function removeItemAttachment(orderId, itemId, attachmentId, signal) {
 	return request(`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
 }

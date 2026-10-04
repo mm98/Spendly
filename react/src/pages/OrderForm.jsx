@@ -478,7 +478,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		gone,
 		photos: kept.map((l, index) => ({
 			index, name: l.newPhoto?.file.name ?? null, file: l.newPhoto?.file ?? null, sent: l.newPhoto?.sent ?? null,
-			oldId: l.photo?.id ?? null, oldName: l.photo?.name ?? null, drop: Boolean(l.dropPhoto)
+			// a copied line's photo belongs to the order it came from: it is copied in, never changed there
+			oldId: l.copiedFrom ? null : l.photo?.id ?? null, oldName: l.copiedFrom ? null : l.photo?.name ?? null, drop: Boolean(l.dropPhoto),
+			copy: creatingNow && l.copiedFrom && !l.newPhoto && !l.dropPhoto ? { fromOrderId: l.copiedFrom.orderId, attachmentId: l.copiedFrom.attachmentId, name: l.photo?.name ?? 'A photo' } : null
 		})),
 		files: files.map(f => ({
 			name: f.name, problem: f.problem ?? null, file: f.file, upload: f.upload ?? null,
