@@ -82,7 +82,7 @@ function Copy({ id }) {
 				const photo = item.attachments?.find(a => a.kind === 'image') ?? null
 				return {
 					key: `copy-${i}`, title: item.title, quantity: item.quantity, price: item.price,
-					retail: item.retail ?? null, note: item.note ?? '',
+					retail: item.retail ?? null, note: item.note ?? '', url: item.url ?? '',
 					photo: photo && { id: photo.id, name: photo.name, hasThumbnail: photo.hasThumbnail },
 					copiedFrom: photo && { orderId: id, itemId: item.id, attachmentId: photo.id }
 				}

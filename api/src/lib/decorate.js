@@ -9,7 +9,7 @@ import { ORDER_STATUSES } from './constants.js'
    JS. Every query below selects only the columns its caller actually reads, not `SELECT *`. */
 
 const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()}, revision FROM orders WHERE id = ? AND user_id = ?`)
-const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note FROM order_items WHERE order_id = ? ORDER BY position')
+const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note, url FROM order_items WHERE order_id = ? ORDER BY position')
 const selectAttachments = db.prepare(`
 	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages, from_scan FROM attachments WHERE order_id = ?
 `)
@@ -48,6 +48,7 @@ const mapItem = (i, itemAttachments) => ({
 	id: i.id, title: i.title, quantity: i.quantity, price: i.price,
 	...(i.retail != null ? { retail: i.retail } : {}),
 	...(i.note ? { note: i.note } : {}),
+	...(i.url ? { url: i.url } : {}),
 	attachments: (itemAttachments?.get(i.id) ?? []).map(mapAttachment)
 })
 

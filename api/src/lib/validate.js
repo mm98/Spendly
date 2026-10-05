@@ -83,6 +83,9 @@ export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_S
 
 		if (item.note != null && String(item.note).trim().length > 120)
 			errors[`items.${i}.note`] = '120 characters at most.'
+
+		const url = String(item.url ?? '').trim()
+		if (url && !normaliseUrl(url)) errors[`items.${i}.url`] = 'Not a link.'
 	})
 
 	return errors

@@ -1,3 +1,4 @@
+import { httpUrl } from '../api/rules.js'
 import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
@@ -75,6 +76,7 @@ const lineErrors = v => {
 	if (!(Number(v.quantity) > 0)) e.quantity = 'More than 0. Remove the line instead of setting it to zero.'
 	else if (Number(v.quantity) > 9999) e.quantity = '9999 at most.'
 	if (v.price == null) e.price = 'What did you pay?'
+	if (String(v.url ?? '').trim() && !httpUrl(v.url)) e.url = 'Not a link.'
 	return e
 }
 
@@ -89,7 +91,7 @@ export function draftOf(order) {
 		reference: order.reference ?? '', note: order.note ?? '', refunded: order.refunded,
 		lines: order.items.map(item => ({
 			key: item.id, id: item.id, title: item.title, quantity: item.quantity, price: item.price,
-			retail: item.retail ?? null, note: item.note ?? '',
+			retail: item.retail ?? null, note: item.note ?? '', url: item.url ?? '',
 			photo: item.attachments?.[0] ?? null
 		}))
 	}
@@ -104,7 +106,7 @@ function apiDraft(d, lines) {
 		deliveredDate: delivered, returnedDate: returned,
 		categories: d.categories, shipping: d.shipping ? amount(d.shipping) : '', discount: d.discount ? amount(d.discount) : '',
 		reference: d.reference, note: d.note, refunded: d.refunded,
-		items: lines.map(l => ({ ...(l.id ? { id: l.id } : {}), title: l.title.trim(), quantity: l.quantity, price: l.price, retail: l.retail, note: l.note }))
+		items: lines.map(l => ({ ...(l.id ? { id: l.id } : {}), title: l.title.trim(), quantity: l.quantity, price: l.price, retail: l.retail, note: l.note, url: l.url ?? '' }))
 	}
 }
 
@@ -241,7 +243,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	/* ---- lines ---- */
 
 	function newEditing() {
-		return { key: freshKey(), isNew: true, values: { title: '', quantity: 1, price: null, retail: null, note: '', photo: null, newPhoto: null, dropPhoto: false } }
+		return { key: freshKey(), isNew: true, values: { title: '', quantity: 1, price: null, retail: null, note: '', url: '', photo: null, newPhoto: null, dropPhoto: false } }
 	}
 	// the open line is kept as the save keeps it: an untouched new one is dropped, one with errors stays open
 	const openLine = line => {
@@ -1250,7 +1252,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		? (
 			<Created created={created} touch={touch} orderId={orderId}
 				files={saved.length + lines.filter(l => l.photo).length - (created.documentKey ? 1 : 0)}
-				typed={{ ...draft, reference: created.reference, lines: lines.map(l => ({ key: `undo-${l.key}`, title: l.title, quantity: l.quantity, price: l.price, retail: l.retail ?? null, note: l.note ?? '' })) }}
+				typed={{ ...draft, reference: created.reference, lines: lines.map(l => ({ key: `undo-${l.key}`, title: l.title, quantity: l.quantity, price: l.price, retail: l.retail ?? null, note: l.note ?? '', url: l.url ?? '' })) }}
 				onGone={guard.release} />
 		)
 		: null
@@ -1373,7 +1375,7 @@ const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, pl
 
 const detailsLine = d => [d.categories.join(', '), d.kind, d.reference].filter(Boolean).join(dot)
 
-const lineShape = l => JSON.stringify([l.title, Number(l.quantity), l.price, l.retail ?? null])
+const lineShape = l => JSON.stringify([l.title, Number(l.quantity), l.price, l.retail ?? null, String(l.url ?? '').trim()])
 const FIELD_WORDS = {
 	vendor: 'the vendor', date: 'the date', kind: 'the kind', categories: 'the categories', shipping: 'the shipping fee',
 	discount: 'the discount', reference: 'the reference', note: 'the note'
@@ -1453,8 +1455,22 @@ function notices({ origin, scan, lines, leave, touch, jump }) {
 /** The line being edited or added (1b), in place on a desktop and in a sheet on a phone. */
 function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
 	const v = editing.values
-	const errors = editing.tried ? lineErrors(v) : {}
+	// the product link is judged as it is left, as every field is (c3)
+	const [linkSeen, setLinkSeen] = useState(false)
+	const found = lineErrors(v)
+	const errors = editing.tried ? found : linkSeen && found.url ? { url: found.url } : {}
 	const set = patch => onChange({ ...v, ...patch })
+	// a line that has a link opens with its field showing; a field holding a link is never hidden
+	const [linkOpen, setLinkOpen] = useState(Boolean(v.url))
+	const [linkAsked, setLinkAsked] = useState(false)
+	const linkInput = useRef(null)
+	const hasLink = Boolean(String(v.url ?? '').trim())
+	const toggleLink = () => {
+		if (linkOpen && hasLink) return linkInput.current?.focus()
+		setLinkSeen(false)
+		setLinkAsked(!linkOpen)
+		setLinkOpen(!linkOpen)
+	}
 	// the new photo is sent at once (17a); one that did not arrive keeps its failure and a Retry (17b)
 	const [outcome, setOutcome] = useState(null)
 	useEffect(() => {
@@ -1505,8 +1521,17 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 			onCancel={onCancel}
 		>
 			<Field label="Item" {...problem(errors.title)}>
-				<TextField value={v.title} placeholder="Item name" autoFocus onChange={title => set({ title })} />
+				<TextField value={v.title} placeholder="Item name" autoFocus onChange={title => set({ title })}
+					action={{ icon: 'link', label: hasLink ? 'Edit product link' : 'Add a product link', expanded: linkOpen, onClick: toggleLink }} />
 			</Field>
+			{linkOpen
+				? (
+					<Field label="Product page" {...problem(errors.url)}>
+						<TextField type="url" inputMode="url" placeholder="https://" value={v.url ?? ''} inputRef={linkInput} autoFocus={linkAsked}
+							onChange={url => set({ url })} onBlur={() => setLinkSeen(true)} />
+					</Field>
+				)
+				: null}
 			<div className="sp-line-editor__grid">
 				<Field label="Quantity" {...problem(errors.quantity)}>
 					{/* the smallest quantity the server keeps: more than 0, two decimals */}

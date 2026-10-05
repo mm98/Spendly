@@ -6,7 +6,7 @@ import { requireConfirmed } from '../lib/auth.js'
 import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
-import { assertValidOrderDraft, fillDraftGaps, validateOrderDraft } from '../lib/validate.js'
+import { assertValidOrderDraft, fillDraftGaps, normaliseUrl, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
@@ -48,10 +48,10 @@ const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, 
 const deleteOrderStatuses = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
 const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
-const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
-	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note)`)
+const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note, url)
+	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note, @url)`)
 const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
-	price=@price, retail=@retail, note=@note WHERE id=@id AND order_id=@orderId`)
+	price=@price, retail=@retail, note=@note, url=@url WHERE id=@id AND order_id=@orderId`)
 const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
 const insertAttachment = db.prepare(`INSERT INTO attachments
 	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages,
@@ -423,7 +423,8 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 			id: itemId, orderId: id, position, title: String(item.title).trim(),
 			quantity: Number(item.quantity), price: Number(item.price),
 			retail: item.retail != null && item.retail !== '' ? Number(item.retail) : null,
-			note: item.note || null
+			note: item.note || null,
+			url: normaliseUrl(item.url)
 		})
 		return itemId
 	})
@@ -497,7 +498,8 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 			id: existingItemIds.has(item.id) ? item.id : newId('i'), orderId: id, position,
 			title: String(item.title).trim(), quantity: Number(item.quantity), price: Number(item.price),
 			retail: item.retail != null && item.retail !== '' ? Number(item.retail) : null,
-			note: item.note || null
+			note: item.note || null,
+			url: normaliseUrl(item.url)
 		}
 		if (existingItemIds.has(item.id)) { keptItemIds.add(item.id); updateOrderItem.run(row) }
 		else insertOrderItem.run(row)
