@@ -36,6 +36,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Intent</b> - The read view exists so the common case - looking something up - costs nothing. It shares the edit screen's grid exactly, so entering edit changes controls, never positions. Build both from one layout component.</div>
+    <div class="doc-note"><b>Product link</b> - A line with a product link shows its name as a link, opening the product page in a new tab (Hay - Palissade chair). A line without one shows plain text. Only the name is the link; the row itself does not open anything. On touch a tap on the name opens the page the same way. In edit mode (<a href="#1b">1b</a>, <a href="#1c">1c</a>) the name is always plain text, link or not, so a click on a row edits it rather than leaving the page.</div>
     <div class="doc-note"><b>Watch out</b> - Do not render inputs as disabled fields here. Values are text. A page full of greyed-out inputs reads as broken permissions, and it doubles the DOM for no gain.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px the rail moves under the item list. Attachments stay a horizontal filmstrip on both - it is the one place sideways scroll is correct, because a receipt strip has no meaningful order.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Edit, Duplicate and Delete belong in the page, never the top bar (global rule 1). The top shell is shared and locked.</div>
@@ -74,7 +75,7 @@
             <div class="sp-list-item">
               <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
               <div class="sp-stacked">
-                <span class="sp-title sp-truncate">Hay - Palissade chair</span>
+                <a class="sp-title sp-truncate" href="https://hay.dk/palissade-chair" target="_blank" rel="noopener">Hay - Palissade chair</a>
                 <span class="sp-subtitle">2 × 890,00 kr.</span>
               </div>
               <span class="sp-grow"></span>
@@ -175,6 +176,9 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Intent</b> - Editing a line happens next to its neighbours because that is what makes the edit correct - you fix a quantity by reading the line above it. The row becomes a form and does not move.</div>
+    <div class="doc-note"><b>Product link</b> - Optional, per line. The link button at the end of the Item field opens a Product page field directly under it and focuses it. Pressed again while the field is empty, it closes it; while the field holds a link, it only focuses the field, so a link is never hidden. Its label follows: "Add a product link" without one, "Edit product link" with one. A line that already has a link opens with the field showing: <a href="#1b">1b</a> draws a line without one, the mobile sheet (<a href="#1c">1c</a>) a line with one.</div>
+    <div class="doc-note"><b>Product link - validation</b> - On blur and on save, as every field (<a href="Components.dc.html#c3">c3</a>). An address typed without a scheme ("hay.dk/palissade-chair") is valid and saved with https:// in front. Anything still not a web address turns the field red with "Not a link." under it, and the line does not save until it is fixed or cleared. Try it in 1b: type a word and leave the field.</div>
+    <div class="doc-note"><b>Product link - clearing</b> - Emptying the field and saving removes the link: the name in the read view (<a href="#1a">1a</a>) goes back to plain text, and the editor opens with the field closed next time.</div>
     <div class="doc-note"><b>Watch out</b> - Only one row is open at a time; opening another closes the first and keeps its changes in the order draft. The line is never saved to the server on its own - the order save is the only write.</div>
     <div class="doc-note"><b>Watch out</b> - Line total is computed and read-only. Do not make it editable "for convenience" - two sources for one number is how totals start disagreeing with receipts.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - This inline expansion is desktop only. On a phone the same fields open in a bottom sheet (1c), because in one column "expands in place" and "takes over the screen" are the same thing. Same fields, same order, same validation - one form component, two containers.</div>
@@ -216,8 +220,18 @@
         <div class="sp-line-editor__form">
           <div class="sp-field">
             <label class="sp-field__label" for="1b-item">Item</label>
-            <input class="sp-input" id="1b-item" type="text" defaultValue="Hay - Palissade chair">
+            <span class="sp-field__wrap">
+              <input class="sp-input sp-input--trail" id="1b-item" type="text" defaultValue="Hay - Palissade chair">
+              <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="{{ linkLabel1b }}" aria-expanded="{{ adv1bOpen }}" onClick="{{ toggleadv1b }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg></button>
+            </span>
           </div>
+          <sc-if value="{{ adv1bOpen }}" hint-placeholder-val="{{ false }}">
+            <div class="sp-field">
+              <label class="sp-field__label" for="adv1b-link">Product page</label>
+              <input class="sp-input" id="adv1b-link" type="url" inputMode="url" placeholder="https://" aria-invalid="{{ adv1bInvalid }}" aria-describedby="adv1b-link-help" onBlur="{{ check1b }}" onInput="{{ typed1b }}">
+              <sc-if value="{{ adv1bInvalid }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="adv1b-link-help">Not a link.</span></sc-if>
+            </div>
+          </sc-if>
           <div class="sp-line-editor__grid">
             <div class="sp-field">
               <label class="sp-field__label" for="1b-qty">Quantity</label>
@@ -448,8 +462,18 @@
             <div class="sp-line-editor__form">
               <div class="sp-field">
                 <label class="sp-field__label" for="1c-item">Item</label>
-                <input class="sp-input" id="1c-item" type="text" defaultValue="Hay - Palissade chair">
+                <span class="sp-field__wrap">
+                  <input class="sp-input sp-input--trail" id="1c-item" type="text" defaultValue="Hay - Palissade chair">
+                  <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="{{ linkLabel1c }}" aria-expanded="{{ adv1cOpen }}" onClick="{{ toggleadv1c }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg></button>
+                </span>
               </div>
+              <sc-if value="{{ adv1cOpen }}" hint-placeholder-val="{{ false }}">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="adv1c-link">Product page</label>
+                  <input class="sp-input" id="adv1c-link" type="url" inputMode="url" placeholder="https://" defaultValue="https://hay.dk/palissade-chair" aria-invalid="{{ adv1cInvalid }}" aria-describedby="adv1c-link-help" onBlur="{{ check1c }}" onInput="{{ typed1c }}">
+                  <sc-if value="{{ adv1cInvalid }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="adv1c-link-help">Not a link.</span></sc-if>
+                </div>
+              </sc-if>
               <div class="sp-line-editor__grid">
                 <div class="sp-field">
                   <label class="sp-field__label" for="1c-qty">Quantity</label>
@@ -698,6 +722,32 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
+  state = { adv1b: false, adv1c: true, bad1b: false, bad1c: false, has1b: false, has1c: true };
+  // a field holding a link never closes: the button focuses it instead
+  toggle(p) {
+    const open = this.state['adv' + p];
+    if (open && this.state['has' + p]) { const el = document.getElementById('adv' + p + '-link'); if (el) el.focus(); return; }
+    this.setState({ ['adv' + p]: !open, ['bad' + p]: false }, () => { if (!open) { const el = document.getElementById('adv' + p + '-link'); if (el) el.focus(); } });
+  }
+  isLink(v) {
+    v = (v || '').trim();
+    if (!v) return true;
+    try { const u = new URL(v.includes('://') ? v : 'https://' + v); return /^https?:$/.test(u.protocol) && u.hostname.includes('.'); } catch (e) { return false; }
+  }
+  renderVals() {
+    const { adv1b, adv1c, bad1b, bad1c } = this.state;
+    return {
+      adv1bInvalid: bad1b, adv1cInvalid: bad1c,
+      check1b: (e) => this.setState({ bad1b: !this.isLink(e.target.value) }),
+      check1c: (e) => this.setState({ bad1c: !this.isLink(e.target.value) }),
+      adv1bOpen: adv1b, adv1bClosed: !adv1b, toggleadv1b: () => this.toggle('1b'),
+      adv1cOpen: adv1c, adv1cClosed: !adv1c, toggleadv1c: () => this.toggle('1c'),
+      linkLabel1b: this.state.has1b ? 'Edit product link' : 'Add a product link',
+      linkLabel1c: this.state.has1c ? 'Edit product link' : 'Add a product link',
+      typed1b: (e) => this.setState({ has1b: !!e.target.value.trim() }),
+      typed1c: (e) => this.setState({ has1c: !!e.target.value.trim() }),
+    };
+  }
   componentDidMount() { this.applyView(); }
   componentDidUpdate() { this.applyView(); }
   applyView() {
