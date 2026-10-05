@@ -13,7 +13,8 @@ export function Gauge({ value, over, marker, untargeted = false, thin = false, n
 			<meter value={value} min="0" max="100" aria-label={rest['aria-label']} />
 			<span
 				className={join('sp-gauge__fill', (over || passed || remainder) && 'sp-gauge__fill--over', negative && 'sp-gauge__fill--negative')}
-				{...(passed ? { 'data-fill': '100' } : {})}
+				// a full fill ends where the track does, so its tip is rounded as the track's is
+				{...(passed || (value >= 100 && !over) ? { 'data-fill': '100' } : {})}
 				style={{ width: pct(passed ? 100 : value) }}
 			/>
 			{over ? <span className="sp-gauge__over" style={{ width: pct(over) }} /> : null}
