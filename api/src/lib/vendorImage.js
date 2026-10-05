@@ -1,6 +1,7 @@
 import sharp from 'sharp'
 import { createHash } from 'node:crypto'
 import { detectFileType } from './fileType.js'
+import { toSquare, toWide } from './images.js'
 
 /* A vendor's image (Images and files 17e): checked, then cut into the renditions the pages draw.
    Every refusal carries one of the reasons the vendor form names. */
@@ -51,8 +52,6 @@ async function rasteriseSvg(buffer) {
 	} catch { refuse('failed') }
 }
 
-const webp = image => image.webp({ quality: 85, effort: 6 }).toBuffer()
-
 /** { hash, square256, wide1080 } for an upload, or a
     VendorImageRefusal whose `reason` is 'type', 'large', 'small' or 'failed'. */
 export async function processVendorImage(buffer) {
@@ -69,15 +68,8 @@ export async function processVendorImage(buffer) {
 	// checked from the header, before the whole picture is decoded
 	if (width > MAX_SIDE || height > MAX_SIDE || width * height > MAX_PIXELS) refuse('large')
 	if (!svg && Math.min(width, height) < MIN_SIDE) refuse('small')
-	// the first frame of an animation, turned upright, with every piece of metadata left behind
-	const read = () => sharp(source, { limitInputPixels: MAX_PIXELS, pages: 1 }).rotate()
-	const shortest = Math.min(width, height)
-	const square = size => Math.min(size, shortest)
 	try {
-		const [square256, wide1080] = await Promise.all([
-			webp(read().resize(square(256), square(256), { fit: 'cover', position: sharp.strategy.attention })),
-			webp(read().resize({ width: 1080, height: 1080, fit: 'inside', withoutEnlargement: true }))
-		])
+		const [square256, wide1080] = await Promise.all([toSquare(source), toWide(source)])
 		return {
 			hash: createHash('sha256').update(buffer).digest('hex'),
 			square256, wide1080

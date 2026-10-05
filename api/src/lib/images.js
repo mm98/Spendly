@@ -21,9 +21,13 @@ const WEBP_MAX = 16383
 
 /** Turned upright from EXIF and encoded as WebP, which also leaves every piece of metadata behind. */
 const encode = image => image.webp({ quality: 85, effort: 6 }).toBuffer()
-// a square is cut around what the picture is of (strong colour, contrast, skin), not from its middle
-const toSquare = buffer => encode(sharp(buffer).rotate().resize(SQUARE, SQUARE, { fit: 'cover', position: sharp.strategy.attention, withoutEnlargement: true }))
-const toWide = buffer => encode(sharp(buffer).rotate().resize({ width: WIDE, height: WEBP_MAX, fit: 'inside', withoutEnlargement: true }))
+// a square is cut around what the picture is of (strong colour, contrast, skin), never larger than its shorter side
+export async function toSquare(buffer) {
+	const { width = SQUARE, height = SQUARE } = await sharp(buffer).metadata()
+	const side = Math.min(SQUARE, width, height)
+	return encode(sharp(buffer).rotate().resize(side, side, { fit: 'cover', position: sharp.strategy.attention }))
+}
+export const toWide = buffer => encode(sharp(buffer).rotate().resize({ width: WIDE, height: WEBP_MAX, fit: 'inside', withoutEnlargement: true }))
 
 /** { data, contentType, size, thumbnail, thumbnailContentType } for a stored image attachment,
     or null when sharp cannot open it. Both sizes come from the source, never one from the other. */
