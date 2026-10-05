@@ -4314,7 +4314,7 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   flex-direction: column;
   justify-content: flex-end;
   width: 100%;
-  border-radius: 6px;
+  border-radius: var(--r-marker) var(--r-marker) 0 0;
   overflow: hidden;
 }
 .sp-bars__seg { display: block; width: 100%; background: var(--green); }

@@ -1,25 +1,24 @@
-# Spendly - changes since handoff_2026_10_05b_changes
+# Spendly - changes since handoff_2026_10_05c_changes
 
-Copy these files over handoff_2026_10_05b_changes. The HTML files are design references; rebuild them in the app's own code. Answers Design brief 23.
+Copy these files over handoff_2026_10_05c_changes. Answers Design brief 24.
 
-## 1. square-256 is cut around the subject (17a, 17e)
+## 1. Stacked and single bars have one shape (Order statistics, Spend by month)
 
-- square-256 is no longer a centre crop. The server centres the square on the part of the picture with the strongest colour, contrast and skin tones.
-- This applies to every square: line photos, files on an order, the first page of a PDF, bookmark pictures, the vendor image and the account picture.
-- 17a sizes table, square-256, "How it is made": "Cut around the subject (the strongest colour, contrast and skin tones)."
-- Item line photo, account picture and the 17e filled slot now say the same instead of "centre crop".
-- The crop note under the image positions reads: squares are cut around the subject; the card band and bookmark strip crop the wide copy with cover, centred. The receipt preview and page thumbnails still letterbox at page aspect.
+- `.sp-bars__stack` is rounded at the top only: `border-radius: var(--r-marker) var(--r-marker) 0 0`. Was `6px` on all four corners.
+- This is the same value as `.sp-bars__bar`, so Stacked and Total draw the same bar. Both stand square on the axis.
+- The app can remove its workaround in app.css:
+  `.sp-bars__stack { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }`
 
-## 2. Limits, stated in 17a notes
+## 2. Check
 
-- The subject cut is a guess. A busy background, or a large logo on a receipt, can pull the square away from what matters.
-- It has not been tested on real product photos yet.
+- `styles/check.js` asserts that `.sp-bars__bar` and `.sp-bars__stack` both use `var(--r-marker) var(--r-marker) 0 0`.
 
 ## 3. Unchanged
 
-- wide-1080 keeps its aspect. The card band and the bookmark strip crop it with cover, centred.
-- Centring those on the subject would need a stored focus point for each picture. Not built, not asked for now.
+- `.sp-bars--spark .sp-bars__bar` keeps its 2px radius.
+- `.sp-bars__pair > .sp-bars__bar` already uses the top-only radius.
 
 ## Files
-- Images and files.dc.html - 17a sizes table and notes, image positions table and crop note, 17e filled slot note
+- styles/components.css - `.sp-bars__stack` radius
+- styles/check.js - new "bars share one shape" assertion
 - styles/COMPONENT-STATUS.md - change log entry
