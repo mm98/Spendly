@@ -2817,6 +2817,21 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
 }
 /* on a phone every stats row is two by two */
 .sp-touch .sp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* --line: stats in one row at their own widths, labels on one line and figures on one
+   baseline whatever their size (Home's month card). Each stat spans the row's two tracks
+   through subgrid. Doubled class so it holds over the touch rule above. */
+.sp-stats.sp-stats--line {
+  grid-template-columns: none;
+  grid-template-rows: auto auto;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  column-gap: var(--sp-16);
+  row-gap: var(--sp-6);
+  justify-content: start;
+}
+.sp-stats--line > .sp-stat { grid-row: span 2; display: grid; grid-template-rows: subgrid; }
+.sp-stats--line > .sp-stat > .sp-section-label { align-self: start; }
+.sp-stats--line > .sp-stat > .sp-stat__figure { align-self: last baseline; }
 
 .sp-stat { display: flex; flex-direction: column; gap: var(--sp-6); }
 .sp-stat__figure {
