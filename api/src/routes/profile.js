@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword } from '../lib/auth.js'
 import { MAX_UPLOAD_MB } from '../lib/constants.js'
 import { nowEpoch } from '../lib/dates.js'
 import { detectFileType } from '../lib/fileType.js'
+import { toSquare } from '../lib/images.js'
 import { MAX_NAME, MIN_PASSWORD, cleanName } from './auth.js'
 
 /* The account's own profile (Settings 11a): name, picture, password, and the first run's end. */
@@ -13,9 +14,8 @@ export const router = Router()
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
-// the smallest picture the card accepts, and the square it is stored at
+// the smallest picture the card accepts
 const MIN_PICTURE = 128
-const PICTURE_SIZE = 256
 
 const setName = db.prepare('UPDATE users SET name = ? WHERE id = ?')
 const selectPicture = db.prepare('SELECT data, content_type FROM user_pictures WHERE user_id = ?')
@@ -50,9 +50,7 @@ router.put('/picture', upload.single('file'), async (req, res) => {
 	}
 	if (Math.min(meta.width ?? 0, meta.height ?? 0) < MIN_PICTURE)
 		return res.status(400).json({ error: `That picture is too small. It must be at least ${MIN_PICTURE} by ${MIN_PICTURE}.` })
-	const data = await sharp(req.file.buffer).rotate()
-		.resize(PICTURE_SIZE, PICTURE_SIZE, { fit: 'cover', position: sharp.strategy.attention })
-		.webp({ quality: 85 }).toBuffer()
+	const data = await toSquare(req.file.buffer)
 	const at = nowEpoch()
 	upsertPicture.run(req.user.id, data, 'image/webp', at)
 	res.status(201).json({ picture: `/api/account/picture?v=${at}` })
