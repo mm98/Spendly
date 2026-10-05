@@ -8,7 +8,7 @@ import { Record } from '../components/List.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
-import { attachmentDownloadUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentThumbnailUrl, vendorImageUrl } from '../api/client.js'
+import { attachmentDownloadUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentFileUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
 import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
@@ -216,7 +216,7 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 			onClick={() => onOpen(order)}
 			void={cancelled}
 			photos={photos.length || !order.vendorImage
-				? photos.map(p => <img key={p.attachmentId} src={itemAttachmentThumbnailUrl(order.id, p.itemId, p.attachmentId)} alt="" />)
+				? photos.map(p => <img key={p.attachmentId} src={itemAttachmentFileUrl(order.id, p.itemId, p.attachmentId)} alt="" />)
 				// the vendor's image fills the band as one photo would, faded (17e)
 				: [<img key="vendor" src={vendorImageUrl(order.vendorImage.vendorId, order.vendorImage.hash, 'wide-1080')} alt="" />]}
 			faded={!photos.length && Boolean(order.vendorImage)}

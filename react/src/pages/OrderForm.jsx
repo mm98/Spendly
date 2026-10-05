@@ -25,7 +25,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentDownloadUrl, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
+	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
 	getVendorPage, invalidateOrderData, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
@@ -690,7 +690,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		...(receipt ? [receipt] : []),
 		...saved.filter(f => !gone.includes(f.id)).map(f => ({
 			key: f.id, name: f.name, kind: f.kind,
-			src: f.kind === 'pdf' ? f.thumb : attachmentFileUrl(orderId, f.id),
+			src: f.kind === 'pdf' ? attachmentPageUrl(orderId, f.id, 0) : attachmentFileUrl(orderId, f.id),
+			zoomSrc: f.kind === 'pdf' ? undefined : attachmentDownloadUrl(orderId, f.id),
 			download: attachmentDownloadUrl(orderId, f.id),
 			...pagesOf(orderId, f)
 		})),
@@ -1345,6 +1346,7 @@ export function useStacked(ref) {
 /** The uploaded receipt as the viewer shows it, every page of it (17d: receipt preview). */
 const receiptOf = file => ({
 	key: 'receipt', name: file.name, kind: file.kind, download: scanDownloadUrl(file.key),
+	zoomSrc: file.kind === 'pdf' ? undefined : scanDownloadUrl(file.key),
 	src: file.kind === 'pdf' ? scanPageUrl(file.key, 0) : scanFileUrl(file.key),
 	...(file.kind === 'pdf'
 		? { pages: file.pages ?? null, pageSrc: i => scanPageUrl(file.key, i), countPages: () => getScanPages(file.key).then(r => r.pages) }

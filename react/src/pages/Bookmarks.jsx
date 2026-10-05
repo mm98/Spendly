@@ -22,7 +22,7 @@ import { MoreMatches, moreText, usePickList } from '../app/pickList.jsx'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
 import {
-	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarkPages, getBookmarksWithoutCategory,
+	bookmarkPhotoWideUrl, bookmarkSorts, deleteBookmark, getBookmarkPages, getBookmarksWithoutCategory,
 	getCategoryPage, getSettings, setBookmarkArchived
 } from '../api/client.js'
 import { NUMBER_LOCALE, currency, dot, plural, shortDate } from '../api/format.js'
@@ -289,7 +289,7 @@ export default function Bookmarks() {
 							href={href ?? undefined}
 							hrefLabel={href ? `Open ${bookmark.name} at ${site}` : undefined}
 							photos={bookmark.photoId
-								? [<img key="p" src={bookmarkPhotoThumbnailUrl(bookmark.id, bookmark.photoId)} alt="" />]
+								? [<img key="p" src={bookmarkPhotoWideUrl(bookmark.id, bookmark.photoId)} alt="" />]
 								: []}
 							empty="No picture"
 							title={bookmark.name}

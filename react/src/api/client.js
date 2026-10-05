@@ -567,6 +567,7 @@ export const forgetBankLink = ({ pattern, kind }, signal) =>
 /** Carrying the picture's own id, so the address changes with the bytes and a browser told to
     keep one forever never shows a replaced photo. */
 export const bookmarkPhotoThumbnailUrl = (id, photoId) => `/api/bookmarks/${id}/photo/${photoId}/thumbnail`
+export const bookmarkPhotoWideUrl = (id, photoId) => `/api/bookmarks/${id}/photo/${photoId}/wide`
 
 export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })

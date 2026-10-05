@@ -12,7 +12,7 @@ import { SaveBar } from '../components/Touch.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
-	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, getAttachmentPages, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
+	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, getAttachmentPages, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
 } from '../api/client.js'
 import { currency, dot, quantity, plural } from '../api/format.js'
 
@@ -96,9 +96,8 @@ export function filesOf(order) {
 		key: a.id,
 		name: a.name,
 		kind: a.kind,
-		src: a.kind === 'pdf'
-			? (a.hasThumbnail ? attachmentThumbnailUrl(order.id, a.id) : null)
-			: attachmentFileUrl(order.id, a.id),
+		src: a.kind === 'pdf' ? attachmentPageUrl(order.id, a.id, 0) : attachmentFileUrl(order.id, a.id),
+		zoomSrc: a.kind === 'pdf' ? undefined : attachmentDownloadUrl(order.id, a.id),
 		download: attachmentDownloadUrl(order.id, a.id),
 		...pagesOf(order.id, a)
 	}))
@@ -108,7 +107,7 @@ export function filesOf(order) {
 			key: photo.id,
 			name: item.title,
 			kind: photo.kind,
-			src: photo.kind === 'pdf' ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : itemAttachmentFileUrl(order.id, item.id, photo.id),
+			src: photo.kind === 'pdf' ? attachmentPageUrl(order.id, photo.id, 0) : itemAttachmentFileUrl(order.id, item.id, photo.id),
 			download: itemAttachmentFileUrl(order.id, item.id, photo.id),
 			...pagesOf(order.id, photo)
 		})
