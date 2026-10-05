@@ -291,3 +291,7 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 /* a single date's shortcuts sit in a calendar that pads itself, so the row keeps its gap and rule
    but not the range panel's own inset, and lines up with the month below */
 .sp-calendar > .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }
+
+/* a name typed in a view's place takes that row's 40px (.sp-nav-item) in the list; the field's extra height overlaps the gaps */
+.sp-nav-list > .sp-field__wrap { margin-block: calc((40px - var(--control-h)) / 2); }
+.sp-touch .sp-nav-list > .sp-field__wrap { margin-block: calc((40px - var(--control-h-touch)) / 2); }
