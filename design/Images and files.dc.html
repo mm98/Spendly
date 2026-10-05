@@ -61,7 +61,7 @@
         </div>
         <div class="sp-row-flex sp-gap-12 sp-top">
           <div class="sp-list-item__count">4</div>
-          <div class="doc-note"><b class="sp-ink">Server derives what it needs</b> - EXIF-corrected orientation, a stripped copy without GPS and camera metadata, the renditions below, and for PDFs a first-page render. HEIC is converted for display; the original is kept as uploaded.</div>
+          <div class="doc-note"><b class="sp-ink">Server derives what it needs</b> - orientation applied to the pixels, then everything that can track the person or name their device removed: GPS, camera make, model and serial, lens, software, owner and artist names, dates and times, maker notes, XMP, IPTC, comments, and any colour profile other than sRGB or Display P3. Then the renditions below. <b class="sp-ink">The original is never kept.</b> A picture filed on the order itself (a receipt, a scanned page) also keeps one full-size copy in its own format, cleaned the same way, for Download and zoom. A line's photo and the vendor image keep only their renditions. A PDF is kept exactly as uploaded, with a first-page render for its renditions. A file the app cannot open is refused, never stored; its tile says "Not a supported type".</div>
         </div>
         <div class="sp-row-flex sp-gap-12 sp-top">
           <div class="sp-list-item__count">5</div>
@@ -103,36 +103,30 @@
       </thead>
       <tbody>
         <tr>
-          <td class="if-col-position"><span class="sp-title">square-128</span></td>
-          <td class="if-col-size"><span class="sp-data">128 x 128</span></td>
-          <td><span class="sp-data"><code>--mark-medium</code> 42 at up to 3x (126): the item line, the order row.</span></td>
-          <td><span class="sp-meta">Centre square crop.</span></td>
-        </tr>
-        <tr>
           <td class="if-col-position"><span class="sp-title">square-256</span></td>
           <td class="if-col-size"><span class="sp-data">256 x 256</span></td>
-          <td><span class="sp-data"><code>--mark-large</code> 64 at up to 3x (192): the form slot.</span></td>
+          <td><span class="sp-data">Every small square: <code>--mark-medium</code> 42 (the order row, the item line, a bookmark row) and <code>--mark-large</code> 64 (the form slot), at up to 3x; the account picture; the file tile on an order. The browser scales it down for the 42px slot.</span></td>
           <td><span class="sp-meta">Centre square crop.</span></td>
         </tr>
         <tr>
           <td class="if-col-position"><span class="sp-title">wide-1080</span></td>
           <td class="if-col-size"><span class="sp-data">1080 px wide</span></td>
-          <td><span class="sp-data">The card photo band (2c) at up to 3x: one photo across a 360px band, or three side by side. Also the vendor image filling the band.</span></td>
-          <td><span class="sp-meta">Aspect kept; the band crops it with cover, centred.</span></td>
+          <td><span class="sp-data">Every larger view: the card photo band (2c) at up to 3x, the vendor image filling the band, the bookmark card strip, and the image viewer (12b) fitted.</span></td>
+          <td><span class="sp-meta">Aspect kept; the band and strip crop it with cover, centred; the viewer fits it.</span></td>
         </tr>
         <tr>
-          <td class="if-col-position"><span class="sp-title">view-2560</span></td>
-          <td class="if-col-size"><span class="sp-data">2560 px longest side</span></td>
-          <td><span class="sp-data">The image viewer (12b), fitted and zoomed.</span></td>
-          <td><span class="sp-meta">Aspect kept. Zoom past it loads the stripped original.</span></td>
+          <td class="if-col-position"><span class="sp-title">full-size</span></td>
+          <td class="if-col-size"><span class="sp-data">As uploaded</span></td>
+          <td><span class="sp-data">An order's own picture only (a receipt, a scanned page): Download, and zoom in the viewer past wide-1080.</span></td>
+          <td><span class="sp-meta">Upload's own format, cleaned as step 4. Not made for a line's photo, the vendor image or a bookmark.</span></td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <div class="doc-notes">
-    <span class="doc-notes__label">Renditions - one set for every picture of goods</span>
-    <div class="doc-note"><b class="sp-ink">Item photos and the vendor image (<a href="#17e">17e</a>) share this set and one resize job,</b> because the vendor image stands in for an item photo in the same places. All four are WebP, quality 85, alpha kept, never upscaled - an image smaller than a rendition is stored at its own size. Attachments and the receipt scan are paper, not goods, and keep their own page renders.</div>
+    <span class="doc-notes__label">Renditions - one set for every picture</span>
+    <div class="doc-note"><b class="sp-ink">Two renditions, the same everywhere, one resize job:</b> item photos, the vendor image (<a href="#17e">17e</a>), bookmark pictures, the account picture, and the files on an order (a PDF from its first-page render). Both are WebP, quality 85, alpha kept, never upscaled - an image smaller than a rendition is stored at its own size. The only third copy is the full-size one of an order's own picture. Each extra size is stored for every picture, so a new slot uses one of these two rather than adding a size.</div>
     <div class="doc-note"><b class="sp-ink">Serve with srcset</b> over the renditions that fit the slot, width descriptors and <code>sizes</code> set to the slot's CSS size, so the browser picks by pixel density. Renditions are immutable and addressed by content hash: they cache forever, and a replace changes the URL.</div>
   </div>
 </section>
@@ -472,7 +466,7 @@
 
         <div class="sp-row-flex sp-gap-16 sp-top">
           <span class="sp-slot">
-            <label class="sp-mark sp-mark--large sp-mark--empty" for="if-e1" data-tip="Add an image"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg><input id="if-e1" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml" aria-label="Add an image"></label>
+            <label class="sp-mark sp-mark--large sp-mark--empty" for="if-e1" data-tip="Add an image"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg><input id="if-e1" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label="Add an image"></label>
             <span class="sp-meta">Add</span>
           </span>
           <div class="doc-note"><b class="sp-ink">Empty.</b> The c17 thumb slot, unchanged. Click, drop or paste.</div>
@@ -487,7 +481,7 @@
 
         <div class="sp-row-flex sp-gap-16 sp-top">
           <span class="sp-slot">
-            <label class="sp-mark sp-mark--large sp-mark--photo" for="if-e2" data-tip="Replace the image"><input id="if-e2" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml" aria-label="Replace the image"></label>
+            <label class="sp-mark sp-mark--large sp-mark--photo" for="if-e2" data-tip="Replace the image"><input id="if-e2" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label="Replace the image"></label>
             <button type="button" class="sp-slot__remove">Remove</button>
           </span>
           <div class="doc-note"><b class="sp-ink">Filled.</b> Centre-cropped to the square, like every image in a mark. Choosing a file replaces it; Remove clears it, undoable until the vendor is saved.</div>
@@ -533,9 +527,9 @@
       <tbody>
         <tr>
           <td class="if-col-position"><span class="sp-title">Type</span></td>
-          <td class="if-col-size"><span class="sp-data">PNG, JPEG, WebP, HEIC, SVG</span></td>
-          <td><span class="sp-data">Browser by extension and sniffed magic bytes; server again on the bytes. HEIC is converted, as 17a. GIF, AVIF and PDF are rejected. <code>accept="image/png,image/jpeg,image/webp,image/heic,image/svg+xml"</code>.</span></td>
-          <td><span class="sp-meta">Banner "Not supported". Help: "Use a PNG, JPEG, WebP, HEIC or SVG file."</span></td>
+          <td class="if-col-size"><span class="sp-data">PNG, JPEG, WebP, SVG</span></td>
+          <td><span class="sp-data">Browser by extension and sniffed magic bytes; server again on the bytes. GIF, AVIF, HEIC and PDF are rejected. HEIC is not offered: on an iPhone the photo picker hands over a JPEG. <code>accept="image/png,image/jpeg,image/webp,image/svg+xml"</code>.</span></td>
+          <td><span class="sp-meta">Banner "Not supported". Help: "Use a PNG, JPEG, WebP or SVG file."</span></td>
         </tr>
         <tr>
           <td class="if-col-position"><span class="sp-title">File size</span></td>
@@ -573,13 +567,13 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Renditions</span>
-    <div class="doc-note"><b class="sp-ink">The same set and the same resize job as an item photo</b> (<a href="#17a">17a</a>), since it stands in for one in the same places. It uses <code>square-128</code> in the order row, <code>wide-1080</code> filling the card band, and <code>square-256</code> in the form slot; <code>view-2560</code> is not made, as it never opens the viewer.</div>
+    <div class="doc-note"><b class="sp-ink">The same set and the same resize job as an item photo</b> (<a href="#17a">17a</a>), since it stands in for one in the same places. It uses <code>square-256</code> in the order row and the form slot, and <code>wide-1080</code> filling the card band. <b class="sp-ink">It keeps no original and no full-size copy</b> - only these two.</div>
   </div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b class="sp-ink">Lifecycle is 17a, unchanged.</b> Validate in the browser, show the local preview, upload to staging for an id, save commits it, orphans are cleaned after 24 hours. Replace is upload, swap, release. Remove has no confirmation, since the user added it; it only drops the id until save.</div>
-    <div class="doc-note"><b class="sp-ink">Processing on the server, in order:</b> sniff type; for SVG, sanitise (strip scripts, event handlers, external references and <code>foreignObject</code>) and rasterise to PNG at 1024 px - an SVG is never served as SVG; apply EXIF orientation and strip all metadata; convert HEIC; take the first frame of an animated WebP; check the smallest and largest rules; write the renditions of 17a. The original is kept as uploaded and never served.</div>
+    <div class="doc-note"><b class="sp-ink">Processing on the server, in order:</b> sniff type; for SVG, sanitise (strip scripts, event handlers, external references and <code>foreignObject</code>) and rasterise to PNG at 1024 px - an SVG is never served as SVG; apply EXIF orientation and strip all metadata as 17a step 4; take the first frame of an animated WebP; check the smallest and largest rules; write the two renditions of 17a. Nothing else is kept.</div>
     <div class="doc-note"><b class="sp-ink">Data model:</b> <code>vendor.image_file_id</code>, nullable. Nothing is stored on orders. An order's thumbnail is resolved at render: first item line with a photo, else the vendor's image faded, else the empty mark. Changing or removing a vendor's image therefore changes every one of its orders at once.</div>
     <div class="doc-note"><b class="sp-ink">Drawn as an item photo, faded. That is the only difference.</b> Same component, same crop, same tone, same click as an item photo in that spot, plus <code>.sp-mark--faded</code> on the row mark or <code>.sp-record__photo--faded</code> on the band photo: <code>filter: opacity(var(--photo-fallback-opacity))</code>, 0.6. A filter rather than <code>opacity</code>, so it compounds with the void row's own 0.6 instead of replacing it. The fade tells the user the picture belongs to the vendor, not to this order. Data: the order's photo count and the No photos filter count item photos only.</div>
     <div class="doc-note"><b class="sp-ink">Vendor lifecycle.</b> Archive keeps the image. Delete releases it. Merge (<a href="Vendors and categories.dc.html#5j">5j</a>) keeps the target's image; if the target has none, the source's moves to it. Duplicating an order (<a href="Duplicate and alerts.dc.html#8a">8a</a>) does not touch it - the image belongs to the vendor.</div>
