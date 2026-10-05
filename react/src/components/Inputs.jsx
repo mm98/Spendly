@@ -56,10 +56,21 @@ function Trail({ label, onClick, pressed, children }) {
 	)
 }
 
-export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', ...rest }) {
+/** `action` is one icon button at the field's end: { icon, label, expanded, onClick }. */
+export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', action, ...rest }) {
 	const TYPES = ['text', 'email', 'tel', 'url']
 	if (!TYPES.includes(type)) console.error(`<TextField> type="${type}" is not one of: ${TYPES.join(' | ')}`)
 	if (multiline) return <Box as="textarea" rows={rows} component="TextField" {...rest} />
+	if (action) return (
+		<Trailed trail={
+			<button type="button" className="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label={action.label}
+				aria-expanded={action.expanded ? 'true' : 'false'} onClick={action.onClick}>
+				<Icon name={action.icon} size={15} />
+			</button>
+		}>
+			<Box type={type} classes={join(pick(TEXT, variant, 'variant', 'TextField'), 'sp-input--trail')} component="TextField" {...rest} />
+		</Trailed>
+	)
 	return <Box type={type} classes={pick(TEXT, variant, 'variant', 'TextField')} component="TextField" {...rest} />
 }
 

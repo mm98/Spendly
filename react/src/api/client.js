@@ -413,7 +413,7 @@ const toApiDraft = draft => ({
 	items: (draft.items ?? []).map(i => ({
 		...(i.id ? { id: i.id } : {}),
 		title: i.title, quantity: i.quantity, price: i.price,
-		retail: i.retail ?? null, note: i.note ?? ''
+		retail: i.retail ?? null, note: i.note ?? '', url: i.url ?? ''
 	}))
 })
 

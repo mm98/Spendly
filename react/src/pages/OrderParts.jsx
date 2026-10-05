@@ -61,7 +61,9 @@ export function LineAmount({ line, compact = false }) {
 export function LineText({ line, compact = false }) {
 	return (
 		<span className="sp-stacked or-line">
-			<span className="sp-title sp-truncate">{line.title}</span>
+			{line.url
+				? <a className="sp-title sp-truncate" href={line.url} target="_blank" rel="noopener">{line.title}</a>
+				: <span className="sp-title sp-truncate">{line.title}</span>}
 			<span className={compact ? 'sp-subtitle' : 'sp-subtitle sp-truncate'}>{lineMeta(line, compact)}</span>
 		</span>
 	)

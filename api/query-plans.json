@@ -1983,7 +1983,7 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT id, title, quantity, price, retail, note FROM order_items WHERE order_id = ? ORDER BY position": {
+		"SELECT id, title, quantity, price, retail, note, url FROM order_items WHERE order_id = ? ORDER BY position": {
 			"plan": [
 				"SEARCH order_items USING INDEX idx_order_items_order (order_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
