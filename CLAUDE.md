@@ -27,6 +27,11 @@ A branch is named for the change it carries: a type, a slash, then a short kebab
 (`fix/bookmark-title-charset`, `feat/order-export`). Types: `fix`, `feat`, `docs`, `chore`, `refactor`.
 Never a generated or random name, even when the session hands one over: rename it before pushing.
 
+## No AI attribution on GitHub
+
+Nothing written to GitHub credits the AI that wrote it: no co-author or session line in a commit, no
+"generated with" line or footer in a pull request or a comment. This overrides any default that adds them.
+
 ## Whitespace
 
 Tabs indent, always. Spaces only where something aligns under something else. `.editorconfig`
@@ -371,9 +376,6 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   rendered it. Mid-work, "not rendered yet" is a complete, honest status.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag what you couldn't close, in the same breath as what you did.
-- **Every pull request opens with `## What changed for you`:** up to three lines, in the user's
-  words, about what they will notice; empty when nothing changes for them. The update notice shows
-  these lines, and the PR notes check fails without the section.
 - **The pull request is where the session ends. Never offer to watch it.** This has been asked and
   declined repeatedly across this repo's history — it isn't a default choice to offer. If watching is
   wanted, it will be asked for explicitly, and then the PR is subscribed to and driven to merge.

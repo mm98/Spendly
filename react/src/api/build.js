@@ -1,7 +1,5 @@
 // the commit this bundle was built from (vite.config.js); typeof, since an undeclared name throws
 const BUNDLE_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : null
-/** When this bundle was built; what changed since is asked for from there. */
-export const BUNDLE_BUILT = typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : null
 
 let notify = null
 let behind = null
