@@ -294,3 +294,6 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 
 /* a step still to come has nothing to read, so hovering it draws no band (4a) */
 .sp-bars--plot .sp-bars__col[data-future]:hover { background: none; }
+
+/* the figure cards' small bars stand on their line like every other bar: rounded at the top only */
+.sp-bars--spark .sp-bars__bar { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
