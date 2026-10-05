@@ -35,7 +35,8 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
 /** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
-    `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `named` ticks truncate. */
+    `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `future` is a step still to come;
+    `named` ticks truncate. */
 export function Bars({ columns = [], variant = 'default', selected, onSelect, loading = false, named = false, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)
@@ -112,7 +113,7 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 				if (!onSelect || column.inert) {
 					// an inert column among buttons is read by its label, as a picture is
 					const read = column.inert && column.label ? { role: 'img', 'aria-label': column.label } : {}
-					return <span className="sp-bars__col" key={column.key} {...read} {...peeking}>{body}</span>
+					return <span className="sp-bars__col" key={column.key} {...read} {...peeking} {...(column.future ? { 'data-future': '' } : {})}>{body}</span>
 				}
 				return (
 					<button

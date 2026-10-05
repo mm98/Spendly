@@ -665,14 +665,14 @@ function Spark({ columns, value, format, label }) {
 				key: column.key,
 				height: share(Math.max(0, values[i]), most),
 				muted: !column.running,
-				tip: <ChartTip title={column.name} value={format(values[i])} note={counted(column.orders, 'order')} />
+				tip: column.future ? undefined : <ChartTip title={column.name} value={format(values[i])} note={counted(column.orders, 'order')} />
 			}))} />
 	)
 }
 
 // on touch a figure card is its label and figure only (Mobile screens 7a)
 function Kpis({ view, chart, was, by, waiting, touch }) {
-	const shown = chart.columns
+	const shown = chart.steps
 	const spark = (value, format, label) => (touch ? null : <Spark columns={shown} value={value} format={format} label={label} />)
 	// the header names the step its bars are drawn in (4a); a phone tile has no bars
 	const per = label => (touch ? label : `${label}${dot}by ${chart.unit}`)
@@ -769,7 +769,7 @@ function useFit(bars, layout) {
 }
 
 // on a phone twelve months are cut to their first letter (Mobile screens 7a); the bar keeps its full name
-const tickOf = (chart, column, touch) => (touch && chart.unit === 'month' && chart.columns.length > 6 ? column.tick.slice(0, 1) : column.tick)
+const tickOf = (chart, column, touch) => (touch && chart.unit === 'month' && chart.steps.length > 6 ? column.tick.slice(0, 1) : column.tick)
 
 const SHAPES = [{ value: 'Stacked', label: 'Stacked' }, { value: 'Total', label: 'Total' }]
 
@@ -798,7 +798,8 @@ function SpendTip({ column, categories, opens }) {
 
 function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, narrowed, stackable = false, categories = [], limit = 0, onOpen }) {
 	const [shapeOf, setShape] = useState('Stacked')
-	const columns = chart?.columns ?? []
+	// the bars hold every step of the period; one still to come is drawn empty and opens nothing
+	const columns = chart?.steps ?? []
 	const unit = chart?.unit ?? soonUnit
 	const splits = stackable && categories.length > 0
 	const stackedNow = splits && shapeOf === 'Stacked'
@@ -818,9 +819,11 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 			label: `${column.name}, ${currency(column.spend, 0)}`,
 			height,
 			muted: !stackedNow && column.running,
+			inert: column.future || undefined,
+			future: column.future || undefined,
 			tick: tickOf(chart, column, touch),
 			// a pointer reads a step in a panel beside it (4a); a phone has no pointer to hover with
-			tip: touch ? undefined : <SpendTip column={column} categories={stackedNow ? categories : null} opens={!!select} />,
+			tip: touch || column.future ? undefined : <SpendTip column={column} categories={stackedNow ? categories : null} opens={!!select} />,
 			...(stackedNow && column.spend > 0 ? { segments: segmentsOf(column) } : {})
 		}
 	})
