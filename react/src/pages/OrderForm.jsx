@@ -146,6 +146,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const [lost, setLost] = useState(null)
 	const [lines, setLines] = useState(back?.lines ?? mine?.lines ?? seed.lines)
 	const [editing, setEditing] = useState(() => (back ? back.editing : creating && !seed.lines.length && !scan ? newEditing() : null))
+	// the vendor is the first field, unless a line opened with the form and holds the cursor
+	const [vendorFirst] = useState(() => !editing)
 	const [tried, setTried] = useState(false)
 	const [saving, setSaving] = useState(false)
 	const [files, setFiles] = useState(back?.files ?? [])
@@ -956,7 +958,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const fields = (
 		<>
 			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
-				<VendorPicker recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} />
+				<VendorPicker recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst} />
 			</Field>
 			{scan && creating && draft.vendor && scannedVendor.data && !scannedVendor.loading && !scannedVendor.data.matched
 				? <NewVendorFromScan onSetUp={setUpVendor} />

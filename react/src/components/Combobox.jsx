@@ -222,6 +222,7 @@ export function Combobox({
 	required,
 	trail,
 	unit,
+	autoFocus = false,
 	...rest
 }) {
 	reject(rest, 'Combobox')
@@ -333,6 +334,7 @@ export function Combobox({
 							aria-label={label}
 							required={required}
 							{...told}
+							autoFocus={autoFocus}
 							autoComplete="off"
 							placeholder={placeholder}
 							value={shown}
@@ -368,6 +370,7 @@ export function Combobox({
 						aria-label={label}
 						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'}${leadId ? ' ' + leadId : ''} ${triggerId}-value`}
 						{...told}
+						autoFocus={autoFocus}
 						onClick={toggle}
 						onKeyDown={onKeys}
 					>

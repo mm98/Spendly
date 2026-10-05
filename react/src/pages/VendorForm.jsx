@@ -278,7 +278,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<Field id="vendor-name" label="Name"
 					message={errors.name ?? (editing ? undefined : 'The name you will recognise in a list. Receipts can spell it differently.')}
 					messageType={errors.name ? 'danger' : 'hint'}>
-					{h(<TextField value={values.name} onChange={v => { set('name', v); setClose(null) }}
+					{h(<TextField value={values.name} autoFocus onChange={v => { set('name', v); setClose(null) }}
 						onBlur={checkName}
 						placeholder={editing ? undefined : 'Where you bought it'} />)}
 				</Field>
