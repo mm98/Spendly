@@ -3708,6 +3708,11 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
 .sp-nav-item--light.sp-nav-item--edited .sp-nav-item__count { color: var(--amber-ink); }
 .sp-nav-item--light[aria-current="page"] .sp-nav-item__count { color: var(--green); }
 .sp-nav-list { display: flex; flex-direction: column; gap: var(--sp-6); }
+/* A name field standing in a row's place (naming, rename) keeps its own control height
+   but takes only the row's 40px in the list: the extra overlaps the 6px gaps above and
+   below (1px each on desktop, 4px on touch), so no row under it moves. */
+.sp-nav-list > .sp-field__wrap { margin-block: calc((40px - var(--control-h)) / 2); z-index: 1; }
+.sp-touch .sp-nav-list > .sp-field__wrap { margin-block: calc((40px - var(--control-h-touch)) / 2); }
 
 /* ---------- token field - DRAFT c3 ----------
    Not its own component: the field (c3) holding several values at once. */
