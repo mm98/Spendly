@@ -216,8 +216,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		|| JSON.stringify(lines) !== JSON.stringify(start.lines)
 	// a line's photo is sent when it is chosen (17a); one still on its way is a file the leave question counts (17b)
 	const [photosSending, setPhotosSending] = useState(() => new Set())
+	const refusedPhotos = useRef(new WeakSet())
 	const sendPhoto = file => {
-		const sent = sendFile(file).catch(() => null)
+		const sent = sendFile(file).catch(e => { if (e?.status === 415) refusedPhotos.current.add(sent); return null })
 		setPhotosSending(p => new Set(p).add(sent))
 		sent.then(() => setPhotosSending(p => { const next = new Set(p); next.delete(sent); return next }))
 		return sent
@@ -331,7 +332,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const send = record => {
 		const sent = sendFile(record.file, { onSent: part => patchFile(record.key, { sent: part }) })
 			.then(upload => { patchFile(record.key, { upload, sending: false }); return upload })
-			.catch(e => { patchFile(record.key, { sending: false, failed: failureMessage(e, '') || 'Upload failed' }); return null })
+			// a file the server cannot open is refused for good, so it says why rather than offering Retry (17b)
+			.catch(e => { patchFile(record.key, e?.status === 415 ? { sending: false, problem: 'Not a supported type' } : { sending: false, failed: failureMessage(e, '') || 'Upload failed' }); return null })
 		sends.current.set(record.key, sent)
 	}
 	const addFiles = (picked, problems) => {
@@ -711,6 +713,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				sheet={sheeted}
 				photoUrl={photoUrl}
 				sendPhoto={sendPhoto}
+				refused={sent => refusedPhotos.current.has(sent)}
 				onRemovePhoto={values => removePhoto(editing.key, values)}
 				onChange={values => setEditing(e => ({ ...e, values }))}
 				onCommit={() => commit(false)}
@@ -1439,7 +1442,7 @@ function notices({ origin, scan, lines, leave, touch, jump }) {
 }
 
 /** The line being edited or added (1b), in place on a desktop and in a sheet on a phone. */
-function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
+function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
 	const v = editing.values
 	const errors = editing.tried ? lineErrors(v) : {}
 	const set = patch => onChange({ ...v, ...patch })
@@ -1453,7 +1456,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange
 		return () => { live = false }
 	}, [v.newPhoto?.sent])
 	const settled = v.newPhoto?.sent && outcome?.sent === v.newPhoto.sent ? outcome : null
-	const sending = !v.newPhoto?.sent ? null : !settled ? 'busy' : settled.ok ? null : 'failed'
+	const sending = !v.newPhoto?.sent ? null : !settled ? 'busy' : settled.ok ? null : refused(v.newPhoto.sent) ? 'refused' : 'failed'
 	// a replace keeps the old photo in the slot until the new one has arrived (17a)
 	const old = v.dropPhoto ? null : photoUrl(v)
 	const photo = v.newPhoto && !(sending && old) ? v.newPhoto.url : old
@@ -1481,7 +1484,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, onRemovePhoto, onChange
 					word="Add photo"
 					name="the line's photo"
 					src={photo}
-					problem={v.photoProblem ?? (sending === 'failed' ? 'Failed' : undefined)}
+					problem={v.photoProblem ?? (sending === 'refused' ? 'Not a supported type' : sending === 'failed' ? 'Failed' : undefined)}
 					busy={sending === 'busy'}
 					onRetry={sending === 'failed' ? () => set({ newPhoto: { ...v.newPhoto, sent: sendPhoto(v.newPhoto.file) } }) : undefined}
 					onFile={take}
