@@ -53,7 +53,7 @@ async function rasteriseSvg(buffer) {
 
 const webp = image => image.webp({ quality: 85, effort: 6 }).toBuffer()
 
-/** { hash, square128, square256, wide1080 } for an upload, or a
+/** { hash, square256, wide1080 } for an upload, or a
     VendorImageRefusal whose `reason` is 'type', 'large', 'small' or 'failed'. */
 export async function processVendorImage(buffer) {
 	if (!buffer?.length) refuse('failed')
@@ -74,14 +74,13 @@ export async function processVendorImage(buffer) {
 	const shortest = Math.min(width, height)
 	const square = size => Math.min(size, shortest)
 	try {
-		const [square128, square256, wide1080] = await Promise.all([
-			webp(read().resize(square(128), square(128), { fit: 'cover', position: 'centre' })),
+		const [square256, wide1080] = await Promise.all([
 			webp(read().resize(square(256), square(256), { fit: 'cover', position: 'centre' })),
 			webp(read().resize({ width: 1080, height: 1080, fit: 'inside', withoutEnlargement: true }))
 		])
 		return {
 			hash: createHash('sha256').update(buffer).digest('hex'),
-			square128, square256, wide1080
+			square256, wide1080
 		}
 	} catch (e) {
 		if (e instanceof VendorImageRefusal) throw e
