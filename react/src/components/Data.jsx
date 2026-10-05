@@ -79,23 +79,25 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 				const body = (
 					<>
 						{onBar ? null : readout}
-						{column.segments
-							? (
-								<span className="sp-bars__stack" style={{ height: pct(column.height) }}>
-									{column.segments.map(s => (
-										<span className="sp-bars__seg" data-key={s.key} style={{ height: pct(s.share) }} key={s.key} />
-									))}
-								</span>
-							)
-							: column.pair
+						{column.future && !onBar
+							? null
+							: column.segments
 								? (
-									<span className="sp-bars__pair">
-										{column.pair.map((h, i) => (
-											<span className={join('sp-bars__bar', i > 0 && 'sp-bars__bar--muted')} style={{ height: pct(h) }} key={i} />
+									<span className="sp-bars__stack" style={{ height: pct(column.height) }}>
+										{column.segments.map(s => (
+											<span className="sp-bars__seg" data-key={s.key} style={{ height: pct(s.share) }} key={s.key} />
 										))}
 									</span>
 								)
-								: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }}>{onBar ? readout : null}</span>}
+								: column.pair
+									? (
+										<span className="sp-bars__pair">
+											{column.pair.map((h, i) => (
+												<span className={join('sp-bars__bar', i > 0 && 'sp-bars__bar--muted')} style={{ height: pct(h) }} key={i} />
+											))}
+										</span>
+									)
+									: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }} {...(column.future ? { 'data-future': '' } : {})}>{onBar ? readout : null}</span>}
 						{column.tick ? <span className={join('sp-bars__tick', named && 'sp-truncate')}>{column.tick}</span> : null}
 					</>
 				)

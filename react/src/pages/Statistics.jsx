@@ -665,6 +665,7 @@ function Spark({ columns, value, format, label }) {
 				key: column.key,
 				height: share(Math.max(0, values[i]), most),
 				muted: !column.running,
+				future: column.future,
 				tip: column.future ? undefined : <ChartTip title={column.name} value={format(values[i])} note={counted(column.orders, 'order')} />
 			}))} />
 	)
