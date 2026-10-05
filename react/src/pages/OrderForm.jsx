@@ -145,7 +145,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// the order was deleted elsewhere, in the sentence that says so: nothing here can be saved any more
 	const [lost, setLost] = useState(null)
 	const [lines, setLines] = useState(back?.lines ?? mine?.lines ?? seed.lines)
-	const [editing, setEditing] = useState(() => (back ? back.editing : creating && !seed.lines.length && !scan ? newEditing() : null))
+	const [editing, setEditing] = useState(() => {
+		if (back) return back.editing
+		// a copy is nearly always changed in its first line, so that line opens ready to type in
+		if (creating && origin.copy && seed.lines.length) return { key: seed.lines[0].key, isNew: false, values: { ...seed.lines[0] } }
+		return creating && !seed.lines.length && !scan ? newEditing() : null
+	})
 	const [tried, setTried] = useState(false)
 	const [saving, setSaving] = useState(false)
 	const [files, setFiles] = useState(back?.files ?? [])
@@ -191,7 +196,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const sheetBox = useRef(null)
 	useFocusTrap(sheetBox, Boolean(sheeted && editing), '.sp-line-editor__form input')
 	// the line or add control whose editor is open, which takes focus back when it closes
-	const reopen = useRef(editing?.isNew ? 'add' : null)
+	const reopen = useRef(editing?.isNew ? 'add' : editing?.key ?? null)
 	const [start, setStart] = useState(seed)
 	const staged = useRef(files)
 	staged.current = files
