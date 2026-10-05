@@ -53,7 +53,7 @@ async function rasteriseSvg(buffer) {
 
 const webp = image => image.webp({ quality: 85, effort: 6 }).toBuffer()
 
-/** { hash, originalType, original, square128, square256, wide1080 } for an upload, or a
+/** { hash, square128, square256, wide1080 } for an upload, or a
     VendorImageRefusal whose `reason` is 'type', 'large', 'small' or 'failed'. */
 export async function processVendorImage(buffer) {
 	if (!buffer?.length) refuse('failed')
@@ -81,8 +81,7 @@ export async function processVendorImage(buffer) {
 		])
 		return {
 			hash: createHash('sha256').update(buffer).digest('hex'),
-			originalType: svg ? 'image/svg+xml' : detected.type,
-			original: buffer, square128, square256, wide1080
+			square128, square256, wide1080
 		}
 	} catch (e) {
 		if (e instanceof VendorImageRefusal) throw e

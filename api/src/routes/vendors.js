@@ -369,9 +369,9 @@ router.post('/:id/merge', (req, res) => {
 /* The vendor's image (17e), replaced whole on every upload. A refusal answers with the form's
    reason; a rendition is addressed by the upload's hash, so a changed image is a new address. */
 const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: VENDOR_IMAGE_MAX_MB * 1024 * 1024, files: 1 } }).single('file')
-const upsertImage = db.prepare(`INSERT INTO vendor_images (vendor_id, user_id, hash, original, original_type, square_128, square_256, wide_1080, created_at)
-	VALUES (@vendorId, @userId, @hash, @original, @originalType, @square128, @square256, @wide1080, @createdAt)
-	ON CONFLICT (vendor_id) DO UPDATE SET hash = excluded.hash, original = excluded.original, original_type = excluded.original_type,
+const upsertImage = db.prepare(`INSERT INTO vendor_images (vendor_id, user_id, hash, square_128, square_256, wide_1080, created_at)
+	VALUES (@vendorId, @userId, @hash, @square128, @square256, @wide1080, @createdAt)
+	ON CONFLICT (vendor_id) DO UPDATE SET hash = excluded.hash,
 		square_128 = excluded.square_128, square_256 = excluded.square_256, wide_1080 = excluded.wide_1080, created_at = excluded.created_at`)
 const deleteImage = db.prepare('DELETE FROM vendor_images WHERE vendor_id = ? AND user_id = ?')
 const RENDITIONS = { 'square-128': 'square_128', 'square-256': 'square_256', 'wide-1080': 'wide_1080' }
