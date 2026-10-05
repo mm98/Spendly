@@ -23,7 +23,8 @@ import * as mupdf from 'mupdf'
 // "repairing PDF document" chatter would otherwise reach the server's log on every one.
 mupdf.setLog(() => {})
 
-const PDF_RENDER_LONG_EDGE = workerData.longEdge
+// drawn at the wide copy's width, never taller than WebP can hold
+const { width: WIDTH, maxHeight: MAX_HEIGHT } = workerData
 // the page to render, counted from 0; the page count travels back with it
 const PAGE = workerData.page ?? 0
 
@@ -35,7 +36,7 @@ try {
 	else {
 		page = doc.loadPage(PAGE)
 		const [x0, y0, x1, y1] = page.getBounds()
-		const scale = PDF_RENDER_LONG_EDGE / Math.max(x1 - x0, y1 - y0, 1)
+		const scale = Math.min(WIDTH / Math.max(x1 - x0, 1), MAX_HEIGHT / Math.max(y1 - y0, 1))
 		pixmap = page.toPixmap(mupdf.Matrix.scale(scale, scale), mupdf.ColorSpace.DeviceRGB, false, false)
 		const png = pixmap.asPNG()
 		// Transferred rather than copied: a 1600px page is megabytes, and the parent is the

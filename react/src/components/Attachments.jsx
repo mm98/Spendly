@@ -102,10 +102,19 @@ const SWIPE_PX = 48
 
 /** A picture at full size that zooms (17d): a click or tap at a point, a pinch or Ctrl and the wheel; zoomed,
     it is dragged around. Unzoomed, a sideways swipe calls `onSwipe(1)` for the next file, -1 for the one before. */
-function ZoomStage({ src, alt, onSwipe }) {
+function ZoomStage({ src, zoomSrc, alt, onSwipe }) {
 	const stage = useRef(null)
 	const img = useRef(null)
 	const [scale, setScale] = useState(1)
+	// zoomed in, an order's picture swaps to its full-size copy once that has arrived (17a)
+	const [full, setFull] = useState(null)
+	useEffect(() => {
+		if (scale === 1 || !zoomSrc || full) return
+		const loading = new Image()
+		loading.onload = () => setFull(zoomSrc)
+		loading.src = zoomSrc
+		return () => { loading.onload = null }
+	}, [scale, zoomSrc, full])
 	// the picture's size and the stage's own at fit, which a zoomed stage keeps so the viewer does not grow
 	const [fit, setFit] = useState(null)
 	const anchor = useRef(null)
@@ -205,7 +214,7 @@ function ZoomStage({ src, alt, onSwipe }) {
 	return (
 		<div className={zoomed ? 'sp-viewer__stage sp-viewer__stage--zoomed' : 'sp-viewer__stage'} ref={stage}
 			style={zoomed ? { width: fit.frameW, height: fit.frameH } : undefined} {...events}>
-			<img ref={img} src={src} alt={alt} draggable={false}
+			<img ref={img} src={full ?? src} alt={alt} draggable={false}
 				style={zoomed ? { width: fit.w * scale, height: fit.h * scale } : undefined} />
 		</div>
 	)
@@ -219,7 +228,7 @@ function ViewerFile({ item, onSwipe }) {
 	const many = pages > 1 && item.pageSrc
 	const src = many ? item.pageSrc(page) : item.src
 	const stage = src
-		? <ZoomStage key={src} src={src} alt={many ? `${item.name}, page ${page + 1} of ${pages}` : item.name} onSwipe={onSwipe} />
+		? <ZoomStage key={src} src={src} zoomSrc={many ? undefined : item.zoomSrc} alt={many ? `${item.name}, page ${page + 1} of ${pages}` : item.name} onSwipe={onSwipe} />
 		: (
 			<div className="sp-viewer__stage">
 				<Mark size="xlarge" fill="none" aria-label={item.name}><span>{kindOf(item)}</span></Mark>
@@ -243,7 +252,7 @@ function ViewerFile({ item, onSwipe }) {
 	return body
 }
 
-/** One file at full size (12b); `items` are `{ name, src, download, kind, pageSrc?, pages?, countPages? }`.
+/** One file at full size (12b); `items` are `{ name, src, zoomSrc?, download, kind, pageSrc?, pages?, countPages? }`.
     `beside` is a second file shown next to the first to compare them (3c). */
 export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest }) {
 	reject(rest, 'Viewer')

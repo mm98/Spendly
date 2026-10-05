@@ -13,52 +13,29 @@ import { detectFileType, detectKind } from './fileType.js'
    mupdf (a WASM build: no native compile step and no system binary like poppler to install
    outside npm, unlike the other two common ways to rasterize a PDF in Node). */
 
-const DISPLAY_MAX = 1000
-const THUMBNAIL_MAX = 200
-// A PDF has no separate "display" bytes the way an image does -- the /file download is always
-// the original PDF, so its one raster (the "thumbnail" column) is the only preview that will
-// ever exist for it, at any size. Rendered at DISPLAY_MAX rather than THUMBNAIL_MAX so the
-// expanded attachment preview -- a wide panel, not a row icon -- has more than 200px stretched
-// across it to show.
-const PDF_RENDER_LONG_EDGE = DISPLAY_MAX
+/* The two sizes every picture is kept at (Images and files 17a): a square for every small slot, and
+   a wide copy for every larger view. WebP cannot hold a side past 16383, so a very tall page stops there. */
+const SQUARE = 256
+const WIDE = 1080
+const WEBP_MAX = 16383
 
-/** Resizes to fit within max x max (never upscales), auto-orients from EXIF (a sideways phone
-    photo would otherwise stay sideways), and re-encodes as WebP — smaller than JPEG at the same
-    quality for the flat colour and text a receipt actually is, and it also strips EXIF, so a
-    photo's embedded GPS coordinates don't travel into the database as a side effect of nobody
-    asking for them to. Whatever format a browser or a phone camera handed the upload -- PNG,
-    HEIC, a screenshot -- this is the one format every stored image ends up as; nothing downstream
-    branches by source format again. `effort: 6` (max) spends more CPU on the encode in exchange
-    for a smaller file at the *same* quality setting -- it doesn't trade against quality the way
-    lowering the quality number would, so there's no reason not to max it for a one-shot,
-    once-per-upload encode. */
-async function resizeTo(buffer, max) {
-	return sharp(buffer)
-		.rotate()
-		.resize(max, max, { fit: 'inside', withoutEnlargement: true })
-		.webp({ quality: max === THUMBNAIL_MAX ? 70 : 85, effort: 6 })
-		.toBuffer()
-}
+/** Turned upright from EXIF and encoded as WebP, which also leaves every piece of metadata behind. */
+const encode = image => image.webp({ quality: 85, effort: 6 }).toBuffer()
+const toSquare = buffer => encode(sharp(buffer).rotate().resize(SQUARE, SQUARE, { fit: 'cover', position: 'centre', withoutEnlargement: true }))
+const toWide = buffer => encode(sharp(buffer).rotate().resize({ width: WIDE, height: WEBP_MAX, fit: 'inside', withoutEnlargement: true }))
 
 /** { data, contentType, size, thumbnail, thumbnailContentType } for a stored image attachment,
     or null when sharp cannot open it. Both sizes come from the source, never one from the other. */
 export async function processImage(buffer) {
 	try {
-		const [display, thumbnail] = await Promise.all([resizeTo(buffer, DISPLAY_MAX), resizeTo(buffer, THUMBNAIL_MAX)])
+		const [display, thumbnail] = await Promise.all([toWide(buffer), toSquare(buffer)])
 		return { data: display, contentType: 'image/webp', size: display.length, thumbnail, thumbnailContentType: 'image/webp' }
 	} catch {
 		return null
 	}
 }
 
-/** A DISPLAY_MAX-sized raster of a PDF's first page, or null if it couldn't be rendered
-    (encrypted, corrupt, zero pages) — the caller falls back to the plain document icon exactly
-    the way it already does for an image sharp couldn't decode. The PDF's own bytes are never
-    touched; only a raster of page one is generated, resized down through the same JPEG pipeline
-    a photo's own copies go through (see the PDF_RENDER_LONG_EDGE note above for why this reuses
-    the display size, not the thumbnail size, despite the column it's still stored in). mupdf's
-    WASM objects hold native heap outside JS's GC, so each is explicitly destroyed rather than
-    left for the finalizer to get to eventually. */
+// mupdf renders on a worker thread: its WASM objects hold native heap outside JS's GC
 const PDF_WORKER = fileURLToPath(new URL('./pdfPage.worker.js', import.meta.url))
 /* A rendering that has not finished by now is not going to be waited for. The worst measured
    parse is 411ms on a 25MB file -- the largest multer accepts -- so this is two orders of
@@ -74,7 +51,7 @@ function renderPdfPage(buffer, index = 0) {
 		let settled = false
 		const settle = value => { if (!settled) { settled = true; clearTimeout(timer); resolve(value) } }
 		const worker = new Worker(PDF_WORKER, {
-			workerData: { buffer, longEdge: PDF_RENDER_LONG_EDGE, page: index }
+			workerData: { buffer, width: WIDE, maxHeight: WEBP_MAX, page: index }
 		})
 		/* A worker that has already posted its result is left to exit on its own rather than
 		   force-terminated here. mupdf's own module has a top-level await (WASM instantiation),
@@ -93,16 +70,8 @@ function renderPdfPage(buffer, index = 0) {
 	})
 }
 
-/** A DISPLAY_MAX-sized raster of a PDF's first page, or null if it couldn't be rendered
-    (encrypted, corrupt, zero pages) — the caller falls back to the plain document icon exactly
-    the way it already does for an image sharp couldn't decode. The PDF's own bytes are never
-    touched; only a raster of page one is generated, resized down through the same WebP pipeline
-    a photo's own copies go through (see the PDF_RENDER_LONG_EDGE note above for why this reuses
-    the display size, not the thumbnail size, despite the column it's still stored in).
-
-    The rendering itself happens on a worker thread (pdfPage.worker.js) because mupdf is
-    synchronous WASM and blocked this process for the whole parse; the resize below stays here,
-    since sharp is asynchronous already. */
+/** The square of a PDF's first page, or null when it cannot be rendered (encrypted, corrupt, no
+    pages): the caller then draws the document icon. The PDF's own bytes are never touched. */
 export async function processPdfThumbnail(buffer) {
 	// Not a PDF by its own first bytes: mupdf would spend the whole parse discovering that, and
 	// on a 25MB file that is 411ms of a blocked thread to answer a question four bytes settle.
@@ -110,7 +79,7 @@ export async function processPdfThumbnail(buffer) {
 	const { png, pages } = await renderPdfPage(buffer) ?? {}
 	if (!png) return null
 	try {
-		return { thumbnail: await resizeTo(png, DISPLAY_MAX), thumbnailContentType: 'image/webp', pages }
+		return { thumbnail: await toSquare(png), thumbnailContentType: 'image/webp', pages }
 	} catch {
 		return null
 	}
@@ -123,23 +92,19 @@ export async function processPdfPage(buffer, index) {
 	const { png, pages } = await renderPdfPage(buffer, index) ?? {}
 	if (!png) return { image: null, pages: pages ?? 0 }
 	try {
-		return { image: await resizeTo(png, DISPLAY_MAX), contentType: 'image/webp', pages }
+		return { image: await toWide(png), contentType: 'image/webp', pages }
 	} catch {
 		return { image: null, pages }
 	}
 }
 
-/* A bookmark's one stored picture is drawn across a card's photo strip, so it is kept at a size
-   that stays sharp there on a 2x screen, not at the row thumbnail's. */
-const PICTURE_MAX = 800
-
-/** { thumbnail, thumbnailCompressed, thumbnailContentType } for a bookmark picture, or null when
-    the bytes are not a decodable image. */
+/** { thumbnail, thumbnailCompressed, wide, wideCompressed, contentType } for a bookmark picture,
+    or null when the bytes are not a decodable image. */
 export async function processPicture(buffer) {
-	let image
-	try { image = await resizeTo(buffer, PICTURE_MAX) } catch { return null }
-	const stored = await compressBlob(image, 'image/webp')
-	return { thumbnail: stored.blob, thumbnailCompressed: stored.compressed, thumbnailContentType: 'image/webp' }
+	let square, wide
+	try { [square, wide] = await Promise.all([toSquare(buffer), toWide(buffer)]) } catch { return null }
+	const [s, w] = await Promise.all([compressBlob(square, 'image/webp'), compressBlob(wide, 'image/webp')])
+	return { thumbnail: s.blob, thumbnailCompressed: s.compressed, wide: w.blob, wideCompressed: w.compressed, contentType: 'image/webp' }
 }
 
 const refuseUnreadable = name => {

@@ -253,7 +253,7 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 	}
 	const compare = o => setComparing({
 		key: 'new', name: upload.name, kind: upload.kind,
-		src: upload.kind === 'pdf' ? (upload.hasThumbnail ? scanThumbnailUrl(upload.key) : null) : scanFileUrl(upload.key),
+		src: upload.kind === 'pdf' ? scanPageUrl(upload.key, 0) : scanFileUrl(upload.key),
 		...(upload.kind === 'pdf' ? { pages: upload.pages, pageSrc: i => scanPageUrl(upload.key, i) } : {}),
 		beside: {
 			key: o.file.id, name: o.file.name, kind: o.file.kind,
@@ -455,7 +455,7 @@ function Start({ scanOnly, file, from, picking }) {
 				<FileDrop accept={FILE_TYPES} onFiles={send} action="Select a receipt">
 					<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
 					<span className="sp-title">Drop receipt here</span>
-					<span className="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF{dot}up to {MAX_FILE_MB} MB per file</span>
+					<span className="sp-meta">PDF, JPG, PNG, WebP or GIF{dot}up to {MAX_FILE_MB} MB per file</span>
 				</FileDrop>
 			</div>
 			{refused ? <div className="oc-narrow oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}

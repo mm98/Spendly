@@ -39,9 +39,13 @@ const selectCategoryNamesFor = db.prepare(`SELECT bc.bookmark_id, c.name FROM ca
 	WHERE bc.bookmark_id IN (SELECT value FROM json_each(?)) ORDER BY bc.bookmark_id, c.name`)
 const updatePhoto = db.prepare(`UPDATE bookmarks SET photo_id=@photoId,
 	photo_thumbnail=@thumbnail, photo_thumbnail_is_compressed=@thumbnailCompressed,
-	photo_thumbnail_content_type=@thumbnailContentType WHERE id=@id AND user_id=@userId`)
+	photo_wide=@wide, photo_wide_is_compressed=@wideCompressed,
+	photo_thumbnail_content_type=@contentType WHERE id=@id AND user_id=@userId`)
 const selectPhotoThumbnail = db.prepare(
 	'SELECT photo_thumbnail, photo_thumbnail_is_compressed, photo_thumbnail_content_type FROM bookmarks WHERE id = ? AND user_id = ? AND photo_id = ?')
+const selectPhotoWide = db.prepare(`SELECT COALESCE(photo_wide, photo_thumbnail) AS image,
+	CASE WHEN photo_wide IS NULL THEN photo_thumbnail_is_compressed ELSE photo_wide_is_compressed END AS compressed,
+	photo_thumbnail_content_type FROM bookmarks WHERE id = ? AND user_id = ? AND photo_id = ?`)
 
 /* Categories are names rather than records: the row prints names and the form edits them, the
    shape an order draft carries them in. */
@@ -268,7 +272,7 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 		updatePhoto.run({
 			id: bookmark.id, userId: req.user.id, photoId: newId('p'),
 			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
-			thumbnailContentType: processed.thumbnailContentType
+			wide: processed.wide, wideCompressed: processed.wideCompressed ? 1 : 0, contentType: processed.contentType
 		})
 		return res.status(201).json(decorateOne(selectOne.get(bookmark.id, req.user.id)))
 	}
@@ -277,13 +281,13 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 	// Stricter than the attachment pipeline, which files anything unrecognised under 'image':
 	// here the frame draws the picture, so an unclaimed file would store and then not render.
 	if (detectFileType(req.file.buffer)?.kind !== 'image')
-		return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF, HEIC, TIFF and BMP all work.' })
+		return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF and TIFF all work.' })
 	const processed = await processPicture(req.file.buffer)
-	if (!processed) return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF, HEIC, TIFF and BMP all work.' })
+	if (!processed) return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF and TIFF all work.' })
 	updatePhoto.run({
 		id: bookmark.id, userId: req.user.id, photoId: newId('p'),
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
-		thumbnailContentType: processed.thumbnailContentType
+		wide: processed.wide, wideCompressed: processed.wideCompressed ? 1 : 0, contentType: processed.contentType
 	})
 	res.status(201).json(decorateOne(selectOne.get(bookmark.id, req.user.id)))
 })
@@ -293,7 +297,7 @@ router.delete('/:id/photo', (req, res) => {
 	if (!bookmark) throw notFound(req.params.id)
 	updatePhoto.run({
 		id: bookmark.id, userId: req.user.id, photoId: null,
-		thumbnail: null, thumbnailCompressed: 0, thumbnailContentType: null
+		thumbnail: null, thumbnailCompressed: 0, wide: null, wideCompressed: 0, contentType: null
 	})
 	res.json(decorateOne(selectOne.get(bookmark.id, req.user.id)))
 })
@@ -304,4 +308,12 @@ router.get('/:id/photo/:photoId/thumbnail', (req, res) => {
 	res.set('Content-Type', photo.photo_thumbnail_content_type || 'image/webp')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // the id in the path changes when the picture does
 	res.send(decompressBlob(photo.photo_thumbnail, photo.photo_thumbnail_is_compressed))
+})
+
+router.get('/:id/photo/:photoId/wide', (req, res) => {
+	const photo = selectPhotoWide.get(req.params.id, req.user.id, req.params.photoId)
+	if (!photo?.image) return res.status(404).json({ error: 'No picture stored for that bookmark.' })
+	res.set('Content-Type', photo.photo_thumbnail_content_type || 'image/webp')
+	res.set('Cache-Control', 'private, max-age=31536000, immutable')
+	res.send(decompressBlob(photo.image, photo.compressed))
 })

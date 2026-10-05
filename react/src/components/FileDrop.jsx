@@ -5,13 +5,13 @@ import { Mark } from './Mark.jsx'
 import { Spinner } from './Utilities.jsx'
 
 /** What a photo place takes, and what an attachment place takes: a photo, or a PDF besides. */
-export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif'
+export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/gif'
 export const FILE_TYPES = 'application/pdf,' + PHOTO_TYPES
 /** The largest file the server keeps, in MB. */
 export const MAX_FILE_MB = 25
 
 // a file whose type the browser does not report is read by its ending
-const ENDINGS = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif', gif: 'image/gif' }
+const ENDINGS = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' }
 
 const typesOf = file => {
 	const ending = String(file?.name ?? '').includes('.') ? file.name.split('.').pop().toLowerCase() : ''
@@ -19,14 +19,14 @@ const typesOf = file => {
 }
 
 const ascii = text => [...text].map(c => c.charCodeAt(0))
-// the same first bytes the server reads (api/src/lib/fileType.js): [offset, bytes] pairs that all match
+// the first bytes of each type taken here, read again by the server (api/src/lib/fileType.js): [offset, bytes] pairs that all match
 const SIGNATURES = [
 	[[0, ascii('%PDF')]],
 	[[0, [0xff, 0xd8, 0xff]]],
 	[[0, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]]],
 	[[0, ascii('GIF8')]],
 	[[0, ascii('RIFF')], [8, ascii('WEBP')]],
-	...['avif', 'avis', 'heic', 'heix', 'mif1'].map(brand => [[4, ascii('ftyp')], [8, ascii(brand)]]),
+	...['avif', 'avis'].map(brand => [[4, ascii('ftyp')], [8, ascii(brand)]]),
 	[[0, [0x49, 0x49, 0x2a, 0x00]]],
 	[[0, [0x4d, 0x4d, 0x00, 0x2a]]],
 	[[0, ascii('BM')]]

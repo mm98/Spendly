@@ -10,7 +10,7 @@ const MIN_SIDE = 128
 const MAX_SIDE = 8000
 const MAX_PIXELS = 40_000_000
 const SVG_RASTER = 1024
-const RASTER_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'])
+const RASTER_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 export class VendorImageRefusal extends Error {
 	constructor(reason) {
