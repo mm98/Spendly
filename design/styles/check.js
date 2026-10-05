@@ -127,6 +127,12 @@
       const v = r && (r.body.match(/border-radius\s*:\s*([^;]+)/) || [])[1];
       if (!v || v.trim() !== want) fail('bars share one shape', 'components.css', `${sel} border-radius is ${v ? v.trim() : 'unset'}, want ${want}`);
     }
+    /* the spark keeps its smaller radius but the same shape: top only (brief 25) */
+    for (const [sel, w] of [['.sp-bars--spark .sp-bars__bar', '2px 2px 0 0']]) {
+      const r = parse(comp).find(x => x.sel === sel && !scopeOf(comp, x.at) && /border-radius\s*:/.test(x.body));
+      const v = r && (r.body.match(/border-radius\s*:\s*([^;]+)/) || [])[1];
+      if (!v || v.trim() !== w) fail('bars share one shape', 'components.css', `${sel} border-radius is ${v ? v.trim() : 'unset'}, want ${w}`);
+    }
   }
   for (const [name, css] of [['components.css', comp], ['doc.css', doc], ...Object.entries(pageCss)]) {
     const rules = parse(css);
