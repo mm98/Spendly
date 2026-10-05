@@ -12,7 +12,7 @@ import { SaveBar } from '../components/Touch.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
-	attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, getAttachmentPages, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
+	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, getAttachmentPages, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
 } from '../api/client.js'
 import { currency, dot, quantity, plural } from '../api/format.js'
 
@@ -99,7 +99,7 @@ export function filesOf(order) {
 		src: a.kind === 'pdf'
 			? (a.hasThumbnail ? attachmentThumbnailUrl(order.id, a.id) : null)
 			: attachmentFileUrl(order.id, a.id),
-		download: attachmentFileUrl(order.id, a.id),
+		download: attachmentDownloadUrl(order.id, a.id),
 		...pagesOf(order.id, a)
 	}))
 	for (const item of order.items) {

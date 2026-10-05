@@ -708,6 +708,8 @@ export async function removeAttachment(orderId, attachmentId, signal) {
 /** Read by `<img src>` directly: a same-origin image request carries the session cookie. */
 export const attachmentThumbnailUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/thumbnail`
 export const attachmentFileUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/file`
+/** What Download saves: an order's picture at full size, where it has one. */
+export const attachmentDownloadUrl = (orderId, attachmentId) => attachmentFileUrl(orderId, attachmentId) + '?download=1'
 
 /** A line's own photo or PDF. The line must be saved first: a draft line has no id to hang it on. */
 export async function addItemAttachments(orderId, itemId, files, signal) {
@@ -969,6 +971,7 @@ export async function attachScanDocument(documentKey, orderId, { as, item, name 
 
 export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKey}/thumbnail`
 export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
+export const scanDownloadUrl = documentKey => scanFileUrl(documentKey) + '?download=1'
 export const scanPageUrl = (documentKey, page) => `/api/scan/documents/${documentKey}/pages/${page}`
 
 export async function getScanPages(documentKey, signal) {

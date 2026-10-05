@@ -182,7 +182,7 @@ async function previewThumbnail(imageUrl) {
 	const fetched = await fetchImage(imageUrl)
 	if (!fetched || detectFileType(fetched.buffer)?.kind !== 'image') return null
 	const processed = await processImage(fetched.buffer)
-	if (!processed.thumbnail) return null
+	if (!processed?.thumbnail) return null
 	return `data:${processed.thumbnailContentType};base64,${processed.thumbnail.toString('base64')}`
 }
 

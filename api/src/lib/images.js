@@ -2,6 +2,7 @@ import sharp from 'sharp'
 import { Worker } from 'node:worker_threads'
 import { fileURLToPath } from 'node:url'
 import { compressBlob } from './blobCompression.js'
+import { cleanOriginal } from './cleanImage.js'
 import { detectFileType, detectKind } from './fileType.js'
 
 /* Every image attachment (a manual upload or a scan) is resized on the way in, not stored at
@@ -30,8 +31,7 @@ const PDF_RENDER_LONG_EDGE = DISPLAY_MAX
     branches by source format again. `effort: 6` (max) spends more CPU on the encode in exchange
     for a smaller file at the *same* quality setting -- it doesn't trade against quality the way
     lowering the quality number would, so there's no reason not to max it for a one-shot,
-    once-per-upload encode. Returns null (falls back to storing the original) if the buffer isn't
-    a decodable image at all, rather than failing the whole upload over it. */
+    once-per-upload encode. */
 async function resizeTo(buffer, max) {
 	return sharp(buffer)
 		.rotate()
@@ -40,17 +40,14 @@ async function resizeTo(buffer, max) {
 		.toBuffer()
 }
 
-/** { data, contentType, size, thumbnail, thumbnailContentType } for a stored image attachment.
-    Both sizes come from the same source buffer, not one derived from the other, so the display
-    image never limits the thumbnail's crop or vice versa. */
+/** { data, contentType, size, thumbnail, thumbnailContentType } for a stored image attachment,
+    or null when sharp cannot open it. Both sizes come from the source, never one from the other. */
 export async function processImage(buffer) {
 	try {
 		const [display, thumbnail] = await Promise.all([resizeTo(buffer, DISPLAY_MAX), resizeTo(buffer, THUMBNAIL_MAX)])
 		return { data: display, contentType: 'image/webp', size: display.length, thumbnail, thumbnailContentType: 'image/webp' }
 	} catch {
-		// Not a decodable image (a mislabeled file, a format sharp doesn't read) — keep the
-		// original bytes rather than losing the upload over a thumbnail that couldn't be made.
-		return { data: buffer, contentType: null, size: buffer.length, thumbnail: null, thumbnailContentType: null }
+		return null
 	}
 }
 
@@ -145,6 +142,10 @@ export async function processPicture(buffer) {
 	return { thumbnail: stored.blob, thumbnailCompressed: stored.compressed, thumbnailContentType: 'image/webp' }
 }
 
+const refuseUnreadable = name => {
+	throw Object.assign(new Error(`The picture "${name ?? 'attachment'}" could not be opened. Save it as a JPEG or PNG and add it again. Nothing was added.`), { status: 415 })
+}
+
 /** { data, dataCompressed, contentType, size, thumbnail, thumbnailCompressed, thumbnailContentType }
     for any uploaded attachment — the one place this branches by kind (image → resized copies;
     pdf → original bytes plus a rendered-page thumbnail where that succeeds), used by every
@@ -153,8 +154,9 @@ export async function processPicture(buffer) {
     stored bytes are deflated -- every write path funnels through here, so the read side
     (orders.js/scan.js) only has to know how to reverse it, not which upload produced a given
     row. `size` stays the uncompressed byte count: it's what the UI shows as the file's size, and
-    that should describe the upload, not how this happened to store it. */
-export async function processAttachment(buffer, mimetype, name) {
+    that should describe the upload, not how this happened to store it. `keepOriginal`: a picture
+    also keeps its cleaned full size (lib/cleanImage.js), and `size` is then that copy's. */
+export async function processAttachment(buffer, mimetype, name, { keepOriginal = false } = {}) {
 	/* The kind is read off the bytes here rather than taken from the caller, and returned, so
 	   the three upload paths (an attachment, a scan, an import) cannot each arrive at a
 	   different answer for one file -- which they did, from the filename and the mimetype, both
@@ -164,7 +166,8 @@ export async function processAttachment(buffer, mimetype, name) {
 	   whatever the caller claimed -- and it is served straight back as a Content-Type header. */
 	const detected = detectFileType(buffer)
 	const kind = detectKind(buffer, mimetype, name)
-	const processed = kind === 'image' ? await processImage(buffer) : await (async () => {
+	// a picture is only ever kept as the copies made from it, so one that cannot be opened is refused
+	const processed = kind === 'image' ? await processImage(buffer) ?? refuseUnreadable(name) : await (async () => {
 		const pdfThumb = await processPdfThumbnail(buffer)
 		return {
 			data: buffer, contentType: detected?.type ?? mimetype ?? null, size: buffer.length,
@@ -175,14 +178,18 @@ export async function processAttachment(buffer, mimetype, name) {
 	/* Each blob compressed against its own content type, so the pipeline's own JPEGs are
 	   recognised as already-compressed and skipped rather than deflated for a loss. Both at
 	   once: they are independent, and the threadpool can take them together. */
-	const [data, thumbnail] = await Promise.all([
+	const clean = kind === 'image' && keepOriginal ? await cleanOriginal(buffer, detected?.type) : null
+	const [data, thumbnail, original] = await Promise.all([
 		compressBlob(processed.data, processed.contentType),
-		compressBlob(processed.thumbnail, processed.thumbnailContentType)
+		compressBlob(processed.thumbnail, processed.thumbnailContentType),
+		compressBlob(clean?.data ?? null, clean?.contentType)
 	])
 	return {
 		...processed,
 		kind,
+		size: clean ? clean.data.length : processed.size,
 		data: data.blob, dataCompressed: data.compressed,
-		thumbnail: thumbnail.blob, thumbnailCompressed: thumbnail.compressed
+		thumbnail: thumbnail.blob, thumbnailCompressed: thumbnail.compressed,
+		original: original.blob ?? null, originalCompressed: original.compressed, originalContentType: clean?.contentType ?? null
 	}
 }

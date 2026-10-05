@@ -9,7 +9,7 @@ import { Chip } from '../components/Chip.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
-import { attachmentFileUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
+import { attachmentDownloadUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
 import { dot, shortDate, today } from '../api/format.js'
 import { useStacked } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
@@ -193,7 +193,7 @@ function OrderCategories({ order }) {
 function downloadAll(order) {
 	for (const a of order.attachments) {
 		const link = document.createElement('a')
-		link.href = attachmentFileUrl(order.id, a.id)
+		link.href = attachmentDownloadUrl(order.id, a.id)
 		link.download = a.name
 		document.body.append(link)
 		link.click()

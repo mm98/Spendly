@@ -28,9 +28,8 @@ const MIN_SAVING = 0.1
 
     Returns { blob, compressed } rather than just the bytes: `compressed` is meant to be stored
     alongside `blob` in its own column (attachments/scan_uploads' *_compressed columns) and read
-    back to decompressBlob, never re-derived by inspecting the bytes. An attachment's content
-    can be anything a browser uploads -- including a file sharp couldn't decode as an image,
-    stored exactly as received -- so no header signature can be trusted to mean "this blob is a
+    back to decompressBlob, never re-derived by inspecting the bytes. A stored PDF is the
+    document exactly as received, so no header signature can be trusted to mean "this blob is a
     zlib stream" without an occasional false match on real content that happens to start the
     same way. */
 export async function compressBlob(buffer, contentType) {

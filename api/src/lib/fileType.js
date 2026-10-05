@@ -19,15 +19,14 @@
    Deliberately not a security boundary. It says what a container claims to be, not whether it
    is safe: sharp and mupdf are still the things parsing untrusted bytes, and a valid PDF can
    still be a malicious one. It is here for correctness -- so the pipeline treats a file as
-   what it is. A file picked or dropped in the app must be one of these (assertImageOrPdf); the
-   bulk import still stores an unrecognised attachment as it arrives. */
+   what it is. A file picked or dropped in the app must be one of these (assertImageOrPdf); in
+   the bulk import an unrecognised attachment is tried as a picture and refused when it is not. */
 
 const ascii = text => [...text].map(c => c.charCodeAt(0))
 
 /* Each entry is a list of (offset, bytes) pairs that all have to match. `kind` is the
-   attachment kind the schema allows (migrations/001: 'pdf' or 'image', and nothing else), so a
-   format sharp may not decode still files as an image and simply keeps its original bytes --
-   which is what the pipeline already does for anything it cannot read. */
+   attachment kind the schema allows (migrations/001: 'pdf' or 'image', and nothing else). A
+   format sharp cannot decode still files as an image, and processAttachment refuses it. */
 const SIGNATURES = [
 	{ type: 'application/pdf', kind: 'pdf', parts: [[0, ascii('%PDF')]] },
 	{ type: 'image/jpeg', kind: 'image', parts: [[0, [0xff, 0xd8, 0xff]]] },
@@ -57,9 +56,8 @@ export function detectFileType(buffer) {
 }
 
 /** The attachment kind to file a buffer under: what the bytes say, and only if they say
-    nothing, what the caller claimed. Everything unrecognised is an image, which is the
-    pipeline's existing default -- sharp tries to read it and its original bytes are kept when
-    it cannot. */
+    nothing, what the caller claimed. Everything unrecognised is an image: sharp tries to read
+    it, and processAttachment refuses it when it cannot. */
 export function detectKind(buffer, declaredType, name) {
 	const detected = detectFileType(buffer)
 	if (detected) return detected.kind

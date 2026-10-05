@@ -24,8 +24,10 @@ export const router = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
-	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at, pages, ai_read_json)
+	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at, pages,
+		original, original_is_compressed, original_content_type, ai_read_json)
 	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @expiresAt, @pages,
+		@original, @originalCompressed, @originalContentType,
 		(SELECT read_json FROM scan_readings WHERE user_id = @userId AND sha256 = @sha256))`)
 const keepReading = db.prepare(`INSERT INTO scan_readings (user_id, sha256, read_json) VALUES (?, ?, ?)
 	ON CONFLICT (user_id, sha256) DO UPDATE SET read_json = excluded.read_json, read_at = unixepoch()`)
@@ -89,8 +91,8 @@ const selectUploadByHash = db.prepare(`
 	ORDER BY created_at DESC LIMIT 1`)
 /* Split by what each reader draws: the draft screen wants the row's facts, the thumbnail route
    its own bytes -- never both BLOBs decoded to answer a metadata question. */
-const selectUploadMeta = db.prepare(
-	'SELECT id, name, size, kind, (thumbnail IS NOT NULL) AS has_thumbnail FROM scan_uploads WHERE id = ? AND user_id = ?')
+const selectUploadMeta = db.prepare(`SELECT id, name, size, kind, (thumbnail IS NOT NULL) AS has_thumbnail,
+	CASE WHEN original IS NULL THEN size ELSE length(data) END AS display_size FROM scan_uploads WHERE id = ? AND user_id = ?`)
 const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM settings WHERE user_id = ?')
 
@@ -141,7 +143,8 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 	if (existing) return res.status(200).json(uploadAnswer(existing, file.originalname, req.user.id))
 
 	// The kind the bytes declare, not the one the filename claims -- see lib/fileType.js.
-	const processed = await processAttachment(file.buffer, file.mimetype, file.originalname)
+	// kept for an order's own file; attaching it to a line leaves the full size behind
+	const processed = await processAttachment(file.buffer, file.mimetype, file.originalname, { keepOriginal: true })
 	const kind = processed.kind
 	const id = newId('su')
 	insertUpload.run({
@@ -150,7 +153,8 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 		data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 		thumbnailContentType: processed.thumbnailContentType,
-		expiresAt: nowEpoch() + UPLOAD_TTL_SECONDS, pages: processed.pages ?? null
+		expiresAt: nowEpoch() + UPLOAD_TTL_SECONDS, pages: processed.pages ?? null,
+		original: processed.original, originalCompressed: processed.originalCompressed ? 1 : 0, originalContentType: processed.originalContentType
 	})
 	res.status(201).json(uploadAnswer({
 		id, kind, size: processed.size, pages: processed.pages, sha256, has_thumbnail: processed.thumbnail != null
@@ -159,7 +163,14 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 
 /** A stored upload's own bytes: an image's display copy, or the PDF as it arrived. */
 const selectUploadFile = db.prepare('SELECT name, content_type, data, data_is_compressed FROM scan_uploads WHERE id = ? AND user_id = ?')
+const selectUploadOriginal = db.prepare('SELECT name, original, original_is_compressed, original_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 router.get('/documents/:key/file', (req, res) => {
+	const full = req.query.download === '1' ? selectUploadOriginal.get(req.params.key, req.user.id) : null
+	if (full?.original) {
+		res.set('Content-Type', full.original_content_type)
+		res.set('Content-Disposition', `attachment; filename="${full.name.replace(/"/g, '')}"`)
+		return res.send(decompressBlob(full.original, full.original_is_compressed))
+	}
 	const upload = selectUploadFile.get(req.params.key, req.user.id)
 	if (!upload || !upload.data) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
 	res.set('Content-Type', upload.content_type || 'application/octet-stream')
@@ -434,8 +445,10 @@ function draftOf(req, upload, read, failure) {
     on answering a later re-upload of the same bytes -- including one after this very order gets
     deleted -- until the row's own expires_at retires it (scheduleUploadCleanup above). */
 const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
-	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, from_scan)
-	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, @fromScan
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, from_scan,
+		original, original_is_compressed, original_content_type)
+	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, @size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, @fromScan,
+		CASE WHEN @itemId IS NULL THEN original END, CASE WHEN @itemId IS NULL THEN original_is_compressed ELSE 0 END, CASE WHEN @itemId IS NULL THEN original_content_type END
 	FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
 const copyUploadPages = db.prepare(`INSERT INTO attachment_pages (attachment_id, page, image, content_type)
 	SELECT @id, page, image, content_type FROM scan_upload_pages WHERE upload_id = @uploadId`)
@@ -457,8 +470,10 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const id = newId('a')
 	const scanned = req.query.as !== 'file'
 	db.transaction(() => {
-		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId,
-			name, meta: `${scanned ? 'Scanned' : 'Added'} today${sep}${fileSizeLabel(upload.size)}`,
+		// a line keeps only the copies it is drawn with, so its size is theirs
+		const size = itemId ? upload.display_size : upload.size
+		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId, size,
+			name, meta: `${scanned ? 'Scanned' : 'Added'} today${sep}${fileSizeLabel(size)}`,
 			fromScan: scanned ? 1 : 0, uploadId: upload.id, userId: req.user.id })
 		copyUploadPages.run({ id, uploadId: upload.id })
 		// the receipt this order was created from: a vendor that order's save made came from the scan (5a)

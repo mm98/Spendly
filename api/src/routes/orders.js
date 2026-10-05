@@ -54,8 +54,10 @@ const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, t
 	price=@price, retail=@retail, note=@note WHERE id=@id AND order_id=@orderId`)
 const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
 const insertAttachment = db.prepare(`INSERT INTO attachments
-	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
-	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @sha256, @pages)`)
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages,
+		original, original_is_compressed, original_content_type)
+	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @sha256, @pages,
+		@original, @originalCompressed, @originalContentType)`)
 /** The hash of a file's bytes as they arrived, before any resizing. */
 export const sourceHash = buffer => createHash('sha256').update(buffer).digest('hex')
 const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
@@ -63,6 +65,7 @@ const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM 
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
 const deleteItemAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_id = ?')
+const selectAttachmentOriginal = db.prepare('SELECT name, original, original_is_compressed, original_content_type FROM attachments WHERE id = ? AND order_id = ?')
 const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
 const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
@@ -644,7 +647,7 @@ async function saveAttachments(files, owner, existingNames) {
 		// uploaded, with a rendered-first-page thumbnail added where that succeeds. The kind is
 		// the one the bytes declare (lib/fileType.js), not the one the filename or the browser's
 		// mimetype claims -- a receipt saved as .jpg is still a PDF and is filed as one.
-		const processed = await processAttachment(file.buffer, file.mimetype, file.originalname)
+		const processed = await processAttachment(file.buffer, file.mimetype, file.originalname, { keepOriginal: Boolean(owner.orderId) })
 		rows.push({
 			id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
 			name: file.originalname, kind: processed.kind,
@@ -653,7 +656,8 @@ async function saveAttachments(files, owner, existingNames) {
 			data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 			thumbnailContentType: processed.thumbnailContentType,
-			sha256: sourceHash(file.buffer), pages: processed.pages ?? null
+			sha256: sourceHash(file.buffer), pages: processed.pages ?? null,
+			original: processed.original, originalCompressed: processed.originalCompressed ? 1 : 0, originalContentType: processed.originalContentType
 		})
 	}
 	insertAttachmentRows(rows)
@@ -677,6 +681,13 @@ router.delete('/:id/attachments/:attachmentId', (req, res) => {
 
 router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	// Download asks for the full-size picture; a file stored without one downloads its display copy
+	const full = req.query.download === '1' ? selectAttachmentOriginal.get(req.params.attachmentId, req.params.id) : null
+	if (full?.original) {
+		res.set('Content-Type', full.original_content_type)
+		res.set('Content-Disposition', `attachment; filename="${full.name.replace(/"/g, '')}"`)
+		return res.send(decompressBlob(full.original, full.original_is_compressed))
+	}
 	const attachment = selectAttachment.get(req.params.attachmentId, req.params.id)
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
@@ -793,12 +804,12 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) 
 /** Resized outside the transaction: better-sqlite3's db.transaction() is synchronous and can't
     await sharp's promise-based resize. Shared by the order-level and each item-level list, since
     an import attachment is processed identically regardless of which row it ends up owned by. */
-async function processImportAttachments(list) {
+async function processImportAttachments(list, keepOriginal) {
 	const out = []
 	for (const a of list ?? []) {
 		if (!a?.data) continue
 		const buffer = Buffer.from(a.data, 'base64')
-		const processed = await processAttachment(buffer, a.contentType || 'application/octet-stream', a.filename)
+		const processed = await processAttachment(buffer, a.contentType || 'application/octet-stream', a.filename, { keepOriginal })
 		out.push({ name: a.filename || 'attachment', ...processed, sha256: sourceHash(buffer) })
 	}
 	return out
@@ -809,7 +820,8 @@ const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	name: a.name, kind: a.kind, meta: `Imported${sep}${fileSizeLabel(a.size)}`,
 	contentType: a.contentType, size: a.size, data: a.data, dataCompressed: a.dataCompressed ? 1 : 0,
 	thumbnail: a.thumbnail, thumbnailCompressed: a.thumbnailCompressed ? 1 : 0, thumbnailContentType: a.thumbnailContentType,
-	sha256: a.sha256, pages: a.pages ?? null
+	sha256: a.sha256, pages: a.pages ?? null,
+	original: a.original, originalCompressed: a.originalCompressed ? 1 : 0, originalContentType: a.originalContentType
 })
 
 const selectImport = db.prepare('SELECT id, undone_at FROM imports WHERE id = ? AND user_id = ?')
@@ -849,9 +861,9 @@ router.post('/import', requireConfirmed, async (req, res) => {
 			const errors = validateOrderDraft(draft, req.today, statusKeys(req.user.id))
 			if (Object.keys(errors).length) throw new Error(Object.values(errors)[0])
 
-			const attachments = await processImportAttachments(draft.attachments)
+			const attachments = await processImportAttachments(draft.attachments, true)
 			const itemAttachments = []
-			for (const item of draft.items) itemAttachments.push(await processImportAttachments(item.attachments))
+			for (const item of draft.items) itemAttachments.push(await processImportAttachments(item.attachments, false))
 
 			const id = newId('o')
 			db.transaction(() => {

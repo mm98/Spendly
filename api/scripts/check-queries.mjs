@@ -234,6 +234,9 @@ const ids = {
 	order: db.prepare('SELECT id FROM orders WHERE user_id = ? ORDER BY date DESC LIMIT 1').get(USER).id,
 	bookmark: db.prepare('SELECT id FROM bookmarks WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').get(USER).id
 }
+// one receipt on that order, with its full-size copy, so the file reads answer rather than 404
+db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data, original, original_content_type)
+	VALUES ('a-fixture', ?, 'receipt.jpg', 'image', '', 'image/webp', 4, x'00000000', x'ffd8ffd9', 'image/jpeg')`).run(ids.order)
 
 /* Every read the app serves, and every shape of the orders list -- each filter, each sort, and
    the combinations whose plans differ from either half alone. A route or a filter missing here
@@ -250,6 +253,7 @@ const REQUESTS = [
 	'/orders?query=kaffe', '/orders?query=zzznomatch', '/orders?query=æg',
 	`/orders?vendorId=${ids.vendor}&status=Delivered&sort=amount-desc`,
 	'/orders?pageSize=6&with=itemTitles', '/orders/draft', `/orders/${ids.order}`,
+	`/orders/${ids.order}/attachments/a-fixture/file`, `/orders/${ids.order}/attachments/a-fixture/file?download=1`,
 	'/orders?pageSize=25&with=rows', '/orders?pageSize=1&with=facets',
 	`/orders?pageSize=1&with=facets&status=Delivered,Ordered&vendorId=${ids.vendor},v-main-1&categoryId=${ids.category},none`,
 	'/orders?receipt=missing', '/orders?receipt=attached&files=1&discounted=1', '/orders?importId=im-fixture',
