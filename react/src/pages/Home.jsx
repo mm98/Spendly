@@ -234,7 +234,7 @@ function MonthCard({ w, view, limitsLost = false, lastAdded }) {
 					<span className="sp-grow" />
 					{ago ? <span className="sp-meta">last added {ago}</span> : null}
 				</div>
-				<div className="sp-row-flex sp-gap-16 sp-wrap">
+				<div className="sp-stats sp-stats--line">
 					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
 					<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
 					<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
@@ -536,7 +536,7 @@ function CaptureCard({ newest, loading }) {
 						<span className="sp-subtitle">
 							{reads === false
 								? 'Image or PDF. It is attached to a new order, and you type in the details.'
-								: 'Image or PDF. The vendor, date and lines are read for you to check.'}
+								: 'Image or PDF. The vendor, date and lines are read for you.'}
 						</span>
 					</FileDrop>
 				)}
