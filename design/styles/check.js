@@ -117,6 +117,17 @@
     return (between.match(/\{/g) || []).length - (between.match(/\}/g) || []).length > 0
       ? css.slice(l, css.indexOf('{', l)).replace(/\s+/g, ' ').trim() : null;
   };
+  /* a single bar and a stacked bar are one shape: rounded at the top, square on the
+     axis, at one radius. The stack was 6px all round while the bar was --r-marker
+     at the top only, so switching Stacked and Total changed the bar (brief 24). */
+  {
+    const want = 'var(--r-marker) var(--r-marker) 0 0';
+    for (const sel of ['.sp-bars__bar', '.sp-bars__stack']) {
+      const r = parse(comp).find(x => x.sel === sel && !scopeOf(comp, x.at) && /border-radius\s*:/.test(x.body));
+      const v = r && (r.body.match(/border-radius\s*:\s*([^;]+)/) || [])[1];
+      if (!v || v.trim() !== want) fail('bars share one shape', 'components.css', `${sel} border-radius is ${v ? v.trim() : 'unset'}, want ${want}`);
+    }
+  }
   for (const [name, css] of [['components.css', comp], ['doc.css', doc], ...Object.entries(pageCss)]) {
     const rules = parse(css);
     // two rules for one selector at one scope, disagreeing on a property: the later
