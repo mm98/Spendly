@@ -1624,6 +1624,19 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 }
 .sp-filedrop:hover,
 .sp-filedrop:focus-within { border-color: var(--green); background: var(--green-tint-2); }
+/* the same drop laid on its side: the mark at the left, the two lines beside it, for a
+   card where the stacked drop is taller than its content needs */
+.sp-filedrop--row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--sp-12);
+  row-gap: var(--sp-2);
+  text-align: left;
+}
+.sp-filedrop--row > .sp-mark { grid-row: span 2; }
+.sp-filedrop--row > .sp-title { align-self: end; }
+.sp-filedrop--row > .sp-subtitle { align-self: start; }
 .sp-filedrop input[type="file"] {
   position: absolute;
   width: 1px;

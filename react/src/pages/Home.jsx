@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardBody, Toolbar } from '../components/Card.jsx'
@@ -508,36 +508,27 @@ function OrderHead({ order }) {
 
 function CaptureCard({ newest, loading }) {
 	const navigate = useNavigate()
-	const input = useId()
 	const user = useApi(getCurrentUser).data
 	const reads = user?.scanAiEnabled
 	// the server takes no receipt before the email is confirmed, so the zone says so first (20b)
 	const held = user?.emailConfirmed === false
 	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
-	const footer = newest
-		? [
-			<span className="sp-subtitle sp-grow" key="ask">Bought from {newest.vendor?.name} again?</span>,
-			<Button variant="text" size="small" to={`/orders/new?duplicate=${newest.id}`} key="copy">Duplicate last order</Button>
-		]
-		: loading
-			? [
-				<span className="sp-subtitle sp-grow hm-line" key="ask"><Skeleton shape="line" data-w="130" data-h="13" /></span>,
-				<ButtonSkeleton label="Duplicate last order" key="copy" />
-			]
-			: undefined
+	const copy = newest
+		? <Button variant="outline" size="small" to={`/orders/new?duplicate=${newest.id}`}>Duplicate last order</Button>
+		: loading ? <ButtonSkeleton label="Duplicate last order" /> : null
 	return (
-		<Card footer={footer}>
+		<Card>
 			<span className="sp-section-label">Add an order</span>
 			{held
 				? (
-					<FileDrop disabled>
+					<FileDrop disabled row>
 						<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
 						<span className="sp-title sp-ink-2">Capture a receipt</span>
 						<span className="sp-meta">Available once your email is confirmed</span>
 					</FileDrop>
 				)
 				: (
-					<FileDrop id={input} accept={FILE_TYPES} onFiles={take}>
+					<FileDrop accept={FILE_TYPES} onFiles={take} row>
 						<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
 						<span className="sp-title">Drop a receipt here</span>
 						<span className="sp-subtitle">
@@ -548,8 +539,8 @@ function CaptureCard({ newest, loading }) {
 					</FileDrop>
 				)}
 			<div className="sp-fields">
-				<Button size="small" disabled={held} onClick={() => document.getElementById(input)?.click()}>Choose file</Button>
 				<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
+				{copy}
 			</div>
 		</Card>
 	)
