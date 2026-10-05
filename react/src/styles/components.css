@@ -4330,7 +4330,7 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 
 /* the same chart at a stat's size: no axis, no ticks, one highlighted step */
 .sp-bars--spark { height: 56px; gap: 3px; }
-.sp-bars--spark .sp-bars__bar { border-radius: 2px; }
+.sp-bars--spark .sp-bars__bar { border-radius: 2px 2px 0 0; }
 
 /* every chart height is a step on one 5% scale, so a bar, a stack and a segment
    all read their measurement from the same set of values */
@@ -5158,5 +5158,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-bars--plot .sp-bars__col:hover,
 .sp-bars--plot .sp-bars__col:focus-visible,
 .sp-bars--plot .sp-bars__col:has(> .sp-bars__tip) { background: var(--hover); border-radius: var(--r-tile); }
+/* a step still to come is drawn empty: a span with its tick and no bar, no band */
+.sp-bars--plot .sp-bars__col[data-future] { background: none; }
 /* the limit is named in the legend, not on the line, so no bar is ever under its label */
 .sp-legend__key--limit { width: 14px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--amber); }
