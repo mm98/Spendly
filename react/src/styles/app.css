@@ -41,7 +41,7 @@
 	flex-direction: column;
 	min-height: 100dvh;
 	background: var(--bg);
-	padding-bottom: calc(var(--phone-bar-h) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom));
+	padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom));
 }
 .sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
 .sp-shell--touch .sp-shell__body { padding: var(--phone-gutter); }
@@ -52,10 +52,9 @@
 	right: 0;
 	bottom: 0;
 	z-index: 5;
-	/* over iOS's home bar band a bottom bar is its full height plus 12 above its items, the band empty below */
-	min-height: calc(var(--commit-bar-h) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom));
+	/* over iOS's home bar band the items sit 12 lower in the same bar: 12 moves from below them to above */
 	padding-top: min(var(--sp-12), env(safe-area-inset-bottom));
-	padding-bottom: env(safe-area-inset-bottom);
+	padding-bottom: max(0px, env(safe-area-inset-bottom) - var(--sp-12));
 }
 /* a task's save bar takes the tab bar's place at the bottom edge (r13, Mobile screens 5b) */
 .sp-shell--touch .sp-savebar {
@@ -64,22 +63,22 @@
 	right: 0;
 	bottom: 0;
 	z-index: 5;
-	height: calc(var(--phone-bar-h) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom));
-	padding: min(var(--sp-12), env(safe-area-inset-bottom)) var(--phone-gutter) env(safe-area-inset-bottom);
+	height: calc(var(--phone-bar-h) + env(safe-area-inset-bottom));
+	padding: 0 var(--phone-gutter) env(safe-area-inset-bottom);
 }
 .sp-shell--touch > .sp-fab {
 	position: fixed;
 	right: var(--phone-gutter);
-	bottom: calc(var(--phone-bar-h) + var(--sp-12) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom));
+	bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom));
 	z-index: 5;
 }
 /* the content clears the floating action, so the last control never sits under it */
-.sp-shell--touch:has(> .sp-fab) { padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + var(--fab) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom)); }
+.sp-shell--touch:has(> .sp-fab) { padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + var(--fab) + env(safe-area-inset-bottom)); }
 .sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-tabbar,
 .sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-fab { display: none; }
 /* a sheet, a dialog or the viewer owns the screen while open: no tab bar or action under it (7a) */
 html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display: none; }
-.sp-shell--touch:has(.sp-savebar) { padding-bottom: calc(var(--phone-bar-h) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom)); }
+.sp-shell--touch:has(.sp-savebar) { padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom)); }
 /* the search fills a phone (7b) */
 .sp-shell--touch:has(.sp-palette--screen) { padding-bottom: 0; }
 .sp-shell--touch .sp-shell__page:has(> .sp-palette--screen) { height: 100dvh; }
@@ -89,9 +88,9 @@ html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * 
 html:has(.sp-shell--viewport .sp-list-item--sticky) { scroll-padding-bottom: calc(var(--commit-bar-h) + var(--sp-12)); }
 html:has(.sp-shell--touch) {
 	scroll-padding-top: calc(var(--phone-bar-h) + var(--sp-12));
-	scroll-padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom));
+	scroll-padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom));
 }
-html:has(.sp-shell--touch > .sp-fab) { scroll-padding-bottom: calc(var(--phone-bar-h) + var(--fab) + 2 * var(--sp-12) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom)); }
+html:has(.sp-shell--touch > .sp-fab) { scroll-padding-bottom: calc(var(--phone-bar-h) + var(--fab) + 2 * var(--sp-12) + env(safe-area-inset-bottom)); }
 /* a control on a pinned bar is always in view: focusing it never scrolls the page */
 html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--sticky) :focus) { scroll-padding: 0; }
 /* a form's commit row stays over what scrolls under it, under a menu or panel opened above it */
@@ -129,7 +128,7 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 	pointer-events: none;
 }
 .sp-toast-region > * { pointer-events: auto; }
-.sp-touch .sp-toast-region { bottom: calc(var(--phone-bar-h) + var(--sp-12) + min(var(--sp-12), env(safe-area-inset-bottom)) + env(safe-area-inset-bottom)); }
+.sp-touch .sp-toast-region { bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom)); }
 
 @layer base {
 	body.sp { margin: 0; }
