@@ -22,6 +22,7 @@ import {
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
+import { CopyPicker } from './CopyPicker.jsx'
 
 const RECENT = 4
 const MONTHS = 8
@@ -513,9 +514,10 @@ function CaptureCard({ newest, loading }) {
 	// the server takes no receipt before the email is confirmed, so the zone says so first (20b)
 	const held = user?.emailConfirmed === false
 	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
+	const [picking, setPicking] = useState(false)
 	const copy = newest
-		? <Button variant="outline" size="small" to={`/orders/new?duplicate=${newest.id}`}>Duplicate last order</Button>
-		: loading ? <ButtonSkeleton label="Duplicate last order" /> : null
+		? <Button variant="outline" size="small" onClick={() => setPicking(true)}>Copy a previous order</Button>
+		: loading ? <ButtonSkeleton label="Copy a previous order" /> : null
 	return (
 		<Card>
 			<span className="sp-section-label">Add an order</span>
@@ -542,6 +544,7 @@ function CaptureCard({ newest, loading }) {
 				<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 				{copy}
 			</div>
+			{picking ? <CopyPicker onClose={() => setPicking(false)} /> : null}
 		</Card>
 	)
 }
