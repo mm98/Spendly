@@ -52,6 +52,8 @@
 	right: 0;
 	bottom: 0;
 	z-index: 5;
+	/* the bar is its full height above iOS's home bar band, as the save bar is, not that height with the band inside it */
+	min-height: calc(var(--commit-bar-h) + env(safe-area-inset-bottom));
 	padding-bottom: env(safe-area-inset-bottom);
 }
 /* a task's save bar takes the tab bar's place at the bottom edge (r13, Mobile screens 5b) */
