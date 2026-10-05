@@ -93,6 +93,8 @@ have to. Putting screens together from its patterns is the build's job:
   question in one brief, not one per round of building.
 - A design fault (a rule that breaks in practice, such as a clipped outline) goes in that same brief;
   the app may carry a minimal workaround in `app.css` until the design takes it in.
+- **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
+  file found there is deleted in the same pull request that builds its answers.
 
 ## The API's queries
 
