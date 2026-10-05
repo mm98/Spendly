@@ -75,7 +75,7 @@ export async function processVendorImage(buffer) {
 	const square = size => Math.min(size, shortest)
 	try {
 		const [square256, wide1080] = await Promise.all([
-			webp(read().resize(square(256), square(256), { fit: 'cover', position: 'centre' })),
+			webp(read().resize(square(256), square(256), { fit: 'cover', position: sharp.strategy.attention })),
 			webp(read().resize({ width: 1080, height: 1080, fit: 'inside', withoutEnlargement: true }))
 		])
 		return {

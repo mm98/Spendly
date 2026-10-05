@@ -21,7 +21,8 @@ const WEBP_MAX = 16383
 
 /** Turned upright from EXIF and encoded as WebP, which also leaves every piece of metadata behind. */
 const encode = image => image.webp({ quality: 85, effort: 6 }).toBuffer()
-const toSquare = buffer => encode(sharp(buffer).rotate().resize(SQUARE, SQUARE, { fit: 'cover', position: 'centre', withoutEnlargement: true }))
+// a square is cut around what the picture is of (strong colour, contrast, skin), not from its middle
+const toSquare = buffer => encode(sharp(buffer).rotate().resize(SQUARE, SQUARE, { fit: 'cover', position: sharp.strategy.attention, withoutEnlargement: true }))
 const toWide = buffer => encode(sharp(buffer).rotate().resize({ width: WIDE, height: WEBP_MAX, fit: 'inside', withoutEnlargement: true }))
 
 /** { data, contentType, size, thumbnail, thumbnailContentType } for a stored image attachment,
