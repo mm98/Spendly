@@ -826,7 +826,8 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 	})
 	const below = columns.filter(column => column.spend < 0)
 	const limitLine = limit > 0 && !touch
-		? { at: `${100 - share(limit, top) * fit}%`, label: `${unit === 'month' ? 'Monthly limit' : 'Limit'} ${currency(limit, 0)}` }
+		// measured down from the top of the bars, which end above the row of names under them
+		? { at: `${fit * (100 - share(limit, top))}%`, label: `${unit === 'month' ? 'Monthly limit' : 'Limit'} ${currency(limit, 0)}` }
 		: undefined
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
