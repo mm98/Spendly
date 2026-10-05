@@ -532,6 +532,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The sheet is the table (<a href="Components.dc.html#c1">c1</a>) in its compact, static form.</b> Rows are not opened, so the lit row and the hand are off; each amount cell takes focus on its own. Number columns are <code>sp-col-number</code>. It is page markup, not a component: nothing else in the app is a grid of this shape.</div>
+    <div class="doc-note"><b>Not on a phone.</b> Below 640px the Months / Whole year switch is not drawn and Budget shows Months only, where amounts are typed one month at a time (<a href="Mobile screens.dc.html">Mobile screens</a>, Budget).</div>
     <div class="doc-note"><b>Where the year does not fit, it scrolls sideways and opens on the month it is now.</b> The sheet scrolls inside its card, and the month header and the row names stay in view in both directions; a section or group label holds still at the left. The month it is now is the accent ink in the header.</div>
     <div class="doc-note"><b>Under the pointer an amount cell takes the grey <code>--hover</code> ground</b> inside its own box, as the first cell is drawn; it has no border until it is focused, and focus replaces the grey with the field's white, border and ring. On a phone nothing changes.</div>
     <div class="doc-note"><b>Every amount is a NumberField</b> (<a href="Components.dc.html#c3">c3</a>) in its cell state: it reads as the figure until it is clicked or focused, then takes the field's border and ring inside its own cell, so nothing moves. It has no visible label - its accessible name is the real amount, the row and the month. A month with only an expected amount shows it as the grey placeholder. Electricity in October is drawn focused.</div>
@@ -1469,6 +1470,7 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Not on a phone.</b> Below 640px Check a bank statement is not drawn; the phone bar carries only the year and Edit (<a href="Mobile screens.dc.html">Mobile screens</a>, Budget).</div>
     <div class="doc-note"><b>Use TV antenna</b> places the payment on the suggested row and marks it saved.</div>
     <div class="doc-note"><b>Pick from budget</b> opens a searchable list of the budget's rows; picking one places the payment there.</div>
     <div class="doc-note"><b>Always leave out</b> hides this text in every future file; <b>Leave out once</b> hides it for this file only.</div>

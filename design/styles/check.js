@@ -629,6 +629,7 @@
       if (/sav(ed|ing)/i.test(t) && /%/.test(t)) fail('a saving is never a percentage', p, `"${t}"`);
       if (/^saved\b/.test(t)) fail('a saving reads "Saved"', p, `"${t}"`);
     }
+    if (/heic/i.test(s)) fail('HEIC is not offered and never named', p, 'HEIC present');
     if (/vs retail|compared to retail|of retail/i.test(s)) fail('a saving never says "vs retail"', p, 'phrase present');
     // a card headed Saved states amounts only: its figure and every pill under it
     for (const m of s.matchAll(/<span class="sp-section-label">Saved<\/span>([\s\S]*?)(?=<span class="sp-section-label"|<div class="sp-card|<\/section>)/g)) {
@@ -647,7 +648,7 @@
       fail('a saving sits under its amount', p, 'a saving is inside a meta line');
 
     // typographic tells
-    for (const [ch, what] of [['—','em dash'],['–','en dash'],['\u2019','curly apostrophe'],['\u201C','curly quote'],['\u201D','curly quote'],['&mdash;','mdash entity'],['&ndash;','ndash entity'],['&rsquo;','rsquo entity'],['&ldquo;','ldquo entity'],['&rdquo;','rdquo entity']]) {
+    for (const [ch, what] of [['\u2014','em dash'],['\u2013','en dash'],['\u2019','curly apostrophe'],['\u201C','curly quote'],['\u201D','curly quote'],['&'+'mdash;','mdash entity'],['&'+'ndash;','ndash entity'],['&'+'rsquo;','rsquo entity'],['&'+'ldquo;','ldquo entity'],['&rdquo;','rdquo entity']]) {
       const n = (s.split(ch).length - 1);
       if (n) fail('no typographic tells', p, `${n}× ${what}`);
     }

@@ -80,7 +80,7 @@
       <span class="sp-strong">Drop zone / Choose file</span><span class="sp-ink-2">Accepts a receipt by drop or picker and starts the scan. On a phone, offers the camera.</span><span class="sp-ink-5">Goes straight to stage two of 3a. Drag-over: border <b>#1d4d33</b>, fill <b>#e7efe8</b>.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Duplicate last order</span><span class="sp-ink-2">Shortcut for the recurring purchase: applies 8a's duplicate to the most recent order, without opening it first.</span><span class="sp-ink-5">Opens an unsaved copy in edit, naming the source. Identical rules to 8a - no date, no status, no attachments.</span>
+      <span class="sp-strong">Copy an order</span><span class="sp-ink-2">Opens the 3b dialog over Home - the same dialog as the create screen. Hidden when there are no orders.</span><span class="sp-ink-5">Escape or Cancel stays on Home. Picking an order opens an unsaved copy in edit, under 8a's duplicate rules.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Needs-a-look row</span><span class="sp-ink-2">Each row is a link to the filtered list holding those records - not a dismissible notice.</span><span class="sp-ink-5">Lands on the list with the filter chips already applied and removable.</span>
@@ -197,7 +197,7 @@
       <span class="sp-strong">Drop / Choose file</span><span class="sp-ink-2">Validates type and size client-side, then uploads and starts reading.</span><span class="sp-ink-5">Rejection is inline on the zone, which stays usable.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Copy a previous order</span><span class="sp-ink-2">The third way to start: pick a recent order and duplicate it, instead of scanning or typing.</span><span class="sp-ink-5">Hands off to 8a's duplicate rules exactly.</span>
+      <span class="sp-strong">Copy an order</span><span class="sp-ink-2">The third way to start: pick a recent order and duplicate it, instead of scanning or typing.</span><span class="sp-ink-5">Hands off to 8a's duplicate rules exactly.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Cancel (reading)</span><span class="sp-ink-2">Abandons the scan and deletes the upload.</span><span class="sp-ink-5">Nothing was written, so nothing to undo. Back to stage one.</span>
@@ -299,7 +299,7 @@
       <span class="sp-strong">Filter sheet (mobile)</span><span class="sp-ink-2">Facets as expandable sections. Reset clears; the sticky primary states the count it will show.</span><span class="sp-ink-5">Filters apply on "Show N orders", not as you tap - one round trip, not twelve.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">New order FAB (mobile)</span><span class="sp-ink-2">Opens 3a step 1 - receipt zone, empty order, copy a previous order. The only floating action in the app.</span><span class="sp-ink-5">The create screen, receipt zone first.</span>
+      <span class="sp-strong">New order FAB (mobile)</span><span class="sp-ink-2">Opens 3a step 1 - receipt zone, empty order, copy an order. The only floating action in the app.</span><span class="sp-ink-5">The create screen, receipt zone first.</span>
     </div>
   </div>
 </div>
@@ -318,7 +318,7 @@
       <div class="doc-note"><b class="sp-ink">Export CSV / Export.</b> Appeared on four screens meaning four things. Now one behaviour: it exports <b>the current filter or drill state</b>, never the page and never the whole account, and the button label carries the count ("Export 128 orders"). One row per item line, with order fields repeated, because that is the shape the import reads back - export and import are the same column set, which is what makes a round trip possible.</div>
       <div class="doc-note"><b class="sp-ink">Save current (saved views).</b> Stores query, facets and sort under a name, listed above the facet rail. It stores <b>the filter, not the result</b> - opening a view re-runs it. Renameable and deletable from the list; a view is never shared, since there is one user.</div>
       <div class="doc-note"><b class="sp-ink">Archive (vendor).</b> The middle option between keeping and deleting, and the answer to 5c's "no orders in 12 months". Hides the vendor from pickers and facet lists while its orders, totals and history stay exactly as they are. Reversible, so toast + Undo, and archived vendors are reachable behind a filter in the library.</div>
-      <div class="doc-note"><b class="sp-ink">Duplicate last order (Home).</b> Applies 8a's duplicate to the most recent order without opening it first. Identical rules - no date, no status, no attachments - and it opens unsaved, so the shortcut can't create anything by accident. Hidden when there are no orders.</div>
+      <div class="doc-note"><b class="sp-ink">Copy an order (Home and create screen).</b> One action with one set of rules wherever it appears: it opens the 3b dialog, because the order to copy is rarely the newest one. Picking an order applies 8a's duplicate - no date, no status, no attachments - and opens it unsaved, so nothing is created by accident. Hidden when there are no orders. An order's own Duplicate (order page, row menu) still goes straight to the copy, since the source is already chosen.</div>
       <div class="doc-note"><b class="sp-ink">Reuse mapping.</b> Applies a previous import's column mapping to the newly picked file by matching column names. It always lands on the <b>mapping step</b> with rows pre-filled, never straight on preview: a file with the same headers can still hold different data, and the confirmation step is the point of the flow. Columns that don't match are left unmapped and flagged.</div>
       <div class="doc-note"><b class="sp-ink">Change password.</b> A dialog - current, new, confirm - not inline fields, so it is never half-filled inside a card that saves other things. Success is a toast; other sessions stay signed in, since signing yourself out of your phone for changing a password on your laptop is a punishment for good hygiene.</div>
       <div class="doc-note"><b class="sp-ink">Open full size (scan review).</b> Opens the same viewer as 12b, with the receipt as its only file, so the small print can be read without leaving review. Edits in the panel behind it are untouched.</div>

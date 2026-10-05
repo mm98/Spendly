@@ -1,26 +1,44 @@
-# Spendly - changes since handoff_2026_10_05e_changes
+# Spendly - changes since handoff_2026_10_05f_changes
 
-Copy these files over handoff_2026_10_05e_changes.
+Copy these files over handoff_2026_10_05f_changes.
 
-## 1. The file drop has a row variant (c4)
+## 1. Copy an order (brief 26)
 
-- `.sp-filedrop--row` is a new variant beside `.sp-filedrop`. The stacked drop is unchanged.
-- The mark sits at the left and spans two rows; the title and subtitle stand beside it, left-aligned.
-- Grid: `auto minmax(0, 1fr)`, column gap `var(--sp-12)`, row gap `var(--sp-2)`.
-- The title aligns to the bottom of its row and the subtitle to the top, so the two lines sit together in the middle of the mark.
+- The label is "Copy an order" everywhere: Home's button, the create screen's third card, the 3b dialog and its section title, the Actions inventory, the Mobile screens notes. It was "Duplicate last order" on Home and "Copy a previous order" elsewhere.
+- Home's button (`sp-btn--outline sp-btn--small`, beside "Empty order") opens the 3b dialog over Home. Escape or Cancel closes it and stays on Home. Picking an order opens the unsaved copy. Hidden when there are no orders.
+- Home's routes note: the `/orders/new?duplicate=447` route is removed; the note states this button is the one control on Home that opens a dialog.
+- Order create 3b, "Two entry points, one dialog": Home's button now opens the dialog.
+- Actions inventory: the Home row and the resolved note describe one action with one set of rules. An order's own Duplicate (order page, row menu) still goes straight to the copy.
 
-## 2. Home, Add an order
+## 2. HEIC removed
 
-- The drop uses `sp-filedrop sp-filedrop--row` and no longer carries `sp-grow`, so it is only as tall as its content.
-- "Choose file" is removed: clicking the drop opens the same file picker.
-- "Duplicate last order" moves up beside "Empty order", as `sp-btn--outline sp-btn--small`. It was a text button in the card footer.
-- The card footer and its line "Bought from Indbo Møbler again?" are removed.
+- Home's receipt drop: `accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"`.
+- Images and files 17e and COMPONENT-STATUS.md no longer name HEIC.
+- `styles/check.js` fails any page that names HEIC.
 
-## 3. Check
+## 3. Mobile screens
 
-- `styles/check.js` is unchanged. Clean run: 0 findings across 26 pages.
+- 5b (vendor create) matches desktop 5b: Image field under Name, plain "Also matches" label (count removed), colour help text.
+- 21b phone frame removed. There is no whole year on a phone: below 640px the Months / Whole year switch is not drawn and Budget shows Months only.
+- 21a phone: amount lines are `sp-sum--edits`; tapping one turns the amount into the NumberField in place (`sp-input--cell`). Electricity is drawn mid-edit.
+- 21a phone: the "Months 2026" label is removed and the month window is full width, using the existing `.sp-touch .sp-window` state.
+- 21a phone: the bar holds the year and an Edit button (`sp-btn sp-btn--outline`). The menu is removed; checking a bank statement is not offered on a phone.
+
+## 4. Budget
+
+- 21b and 21g each carry a "Not on a phone" note.
+
+## 5. Check
+
+- `styles/check.js` adds the HEIC assertion. Its typographic-tell list now writes the dashes as `\u` escapes and the entities split, so the file passes its own sweep. Clean run: 0 findings across 26 pages.
+- No component changed appearance; `styles/components.css` is unchanged.
 
 ## Files
-- Home.dc.html - Add an order card
-- styles/components.css - `.sp-filedrop--row`
+- Home.dc.html - Copy an order, routes note, file drop accept list
+- Order create.dc.html - Copy an order label, 3b entry points
+- Actions inventory.dc.html - Copy an order row and note
+- Images and files.dc.html - 17e type note
+- Mobile screens.dc.html - 5b, Budget (21a, 21b removed), notes
+- Budget.dc.html - 21b and 21g notes
 - styles/COMPONENT-STATUS.md - change log entry
+- styles/check.js - HEIC assertion
