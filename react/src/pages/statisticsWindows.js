@@ -172,8 +172,8 @@ const weekday = iso => new Intl.DateTimeFormat(activeLocaleCode(), { weekday: 's
 // a clipped week holds only the window's own days, so a week's column is named by its days
 const daySpan = (from, to) => (from === to ? String(Number(from.slice(8))) : `${Number(from.slice(8))}-${Number(to.slice(8))}`)
 
-/** Months for a year, weeks for a quarter, days for a month, a week or 30 days, up to the one holding today
-    (4a), each with its spend, saving, order count and top categories from the API's running totals. */
+/** Months for a year, weeks for a quarter, days otherwise, each with its totals from the API's running sums.
+    `steps` is every step of the period, for the bars; `columns` stops at the step holding today. */
 export function chartOf(view) {
 	const spend = view.series.current
 	const saved = view.series.savedCumulative
@@ -210,7 +210,7 @@ export function chartOf(view) {
 			future: view.todayIndex != null && view.todayIndex < start
 		}
 	})
-	return { unit, columns: columns.filter(column => !column.future) }
+	return { unit, steps: columns, columns: columns.filter(column => !column.future) }
 }
 
 /** An axis of four even steps whose top is a round number at or above the largest value. */
