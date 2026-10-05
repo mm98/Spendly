@@ -1,44 +1,29 @@
-# Spendly - changes since handoff_2026_10_05f_changes
+# Spendly - changes since handoff_2026_10_05g_changes
 
-Copy these files over handoff_2026_10_05f_changes.
+Copy these files over handoff_2026_10_05g_changes.
 
-## 1. Copy an order (brief 26)
+## 1. Stats in a line (new variant, `.sp-stats--line`)
 
-- The label is "Copy an order" everywhere: Home's button, the create screen's third card, the 3b dialog and its section title, the Actions inventory, the Mobile screens notes. It was "Duplicate last order" on Home and "Copy a previous order" elsewhere.
-- Home's button (`sp-btn--outline sp-btn--small`, beside "Empty order") opens the 3b dialog over Home. Escape or Cancel closes it and stays on Home. Picking an order opens the unsaved copy. Hidden when there are no orders.
-- Home's routes note: the `/orders/new?duplicate=447` route is removed; the note states this button is the one control on Home that opens a dialog.
-- Order create 3b, "Two entry points, one dialog": Home's button now opens the dialog.
-- Actions inventory: the Home row and the resolved note describe one action with one set of rules. An order's own Duplicate (order page, row menu) still goes straight to the copy.
+- A new variant of the stats row, beside `.sp-stats`. Existing stats rows are unchanged.
+- Stats sit in one row at their own widths: `grid-auto-flow: column`, `grid-auto-columns: max-content`, column gap `var(--sp-16)`, row gap `var(--sp-6)`, `justify-content: start`.
+- Each `.sp-stat` spans the row's two tracks through `grid-template-rows: subgrid`: the labels share the first track, the figures share the second on `align-self: last baseline`, so figures of different sizes stand on one line.
+- The selector is `.sp-stats.sp-stats--line`, so it holds over `.sp-touch .sp-stats`.
+- Documented in Components beside the stat (specimen "Stats in a line").
 
-## 2. HEIC removed
+## 2. Home, month card
 
-- Home's receipt drop: `accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"`.
-- Images and files 17e and COMPONENT-STATUS.md no longer name HEIC.
-- `styles/check.js` fails any page that names HEIC.
+- The three stats (Spent this month, Saved, Orders) use `sp-stats sp-stats--line`. They were a centred `sp-row-flex sp-gap-16 sp-wrap`, which floated the smaller figures halfway down the large one.
 
-## 3. Mobile screens
+## 3. Home, Add an order
 
-- 5b (vendor create) matches desktop 5b: Image field under Name, plain "Also matches" label (count removed), colour help text.
-- 21b phone frame removed. There is no whole year on a phone: below 640px the Months / Whole year switch is not drawn and Budget shows Months only.
-- 21a phone: amount lines are `sp-sum--edits`; tapping one turns the amount into the NumberField in place (`sp-input--cell`). Electricity is drawn mid-edit.
-- 21a phone: the "Months 2026" label is removed and the month window is full width, using the existing `.sp-touch .sp-window` state.
-- 21a phone: the bar holds the year and an Edit button (`sp-btn sp-btn--outline`). The menu is removed; checking a bank statement is not offered on a phone.
+- The drop's subtitle reads "Image or PDF. The vendor, date and lines are read for you." ("to check" removed so it fits on one line).
 
-## 4. Budget
+## 4. Check
 
-- 21b and 21g each carry a "Not on a phone" note.
-
-## 5. Check
-
-- `styles/check.js` adds the HEIC assertion. Its typographic-tell list now writes the dashes as `\u` escapes and the entities split, so the file passes its own sweep. Clean run: 0 findings across 26 pages.
-- No component changed appearance; `styles/components.css` is unchanged.
+- `styles/check.js` is unchanged. Clean run: 0 findings across 26 pages.
 
 ## Files
-- Home.dc.html - Copy an order, routes note, file drop accept list
-- Order create.dc.html - Copy an order label, 3b entry points
-- Actions inventory.dc.html - Copy an order row and note
-- Images and files.dc.html - 17e type note
-- Mobile screens.dc.html - 5b, Budget (21a, 21b removed), notes
-- Budget.dc.html - 21b and 21g notes
+- Home.dc.html - month card stats, drop subtitle
+- Components.dc.html - Stats in a line specimen
+- styles/components.css - `.sp-stats--line`
 - styles/COMPONENT-STATUS.md - change log entry
-- styles/check.js - HEIC assertion
