@@ -3,10 +3,10 @@ import { Link } from 'react-router'
 import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
-/** The surface's destinations, at the bottom where a thumb reaches. */
+/** The surface's destinations, at the bottom where a thumb reaches; over a home bar band its items sit lower (brief 28). */
 export function TabBar({ children, ...rest }) {
 	reject(rest, 'TabBar')
-	return <nav className="sp-tabbar" {...rest}>{children}</nav>
+	return <nav className="sp-tabbar sp-tabbar--band" {...rest}>{children}</nav>
 }
 
 /** One destination in that bar: a link when it has a `to`, since a destination navigates. */

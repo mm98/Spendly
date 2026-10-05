@@ -1,29 +1,29 @@
-# Spendly - changes since handoff_2026_10_05g_changes
+# Spendly - changes since handoff_2026_10_05h_changes
 
-Copy these files over handoff_2026_10_05g_changes.
+Copy these files over handoff_2026_10_05h_changes.
 
-## 1. Stats in a line (new variant, `.sp-stats--line`)
+## 1. Tab bar over the home bar band (new variant, `.sp-tabbar--band`, brief 28)
 
-- A new variant of the stats row, beside `.sp-stats`. Existing stats rows are unchanged.
-- Stats sit in one row at their own widths: `grid-auto-flow: column`, `grid-auto-columns: max-content`, column gap `var(--sp-16)`, row gap `var(--sp-6)`, `justify-content: start`.
-- Each `.sp-stat` spans the row's two tracks through `grid-template-rows: subgrid`: the labels share the first track, the figures share the second on `align-self: last baseline`, so figures of different sizes stand on one line.
-- The selector is `.sp-stats.sp-stats--line`, so it holds over `.sp-touch .sp-stats`.
-- Documented in Components beside the stat (specimen "Stats in a line").
+- New token `--home-band: env(safe-area-inset-bottom, 0px)` in tokens.css: 34 on an iPhone in portrait, 0 without a home bar.
+- `.sp-tabbar--band`, beside `.sp-tabbar`: `padding-top: min(var(--sp-12), var(--home-band))`, `padding-bottom: max(0px, var(--home-band) - var(--sp-12))`. The bar takes the band in, and its items sit 12 lower than centred.
+- Without a band both paddings are 0, so the bar is unchanged. Every tab bar now carries the class: Components (1), Mobile screens (11), Navigation shell (1).
+- `.sp-tabbar` itself is unchanged.
+- Documented in Components beside the tab bar (specimen "Touch - 375px, home bar band (34)"), drawn with `.doc-home-band` (doc.css), which sets `--home-band: 34px` on the frame.
+- Mobile screens, shell notes: the brief 28 note beside the tab bar note, pointing to the class.
 
-## 2. Home, month card
+## 2. Not changed
 
-- The three stats (Spent this month, Saved, Orders) use `sp-stats sp-stats--line`. They were a centred `sp-row-flex sp-gap-16 sp-wrap`, which floated the smaller figures halfway down the large one.
+- The + button keeps its offset. With the band it stands 23 above the tab bar, not 12. To keep 12 on such a phone, change the button's offset, not the bar.
 
-## 3. Home, Add an order
-
-- The drop's subtitle reads "Image or PDF. The vendor, date and lines are read for you." ("to check" removed so it fits on one line).
-
-## 4. Check
+## 3. Check
 
 - `styles/check.js` is unchanged. Clean run: 0 findings across 26 pages.
 
 ## Files
-- Home.dc.html - month card stats, drop subtitle
-- Components.dc.html - Stats in a line specimen
-- styles/components.css - `.sp-stats--line`
+- Components.dc.html - band specimen, class on the tab bar
+- Mobile screens.dc.html - shell note, class on 11 tab bars
+- Navigation shell.dc.html - class on the tab bar
+- styles/tokens.css - `--home-band`
+- styles/components.css - `.sp-tabbar--band`
+- styles/doc.css - `.doc-home-band`
 - styles/COMPONENT-STATUS.md - change log entry

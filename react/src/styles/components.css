@@ -2364,6 +2364,13 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
 }
 .sp-tabbar__item[aria-current="page"] { color: var(--green); font-weight: 600; }
 .sp-tabbar__item:focus-visible { box-shadow: var(--ring); }
+/* home bar band: the bar takes the band in, and its items sit 12 lower than centred.
+   With no band (desktop, most Android) both paddings resolve to 0 and nothing changes.
+   --home-band is the band's height (tokens); a doc frame sets it to 34 to draw the band. */
+.sp-tabbar--band {
+  padding-top: min(var(--sp-12), var(--home-band));
+  padding-bottom: max(0px, var(--home-band) - var(--sp-12));
+}
 
 /* ---------- bulk bar - LOCKED c12 ---------- */
 

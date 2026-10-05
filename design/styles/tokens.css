@@ -121,6 +121,7 @@
   --menu-max: 176px;       /* a menu that scrolls: five rows and a hint of the sixth */
   --list-max: 420px;       /* a long list of records in a panel: the search's body, a dropdown */
   --fab: 56px;             /* the floating New order button, and the room the page keeps clear of it */
+  --home-band: env(safe-area-inset-bottom, 0px); /* the band iOS keeps free for its home bar: 34 on an iPhone in portrait, 0 without one */
   --commit-bar-h: 68px;    /* every bar pinned to the bottom of a phone screen: tab bar, save bar, a form's commit bar */
   --box: 16px;
   --icon-sm: 14px;        /* the icon inside a field or a row */             /* checkbox, radio */

@@ -102,7 +102,8 @@ const RAW_SPACING = { '-4px': 4, '1px': 4, '3px': 3, '-2px': 2, '2px': 2, '-12px
 	const plain = components.replace(/\/\*[\s\S]*?\*\//g, '')
 	const found = {}
 	for (const m of plain.matchAll(/(?<![\w-])(?:gap|row-gap|column-gap|padding|margin)(?:-[a-z]+)?\s*:\s*([^;}]+)/g))
-		for (const px of m[1].matchAll(/(?<![\w.-])-?\d*\.?\d+px/g)) found[px[0]] = (found[px[0]] ?? 0) + 1
+		// zero is no step on the scale, as the page files' check below already reads it
+		for (const px of m[1].matchAll(/(?<![\w.-])-?\d*\.?\d+px/g)) if (parseFloat(px[0])) found[px[0]] = (found[px[0]] ?? 0) + 1
 	for (const [px, n] of Object.entries(found))
 		if (n > (RAW_SPACING[px] ?? 0)) fail('spacing on the scale', 'components.css', `${n - (RAW_SPACING[px] ?? 0)} new spacing value(s) of ${px}: use a --sp-* token`)
 }
