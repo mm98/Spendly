@@ -466,7 +466,7 @@ function Start({ scanOnly, file, from, picking }) {
 						<div className="oc-choices">
 							<StartChoice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
 							{copyable
-								? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy a previous order" body="Same vendor, same lines, new date." />
+								? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy an order" body="Same vendor, same lines, new date." />
 								: null}
 						</div>
 					</>

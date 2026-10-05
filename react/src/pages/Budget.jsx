@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
@@ -19,8 +19,8 @@ import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useReorder } from '../components/Reorder.js'
 import { Icon } from '../components/Icon.jsx'
-import { AddRow, Empty, EmptyBody, EmptyTitle, Skeleton, useDismiss } from '../components/Utilities.jsx'
-import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
+import { AddRow, Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { parseNumber } from '../components/format.js'
 import { join } from '../components/variants.js'
 import { useShellShape } from '../app/useMedia.js'
@@ -192,7 +192,9 @@ export default function Budget() {
 	const [params] = useSearchParams()
 	const touch = useShellShape() === 'touch'
 	if (!years.data && years.error) return <Failed what="Your budget" error={years.error} onRetry={years.refresh} />
-	if (!years.data) return <><BarLoading view={params.get('view') === 'year' ? 'year' : 'months'} touch={touch} /><Loading view={params.get('view')} touch={touch} /></>
+	// a phone has no whole year (Mobile screens 7a)
+	const view = !touch && params.get('view') === 'year' ? 'year' : 'months'
+	if (!years.data) return <><BarLoading view={view} touch={touch} /><Loading view={view} touch={touch} /></>
 	if (!years.data.years.length) return <FirstRun onChanged={years.refresh} />
 	return <BudgetYears years={years.data.years} onYearsChanged={years.refresh} />
 }
@@ -208,8 +210,7 @@ function BarLoading({ view, touch }) {
 		touch
 			? (
 				<ListItem variant="card" aria-busy="true">
-					{bar('52', '22')}<span className="sp-flex-none">{views}</span>
-					<IconButton icon="dots-vertical" aria-label="Budget actions" disabled />
+					{bar('52', '22')}<span className="sp-grow" /><span className="sp-flex-none"><Button variant="outline" disabled>Edit</Button></span>
 				</ListItem>
 			)
 			: (
@@ -221,7 +222,7 @@ function BarLoading({ view, touch }) {
 }
 
 function Loading({ view, touch }) {
-	return view === 'year' ? <SheetLoading touch={touch} /> : <><HeroLoading touch={touch} /><MonthsLoading touch={touch} /></>
+	return view === 'year' ? <SheetLoading /> : <><HeroLoading touch={touch} /><MonthsLoading touch={touch} /></>
 }
 
 function HeroLoading({ touch }) {
@@ -280,7 +281,7 @@ function MonthsLoading({ touch }) {
 	)
 	return (
 		<Card ref={card} aria-busy="true">
-			{touch ? bar('130', '11', 'sp-section-label') : (
+			{touch ? stepper : (
 				<div className="sp-row-flex sp-gap-12">
 					{bar('130', '11', 'sp-section-label')}
 					<span className="sp-grow" />
@@ -288,7 +289,6 @@ function MonthsLoading({ touch }) {
 					{stepper}
 				</div>
 			)}
-			{touch ? stepper : null}
 			{count === 1 ? null : (
 				<Segmented variant="facet" fixed name="budget-month-loading" aria-label="Month" value={-1}
 					options={short.map((label, m) => ({ value: m, label, disabled: true }))} />
@@ -298,7 +298,7 @@ function MonthsLoading({ touch }) {
 	)
 }
 
-function SheetLoading({ touch }) {
+function SheetLoading() {
 	const short = useMemo(() => monthNames('short', true), [])
 	const figures = n => Array.from({ length: n }, (_, m) => <td key={m} className="sp-col-number">{bar('52', '11')}</td>)
 	const label = (key, text) => <tr key={key}><td colSpan={MONTHS + 4}><span className="sp-section-label">{text}</span></td></tr>
@@ -308,7 +308,7 @@ function SheetLoading({ touch }) {
 				<div className="sp-row-flex sp-gap-12">
 					{bar('130', '11', 'sp-section-label')}
 					<span className="sp-grow" />
-					<span className="sp-note">{touch ? '' : `Grey amounts are expected${dot}`}Amounts in {currencySymbol()}</span>
+					<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
 				</div>
 			</CardBody>
 			<div className="bg-view">
@@ -444,7 +444,7 @@ function BudgetYears({ years, onYearsChanged }) {
 	const thisYear = new Date().getFullYear()
 	const latest = years[years.length - 1]
 	const year = param ? Number(param) : years.includes(thisYear) ? thisYear : latest
-	const view = params.get('view') === 'year' ? 'year' : 'months'
+	const view = !touch && params.get('view') === 'year' ? 'year' : 'months'
 
 	const goYear = y => navigate({ pathname: `/budget/${y}`, search: view === 'year' ? '?view=year' : '' })
 	const setView = next => setParams(p => {
@@ -466,19 +466,36 @@ function BudgetYears({ years, onYearsChanged }) {
 			<Segmented name="budget-year" aria-label="Year" value={year} onChange={goYear}
 				options={years.map(y => ({ value: y, label: String(y) }))} />
 		)
-	const viewPicker = editing ? null : (
+	const viewPicker = editing || touch ? null : (
 		<Segmented name="budget-view" aria-label="View" value={view} onChange={setView} options={VIEWS} />
 	)
+
+	// a touch button fills its column, so in the phone's bar each keeps its own width in a span
+	const own = button => (touch ? <span className="sp-flex-none">{button}</span> : button)
+	const actions = editing
+		? (
+			<>
+				{own(<Button variant="outline" onClick={() => setStarting(true)}>New year</Button>)}
+				{own(<Button onClick={() => setEditing(false)}>Done</Button>)}
+			</>
+		)
+		: (
+			<>
+				{/* a bank statement is not checked on a phone (21g) */}
+				{touch ? null : <Button variant="outline" to="/budget/check">Check a bank statement</Button>}
+				{own(<Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>)}
+			</>
+		)
 
 	return (
 		<>
 			{touch
 				? (
-					// on a phone the year, the view and the actions share one bar (Mobile screens 7a)
+					// on a phone the year and the actions share one bar (Mobile screens 7a)
 					<ListItem variant="card">
 						{yearPicker}
-						{viewPicker ? <span className="sp-flex-none">{viewPicker}</span> : null}
-						<Actions editing={editing} onEdit={() => setEditing(!editing)} onNewYear={() => setStarting(true)} />
+						<span className="sp-grow" />
+						{actions}
 					</ListItem>
 				)
 				: (
@@ -486,19 +503,7 @@ function BudgetYears({ years, onYearsChanged }) {
 						{yearPicker}
 						{viewPicker}
 						<span className="sp-grow" />
-						{editing
-							? (
-								<>
-									<Button variant="outline" onClick={() => setStarting(true)}>New year</Button>
-									<Button onClick={() => setEditing(false)}>Done</Button>
-								</>
-							)
-							: (
-								<>
-									<Button variant="outline" to="/budget/check">Check a bank statement</Button>
-									<Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>
-								</>
-							)}
+						{actions}
 					</Controls>
 				)}
 			{years.includes(year)
@@ -516,31 +521,6 @@ function BudgetYears({ years, onYearsChanged }) {
 				<NewYear from={latest} onClose={() => setStarting(false)}
 					onStarted={next => { setStarting(false); onYearsChanged(); goYear(next) }} />
 			) : null}
-		</>
-	)
-}
-
-/** On a phone the bar's two buttons share one menu (7a). */
-function Actions({ editing, onEdit, onNewYear }) {
-	const navigate = useNavigate()
-	const [open, setOpen] = useState(false)
-	const anchor = useRef(null)
-	const close = useCallback(() => setOpen(false), [])
-	useDismiss(anchor, open, close)
-	const item = (label, act) => <MenuItem onClick={() => { close(); act() }}>{label}</MenuItem>
-	return (
-		<>
-			<span ref={anchor}>
-				<Anchor open={open}>
-					<IconButton icon="dots-vertical" aria-label="Budget actions" aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'}
-						onClick={() => setOpen(!open)} />
-					<Menu position="floating" aria-label="Budget actions">
-						{editing ? item('New year', onNewYear) : item('Edit', onEdit)}
-						{editing ? null : item('Check a bank statement', () => navigate('/budget/check'))}
-					</Menu>
-				</Anchor>
-			</span>
-			{editing ? <Button size="small" onClick={onEdit}>Done</Button> : null}
 		</>
 	)
 }
@@ -630,8 +610,9 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 		<>
 			{editing ? null : <MonthHero sheet={sheet} month={month} totals={totals} long={long} touch={touch} />}
 			<Card ref={card} footer={editing ? <Button key="delete" color="danger" onClick={onDelete}>Delete {sheet.year}</Button> : null} footerCommits>
+				{/* on touch the window fills its row, with no label beside it (Mobile screens 7a) */}
 				{touch
-					? <span className="sp-section-label">Months {sheet.year}</span>
+					? stepper
 					: (
 						<div className="sp-row-flex sp-gap-12">
 							<span className="sp-section-label">Months {sheet.year}</span>
@@ -640,8 +621,6 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 							{stepper}
 						</div>
 					)}
-				{/* on touch the window fills its own row, which is how the library sizes it there */}
-				{touch ? stepper : null}
 				{/* twelve segments fit beside two months only; with one month the window steps through them */}
 				{count === 1 ? null : (
 					<Segmented variant="facet" fixed name="budget-month" aria-label="Month" value={month} onChange={go}
@@ -1162,7 +1141,7 @@ function AccountEditor({ account, index = 0, list, write, onMove, onClose }) {
 
 /* ---- the whole year (21b) ---- */
 
-function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
+function SheetView({ sheet, write, editing, panel, setPanel }) {
 	const short = useMemo(() => monthNames('short', true), [])
 	const long = useMemo(() => monthNames('long'), [])
 	const toast = useToast()
@@ -1266,7 +1245,7 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 				<div className="sp-row-flex sp-gap-12">
 					<span className="sp-section-label">Budget {sheet.year}</span>
 					<span className="sp-grow" />
-					<span className="sp-note">{touch ? '' : `Grey amounts are expected${dot}`}Amounts in {currencySymbol()}</span>
+					<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
 				</div>
 			</CardBody>
 			<div className="bg-view">

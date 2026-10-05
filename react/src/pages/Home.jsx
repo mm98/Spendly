@@ -516,8 +516,8 @@ function CaptureCard({ newest, loading }) {
 	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const [picking, setPicking] = useState(false)
 	const copy = newest
-		? <Button variant="outline" size="small" onClick={() => setPicking(true)}>Copy a previous order</Button>
-		: loading ? <ButtonSkeleton label="Copy a previous order" /> : null
+		? <Button variant="outline" size="small" onClick={() => setPicking(true)}>Copy an order</Button>
+		: loading ? <ButtonSkeleton label="Copy an order" /> : null
 	return (
 		<Card>
 			<span className="sp-section-label">Add an order</span>
