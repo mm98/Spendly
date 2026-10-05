@@ -296,7 +296,7 @@ export async function removeVendorImage(id, signal) {
 	return request(`/api/vendors/${id}/image`, { method: 'DELETE', signal })
 }
 
-/** One of the image's renditions: 'square-128', 'square-256' or 'wide-1080', addressed by its hash. */
+/** One of the image's renditions: 'square-256' or 'wide-1080', addressed by its hash. */
 export const vendorImageUrl = (vendorId, hash, rendition) => `/api/vendors/${vendorId}/image/${rendition}?v=${hash}`
 
 export async function deleteVendor(id, signal) {

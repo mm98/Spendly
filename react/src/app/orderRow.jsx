@@ -14,7 +14,7 @@ export function OrderPhoto({ order }) {
 	// the vendor's image stands in as the photo, faded, and counts as no photo (17e)
 	if (!order.photo && order.vendorImage) return (
 		<Mark size="medium" fill="photo" goods faded aria-label={`Image of ${order.vendor?.name ?? 'the vendor'}`} aria-hidden="true">
-			<img src={vendorImageUrl(order.vendorImage.vendorId, order.vendorImage.hash, 'square-128')} alt="" />
+			<img src={vendorImageUrl(order.vendorImage.vendorId, order.vendorImage.hash, 'square-256')} alt="" />
 		</Mark>
 	)
 	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="photo" size={16} /></Mark>
