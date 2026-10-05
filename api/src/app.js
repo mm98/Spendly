@@ -22,7 +22,6 @@ import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
 import { MAX_UPLOAD_MB } from './lib/constants.js'
 import { fileSizeLabel } from './lib/copy.js'
-import { MAX_NOTES, notesOf } from './lib/prNotes.js'
 
 export const app = express()
 
@@ -200,41 +199,6 @@ app.get('/api/version/check', async (req, res) => {
 		res.json({ current: mine !== null && mine === latest, published: mine !== null, commit, latestBuiltAt })
 	} catch (e) {
 		res.status(502).json({ error: `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}` })
-	}
-})
-
-/* The "What changed for you" lines of pull requests merged between a tab's build and this one,
-   from GitHub: kept ten minutes (60 anonymous calls an hour); a failure answers no lines. */
-const REPO = process.env.SPENDLY_REPO || 'mm98/Spendly'
-const PULLS_KEPT_MS = 10 * 60_000
-let merged = { at: 0, pulls: null }
-
-async function mergedPulls() {
-	if (merged.pulls && Date.now() - merged.at < PULLS_KEPT_MS) return merged.pulls
-	const r = await fetch(`https://api.github.com/repos/${REPO}/pulls?state=closed&base=main&sort=updated&direction=desc&per_page=50`, {
-		signal: AbortSignal.timeout(5000),
-		headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Spendly' }
-	})
-	if (!r.ok) throw new Error(`GitHub answered ${r.status}`)
-	const pulls = (await r.json()).filter(p => p.merged_at).map(p => ({ mergedAt: Date.parse(p.merged_at), notes: notesOf(p.body) ?? [] }))
-	merged = { at: Date.now(), pulls }
-	return pulls
-}
-
-app.get('/api/version/changes', async (req, res) => {
-	const since = Date.parse(req.query.since)
-	if (!Number.isFinite(since)) return res.status(400).json({ error: 'since must be a date and time.' })
-	const until = Date.parse(process.env.SPENDLY_BUILD_TIME) || Infinity
-	try {
-		const changes = (await mergedPulls())
-			.filter(p => p.mergedAt > since && p.mergedAt <= until)
-			.sort((a, b) => b.mergedAt - a.mergedAt)
-			.flatMap(p => p.notes)
-			.slice(0, MAX_NOTES)
-		res.json({ changes })
-	} catch (e) {
-		console.error(`What changed could not be read from GitHub: ${e.message ?? e}`)
-		res.json({ changes: [] })
 	}
 })
 
