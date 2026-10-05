@@ -7,7 +7,7 @@ import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { useReorder } from '../components/Reorder.js'
 import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
-import { NumberField, TextField, TokensField } from '../components/Inputs.jsx'
+import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Stepper } from '../components/Stepper.jsx'
 import { Combobox, ComboboxGroup, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
 import { Segmented } from '../components/Segmented.jsx'
@@ -41,7 +41,7 @@ import { useFolded } from '../app/folded.js'
 import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
-import { useLeaveGuard } from './vendorsCategories.jsx'
+import { CategoryTokens, useLeaveGuard } from './vendorsCategories.jsx'
 import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
@@ -978,7 +978,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					)}
 			</Field>
 			<Field label="Categories" message={suggested?.said ? `Filled from ${suggested.vendor}. Remove any that do not fit.` : undefined}>
-				<TokensField value={draft.categories} onChange={setCategories} trails={trails} placeholder="Add category…" aria-label="Add a category" />
+				<CategoryTokens value={draft.categories} onChange={setCategories} trails={trails} placeholder="Add category…" />
 			</Field>
 			{offer
 				? (
