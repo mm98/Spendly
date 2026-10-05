@@ -1,48 +1,25 @@
-# Spendly - changes since handoff_2026_10_05_changes
+# Spendly - changes since handoff_2026_10_05b_changes
 
-Copy these files over handoff_2026_10_05_changes. The HTML files are design references; rebuild them in the app's own code. Answers Design brief 22.
+Copy these files over handoff_2026_10_05b_changes. The HTML files are design references; rebuild them in the app's own code. Answers Design brief 23.
 
-## 1. What is kept of an uploaded picture (17a step 4, 17e, Icon legend)
+## 1. square-256 is cut around the subject (17a, 17e)
 
-- The original is never kept.
-- Orientation is applied to the pixels first, then all tracking and device data is removed: GPS, camera make, model and serial, lens, software, owner and artist names, dates and times, maker notes, XMP, IPTC, comments, and any colour profile other than sRGB or Display P3.
-- A picture filed on the order itself (a receipt, a scanned page): the two renditions plus one full-size copy in the upload's own format, cleaned as above.
-- A line's photo, the vendor image, a bookmark picture, the account picture: the two renditions only.
-- A PDF: kept exactly as uploaded; its renditions come from a first-page render.
-- A file the app cannot open: refused, never stored. Tile: "Not a supported type".
-- Download: an order's picture saves the full-size cleaned copy; a line's photo saves its display copy; a PDF saves as uploaded. The file name is always the one it was uploaded with.
+- square-256 is no longer a centre crop. The server centres the square on the part of the picture with the strongest colour, contrast and skin tones.
+- This applies to every square: line photos, files on an order, the first page of a PDF, bookmark pictures, the vendor image and the account picture.
+- 17a sizes table, square-256, "How it is made": "Cut around the subject (the strongest colour, contrast and skin tones)."
+- Item line photo, account picture and the 17e filled slot now say the same instead of "centre crop".
+- The crop note under the image positions reads: squares are cut around the subject; the card band and bookmark strip crop the wide copy with cover, centred. The receipt preview and page thumbnails still letterbox at page aspect.
 
-## 2. HEIC: option b, stop offering it
+## 2. Limits, stated in 17a notes
 
-HEIC is removed from every picker and every accepted-types or help text:
-- Order create 3a: `accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"`, "PDF, JPG, PNG, WebP or GIF".
-- 17e and Vendors 5b/5c: `accept="image/png,image/jpeg,image/webp,image/svg+xml"`, help "Use a PNG, JPEG, WebP or SVG file."
-- A HEIC that still arrives is refused as not supported.
+- The subject cut is a guess. A busy background, or a large logo on a receipt, can pull the square away from what matters.
+- It has not been tested on real product photos yet.
 
-Not tested: that the iPhone photo picker hands over a JPEG once HEIC is not offered. Please check on a device.
+## 3. Unchanged
 
-## 3. One set of sizes for every picture (17a table)
-
-| Rendition | Size | Serves |
-|---|---|---|
-| square-256 | 256 x 256, centre crop | Every small square: order row, item line, bookmark row (42px), form slot (64px), account picture, file tile on an order |
-| wide-1080 | 1080 px wide, aspect kept | Card photo band, vendor image in the band, bookmark card strip, the image viewer fitted |
-| full-size | as uploaded, cleaned | An order's own picture only: Download, and zoom in the viewer past wide-1080 |
-
-WebP, quality 85, alpha kept, never upscaled.
-
-**What the app changes**
-- Remove square-128 and view-2560 from the design (square-128 already removed in the app).
-- Item photos and order files: 200 and 1000 become square-256 and wide-1080.
-- Bookmark pictures: 800 becomes square-256 and wide-1080.
-- Vendor image: 128 dropped; 256 and 1080 stay.
-- Account picture: 256 square, unchanged.
-
-Answers to the brief's questions: 1) view-2560 is not needed, wide-1080 serves the viewer and the card band. 2) Bookmarks join the set. 3) Receipts and order files use the same set, plus the full-size copy for an order's own pictures.
+- wide-1080 keeps its aspect. The card band and the bookmark strip crop it with cover, centred.
+- Centring those on the subject would need a stored focus point for each picture. Not built, not asked for now.
 
 ## Files
-- Images and files.dc.html - 17a step 4, the sizes table and its notes, 17e accepted types, help and notes
-- Order create.dc.html - 3a accepted types (two pickers)
-- Vendors and categories.dc.html - 5b/5c image picker accept
-- Icon legend.dc.html - Download
+- Images and files.dc.html - 17a sizes table and notes, image positions table and crop note, 17e filled slot note
 - styles/COMPONENT-STATUS.md - change log entry
