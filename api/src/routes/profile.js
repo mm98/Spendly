@@ -51,7 +51,7 @@ router.put('/picture', upload.single('file'), async (req, res) => {
 	if (Math.min(meta.width ?? 0, meta.height ?? 0) < MIN_PICTURE)
 		return res.status(400).json({ error: `That picture is too small. It must be at least ${MIN_PICTURE} by ${MIN_PICTURE}.` })
 	const data = await sharp(req.file.buffer).rotate()
-		.resize(PICTURE_SIZE, PICTURE_SIZE, { fit: 'cover' })
+		.resize(PICTURE_SIZE, PICTURE_SIZE, { fit: 'cover', position: sharp.strategy.attention })
 		.webp({ quality: 85 }).toBuffer()
 	const at = nowEpoch()
 	upsertPicture.run(req.user.id, data, 'image/webp', at)
