@@ -2,6 +2,7 @@ import sharp from 'sharp'
 import { Worker } from 'node:worker_threads'
 import { fileURLToPath } from 'node:url'
 import { compressBlob } from './blobCompression.js'
+import { cleanOriginal } from './cleanImage.js'
 import { detectFileType, detectKind } from './fileType.js'
 
 /* Every image attachment (a manual upload or a scan) is resized on the way in, not stored at
@@ -153,8 +154,9 @@ const refuseUnreadable = name => {
     stored bytes are deflated -- every write path funnels through here, so the read side
     (orders.js/scan.js) only has to know how to reverse it, not which upload produced a given
     row. `size` stays the uncompressed byte count: it's what the UI shows as the file's size, and
-    that should describe the upload, not how this happened to store it. */
-export async function processAttachment(buffer, mimetype, name) {
+    that should describe the upload, not how this happened to store it. `keepOriginal`: a picture
+    also keeps its cleaned full size (lib/cleanImage.js), and `size` is then that copy's. */
+export async function processAttachment(buffer, mimetype, name, { keepOriginal = false } = {}) {
 	/* The kind is read off the bytes here rather than taken from the caller, and returned, so
 	   the three upload paths (an attachment, a scan, an import) cannot each arrive at a
 	   different answer for one file -- which they did, from the filename and the mimetype, both
@@ -176,14 +178,18 @@ export async function processAttachment(buffer, mimetype, name) {
 	/* Each blob compressed against its own content type, so the pipeline's own JPEGs are
 	   recognised as already-compressed and skipped rather than deflated for a loss. Both at
 	   once: they are independent, and the threadpool can take them together. */
-	const [data, thumbnail] = await Promise.all([
+	const clean = kind === 'image' && keepOriginal ? await cleanOriginal(buffer, detected?.type) : null
+	const [data, thumbnail, original] = await Promise.all([
 		compressBlob(processed.data, processed.contentType),
-		compressBlob(processed.thumbnail, processed.thumbnailContentType)
+		compressBlob(processed.thumbnail, processed.thumbnailContentType),
+		compressBlob(clean?.data ?? null, clean?.contentType)
 	])
 	return {
 		...processed,
 		kind,
+		size: clean ? clean.data.length : processed.size,
 		data: data.blob, dataCompressed: data.compressed,
-		thumbnail: thumbnail.blob, thumbnailCompressed: thumbnail.compressed
+		thumbnail: thumbnail.blob, thumbnailCompressed: thumbnail.compressed,
+		original: original.blob ?? null, originalCompressed: original.compressed, originalContentType: clean?.contentType ?? null
 	}
 }

@@ -8,7 +8,7 @@ import { Record } from '../components/List.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
-import { attachmentFileUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentThumbnailUrl, vendorImageUrl } from '../api/client.js'
+import { attachmentDownloadUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentThumbnailUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
 import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
@@ -160,7 +160,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 		<Menu position="floating" aria-label="Order">
 			<MenuItem icon="external-link" onClick={go(`/orders/${order.id}`)}>Open order</MenuItem>
 			<MenuItem icon="file" onClick={go(`/orders/new?duplicate=${order.id}`)}>Duplicate</MenuItem>
-			<MenuItem icon="download" disabled={!order.receipt} onClick={() => { close(); download(attachmentFileUrl(order.id, order.receipt)) }}>Download receipt</MenuItem>
+			<MenuItem icon="download" disabled={!order.receipt} onClick={() => { close(); download(attachmentDownloadUrl(order.id, order.receipt)) }}>Download receipt</MenuItem>
 			<MenuSeparator />
 			{touch
 				? <MenuItem icon="clock" onClick={() => setLevel('status')}><span>Set status</span><span className="sp-grow" /><ChevronRight /></MenuItem>

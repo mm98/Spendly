@@ -1629,6 +1629,15 @@
 				"idx_order_items_order"
 			]
 		},
+		"SELECT id FROM orders WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_orders_1"
+			]
+		},
 		"SELECT id FROM orders WHERE user_id = ? AND client_key = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_client_key (user_id=? AND client_key=?)"
@@ -2101,6 +2110,17 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_id = ?": {
+			"plan": [
+				"SEARCH attachments USING INDEX sqlite_autoindex_attachments_1 (id=?)"
+			],
+			"findings": [
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"sqlite_autoindex_attachments_1"
+			]
+		},
 		"SELECT name, matched_at FROM vendor_aliases WHERE vendor_id = ? AND user_id = ? ORDER BY name": {
 			"plan": [
 				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_vendor (vendor_id=?)",
@@ -2111,6 +2131,17 @@
 			],
 			"indexes": [
 				"idx_vendor_aliases_vendor"
+			]
+		},
+		"SELECT name, original, original_is_compressed, original_content_type FROM attachments WHERE id = ? AND order_id = ?": {
+			"plan": [
+				"SEARCH attachments USING INDEX sqlite_autoindex_attachments_1 (id=?)"
+			],
+			"findings": [
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"sqlite_autoindex_attachments_1"
 			]
 		},
 		"SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name IN ('order_items', 'orders', 'order_categories')": {

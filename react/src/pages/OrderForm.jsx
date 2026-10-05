@@ -25,8 +25,8 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
-	getVendorPage, invalidateOrderData, onOrderSavedElsewhere, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
+	attachmentDownloadUrl, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
+	getVendorPage, invalidateOrderData, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, quantity, shortDate, today
@@ -689,7 +689,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		...saved.filter(f => !gone.includes(f.id)).map(f => ({
 			key: f.id, name: f.name, kind: f.kind,
 			src: f.kind === 'pdf' ? f.thumb : attachmentFileUrl(orderId, f.id),
-			download: attachmentFileUrl(orderId, f.id),
+			download: attachmentDownloadUrl(orderId, f.id),
 			...pagesOf(orderId, f)
 		})),
 		...files.filter(f => !f.problem).map(f => ({ key: f.key, name: f.name, src: f.thumb })),
@@ -1341,7 +1341,7 @@ export function useStacked(ref) {
 
 /** The uploaded receipt as the viewer shows it, every page of it (17d: receipt preview). */
 const receiptOf = file => ({
-	key: 'receipt', name: file.name, kind: file.kind, download: scanFileUrl(file.key),
+	key: 'receipt', name: file.name, kind: file.kind, download: scanDownloadUrl(file.key),
 	src: file.kind === 'pdf' ? scanPageUrl(file.key, 0) : scanFileUrl(file.key),
 	...(file.kind === 'pdf'
 		? { pages: file.pages ?? null, pageSrc: i => scanPageUrl(file.key, i), countPages: () => getScanPages(file.key).then(r => r.pages) }
