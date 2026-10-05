@@ -70,10 +70,10 @@ export function CopyPicker({ onClose }) {
 		</>
 	)
 	return (
-		<Dialog onCancel={onClose} aria-label="Copy a previous order">
+		<Dialog onCancel={onClose} aria-label="Copy an order">
 			<div className="sp-stack sp-gap-12">
 				<div className="sp-stack sp-gap-6">
-					<DialogTitle>Copy a previous order</DialogTitle>
+					<DialogTitle>Copy an order</DialogTitle>
 					<DialogBody>The vendor, category and item lines are copied, with each item's photo. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
 				</div>
 				<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders"
