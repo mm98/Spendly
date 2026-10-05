@@ -52,7 +52,6 @@
 	right: 0;
 	bottom: 0;
 	z-index: 5;
-	padding-bottom: env(safe-area-inset-bottom);
 }
 /* a task's save bar takes the tab bar's place at the bottom edge (r13, Mobile screens 5b) */
 .sp-shell--touch .sp-savebar {

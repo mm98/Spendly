@@ -126,6 +126,8 @@
   .doc-w880 { width: 880px; }
   .doc-w1040 { width: 1040px; }
   .doc-w1280 { width: 1280px; }
+  /* a phone frame drawn with the iPhone home bar band, 34 in portrait */
+  .doc-home-band { --home-band: 34px; }
   /* a screen drawn at the width the app gives its window */
   .doc-screen { width: 1400px; }
   /* a legend: a specimen, its value, what it means, where it appears. The rows
