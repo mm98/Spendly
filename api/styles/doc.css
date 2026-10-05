@@ -1,0 +1,283 @@
+/* Spendly documentation chrome.
+
+   Spacing here is two values and no others: 16 separates one drawing from the next
+   (a section from a section, a specimen from a specimen), 8 holds a drawing together
+   with its label and its notes. 12 is the product's card gap and is not used by the
+   frame - the exception is .doc-table__row, whose 12 is a table's column gap and has
+   to match .sp-table's.
+   The design documents themselves: sections, badges, ledes, notes blocks and
+   specimens. None of it is product UI, so none of it belongs in components.css -
+   a component style is only ever for a component. Pages load both.
+
+   Everything here is in @layer base, so it can never reach into a component. */
+
+@layer base {
+
+  .doc-note { font-size: var(--t-12); color: var(--ink-3); line-height: var(--lh); }
+
+  /* ---------- notes block: outside every render ---------- */
+
+  .doc-notes {
+    max-width: 900px;
+    border-left: 2px solid var(--line-5);
+    padding: var(--sp-6) 0 var(--sp-6) var(--sp-16);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+  }
+  .doc-notes__label {
+ 
+    font-size: var(--t-10);
+    letter-spacing: 0.14em;
+    color: var(--ink-5);
+    text-transform: uppercase;
+  }
+  .doc-notes__label + .doc-notes__label,
+  .doc-note + .doc-notes__label { padding-top: var(--sp-6); }
+  .doc-note b { color: var(--ink-2); }
+
+  /* ---------- page furniture for this library ---------- */
+
+  .doc-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-16);
+    padding: 0 calc(var(--sp-16) * 3) calc(var(--sp-16) * 2 + var(--sp-8));
+  }
+  .doc-section--first { padding-top: calc(var(--sp-16) * 3); }
+  .doc-section__head { display: flex; align-items: baseline; gap: var(--sp-8); }
+  .doc-badge {
+    font-size: var(--t-12);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    background: var(--green);
+    color: var(--surface);
+    padding: var(--sp-6) var(--sp-8);
+    border-radius: var(--r-marker);
+  }
+  .doc-section__title { font-size: var(--t-20); font-weight: 600; }
+  .doc-page-title { font-size: var(--t-24); font-weight: 600; }
+  .doc-lede { font-size: var(--t-14); color: var(--ink-3); max-width: 900px; line-height: var(--lh); }
+
+  /* A bounded scroll area for a specimen that only makes sense while something
+     scrolls under it - a sticky row. Without it the row sticks to the viewport and
+     floats over whatever the page is showing, which is the specimen's fault and not
+     the component's. */
+  /* A phone specimen's body. The real frames use page classes for this - a status
+     bar, a pane, a scroll region - and none of them is a component, so the harness
+     draws its own rather than inventing a component class for doc chrome. */
+  .doc-phone-body {
+    /* the frame already pads 16 and spaces its children 12; the body bleeds through
+       both, so a card sits 12 from the screen edge and 12 under the bar, as on every
+       Mobile screens frame, instead of 16 + 12 at the sides and 12 + 12 under the bar */
+    margin: calc(var(--sp-12) * -1) calc(var(--sp-16) * -1);
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+    padding: var(--sp-12);
+    background: var(--bg);
+  }
+
+  .doc-phone-body:first-child { margin-top: calc(var(--sp-16) * -1); }
+  .doc-phone-body:last-child { margin-bottom: calc(var(--sp-16) * -1); }
+
+  .doc-scrollbox {
+    height: 190px;
+    overflow: auto;
+    padding: var(--sp-12);
+    border: 1px dashed var(--line-4);
+    border-radius: var(--r-card);
+    background: var(--bg);
+  }
+  .doc-scrollfill {
+    height: 260px;
+    display: grid;
+    place-items: center;
+    color: var(--ink-5);
+    font-size: var(--t-12);
+  }
+  .doc-specimens--stack { flex-direction: column; }
+  .doc-specimens--stack > .sp-card,
+  .doc-specimens--stack > .sp-controls { width: 100%; }
+
+  .doc-specimens { display: flex; gap: var(--sp-16); align-items: flex-start; flex-wrap: wrap; }
+  /* The 16 separates one DRAWING from the next, and a drawing is a labelled specimen.
+     Where the children are bare components instead - a card, a list, a stack, with no
+     label between them - there is nothing to say they are separate examples, so they
+     read as cards side by side and take the card gap. Eight wrappers were 16 for that
+     reason, which is what kept turning up as "a card gap is wrong". */
+  .doc-specimens:not(:has(> * > .doc-specimen__label)):not(:has(> .doc-specimen)) { gap: var(--sp-12); }
+  .doc-specimen { display: flex; flex-direction: column; gap: var(--sp-8); }
+  .doc-specimen__label {
+    display: block;
+    width: 100%; font-size: var(--t-11); letter-spacing: var(--ls-eyebrow); color: var(--ink-4); }
+  .doc-w330 { width: 330px; }
+  .doc-w340 { width: 340px; }
+.doc-w361 { width: 361px; }
+.doc-w400 { width: 400px; }
+  .doc-w420 { width: 420px; }
+  .doc-w440 { width: 440px; }
+  .doc-w460 { width: 460px; }
+.doc-w480 { width: 480px; }
+.doc-w560 { width: 560px; }
+  .doc-w880 { width: 880px; }
+  .doc-w1040 { width: 1040px; }
+  .doc-w1280 { width: 1280px; }
+  /* a phone frame drawn with the iPhone home bar band, 34 in portrait */
+  .doc-home-band { --home-band: 34px; }
+  /* a screen drawn at the width the app gives its window */
+  .doc-screen { width: 1400px; }
+  /* a legend: a specimen, its value, what it means, where it appears. The rows
+     share one grid - each row resolving its own tracks is what makes the last
+     column start in a different place on every line. */
+  .doc-legends {
+    display: grid;
+    grid-template-columns: 120px 66px minmax(0, 1fr) 140px;
+    gap: var(--sp-8);
+    align-items: center;
+  }
+  .doc-legend { display: contents; }
+  /* a whole screen drawn on a documentation page: the app's ground, clipped. The
+     radius, outline and fixed width are presentation - the app meets the window. */
+  .doc-frame {
+    background: var(--surface-2);
+    border: 1px solid var(--line-3);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+
+  /* ---------- library chrome ----------
+     Not part of any component: the controls for viewing this page. */
+
+  .doc-chrome {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-8);
+    padding: var(--sp-16) calc(var(--sp-16) * 3) 0;
+  }
+  .doc-chrome .sp-theme { box-shadow: var(--shadow-menu); }
+
+  /* view options, driven by the host's Tweaks panel */
+  .sp[data-notes="off"] .doc-notes { display: none; }
+  /* touch only: keep every specimen that contains a phone, and nothing else - a
+     labelled wrapper, a bare card, a shell, a bar, a list, a menu, a label of its own */
+  .sp[data-touch="only"] .doc-specimens > *:not(:has(.sp-phone)) { display: none; }
+  .sp[data-touch="only"] .doc-specimens > .doc-specimen:has(.sp-phone) { display: flex; }
+  /* the same for a section that lays its specimens out directly, with no wrapper:
+     everything but the section's own prose goes unless it holds a phone */
+  .sp[data-touch="only"] .doc-section > *:not(.doc-section__head):not(.doc-lede):not(.doc-notes):not(.doc-specimens):not(:has(.sp-phone)) { display: none; }
+  /* a section with no touch form at all shows nothing */
+  .sp[data-touch="only"] .doc-section:not(:has(.sp-phone)) .doc-specimens { display: none; }
+  /* the rail has no card of its own - this only gives the specimen its width */
+  .doc-rail-demo { display: flex; flex-direction: column; gap: var(--sp-8); width: 260px; }
+  /* an explanation drawn as a panel: the documents' own card, not the product's */
+  
+/* ---------- the documentation table ----------
+   Eight pages state a rule table: a head row, then one row per rule. It was drawn
+   eight times, at four different paddings and two head treatments; this is the one
+   implementation, and its head is .sp-table's head exactly - same size, tracking,
+   ink and rule - so a documentation table and a product table read as one object.
+   A page states only its own columns, on .doc-table__row and .doc-table__head, and
+   the box around them is c1's .sp-list - the same surface, hairline and radius a
+   product list has, rather than a second implementation of it. */
+.doc-table__head,
+.doc-table__row {
+  display: grid;
+  gap: var(--sp-12);
+  align-items: start;
+  padding: var(--sp-12) var(--sp-16);
+}
+.doc-table__row { font-size: var(--t-12); }
+.doc-eyebrow {
+    font-size: var(--t-11);
+    letter-spacing: var(--ls-eyebrow);
+    color: var(--ink-4);
+    text-transform: uppercase;
+  }
+.doc-table__head {
+  padding-top: var(--sp-8);
+  padding-bottom: var(--sp-8);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-11);
+  font-weight: 400;
+  letter-spacing: var(--ls-label);
+  color: var(--ink-5);
+  text-transform: uppercase;
+}
+.doc-table__row + .doc-table__row { border-top: 1px solid var(--line-2); }
+/* a row saying what the design does not do */
+.doc-table__row--no { background: var(--red-tint-2); }
+
+.doc-card {
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+    padding: var(--sp-16) var(--sp-16);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+  }
+
+}
+
+
+/* ---------- specimen scaffolding for the overlay positioning demos (c9) ----------
+   A panel opens into space, so the card showing one has to have that space; and a
+   scroll region has to look like one without scrolling. Documentation only. */
+
+.doc-h300 { height: 300px; }
+  /* Room reserved for a specimen whose open panel is absolutely positioned: the
+     panel occupies no flow space, so without this the specimens beneath it sit
+     under the panel rather than below it. Measured from the panel, not guessed - it starts 75px into the wrapper and stands 476px, so 560 clears it. */
+  .doc-h560 { min-height: 560px; }
+.doc-end { align-items: flex-end; }
+.doc-bottom { justify-content: flex-end; }
+.doc-spacer { height: var(--sp-8); }
+/* a short frame for a specimen that only needs the bottom of a phone; the frame keeps
+   its own padding, so the bars and sheets inside it bleed the way they do everywhere */
+.doc-phone-short { height: 236px; overflow: hidden; gap: 0; }
+.doc-scrollbar { width: 6px; height: 44px; border-radius: 3px; background: var(--hatch-a); align-self: flex-end; }
+
+/* a swatch in a colour legend: the token it stands for is data, so one rule
+   draws every square and the legend lists what each one is for */
+.doc-legend__swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-marker);
+  flex: none;
+  background: var(--surface);
+  border: 1px solid var(--line-3);
+}
+.doc-legend__swatch[data-bg="line-2"] { background: var(--line-2); border-color: var(--line-3); }
+.doc-legend__swatch[data-bg="surface-2"] { background: var(--surface-2); border-color: var(--line-3); }
+.doc-legend__swatch[data-bg="red-tint-2"] { background: var(--red-tint-2); border-color: var(--red); }
+.doc-legend__swatch[data-bg="green-2"] { background: var(--green-2); border-color: var(--green-2); }
+.doc-legend__swatch[data-bg="green-press"] { background: var(--green-press); border-color: var(--green-press); }
+.doc-legend__swatch[data-bg="surface"] { background: var(--surface); border-color: var(--green); }
+
+/* a card of prose: capped at a reading width rather than fixed to one, so it
+   cannot overflow a narrower column the way the doc-w* widths can */
+.doc-read { max-width: 880px; }
+
+/* The call that produced the specimen above it. Documentation chrome, so it lives
+   here rather than in components.css - and it is generated from the rendered
+   element rather than written beside it, which is what stops the two disagreeing. */
+.doc-code {
+  margin: 0;
+  padding: var(--sp-10) var(--sp-12);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--t-11);
+  line-height: 1.7;
+  color: var(--ink-3);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.doc-code__line { display: block; }
+.doc-code__line + .doc-code__line { margin-top: var(--sp-2); }
