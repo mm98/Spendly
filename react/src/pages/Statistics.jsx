@@ -956,7 +956,7 @@ function Pick({ onPick, label, children }) {
 }
 
 /** A ranked list with a bar under each line: the top eight and one line for the rest, or the top
-    page of rows and one line for the rest in a region that scrolls inside the card (4d). With no entries yet, `rows` skeleton lines. */
+    page of rows and one line for the rest (4d). With no entries yet, `rows` skeleton lines. */
 function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = false }) {
 	const shown = useShown()
 	if (!entries) {
@@ -1015,7 +1015,7 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 			</Pick>
 		)
 	})
-	return open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn
+	return drawn
 }
 
 /** The card's footer: the way to every line once there are more than the resting nine. */
@@ -1347,7 +1347,7 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 					</ListItem>
 				)
 				: null}
-			{open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn}
+			{drawn}
 			{open && rows.length > shown ? <span className="sp-meta">Top {shown} of {amount(rows.length, 0)}. Edit on category lists them all.</span> : null}
 			{/* the whole window's spend against every limit, the same share Home states */}
 			<CardFooter>
