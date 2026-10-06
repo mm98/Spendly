@@ -350,6 +350,9 @@ for (const [method, path, body] of [
 	['POST', '/views', { name: 'This month', query: 'period=month&status=Ordered', attention: true }],
 	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true, attention: true }],
 	['PUT', '/views/shown', { shown: 6 }],
+	// Home counts a rule only while it is on, and the receipt rule starts off
+	['PATCH', '/settings', { looks: { receipt: true } }],
+	['GET', '/stats/home'],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
 	['DELETE', `/views/sv-${USER}-receipt`],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes

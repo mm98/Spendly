@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, SPEND_KINDS } from '../lib/constants.js'
 import { statusKeys } from '../lib/statuses.js'
+import { looksOf, setLooks } from '../lib/looks.js'
 
 export const router = Router()
 
@@ -54,7 +55,7 @@ const onOff = (asked, fallback) => (typeof asked === 'boolean' ? asked : fallbac
 
 router.get('/', (req, res) => {
 	const row = selectSettings.get(req.user.id)
-	res.json(row ? toApi(row) : null)
+	res.json(row ? { ...toApi(row), looks: looksOf(req.user.id) } : null)
 })
 
 router.patch('/', (req, res) => {
@@ -100,5 +101,6 @@ router.patch('/', (req, res) => {
 		scanOverrides: onOff(next.scanOverrides, currentApi.scanOverrides),
 		sidebar: oneOf(SIDEBARS, String(next.sidebar ?? ''), currentApi.sidebar)
 	})
-	res.json(toApi(selectSettings.get(req.user.id)))
+	setLooks(req.user.id, req.body?.looks)
+	res.json({ ...toApi(selectSettings.get(req.user.id)), looks: looksOf(req.user.id) })
 })

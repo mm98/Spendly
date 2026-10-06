@@ -23,6 +23,7 @@ import {
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
 import { CopyPicker } from './CopyPicker.jsx'
+import { alertsOf, looksIn, monthOf } from './needsLook.jsx'
 
 const RECENT = 4
 const MONTHS = 8
@@ -76,10 +77,8 @@ function against(spent, limit, pace) {
 }
 
 /** The window's month in the account's own language, as Statistics and the month bars write it. */
-const monthOf = w => monthNames('long')[Number(w.from.slice(5, 7)) - 1]
 const capital = text => text.charAt(0).toLocaleUpperCase() + text.slice(1)
 
-const ordersFor = (category, window) => `/orders?category=${category.id}&from=${window.from}&to=${window.to}`
 
 const dateOf = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d) }
 const dayNumbers = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: '2-digit', month: '2-digit' })
@@ -168,7 +167,8 @@ export default function Home() {
 		? <MonthlySummary summary={due} categories={categories.data.limited} early={loud.early} onHide={() => hide(due.month)} />
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
-	const props = { month, categories, view, recent, attention: attention.data, name }
+	// the card waits for the settings, so a row switched off never flashes up
+	const props = { month, categories, view, recent, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
 }
@@ -176,7 +176,7 @@ export default function Home() {
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, categories, view, recent, attention, notice }) {
+function DesktopHome({ month, categories, view, recent, attention, looks, notice }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error
 	return (
@@ -194,7 +194,7 @@ function DesktopHome({ month, categories, view, recent, attention, notice }) {
 			</div>
 			<div className="hm-split hm-split--start sp-gap-12">
 				<div className="sp-stack sp-gap-12">
-					{lost ? null : <AlertsCard view={view} attention={attention} />}
+					{lost ? null : <AlertsCard view={view} attention={attention} looks={looks} />}
 					<RecentCard recent={recent} />
 				</div>
 				<div className="sp-stack sp-gap-12">
@@ -287,54 +287,21 @@ function AlertSkeleton({ width }) {
 	)
 }
 
-/** What needs a look, by severity: categories over their limit, then near it (8b), then orders
-    not delivered after two weeks, without a receipt, then vendors whose names look alike. A count of zero is no row at all. */
-function alertsOf(view, attention) {
-	const w = view.window
-	const over = view.over.map(c => ({
-		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!', phone: 'over',
-		text: <><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(w)}</>
-	}))
-	const near = view.near.map(c => ({
-		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!',
-		text: <><b>{c.name} is at {Math.floor((c.monthSpend / c.budget) * 100)}%</b> of its limit for {monthOf(w)}</>
-	}))
-	const late = attention?.notDelivered
-		? [{
-			key: 'delivery', to: `/orders?status=Ordered&to=${attention.notDeliveredTo}`, count: amount(attention.notDelivered, 0),
-			text: `${attention.notDelivered === 1 ? 'order' : 'orders'} ordered over 2 weeks ago and not delivered`, phone: 'not delivered after 2 weeks'
-		}]
-		: []
-	const receipts = attention?.withoutReceipt
-		? [{
-			key: 'receipt', to: '/orders?view=missing-receipt', count: amount(attention.withoutReceipt, 0),
-			text: `${attention.withoutReceipt === 1 ? 'order' : 'orders'} without a receipt attached`, phone: 'missing a receipt'
-		}]
-		: []
-	const lookalikes = attention?.lookalikeVendors
-		? [{
-			key: 'vendors', to: '/vendors?flag=possible-duplicate', count: amount(attention.lookalikeVendors, 0),
-			text: 'vendors look like duplicates', phone: 'look like duplicates'
-		}]
-		: []
-	return { over, near, others: [...late, ...receipts, ...lookalikes] }
-}
-
-function AlertsCard({ view, attention }) {
-	const alerts = view ? alertsOf(view, attention) : null
-	const all = alerts ? [...alerts.over, ...alerts.near, ...alerts.others] : []
+function AlertsCard({ view, attention, looks }) {
+	const alerts = view && looks ? alertsOf(looks, { view, things: attention?.things }) : null
+	const all = alerts ? alerts.rows : []
 	if (alerts && !all.length) return null
 	const shown = all.slice(0, ALERTS)
 	const counted = alerts ? <span className="sp-meta">{all.length > ALERTS ? `${shown.length} of ${amount(all.length, 0)} things` : plural(all.length, 'thing')}</span> : null
-	// past the cap the true total of categories over their limit rides on a link, as Recent orders' does
-	const more = alerts && alerts.over.length > ALERTS
+	// past the cap the true total of a rule's rows rides on a link, as Recent orders' does
+	const more = alerts?.all && alerts.all.count > ALERTS
 	return (
 		<Card variant="flush">
 			<Toolbar>
 				<span className="sp-section-label">Needs a look</span>
 				{more ? counted : null}
 				<span className="sp-grow" />
-				{more ? <Button variant="text" size="small" to="/categories?flag=over-limit">All {amount(alerts.over.length, 0)}</Button> : counted}
+				{more ? <Button variant="text" size="small" to={alerts.all.to}>All {amount(alerts.all.count, 0)}</Button> : counted}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
@@ -669,7 +636,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, categories, view, recent, attention, name }) {
+function PhoneHome({ month, categories, view, recent, attention, looks, name }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -686,7 +653,7 @@ function PhoneHome({ month, categories, view, recent, attention, name }) {
 					</Hold>
 				)
 				: <PhoneMonth w={w} view={view} limitsLost={categories.error ? categories.refresh : null} />}
-			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} />}
+			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
 			<PhoneRecent recent={recent} />
 		</>
 	)
@@ -738,37 +705,19 @@ function PhoneMonth({ w, view, limitsLost }) {
 	)
 }
 
-function PhoneAlerts({ view, attention }) {
-	const alerts = view ? alertsOf(view, attention) : null
-	if (alerts && !alerts.over.length && !alerts.near.length && !alerts.others.length) return null
+function PhoneAlerts({ view, attention, looks }) {
+	const alerts = view && looks ? alertsOf(looks, { view, things: attention?.things }) : null
+	if (alerts && !alerts.phone.length) return null
 	const chevron = <Icon name="chevron-right" size={13} />
 	return (
 		<Card>
 			<span className="sp-section-label">Needs a look</span>
 			{alerts
-				? (
-					<>
-						{alerts.over.length
-							? (
-								<ListItem to="/categories?flag=over-limit" color="warning" chevron={chevron} count={amount(alerts.over.length, 0)}>
-									<span className="sp-data sp-ink-warning sp-grow">over {alerts.over.length === 1 ? 'its' : 'their'} limit</span>
-								</ListItem>
-							)
-							: null}
-						{alerts.near.length
-							? (
-								<ListItem to="/categories" color="warning" chevron={chevron} count={amount(alerts.near.length, 0)}>
-									<span className="sp-data sp-ink-warning sp-grow">near {alerts.near.length === 1 ? 'its' : 'their'} limit</span>
-								</ListItem>
-							)
-							: null}
-						{alerts.others.map(a => (
-							<ListItem key={a.key} to={a.to} chevron={chevron} count={a.count}>
-								<span className="sp-data sp-grow sp-truncate">{a.phone}</span>
-							</ListItem>
-						))}
-					</>
-				)
+				? alerts.phone.map(a => (
+					<ListItem key={a.key} to={a.to} color={a.color} chevron={chevron} count={a.count}>
+						<span className={a.color === 'warning' ? 'sp-data sp-ink-warning sp-grow' : 'sp-data sp-grow sp-truncate'}>{a.phone}</span>
+					</ListItem>
+				))
 				: <AlertSkeleton width="44pc" />}
 		</Card>
 	)
