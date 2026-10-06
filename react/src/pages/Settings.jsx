@@ -19,7 +19,7 @@ import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
 import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getOrderDraft, getOrders, getSettings, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
+	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getHomeAttention, getHomeCategories, getMonthlySummary, getOrderDraft, getOrders, getSettings, getStatsSlice, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
 	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
@@ -88,7 +88,7 @@ const previewAmount = code => {
 
 /* Saved settings are baked into these answers, so each is dropped the moment a save lands. */
 const dropStale = () => {
-	for (const fn of [getSettings, getOrderDraft, getOrders, getVendorPage, getVendorPages, getCategoryPage, getCategoryPages])
+	for (const fn of [getSettings, getOrderDraft, getOrders, getVendorPage, getVendorPages, getCategoryPage, getCategoryPages, getHomeAttention, getHomeCategories, getMonthlySummary, getStatsSlice])
 		invalidate(fn)
 }
 
