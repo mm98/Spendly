@@ -94,6 +94,9 @@ function daysAgo(iso) {
 	return days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
 }
 
+// the tallest bar's share of the chart: the rest is the room a bar's readout stands in above it
+const PEAK = 50
+
 /** The last eight calendar months, ending with this one, from the year's running totals. */
 function lastMonths(window) {
 	const year = Number(window.from.slice(0, 4))
@@ -121,11 +124,11 @@ function lastMonths(window) {
 			key: `${y}-${mm}`, from: `${y}-${mm}-01`, to: `${y}-${mm}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, '0')}`,
 			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}, ${currency(spend, 0)}`, spend,
 			tip: <ChartTip title={`${long[m]} ${y}`} value={currency(spend, 0)}
-				note={`${orders == null ? '' : `${plural(orders, 'order')}${dot}`}click to open in Statistics`} />
+				note={`${orders == null ? '' : `${plural(orders, 'order')}${dot}`}click to open`} />
 		}
 	})
 	const most = Math.max(...months.map(c => c.spend), 0)
-	return months.map((c, i) => ({ ...c, height: most ? (c.spend / most) * 100 : 0, muted: i < MONTHS - 1 }))
+	return months.map((c, i) => ({ ...c, height: most ? (c.spend / most) * PEAK : 0, muted: i < MONTHS - 1 }))
 }
 
 function greeting(name) {
@@ -628,8 +631,10 @@ function MonthsCard() {
 				<span className="sp-grow" />
 				<Button variant="text" size="small" to="/statistics">Statistics</Button>
 			</div>
-			<Bars columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
-				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
+			<div className="hm-months">
+				<Bars variant="plot" columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
+					onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
+			</div>
 		</Card>
 	)
 	if (year.error) return (
