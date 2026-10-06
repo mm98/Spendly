@@ -53,14 +53,14 @@ const share = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
 const signed = (n, text) => (n > 0 ? `+${text}` : n < 0 ? `-${text}` : text)
 const counted = (n, noun, nouns = `${noun}s`) => `${amount(n, 0)} ${n === 1 ? noun : nouns}`
 const TOP = 8
-// the most lines one card ever lists, whatever an account holds; the rest stay behind a count
-const SHOWN = 25
 // inside a crumb the Spend and Average help name the level above by its kind (4b, 4c)
 const OF_WINDOW = { year: 'the year', quarter: 'the quarter', month: 'the month', week: 'the week' }
 const OF_CRUMB = { month: 'this month', week: 'this week', vendor: 'this vendor', category: 'this category', status: 'these orders' }
 const VERSUS = { month: 'all months', week: 'all weeks', vendor: 'all vendors', category: 'all categories', status: 'all statuses' }
 // the table pages by the row count set in Settings, as every order list does
 const usePageSize = () => useApi(getSettings).data?.pageSize ?? null
+// the most lines a card lists once opened, whatever an account holds; always more than the resting cap
+const useShown = () => Math.max(usePageSize() ?? 10, TOP + 2)
 
 /** The id a range opens on when the address names none: the window holding today. */
 const defaultId = range => windowIdAt(range, todayUtc())
@@ -956,8 +956,9 @@ function Pick({ onPick, label, children }) {
 }
 
 /** A ranked list with a bar under each line: the top eight and one line for the rest, or the top
-    twenty-five and one line for the rest in a region that scrolls inside the card (4d). With no entries yet, `rows` skeleton lines. */
+    page of rows and one line for the rest in a region that scrolls inside the card (4d). With no entries yet, `rows` skeleton lines. */
 function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = false }) {
+	const shown = useShown()
 	if (!entries) {
 		return WIDTHS.slice(0, rows).map(w => (touch
 			? (
@@ -977,7 +978,7 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 				</div>
 			)))
 	}
-	const top = open ? SHOWN : TOP
+	const top = open ? shown : TOP
 	const rest = entries.slice(top)
 	const folded = rest.length > 1
 	const lines = folded
@@ -1041,9 +1042,10 @@ function CategoryRows({ view, known, name, onOpen, hint = false }) {
 }
 
 function ShowAll({ open, onClick, count, noun }) {
+	const shown = useShown()
 	return (
 		<Button variant="outline" size="small" onClick={onClick}>
-			{open ? `Show top ${TOP} only` : count > SHOWN ? `Show top ${SHOWN} of ${amount(count, 0)} ${noun}` : `Show all ${amount(count, 0)} ${noun}`}
+			{open ? `Show top ${TOP} only` : count > shown ? `Show top ${shown} of ${amount(count, 0)} ${noun}` : `Show all ${amount(count, 0)} ${noun}`}
 		</Button>
 	)
 }
@@ -1091,6 +1093,7 @@ function VendorChart({ view, onOpen }) {
 }
 
 function VendorsCard({ view, name, touch, onOpen }) {
+	const shown = useShown()
 	const [open, setOpen] = useState(false)
 	const vendors = view?.vendorSplit
 	// before the window answers, the card holds its resting cap: eight, the rest, and the way to all
@@ -1102,7 +1105,7 @@ function VendorsCard({ view, name, touch, onOpen }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Top vendors</span>
 				<span className="sp-grow" />
-				<span className="sp-meta">{vendors ? `${name}${dot}${count > SHOWN || (folds && !open) ? `top ${open ? SHOWN : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
+				<span className="sp-meta">{vendors ? `${name}${dot}${count > shown || (folds && !open) ? `top ${open ? shown : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
 			</div>
 			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} onOpen={onOpen} counts={!touch} />
 			<CardFooter>
@@ -1232,6 +1235,7 @@ const EditLimit = ({ category }) => (
 )
 
 function LimitCard({ view, name, running, categories, touch, onRetry }) {
+	const shown = useShown()
 	const edit = <EditLimit key="edit" />
 	// a phone button takes the full width, so there it sits in the card's footer rather than squeezing the label
 	const head = (
@@ -1305,7 +1309,7 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 	// the most spent rest at the top eight, as drawn (4a); past the resting nine the rest are a press away (4d)
 	const folds = rows.length > TOP + 1
 	const all = folds ? <ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={rows.length} noun="categories" /> : null
-	const drawn = rows.slice(0, folds && !open ? TOP : SHOWN).map(row => {
+	const drawn = rows.slice(0, folds && !open ? TOP : shown).map(row => {
 		const over = row.spend > row.allowed
 		const scale = Math.max(row.spend, row.allowed)
 		// ahead of pace only past ten points over the marker (4a, 5d)
@@ -1344,7 +1348,7 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 				)
 				: null}
 			{open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn}
-			{open && rows.length > SHOWN ? <span className="sp-meta">Top {SHOWN} of {amount(rows.length, 0)}. Edit on category lists them all.</span> : null}
+			{open && rows.length > shown ? <span className="sp-meta">Top {shown} of {amount(rows.length, 0)}. Edit on category lists them all.</span> : null}
 			{/* the whole window's spend against every limit, the same share Home states */}
 			<CardFooter>
 				<span className="sp-data">All categories</span>
