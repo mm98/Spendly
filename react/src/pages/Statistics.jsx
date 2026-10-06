@@ -1290,15 +1290,15 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 	}
 	const months = view.budgets.months
 	const spendOf = new Map(view.split.map(entry => [entry.id, entry.amount]))
-	const rows = limited
-		.map(category => {
-			const spend = spendOf.get(category.id) ?? 0
-			const allowed = category.budget * months
-			return { id: category.id, name: category.name, spend, allowed, used: share(spend, allowed) }
-		})
-		.sort((a, b) => b.spend - a.spend || a.name.localeCompare(b.name))
+	const limits = limited.map(category => {
+		const spend = spendOf.get(category.id) ?? 0
+		const allowed = category.budget * months
+		return { id: category.id, name: category.name, spend, allowed, used: share(spend, allowed) }
+	})
+	// a limit is a ceiling: a category that spent nothing has no bar, though its limit still counts in the total
+	const rows = limits.filter(row => row.spend > 0).sort((a, b) => b.spend - a.spend || a.name.localeCompare(b.name))
 	const pace = view.pace.running ? share(view.pace.daysIn, view.pace.unitDays) : null
-	const allowed = rows.reduce((sum, row) => sum + row.allowed, 0)
+	const allowed = limits.reduce((sum, row) => sum + row.allowed, 0)
 	// the most spent rest at the top eight, as drawn (4a); past the resting nine the rest are a press away (4d)
 	const folds = rows.length > TOP + 1
 	const all = folds ? <ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={rows.length} noun="categories" /> : null
@@ -1327,6 +1327,14 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 			</div>
 		)
 	})
+	if (!rows.length) {
+		return (
+			<Card footer={footer}>
+				{head}
+				<span className="sp-meta">Nothing has been spent in a category with a limit.</span>
+			</Card>
+		)
+	}
 	return (
 		<Card footer={all ? [...(footer ?? []), all] : footer} footerLayout={touch && all ? 'stack' : 'fill'}>
 			{head}
