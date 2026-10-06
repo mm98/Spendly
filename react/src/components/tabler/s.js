@@ -282,7 +282,9 @@ square-chevrons-down	M15 8l-3 3l-3 -3 M15 13l-3 3l-3 -3 M3 5a2 2 0 0 1 2 -2h14a2
 square-chevrons-left	M16 15l-3 -3l3 -3 M11 15l-3 -3l3 -3 M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14
 square-chevrons-right	M8 9l3 3l-3 3 M13 9l3 3l-3 3 M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14
 square-chevrons-up	M9 16l3 -3l3 3 M9 11l3 -3l3 3 M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14
-square-dashed	M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -14
+square-dashed-top-solid	M14 21h1 M21 14v1 M21 19a2 2 0 0 1 -2 2 M21 9v1 M3 14v1 M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2 M3 9v1 M5 21a2 2 0 0 1 -2 -2 M9 21h1
+square-dashed-x	M5 3a2 2 0 0 0 -2 2 M19 3a2 2 0 0 1 2 2 M5 21a2 2 0 0 1 -2 -2 M9 3h1 M9 21h1 M14 3h1 M3 9v1 M21 9v1 M3 14v1 M22 22l-5 -5 M17 22l5 -5
+square-dashed	M5 3a2 2 0 0 0 -2 2 M19 3a2 2 0 0 1 2 2 M21 19a2 2 0 0 1 -2 2 M5 21a2 2 0 0 1 -2 -2 M9 3h1 M9 21h1 M14 3h1 M14 21h1 M3 9v1 M21 9v1 M3 14v1 M21 14v1
 square-dot	M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0
 square-f0	M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14 M13 10.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0 M8 12h2 M10 9h-2v6
 square-f1	M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14 M13 11l2 -2v6 M8 12h2 M10 9h-2v6
