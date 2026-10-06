@@ -1,5 +1,5 @@
 /* The icon register: Tabler outline (MIT), unmodified. An icon not here is not in the app;
-   add one from Tabler by name, never by drawing a path. */
+   add one from Tabler by name, never by drawing a path. npm run icons:sync keeps the drawings current. */
 
 export const ICONS = {
 	"alert-circle": ['M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0', 'M12 8v4', 'M12 16h.01'],

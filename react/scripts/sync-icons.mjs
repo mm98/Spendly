@@ -50,7 +50,7 @@ const collect = () => {
 				return d && d !== BOUNDS && (!fill || fill === 'none')
 			})
 			.map(attrs => /\bd="([^"]*)"/.exec(attrs)[1].trim())
-		if (paths.length) icons[file.slice(0, -4)] = paths.join(' ')
+		if (paths.length) icons[file.slice(0, -4)] = paths
 	}
 	return icons
 }
@@ -76,7 +76,7 @@ const build = () => {
 	for (const name of names) {
 		const key = partOf(name)
 		if (!parts.has(key)) parts.set(key, [])
-		parts.get(key).push(`${name}\t${icons[name]}`)
+		parts.get(key).push(`${name}\t${icons[name].join(' ')}`)
 	}
 	parts.get('common').sort((a, b) => COMMON.indexOf(a.split('\t')[0]) - COMMON.indexOf(b.split('\t')[0]))
 	const keys = [...parts.keys()].sort()
@@ -88,18 +88,28 @@ const build = () => {
 	return { files, count: names.length, parts: keys.length }
 }
 
+// the interface's own icons keep the names they hold; only their drawings follow the package
+const REGISTER = path.join(here, '..', 'src', 'components', 'icons.js')
+const registerText = icons => fs.readFileSync(REGISTER, 'utf8').replace(/^\t"([^"]+)": \[.*\](,?)$/gm, (_, name, comma) => {
+	if (!icons[name]) throw new Error(`${name} is in icons.js but not in @tabler/icons`)
+	if (icons[name].some(d => /['\\]/.test(d))) throw new Error(`${name} cannot be written as a string`)
+	return `\t"${name}": [${icons[name].map(d => `'${d}'`).join(', ')}]${comma}`
+})
+
 const built = build()
+built.files.set('../icons.js', registerText(collect()))
 const current = new Map()
 if (fs.existsSync(TARGET)) for (const name of fs.readdirSync(TARGET)) current.set(name, fs.readFileSync(path.join(TARGET, name), 'utf8'))
+current.set('../icons.js', fs.readFileSync(REGISTER, 'utf8'))
 const stale = [...current.keys()].filter(name => !built.files.has(name))
 const changed = [...built.files].filter(([name, text]) => current.get(name) !== text).map(([name]) => name)
 
 if (process.argv.includes('--check')) {
 	if (!stale.length && !changed.length) {
-		console.log(`src/components/tabler matches @tabler/icons (${built.count} icons in ${built.parts} parts)`)
+		console.log(`src/components/tabler and icons.js match @tabler/icons (${built.count} icons in ${built.parts} parts)`)
 		process.exit(0)
 	}
-	console.error('src/components/tabler is out of date. Run: npm run icons:sync')
+	console.error('The icon files are out of date. Run: npm run icons:sync')
 	for (const name of [...changed, ...stale]) console.error(`  ${name}`)
 	process.exit(1)
 }
