@@ -1,0 +1,33 @@
+name: Tabler icons
+
+# Nothing else notices a new release: icons:check in CI only compares the list with the
+# version that is installed.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Compare with the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          have=$(node -p "require('./react/package.json').devDependencies['@tabler/icons']")
+          latest=$(npm view @tabler/icons version)
+          echo "pinned $have, latest $latest"
+          [ "$have" = "$latest" ] && exit 0
+          title="New Tabler icons: $latest"
+          open=$(gh issue list --state open --search "\"$title\" in:title" --json title --jq '.[].title')
+          [ -n "$open" ] && exit 0
+          gh issue create --title "$title" --body "Spendly uses $have. Version $latest is out.
+
+          To update: set \`@tabler/icons\` to \`$latest\` in \`react/package.json\`, then in \`react\` run \`npm install\` and \`npm run icons:sync\`, and commit both."
