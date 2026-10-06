@@ -24,9 +24,6 @@
 /* the body is the box the layout's widths are measured on (18a, Responsive reference .rr-frame):
    at 900 two columns become one */
 .sp-shell__body { container-type: inline-size; }
-@container (max-width: 900px) {
-	.sp-shell__body--split > * { grid-column: 1 / -1; }
-}
 
 /* below 900 the search fills the width the bar has left (9f), measured on the bar as the body is */
 .sp-topbar:not(.sp-topbar--touch) { container-type: inline-size; }
