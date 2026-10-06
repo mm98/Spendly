@@ -200,6 +200,10 @@ paged or searched on the server, and is tested with more rows than the demo data
 - **A rendered account with real records is one flow.** No seed script, no shortcut route: register
   at `#/register`, open Settings' "Demo data" section, click "Fill with demo data", then confirm ("Yes,
   fill it"). Seeds two favourite vendors and three favourite categories every time.
+- **A change is tried on the edge-case account, not on the demo data alone.** The demo data is
+  tidy and hides cases real accounts have. `react/scripts/edge-account.mjs` adds them to an
+  account, at least one case for every kind of record, and is safe to run again. A case found
+  later that it lacks is added to the script in the same change that handles it.
 - **Chromium is the default and only installed engine.** `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`
   (Playwright 1.56.1). Firefox/WebKit need an explicit install first
   (`npx playwright install firefox`, or `webkit` + `install-deps webkit`) and are an explicit
