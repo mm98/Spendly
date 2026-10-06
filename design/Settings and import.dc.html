@@ -32,11 +32,12 @@
     <span class="doc-badge" id="11a">11a</span>
     <span class="doc-section__title">Settings</span>
   </div>
-  <div class="doc-lede">Ten panes, one per thing that changes how the rest of the app behaves. A second navigation inside the page lists them, and the pane itself is one column of cards at a reading width - not the list-and-rail split the record screens use, because nothing here is being looked up against anything. Nothing saves by itself: each card has its own save, and only the card you touched goes dirty.</div>
+  <div class="doc-lede">Eleven panes, one per thing that changes how the rest of the app behaves. A second navigation inside the page lists them, and the pane itself is one column of cards at a reading width - not the list-and-rail split the record screens use, because nothing here is being looked up against anything. Nothing saves by itself: each card has its own save, and only the card you touched goes dirty.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>A very long status name ends in an ellipsis in this list</b> (<code>.sp-pill--truncate</code>), so its row keeps its height; the full name is in the edit field. This is the one place a pill truncates.</div>
     <div class="doc-note"><b>Limit alerts</b> is its own pane, between Lists and Statuses: the in-app and email switches and "Tell me early, at" (<a href="Duplicate and alerts.dc.html#8b">8b</a>).</div>
+    <div class="doc-note"><b>Needs a look</b> is its own pane, after Limit alerts: one switch per row Home's Needs a look card can show (<a href="Home.dc.html#10a">10a</a>), in the order Home ranks them. Off removes that row from Home and from the phone's Home; the cap of three applies to what is left, and with every switch off the card is absent. Orders without a receipt is off by default, since most orders have none. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
     <div class="doc-note"><b>The profile photo is a FileDrop</b>: drop an image on the round mark, or use Upload a photo. With no photo the mark is the initials on <code>--green-3</code>, round, as in the sidebar.</div>
     <div class="doc-note"><b>A status with orders on it cannot be deleted.</b> The delete control is absent on those rows, not disabled - reassigning the orders is what makes it appear. Every row has the pencil; a row with no orders also has the trash. Rename, reorder and delete all wait for the save bar, like every change on this page. Its tone is one of the four the pill component has, picked as the pill the list will draw.</div>
@@ -58,7 +59,7 @@
       <div class="sp-sidebar__group">Orders</div>
       <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
       <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
-      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count" data-color="warning">12</span></a>
+      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count">12</span></a>
       <div class="sp-sidebar__group">Budget</div>
       <a class="sp-nav-item" href="Budget.dc.html#21a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>This year</span></a>
       <div class="sp-sidebar__group">Library</div>
@@ -97,6 +98,7 @@
         <button type="button" class="sp-menu__item"><span>Defaults</span></button>
         <button type="button" class="sp-menu__item"><span>Lists</span></button>
         <button type="button" class="sp-menu__item"><span>Limit alerts</span></button>
+        <button type="button" class="sp-menu__item"><span>Needs a look</span></button>
         <button type="button" class="sp-menu__item"><span>Statuses</span></button>
         <div class="sp-menu__sep"></div>
         <button type="button" class="sp-menu__item"><span>Import</span></button>
@@ -314,7 +316,47 @@
           </div>
         </div>
 
-        
+        <div class="sp-card">
+          <span class="sp-section-label">NEEDS A LOOK</span>
+          <span class="sp-data">What Home points out. It shows at most three at a time, in this order.</span>
+          <fieldset class="sp-field-group" aria-label="Rows Home can show">
+            <label class="sp-choice sp-choice--described">
+              <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
+              <span class="sp-choice__text">
+                <strong>Categories over their limit</strong>
+                <span class="sp-field__help">A category that has gone past its limit this month.</span>
+              </span>
+            </label>
+            <label class="sp-choice sp-choice--described">
+              <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
+              <span class="sp-choice__text">
+                <strong>Categories near their limit</strong>
+                <span class="sp-field__help">A category past the "Tell me early" point set in Limit alerts.</span>
+              </span>
+            </label>
+            <label class="sp-choice sp-choice--described">
+              <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
+              <span class="sp-choice__text">
+                <strong>Orders not delivered after 2 weeks</strong>
+                <span class="sp-field__help">Orders still marked Ordered 14 days after their date.</span>
+              </span>
+            </label>
+            <label class="sp-choice sp-choice--described">
+              <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
+              <span class="sp-choice__text">
+                <strong>Vendors that look like duplicates</strong>
+                <span class="sp-field__help">Two vendors with names close enough to be the same shop.</span>
+              </span>
+            </label>
+            <label class="sp-choice sp-choice--described">
+              <input class="sp-switch" type="checkbox" role="switch" aria-label="On">
+              <span class="sp-choice__text">
+                <strong>Orders without a receipt</strong>
+                <span class="sp-field__help">Orders that have no receipt attached.</span>
+              </span>
+            </label>
+          </fieldset>
+        </div>
 
         <div class="sp-card">
           <div class="sp-row-flex">
