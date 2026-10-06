@@ -32,7 +32,7 @@ export const LOOKS = [
 				text: <><b>{c.name} is at {Math.floor((c.monthSpend / c.budget) * 100)}%</b> of its limit for {monthOf(view.window)}</>
 			})),
 			phone: view.near.length
-				? [{ ...rowOf('near', '/categories', view.near.length, null, `near ${noun(view.near.length, 'its', 'their')} limit`), color: 'warning' }]
+				? [{ ...rowOf('near', '/categories?flag=near-limit', view.near.length, null, `near ${noun(view.near.length, 'its', 'their')} limit`), color: 'warning' }]
 				: []
 		})
 	},

@@ -550,7 +550,7 @@ function CategoriesCard({ view }) {
 			<span className="sp-section-label">Categories this month</span>
 			{top.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
 			<span className="sp-grow" />
-			{view.withSpend ? <Button variant="text" size="small" to="/categories">All {amount(view.withSpend, 0)}</Button> : null}
+			{view.withSpend ? <Button variant="text" size="small" to={`/categories?month=${view.window.from.slice(0, 7)}`}>All {amount(view.withSpend, 0)}</Button> : null}
 		</div>
 	)
 	if (top.length) return (

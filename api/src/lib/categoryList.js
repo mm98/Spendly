@@ -109,8 +109,13 @@ export function categoryPage(userId, q, today, languages = []) {
 	const where = ['c.user_id = @userId']
 	const params = { userId }
 	const over = q.flag === 'over-limit'
-	if (q.limited === 'yes' || over) where.push('c.budget > 0')
+	if (q.limited === 'yes' || q.flag === 'limited' || over) where.push('c.budget > 0')
 	if (over) where.push('COALESCE(m.spend, 0) > c.budget')
+	if (q.flag === 'near-limit') {
+		const early = Math.min(99, Math.max(1, Math.floor(Number(q.early) || 0)))
+		where.push('c.budget > 0', 'COALESCE(m.spend, 0) <= c.budget', 'COALESCE(m.spend, 0) * 100 >= c.budget * @early')
+		params.early = early
+	}
 	if (named) where.push('COALESCE(m.spend, 0) > 0')
 	if (q.ids !== undefined) { where.push('c.id IN (SELECT value FROM json_each(@ids))'); params.ids = JSON.stringify(listOf(q.ids)) }
 	if (except) { where.push('c.id <> @except'); params.except = except }
@@ -125,7 +130,7 @@ export function categoryPage(userId, q, today, languages = []) {
 		where.push(MATCHERS[asciiNeedle(needle) ? 'ascii' : 'fold']('c.name'))
 	}
 
-	const joinMonth = sort.month || over || named
+	const joinMonth = sort.month || over || q.flag === 'near-limit' || named
 	if (joinMonth) Object.assign(params, { from: month.from, to: month.to })
 	const from = `categories c
 		${joinMonth ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}
