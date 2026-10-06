@@ -64,6 +64,7 @@ function MonthLine({ category, pace }) {
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
 const OVER_LIMIT = 'over-limit'
 const LIMITED = 'limited'
+const NEAR_LIMIT = 'near-limit'
 
 /* A month named in the address measures every row against it, so the pace marker, which belongs to
    the month in progress, goes. */
@@ -98,20 +99,22 @@ export default function Categories() {
 	const folded = !cards && width > 0 && width <= FOLD
 	const over = params.get('flag') === OVER_LIMIT
 	const limits = params.get('flag') === LIMITED
+	const near = params.get('flag') === NEAR_LIMIT
 	const month = MONTH.test(params.get('month')) ? params.get('month') : null
 	const named = month ? monthWords(month) : null
 	const pace = named ? null : monthPace()
 	// a page of rows per Load more, held in the address
 	const { pages, setPages, restored } = useListMemory()
-	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month', ...(over ? { flag: OVER_LIMIT } : limits ? { flag: LIMITED } : {}), ...(month ? { month } : {}) }, step, pages],
+	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month', ...(over ? { flag: OVER_LIMIT } : limits ? { flag: LIMITED } : near ? { flag: NEAR_LIMIT, early: settings?.notifyEarly } : {}), ...(month ? { month } : {}) }, step, pages],
 		{ enabled: Boolean(settings || settingsRead.error) })
 	useEffect(() => { if ((state.data || state.error) && !state.loading) restored() }, [state.data, state.error, state.loading, restored])
 
-	const write = (q, sortId, kept = { over, limits, month }) => {
+	const write = (q, sortId, kept = { over, limits, near, month }) => {
 		const next = {}
 		if (q) next.q = q
 		if (kept.over) next.flag = OVER_LIMIT
 		else if (kept.limits) next.flag = LIMITED
+		else if (kept.near) next.flag = NEAR_LIMIT
 		if (kept.month) next.month = kept.month
 		if (sortId !== opening.id) next.sort = sortId
 		setParams(next, { replace: true })
@@ -169,10 +172,10 @@ export default function Categories() {
 	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
 	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={named?.name ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}
 		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
-	else if (!matched && !query && (over || limits || month)) body = (
+	else if (!matched && !query && (over || limits || near || month)) body = (
 		<Card>
 			<Empty>
-				<EmptyTitle>{limits ? 'No category has a limit' : `${over ? 'No category is over its limit' : 'No category has spend'} ${named ? `in ${named.full}` : 'this month'}`}</EmptyTitle>
+				<EmptyTitle>{limits ? 'No category has a limit' : near ? 'No category is near its limit this month' : `${over ? 'No category is over its limit' : 'No category has spend'} ${named ? `in ${named.full}` : 'this month'}`}</EmptyTitle>
 			</Empty>
 		</Card>
 	)
@@ -269,9 +272,10 @@ export default function Categories() {
 	)
 
 	const crumbs = [
-		over ? <Crumb key="over" onRemove={() => write(query, sort.id, { over: false, limits, month })}>Over the limit</Crumb> : null,
-		limits ? <Crumb key="limits" onRemove={() => write(query, sort.id, { over, limits: false, month })}>Has a limit</Crumb> : null,
-		named ? <Crumb key="month" onRemove={() => write(query, sort.id, { over, limits, month: null })}>{named.full}</Crumb> : null
+		over ? <Crumb key="over" onRemove={() => write(query, sort.id, { over: false, limits, near, month })}>Over the limit</Crumb> : null,
+		near ? <Crumb key="near" onRemove={() => write(query, sort.id, { over, limits, near: false, month })}>Near the limit</Crumb> : null,
+		limits ? <Crumb key="limits" onRemove={() => write(query, sort.id, { over, limits: false, near, month })}>Has a limit</Crumb> : null,
+		named ? <Crumb key="month" onRemove={() => write(query, sort.id, { over, limits, near, month: null })}>{named.full}</Crumb> : null
 	].filter(Boolean)
 
 	return (
