@@ -17,6 +17,12 @@ export function noteServerBuild(commit) {
 	announce()
 }
 
+/** A page's files are gone, so the server runs a newer build than this tab, whatever it stamped. */
+export function markBehind() {
+	behind ??= 'newer'
+	announce()
+}
+
 // counted, not flagged: saving a scanned receipt is several writes in a row
 export function writeStarted() { writing++ }
 export function writeSettled() { writing--; announce() }

@@ -1,4 +1,6 @@
-import { useRouteError } from 'react-router'
+import { useEffect, useRef } from 'react'
+import { useNavigate, useRouteError } from 'react-router'
+import { markBehind } from '../api/build.js'
 import { Button } from '../components/Button.jsx'
 import { Card } from '../components/Card.jsx'
 import { Empty, EmptyBody, EmptyTitle } from '../components/Utilities.jsx'
@@ -25,16 +27,19 @@ export function RouteError() {
 	)
 }
 
-/** What a page shows when Spendly was updated after this tab opened and the page's files are gone. */
+/** A page whose files are gone because Spendly was updated after this tab opened. The tab goes back
+    to the page it was on and the update notice speaks; the content is left as it was. With no page
+    to go back to, it is a page that could not be shown. */
 export function NewerVersion() {
-	return (
-		<Empty>
-			<Mark size="medium" fill="none" aria-label="Update"><Icon name="alert-circle" /></Mark>
-			<EmptyTitle>This page needs the newer version</EmptyTitle>
-			<EmptyBody>Spendly was updated. Press Update to open this page. What you have saved stays.</EmptyBody>
-			<Button onClick={reload}>Update</Button>
-		</Empty>
-	)
+	const navigate = useNavigate()
+	const back = (window.history.state?.idx ?? 0) > 0
+	const went = useRef(false)
+	useEffect(() => {
+		markBehind()
+		if (back && !went.current) navigate(-1)
+		went.current = true
+	}, [back, navigate])
+	return back ? null : <RouteError />
 }
 
 /** The same when the shell itself could not be shown: the centred card of 20e's first level,
