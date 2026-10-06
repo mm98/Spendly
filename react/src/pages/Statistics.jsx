@@ -1327,6 +1327,14 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 			</div>
 		)
 	})
+	if (!rows.length) {
+		return (
+			<Card footer={footer}>
+				{head}
+				<span className="sp-meta">Nothing has been spent in a category with a limit.</span>
+			</Card>
+		)
+	}
 	return (
 		<Card footer={all ? [...(footer ?? []), all] : footer} footerLayout={touch && all ? 'stack' : 'fill'}>
 			{head}
