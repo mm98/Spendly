@@ -777,9 +777,11 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The four stats fold to two by two below a 996px row</b> (<code>sp-stats--fold</code>): four of 240 and three gaps. The row is 998 in a 1280 shell, so it folds as soon as the shell is narrower. It is always four across or two, never three over one. On a phone every stats row is two by two.</div>
     <div class="doc-note"><b>The period bar wraps rather than squeezing.</b> The sizes keep their full width at every desktop width. When the row has no room for everything, the window, the resolved range and the compare switch move to a second line, in that order. The day count is hidden below 1100. Below 640 the bar is the single select.</div>
-    <div class="doc-note"><b>Edit on category</b> opens the categories overview (<a href="Vendors and categories.dc.html#5d">5d</a>), where each category's limit is set. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
+    <div class="doc-note"><b>Edit on category</b> opens the categories list showing only the categories that have a limit, <code>/categories?flag=limited</code>, with the removable tag "Has a limit" (<a href="Vendors and categories.dc.html#5d">5d</a>). Each category's limit is set from there. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
     <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
     <div class="doc-note"><b>By category, Top vendors and Monthly limit show the current month</b> of the period, named in each card's meta ("August"): limits are monthly, and the side cards read against them. The four figures and Spend by month cover the whole period.</div>
+    <div class="doc-note"><b>Monthly limit draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The foot line ("All categories", the spend and the total of limits) still counts every limit. When no category with a limit has spend, the card shows the same text as when no category has a limit. Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
+    <div class="doc-note"><b>Monthly limit holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
     <div class="doc-note"><b>"Ahead of pace" shows when the share used is more than 10 points over the pace</b> - Lighting at 91% against 65%, not Seating at 72%. The same rule holds in the category list (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
     <div class="doc-note"><b>The drill path is the Showing card under the period row</b> (<a href="#4b">4b</a>), with Reset and Open in orders at its right end. At rest there are no crumbs and no card.</div>
     <div class="doc-note"><b>The pointed column carries a full-height <code>--hover</code> band</b>, and the readout stands in it, so it reads as that month's however tall the bars beside it are. Its head is the month as a word with a capital and the year, "January 2026", in every locale. The same holds for every month name that stands alone or starts a label - the period crumb, chart ticks, row labels - Danish included. Inside running text a month follows the language.</div>
@@ -1270,18 +1272,20 @@
     <span class="doc-badge" id="4d">4d</span>
     <span class="doc-section__title">A year with 200 vendors</span>
   </div>
-  <div class="doc-lede">A mature account, three years on: 200 vendors and 34 categories in one year. At that scale a breakdown has hundreds of rows, and a 200-row card is unreadable whether it scrolls or not. Every breakdown rests at its top eight with the remainder carried as one row, and expands in place when asked. Nothing on this page is an open-ended list.</div>
+  <div class="doc-lede">A mature account, three years on: 200 vendors and 34 categories in one year. At that scale a breakdown has hundreds of rows, and a 200-row card is unreadable whether it scrolls or not. Every breakdown rests at its top eight with the remainder carried as one row, and expands in place, to at most one page, when asked. Nothing on this page is an open-ended list.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>One vendor card everywhere: Top vendors.</b> It rests at its top eight and Other; its meta reads "top 8 of 200", or "all 200" once expanded; its footer carries the total beside Show all.</div>
+    <div class="doc-note"><b>No list on Statistics or Home shows more than one page of rows.</b> The page is P, the Rows per page set in Settings (<a href="Settings and import.dc.html#11a">11a</a>), never fewer than 10, and it is the same number for every list. A list rests at its top 8 rows, the rest carried as one line, "Other N categories" or "Other N vendors", with their total. Its button reads "Show top P of N categories" and opens the top P rows, the rest still one Other line; it never opens the whole list. With P or fewer rows it reads "Show all N" and opens them all. Home's cards stay below the page: 3 rows in Needs a look, 4 in Categories this month.</div>
+    <div class="doc-note"><b>One vendor card everywhere: Top vendors.</b> It rests at its top eight and Other; its meta reads "top 8 of 200" at rest, "top 10 of 200" open (top P of N), and "all N" when every vendor is shown; its footer carries the total beside the button.</div>
     <div class="doc-note"><b>Eight rows, then one Other row, then the link.</b> The Other row carries the summed remainder and its count, so the column still adds to the KPI above it. Without it the card silently understates the total and every percentage on it is wrong.</div>
-    <div class="doc-note"><b>Expansion happens in the card, not on a new page.</b> The link swaps the eight rows for all of them inside a height-capped scroll region; the card keeps its position in the grid and the crumb state is untouched. A separate ranked page would need its own period control, its own crumbs and its own back behaviour.</div>
-    <div class="doc-note"><b>The Other row is not clickable, and once expanded it is gone.</b> Drilling into &quot;192 vendors&quot; has no meaning as a crumb; expanded, the remainder is the rows themselves.</div>
+    <div class="doc-note"><b>Expansion happens in the card, not on a new page.</b> The button swaps the eight rows for the top P and the Other line; the card keeps its position in the grid and the crumb state is untouched. A separate ranked page would need its own period control, its own crumbs and its own back behaviour.</div>
+    <div class="doc-note"><b>The Other row is not clickable.</b> Drilling into &quot;192 vendors&quot; has no meaning as a crumb. Open, it carries the remainder past P (&quot;Other 190 vendors&quot;); it goes only when Show all N has shown every row.</div>
     <div class="doc-note"><b>Charts cap at ten series plus Other.</b> Beyond ten bars the axis labels collide and the small values fall below a pixel. The cap is on the chart, not the query - the Other bar is the same remainder the ranked list uses.</div>
     <div class="doc-note"><b>The order table loads one page (Rows per page) at a time.</b> Load more appends and keeps scroll position; the footer count always names the real total, so the user knows what they have not seen. No page numbers - the table is proof of the slice above it, not something to navigate.</div>
     <div class="doc-note"><b>Expanded and loaded state is not persisted.</b> Changing the period or any crumb collapses every card back to eight and the table back to one page (Rows per page), because the rows answer a query that just changed.</div>
     <div class="doc-note"><b>No search or sort inside a breakdown.</b> It is ranked by the measure the card is about. A user looking for one named vendor uses the vendor list or search, which are built for that.</div>
-    <div class="doc-note"><b>Which of these change the URL.</b> A vendor row does - it appends a crumb (<code>crumbs=vendor:hay</code>) and every card refilters. The order table's Load more does too, as on every list (<code>?pages=3</code>), so an opened order and Back return to the same rows. Show all and Show top 8 do not: they are card-local view state, so a reload comes back at top 8. An order row leaves the page for <code>/orders/:id</code>; Open in orders leaves for <code>/orders</code> with the crumbs translated into filter chips. The Other row and the Other bar are inert.</div>
+    <div class="doc-note"><b>A link opens what it counts.</b> A button or row that shows a number opens a list with exactly that many items. If it cannot, the number is not shown.</div>
+    <div class="doc-note"><b>Which of these change the URL.</b> A vendor row does - it appends a crumb (<code>crumbs=vendor:hay</code>) and every card refilters. The order table's Load more does too, as on every list (<code>?pages=3</code>), so an opened order and Back return to the same rows. Show top P of N, Show all N and Show top 8 only do not: they are card-local view state, so a reload comes back at top 8. An order row leaves the page for <code>/orders/:id</code>; Open in orders leaves for <code>/orders</code> with the crumbs translated into filter chips. The Other row and the Other bar are inert.</div>
   </div>
 
   <div class="os-screen doc-frame">
@@ -1401,7 +1405,7 @@
             </span>
           </div>
           <div class="sp-card__footer">
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show all 200 vendors</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show top 10 of 200 vendors</button>
             <span class="sp-grow"></span>
             <span class="sp-meta">3.342.600 kr. total</span>
           </div>
@@ -1411,9 +1415,8 @@
           <div class="sp-row-flex sp-gap-8">
             <span class="sp-section-label">Top vendors</span>
             <span class="sp-grow"></span>
-            <span class="sp-meta">expanded · 200 of 200</span>
+            <span class="sp-meta">top 10 of 200</span>
           </div>
-          <div class="os-scroll sp-scrolls">
           <div class="sp-stack sp-gap-6">
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-data">Indbo Møbler</span>
@@ -1526,42 +1529,19 @@
           </div>
           <div class="sp-stack sp-gap-6">
             <div class="sp-row-flex sp-gap-8">
-              <span class="sp-data">String Furniture</span>
+              <span class="sp-data sp-subtitle">Other 190 vendors</span>
               <span class="sp-grow"></span>
-              <span class="sp-amount">84.640</span>
+              <span class="sp-amount">272.870</span>
             </div>
             <span class="sp-gauge">
-              <meter value="10" min="0" max="100" aria-label="String Furniture"></meter>
-              <span class="sp-gauge__fill" data-fill="10"></span>
+              <meter value="35" min="0" max="100" aria-label="Other 190 vendors"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="35"></span>
             </span>
-          </div>
-          <div class="sp-stack sp-gap-6">
-            <div class="sp-row-flex sp-gap-8">
-              <span class="sp-data">Gubi</span>
-              <span class="sp-grow"></span>
-              <span class="sp-amount">71.310</span>
-            </div>
-            <span class="sp-gauge">
-              <meter value="10" min="0" max="100" aria-label="Gubi"></meter>
-              <span class="sp-gauge__fill" data-fill="10"></span>
-            </span>
-          </div>
-          <div class="sp-stack sp-gap-6">
-            <div class="sp-row-flex sp-gap-8">
-              <span class="sp-data">Bolia</span>
-              <span class="sp-grow"></span>
-              <span class="sp-amount">62.900</span>
-            </div>
-            <span class="sp-gauge">
-              <meter value="10" min="0" max="100" aria-label="Bolia"></meter>
-              <span class="sp-gauge__fill" data-fill="10"></span>
-            </span>
-          </div>
           </div>
           <div class="sp-card__footer">
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show top 8 only</button>
             <span class="sp-grow"></span>
-            <span class="sp-meta">scrolls inside the card</span>
+            <span class="sp-meta">3.342.600 kr. total</span>
           </div>
         </div>
       </div>
