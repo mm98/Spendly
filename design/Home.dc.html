@@ -41,7 +41,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400.</div>
+    <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400. No list on Home or Statistics shows more than one page of rows (Rows per page, never fewer than 10); Home's caps sit below it. The Statistics rule is in <a href="Order statistics.dc.html#4d">4d</a>.</div>
     <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
     <div class="doc-note"><b>Card scopes differ and each says so.</b> Recent orders is all time, newest first. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
     <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> categories over their limit, categories near it, orders not delivered, then possible duplicate vendors. The cap of three holds, so an account with three categories over their limit shows no other row. Each kind can be switched off in Settings, Needs a look (<a href="Settings and import.dc.html#11a">11a</a>); a switched-off kind is skipped and the next one moves up. Orders without a receipt is a kind too, off by default, since most orders have none. Each row links to the filtered list that resolves it, and the card is absent when there is nothing to say - never a card with a tick in it.</div>
@@ -53,6 +53,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Where each link goes</span>
+    <div class="doc-note"><b>A link opens what it counts.</b> A button or row that shows a number opens a list with exactly that many items. If it cannot, the number is not shown.</div>
     <div class="doc-note">Every one is a real route, so it middle-clicks, deep-links and comes back with the browser button. The one exception is Copy an order, which opens the <a href="Order create.dc.html#3b">3b</a> dialog over Home.</div>
     <div class="hm-routes doc-note">
       <div><b>Scan receipt · drop zone</b></div>
@@ -61,6 +62,8 @@
       <div>No route of its own: opens the <a href="Order create.dc.html#3b">3b</a> dialog over Home. Escape or Cancel closes it and stays on Home. Picking an order opens the unsaved copy, as from the create screen. Hidden when there are no orders yet.</div>
       <div><b>See orders (over limit)</b></div>
       <div><code>/orders?category=decor&amp;month=2026-08</code> - the order list, filtered, filter chips visible and removable.</div>
+      <div><b>Near its limit</b></div>
+      <div><code>/categories?flag=limited</code> - the category list filtered to the categories that have a limit, the tag "Has a limit" visible and removable.</div>
       <div><b>Orders not delivered</b></div>
       <div><code>/orders?status=Ordered&amp;to=&lt;day&gt;</code> - the order list filtered to status Ordered, dated up to the cutoff day, 14 days before today (<code>to=2026-08-07</code> on 21 August). It lists exactly the orders the count counts.</div>
       <div><b>Merge (duplicate vendors)</b></div>
@@ -70,7 +73,7 @@
       <div><b>An order row</b></div>
       <div><code>/orders/447</code> - the order, read mode.</div>
       <div><b>All 9 (categories)</b></div>
-      <div><code>/categories</code> - the category list, panel closed.</div>
+      <div><code>/categories?month=2026-08</code> - the category list for the month the card is about, so it holds the same 9 categories the link counts.</div>
       <div><b>A category row</b></div>
       <div><code>/statistics?period=2026-08&amp;crumbs=category:decor</code> - statistics for the month the card is about, that category as the crumb.</div>
       <div><b>Statistics (last 8 months)</b></div>

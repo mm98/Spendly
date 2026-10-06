@@ -1,65 +1,48 @@
-# Spendly - changes since handoff_2026_10_06b_changes
+# Spendly - changes since handoff_2026_10_06c_changes_fixed
 
-Replaces handoff_2026_10_06c_changes. Copy these files over handoff_2026_10_06b_changes. Answers brief 31.
+Copy these files over handoff_2026_10_06c_changes_fixed. Answers brief 33. Notes only, plus one drawing on Statistics 4d. No CSS, tokens or components changed.
 
-## Fixed since handoff_2026_10_06c_changes
-- Section 1, Token field suggestions: the note said the suggestions already use the combobox classes. No page draws them open, so it now states that they are to be built with those classes. No file other than this one changed.
+## 1. A list never shows more than one page of rows (Order statistics 4a, 4d, Home 1a)
 
-## 1. Denser option rows (styles/tokens.css, styles/components.css, Components c5 notes)
+### Rule
+- P is Rows per page from Settings (never fewer than 10), the same number for every list on Home and Statistics.
+- At rest a list shows its top 8 rows and one line, "Other N categories" or "Other N vendors", with their total.
+- The button reads "Show top P of N categories" and opens the top P rows; the rest stays as one Other line. It never opens the whole list. With P or fewer rows it reads "Show all N".
+- Monthly limit opens to P rows; under them one line: "Top P of N. Edit on category lists them all."
+- Top vendors meta: "top 8 of N" at rest, "top P of N" open, "all N" when everything is shown.
+- Home keeps its caps: 3 rows in Needs a look, 4 in Categories this month.
 
-### Tokens (new)
-- `--row-h: 32px` - an option in a pickable list on desktop.
-- `--row-h-touch: 44px` - the same on touch.
+### Drawing (4d, 200 vendors)
+- Resting button: "Show top 10 of 200 vendors".
+- Open card: meta "top 10 of 200", the top 10 rows, then "Other 190 vendors" at 272.870, footer "Show top 8 only" and "3.342.600 kr. total". The scroll region (`os-scroll sp-scrolls`) is removed; one page does not scroll.
 
-### Desktop
-- `.sp-combobox__option`: `min-height: var(--row-h)`, `box-sizing: border-box`, padding `var(--sp-6) var(--sp-12)` (was `var(--sp-8) var(--sp-12)`).
-- `.sp-combobox__panel`: `gap: var(--sp-2)` (was `var(--sp-6)`).
-- 34px a row (was 42).
+## 2. Monthly limit card: only categories with spend (Order statistics 4a)
+- Draws only categories with spend in the period. A category with a limit and no spend is not drawn.
+- The foot line ("All categories", spend and total of limits) still counts every limit.
+- No spend in any limited category: the card shows the same text as when no category has a limit.
+- Inside one category's crumb the card is always drawn, spend or not.
 
-### Touch
-- `.sp-touch .sp-combobox__option`, `.sp-touch .sp-menu__item`, `.sp-touch .sp-palette__row`: `min-height: var(--row-h-touch)` (was `--control-h-touch`, 48).
-- `.sp-touch .sp-combobox__panel`: `gap: 0`.
-- 44px a row (was 54). A phone shows about 12 options at once instead of 9 or 10.
-- `.sp-touch .sp-field-group__head` keeps `--control-h-touch` (48): it opens a group of 48px fields. It is now its own rule.
+## 3. Categories list: filter for categories with a limit (Vendors and categories 5d, Home routes)
+- New URL filter `/categories?flag=limited`, shown as the removable tag "Has a limit", the same `sp-crumb` as "Over the limit".
+- Empty: "No category has a limit".
+- Links:
+  - Edit on category (Statistics, Monthly limit) opens `/categories?flag=limited`.
+  - Needs a look, "near its limit" row, opens `/categories?flag=limited`.
+  - "All N" in Categories this month on Home opens `/categories?month=YYYY-MM` (was `/categories`).
+- Actions inventory: the Edit on category entry updated to match.
 
-### Separator
-- `.sp-combobox__panel hr`: `margin: var(--sp-4) 0` (was 0). It sits 6 from the rows either side on desktop, 4 on touch.
+## 4. A link opens what it counts (Home routes, Statistics 4d, Categories 5d)
+- A button or row that shows a number opens a list with exactly that many items. If it cannot, the number is not shown.
 
-### Menu and palette on desktop
-- Unchanged: menu items 36 with no gap, palette rows 38.
+## 5. Open points
+- The Monthly limit card's no-limit text is not drawn anywhere yet; the app's existing text applies.
+- If the "near its limit" row ever shows a count, `flag=limited` would not match it, since that filter lists every category with a limit.
 
-### Token field suggestions
-- No page draws the token field's suggestions open. They are built with `.sp-combobox__panel` and `.sp-combobox__option`, so they take the same rhythm; they get no rule of their own.
-
-## 2. Favourites first in every vendor and category picker (Components c5 notes)
-
-### Groups
-- Every mode 2 list of vendors or categories is grouped Favourites, Recent, then the rest, headed "Favourites", "Recent" and "Other vendors" or "Other categories".
-
-### Where
-- The order form's vendor field.
-- The category tokens on the order form and the vendor form.
-- Add category in an order's menu and in the bulk bar.
-- The category picker on Bookmarks and in the import mapping.
-- The merge target pickers for vendors and categories.
-
-### Order within each group
-- Favourites: alphabetical.
-- Recent: the vendors or categories on the latest orders, newest first, up to 5, as the vendor field does today. One that is a favourite shows only under Favourites.
-- The rest: alphabetical.
-
-### Rules
-- A group with nothing in it is not drawn. With one group left, there is no header.
-- Typing filters every group in place, keeping the order. The create row stays last.
-- Overviews, tables, cards and the order list's filter rail are not pickers and do not change.
-
-## 3. Not changed
-- No type, colours or other components.
-
-## 4. Check
+## 6. Check
 - `styles/check.js` clean: 0 findings across 26 pages.
 
 ## Files
-- styles/tokens.css
-- styles/components.css
-- Components.dc.html
+- Order statistics.dc.html
+- Vendors and categories.dc.html
+- Home.dc.html
+- Actions inventory.dc.html
