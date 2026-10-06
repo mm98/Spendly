@@ -5111,6 +5111,8 @@ a.sp-menu__item { text-decoration: none; }
 .sp-bars--plot .sp-bars__tip[data-side="start"] { left: 0; transform: none; }
 .sp-bars--plot .sp-bars__tip[data-side="end"] { left: auto; right: 0; transform: none; }
 .sp-bars--plot .sp-bars__tip[data-pin="top"] { top: 0; bottom: auto; }
+/* the plot's bars at a card's size (Home, 10a): the plain bars' 140 and 8 */
+.sp-bars--plot.sp-bars--card { --plot-h: 140px; gap: var(--sp-8); }
 /* search is one field, 420 fixed (9f, c11) */
 .sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { width: 420px; max-width: 100%; }
 /* a row that opens is never inert: pointer and hover fill (c15) */

@@ -287,7 +287,3 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 /* a single date's shortcuts sit in a calendar that pads itself, so the row keeps its gap and rule
    but not the range panel's own inset, and lines up with the month below */
 .sp-calendar > .sp-range__quick { padding: 0 0 var(--sp-12); margin-bottom: var(--sp-12); }
-
-/* Home's months chart keeps the gap of its drawing, with room above the bars for the plot's readout, which
-   stands above the bars instead of pushing them (10a) */
-.hm-months .sp-bars--plot { --plot-h: 180px; gap: var(--sp-8); }
