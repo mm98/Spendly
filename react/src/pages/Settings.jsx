@@ -5,7 +5,7 @@ import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Field } from '../components/Field.jsx'
-import { Choice, Switch } from '../components/Choice.jsx'
+import { Choice, FieldGroup, Switch } from '../components/Choice.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -28,6 +28,7 @@ import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard } from './SettingsAccount.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, Heading } from './SettingsParts.jsx'
+import { LOOKS } from './needsLook.jsx'
 import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
 import { useViews } from '../app/views.jsx'
 import { useStatuses } from '../app/statuses.js'
@@ -41,6 +42,7 @@ const SECTIONS = [
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'sort', 'listSort'] },
 	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEmail', 'notifyEarly'] },
+	{ key: 'looks', label: 'Needs a look', keys: LOOKS.map(l => `look.${l.id}`) },
 	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
 	{ key: 'import', label: 'Import' },
 	{ key: 'demo', label: 'Demo data' },
@@ -73,6 +75,8 @@ const EARLY = [
 ]
 // what a key the server does not send yet stands at, as 8b draws it
 const ALERT_DEFAULTS = { notifyWhileSaving: true, notifyMonthlySummary: true, notifyEmail: true, notifyEarly: 90, scanOverrides: true }
+// a rule of Needs a look is kept in the draft as `look.<rule>` and saved as one `looks` map
+const lookValues = settings => Object.fromEntries(LOOKS.map(l => [`look.${l.id}`, settings?.looks?.[l.id] ?? l.on]))
 
 const currencyLabel = c => `${c.label} (${c.symbol})`
 const localeLabel = l => `${l.label} (${localeSample(l.code)})`
@@ -104,7 +108,7 @@ export default function Settings() {
 	// the name is the account's and the sidebar's view count is kept with the views; both save with the rest
 	const shown = useViews().data?.shown
 	const saved = settings.data && user.data
-		? { ...ALERT_DEFAULTS, ...settings.data, name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
+		? { ...ALERT_DEFAULTS, ...settings.data, ...lookValues(settings.data), name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
 		: null
 	const current = SECTIONS.some(s => s.key === section) ? section : null
 
@@ -120,7 +124,12 @@ export default function Settings() {
 
 	const save = () => {
 		setSaving(true)
-		const { name, picture, orderViews, statuses: edited, ...prefs } = draft
+		const { name, picture, orderViews, statuses: edited, ...rest } = draft
+		const prefs = {}
+		for (const [key, v] of Object.entries(rest)) {
+			if (key.startsWith('look.')) prefs.looks = { ...prefs.looks, [key.slice(5)]: v }
+			else prefs[key] = v
+		}
 		const account = name !== undefined || picture !== undefined
 		const prefsSaved = Object.keys(prefs).length ? saveSettings(prefs) : null
 		Promise.all([
@@ -158,6 +167,7 @@ export default function Settings() {
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
 		alerts: <AlertsCard key="alerts" mail={user.data?.mail} {...fields} />,
+		looks: <LooksCard key="looks" {...fields} />,
 		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
 		import: <ImportCard key="import" />,
 		demo: <DemoCard key="demo" />,
@@ -428,6 +438,24 @@ function AlertsCard({ value, change, mail }) {
 			{switchOf('notifyWhileSaving', 'Warn me while I am saving an order')}
 			{switchOf('notifyMonthlySummary', 'Monthly summary on the first of the month')}
 			{mail ? switchOf('notifyEmail', 'Also by email', { disabled: !value('notifyMonthlySummary') }) : null}
+		</Card>
+	)
+}
+
+/* What Home's Needs a look points out (Settings 11a): one switch per rule, in the order Home ranks them. */
+function LooksCard({ value, change }) {
+	return (
+		<Card>
+			<Heading section="looks">Needs a look</Heading>
+			<span className="sp-data">What Home points out. It shows at most three at a time, in this order.</span>
+			<FieldGroup aria-label="Rows Home can show">
+				{LOOKS.map(l => (
+					<Choice key={l.id} variant="described" description={l.help}
+						control={<Switch role="switch" aria-label="On" checked={value(`look.${l.id}`)} onChange={ev => change(`look.${l.id}`, ev.target.checked)} />}>
+						{l.label}
+					</Choice>
+				))}
+			</FieldGroup>
 		</Card>
 	)
 }

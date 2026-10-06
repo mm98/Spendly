@@ -3345,6 +3345,13 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
+		"SELECT rule, enabled FROM home_attention_rules WHERE user_id = ?": {
+			"plan": [
+				"SEARCH home_attention_rules USING PRIMARY KEY (user_id=?)"
+			],
+			"findings": [],
+			"indexes": []
+		},
 		"SELECT shown FROM saved_view_prefs WHERE user_id = ?": {
 			"plan": [
 				"SEARCH saved_view_prefs USING INDEX sqlite_autoindex_saved_view_prefs_1 (user_id=?)"

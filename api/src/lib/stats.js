@@ -4,6 +4,7 @@ import { MAX_PAGE_SIZE } from './constants.js'
 import { decorateOrderListRows } from './decorate.js'
 import { orderTotalsSelectList } from './orderColumns.js'
 import { lookalikePairs, vendorsIn } from './vendorLookalikes.js'
+import { looksOf } from './looks.js'
 
 /* Statistics, computed by real SQL aggregation over the user's own orders — SUM/GROUP BY
    within a [from, to) window, never a per-order JS loop and never a synthetic "spread a
@@ -576,14 +577,21 @@ export function markSummarySeen(userId, month) {
 // an order still waiting for delivery this many days after its date needs a look
 const DELIVERY_DAYS = 14
 
+/* What each counted rule of Needs a look reads (lib/looks.js). A rule that is switched off is not counted at all. */
+const COUNTS = {
+	late: (userId, day) => {
+		const to = toEpoch(day) - DELIVERY_DAYS * DAY
+		return { count: countNotDelivered.get(userId, to).c, to: fromEpoch(to) }
+	},
+	vendors: userId => ({ count: vendorsIn(lookalikePairs(userId)) }),
+	receipt: userId => ({ count: countWithoutReceipt.get(userId).c })
+}
+
 /** What Home reads beyond the month: when an order was last added, and what needs a look. */
 export function homeAttention(userId, day = todayIso()) {
-	const late = toEpoch(day) - DELIVERY_DAYS * DAY
+	const looks = looksOf(userId)
 	return {
 		lastAdded: selectLastAdded.get(userId)?.at ?? null,
-		notDelivered: countNotDelivered.get(userId, late).c,
-		notDeliveredTo: fromEpoch(late),
-		withoutReceipt: countWithoutReceipt.get(userId).c,
-		lookalikeVendors: vendorsIn(lookalikePairs(userId))
+		things: Object.fromEntries(Object.entries(COUNTS).filter(([id]) => looks[id]).map(([id, count]) => [id, count(userId, day)]))
 	}
 }
