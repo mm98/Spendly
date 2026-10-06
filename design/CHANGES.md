@@ -1,50 +1,65 @@
-# Spendly - changes since handoff_2026_10_06_changes_fixed
+# Spendly - changes since handoff_2026_10_06b_changes
 
-Copy these files over handoff_2026_10_06_changes_fixed. Answers brief 30.
+Replaces handoff_2026_10_06c_changes. Copy these files over handoff_2026_10_06b_changes. Answers brief 31.
 
-## 1. The panel in one column (styles/components.css, Responsive reference 18b)
+## Fixed since handoff_2026_10_06c_changes
+- Section 1, Token field suggestions: the note said the suggestions already use the combobox classes. No page draws them open, so it now states that they are to be built with those classes. No file other than this one changed.
 
-### Cause
-- The cards in the main column have no width of their own, so they stretch to the column. `.sp-panel` states `width: 360px`, and a grid stretches only items whose width is auto, so in one column the panel kept 360 and Totals inside it stayed narrow.
+## 1. Denser option rows (styles/tokens.css, styles/components.css, Components c5 notes)
 
-### Rule
-- The stylesheet had no 900px rule for `.sp-shell__body--split`. It is added in full, after the `.sp-shell__body--split > *` rule:
+### Tokens (new)
+- `--row-h: 32px` - an option in a pickable list on desktop.
+- `--row-h-touch: 44px` - the same on touch.
 
-      @container (max-width: 900px) {
-        .sp-shell__body--split { grid-template-columns: minmax(0, 1fr); }
-        .sp-shell__body--split > * { grid-column: 1 / -1; }
-        .sp-shell__body--split > .sp-panel { width: auto; position: static; }
-      }
+### Desktop
+- `.sp-combobox__option`: `min-height: var(--row-h)`, `box-sizing: border-box`, padding `var(--sp-6) var(--sp-12)` (was `var(--sp-8) var(--sp-12)`).
+- `.sp-combobox__panel`: `gap: var(--sp-2)` (was `var(--sp-6)`).
+- 34px a row (was 42).
 
-- The query answers to the column the body sits in, so that column must be a container (the app's page column, `container-type: inline-size`). The app's workaround in `app.css` can be removed.
-- `.sp-panel--wide` is covered by the same rule.
+### Touch
+- `.sp-touch .sp-combobox__option`, `.sp-touch .sp-menu__item`, `.sp-touch .sp-palette__row`: `min-height: var(--row-h-touch)` (was `--control-h-touch`, 48).
+- `.sp-touch .sp-combobox__panel`: `gap: 0`.
+- 44px a row (was 54). A phone shows about 12 options at once instead of 9 or 10.
+- `.sp-touch .sp-field-group__head` keeps `--control-h-touch` (48): it opens a group of 48px fields. It is now its own rule.
 
-### Other pages
-- Order read is the only page that shows `.sp-panel` in one column. On the list pages (Bookmarks, Vendors and categories) the panel opens as its own page at 900 (18a), so the rule does not apply there.
+### Separator
+- `.sp-combobox__panel hr`: `margin: var(--sp-4) 0` (was 0). It sits 6 from the rows either side on desktop, 4 on touch.
 
-### Note
-- 18b, Order read (1a), at 900: Totals, under the items, takes the column's width, like the cards above it.
+### Menu and palette on desktop
+- Unchanged: menu items 36 with no gap, palette rows 38.
 
-## 2. The period bar (styles/components.css, Order statistics 4a, Responsive reference 18b)
+### Token field suggestions
+- No page draws the token field's suggestions open. They are built with `.sp-combobox__panel` and `.sp-combobox__option`, so they take the same rhythm; they get no rule of their own.
 
-### Decision
-- The bar wraps, as the app does. Hiding the resolved range alone is not enough: between 641 and 900 the sizes, the window and the compare switch still do not fit on one line.
+## 2. Favourites first in every vendor and category picker (Components c5 notes)
 
-### Rule
-- `.sp-period` is `flex-wrap: wrap` (was `nowrap`). The sizes keep their 462px at every desktop width. When the row has no room, the window, the resolved range and the compare switch move to a second line. The day count still leaves below 1100. Below 640 the bar is the single select, as before.
-- The app's workaround in `app.css` can be removed.
+### Groups
+- Every mode 2 list of vendors or categories is grouped Favourites, Recent, then the rest, headed "Favourites", "Recent" and "Other vendors" or "Other categories".
 
-### Notes
-- Statistics 4a: new note, "The period bar wraps rather than squeezing."
-- 18b, Statistics (4a): at 1280, the wrap described; at 900, "Period bar as at 1280."
+### Where
+- The order form's vendor field.
+- The category tokens on the order form and the vendor form.
+- Add category in an order's menu and in the bulk bar.
+- The category picker on Bookmarks and in the import mapping.
+- The merge target pickers for vendors and categories.
+
+### Order within each group
+- Favourites: alphabetical.
+- Recent: the vendors or categories on the latest orders, newest first, up to 5, as the vendor field does today. One that is a favourite shows only under Favourites.
+- The rest: alphabetical.
+
+### Rules
+- A group with nothing in it is not drawn. With one group left, there is no header.
+- Typing filters every group in place, keeping the order. The create row stays last.
+- Overviews, tables, cards and the order list's filter rail are not pickers and do not change.
 
 ## 3. Not changed
-- No tokens, type, colours or other components. Pages drawn wider than 900 render as before.
+- No type, colours or other components.
 
 ## 4. Check
 - `styles/check.js` clean: 0 findings across 26 pages.
 
 ## Files
+- styles/tokens.css
 - styles/components.css
-- Order statistics.dc.html
-- Responsive reference.dc.html
+- Components.dc.html
