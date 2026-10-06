@@ -522,6 +522,8 @@ const countWithoutReceipt = db.prepare(`
 		AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
 `)
 
+const countNotDelivered = db.prepare(`SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = 'Ordered' AND date <= ?`)
+
 const selectLimited = db.prepare('SELECT id, budget FROM categories WHERE user_id = ? AND budget > 0')
 // what each limited category came to in each month, as Home's figures count it: what was paid
 const selectLimitedMonths = db.prepare(`
@@ -571,10 +573,16 @@ export function markSummarySeen(userId, month) {
 	return true
 }
 
+// an order still waiting for delivery this many days after its date needs a look
+const DELIVERY_DAYS = 14
+
 /** What Home reads beyond the month: when an order was last added, and what needs a look. */
-export function homeAttention(userId) {
+export function homeAttention(userId, day = todayIso()) {
+	const late = toEpoch(day) - DELIVERY_DAYS * DAY
 	return {
 		lastAdded: selectLastAdded.get(userId)?.at ?? null,
+		notDelivered: countNotDelivered.get(userId, late).c,
+		notDeliveredTo: fromEpoch(late),
 		withoutReceipt: countWithoutReceipt.get(userId).c,
 		lookalikeVendors: vendorsIn(lookalikePairs(userId))
 	}
