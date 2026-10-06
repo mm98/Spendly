@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -108,7 +108,7 @@ function OrderView({ order, touch, onGone }) {
 
 	const sums = (
 		<div className="sp-stack">
-			<Sum value={order.vendor?.name}>Vendor</Sum>
+			<Sum value={order.vendor ? <Link to={`/orders?vendor=${order.vendor.id}`}>{order.vendor.name}</Link> : undefined}>Vendor</Sum>
 			<Sum value={shortDate(order.date)}>Date</Sum>
 			<Sum value={order.kind}>Kind</Sum>
 			<Sum value={<OrderCategories order={order} />}>Categories</Sum>
@@ -178,12 +178,15 @@ function OrderView({ order, touch, onGone }) {
 function OrderCategories({ order }) {
 	const over = useOverLimitIds()
 	if (!order.categories.length) return 'None'
-	if (!order.categories.some(c => over.has(c.id))) return order.categories.map(c => c.name).join(dot)
+	const named = c => <Link to={`/orders?category=${c.id}`}>{c.name}</Link>
+	if (!order.categories.some(c => over.has(c.id))) {
+		return order.categories.map((c, i) => <span key={c.id}>{i ? ', ' : ''}{named(c)}</span>)
+	}
 	// the dot speaks of this month; an order from another month says which month that is
 	const thisMonth = order.date.slice(0, 7) === today().slice(0, 7)
 	return (
 		<span className="sp-row-flex sp-wrap sp-gap-6 or-chips">
-			{order.categories.map(c => <Chip key={c.id} trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{c.name}</Chip>)}
+			{order.categories.map(c => <Chip key={c.id} trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{named(c)}</Chip>)}
 			<span className="sp-meta">{thisMonth ? 'over limit' : 'over limit this month'}</span>
 		</span>
 	)
