@@ -25,6 +25,18 @@ export function RouteError() {
 	)
 }
 
+/** What a page shows when Spendly was updated after this tab opened and the page's files are gone. */
+export function NewerVersion() {
+	return (
+		<Empty>
+			<Mark size="medium" fill="none" aria-label="Update"><Icon name="alert-circle" /></Mark>
+			<EmptyTitle>This page needs the newer version</EmptyTitle>
+			<EmptyBody>Spendly was updated. Press Update to open this page. What you have saved stays.</EmptyBody>
+			<Button onClick={reload}>Update</Button>
+		</Empty>
+	)
+}
+
 /** The same when the shell itself could not be shown: the centred card of 20e's first level,
     with the brand on it, since nothing else on screen carries it. */
 export function ShellError() {

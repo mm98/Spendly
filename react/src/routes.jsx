@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import { redirect } from 'react-router'
 import { AppShell } from './app/AppShell.jsx'
-import { RouteError, ShellError } from './app/RouteError.jsx'
+import { NewerVersion, RouteError, ShellError } from './app/RouteError.jsx'
 import { SignedOut } from './app/SignedOut.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
 import { cachedFetch } from './api/useApi.js'
@@ -30,23 +30,9 @@ const requireAuth = async ({ request }) => {
 	}
 }
 
-/* A deploy renames every chunk; a tab opened before it asks for a file that is gone. One
-   reload fetches the new names, and the flag stops it becoming a loop. */
-const RELOAD_FLAG = 'spendly:stale-chunk-reloaded'
-const flag = {
-	get: () => { try { return sessionStorage.getItem(RELOAD_FLAG) } catch { return null } },
-	set: () => { try { sessionStorage.setItem(RELOAD_FLAG, '1') } catch { /* storage denied */ } },
-	clear: () => { try { sessionStorage.removeItem(RELOAD_FLAG) } catch { /* storage denied */ } }
-}
-
-const page = load => lazy(() => load()
-	.then(m => { flag.clear(); return m })
-	.catch(error => {
-		if (flag.get()) throw error
-		flag.set()
-		window.location.reload()
-		return new Promise(() => {})
-	}))
+/* A deploy renames every chunk, so a tab opened before it asks for a file that is gone. The tab
+   says so and waits: a reload of its own would drop what was typed and hide the update notice. */
+const page = load => lazy(() => load().catch(() => ({ default: NewerVersion })))
 
 const SignIn = page(() => import('./pages/SignIn.jsx'))
 const Register = page(() => import('./pages/Register.jsx'))
