@@ -9,7 +9,7 @@ import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { SearchInput, TokensField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Popover } from '../components/Overlays.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuLabel, MenuSeparator, Popover } from '../components/Overlays.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
 import { Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
@@ -291,6 +291,7 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 	useFocusTrap(sheet, touch, 'input')
 	useEffect(() => { if (!touch) panel.current?.querySelector('input')?.focus({ preventScroll: true }) }, [touch])
 	const targets = usePickList(kind, find, mergeRequest(kind, source))
+	const recent = useRecent(kind).filter(n => n !== source.name)
 	const shown = targets.rows ?? []
 	const back = () => anchor.current?.querySelector('[aria-expanded]')?.focus()
 	const keys = ev => {
@@ -316,7 +317,7 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 	const list = (
 		<Menu position="plain" aria-label={vendor ? 'Vendor to merge into' : 'Category to merge into'}>
 			{!targets.rows ? null : shown.length
-				? shown.map(o => (
+				? pickGroups(groupPicks(shown, recent, find, vendor ? 'Other vendors' : 'Other categories'), o => (
 					<MenuItem key={o.id} onClick={() => { back(); onPick(o) }}>
 						{markOf(o)}
 						<span className="sp-truncate">{o.name}</span>
@@ -324,7 +325,7 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 						<span className="sp-meta sp-nowrap">{plural(o.orders ?? 0, 'order')}</span>
 						<Icon name="chevron-right" size={13} />
 					</MenuItem>
-				))
+				), { head: name => <MenuLabel>{name}</MenuLabel>, rule: <MenuSeparator /> })
 				: <ComboboxEmpty role="none">{targets.total ? `No ${vendor ? 'vendor' : 'category'} matches "${find.trim()}".` : `There are no other ${noun} yet.`}</ComboboxEmpty>}
 			<MoreMatches role="none" rows={targets.rows} matched={targets.matched} noun={noun} />
 		</Menu>
