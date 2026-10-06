@@ -1422,7 +1422,7 @@ function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onL
 							{show.categories
 								? (
 									<ListCell>
-										<CategoryChips categories={order.categories} />
+										<CategoryChips categories={order.categories} date={order.date} />
 									</ListCell>
 								)
 								: null}

@@ -10,7 +10,7 @@ import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
 import { attachmentDownloadUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
-import { dot, shortDate, today } from '../api/format.js'
+import { dot, shortDate } from '../api/format.js'
 import { useStacked } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
 import { useFolded } from '../app/folded.js'
@@ -176,18 +176,16 @@ function OrderView({ order, touch, onGone }) {
 /** The order's categories; one over its limit this month carries the problem dot, the mark that
     travels with a category wherever it is named, the order list's rows included (8b). */
 function OrderCategories({ order }) {
-	const over = useOverLimitIds()
+	const over = useOverLimitIds(order.date)
 	if (!order.categories.length) return 'None'
 	const named = c => <Link to={`/orders?category=${c.id}`}>{c.name}</Link>
 	if (!order.categories.some(c => over.has(c.id))) {
 		return order.categories.map((c, i) => <span key={c.id}>{i ? ', ' : ''}{named(c)}</span>)
 	}
-	// the dot speaks of this month; an order from another month says which month that is
-	const thisMonth = order.date.slice(0, 7) === today().slice(0, 7)
 	return (
 		<span className="sp-row-flex sp-wrap sp-gap-6 or-chips">
 			{order.categories.map(c => <Chip key={c.id} trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{named(c)}</Chip>)}
-			<span className="sp-meta">{thisMonth ? 'over limit' : 'over limit this month'}</span>
+			<span className="sp-meta">over limit</span>
 		</span>
 	)
 }
