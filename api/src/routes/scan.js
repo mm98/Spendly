@@ -295,6 +295,8 @@ function readOnce(userId, upload, today, onProgress, res) {
 function draftIfLeft(userId, upload, { read, failure }, today) {
 	const flag = selectLeave.get(upload.id)
 	if (!flag?.leave_as_draft || flag.draft_order_id) return null
+	// a reading that gave nothing leaves nothing behind: no order, no stored file
+	if (!read?.lines.length) return null
 	const found = draftOf({ user: { id: userId }, today }, upload, read, failure)
 	const body = {
 		vendor: String(found.vendor || 'Unknown vendor').trim().slice(0, 80), date: found.date, status: 'Draft', kind: found.kind,
@@ -306,7 +308,7 @@ function draftIfLeft(userId, upload, { read, failure }, today) {
 		const made = createOrderRecord(userId, body, today, id => {
 			if (!claimDraft.run(id, upload.id).changes) throw Object.assign(new Error('Already drafted'), { drafted: true })
 			const attachment = newId('a')
-			copyUploadToAttachment.run({ id: attachment, orderId: id, itemId: null, name: null,
+			copyUploadToAttachment.run({ id: attachment, orderId: id, itemId: null, name: null, size: upload.size,
 				meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, fromScan: 1, uploadId: upload.id, userId })
 			copyUploadPages.run({ id: attachment, uploadId: upload.id })
 			markVendorScanned.run({ order: id, userId })
