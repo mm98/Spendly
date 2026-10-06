@@ -425,6 +425,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// a new order's vendor fills empty categories with its defaults or offers them, and another vendor
 	// takes back only what the last one filled in; a saved order is never refilled (5l)
 	const pickVendor = async name => {
+		// set at once, so a save pressed straight after the field closes already carries it
+		if (name.trim() !== draft.vendor) set({ vendor: name.trim() })
 		const known = await resolveVendor(name)
 		const vendor = known?.name ?? name.trim()
 		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(known, vendor, draft.categories) } : {}) })
@@ -1571,6 +1573,14 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const typed = query.trim()
+	// a name typed and left in the field is the reader's choice; Escape and a picked option are not
+	const left = useRef({ picked: false, escaped: false })
+	useEffect(() => {
+		if (!open) return undefined
+		const escape = ev => { if (ev.key === 'Escape') left.current.escaped = true }
+		document.addEventListener('keydown', escape, true)
+		return () => document.removeEventListener('keydown', escape, true)
+	}, [open])
 	const page = usePickList('vendor', typed, { sort: 'name-asc' })
 	const found = (page.rows ?? []).map(v => ({ v, hit: vendorTextMatch(v, typed) }))
 	const favourites = found.filter(x => x.v.favourite)
@@ -1587,7 +1597,11 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 			onOpenChange={next => {
 				if (next && quiet?.current) return
 				setOpen(next)
-				if (!next) setQuery('')
+				if (!next) {
+					if (typed && typed !== value && !left.current.picked && !left.current.escaped) onPick(typed)
+					left.current = { picked: false, escaped: false }
+					setQuery('')
+				}
 			}}
 			onSearch={setQuery} noun="vendors" aria-label="Vendor" {...rest}>
 			{groups.map(([name, xs], i) => (
@@ -1595,14 +1609,14 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 					{i ? <ComboboxSeparator /> : null}
 					{groups.length > 1 ? <ComboboxGroup>{name}</ComboboxGroup> : null}
 					{xs.map(({ v, hit }) => (
-						<ComboboxOption key={v.id} selected={v.name === value} onSelect={() => onPick(v.name)}
+						<ComboboxOption key={v.id} selected={v.name === value} onSelect={() => { left.current.picked = true; onPick(v.name) }}
 							meta={hit.alias ?? undefined}>{bolded(v.name, typed)}</ComboboxOption>
 					))}
 				</Fragment>
 			))}
 			<MoreMatches rows={page.rows} matched={page.matched} noun="vendors" />
 			{typed && !known
-				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption create onSelect={() => onPick(typed)}>Create "{typed}"</ComboboxOption></>
+				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption create onSelect={() => { left.current.picked = true; onPick(typed) }}>Create "{typed}"</ComboboxOption></>
 				: null}
 		</Combobox>
 	)
