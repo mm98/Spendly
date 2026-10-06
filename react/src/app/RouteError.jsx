@@ -27,9 +27,8 @@ export function RouteError() {
 	)
 }
 
-/** A page whose files are gone because Spendly was updated after this tab opened. The tab goes back
-    to the page it was on and the update notice speaks; the content is left as it was. With no page
-    to go back to, it is a page that could not be shown. */
+/** A page whose files are gone after an update: back to the page the tab was on, and the update
+    notice speaks. With no page to go back to, it is a page that could not be shown. */
 export function NewerVersion() {
 	const navigate = useNavigate()
 	const back = (window.history.state?.idx ?? 0) > 0
