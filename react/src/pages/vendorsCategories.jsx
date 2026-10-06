@@ -9,7 +9,7 @@ import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { SearchInput, TokensField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Popover } from '../components/Overlays.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuLabel, MenuSeparator, Popover } from '../components/Overlays.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
 import { Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
@@ -20,7 +20,7 @@ import { amount, currency, dot, fullStop, plural, shortDate } from '../api/forma
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
-import { MoreMatches, usePickList } from '../app/pickList.jsx'
+import { MoreMatches, groupPicks, pickGroups, usePickList, useRecent } from '../app/pickList.jsx'
 
 /* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
    record stores, the mark it is drawn with, the bars above and around a list, and the parts of a record's form. */
@@ -291,6 +291,7 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 	useFocusTrap(sheet, touch, 'input')
 	useEffect(() => { if (!touch) panel.current?.querySelector('input')?.focus({ preventScroll: true }) }, [touch])
 	const targets = usePickList(kind, find, mergeRequest(kind, source))
+	const recent = useRecent(kind).filter(n => n !== source.name)
 	const shown = targets.rows ?? []
 	const back = () => anchor.current?.querySelector('[aria-expanded]')?.focus()
 	const keys = ev => {
@@ -316,7 +317,7 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 	const list = (
 		<Menu position="plain" aria-label={vendor ? 'Vendor to merge into' : 'Category to merge into'}>
 			{!targets.rows ? null : shown.length
-				? shown.map(o => (
+				? pickGroups(groupPicks(shown, recent, find, vendor ? 'Other vendors' : 'Other categories'), o => (
 					<MenuItem key={o.id} onClick={() => { back(); onPick(o) }}>
 						{markOf(o)}
 						<span className="sp-truncate">{o.name}</span>
@@ -324,7 +325,7 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 						<span className="sp-meta sp-nowrap">{plural(o.orders ?? 0, 'order')}</span>
 						<Icon name="chevron-right" size={13} />
 					</MenuItem>
-				))
+				), { head: name => <MenuLabel>{name}</MenuLabel>, rule: <MenuSeparator /> })
 				: <ComboboxEmpty role="none">{targets.total ? `No ${vendor ? 'vendor' : 'category'} matches "${find.trim()}".` : `There are no other ${noun} yet.`}</ComboboxEmpty>}
 			<MoreMatches role="none" rows={targets.rows} matched={targets.matched} noun={noun} />
 		</Menu>
@@ -369,7 +370,8 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 	const [picked, setPicked] = useState(initial)
 	const [query, setQuery] = useState('')
 	const vendor = kind === 'vendor'
-	const options = usePickList(kind, query, vendor ? { except: source.id, archived: 'all', sort: 'name' } : { except: source.id })
+	const options = usePickList(kind, query, vendor ? { except: source.id, archived: 'all', sort: 'name-asc' } : { except: source.id })
+	const recent = useRecent(kind).filter(n => n !== source.name)
 	const shown = options.rows ?? []
 	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
 	// counted as the merge writes them: one alias per spelling a receipt is matched by
@@ -391,7 +393,7 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 				<Combobox searchable search={query} onSearch={setQuery} noun={vendor ? 'vendors' : 'categories'}
 					placeholder={vendor ? 'Choose a vendor' : 'Choose a category'}
 					value={picked ? picked.name : ''} lead={picked ? markOf(picked) : undefined}>
-					{shown.map(o => (
+					{pickGroups(groupPicks(shown, recent, query, vendor ? 'Other vendors' : 'Other categories'), o => (
 						<ComboboxOption key={o.id} selected={o.id === picked?.id} mark={markOf(o)} meta={plural(o.orders, 'order')}
 							onSelect={() => { setPicked(o); setQuery('') }}>{o.name}</ComboboxOption>
 					))}
@@ -537,11 +539,12 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 		onChange(out)
 	}
 	const matches = (offered.rows ?? []).filter(c => !value.some(n => same(n, c.name)))
+	const groups = groupPicks(matches, useRecent('category').filter(n => !value.some(v => same(v, n))), query, 'Other categories')
 	const exists = value.some(n => same(n, query)) || Boolean(exact)
 	return (
 		<TokensField value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
 			{[
-				...matches.map(c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
+				...pickGroups(groups, c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
 				<MoreMatches key="more" rows={offered.rows} matched={offered.matched} noun="categories" />,
 				query && !exists
 					? <ComboboxOption key="create" create mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>

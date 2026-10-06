@@ -12,16 +12,18 @@ const MONTH = `SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status NOT IN ('Cancelled', 'Draft')`
 
-/* Ties go to the name as stored; `byName` is ordered by nameOrder. */
+/* Ties go to the name as stored; `byName` is ordered by nameOrder, and `fav` puts favourites first. */
 const SORTS = {
 	'name-asc': { byName: true },
+	// a picker's list: the favourites lead, then the rest by name
+	'favourites': { fav: true, byName: true },
 	'month-desc': { month: true, by: 'COALESCE(m.spend, 0) DESC, c.name' },
 	'month-asc': { month: true, by: 'COALESCE(m.spend, 0) ASC, c.name' },
 	'limit-desc': { by: 'c.budget DESC, c.name' },
 	'orders-desc': { orders: true, by: 'COALESCE(o.orders, 0) DESC, c.name' }
 }
 
-const selectRows = db.prepare(`SELECT id, name, icon, colour, budget FROM categories
+const selectRows = db.prepare(`SELECT id, name, icon, colour, budget, favourite FROM categories
 	WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))`)
 /* CROSS JOIN drives each count from the category's own covering link index, as countOrders does
    in routes/categories.js. */
@@ -75,7 +77,7 @@ function rowsFor(userId, ids, extras, month, view = null) {
 	return ids.filter(id => byId.has(id)).map(id => {
 		const c = byId.get(id)
 		return {
-			id, name: c.name, icon: c.icon, colour: c.colour, budget: c.budget, orders: orders.get(id) ?? 0,
+			id, name: c.name, icon: c.icon, colour: c.colour, budget: c.budget, favourite: Boolean(c.favourite), orders: orders.get(id) ?? 0,
 			...(spend ? { monthSpend: spend.get(id) ?? 0, monthAverage: (year.get(id) ?? 0) / 12 } : {}),
 			...(bookmarks ? { bookmarks: bookmarks.get(id) ?? 0 } : {})
 		}
@@ -130,8 +132,8 @@ export function categoryPage(userId, q, today, languages = []) {
 		${sort.orders ? `LEFT JOIN (${ORDERS} GROUP BY oc.category_id) o ON o.category_id = c.id` : ''}`
 	if (sort.byName) {
 		const compare = nameOrder(languages)
-		const found = db.prepare(`SELECT c.id, c.name FROM ${from} WHERE ${where.join(' AND ')}`).all(params)
-		return ranked(found.sort((a, b) => compare(a.name, b.name)).map(c => c.id))
+		const found = db.prepare(`SELECT c.id, c.name, c.favourite FROM ${from} WHERE ${where.join(' AND ')}`).all(params)
+		return ranked(found.sort((a, b) => (sort.fav ? b.favourite - a.favourite : 0) || compare(a.name, b.name)).map(c => c.id))
 	}
 	// the count needs the month's spend only to find the categories over their limit or with spend in it
 	const counted = `categories c ${over || named ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}`

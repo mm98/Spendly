@@ -113,6 +113,8 @@
   /* ---- control sizes ---- */
   --control-h: 42px;       /* every field and button on desktop */
   --control-h-touch: 48px; /* the same on mobile */
+  --row-h: 32px;           /* an option in a pickable list on desktop (c5): scanned and picked, not typed in */
+  --row-h-touch: 44px;     /* the same on mobile, a finger's minimum; rows touch, each is still its own target */
   /* The inset a phone screen's content keeps from the glass. The frame states it here
      so a bar pinned inside the frame can follow it; a page drawing its phones to a
      different inset sets this on its own device element and everything follows. */

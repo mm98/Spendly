@@ -10,7 +10,7 @@ import { Pill } from '../components/Pill.jsx'
 import { dot, plural } from '../api/format.js'
 import { useApi } from '../api/useApi.js'
 import { getKnownCategoryNames } from '../api/client.js'
-import { MoreMatches, usePickList } from '../app/pickList.jsx'
+import { MoreMatches, groupPicks, pickGroups, usePickList, useRecent } from '../app/pickList.jsx'
 import {
 	DATE_LABELS, DATE_SHAPES, FIELDS, NONE, REQUIRED, dateFormatsOf, decimalOf, fieldsFor, unknownCategories
 } from '../api/orderImport.js'
@@ -238,13 +238,14 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 function CategoryChoice({ value, chosen, open, onPick }) {
 	const [find, setFind] = useState('')
 	const page = usePickList('category', find, {})
+	const recent = useRecent('category')
 	const searched = Boolean(find.trim()) || (page.total ?? 0) > (page.rows?.length ?? 0)
 	return (
 		<Combobox variant="sort-end" aria-label={`Category for ${value}`}
 			value={open ? 'Pick, or create it' : chosen === '' ? 'No category' : chosen === value ? `Create ${value}` : chosen}
 			{...(searched ? { searchable: true, search: find, onSearch: setFind, noun: 'categories' } : {})}>
 			<ComboboxOption create selected={chosen === value} onSelect={() => onPick(value)}>{`Create ${value}`}</ComboboxOption>
-			{(page.rows ?? []).map(c => (
+			{pickGroups(groupPicks(page.rows ?? [], recent, find, 'Other categories'), c => (
 				<ComboboxOption key={c.id} selected={chosen === c.name} onSelect={() => onPick(c.name)}>{c.name}</ComboboxOption>
 			))}
 			<MoreMatches rows={page.rows} matched={page.matched} noun="categories" />
