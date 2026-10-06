@@ -47,7 +47,7 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 		</span>
 	)
 	/* A chart's readout stands above its bar, 8 clear of the tallest of that bar and its two
-	   neighbours; with no room above, inside the plot's top edge; near the ends, inside the card (4a). */
+	   neighbours, even above the chart: a readout is never held inside its container; near the ends, inside the card (4a). */
 	const placeTip = el => {
 		if (!el || (variant !== 'plot' && variant !== 'card')) return
 		const col = el.parentElement
@@ -57,7 +57,6 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 			return bar ? bar.getBoundingClientRect().top : bottom
 		})
 		el.style.setProperty('--tip-at', `${bottom - Math.min(...tops)}px`)
-		if (el.getBoundingClientRect().top < col.parentElement.getBoundingClientRect().top) el.dataset.pin = 'top'
 		const card = (el.closest('.sp-card') ?? col.parentElement).getBoundingClientRect()
 		const r = el.getBoundingClientRect()
 		if (r.left < card.left) el.dataset.side = 'start'
