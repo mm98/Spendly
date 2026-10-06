@@ -44,7 +44,8 @@
     <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400.</div>
     <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
     <div class="doc-note"><b>Card scopes differ and each says so.</b> Recent orders is all time, newest first. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
-    <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> over limit, then missing receipt, then possible duplicate vendors. Each row links to the filtered list that resolves it, and the card is absent when there is nothing to say - never a card with a tick in it.</div>
+    <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> categories over their limit, categories near it, orders not delivered, then missing receipt, then possible duplicate vendors. The cap of three holds, so an account with three categories over their limit shows no other row. As drawn, the duplicate vendors row is the fourth and does not show. Each row links to the filtered list that resolves it, and the card is absent when there is nothing to say - never a card with a tick in it.</div>
+    <div class="doc-note"><b>Orders not delivered</b> counts the orders with status Ordered dated 14 or more days ago. It is the plain count row, not a warning: "4 orders ordered over 2 weeks ago and not delivered", "1 order ordered ..." for one; on a phone "not delivered after 2 weeks". A count of zero is no row.</div>
     <div class="doc-note"><b>Each card loads independently</b> and shows its own skeleton at its resting height. One slow query does not delay the capture zone, which is the most common reason the page was opened and must be usable first.</div>
     <div class="doc-note"><b>A zero total renders the label without a link.</b> An empty card states the one action that fills it, in the card, at the same height it has when full.</div>
     <div class="doc-note"><b>Nothing on Home is a filter or a drill target.</b> Clicking a category, a month bar or an order leaves Home for the screen that owns it, with the equivalent state applied. Home holds no filter state of its own, so there is nothing to restore when the user comes back.</div>
@@ -60,6 +61,8 @@
       <div>No route of its own: opens the <a href="Order create.dc.html#3b">3b</a> dialog over Home. Escape or Cancel closes it and stays on Home. Picking an order opens the unsaved copy, as from the create screen. Hidden when there are no orders yet.</div>
       <div><b>See orders (over limit)</b></div>
       <div><code>/orders?category=decor&amp;month=2026-08</code> - the order list, filtered, filter chips visible and removable.</div>
+      <div><b>Orders not delivered</b></div>
+      <div><code>/orders?status=Ordered&amp;to=&lt;day&gt;</code> - the order list filtered to status Ordered, dated up to the cutoff day, 14 days before today (<code>to=2026-08-07</code> on 21 August). It lists exactly the orders the count counts.</div>
       <div><b>Review (missing receipt)</b></div>
       <div><code>/orders?view=missing-receipt</code> - the saved view, the same one the sidebar entry opens.</div>
       <div><b>Merge (duplicate vendors)</b></div>
@@ -188,13 +191,13 @@
                   <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
                 </a>
                 <a class="sp-list-item" href="#2b">
-                  <span class="sp-list-item__count">12</span>
-                  <span class="sp-grow">orders without a receipt attached</span>
+                  <span class="sp-list-item__count">4</span>
+                  <span class="sp-grow">orders ordered over 2 weeks ago and not delivered</span>
                   <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
                 </a>
-                <a class="sp-list-item" href="#10a">
-                  <span class="sp-list-item__count">3</span>
-                  <span class="sp-grow">vendors look like duplicates</span>
+                <a class="sp-list-item" href="#2b">
+                  <span class="sp-list-item__count">12</span>
+                  <span class="sp-grow">orders without a receipt attached</span>
                   <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
                 </a>
               </div>
