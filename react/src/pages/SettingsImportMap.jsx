@@ -245,7 +245,7 @@ function CategoryChoice({ value, chosen, open, onPick }) {
 			value={open ? 'Pick, or create it' : chosen === '' ? 'No category' : chosen === value ? `Create ${value}` : chosen}
 			{...(searched ? { searchable: true, search: find, onSearch: setFind, noun: 'categories' } : {})}>
 			<ComboboxOption create selected={chosen === value} onSelect={() => onPick(value)}>{`Create ${value}`}</ComboboxOption>
-			{pickGroups(groupPicks(page.rows ?? [], recent, find, 'Other categories'), c => (
+			{pickGroups(groupPicks(page.rows ?? [], recent, find, 'Other categories', { byName: true }), c => (
 				<ComboboxOption key={c.id} selected={chosen === c.name} onSelect={() => onPick(c.name)}>{c.name}</ComboboxOption>
 			))}
 			<MoreMatches rows={page.rows} matched={page.matched} noun="categories" />
