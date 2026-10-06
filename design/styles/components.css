@@ -1780,7 +1780,8 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   padding: var(--sp-6);
   list-style: none;
   flex-direction: column;
-  gap: var(--sp-6);
+  /* options are scanned and picked: 2 between rows on desktop, none on touch (brief 31) */
+  gap: var(--sp-2);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1801,9 +1802,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-combobox__panel hr {
   height: 1px;
   border: 0;
-  /* the panel already gaps its rows by 6, so the separator adds nothing of its own -
-     a 1px rule sits 6 from the rows either side of it wherever it is drawn */
-  margin: 0;
+  /* with the panel's 2 the rule sits 6 from the rows either side of it on desktop,
+     4 on touch, so a group still reads as a group in the denser list */
+  margin: var(--sp-4) 0;
   background: var(--line-2);
 }
 .sp-combobox__option {
@@ -1811,7 +1812,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   align-items: center;
   gap: var(--sp-8);
   width: 100%;
-  padding: var(--sp-8) var(--sp-12);
+  min-height: var(--row-h);
+  box-sizing: border-box;
+  padding: var(--sp-6) var(--sp-12);
   border: 0;
   border-radius: var(--r-tile);
   background: none;
@@ -5165,9 +5168,12 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 /* only a chip that acts takes the touch height; a label chip (--static) keeps its own */
 .sp-touch .sp-chip:not(.sp-chip--static) { height: auto; min-height: var(--control-h-touch); }
 .sp-touch .sp-option { width: var(--control-h-touch); height: var(--control-h-touch); }
+/* rows in a list that is scanned and picked from take the row height, and touch (brief 31);
+   a facet group's head opens a group of 48px fields and keeps theirs */
 .sp-touch .sp-menu__item,
 .sp-touch .sp-combobox__option,
-.sp-touch .sp-palette__row,
+.sp-touch .sp-palette__row { box-sizing: border-box; min-height: var(--row-h-touch); }
+.sp-touch .sp-combobox__panel { gap: 0; }
 .sp-touch .sp-field-group__head { box-sizing: border-box; min-height: var(--control-h-touch); }
 .sp-touch .sp-field-group__panel .sp-input { min-height: var(--control-h-touch); }
 .sp-touch .sp-sum:has(.sp-input--cell) { box-sizing: border-box; min-height: var(--control-h-touch); align-items: center; }
