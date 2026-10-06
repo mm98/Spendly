@@ -1228,7 +1228,7 @@ const rememberLimits = n => { try { sessionStorage.setItem(LIMITED, String(n)) }
 
 /** Every category's limit is set on the overview (5d); one category's on its own page, at the limit (5f). */
 const EditLimit = ({ category }) => (
-	<Button variant="outline" size="small" to={category ? `/categories/${category.id}/edit?focus=limit` : '/categories'}>Edit on category</Button>
+	<Button variant="outline" size="small" to={category ? `/categories/${category.id}/edit?focus=limit` : '/categories?flag=limited'}>Edit on category</Button>
 )
 
 function LimitCard({ view, name, running, categories, touch, onRetry }) {

@@ -109,7 +109,7 @@ export function categoryPage(userId, q, today, languages = []) {
 	const where = ['c.user_id = @userId']
 	const params = { userId }
 	const over = q.flag === 'over-limit'
-	if (q.limited === 'yes' || over) where.push('c.budget > 0')
+	if (q.limited === 'yes' || q.flag === 'limited' || over) where.push('c.budget > 0')
 	if (over) where.push('COALESCE(m.spend, 0) > c.budget')
 	if (named) where.push('COALESCE(m.spend, 0) > 0')
 	if (q.ids !== undefined) { where.push('c.id IN (SELECT value FROM json_each(@ids))'); params.ids = JSON.stringify(listOf(q.ids)) }
