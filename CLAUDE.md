@@ -94,6 +94,10 @@ have to. Putting screens together from its patterns is the build's job:
   and list each such decision once in the pull request so the user can overrule it.
 - **Ask Claude Design** only for a real design question: a pattern that does not exist, two pages
   that contradict each other, or a choice that changes what the user can do.
+- **The text in `design/` is general guidance, not a rule for every case.** It describes components and
+  patterns, not each place or situation they are used in. Where a sentence does not clearly fit the case
+  in front of you, do not apply it literally and do not guess: ask the user. A case a pattern already
+  covers is the build's to decide, and is not a question for Claude Design.
 - **Ask in one batch.** Compare the whole change with `design/` before building, and put every real
   question in one brief, not one per round of building.
 - A design fault (a rule that breaks in practice, such as a clipped outline) goes in that same brief;
