@@ -95,6 +95,18 @@
     for (const v of new Set([...s.matchAll(/var\((--[\w-]+)/g)].map(m => m[1])))
       if (!defined.has(v)) fail('tokens defined', p, `${v} is not defined`);
   }
+  /* A readout is a state of the plot's bars only: the plain bars have no rule for
+     placing one, so in them it takes a place in the column and pushes the bars aside
+     (brief 35). */
+  for (const [f, s] of Object.entries(src)) {
+    let i = s.indexOf('sp-bars__tip');
+    while (i >= 0) {
+      const open = Math.max(s.lastIndexOf('class="sp-bars ', i), s.lastIndexOf('class="sp-bars"', i));
+      const cls = open >= 0 ? s.slice(open, s.indexOf('"', open + 7)) : '';
+      if (!cls.includes('sp-bars--plot')) fail('a readout sits on the plot bars', f.replace('.dc.html', ''), 'a .sp-bars__tip inside plain .sp-bars');
+      i = s.indexOf('sp-bars__tip', i + 12);
+    }
+  }
   // a fallback hides either a missing token or a value that should not exist. These
   // four are per-instance hooks something actually sets.
   const HOOKS = ['--swatch','--p','--a','--b'];

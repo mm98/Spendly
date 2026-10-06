@@ -44,8 +44,10 @@
     <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400. No list on Home or Statistics shows more than one page of rows (Rows per page, never fewer than 10); Home's caps sit below it. The Statistics rule is in <a href="Order statistics.dc.html#4d">4d</a>.</div>
     <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
     <div class="doc-note"><b>Card scopes differ and each says so.</b> Recent orders is all time, newest first. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
-    <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> categories over their limit, categories near it, orders not delivered, then possible duplicate vendors. The cap of three holds, so an account with three categories over their limit shows no other row. Each kind can be switched off in Settings, Needs a look (<a href="Settings and import.dc.html#11a">11a</a>); a switched-off kind is skipped and the next one moves up. Orders without a receipt is a kind too, off by default, since most orders have none. Each row links to the filtered list that resolves it, and the card is absent when there is nothing to say - never a card with a tick in it.</div>
+    <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> categories over their limit, categories near it, orders not delivered, then possible duplicate vendors. The cap of three holds, so an account with three categories over their limit shows no other row. Each kind can be switched off in Settings, Needs a look (<a href="Settings and import.dc.html#11a">11a</a>); a switched-off kind is skipped and the next one moves up. Orders without a receipt is a kind too, off by default, since most orders have none. Each row links to the filtered list that resolves it - over the limit to <code>/categories?flag=over-limit</code>, near its limit to <code>/categories?flag=near-limit</code> - and the card is absent when there is nothing to say - never a card with a tick in it.</div>
     <div class="doc-note"><b>Orders not delivered</b> counts the orders with status Ordered dated 14 or more days ago. It is the plain count row, not a warning: "4 orders ordered over 2 weeks ago and not delivered", "1 order ordered ..." for one; on a phone "not delivered after 2 weeks". A count of zero is no row.</div>
+    <div class="doc-note"><b>Last 8 months uses the plot's bars from Statistics</b>, at the size the card already has: 140 high, 8 between columns. A bar that a hover or focus reaches takes the soft tile and shows the Statistics readout (<a href="Order statistics.dc.html#4a">4a</a>) - the month and year with its total, then the note - placed by the same rules: 8 clear of the tallest of that bar and its two neighbours, set inside the top edge (data-pin="top") where that leaves too little room, and aligned to the outer edge at either end of the chart. It never moves a bar. No category rows, since the bars are one colour.</div>
+    <div class="doc-note"><b>The note reads "18 orders · click to open"</b> for a month of this year. For a month of last year it reads only "click to open", since Home holds only that year's total spend.</div>
     <div class="doc-note"><b>Each card loads independently</b> and shows its own skeleton at its resting height. One slow query does not delay the capture zone, which is the most common reason the page was opened and must be usable first.</div>
     <div class="doc-note"><b>A zero total renders the label without a link.</b> An empty card states the one action that fills it, in the card, at the same height it has when full.</div>
     <div class="doc-note"><b>Nothing on Home is a filter or a drill target.</b> Clicking a category, a month bar or an order leaves Home for the screen that owns it, with the equivalent state applied. Home holds no filter state of its own, so there is nothing to restore when the user comes back.</div>
@@ -63,7 +65,7 @@
       <div><b>See orders (over limit)</b></div>
       <div><code>/orders?category=decor&amp;month=2026-08</code> - the order list, filtered, filter chips visible and removable.</div>
       <div><b>Near its limit</b></div>
-      <div><code>/categories?flag=limited</code> - the category list filtered to the categories that have a limit, the tag "Has a limit" visible and removable.</div>
+      <div><code>/categories?flag=near-limit</code> - the category list filtered to the categories at or past the "Tell me early" share of their limit and not over it, the tag "Near the limit" visible and removable. It holds the same categories the row counts.</div>
       <div><b>Orders not delivered</b></div>
       <div><code>/orders?status=Ordered&amp;to=&lt;day&gt;</code> - the order list filtered to status Ordered, dated up to the cutoff day, 14 days before today (<code>to=2026-08-07</code> on 21 August). It lists exactly the orders the count counts.</div>
       <div><b>Merge (duplicate vendors)</b></div>
@@ -339,7 +341,7 @@
                 <span class="sp-grow"></span>
                 <a class="sp-btn sp-btn--text sp-btn--small" href="#10a">Statistics</a>
               </div>
-              <div class="sp-bars">
+              <div class="sp-bars sp-bars--plot sp-bars--card">
                 <button type="button" class="sp-bars__col" aria-label="January"><span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span><span class="sp-bars__tick">J</span></button>
                 <button type="button" class="sp-bars__col" aria-label="February"><span class="sp-bars__bar sp-bars__bar--muted" data-h="33"></span><span class="sp-bars__tick">F</span></button>
                 <button type="button" class="sp-bars__col" aria-label="March"><span class="sp-bars__bar sp-bars__bar--muted" data-h="51"></span><span class="sp-bars__tick">M</span></button>
@@ -347,7 +349,7 @@
                 <button type="button" class="sp-bars__col" aria-label="May"><span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span><span class="sp-bars__tick">M</span></button>
                 <button type="button" class="sp-bars__col" aria-label="June"><span class="sp-bars__bar sp-bars__bar--muted" data-h="54"></span><span class="sp-bars__tick">J</span></button>
                 <button type="button" class="sp-bars__col" aria-label="July"><span class="sp-bars__bar sp-bars__bar--muted" data-h="71"></span><span class="sp-bars__tick">J</span></button>
-                <button type="button" class="sp-bars__col" aria-pressed="true" aria-label="August"><span class="sp-bars__bar" data-h="81"></span><span class="sp-bars__tick">A</span></button>
+                <button type="button" class="sp-bars__col" aria-pressed="true" aria-label="August"><div class="sp-tip sp-tip--panel sp-bars__tip" data-side="end" data-pin="top"><div class="sp-tip__head"><span>August 2026</span><span>61.480 kr.</span></div><span class="sp-meta">18 orders · click to open</span></div><span class="sp-bars__bar" data-h="81"></span><span class="sp-bars__tick">A</span></button>
               </div>
               <div class="sp-card__footer">
                 <span class="sp-subtitle">Monthly average</span>
