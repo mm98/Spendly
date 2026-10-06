@@ -827,6 +827,20 @@
   </div>
 </section>
 
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="15f">15f</span>
+    <span class="doc-section__title">Rules every element follows</span>
+  </div>
+  <div class="doc-lede">General rules that hold for every element in the app. A screen does not restate them, and a case they already answer needs no drawing.</div>
+  <div class="doc-notes">
+    <div class="doc-notes__label">Tooltips and readouts</div>
+    <div class="doc-note"><b>A tooltip or readout behaves like the browser's native tooltip.</b> It is drawn on its own layer, on top of everything else, next to what it describes, and is never held inside the box it belongs to: it may stand outside its chart, card, table, sidebar or any other container, so it never has to cover what it reads. This is what lets a tooltip sit on a pill or a mark.</div>
+    <div class="doc-note"><b>Only the window's edge moves it.</b> It keeps its place relative to what it describes and shifts or flips only where it would leave the window. No container clips it, and no container's scroll cuts it off.</div>
+    <div class="doc-note"><b>It never moves anything.</b> Showing a tooltip or readout takes no space in the layout; nothing around it shifts.</div>
+  </div>
+</section>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">

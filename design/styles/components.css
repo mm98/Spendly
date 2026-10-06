@@ -5101,16 +5101,14 @@ a.sp-menu__item { text-decoration: none; }
 .sp-record__menu .sp-menu--floating[data-place="up"] { top: auto; bottom: 100%; }
 /* A chart's readout (4a) stands above its own bar, centred on it and 8 clear of the top of
    the tallest of that bar and its two neighbours, so it covers none of the three. --tip-at is
-   that height, measured from the column's bottom. Where that leaves too little room for it
-   inside the plot, data-pin="top" sets it inside the plot's top edge instead, still centred
-   on the bar, over the tops of the bars beneath it. Near the
-   chart's ends it shifts inward to stay in the card: data-side="start" aligns its left edge
-   with the bar's, data-side="end" its right edge. */
+   that height, measured from the column's bottom. Like every tooltip (15f) it is never held
+   inside its plot or card: it may stand above them, and only the window's edge moves it.
+   Near the chart's ends data-side="start" aligns its left edge with the bar's,
+   data-side="end" its right edge. */
 .sp-bars__col:has(> .sp-bars__tip) { position: relative; }
 .sp-bars--plot .sp-bars__tip { --tip-at: 100%; position: absolute; left: 50%; bottom: calc(var(--tip-at) + var(--sp-8)); transform: translateX(-50%); z-index: 3; pointer-events: none; }
 .sp-bars--plot .sp-bars__tip[data-side="start"] { left: 0; transform: none; }
 .sp-bars--plot .sp-bars__tip[data-side="end"] { left: auto; right: 0; transform: none; }
-.sp-bars--plot .sp-bars__tip[data-pin="top"] { top: 0; bottom: auto; }
 /* the plot's bars at a card's size (Home, 10a): the plain bars' 140 and 8 */
 .sp-bars--plot.sp-bars--card { --plot-h: 140px; gap: var(--sp-8); }
 /* search is one field, 420 fixed (9f, c11) */

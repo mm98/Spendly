@@ -107,6 +107,9 @@
       i = s.indexOf('sp-bars__tip', i + 12);
     }
   }
+  /* a tooltip is never held inside its container (15f, brief 36): nothing pins one there */
+  for (const [f, s] of Object.entries(src)) if (s.includes('data-pin=')) fail('tooltips are not held in their container', f.replace('.dc.html', ''), 'data-pin on a readout');
+  if (/\[data-pin/.test(comp)) fail('tooltips are not held in their container', 'components.css', 'a [data-pin] rule');
   // a fallback hides either a missing token or a value that should not exist. These
   // four are per-instance hooks something actually sets.
   const HOOKS = ['--swatch','--p','--a','--b'];
