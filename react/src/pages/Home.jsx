@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardBody, Toolbar } from '../components/Card.jsx'
-import { Bars, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
+import { Bars, ChartTip, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
 import { FILE_TYPES, FileDrop } from '../components/FileDrop.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -98,12 +98,15 @@ function daysAgo(iso) {
 function lastMonths(window) {
 	const year = Number(window.from.slice(0, 4))
 	const day = (y, m, d) => Math.round((Date.UTC(y, m, d) - Date.UTC(y, 0, 1)) / 86400000)
-	const spendIn = (y, m) => {
-		const series = y === year ? window.series.current : y === year - 1 ? window.series.previous : null
-		if (!series?.length) return 0
+	const within = (series, y, m) => {
 		const end = series[Math.min(day(y, m + 1, 0), series.length - 1)] ?? 0
 		const first = day(y, m, 1)
 		return end - (first > 0 ? series[first - 1] ?? 0 : 0)
+	}
+	// a month's running-total step, from the series of its own year
+	const stepIn = (name, y, m) => {
+		const series = y === year ? window.series[name] : y === year - 1 && name === 'current' ? window.series.previous : null
+		return series?.length ? within(series, y, m) : 0
 	}
 	const [y0, m0] = today().split('-').map(Number)
 	const short = monthNames('short')
@@ -112,10 +115,13 @@ function lastMonths(window) {
 		const at = new Date(y0, m0 - 1 - (MONTHS - 1 - i), 1)
 		const y = at.getFullYear(), m = at.getMonth()
 		const mm = String(m + 1).padStart(2, '0')
-		const spend = spendIn(y, m)
+		const spend = stepIn('current', y, m)
+		const orders = y === year ? stepIn('ordersCumulative', y, m) : null
 		return {
 			key: `${y}-${mm}`, from: `${y}-${mm}-01`, to: `${y}-${mm}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, '0')}`,
-			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}, ${currency(spend, 0)}`, spend
+			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}, ${currency(spend, 0)}`, spend,
+			tip: <ChartTip title={`${long[m]} ${y}`} value={currency(spend, 0)}
+				note={`${orders == null ? '' : `${plural(orders, 'order')}${dot}`}click to open in Statistics`} />
 		}
 	})
 	const most = Math.max(...months.map(c => c.spend), 0)
