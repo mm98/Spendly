@@ -2265,6 +2265,15 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
   gap: inherit;
   min-width: 0;
 }
+/* one column when the column the body sits in is 900 or less; that column is the
+   container (the app's page column). In one column the panel is a card the width of
+   the column, like the cards around it: its 360 and its stickiness only mean
+   something beside a list. */
+@container (max-width: 900px) {
+  .sp-shell__body--split { grid-template-columns: minmax(0, 1fr); }
+  .sp-shell__body--split > * { grid-column: 1 / -1; }
+  .sp-shell__body--split > .sp-panel { width: auto; position: static; }
+}
 
 .sp-topbar {
   display: flex;
@@ -2943,7 +2952,10 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   display: flex;
   align-items: center;
   gap: var(--sp-12);
-  flex-wrap: nowrap;
+  /* the sizes keep their width at every desktop width: when the row has no room,
+     the window, the resolved range and the compare switch move to a second line
+     rather than squeezing the sizes until their labels overflow */
+  flex-wrap: wrap;
   padding: var(--card-pad);
   background: var(--surface);
   border: 1px solid var(--line);

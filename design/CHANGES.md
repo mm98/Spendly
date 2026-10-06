@@ -1,54 +1,50 @@
-# Spendly - changes since handoff_2026_10_05j_changes
+# Spendly - changes since handoff_2026_10_06_changes_fixed
 
-Replaces handoff_2026_10_06_changes. Copy these files over handoff_2026_10_05j_changes.
+Copy these files over handoff_2026_10_06_changes_fixed. Answers brief 30.
 
-## Fixed since handoff_2026_10_06_changes
-- An order without a receipt is no longer treated as a problem. A receipt is optional, and most orders have none. Home's Needs a look card no longer counts them, and the sidebar's Missing receipt count is no longer amber.
-- What Needs a look shows can now be switched on and off in Settings.
+## 1. The panel in one column (styles/components.css, Responsive reference 18b)
 
-## 1. Home, Needs a look (Home 10a, Mobile screens 10a)
+### Cause
+- The cards in the main column have no width of their own, so they stretch to the column. `.sp-panel` states `width: 360px`, and a grid stretches only items whose width is auto, so in one column the panel kept 360 and Totals inside it stayed narrow.
 
-### Rows, in order
-- Categories over their limit, categories near it, orders not delivered after two weeks, vendors that look like duplicates.
-- Orders without a receipt is no longer a row by default. The 10a row "12 orders without a receipt attached" (phone: "3 missing a receipt") is replaced by "2 vendors that look like duplicates" (phone: "2 vendors look like duplicates"), the existing plain `.sp-list-item` count row, opening `/vendors?flag=possible-duplicate`.
-- The cap of three rows stays. A row type that is switched off is skipped and the next one moves up. With every type off, the card is absent.
-- The route `/orders?view=missing-receipt` is removed from Home's routes note.
+### Rule
+- The stylesheet had no 900px rule for `.sp-shell__body--split`. It is added in full, after the `.sp-shell__body--split > *` rule:
 
-### Orders not delivered
-- Counts orders with status Ordered dated 14 or more days ago. A count of zero is no row.
-- The existing `.sp-list-item` count row, no `data-color`. Desktop: "4 orders ordered over 2 weeks ago and not delivered" ("order ordered ..." for one). Phone: "not delivered after 2 weeks".
-- Opens `/orders?status=Ordered&to=<day>`, the cutoff day 14 days before today (`to=2026-08-07` on 21 August).
+      @container (max-width: 900px) {
+        .sp-shell__body--split { grid-template-columns: minmax(0, 1fr); }
+        .sp-shell__body--split > * { grid-column: 1 / -1; }
+        .sp-shell__body--split > .sp-panel { width: auto; position: static; }
+      }
 
-## 2. Settings, Needs a look pane (Settings and import 11a)
-- New pane in the settings navigation, after Limit alerts. Settings now has eleven panes.
-- One card, NEEDS A LOOK, with one described switch per row type, in Home's order. The switches sit in `fieldset.sp-field-group` (c5), the same as other stacked described options:
-  - Categories over their limit - on
-  - Categories near their limit - on (the point is set in Limit alerts)
-  - Orders not delivered after 2 weeks - on
-  - Vendors that look like duplicates - on
-  - Orders without a receipt - off
-- Saves with the card's own save, like every card on the page. Applies to Home on desktop and on the phone.
+- The query answers to the column the body sits in, so that column must be a container (the app's page column, `container-type: inline-size`). The app's workaround in `app.css` can be removed.
+- `.sp-panel--wide` is covered by the same rule.
 
-## 3. Sidebar, Missing receipt view
-- The count is the plain `.sp-nav-item__count`, no `data-color="warning"`, on every page that draws the sidebar: Home, Settings and import, Bookmarks, Dark mode and image viewer, Navigation shell.
-- The attention flag on a view stays as a feature (Navigation shell note), but no starting view carries it.
+### Other pages
+- Order read is the only page that shows `.sp-panel` in one column. On the list pages (Bookmarks, Vendors and categories) the panel opens as its own page at 900 (18a), so the rule does not apply there.
 
-## 4. Product link on an order line (Order editing layouts 1b notes)
-- Saving: the address is cleaned as a bookmark's is. Tracking parts such as `utm_` and `fbclid` are removed, and a missing `https://` is added.
-- Copies: a copy of an order keeps each line's link, however it is copied.
+### Note
+- 18b, Order read (1a), at 900: Totals, under the items, takes the column's width, like the cards above it.
 
-## 5. Not changed
-- No CSS, tokens or components. Every component is used as it already is.
+## 2. The period bar (styles/components.css, Order statistics 4a, Responsive reference 18b)
 
-## 6. Check
+### Decision
+- The bar wraps, as the app does. Hiding the resolved range alone is not enough: between 641 and 900 the sizes, the window and the compare switch still do not fit on one line.
+
+### Rule
+- `.sp-period` is `flex-wrap: wrap` (was `nowrap`). The sizes keep their 462px at every desktop width. When the row has no room, the window, the resolved range and the compare switch move to a second line. The day count still leaves below 1100. Below 640 the bar is the single select, as before.
+- The app's workaround in `app.css` can be removed.
+
+### Notes
+- Statistics 4a: new note, "The period bar wraps rather than squeezing."
+- 18b, Statistics (4a): at 1280, the wrap described; at 900, "Period bar as at 1280."
+
+## 3. Not changed
+- No tokens, type, colours or other components. Pages drawn wider than 900 render as before.
+
+## 4. Check
 - `styles/check.js` clean: 0 findings across 26 pages.
 
 ## Files
-- Home.dc.html
-- Mobile screens.dc.html
-- Settings and import.dc.html
-- Navigation shell.dc.html
-- Bookmarks.dc.html
-- Dark mode and image viewer.dc.html
-- Order editing layouts.dc.html
-- Brief 29 answers.md
+- styles/components.css
+- Order statistics.dc.html
+- Responsive reference.dc.html
