@@ -39,13 +39,14 @@ const selectOrdersWithFile = db.prepare(`
 	WHERE a.sha256 = @sha256 AND o.user_id = @userId
 	ORDER BY o.date DESC, o.created_at DESC`)
 
-/** What is already known about these bytes: the orders that hold them and when they were read. */
+/** What is already known about these bytes: the orders that hold them and when they were read.
+    Nothing is known of a file that was never read, so there is nothing to offer for it. */
 function seenBefore(userId, sha256) {
 	const orders = selectOrdersWithFile.all({ sha256, userId })
-	if (!orders.length) return null
 	const read = selectReadingTime.get(userId, sha256)
+	if (!orders.length || !read) return null
 	return {
-		readAt: read ? new Date(read.read_at * 1000).toISOString() : null,
+		readAt: new Date(read.read_at * 1000).toISOString(),
 		count: orders.length,
 		orders: orders.slice(0, 3).map(o => ({
 			id: o.id, reference: o.reference, date: fromEpoch(o.date), itemCount: o.item_count, status: o.status,
