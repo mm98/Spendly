@@ -53,6 +53,8 @@ const share = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
 const signed = (n, text) => (n > 0 ? `+${text}` : n < 0 ? `-${text}` : text)
 const counted = (n, noun, nouns = `${noun}s`) => `${amount(n, 0)} ${n === 1 ? noun : nouns}`
 const TOP = 8
+// the most lines one card ever lists, whatever an account holds; the rest stay behind a count
+const SHOWN = 25
 // inside a crumb the Spend and Average help name the level above by its kind (4b, 4c)
 const OF_WINDOW = { year: 'the year', quarter: 'the quarter', month: 'the month', week: 'the week' }
 const OF_CRUMB = { month: 'this month', week: 'this week', vendor: 'this vendor', category: 'this category', status: 'these orders' }
@@ -953,8 +955,8 @@ function Pick({ onPick, label, children }) {
 	return <button type="button" className="os-pick" onClick={onPick} aria-label={label}>{children}</button>
 }
 
-/** A ranked list with a bar under each line: the top eight and one line for the rest, or all of
-    them in a region that scrolls inside the card (4d). With no entries yet, `rows` skeleton lines. */
+/** A ranked list with a bar under each line: the top eight and one line for the rest, or the top
+    twenty-five and one line for the rest in a region that scrolls inside the card (4d). With no entries yet, `rows` skeleton lines. */
 function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = false }) {
 	if (!entries) {
 		return WIDTHS.slice(0, rows).map(w => (touch
@@ -975,10 +977,11 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 				</div>
 			)))
 	}
-	const rest = entries.slice(TOP)
-	const folded = !open && rest.length > 1
+	const top = open ? SHOWN : TOP
+	const rest = entries.slice(top)
+	const folded = rest.length > 1
 	const lines = folded
-		? [...entries.slice(0, TOP), {
+		? [...entries.slice(0, top), {
 			id: 'other', other: true, name: `Other ${amount(rest.length, 0)} ${noun}`,
 			amount: rest.reduce((sum, entry) => sum + entry.amount, 0), orders: rest.reduce((sum, entry) => sum + (entry.orders ?? 0), 0)
 		}]
@@ -1040,7 +1043,7 @@ function CategoryRows({ view, known, name, onOpen, hint = false }) {
 function ShowAll({ open, onClick, count, noun }) {
 	return (
 		<Button variant="outline" size="small" onClick={onClick}>
-			{open ? `Show top ${TOP} only` : `Show all ${amount(count, 0)} ${noun}`}
+			{open ? `Show top ${TOP} only` : count > SHOWN ? `Show top ${SHOWN} of ${amount(count, 0)} ${noun}` : `Show all ${amount(count, 0)} ${noun}`}
 		</Button>
 	)
 }
@@ -1099,7 +1102,7 @@ function VendorsCard({ view, name, touch, onOpen }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Top vendors</span>
 				<span className="sp-grow" />
-				<span className="sp-meta">{vendors ? `${name}${dot}${folds && !open ? `top ${TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
+				<span className="sp-meta">{vendors ? `${name}${dot}${count > SHOWN || (folds && !open) ? `top ${open ? SHOWN : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
 			</div>
 			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} onOpen={onOpen} counts={!touch} />
 			<CardFooter>
@@ -1302,7 +1305,7 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 	// the most spent rest at the top eight, as drawn (4a); past the resting nine the rest are a press away (4d)
 	const folds = rows.length > TOP + 1
 	const all = folds ? <ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={rows.length} noun="categories" /> : null
-	const drawn = rows.slice(0, folds && !open ? TOP : rows.length).map(row => {
+	const drawn = rows.slice(0, folds && !open ? TOP : SHOWN).map(row => {
 		const over = row.spend > row.allowed
 		const scale = Math.max(row.spend, row.allowed)
 		// ahead of pace only past ten points over the marker (4a, 5d)
@@ -1341,6 +1344,7 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 				)
 				: null}
 			{open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn}
+			{open && rows.length > SHOWN ? <span className="sp-meta">Top {SHOWN} of {amount(rows.length, 0)}. Edit on category lists them all.</span> : null}
 			{/* the whole window's spend against every limit, the same share Home states */}
 			<CardFooter>
 				<span className="sp-data">All categories</span>
