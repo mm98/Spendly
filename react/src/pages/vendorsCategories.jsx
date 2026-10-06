@@ -539,7 +539,7 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 		onChange(out)
 	}
 	const matches = (offered.rows ?? []).filter(c => !value.some(n => same(n, c.name)))
-	const groups = groupPicks(matches, useRecent('category').filter(n => !value.some(v => same(v, n))), query, 'Other categories')
+	const groups = groupPicks(matches, useRecent('category').filter(n => !value.some(v => same(v, n))), query, 'Other categories', { byName: true })
 	const exists = value.some(n => same(n, query)) || Boolean(exact)
 	return (
 		<TokensField value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>

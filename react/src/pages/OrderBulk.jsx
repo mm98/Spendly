@@ -281,7 +281,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 				<Button variant="outline" fullWidth onClick={onCancel}>Cancel</Button>
 				<Button fullWidth disabled={!adding.length || busy} onClick={() => onApply(adding)}>Apply</Button>
 			</>}>
-			{pickGroups(groupPicks(shown, recent, find, 'Other categories'), c => {
+			{pickGroups(groupPicks(shown, recent, find, 'Other categories', { byName: true }), c => {
 				const on = chosen ? chosen.filter(o => o.categories.some(x => x.id === c.id)).length : 0
 				const everywhere = chosen && on === count
 				const ticked = adding.includes(c.name)
