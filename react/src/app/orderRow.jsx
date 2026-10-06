@@ -5,7 +5,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { getOverLimitCategories, itemAttachmentThumbnailUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { dot, morePhotos, plural } from '../api/format.js'
+import { dot, morePhotos, plural, today } from '../api/format.js'
 import { TONES, useStatuses } from './statuses.js'
 
 /** An order row's picture (2b): its first line photo with the rest counted over it, the vendor's
@@ -67,10 +67,11 @@ const OverLimitList = createContext(null)
 export function OverLimitProvider({ children }) {
 	return <OverLimitList.Provider value={useOverLimit()}>{children}</OverLimitList.Provider>
 }
-export function useOverLimitIds() {
+export function useOverLimitIds(date) {
 	const given = useContext(OverLimitList)
 	const own = useOverLimit(given === null)
-	return given ?? own
+	// the dot speaks of this month, so an order of another month carries none
+	return date && date.slice(0, 7) !== today().slice(0, 7) ? NONE : given ?? own
 }
 
 /** The mark a category over its limit carries wherever it is named (8b, c19). */
@@ -80,8 +81,8 @@ export function OverLimitDot() {
 
 /* Two categories fit a row; past two the first stands for the rest, its count carrying their mark (2b,
    8b). One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
-export function CategoryChips({ categories }) {
-	const over = useOverLimitIds()
+export function CategoryChips({ categories, date }) {
+	const over = useOverLimitIds(date)
 	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">No category</Chip></div>
 	const shown = categories.length > 2 ? categories.slice(0, 1) : categories
 	const rest = categories.slice(shown.length)

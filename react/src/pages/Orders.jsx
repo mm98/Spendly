@@ -628,7 +628,7 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 						<OrderFiles count={o.fileCount} />
 					</ListCell>
 					<ListCell><span className="sp-data">{shortDate(o.date)}</span></ListCell>
-					{show.categories ? <ListCell><CategoryChips categories={o.categories} /></ListCell> : null}
+					{show.categories ? <ListCell><CategoryChips categories={o.categories} date={o.date} /></ListCell> : null}
 					{show.items ? <ListCell cell="number"><span className="sp-data">{o.itemCount}</span></ListCell> : null}
 					<ListCell><StatusPill status={o.status} /></ListCell>
 					<ListCell cell="amount"><OrderAmount order={o} /></ListCell>

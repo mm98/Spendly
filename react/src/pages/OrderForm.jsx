@@ -453,8 +453,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const history = useApi(getOrders, [{ vendorId: offeredFrom ?? '', pageSize: 50 }], { enabled: Boolean(offeredFrom) })
 	const carrying = offer && history.data ? (at => (at < 0 ? history.data.orders.length : at))(history.data.orders
 		.findIndex(o => !offer.names.every(n => o.categories.some(c => c.name.toLowerCase() === n.toLowerCase())))) : 0
-	// a category over its monthly limit carries its dot wherever it is named (8b)
-	const overNames = (useApi(getOverLimitCategories).data ?? []).map(c => c.name.toLowerCase())
+	// a category over its monthly limit carries its dot on an order of this month (8b)
+	const overNames = (useApi(getOverLimitCategories).data ?? []).filter(() => draft.date?.slice(0, 7) === today().slice(0, 7)).map(c => c.name.toLowerCase())
 	const trails = Object.fromEntries(draft.categories.filter(n => overNames.includes(n.toLowerCase())).map(n => [n, <OverLimitDot key={n} />]))
 	const setCategories = categories => {
 		setSuggested(s => (s ? { ...s, names: s.names.filter(c => categories.includes(c)), said: false } : s))

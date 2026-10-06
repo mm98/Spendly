@@ -207,7 +207,7 @@ export function RowMenu({ order, touch, onDelete }) {
 /** One order as a card (2c): its first three line photos, then the row's facts; the card's menu
     is the row's menu, and its box picks it as a row's does. */
 export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
-	const over = useOverLimitIds()
+	const over = useOverLimitIds(order.date)
 	// a cancelled order did not happen: the card is struck and says so where the saving would stand (2b)
 	const cancelled = order.status === 'Cancelled'
 	const photos = order.photos ?? []
