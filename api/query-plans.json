@@ -1285,6 +1285,15 @@
 				"idx_orders_user_discount"
 			]
 		},
+		"SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = 'Ordered' AND date <= ?": {
+			"plan": [
+				"SEARCH orders USING COVERING INDEX idx_orders_user_status (user_id=? AND status=? AND date<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_status"
+			]
+		},
 		"SELECT COUNT(*) c FROM orders WHERE vendor_id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=?)"
@@ -4011,7 +4020,7 @@
 				"date",
 				"id"
 			],
-			"readers": 28
+			"readers": 29
 		},
 		"idx_orders_user_total": {
 			"table": "orders",

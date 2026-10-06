@@ -288,7 +288,7 @@ function AlertSkeleton({ width }) {
 }
 
 /** What needs a look, by severity: categories over their limit, then near it (8b), then orders
-    without a receipt, then vendors whose names look alike. A count of zero is no row at all. */
+    not delivered after two weeks, without a receipt, then vendors whose names look alike. A count of zero is no row at all. */
 function alertsOf(view, attention) {
 	const w = view.window
 	const over = view.over.map(c => ({
@@ -299,6 +299,12 @@ function alertsOf(view, attention) {
 		key: c.id, to: ordersFor(c, w), color: 'warning', count: '!',
 		text: <><b>{c.name} is at {Math.floor((c.monthSpend / c.budget) * 100)}%</b> of its limit for {monthOf(w)}</>
 	}))
+	const late = attention?.notDelivered
+		? [{
+			key: 'delivery', to: `/orders?status=Ordered&to=${attention.notDeliveredTo}`, count: amount(attention.notDelivered, 0),
+			text: `${attention.notDelivered === 1 ? 'order' : 'orders'} ordered over 2 weeks ago and not delivered`, phone: 'not delivered after 2 weeks'
+		}]
+		: []
 	const receipts = attention?.withoutReceipt
 		? [{
 			key: 'receipt', to: '/orders?view=missing-receipt', count: amount(attention.withoutReceipt, 0),
@@ -311,7 +317,7 @@ function alertsOf(view, attention) {
 			text: 'vendors look like duplicates', phone: 'look like duplicates'
 		}]
 		: []
-	return { over, near, others: [...receipts, ...lookalikes] }
+	return { over, near, others: [...late, ...receipts, ...lookalikes] }
 }
 
 function AlertsCard({ view, attention }) {

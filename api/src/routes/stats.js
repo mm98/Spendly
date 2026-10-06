@@ -17,7 +17,7 @@ router.get('/lines', (req, res) => {
 })
 
 router.get('/home', (req, res) => {
-	res.json(homeAttention(req.user.id))
+	res.json(homeAttention(req.user.id, req.today))
 })
 
 router.get('/summary', (req, res) => {
