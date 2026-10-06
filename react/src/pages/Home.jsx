@@ -94,9 +94,6 @@ function daysAgo(iso) {
 	return days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
 }
 
-// the tallest bar's share of the chart: the rest is the room a bar's readout stands in above it
-const PEAK = 50
-
 /** The last eight calendar months, ending with this one, from the year's running totals. */
 function lastMonths(window) {
 	const year = Number(window.from.slice(0, 4))
@@ -128,7 +125,7 @@ function lastMonths(window) {
 		}
 	})
 	const most = Math.max(...months.map(c => c.spend), 0)
-	return months.map((c, i) => ({ ...c, height: most ? (c.spend / most) * PEAK : 0, muted: i < MONTHS - 1 }))
+	return months.map((c, i) => ({ ...c, height: most ? (c.spend / most) * 100 : 0, muted: i < MONTHS - 1 }))
 }
 
 function greeting(name) {
@@ -631,10 +628,8 @@ function MonthsCard() {
 				<span className="sp-grow" />
 				<Button variant="text" size="small" to="/statistics">Statistics</Button>
 			</div>
-			<div className="hm-months">
-				<Bars variant="plot" columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
-					onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
-			</div>
+			<Bars variant="card" columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
+				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
 		</Card>
 	)
 	if (year.error) return (

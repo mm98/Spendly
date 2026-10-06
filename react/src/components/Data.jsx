@@ -29,14 +29,14 @@ export function GaugeKey(props) {
 	return <span className="sp-gauge__key" {...props} />
 }
 
-const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
+const BARS = { default: null, plot: 'sp-bars--plot', card: 'sp-bars--plot sp-bars--card', spark: 'sp-bars--spark' }
 
 // the columns that have not arrived, as States 6b draws them
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
 /** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
     `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `future` is a step still to come;
-    `named` ticks truncate. */
+    `named` ticks truncate. A `card` variant is the plot at a card's height (10a). */
 export function Bars({ columns = [], variant = 'default', selected, onSelect, loading = false, named = false, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)
@@ -47,9 +47,9 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 		</span>
 	)
 	/* A chart's readout stands above its bar, 8 clear of the tallest of that bar and its two
-	   neighbours; with no room above, inside the plot's top edge; near the ends, inside the card (4a). */
+	   neighbours, even above the chart: a readout is never held inside its container; near the ends, inside the card (4a). */
 	const placeTip = el => {
-		if (!el || variant !== 'plot') return
+		if (!el || (variant !== 'plot' && variant !== 'card')) return
 		const col = el.parentElement
 		const bottom = col.getBoundingClientRect().bottom
 		const tops = [col.previousElementSibling, col, col.nextElementSibling].filter(Boolean).map(c => {
@@ -57,7 +57,6 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 			return bar ? bar.getBoundingClientRect().top : bottom
 		})
 		el.style.setProperty('--tip-at', `${bottom - Math.min(...tops)}px`)
-		if (el.getBoundingClientRect().top < col.parentElement.getBoundingClientRect().top) el.dataset.pin = 'top'
 		const card = (el.closest('.sp-card') ?? col.parentElement).getBoundingClientRect()
 		const r = el.getBoundingClientRect()
 		if (r.left < card.left) el.dataset.side = 'start'
