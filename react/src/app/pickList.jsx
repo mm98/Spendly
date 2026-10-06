@@ -39,12 +39,13 @@ export function useRecent(kind) {
 }
 
 /** A picker's rows as Favourites, Recent and the rest, each only when it has rows (c5, 14a). A recent
-    name past the first page is still offered by its name. */
-export function groupPicks(rows, recent, typed, rest) {
+    name past the first page is still offered by its name when the picker works by name (`byName`);
+    one that works by id offers only the rows it holds. */
+export function groupPicks(rows, recent, typed, rest, { byName = false } = {}) {
 	const needle = typed.trim().toLowerCase()
 	const favourites = rows.filter(r => r.favourite)
 	const recents = recent
-		.map(name => rows.find(r => r.name === name) ?? (!needle || name.toLowerCase().includes(needle) ? { id: `recent ${name}`, name } : null))
+		.map(name => rows.find(r => r.name === name) ?? (byName && (!needle || name.toLowerCase().includes(needle)) ? { id: `recent ${name}`, name } : null))
 		.filter(r => r && !r.favourite)
 	const others = rows.filter(r => !r.favourite && !recents.some(x => x.name === r.name))
 	return [['Favourites', favourites], ['Recent', recents], [rest, others]].filter(([, xs]) => xs.length)

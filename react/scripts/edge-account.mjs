@@ -182,6 +182,16 @@ if (group) {
 		lineNames.has(line.name) ? there() : step('budget line', await call('POST', `/budget/groups/${group.id}/lines`, line))
 }
 
+// more records than any card can draw: each with a limit and spend this month, a vendor each, so lists past a hundred rows are met
+const crowded = Array.from({ length: 120 }, (_, i) => String(i + 1).padStart(3, '0'))
+const crowd = new Set(((await call('GET', '/categories?pageSize=100&query=Crowd')).data?.matched ?? 0) >= 100 ? crowded : [])
+for (const n of crowded) {
+	if (crowd.has(n)) { there(); continue }
+	await makeCategory(`Crowd category ${n}`, { budget: 100 + Number(n) })
+	await makeVendor(`Crowd vendor ${n}`)
+	await order(`Crowd order ${n}`, { vendor: `Crowd vendor ${n}`, date: day(-(Number(n) % 5)), categories: [`Crowd category ${n}`], items: [{ title: `Crowd ${n}`, quantity: 1, price: 20 + Number(n) }] })
+}
+
 // bookmarks: with and without a category, and an archived one
 const listed = async archived => (await call('GET', `/bookmarks?pageSize=100${archived ? '&archived=yes' : ''}`)).data?.bookmarks ?? []
 const bookmarkNames = new Set([...(await listed(false)), ...(await listed(true))].map(b => b.name))
