@@ -15,7 +15,7 @@ import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/ord
 import { useStatuses } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
 import { CategoryMark } from '../app/categoryMark.jsx'
-import { MoreMatches, usePickList } from '../app/pickList.jsx'
+import { MoreMatches, groupPicks, pickGroups, rowHeads, usePickList, useRecent } from '../app/pickList.jsx'
 
 // the dot a status carries in a pick list, by its tone (2e)
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
@@ -44,6 +44,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 	const [level, setLevel] = useState('main')
 	const [find, setFind] = useState('')
 	const categories = usePickList('category', find, {})
+	const recentCategories = useRecent('category')
 	// the category the typed name means, wherever it falls in the list
 	const typedName = find.trim()
 	const exact = useApi(getCategoryPage, [{ name: typedName, pageSize: 1 }], { enabled: Boolean(typedName) }).data?.categories[0]
@@ -136,12 +137,12 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 				: null}
 			{/* the search and Create stay put; only the categories between them scroll, as 2a's picker does */}
 			<li role="none" className="sp-popover__list">
-				{shown.map(c => (
+				{pickGroups(groupPicks(shown, recentCategories, find, 'Other categories'), c => (
 					<Choice key={c.id} variant="row" control={<Check checked={has.has(c.id)} onChange={ev => tick(c, ev.target.checked)} />}>
 						<CategoryMark category={c} size="small" />
 						<span className="sp-truncate">{c.name}</span>
 					</Choice>
-				))}
+				), rowHeads)}
 			</li>
 			<MoreMatches role="none" rows={categories.rows} matched={categories.matched} noun="categories" />
 			<MenuSeparator />

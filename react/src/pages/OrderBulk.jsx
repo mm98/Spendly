@@ -10,7 +10,7 @@ import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Skeleton, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
 import { changeOrders, failureMessage, getCategoryPage, getOrderImpact, invalidateOrderData } from '../api/client.js'
-import { moreText, usePickList } from '../app/pickList.jsx'
+import { groupPicks, moreText, pickGroups, rowHeads, usePickList, useRecent } from '../app/pickList.jsx'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, amount, currency, fullStop, monthNames, plural, today } from '../api/format.js'
 import { useStatuses } from '../app/statuses.js'
@@ -260,6 +260,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 	const [find, setFind] = useState('')
 	const [adding, setAdding] = useState([])
 	const categories = usePickList('category', find, {})
+	const recent = useRecent('category')
 	const needle = find.trim().toLowerCase()
 	const shown = categories.rows ?? []
 	// the category the typed name means, wherever it falls in the list
@@ -280,7 +281,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 				<Button variant="outline" fullWidth onClick={onCancel}>Cancel</Button>
 				<Button fullWidth disabled={!adding.length || busy} onClick={() => onApply(adding)}>Apply</Button>
 			</>}>
-			{shown.map(c => {
+			{pickGroups(groupPicks(shown, recent, find, 'Other categories'), c => {
 				const on = chosen ? chosen.filter(o => o.categories.some(x => x.id === c.id)).length : 0
 				const everywhere = chosen && on === count
 				const ticked = adding.includes(c.name)
@@ -292,7 +293,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 						<span className="sp-meta sp-nowrap">{on ? `on ${on} of ${count}` : plural(c.orders ?? 0, 'order')}</span>
 					</Choice>
 				)
-			})}
+			}, rowHeads)}
 			{needle && !known && !adding.some(n => n.toLowerCase() === needle)
 				? (
 					<button type="button" className="sp-menu__item" onClick={() => { toggle(find.trim(), true); setFind('') }}>
