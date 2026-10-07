@@ -11,6 +11,7 @@ const selectOrder = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = 
 const selectItems = db.prepare('SELECT * FROM order_items WHERE order_id = ?')
 const selectCategories = db.prepare('SELECT * FROM order_categories WHERE order_id = ?')
 const selectStatuses = db.prepare('SELECT * FROM order_statuses WHERE order_id = ?')
+const selectValidation = db.prepare('SELECT * FROM order_validations WHERE order_id = ?')
 const selectFiles = db.prepare(`SELECT a.* FROM attachments a WHERE a.order_id = @id
 	UNION ALL SELECT a.* FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = @id`)
 const insertTrash = db.prepare('INSERT INTO order_trash (id, user_id, order_id, rows) VALUES (?, ?, ?, ?)')
@@ -38,7 +39,8 @@ export const trashOrder = db.transaction((userId, orderId) => {
 		items: selectItems.all(orderId),
 		categories: selectCategories.all(orderId),
 		statuses: selectStatuses.all(orderId),
-		files: files.map(withoutBlobs)
+		files: files.map(withoutBlobs),
+		validation: selectValidation.get(orderId) ?? null
 	}
 	const id = newId('t')
 	insertTrash.run(id, userId, orderId, JSON.stringify(rows))
@@ -67,6 +69,7 @@ export const restoreOrder = db.transaction((userId, trashId) => {
 	const blobs = new Map(selectTrashFiles.all(trash.id).map(f => [f.attachment_id, f]))
 	for (const file of rows.files)
 		insertRow('attachments', { ...file, data: blobs.get(file.id)?.data ?? null, thumbnail: blobs.get(file.id)?.thumbnail ?? null, original: blobs.get(file.id)?.original ?? null })
+	if (rows.validation) insertRow('order_validations', rows.validation)
 	deleteTrash.run(trash.id)
 	return trash.order_id
 })

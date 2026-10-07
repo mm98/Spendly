@@ -31,6 +31,7 @@ const selectCategories = db.prepare(`
 	WHERE oc.order_id = ?
 	ORDER BY c.name
 `)
+const selectValidation = db.prepare('SELECT attachment_id, validated_at FROM order_validations WHERE order_id = ?')
 const selectVendor = db.prepare('SELECT id, name, initials, colour FROM vendors WHERE id = ?')
 // No ORDER BY: at most 3 rows, sorted in JS below by workflow order rather than asking SQLite
 // to sort what the index (order_id, status) can't answer without its own temp B-tree.
@@ -56,7 +57,7 @@ const mapItem = (i, itemAttachments) => ({
     single-order reader needs (the order detail/edit page — the one place every field here is
     read). A list of orders never wants this whole shape; see decorateOrderListRows and
     decorateOrderSearchRows below for the leaner ones each list actually renders. */
-export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor, statuses }) {
+export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor, statuses, validation }) {
 	return {
 		id: totals.id,
 		vendorId: totals.vendor_id,
@@ -84,7 +85,9 @@ export function decorateOrder(totals, { items, attachments, itemAttachments, cat
 		saved: totals.saved,
 		savedPercent: totals.saved_percent,
 		// raised by every change, so the edit form can tell a save made from an older copy (6d)
-		...(totals.revision != null ? { revision: totals.revision } : {})
+		...(totals.revision != null ? { revision: totals.revision } : {}),
+		// the day the lines were checked against a receipt, and which receipt (3d)
+		validated: validation ? { date: fromEpoch(validation.validated_at), attachmentId: validation.attachment_id } : null
 	}
 }
 
@@ -101,7 +104,8 @@ export function getDecoratedOrder(userId, id) {
 		itemAttachments: groupBy(selectItemAttachments.all(id), 'order_item_id'),
 		categories: selectCategories.all(id),
 		vendor: selectVendor.get(totals.vendor_id),
-		statuses: selectOrderStatuses.all(id)
+		statuses: selectOrderStatuses.all(id),
+		validation: selectValidation.get(id)
 	})
 }
 

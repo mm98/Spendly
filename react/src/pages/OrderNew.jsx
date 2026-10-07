@@ -157,7 +157,7 @@ function Scanned({ documentKey, upload, from }) {
 
 /** Step 2 (3a): the receipt while it is sent and read, with what has been found so far. The
     gauge counts the steps: sent, vendor and date found, the whole reading in. */
-function Reading({ file, documentKey, onCancel }) {
+export function Reading({ file, documentKey, onCancel }) {
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [progress, setProgress] = useState(null)
 	useEffect(() => (documentKey ? watchScanProgress(documentKey, setProgress) : undefined), [documentKey])

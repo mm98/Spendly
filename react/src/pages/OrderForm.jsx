@@ -26,7 +26,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
+	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
 	getVendorPage, invalidateCategoryData, invalidateOrderData, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
@@ -100,7 +100,7 @@ export function draftOf(order) {
 }
 
 /** The draft as the API takes it. A status date the form does not show follows the order's. */
-function apiDraft(d, lines, dated) {
+export function apiDraft(d, lines, dated) {
 	return {
 		vendor: d.vendor.trim(), date: d.date, status: d.status, kind: d.kind,
 		statusDates: Object.fromEntries(Object.entries(d.statusDates ?? {}).filter(([key, date]) => date && dated.has(key))),
@@ -349,12 +349,23 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const addFiles = (picked, problems) => {
 		const records = picked.map((file, i) => ({
 			key: freshKey(), file, name: file.name, problem: problems[i], sending: !problems[i], sent: 0,
+			// a receipt added to a saved order is asked about once it has arrived (3d)
+			ask: !creating && !scan && !problems[i],
 			kind: isPdf(file) ? 'pdf' : 'image',
 			thumb: /^image\//.test(file.type) ? URL.createObjectURL(file) : null
 		}))
 		setFiles(fs => [...fs, ...records])
 		for (const r of records) if (!r.problem) send(r)
 	}
+	const [receiptAsked, setReceiptAsked] = useState(null)
+	const [comparing, setComparing] = useState(false)
+	useEffect(() => {
+		if (receiptAsked) return
+		const next = files.find(f => f.ask && (f.upload || f.problem || f.failed))
+		if (!next) return
+		patchFile(next.key, { ask: false })
+		if (next.upload) setReceiptAsked(next.key)
+	}, [files, receiptAsked])
 	const resend = record => {
 		patchFile(record.key, { sending: true, sent: 0, failed: null })
 		send(record)
@@ -1300,6 +1311,63 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			</Dialog>
 		)
 		: null
+	/* A receipt added to a saved order (3d): a file the order already holds is asked about as such, and any
+	   other is offered the comparison. It needs the order as saved, so it waits for a form with no changes. */
+	const askedFile = files.find(f => f.key === receiptAsked) ?? null
+	const askedTwin = Boolean(askedFile?.upload && saved.some(f => !gone.includes(f.id) && f.sha256 === askedFile.upload.sha256))
+	const unsavedBesides = Boolean(lineChanged) || gone.length > 0 || files.length > 1
+		|| JSON.stringify(draft) !== JSON.stringify({ ...start, lines: undefined })
+		|| JSON.stringify(lines) !== JSON.stringify(start.lines)
+	const closeAsk = () => setReceiptAsked(null)
+	const dropAsked = () => {
+		setFiles(fs => fs.filter(f => f.key !== askedFile.key))
+		if (askedFile.thumb) URL.revokeObjectURL(askedFile.thumb)
+		sends.current.delete(askedFile.key)
+		closeAsk()
+	}
+	// the file becomes one of the order's own now, so Cancel on the comparison leaves it there
+	const compare = async () => {
+		setComparing(true)
+		try {
+			const { attached } = await attachScanDocument(askedFile.upload.key, orderId, { as: 'file', name: askedFile.name })
+			invalidateOrderData()
+			guard.release()
+			navigate(`/orders/${orderId}/compare?doc=${askedFile.upload.key}&file=${attached}`)
+		} catch (e) {
+			setComparing(false)
+			toast({ message: failureMessage(e, 'The receipt could not be compared. Try again.'), color: 'danger' })
+		}
+	}
+	const compareAsk = !askedFile
+		? null
+		: askedTwin
+			? (
+				<Dialog onCancel={dropAsked} aria-label="This file is already on this order">
+					<div className="sp-stack sp-gap-12">
+						<DialogTitle>This file is already on this order</DialogTitle>
+						<DialogBody>{shortened(askedFile.name, 40)} is the same file as one this order already has.</DialogBody>
+						<DialogActions>
+							<Button variant="outline" fullWidth onClick={closeAsk}>Add anyway</Button>
+							<Button fullWidth onClick={dropAsked}>Don't add</Button>
+						</DialogActions>
+					</div>
+				</Dialog>
+			)
+			: (
+				<Dialog onCancel={closeAsk} aria-label="Compare with this receipt?">
+					<div className="sp-stack sp-gap-12">
+						<DialogTitle>Compare with this receipt?</DialogTitle>
+						<DialogBody>
+							{shortened(askedFile.name, 40)} is added to {start.vendor}, {shortDate(start.date)}. Compare it to see where its lines differ from the order and pick which to keep.
+						</DialogBody>
+						{unsavedBesides ? <span className="sp-meta">Save your changes first.</span> : null}
+						<DialogActions>
+							<Button variant="outline" fullWidth disabled={comparing} onClick={closeAsk}>Attach only</Button>
+							<Button fullWidth disabled={unsavedBesides || comparing} onClick={compare}>Compare</Button>
+						</DialogActions>
+					</div>
+				</Dialog>
+			)
 	const dialog = asking
 		? (
 			<Dialog onCancel={() => setAsking(false)} aria-label="Discard this scan?">
@@ -1330,14 +1398,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{confirmRemoval}{viewer}{guard.prompt}
+			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
 	const main = stacked
-		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}{sheet}{dialog}{confirmRemoval}{viewer}{guard.prompt}</div>
+		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}{sheet}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}</div>
 		: <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}</div>
-	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}{dialog}{confirmRemoval}{viewer}{guard.prompt}</Panel>
+	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}</Panel>
 	if (!region) return <>{stacked ? null : createdNotice}{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }
