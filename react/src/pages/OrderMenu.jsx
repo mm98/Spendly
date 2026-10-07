@@ -12,7 +12,7 @@ import { attachmentDownloadUrl, changeOrders, failureMessage, getCategoryPage, i
 import { useApi } from '../api/useApi.js'
 import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
 import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
-import { useStatuses } from '../app/statuses.js'
+import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
 import { CategoryMark } from '../app/categoryMark.jsx'
 import { MoreMatches, groupPicks, pickGroups, rowHeads, usePickList, useRecent } from '../app/pickList.jsx'
@@ -209,7 +209,7 @@ export function RowMenu({ order, touch, onDelete }) {
 export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
 	const over = useOverLimitIds(order.date)
 	// a cancelled order did not happen: the card is struck and says so where the saving would stand (2b)
-	const cancelled = order.status === 'Cancelled'
+	const cancelled = useStatusTypes().typeOf(order.status) === 'cancelled'
 	const photos = order.photos ?? []
 	const more = order.photoCount > photos.length ? morePhotos(order.photoCount - photos.length) : null
 	return (

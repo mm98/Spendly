@@ -27,7 +27,7 @@ import { useScanPicker } from '../app/scanPicker.jsx'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, OrderFiles, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
-import { useStatuses } from '../app/statuses.js'
+import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
 import { DeleteOrder } from './DeleteOrder.jsx'
 import { BulkActions, useStatusName } from './OrderBulk.jsx'
@@ -595,11 +595,12 @@ function useSettled(value, ms = 250) {
 /** The orders as rows (2b): the summary line, which the bulk bar takes over once a row is
     picked (2h), the table, and Load more. */
 function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, count, bulk, note, onLoadMore, onDelete }) {
+	const { typeOf } = useStatusTypes()
 	const show = columnsFor(width)
 	return (
 		<List data={data.orders} recordKey={o => o.id} noun="orders" rowTo={o => `/orders/${o.id}`} locale={NUMBER_LOCALE}
 			pageSize={size} total={data.matched} onLoadMore={onLoadMore} picked={picked} onPick={onPick} bulkNote={note}
-			rowVoid={o => o.status === 'Cancelled'} onContextMenu={menuHere}>
+			rowVoid={o => typeOf(o.status) === 'cancelled'} onContextMenu={menuHere}>
 			<Caption>{caption}</Caption>
 			<Selected>
 				<span className="sp-bulkbar__count">{amount(count, 0)} selected</span>
@@ -716,7 +717,7 @@ function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, 
 /* A cancelled order did not happen, so its amount is struck and says it is not counted, where a
    saving would stand (2b). */
 function OrderAmount({ order }) {
-	if (order.status === 'Cancelled')
+	if (useStatusTypes().typeOf(order.status) === 'cancelled')
 		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">not counted</span></>
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
@@ -724,14 +725,15 @@ function OrderAmount({ order }) {
 /** At 640 of list column and under, rows become the 2i card, two lines: in a narrow column with its box;
     on a phone without it, since a phone does not select (2c, Mobile screens). */
 function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, onLoadMore }) {
+	const { typeOf } = useStatusTypes()
 	return (
 		<>
 			{bulk ?? <span className="sp-meta">{plural(data.matched, 'order')}{summary ? `${dot}${currency(summary.total)}` : ''}</span>}
 			{data.orders.map(o => {
 				const on = picked.includes(o.id)
-				const amount = <span className={o.status === 'Cancelled' ? 'sp-amount sp-void sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(o.total)}</span>
+				const amount = <span className={typeOf(o.status) === 'cancelled' ? 'sp-amount sp-void sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(o.total)}</span>
 				const when = `${shortDate(o.date)}${dot}${plural(o.itemCount, 'item')}`
-				const saving = o.status === 'Cancelled' ? <span className="sp-amount-secondary">not counted</span> : <Saving value={o.saved} />
+				const saving = typeOf(o.status) === 'cancelled' ? <span className="sp-amount-secondary">not counted</span> : <Saving value={o.saved} />
 				return (
 					touch
 						? (

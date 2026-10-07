@@ -1,7 +1,7 @@
 import { db } from '../db.js'
 
 // a draft or a cancelled order is listed and counted, but its money is not spend
-const counted = (value, alias = '') => `CASE WHEN ${alias}status IN ('Draft', 'Cancelled') THEN 0 ELSE ${value} END`
+const counted = (value, alias = '') => `CASE WHEN ${alias}status_type IN ('draft', 'cancelled') THEN 0 ELSE ${value} END`
 
 /* Real aggregation: SUM/GROUP BY over the orders table's stored totals (see
    migrations/001_init.sql), not a per-order fetch-and-add-in-JS loop. */
@@ -49,7 +49,7 @@ const accountTotalQuery = db.prepare(
 	'SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?')
 // the uncounted orders are few, so they are summed apart and taken off, keeping the sum above index-only
 const uncountedTotalQuery = db.prepare(
-	"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND status IN ('Draft', 'Cancelled')")
+	"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND status_type IN ('draft', 'cancelled')")
 
 const uncategorisedBookmarksQuery = db.prepare(`
 	SELECT COUNT(*) AS bookmarks FROM bookmarks b WHERE b.user_id = ?

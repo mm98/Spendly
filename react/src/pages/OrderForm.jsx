@@ -37,7 +37,7 @@ import { OverLimitDot } from '../app/orderRow.jsx'
 import { MoreMatches, usePickList } from '../app/pickList.jsx'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
-import { useStatuses } from '../app/statuses.js'
+import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { useFolded } from '../app/folded.js'
 import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
@@ -87,7 +87,7 @@ export function draftOf(order) {
 	const last = status => order.statusHistory.findLast(s => s.status === status)?.date ?? ''
 	return {
 		vendor: order.vendor?.name ?? '', date: order.date, status: order.status, kind: order.kind,
-		statusDates: Object.fromEntries(order.statusHistory.filter(s => s.status !== 'Ordered').map(s => [s.status, last(s.status)])),
+		statusDates: Object.fromEntries(order.statusHistory.map(s => [s.status, last(s.status)])),
 		categories: order.categories.map(c => c.name),
 		shipping: order.shipping || null, discount: order.discount || null,
 		reference: order.reference ?? '', note: order.note ?? '', refunded: order.refunded,
@@ -210,7 +210,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	const set = patch => setDraft(d => ({ ...d, ...patch }))
 	// a Draft keeps its lines as they are so far (16a): none yet, or one not filled in, waits for later
-	const relaxed = draft.status === 'Draft' || tried === 'draft'
+	const { typeOf, keyOf } = useStatusTypes()
+	const relaxed = typeOf(draft.status) === 'draft' || tried === 'draft'
 	const statusDated = statuses.find(s => s.key === draft.status)?.ownDate
 	const errors = orderErrors(draft, statusDated)
 	const shown = tried ? errors : {}
@@ -567,8 +568,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	})
 
 	const save = async ({ asDraft = false } = {}) => {
-		const target = asDraft ? { ...draft, status: 'Draft' } : draft
-		const loose = target.status === 'Draft'
+		const target = asDraft ? { ...draft, status: keyOf('draft') } : draft
+		const loose = typeOf(target.status) === 'draft'
 		setTried(asDraft ? 'draft' : 'save')
 		let current = lines
 		const untouched = untouchedNew(editing)
@@ -1133,7 +1134,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const dated = /^\d{4}-\d{2}-\d{2}$/.test(draft.date ?? '')
 	const limits = useApi(getOrderLimits, [draft.date, draft.categories, orderId ?? ''], { enabled: warns && dated && draft.categories.length > 0 })
 	// a draft or a cancelled order spends nothing, so it takes no category anywhere
-	const counts = draft.status !== 'Draft' && draft.status !== 'Cancelled'
+	const counts = !['draft', 'cancelled'].includes(useStatusTypes().typeOf(draft.status))
 	const share = draft.categories.length ? sums.total / draft.categories.length : 0
 	const flagged = warns && counts && dated && draft.categories.length && limits.data
 		? limits.data.limits

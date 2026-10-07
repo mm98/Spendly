@@ -22,3 +22,12 @@ const FIRST = [
 export function useStatuses() {
 	return useApi(getStatuses).data ?? FIRST
 }
+
+/** An account's statuses by what they are to the app, not what they are called: `typeOf(key)` and `keyOf(type)`. */
+export function useStatusTypes() {
+	const list = useStatuses()
+	return {
+		typeOf: key => list.find(s => s.key === key)?.type ?? 'custom',
+		keyOf: type => list.find(s => s.type === type)?.key
+	}
+}

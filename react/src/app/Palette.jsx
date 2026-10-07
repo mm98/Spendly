@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
+import { useStatusTypes } from './statuses.js'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
@@ -208,7 +209,10 @@ function useOverLimit() {
 	return over.length ? `/orders?category=${over.map(c => c.id).join(',')}&from=${month.from}&to=${month.to}` : null
 }
 
-const useHasDrafts = () => useApi(getOrders, [{ status: 'Draft', pageSize: 1 }]).data?.matched > 0
+function useHasDrafts() {
+	const key = useStatusTypes().keyOf('draft')
+	return useApi(getOrders, [{ status: key, pageSize: 1 }], { enabled: !!key }).data?.matched > 0
+}
 
 const countLabel = (name, count) => (count == null ? name : name + dot + count)
 

@@ -13,3 +13,12 @@ export function resolveStatus(userId, value) {
 	const all = selectKeys.all(userId)
 	return (all.find(s => s.key === text) ?? all.find(s => s.key.toLowerCase() === text.toLowerCase() || s.name.toLowerCase() === text.toLowerCase()))?.key ?? null
 }
+
+const selectKeyOfType = db.prepare('SELECT key FROM statuses WHERE user_id = ? AND type = ?').pluck()
+const selectTypeOfKey = db.prepare('SELECT type FROM statuses WHERE user_id = ? AND key = ?').pluck()
+
+/** The key of the account's status of a type (draft, ordered, delivered, returned, cancelled); undefined for custom, which many share. */
+export const keyOfType = (userId, type) => selectKeyOfType.get(userId, type)
+
+/** What a status key is to the app: its type, or custom when the account has no such status. */
+export const typeOfKey = (userId, key) => selectTypeOfKey.get(userId, key) ?? 'custom'

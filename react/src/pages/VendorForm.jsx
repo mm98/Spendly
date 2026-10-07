@@ -4,6 +4,7 @@ import { Failed } from '../components/Failed.jsx'
 import { Card } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField, TokensField } from '../components/Inputs.jsx'
+import { useStatusTypes } from '../app/statuses.js'
 import { Check, Choice, Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -451,7 +452,9 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 /** What the vendor has cost, beside the fields that describe it (5c). */
 function VendorSummary({ vendor, name, colour }) {
 	const year = useApi(getStats, ['year', undefined, undefined])
-	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: 'Returned', pageSize: 1 }])
+	const { keyOf } = useStatusTypes()
+	const returnedKey = keyOf('returned')
+	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: returnedKey, pageSize: 1 }], { enabled: !!returnedKey })
 	const thisYear = year.data ? year.data.window.vendorSplit.find(v => v.id === vendor.id)?.amount ?? 0 : null
 	return (
 		<Card>

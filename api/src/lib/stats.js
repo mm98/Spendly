@@ -188,10 +188,10 @@ function comparisonWindowId(userId, range, id, compare, today) {
 
 /* The statuses that are money out, money back, or neither: a draft or a cancelled order moved no money. */
 const FLOW_WHERE = {
-	all: " AND ot.status NOT IN ('Cancelled', 'Draft')",
-	expenses: " AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft')",
-	refunds: " AND ot.status = 'Returned'",
-	net: " AND ot.status NOT IN ('Cancelled', 'Draft')"
+	all: " AND ot.status_type NOT IN ('cancelled', 'draft')",
+	expenses: " AND ot.status_type NOT IN ('returned', 'cancelled', 'draft')",
+	refunds: " AND ot.status_type = 'returned'",
+	net: " AND ot.status_type NOT IN ('cancelled', 'draft')"
 }
 export const FLOWS = Object.keys(FLOW_WHERE)
 
@@ -208,7 +208,7 @@ function scopeOf({ flow = 'all', vendorId, categoryId, status } = {}) {
 		params.categoryId = categoryId
 	}
 	if (status) { and += ' AND ot.status = @status'; params.status = status }
-	const signed = col => (lens === 'net' ? `(CASE WHEN ot.status = 'Returned' THEN -ot.${col} ELSE ot.${col} END)` : `ot.${col}`)
+	const signed = col => (lens === 'net' ? `(CASE WHEN ot.status_type = 'returned' THEN -ot.${col} ELSE ot.${col} END)` : `ot.${col}`)
 	const share = categoryId && categoryId !== 'none' ? ' * 1.0 / ot.category_count' : ''
 	return { and, params, signed, amount: col => `${signed(col)}${share}` }
 }
@@ -519,7 +519,7 @@ export function sliceLines(userId, query, day) {
 const selectLastAdded = db.prepare('SELECT created_at AS at FROM orders WHERE rowid = (SELECT MAX(rowid) FROM orders WHERE user_id = ?)')
 const countWithoutReceipt = db.prepare(`
 	SELECT COUNT(*) c FROM orders ot
-	WHERE ot.user_id = ? AND ot.status NOT IN ('Cancelled', 'Draft')
+	WHERE ot.user_id = ? AND ot.status_type NOT IN ('cancelled', 'draft')
 		AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
 `)
 
@@ -535,7 +535,7 @@ const selectLimitedMonths = db.prepare(`
 	JOIN orders ot ON ot.id = oc.order_id
 	JOIN categories c ON c.id = oc.category_id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
-		AND ot.status NOT IN ('Returned', 'Cancelled', 'Draft') AND c.budget > 0
+		AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND c.budget > 0
 	GROUP BY oc.category_id, month
 `)
 const selectSummarySeen = db.prepare('SELECT month FROM monthly_summary_seen WHERE user_id = ?')
