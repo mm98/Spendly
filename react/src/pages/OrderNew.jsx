@@ -283,11 +283,16 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 			</span>
 		)
 		const scanned = [readAt && o === newest ? `Scanned ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)
+		// the scan line sits under the whole row, so it has the row's width and not the text column's
 		if (touch) return (
 			<Card key={o.id}>
-				<ListItem variant="top" mark={mark}>
-					<span className="sp-stacked sp-grow">{title}<span className="sp-meta">{scanned}</span></span>
-					<span className="sp-amount sp-flex-none">{amount(o.total)}</span>
+				<ListItem variant="stack">
+					<span className="sp-row-flex sp-top sp-gap-12">
+						{mark}
+						<span className="sp-grow">{title}</span>
+						<span className="sp-amount sp-flex-none">{amount(o.total)}</span>
+					</span>
+					<span className="sp-stacked"><span className="sp-meta">{scanned}</span></span>
 				</ListItem>
 				<div className="sp-stack sp-gap-8">{open(o)}{side(o)}</div>
 			</Card>
