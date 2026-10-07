@@ -90,7 +90,7 @@
     <div class="doc-note"><b>Drop is the desktop path and needs no button</b> - the zone is the affordance. Keep the button anyway for keyboard users and for anyone who does not think to drag.</div>
     <div class="doc-note"><b>Three ways to start, ranked by frequency:</b> receipt (the common case, so it gets the whole zone), empty order, copy an order. Copy is hidden entirely when there are no orders yet.</div>
       <div class="doc-note"><b>A button that says Empty order opens an empty order directly</b> - the edit screen, not saved yet - wherever it appears (Home, Statistics, the order list's empty state). Only New order shows step 1, because only New order leaves the choice open.</div>
-      <div class="doc-note"><b>Categories come from the vendor's defaults</b> (<a href="Vendors and categories.dc.html#5l">5l</a>), the one source: filled when the field is empty, with "filled from" and the vendor's name beside the label. Nothing is suggested from history.</div>
+      <div class="doc-note"><b>Categories come from the vendor's defaults</b> (<a href="Vendors and categories.dc.html#5l">5l</a>), the one source: filled when the field is empty, with "filled from" and the vendor's name beside the label. Categories the items point to and the vendor's defaults lack are offered under the field, to pick (step 3).</div>
       <div class="doc-note"><b>Two ways in.</b> New order (the sidebar row, the + on the rail, the phone's FAB) opens step 1, these three choices. Scan receipt (the sidebar's green row and the rail's capture tile) skips step 1: it opens the file picker at once, and the chosen file arrives at step 2 as if it had been dropped here. Cancelling the picker leaves the user on the page they were on.</div>
   </div>
 
@@ -249,13 +249,9 @@
                   <input id="oc-f1" class="sp-input" type="text" defaultValue="08/08/2026">
                 </div>
                 <div class="sp-field">
-                  <label class="sp-field__label" for="oc-f2">Reference</label>
-                  <input id="oc-f2" class="sp-input" type="text" defaultValue="4471">
+                  <label class="sp-field__label" for="oc-f3">Kind</label>
+                  <input id="oc-f3" class="sp-input" type="text" defaultValue="Expense">
                 </div>
-              </div>
-              <div class="sp-field">
-                <label class="sp-field__label" for="oc-f3">Kind</label>
-                <input id="oc-f3" class="sp-input" type="text" defaultValue="Expense">
               </div>
               <div class="sp-field">
                 <span  class="sp-field__label" id="oc-grp2">Status</span>
@@ -263,6 +259,33 @@
                   <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="oc-review-status" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
                   <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="oc-review-status"><span class="sp-label">Delivered</span></label>
                   <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="oc-review-status"><span class="sp-label">Returned</span></label>
+                </div>
+              </div>
+              <div class="sp-field">
+                <div class="sp-row-flex sp-gap-8">
+                  <label  class="sp-field__label" for="oc-tok2">Categories</label>
+                  <span class="sp-field__help">filled from Indbo Møbler</span>
+                </div>
+                <div class="sp-tokens">
+                  <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                  </span>
+                  
+                  <input id="oc-tok2" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+                </div>
+                <div class="sp-row-flex sp-wrap sp-gap-6">
+                  <span class="sp-field__help">Suggested from the items</span>
+                  <button type="button" class="sp-chip sp-chip--dashed"><span>+ Lighting</span></button>
+                  <button type="button" class="sp-chip sp-chip--dashed"><span>+ New: Seating</span></button>
+                </div>
+              </div>
+              <div class="sp-fields">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f2">Reference</label>
+                  <input id="oc-f2" class="sp-input" type="text" defaultValue="4471">
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-fn1">Note</label>
+                  <input class="sp-input" id="oc-fn1" type="text">
                 </div>
               </div>
               <div class="sp-fields">
@@ -282,18 +305,6 @@
                     <input class="sp-input sp-input--unit sp-number" data-color="warning" id="oc-fs" type="text" inputMode="decimal" defaultValue="149,00" title="read as &quot;l49,00&quot;">
                     <span class="sp-field__unit">kr.</span>
                   </span>
-                </div>
-              </div>
-              <div class="sp-field">
-                <div class="sp-row-flex sp-gap-8">
-                  <label  class="sp-field__label" for="oc-tok2">Categories</label>
-                  <span class="sp-field__help">filled from Indbo Møbler</span>
-                </div>
-                <div class="sp-tokens">
-                  <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
-                  </span>
-                  
-                  <input id="oc-tok2" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
                 </div>
               </div>
             </div>
@@ -426,13 +437,9 @@
                   <input id="oc-f6" class="sp-input" type="text" defaultValue="08/08/2026">
                 </div>
                 <div class="sp-field">
-                  <label class="sp-field__label" for="oc-f7">Reference</label>
-                  <input id="oc-f7" class="sp-input" type="text" defaultValue="4471">
+                  <label class="sp-field__label" for="oc-f8">Kind</label>
+                  <input id="oc-f8" class="sp-input" type="text" defaultValue="Expense">
                 </div>
-              </div>
-              <div class="sp-field">
-                <label class="sp-field__label" for="oc-f8">Kind</label>
-                <input id="oc-f8" class="sp-input" type="text" defaultValue="Expense">
               </div>
               <div class="sp-field">
                 <span  class="sp-field__label" id="oc-grp1">Status</span>
@@ -440,6 +447,29 @@
                   <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="oc-status" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
                   <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="oc-status"><span class="sp-label">Delivered</span></label>
                   <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="oc-status"><span class="sp-label">Returned</span></label>
+                </div>
+              </div>
+              <div class="sp-field">
+                <label  class="sp-field__label" for="oc-tok1">Categories</label>
+                <div class="sp-field__wrap">
+                <div class="sp-tokens">
+                  <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                  </span>
+                  <span class="sp-chip sp-chip--static">Lighting<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Lighting"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                  </span>
+                  <input id="oc-tok1" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+                </div>
+                <button type="button" class="sp-field__trail" aria-label="Suggest categories" title="Suggest categories"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /><path d="M9.7 17l4.6 0" /></svg></button>
+                </div>
+              </div>
+              <div class="sp-fields">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f7">Reference</label>
+                  <input id="oc-f7" class="sp-input" type="text" defaultValue="4471">
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-fn2">Note</label>
+                  <input class="sp-input" id="oc-fn2" type="text">
                 </div>
               </div>
               <div class="sp-fields">
@@ -456,16 +486,6 @@
                     <input id="oc-f10" class="sp-input sp-input--unit" type="text" defaultValue="149,00">
                     <span class="sp-field__unit">kr.</span>
                   </span>
-                </div>
-              </div>
-              <div class="sp-field">
-                <label  class="sp-field__label" for="oc-tok1">Categories</label>
-                <div class="sp-tokens">
-                  <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
-                  </span>
-                  <span class="sp-chip sp-chip--static">Lighting<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Lighting"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
-                  </span>
-                  <input id="oc-tok1" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
                 </div>
               </div>
             </div>
@@ -486,6 +506,99 @@
       </div>
     </div>
   </div>
+  <div class="doc-specimens">
+      <div class="doc-specimen oc-col--narrow">
+        <span class="doc-specimen__label">Typed order · from earlier orders</span>
+          <div class="sp-card">
+            <div class="sp-field">
+              <div class="sp-row-flex sp-gap-8">
+                <label class="sp-field__label" for="oc-cs1">Categories</label>
+                <span class="sp-field__help">filled from Indbo Møbler</span>
+              </div>
+              <div class="sp-field__wrap">
+              <div class="sp-tokens">
+                <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                </span>
+                <input id="oc-cs1" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+              </div>
+              <button type="button" class="sp-field__trail" aria-label="Suggest categories" title="Suggest categories"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /><path d="M9.7 17l4.6 0" /></svg></button>
+              </div>
+              <div class="sp-row-flex sp-wrap sp-gap-6">
+                <span class="sp-field__help">Suggested from the items</span>
+                <button type="button" class="sp-chip sp-chip--dashed"><span>+ Lighting</span></button>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="doc-specimen oc-col--narrow">
+        <span class="doc-specimen__label">Bulb icon pressed · working</span>
+          <div class="sp-card">
+            <div class="sp-field">
+              <div class="sp-row-flex sp-gap-8">
+                <label class="sp-field__label" for="oc-cs2">Categories</label>
+                <span class="sp-field__help">filled from Indbo Møbler</span>
+              </div>
+              <div class="sp-field__wrap">
+              <div class="sp-tokens">
+                <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                </span>
+                <input id="oc-cs2" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+              </div>
+              <button type="button" class="sp-field__trail" aria-label="Suggest categories" title="Suggest categories" aria-busy="true"><span class="sp-spinner" aria-hidden="true"></span></button>
+              </div>
+              <div class="sp-row-flex sp-wrap sp-gap-6">
+                <span class="sp-field__help">Looking at the items…</span>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="doc-specimen oc-col--narrow">
+        <span class="doc-specimen__label">Bulb icon pressed · result</span>
+          <div class="sp-card">
+            <div class="sp-field">
+              <div class="sp-row-flex sp-gap-8">
+                <label class="sp-field__label" for="oc-cs3">Categories</label>
+                <span class="sp-field__help">filled from Indbo Møbler</span>
+              </div>
+              <div class="sp-field__wrap">
+              <div class="sp-tokens">
+                <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                </span>
+                <input id="oc-cs3" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+              </div>
+              <button type="button" class="sp-field__trail" aria-label="Suggest categories" title="Suggest categories"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /><path d="M9.7 17l4.6 0" /></svg></button>
+              </div>
+              <div class="sp-row-flex sp-wrap sp-gap-6">
+                <span class="sp-field__help">Suggested from the items</span>
+                <button type="button" class="sp-chip sp-chip--dashed"><span>+ Lighting</span></button>
+                <button type="button" class="sp-chip sp-chip--dashed"><span>+ New: Seating</span></button>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="doc-specimen oc-col--narrow">
+        <span class="doc-specimen__label">Bulb icon pressed · nothing confident</span>
+          <div class="sp-card">
+            <div class="sp-field">
+              <div class="sp-row-flex sp-gap-8">
+                <label class="sp-field__label" for="oc-cs4">Categories</label>
+                <span class="sp-field__help">filled from Indbo Møbler</span>
+              </div>
+              <div class="sp-field__wrap">
+              <div class="sp-tokens">
+                <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                </span>
+                <input id="oc-cs4" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+              </div>
+              <button type="button" class="sp-field__trail" aria-label="Suggest categories" title="Suggest categories"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /><path d="M9.7 17l4.6 0" /></svg></button>
+              </div>
+              <div class="sp-row-flex sp-wrap sp-gap-6">
+                <span class="sp-field__help">No suggestions for these items</span>
+              </div>
+            </div>
+          </div>
+      </div>
+  </div>
   <div class="doc-notes">
     <span class="doc-notes__label">One screen, two states</span>
     <div class="doc-note">The two renders above are the same screen. Same grid, same cards, same order of fields - what differs is whether the order exists yet, and that is four things.</div>
@@ -494,6 +607,13 @@
     <div class="doc-note"><b>The action pair is Discard / Create order, then Cancel / Save.</b> Same footer, same two slots.</div>
     <div class="doc-note"><b>Attachments appear only in the saved state,</b> because the receipt is attached by the save. Before that the file is an upload, not an attachment.</div>
     <div class="doc-note">Building it twice would produce two screens in code that have to be kept identical by hand. It is one screen with an <b>unsaved</b> flag.</div>
+    <span class="doc-notes__label">Category suggestions</span>
+    <div class="doc-note"><b>Vendor defaults fill the field; suggestions sit under it.</b> A suggestion is a dashed chip and adds nothing until it is tapped. Tapped, it moves into the field as an ordinary chip - the saved state above shows Lighting taken and Seating left.</div>
+    <div class="doc-note"><b>A category that does not exist yet says so in its label:</b> "+ New: Seating". Tapping it creates the category and adds it to the order in one step. Existing categories read "+ Lighting".</div>
+    <div class="doc-note"><b>Two sources.</b> Item names matched against earlier orders run by themselves, on every order edit screen, recalculated when lines change - they are free and instant. The model, given the item names, the vendor and the user's category list, runs only on the bulb button, and is the only source that proposes a new category.</div>
+    <div class="doc-note"><b>A scanned order has no button while it has suggestions:</b> the scan's own model call returns them. The button shows only when that call found none.</div>
+    <div class="doc-note"><b>The button is the bulb icon at the end of the token field</b>, labelled "Suggest categories" for screen readers and as its tooltip. It stays in place in every state. Pressed, its icon becomes the spinner until the answer arrives; pressed again, it asks again.</div>
+    <div class="doc-note"><b>Only confident suggestions are shown, at most three;</b> none is better than a wrong one. No row when there is nothing to suggest, except after a press, which answers "No suggestions for these items". No suggestion repeats a category in the field, and one removed from the field is not offered again on this order.</div>
   </div>
 </section>
 

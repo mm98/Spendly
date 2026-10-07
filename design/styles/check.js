@@ -821,6 +821,51 @@
       if (!m[1].split(/\s+/).includes('sp-record__photo')) fail('a faded band photo is a photo', f.replace('.dc.html', ''), m[1]);
   }
 
+
+  /* An order's Categories field carries the Suggest categories bulb as its trail, on
+     every page that draws one. It was added to Order create and missed on the saved
+     state and on Order editing layouts 1d. The one exception is a field that already
+     shows suggestions (a scanned order): the bulb shows there only when the scan
+     found none. Filters (Bookmarks) are not an order's field and do not get it. */
+  for (const [f, s] of Object.entries(src)) {
+    if (f.startsWith('Bookmarks')) continue;
+    for (const m of s.matchAll(/<label\s+class="sp-field__label" for="([^"]+)">Categories<\/label>/g)) {
+      const i = s.indexOf(`id="${m[1]}"`, m.index);
+      if (i < 0 || !/class="sp-tokens__add"/.test(s.slice(i - 80, i + 80))) continue;
+      const tail = s.slice(i, i + 1600);
+      const fieldEnd = tail.search(/<div class="sp-field">|<div class="sp-fields">|<div class="sp-card/);
+      const field = fieldEnd < 0 ? tail : tail.slice(0, fieldEnd);
+      if (/aria-label="Suggest categories"/.test(field) || /Suggested from the items/.test(field)) continue;
+      fail('an order Categories field has the bulb', f.replace('.dc.html', ''), m[1]);
+    }
+  }
+
+
+  /* An order's details form lists its fields in one order on every page and in every
+     action, create or edit: Vendor, Date, Kind, Status, Categories, Reference, Note,
+     Discount, Shipping fee. Order create and Order editing layouts had drifted into
+     three different orders. Checked on every card headed "Order details". */
+  {
+    const ORDER = ['Vendor', 'Date', 'Kind', 'Status', 'Categories', 'Reference', 'Note', 'Discount', 'Shipping fee'];
+    for (const [f, s] of Object.entries(src)) {
+      for (const m of s.matchAll(/sp-section-label">Order details</g)) {
+        const card = s.lastIndexOf('<div class="sp-card">', m.index);
+        const re = /<div\b[^>]*>|<\/div>/g; re.lastIndex = card; let d = 0, t, end = s.length;
+        while ((t = re.exec(s))) { d += t[0] === '</div>' ? -1 : 1; if (!d) { end = t.index; break; } }
+        const got = [...s.slice(card, end).matchAll(/class="sp-field__label"[^>]*>([^<]+)</g)].map(x => x[1].trim()).filter(x => ORDER.includes(x));
+        const want = ORDER.filter(x => got.includes(x));
+        if (got.join() !== want.join()) fail('order details fields in one order', f.replace('.dc.html', ''), got.join(', '));
+      }
+    }
+  }
+
+
+  /* A removed feature leaves nothing behind: no page, link, route or note still names
+     the monthly letter. Its removal once left a /letters route row on Home. */
+  for (const [f, s] of Object.entries(src)) {
+    if (/\/letters\b|Monthly letter\.dc\.html|sp-letter/.test(s)) fail('removed feature leaves no trace', f.replace('.dc.html', ''), 'monthly letter');
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};
