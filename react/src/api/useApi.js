@@ -25,6 +25,10 @@ const evict = () => { while (cache.size > MAX_ENTRIES) cache.delete(cache.keys()
 
 const keyOf = (fn, args) => (fn.name || 'anonymous') + ':' + JSON.stringify(args)
 
+/** Gives `wrapper` the key of the read `as`, so a write that forgets `as` forgets the wrapper's answers
+    too. Taken from `as` at run time: a built bundle renames functions, and a literal name would not match. */
+export const readAs = (as, wrapper) => Object.defineProperty(wrapper, 'name', { value: as.name })
+
 // mounted readers, told when a write forgets their answer so what is on screen asks again
 const readers = new Set()
 
