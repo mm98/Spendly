@@ -38,6 +38,7 @@
     <div class="doc-note"><b>A very long status name ends in an ellipsis in this list</b> (<code>.sp-pill--truncate</code>), so its row keeps its height; the full name is in the edit field. This is the one place a pill truncates.</div>
     <div class="doc-note"><b>Limit alerts</b> is its own pane, between Lists and Statuses: the in-app and email switches and "Tell me early, at" (<a href="Duplicate and alerts.dc.html#8b">8b</a>).</div>
     <div class="doc-note"><b>Needs a look</b> is its own pane, after Limit alerts: one switch per row Home's Needs a look card can show (<a href="Home.dc.html#10a">10a</a>), in the order Home ranks them. Off removes that row from Home and from the phone's Home; the cap of three applies to what is left, and with every switch off the card is absent. Orders without a receipt is off by default, since most orders have none. It saves with the card's own save, like every card here.</div>
+    <div class="doc-note"><b>Compare this month with</b> sits in Appearance and offers Last month (the default) and Same month last year. It sets what Home's month card (<a href="Home.dc.html#10a">10a</a>), the phone's Home and the monthly summary (<a href="Duplicate and alerts.dc.html#8b">8b</a>) measure against. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
     <div class="doc-note"><b>The profile photo is a FileDrop</b>: drop an image on the round mark, or use Upload a photo. With no photo the mark is the initials on <code>--green-3</code>, round, as in the sidebar.</div>
     <div class="doc-note"><b>A status with orders on it cannot be deleted.</b> The delete control is absent on those rows, not disabled - reassigning the orders is what makes it appear. Every row has the pencil; a row with no orders also has the trash. Rename, reorder and delete all wait for the save bar, like every change on this page. Its tone is one of the four the pill component has, picked as the pill the list will draw.</div>
@@ -195,6 +196,17 @@
               <label class="sp-segmented__item" data-label="Compact"><input type="radio" name="st-density"><span class="sp-label">Compact</span></label>
             </div>
             <span class="sp-field__help">Compact fits more rows on screen.</span>
+          </div>
+          <span class="sp-rule"></span>
+          <div class="sp-field">
+              <span   class="sp-field__label" id="st-cb11">Compare this month with</span>
+            <div class="sp-combobox st-w280">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb11">
+                  <span class="sp-grow">Last month</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">What Home and the monthly summary measure this month against.</span>
           </div>
         </div>
 

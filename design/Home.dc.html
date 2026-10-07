@@ -32,7 +32,7 @@
     <span class="doc-badge" id="10a">10a</span>
     <span class="doc-section__title">Home</span>
   </div>
-  <div class="doc-lede">The screen you land on. It answers three things without scrolling: where this month stands against the limits, what needs your attention, and what you last recorded. Capture is the largest thing on the page, since adding a receipt is the most common reason to open the app.</div>
+  <div class="doc-lede">The screen you land on. It answers three things without scrolling: where this month stands against the month you compare with, what needs your attention, and what you last recorded. Capture is the largest thing on the page, since adding a receipt is the most common reason to open the app.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">Note on the frame</span>
@@ -41,6 +41,10 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The month card measures this month against one whole earlier month</b>, set in Settings, Appearance, "Compare this month with" (<a href="Settings and import.dc.html#11a">11a</a>): Last month (the default) or Same month last year. Every order dated in that calendar month counts, the same scope as Spent this month. The line names the month: "95% of 64.520 kr. in July", or "90% of 71.890 kr. in August 2025" with the year when it is last year's, the share rounded to a whole number. Category limits are never added together here or anywhere else; there is no overall monthly limit. The pace marker is unchanged (day 21 of 31 sits at 68%), and the pace words keep their rule: "ahead of pace" when the share is more than 10 points over the marker.</div>
+    <div class="doc-note"><b>Past the compared month the bar stops full and stays green</b> (state 2 below). That month is a reference, not a limit, so there is no over segment and no amber on the bar. The share keeps counting past 100%. The only amber is the "ahead of pace" word, by the same rule as before.</div>
+    <div class="doc-note"><b>With nothing in the compared month the bar is drawn empty</b> (state 4 below): a new account, an account younger than a year on Same month last year, or a month with no orders. There is no fallback to the other choice; the line names the month it looked at. The track takes the faded <code>sp-gauge--untargeted</code> ground, with no fill and no marker, and the line under it reads "Nothing from July to compare with yet." (or the month with its year). No pace words. The card keeps its height.</div>
+    <div class="doc-note"><b>A very large reference month is not corrected.</b> The line names its amount and month, which is enough to explain a short bar. Only the chosen month is shown, never both.</div>
     <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400. No list on Home or Statistics shows more than one page of rows (Rows per page, never fewer than 10); Home's caps sit below it. The Statistics rule is in <a href="Order statistics.dc.html#4d">4d</a>.</div>
     <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
     <div class="doc-note"><b>Card scopes differ and each says so.</b> Recent orders is all time, newest first. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
@@ -152,12 +156,12 @@
             </div>
             <div class="sp-stack sp-gap-8">
               <span class="sp-gauge">
-                <meter value="90" min="0" max="100" aria-label="Share of this month's limits used"></meter>
-                <span class="sp-gauge__fill" data-fill="90"></span>
+                <meter value="95" min="0" max="100" aria-label="This month against July"></meter>
+                <span class="sp-gauge__fill" data-fill="95"></span>
                 <span class="sp-gauge__marker" data-at="68"></span>
               </span>
               <div class="sp-row-flex sp-gap-12">
-                <span class="sp-meta">90% of 68.000 kr. in limits</span>
+                <span class="sp-meta">95% of 64.520 kr. in July</span>
                 <span class="sp-grow"></span>
                 <span class="sp-meta sp-meta--over sp-row-flex sp-gap-6"><span class="hm-marker-key" aria-hidden="true"></span>ahead of pace</span>
               </div>
@@ -348,7 +352,7 @@
                 <button type="button" class="sp-bars__col" aria-label="April"><span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span><span class="sp-bars__tick">A</span></button>
                 <button type="button" class="sp-bars__col" aria-label="May"><span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span><span class="sp-bars__tick">M</span></button>
                 <button type="button" class="sp-bars__col" aria-label="June"><span class="sp-bars__bar sp-bars__bar--muted" data-h="54"></span><span class="sp-bars__tick">J</span></button>
-                <button type="button" class="sp-bars__col" aria-label="July"><span class="sp-bars__bar sp-bars__bar--muted" data-h="71"></span><span class="sp-bars__tick">J</span></button>
+                <button type="button" class="sp-bars__col" aria-label="July"><span class="sp-bars__bar sp-bars__bar--muted" data-h="85"></span><span class="sp-bars__tick">J</span></button>
                 <button type="button" class="sp-bars__col" aria-pressed="true" aria-label="August"><div class="sp-tip sp-tip--panel sp-bars__tip" data-side="end"><div class="sp-tip__head"><span>August 2026</span><span>61.480 kr.</span></div><span class="sp-meta">18 orders · click to open</span></div><span class="sp-bars__bar" data-h="81"></span><span class="sp-bars__tick">A</span></button>
               </div>
               <div class="sp-card__footer">
@@ -357,6 +361,110 @@
                 <span class="sp-amount">48.910 kr.</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen doc-w560">
+      <span class="doc-specimen__label">2 · PAST THE COMPARED MONTH</span>
+      <div class="sp-card sp-card--shell">
+        <div class="sp-row-flex sp-gap-12">
+          <span class="sp-section-label">August 2026 · day 26 of 31</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">last added today</span>
+        </div>
+        <div class="sp-stats sp-stats--line">
+          <div class="sp-stat">
+            <span class="sp-section-label">Spent this month</span>
+            <span class="sp-stat__figure sp-stat__figure--large">67.750 kr.</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Saved</span>
+            <span class="sp-stat__figure sp-ink-success">27.140 kr.</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Orders</span>
+            <span class="sp-stat__figure">22</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-gauge">
+            <meter value="100" min="0" max="100" aria-label="This month against July"></meter>
+            <span class="sp-gauge__fill" data-fill="100"></span>
+            <span class="sp-gauge__marker" data-at="85"></span>
+          </span>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-meta">105% of 64.520 kr. in July</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta sp-meta--over sp-row-flex sp-gap-6"><span class="hm-marker-key" aria-hidden="true"></span>ahead of pace</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen doc-w560">
+      <span class="doc-specimen__label">3 · SAME MONTH LAST YEAR</span>
+      <div class="sp-card sp-card--shell">
+        <div class="sp-row-flex sp-gap-12">
+          <span class="sp-section-label">August 2026 · day 21 of 31</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">last added 2 days ago</span>
+        </div>
+        <div class="sp-stats sp-stats--line">
+          <div class="sp-stat">
+            <span class="sp-section-label">Spent this month</span>
+            <span class="sp-stat__figure sp-stat__figure--large">64.700 kr.</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Saved</span>
+            <span class="sp-stat__figure sp-ink-success">24.310 kr.</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Orders</span>
+            <span class="sp-stat__figure">18</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-gauge">
+            <meter value="90" min="0" max="100" aria-label="This month against August 2025"></meter>
+            <span class="sp-gauge__fill" data-fill="90"></span>
+            <span class="sp-gauge__marker" data-at="68"></span>
+          </span>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-meta">90% of 71.890 kr. in August 2025</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta sp-meta--over sp-row-flex sp-gap-6"><span class="hm-marker-key" aria-hidden="true"></span>ahead of pace</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen doc-w560">
+      <span class="doc-specimen__label">4 · NOTHING TO COMPARE WITH</span>
+      <div class="sp-card sp-card--shell">
+        <div class="sp-row-flex sp-gap-12">
+          <span class="sp-section-label">August 2026 · day 21 of 31</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">last added 2 days ago</span>
+        </div>
+        <div class="sp-stats sp-stats--line">
+          <div class="sp-stat">
+            <span class="sp-section-label">Spent this month</span>
+            <span class="sp-stat__figure sp-stat__figure--large">61.480 kr.</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Saved</span>
+            <span class="sp-stat__figure sp-ink-success">24.310 kr.</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Orders</span>
+            <span class="sp-stat__figure">18</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-gauge sp-gauge--untargeted" aria-hidden="true"></span>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-meta">Nothing from July to compare with yet.</span>
           </div>
         </div>
       </div>

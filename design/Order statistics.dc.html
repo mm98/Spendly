@@ -601,12 +601,6 @@
                 </span>
                 <span class="sp-meta">4.820 kr. left</span>
               </div>
-          <div class="sp-card__footer">
-            <span class="sp-data">All categories</span>
-            <span class="sp-grow"></span>
-            <span class="sp-amount">61.480</span>
-            <span class="sp-meta">/ 68.000 kr.</span>
-          </div>
           <div class="sp-row-flex sp-gap-8">
             <span class="os-marker-key" aria-hidden="true"></span>
             <span class="sp-meta">Marker shows where you should be on day 20.</span>
@@ -780,7 +774,7 @@
     <div class="doc-note"><b>Edit on category</b> opens the categories list showing only the categories that have a limit, <code>/categories?flag=limited</code>, with the removable tag "Has a limit" (<a href="Vendors and categories.dc.html#5d">5d</a>). Each category's limit is set from there. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
     <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
     <div class="doc-note"><b>By category, Top vendors and Monthly limit show the current month</b> of the period, named in each card's meta ("August"): limits are monthly, and the side cards read against them. The four figures and Spend by month cover the whole period.</div>
-    <div class="doc-note"><b>Monthly limit draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The foot line ("All categories", the spend and the total of limits) still counts every limit. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). The foot line is not drawn. Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
+    <div class="doc-note"><b>Monthly limit draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The card has no foot line: limits belong to one category each and are never added together. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
     <div class="doc-note"><b>Monthly limit holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
     <div class="doc-note"><b>"Ahead of pace" shows when the share used is more than 10 points over the pace</b> - Lighting at 91% against 65%, not Seating at 72%. The same rule holds in the category list (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
     <div class="doc-note"><b>The drill path is the Showing card under the period row</b> (<a href="#4b">4b</a>), with Reset and Open in orders at its right end. At rest there are no crumbs and no card.</div>

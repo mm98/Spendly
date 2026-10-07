@@ -133,6 +133,7 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Alerts arrive in the app and by email.</b> There are no phone notifications. The switches under How loud live in Settings, in the <b>Limit alerts</b> pane (<a href="Settings and import.dc.html#11a">11a</a>).</div>
     <div class="doc-note"><b>The close button in the head hides the summary for that month</b>, on every device, and it does not come back. Rows have no close button; remove the per-row hide and its Undo message from the app. The summary is desktop only; Home on a phone does not show it (<a href="Mobile screens.dc.html#7a">7a</a>, the Home frame).</div>
+    <div class="doc-note"><b>The heading compares the month with the month chosen in Settings, Appearance, "Compare this month with"</b> (<a href="Settings and import.dc.html#11a">11a</a>), as Home does, by amount: "You spent 61.480 kr., 3.040 kr. less than in July", or "... 2.300 kr. more than in August 2025" on Same month last year. Category limits are never added together. With no orders in that month, it reads "You spent 61.480 kr. in August". The heading stays in plain ink either way: the difference is neither a saving nor a limit.</div>
     <div class="doc-note"><b>Open statistics</b> opens Statistics (<a href="Order statistics.dc.html#4a">4a</a>) for the month the summary is about, with no crumb: the card names several categories, and the page shows them all.</div>
     <div class="doc-note"><b class="sp-ink">A limit is a fact about the month, not a validation rule.</b> Crossing one never disables Save and never routes through the validation layer - keep the check out of that code path entirely, or it eventually starts blocking. Amber informs; red blocks.</div>
     <div class="doc-note"><b class="sp-ink">The over-limit chip travels.</b> The same dot renders wherever the category appears - list rows, facet lists and order details - so the state is recognisable without reading the number.</div>
@@ -205,7 +206,7 @@
         <div class="sp-row-flex sp-gap-12">
           <div class="sp-stack sp-gap-6 sp-grow">
             <span class="sp-section-label">AUGUST 2026</span>
-            <span class="sp-heading">You spent 61.480 kr. against 68.000 in limits</span>
+            <span class="sp-heading">You spent 61.480 kr., 3.040 kr. less than in July</span>
             <span class="sp-data">One category went over, one finished close, and Textiles has room to spare.</span>
           </div>
           <button type="button" class="sp-icon-btn" aria-label="Hide the August summary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>

@@ -1,48 +1,45 @@
-# Spendly - changes since handoff_2026_10_06h_changes
+# Spendly - changes since handoff_2026_10_07_changes
 
-Copy these files over handoff_2026_10_06h_changes.
+Copy these files over handoff_2026_10_07_changes. Answers to Brief 30 are in Brief 30 answers.md.
 
-## 1. Category suggestions on the order (Order create 3a, Order editing layouts 1d)
-- Categories stay on the order. Vendor defaults still fill the field ("filled from Indbo Møbler"); suggestions are extra.
-- Suggestions sit in a row under the Categories field, labelled "Suggested from the items", as dashed chips (`sp-chip sp-chip--dashed`). Nothing is added until a chip is tapped; tapped, it becomes an ordinary chip in the field.
-- An existing category reads "+ Lighting". A category that does not exist yet reads "+ New: Seating"; tapping it creates the category and adds it to the order.
-- At most three suggestions, only confident ones. No row when there is nothing to suggest. No suggestion repeats a category already in the field; one removed from the field is not offered again on this order.
-- Two sources:
-  - Item names matched against earlier orders. Runs by itself on every order edit screen and is recalculated when lines change.
-  - A model given the item names, the vendor and the user's category list. Runs only when the bulb button is pressed, and is the only source that can propose a new category.
-- Scanned order: the scan's own model call returns the suggestions. The bulb shows there only when the scan found none.
+## 1. Home month card measures against an earlier month (Home 10a)
+- Category limits are never added together. There is no overall monthly limit.
+- The line under the bar names one whole earlier month: "95% of 64.520 kr. in July", or "90% of 71.890 kr. in August 2025" when it is last year's. Every order dated in that month counts, the same scope as Spent this month.
+- The pace marker and the pace words are unchanged: "ahead of pace" when the share is more than 10 points over the marker.
+- Past the compared month: the fill stops full and stays green, no over segment, no amber on the bar. The share keeps counting ("105% of 64.520 kr. in July"). The only amber is "ahead of pace".
+- Nothing in the compared month: the bar is drawn empty (`sp-gauge--untargeted`), no fill, no marker, no pace words, and under it "Nothing from July to compare with yet." No fallback to the other choice.
+- A very different compared month is not corrected.
+- Three state specimens under the screen: past the compared month, same month last year, nothing to compare with. All three are the same height.
+- Last 8 months: July bar adjusted to match July's total.
 
-## 2. Suggest categories button
-- A bulb icon button at the right end of the Categories token field (`sp-field__wrap` + `sp-field__trail`), the same trail pattern as the password field's eye button.
-- Tooltip and aria-label: "Suggest categories". No visible text.
-- Pressed: the icon becomes the spinner and the row reads "Looking at the items..."; then the result, or "No suggestions for these items". The button stays in place and can be pressed again.
-- On every order Categories field: Order create 3a (typed, saved) and Order editing layouts 1d. Not on filter or alias token fields (Bookmarks, Vendors and categories, Mobile screens).
-- Four specimens in Order create 3a: from earlier orders, working, result, nothing confident.
+## 2. New setting: Compare this month with (Settings 11a)
+- In Appearance, a combobox: Last month (default) or Same month last year.
+- It drives Home's month card, the phone's Home and the monthly summary. It saves with the card's own save.
 
-## 3. One field order for Order details (Order create 3a, Order editing layouts 1d)
-- Every Order details form, create or edit, lists: Vendor, Date + Kind, Status, Categories, Reference + Note, Discount + Shipping fee.
-- Order create gains the Note field it was missing.
-- Matches the read view (1a).
+## 3. Monthly summary (Duplicate and alerts 8b)
+- Heading: "You spent 61.480 kr., 3.040 kr. less than in July", or "... more than ..." the compared month. "You spent 61.480 kr. in August" with nothing to compare. Plain ink.
 
-## 4. Component and icon documentation
-- Components c6: the dashed chip now has two documented uses, "Empty" in a filter and a suggestion to add under a token field ("+ Lighting", "+ New: Seating"). Same chip, same states.
-- Icon legend: new row for `bulb`, "Suggest categories", linked to Order create 3a.
+## 4. Statistics, Monthly limit card (Order statistics 4a)
+- The foot line "All categories 61.480 / 68.000 kr." is removed. The card is per category only.
+- Note rewritten: limits belong to one category each and are never added together.
 
-## CSS (styles/components.css)
-- One rule added: a token field followed by a trail button gets right padding, so chips never slide under the bulb.
-  `.sp-field__wrap > .sp-tokens:has(+ .sp-field__trail) { padding-right: calc(var(--field-trail) + 2 * var(--sp-6)); }`
-- No other component changed.
+## 5. Phone Home (Mobile screens 7a)
+- "61.480 of 64.520 kr. in July", the bar at 95%.
+
+## Not changed, open
+- Statistics 4a Spend by month still draws the dashed "Monthly limit 68.000 kr." line and legend key (also in Dark mode and image viewer). It is the same sum of limits. Waiting on a decision.
+- Home 10a Last 8 months: the August readout overlaps the card's "Statistics" link. This was there before this handoff. Fixing it changes the readout or the card's established styles, so it is waiting on a decision.
+
+## CSS
+- No stylesheet changed.
 
 ## Check (styles/check.js)
-- New: every order Categories field has the Suggest categories bulb, except one that already shows suggestions.
-- New: every "Order details" card lists its fields in the order above.
-- New: no page still references the removed monthly letter.
-- Result: 0 findings across 26 pages.
+- Unchanged. Result: 0 findings across 26 pages.
 
 ## Files
-- Order create.dc.html
-- Order editing layouts.dc.html
-- Components.dc.html
-- Icon legend.dc.html
-- styles/components.css
-- styles/check.js
+- Home.dc.html
+- Settings and import.dc.html
+- Duplicate and alerts.dc.html
+- Order statistics.dc.html
+- Mobile screens.dc.html
+- Brief 30 answers.md
