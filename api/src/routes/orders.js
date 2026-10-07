@@ -10,7 +10,7 @@ import { assertValidOrderDraft, fillDraftGaps, normaliseUrl, validateOrderDraft 
 import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
-import { resolveStatus, statusKeys } from '../lib/statuses.js'
+import { keyOfType, resolveStatus, statusKeys, typeOfKey } from '../lib/statuses.js'
 import { processAttachment } from '../lib/images.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
 import { decompressBlob } from '../lib/blobCompression.js'
@@ -75,7 +75,7 @@ router.get('/draft', (req, res) => {
 	const settings = selectDraftDefaults.get(req.user.id)
 	res.json({
 		vendor: '', date: req.today,
-		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+		status: settings?.default_status ?? keyOfType(req.user.id, 'delivered'), kind: settings?.default_kind ?? 'Expense',
 		deliveredDate: req.today, returnedDate: req.today,
 		categories: [], shipping: '', discount: '', reference: '', note: '', items: []
 	})
@@ -229,8 +229,8 @@ function orderFacets(userId, q) {
 	}
 	const byKey = (rows, key) => Object.fromEntries(rows.map(r => [r[key], r.n]))
 	const [receipt] = counts('receipt', 'COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached')
-	const [sum] = counts(null, `COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END), 0) total,
-		COALESCE(SUM(CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved`)
+	const [sum] = counts(null, `COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE ot.total END), 0) total,
+		COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved`)
 	return {
 		summary: { total: sum.total, saved: sum.saved },
 		facets: {
@@ -316,13 +316,13 @@ router.get('/lines', (req, res) => {
 
 /* What deleting the orders a request names takes with it (6d): how many, their sum (a cancelled one
    never counts), how many carry a file, and this month's part of it beside the month's total. */
-const selectMonthSpend = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status = 'Cancelled' THEN 0 ELSE total END), 0)
+const selectMonthSpend = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status_type = 'cancelled' THEN 0 ELSE total END), 0)
 	FROM orders WHERE user_id = ? AND date >= ? AND date < ?`).pluck()
 router.get('/impact', (req, res) => {
 	const { whereSql, params } = buildOrderFilter(req.user.id, req.query)
 	const [year, month] = req.today.split('-').map(Number)
 	const monthFrom = Date.UTC(year, month - 1, 1) / 1000, monthTo = Date.UTC(year, month, 1) / 1000
-	const counted = "CASE WHEN ot.status = 'Cancelled' THEN 0 ELSE ot.total END"
+	const counted = "CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE ot.total END"
 	const row = db.prepare(`
 		SELECT COUNT(*) orders, COALESCE(SUM(${counted}), 0) total,
 			COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
@@ -366,7 +366,7 @@ const selectCategoryMonthSpend = db.prepare(`
 	SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
-		AND ot.status NOT IN ('Cancelled', 'Draft')`).pluck()
+		AND ot.status_type NOT IN ('cancelled', 'draft')`).pluck()
 router.get('/limits', (req, res) => {
 	const day = String(req.query.date ?? '')
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'A date is needed, as YYYY-MM-DD.' })
@@ -388,15 +388,21 @@ router.get('/:id', (req, res) => {
 
 /* ---- create / update / delete ---- */
 
-/** order_statuses is a log: Ordered from the order's own date, Delivered/Returned only when
-    supplied. Delete-and-reinsert like order_categories below -- today's form edits only the latest. */
-function saveOrderStatuses(orderId, draft) {
+const selectOwnDated = db.prepare('SELECT key FROM statuses WHERE user_id = ? AND own_date = 1')
+
+/** order_statuses is a log: Ordered at the order's date, then each status the account dates on its own.
+    `deliveredDate` and `returnedDate` still name Delivered and Returned for callers that send them. */
+function saveOrderStatuses(userId, orderId, draft) {
 	deleteOrderStatuses.run(orderId)
-	insertOrderStatus.run(newId('os'), orderId, 'Ordered', toEpoch(draft.date))
-	if (draft.deliveredDate && (draft.status === 'Delivered' || draft.status === 'Returned'))
-		insertOrderStatus.run(newId('os'), orderId, 'Delivered', toEpoch(draft.deliveredDate))
-	if (draft.returnedDate && draft.status === 'Returned')
-		insertOrderStatus.run(newId('os'), orderId, 'Returned', toEpoch(draft.returnedDate))
+	const ordered = keyOfType(userId, 'ordered')
+	insertOrderStatus.run(newId('os'), orderId, ordered, toEpoch(draft.date))
+	const dated = new Map()
+	const type = typeOfKey(userId, draft.status)
+	if (draft.deliveredDate && (type === 'delivered' || type === 'returned')) dated.set(keyOfType(userId, 'delivered'), draft.deliveredDate)
+	if (draft.returnedDate && type === 'returned') dated.set(keyOfType(userId, 'returned'), draft.returnedDate)
+	const own = new Set(selectOwnDated.all(userId).map(r => r.key))
+	for (const [key, date] of Object.entries(draft.statusDates ?? {})) if (own.has(key) && key !== ordered && date) dated.set(key, date)
+	for (const [key, date] of dated) insertOrderStatus.run(newId('os'), orderId, key, toEpoch(date))
 }
 
 /** Turns a validated draft into inserted rows. Shared by manual create, update (which first
@@ -407,12 +413,12 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 
 	insertOrder.run({
 		id, userId, vendorId, date: toEpoch(draft.date),
-		status: draft.status || 'Delivered', kind: draft.kind || 'Expense',
+		status: draft.status || keyOfType(userId, 'delivered'), kind: draft.kind || 'Expense',
 		shipping: Number(draft.shipping) || 0, discount: Number(draft.discount) || 0,
 		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
-	saveOrderStatuses(id, draft)
+	saveOrderStatuses(userId, id, draft)
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
 	// Returned in draft order so a caller that also has per-item attachments to insert (import)
 	// can match them back up to the row each one landed in -- create/update never read this
@@ -481,12 +487,12 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 
 	updateOrderRow.run({
 		id, userId, vendorId, date: toEpoch(draft.date),
-		status: draft.status || 'Delivered', kind: draft.kind || 'Expense',
+		status: draft.status || keyOfType(userId, 'delivered'), kind: draft.kind || 'Expense',
 		shipping: Number(draft.shipping) || 0, discount: Number(draft.discount) || 0,
 		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
-	saveOrderStatuses(id, draft)
+	saveOrderStatuses(userId, id, draft)
 
 	deleteOrderCategories.run(id)
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
@@ -550,8 +556,6 @@ const selectStatusEvent = db.prepare('SELECT id, date FROM order_statuses WHERE 
 const deleteStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ? AND status = ?')
 const insertOrderCategoryOnce = db.prepare('INSERT OR IGNORE INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const deleteOrderCategory = db.prepare('DELETE FROM order_categories WHERE order_id = ? AND category_id = ?')
-// the statuses the order's log dates, as its table allows
-const LOGGED = ['Ordered', 'Delivered', 'Returned']
 // what a status change replaces, kept for its Undo: the status and every dated event (6d)
 const selectStatusEvents = db.prepare('SELECT status, date FROM order_statuses WHERE order_id = ?')
 const deleteAllStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
@@ -578,9 +582,11 @@ const applyBulk = db.transaction((userId, ids, change, today) => {
 				deleteStatusEvents.run(id, status)
 				insertOrderStatus.run(newId('os'), id, status, at)
 			}
-			if (change.status === 'Ordered') { deleteStatusEvents.run(id, 'Delivered'); deleteStatusEvents.run(id, 'Returned') }
-			if (change.status === 'Delivered') { deleteStatusEvents.run(id, 'Returned'); event('Delivered', !!change.deliveredToday) }
-			if (change.status === 'Returned') { event('Delivered', false); event('Returned', false) }
+			const [delivered, returned] = [keyOfType(userId, 'delivered'), keyOfType(userId, 'returned')]
+			const type = typeOfKey(userId, change.status)
+			if (type === 'ordered') { deleteStatusEvents.run(id, delivered); deleteStatusEvents.run(id, returned) }
+			if (type === 'delivered') { deleteStatusEvents.run(id, returned); event(delivered, !!change.deliveredToday) }
+			if (type === 'returned') { event(delivered, false); event(returned, false) }
 		}
 		for (const categoryId of categoryIds) insertOrderCategoryOnce.run(id, categoryId)
 		for (const categoryId of change.removeCategories ?? []) deleteOrderCategory.run(id, categoryId)
@@ -609,7 +615,7 @@ router.post('/bulk', (req, res) => {
 			events: (Array.isArray(o?.events) ? o.events : []).map(e => ({ status: String(e?.status), date: Math.trunc(Number(e?.date)) }))
 				.filter(e => Number.isFinite(e.date))
 		}))
-		if (orders.some(o => !isStatus(req.user.id, o.status) || o.events.some(e => !LOGGED.includes(e.status))))
+		if (orders.some(o => !isStatus(req.user.id, o.status) || o.events.some(e => !isStatus(req.user.id, e.status))))
 			return res.status(400).json({ error: 'That status does not exist.' })
 		return res.json({ changed: applyRestore(req.user.id, orders) })
 	}

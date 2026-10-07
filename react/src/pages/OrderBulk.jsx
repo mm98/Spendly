@@ -13,7 +13,7 @@ import { changeOrders, failureMessage, getCategoryPage, getOrderImpact, invalida
 import { groupPicks, moreText, pickGroups, rowHeads, usePickList, useRecent } from '../app/pickList.jsx'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, amount, currency, fullStop, monthNames, plural, today } from '../api/format.js'
-import { useStatuses } from '../app/statuses.js'
+import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { allMatching, idGroups, linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
 
 /* "both orders", "all 5 orders", "this order": how a popover names what it writes to. */
@@ -225,6 +225,7 @@ function SheetOf({ label, onClose, children }) {
 /** Set status (2a): one value for every order picked, so a radio list; Apply writes it. */
 function SetStatus({ chosen, count, busy, onCancel, onApply }) {
 	const statuses = useStatuses()
+	const { typeOf } = useStatusTypes()
 	const name = useId()
 	const today = useId()
 	const [status, setStatus] = useState(null)
@@ -233,7 +234,7 @@ function SetStatus({ chosen, count, busy, onCancel, onApply }) {
 		<Popover position="start" role="dialog" aria-label="Set status"
 			onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onCancel() } }}
 			head={<><span className="sp-title">Set status</span><span className="sp-subtitle">Replaces the status on {which(count)}.</span></>}
-			note={status === 'Delivered'
+			note={typeOf(status) === 'delivered'
 				? <><Switch id={today} checked={deliveredToday} onChange={ev => setDeliveredToday(ev.target.checked)} /><label className="sp-subtitle" htmlFor={today}>Also set delivery date to today</label></>
 				: null}
 			actions={<>

@@ -51,7 +51,7 @@ export default function OrderNew() {
 
 const fromBlank = blank => ({
 	vendor: blank.vendor ?? '', date: blank.date, status: blank.status, kind: blank.kind,
-	deliveredDate: blank.deliveredDate, returnedDate: blank.returnedDate, categories: blank.categories ?? [],
+	statusDates: { Delivered: blank.deliveredDate, Returned: blank.returnedDate }, categories: blank.categories ?? [],
 	shipping: null, discount: null, reference: '', note: '', refunded: false, lines: []
 })
 
@@ -112,7 +112,7 @@ function Scanned({ documentKey, upload, from }) {
 	const seed = useMemo(() => (answer && !answer.draftOrderId
 		? {
 			vendor: answer.vendor ?? '', date: answer.date, status: answer.status, kind: answer.kind,
-			deliveredDate: answer.deliveredDate, returnedDate: answer.returnedDate, categories: [],
+			statusDates: { Delivered: answer.deliveredDate, Returned: answer.returnedDate }, categories: [],
 			shipping: answer.shipping || null, discount: answer.discount || null,
 			reference: answer.reference ?? '', note: '', refunded: false,
 			lines: answer.lines.map(l => ({

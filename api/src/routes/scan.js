@@ -11,7 +11,7 @@ import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdForReceipt } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
 import { describe, listedNames } from '../lib/categorySuggest.js'
-import { resolveStatus } from '../lib/statuses.js'
+import { keyOfType } from '../lib/statuses.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
@@ -100,17 +100,17 @@ const selectDraftDefaults = db.prepare('SELECT default_status, default_kind, sca
 
 // what each kind of document sets when the account lets a scan override its defaults (Settings, Defaults)
 const FROM_DOCUMENT = {
-	receipt: { status: 'Delivered' }, order_confirmation: { status: 'Ordered' },
-	return: { status: 'Returned' }, sale: { kind: 'Sold' }
+	receipt: { status: 'delivered' }, order_confirmation: { status: 'ordered' },
+	return: { status: 'returned' }, sale: { kind: 'Sold' }
 }
 
 /** The new order's status and kind: the account's defaults, or what the document shows when the
     account lets a scan override them. A status the account has deleted keeps the default. */
 function startingValues(userId, settings, read) {
-	const own = { status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense' }
+	const own = { status: settings?.default_status ?? keyOfType(userId, 'delivered'), kind: settings?.default_kind ?? 'Expense' }
 	const found = FROM_DOCUMENT[read?.documentType]
 	if (!found || (settings && !settings.scan_overrides)) return own
-	return { status: (found.status && resolveStatus(userId, found.status)) || own.status, kind: found.kind ?? own.kind }
+	return { status: (found.status && keyOfType(userId, found.status)) || own.status, kind: found.kind ?? own.kind }
 }
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
 // Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
@@ -301,7 +301,7 @@ function draftIfLeft(userId, upload, { read, failure }, today) {
 	if (!read?.lines.length) return null
 	const found = draftOf({ user: { id: userId }, today }, upload, read, failure)
 	const body = {
-		vendor: String(found.vendor || 'Unknown vendor').trim().slice(0, 80), date: found.date, status: 'Draft', kind: found.kind,
+		vendor: String(found.vendor || 'Unknown vendor').trim().slice(0, 80), date: found.date, status: keyOfType(userId, 'draft'), kind: found.kind,
 		shipping: Number(found.shipping) || 0, discount: Number(found.discount) || 0, reference: found.reference ?? '', note: '',
 		categories: [],
 		items: found.lines.map(l => ({ title: String(l.title ?? '').trim().slice(0, 120), quantity: l.quantity, price: l.price }))

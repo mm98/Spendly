@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
@@ -6,6 +6,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Chip } from '../components/Chip.jsx'
+import { Well } from '../components/Well.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
@@ -15,7 +16,7 @@ import { useStacked } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
 import { useFolded } from '../app/folded.js'
 import { useShellShape } from '../app/useMedia.js'
-import { OverLimitDot, StatusPill, useOverLimitIds } from '../app/orderRow.jsx'
+import { OverLimitDot, useOverLimitIds, useStatus } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
@@ -48,6 +49,9 @@ function OrderView({ order, touch, onGone }) {
 	const column = useRef(null)
 	const stacked = useStacked(column)
 	const [folded, setFolded] = useFolded('order', 'details', true)
+	const status = useStatus(order.status)
+	// a status with a date of its own has it recorded; one on the order's own date has none
+	const stamped = order.statusHistory.findLast(s => s.status === order.status)
 
 	const items = (
 		<Card>
@@ -55,8 +59,6 @@ function OrderView({ order, touch, onGone }) {
 				<span className="sp-section-label sp-nowrap">Items{dot}{order.items.length}</span>
 				{/* a narrow phone wraps the line rather than cutting the date */}
 				<span className={touch ? 'sp-meta or-wrap' : 'sp-meta sp-truncate'}>{order.vendor?.name}{dot}{shortDate(order.date)}</span>
-				<span className="sp-grow" />
-				<StatusPill status={order.status} />
 			</div>
 			<div className="sp-stack sp-gap-8">
 				{order.items.map(item => {
@@ -111,9 +113,11 @@ function OrderView({ order, touch, onGone }) {
 			<Sum value={order.vendor ? <Link to={`/orders?vendor=${order.vendor.id}`}>{order.vendor.name}</Link> : undefined}>Vendor</Sum>
 			<Sum value={shortDate(order.date)}>Date</Sum>
 			<Sum value={order.kind}>Kind</Sum>
+			<Sum value={status.name}>Status</Sum>
+			{stamped ? <Sum value={shortDate(stamped.date)}>{status.name}</Sum> : null}
 			<Sum value={<OrderCategories order={order} />}>Categories</Sum>
 			{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
-			{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
+			{order.note ? <Sum variant="stacked" value={<Well>{order.note.split('\n').map((line, i) => <Fragment key={i}>{i ? <br /> : null}{line}</Fragment>)}</Well>}>Note</Sum> : null}
 		</div>
 	)
 	// in one column the details fold to a line above the items (18b)

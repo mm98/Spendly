@@ -4987,6 +4987,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* a well at its quietest: a box around a value rather than a message - c10 */
 .sp-well--quiet { background: var(--surface-2); padding: var(--sp-8) var(--sp-12); gap: var(--sp-2); }
+/* a stacked sum row aligns its children on the baseline; a well under the label takes the full width (the order's note, 1a) */
+.sp-sum--stacked > .sp-well { align-self: stretch; }
 .sp-well[data-color="warning"] { background: var(--amber-tint); border-color: var(--amber-3); }
 
 /* the attention row's two siblings: one that states something went well, one that

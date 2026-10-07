@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
 import { Card, CardFooter, Panel } from '../components/Card.jsx'
+import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Bars, ChartTip, Donut, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
@@ -1117,24 +1118,27 @@ function VendorsCard({ view, name, touch, onOpen }) {
 	)
 }
 
-const STATUSES = ['Delivered', 'Ordered', 'Returned']
-// the statuses each lens can hold: an expense is never a returned order, a refund always is
-const LENS_STATUSES = { expenses: ['Delivered', 'Ordered'], refunds: ['Returned'], net: STATUSES }
+// the status types each lens can hold: an expense is never a returned order, a refund always is
+const LENS_TYPES = { expenses: ['delivered', 'ordered'], refunds: ['returned'], net: ['delivered', 'ordered', 'returned'] }
 
 function StatusCard({ view, flow = 'expenses', onOpen }) {
 	const total = view?.orders ?? 0
+	const list = useStatuses()
+	const { keyOf } = useStatusTypes()
+	const nameOf = key => list.find(s => s.key === key)?.name ?? key
 	const counts = new Map((view?.statusSplit ?? []).map(s => [s.status, s.orders]))
-	const shown = [...LENS_STATUSES[flow], ...[...counts.keys()].filter(s => !LENS_STATUSES[flow].includes(s))]
+	const lens = LENS_TYPES[flow].map(keyOf).filter(Boolean)
+	const shown = [...lens, ...[...counts.keys()].filter(s => !lens.includes(s))]
 	return (
 		<Card aria-busy={view ? undefined : 'true'}>
 			<span className="sp-section-label">By status</span>
 			{shown.map(status => {
 				const count = view ? counts.get(status) ?? 0 : null
 				return (
-					<Pick key={status} onPick={onOpen && count ? () => onOpen(status) : undefined} label={`${status}, ${counted(count ?? 0, 'order')}`}>
+					<Pick key={status} onPick={onOpen && count ? () => onOpen(status) : undefined} label={`${nameOf(status)}, ${counted(count ?? 0, 'order')}`}>
 						<div className="sp-stack sp-gap-6">
 							<div className="sp-row-flex sp-gap-8">
-								<span className="sp-data">{status}</span>
+								<span className="sp-data">{nameOf(status)}</span>
 								<span className="sp-grow" />
 								{count == null
 									? <span className="sp-amount">{hold('44')}</span>
@@ -1145,7 +1149,7 @@ function StatusCard({ view, flow = 'expenses', onOpen }) {
 										</>
 									)}
 							</div>
-							<Gauge value={share(count ?? 0, total)} aria-label={status} />
+							<Gauge value={share(count ?? 0, total)} aria-label={nameOf(status)} />
 						</div>
 					</Pick>
 				)

@@ -325,9 +325,10 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 	}, [source])
 
 	const statuses = useStatuses()
-	const canDraft = statuses.some(s => s.key === 'Draft')
+	const draftKey = statuses.find(s => s.type === 'draft')?.key
+	const canDraft = !!draftKey
 	const sending = source.orders.filter((_, i) => withDuplicates || !duplicates?.has(i))
-	const drafts$ = sending.map(o => (canDraft && drafts && source.kind === 'sheet' ? { ...o.draft, status: 'Draft' } : o.draft))
+	const drafts$ = sending.map(o => (canDraft && drafts && source.kind === 'sheet' ? { ...o.draft, status: draftKey } : o.draft))
 	const fresh = known && !vendors.loading ? newVendors(drafts$, known) : null
 	const reasons = new Map()
 	for (const s of source.skipped) reasons.set(s.reason, [...(reasons.get(s.reason) ?? []), s])

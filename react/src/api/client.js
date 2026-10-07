@@ -407,7 +407,7 @@ export async function deleteCategory(id, signal) {
 
 const toApiDraft = draft => ({
 	vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
-	deliveredDate: draft.deliveredDate, returnedDate: draft.returnedDate,
+	statusDates: draft.statusDates ?? {},
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
 	discount: draft.discount ? parseAmount(draft.discount) : 0,
 	reference: draft.reference ?? '', note: draft.note ?? '', refunded: Boolean(draft.refunded),
