@@ -523,7 +523,8 @@ const countWithoutReceipt = db.prepare(`
 		AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
 `)
 
-const countNotDelivered = db.prepare(`SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = 'Ordered' AND date <= ?`)
+const selectOrderedKey = db.prepare("SELECT key FROM statuses WHERE user_id = ? AND type = 'ordered'").pluck()
+const countNotDelivered = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = ? AND date <= ?')
 
 const selectLimited = db.prepare('SELECT id, budget FROM categories WHERE user_id = ? AND budget > 0')
 // what each limited category came to in each month, as Home's figures count it: what was paid
@@ -597,7 +598,8 @@ const DELIVERY_DAYS = 14
 const COUNTS = {
 	late: (userId, day) => {
 		const to = toEpoch(day) - DELIVERY_DAYS * DAY
-		return { count: countNotDelivered.get(userId, to).c, to: fromEpoch(to) }
+		const status = selectOrderedKey.get(userId)
+		return { count: status ? countNotDelivered.get(userId, status, to).c : 0, to: fromEpoch(to), status }
 	},
 	vendors: userId => ({ count: vendorsIn(lookalikePairs(userId)) }),
 	receipt: userId => ({ count: countWithoutReceipt.get(userId).c })

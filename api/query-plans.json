@@ -1294,7 +1294,7 @@
 				"idx_orders_user_discount"
 			]
 		},
-		"SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = 'Ordered' AND date <= ?": {
+		"SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = ? AND date <= ?": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_status (user_id=? AND status=? AND date<?)"
 			],
@@ -1415,15 +1415,6 @@
 			"findings": [],
 			"indexes": [
 				"idx_vendors_user_name"
-			]
-		},
-		"SELECT COUNT(*) n FROM orders WHERE user_id = ? AND status = ?": {
-			"plan": [
-				"SEARCH orders USING COVERING INDEX idx_orders_user_status (user_id=? AND status=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_orders_user_status"
 			]
 		},
 		"SELECT COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached FROM orders ot WHERE ot.user_id = @userId": {
@@ -1555,15 +1546,6 @@
 			]
 		},
 		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary, notify_email, notify_early, scan_overrides, sidebar, compare_month FROM settings WHERE user_id = ?": {
-			"plan": [
-				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_settings_1"
-			]
-		},
-		"SELECT default_status FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
 			],
@@ -1755,7 +1737,7 @@
 				"idx_imports_user_created"
 			]
 		},
-		"SELECT id, key, name, tone, own_date FROM statuses WHERE user_id = ? AND key = ?": {
+		"SELECT id, key, name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=? AND key=?)"
 			],
@@ -1764,7 +1746,7 @@
 				"sqlite_autoindex_statuses_2"
 			]
 		},
-		"SELECT id, key, name, tone, position, own_date FROM statuses WHERE user_id = ? ORDER BY position, rowid": {
+		"SELECT id, key, name, tone, position, own_date, type FROM statuses WHERE user_id = ? ORDER BY position, rowid": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
@@ -2066,6 +2048,15 @@
 			]
 		},
 		"SELECT key FROM statuses WHERE user_id = ? AND own_date = 1": {
+			"plan": [
+				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_statuses_2"
+			]
+		},
+		"SELECT key FROM statuses WHERE user_id = ? AND type = 'ordered'": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)"
 			],
@@ -4113,7 +4104,7 @@
 				"date",
 				"id"
 			],
-			"readers": 29
+			"readers": 28
 		},
 		"idx_orders_user_total": {
 			"table": "orders",

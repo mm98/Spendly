@@ -41,7 +41,7 @@ export const LOOKS = [
 		rows: ({ things }) => {
 			const late = things?.late
 			if (!late?.count) return none
-			const to = `/orders?status=Ordered&to=${late.to}`
+			const to = `/orders?status=${encodeURIComponent(late.status)}&to=${late.to}`
 			return {
 				rows: [rowOf('late', to, late.count, `${noun(late.count, 'order', 'orders')} ordered over 2 weeks ago and not delivered`)],
 				phone: [rowOf('late', to, late.count, null, 'not delivered after 2 weeks')]

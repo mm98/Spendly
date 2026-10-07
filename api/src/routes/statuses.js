@@ -7,12 +7,10 @@ import { newId } from '../lib/ids.js'
 export const router = Router()
 
 const TONES = ['success', 'progress', 'danger', 'neutral']
-// Draft is what an import brings orders in as, so it is always there
-const BUILT_IN = ['Draft']
 const NAME_MAX = 40
 
-const selectAll = db.prepare('SELECT id, key, name, tone, position, own_date FROM statuses WHERE user_id = ? ORDER BY position, rowid')
-const selectOne = db.prepare('SELECT id, key, name, tone, own_date FROM statuses WHERE user_id = ? AND key = ?')
+const selectAll = db.prepare('SELECT id, key, name, tone, position, own_date, type FROM statuses WHERE user_id = ? ORDER BY position, rowid')
+const selectOne = db.prepare('SELECT id, key, name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?')
 const countByStatus = db.prepare('SELECT status, COUNT(*) n FROM orders WHERE user_id = ? GROUP BY status')
 const countOne = db.prepare('SELECT COUNT(*) n FROM orders WHERE user_id = ? AND status = ?')
 const selectDefault = db.prepare('SELECT default_status FROM settings WHERE user_id = ?')
@@ -24,7 +22,7 @@ const deleteStatus = db.prepare('DELETE FROM statuses WHERE user_id = ? AND key 
 const list = userId => {
 	const counts = new Map(countByStatus.all(userId).map(r => [r.status, r.n]))
 	return selectAll.all(userId).map(s => ({
-		key: s.key, name: s.name, tone: s.tone, ownDate: Boolean(s.own_date), builtIn: BUILT_IN.includes(s.key), orders: counts.get(s.key) ?? 0
+		key: s.key, name: s.name, tone: s.tone, ownDate: Boolean(s.own_date), type: s.type, builtIn: s.type !== 'custom', orders: counts.get(s.key) ?? 0
 	}))
 }
 
@@ -76,7 +74,7 @@ router.put('/order', (req, res) => {
 router.delete('/:key', (req, res) => {
 	const status = selectOne.get(req.user.id, req.params.key)
 	if (!status) return refuse(res, 'That status does not exist.', 404)
-	if (BUILT_IN.includes(status.key)) return refuse(res, `${status.name} is built in and stays.`)
+	if (status.type !== 'custom') return refuse(res, `${status.name} is built in and stays.`)
 	if (countOne.get(req.user.id, status.key).n) return refuse(res, `Orders still have the status ${status.name}. Give them another status first.`, 409)
 	if (selectDefault.get(req.user.id)?.default_status === status.key)
 		return refuse(res, `${status.name} is the status a new order starts with. Choose another one in Defaults first.`, 409)
