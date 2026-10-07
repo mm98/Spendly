@@ -413,6 +413,10 @@ export default function Statistics() {
 	const limit = flow === 'refunds' || vendorCrumb || statusCrumb ? 0
 		: categoryCrumb ? category?.budget ?? 0
 			: (categories.data ?? []).reduce((sum, c) => sum + (c.budget > 0 && spentIn.has(c.id) ? c.budget : 0), 0)
+	// a bar of days or weeks gets its share of the monthly limit, so the line stands where a month on limit would be
+	const stepDays = { day: 1, week: 7 }[chart.unit]
+	const windowDays = Math.round((toMs - fromMs) / DAY_MS) + 1
+	const limitPerStep = chart.unit === 'month' ? limit : stepDays ? (limit * view.budgets.months * stepDays) / windowDays : 0
 	const records = crumbs.filter(c => !isTime(c)).map(c => crumbLabel(c, labels))
 	const narrowed = records.length ? `${records.join(dot)}${records.length === 1 ? ' only' : ''}` : null
 
@@ -435,7 +439,7 @@ export default function Statistics() {
 		)
 	const spendChart = (
 		<SpendChart chart={chart} touch={touch} selected={selectedKey} narrowed={narrowed}
-			stackable={!categoryCrumb} categories={view.series.categories} limit={chart.unit === 'month' ? limit : 0}
+			stackable={!categoryCrumb} categories={view.series.categories} limit={limitPerStep}
 			onOpen={canDrill({ kind: 'month' }) ? column => drill(column.crumb) : undefined} />
 	)
 
@@ -836,7 +840,7 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 	const below = columns.filter(column => column.spend < 0)
 	const limitLine = limit > 0 && !touch
 		// measured down from the top of the bars, which end above the row of names under them
-		? { at: `${fit * (100 - share(limit, top))}%`, label: `${unit === 'month' ? 'Monthly limit' : 'Limit'} ${currency(limit, 0)}` }
+		? { at: `${fit * (100 - share(limit, top))}%`, label: `${unit === 'month' ? 'Monthly limit' : `Limit per ${unit}`} ${currency(limit, 0)}` }
 		: undefined
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
