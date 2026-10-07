@@ -276,23 +276,26 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 				{thumb ? <img src={thumb} alt="" /> : <span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
 			</Mark>
 		)
+		const facts = [o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)
 		const title = (
 			<span className="sp-stacked">
 				<span className="sp-title sp-truncate">{o.vendor}</span>
-				<span className="sp-subtitle">{[o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)}</span>
+				<span className="sp-subtitle">{facts}</span>
 			</span>
 		)
 		const scanned = [readAt && o === newest ? `Scanned ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)
-		// the scan line sits under the whole row, so it has the row's width and not the text column's
+		// the amount shares the title's line, so the lines under it run to the row's edge
 		if (touch) return (
 			<Card key={o.id}>
-				<ListItem variant="stack">
-					<span className="sp-row-flex sp-top sp-gap-12">
-						{mark}
-						<span className="sp-grow">{title}</span>
-						<span className="sp-amount sp-flex-none">{amount(o.total)}</span>
+				<ListItem variant="top" mark={mark}>
+					<span className="sp-stacked sp-grow">
+						<span className="sp-row-flex sp-baseline sp-gap-12">
+							<span className="sp-title sp-truncate sp-grow">{o.vendor}</span>
+							<span className="sp-amount sp-flex-none">{amount(o.total)}</span>
+						</span>
+						<span className="sp-subtitle">{facts}</span>
+						<span className="sp-meta">{scanned}</span>
 					</span>
-					<span className="sp-stacked"><span className="sp-meta">{scanned}</span></span>
 				</ListItem>
 				<div className="sp-stack sp-gap-8">{open(o)}{side(o)}</div>
 			</Card>
