@@ -11,7 +11,8 @@ import { SaveBar } from '../components/Touch.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getOrder, getScanDraft, invalidateOrderData, updateOrder } from '../api/client.js'
-import { dot, plural } from '../api/format.js'
+import { dot, plural, shortDate } from '../api/format.js'
+import { ScreenBar } from '../app/topBarEnd.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { useStatuses } from '../app/statuses.js'
 import { Reading } from './OrderNew.jsx'
@@ -26,6 +27,19 @@ import { changesOrder, compareLines, defaultPicks, resultingLines } from './comp
 const FAR = 0.25
 
 export default function OrderCompare() {
+	const { id } = useParams()
+	const navigate = useNavigate()
+	const order = useApi(getOrder, [id]).data
+	const held = order?.id === id ? order : null
+	return (
+		<>
+			<ScreenBar onBack={() => navigate(`/orders/${id}`)} title="Compare with receipt" meta={held ? [held.vendor?.name, shortDate(held.date)].filter(Boolean).join(dot) : null} />
+			<Screen />
+		</>
+	)
+}
+
+function Screen() {
 	const { id } = useParams()
 	const [params] = useSearchParams()
 	const documentKey = params.get('doc')
