@@ -2,6 +2,7 @@ import Anthropic, { APIError } from '@anthropic-ai/sdk'
 import { decompressBlob } from './blobCompression.js'
 import { todayIso } from './dates.js'
 import { categoryNamesOf, vatNumberOf, webAddressOf } from './names.js'
+import { fromPrintedLineTotals, reconcileWithTotal } from './lineTotals.js'
 
 /* The one place a scanned document's bytes are actually read. Everything in routes/scan.js
    around this stayed an honest blank draft until now -- see that route's own comment, and the
@@ -76,12 +77,13 @@ const READ_RECEIPT_TOOL = {
 					properties: {
 						title: { type: 'string', description: 'The item as described on the document.' },
 						quantity: { type: 'number', description: 'How many of this item, as printed (1 if not stated). May be a fraction where the line is sold by weight or length, e.g. 0.75.' },
-						price: { type: 'number', description: 'The per-unit price INCLUDING VAT -- convert it first if the document prints it net of VAT. quantity times this price must equal the line\'s own VAT-inclusive total, after any negative-amount line printed directly under it.' },
+						lineTotal: { type: 'number', description: 'The amount printed for this line as a whole, all units together, INCLUDING VAT -- the figure in the line\'s amount column, after any negative-amount line printed directly under it. Equal to price when quantity is 1.' },
+						price: { type: 'number', description: 'The per-unit price INCLUDING VAT: lineTotal divided by quantity. A document often prints only the line total beside a quantity above 1 -- that figure is lineTotal, never the price. Convert it first if the document prints it net of VAT.' },
 						retail: { type: 'number', description: 'The per-unit price INCLUDING VAT as printed on the item\'s own line, before any discount line under it takes something off. Only when a discount line follows the item; omit otherwise.' },
 						uncertain: { type: 'boolean', description: 'true only if this specific line is a genuine guess -- smudged, cropped or otherwise hard to read. Omit or false for anything clearly printed.' },
 						unclearPart: { type: 'string', enum: ['title', 'quantity', 'price'], description: 'When uncertain, the part of the line that was hardest to read.' }
 					},
-					required: ['title', 'quantity', 'price']
+					required: ['title', 'quantity', 'lineTotal', 'price']
 				}
 			}
 		},
@@ -97,7 +99,7 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
     invented or malformed date dropped rather than passed through to a form field that would
     reject it silently. Never throws: a model that returns nonsense for one field should not
     cost the fields it got right. */
-function normalise(input, today) {
+export function normalise(input, today) {
 	if (!input || typeof input !== 'object') return null
 	const vendor = String(input.vendor ?? '').trim()
 	if (!vendor) return null
@@ -115,18 +117,22 @@ function normalise(input, today) {
 		: input.pricesAsPrintedIncludeVat === false ? false : null
 	const vatRate = isFiniteNumber(input.vatRate) && input.vatRate >= 0 && input.vatRate < 100 ? input.vatRate : null
 
-	const lines = Array.isArray(input.lines) ? input.lines
+	const rawLines = Array.isArray(input.lines) ? input.lines
 		.map(l => ({
 			title: String(l?.title ?? '').trim().slice(0, 120),
 			quantity: isFiniteNumber(l?.quantity) && l.quantity > 0 ? Math.round(l.quantity * 100) / 100 : 1,
 			price: isFiniteNumber(l?.price) && l.price >= 0 ? l.price : null,
 			retail: isFiniteNumber(l?.retail) && l.retail >= 0 ? l.retail : null,
+			lineTotal: isFiniteNumber(l?.lineTotal) && l.lineTotal >= 0 ? l.lineTotal : null,
 			uncertain: l?.uncertain === true,
 			unclearPart: l?.uncertain === true && ['title', 'quantity', 'price'].includes(l?.unclearPart) ? l.unclearPart : null
 		}))
 		.filter(l => l.title && l.price !== null)
-		.map(l => ({ ...l, retail: l.retail > l.price ? l.retail : null }))
 		: []
+	// a line total given as a price is set right by the line's own total, then by the printed total
+	const lines = reconcileWithTotal(fromPrintedLineTotals(rawLines), { total, shipping, discount })
+		.map(l => ({ ...l, retail: l.retail > l.price ? l.retail : null }))
+	const linesFromTotals = lines.filter(l => l.fromLineTotal).length
 	const reference = String(input.reference ?? '').trim().slice(0, 80)
 	// the other two things a receipt is matched to its vendor by (5h), kept only when they read as one
 	const website = webAddressOf(input.website)
@@ -138,7 +144,7 @@ function normalise(input, today) {
 
 	// a read without lines still carries the vendor and date it found (6e), but is no answer to keep
 	const suggestions = categoryNamesOf(input.categories).slice(0, 3)
-	return { vendor, website, vatNumber, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, reference, unclear, lines, documentType, suggestions }
+	return { vendor, website, vatNumber, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, reference, unclear, lines, linesFromTotals, documentType, suggestions }
 }
 
 /** What a partial answer already holds, for the reading screen (3a step 2): the vendor and date
