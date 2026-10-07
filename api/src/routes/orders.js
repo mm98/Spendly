@@ -388,15 +388,19 @@ router.get('/:id', (req, res) => {
 
 /* ---- create / update / delete ---- */
 
-/** order_statuses is a log: Ordered from the order's own date, Delivered/Returned only when
-    supplied. Delete-and-reinsert like order_categories below -- today's form edits only the latest. */
-function saveOrderStatuses(orderId, draft) {
+const selectOwnDated = db.prepare('SELECT key FROM statuses WHERE user_id = ? AND own_date = 1')
+
+/** order_statuses is a log: Ordered at the order's date, then each status the account dates on its own.
+    `deliveredDate` and `returnedDate` still name Delivered and Returned for callers that send them. */
+function saveOrderStatuses(userId, orderId, draft) {
 	deleteOrderStatuses.run(orderId)
 	insertOrderStatus.run(newId('os'), orderId, 'Ordered', toEpoch(draft.date))
-	if (draft.deliveredDate && (draft.status === 'Delivered' || draft.status === 'Returned'))
-		insertOrderStatus.run(newId('os'), orderId, 'Delivered', toEpoch(draft.deliveredDate))
-	if (draft.returnedDate && draft.status === 'Returned')
-		insertOrderStatus.run(newId('os'), orderId, 'Returned', toEpoch(draft.returnedDate))
+	const dated = new Map()
+	if (draft.deliveredDate && (draft.status === 'Delivered' || draft.status === 'Returned')) dated.set('Delivered', draft.deliveredDate)
+	if (draft.returnedDate && draft.status === 'Returned') dated.set('Returned', draft.returnedDate)
+	const own = new Set(selectOwnDated.all(userId).map(r => r.key))
+	for (const [key, date] of Object.entries(draft.statusDates ?? {})) if (own.has(key) && key !== 'Ordered' && date) dated.set(key, date)
+	for (const [key, date] of dated) insertOrderStatus.run(newId('os'), orderId, key, toEpoch(date))
 }
 
 /** Turns a validated draft into inserted rows. Shared by manual create, update (which first
@@ -412,7 +416,7 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
-	saveOrderStatuses(id, draft)
+	saveOrderStatuses(userId, id, draft)
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
 	// Returned in draft order so a caller that also has per-item attachments to insert (import)
 	// can match them back up to the row each one landed in -- create/update never read this
@@ -486,7 +490,7 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
-	saveOrderStatuses(id, draft)
+	saveOrderStatuses(userId, id, draft)
 
 	deleteOrderCategories.run(id)
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)

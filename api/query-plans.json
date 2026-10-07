@@ -1755,7 +1755,7 @@
 				"idx_imports_user_created"
 			]
 		},
-		"SELECT id, key, name, tone FROM statuses WHERE user_id = ? AND key = ?": {
+		"SELECT id, key, name, tone, own_date FROM statuses WHERE user_id = ? AND key = ?": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=? AND key=?)"
 			],
@@ -1764,7 +1764,7 @@
 				"sqlite_autoindex_statuses_2"
 			]
 		},
-		"SELECT id, key, name, tone, position FROM statuses WHERE user_id = ? ORDER BY position, rowid": {
+		"SELECT id, key, name, tone, position, own_date FROM statuses WHERE user_id = ? ORDER BY position, rowid": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
@@ -2063,6 +2063,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_budget_years_2"
+			]
+		},
+		"SELECT key FROM statuses WHERE user_id = ? AND own_date = 1": {
+			"plan": [
+				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_statuses_2"
 			]
 		},
 		"SELECT key, name FROM statuses WHERE user_id = ?": {

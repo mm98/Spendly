@@ -13,12 +13,12 @@ export const TONES = {
 const FIRST = [
 	{ key: 'Draft', name: 'Draft', tone: 'neutral' },
 	{ key: 'Ordered', name: 'Ordered', tone: 'progress' },
-	{ key: 'Delivered', name: 'Delivered', tone: 'success' },
-	{ key: 'Returned', name: 'Returned', tone: 'danger' },
+	{ key: 'Delivered', name: 'Delivered', tone: 'success', ownDate: true },
+	{ key: 'Returned', name: 'Returned', tone: 'danger', ownDate: true },
 	{ key: 'Cancelled', name: 'Cancelled', tone: 'neutral' }
 ]
 
-/** The account's statuses, in its order: `{ key, name, tone, builtIn, orders }`. */
+/** The account's statuses, in its order: `{ key, name, tone, ownDate, builtIn, orders }`. */
 export function useStatuses() {
 	return useApi(getStatuses).data ?? FIRST
 }

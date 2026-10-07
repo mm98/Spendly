@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card } from '../components/Card.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { Choice, Switch } from '../components/Choice.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -22,7 +23,7 @@ const StatusLook = ({ tone, children }) => {
 }
 
 // a list equal to the stored one in these is no change, so the save bar goes again
-const sameAs = (a, b) => JSON.stringify(a.map(s => [s.key, s.name, s.tone])) === JSON.stringify(b.map(s => [s.key, s.name, s.tone]))
+const sameAs = (a, b) => JSON.stringify(a.map(s => [s.key, s.name, s.tone, Boolean(s.ownDate)])) === JSON.stringify(b.map(s => [s.key, s.name, s.tone, Boolean(s.ownDate)]))
 
 /** Writes `after` over what is stored now, so a save that stopped partway can be sent again. A new
     status has a `new-` key and `fresh` until stored; names are unique, so it is found again by name. */
@@ -31,10 +32,10 @@ export async function saveStatuses(after) {
 	const named = a => stored.find(s => s.name.toLowerCase() === a.name.toLowerCase())
 	for (const gone of stored.filter(s => !after.some(a => a.key === s.key)))
 		stored = await deleteStatus(gone.key)
-	for (const s of after.filter(a => stored.some(b => b.key === a.key && (b.name !== a.name || b.tone !== a.tone))))
-		stored = await changeStatus(s.key, { name: s.name, tone: s.tone })
+	for (const s of after.filter(a => stored.some(b => b.key === a.key && (b.name !== a.name || b.tone !== a.tone || Boolean(b.ownDate) !== Boolean(a.ownDate)))))
+		stored = await changeStatus(s.key, { name: s.name, tone: s.tone, ownDate: Boolean(s.ownDate) })
 	for (const s of after.filter(a => a.fresh && !named(a)))
-		stored = await addStatus({ name: s.name, tone: s.tone })
+		stored = await addStatus({ name: s.name, tone: s.tone, ownDate: Boolean(s.ownDate) })
 	const keys = after.map(a => (a.fresh ? named(a)?.key : a.key))
 	if (keys.join('\n') !== stored.map(s => s.key).join('\n')) stored = await orderStatusesAs(keys)
 	invalidateOrderData()
@@ -172,11 +173,12 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 function StatusEditor({ status, onCancel, onSave }) {
 	const [name, setName] = useState(status?.name ?? '')
 	const [tone, setTone] = useState(status?.tone ?? 'neutral')
+	const [ownDate, setOwnDate] = useState(Boolean(status?.ownDate))
 	const field = useRef(null)
 	useEffect(() => { field.current?.focus() }, [])
 	const empty = !name.trim()
 	const save = () => {
-		if (!empty) onSave({ name: name.trim(), tone })
+		if (!empty) onSave({ name: name.trim(), tone, ownDate })
 	}
 	return (
 		<ListItem variant="outline" selected>
@@ -191,6 +193,7 @@ function StatusEditor({ status, onCancel, onSave }) {
 					</label>
 				))}
 			</div>
+			<Choice control={<Switch role="switch" checked={ownDate} onChange={ev => setOwnDate(ev.target.checked)} />}>Has its own date</Choice>
 			<div className="sp-row-flex sp-gap-8 sp-flex-none">
 				<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
 				<Button size="small" disabled={empty} onClick={save}>Save</Button>

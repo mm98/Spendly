@@ -12,7 +12,6 @@ import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Stepper } from '../components/Stepper.jsx'
 import { Combobox, ComboboxGroup, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
-import { Segmented } from '../components/Segmented.jsx'
 import { DateField } from '../components/DatePickers.jsx'
 import { Check } from '../components/Choice.jsx'
 import { Sum } from '../components/Data.jsx'
@@ -52,12 +51,14 @@ import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
 
 /** What blocks a save. Every one of these blocks a Draft too: it is what the order is filed by. */
-const orderErrors = d => {
+const orderErrors = (d, dated) => {
 	const e = {}
 	if (!d.vendor.trim()) e.vendor = 'A vendor is required. Pick one or create it here.'
 	else if (d.vendor.trim().length > 80) e.vendor = '80 characters at most.'
 	if (!d.date) e.date = 'When was the order placed?'
 	if (!spendKinds.includes(d.kind)) e.kind = 'Pick a kind.'
+	const own = dated ? d.statusDates?.[d.status] : null
+	if (own && d.date && own < d.date) e.statusDate = `Can't be before the order date, ${shortDate(d.date)}.`
 	return e
 }
 
@@ -86,7 +87,7 @@ export function draftOf(order) {
 	const last = status => order.statusHistory.findLast(s => s.status === status)?.date ?? ''
 	return {
 		vendor: order.vendor?.name ?? '', date: order.date, status: order.status, kind: order.kind,
-		deliveredDate: last('Delivered'), returnedDate: last('Returned'),
+		statusDates: Object.fromEntries(order.statusHistory.filter(s => s.status !== 'Ordered').map(s => [s.status, last(s.status)])),
 		categories: order.categories.map(c => c.name),
 		shipping: order.shipping || null, discount: order.discount || null,
 		reference: order.reference ?? '', note: order.note ?? '', refunded: order.refunded,
@@ -99,12 +100,10 @@ export function draftOf(order) {
 }
 
 /** The draft as the API takes it. A status date the form does not show follows the order's. */
-function apiDraft(d, lines) {
-	const delivered = d.status === 'Ordered' ? '' : [d.deliveredDate || today(), d.date].sort().at(-1)
-	const returned = d.status === 'Returned' ? [d.returnedDate || today(), delivered].sort().at(-1) : ''
+function apiDraft(d, lines, dated) {
 	return {
 		vendor: d.vendor.trim(), date: d.date, status: d.status, kind: d.kind,
-		deliveredDate: delivered, returnedDate: returned,
+		statusDates: Object.fromEntries(Object.entries(d.statusDates ?? {}).filter(([key, date]) => date && dated.has(key))),
 		categories: d.categories, shipping: d.shipping ? amount(d.shipping) : '', discount: d.discount ? amount(d.discount) : '',
 		reference: d.reference, note: d.note, refunded: d.refunded,
 		items: lines.map(l => ({ ...(l.id ? { id: l.id } : {}), title: l.title.trim(), quantity: l.quantity, price: l.price, retail: l.retail, note: l.note, url: l.url ?? '' }))
@@ -207,13 +206,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	staged.current = files
 	const editingNow = useRef(editing)
 	editingNow.current = editing
-	const statusName = useId()
 	const statuses = useStatuses()
 
 	const set = patch => setDraft(d => ({ ...d, ...patch }))
 	// a Draft keeps its lines as they are so far (16a): none yet, or one not filled in, waits for later
 	const relaxed = draft.status === 'Draft' || tried === 'draft'
-	const errors = orderErrors(draft)
+	const statusDated = statuses.find(s => s.key === draft.status)?.ownDate
+	const errors = orderErrors(draft, statusDated)
 	const shown = tried ? errors : {}
 	const included = lines.filter(l => l.include !== false)
 	const sums = totalsOf(included, draft.shipping, draft.discount)
@@ -523,11 +522,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						</div>
 					)
 					: null
-	const setStatus = status => set({
-		status,
-		...((status === 'Delivered' || status === 'Returned') && !draft.deliveredDate ? { deliveredDate: today() } : {}),
-		...(status === 'Returned' && !draft.returnedDate ? { returnedDate: today() } : {})
-	})
+	// the date a pick filled in, until it is changed: the help line says it was not typed
+	const [filled, setFilled] = useState(null)
+	const setStatus = status => {
+		const fills = statuses.find(s => s.key === status)?.ownDate && !draft.statusDates?.[status]
+		setFilled(fills ? status : null)
+		set({ status, ...(fills ? { statusDates: { ...draft.statusDates, [status]: today() } } : {}) })
+	}
 
 	/* ---- save ---- */
 
@@ -547,7 +548,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	/** The save as a plan `writeOrder` carries out, now or once the connection returns. */
 	const planOf = (target, kept, asDraft) => ({
 		key: newSaveKey(), creating: creatingNow, orderId: createdAs ?? orderId, revision: creatingNow ? null : base.current,
-		body: apiDraft(target, kept),
+		body: apiDraft(target, kept, new Set(statuses.filter(s => s.ownDate).map(s => s.key))),
 		scan: scan && creatingNow ? { documentKey: scan.documentKey, vendor: scan.vendor } : null,
 		gone,
 		photos: kept.map((l, index) => ({
@@ -584,7 +585,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			setLines(current)
 			setEditing(null)
 		}
-		if (Object.keys(orderErrors(target)).length) {
+		if (Object.keys(orderErrors(target, statuses.find(s => s.key === target.status)?.ownDate)).length) {
 			setFolded(false, { keep: false })
 			return focusFirst('[data-details]', quietVendor)
 		}
@@ -1043,16 +1044,21 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				</Field>
 			</div>
 			<Field label="Status">
-				{statuses.length <= 4
-					? <Segmented name={statusName} variant="facet" options={statuses.map(s => ({ value: s.key, label: s.name }))} value={draft.status} onChange={setStatus} />
-					: (
-						<Combobox value={statuses.find(s => s.key === draft.status)?.name ?? draft.status} aria-label="Status">
-							{statuses.map(s => (
-								<ComboboxOption key={s.key} dot={DOT[s.tone]} selected={s.key === draft.status} onSelect={() => setStatus(s.key)}>{s.name}</ComboboxOption>
-							))}
-						</Combobox>
-					)}
+				<Combobox value={statuses.find(s => s.key === draft.status)?.name ?? draft.status} aria-label="Status">
+					{statuses.map(s => (
+						<ComboboxOption key={s.key} dot={DOT[s.tone]} selected={s.key === draft.status} onSelect={() => setStatus(s.key)}>{s.name}</ComboboxOption>
+					))}
+				</Combobox>
 			</Field>
+			{statusDated
+				? (
+					<Field label={statuses.find(s => s.key === draft.status)?.name ?? draft.status}
+						{...(errors.statusDate ? problem(errors.statusDate) : filled === draft.status ? { message: 'Set to today. Change it if it happened earlier.' } : ahead(draft.statusDates?.[draft.status] ?? ''))}>
+						<DateField value={draft.statusDates?.[draft.status] ?? ''} danger={!!errors.statusDate} locale={activeLocaleCode()}
+							onChange={date => { setFilled(null); set({ statusDates: { ...draft.statusDates, [draft.status]: date } }) }} />
+					</Field>
+				)
+				: null}
 			<Field label="Categories" message={suggested?.said ? `Filled from ${suggested.vendor}. Remove any that do not fit.` : undefined}>
 				<CategoryTokens value={draft.categories} onChange={setCategories} trails={trails} end={bulb} placeholder="Add category…" />
 			</Field>

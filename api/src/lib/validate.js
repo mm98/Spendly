@@ -45,6 +45,14 @@ export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_S
 			errors.returnedDate = 'That is before the delivery date.'
 	}
 
+	if (draft.statusDates != null) {
+		if (typeof draft.statusDates !== 'object' || Array.isArray(draft.statusDates)) errors.statusDates = 'Send each status date as a status and a date.'
+		else for (const value of Object.values(draft.statusDates)) {
+			if (value && !ISO_DATE.test(String(value))) errors.statusDates = 'That is not a valid date.'
+			else if (value && String(value) < date) errors.statusDates = 'That is before the order date.'
+		}
+	}
+
 	if (draft.shipping != null && (!Number.isFinite(Number(draft.shipping)) || Number(draft.shipping) < 0))
 		errors.shipping = 'Shipping must be a non-negative amount.'
 
