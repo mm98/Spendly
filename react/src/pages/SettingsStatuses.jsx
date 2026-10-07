@@ -131,21 +131,16 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 												<span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>
 											</>
 										)}
-									{status.builtIn
-										? <Pill>built in</Pill>
+									{status.builtIn ? <Pill>built in</Pill> : null}
+									<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
+										<Icon name="pencil" size={14} />
+									</Mark>
+									{status.builtIn || status.orders
+										? null
 										: (
-											<>
-												<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
-													<Icon name="pencil" size={14} />
-												</Mark>
-												{status.orders
-													? null
-													: (
-														<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
-															<Icon name="trash" size={14} />
-														</Mark>
-													)}
-											</>
+											<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
+												<Icon name="trash" size={14} />
+											</Mark>
 										)}
 									{touch
 										? (
