@@ -389,9 +389,14 @@ verification catches a drifted one. When a value moves, grep for it in prose too
 - **The pull request is where the session ends. Never offer to watch it.** This has been asked and
   declined repeatedly across this repo's history — it isn't a default choice to offer. If watching is
   wanted, it will be asked for explicitly, and then the PR is subscribed to and driven to merge.
-- **Changes that are ready together go in one branch, one pull request and one merge.** Every merge to
-  main runs CI and builds the image, and a second merge moments later makes the first build wasted.
-  Keep them apart only when they are unrelated enough that one may need to be reverted alone, and say so.
+- **Actions minutes are limited, so a merge to main is planned, not tried.** A pull request runs
+  nothing; every merge to main runs all of `ci.yml` and then builds the image. So:
+  - Changes that are ready together go in one branch, one pull request and one merge. Keep them
+    apart only when one may need to be reverted alone, and say so.
+  - Run every check `ci.yml` runs, locally, before the merge: a failure found after it costs a second
+    full run and a second image build.
+  - Merge only when asked to. A change that needs no image (this file, a note) waits for the next
+    change that does, on the same branch.
 - **When waiting on a run, poll the thing that actually knows, at an interval matched to how fast it
   finishes** (CI here finishes in 20-90s — a 20s poll interval is fine, longer than that just makes
   the wait look like the work). Prefer asking an API for run state over sleeping between guesses.
