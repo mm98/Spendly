@@ -18,6 +18,7 @@ import {
 } from '../api/client.js'
 import { activeLocaleCode, amount, dayShortMonth, dot, plural, sep, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
+import { ScreenBar } from '../app/topBarEnd.jsx'
 import { OrderForm } from './OrderForm.jsx'
 import { CopyPicker } from './CopyPicker.jsx'
 import { OrderFailed, OrderLoading, isPdf, pagesOf } from './OrderParts.jsx'
@@ -260,52 +261,92 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 			...pagesOf(o.id, { ...o.file, pages: null })
 		}
 	})
+	const touch = useShellShape() === 'touch'
+	const said = seen.count === 0 ? `The same file was read ${readAt ? `${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : 'before'}. No order holds it now.`
+		: seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`
+	const open = o => <Button size={touch ? undefined : 'small'} fullWidth={touch} to={`/orders/${o.id}`}>Open that order</Button>
+	const side = o => <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => compare(o)}>Compare the files</Button>
+	const useIt = <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} disabled={busy} onClick={onUse}>Use the reading</Button>
+	const scanAgain = <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} disabled={busy} onClick={again}>Scan again</Button>
+	const discard = <Button variant="outline" fullWidth={touch} disabled={busy} onClick={onDiscard}>Discard the upload</Button>
+	const kept = <span className="sp-meta">The upload is kept for 24 hours either way.</span>
+	const matched = o => {
+		const mark = (
+			<Mark size="medium" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label="Receipt">
+				{thumb ? <img src={thumb} alt="" /> : <span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
+			</Mark>
+		)
+		const facts = [o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)
+		const title = (
+			<span className="sp-stacked">
+				<span className="sp-title sp-truncate">{o.vendor}</span>
+				<span className="sp-subtitle">{facts}</span>
+			</span>
+		)
+		const scanned = [readAt && o === newest ? `Scanned ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)
+		// the amount shares the title's line, so the lines under it run to the row's edge
+		if (touch) return (
+			<Card key={o.id}>
+				<ListItem variant="top" mark={mark}>
+					<span className="sp-stacked sp-grow">
+						<span className="sp-row-flex sp-baseline sp-gap-12">
+							<span className="sp-title sp-truncate sp-grow">{o.vendor}</span>
+							<span className="sp-amount sp-flex-none">{amount(o.total)}</span>
+						</span>
+						<span className="sp-subtitle">{facts}</span>
+						<span className="sp-meta">{scanned}</span>
+					</span>
+				</ListItem>
+				<div className="sp-stack sp-gap-8">{open(o)}{side(o)}</div>
+			</Card>
+		)
+		return (
+			<ListItem key={o.id} variant="top" mark={mark}>
+				<span className="sp-stack sp-gap-8 sp-grow">
+					{title}
+					<span className="sp-meta">{scanned}</span>
+					<span className="sp-row-flex sp-gap-8 sp-wrap">{open(o)}{side(o)}</span>
+				</span>
+				<span className="sp-stacked sp-cell-amount sp-flex-none"><span className="sp-amount">{amount(o.total)}</span></span>
+			</ListItem>
+		)
+	}
+	const lead = touch ? <span className="sp-meta">{said}</span> : (
+		<div className="sp-stacked">
+			<span className="sp-heading">This receipt has been scanned before</span>
+			<span className="sp-meta">{said}</span>
+		</div>
+	)
+	const choices = [
+		{ key: 'use', title: 'New order from the saved reading', body: 'Starts a new order with the same lines, ready for you to check and change.', action: useIt },
+		{ key: 'again', title: 'Read it again', body: 'Use this if the lines came out wrong last time.', action: scanAgain }
+	]
 	return (
 		<div className="oc-narrow">
-			<Card>
-				<div className="sp-stack sp-gap-6">
-					<span className="sp-heading">This receipt has been scanned before</span>
-					<span className="sp-meta">
-						{seen.count === 0 ? `The same file was read ${readAt ? `${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : 'before'}. No order holds it now.`
-							: seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`}
-					</span>
-				</div>
-				{seen.orders.map(o => (
-					<ListItem key={o.id} variant="top" mark={
-						<Mark size="medium" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label="Receipt">
-							{thumb ? <img src={thumb} alt="" /> : <span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
-						</Mark>
-					}>
-						<span className="sp-stack sp-gap-8 sp-grow">
-							<span className="sp-stacked">
-								<span className="sp-title sp-truncate">{o.vendor}</span>
-								<span className="sp-subtitle">{[o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)}</span>
-							</span>
-							<span className="sp-meta">
-								{[readAt && o === newest ? `Scanned ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)}
-							</span>
-							<span className="sp-row-flex sp-gap-8 sp-wrap">
-								<Button size="small" to={`/orders/${o.id}`}>Open that order</Button>
-								<Button variant="outline" size="small" onClick={() => compare(o)}>Compare the files</Button>
-							</span>
-						</span>
-						<span className="sp-stacked sp-cell-amount sp-flex-none"><span className="sp-amount">{amount(o.total)}</span></span>
-					</ListItem>
-				))}
+			{touch ? <ScreenBar onBack={onDiscard} title="Scanned before" meta={upload.name} /> : null}
+			{touch ? (
 				<div className="sp-stack sp-gap-12">
+					{lead}
+					{seen.orders.map(matched)}
 					{seen.count ? <span className="sp-section-label">If that is not what you meant</span> : null}
-					<SeenChoice icon="file-text" primary title="New order from the saved reading"
-						body="Starts a new order with the same lines, ready for you to check and change."
-						action={<Button size="small" disabled={busy} onClick={onUse}>Use the reading</Button>} />
-					<SeenChoice icon="refresh" title="Read it again" body="Use this if the lines came out wrong last time."
-						action={<Button variant="outline" size="small" disabled={busy} onClick={again}>Scan again</Button>} />
+					{choices.map(c => <SeenChoice key={c.key} {...c} touch />)}
+					<div className="sp-stack sp-gap-8">{discard}{kept}</div>
 				</div>
-				<div className="sp-card__footer sp-card__footer--commits">
-					<span className="sp-meta">The upload is kept for 24 hours either way.</span>
-					<span className="sp-grow" />
-					<Button variant="outline" disabled={busy} onClick={onDiscard}>Discard the upload</Button>
-				</div>
-			</Card>
+			) : (
+				<Card>
+					{lead}
+					{seen.orders.map(matched)}
+					<div className="sp-stack sp-gap-12">
+						{seen.count ? <span className="sp-section-label">If that is not what you meant</span> : null}
+						{choices.map(c => <SeenChoice key={c.key} {...c} />)}
+					</div>
+					<div className="sp-card__footer sp-card__footer--commits">
+						{kept}
+						<span className="sp-grow" />
+						{discard}
+					</div>
+				</Card>
+			)}
 			{comparing
 				? <Viewer items={[comparing]} at={0} beside={comparing.beside} onMove={() => {}} onClose={() => setComparing(null)} />
 				: null}
@@ -313,20 +354,11 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 	)
 }
 
-/** One way on from 3c; on a phone the button goes under the words, which need the row's width. */
-function SeenChoice({ icon, title, body, action, primary = false }) {
-	const touch = useShellShape() === 'touch'
-	return (
-		<ListItem variant={primary ? 'primary' : 'top'}
-			mark={<Mark size="small" fill="plain" aria-hidden="true" aria-label={title}><Icon name={icon} size={16} /></Mark>}>
-			<span className="sp-stack sp-gap-6 sp-grow">
-				<span className="sp-title">{title}</span>
-				<span className="sp-meta">{body}</span>
-				{touch ? <span className="sp-row-flex">{action}</span> : null}
-			</span>
-			{touch ? null : action}
-		</ListItem>
-	)
+/** One way on from 3c: title, words and a button, with no mark. On a phone it is its own card with the button under the words. */
+function SeenChoice({ title, body, action, touch = false }) {
+	const words = <span className="sp-stacked sp-grow"><span className="sp-title">{title}</span><span className="sp-meta">{body}</span></span>
+	if (touch) return <Card><ListItem variant="top">{words}</ListItem>{action}</Card>
+	return <ListItem variant="top">{words}{action}</ListItem>
 }
 
 /** When the scan fails (6e): never a dead end. What came through is named, the file stays with

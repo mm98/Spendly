@@ -20,7 +20,7 @@ import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Kbd, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
 import { failureMessage, getCategoryPage, getCurrentUser, getImport, getOrders, getSettings, getVendorPage, spendKinds } from '../api/client.js'
-import { peek, useApi } from '../api/useApi.js'
+import { peek, readAs, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today, withShortMonth } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useScanPicker } from '../app/scanPicker.jsx'
@@ -103,25 +103,22 @@ const presetOf = (from, to) => PRESETS.find(p => { const [a, b] = p.range(new Da
 /* The server answers at most this many rows at once. */
 const MOST = 1000
 
-/* Load more adds one page to those held; a fresh start asks in blocks of whole pages up to MOST.
-   Named getOrders so a write that forgets the orders forgets these too (useApi keys by name). */
-const loaded = {
-	async getOrders(request, size, pages, signal) {
-		const before = pages > 1 ? peek(loaded, [request, size, pages - 1]) : null
-		if (before && before.orders.length === size * (pages - 1)) {
-			const next = await getOrders({ ...request, page: pages, pageSize: size }, signal)
-			return { ...next, orders: [...before.orders, ...next.orders] }
-		}
-		const block = size * Math.max(1, Math.floor(MOST / size))
-		const want = size * pages
-		const parts = []
-		for (let page = 1; (page - 1) * block < want; page++) {
-			parts.push(await getOrders({ ...request, page, pageSize: Math.min(block, want) }, signal))
-			if (parts.at(-1).orders.length < Math.min(block, want)) break
-		}
-		return { ...parts.at(-1), orders: parts.flatMap(p => p.orders).slice(0, want) }
+/* Load more adds one page to those held; a fresh start asks in blocks of whole pages up to MOST. */
+const loaded = readAs(getOrders, async (request, size, pages, signal) => {
+	const before = pages > 1 ? peek(loaded, [request, size, pages - 1]) : null
+	if (before && before.orders.length === size * (pages - 1)) {
+		const next = await getOrders({ ...request, page: pages, pageSize: size }, signal)
+		return { ...next, orders: [...before.orders, ...next.orders] }
 	}
-}.getOrders
+	const block = size * Math.max(1, Math.floor(MOST / size))
+	const want = size * pages
+	const parts = []
+	for (let page = 1; (page - 1) * block < want; page++) {
+		parts.push(await getOrders({ ...request, page, pageSize: Math.min(block, want) }, signal))
+		if (parts.at(-1).orders.length < Math.min(block, want)) break
+	}
+	return { ...parts.at(-1), orders: parts.flatMap(p => p.orders).slice(0, want) }
+})
 
 const importDate = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', year: 'numeric' })
 
@@ -651,13 +648,10 @@ const widerThan = (from, to) => [
 	{ key: '', label: 'all dates', from: '', to: '' }
 ].filter(c => !c.key || (from && to && c.from <= from && c.to >= to && !(c.from === from && c.to === to)))
 
-/* Named getOrders so a write that forgets the orders forgets these counts too (useApi keys by name). */
-const widened = {
-	async getOrders(request, periods, signal) {
-		const answers = await Promise.all(periods.map(p => getOrders({ ...request, from: p.from, to: p.to, page: 1, pageSize: 1 }, signal)))
-		return answers.map(a => a.matched)
-	}
-}.getOrders
+const widened = readAs(getOrders, async (request, periods, signal) => {
+	const answers = await Promise.all(periods.map(p => getOrders({ ...request, from: p.from, to: p.to, page: 1, pageSize: 1 }, signal)))
+	return answers.map(a => a.matched)
+})
 
 /** A filtered list that holds nothing says why, and offers the smallest wider period that finds
     something (6a). Every number in the sentence waits for its answer. */

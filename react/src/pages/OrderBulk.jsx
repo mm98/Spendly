@@ -11,7 +11,7 @@ import { Sheet } from '../components/Touch.jsx'
 import { Skeleton, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
 import { changeOrders, failureMessage, getCategoryPage, getOrderImpact, invalidateOrderData } from '../api/client.js'
 import { groupPicks, moreText, pickGroups, rowHeads, usePickList, useRecent } from '../app/pickList.jsx'
-import { useApi } from '../api/useApi.js'
+import { readAs, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, amount, currency, fullStop, monthNames, plural, today } from '../api/format.js'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { allMatching, idGroups, linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
@@ -126,18 +126,15 @@ async function removeAdded(orders, names) {
 	}))
 }
 
-/* Named getOrderImpact so a write that forgets the orders forgets this too (useApi keys by name).
-   Orders picked by hand are asked about a group at a time, and the groups added up. */
-const impactOf = {
-	async getOrderImpact(request, ids, signal) {
-		if (!ids) return getOrderImpact(request, signal)
-		const parts = await Promise.all(idGroups(ids).map(group => getOrderImpact({ ids: group.join(',') }, signal)))
-		return parts.reduce((a, b) => ({
-			orders: a.orders + b.orders, total: a.total + b.total, withFiles: a.withFiles + b.withFiles,
-			month: { orders: a.month.orders + b.month.orders, total: a.month.total + b.month.total, spend: a.month.spend }
-		}))
-	}
-}.getOrderImpact
+/* Orders picked by hand are asked about a group at a time, and the groups added up. */
+const impactOf = readAs(getOrderImpact, async (request, ids, signal) => {
+	if (!ids) return getOrderImpact(request, signal)
+	const parts = await Promise.all(idGroups(ids).map(group => getOrderImpact({ ids: group.join(',') }, signal)))
+	return parts.reduce((a, b) => ({
+		orders: a.orders + b.orders, total: a.total + b.total, withFiles: a.withFiles + b.withFiles,
+		month: { orders: a.month.orders + b.month.orders, total: a.month.total + b.month.total, spend: a.month.spend }
+	}))
+})
 
 /** What a bulk delete takes, in numbers (6d): how many, what they come to, how many carry files,
     and what this month's total becomes. */
