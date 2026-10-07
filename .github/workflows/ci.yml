@@ -13,7 +13,8 @@ on:
       - 'scripts/**'
       - 'Dockerfile'
       - '.dockerignore'
-      - '.github/workflows/**'
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/docker.yml'
 
 jobs:
   build:
