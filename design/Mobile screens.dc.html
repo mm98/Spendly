@@ -38,7 +38,7 @@
   <div class="doc-lede">One frame per page, at the width <code>.sp-phone</code> sets - 375, the narrowest phone that matters, labelled with the desktop section it corresponds to. This is the lookup: if a screen is not here, it uses the shell from <b>9h</b> and the rules in <b>15b</b> and <b>18a</b> without further changes.</div>
   <div class="doc-notes">
     <div class="doc-notes__label">NOTES FOR IMPLEMENTATION</div>
-    <div class="doc-note"><b class="sp-ink">The shell is identical on every screen.</b> Search-only top bar, four-destination tab bar, the New order FAB on Home and the order list. No screen adds a title, a hamburger or a back arrow to the top bar - a record page puts its own back control in the content, as the order edit frame shows.</div>
+    <div class="doc-note"><b class="sp-ink">The shell is identical on every screen.</b> Search-only top bar, four-destination tab bar, the New order FAB on Home and the order list. On the places, the top bar is search only and never gains a title or a hamburger. A screen one level down - a record's page, create and edit, the scan review - swaps it for Back and a title, as the order and vendor frames show (Navigation shell, top bar note).</div>
     <div class="doc-note"><b class="sp-ink">The floating action is New order, not the camera</b> - it opens step 1 of <b>3a</b>: the receipt zone, an empty order, a copy of an order. It is the only floating action in the app, and the receipt zone leads because the phone is the camera. It does not open the camera directly.</div>
     <div class="doc-note"><b class="sp-ink">It is on Home and Orders, and nowhere else.</b> An order is what it creates, so it appears only where orders are the subject. Vendors and Categories create their own records from the <b>+</b> in their list head; Statistics and Settings create nothing; and any screen carrying a save bar, a sheet, a dialog or the image viewer hides it while that is open. The full rule is in <b>9h</b>.</div>
     <div class="doc-note"><b class="sp-ink">The tab bar is on every place and on no task.</b> It stays on the four destinations and on everything inside them - a list, an overview, a drilled slice, More and what More opens - so the same four are always one tap away. It is absent while a task owns the screen: creating or editing a record, where the save bar takes the bottom; the scan review; full-screen search; the image viewer; and under a sheet or a dialog. It comes back when the task ends, by saving, cancelling or dismissing. No screen shows a tab bar and a save bar at once. The full rule is in <b>9h</b>.</div>
@@ -182,7 +182,7 @@
         <div class="sp-phone ms-device">
           <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div>
           <div class="ms-pane"><div class="sp-topbar sp-topbar--touch">
-          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Action"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
           <div class="sp-stack sp-gap-6 sp-grow sp-truncate"><span class="sp-heading sp-truncate">Indbo Møbler</span><span class="sp-meta">12/08/2026 · Delivered</span></div>
           <button type="button" class="sp-icon-btn" aria-label="Action"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
         </div>
@@ -290,7 +290,7 @@
         <div class="sp-phone ms-device">
           <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div>
           <div class="ms-pane"><div class="sp-topbar sp-topbar--touch">
-          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Action"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
           <div class="sp-stack sp-gap-6 sp-grow sp-truncate"><span class="sp-heading sp-truncate">New vendor</span><span class="sp-meta">Nothing saved yet</span></div>
         </div>
         <div class="ms-scroll ms-scroll--pad">
@@ -901,7 +901,7 @@
           <span class="sp-ink-5">▮▮▮</span>
         </div>
         <div class="sp-topbar sp-topbar--touch">
-          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Action"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
           <div class="sp-stack sp-gap-6 sp-truncate">
             <span class="sp-heading sp-truncate">Check the reading</span>
             <span class="sp-meta">faktura-indbo-4471.pdf</span>
