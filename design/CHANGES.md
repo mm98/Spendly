@@ -1,5 +1,7 @@
 # Spendly - changes since handoff_2026_10_07d_changes_fixed
 
+Fixed in this copy: Status and Kind were changed to a combobox only in Order editing layouts 1d. Every other page still drew Status as a segmented control or text input and Kind as a text input. They are now the same combobox everywhere (section 5), and styles/check.js asserts it.
+
 Copy these files over handoff_2026_10_07d_changes_fixed.
 
 ## 1. Edit order: Status is a select, and each status has its own date (Order editing layouts 1d)
@@ -22,16 +24,26 @@ Copy these files over handoff_2026_10_07d_changes_fixed.
 ## 4. styles/components.css
 - Added: `.sp-sum--stacked > .sp-well { align-self: stretch; }`, so a well under a stacked sum label takes the full width. No existing rule changed.
 
+## 5. Status and Kind are the same combobox on every page
+- Order create: Status (both places, was a segmented control) and Kind (both places, was a text input).
+- Responsive reference: Status in the field grid specimens (two were segmented controls, one a text input). The one-off status "Received" is gone; options match 1d.
+- States and confirmations: Kind (was a text input).
+- Markup is identical to 1d (`sp-combobox`, trigger, panel, check on the selected option).
+
 ## Open
-- Order create still draws Status as a segmented control. Same component as 1d, so it should become the same combobox.
 - Home's "Orders not delivered" rule depends on a status named Ordered. With custom statuses it needs a rule that does not depend on a name.
 - Bulk "Set status" in the order list does not ask for the status date.
 - Phone edit (1c) still shows the status as a pill in the top bar.
 - Whether earlier status dates (Delivered, then Refund) should stay visible once the status moves on.
 
 ## Check (styles/check.js)
-- Unchanged. Result: 0 findings across 26 pages.
+- New rule "Status and Kind are selects": every field labelled Status or Kind must be an `sp-combobox`. Swept on the label text, not on a class. Run against the previous Order create it flags all 4 fields.
+- Result: 0 findings across 26 pages.
 
 ## Files
 - Order editing layouts.dc.html
+- Order create.dc.html
+- Responsive reference.dc.html
+- States and confirmations.dc.html
 - styles/components.css
+- styles/check.js

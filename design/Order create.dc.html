@@ -249,16 +249,35 @@
                   <input id="oc-f1" class="sp-input" type="text" defaultValue="08/08/2026">
                 </div>
                 <div class="sp-field">
-                  <label class="sp-field__label" for="oc-f3">Kind</label>
-                  <input id="oc-f3" class="sp-input" type="text" defaultValue="Expense">
+                  <span class="sp-field__label" id="oc-f3">Kind</span>
+                  <div class="sp-combobox">
+                    <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="oc-f3">
+                      <span>Expense</span>
+                      <span class="sp-grow"></span>
+                      <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                    </button>
+                    <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oc-f3">
+                      <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Expense</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+                      <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Income</span><span class="sp-grow"></span></button></li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               <div class="sp-field">
-                <span  class="sp-field__label" id="oc-grp2">Status</span>
-                <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-labelledby="oc-grp2">
-                  <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="oc-review-status" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
-                  <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="oc-review-status"><span class="sp-label">Delivered</span></label>
-                  <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="oc-review-status"><span class="sp-label">Returned</span></label>
+                <span class="sp-field__label" id="oc-grp2">Status</span>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="oc-grp2">
+                    <span>Ordered</span>
+                    <span class="sp-grow"></span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                  <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oc-grp2">
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Draft</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Ordered</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Delivered</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Returned</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Cancelled</span><span class="sp-grow"></span></button></li>
+                  </ul>
                 </div>
               </div>
               <div class="sp-field">
@@ -437,16 +456,35 @@
                   <input id="oc-f6" class="sp-input" type="text" defaultValue="08/08/2026">
                 </div>
                 <div class="sp-field">
-                  <label class="sp-field__label" for="oc-f8">Kind</label>
-                  <input id="oc-f8" class="sp-input" type="text" defaultValue="Expense">
+                  <span class="sp-field__label" id="oc-f8">Kind</span>
+                  <div class="sp-combobox">
+                    <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="oc-f8">
+                      <span>Expense</span>
+                      <span class="sp-grow"></span>
+                      <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                    </button>
+                    <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oc-f8">
+                      <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Expense</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+                      <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Income</span><span class="sp-grow"></span></button></li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               <div class="sp-field">
-                <span  class="sp-field__label" id="oc-grp1">Status</span>
-                <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-labelledby="oc-grp1">
-                  <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="oc-status" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
-                  <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="oc-status"><span class="sp-label">Delivered</span></label>
-                  <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="oc-status"><span class="sp-label">Returned</span></label>
+                <span class="sp-field__label" id="oc-grp1">Status</span>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="oc-grp1">
+                    <span>Ordered</span>
+                    <span class="sp-grow"></span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                  <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oc-grp1">
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Draft</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Ordered</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Delivered</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Returned</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Cancelled</span><span class="sp-grow"></span></button></li>
+                  </ul>
                 </div>
               </div>
               <div class="sp-field">
