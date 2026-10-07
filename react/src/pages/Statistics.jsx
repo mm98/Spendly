@@ -9,11 +9,10 @@ import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Bars, ChartTip, Donut, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
 import { PeriodPicker, PeriodWindow, RangePicker, RangeSheet, Selected } from '../components/DatePickers.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { TopBarEnd } from '../app/topBarEnd.jsx'
 import { Caption, Controls, Crumb, Crumbs, Foot, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Alert, useToast } from '../components/Overlays.jsx'
+import { Alert } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked } from '../components/Utilities.jsx'
@@ -24,10 +23,10 @@ import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRo
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { failureMessage, getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceLines, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
+import { getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
-	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, quantity, shortDate, today
+	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, shortDate, today
 } from '../api/format.js'
 import {
 	DAY_MS, MOST_CRUMBS, RANGES, boundsOf, chartOf, crumbsIn, dayAndMonth, filterOf, isTime, isoOf, nameOf, readCrumbs,
@@ -116,7 +115,6 @@ export default function Statistics() {
 	const touch = shape === 'touch'
 	// Layout rules: below 900 the paired cards stack
 	const stacked = useMedia('(max-width: 899.98px)')
-	const toast = useToast()
 	const [params, setParams] = useSearchParams()
 	const range = RANGES.includes(params.get('range')) ? params.get('range') : 'year'
 	const asked = params.get('period')
@@ -207,14 +205,6 @@ export default function Statistics() {
 	const newer = stats.data ? stats.data.newer : range !== 'custom' && toMs < todayUtc() ? windowIdAt(range, toMs + DAY_MS) : null
 
 	const view = stats.data?.window
-	const exportSlice = async () => {
-		try {
-			const { lines } = await getSliceLines({ ...base, ...filter })
-			download(csvOf(lines), `spendly-${view?.slice.from ?? from}-${view?.slice.to ?? to}.csv`)
-		} catch (error) {
-			toast({ message: failureMessage(error, 'The export did not download. Try again.'), color: 'danger' })
-		}
-	}
 
 	const quick = quickRanges(stats.data?.firstOrder)
 	const rangePicker = draft
@@ -223,14 +213,6 @@ export default function Statistics() {
 				onChange={(a, b) => setDraft({ from: a, to: b })} onApply={applyCustom} onCancel={() => setDraft(null)} />
 		)
 		: null
-	// off touch Export sits at the top bar's right end, and the period row holds the period alone (4a)
-	const barEnd = touch ? null : (
-		<TopBarEnd>
-			<Button variant="outline" onClick={exportSlice} disabled={!view?.orders}>
-				Export
-			</Button>
-		</TopBarEnd>
-	)
 	const stepper = range === 'custom'
 		? null
 		: (
@@ -277,7 +259,6 @@ export default function Statistics() {
 		)
 		: (
 			<>
-				{barEnd}
 				<PeriodPicker
 					name="statistics-period"
 					presets={PRESETS}
@@ -509,31 +490,6 @@ function quickRanges(firstOrder) {
 		{ label: 'Year to date', value: [`${y}-01-01`, now] },
 		...(firstOrder ? [{ label: 'All time', value: [firstOrder > earliest ? (firstOrder < now ? firstOrder : now) : earliest, now] }] : [])
 	]
-}
-
-/** One row per item line, the order's own fields repeated on each: the column set an import reads. */
-function csvOf(lines) {
-	const head = ['Date', 'Vendor', 'Status', 'Kind', 'Reference', 'Categories', 'Note', 'Shipping', 'Discount', 'Order total',
-		'Item', 'Quantity', 'Price', 'Retail price', 'Item note']
-	const money = n => (n == null ? '' : Number(n).toFixed(2).replace('.', ','))
-	const cell = v => { const s = String(v ?? ''); return /[;"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s }
-	const rows = lines.map(l => [
-		l.date, l.vendor, l.status, l.kind, l.reference, l.categories, l.note, money(l.shipping), money(l.discount), money(l.total),
-		l.title, l.quantity == null ? '' : quantity(l.quantity), money(l.price), money(l.retail), l.itemNote
-	])
-	// a byte order mark, so a spreadsheet opens Danish letters as written; a semicolon, as the decimal is a comma
-	return '﻿' + [head, ...rows].map(r => r.map(cell).join(';')).join('\r\n') + '\r\n'
-}
-
-function download(text, fileName) {
-	const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }))
-	const a = document.createElement('a')
-	a.href = url
-	a.download = fileName
-	document.body.append(a)
-	a.click()
-	a.remove()
-	setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 /** The earlier window cut to its first `days` days, from its running totals. */

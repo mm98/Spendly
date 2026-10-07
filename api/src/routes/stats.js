@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { comparedMonth, filterOf, getStats, homeAttention, markSummarySeen, monthlySummary, sliceLines, sliceOrders } from '../lib/stats.js'
+import { comparedMonth, filterOf, getStats, homeAttention, markSummarySeen, monthlySummary, sliceOrders } from '../lib/stats.js'
 
 export const router = Router()
 
@@ -10,10 +10,6 @@ router.get('/', (req, res) => {
 
 router.get('/orders', (req, res) => {
 	res.json(sliceOrders(req.user.id, req.query, req.today))
-})
-
-router.get('/lines', (req, res) => {
-	res.json({ lines: sliceLines(req.user.id, req.query, req.today) })
 })
 
 router.get('/home', (req, res) => {

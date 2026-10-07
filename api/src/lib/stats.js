@@ -499,23 +499,6 @@ export function sliceOrders(userId, query, day) {
 	return { orders: decorateOrderListRows(rows), matched }
 }
 
-/** Every item line of every order behind a slice, the order's own fields repeated on each. */
-export function sliceLines(userId, query, day) {
-	const { focus, scope } = sliceOf(userId, query, day)
-	return prepared(`
-		SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total,
-			(SELECT group_concat(c.name, ', ') FROM order_categories oc JOIN categories c ON c.id = oc.category_id
-				WHERE oc.order_id = ot.id) AS categories,
-			oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote
-		FROM orders ot
-		JOIN vendors v ON v.id = ot.vendor_id
-		LEFT JOIN order_items oi ON oi.order_id = ot.id
-		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
-		ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC, oi.position
-	`).all({ userId, from: focus.from, to: focus.to, ...scope.params })
-		.map(line => ({ ...line, date: fromEpoch(line.date) }))
-}
-
 const selectLastAdded = db.prepare('SELECT created_at AS at FROM orders WHERE rowid = (SELECT MAX(rowid) FROM orders WHERE user_id = ?)')
 const countWithoutReceipt = db.prepare(`
 	SELECT COUNT(*) c FROM orders ot

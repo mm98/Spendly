@@ -2598,27 +2598,6 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total, (SELECT group_concat(c.name, ', ') FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id) AS categories, oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote FROM orders ot JOIN vendors v ON v.id = ot.vendor_id LEFT JOIN order_items oi ON oi.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC, oi.position": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
-				"SEARCH oi USING INDEX idx_order_items_order (order_id=?) LEFT-JOIN",
-				"CORRELATED SCALAR SUBQUERY 1",
-				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
-				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
-				"USE TEMP B-TREE FOR LAST 3 TERMS OF ORDER BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_items_order",
-				"idx_orders_user_date",
-				"sqlite_autoindex_categories_1",
-				"sqlite_autoindex_order_categories_1",
-				"sqlite_autoindex_vendors_1"
-			]
-		},
 		"SELECT ot.date, v.name AS vendor, ot.status, ot.kind, ot.reference, ot.note, ot.shipping, ot.discount, ot.total, (SELECT group_concat(name, ', ') FROM (SELECT c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id ORDER BY c.name)) AS categories, oi.title, oi.quantity, oi.price, oi.retail, oi.note AS itemNote FROM orders ot LEFT JOIN vendors v ON v.id = ot.vendor_id LEFT JOIN order_items oi ON oi.order_id = ot.id WHERE +ot.user_id = @userId AND ot.id IN (SELECT value FROM json_each(@orderIds)) ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC, oi.position": {
 			"plan": [
 				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)",
@@ -4066,7 +4045,7 @@
 			"columns": [
 				"order_id"
 			],
-			"readers": 18
+			"readers": 17
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",
@@ -4104,7 +4083,7 @@
 				"date",
 				"id"
 			],
-			"readers": 59
+			"readers": 58
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",

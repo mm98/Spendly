@@ -883,11 +883,6 @@ export async function getSliceOrderPages(slice, size, pages, signal) {
 	return gathered(getSliceOrderPages, getSliceOrders, 'orders', slice, size, pages, signal)
 }
 
-/** Every item line behind a slice, for the export. Not cached: it is read once per press. */
-export async function getSliceLines(slice, signal) {
-	return request('/api/stats/lines' + qs(slice), { signal })
-}
-
 /** When an order was last added, and the counts behind Home's alerts. */
 export async function getHomeAttention(signal) {
 	return request('/api/stats/home', { signal })
