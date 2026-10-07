@@ -177,7 +177,7 @@ function Comparison({ order, file, answer }) {
 			</div>
 			{gap < 0.005
 				? <Pill color="success">Totals match</Pill>
-				: <span className="sp-meta sp-ink-warning">{money(gap)} from the receipt's total</span>}
+				: <Pill state="progress">{money(gap)} {after > printed ? 'more' : 'less'} than the receipt</Pill>}
 		</Card>
 	)
 
