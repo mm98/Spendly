@@ -52,7 +52,7 @@ const READ_RECEIPT_TOOL = {
 			pricesAsPrintedIncludeVat: { type: 'boolean', description: 'Whether the unit prices and total AS PRINTED on the document already include VAT (true for most Danish paper receipts) or are shown net of it with VAT added separately (common on emailed/PDF invoices). This describes the source document, not the numbers you report below -- those are always converted to include VAT regardless of this value.' },
 			vatRate: { type: 'number', description: 'The VAT rate as a percentage (e.g. 25), if it is stated on the document or can be computed from a stated VAT amount. Omit if genuinely not determinable -- do not guess one.' },
 			shipping: { type: 'number', description: 'A shipping or delivery fee, VAT-inclusive. 0 if none is printed.' },
-			discount: { type: 'number', description: 'A whole-order discount/rabat (as a positive amount taken off), VAT-inclusive. 0 if none is printed.' },
+			discount: { type: 'number', description: 'All discounts/rabat on the document added together (as a positive amount taken off), VAT-inclusive: every discount line printed under an item plus any whole-order discount. 0 if none is printed.' },
 			total: { type: 'number', description: 'The final total actually payable, VAT-inclusive, after any shipping and discount.' },
 			reference: { type: 'string', description: 'The order, invoice or receipt number printed on the document, if there is one.' },
 			documentType: {
@@ -70,7 +70,7 @@ const READ_RECEIPT_TOOL = {
 			},
 			lines: {
 				type: 'array',
-				description: 'Every line item printed on the document, each converted to include VAT.',
+				description: 'Every line item printed on the document, each converted to include VAT. A discount line (e.g. "Rabat" with a negative amount) is never an item: leave it out here and count it in discount.',
 				items: {
 					type: 'object',
 					properties: {
@@ -189,6 +189,9 @@ export async function parseReceipt(upload, today = todayIso(), onProgress, categ
 							+ 'on an emailed invoice), convert every one of them using the rate the document states; '
 							+ 'if none is stated, use the rate implied by the stated VAT amount against the net total; '
 							+ 'only fall back to 25% if the document is clearly Danish/EU and states neither. '
+							+ 'An item is often followed by a discount line (on a Danish receipt "Rabat", with a negative '
+							+ 'amount). Keep that item at its own printed price, leave the discount line out of lines, and add '
+							+ 'its amount to discount; the total is the sum of the items and shipping minus discount. '
 							+ 'Report the printed order or invoice number as reference when there is one, the issuer\'s '
 							+ 'own web address and VAT (CVR) number when they are printed, and say in documentType what '
 							+ 'kind of document it is. List in unclear '
