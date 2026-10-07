@@ -324,6 +324,10 @@ const asSaved = {
 const [group, second] = sheet.groups.filter(g => g.kind === 'expense')
 const line = group.lines[1]
 const [account, other] = sheet.accounts
+// a typed status stays, so the delete below is of one the account added
+const spare = (await (await fetch(BASE + '/statuses', {
+	method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Spare', tone: 'neutral' })
+})).json()).find(s => s.name === 'Spare').key
 for (const [method, path, body] of [
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
 	['POST', '/categories/known', { names: ['Groceries', 'groceries', 'Nothing'] }],
@@ -349,7 +353,7 @@ for (const [method, path, body] of [
 	['POST', '/orders/bulk', { restore: [{ id: ids.order, status: 'Ordered', events: [{ status: 'Ordered', date: 1 }] }] }],
 	['POST', '/statuses', { name: 'Waiting', tone: 'progress' }],
 	['PATCH', '/statuses/Delivered', { name: 'Received' }],
-	['DELETE', '/statuses/Cancelled'],
+	['DELETE', `/statuses/${spare}`],
 	['POST', '/views', { name: 'This month', query: 'period=month&status=Ordered', attention: true }],
 	['PATCH', `/views/sv-${USER}-awaiting`, { name: 'Waiting', query: 'status=Ordered&receipt=missing', isDefault: true, attention: true }],
 	['PUT', '/views/shown', { shown: 6 }],
