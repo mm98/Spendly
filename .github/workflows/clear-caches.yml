@@ -1,0 +1,40 @@
+name: Clear old data
+
+# Caches, old image versions and old run history pile up on every build.
+# This clears them once a month. A run can also be started by hand.
+
+on:
+  schedule:
+    - cron: '17 3 1 * *'
+  workflow_dispatch:
+
+jobs:
+  clear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      packages: write
+    steps:
+      - name: Delete every cache
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh cache delete --all --succeed-on-no-caches
+
+      - name: Delete runs older than 30 days
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cutoff=$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          gh api --paginate "repos/$GH_REPO/actions/runs?created=<$cutoff&per_page=100" \
+            --jq '.workflow_runs[].id' \
+            | xargs -r -I{} gh api -X DELETE "repos/$GH_REPO/actions/runs/{}"
+
+      - name: Keep the newest 10 image versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: spendly
+          package-type: container
+          min-versions-to-keep: 10
