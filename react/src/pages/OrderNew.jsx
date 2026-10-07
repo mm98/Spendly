@@ -202,7 +202,7 @@ function Reading({ file, documentKey, onCancel }) {
 							{found ? done('Vendor and date found') : null}
 							{lines ? done(lines === 1 ? '1 line found' : `${lines} lines found`) : null}
 							<div className="sp-row-flex sp-gap-8">
-								<Spinner />
+								<Mark size="small" fill="plain" aria-hidden="true"><Spinner /></Mark>
 								<strong className="sp-data">{doing}</strong>
 							</div>
 							{reads && file.key ? <span className="sp-meta">Usually 5 - 10 seconds. You can keep working.</span> : null}
