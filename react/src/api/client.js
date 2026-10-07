@@ -381,6 +381,11 @@ export async function createCategory(name, look = {}, signal) {
 	return request('/api/categories', { method: 'POST', body: { name, look }, signal })
 }
 
+/** Up to three categories for an order's item names: from earlier orders, or from a model with `model` set. */
+export async function getCategorySuggestions(body, signal) {
+	return request('/api/categories/suggestions', { method: 'POST', body, signal })
+}
+
 export async function getCategory(id, signal) {
 	return request(`/api/categories/${id}`, { signal })
 }

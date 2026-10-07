@@ -63,3 +63,15 @@ export function likeness(a, b) {
 
 /** Two vendors look like one shop (5j) from a likeness of this or more between their names. */
 export const LIKENESS = 0.85
+
+const CATEGORY_NAME_MAX = 40
+
+/** Model output narrowed to names a category could have: short, once each, none empty. */
+export function categoryNamesOf(list) {
+	const out = []
+	for (const raw of Array.isArray(list) ? list : []) {
+		const name = String(raw ?? '').replace(/\s+/g, ' ').trim()
+		if (name && name.length <= CATEGORY_NAME_MAX && !out.some(n => foldName(n) === foldName(name))) out.push(name)
+	}
+	return out
+}

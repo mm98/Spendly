@@ -265,8 +265,9 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 
 /** Typed values as chips, offering `children` (ComboboxOption) in a panel filtered by `onSearch` (22c);
     `noun` (plural) names the count read out. `marked` is one token drawn in green (5h); `trails` maps a
-    token to a mark drawn before its remove, as an over-limit category's dot (8b). */
-export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, children, ...rest }) {
+    token to a mark drawn before its remove, as an over-limit category's dot (8b); `end` is a button
+    at the field's right end, the chips keeping clear of it (a Field's own `trail` is its own wrapper's). */
+export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it
 	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
@@ -355,10 +356,11 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 			/>
 		</span>
 	)
-	if (!suggests) return field
+	const boxed = end ? <span className="sp-field__wrap">{field}<span className="sp-field__trail">{end}</span></span> : field
+	if (!suggests) return boxed
 	return (
 		<div className="sp-combobox" data-open={shown ? 'true' : 'false'} ref={holder}>
-			{field}
+			{boxed}
 			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
 			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
 			<span className="sp-announce" aria-live="polite">{typed && open ? countOf(options, noun) : ''}</span>

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
+import { Chip } from '../components/Chip.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { useReorder } from '../components/Reorder.js'
 import { LineEditor } from '../components/LineEditor.jsx'
@@ -26,8 +27,8 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
-	getVendorPage, invalidateOrderData, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
+	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
+	getVendorPage, invalidateCategoryData, invalidateOrderData, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, quantity, shortDate, today
@@ -458,10 +459,70 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// a category over its monthly limit carries its dot on an order of this month (8b)
 	const overNames = (useApi(getOverLimitCategories).data ?? []).filter(() => draft.date?.slice(0, 7) === today().slice(0, 7)).map(c => c.name.toLowerCase())
 	const trails = Object.fromEntries(draft.categories.filter(n => overNames.includes(n.toLowerCase())).map(n => [n, <OverLimitDot key={n} />]))
+	// a category taken out of the field is not offered again on this order
+	const [dismissed, setDismissed] = useState([])
 	const setCategories = categories => {
 		setSuggested(s => (s ? { ...s, names: s.names.filter(c => categories.includes(c)), said: false } : s))
+		setDismissed(d => [...new Set([...d, ...draft.categories.filter(n => !categories.includes(n))])])
 		set({ categories })
 	}
+
+	/* ---- category suggestions: from earlier orders by themselves, from a model when asked (3a, 1d) ---- */
+	const [fromItems, setFromItems] = useState([])
+	// null, 'looking', or the model's answer: { suggestions, failure }
+	const [asked, setAsked] = useState(null)
+	const titles = lines.map(l => String(l.title ?? '').trim()).filter(Boolean)
+	const titlesKey = JSON.stringify(titles)
+	const taken = [...draft.categories, ...dismissed]
+	const takenKey = JSON.stringify(taken)
+	useEffect(() => { setAsked(null) }, [titlesKey])
+	useEffect(() => {
+		if (!titles.length) { setFromItems([]); return undefined }
+		let live = true
+		const timer = setTimeout(() => {
+			getCategorySuggestions({ items: titles, exclude: taken })
+				.then(r => { if (live) setFromItems(r.suggestions) }).catch(() => { if (live) setFromItems([]) })
+		}, 500)
+		return () => { live = false; clearTimeout(timer) }
+	}, [titlesKey, takenKey])
+	const fresh = list => list.filter(sg => !taken.some(n => n.toLowerCase() === sg.name.toLowerCase()))
+	const scanFound = Boolean(scan?.suggestions?.length)
+	const suggestions = (asked && asked !== 'looking' ? fresh(asked.suggestions)
+		: [...fresh(scan?.suggestions ?? []), ...fresh(fromItems)]).filter((sg, i, all) => all.findIndex(o => o.name.toLowerCase() === sg.name.toLowerCase()) === i).slice(0, 3)
+	const askModel = () => {
+		if (asked === 'looking') return
+		if (!titles.length) { setAsked({ suggestions: [], failure: null }); return }
+		setAsked('looking')
+		getCategorySuggestions({ items: titles, vendor: draft.vendor, exclude: taken, model: true })
+			.then(r => setAsked(r)).catch(() => setAsked({ suggestions: [], failure: 'failed' }))
+	}
+	const takeSuggestion = sg => {
+		if (!sg.isNew) { setCategories([...draft.categories, sg.name]); return }
+		createCategory(sg.name)
+			.then(made => { invalidateCategoryData(); setCategories([...draft.categories, made.name]) })
+			.catch(e => {
+				// a category made meanwhile is the one meant
+				if (e?.status === 409) setCategories([...draft.categories, sg.name])
+				else toast({ message: failureMessage(e, 'The category was not created. Try again.'), color: 'danger' })
+			})
+	}
+	const bulb = scanFound ? undefined : (
+		<IconButton variant="bare" icon={asked === 'looking' ? <Spinner /> : 'bulb'} aria-label="Suggest categories" title="Suggest categories"
+			{...(asked === 'looking' ? { 'aria-busy': 'true' } : {})} onClick={askModel} />
+	)
+	const suggestionRow = asked === 'looking' ? <span className="sp-meta">Looking at the items…</span>
+		: asked?.failure ? <span className="sp-meta">Suggestions are not available right now.</span>
+			: asked && !suggestions.length ? <span className="sp-meta">No suggestions for these items</span>
+				: suggestions.length
+					? (
+						<div className="sp-row-flex sp-wrap sp-gap-6">
+							<span className="sp-meta">Suggested from the items</span>
+							{suggestions.map(sg => (
+								<Chip key={sg.name} variant="dashed" onClick={() => takeSuggestion(sg)}>{sg.isNew ? `+ New: ${sg.name}` : `+ ${sg.name}`}</Chip>
+							))}
+						</div>
+					)
+					: null
 	const setStatus = status => set({
 		status,
 		...((status === 'Delivered' || status === 'Returned') && !draft.deliveredDate ? { deliveredDate: today() } : {}),
@@ -993,8 +1054,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					)}
 			</Field>
 			<Field label="Categories" message={suggested?.said ? `Filled from ${suggested.vendor}. Remove any that do not fit.` : undefined}>
-				<CategoryTokens value={draft.categories} onChange={setCategories} trails={trails} placeholder="Add category…" />
+				<CategoryTokens value={draft.categories} onChange={setCategories} trails={trails} end={bulb} placeholder="Add category…" />
 			</Field>
+			{suggestionRow}
 			{offer
 				? (
 					<>
@@ -1011,20 +1073,20 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				)
 				: null}
 			<div className="sp-fields">
-				<Field label="Discount" unit={currencySymbol()} {...lookAt('discount')}>
-					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={discount => set({ discount })} />
-				</Field>
-				<Field label="Shipping fee" unit={currencySymbol()} {...lookAt('shipping')}>
-					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={shipping => set({ shipping })} />
-				</Field>
-			</div>
-			<div className="sp-fields">
 				<Field label="Reference">
 					{/* an order saved without one is given the next order number */}
 					<TextField value={draft.reference} placeholder={creating ? 'Given on save' : undefined} onChange={reference => set({ reference })} />
 				</Field>
 				<Field label="Note">
 					<TextField value={draft.note} onChange={note => set({ note })} />
+				</Field>
+			</div>
+			<div className="sp-fields">
+				<Field label="Discount" unit={currencySymbol()} {...lookAt('discount')}>
+					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={discount => set({ discount })} />
+				</Field>
+				<Field label="Shipping fee" unit={currencySymbol()} {...lookAt('shipping')}>
+					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
 		</>

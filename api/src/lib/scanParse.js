@@ -1,7 +1,7 @@
 import Anthropic, { APIError } from '@anthropic-ai/sdk'
 import { decompressBlob } from './blobCompression.js'
 import { todayIso } from './dates.js'
-import { vatNumberOf, webAddressOf } from './names.js'
+import { categoryNamesOf, vatNumberOf, webAddressOf } from './names.js'
 
 /* The one place a scanned document's bytes are actually read. Everything in routes/scan.js
    around this stayed an honest blank draft until now -- see that route's own comment, and the
@@ -16,11 +16,11 @@ import { vatNumberOf, webAddressOf } from './names.js'
    declined to fill in all come back without a read; routes/scan.js's fallback is exactly the
    draft this app shipped with before any of this existed. */
 
-const MODEL = 'claude-sonnet-4-5-20250929'
+export const MODEL = 'claude-sonnet-4-5-20250929'
 const REQUEST_TIMEOUT_MS = 45_000
 
 let client
-function getClient() {
+export function getClient() {
 	if (!process.env.ANTHROPIC_API_KEY) return null
 	if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: REQUEST_TIMEOUT_MS })
 	return client
@@ -63,6 +63,10 @@ const READ_RECEIPT_TOOL = {
 				type: 'array',
 				items: { type: 'string', enum: ['vendor', 'date', 'shipping', 'discount', 'total'] },
 				description: 'Which of these document-level values were genuinely hard to read -- smudged, cropped or ambiguous. Empty when all were clearly printed.'
+			},
+			categories: {
+				type: 'array', maxItems: 3, items: { type: 'string' },
+				description: 'At most three categories that fit the items on the document, most fitting first. Use a name from the reader\'s own list when one fits; offer a new short name only when none does. Fewer than three, or none, when not confident.'
 			},
 			lines: {
 				type: 'array',
@@ -130,7 +134,8 @@ function normalise(input, today) {
 	const documentType = DOCUMENT_TYPES.includes(input.documentType) ? input.documentType : null
 
 	// a read without lines still carries the vendor and date it found (6e), but is no answer to keep
-	return { vendor, website, vatNumber, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, reference, unclear, lines, documentType }
+	const suggestions = categoryNamesOf(input.categories).slice(0, 3)
+	return { vendor, website, vatNumber, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, reference, unclear, lines, documentType, suggestions }
 }
 
 /** What a partial answer already holds, for the reading screen (3a step 2): the vendor and date
@@ -150,14 +155,14 @@ function contentBlockFor(bytes, contentType, kind) {
 }
 
 // 402 billing_error is the documented refusal; "credit balance is too low" has come back as a 400.
-const isBillingRefusal = e => e instanceof APIError
+export const isBillingRefusal = e => e instanceof APIError
 	&& (e.status === 402 || e.type === 'billing_error' || /credit balance/i.test(e.message))
 
 /** Reads a stored upload's own bytes (the same `data` column routes/scan.js's own /file route
     serves) via Claude, and returns `{ read, failure }`: the normalised fields above or null, and
     null when the model answered, 'billing' when the account was refused, 'failed' otherwise.
     `upload` is a full row from scan_uploads -- data, data_is_compressed, content_type, kind. */
-export async function parseReceipt(upload, today = todayIso(), onProgress) {
+export async function parseReceipt(upload, today = todayIso(), onProgress, categories = []) {
 	const anthropic = getClient()
 	if (!anthropic || !upload.data) return { read: null, failure: 'failed' }
 	const bytes = decompressBlob(upload.data, upload.data_is_compressed)
@@ -188,7 +193,9 @@ export async function parseReceipt(upload, today = todayIso(), onProgress) {
 							+ 'own web address and VAT (CVR) number when they are printed, and say in documentType what '
 							+ 'kind of document it is. List in unclear '
 							+ 'each document-level value you could not read clearly, and for an uncertain line say which '
-							+ 'part was hard to read in unclearPart.'
+							+ 'part was hard to read in unclearPart. Also report in categories up to three that fit what '
+							+ 'was bought, only when you are confident. The reader\'s own categories are:\n'
+							+ (categories.length ? categories.map(n => `- ${n}`).join('\n') : '(none yet)')
 					}
 				]
 			}]

@@ -354,6 +354,7 @@ for (const [method, path, body] of [
 	['PATCH', '/settings', { looks: { receipt: true } }],
 	['GET', '/stats/home'],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
+	['POST', '/categories/suggestions', { items: ['Ceiling lamp', 'Duvet cover'] }],
 	['DELETE', `/views/sv-${USER}-receipt`],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],

@@ -1665,6 +1665,15 @@
 				"idx_orders_user_date"
 			]
 		},
+		"SELECT id FROM orders WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?": {
+			"plan": [
+				"SEARCH orders USING COVERING INDEX idx_orders_user_date (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_date"
+			]
+		},
 		"SELECT id FROM saved_views WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH saved_views USING INDEX sqlite_autoindex_saved_views_1 (id=?)"
@@ -2280,6 +2289,19 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT oc.order_id, c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = ? AND oc.order_id IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
 		"SELECT oi.order_id, oi.position, a.rowid AS seq, a.order_item_id, a.id FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id IN (SELECT value FROM json_each(?)) AND a.kind = 'image'": {
 			"plan": [
 				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
@@ -2293,6 +2315,19 @@
 			"indexes": [
 				"idx_attachments_item",
 				"idx_order_items_order"
+			]
+		},
+		"SELECT oi.order_id, oi.title FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.user_id = ? AND oi.order_id IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_items_order",
+				"sqlite_autoindex_orders_1"
 			]
 		},
 		"SELECT order_id, id, title FROM order_items WHERE order_id IN (SELECT value FROM json_each(?)) ORDER BY order_id, position": {
@@ -3962,7 +3997,7 @@
 			"columns": [
 				"order_id"
 			],
-			"readers": 17
+			"readers": 18
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",
@@ -4000,7 +4035,7 @@
 				"date",
 				"id"
 			],
-			"readers": 53
+			"readers": 54
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
