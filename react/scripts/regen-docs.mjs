@@ -33,7 +33,7 @@ const BASE = 'http://localhost:5173'
 /* The demo fill is a function of (seed, today), so a later render day picks its own seed: the
    one that puts three August Bilka deliveries in the account, which is the all-orders shot's
    state. Nothing else in the three shots depends on which seed it is. */
-const SEED = 2
+const SEED = 132
 // the fill counts calendar months back from today, and the all-orders shot is filtered to August 2026
 const MONTHS = Math.max(2, (new Date().getFullYear() - 2026) * 12 + new Date().getMonth() - 7 + 1)
 const MATCHES = 3
@@ -42,7 +42,8 @@ const outdir = process.argv[2]
 const refdir = process.argv[3] ?? DOCS
 mkdirSync(outdir, { recursive: true })
 
-const browser = await chromium.launch()
+// hinted text, as the committed shots were drawn: headless defaults to none, which sets every word narrower
+const browser = await chromium.launch({ args: ['--font-render-hinting=full'] })
 
 async function freshAccount(ctx) {
 	// one fixed address: the sidebar's account mark is drawn from it, so a new one per run moves pixels
