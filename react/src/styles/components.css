@@ -2310,6 +2310,7 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
 /* on a phone the field takes the width the bar has left, where on desktop it stays
    at 420 and the rest of the bar is empty */
 .sp-topbar--touch > .sp-picker__search { flex: 1; min-width: 0; }
+.sp-topbar__screen { display: contents; }
 /* the selection bar stands in for the top bar while rows are selected, so on touch it
    is that bar's height and the screen does not shift when it appears */
 .sp-touch .sp-bulkbar,

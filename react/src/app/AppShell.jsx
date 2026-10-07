@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useMemo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
@@ -8,7 +8,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
-import { TopBarEndSlot } from './topBarEnd.jsx'
+import { ScreenBarSlot, TopBarEndSlot } from './topBarEnd.jsx'
 import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
@@ -41,6 +41,9 @@ const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'settings', 
 
 export function AppShell() {
 	const [topBarEnd, setTopBarEnd] = useState(null)
+	const [screenSlot, setScreenSlot] = useState(null)
+	const [screenOn, setScreenOn] = useState(false)
+	const screenBar = useMemo(() => ({ slot: screenSlot, setOn: setScreenOn }), [screenSlot])
 	const shape = useShellShape()
 	const touch = shape === 'touch'
 	// below 560 the bottom zone gives Settings and the theme to the account menu (9g)
@@ -172,11 +175,13 @@ export function AppShell() {
 	   the reader had not saved. */
 	return (
 		<TopBarEndSlot.Provider value={topBarEnd}>
+		<ScreenBarSlot.Provider value={screenBar}>
 		<Toaster notice={update}>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
 				{touch ? null : sidebar({ navKey, fold, short, go, showKeys, making: pathname === '/orders/new' })}
 				<TopBar touch={touch}>
-					{search}
+					{touch && screenOn ? null : search}
+					{touch ? <div className="sp-topbar__screen" ref={setScreenSlot} /> : null}
 					{touch ? null : <><span className="sp-grow" /><span className="sp-row-flex sp-gap-8" ref={setTopBarEnd} /></>}
 				</TopBar>
 				{content}
@@ -196,6 +201,7 @@ export function AppShell() {
 			{signedOut}
 			<SavedLater />
 		</Toaster>
+		</ScreenBarSlot.Provider>
 		</TopBarEndSlot.Provider>
 	)
 }
