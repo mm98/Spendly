@@ -223,19 +223,9 @@ export default function Statistics() {
 				onChange={(a, b) => setDraft({ from: a, to: b })} onApply={applyCustom} onCancel={() => setDraft(null)} />
 		)
 		: null
-	const which = (
-		<Combobox variant="end" value={FLOWS.find(f => f.value === flow).label} aria-label="Which orders">
-			{FLOWS.map(f => (
-				<ComboboxOption key={f.value} selected={f.value === flow} onSelect={() => write({ flow: f.value })}>
-					<span className="sp-stack"><span className="sp-data">{f.label}</span><span className="sp-meta">{f.help}</span></span>
-				</ComboboxOption>
-			))}
-		</Combobox>
-	)
-	// off touch the lens and Export sit at the top bar's right end, and the period row holds the period alone (4a)
+	// off touch Export sits at the top bar's right end, and the period row holds the period alone (4a)
 	const barEnd = touch ? null : (
 		<TopBarEnd>
-			{which}
 			<Button variant="outline" onClick={exportSlice} disabled={!view?.orders}>
 				Export
 			</Button>
