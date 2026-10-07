@@ -72,6 +72,12 @@ export function Spinner(props) {
 	return <span className="sp-spinner" aria-hidden="true" {...props} />
 }
 
+/** An amount held back from view: a bar of one length, so its width says nothing about the figure. */
+export function Redacted(props) {
+	reject(props, 'Redacted')
+	return <span className="sp-redacted" role="img" aria-label="Hidden" {...props} />
+}
+
 export function AddRow({ children, onClick, ...rest }) {
 	reject(rest, 'AddRow')
 	return (

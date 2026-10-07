@@ -19,7 +19,7 @@ import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useReorder } from '../components/Reorder.js'
 import { Icon } from '../components/Icon.jsx'
-import { AddRow, Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
+import { AddRow, Empty, EmptyBody, EmptyTitle, Redacted, Skeleton } from '../components/Utilities.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { parseNumber } from '../components/format.js'
 import { join } from '../components/variants.js'
@@ -440,6 +440,9 @@ function BudgetYears({ years, onYearsChanged }) {
 	const navigate = useNavigate()
 	const touch = useShellShape() === 'touch'
 	const [editing, setEditing] = useState(false)
+	// income stays out of the page until asked for; editing asks for it, since amounts are typed there
+	const [asked, setAsked] = useState(false)
+	const covered = !asked && !editing
 	const [starting, setStarting] = useState(false)
 	const thisYear = new Date().getFullYear()
 	const latest = years[years.length - 1]
@@ -482,6 +485,7 @@ function BudgetYears({ years, onYearsChanged }) {
 		: (
 			<>
 				{/* a bank statement is not checked on a phone (21g) */}
+				{own(<Button variant="outline" iconStart="eye" aria-pressed={asked} onClick={() => setAsked(!asked)}>{asked ? 'Hide income' : 'Show income'}</Button>)}
 				{touch ? null : <Button variant="outline" to="/budget/check">Check a bank statement</Button>}
 				{own(<Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>)}
 			</>
@@ -507,7 +511,7 @@ function BudgetYears({ years, onYearsChanged }) {
 					</Controls>
 				)}
 			{years.includes(year)
-				? <YearView key={year} year={year} view={view} editing={editing} touch={touch} onYearsChanged={onYearsChanged} />
+				? <YearView key={year} year={year} view={view} editing={editing} covered={covered} touch={touch} onYearsChanged={onYearsChanged} />
 				: (
 					<Card>
 						<Empty>
@@ -525,7 +529,7 @@ function BudgetYears({ years, onYearsChanged }) {
 	)
 }
 
-function YearView({ year, view, editing, touch, onYearsChanged }) {
+function YearView({ year, view, editing, covered, touch, onYearsChanged }) {
 	const [busy, setBusy] = useState(false)
 	// a year being deleted is not read again, so its view does not ask for what is gone
 	const loaded = useApi(getBudgetYear, [year], { enabled: !busy })
@@ -555,7 +559,7 @@ function YearView({ year, view, editing, touch, onYearsChanged }) {
 			setDeleting(false)
 		}
 	}
-	const shared = { sheet, write, editing, touch, panel, setPanel }
+	const shared = { sheet, write, editing, covered, touch, panel, setPanel }
 	return (
 		<>
 			{view === 'year'
@@ -587,7 +591,7 @@ function useMonthsThatFit(ref, touch) {
 	return count
 }
 
-function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete }) {
+function MonthsView({ sheet, write, editing, covered, touch, panel, setPanel, onDelete }) {
 	const short = useMemo(() => monthNames('short', true), [])
 	const long = useMemo(() => monthNames('long'), [])
 	const head = useMemo(() => monthNames('long', true), [])
@@ -608,7 +612,7 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 	)
 	return (
 		<>
-			{editing ? null : <MonthHero sheet={sheet} month={month} totals={totals} long={long} touch={touch} />}
+			{editing ? null : <MonthHero sheet={sheet} month={month} totals={totals} long={long} touch={touch} covered={covered} />}
 			<Card ref={card} footer={editing ? <Button key="delete" color="danger" onClick={onDelete}>Delete {sheet.year}</Button> : null} footerCommits>
 				{/* on touch the window fills its row, with no label beside it (Mobile screens 7a) */}
 				{touch
@@ -627,12 +631,12 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 						options={short.map((label, m) => ({ value: m, label }))} />
 				)}
 				{count === 1
-					? <MonthWell key={from} month={from} editing={editing} {...{ sheet, write, touch, panel, setPanel, totals, short, long, thisMonth, amounts }} />
+					? <MonthWell key={from} month={from} editing={editing} {...{ sheet, write, touch, covered, panel, setPanel, totals, short, long, thisMonth, amounts }} />
 					: (
 						<Halves>
 							{[from, from + 1].map(m => (
 								// the shape is edited in the month in front only, so no control is drawn twice (21c)
-								<MonthWell key={m} month={m} editing={editing && m === month} {...{ sheet, write, touch, panel, setPanel, totals, short, long, thisMonth, amounts }} />
+								<MonthWell key={m} month={m} editing={editing && m === month} {...{ sheet, write, touch, covered, panel, setPanel, totals, short, long, thisMonth, amounts }} />
 							))}
 						</Halves>
 					)}
@@ -642,7 +646,7 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 }
 
 /** The month in front, on the dark card: what is left, and how much of the income is used. */
-function MonthHero({ sheet, month, totals, long, touch }) {
+function MonthHero({ sheet, month, totals, long, touch, covered }) {
 	const use = monthUse(sheet, totals, month)
 	const lines = [...linesOf(sheet, 'income'), ...linesOf(sheet, 'expense')]
 	const withAmount = lines.filter(l => shown(l.months[month]) != null)
@@ -652,9 +656,9 @@ function MonthHero({ sheet, month, totals, long, touch }) {
 		<Card variant="shell">
 			<span className="sp-section-label">{capitalised(long[month])} {sheet.year}</span>
 			<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
-				<Stat label="Left over" figure={currency(cents(totals.left[month]), 0)} />
-				<Stat label="Income" figure={currency(cents(totals.income[month]), 0)}
-					meta={versusExpected(totals.income[month], use.plannedIncome, use.incomePlanned)} />
+				<Stat label="Left over" figure={covered ? <Redacted /> : currency(cents(totals.left[month]), 0)} />
+				<Stat label="Income" figure={covered ? <Redacted /> : currency(cents(totals.income[month]), 0)}
+					meta={incomeMeta(totals.income[month], use, covered)} />
 				<Stat label="Costs" figure={currency(cents(totals.costs[month]), 0)}
 					meta={versusExpected(totals.costs[month], use.plannedCosts, use.costsPlanned)} />
 				{touch ? null : (
@@ -662,12 +666,24 @@ function MonthHero({ sheet, month, totals, long, touch }) {
 						meta={!withAmount.length ? 'No amounts this month' : waiting ? `${plural(waiting, 'row')} still expected` : 'Every row has its real amount'} />
 				)}
 			</div>
-			<Use use={use} month={long[month]} />
+			<Use use={use} month={long[month]} covered={covered} />
 		</Card>
 	)
 }
 
-function Use({ use, month, thin = false }) {
+/* The line under Income says how far it is from what was expected; with income hidden only the words that carry no figure stay. */
+function incomeMeta(counted, use, covered) {
+	const said = versusExpected(counted, use.plannedIncome, use.incomePlanned)
+	return covered && /\d/.test(said) ? undefined : said
+}
+
+function Use({ use, month, thin = false, covered = false }) {
+	if (covered) return (
+		<div className="sp-stack sp-gap-8">
+			<Gauge thin={thin} untargeted value={0} aria-label={`Share of ${month}'s income used`} />
+			<span className="sp-meta">Show income to see how much of it is used</span>
+		</div>
+	)
 	return (
 		<div className="sp-stack sp-gap-8">
 			<Gauge thin={thin} value={Math.min(use.used, 100)} marker={use.hasPlan ? Math.min(use.planned, 100) : undefined}
@@ -760,7 +776,7 @@ function useAmounts(sheet, write, long, reveal) {
 	return { edit, start, rowKeys, field }
 }
 
-function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, short, long, thisMonth, amounts, month }) {
+function MonthWell({ sheet, write, editing, covered, touch, panel, setPanel, totals, short, long, thisMonth, amounts, month }) {
 	const accountName = id => sheet.accounts.find(a => a.id === id)?.name
 	const isOpen = (kind, key) => panel?.kind === kind && panel.key === key && panel.month === month
 	const open = (kind, key, back) => setPanel({ kind, key, month, back })
@@ -771,12 +787,13 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 		if (isOpen('row', line.id))
 			return <RowEditor key={line.id} sheet={sheet} line={line} group={group} index={i} write={write} onClose={close} />
 		const m = line.months[month]
+		const hidden = covered && group.kind === 'income'
 		const value = shown(m)
 		const typing = amounts.edit?.line === line.id && amounts.edit.month === month
 		const meta = [accountName(line.accountId), rowTag(line, short)].filter(Boolean).join(dot)
 		const said = m.real != null ? `real ${money(m.real)}` : m.expected != null ? `expected ${money(m.expected)}` : 'empty'
 		const edit = () => open('row', line.id, [`[data-row="${line.id}-${month}"]`, opener('new-row', group.id)])
-		const control = typing ? {} : {
+		const control = typing || hidden ? {} : {
 			role: 'button',
 			tabIndex: 0,
 			'aria-label': editing ? `Edit the row ${line.name}` : `Real amount, ${line.name}, ${long[month]}: ${said}`,
@@ -788,8 +805,8 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 			}
 		}
 		return (
-			<Sum key={line.id} edits data-row={`${line.id}-${month}`} tone={!typing && m.real == null && m.expected != null ? 'expected' : 'default'}
-				value={typing ? amounts.field(line, month) : value != null ? money(value) : null} {...control}>
+			<Sum key={line.id} edits={!hidden} data-row={`${line.id}-${month}`} tone={!typing && !hidden && m.real == null && m.expected != null ? 'expected' : 'default'}
+				value={typing ? amounts.field(line, month) : hidden ? <Redacted /> : value != null ? money(value) : null} {...control}>
 				<span className="sp-stacked">
 					<span>{line.name}</span>
 					{meta ? <span className="sp-meta">{meta}</span> : null}
@@ -822,9 +839,9 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 				<span className="sp-title">{capitalised(long[month])}</span>
 				{month === thisMonth ? <Pill>Now</Pill> : null}
 				<span className="sp-grow" />
-				<Pill color={toneOf(left)}>Left {money(left)}</Pill>
+				<Pill color={covered ? undefined : toneOf(left)}>Left {covered ? <Redacted /> : money(left)}</Pill>
 			</div>
-			{touch ? null : <Use thin use={monthUse(sheet, totals, month)} month={long[month]} />}
+			{touch ? null : <Use thin use={monthUse(sheet, totals, month)} month={long[month]} covered={covered} />}
 			{SIDES.map(({ kind, title }) => {
 				const groups = sheet.groups.filter(g => g.kind === kind)
 				return (
@@ -834,13 +851,13 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 						{!editing ? null : isOpen('new-group', kind)
 							? <GroupEditor sheet={sheet} kind={kind} write={write} onClose={close} />
 							: <AddRow data-opener={`new-group:${kind}`} onClick={() => open('new-group', kind, [opener('new-group', kind)])}>Add a group to {title.toLowerCase()}</AddRow>}
-						<Sum value={money(kind === 'income' ? totals.income[month] : totals.costs[month])}>
+						<Sum value={kind === 'income' ? (covered ? <Redacted /> : money(totals.income[month])) : money(totals.costs[month])}>
 							<span className="sp-strong">{title}</span>
 						</Sum>
 					</div>
 				)
 			})}
-			<Sum variant="total" tone={toneOf(left)} value={money(left)}>Left over</Sum>
+			<Sum variant="total" tone={covered ? 'default' : toneOf(left)} value={covered ? <Redacted /> : money(left)}>Left over</Sum>
 		</Well>
 	)
 }
@@ -1141,7 +1158,7 @@ function AccountEditor({ account, index = 0, list, write, onMove, onClose }) {
 
 /* ---- the whole year (21b) ---- */
 
-function SheetView({ sheet, write, editing, panel, setPanel }) {
+function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 	const short = useMemo(() => monthNames('short', true), [])
 	const long = useMemo(() => monthNames('long'), [])
 	const toast = useToast()
@@ -1222,16 +1239,17 @@ function SheetView({ sheet, write, editing, panel, setPanel }) {
 		)
 	}
 
-	const sumRow = (key, label, values, { ink, grey, signed } = {}) => (
+	const sumRow = (key, label, values, { ink, grey, signed, hide } = {}) => (
 		<tr key={key} className={grey ? 'sp-ink-5' : undefined}>
 			<td>{ink ? <span className="sp-strong">{label}</span> : <span className="sp-cell-flex"><span className="sp-truncate">{label}</span></span>}</td>
 			<td />
-			{values.map((v, m) => <td key={m} className={signed ? join('sp-col-number', inkOf(v)) : 'sp-col-number'}>{figure(v)}</td>)}
-			<td className={join('sp-col-number', ink && 'sp-strong', signed && inkOf(sum(values)))}>{figure(sum(values))}</td>
-			<td className={join('sp-col-number', signed && inkOf(sum(values)))}>{figure(sum(values) / MONTHS)}</td>
+			{values.map((v, m) => <td key={m} className={signed && !hide ? join('sp-col-number', inkOf(v)) : 'sp-col-number'}>{hide ? <Redacted /> : figure(v)}</td>)}
+			<td className={join('sp-col-number', ink && 'sp-strong', signed && !hide && inkOf(sum(values)))}>{hide ? <Redacted /> : figure(sum(values))}</td>
+			<td className={join('sp-col-number', signed && !hide && inkOf(sum(values)))}>{hide ? <Redacted /> : figure(sum(values) / MONTHS)}</td>
 		</tr>
 	)
 
+	const hide = group => covered && group.kind === 'income'
 	const costLines = linesOf(sheet, 'expense')
 	const used = sheet.accounts.filter(a => costLines.some(l => l.accountId === a.id))
 	const byAccount = used.length < 2 ? [] : [
@@ -1294,9 +1312,9 @@ function SheetView({ sheet, write, editing, panel, setPanel }) {
 																</span>
 															</td>
 															<td className="sp-truncate">{sheet.accounts.find(a => a.id === line.accountId)?.name ?? ''}</td>
-															{line.months.map((_, m) => cell(line, m))}
-															<td className="sp-col-number">{figure(sum(line.months.map(m => shown(m) ?? 0)))}</td>
-															<td className="sp-col-number">{figure(sum(line.months.map(m => shown(m) ?? 0)) / MONTHS)}</td>
+															{hide(g) ? line.months.map((_, m) => <td className="sp-col-number" key={m}><Redacted /></td>) : line.months.map((_, m) => cell(line, m))}
+															<td className="sp-col-number">{hide(g) ? <Redacted /> : figure(sum(line.months.map(m => shown(m) ?? 0)))}</td>
+															<td className="sp-col-number">{hide(g) ? <Redacted /> : figure(sum(line.months.map(m => shown(m) ?? 0)) / MONTHS)}</td>
 														</tr>
 													)))}
 												{!editing ? null : isOpen('new-row', g.id)
@@ -1317,9 +1335,9 @@ function SheetView({ sheet, write, editing, panel, setPanel }) {
 									{byAccount.map(a => sumRow(a.key, a.label, sumMonths(a.lines), { grey: a.grey }))}
 								</>
 							) : null}
-							{sumRow('income', 'Income', totals.income, { ink: true })}
+							{sumRow('income', 'Income', totals.income, { ink: true, hide: covered })}
 							{sumRow('costs', 'Costs', totals.costs, { ink: true })}
-							{sumRow('left', 'Left over', totals.left, { ink: true, signed: true })}
+							{sumRow('left', 'Left over', totals.left, { ink: true, signed: true, hide: covered })}
 						</tbody>
 					</table>
 				</div>
