@@ -293,7 +293,7 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 					</ListItem>
 				))}
 				<div className="sp-stack sp-gap-12">
-					<span className="sp-section-label">If that is not what you meant</span>
+					{seen.count ? <span className="sp-section-label">If that is not what you meant</span> : null}
 					<SeenChoice icon="file-text" primary title="New order from the saved reading"
 						body="Starts a new order with the same lines, ready for you to check and change."
 						action={<Button size="small" disabled={busy} onClick={onUse}>Use the reading</Button>} />
