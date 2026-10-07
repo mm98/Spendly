@@ -26,7 +26,7 @@ export function ScreenBar({ onBack, title, meta }) {
 	return createPortal(
 		<>
 			<IconButton variant="outline" icon="chevron-left" aria-label="Back" onClick={onBack} />
-			<div className="sp-stack sp-gap-6 sp-grow sp-truncate">
+			<div className="sp-stacked sp-grow">
 				<span className="sp-title sp-truncate">{title}</span>
 				{meta ? <span className="sp-meta sp-truncate">{meta}</span> : null}
 			</div>

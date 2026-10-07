@@ -186,7 +186,7 @@ export function AppShell() {
 				</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
-				{touch
+				{touch && !screenOn
 					? (
 						<TabBar aria-label="Sections">
 							{TABS.map(t => (
