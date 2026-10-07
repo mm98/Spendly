@@ -1360,7 +1360,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						<DialogBody>
 							{shortened(askedFile.name, 40)} is added to {start.vendor}, {shortDate(start.date)}. Compare it to see where its lines differ from the order and pick which to keep.
 						</DialogBody>
-						{unsavedBesides ? <span className="sp-meta">Save your changes first.</span> : null}
+						{unsavedBesides ? <span className="sp-field__help">Save your changes first.</span> : null}
 						<DialogActions>
 							<Button variant="outline" fullWidth disabled={comparing} onClick={closeAsk}>Attach only</Button>
 							<Button fullWidth disabled={unsavedBesides || comparing} onClick={compare}>Compare</Button>

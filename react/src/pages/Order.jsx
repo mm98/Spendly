@@ -180,7 +180,7 @@ function OrderView({ order, touch, onGone }) {
 	const validatedNotice = validated
 		? (
 			<Alert color="success" mark={<Icon name="check" size={12} />} title={`Validated against ${validated.name}.`}>
-				{validated.changes ? `${plural(validated.changes, 'change')} applied.` : 'The lines match the receipt.'} The receipt is kept as an attachment.
+				{validated.changes ? `${plural(validated.changes, 'change')} applied. The receipt is kept as an attachment.` : 'The lines match the receipt. Nothing was changed.'}
 			</Alert>
 		)
 		: null
