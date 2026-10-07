@@ -3985,6 +3985,9 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 .sp-field__wrap .sp-field__trail { top: 50%; transform: translateY(-50%); }
 .sp-input--lead + .sp-field__trail,
 .sp-input--search ~ .sp-field__trail { right: var(--sp-6); }
+/* beside a token field the trail stays with the first row as the values wrap */
+.sp-field__wrap > .sp-tokens + .sp-field__trail { top: calc((var(--control-h) - var(--field-trail)) / 2); transform: none; }
+.sp-touch .sp-field__wrap > .sp-tokens + .sp-field__trail { top: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
 
 /* ---------- choice row - c5 variant ----------
    A choice that is a row in a list: padded, rounded, filled when it is the one chosen.
