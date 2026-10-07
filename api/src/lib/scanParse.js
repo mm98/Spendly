@@ -52,7 +52,7 @@ const READ_RECEIPT_TOOL = {
 			pricesAsPrintedIncludeVat: { type: 'boolean', description: 'Whether the unit prices and total AS PRINTED on the document already include VAT (true for most Danish paper receipts) or are shown net of it with VAT added separately (common on emailed/PDF invoices). This describes the source document, not the numbers you report below -- those are always converted to include VAT regardless of this value.' },
 			vatRate: { type: 'number', description: 'The VAT rate as a percentage (e.g. 25), if it is stated on the document or can be computed from a stated VAT amount. Omit if genuinely not determinable -- do not guess one.' },
 			shipping: { type: 'number', description: 'A shipping or delivery fee, VAT-inclusive. 0 if none is printed.' },
-			discount: { type: 'number', description: 'A whole-order discount/rabat (as a positive amount taken off), VAT-inclusive. 0 if none is printed.' },
+			discount: { type: 'number', description: 'A whole-order discount/rabat (as a positive amount taken off), VAT-inclusive. 0 if none is printed. Never a negative-amount line printed under an item: that is taken off the item\'s own price.' },
 			total: { type: 'number', description: 'The final total actually payable, VAT-inclusive, after any shipping and discount.' },
 			reference: { type: 'string', description: 'The order, invoice or receipt number printed on the document, if there is one.' },
 			documentType: {
@@ -70,13 +70,13 @@ const READ_RECEIPT_TOOL = {
 			},
 			lines: {
 				type: 'array',
-				description: 'Every line item printed on the document, each converted to include VAT.',
+				description: 'Every line item printed on the document, each converted to include VAT. A discount line (named Rabat, Tilbud, discount or anything else, or with no name, but with a negative amount) is never an item of its own: leave it out here and take it off the item printed directly above it.',
 				items: {
 					type: 'object',
 					properties: {
 						title: { type: 'string', description: 'The item as described on the document.' },
 						quantity: { type: 'number', description: 'How many of this item, as printed (1 if not stated). May be a fraction where the line is sold by weight or length, e.g. 0.75.' },
-						price: { type: 'number', description: 'The per-unit price INCLUDING VAT -- convert it first if the document prints it net of VAT. quantity times this price must equal the line\'s own VAT-inclusive total.' },
+						price: { type: 'number', description: 'The per-unit price INCLUDING VAT -- convert it first if the document prints it net of VAT. quantity times this price must equal the line\'s own VAT-inclusive total, after any negative-amount line printed directly under it.' },
 						uncertain: { type: 'boolean', description: 'true only if this specific line is a genuine guess -- smudged, cropped or otherwise hard to read. Omit or false for anything clearly printed.' },
 						unclearPart: { type: 'string', enum: ['title', 'quantity', 'price'], description: 'When uncertain, the part of the line that was hardest to read.' }
 					},
@@ -189,6 +189,10 @@ export async function parseReceipt(upload, today = todayIso(), onProgress, categ
 							+ 'on an emailed invoice), convert every one of them using the rate the document states; '
 							+ 'if none is stated, use the rate implied by the stated VAT amount against the net total; '
 							+ 'only fall back to 25% if the document is clearly Danish/EU and states neither. '
+							+ 'An item is often followed by a discount line: a line with a negative amount, usually named '
+							+ '"Rabat" but it may have any name or none. It belongs to the item directly above it: leave it out of lines and take its amount '
+							+ 'off that item\'s line total before working out the per-unit price (a line of 2 at 179.98 with a '
+							+ 'Rabat of -60.00 is 2 at 59.99). Only a discount on the whole order goes in discount. '
 							+ 'Report the printed order or invoice number as reference when there is one, the issuer\'s '
 							+ 'own web address and VAT (CVR) number when they are printed, and say in documentType what '
 							+ 'kind of document it is. List in unclear '
