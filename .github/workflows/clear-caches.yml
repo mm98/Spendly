@@ -5,7 +5,7 @@ name: Clear old data
 
 on:
   schedule:
-    - cron: '17 3 1 * *'
+    - cron: '17 3 * * 1'
   workflow_dispatch:
 
 jobs:
