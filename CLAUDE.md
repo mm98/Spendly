@@ -389,6 +389,9 @@ verification catches a drifted one. When a value moves, grep for it in prose too
 - **The pull request is where the session ends. Never offer to watch it.** This has been asked and
   declined repeatedly across this repo's history — it isn't a default choice to offer. If watching is
   wanted, it will be asked for explicitly, and then the PR is subscribed to and driven to merge.
+- **Changes that are ready together go in one branch, one pull request and one merge.** Every merge to
+  main runs CI and builds the image, and a second merge moments later makes the first build wasted.
+  Keep them apart only when they are unrelated enough that one may need to be reverted alone, and say so.
 - **When waiting on a run, poll the thing that actually knows, at an interval matched to how fast it
   finishes** (CI here finishes in 20-90s — a 20s poll interval is fine, longer than that just makes
   the wait look like the work). Prefer asking an API for run state over sleeping between guesses.
