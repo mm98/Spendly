@@ -899,6 +899,11 @@ export async function getMonthlySummary(signal) {
 	return request('/api/stats/summary', { signal })
 }
 
+/** The whole earlier month this month is measured against, as the Compare setting names it. */
+export async function getComparedMonth(signal) {
+	return request('/api/stats/compared', { signal })
+}
+
 export async function putSummaryAway(month, signal) {
 	const answer = await request('/api/stats/summary/seen', { method: 'PUT', body: { month }, signal })
 	invalidate(getMonthlySummary)
@@ -1061,7 +1066,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendorPage, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
 const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getUncategorised, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
