@@ -438,7 +438,11 @@ function draftOf(req, upload, read, failure) {
 					title: read.pricesAsPrintedIncludeVat
 						? 'Prices already included VAT'
 						: `Converted from ex-VAT prices${read.vatRate != null ? ` at ${read.vatRate}%` : ''}`
-				}
+				},
+			...(read.linesFromTotals
+				? [{ id: 'lineTotals', warning: false, title: 'Price per item worked out from the line amount',
+					meta: `${read.linesFromTotals === 1 ? 'One line' : `${read.linesFromTotals} lines`} showed the amount for all items. It is divided by the quantity.` }]
+				: [])
 		],
 		duplicate
 	}
