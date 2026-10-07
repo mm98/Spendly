@@ -104,7 +104,7 @@ const leaving = new Map()
 function Scanned({ documentKey, upload, from }) {
 	const navigate = useNavigate()
 	// a file read before is asked about first (3c); "Use the reading" goes on to the review
-	const [asking, setAsking] = useState(Boolean(upload?.seen?.orders?.length))
+	const [asking, setAsking] = useState(Boolean(upload?.seen))
 	// a failed reading is shown as such (6e) until the reader chooses to go on by hand
 	const [manual, setManual] = useState(false)
 	const read = useApi(getScanDraft, [documentKey], { enabled: !asking })
@@ -266,7 +266,8 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 				<div className="sp-stack sp-gap-6">
 					<span className="sp-heading">This receipt has been scanned before</span>
 					<span className="sp-meta">
-						{seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`}
+						{seen.count === 0 ? `The same file was read ${readAt ? `${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : 'before'}. No order holds it now.`
+							: seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`}
 					</span>
 				</div>
 				{seen.orders.map(o => (
@@ -292,7 +293,7 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 					</ListItem>
 				))}
 				<div className="sp-stack sp-gap-12">
-					<span className="sp-section-label">If that is not what you meant</span>
+					{seen.count ? <span className="sp-section-label">If that is not what you meant</span> : null}
 					<SeenChoice icon="file-text" primary title="New order from the saved reading"
 						body="Starts a new order with the same lines, ready for you to check and change."
 						action={<Button size="small" disabled={busy} onClick={onUse}>Use the reading</Button>} />
