@@ -989,9 +989,12 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Item lines only.</b> Vendor, date, totals and reference are not compared. Lines are paired by normalised name, then by amount; a pair with the same amount and a different name is a name difference, not two lines.</div>
     <div class="doc-note"><b>Four line cases, and the receipt wins by default in each.</b> On both, price or quantity differs: Order / Receipt, Receipt picked. On both, name differs: the same choice. Only on the receipt: ticked, so it is added. Only on the order: unticked, so it is removed. The amount column shows the result, with the value being replaced struck through beneath it, or the whole amount struck through for a line that goes.</div>
-    <div class="doc-note"><b>Only the differences are listed.</b> Lines that match are counted under the list, not repeated. When nothing differs, the comparison is skipped: the order is marked as validated and the green banner says so.</div>
+    <div class="doc-note"><b>Only the differences are listed.</b> Lines that match are counted under the list, not repeated. When nothing differs, the comparison is skipped: the order is marked as validated and the green banner says so (8). The line under the list names the matching lines when there are 3 or fewer, and counts them otherwise ("6 lines match the receipt").</div>
+    <div class="doc-note"><b>Line order</b> - Changed lines first (price, quantity or name), then lines only on the receipt, then lines only on the order. Within each group, the order's own line order; receipt-only lines in receipt order.</div>
+    <div class="doc-note"><b>Left out reads as struck through.</b> Any line that will not be in the result has its amount struck through (<code>sp-void</code>): an unticked order-only line, and an unticked receipt-only line too.</div>
     <div class="doc-note"><b>Accept all from receipt</b> sets every line back to its default, after the user has changed some. There is no bulk "keep the order"; that is Cancel.</div>
-    <div class="doc-note"><b>The button counts the changes.</b> "Apply 4 changes" follows the lines as they are picked: a line set to Order, or a receipt-only line unticked, drops out of the count. At zero it reads "Mark validated". The Totals pill follows 3a: green when After changes equals On the receipt, amber with the gap otherwise.</div>
+    <div class="doc-note"><b>The button counts the changes.</b> "Apply 4 changes" follows the lines as they are picked: a line set to Order, or a receipt-only line unticked, drops out of the count. At zero it reads "Mark validated" (7). The Totals pill follows 3a: green "Totals match" when After changes equals On the receipt, otherwise the amber pill (<code>sp-pill[data-state="progress"]</code>, the same pill as an in-progress status) with the gap and its direction, "381,00 kr. more than the receipt" or "less than". A gap does not block Apply.</div>
+    <div class="doc-note"><b>When things are written</b> - Attach only behaves as any attachment in 1d: the file is saved with the order. Compare stores the file on the order at once, since it has to be read; Cancel therefore leaves it attached. Apply writes the line changes and the Validated marker at once - Compare is only offered when the order has no unsaved changes (6), so there is nothing else to save with it.</div>
   </div>
 
   <div class="doc-specimens sp-touch">
@@ -1053,11 +1056,56 @@
       </div>
     </div>
   </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">6 - Dialog 1, the order has unsaved changes</span>
+      <div class="oc-stage">
+        <div class="sp-dialog" role="dialog" aria-label="Compare with this receipt?">
+          <span class="sp-heading">Compare with this receipt?</span>
+          <span class="sp-dialog__body">receipt-0910.jpg is added to Indbo Møbler, 08/08/2026. Compare it to see where its lines differ from the order and pick which to keep.</span>
+          <span class="sp-field__help">Save your changes first.</span>
+          <div class="sp-dialog__actions">
+            <button type="button" class="sp-btn sp-btn--outline sp-grow">Attach only</button>
+            <button type="button" class="sp-btn sp-grow" disabled="{{ true }}">Compare</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">7 - Every line kept from the order</span>
+      <div class="sp-card doc-w440">
+        <span class="sp-section-label">Totals</span>
+        <div class="sp-stack">
+          <div class="sp-sum"><span class="sp-ink-2">Order now</span><span class="sp-sum__value">3.980,00 kr.</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">After changes</span><span class="sp-sum__value">3.980,00 kr.</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">On the receipt</span><span class="sp-sum__value">3.599,00 kr.</span></div>
+        </div>
+        <span class="sp-pill" data-state="progress">381,00 kr. more than the receipt</span>
+        <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+          <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+          <button type="button" class="sp-btn">Mark validated</button>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">8 - Nothing differs</span>
+      <div class="doc-w440">
+        <div class="sp-alert" data-color="success">
+          <span class="sp-alert__mark" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+          <div class="sp-alert__body">
+            <span class="sp-alert__title">Validated against receipt-0910.jpg.</span>
+            <span class="sp-alert__note">The lines match the receipt. Nothing was changed.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Phone</b> - The same rows. Below 900px the Order / Receipt choice moves under the line's subtitle, as the line editor's fields do in <a href="Order editing layouts.dc.html#1c">1c</a>; the amount stays at the trailing edge. Totals collapse into the save bar.</div>
     <div class="doc-note"><b>Validated</b> - A row in Order details (<a href="Order editing layouts.dc.html#1a">1a</a>), after the status date, with the date it was applied. It stays when the lines are edited later; only removing the receipt it was validated against removes it. Stored with the attachment id. An order never validated has no row.</div>
-    <div class="doc-note"><b>Entry from 1d</b> - Adding a file to Attachments in <a href="Order editing layouts.dc.html#1d">1d</a> while the order has unsaved changes saves nothing: dialog 1 offers Attach only, and Compare is disabled with the help line "Save your changes first."</div>
+    <div class="doc-note"><b>Entry from 1d</b> - Adding a file to Attachments in <a href="Order editing layouts.dc.html#1d">1d</a> while the order has unsaved changes saves nothing: dialog 1 offers Attach only, and Compare is disabled with the help line "Save your changes first." (6).</div>
+    <div class="doc-note"><b>Top bar</b> - Desktop keeps the app's top bar, the search field, as drawn in 3. The phone uses the touch top bar with Back and a title, as every phone screen that is one level down does (<a href="Order editing layouts.dc.html#1c">1c</a>).</div>
   </div>
 </section>
 
