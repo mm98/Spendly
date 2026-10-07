@@ -486,7 +486,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		return () => { live = false; clearTimeout(timer) }
 	}, [titlesKey, takenKey, draft.vendor])
 	const fresh = list => list.filter(sg => !taken.some(n => n.toLowerCase() === sg.name.toLowerCase()))
-	const scanFound = Boolean(scan?.suggestions?.length)
+	const scanFound = fresh(scan?.suggestions ?? []).length > 0
 	const suggestions = (asked && asked !== 'looking' ? fresh(asked.suggestions)
 		: [...fresh(scan?.suggestions ?? []), ...fresh(fromItems)]).filter((sg, i, all) => all.findIndex(o => o.name.toLowerCase() === sg.name.toLowerCase()) === i).slice(0, 3)
 	const askModel = () => {
