@@ -1427,6 +1427,17 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   background: var(--green-tint-2);
 }
 .sp-gauge--untargeted { background: var(--surface-2); }
+/* an amount withheld from view (Budget, income hidden): a bar of one fixed length in
+   the text's own ink, so its width says nothing about the figure it stands for */
+.sp-redacted {
+  display: inline-block;
+  width: 5.5em;
+  height: 0.75em;
+  border-radius: var(--r-marker);
+  background: currentColor;
+  opacity: 0.18;
+  vertical-align: baseline;
+}
 .sp-gauge meter {
   position: absolute;
   inset: 0;

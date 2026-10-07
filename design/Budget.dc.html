@@ -54,6 +54,7 @@
           <label class="sp-segmented__item" data-label="Whole year"><input type="radio" name="a-view"><span class="sp-label">Whole year</span></label>
         </div>
         <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Show income</button>
         <button type="button" class="sp-btn sp-btn--outline">Check a bank statement</button>
         <button type="button" class="sp-btn sp-btn--outline">Edit</button>
       </div>
@@ -62,11 +63,11 @@
         <div class="sp-row-flex sp-gap-16 sp-wrap sp-top">
           <div class="sp-stat">
             <span class="sp-section-label">Left over</span>
-            <span class="sp-stat__figure">26.053 kr.</span>
+            <span class="sp-stat__figure"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
           </div>
           <div class="sp-stat">
             <span class="sp-section-label">Income</span>
-            <span class="sp-stat__figure">34.000 kr.</span>
+            <span class="sp-stat__figure"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
             <span class="sp-meta">As expected</span>
           </div>
           <div class="sp-stat">
@@ -81,15 +82,9 @@
           </div>
         </div>
         <div class="sp-stack sp-gap-8">
-            <span class="sp-gauge">
-              <meter value="23" min="0" max="100" aria-label="Share of October's income used"></meter>
-              <span class="sp-gauge__fill" data-fill="25"></span>
-              <span class="sp-gauge__marker" data-at="25"></span>
-            </span>
+            <span class="sp-gauge sp-gauge--untargeted" aria-hidden="true"></span>
             <div class="sp-row-flex sp-gap-12">
-              <span class="sp-meta">23% of the income is used</span>
-              <span class="sp-grow"></span>
-              <span class="sp-meta sp-row-flex sp-gap-6"><span class="sp-gauge__key" aria-hidden="true"></span>The plan was 23%</span>
+              <span class="sp-meta">Show income to see how much of it is used</span>
             </div>
         </div>
       </div>
@@ -124,18 +119,12 @@
               <span class="sp-title">October</span>
               <span class="sp-pill">Now</span>
               <span class="sp-grow"></span>
-              <span class="sp-pill" data-color="success">Left 26.053,02 kr.</span>
+              <span class="sp-pill">Left <span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
             </div>
             <div class="sp-stack sp-gap-8">
-              <span class="sp-gauge sp-gauge--thin">
-              <meter value="23" min="0" max="100" aria-label="Share of October's income used"></meter>
-              <span class="sp-gauge__fill" data-fill="25"></span>
-              <span class="sp-gauge__marker" data-at="25"></span>
-            </span>
+              <span class="sp-gauge sp-gauge--thin sp-gauge--untargeted" aria-hidden="true"></span>
               <div class="sp-row-flex sp-gap-12">
-              <span class="sp-meta">23% of the income is used</span>
-              <span class="sp-grow"></span>
-              <span class="sp-meta sp-row-flex sp-gap-6"><span class="sp-gauge__key" aria-hidden="true"></span>The plan was 23%</span>
+              <span class="sp-meta">Show income to see how much of it is used</span>
             </div>
             </div>
             <div class="sp-stack sp-gap-8">
@@ -146,12 +135,12 @@
                   
                 </div>
                 <div class="sp-stack">
-                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0" data-hover="true"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value sp-ink-5">34.000,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0" data-hover="true"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
                 </div>
                 
               </div>
               
-              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value">34.000,00 kr.</span></div>
+              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
             </div>
             <div class="sp-stack sp-gap-8">
               <span class="sp-section-label sp-section-label--ruled">Costs</span>
@@ -209,25 +198,19 @@
               
               <div class="sp-sum"><span class="sp-strong">Costs</span><span class="sp-sum__value">7.946,98 kr.</span></div>
             </div>
-            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value sp-ink-success">26.053,02 kr.</span></div>
+            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
           </div>
           <div class="sp-well">
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-title">November</span>
               
               <span class="sp-grow"></span>
-              <span class="sp-pill" data-color="success">Left 26.646,52 kr.</span>
+              <span class="sp-pill">Left <span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
             </div>
             <div class="sp-stack sp-gap-8">
-              <span class="sp-gauge sp-gauge--thin">
-              <meter value="22" min="0" max="100" aria-label="Share of November's income used"></meter>
-              <span class="sp-gauge__fill" data-fill="20"></span>
-              <span class="sp-gauge__marker" data-at="20"></span>
-            </span>
+              <span class="sp-gauge sp-gauge--thin sp-gauge--untargeted" aria-hidden="true"></span>
               <div class="sp-row-flex sp-gap-12">
-              <span class="sp-meta">22% of the income is used</span>
-              <span class="sp-grow"></span>
-              <span class="sp-meta sp-row-flex sp-gap-6"><span class="sp-gauge__key" aria-hidden="true"></span>The plan was 22%</span>
+              <span class="sp-meta">Show income to see how much of it is used</span>
             </div>
             </div>
             <div class="sp-stack sp-gap-8">
@@ -238,12 +221,12 @@
                   
                 </div>
                 <div class="sp-stack">
-                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value sp-ink-5">34.000,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
                 </div>
                 
               </div>
               
-              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value">34.000,00 kr.</span></div>
+              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
             </div>
             <div class="sp-stack sp-gap-8">
               <span class="sp-section-label sp-section-label--ruled">Costs</span>
@@ -301,7 +284,7 @@
               
               <div class="sp-sum"><span class="sp-strong">Costs</span><span class="sp-sum__value">7.353,48 kr.</span></div>
             </div>
-            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value sp-ink-success">26.646,52 kr.</span></div>
+            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
           </div>
         </div>
         
@@ -313,6 +296,8 @@
     <div class="doc-note"><b>Every part is an existing component.</b> The bar is the controls bar (<a href="Components.dc.html#c20">c20</a>). The dark card is Home 10a's month card: the same stat row and the same gauge with its plan marker (<a href="Components.dc.html#c10">c10</a>, <a href="Components.dc.html#c14">c14</a>). The month stepper is the period control's window (<a href="Components.dc.html#c14">c14</a>) and the twelve months under it are the full-width Segmented (<a href="Components.dc.html#c5">c5</a>, <code>--facet</code>). Each month is a well (<a href="Components.dc.html#c26">c26</a>) of summary rows (<a href="Components.dc.html#c21">c21</a>).</div>
     <div class="doc-note"><b>The year is a Segmented while there are four years or fewer.</b> From the fifth it becomes a Combobox, the rule every set in the library follows. The months are the one exception: twelve is fixed and ordered, never a list that grows, so all twelve stay visible as segments across the card.</div>
     <div class="doc-note"><b>Below 600px one month is shown</b>, and the segments page one month at a time. The window label then reads the one month.</div>
+    <div class="doc-note"><b>Income is hidden every time Budget opens.</b> Every amount that is income or reveals it is drawn as a bar of fixed length (<code>sp-redacted</code>): the Income and Left over figures, each income row, the Income sum, Left over in each month and on its pill. The bars on income are drawn empty (<code>sp-gauge--untargeted</code>) and their line reads "Show income to see how much of it is used". Costs stay as they are, and so do the names of income rows: only amounts are hidden. The bar has the same length whatever the figure, and the figure is not in the page at all while hidden, so nothing can be read from it.</div>
+    <div class="doc-note"><b>Show income is a toggle button</b> (<code>aria-pressed</code>) in the controls bar, with the eye from the register. Pressed, it reads Hide income and every figure appears in place, as <a href="#21b">21b</a> is drawn; nothing else moves. It holds until Budget is left. Edit (<a href="#21c">21c</a>) shows income while editing, since amounts are typed there, and leaving edit hides it again unless it was shown before.</div>
     <div class="doc-note"><b>The gauge is costs over income.</b> The marker is the same share computed from the expected amounts. Where no row has an expected amount the marker and the second half of the line are absent. Costs with no income count as 100%.</div>
     <div class="doc-note"><b>Under the pointer the whole line takes the grey <code>--hover</code> ground</b>, corner to corner at <code>--r-tile</code>, as Salary is drawn, and does the same in edit mode. Keyboard focus keeps the <code>--ring</code>; hover and focus can show together. On a phone nothing changes.</div>
     <div class="doc-note"><b>Clicking an amount turns it into a NumberField in place</b>, the same input as <a href="#21b">21b</a>. Enter saves and moves down, Tab saves and moves right, Escape cancels. Typing a digit on a focused amount starts the edit with that digit.</div>
@@ -348,6 +333,7 @@
           <label class="sp-segmented__item" data-label="Whole year"><input type="radio" name="b-view" defaultChecked="{{ true }}"><span class="sp-label">Whole year</span></label>
         </div>
         <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Hide income</button>
         <button type="button" class="sp-btn sp-btn--outline">Check a bank statement</button>
         <button type="button" class="sp-btn sp-btn--outline">Edit</button>
       </div>
