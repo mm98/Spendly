@@ -32,12 +32,14 @@
     <span class="doc-badge" id="1a">1a</span>
     <span class="doc-section__title">Order - read view</span>
   </div>
-  <div class="doc-lede">Same 2fr / 1fr skeleton as the edit screen, so switching between reading and editing moves nothing. Row actions and Add item drop away, fields become label and value rows, status becomes a pill in the items header, and the rail ends with Duplicate, Delete and Edit order.</div>
+  <div class="doc-lede">Same 2fr / 1fr skeleton as the edit screen, so switching between reading and editing moves nothing. Row actions and Add item drop away, fields become label and value rows, status becomes a row in Order details, and the rail ends with Duplicate, Delete and Edit order.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Intent</b> - The read view exists so the common case - looking something up - costs nothing. It shares the edit screen's grid exactly, so entering edit changes controls, never positions. Build both from one layout component.</div>
     <div class="doc-note"><b>Product link</b> - A line with a product link shows its name as a link, opening the product page in a new tab (Hay - Palissade chair). A line without one shows plain text. Only the name is the link; the row itself does not open anything. On touch a tap on the name opens the page the same way. In edit mode (<a href="#1b">1b</a>, <a href="#1c">1c</a>) the name is always plain text, link or not, so a click on a row edits it rather than leaving the page.</div>
     <div class="doc-note"><b>Vendor and category link to their orders</b> - The vendor opens the order list filtered to that vendor, <code>/orders?vendor=indbo-mobler</code>; a category opens it filtered to that category, <code>/orders?category=decor</code>. The same routes as "Open in the order list" on Vendors and categories, with the filter chip visible and removable. With several categories, each name is its own link, separated by commas. They are plain links in the app's link colour and open in a new tab like any other. Read view only: in edit the same rows are fields.</div>
+    <div class="doc-note"><b>Field order</b> - The rows follow the edit screen's field order (<a href="#1d">1d</a>): Vendor, Date, Kind, Status, the status date, Categories, Reference, Note. Discount and shipping are in Totals.</div>
+    <div class="doc-note"><b>Note</b> - Shown only when the order has a note; an order without one has no Note row. The text sits in a full-width well (the bordered box inside a card, no ground) at regular weight, as the user typed it, line breaks kept.</div>
     <div class="doc-note"><b>Watch out</b> - Do not render inputs as disabled fields here. Values are text. A page full of greyed-out inputs reads as broken permissions, and it doubles the DOM for no gain.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px the rail moves under the item list. Attachments stay a horizontal filmstrip on both - it is the one place sideways scroll is correct, because a receipt strip has no meaningful order.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Edit, Duplicate and Delete belong in the page, never the top bar (global rule 1). The top shell is shared and locked.</div>
@@ -57,8 +59,6 @@
           <div class="sp-row-flex sp-gap-12">
             <span class="sp-section-label">Items · 4</span>
             <span class="sp-meta">Indbo Møbler · 08/08/2026</span>
-            <span class="sp-grow"></span>
-            <span class="sp-pill" data-color="success">Delivered</span>
           </div>
           <div class="sp-stack sp-gap-8">
             <div class="sp-list-item">
@@ -142,9 +142,11 @@
           <div class="sp-sum"><span class="sp-ink-2">Vendor</span><span class="sp-sum__value"><a href="Order list.dc.html">Indbo Møbler</a></span></div>
           <div class="sp-sum"><span class="sp-ink-2">Date</span><span class="sp-sum__value">08/08/2026</span></div>
           <div class="sp-sum"><span class="sp-ink-2">Kind</span><span class="sp-sum__value">Expense</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Status</span><span class="sp-sum__value">Delivered</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Delivered</span><span class="sp-sum__value">09/08/2026</span></div>
           <div class="sp-sum"><span class="sp-ink-2">Categories</span><span class="sp-sum__value"><a href="Order list.dc.html">Decor</a></span></div>
           <div class="sp-sum"><span class="sp-ink-2">Reference</span><span class="sp-sum__value">SPENDLY-447</span></div>
-          <div class="sp-sum sp-sum--stacked"><span class="sp-ink-2">Note</span><span class="sp-sum__value">Sommertilbud 80%</span></div>
+          <div class="sp-sum sp-sum--stacked"><span class="sp-ink-2">Note</span><span class="sp-well">Sommertilbud 80%</span></div>
           </div>
         </div>
 
@@ -531,6 +533,11 @@
     <div class="doc-note"><b>Intent</b> - The screen this whole exercise produced. The header moved into the rail so the item list starts at the top of the page and owns the width; nearly every session is adjusting lines.</div>
     <div class="doc-note"><b>Watch out</b> - The rail must stay shorter than the item list. If it grows past it, the page scrolls for the rail's benefit and the original problem is back in a new form. Attachments are below the items for exactly this reason - anything new in the rail has to displace something, not extend it.</div>
     <div class="doc-note"><b>Watch out</b> - Reorder needs both the drag handle and the up/down buttons. Drag is unusable with a keyboard and awkward on touch inside a scrolling list; the buttons are the accessible path. Order persists as an explicit position field, never derived from a sort.</div>
+    <div class="doc-note"><b>Status</b> - A select, not a fixed set. Statuses are custom per user, set up in Settings: their names, how many there are and their order differ from one user to the next. The options are that user's statuses in their Settings order; the trigger shows the current one. Draft, Ordered, Delivered, Returned and Cancelled here are example data, and no status name is special in code. Same combobox as Vendor and Kind (<a href="Components.dc.html#c3">c3</a>).</div>
+    <div class="doc-note"><b>Status date</b> - Each status is mapped to a date in Settings: either the order's Date, or a date of its own. A status mapped to the order's Date (Ordered in this example) shows nothing extra. A status with its own date shows a date field under Status, labelled with the status name. Date only, no time. Try it: change the status in 1d.</div>
+    <div class="doc-note"><b>Changing the status</b> - Picking a status that has no date yet fills in today and says so under the field, so the common case costs nothing and a delivery that happened yesterday is one edit. Picking a status that already has a date (switching back to Delivered after trying Returned) restores the saved one, not today. Nothing is written until Save, like every other field here.</div>
+    <div class="doc-note"><b>Status date - validation</b> - On blur and on save (<a href="Components.dc.html#c3">c3</a>): a Delivered or Returned date before the order's Date is an error, and the order does not save until it is fixed. A future date is allowed. Same date format and picker as Date above.</div>
+    <div class="doc-note"><b>Read view</b> - <a href="#1a">1a</a> shows the date of the current status as its own row under Status, labelled with the status name ("Delivered 09/08/2026"). A status mapped to the order's Date has no extra row.</div>
     <div class="doc-note"><b>Watch out</b> - Crossing a category limit shows the amber notice and the save proceeds. Keep that check out of the validation layer entirely - once it shares a code path with required fields, it eventually starts blocking.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px this becomes 1c: rail collapses to a section above the items, inline expansion becomes a sheet. The sticky save bar survives the transition and is the one element that must never be scrolled away.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Sticky positioning here is relative to the content column, which is the page's only scroll container - not the viewport. Get the shell right first (see the README) or every sticky element in the app misbehaves.</div>
@@ -657,18 +664,45 @@
               <input id="oe-lbl4" class="sp-input" type="text" defaultValue="08/08/2026" aria-label="Date">
             </div>
             <div class="sp-field">
-              <label class="sp-field__label" for="oe-lbl6">Kind</label>
-              <input id="oe-lbl6" class="sp-input" type="text" defaultValue="Expense" aria-label="Kind">
+              <span class="sp-field__label" id="oe-lbl6">Kind</span>
+              <div class="sp-combobox" data-open="{{ kindOpen }}">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="{{ kindOpen }}" aria-labelledby="oe-lbl6" onClick="{{ toggleKind }}">
+                  <span>{{ kindName }}</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+                <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oe-lbl6">
+                  <li role="option" aria-selected="{{ kindExpense }}"><button type="button" class="sp-combobox__option" aria-selected="{{ kindExpense }}" onClick="{{ pickKindExpense }}"><span>Expense</span><span class="sp-grow"></span><sc-if value="{{ kindExpense }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                  <li role="option" aria-selected="{{ kindIncome }}"><button type="button" class="sp-combobox__option" aria-selected="{{ kindIncome }}" onClick="{{ pickKindIncome }}"><span>Income</span><span class="sp-grow"></span><sc-if value="{{ kindIncome }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                </ul>
+              </div>
             </div>
           </div>
           <div class="sp-field">
-            <span  class="sp-field__label" id="oe-grp1">Status</span>
-            <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-labelledby="oe-grp1">
-              <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="1d-status"><span class="sp-label">Ordered</span></label>
-              <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="1d-status" defaultChecked="{{ true }}"><span class="sp-label">Delivered</span></label>
-              <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="1d-status"><span class="sp-label">Returned</span></label>
+            <span class="sp-field__label" id="oe-grp1">Status</span>
+            <div class="sp-combobox" data-open="{{ statusOpen }}">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="{{ statusOpen }}" aria-labelledby="oe-grp1" onClick="{{ toggleStatus }}">
+                <span>{{ statusName }}</span>
+                <span class="sp-grow"></span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+              <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oe-grp1">
+                <li role="option" aria-selected="{{ selDraft }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selDraft }}" onClick="{{ pickDraft }}"><span>Draft</span><span class="sp-grow"></span><sc-if value="{{ selDraft }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selOrdered }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selOrdered }}" onClick="{{ pickOrdered }}"><span>Ordered</span><span class="sp-grow"></span><sc-if value="{{ selOrdered }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selDelivered }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selDelivered }}" onClick="{{ pickDelivered }}"><span>Delivered</span><span class="sp-grow"></span><sc-if value="{{ selDelivered }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selReturned }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selReturned }}" onClick="{{ pickReturned }}"><span>Returned</span><span class="sp-grow"></span><sc-if value="{{ selReturned }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selCancelled }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selCancelled }}" onClick="{{ pickCancelled }}"><span>Cancelled</span><span class="sp-grow"></span><sc-if value="{{ selCancelled }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+              </ul>
             </div>
           </div>
+          <sc-if value="{{ hasStatusDate }}" hint-placeholder-val="{{ true }}">
+            <div class="sp-field">
+              <label class="sp-field__label" for="1d-status-date">{{ statusName }}</label>
+              <input id="1d-status-date" class="sp-input" type="text" inputMode="numeric" value="{{ statusDate }}" onChange="{{ typeStatusDate }}" aria-invalid="{{ statusDateBad }}" aria-describedby="1d-status-help 1d-status-note">
+              <sc-if value="{{ statusDateBad }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="1d-status-help">Can't be before the order date, 08/08/2026.</span></sc-if>
+              <sc-if value="{{ statusDateJustSet }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" id="1d-status-note">Set to today. Change it if it happened earlier.</span></sc-if>
+            </div>
+          </sc-if>
           <div class="sp-field">
             <label  class="sp-field__label" for="oe-tok1">Categories</label>
             <div class="sp-field__wrap">
@@ -728,7 +762,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
-  state = { adv1b: false, adv1c: true, bad1b: false, bad1c: false, has1b: false, has1c: true };
+  state = { st: 'Delivered', stDates: { Delivered: '09/08/2026' }, stJust: false, stBad: false, stOpen: false, kind: 'Expense', kindOpen: false, adv1b: false, adv1c: true, bad1b: false, bad1c: false, has1b: false, has1c: true };
   // a field holding a link never closes: the button focuses it instead
   toggle(p) {
     const open = this.state['adv' + p];
@@ -740,9 +774,31 @@ class Component extends DCLogic {
     if (!v) return true;
     try { const u = new URL(v.includes('://') ? v : 'https://' + v); return /^https?:$/.test(u.protocol) && u.hostname.includes('.'); } catch (e) { return false; }
   }
+  pickStatus(s) {
+    const d = { ...this.state.stDates }; let just = false;
+    if (s !== 'Ordered' && !d[s]) { const n = new Date(), p = x => String(x).padStart(2, '0'); d[s] = p(n.getDate()) + '/' + p(n.getMonth() + 1) + '/' + n.getFullYear(); just = true; }
+    this.setState({ st: s, stDates: d, stJust: just, stBad: false, stOpen: false });
+  }
+  editStatus(v) {
+    const d = { ...this.state.stDates }; d[this.state.st] = v;
+    const m = v.split('/'); const bad = m.length === 3 && new Date(+m[2], m[1] - 1, +m[0]) < new Date(2026, 7, 8);
+    this.setState({ stDates: d, stJust: false, stBad: bad });
+  }
   renderVals() {
     const { adv1b, adv1c, bad1b, bad1c } = this.state;
+    const st = this.state.st, sel = {};
+    ['Draft', 'Ordered', 'Delivered', 'Returned', 'Cancelled'].forEach(k => { sel['sel' + k] = st === k; sel['pick' + k] = () => this.pickStatus(k); });
     return {
+      kindName: this.state.kind, kindOpen: this.state.kindOpen,
+      toggleKind: () => this.setState(s => ({ kindOpen: !s.kindOpen })),
+      kindExpense: this.state.kind === 'Expense', kindIncome: this.state.kind === 'Income',
+      pickKindExpense: () => this.setState({ kind: 'Expense', kindOpen: false }),
+      pickKindIncome: () => this.setState({ kind: 'Income', kindOpen: false }),
+      ...sel, statusName: st, statusOpen: this.state.stOpen,
+      toggleStatus: () => this.setState(s => ({ stOpen: !s.stOpen })),
+      hasStatusDate: st !== 'Ordered' /* example mapping: Ordered -> order Date */, statusDate: this.state.stDates[st] || '',
+      statusDateJustSet: this.state.stJust && !this.state.stBad, statusDateBad: this.state.stBad,
+      typeStatusDate: (e) => this.editStatus(e.target.value),
       adv1bInvalid: bad1b, adv1cInvalid: bad1c,
       check1b: (e) => this.setState({ bad1b: !this.isLink(e.target.value) }),
       check1c: (e) => this.setState({ bad1c: !this.isLink(e.target.value) }),

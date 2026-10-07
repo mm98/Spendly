@@ -1,38 +1,37 @@
-# Spendly - changes since handoff_2026_10_07c_changes
+# Spendly - changes since handoff_2026_10_07d_changes_fixed
 
-Fixed in this copy: the two open questions are decided and recorded. Income stays shown while editing (21c), and the names of income rows stay visible; only amounts are hidden. Budget.dc.html carries the added note. Nothing else differs from handoff_2026_10_07d_changes.
+Copy these files over handoff_2026_10_07d_changes_fixed.
 
-Copy these files over handoff_2026_10_07c_changes.
+## 1. Edit order: Status is a select, and each status has its own date (Order editing layouts 1d)
+- Status is a combobox (`sp-combobox`), not a segmented control. Statuses are custom per user, set up in Settings: names, count and order differ between users. The options are that user's statuses in Settings order. The names in the mockup (Draft, Ordered, Delivered, Returned, Cancelled) are example data; no status name is special in code.
+- Each status is mapped to a date in Settings: either the order's Date, or a date of its own.
+  - A status mapped to the order's Date (Ordered in the example) shows nothing extra.
+  - A status with its own date shows a date field under Status, labelled with the status name ("Delivered"). Date only, no time.
+- Picking a status with no date yet fills in today, with the help line "Set to today. Change it if it happened earlier." Picking a status that already has a date restores the saved one. Nothing is written until Save.
+- Validation on blur and on save: a status date before the order's Date is an error ("Can't be before the order date, 08/08/2026.") and blocks the save. A future date is allowed.
 
-## 1. Budget: income hidden by default (Budget 21a, 21b; Mobile screens, Budget)
-- Every time Budget opens, income and everything that reveals it is hidden:
-  - the Income and Left over figures in the month card
-  - each income row's amount and the Income sum
-  - Left over in each month and on its pill
-- Each hidden amount is drawn as `sp-redacted`: a bar of one fixed length, so its width says nothing about the figure. While hidden the figure is not in the page at all.
-- The gauges on income are drawn empty (`sp-gauge--untargeted`), with no fill and no marker. Their line reads "Show income to see how much of it is used". Nothing moves when it is shown.
-- Costs stay as they are, and so do the names of income rows: only amounts are hidden.
-- New control in the controls bar: an outline button with the eye icon, `aria-pressed`. Off it reads "Show income"; pressed it reads "Hide income" and every figure appears in place. 21a draws it off, 21b draws it pressed.
-- The choice holds until Budget is left. Edit (21c) shows income while editing, and leaving edit hides it again unless it was shown before.
-- Phone: the same button sits beside Edit in the Budget header.
+## 2. Edit order: Kind is a select (Order editing layouts 1d)
+- Kind is the same combobox as Status and Vendor, options Expense and Income.
 
-## 2. New component state: `sp-redacted` (styles/components.css)
-- Inline block, 5.5em by 0.75em, `--r-marker` corners, the text's own ink at 0.18 opacity. Scales with the text it replaces, so it fits stat figures, summary rows and pills, on light and dark cards.
-- Added beside `sp-gauge--untargeted`. No existing rule changed.
+## 3. Order read view (Order editing layouts 1a)
+- Status moved from a pill in the Items header to a plain-text row in Order details.
+- New row under Status: the current status's date, labelled with the status name ("Delivered 09/08/2026"). A status mapped to the order's Date has no extra row.
+- Order details rows follow the edit screen's field order: Vendor, Date, Kind, Status, status date, Categories, Reference, Note.
+- Note is shown only when the order has one. Its text sits in a full-width `sp-well` (bordered, no ground) at regular weight, line breaks kept.
 
-## 3. Icon legend: eye
-- The eye now also shows or hides the income on Budget (21a).
+## 4. styles/components.css
+- Added: `.sp-sum--stacked > .sp-well { align-self: stretch; }`, so a well under a stacked sum label takes the full width. No existing rule changed.
 
-## 4. Order create: the reading spinner lines up with the checks (Order create 3a)
-- The spinner on "Reading the lines..." sits in a small plain mark (`sp-mark sp-mark--small sp-mark--plain`), so it takes the checkmarks' width and its text starts on the same edge as the lines above.
-- No CSS change.
+## Open
+- Order create still draws Status as a segmented control. Same component as 1d, so it should become the same combobox.
+- Home's "Orders not delivered" rule depends on a status named Ordered. With custom statuses it needs a rule that does not depend on a name.
+- Bulk "Set status" in the order list does not ask for the status date.
+- Phone edit (1c) still shows the status as a pill in the top bar.
+- Whether earlier status dates (Delivered, then Refund) should stay visible once the status moves on.
 
 ## Check (styles/check.js)
 - Unchanged. Result: 0 findings across 26 pages.
 
 ## Files
-- Budget.dc.html
-- Mobile screens.dc.html
-- Order create.dc.html
-- Icon legend.dc.html
+- Order editing layouts.dc.html
 - styles/components.css
