@@ -2,10 +2,14 @@ name: CI
 
 # Runs once, when a change lands on main, and docker.yml waits for it: what decides whether an
 # image is built and pulled by the NAS is the commit that actually ships. A pull request is
-# not checked before it is merged.
+# not checked before it is merged. A change to notes and screenshots only is not run at all:
+# none of them is read by a check or copied into the image (.dockerignore), so nothing is built.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   build:
