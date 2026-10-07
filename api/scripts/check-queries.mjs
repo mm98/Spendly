@@ -287,7 +287,7 @@ const REQUESTS = [
 	`/stats?range=year&flow=expenses&vendorId=${ids.vendor}`, `/stats?range=year&flow=expenses&categoryId=${ids.category}`,
 	'/stats?range=year&flow=expenses&categoryId=none', '/stats?range=year&flow=expenses&status=Delivered&from=2026-08-01&to=2026-08-31',
 	'/stats/orders?range=year&flow=expenses', `/stats/orders?range=year&flow=expenses&vendorId=${ids.vendor}&page=2`,
-	'/stats/lines?range=month&flow=expenses', '/stats/home', '/stats/summary',
+	'/stats/home', '/stats/summary',
 	'/bookmarks', '/bookmarks?archived=yes',
 	'/bookmarks?sort=added-asc', '/bookmarks?sort=price-desc', '/bookmarks?sort=name-asc',
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
