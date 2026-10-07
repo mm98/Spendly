@@ -117,7 +117,7 @@ function Scanned({ documentKey, upload, from }) {
 			reference: answer.reference ?? '', note: '', refunded: false,
 			lines: answer.lines.map(l => ({
 				key: l.id, title: l.title ?? '', quantity: l.quantity ?? 1, price: l.price ?? null,
-				retail: null, note: '', uncertain: Boolean(l.uncertain), unclearPart: l.unclearPart ?? null, include: true
+				retail: l.retail ?? null, note: '', uncertain: Boolean(l.uncertain), unclearPart: l.unclearPart ?? null, include: true
 			}))
 		}
 		: null), [answer])

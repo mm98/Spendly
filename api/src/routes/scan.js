@@ -304,7 +304,7 @@ function draftIfLeft(userId, upload, { read, failure }, today) {
 		vendor: String(found.vendor || 'Unknown vendor').trim().slice(0, 80), date: found.date, status: keyOfType(userId, 'draft'), kind: found.kind,
 		shipping: Number(found.shipping) || 0, discount: Number(found.discount) || 0, reference: found.reference ?? '', note: '',
 		categories: [],
-		items: found.lines.map(l => ({ title: String(l.title ?? '').trim().slice(0, 120), quantity: l.quantity, price: l.price }))
+		items: found.lines.map(l => ({ title: String(l.title ?? '').trim().slice(0, 120), quantity: l.quantity, price: l.price, retail: l.retail ?? null }))
 	}
 	try {
 		const made = createOrderRecord(userId, body, today, id => {
@@ -405,7 +405,7 @@ function draftOf(req, upload, read, failure) {
 		deliveredDate: read.date ?? req.today, returnedDate: req.today,
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({
-			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price,
+			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price, retail: l.retail ?? null,
 			uncertain: l.uncertain, unclearPart: l.unclearPart ?? null,
 			meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
 		})),
