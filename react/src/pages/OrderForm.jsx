@@ -480,11 +480,11 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (!titles.length) { setFromItems([]); return undefined }
 		let live = true
 		const timer = setTimeout(() => {
-			getCategorySuggestions({ items: titles, exclude: taken })
+			getCategorySuggestions({ items: titles, vendor: draft.vendor, exclude: taken })
 				.then(r => { if (live) setFromItems(r.suggestions) }).catch(() => { if (live) setFromItems([]) })
 		}, 500)
 		return () => { live = false; clearTimeout(timer) }
-	}, [titlesKey, takenKey])
+	}, [titlesKey, takenKey, draft.vendor])
 	const fresh = list => list.filter(sg => !taken.some(n => n.toLowerCase() === sg.name.toLowerCase()))
 	const scanFound = Boolean(scan?.suggestions?.length)
 	const suggestions = (asked && asked !== 'looking' ? fresh(asked.suggestions)

@@ -1792,6 +1792,18 @@
 				"idx_categories_user"
 			]
 		},
+		"SELECT id, name FROM categories WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
 		"SELECT id, name FROM categories WHERE user_id = @userId AND contains_fold(name, @needle) ORDER BY name LIMIT @limit": {
 			"plan": [
 				"SEARCH categories USING INDEX sqlite_autoindex_categories_2 (user_id=?)"
@@ -2014,6 +2026,18 @@
 				"idx_order_items_order"
 			]
 		},
+		"SELECT id, vendor_id FROM orders WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH orders USING COVERING INDEX idx_orders_user_vendor (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_vendor"
+			]
+		},
 		"SELECT id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded, item_count, subtotal, total, saved, saved_percent, revision FROM orders WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -2040,6 +2064,15 @@
 			"indexes": [
 				"sqlite_autoindex_statuses_2"
 			]
+		},
+		"SELECT key, vec FROM title_vectors WHERE user_id = ? AND model = ? AND key IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH title_vectors USING PRIMARY KEY (user_id=? AND model=? AND key=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [],
+			"indexes": []
 		},
 		"SELECT l.id, l.group_id, l.name, l.account_id, g.year_id, y.year FROM budget_lines l JOIN budget_groups g ON g.id = l.group_id JOIN budget_years y ON y.id = g.year_id WHERE l.id = ? AND l.user_id = ?": {
 			"plan": [
@@ -2289,7 +2322,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT oc.order_id, c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = ? AND oc.order_id IN (SELECT value FROM json_each(?))": {
+		"SELECT oc.order_id, oc.category_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = ? AND oc.order_id IN (SELECT value FROM json_each(?))": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
 				"LIST SUBQUERY 1",
@@ -3966,7 +3999,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 28
+			"readers": 29
 		},
 		"idx_imports_user_created": {
 			"table": "imports",
@@ -4092,7 +4125,7 @@
 				"date",
 				"id"
 			],
-			"readers": 31
+			"readers": 32
 		},
 		"idx_saved_views_user": {
 			"table": "saved_views",

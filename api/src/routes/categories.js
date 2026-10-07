@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { describe, fromHistory, fromModel } from '../lib/categorySuggest.js'
+import { describe, fromModel, suggestFromHistory } from '../lib/categorySuggest.js'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { findCategoryByFold, nextCategoryColour } from '../lib/findOrCreate.js'
@@ -101,7 +101,7 @@ router.post('/suggestions', async (req, res) => {
 	if (!Array.isArray(items) || items.length > 100) return res.status(400).json({ error: 'Send the item names as a list of up to 100.' })
 	const asked = { items, exclude, vendor: String(vendor ?? '').trim().slice(0, 80) }
 	if (model) return res.json(await fromModel(req.user.id, asked))
-	res.json({ suggestions: describe(req.user.id, fromHistory(req.user.id, asked)), failure: null })
+	res.json({ suggestions: describe(req.user.id, await suggestFromHistory(req.user.id, asked)), failure: null })
 })
 
 router.post('/', (req, res) => {

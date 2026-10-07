@@ -5,3 +5,6 @@ ds-bundle/
 .design-sync/.cache/
 .design-sync/learnings/
 .design-sync/node_modules
+
+# the language model api/scripts/fetch-model.mjs keeps for category suggestions
+api/.models/
