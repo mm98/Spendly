@@ -77,6 +77,7 @@ const READ_RECEIPT_TOOL = {
 						title: { type: 'string', description: 'The item as described on the document.' },
 						quantity: { type: 'number', description: 'How many of this item, as printed (1 if not stated). May be a fraction where the line is sold by weight or length, e.g. 0.75.' },
 						price: { type: 'number', description: 'The per-unit price INCLUDING VAT -- convert it first if the document prints it net of VAT. quantity times this price must equal the line\'s own VAT-inclusive total, after any negative-amount line printed directly under it.' },
+						retail: { type: 'number', description: 'The per-unit price INCLUDING VAT as printed on the item\'s own line, before any discount line under it takes something off. Only when a discount line follows the item; omit otherwise.' },
 						uncertain: { type: 'boolean', description: 'true only if this specific line is a genuine guess -- smudged, cropped or otherwise hard to read. Omit or false for anything clearly printed.' },
 						unclearPart: { type: 'string', enum: ['title', 'quantity', 'price'], description: 'When uncertain, the part of the line that was hardest to read.' }
 					},
@@ -119,10 +120,12 @@ function normalise(input, today) {
 			title: String(l?.title ?? '').trim().slice(0, 120),
 			quantity: isFiniteNumber(l?.quantity) && l.quantity > 0 ? Math.round(l.quantity * 100) / 100 : 1,
 			price: isFiniteNumber(l?.price) && l.price >= 0 ? l.price : null,
+			retail: isFiniteNumber(l?.retail) && l.retail >= 0 ? l.retail : null,
 			uncertain: l?.uncertain === true,
 			unclearPart: l?.uncertain === true && ['title', 'quantity', 'price'].includes(l?.unclearPart) ? l.unclearPart : null
 		}))
 		.filter(l => l.title && l.price !== null)
+		.map(l => ({ ...l, retail: l.retail > l.price ? l.retail : null }))
 		: []
 	const reference = String(input.reference ?? '').trim().slice(0, 80)
 	// the other two things a receipt is matched to its vendor by (5h), kept only when they read as one
@@ -192,7 +195,8 @@ export async function parseReceipt(upload, today = todayIso(), onProgress, categ
 							+ 'An item is often followed by a discount line: a line with a negative amount, usually named '
 							+ '"Rabat" but it may have any name or none. It belongs to the item directly above it: leave it out of lines and take its amount '
 							+ 'off that item\'s line total before working out the per-unit price (a line of 2 at 179.98 with a '
-							+ 'Rabat of -60.00 is 2 at 59.99). Only a discount on the whole order goes in discount. '
+							+ 'Rabat of -60.00 is 2 at 59.99), and report the per-unit price as printed, before the discount, as '
+							+ 'retail (89.99 here). Only a discount on the whole order goes in discount. '
 							+ 'Report the printed order or invoice number as reference when there is one, the issuer\'s '
 							+ 'own web address and VAT (CVR) number when they are printed, and say in documentType what '
 							+ 'kind of document it is. List in unclear '
