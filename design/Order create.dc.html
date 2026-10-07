@@ -826,17 +826,15 @@
 
         <div class="sp-stack sp-gap-12">
           <span class="sp-section-label">If that is not what you meant</span>
-          <div class="sp-list-item sp-list-item--primary sp-list-item--top">
-            <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></svg></span>
+          <div class="sp-list-item sp-list-item--top">
             <div class="sp-stack sp-gap-6">
               <span class="sp-title sp-truncate">New order from the saved reading</span>
               <span class="sp-meta">Starts a new order with the same lines, ready for you to check and change.</span>
             </div>
             <span class="sp-grow"></span>
-            <button type="button" class="sp-btn sp-btn--small">Use the reading</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Use the reading</button>
           </div>
           <div class="sp-list-item sp-list-item--top">
-            <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg></span>
             <div class="sp-stack sp-gap-6">
               <span class="sp-title sp-truncate">Read it again</span>
               <span class="sp-meta">Use this if the lines came out wrong last time.</span>
@@ -867,6 +865,10 @@
         <div class="doc-note"><b>Compare the files</b> opens both in the viewer (12b) side by side. Rarely needed for an exact hash match, but it is the only way to be sure the stored file is what you think it is - and it costs one link.</div>
         <div class="doc-note"><b>There is no Attach.</b> A matched hash means that order already holds this exact file, so there is nothing to add from here.</div>
         <div class="doc-note"><b>Multiple matches</b> list up to three orders, newest first, with a count if there are more. Each row carries its own "Open that order".</div>
+        <div class="doc-note"><b class="sp-ink">One primary on this screen: Open that order.</b> The two alternatives are equal-weight rows with outline buttons, and neither carries the green border. A tinted, bordered option plus its own filled button would be a second primary - and it would recommend the path the user most likely did not want, since a repeated receipt usually means they meant the existing order.</div>
+        <div class="doc-note"><b class="sp-ink">Only the matched order carries a mark.</b> It is a real record, so it shows its photo the way an order row does. The two alternatives are actions, not records - a generic file glyph beside each added nothing the title did not already say, so they are title, description and button only.</div>
+        <div class="doc-note"><b class="sp-ink">The option mark sits on the title's first line</b> (<code>sp-list-item--top</code>), not centred on the block. Centred, it drifts down as the description wraps, and two options with different description lengths stop sharing a mark position.</div>
+        <div class="doc-note"><b class="sp-ink">On a phone every button here is full width and stacked</b> (<code>sp-btn--block</code>), primary first. Small buttons left at their own width stack into a ragged column of two different lengths. See the phone frame in <b>7a</b>.</div>
       </div>
 
       <div class="doc-card">

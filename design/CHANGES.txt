@@ -1,0 +1,56 @@
+Changed since the last handover zip
+===================================
+
+Order create.dc.html     3a-3d
+Mobile screens.dc.html   7a, 7b
+  Both also supplied as offline/ bundles.
+
+
+1. 3c - SCANNED BEFORE
+----------------------
+
+One primary on the screen: "Open that order". The two alternatives were a
+tinted, bordered option with its own filled button - a second primary,
+recommending the path the user most likely did not want. Both are now
+plain rows with outline buttons.
+
+Only the matched order carries a mark. It is a real record, so it shows
+its photo the way an order row does. The two alternatives are actions,
+not records, and no longer carry a file glyph: title, description and
+button only.
+
+Option titles wrap rather than truncate. The title is the only thing
+naming the action, so cutting it with an ellipsis loses the meaning.
+
+Fixed: three implementation notes had been inserted inside the first
+option row, blowing it open. They are in the notes card now.
+
+
+2. 3c ON A PHONE (new frame in 7a)
+-----------------------------------
+
+A task screen, so it uses the order edit frame's chrome: Back button and
+title in the top bar, no search, no tab bar.
+
+Every button is full width and stacked, primary first (sp-btn--block).
+Small buttons left at their own width stack into a ragged column of
+different lengths.
+
+Buttons sit under the icon-and-text row at the full card width, not
+inside the text column beside the icon.
+
+Each option is its own card, under the "If that is not what you meant"
+label. "Discard the upload" is a full-width button at the bottom with
+"kept for 24 hours" beneath it - not a footer bar, which keeps buttons
+at their own width.
+
+
+3. TITLE + DESCRIPTION SPACING ON MOBILE
+----------------------------------------
+
+14 title/description pairs in Mobile screens were a 6px stack. They now
+use sp-stacked, the same pair the order list cards use. Includes the top
+bar title with its file name under it.
+
+The same 6px pattern still exists in 19 places on desktop pages; not
+changed in this bundle.
