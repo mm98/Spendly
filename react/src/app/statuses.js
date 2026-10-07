@@ -14,8 +14,8 @@ const FIRST = [
 	{ key: 'Draft', name: 'Draft', type: 'draft', tone: 'neutral' },
 	{ key: 'Ordered', name: 'Ordered', type: 'ordered', tone: 'progress' },
 	{ key: 'Delivered', name: 'Delivered', type: 'delivered', tone: 'success', ownDate: true },
-	{ key: 'Returned', name: 'Returned', type: 'custom', tone: 'danger', ownDate: true },
-	{ key: 'Cancelled', name: 'Cancelled', type: 'custom', tone: 'neutral' }
+	{ key: 'Returned', name: 'Returned', type: 'returned', tone: 'danger', ownDate: true },
+	{ key: 'Cancelled', name: 'Cancelled', type: 'cancelled', tone: 'neutral' }
 ]
 
 /** The account's statuses, in its order: `{ key, name, type, tone, ownDate, builtIn, orders }`. */
