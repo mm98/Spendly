@@ -45,6 +45,19 @@
     }
   }
 
+  /* Status and Kind are selects. Statuses are custom per user (Settings), so they are
+     never a fixed segmented set, and Kind is a closed list, never free text. Caught:
+     Status drawn as a segmented control and Kind as a text input in Order create,
+     Responsive reference and States and confirmations after 1d had moved to the
+     combobox. Swept on the label text, not on a class. */
+  for (const f of pages) {
+    const t = src[f];
+    for (const m of t.matchAll(/<(label|span)[^>]*class="sp-field__label"[^>]*>\s*(Status|Kind)\s*<\/\1>(?=([\s\S]{0,400}))/g)) {
+      const after = m[3];
+      if (!/^\s*<div class="sp-combobox/.test(after)) fail('Status and Kind are selects', f, m[2] + ' field is not followed by sp-combobox');
+    }
+  }
+
   /* A page's Go to tweak lists its sections by badge. It is typed by hand, so a section
      added or renumbered left the menu pointing at the old numbers. */
   for (const f of pages) {

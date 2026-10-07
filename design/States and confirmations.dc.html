@@ -283,9 +283,19 @@
         <span class="sp-field__help" data-color="warning">That is in the future. Keep it if the order is pre-booked.</span>
       </div>
         <div class="sp-field">
-        <label class="sp-field__label" for="sc-f5">Kind</label>
-              <input class="sp-input" id="sc-f5" type="text" defaultValue="Expense">
-            </div>
+          <span class="sp-field__label" id="sc-f5">Kind</span>
+          <div class="sp-combobox">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="sc-f5">
+              <span>Expense</span>
+              <span class="sp-grow"></span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+            </button>
+            <ul class="sp-combobox__panel" role="listbox" aria-labelledby="sc-f5">
+              <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Expense</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Income</span><span class="sp-grow"></span></button></li>
+            </ul>
+          </div>
+        </div>
       </div>
       <div class="sp-field">
         <label class="sp-field__label" for="sc-f6">Shipping fee</label>
