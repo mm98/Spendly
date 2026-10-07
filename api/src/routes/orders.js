@@ -48,6 +48,9 @@ const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, 
 const deleteOrderStatuses = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
 const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
+// an order has one validation, and a receipt backs one: either's earlier row is replaced
+const markValidated = db.prepare(`INSERT OR REPLACE INTO order_validations (attachment_id, order_id, validated_at)
+	SELECT @attachmentId, @id, @day WHERE EXISTS (SELECT 1 FROM attachments WHERE id = @attachmentId AND order_id = @id)`)
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note, url)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note, @url)`)
 const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
@@ -529,6 +532,9 @@ router.put('/:id', (req, res) => {
 
 	db.transaction(() => {
 		updateOrderRows(req.user.id, req.params.id, draft)
+		// the receipt this save checked the lines against: it has to be a file of this order
+		if (typeof req.body?.validatedBy === 'string')
+			markValidated.run({ id: req.params.id, attachmentId: req.body.validatedBy, day: toEpoch(req.today) })
 		if (clientKey) setClientKey.run(clientKey, req.params.id)
 	})()
 

@@ -47,6 +47,7 @@ const Home = page(() => import('./pages/Home.jsx'))
 const Orders = page(() => import('./pages/Orders.jsx'))
 const Order = page(() => import('./pages/Order.jsx'))
 const OrderEdit = page(() => import('./pages/OrderEdit.jsx'))
+const OrderCompare = page(() => import('./pages/OrderCompare.jsx'))
 const OrderNew = page(() => import('./pages/OrderNew.jsx'))
 const Statistics = page(() => import('./pages/Statistics.jsx'))
 const Vendors = page(() => import('./pages/Vendors.jsx'))
@@ -91,7 +92,8 @@ export const routes = [
 					{ index: true, element: <Orders />, handle: { title: 'Orders', navKey: 'orders', layout: 'rail', fab: true, remember: true } },
 					{ path: 'new', element: <OrderNew />, handle: { title: 'New order', navKey: 'orders' } },
 					{ path: ':id', element: <Order />, handle: { title: 'Order', navKey: 'orders', layout: 'split' } },
-					{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'Edit order', navKey: 'orders', layout: 'split' } }
+					{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'Edit order', navKey: 'orders', layout: 'split' } },
+					{ path: ':id/compare', element: <OrderCompare />, handle: { title: 'Compare with receipt', navKey: 'orders' } }
 				] },
 
 				{ path: 'statistics', element: <Statistics />, handle: { title: 'Statistics', navKey: 'statistics', remember: true } },

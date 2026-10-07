@@ -414,6 +414,8 @@ const toApiDraft = draft => ({
 	// the copy the form started from and the save's own key: a save over another tab's, or one sent twice, is told apart (6d)
 	...(draft.revision ? { revision: draft.revision } : {}),
 	...(draft.clientKey ? { clientKey: draft.clientKey } : {}),
+	// the receipt this save checked the lines against (3d)
+	...(draft.validatedBy ? { validatedBy: draft.validatedBy } : {}),
 	// a saved line keeps its id, so PUT edits it in place and its photo stays; a new line sends none
 	items: (draft.items ?? []).map(i => ({
 		...(i.id ? { id: i.id } : {}),

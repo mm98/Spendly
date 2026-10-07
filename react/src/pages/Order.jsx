@@ -1,5 +1,5 @@
-import { Fragment, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -9,9 +9,10 @@ import { Chip } from '../components/Chip.jsx'
 import { Well } from '../components/Well.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { Alert } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import { attachmentDownloadUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
-import { dot, shortDate } from '../api/format.js'
+import { dot, plural, shortDate } from '../api/format.js'
 import { useStacked } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
 import { useFolded } from '../app/folded.js'
@@ -50,6 +51,12 @@ function OrderView({ order, touch, onGone }) {
 	const stacked = useStacked(column)
 	const [folded, setFolded] = useFolded('order', 'details', true)
 	const status = useStatus(order.status)
+	// what the comparison with a receipt handed over (3d), taken once so a reload does not show it again
+	const here = useLocation()
+	const [validated] = useState(() => here.state?.validated ?? null)
+	useEffect(() => {
+		if (here.state?.validated) navigate(here.pathname, { replace: true, state: null })
+	}, [])
 	// a status with a date of its own has it recorded; one on the order's own date has none
 	const stamped = order.statusHistory.findLast(s => s.status === order.status)
 
@@ -115,6 +122,7 @@ function OrderView({ order, touch, onGone }) {
 			<Sum value={order.kind}>Kind</Sum>
 			<Sum value={status.name}>Status</Sum>
 			{stamped ? <Sum value={shortDate(stamped.date)}>{status.name}</Sum> : null}
+			{order.validated ? <Sum value={shortDate(order.validated.date)}>Validated</Sum> : null}
 			<Sum value={<OrderCategories order={order} />}>Categories</Sum>
 			{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
 			{order.note ? <Sum variant="stacked" value={<Well>{order.note.split('\n').map((line, i) => <Fragment key={i}>{i ? <br /> : null}{line}</Fragment>)}</Well>}>Note</Sum> : null}
@@ -169,9 +177,17 @@ function OrderView({ order, touch, onGone }) {
 		? <Viewer items={files} at={viewing} onMove={setViewing} onClose={() => setViewing(null)} />
 		: null
 
+	const validatedNotice = validated
+		? (
+			<Alert color="success" mark={<Icon name="check" size={12} />} title={`Validated against ${validated.name}.`}>
+				{validated.changes ? `${plural(validated.changes, 'change')} applied.` : 'The lines match the receipt.'} The receipt is kept as an attachment.
+			</Alert>
+		)
+		: null
+
 	return (
 		<>
-			<div className="sp-stack sp-gap-12" ref={column}>{stacked ? details : null}{items}{attachments}</div>
+			<div className="sp-stack sp-gap-12" ref={column}>{validatedNotice}{stacked ? details : null}{items}{attachments}</div>
 			<Panel>{stacked ? null : details}{totals}{dialog}{viewer}</Panel>
 		</>
 	)

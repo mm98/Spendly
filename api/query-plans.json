@@ -36,6 +36,15 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT attachment_id, validated_at FROM order_validations WHERE order_id = ?": {
+			"plan": [
+				"SEARCH order_validations USING INDEX sqlite_autoindex_order_validations_2 (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_order_validations_2"
+			]
+		},
 		"SELECT b.id, b.name, b.url, b.price, b.archived, b.created_at, b.photo_id FROM bookmarks b WHERE b.user_id = @userId AND b.archived = 0 AND ( b.name LIKE @needle ESCAPE '\\' OR b.url LIKE @needle ESCAPE '\\' OR b.id IN (SELECT bc.bookmark_id FROM bookmark_categories bc JOIN categories c ON c.id = bc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') ) ORDER BY b.created_at DESC, b.rowid DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SCAN b",
