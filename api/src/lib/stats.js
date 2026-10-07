@@ -543,6 +543,21 @@ const upsertSummarySeen = db.prepare(`
 	ON CONFLICT (user_id) DO UPDATE SET month = excluded.month
 `)
 
+const selectCompareChoice = db.prepare('SELECT compare_month AS choice FROM settings WHERE user_id = ?')
+
+/** The whole month a month is measured against: the one before it, or the same month a year
+    earlier, as the reader chose. `month` is 'YYYY-MM'; answers that month's spend and order count. */
+export function comparedMonth(userId, month) {
+	const [y, m] = month.split('-').map(Number)
+	const year = selectCompareChoice.get(userId)?.choice === 'year'
+	const start = year ? Date.UTC(y - 1, m - 1, 1) : Date.UTC(y, m - 2, 1)
+	const from = start / 1000
+	const next = new Date(start)
+	const to = Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 1) / 1000
+	const totals = totalsOver(userId, from, to, scopeOf({ flow: 'expenses' }))
+	return { month: fromEpoch(from).slice(0, 7), spent: totals.spent, orders: totals.orders }
+}
+
 /** Home's summary of the month before the reader's own (8b): what it came to, and each limited
     category's spend in it with how many of the twelve months up to it went over. */
 export function monthlySummary(userId, day = todayIso()) {
@@ -562,6 +577,7 @@ export function monthlySummary(userId, day = todayIso()) {
 	return {
 		month, from: fromEpoch(from), to: fromEpoch(to - DAY),
 		spent: totals.spent, saved: totals.saved, orders: totals.orders,
+		compared: comparedMonth(userId, month),
 		seen: selectSummarySeen.get(userId)?.month === month,
 		limits: limited.map(c => ({ id: c.id, spend: spendOf.get(c.id) ?? 0, overs: overs.get(c.id) ?? 0 }))
 	}

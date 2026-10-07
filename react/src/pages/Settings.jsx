@@ -19,7 +19,7 @@ import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
 import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getHomeAttention, getHomeCategories, getMonthlySummary, getOrderDraft, getOrders, getSettings, getStatsSlice, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
+	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getHomeAttention, getHomeCategories, getMonthlySummary, getComparedMonth, getOrderDraft, getOrders, getSettings, getStatsSlice, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
 	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
@@ -37,7 +37,7 @@ import { useLeaveGuard } from './vendorsCategories.jsx'
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
 	{ key: 'account', label: 'Account and profile', keys: ['name', 'picture'] },
-	{ key: 'appearance', label: 'Appearance', keys: ['density'] },
+	{ key: 'appearance', label: 'Appearance', keys: ['density', 'compareMonth'] },
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'sort', 'listSort'] },
@@ -67,6 +67,11 @@ const DENSITIES = [
 	{ value: 'compact', label: 'Compact' }
 ]
 
+const COMPARES = [
+	{ id: 'last', label: 'Last month' },
+	{ id: 'year', label: 'Same month last year' }
+]
+
 // the share of a limit a warning starts at (8b); 100 is only once it is passed
 const EARLY = [
 	{ value: 75, label: '75%' },
@@ -88,7 +93,7 @@ const previewAmount = code => {
 
 /* Saved settings are baked into these answers, so each is dropped the moment a save lands. */
 const dropStale = () => {
-	for (const fn of [getSettings, getOrderDraft, getOrders, getVendorPage, getVendorPages, getCategoryPage, getCategoryPages, getHomeAttention, getHomeCategories, getMonthlySummary, getStatsSlice])
+	for (const fn of [getSettings, getOrderDraft, getOrders, getVendorPage, getVendorPages, getCategoryPage, getCategoryPages, getHomeAttention, getHomeCategories, getMonthlySummary, getComparedMonth, getStatsSlice])
 		invalidate(fn)
 }
 
@@ -354,6 +359,10 @@ function AppearanceCard({ value, change, touch }) {
 			<span className="sp-rule" />
 			<Field label="Row density" message="Compact fits more rows on screen.">
 				<Segmented name="density" options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
+			</Field>
+			<span className="sp-rule" />
+			<Field label="Compare this month with" message="What Home and the monthly summary measure this month against.">
+				<Choose narrow={!touch} value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
 			</Field>
 		</Card>
 	)

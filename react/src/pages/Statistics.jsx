@@ -1286,11 +1286,6 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 						<span className="sp-meta">{hold('88', '11')}</span>
 					</div>
 				))}
-				<CardFooter aria-hidden="true">
-					<span className="sp-data">All categories</span>
-					<span className="sp-grow" />
-					<span className="sp-amount">{hold('104')}</span>
-				</CardFooter>
 				{running ?? view?.pace.running ? <div className="sp-row-flex sp-gap-8" aria-hidden="true"><GaugeKey /><span className="sp-meta">{hold('130', '11')}</span></div> : null}
 			</Card>
 		)
@@ -1302,10 +1297,9 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 		const allowed = category.budget * months
 		return { id: category.id, name: category.name, spend, allowed, used: share(spend, allowed) }
 	})
-	// a limit is a ceiling: a category that spent nothing has no bar, though its limit still counts in the total
+	// a limit is a ceiling: a category that spent nothing has no bar
 	const rows = limits.filter(row => row.spend > 0).sort((a, b) => b.spend - a.spend || a.name.localeCompare(b.name))
 	const pace = view.pace.running ? share(view.pace.daysIn, view.pace.unitDays) : null
-	const allowed = limits.reduce((sum, row) => sum + row.allowed, 0)
 	// the most spent rest at the top eight, as drawn (4a); past the resting nine the rest are a press away (4d)
 	const folds = rows.length > TOP + 1
 	const all = folds ? <ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={rows.length} noun="categories" /> : null
@@ -1357,13 +1351,6 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 				: null}
 			{drawn}
 			{open && rows.length > shown ? <span className="sp-meta">Top {shown} of {amount(rows.length, 0)}. Edit on category lists them all.</span> : null}
-			{/* the whole window's spend against every limit, the same share Home states */}
-			<CardFooter>
-				<span className="sp-data">All categories</span>
-				<span className="sp-grow" />
-				<span className="sp-amount">{amount(view.spent, 0)}</span>
-				<span className="sp-meta">/ {currency(allowed, 0)}</span>
-			</CardFooter>
 			{pace != null
 				? (
 					<div className="sp-row-flex sp-gap-8">

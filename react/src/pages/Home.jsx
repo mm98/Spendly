@@ -17,7 +17,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
 import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCategoryPage, getCurrentUser, getHomeCategories, getHomeAttention, getMonthlySummary, getOrders, getSettings, getStatsSlice,
+	failureMessage, getCategoryPage, getCurrentUser, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsSlice,
 	overBudget, putSummaryAway, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -50,14 +50,12 @@ const nearLimit = (c, early) => c.budget > 0 && early < 100 && !overBudget(c) &&
 function monthView(window, list, early, top) {
 	if (!window || !list || !top) return null
 	const categories = withMonthSpend(list.limited, window.split)
-	const limits = categories.reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
 	const byOverage = c => c.monthSpend - c.budget
 	const spent = withMonthSpend(top, window.split)
 	return {
 		window,
 		count: list.count,
 		withSpend: window.split.filter(s => s.id && s.amount > 0).length,
-		limits,
 		early,
 		over: categories.filter(overBudget).sort((a, b) => byOverage(b) - byOverage(a)),
 		near: categories.filter(c => nearLimit(c, early)).sort((a, b) => b.monthSpend / b.budget - a.monthSpend / a.budget),
@@ -66,7 +64,7 @@ function monthView(window, list, early, top) {
 	}
 }
 
-/** Where a gauge's fill, overage and marker sit: the bar is the larger of spend and limit. */
+/** Where a category gauge's fill, overage and marker sit: the bar is the larger of spend and limit. */
 function against(spent, limit, pace) {
 	const scale = Math.max(spent, limit) || 1
 	return {
@@ -74,6 +72,18 @@ function against(spent, limit, pace) {
 		over: spent > limit ? ((spent - limit) / scale) * 100 : undefined,
 		marker: pace === undefined ? undefined : (pace * limit) / scale
 	}
+}
+
+/** This month's bar against one whole earlier month: full and no further once passed, never an over
+    segment; the share itself keeps counting. `pace` is the share of the month gone. */
+function againstMonth(spent, compared, pace) {
+	return { value: Math.min(100, (spent / compared) * 100), marker: pace }
+}
+
+/** The compared month by name, with its year when that is not the window's own: "July", "August 2025". */
+function comparedName(compared, window) {
+	const name = monthNames('long')[Number(compared.month.slice(5)) - 1]
+	return compared.month.slice(0, 4) === window.from.slice(0, 4) ? name : `${name} ${compared.month.slice(0, 4)}`
 }
 
 /** The window's month in the account's own language, as Statistics and the month bars write it. */
@@ -146,6 +156,7 @@ export default function Home() {
 	const recent = useApi(getOrders, [{ pageSize: RECENT }])
 	const attention = useApi(getHomeAttention)
 	const name = firstName(useApi(getCurrentUser).data)
+	const compared = useApi(getComparedMonth)
 	const settings = useApi(getSettings)
 	const loud = loudness(settings.data)
 	// the four categories that spent most this month, by the window's own figures, ties by name
@@ -174,7 +185,7 @@ export default function Home() {
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	// the card waits for the settings, so a row switched off never flashes up
-	const props = { month, categories, view, recent, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
+	const props = { month, compared, categories, view, recent, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
 }
@@ -182,7 +193,7 @@ export default function Home() {
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, categories, view, recent, attention, looks, notice }) {
+function DesktopHome({ month, compared, categories, view, recent, attention, looks, notice }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error
 	return (
@@ -195,7 +206,7 @@ function DesktopHome({ month, categories, view, recent, attention, looks, notice
 							<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={month.refresh} />
 						</Hold>
 					)
-					: <MonthCard w={month.data?.window} view={view} limitsLost={!!categories.error} lastAdded={attention?.lastAdded} />}
+					: <MonthCard w={month.data?.window} compared={compared} lastAdded={attention?.lastAdded} />}
 				<CaptureCard newest={newest} loading={recent.loading && !recent.data} />
 			</div>
 			<div className="hm-split hm-split--start sp-gap-12">
@@ -227,7 +238,7 @@ function ButtonSkeleton({ label }) {
 	)
 }
 
-function MonthCard({ w, view, limitsLost = false, lastAdded }) {
+function MonthCard({ w, compared, lastAdded }) {
 	const ago = lastAdded ? daysAgo(localDay(lastAdded)) : null
 	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
@@ -245,36 +256,39 @@ function MonthCard({ w, view, limitsLost = false, lastAdded }) {
 					<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
 					<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
 				</div>
-				{view
-					? <Limits view={view} />
-					: (
-						<div className="sp-stack sp-gap-8">
-							<Gauge value={0} untargeted={limitsLost} aria-label="Share of this month's limits used" />
-							{limitsLost
-								? <span className="sp-meta">Your limits did not load.</span>
-								: <span className="sp-meta hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
-						</div>
-					)}
+				<Limits w={w} compared={compared} />
 			</div>
 		</Card>
 	)
 }
 
-function Limits({ view }) {
-	const { window: w, limits, pace } = view
-	if (!limits) return (
+/** This month against the earlier month Settings names. It needs the month and that month's total, not the categories. */
+function Limits({ w, compared }) {
+	const lost = !!compared?.error && !compared.data
+	if (!w || !compared?.data) return (
 		<div className="sp-stack sp-gap-8">
-			<Gauge value={0} untargeted aria-label="No limit set" />
-			<span className="sp-meta">No monthly limits yet. Set one on a category to follow the month here.</span>
+			<Gauge value={0} untargeted={lost} aria-label="This month against an earlier month" />
+			{lost
+				? <span className="sp-meta">The comparison did not load.</span>
+				: <span className="sp-meta hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
 		</div>
 	)
-	const used = (w.spent / limits) * 100
-	const ahead = used > pace
+	const earlier = compared.data
+	const name = comparedName(earlier, w)
+	if (!earlier.orders) return (
+		<div className="sp-stack sp-gap-8">
+			<Gauge value={0} untargeted aria-label="This month against an earlier month" />
+			<span className="sp-meta">Nothing from {name} to compare with yet.</span>
+		</div>
+	)
+	const pace = w.pace.unitDays ? (w.pace.daysIn / w.pace.unitDays) * 100 : 100
+	const used = (w.spent / earlier.spent) * 100
+	const ahead = used > pace + 10
 	return (
 		<div className="sp-stack sp-gap-8">
-			<Gauge {...against(w.spent, limits, pace)} aria-label="Share of this month's limits used" />
+			<Gauge {...againstMonth(w.spent, earlier.spent, pace)} aria-label={`This month against ${name}`} />
 			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-meta">{amount(Math.round(used), 0)}% of {currency(limits, 0)} in limits</span>
+				<span className="sp-meta">{amount(Math.round(used), 0)}% of {currency(earlier.spent, 0)} in {name}</span>
 				<span className="sp-grow" />
 				<span className={ahead ? 'sp-meta sp-meta--over sp-row-flex sp-gap-6' : 'sp-meta sp-row-flex sp-gap-6'}>
 					<GaugeKey aria-hidden="true" />{ahead ? 'ahead of pace' : 'below pace'}
@@ -353,7 +367,12 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	const over = rows.filter(c => c.spend > c.budget).sort((a, b) => b.spend - b.budget - (a.spend - a.budget))
 	const close = early < 100 ? rows.filter(c => c.spend <= c.budget && c.used >= early).sort((a, b) => b.used - a.used) : []
 	const room = rows.filter(c => !over.includes(c) && !close.includes(c)).sort((a, b) => a.used - b.used || a.name.localeCompare(b.name))[0]
-	const limits = rows.reduce((sum, c) => sum + c.budget, 0)
+	const earlier = summary.compared
+	const gap = earlier?.orders ? summary.spent - earlier.spent : 0
+	const than = earlier ? comparedName(earlier, { from: summary.from }) : ''
+	const heading = !earlier?.orders ? `You spent ${currency(summary.spent, 0)} in ${month}`
+		: !gap ? `You spent ${currency(summary.spent, 0)}, the same as in ${than}`
+		: `You spent ${currency(summary.spent, 0)}, ${currency(Math.abs(gap), 0)} ${gap < 0 ? 'less' : 'more'} than in ${than}`
 	const of = c => `${amount(c.spend, 0)} of ${currency(c.budget, 0)}`
 	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
 	const lines = [
@@ -382,7 +401,7 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 				<div className="sp-stack sp-gap-6 sp-grow">
 					<span className="sp-section-label">{month} {summary.month.slice(0, 4)}</span>
 					<span className="sp-heading">
-						{limits ? `You spent ${currency(summary.spent, 0)} against ${amount(limits, 0)} in limits` : `You spent ${currency(summary.spent, 0)} in ${month}`}
+						{heading}
 					</span>
 					{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
 				</div>
@@ -642,7 +661,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, categories, view, recent, attention, looks, name }) {
+function PhoneHome({ month, compared, categories, view, recent, attention, looks, name }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -658,53 +677,57 @@ function PhoneHome({ month, categories, view, recent, attention, looks, name }) 
 						<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={retrying(month, categories)} />
 					</Hold>
 				)
-				: <PhoneMonth w={w} view={view} limitsLost={categories.error ? categories.refresh : null} />}
+				: <PhoneMonth w={w} compared={compared} />}
 			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
 			<PhoneRecent recent={recent} />
 		</>
 	)
 }
 
-/** `limitsLost` asks for the limits again when only they failed: the month's own figure still shows. */
-function PhoneMonth({ w, view, limitsLost }) {
-	if (w && limitsLost) return (
-		<Card>
-			<span className="sp-section-label">This month</span>
-			<span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>
-			<div className="sp-stack sp-gap-8">
-				<Gauge value={0} untargeted aria-label="Share of this month's limits used" />
-				<div className="sp-row-flex sp-gap-8">
-					<span className="sp-meta sp-grow">Your limits did not load.</span>
-					<Button variant="text" size="small" onClick={limitsLost}>Try again</Button>
-				</div>
-			</div>
-		</Card>
-	)
-	if (!view) return (
+/** The month's own figure shows at once; the bar waits for the earlier month's total, and asks again if only that failed. */
+function PhoneMonth({ w, compared }) {
+	const earlier = compared?.data
+	if (!w) return (
 		<Card>
 			<span className="sp-section-label">This month</span>
 			<span className="sp-stat__figure sp-stat__figure--large hm-line"><Skeleton shape="line" data-w="130" data-h="22" /></span>
-			<Gauge value={0} aria-label="Share of this month's limits used" />
+			<Gauge value={0} aria-label="This month against an earlier month" />
 		</Card>
 	)
-	const { limits, pace } = view
+	if (!earlier) return (
+		<Card>
+			<span className="sp-section-label">This month</span>
+			<span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>
+			<Gauge value={0} untargeted={!!compared?.error} aria-label="This month against an earlier month" />
+			{compared?.error
+				? (
+					<div className="sp-row-flex sp-gap-8">
+						<span className="sp-meta sp-grow">The comparison did not load.</span>
+						<Button variant="text" size="small" onClick={compared.refresh}>Try again</Button>
+					</div>
+				)
+				: null}
+		</Card>
+	)
+	const name = comparedName(earlier, w)
+	const pace = w.pace.unitDays ? (w.pace.daysIn / w.pace.unitDays) * 100 : 100
 	return (
 		<Card>
 			<span className="sp-section-label">This month</span>
-			{limits
+			{earlier.orders
 				? (
 					<div className="sp-row-flex sp-gap-8 sp-baseline">
 						<span className="sp-stat__figure sp-stat__figure--large">{amount(w.spent, 0)}</span>
-						<span className="sp-data sp-ink-5">of {currency(limits, 0)}</span>
+						<span className="sp-data sp-ink-5">of {currency(earlier.spent, 0)} in {name}</span>
 					</div>
 				)
 				: <span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>}
-			{limits
-				? <Gauge {...against(w.spent, limits, pace)} aria-label="Share of this month's limits used" />
+			{earlier.orders
+				? <Gauge {...againstMonth(w.spent, earlier.spent, pace)} aria-label={`This month against ${name}`} />
 				: (
 					<div className="sp-stack sp-gap-8">
-						<Gauge value={0} untargeted aria-label="No limit set" />
-						<span className="sp-meta">No monthly limits yet. Set one on a category to follow the month here.</span>
+						<Gauge value={0} untargeted aria-label="This month against an earlier month" />
+						<span className="sp-meta">Nothing from {name} to compare with yet.</span>
 					</div>
 				)}
 		</Card>
