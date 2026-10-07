@@ -408,9 +408,11 @@ export default function Statistics() {
 	const categoryCrumb = crumbs.find(c => c.kind === 'category')
 	const statusCrumb = crumbs.find(c => c.kind === 'status')
 	const category = categoryCrumb && crumbCategories?.find(c => c.id === categoryCrumb.value)
+	// a limit counts only for a category that spent in this period, as the Monthly limit card draws it
+	const spentIn = new Set((view.split ?? []).filter(entry => entry.amount > 0).map(entry => entry.id))
 	const limit = flow === 'refunds' || vendorCrumb || statusCrumb ? 0
 		: categoryCrumb ? category?.budget ?? 0
-			: (categories.data ?? []).reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
+			: (categories.data ?? []).reduce((sum, c) => sum + (c.budget > 0 && spentIn.has(c.id) ? c.budget : 0), 0)
 	const records = crumbs.filter(c => !isTime(c)).map(c => crumbLabel(c, labels))
 	const narrowed = records.length ? `${records.join(dot)}${records.length === 1 ? ' only' : ''}` : null
 
