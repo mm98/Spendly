@@ -45,6 +45,14 @@
     }
   }
 
+  /* A back control in a phone top bar is labelled Back. Caught: three in Mobile
+     screens labelled "Action", read aloud as a generic action. */
+  for (const f of pages) {
+    for (const m of src[f].matchAll(/<button[^>]*aria-label="([^"]*)"[^>]*><svg[^>]*><path d="M15 6l-6 6l6 6" \/><\/svg><\/button>\s*<div class="sp-stack sp-gap-6/g)) {
+      if (m[1] !== 'Back') fail('Back is labelled Back', f, 'back control labelled "' + m[1] + '"');
+    }
+  }
+
   /* Status and Kind are selects. Statuses are custom per user (Settings), so they are
      never a fixed segmented set, and Kind is a closed list, never free text. Caught:
      Status drawn as a segmented control and Kind as a text input in Order create,
