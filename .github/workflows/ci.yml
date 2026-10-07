@@ -1,11 +1,9 @@
 name: CI
 
-# On main as well as on pull requests, and the second run is not the waste it looks like:
-# docker.yml waits for it, so this is what decides whether an image is built and pulled by the
-# NAS at all. A pull request checks the branch; this checks the commit that actually ships,
-# which is not the same tree whenever main moved under the branch while it sat open.
+# Runs once, when a change lands on main, and docker.yml waits for it: what decides whether an
+# image is built and pulled by the NAS is the commit that actually ships. A pull request is
+# not checked before it is merged.
 on:
-  pull_request:
   push:
     branches: [main]
 
@@ -55,27 +53,6 @@ jobs:
       - run: npm ci
       - run: npm run queries:check
 
-  # The deploy image still builds, with the language model fetched into it. Only when something it is
-  # made from changed: a build of the whole image costs minutes, and docker.yml builds it again on main.
-  image:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - id: changed
-        run: |
-          if git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | grep -qE '^(Dockerfile|\.dockerignore|api/package(-lock)?\.json|api/model\.json|api/scripts/fetch-model\.mjs)$'; then echo "build=yes" >> "$GITHUB_OUTPUT"; fi
-      - if: steps.changed.outputs.build == 'yes'
-        uses: docker/setup-buildx-action@v4
-      - if: steps.changed.outputs.build == 'yes'
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: false
-
   # Every control that opens a new browsing context carries rel="noopener". Whole tree, not the
   # diff: one that lands without it is wrong every day after, and a diff-scoped guard would let
   # it through forever once merged.
@@ -103,9 +80,9 @@ jobs:
           node-version: 24
       - run: node scripts/check-comments.mjs
         env:
-          # A push has no pull_request to read: github.event.before is the main this one
-          # landed on, so the diff is what the merge actually brought in.
-          CHECK_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          # github.event.before is the main this push landed on, so the diff is what the merge
+          # actually brought in.
+          CHECK_BASE_SHA: ${{ github.event.before }}
 
   # Lighthouse against the built bundle served by the API process -- the deployed shape, not
   # the dev server, which serves unminified modules one file per import and scores something
@@ -114,7 +91,7 @@ jobs:
   # it; performance is printed and never gated, because a stopwatch on a shared runner fails
   # for reasons a change did not cause.
   #
-  # Runs on every push and pull request now, not main only: the script itself (registering an
+  # Runs on every push to main: the script itself (registering an
   # account, filling it with demo data, driving Chrome through puppeteer-core) has moved parts
   # that a push-to-main-only gate never exercises before landing, and a break in it -- the kind
   # #173 shipped, caught only after merge -- is exactly what a PR run is for. The floor is what

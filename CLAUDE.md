@@ -110,8 +110,8 @@ have to. Putting screens together from its patterns is the build's job:
 ### `npm run queries:check` is the standing guard, and it is a guard rather than a goal
 
 `api/scripts/check-queries.mjs` captures every SQL statement the API runs against a seeded account,
-reads back SQLite's plan for each, and compares against `api/query-plans.json`. Runs in CI on every
-PR. `npm run queries:bless` records the current plans as accepted.
+reads back SQLite's plan for each, and compares against `api/query-plans.json`. Runs in CI when a change
+lands on main. `npm run queries:bless` records the current plans as accepted.
 
 It reports only what changed, so review only has to judge the new plan, not re-litigate every plan already accepted.
 A finding fires when a new/changed statement scans a big table, sorts in a temp B-tree, walks a whole
