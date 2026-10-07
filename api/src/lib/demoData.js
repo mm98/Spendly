@@ -218,7 +218,10 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 			day = Math.max(1, Math.min(maxDay, day))
 			const date = iso(new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), day)))
 
-			const category = pick(categoryIds)
+			// Nought to four categories, each count as likely as the next; the items follow the first.
+			const left = [...categoryIds]
+			const chosen = Array.from({ length: Math.floor(rnd() * 5) }, () => left.splice(Math.floor(rnd() * left.length), 1)[0])
+			const category = chosen[0] ?? pick(categoryIds)
 			const pool = ITEMS[category.name]
 			const size = 1 + Math.floor(rnd() * Math.min(5, pool.length))
 			const target = 90 * Math.pow(1.16, Math.floor(rnd() * 26))     // ~90..4200 kr
@@ -245,12 +248,7 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 					statuses.push([newId('os'), id, 'Returned',
 						Math.min(deliveredEpoch + (1 + Math.floor(rnd() * 6)) * 86400, todayEpoch)])
 			}
-			const categories = [category.id]
-			// A second category on some orders, so the breakdown has multi-category spend to split.
-			if (rnd() < 0.22) {
-				const other = pick(categoryIds)
-				if (other.id !== category.id) categories.push(other.id)
-			}
+			const categories = chosen.map(c => c.id)
 			const items = draft.map(({ src, quantity }, position) => {
 				const price = round2(Math.max(4, src[1] * scale))
 				// Most lines were bought under retail; some at it, so "saved" is not a constant.
