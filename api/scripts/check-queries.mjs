@@ -152,6 +152,8 @@ Database.prototype.prepare = function (sql, ...rest) {
 
 /* ---- seed, then drive ---- */
 
+// the plans do not depend on which model turns an item name into numbers, so none is loaded
+process.env.SPENDLY_EMBEDDER = 'shapes'
 const { db } = await import('../src/db.js')
 const { seedAccountDefaults } = await import('../src/seed.js')
 const { populateDemoData } = await import('../src/lib/demoData.js')
@@ -223,6 +225,7 @@ db.prepare('INSERT INTO imports (id, user_id, file_name, created_at) VALUES (?, 
 db.exec('ANALYZE')
 
 const { app } = await import('../src/app.js')
+const { idle } = await import('../src/lib/categoryModel.js')
 const server = app.listen(0)
 await new Promise(resolve => server.once('listening', resolve))
 const BASE = `http://127.0.0.1:${server.address().port}/api`
@@ -354,6 +357,9 @@ for (const [method, path, body] of [
 	['PATCH', '/settings', { looks: { receipt: true } }],
 	['GET', '/stats/home'],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
+	['POST', '/categories/suggestions', { items: ['Ceiling lamp', 'Duvet cover'] }],
+	// the names it embedded in the background are stored by now, so the next one reads them back
+	['POST', '/categories/suggestions', { items: ['Ceiling lamp', 'Duvet cover'], wait: true }],
 	['DELETE', `/views/sv-${USER}-receipt`],
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
@@ -361,6 +367,7 @@ for (const [method, path, body] of [
 	// last, since it takes the order every write above was made against
 	['POST', '/orders/bulk', { ids: [ids.order], delete: true }]
 ]) {
+	if (body?.wait) await idle()
 	const response = await fetch(BASE + path, {
 		method, headers: { ...H, 'Content-Type': 'application/json' }, body: body && JSON.stringify(body)
 	})

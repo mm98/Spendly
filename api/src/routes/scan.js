@@ -10,6 +10,7 @@ import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdForReceipt } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
+import { describe, listedNames } from '../lib/categorySuggest.js'
 import { resolveStatus } from '../lib/statuses.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
@@ -266,7 +267,7 @@ function readOnce(userId, upload, today, onProgress, res) {
 	if (!reading) {
 		const listeners = new Set()
 		const waiting = new Set()
-		const promise = parseReceipt(upload, today, progress => { for (const fn of listeners) fn(progress) })
+		const promise = parseReceipt(upload, today, progress => { for (const fn of listeners) fn(progress) }, listedNames(userId))
 			.then(result => {
 				// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
 				if (!result.failure && result.read?.lines.length) {
@@ -368,7 +369,7 @@ function draftOf(req, upload, read, failure) {
 				: process.env.ANTHROPIC_API_KEY
 					? 'This document could not be read automatically. Add the line items and totals below yourself.'
 					: 'This document has not been read automatically. Add the line items and totals below yourself.',
-			checks: [], unclear: [], duplicate: null
+			checks: [], unclear: [], duplicate: null, suggestions: []
 		}
 	}
 
@@ -390,6 +391,8 @@ function draftOf(req, upload, read, failure) {
 
 	return {
 		documentKey: upload.id, file, failure: null, found: null,
+		// the scan's own category suggestions, as they stand against the account's categories now
+		suggestions: describe(req.user.id, read.suggestions ?? []),
 		reference: read.reference ?? '', unclear: read.unclear ?? [],
 		// The document's own spelling once reached the review screen even when the vendor
 		// matched -- a receipt printing "BILKA" against a vendor named "Bilka" showed the

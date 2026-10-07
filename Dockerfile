@@ -27,13 +27,26 @@ RUN apt-get update \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY api/package.json api/package-lock.json api/
-RUN npm --prefix api ci --omit=dev
+# onnxruntime-node ships its CPU build in the package; its install script only fetches GPU extras
+ENV ONNXRUNTIME_NODE_INSTALL=skip
+# the browser build and the other platforms' binaries are never run here
+RUN npm --prefix api ci --omit=dev \
+	&& rm -rf api/node_modules/onnxruntime-web api/node_modules/onnxruntime-node/bin/napi-v6/darwin api/node_modules/onnxruntime-node/bin/napi-v6/win32
+
+# The language model category suggestions use, fetched once and kept as its own layer: it changes
+# only with api/model.json, not with the code. The app never downloads it while it runs.
+FROM apideps AS model
+COPY api/model.json api/model.json
+COPY api/scripts/fetch-model.mjs api/scripts/fetch-model.mjs
+RUN SPENDLY_MODEL_DIR=/app/models node api/scripts/fetch-model.mjs
 
 FROM node:22-bookworm-slim
 ENV NODE_ENV=production
 WORKDIR /app
 COPY api api
 COPY --from=apideps /app/api/node_modules api/node_modules
+COPY --from=model /app/models models
+ENV SPENDLY_MODEL_DIR=/app/models
 COPY --from=build /app/react/dist react/dist
 ENV SPENDLY_DB=/data/spendly.sqlite3
 # The build stamp /api/version answers with, so the UI can say which image is running and a

@@ -3780,6 +3780,8 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
   font-size: var(--t-13);
 }
 .sp-tokens:focus-within { border-color: var(--green); box-shadow: var(--ring); }
+/* with a trail button (the bulb in Order create 3a) the values stop short of it */
+.sp-field__wrap > .sp-tokens:has(+ .sp-field__trail) { padding-right: calc(var(--field-trail) + 2 * var(--sp-6)); }
 .sp-tokens__add {
   border: 0;
   background: none;

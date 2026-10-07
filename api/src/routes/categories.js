@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { describe, fromModel, suggestFromHistory } from '../lib/categorySuggest.js'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { findCategoryByFold, nextCategoryColour } from '../lib/findOrCreate.js'
@@ -91,6 +92,16 @@ router.post('/known', (req, res) => {
 	const names = Array.isArray(req.body?.names) ? req.body.names.map(n => String(n ?? '').trim()).filter(Boolean) : []
 	if (names.length > 5000) return res.status(400).json({ error: 'Too many names at once.' })
 	res.json({ known: knownCategoryNames(req.user.id, [...new Set(names)]) })
+})
+
+/** Up to three categories for an order's items. By default from the account's earlier orders; with
+    `model` set, from a model, which can also offer a category that does not exist yet. */
+router.post('/suggestions', async (req, res) => {
+	const { items, vendor, exclude, model } = req.body ?? {}
+	if (!Array.isArray(items) || items.length > 100) return res.status(400).json({ error: 'Send the item names as a list of up to 100.' })
+	const asked = { items, exclude, vendor: String(vendor ?? '').trim().slice(0, 80) }
+	if (model) return res.json(await fromModel(req.user.id, asked))
+	res.json({ suggestions: describe(req.user.id, await suggestFromHistory(req.user.id, asked)), failure: null })
 })
 
 router.post('/', (req, res) => {

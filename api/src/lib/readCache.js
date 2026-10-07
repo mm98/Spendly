@@ -23,6 +23,8 @@
    request is exactly the work this file exists to skip. The X-Cache header says which case
    answered, so a log or a devtools pane can tell a recompute from a replay. */
 
+import { forgetModel } from './categoryModel.js'
+
 const TTL_MS = 60 * 1000
 const MAX_URLS_PER_USER = 100
 const MAX_USERS = 500
@@ -40,8 +42,12 @@ const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 export const forgetReads = userId => { byUser.delete(userId) }
 
 export function readCache(req, res, next) {
+	// a question asked with a body writes nothing
+	if (req.method === 'POST' && req.path === '/suggestions' && req.baseUrl === '/api/categories') return next()
 	if (WRITES.has(req.method)) {
 		byUser.delete(req.user.id)
+		// a changed order or category changes what the account's category suggestions are learned from
+		forgetModel(req.user.id)
 		// and again once it ends: a read made while a write awaits caches its half-done state
 		res.on('close', () => byUser.delete(req.user.id))
 		return next()

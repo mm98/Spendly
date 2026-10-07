@@ -141,6 +141,11 @@ await order('A draft', { vendor: 'Coopp', date: day(-1), status: 'Draft', items:
 await order('Cancelled', { vendor: 'Coopp', date: day(-6), status: 'Cancelled' })
 await order('Returned', { vendor: 'Coopp', date: day(-9), status: 'Returned', deliveredDate: day(-8), returnedDate: day(-5) })
 await order('Refunded', { vendor: 'Coopp', date: day(-7), refunded: true })
+// category suggestions: items that earlier orders filed under one category, and an order that has none yet
+await makeCategory('Suggest lighting')
+for (const [n, title] of [['1', 'Ceiling lamp LED 60W'], ['2', 'LED ceiling lamp white'], ['3', 'Ceiling lamp dimmable']])
+	await order(`suggest lamp ${n}`, { vendor: 'Alias shop', date: day(-10 - Number(n)), categories: ['Suggest lighting'], items: [{ title, quantity: 1, price: 250 }] })
+await order('suggest open', { vendor: 'Alias shop', date: day(-1), items: [{ title: 'Ceiling lamp', quantity: 1, price: 250 }] })
 await order('Saved against retail', { vendor: 'Alias shop', date: day(-8), shipping: 49, discount: 30, categories: ['Favourite with limit', 'Filler 02', 'Filler 03'],
 	items: [{ title: 'Retail price above price', quantity: 2, price: 400, retail: 600, url: 'https://example.dk/product?utm_source=news' }, { title: 'Second line', quantity: 1, price: 50, note: 'a note' }] })
 await order('Many long lines', { vendor: 'Edge favourite shop', date: day(-10),
