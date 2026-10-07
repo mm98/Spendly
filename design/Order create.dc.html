@@ -880,6 +880,187 @@
   </div>
 </section>
 
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="3d">3d</span>
+    <span class="doc-section__title">A receipt added to an existing order</span>
+  </div>
+  <div class="doc-lede">A receipt dropped on an order that already exists (Attachments, <a href="Order editing layouts.dc.html#1d">1d</a>) can check the order's lines. The question is 3c's interruption, the comparison is 3a's review with the order on one side, and the result is an order marked as validated.</div>
+
+  <div class="doc-specimens">
+    <div class="oc-col--narrow sp-stack sp-gap-16">
+      <div class="doc-specimen">
+        <span class="doc-specimen__label">1 - Always asked, on upload</span>
+        <div class="oc-stage">
+          <div class="sp-dialog" role="dialog" aria-label="Compare with this receipt?">
+            <span class="sp-heading">Compare with this receipt?</span>
+            <span class="sp-dialog__body">receipt-0910.jpg is added to Indbo Møbler, 08/08/2026. Compare it to see where its lines differ from the order and pick which to keep.</span>
+            <div class="sp-dialog__actions">
+              <button type="button" class="sp-btn sp-btn--outline sp-grow">Attach only</button>
+              <button type="button" class="sp-btn sp-grow">Compare</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="doc-specimen">
+        <span class="doc-specimen__label">2 - The receipt looks like another order</span>
+        <div class="oc-stage">
+          <div class="sp-dialog" role="dialog" aria-label="This receipt may belong to another order">
+            <span class="sp-heading">This receipt may belong to another order</span>
+            <span class="sp-dialog__body">The receipt is from Hay, 3.240,00 kr. This order is Indbo Møbler, 3.980,00 kr.</span>
+            <div class="sp-dialog__actions">
+              <button type="button" class="sp-btn sp-btn--outline sp-grow">Compare anyway</button>
+              <button type="button" class="sp-btn sp-grow">Attach only</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="oc-notes-col">
+      <div class="doc-notes">
+        <span class="doc-notes__label">Notes for implementation</span>
+        <div class="doc-note"><b>Always asked.</b> Every receipt added to an existing order opens dialog 1, from the Attachments filmstrip or by drop, on desktop and phone. Attach only stores the file and nothing else. A file whose hash matches one already on this order goes to 3c instead.</div>
+        <div class="doc-note"><b>Dialog 2 comes after the reading.</b> Compare reads the receipt first; if its vendor is not the order's vendor (matched by alias, as a scan matches vendors), or its total is more than 25% away from the order's, dialog 2 replaces the comparison. Attach only is the primary there. Compare anyway opens the comparison as normal.</div>
+        <div class="doc-note"><b>Nothing changes until Apply.</b> Cancel on the comparison keeps the file attached and leaves the lines as they were. The order is not marked as validated.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">3 - The comparison</span>
+      <div class="doc-screen doc-frame">
+        <div class="sp-topbar">
+          <div class="sp-picker__search doc-w400">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+            <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+          </div>
+        </div>
+        <div class="sp-shell__body">
+        <div class="sp-alert">
+          <span class="sp-alert__mark" aria-hidden="true">!</span>
+          <div class="sp-alert__body">
+            <span class="sp-alert__title">4 lines differ from the receipt.</span>
+            <span class="sp-alert__note">The receipt's version is picked on each line. Change any you want to keep from the order.</span>
+          </div>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Jump to first</button>
+        </div>
+        <div class="sp-shell__body--split">
+          <div class="sp-stack sp-gap-12">
+            <div class="sp-card">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-section-label">Lines that differ · 4</span>
+                <span class="sp-grow"></span>
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Accept all from receipt</button>
+              </div>
+              <div class="sp-stack sp-gap-8">
+<div class="sp-list-item" data-color="warning"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stacked"><span class="sp-title sp-truncate">Hay - Palissade chair</span><span class="sp-subtitle sp-ink-warning">Price differs: 890,00 kr. on the order, 940,00 kr. on the receipt</span></span><span class="sp-grow"></span><div class="sp-segmented" role="radiogroup" aria-label="3d-hay"><label class="sp-segmented__item" data-label="Order"><input type="radio" name="3d-hay"><span class="sp-label">Order</span></label><label class="sp-segmented__item" data-label="Receipt"><input type="radio" name="3d-hay" defaultChecked="{{ true }}"><span class="sp-label">Receipt</span></label></div><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.880,00 kr.</span><span class="sp-amount-secondary sp-void">1.780,00 kr.</span></div></div>
+<div class="sp-list-item" data-color="warning"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stacked"><span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span><span class="sp-subtitle sp-ink-warning">Name on the receipt: Ambit Rail Lamp, black</span></span><span class="sp-grow"></span><div class="sp-segmented" role="radiogroup" aria-label="3d-lamp"><label class="sp-segmented__item" data-label="Order"><input type="radio" name="3d-lamp"><span class="sp-label">Order</span></label><label class="sp-segmented__item" data-label="Receipt"><input type="radio" name="3d-lamp" defaultChecked="{{ true }}"><span class="sp-label">Receipt</span></label></div><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00 kr.</span></div></div>
+<div class="sp-list-item" data-color="warning"><input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Add Muuto - Ambit bulb E27"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stacked"><span class="sp-title sp-truncate">Muuto - Ambit bulb E27</span><span class="sp-subtitle sp-ink-warning">Only on the receipt - ticked lines are added</span></span><span class="sp-grow"></span><div class="sp-stacked sp-cell-amount"><span class="sp-amount">149,00 kr.</span></div></div>
+<div class="sp-list-item" data-color="warning"><input type="checkbox" class="sp-check" aria-label="Keep Ferm Living - Vuelta vase"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stacked"><span class="sp-title sp-truncate">Ferm Living - Vuelta vase</span><span class="sp-subtitle sp-ink-warning">Not on the receipt - removed unless ticked</span></span><span class="sp-grow"></span><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-void">630,00 kr.</span></div></div>
+              </div>
+              <span class="sp-meta">1 line matches the receipt: Vitra - Nuage Céramique</span>
+            </div>
+          </div>
+          <div class="sp-panel">
+            <div class="sp-card">
+              <span class="sp-section-label">Totals</span>
+              <div class="sp-stack">
+                <div class="sp-sum"><span class="sp-ink-2">Order now</span><span class="sp-sum__value">3.980,00 kr.</span></div>
+                <div class="sp-sum"><span class="sp-ink-2">After changes</span><span class="sp-sum__value">3.599,00 kr.</span></div>
+                <div class="sp-sum"><span class="sp-ink-2">On the receipt</span><span class="sp-sum__value">3.599,00 kr.</span></div>
+              </div>
+              <span class="sp-pill" data-color="success">Totals match</span>
+              <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+                <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+                <button type="button" class="sp-btn">Apply 4 changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Item lines only.</b> Vendor, date, totals and reference are not compared. Lines are paired by normalised name, then by amount; a pair with the same amount and a different name is a name difference, not two lines.</div>
+    <div class="doc-note"><b>Four line cases, and the receipt wins by default in each.</b> On both, price or quantity differs: Order / Receipt, Receipt picked. On both, name differs: the same choice. Only on the receipt: ticked, so it is added. Only on the order: unticked, so it is removed. The amount column shows the result, with the value being replaced struck through beneath it, or the whole amount struck through for a line that goes.</div>
+    <div class="doc-note"><b>Only the differences are listed.</b> Lines that match are counted under the list, not repeated. When nothing differs, the comparison is skipped: the order is marked as validated and the green banner says so.</div>
+    <div class="doc-note"><b>Accept all from receipt</b> sets every line back to its default, after the user has changed some. There is no bulk "keep the order"; that is Cancel.</div>
+    <div class="doc-note"><b>The button counts the changes.</b> "Apply 4 changes" follows the lines as they are picked: a line set to Order, or a receipt-only line unticked, drops out of the count. At zero it reads "Mark validated". The Totals pill follows 3a: green when After changes equals On the receipt, amber with the gap otherwise.</div>
+  </div>
+
+  <div class="doc-specimens sp-touch">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">4 - Phone</span>
+      <div class="sp-phone">
+        <div class="sp-topbar sp-topbar--touch">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <div class="sp-stack sp-gap-6 sp-grow sp-truncate">
+            <span class="sp-title sp-truncate">Compare with receipt</span>
+            <span class="sp-meta sp-truncate">Indbo Møbler · 08/08/2026</span>
+          </div>
+        </div>
+        <div class="sp-alert">
+          <span class="sp-alert__mark" aria-hidden="true">!</span>
+          <div class="sp-alert__body">
+            <span class="sp-alert__title">4 lines differ from the receipt.</span>
+            <span class="sp-alert__note">The receipt's version is picked on each line. Change any you want to keep from the order.</span>
+          </div>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Jump to first</button>
+        </div>
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-section-label">Lines that differ · 4</span>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Accept all</button>
+          </div>
+          <div class="sp-stack sp-gap-8">
+<div class="sp-list-item sp-list-item--top" data-color="warning"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stack sp-gap-8 sp-grow"><span class="sp-stacked"><span class="sp-title sp-truncate">Hay - Palissade chair</span><span class="sp-subtitle sp-ink-warning">Price differs: 890,00 kr. on the order, 940,00 kr. on the receipt</span></span><div class="sp-segmented" role="radiogroup" aria-label="3d-m-hay"><label class="sp-segmented__item" data-label="Order"><input type="radio" name="3d-m-hay"><span class="sp-label">Order</span></label><label class="sp-segmented__item" data-label="Receipt"><input type="radio" name="3d-m-hay" defaultChecked="{{ true }}"><span class="sp-label">Receipt</span></label></div></span><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.880,00 kr.</span><span class="sp-amount-secondary sp-void">1.780,00 kr.</span></div></div>
+<div class="sp-list-item sp-list-item--top" data-color="warning"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stack sp-gap-8 sp-grow"><span class="sp-stacked"><span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span><span class="sp-subtitle sp-ink-warning">Name on the receipt: Ambit Rail Lamp, black</span></span><div class="sp-segmented" role="radiogroup" aria-label="3d-m-lamp"><label class="sp-segmented__item" data-label="Order"><input type="radio" name="3d-m-lamp"><span class="sp-label">Order</span></label><label class="sp-segmented__item" data-label="Receipt"><input type="radio" name="3d-m-lamp" defaultChecked="{{ true }}"><span class="sp-label">Receipt</span></label></div></span><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00 kr.</span></div></div>
+<div class="sp-list-item sp-list-item--top" data-color="warning"><input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Add Muuto - Ambit bulb E27"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stack sp-gap-8 sp-grow"><span class="sp-stacked"><span class="sp-title sp-truncate">Muuto - Ambit bulb E27</span><span class="sp-subtitle sp-ink-warning">Only on the receipt - ticked lines are added</span></span></span><div class="sp-stacked sp-cell-amount"><span class="sp-amount">149,00 kr.</span></div></div>
+<div class="sp-list-item sp-list-item--top" data-color="warning"><input type="checkbox" class="sp-check" aria-label="Keep Ferm Living - Vuelta vase"><span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span><span class="sp-stack sp-gap-8 sp-grow"><span class="sp-stacked"><span class="sp-title sp-truncate">Ferm Living - Vuelta vase</span><span class="sp-subtitle sp-ink-warning">Not on the receipt - removed unless ticked</span></span></span><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-void">630,00 kr.</span></div></div>
+          </div>
+          <span class="sp-meta">1 line matches the receipt</span>
+        </div>
+        <div class="sp-savebar"><span class="sp-subtitle sp-grow">Total 3.599,00 kr.</span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Apply 4</button></div>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">5 - After Apply</span>
+      <div class="sp-stack sp-gap-16 doc-w440">
+        <div class="sp-alert" data-color="success">
+          <span class="sp-alert__mark" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+          <div class="sp-alert__body">
+            <span class="sp-alert__title">Validated against receipt-0910.jpg.</span>
+            <span class="sp-alert__note">4 changes applied. The receipt is kept as an attachment.</span>
+          </div>
+        </div>
+        <div class="sp-card">
+          <span class="sp-section-label">Order details</span>
+          <div class="sp-stack">
+            <div class="sp-sum"><span class="sp-ink-2">Status</span><span class="sp-sum__value">Delivered</span></div>
+            <div class="sp-sum"><span class="sp-ink-2">Delivered</span><span class="sp-sum__value">09/08/2026</span></div>
+            <div class="sp-sum"><span class="sp-ink-2">Validated</span><span class="sp-sum__value">07/10/2026</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Phone</b> - The same rows. Below 900px the Order / Receipt choice moves under the line's subtitle, as the line editor's fields do in <a href="Order editing layouts.dc.html#1c">1c</a>; the amount stays at the trailing edge. Totals collapse into the save bar.</div>
+    <div class="doc-note"><b>Validated</b> - A row in Order details (<a href="Order editing layouts.dc.html#1a">1a</a>), after the status date, with the date it was applied. It stays when the lines are edited later; only removing the receipt it was validated against removes it. Stored with the attachment id. An order never validated has no row.</div>
+    <div class="doc-note"><b>Entry from 1d</b> - Adding a file to Attachments in <a href="Order editing layouts.dc.html#1d">1d</a> while the order has unsaved changes saves nothing: dialog 1 offers Attach only, and Compare is disabled with the help line "Save your changes first."</div>
+  </div>
+</section>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">

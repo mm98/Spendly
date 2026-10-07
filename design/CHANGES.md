@@ -1,49 +1,40 @@
-# Spendly - changes since handoff_2026_10_07d_changes_fixed
+# Spendly - changes since handoff_2026_10_07e_changes_fixed
 
-Fixed in this copy: Status and Kind were changed to a combobox only in Order editing layouts 1d. Every other page still drew Status as a segmented control or text input and Kind as a text input. They are now the same combobox everywhere (section 5), and styles/check.js asserts it.
+Copy these files over handoff_2026_10_07e_changes_fixed.
 
-Copy these files over handoff_2026_10_07d_changes_fixed.
+## 1. A receipt added to an existing order (Order create 3d)
+Built from 3a (scan review) and 3c (upload interruption). No new components.
 
-## 1. Edit order: Status is a select, and each status has its own date (Order editing layouts 1d)
-- Status is a combobox (`sp-combobox`), not a segmented control. Statuses are custom per user, set up in Settings: names, count and order differ between users. The options are that user's statuses in Settings order. The names in the mockup (Draft, Ordered, Delivered, Returned, Cancelled) are example data; no status name is special in code.
-- Each status is mapped to a date in Settings: either the order's Date, or a date of its own.
-  - A status mapped to the order's Date (Ordered in the example) shows nothing extra.
-  - A status with its own date shows a date field under Status, labelled with the status name ("Delivered"). Date only, no time.
-- Picking a status with no date yet fills in today, with the help line "Set to today. Change it if it happened earlier." Picking a status that already has a date restores the saved one. Nothing is written until Save.
-- Validation on blur and on save: a status date before the order's Date is an error ("Can't be before the order date, 08/08/2026.") and blocks the save. A future date is allowed.
+- Dialog 1, always asked when a receipt is added to an existing order: "Compare with this receipt?" - Attach only / Compare. A file whose hash is already on the order goes to 3c instead.
+- Dialog 2, after reading, when the receipt's vendor is not the order's vendor or its total is more than 25% away: "This receipt may belong to another order" - Compare anyway / Attach only (primary).
+- The comparison is 3a's review screen with the order on one side:
+  - Amber banner: "4 lines differ from the receipt." with Jump to first.
+  - "Lines that differ" card lists only differing lines; matching lines are counted under it.
+  - Item lines only. Lines are paired by normalised name, then amount.
+  - Four cases, receipt wins by default: price or quantity differs (Order / Receipt, Receipt picked), name differs (same choice), only on the receipt (ticked, added), only on the order (unticked, removed).
+  - Amount column shows the result; a replaced value is struck through beneath it (`sp-void`), a removed line's amount is struck through.
+  - "Accept all from receipt" resets every line to its default.
+  - Totals panel: Order now, After changes, On the receipt, with 3a's Totals pill.
+  - Footer: Cancel / "Apply 4 changes". The count follows the picks; at zero it reads "Mark validated".
+  - Nothing changes until Apply. Cancel keeps the file attached and the lines as they were.
+  - When nothing differs the comparison is skipped and the order is marked validated.
+- Phone: the same rows; the Order / Receipt choice sits under the line's subtitle, the total moves into the save bar.
+- After Apply: green banner "Validated against receipt-0910.jpg." and a "Validated" row with the date in Order details. It stays when lines are edited later; removing that receipt removes it.
+- With unsaved changes on the order, Compare is disabled ("Save your changes first.").
 
-## 2. Edit order: Kind is a select (Order editing layouts 1d)
-- Kind is the same combobox as Status and Vendor, options Expense and Income.
-
-## 3. Order read view (Order editing layouts 1a)
-- Status moved from a pill in the Items header to a plain-text row in Order details.
-- New row under Status: the current status's date, labelled with the status name ("Delivered 09/08/2026"). A status mapped to the order's Date has no extra row.
-- Order details rows follow the edit screen's field order: Vendor, Date, Kind, Status, status date, Categories, Reference, Note.
-- Note is shown only when the order has one. Its text sits in a full-width `sp-well` (bordered, no ground) at regular weight, line breaks kept.
-
-## 4. styles/components.css
-- Added: `.sp-sum--stacked > .sp-well { align-self: stretch; }`, so a well under a stacked sum label takes the full width. No existing rule changed.
-
-## 5. Status and Kind are the same combobox on every page
-- Order create: Status (both places, was a segmented control) and Kind (both places, was a text input).
-- Responsive reference: Status in the field grid specimens (two were segmented controls, one a text input). The one-off status "Received" is gone; options match 1d.
-- States and confirmations: Kind (was a text input).
-- Markup is identical to 1d (`sp-combobox`, trigger, panel, check on the selected option).
+## 2. Edit order (Order editing layouts 1d)
+- New note: adding a file to Attachments asks whether to compare it (links to 3d).
 
 ## Open
-- Home's "Orders not delivered" rule depends on a status named Ordered. With custom statuses it needs a rule that does not depend on a name.
+- Read view 1a does not draw the Validated row yet.
+- The 25% total threshold for "may belong to another order" is a proposal.
 - Bulk "Set status" in the order list does not ask for the status date.
+- Home's "Orders not delivered" rule depends on a status named Ordered.
 - Phone edit (1c) still shows the status as a pill in the top bar.
-- Whether earlier status dates (Delivered, then Refund) should stay visible once the status moves on.
 
 ## Check (styles/check.js)
-- New rule "Status and Kind are selects": every field labelled Status or Kind must be an `sp-combobox`. Swept on the label text, not on a class. Run against the previous Order create it flags all 4 fields.
-- Result: 0 findings across 26 pages.
+- Unchanged. Result: 0 findings across 26 pages.
 
 ## Files
-- Order editing layouts.dc.html
 - Order create.dc.html
-- Responsive reference.dc.html
-- States and confirmations.dc.html
-- styles/components.css
-- styles/check.js
+- Order editing layouts.dc.html
