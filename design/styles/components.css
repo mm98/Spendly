@@ -2607,8 +2607,9 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
   flex: none;
   border-radius: var(--r-pill);
 }
-/* a bar in a chart that has not arrived */
-.sp-skeleton--bar { flex: 1; border-radius: 2px; height: auto; align-self: stretch; }
+/* a bar in a chart that has not arrived: it stands on the chart's baseline, as the bar
+   it stands in for does. align-self: stretch put a bar with a height on the chart's top. */
+.sp-skeleton--bar { flex: 1; border-radius: 2px; height: auto; align-self: flex-end; }
 
 .sp-skeleton--mark { width: var(--mark-medium); height: var(--mark-medium); border-radius: var(--r-tile); flex: none; }
 /* the mark at its form size, for a skeleton standing in for a --row card's thumbnail */

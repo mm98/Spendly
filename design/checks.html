@@ -65,6 +65,17 @@ const PAGES = ['Actions inventory','Auth and first run','Bookmarks','Budget','Co
    caught a real defect; `why` names it, so nobody has to guess whether it matters. */
 const RULES = [
 {
+  id: 'a chart bar stands on the baseline',
+  why: 'The loading bars on States and confirmations hung from the top of the chart: the skeleton bar stretched itself, which overrode the chart putting its bars on the baseline.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-bars').forEach(ch => {
+      const cr = ch.getBoundingClientRect(); if (!cr.height) return;
+      const s = getComputedStyle(ch), base = cr.bottom - parseFloat(s.paddingBottom) - parseFloat(s.borderBottomWidth);
+      [...ch.children].forEach(k => { const r = k.getBoundingClientRect(); if (!r.height || r.height >= cr.height - 1) return; if (Math.abs(r.bottom - base) > 1) add(`.${String(k.className).split(' ').pop()} in a chart ends ${(base - r.bottom).toFixed(1)}px above the baseline`, k); });
+    });
+  }
+},
+{
   id: 'a field on touch is 16px',
   why: 'The add field in the bookmark category picker was 14px on a phone, so iOS zoomed the page in when it took focus and left it zoomed.',
   run(doc, add) {
