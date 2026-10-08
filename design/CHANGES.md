@@ -1,14 +1,22 @@
-# Spendly - loading bars stand on the baseline
+# Spendly - a loading shape that fills its box
 
-Copy these files over handoff_2026_10_08n_changes.
+Copy these files over handoff_2026_10_08o_changes.
 
-**Fixed: a chart's loading bars hung from the top.** `.sp-skeleton--bar` set `align-self: stretch`, which overrode the chart's `align-items: flex-end`, so every loading bar with a height sat on the chart's top edge instead of its baseline. It is now `align-self: flex-end`, the same as the bars it stands in for. One rule, so it is fixed everywhere it appears: all 9 loading bars, all on States and confirmations (the loading card in 6b and the two-card loading state). No loading bar has no height, so none relied on the stretch.
+**Added: `sp-skeleton--fill`.** A part that is not there yet - a field or a button in the order editor, Show all on Statistics, a limit bar in the category list, a category chip on a bookmark card - is a box at that part's own size with this shape inside. The shape fills the box in a flex row, a flex column, a grid cell or a block with a height, and has no size of its own. Same ground and radius as every other loading shape.
+
+`sp-skeleton--bar` is only a chart's loading bar, a direct child of `.sp-bars`, standing on the baseline at its own height (handoff o). It filled other boxes only through the stretch that hung it from the chart's top.
+
+## Tested
+- The fill shape in six boxes, measured: a 280x42 field box in a flex row, a 120x34 button box in a flex column, a 200x8 limit bar in a grid cell, a 72x24 chip as a block and as inline-flex, a 120x34 box in a flex row that centres its items (a card head). The shape matches the box in all six.
 
 ## Checks
-- checks.html: a new rule, a chart bar stands on the baseline. Every child of `.sp-bars` shorter than the chart must end on the chart's baseline.
-- Proved on the old rule: with `align-self: stretch` put back on States and confirmations, the check reports all 9 bars (84.0px, 61.6px, 75.6px above the baseline, and so on). With the fix, 0.
-- checks.html: clean, 25 rules over 26 pages. check.js: 0 findings across 26 pages.
+- checks.html: a new rule, a loading shape fits its job. A `sp-skeleton--bar` outside a chart is a finding, and so is a fill shape that does not fill its box.
+- check.js: `sp-skeleton--fill` exists and fills; a chart loading bar outside `.sp-bars` is a finding.
+- check.js: 0 findings across 26 pages. checks.html: clean, 26 rules over 26 pages.
+- Components c13, Notes for implementation: both shapes and which job each does.
 
 ## Files
 - styles/components.css
+- styles/check.js
 - checks.html
+- Components.dc.html
