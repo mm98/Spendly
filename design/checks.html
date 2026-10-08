@@ -65,6 +65,20 @@ const PAGES = ['Actions inventory','Auth and first run','Bookmarks','Budget','Co
    caught a real defect; `why` names it, so nobody has to guess whether it matters. */
 const RULES = [
 {
+  id: 'a drawn value has its rule',
+  why: 'Gauge fills of 54, 34 and 38, a pace marker at 64 and a ring at 29-49-62 had no rule in the styles, so the gauges drew empty, the marker sat at 0 and the ring was one colour.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-gauge__fill[data-fill], .sp-gauge__marker[data-at], .sp-donut[data-stops]').forEach(e => {
+      const cs = CS(e);
+      if (e.matches('.sp-donut')) { if (!/,.*,.*,/.test(cs.backgroundImage) || /0deg/.test(cs.backgroundImage) && !/%/.test(cs.backgroundImage.split(',')[1] || '')) { const parts = (cs.backgroundImage.match(/\d+(?:\.\d+)?%/g) || []); if (new Set(parts).size < 3) add('ring stops "' + e.dataset.stops + '" have no rule', e); } return; }
+      const p = e.parentElement.getBoundingClientRect(), r = e.getBoundingClientRect(); if (!p.width) return;
+      const want = +(e.dataset.fill ?? e.dataset.at) / 100;
+      const got = e.dataset.fill !== undefined ? r.width / p.width : (r.left + r.width / 2 - p.left) / p.width;
+      if (Math.abs(got - want) > 0.03) add((e.dataset.fill !== undefined ? 'fill ' + e.dataset.fill : 'marker at ' + e.dataset.at) + ' draws at ' + Math.round(got * 100) + '%', e);
+    });
+  }
+},
+{
   id: 'chart labels are evenly spaced',
   why: 'A month of days was labelled 1, 8, 15, 22, 31: three gaps of 7 days and a last of 9.',
   run(doc, add) {

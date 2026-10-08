@@ -4541,6 +4541,9 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-donut[data-stops="39-67-88"] {
   background: conic-gradient(var(--green) 0 39%, var(--green-3) 39% 67%, var(--green-4) 67% 88%, var(--green-5) 88% 100%);
 }
+.sp-donut[data-stops="29-49-62"] {
+  background: conic-gradient(var(--green) 0 29%, var(--green-3) 29% 49%, var(--green-4) 49% 62%, var(--green-5) 62% 100%);
+}
 .sp-donut__hole {
   width: 78px;
   height: 78px;
