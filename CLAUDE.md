@@ -240,6 +240,8 @@ paged or searched on the server, and is tested with more rows than the demo data
   (seed, today), so a render day picks its own `SEED` — the one giving the account the three August
   Bilka deliveries that shot is filtered to; the script reads the count back and refuses to shoot when
   it does not hold, so the seed is found by trying rather than reasoned about.
+- **`design/checks.html` runs only over a server, never from disk.** Opened as a file it stops at
+  "Loading pages…". Serve `design/` (`python3 -m http.server` in it) and open it from there.
 - **A 403 on a browser download is egress policy, not the CDN.** Check
   `curl -sS "$HTTPS_PROXY/__agentproxy/status"` for `recentRelayFailures` before guessing a cause.
 - **Locale is the harness's to name — except inside a native control, which this build ignores.**
