@@ -151,7 +151,7 @@ export function answerOf({ userId, today }, upload, read, failure, { look = fals
 
 const insertDraft = db.prepare('INSERT INTO order_drafts (id, user_id, upload_id) VALUES (?, ?, ?) ON CONFLICT (upload_id) DO NOTHING')
 const selectDraftOfUpload = db.prepare('SELECT id FROM order_drafts WHERE upload_id = ? AND user_id = ?')
-const DRAFT_COLUMNS = `d.id, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256,
+const DRAFT_COLUMNS = `d.id, d.rowid AS seq, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256,
 	(u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json`
 const selectDrafts = db.prepare(`SELECT ${DRAFT_COLUMNS} FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id
 	WHERE d.user_id = ?`)
@@ -259,7 +259,7 @@ export function draftsAsOrders(userId, only = null) {
 			},
 			// what the order list's filters and sorts read, never sent
 			sort: {
-				date: toEpoch(/^\d{4}-\d{2}-\d{2}$/.test(v.date ?? '') ? v.date : scanned), created: row.created_at,
+				date: toEpoch(/^\d{4}-\d{2}-\d{2}$/.test(v.date ?? '') ? v.date : scanned), created: row.created_at, seq: row.seq,
 				total: sums.any ? sums.total : 0, discount: sums.discount, saved: sums.any ? sums.saved : 0,
 				vendor: vendor || row.name || '', vendorId: vendor ? resolveVendor(userId, vendor)?.id ?? null : null,
 				categoryIds: own.map(c => c.id), text: [vendor, v.reference, v.note, ...lines.map(l => l.title), ...own.map(c => c.name)].join('\n').toLowerCase()

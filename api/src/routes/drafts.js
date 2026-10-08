@@ -9,7 +9,7 @@ import { discardDraft, draftListRow, draftsAsOrders, keepForm } from '../lib/ord
    Drafts card, which counts the orders whose status is Draft as drafts too (10a). */
 export const router = Router()
 
-const selectDraftOrders = db.prepare(`SELECT ${orderTotalsSelectList()}, created_at FROM orders
+const selectDraftOrders = db.prepare(`SELECT ${orderTotalsSelectList()}, created_at, rowid AS seq FROM orders
 	WHERE user_id = ? AND status = ? ORDER BY created_at DESC, rowid DESC LIMIT ?`)
 const countDraftOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = ?')
 const MOST = 10
@@ -21,10 +21,11 @@ router.get('/', (req, res) => {
 	const kept = draftsAsOrders(req.user.id)
 	const orders = selectDraftOrders.all(req.user.id, status, limit)
 	const decorated = decorateOrderListRows(orders, { listRows: true })
+	// two started in the same second keep the order they were started in
 	const rows = [
-		...kept.map(d => ({ at: d.sort.created, row: draftListRow(d, { listRows: true }) })),
-		...orders.map((o, i) => ({ at: o.created_at, row: decorated[i] }))
-	].sort((a, b) => b.at - a.at).slice(0, limit).map(r => r.row)
+		...kept.map(d => ({ at: d.sort.created, seq: d.sort.seq, row: draftListRow(d, { listRows: true }) })),
+		...orders.map((o, i) => ({ at: o.created_at, seq: o.seq, row: decorated[i] }))
+	].sort((a, b) => b.at - a.at || b.seq - a.seq).slice(0, limit).map(r => r.row)
 	res.json({ drafts: rows, total: kept.length + countDraftOrders.get(req.user.id, status).c })
 })
 

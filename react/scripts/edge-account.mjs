@@ -2,7 +2,7 @@
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, look-alike vendors, an archived vendor, more categories than a page
    holds, names too long for a row, every status, a receipt and none, bookmarks with and
-   without a category.
+   without a category, more drafts than Home shows, one with no vendor and no prices.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
    it fills first on a new account:
@@ -51,20 +51,24 @@ const upload = (name, type, bytes, field = 'files') => {
 	return form
 }
 
-let cookie = ''
-const call = async (method, path, body, form) => {
-	const res = await fetch(BASE + '/api' + path, {
-		method,
-		headers: { cookie, 'X-Spendly-Today': day(0), ...(body ? { 'content-type': 'application/json' } : {}) },
-		body: form ?? (body ? JSON.stringify(body) : undefined)
-	})
-	const set = res.headers.getSetCookie?.() ?? []
-	if (set.length) cookie = set.map(c => c.split(';')[0]).join('; ')
-	const text = await res.text()
-	let data = null
-	try { data = text ? JSON.parse(text) : null } catch { data = text }
-	return { status: res.status, data }
+// one signed-in account each: the edge account, and the empty one that must see none of it
+const session = () => {
+	let cookie = ''
+	return async (method, path, body, form) => {
+		const res = await fetch(BASE + '/api' + path, {
+			method,
+			headers: { cookie, 'X-Spendly-Today': day(0), ...(body ? { 'content-type': 'application/json' } : {}) },
+			body: form ?? (body ? JSON.stringify(body) : undefined)
+		})
+		const set = res.headers.getSetCookie?.() ?? []
+		if (set.length) cookie = set.map(c => c.split(';')[0]).join('; ')
+		const text = await res.text()
+		let data = null
+		try { data = text ? JSON.parse(text) : null } catch { data = text }
+		return { status: res.status, data }
+	}
 }
+const call = session()
 const made = new Map()
 const step = (what, r) => {
 	const ok = r.status >= 200 && r.status < 300
@@ -165,6 +169,23 @@ if (pictured && (await call('GET', `/vendors/${pictured.id}/image/square-256`)).
 	step('vendor picture', await call('PUT', `/vendors/${pictured.id}/image`, undefined, upload('logo.png', 'image/png', png(200, 200, [30, 90, 60]), 'file')))
 }
 
+// drafts: more scans than Home shows, and one left with no vendor, a line with no price and a file added
+const draftFiles = new Set(((await call('GET', '/drafts?limit=10')).data?.drafts ?? []).map(d => d.draft?.file?.name).filter(Boolean))
+const scan = async (name, bytes) => {
+	if (draftFiles.has(name)) { there(); return null }
+	return step(`scan ${name}`, await call('POST', '/scan/documents?scan=1', undefined, upload(name, 'image/png', bytes, 'file'))).data
+}
+for (const n of [1, 2, 3]) await scan(`edge-scan-${n}.png`, png(40 + n, 60, [250, 250 - n, 240]))
+const unpriced = await scan('a-receipt-photo-with-a-file-name-long-enough-to-be-cut-in-its-row.png', png(50, 70, [230, 230, 230]))
+if (unpriced?.draftId) {
+	const added = step('file added to a draft', await call('POST', '/scan/documents', undefined, upload('added.pdf', 'application/pdf', pdf(), 'file'))).data
+	step('draft with no vendor and no prices', await call('PUT', `/drafts/${unpriced.draftId}`, { form: {
+		values: { vendor: '', date: day(0), kind: 'Expense', categories: [], shipping: 0, discount: 0, reference: '', note: '' },
+		lines: [{ key: 'edge-unpriced', title: 'A line with no price yet', quantity: 1, price: null, include: true }],
+		files: added ? [{ key: added.key, name: 'added.pdf', kind: 'pdf', hasThumbnail: added.hasThumbnail }] : []
+	} }))
+}
+
 // custom statuses and saved views, one flagged
 step('status', await call('POST', '/statuses', { name: 'On hold', tone: 'progress' }))
 const viewNames = new Set(((await call('GET', '/views')).data?.views ?? []).map(v => v.name))
@@ -209,3 +230,82 @@ const lamp = (await listed(false)).find(b => b.name === 'Lamp without a category
 if (lamp && !lamp.photoId) step('bookmark picture', await call('POST', `/bookmarks/${lamp.id}/photo`, undefined, upload('lamp.png', 'image/png', png(300, 200, [210, 190, 120]), 'file')))
 
 console.log([...made].map(([k, n]) => `${n} ${k}`).join(', '))
+
+/* ---- nothing of this account reaches another one ---- */
+
+// every record this account holds, by the addresses that open it
+const pagesOf = async (path, key) => {
+	const all = []
+	for (let page = 1; ; page++) {
+		const got = (await call('GET', `${path}${path.includes('?') ? '&' : '?'}pageSize=100&page=${page}`)).data
+		all.push(...(got?.[key] ?? []))
+		if (!got?.[key]?.length || page * 100 >= (got.matched ?? got.total ?? 0)) break
+	}
+	return all
+}
+const orders = await pagesOf('/orders', 'orders')
+const vendors = await pagesOf('/vendors', 'vendors')
+const categories = (await call('GET', '/categories')).data ?? []
+const bookmarks = [...(await listed(false)), ...(await listed(true))]
+const views = (await call('GET', '/views')).data?.views ?? []
+const drafts = orders.filter(o => o.draft)
+const files = []
+for (const o of orders.filter(o => o.fileCount || o.photo)) {
+	const full = (await call('GET', `/orders/${o.id}`)).data
+	for (const a of full?.attachments ?? []) files.push(`/orders/${o.id}/attachments/${a.id}/file`, `/orders/${o.id}/attachments/${a.id}/thumbnail`)
+	for (const item of full?.items ?? []) for (const a of item.attachments ?? []) files.push(`/orders/${o.id}/items/${item.id}/attachments/${a.id}/file`)
+}
+const scans = drafts.map(d => d.draft.file?.key).filter(Boolean)
+const before = JSON.stringify({ orders: orders.length, drafts: drafts.map(d => d.id).sort(), vendors: vendors.length, categories: categories.length, bookmarks: bookmarks.length })
+
+const other = session()
+const otherEmail = email.replace('@', '+other@')
+r = await other('POST', '/auth/register', { email: otherEmail, password })
+if (r.status !== 201) r = await other('POST', '/auth/login', { email: otherEmail, password })
+if (r.status >= 300) throw new Error(`sign in as the other account: ${r.status} ${JSON.stringify(r.data)}`)
+
+const leaks = []
+const ids = new Set([...orders, ...vendors, ...categories, ...bookmarks, ...views].map(x => x.id))
+// anything that answers with this account's own records is a leak, whatever its status
+const refused = async (method, path, body) => {
+	const got = await other(method, path, body)
+	if (got.status >= 200 && got.status < 300) leaks.push(`${method} ${path} answered ${got.status}`)
+}
+const unseen = async path => {
+	const text = JSON.stringify((await other('GET', path)).data ?? '')
+	const seen = [...ids].filter(id => text.includes(id))
+	if (seen.length) leaks.push(`GET ${path} lists ${seen.length} of the edge account's records`)
+}
+for (const o of orders) await refused('GET', `/orders/${o.id}`)
+for (const v of vendors) await refused('GET', `/vendors/${v.id}`)
+for (const c of categories) await refused('GET', `/categories/${c.id}`)
+for (const b of bookmarks) await refused('GET', `/bookmarks/${b.id}`)
+for (const path of files) await refused('GET', path)
+for (const key of scans) for (const path of [`/scan/draft/${key}?draft=1`, `/scan/documents/${key}/file`, `/scan/documents/${key}/thumbnail`]) await refused('GET', path)
+for (const path of ['/orders?pageSize=100', '/orders?status=Draft&pageSize=100', '/drafts?limit=10', '/vendors?pageSize=100', '/categories', '/bookmarks?pageSize=100', '/views', '/search?query=edge', '/search?query=shop'])
+	await unseen(path)
+// changing or removing them is refused too, and the edge account's records are counted again after
+for (const d of drafts) {
+	await refused('PUT', `/drafts/${d.id}`, { form: { values: {}, lines: [], files: [] } })
+	await refused('DELETE', `/drafts/${d.id}`)
+	await refused('DELETE', `/orders/${d.id}`)
+}
+for (const key of scans) await refused('POST', `/scan/documents/${key}/reread`)
+for (const o of orders.filter(o => !o.draft).slice(0, 5)) await refused('DELETE', `/orders/${o.id}`)
+for (const v of vendors.slice(0, 5)) await refused('PATCH', `/vendors/${v.id}`, { favourite: 1 })
+for (const c of categories.slice(0, 5)) await refused('PATCH', `/categories/${c.id}`, { favourite: 1 })
+for (const b of bookmarks.slice(0, 3)) await refused('PATCH', `/bookmarks/${b.id}`, { name: 'Taken' })
+for (const v of views.slice(0, 3)) await refused('PATCH', `/views/${v.id}`, { name: 'Taken' })
+// the same bytes scanned by the other account know nothing of this one's reading, draft or orders
+for (const [name, bytes] of [['edge-scan-1.png', png(41, 60, [250, 249, 240])], ['receipt.png', png(60, 90, [235, 235, 225])]]) {
+	const got = await other('POST', '/scan/documents?scan=1', undefined, upload(name, 'image/png', bytes, 'file'))
+	if (got.data?.seen) leaks.push(`the other account's scan of ${name} says it was seen before`)
+	if (got.data?.draftId) await other('DELETE', `/drafts/${got.data.draftId}`)
+}
+const after = (await pagesOf('/orders', 'orders'))
+const kept = JSON.stringify({ orders: after.length, drafts: after.filter(o => o.draft).map(d => d.id).sort(), vendors: (await pagesOf('/vendors', 'vendors')).length,
+	categories: ((await call('GET', '/categories')).data ?? []).length, bookmarks: [...(await listed(false)), ...(await listed(true))].length })
+if (kept !== before) leaks.push(`the edge account changed while the other account probed it: ${before} became ${kept}`)
+for (const leak of leaks) console.log(`LEAK ${leak}`)
+console.log(`${otherEmail}: ${ids.size + files.length + scans.length} records probed, ${leaks.length} leaks`)
+if (leaks.length) process.exitCode = 1

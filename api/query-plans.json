@@ -1604,7 +1604,7 @@
 				"sqlite_autoindex_order_drafts_2"
 			]
 		},
-		"SELECT d.id, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256, (u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id WHERE d.id = ? AND d.user_id = ?": {
+		"SELECT d.id, d.rowid AS seq, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256, (u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id WHERE d.id = ? AND d.user_id = ?": {
 			"plan": [
 				"SEARCH d USING INDEX sqlite_autoindex_order_drafts_1 (id=?)",
 				"SEARCH u USING INDEX sqlite_autoindex_scan_uploads_1 (id=?) LEFT-JOIN"
@@ -1615,7 +1615,7 @@
 				"sqlite_autoindex_scan_uploads_1"
 			]
 		},
-		"SELECT d.id, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256, (u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id WHERE d.user_id = ?": {
+		"SELECT d.id, d.rowid AS seq, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256, (u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id WHERE d.user_id = ?": {
 			"plan": [
 				"SEARCH d USING INDEX idx_order_drafts_user (user_id=?)",
 				"SEARCH u USING INDEX sqlite_autoindex_scan_uploads_1 (id=?) LEFT-JOIN"
@@ -2190,7 +2190,7 @@
 				"idx_orders_user_vendor"
 			]
 		},
-		"SELECT id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded, item_count, subtotal, total, saved, saved_percent, created_at FROM orders WHERE user_id = ? AND status = ? ORDER BY created_at DESC, rowid DESC LIMIT ?": {
+		"SELECT id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded, item_count, subtotal, total, saved, saved_percent, created_at, rowid AS seq FROM orders WHERE user_id = ? AND status = ? ORDER BY created_at DESC, rowid DESC LIMIT ?": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_status (user_id=? AND status=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
