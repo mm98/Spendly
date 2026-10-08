@@ -2,7 +2,7 @@ import Anthropic, { APIError } from '@anthropic-ai/sdk'
 import sharp from 'sharp'
 import { decompressBlob } from './blobCompression.js'
 import { pdfText, renderPdfPage, toSize } from './images.js'
-import { pageText, readable } from './pageText.js'
+import { readPage, readable } from './pageText.js'
 import { todayIso } from './dates.js'
 import { categoryNamesOf, vatNumberOf, webAddressOf } from './names.js'
 import { fromPrintedLineTotals, reconcileWithTotal } from './lineTotals.js'
@@ -204,14 +204,15 @@ export async function readingBlocks(upload, bytes) {
 	if (PDF_READING === 'document') return [documentBlock(bytes)]
 	if (PDF_READING === 'text') {
 		const { text, pages } = await pdfText(bytes, PDF_PAGES) ?? {}
-		const words = text?.map(pageText) ?? []
-		if (readable(words.join('\n'))) return [{
+		const read = text?.map(readPage) ?? []
+		const words = read.map(page => page.text)
+		if (!read.some(page => page.scan) && readable(words.join('\n'))) return [{
 			type: 'text',
 			text: 'The words of a PDF document, page by page. Each line is one printed row, its columns kept apart by spaces.'
 				+ skipped(pages) + words.map((page, i) => `\n\nPage ${i + 1}:\n${page}`).join('')
 		}]
 	}
-	// a PDF with no words in it is a scan saved as one: it is read from pictures of its pages
+	// a scan saved as a PDF (no words, or a picture over half a page) is read from pictures of its pages
 	const blocks = []
 	let pages = 1
 	for (let i = 0; i < Math.min(pages, PDF_PAGES); i++) {

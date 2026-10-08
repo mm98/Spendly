@@ -32,8 +32,9 @@ const TEXT_PAGES = workerData.textPages ?? 0
 function pageTexts(doc, count) {
 	const texts = []
 	for (let i = 0; i < count; i++) {
-		const one = doc.loadPage(i), text = one.toStructuredText('preserve-whitespace')
-		try { texts.push(text.asJSON()) } finally { text.destroy(); one.destroy() }
+		const one = doc.loadPage(i), text = one.toStructuredText('preserve-whitespace,preserve-images')
+		const [x0, y0, x1, y1] = one.getBounds()
+		try { texts.push({ json: text.asJSON(), width: x1 - x0, height: y1 - y0 }) } finally { text.destroy(); one.destroy() }
 	}
 	return texts.length ? texts : null
 }
