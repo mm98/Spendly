@@ -253,7 +253,6 @@ export default function Statistics() {
 						</button>
 					</div>
 				</Controls>
-				<Controls>{which}</Controls>
 				{draft ? <RangeSheet onClose={() => setDraft(null)}>{rangePicker}</RangeSheet> : null}
 			</>
 		)
@@ -532,7 +531,7 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 					})}
 				</Crumbs>
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" onClick={onReset}>Reset</Button>
+				<Button variant="text" size="small" onClick={onReset}>Reset</Button>
 				<Button variant="outline" size="small" to={link}>Open in orders</Button>
 			</div>
 		</Card>
@@ -793,7 +792,7 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Spend by {unit}</span>
 				<span className="sp-grow" />
-				{narrowed ? <span className="sp-meta sp-truncate">{narrowed}</span> : null}
+				{narrowed ? <span className="sp-meta">{narrowed}</span> : null}
 				{splits && !touch
 					? <Segmented name="statistics-bar-shape" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" />
 					: null}
@@ -846,7 +845,7 @@ function CategoryShares({ view, known, name, ring, onOpen }) {
 		<div className="sp-row-flex sp-gap-8">
 			<span className="sp-section-label">By category</span>
 			<span className="sp-grow" />
-			{ring ? null : <span className="sp-meta sp-truncate">{name}</span>}
+			{ring ? null : <span className="sp-meta">{name}</span>}
 		</div>
 	)
 	if (!view) {
@@ -987,7 +986,7 @@ function CategoryRows({ view, known, name, onOpen, hint = false }) {
 			<div className="sp-row-flex sp-gap-8">
 				<span className="sp-section-label">By category</span>
 				<span className="sp-grow" />
-				{hint && onOpen ? <span className="sp-meta">click to narrow further</span> : name ? <span className="sp-meta sp-truncate">{name}</span> : null}
+				{hint && onOpen ? <span className="sp-meta">click to narrow further</span> : name ? <span className="sp-meta">{name}</span> : null}
 			</div>
 			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} onOpen={onOpen} />
 		</Card>
@@ -1058,7 +1057,7 @@ function VendorsCard({ view, name, touch, onOpen }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Top vendors</span>
 				<span className="sp-grow" />
-				<span className="sp-meta sp-truncate">{vendors ? `${name}${dot}${count > shown || (folds && !open) ? `top ${open ? shown : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
+				<span className="sp-meta">{vendors ? `${name}${dot}${count > shown || (folds && !open) ? `top ${open ? shown : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
 			</div>
 			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} onOpen={onOpen} counts={!touch} />
 			<CardFooter>
@@ -1119,7 +1118,7 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Spend vs saving</span>
 				<span className="sp-grow" />
-				<span className="sp-meta sp-truncate">{name}</span>
+				<span className="sp-meta">{name}</span>
 			</div>
 			{chart
 				? (
@@ -1198,7 +1197,7 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 		<div className="sp-row-flex sp-gap-12">
 			<span className="sp-section-label">Monthly limit</span>
 			<span className="sp-grow" />
-			<span className="sp-meta sp-truncate">{name}</span>
+			<span className="sp-meta">{name}</span>
 			{touch ? null : edit}
 		</div>
 	)

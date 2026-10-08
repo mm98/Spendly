@@ -145,6 +145,15 @@
   border-bottom: 1px solid transparent;
   margin-bottom: calc(var(--sp-12) * -1);
 }
+/* In a head - a card's or a list toolbar's, the same rule - the name keeps its whole
+   width and never breaks; text beside it (a meta, a note) stays on one line and takes
+   the cut with an ellipsis. A control or button keeps its own width. So a head is one
+   line whatever the data puts in it, and no page adds a class to make it so. */
+.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-section-label:first-child,
+.sp-list__toolbar > .sp-section-label:first-child,
+.sp-card > .sp-section-label:first-child { flex: none; white-space: nowrap; }
+.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > :is(.sp-meta, .sp-note, .sp-subtitle),
+.sp-list__toolbar > :is(.sp-meta, .sp-note, .sp-subtitle) { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the bar above a list, and the header of a card that has one: the same object, so
    the same name. Defined with the list - see .sp-list__toolbar there. */
 /* the whole header is the target: a link out, or the card's own collapse */
@@ -178,6 +187,8 @@
 }
 .sp-list__toolbar > .sp-meta { flex: none; white-space: nowrap; }
 .sp-list__toolbar > .sp-btn { flex: none; }
+/* the toolbar's height is fixed: in a column that runs out of room it does not shrink */
+.sp-list__toolbar { flex: none; }
 /* the first line's leading is trimmed, so ink sits the same distance from the rule as the header's */
 .sp-list__toolbar + .sp-card__body { padding-top: var(--sp-12); }
 .sp-list__toolbar--toggle[aria-expanded="false"] { border-bottom-color: transparent; }

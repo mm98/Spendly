@@ -220,7 +220,7 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 			<Toolbar>
 				<span className="sp-section-label">Columns</span>
 				<span className="sp-grow" />
-				<span className="sp-note sp-truncate">{file}</span>
+				<span className="sp-note">{file}</span>
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-12">
