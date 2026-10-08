@@ -316,7 +316,7 @@ export default function OrderList() {
 			<div className="sp-row-flex">
 				<span className="sp-section-label">Filters</span>
 				<span className="sp-grow" />
-				<Button variant="text" size="small" onClick={clearAll}>Clear all</Button>
+				<Button variant="outline" size="xsmall" onClick={clearAll}>Clear all</Button>
 			</div>
 			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} counts={facets.data?.facets} {...facetData} />
 		</Card>

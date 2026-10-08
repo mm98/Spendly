@@ -107,7 +107,7 @@ function OrderView({ order, touch, onGone }) {
 				<div className="sp-row-flex sp-wrap sp-gap-8">
 					<span className="sp-section-label">Attachments{dot}{order.attachments.length}</span>
 					<span className="sp-grow" />
-					<Button variant="text" size="small" onClick={() => downloadAll(order)}>Download all</Button>
+					<Button variant="outline" size="small" onClick={() => downloadAll(order)}>Download all</Button>
 				</div>
 				<Strip>
 					{order.attachments.map(a => (
