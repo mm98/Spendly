@@ -49,7 +49,8 @@
     <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
     <div class="doc-note"><b>Card scopes differ and each says so.</b> Drafts is all time, newest scan first. Recent orders is all time, newest first, and leaves drafts out. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
     <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> categories over their limit, categories near it, orders not delivered, then possible duplicate vendors. The cap of three holds, so an account with three categories over their limit shows no other row. Each kind can be switched off in Settings, Needs a look (<a href="Settings and import.dc.html#11a">11a</a>); a switched-off kind is skipped and the next one moves up. Orders without a receipt is a kind too, off by default, since most orders have none. Each row links to the filtered list that resolves it - over the limit to <code>/categories?flag=over-limit</code>, near its limit to <code>/categories?flag=near-limit</code> - and the card is absent when there is nothing to say - never a card with a tick in it.</div>
-    <div class="doc-note"><b>Drafts lists the orders with status Draft</b>, newest scan first, at most 3, above Needs a look. A row is the file's first page as its picture, the vendor (the file name when no vendor was read), the file name and what is left to check under it, the day it was scanned, and the total when one was read. With no total the amount cell is empty. What is left to check reads "2 values need a look", "4 lines" when everything was read cleanly, "Still reading", or "Nothing read" for a blank scan. A row opens the draft in the scan review, <a href="Order create.dc.html#3a">3a</a> step 3, with its marks. A draft that did not come from a scan shows its thumbnail cell and reference as in the order list. The card is absent when there are no drafts, like Needs a look.</div>
+    <div class="doc-note"><b>Drafts lists the orders with status Draft</b>, newest scan first, at most 3, above Needs a look. A row is the file's first page as its picture, the vendor (the file name when no vendor was read), what is left to check and then the file name under it, the day it was scanned, and the total when one was read. With no total the amount cell is empty. What is left to check reads "2 values need a look", "4 lines" when everything was read cleanly, "Still reading", or "Nothing read" for a blank scan. A row opens the draft in the scan review, <a href="Order create.dc.html#3a">3a</a> step 3, with its marks. What is left to check comes first on that line, so a long file name is cut and the count never is. The card is absent when there are no drafts, like Needs a look.</div>
+    <div class="doc-note"><b>An order made by hand is a draft too</b> (state 5 below), from its first change until Create or Discard (<a href="Order create.dc.html#3a">3a</a>). Its row has no file. The picture is the order list's thumbnail cell (<a href="Order list.dc.html#2b">2b</a>): the first item photo, the vendor image faded, or the empty square with the image symbol. The name is the vendor, or "New order" before one is chosen. The line under it is the line count, "4 lines" or "No lines yet", and for a copy the day of the order it came from: "4 lines · Copied from 12/08". The day is the day the draft was started, and the total is the lines' total, empty with no priced line. A row opens the draft in the edit screen, unsaved, as it was left.</div>
     <div class="doc-note"><b>Orders not delivered</b> counts the orders with status Ordered dated 14 or more days ago. It is the plain count row, not a warning: "4 orders ordered over 2 weeks ago and not delivered", "1 order ordered ..." for one; on a phone "not delivered after 2 weeks". A count of zero is no row.</div>
     <div class="doc-note"><b>Last 8 months uses the plot's bars from Statistics</b>, at the size the card already has: 140 high, 8 between columns. A bar that a hover or focus reaches takes the soft tile and shows the Statistics readout (<a href="Order statistics.dc.html#4a">4a</a>) - the month and year with its total, then the note - placed by the same rules: 8 clear of the tallest of that bar and its two neighbours, standing above the chart and the card where there is no room inside (<a href="Layout rules.dc.html#15f">15f</a>), and aligned to the outer edge at either end of the chart. It never moves a bar. No category rows, since the bars are one colour.</div>
     <div class="doc-note"><b>The note reads "18 orders · click to open"</b> for a month of this year. For a month of last year it reads only "click to open", since Home holds only that year's total spend.</div>
@@ -205,7 +206,7 @@
                         <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
                         <span class="sp-stacked">
                           <span class="sp-title sp-truncate">Indbo Møbler</span>
-                          <span class="sp-meta sp-truncate">faktura-indbo-4471.pdf · 2 values need a look</span>
+                          <span class="sp-meta sp-truncate">2 values need a look · faktura-indbo-4471.pdf</span>
                         </span>
                       </div>
                     </td>
@@ -218,7 +219,7 @@
                         <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
                         <span class="sp-stacked">
                           <span class="sp-title sp-truncate">Hay</span>
-                          <span class="sp-meta sp-truncate">kvittering-hay-1708.jpg · 3 lines</span>
+                          <span class="sp-meta sp-truncate">3 lines · kvittering-hay-1708.jpg</span>
                         </span>
                       </div>
                     </td>
@@ -231,7 +232,7 @@
                         <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
                         <span class="sp-stacked">
                           <span class="sp-title sp-truncate">IMG_2041.jpg</span>
-                          <span class="sp-meta sp-truncate">IMG_2041.jpg · Nothing read</span>
+                          <span class="sp-meta sp-truncate">Nothing read · IMG_2041.jpg</span>
                         </span>
                       </div>
                     </td>
@@ -524,6 +525,60 @@
             <span class="sp-meta">Nothing from July to compare with yet.</span>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="doc-specimen doc-w560">
+      <span class="doc-specimen__label">5 · DRAFTS MADE BY HAND, AND A LONG FILE NAME</span>
+      <div class="sp-list">
+        <div class="sp-list__toolbar">
+          <span class="sp-section-label">Drafts</span>
+          <span class="sp-meta">newest 3</span>
+          <span class="sp-grow"></span>
+          <a class="sp-btn sp-btn--text sp-btn--small" href="Order list.dc.html#2b">All 7</a>
+        </div>
+        <table class="sp-table">
+          <tbody>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Indbo Møbler</span>
+                    <span class="sp-meta sp-truncate">4 lines · Copied from 12/08</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">21/08</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.635,00 kr.</span></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--empty" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8h.01" /><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" /><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" /></svg></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">New order</span>
+                    <span class="sp-meta sp-truncate">No lines yet</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">21/08</span></td>
+              <td class="sp-col-amount"></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Bolia</span>
+                    <span class="sp-meta sp-truncate">1 line · ordrebekraeftelse-bolia-2026-08-20-88213-kopi.pdf</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">20/08</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">12.495,00 kr.</span></div></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
