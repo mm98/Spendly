@@ -905,7 +905,7 @@
      must also take no height in the row - a negative block margin of half the box. */
   {
     /* Brief 34: a card head is the toolbar's height, and the small height is a token, not a raw 34px */
-    const head = /\n\.sp-card > \.sp-row-flex:first-child:has\(> \.sp-section-label:first-child\),\n\.sp-card > \.sp-section-label:first-child \{[^}]*flex-wrap: nowrap[^}]*height: var\(--card-header-h\)[^}]*border-bottom: 1px solid transparent/.test(comp);
+    const head = /\n\.sp-card > \.sp-card__head:first-child \{[^}]*flex-wrap: nowrap[^}]*height: var\(--card-header-h\)[^}]*border-bottom: 1px solid transparent/.test(comp);
     if (/sp-btn--text[^{]*\{[^}]*margin-block: calc\(var\(--btn-h-small\)/.test(comp)) fail('no head link rule is left', 'components.css', 'the text link head rule is back');
     if (!head) fail('a card head is the list toolbar height', 'components.css', 'no --card-header-h rule on the card head');
     if (!/--btn-h-small: 34px;/.test(tok)) fail('the small button height is a token', 'tokens.css', 'no --btn-h-small');
@@ -923,9 +923,9 @@
     if (/sp-crumbs-bar/.test(allCss + Object.values(src).join(''))) fail('the Showing bar is a card with a head', 'pages', 'sp-crumbs-bar is back');
     for (const f of pages) for (const m of src[f].matchAll(/<span class="sp-section-label">Showing<\/span>/g)) {
       const before = src[f].slice(Math.max(0, m.index - 80), m.index);
-      if (!/<div class="sp-row-flex[^"]*">\s*$/.test(before)) fail('the Showing bar is a card with a head', f, 'the name is not the first child of a head row');
+      if (!/<div class="sp-card__head">\s*$/.test(before)) fail('the Showing bar is a card with a head', f, 'the name is not the first child of a head row');
     }
-    if (!/\.sp-touch \.sp-card > \.sp-row-flex:first-child:has\(> \.sp-section-label:first-child\) > \.sp-btn--small,\n\.sp-touch \.sp-list__toolbar > \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no touch rule');
+    if (!/\.sp-touch \.sp-card > \.sp-card__head:first-child > \.sp-btn--small,\n\.sp-touch \.sp-list__toolbar > \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no touch rule');
     if (!/\.sp-touch \.sp-list__toolbar > \.sp-btn--small::before \{ content: ""; position: absolute; inset: calc\(\(var\(--control-h-touch\) - var\(--btn-h-small\)\) \/ -2 - 1px\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no invisible touch area');
     for (const v of ['.sp-card--spread', '.sp-combobox--narrow', '.sp-segmented--narrow', '.sp-row-opens:hover', '.sp-row-opens:focus-visible'])
       if (!comp.includes(v + ' {')) fail('a part changes only through the design', 'components.css', v + ' missing');
@@ -945,6 +945,28 @@
       for (const r of seg.matchAll(/<div class="(?:sp-stack sp-gap-6|sp-row-flex sp-gap-12)">\s*<(?:div class="sp-(?:row-flex|mark)|span class="sp-mark)([\s\S]{0,400})/g))
         if (/sp-gauge|sp-mark--medium/.test(r[0]) && !/>Other \d/.test(r[0])) fail('a row that opens something is drawn as one', f, name + ' has a plain row');
     }
+  }
+
+  /* CardHeader. The head was a structural rule - a row helper whose first child is the
+     name, or the name standing alone - so it had no name of its own, and code built from
+     the design could not tell a head from any other row: 191 heads in two shapes and
+     three gaps. It is one element now, .sp-card__head, and the React CardHeader renders
+     it. A card that opens with its name and no head, a head carrying a row helper's
+     classes, or a structural head selector coming back, is a finding. */
+  {
+    for (const f of pages) {
+      const s = src[f];
+      for (const m of s.matchAll(/class="sp-card(?:\s[^"]*)?"[^>]*>\s*(<span class="sp-section-label"|<div class="sp-row-flex[^"]*">\s*<span class="sp-section-label")/g))
+        fail('a card name is in a CardHeader', f, m[1].slice(0, 60));
+      for (const m of s.matchAll(/class="sp-card__head [^"]*"|class="[^"]+ sp-card__head"/g)) fail('a CardHeader takes no other class', f, m[0]);
+      for (const m of s.matchAll(/<div class="sp-card__head">/g))
+        if (!/<[a-z]+\b[^>]*\bclass="sp-card(?:\s[^"]*)?"[^>]*>\s*$/.test(s.slice(Math.max(0, m.index - 400), m.index))) fail('a CardHeader is only a card\'s first child', f, s.slice(m.index, m.index + 80));
+      for (const m of s.matchAll(/<div class="sp-card__head">(?!\s*<span class="sp-section-label")/g)) fail('a CardHeader opens with the name', f, s.slice(m.index, m.index + 80));
+    }
+    if (/sp-row-flex:first-child|\.sp-card > \.sp-section-label/.test(comp)) fail('a CardHeader is a class, not a structure', 'components.css', 'a structural head selector is back');
+    const card = await readFile('react_handoff/Card.jsx');
+    if (!/export function CardHeader\(/.test(card) || !/className="sp-card__head"/.test(card)) fail('a CardHeader is a component', 'react_handoff/Card.jsx', 'no CardHeader rendering .sp-card__head');
+    if (!/useContext\(HeadSlot\)/.test(card) || !/<HeadSlot\.Provider value=\{true\}>/.test(card)) fail('a CardHeader is only a child of Card', 'react_handoff/Card.jsx', 'CardHeader does not refuse to render outside Card');
   }
 
   /* ---- report ------------------------------------------------------------ */

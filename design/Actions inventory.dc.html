@@ -314,7 +314,7 @@
 
   <div class="doc-specimens">
     <div class="sp-card ai-w640">
-      <span class="sp-section-label">RESOLVED HERE</span>
+      <div class="sp-card__head"><span class="sp-section-label">RESOLVED HERE</span></div>
       <div class="doc-note"><b class="sp-ink">Export CSV / Export.</b> Appeared on four screens meaning four things. Now one behaviour: it exports <b>the current filter or drill state</b>, never the page and never the whole account, and the button label carries the count ("Export 128 orders"). One row per item line, with order fields repeated, because that is the shape the import reads back - export and import are the same column set, which is what makes a round trip possible.</div>
       <div class="doc-note"><b class="sp-ink">Save current (saved views).</b> Stores query, facets and sort under a name, listed above the facet rail. It stores <b>the filter, not the result</b> - opening a view re-runs it. Renameable and deletable from the list; a view is never shared, since there is one user.</div>
       <div class="doc-note"><b class="sp-ink">Archive (vendor).</b> The middle option between keeping and deleting, and the answer to 5c's "no orders in 12 months". Hides the vendor from pickers and facet lists while its orders, totals and history stay exactly as they are. Reversible, so toast + Undo, and archived vendors are reachable behind a filter in the library.</div>
@@ -333,12 +333,12 @@
       </div>
 
       <div class="sp-card">
-        <span class="sp-section-label">WHERE THE SIX THAT NEEDED LAYOUT NOW LIVE</span>
+        <div class="sp-card__head"><span class="sp-section-label">WHERE THE SIX THAT NEEDED LAYOUT NOW LIVE</span></div>
         <div class="doc-note">Each went to the page that implements it, rather than being drawn a second time here: saved views to <a href="Order list.dc.html#2g">Order list 2g</a>, the archived state to the overview's own filter in <a href="Vendors and categories.dc.html#5a">5a</a>, the password dialog to <a href="Auth and first run.dc.html">Auth</a>, and the duplicate name to the create and rename fields in <a href="Vendors and categories.dc.html#5b">5b</a> and <a href="Vendors and categories.dc.html#5c">5c</a>, where a name collision blocks the save. Export and the two-tab conflict view were dropped - the first is the one behaviour described above, the second describes a situation the app does not produce.</div>
       </div>
 
       <div class="sp-card">
-        <span class="sp-section-label">TWO PATTERNS THE AUDIT CONFIRMED</span>
+        <div class="sp-card__head"><span class="sp-section-label">TWO PATTERNS THE AUDIT CONFIRMED</span></div>
         <div class="doc-note"><b class="sp-ink">Every destructive action has exactly one dialog</b>, and every reversible one has exactly one toast. Nothing in the set has both, and nothing has neither. Delete order, bulk delete, merge and discard-scan are dialogs; line delete, status change, category add, archive and import are toasts.</div>
         <div class="doc-note"><b class="sp-ink">Every "See X" link is a filter handoff, not a new view.</b> See in Statistics, Open in orders, the Needs-a-look rows and the monthly summary rows all carry state into a screen that already exists. No screen in the set is reachable only through one link.</div>
       </div>

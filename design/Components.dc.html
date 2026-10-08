@@ -1602,7 +1602,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Button - xsmall</span>
       <div class="sp-card doc-w400">
-        <div class="sp-row-flex sp-gap-8">
+        <div class="sp-card__head">
           <span class="sp-section-label">Filters</span>
           <span class="sp-grow"></span>
           <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Clear all</button>
@@ -1949,7 +1949,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">DrillCrumb - as the pages place it, above the cards it filters</span>
       <div class="sp-card">
-        <div class="sp-row-flex sp-gap-8">
+        <div class="sp-card__head">
           <span class="sp-section-label">SHOWING</span>
           <span class="sp-grow"></span>
           <span class="sp-meta">1.960 orders · 200 vendors · 34 categories</span>
@@ -2202,10 +2202,119 @@
     <span class="doc-badge" id="c10">c10</span>
     <span class="doc-section__title">Card, and the gauge</span>
     <span class="sp-grow"></span>
-    <span class="sp-meta">.sp-card · .sp-gauge</span>
+    <span class="sp-meta">.sp-card · .sp-card__head · .sp-gauge</span>
   </div>
 
   <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - name</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Needs a look</span>
+        </div>
+        <span class="sp-data">2 categories over their limit</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - meta, beside the name</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Recent orders</span>
+          <span class="sp-meta">newest 3</span>
+        </div>
+        <span class="sp-data">Indbo Møbler · 12/08</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - aside, at the right end</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Top vendors</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">August · top 8 of 10</span>
+        </div>
+        <span class="sp-data">Indbo Møbler · 24.310 kr.</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - aside, note</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Months 2026</span>
+          <span class="sp-grow"></span>
+          <span class="sp-note">Grey amounts are expected</span>
+        </div>
+        <span class="sp-data">Oct to Nov</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - aside, danger</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Items · 2</span>
+          <span class="sp-grow"></span>
+          <span class="sp-subtitle sp-ink-danger">1 line needs attention</span>
+        </div>
+        <span class="sp-data">Lounge chair · 2 × 4.129,00</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - meta and one action</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Categories this month</span>
+          <span class="sp-meta">top 4 by spend</span>
+          <span class="sp-grow"></span>
+          <a class="sp-btn sp-btn--outline sp-btn--small" href="#c10">All 9</a>
+        </div>
+        <span class="sp-data">Decor · 24.100 / 22.000</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - two actions</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Showing</span>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reset</button>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
+        </div>
+        <nav aria-label="Showing"><ol class="sp-crumbs"><li><span class="sp-crumbs__root">2026</span></li><li><span class="sp-crumb">Indbo Møbler<button type="button" class="sp-crumb__remove" aria-label="Remove Indbo Møbler">×</button></span></li></ol></nav>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - control</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Spend by month</span>
+          <span class="sp-grow"></span>
+          <div class="sp-segmented" role="radiogroup" aria-label="Show"><label class="sp-segmented__item" data-label="Stacked"><input type="radio" name="c10-head-mode" defaultChecked="{{ true }}"><span class="sp-label">Stacked</span></label><label class="sp-segmented__item" data-label="Total"><input type="radio" name="c10-head-mode"><span class="sp-label">Total</span></label></div>
+        </div>
+        <span class="sp-data">Jan to Aug</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - status</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Spend, August</span>
+          <span class="sp-grow"></span>
+          <span class="sp-pill" data-color="danger">2.100 over</span>
+        </div>
+        <span class="sp-stat__figure sp-stat__figure--large">24.100 kr.</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CardHeader - dismiss</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-card__head">
+          <span class="sp-section-label">August 2026</span>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-icon-btn" aria-label="Hide the August summary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+        </div>
+        <span class="sp-data">61.480 kr. across 18 orders</span>
+      </div>
+    </div>
     <div class="doc-specimen">
       <span class="doc-specimen__label">Card - the whole header goes somewhere</span>
       <div class="sp-card sp-card--flush doc-w400">
@@ -2372,14 +2481,14 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">.sp-card__footer--split and --stack</span>
       <div class="sp-card doc-w400">
-        <span class="sp-section-label">A CARD THAT COMMITS</span>
+        <div class="sp-card__head"><span class="sp-section-label">A CARD THAT COMMITS</span></div>
         <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
           <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
           <button type="button" class="sp-btn">Save</button>
         </div>
       </div>
       <div class="sp-card doc-w400">
-        <span class="sp-section-label">A CARD THAT EXPLAINS</span>
+        <div class="sp-card__head"><span class="sp-section-label">A CARD THAT EXPLAINS</span></div>
         <div class="sp-card__footer sp-card__footer--stack">
           <span class="sp-subtitle">One line, then another.</span>
           <span class="sp-meta">Stacked, not paired.</span>
@@ -2409,6 +2518,8 @@
     <div class="doc-note">A header may be the whole target instead of carrying an action: as an <code>&lt;a&gt;</code> with a right chevron it goes to the full list, and as a <code>&lt;button aria-expanded&gt;</code> with a chevron that points down when open it collapses its own body. A header is one or the other, never both, and a header that is a target carries no button of its own. Card: a section label or a header row, a body, and an optional footer holding one action and meta text. Gauge: label, value against target, the bar, an optional reference marker, an optional caption.</div>
     <div class="doc-notes__label">Fixed</div>
     <div class="doc-note">Card radius <code>--r-card</code>, border <code>--line</code>, padding <code>--sp-16</code>, gap <code>--sp-12</code>, no shadow; cards in a column sit <code>--sp-12</code> apart, the column's own gap. Gauge is a <code>&lt;meter&gt;</code> carrying <code>value</code>, <code>max</code> and <code>high</code>; the track is <code>--green-tint-2</code> at <code>--meter-h</code>. Four fills and no others: <code>--green</code> under, <code>--amber-2</code> up to a target that has been passed, <code>--amber-3</code> for the overage, and an empty <code>--surface-2</code> track when there is no target. The marker is 2px <code>--amber</code>.</div>
+    <div class="doc-note"><b>CardHeader</b> (<code>.sp-card__head</code>, <code>CardHeader</code> in React): a card's name is always in one, and it is always the card's first child, with the name as its first child. There is no other markup for a head. It is the list toolbar's box: <code>--card-header-h</code> including a 1px transparent bottom border, <code>--sp-12</code> between its parts, the name centred, the card's top padding given up to it.</div>
+    <div class="doc-note"><b>Each view has a fixed place.</b> Name, then meta beside it. At the right end, in this order: an aside (meta, note or danger), one control (a switch, a period window), one status pill, at most two actions (always the small outline button), a dismiss. One line at every width: the name never breaks, text takes the cut, controls and buttons keep their width. What grows with the data goes below the head.</div>
     <div class="doc-notes__label">States</div>
     <div class="doc-note">The header is one line, since its height is fixed: the name keeps its whole width and never breaks, text beside it (a meta, a note) takes the cut with an ellipsis, and a chevron, control or action keeps its own width. A card head and a list toolbar behave the same, built in, with no class to add. Body content wraps as normal; only the header is pinned. A target header hovers on <code>--surface-2</code> as one unit and rings on focus. Collapsed, the chevron rotates to point right, the body is not rendered, and the header's own rule goes with it so the card reads as one line. Which cards a user collapsed is remembered per page. Card: default · attention · problem · loading, where the body becomes three <code>--line-2</code> bars. Gauge: under · over, which caps the bar at 100% and states the overage in the caption · no target, which drops the marker. The fill and overage are drawn over the meter because a gauge's own fill cannot be given these colours in every browser; percentages arrive as <code>data-fill</code>, <code>data-over</code> and <code>data-at</code> on the element, each matched by its own attribute rule, so no element carries an inline style.</div>
     <div class="doc-note"><b>Spread</b> (<code>.sp-card--spread</code>): a card stretched to the height of the card beside it shares the free height out between its groups instead of leaving it under the last one (<a href="Home.dc.html#10a">10a</a>, the month panel).</div>
@@ -2575,7 +2686,7 @@
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Edit</button>
           </div>
           <div class="sp-card">
-            <span class="sp-section-label">THIS RECORD</span>
+            <div class="sp-card__head"><span class="sp-section-label">THIS RECORD</span></div>
             <div class="sp-stack">
               <div class="sp-sum"><span class="sp-ink-2">A figure</span><span class="sp-sum__value">142.310,00 kr.</span></div>
               <div class="sp-sum"><span class="sp-ink-2">Another</span><span class="sp-sum__value">3.745,00 kr.</span></div>
@@ -3251,7 +3362,7 @@
   <div class="doc-specimens">
     <span class="doc-specimen__label">Rows at rest, one open in the editor, and the add line - the two photo sizes and the one edge they share</span>
     <div class="sp-card">
-      <div class="sp-row-flex sp-gap-12">
+      <div class="sp-card__head">
         <span class="sp-section-label">Items · 4</span>
         <span class="sp-grow"></span>
         <span class="sp-meta">Drag the handle, or select a line and use ↑ ↓</span>
@@ -3435,7 +3546,7 @@
       <span class="doc-specimen__label">Touch - the same editor in a sheet</span>
       <div class="sp-phone sp-touch">
         <div class="sp-card">
-          <span class="sp-section-label">Items · 4</span>
+          <div class="sp-card__head"><span class="sp-section-label">Items · 4</span></div>
           <div class="sp-stack sp-gap-8">
             <div class="sp-list-item">
               <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
@@ -3647,7 +3758,7 @@
   <div class="doc-specimens">
     <span class="doc-specimen__label">Strip - more attachments than fit, so it scrolls under the chevrons</span>
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">Attachments · 3</span>
+      <div class="sp-card__head"><span class="sp-section-label">Attachments · 3</span></div>
       <div class="sp-strip-wrap">
         <button type="button" class="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
         <div class="sp-strip">
@@ -3700,7 +3811,7 @@
       <span class="doc-specimen__label">Touch - 375px</span>
       <div class="sp-phone sp-touch">
         <div class="sp-card">
-          <span class="sp-section-label">Attachments · 3</span>
+          <div class="sp-card__head"><span class="sp-section-label">Attachments · 3</span></div>
           <div class="sp-strip-wrap">
             <button type="button" class="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
             <div class="sp-strip">
@@ -4093,7 +4204,7 @@
 
   <div class="doc-specimens">
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">Vendor summary</span>
+      <div class="sp-card__head"><span class="sp-section-label">Vendor summary</span></div>
       <div class="sp-sum-head">
         <span class="sp-mark sp-mark--medium sp-mark--solid">IM</span>
         <span class="sp-alert__body">
@@ -4112,7 +4223,7 @@
     </div>
 
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">Order details</span>
+      <div class="sp-card__head"><span class="sp-section-label">Order details</span></div>
       <div class="sp-stack">
         <div class="sp-sum"><span class="sp-ink-2">Vendor</span><span class="sp-sum__value">Indbo Møbler</span></div>
         <div class="sp-sum"><span class="sp-ink-2">Date</span><span class="sp-sum__value">12.08.2026</span></div>
@@ -4127,7 +4238,7 @@
     </div>
 
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">Totals</span>
+      <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
       <div class="sp-stack">
         <div class="sp-sum"><span class="sp-ink-2">Items (4)</span><span class="sp-sum__value">3.980,00 kr.</span></div>
         <div class="sp-sum"><span class="sp-ink-2">Discount</span><span class="sp-sum__value">0,00 kr.</span></div>
@@ -4254,7 +4365,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Vendors</span>
       <div class="sp-card doc-w400">
-        <span class="sp-section-label">Needs a look</span>
+        <div class="sp-card__head"><span class="sp-section-label">Needs a look</span></div>
         <div class="sp-stack sp-gap-8">
       <button type="button" class="sp-list-item" data-color="warning"><span class="sp-list-item__count">3</span><span>possible duplicates</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span></button>
       <button type="button" class="sp-list-item"><span class="sp-list-item__count">7</span><span>no orders in 12 months</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span></button>
@@ -4266,7 +4377,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Categories</span>
       <div class="sp-card doc-w400">
-        <span class="sp-section-label">Needs a look</span>
+        <div class="sp-card__head"><span class="sp-section-label">Needs a look</span></div>
         <div class="sp-stack sp-gap-8">
       <button type="button" class="sp-list-item" data-color="warning"><span class="sp-list-item__count">2</span><span>over their limit this month</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span></button>
       <button type="button" class="sp-list-item"><span class="sp-list-item__count">4</span><span>have no limit set</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span></button>
@@ -4528,7 +4639,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Plain</span>
       <div class="sp-card doc-w400">
-        <span class="sp-section-label">THE CARD</span>
+        <div class="sp-card__head"><span class="sp-section-label">THE CARD</span></div>
         <div class="sp-well">
           <span class="sp-title">What the well holds</span>
           <span class="sp-subtitle">Belongs to the card, but reads as its own thing.</span>
@@ -4538,7 +4649,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">.sp-well[data-color="danger"]</span>
       <div class="sp-card doc-w400">
-        <span class="sp-section-label">THE CARD</span>
+        <div class="sp-card__head"><span class="sp-section-label">THE CARD</span></div>
         <div class="sp-well" data-color="danger">
           <span class="sp-title">What will be lost</span>
           <span class="sp-subtitle">Stated before the button that does it.</span>
@@ -4658,7 +4769,7 @@
 
   <div class="doc-specimens">
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">Swatch</span>
+      <div class="sp-card__head"><span class="sp-section-label">Swatch</span></div>
       <div class="sp-row-flex sp-gap-6">
         <span class="sp-swatch" data-swatch="green"></span>
         <span class="sp-swatch" data-swatch="green-3"></span>
@@ -4680,7 +4791,7 @@
     </div>
 
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">Step</span>
+      <div class="sp-card__head"><span class="sp-section-label">Step</span></div>
       <div class="sp-row-flex sp-gap-12">
         <span class="sp-step">1</span>
         <span class="sp-subtitle">The number of a step in an ordered procedure, beside the sentence that is the step.</span>

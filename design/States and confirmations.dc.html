@@ -73,7 +73,7 @@
     </div>
 
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">ATTACHMENTS · 0</span>
+      <div class="sp-card__head"><span class="sp-section-label">ATTACHMENTS · 0</span></div>
       <div class="sp-empty sp-empty--dashed">
         <span class="sp-heading sp-ink-accent">Add files</span>
         <span class="sp-meta">Receipts, delivery notes or product photos. Images or PDF.</span>
@@ -81,7 +81,7 @@
     </div>
 
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">ITEMS · 0</span>
+      <div class="sp-card__head"><span class="sp-section-label">ITEMS · 0</span></div>
       <div class="sp-empty sp-empty--dashed">
         <span class="sp-heading sp-ink-accent">Add the first item</span>
         <span class="sp-meta">An order needs at least one line before it can be saved.</span>
@@ -89,7 +89,7 @@
     </div>
 
     <div class="sp-card doc-w400">
-      <span class="sp-section-label">CATEGORIES</span>
+      <div class="sp-card__head"><span class="sp-section-label">CATEGORIES</span></div>
       <div class="sp-empty">
         <span class="sp-heading">No categories yet</span>
         <span class="sp-meta">Categories group your spend and carry the monthly limit. Scanning creates them as it goes, or add one now.</span>
@@ -215,7 +215,7 @@
     <div class="sp-hold doc-w400">
       <div class="sp-hold__ghost" aria-hidden="true">
         <div class="sp-card">
-          <span class="sp-section-label">This month</span>
+          <div class="sp-card__head"><span class="sp-section-label">This month</span></div>
           <div class="sp-fields">
             <div class="sp-stack sp-gap-8"><span class="sp-skeleton" data-w="60" data-h="10"></span><span class="sp-skeleton" data-w="104" data-h="20"></span></div>
             <div class="sp-stack sp-gap-8"><span class="sp-skeleton" data-w="70" data-h="10"></span><span class="sp-skeleton" data-w="44" data-h="20"></span></div>
@@ -227,7 +227,7 @@
       </div>
       <div class="sp-hold__state">
         <div class="sp-card">
-          <span class="sp-section-label">This month</span>
+          <div class="sp-card__head"><span class="sp-section-label">This month</span></div>
           <div class="sp-alert" data-color="danger">
             <span class="sp-alert__mark" aria-hidden="true">!</span>
             <span class="sp-alert__body">
@@ -266,7 +266,7 @@
 
   <div class="doc-specimens">
     <div class="sp-card doc-w400">
-      <div class="sp-row-flex">
+      <div class="sp-card__head">
         <span class="sp-section-label">ORDER DETAILS</span>
         <span class="sp-grow"></span>
         <span class="sp-pill" data-color="danger">2 to fix</span>
@@ -312,7 +312,7 @@
     </div>
 
     <div class="sp-card sc-w604">
-      <div class="sp-row-flex sp-gap-12">
+      <div class="sp-card__head">
         <span class="sp-section-label">ITEMS · 2</span>
         <span class="sp-grow"></span>
         <span class="sp-subtitle sp-ink-danger">1 line needs attention</span>
@@ -396,7 +396,7 @@
 
     <div class="sp-stack sp-gap-12 doc-w400">
       <div class="sp-card">
-        <span class="sp-section-label">DUPLICATE NAME</span>
+        <div class="sp-card__head"><span class="sp-section-label">DUPLICATE NAME</span></div>
         <div class="sp-field">
         <label class="sp-field__label" for="sc-f7">Category name</label>
         <input class="sp-input" aria-invalid="true" id="sc-f7" type="text" defaultValue="decor">
@@ -408,7 +408,7 @@
       </div>
 
       <div class="sp-card">
-        <span class="sp-section-label">LIMIT SANITY CHECK</span>
+        <div class="sp-card__head"><span class="sp-section-label">LIMIT SANITY CHECK</span></div>
         <div class="sp-field">
         <label class="sp-field__label" for="sc-limit">Monthly limit</label>
           <span class="sp-field__wrap">
@@ -738,7 +738,7 @@
 
     <div class="sp-stack sp-gap-12 sc-w430">
       <div class="sp-card">
-        <span class="sp-section-label">THE TEST, IN ORDER</span>
+        <div class="sp-card__head"><span class="sp-section-label">THE TEST, IN ORDER</span></div>
         <div class="sp-stack sp-gap-12">
           <div class="sp-row-flex sp-gap-12">
             <span class="sp-step">1</span>
@@ -770,7 +770,7 @@
       </div>
 
       <div class="sp-card">
-        <span class="sp-section-label">WHEN THEY STACK</span>
+        <div class="sp-card__head"><span class="sp-section-label">WHEN THEY STACK</span></div>
         <div class="doc-note">Esc closes the topmost layer only, in this order: sheet, dialog, popover, inline edit. A dialog opened from a popover closes the popover first.</div>
         <div class="doc-note">Toasts sit above everything and are never blocked by a dialog - a background action finishing must not be swallowed by whatever is open in front of it.</div>
         <div class="doc-note">Only one dialog at a time. A dialog that needs to open another means the first asked the wrong question.</div>

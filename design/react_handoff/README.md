@@ -3,7 +3,7 @@
 24 files, grouped by what a component belongs to:
 
     Button.jsx        Button, IconButton
-    Card.jsx          Card, Cards, CardBody, Toolbar, ListFooter
+    Card.jsx          Card, CardHeader, Cards, CardBody, Toolbar, ListFooter
     Chip.jsx          Chip
     Choice.jsx        Check, Radio, Switch, Choice, FieldGroup, Picker
     Combobox.jsx      Combobox, ComboboxOption, ComboboxGroup, ComboboxEmpty
@@ -307,7 +307,7 @@ there costs `Field` no import and no load order:
   `<label>` can only point at one control. `Field` renders a `FieldGroup`, and the
   message describes the set rather than any one input in it.
 
-Four controls used to swallow the generated id: `Combobox`, `Stepper`,
+Seven controls used to swallow the generated id: `Combobox`, `Stepper`,
 `TokensField` and `FileDrop` spread it onto their root element instead of the
 focusable one, so the label's `for` resolved to nothing and no error was raised - the
 field's central promise, quietly broken in half the library. Each now puts it on the
@@ -323,6 +323,14 @@ a warning colours it and does not.
 `Card` - the footer takes the actions rather than the caller building it: one fills
 the width, a pair splits it into equal halves, a third is reported as a menu rather
 than laid out.
+
+`CardHeader` - a card's name is always in one. It is only a child of `Card`, which
+renders it first wherever it was written; anywhere else, including nested inside a
+card's content, it renders nothing and reports the call. It renders `.sp-card__head` and nothing else renders that
+class. Every view a head has is a named slot with one place: `name`, then `meta` beside
+it; at the right end `aside` (with `asideTone` default / note / danger), `control`,
+`status`, `actions` (at most two, always the small outline button) and `onDismiss`, in
+that order. It takes no children, so a head cannot be assembled by hand.
 
 `ListItem` - one row for every list in the product. It was two components, one for
 an editable set and one for everything else, until the two were compared: they
@@ -343,12 +351,15 @@ row that only states something stays a div.
   `tone (accent / neutral / amber)`, and a mark's sizes are `inline / row / form`.
   All three were settled differently since - variant and colour as separate axes,
   one colour vocabulary, sizes named as sizes - so that page needs a pass.
+- The list's own responsive switch: which body it shows is a question about the
+  list's width, so the container query belongs to the List rather than to a page.
+- The line editor, which is a form rather than a row and kept its own name.
 - A gap list: what the product does that this design has not drawn. Charts beyond
   the bar plot, the favourite tiles, pull-to-refresh. Each gap is a design decision
   that will otherwise be made in code.
 
-`Icon` is imported from `./Icon.jsx`, which is not in this folder: the app supplies it. The
-library's icons are Tabler outline, which is what that component already reads.
+`Icon` is imported from `./Icon.jsx`. The library's icons are Tabler outline, which
+is what that component already reads.
 
 `Bars` - a column may carry `from` and `to`, the first and last day it counts, and
 `onSelect` reports `(key, from, to)`. One end without the other is reported: a period

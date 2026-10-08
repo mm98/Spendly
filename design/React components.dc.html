@@ -147,7 +147,7 @@
 	<div class="sp-card"><div class="sp-fields">{{ inputs }}</div></div>
 	{{ inputsCode }}
 	<div class="doc-note"><b>Numbers are written the reader's way.</b> The amount reads <code>1.320,00</code> because a native number input cannot render a comma separator - its value is always dot-decimal - so an amount is a text input with a decimal input mode, formatted on blur and accepting either separator while typing. The value stays a number; only the text is localised. The specimens pass <code>da-DK</code>; with no locale they follow the browser.</div>
-	<div class="doc-note"><b>A native control's own glyphs are the only ones in the design that are not from the register.</b> The search field's clear is removed outright. The date field's calendar cannot be: in current Chromium it survives <code>display: none</code>, a cleared background and a zero width, so it is covered instead - the field keeps its ordinary padding, which puts the glyph in the field's own trailing slot, and the trail button sits over it on the field's ground carrying the register's calendar. That button opens the same platform picker, so nothing is lost, and a phone still gets its native one.</div>
+	<div class="doc-note"><b>A native control's own glyphs are the only ones in the design that are not from the register.</b> The search field's clear is removed outright. The date field's calendar cannot be: in current Chromium it survives <code>display: none</code>, a cleared background and a zero width, so it is covered instead - the field keeps its ordinary padding, which puts the glyph in the field's own trailing slot, and the trail button sits over it on the field's ground carrying the register's calendar. That button opens the field's calendar: the library's own on desktop, the native one on a phone (next note).</div>
 
 	<div class="doc-note"><b>A date is drawn on desktop and native on touch, and the surface decides.</b> On a phone the platform's picker beats anything drawn - a full-screen wheel, the reader's format, the keyboard they expect. On a desktop it is a small dark dropdown nobody can style, so the field opens the library's own calendar. The field looks for a <code>.sp-touch</code> surface above it rather than asking the caller which it is.</div>
 	<div class="doc-note"><b>The calendar takes the keyboard.</b> One month grid, used three times - the date field's dropdown, the range's two months, the phone's sheet. It is a real grid: rows of gridcells with one day in the tab order, so the arrow keys walk the month instead of the reader tabbing through 31 buttons. Arrows move a day and a week, PageUp and PageDown a month, with Shift a year, Home and End the ends of the week; Enter picks, Escape closes and returns focus to the trigger, and clicking away closes it. Every day carries its full date for a screen reader, today is <code>aria-current</code>, and a day outside min or max is disabled rather than missing. The weekday order comes from the locale.</div>
@@ -231,8 +231,11 @@
 		<span class="doc-badge" id="r5">r5</span>
 		<span class="doc-section__title">Card, Well</span>
 		<span class="sp-grow"></span>
-		<span class="sp-meta">variant · color · footer · footerLayout</span>
+		<span class="sp-meta">variant · color · footer · footerLayout · CardHeader</span>
 	</div>
+	<span class="doc-specimen__label">CardHeader: every view in its own slot</span>
+	<div class="sp-stack sp-gap-12 doc-w400">{{ cardHeaders }}</div>
+	{{ cardHeadersCode }}
 	<span class="doc-specimen__label">the footer: one action fills the width, a pair splits it</span>
 	<div class="sp-cards">{{ cardFooters }}</div>
 	{{ cardFootersCode }}
@@ -602,7 +605,7 @@ class Component extends DCLogic {
 		if (this.state.error) return { status: 'The harness could not load: ' + this.state.error };
 		if (!m) return { status: 'Loading the component files.' };
 		const { Button, IconButton, Mark, Chip, Pill, Field, Icon,
-			Card, Cards, CardBody, Well, ListItem, Insertion, ListItemRemove,
+			Card, CardHeader, Cards, CardBody, Well, ListItem, Insertion, ListItemRemove,
 			Stacked, Line, Combobox, ComboboxOption, ComboboxGroup, ComboboxEmpty,
 			Check, Radio, Switch, Choice, FieldGroup, Segmented, Stepper, FileDrop,
 			TextField, PasswordField, NumberField, SearchInput, RangeSlider,
@@ -1138,6 +1141,33 @@ class Component extends DCLogic {
 					}, label))),
 				e(Combobox, { 'aria-label': 'Nothing matches', value: 'Vitra' },
 					e(ComboboxEmpty, null, 'No vendor by that name.'))
+			]),
+
+			cardHeaders: row([
+				e(Card, null,
+					e(CardHeader, { name: 'Needs a look' }),
+					e('span', { className: 'sp-data' }, '2 categories over their limit')),
+				e(Card, null,
+					e(CardHeader, { name: 'Drafts', meta: 'newest 3', actions: [{ label: 'All 5', to: '#' }] }),
+					e('span', { className: 'sp-data' }, 'Indbo Møbler · 19/08')),
+				e(Card, null,
+					e(CardHeader, { name: 'Top vendors', aside: 'August · top 8 of 10' }),
+					e('span', { className: 'sp-data' }, 'Indbo Møbler · 24.310 kr.')),
+				e(Card, null,
+					e(CardHeader, { name: 'Items · 2', aside: '1 line needs attention', asideTone: 'danger' }),
+					e('span', { className: 'sp-data' }, 'Lounge chair · 2 × 4.129,00')),
+				e(Card, null,
+					e(CardHeader, { name: 'Spend by month', control: e(Segmented, { name: 'r5-head', options: [{ value: 's', label: 'Stacked' }, { value: 't', label: 'Total' }], defaultValue: 's' }) }),
+					e('span', { className: 'sp-data' }, 'Jan to Aug')),
+				e(Card, null,
+					e(CardHeader, { name: 'Spend, August', status: e(Pill, { color: 'danger' }, '2.100 over') }),
+					e('span', { className: 'sp-stat__figure' }, '24.100 kr.')),
+				e(Card, null,
+					e(CardHeader, { name: 'Showing', actions: [{ label: 'Reset', onClick: () => {} }, { label: 'Open in orders', to: '#' }] }),
+					e('span', { className: 'sp-data' }, '2026 · Indbo Møbler')),
+				e(Card, null,
+					e(CardHeader, { name: 'August 2026', onDismiss: () => {}, dismissLabel: 'Hide the August summary' }),
+					e('span', { className: 'sp-data' }, '61.480 kr. across 18 orders'))
 			]),
 
 			cardFooters: row([

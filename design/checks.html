@@ -194,7 +194,9 @@ const RULES = [
       const cs = CS(s);
       if (cs.display !== 'flex') add(`a title stack is ${cs.display}, not flex, so its gap does nothing`, s);
       if (cs.rowGap !== '2px') add(`a title stack has gap ${cs.rowGap}, not 2px`, s);
-      if (cs.overflow !== 'hidden' && !s.matches('.sp-cell-amount, .sp-list-card__body'))
+      /* --fill is a row's text column: its lines (.sp-list-item__line) truncate themselves,
+         and it shows its overflow so a pill's negative margin in a line is not cut */
+      if (cs.overflow !== 'hidden' && !s.matches('.sp-cell-amount, .sp-list-card__body, .sp-stacked--fill'))
         add('a title stack does not hide its overflow', s);
 
       /* Truncation only matters where content can overflow. "Period" in a 342px card
@@ -496,13 +498,18 @@ const RULES = [
       const got = R(name).top - R(holder).top;
       if (Math.abs(got - want(t, name)) > 0.6) add(`a list toolbar name sits ${got.toFixed(1)} from the top`, name);
     });
+    /* a CardHeader is only ever a card's first child */
+    doc.querySelectorAll('.sp-card__head').forEach(h => {
+      if (!inProduct(h)) return;
+      if (!h.parentElement || !h.parentElement.matches('.sp-card') || h.parentElement.firstElementChild !== h) add(`a CardHeader outside a card, or not its first child: "${h.textContent.trim().slice(0, 30)}"`, h);
+    });
     doc.querySelectorAll('.sp-card').forEach(card => {
       if (!inProduct(card) || !R(card).width) return;
       const first = card.firstElementChild;
       if (!first) return;
       let head = null, name = null;
-      if (first.matches('.sp-section-label')) head = name = first;
-      else if (first.matches('.sp-row-flex') && first.firstElementChild && first.firstElementChild.matches('.sp-section-label')) { head = first; name = first.firstElementChild; }
+      if (first.matches('.sp-card__head') && first.firstElementChild && first.firstElementChild.matches('.sp-section-label')) { head = first; name = first.firstElementChild; }
+      else if (!first.matches('.sp-list__toolbar') && !first.matches(STAT) && (first.matches('.sp-section-label') || (first.firstElementChild && first.firstElementChild.matches('.sp-section-label')))) { add(`a card name is not in a CardHeader (.sp-card__head): "${(first.matches('.sp-section-label') ? first : first.firstElementChild).textContent.trim().slice(0, 30)}"`, first); return; }
       if (first.matches('.sp-list__toolbar')) return;          // a list head, measured above
       if (!head) {
         const lone = first.querySelector('.sp-section-label');
@@ -667,10 +674,15 @@ window.closeViewer = closeViewer;
 let done = 0;
 
 let CURRENT = null;
+const TOOLS = ['Playground'];
+const TOOL_EXEMPT = ['no inline styles'];
 function runOn(name, doc, win) {
   CS = win.getComputedStyle.bind(win);
   CURRENT = { name, doc, win, frame: win.frameElement };
   for (const rule of RULES) {
+    /* Playground is an instrument, not a mockup: its chrome is drawn inline so nobody
+       mistakes it for a component - the same exemption styles/check.js makes (TOOLS) */
+    if (TOOLS.includes(name) && TOOL_EXEMPT.includes(rule.id)) continue;
     try { rule.run(doc, (detail, el) => findings.push({ rule: rule.id, why: rule.why, page: name, detail, el: el || null, frame: CURRENT.frame })); }
     catch (err) { findings.push({ rule: rule.id, why: rule.why, page: name, detail: 'rule threw: ' + err.message }); }
   }
@@ -783,8 +795,11 @@ PAGES.forEach(name => {
         if (!l.sheet) return false;
         try { if (!l.sheet.cssRules.length) return false; } catch (e) { return false; }
       }
+      /* a page with no card and no stack (Type specimen, an empty Playground canvas) has
+         nothing to probe, so it is gated on a token from tokens.css instead - waiting for
+         a probe it can never have reported it as not rendering at all */
       const probe = doc.querySelector('.sp-stack.sp-gap-6, .sp-card');
-      if (!probe) return false;
+      if (!probe) return !!fr.contentWindow.getComputedStyle(doc.documentElement).getPropertyValue('--control-h').trim();
       const cs = fr.contentWindow.getComputedStyle(probe);
       return cs.rowGap === '6px' || cs.paddingTop === '16px' || cs.paddingLeft === '16px';
     };
