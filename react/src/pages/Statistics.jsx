@@ -137,12 +137,6 @@ export default function Statistics() {
 	// the table's slice is stated as a share of its period's spend (4a): the time crumb, or the whole window
 	const periodCrumbs = crumbs.some(c => !isTime(c)) ? crumbs.filter(isTime) : []
 	const whole = useCurrent(getStatsSlice, [{ ...base, ...filterOf(periodCrumbs) }], { enabled: drilled && !touch })
-	// the side cards read the period's current month, as limits are monthly (4a)
-	const monthId = range === 'month' ? id : reanchor(range, id, 'month')
-	const ownMonth = useCurrent(getStatsSlice, [{ range: 'month', windowId: monthId, flow }], { enabled: !drilled && range !== 'month' })
-	const month = range === 'month' ? stats : ownMonth
-	const monthName = stepLabel('month', monthId)
-	const monthRunning = monthId === defaultId('month')
 	// every category with a limit, the records the crumbs name, and how many categories there are
 	const categories = useApi(getLimitedCategories)
 	const vendors = useCrumbRecords(getVendorPage, crumbs, 'vendor')?.vendors
@@ -164,7 +158,7 @@ export default function Statistics() {
 	useLayoutEffect(() => { if (drawn) restored() }, [drawn, restored])
 
 	const retry = () => {
-		for (const call of [stats, past, parent, ownMonth, categories, read]) if (call.error) call.refresh()
+		for (const call of [stats, past, parent, categories, read]) if (call.error) call.refresh()
 	}
 
 	// the URL holds only what differs from the page's own default
@@ -295,6 +289,13 @@ export default function Statistics() {
 
 	const name = nameOf(range, id)
 	const nameInText = nameOf(range, id, true)
+	// a card's meta names a month by the month alone, as 4g does; every other period by its name
+	const cardName = range === 'month' ? stepLabel('month', id) : name
+	// limits are set per month: a period of whole months is counted in months, any other in days
+	const first = new Date(fromMs), after = new Date(toMs + DAY_MS)
+	const span = first.getUTCDate() === 1 && after.getUTCDate() === 1
+		? { count: (after.getUTCFullYear() - first.getUTCFullYear()) * 12 + after.getUTCMonth() - first.getUTCMonth(), unit: 'month' }
+		: { count: Math.round((toMs - fromMs) / DAY_MS) + 1, unit: 'day' }
 	const labels = { vendors, categories: crumbCategories, windowYear: id.slice(0, 4) }
 	const crumbsBar = drilled
 		? <CrumbsBar root={name} crumbs={crumbs} labels={labels} link={ordersLink(view?.slice ?? { from, to }, crumbs)}
@@ -315,7 +316,7 @@ export default function Statistics() {
 
 	if (!view) {
 		const running = fromMs <= todayUtc() && todayUtc() <= toMs
-		return arrange({ shape, stacked, period, crumbsBar, drilled, ...busyParts({ unit: unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs), name, monthName, monthRunning, running, touch, comparing, categories, known, drilled, flow }) })
+		return arrange({ shape, stacked, period, crumbsBar, drilled, ...busyParts({ unit: unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs), name, cardName, period: nameInText, span, running, touch, comparing, categories, known, drilled, flow }) })
 	}
 
 	if (!view.orders && !drilled) {
@@ -353,7 +354,6 @@ export default function Statistics() {
 	}
 
 	const chart = chartOf(view)
-	const monthView = month.data?.window
 	const time = crumbs.find(isTime)
 	const selectedKey = time ? chart.columns.find(c => c.crumb?.value === time.value)?.key ?? null : null
 	const sliceName = time ? crumbLabel(time, labels) : name
@@ -377,7 +377,7 @@ export default function Statistics() {
 	const categoryCrumb = crumbs.find(c => c.kind === 'category')
 	const statusCrumb = crumbs.find(c => c.kind === 'status')
 	const category = categoryCrumb && crumbCategories?.find(c => c.id === categoryCrumb.value)
-	// a limit counts only for a category that spent in this period, as the Monthly limit card draws it
+	// a limit counts only for a category that spent in this period, as the Limits card draws it
 	const spentIn = new Set((view.split ?? []).filter(entry => entry.amount > 0).map(entry => entry.id))
 	const limit = flow === 'refunds' || vendorCrumb || statusCrumb ? 0
 		: categoryCrumb ? category?.budget ?? 0
@@ -419,7 +419,7 @@ export default function Statistics() {
 		const side = !categoryCrumb
 			? <CategoryRows key={`category ${slice}`} view={view} onOpen={drillTo('category')} hint />
 			: category?.budget > 0 && chart.unit === 'month' && flow !== 'refunds'
-				? <LimitByMonth chart={chart} selected={selectedKey} category={category} pace={pace} touch={touch} />
+				? <LimitByMonth key={`by month ${slice}`} chart={chart} category={category} pace={pace} touch={touch} />
 				: !vendorCrumb
 					? <VendorsCard key={`vendors ${slice}`} view={view} name={sliceName} touch={touch} onOpen={drillTo('vendor')} />
 					: !statusCrumb
@@ -427,7 +427,7 @@ export default function Statistics() {
 						: <SavingChart chart={chart} name={sliceName} touch={touch} selected={selectedKey} />
 		return arrange({
 			shape, stacked, period, crumbsBar, drilled,
-			kpis: <DrilledKpis view={view} parent={parentView} above={above} versusAll={VERSUS[crumbs.at(-1).kind]} chart={chart} time={time ? sliceName : null}
+			kpis: <DrilledKpis view={view} parent={parentView} above={above} versusAll={VERSUS[crumbs.at(-1).kind]} period={time ? sliceName : cardName}
 				category={category} flow={flow} touch={touch} />,
 			chart: spendChart,
 			side,
@@ -445,20 +445,15 @@ export default function Statistics() {
 				waiting={comparing && !was && !past.error} touch={touch} />
 		),
 		chart: spendChart,
-		byCategory: month.error
-			? <Failed variant="card" label="By category" what={`${monthName} by category`} error={month.error} onRetry={retry} />
-			: touch
-				? <CategoryRows key={`category ${monthId}`} view={monthView} known={known} name={monthName} onOpen={drillTo('category')} />
-				: <CategoryShares view={monthView} known={known} name={monthName} ring={flow !== 'net'} onOpen={drillTo('category')} />,
+		byCategory: touch
+			? <CategoryRows key={`category ${range} ${id}`} view={view} known={known} name={cardName} onOpen={drillTo('category')} />
+			: <CategoryShares view={view} known={known} name={cardName} ring={flow !== 'net'} onOpen={drillTo('category')} />,
 		byStatus: <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />,
-		vendors: month.error
-			? <Failed variant="card" label="Top vendors" what={`${monthName} by vendor`} error={month.error} onRetry={retry} />
-			: <VendorsCard key={`vendors ${monthId}`} view={monthView} name={monthName} touch={touch} onOpen={drillTo('vendor')} />,
+		vendors: <VendorsCard key={`vendors ${range} ${id}`} view={view} name={cardName} touch={touch} onOpen={drillTo('vendor')} />,
 		saving: <SavingChart chart={chart} name={name} touch={touch} selected={selectedKey}
 			onOpen={canDrill({ kind: 'month' }) ? column => drill(column.crumb) : undefined} />,
 		limits: flow === 'refunds' ? null
-			: month.error ? <Failed variant="card" label="Monthly limit" what={`${monthName} against the limits`} error={month.error} onRetry={retry} />
-				: <LimitCard key={`limits ${monthId}`} view={monthView} name={monthName} running={monthRunning} categories={categories} touch={touch} onRetry={retry} />,
+			: <LimitCard key={`limits ${range} ${id}`} view={view} period={nameInText} span={span} categories={categories} touch={touch} onRetry={retry} />,
 		slice: table
 	})
 }
@@ -574,7 +569,7 @@ const buttonHold = key => (
 	</span>
 )
 
-function busyParts({ unit, name, monthName, monthRunning, running, touch, comparing, categories, known, drilled, flow }) {
+function busyParts({ unit, name, cardName, period, span, running, touch, comparing, categories, known, drilled, flow }) {
 	// the account's categories bound a breakdown's length before its window answers
 	return {
 		kpis: (drilled ? ['Spend', 'Orders', 'Average order', 'Saved'] : ['Total spend', 'Orders', 'Average order', 'Saved']).map(label => (
@@ -586,11 +581,11 @@ function busyParts({ unit, name, monthName, monthRunning, running, touch, compar
 		)),
 		chart: <SpendChart unit={unit} running={running} touch={touch} />,
 		side: <CategoryRows known={known} hint />,
-		byCategory: touch ? <CategoryRows known={known} name={monthName} /> : <CategoryShares known={known} name={monthName} ring={flow !== 'net'} />,
+		byCategory: touch ? <CategoryRows known={known} name={cardName} /> : <CategoryShares known={known} name={cardName} ring={flow !== 'net'} />,
 		byStatus: <StatusCard flow={flow} />,
-		vendors: <VendorsCard name={monthName} touch={touch} />,
+		vendors: <VendorsCard name={cardName} touch={touch} />,
 		saving: <SavingChart name={name} touch={touch} />,
-		limits: <LimitCard name={monthName} running={monthRunning} categories={categories} touch={touch} />,
+		limits: <LimitCard period={period} span={span} running={running} categories={categories} touch={touch} />,
 		slice: touch ? <SliceCard /> : <OrdersTable rows={[]} drilled={drilled} />
 	}
 }
@@ -664,20 +659,17 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 }
 
 /** Inside a crumb the figures are held against the level above, not an earlier window (4b, 4c). */
-function DrilledKpis({ view, parent, above, versusAll, chart, time, category, flow, touch }) {
+function DrilledKpis({ view, parent, above, versusAll, period, category, flow, touch }) {
 	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
 	const of = parent && parent.spent > 0 && view.spent >= 0 ? `${percent(share(view.spent, parent.spent), 0)} of ${above}` : null
 	const higher = parent && parent.average > 0 ? view.average - parent.average : null
 	const versus = higher == null || Math.round(view.average) === Math.round(parent.average)
 		? null : `${signed(higher, percent(Math.abs(share(higher, parent.average)), 0))} vs ${versusAll}`
-	/* A category's limit, against the month the chart ends on, or against the stretch a time crumb chose. */
+	// a category's limit, held once for each month of the stretch the figures cover, as the Limits card holds it
 	let limit = null
 	if (category?.budget > 0 && flow !== 'refunds') {
-		const last = chart.unit === 'month' && !time ? chart.columns.at(-1) : null
-		const spent = last ? last.spend : view.spent
-		const allowed = last ? category.budget : category.budget * view.budgets.months
-		const label = last ? monthNames('long', true)[Number(last.from.slice(5, 7)) - 1] : time ?? 'this period'
-		limit = { spent, allowed, help: `${label}, ${spent > allowed ? 'over' : 'under'}`, over: spent > allowed }
+		const allowed = category.budget * view.budgets.months
+		limit = { spent: view.spent, allowed, help: `${period}, ${view.spent > allowed ? 'over' : 'under'}`, over: view.spent > allowed }
 	}
 	return [
 		<Card key="spend">{touch ? null : <CardHeader name="Spend" />}<Stat bare label={touch ? 'Spend' : undefined} figure={figure(view.spent)} help={of} /></Card>,
@@ -826,7 +818,7 @@ const ringFigure = n => (Math.abs(n) >= 100000 ? `${amount(Math.round(n / 1000),
 /** The top three categories and one line for the rest, which opens nothing (4d), read from the ring
     beside them (4a). Under net a share can be negative, which a ring cannot draw, so it is left out (4e). */
 function CategoryShares({ view, known, name, ring, onOpen }) {
-	// the ring names the month in its hole; without the ring the head names it
+	// the ring names the period in its hole; without the ring the head names it
 	const head = <CardHeader name="By category" aside={ring ? undefined : name} />
 	if (!view) {
 		return (
@@ -1070,21 +1062,30 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 	)
 }
 
-/** One category inside a crumb, month by month against its one limit (4c). */
-function LimitByMonth({ chart, selected, category, pace, touch }) {
+/** One category inside a crumb, month by month against its one limit (4c): every month of the period
+    up to today, newest first, resting at the newest eight as the other long cards do (4d). */
+function LimitByMonth({ chart, category, pace, touch }) {
 	const budget = category.budget
 	const edit = <EditLimit key="edit" category={category} />
 	const editing = limitEdit(category)
-	const upTo = selected ? chart.columns.findIndex(c => c.key === selected) + 1 : chart.columns.length
-	const months = chart.columns.slice(Math.max(0, upTo - 3), upTo)
+	const [open, setOpen] = useState(false)
+	const newest = [...chart.columns].reverse()
+	const folds = newest.length > TOP + 1
+	const months = folds && !open ? newest.slice(0, TOP) : newest
+	const all = folds
+		? <Button key="all" variant="outline" size="small" onClick={() => setOpen(!open)}>{open ? `Show ${TOP} months only` : `Show all ${amount(newest.length, 0)} months`}</Button>
+		: null
+	const footer = [...(touch ? [edit] : []), ...(all ? [all] : [])]
+	// a period across a new year would show the same month twice, so there each month carries its year
+	const years = new Set(chart.columns.map(column => column.from.slice(0, 4))).size > 1
 	return (
-		<Card footer={touch ? [edit] : null}>
+		<Card footer={footer.length ? footer : null} footerLayout={touch && all ? 'stack' : 'fill'}>
 			<CardHeader name="By month, against the limit" aside={`limit ${currency(budget, 0)}`} actions={touch ? undefined : [editing]} />
 			{months.map(column => {
 				const scale = Math.max(column.spend, budget)
 				const over = column.spend > budget
 				const marker = column.running && pace.running ? share(budget * (pace.daysIn / pace.unitDays), scale) : undefined
-				const month = monthNames('long', true)[Number(column.from.slice(5, 7)) - 1]
+				const month = `${monthNames('long', true)[Number(column.from.slice(5, 7)) - 1]}${years ? ` ${column.from.slice(0, 4)}` : ''}`
 				return (
 					<div className="sp-stack sp-gap-6" key={column.key}>
 						<div className="sp-row-flex sp-gap-8">
@@ -1114,17 +1115,17 @@ const EditLimit = ({ category }) => {
 	return <Button variant="outline" size="small" to={to}>{label}</Button>
 }
 
-function LimitCard({ view, name, running, categories, touch, onRetry }) {
+function LimitCard({ view, period, span, running, categories, touch, onRetry }) {
 	const shown = useShown()
 	const edit = <EditLimit key="edit" />
 	// a phone button takes the full width, so there it sits in the card's footer rather than squeezing the label
-	const head = <CardHeader name="Monthly limit" aside={name} actions={touch ? undefined : [limitEdit()]} />
+	const head = <CardHeader name="Limits" actions={touch ? undefined : [limitEdit()]} />
 	const limited = categories.data?.filter(category => category.budget > 0)
 	useEffect(() => { if (limited) rememberLimits(limited.length) }, [limited?.length])
 	const [open, setOpen] = useState(false)
 	if (categories.error) return (
-		<Hold shape={<LimitCard view={view} name={name} running={running} categories={{}} touch={touch} />}>
-			<Failed variant="card" label="Monthly limit" what="The limits" error={categories.error} onRetry={onRetry} />
+		<Hold shape={<LimitCard view={view} period={period} span={span} running={running} categories={{}} touch={touch} />}>
+			<Failed variant="card" label="Limits" what="The limits" error={categories.error} onRetry={onRetry} />
 		</Hold>
 	)
 	const footer = touch ? [edit] : null
@@ -1139,7 +1140,10 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 			</Card>
 		)
 	}
-	const note = 'Each category has one limit that applies to every month.'
+	// a longer period holds each limit once for each month it covers, a part month by its share of days (4a)
+	const months = view?.budgets.months
+	const note = span.unit === 'month' && span.count === 1 ? 'Each category has one limit that applies to every month.'
+		: `Each category has one limit a month. For ${period} that is ${amount(span.count, 0)} ${span.unit}${span.count === 1 ? '' : 's'}.`
 	if (!view || !limited) {
 		return (
 			<Card aria-busy="true" footer={footer}>
@@ -1163,7 +1167,6 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 			</Card>
 		)
 	}
-	const months = view.budgets.months
 	const spendOf = new Map(view.split.map(entry => [entry.id, entry.amount]))
 	const limits = limited.map(category => {
 		const spend = spendOf.get(category.id) ?? 0
