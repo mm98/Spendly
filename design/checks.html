@@ -69,7 +69,8 @@ const RULES = [
   why: 'The add field in the bookmark category picker was 14px on a phone, so iOS zoomed the page in when it took focus and left it zoomed.',
   run(doc, add) {
     doc.querySelectorAll('.sp-touch input, .sp-touch textarea').forEach(e => {
-      if (/^(checkbox|radio|range|file|hidden|button|submit)$/.test(e.type) || e.readOnly || e.disabled) return;
+      /* a colour field opens a picker, not a keyboard, so the phone does not zoom on it */
+      if (/^(checkbox|radio|range|file|hidden|button|submit|color)$/.test(e.type) || e.readOnly || e.disabled) return;
       if (!e.getBoundingClientRect().width) return;
       const fs = parseFloat(CS(e).fontSize);
       if (fs < 16) add(`a ${e.type || 'text'} field (.${(e.className || '').split(' ')[0] || e.tagName.toLowerCase()}) is ${fs}px on touch; under 16px the phone zooms in on focus`, e);
