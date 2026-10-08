@@ -219,7 +219,7 @@ export default function Bookmarks() {
 	// what a control not on screen holds is a crumb too: on a phone the search, and with the sheet
 	// the view switch; Clear all clears what the crumbs show
 	const crumbs = [
-		touch && query ? <Crumb key="q" name={`the search for "${query}"`} onRemove={() => write({ q: '' })}>"{query}"</Crumb> : null,
+		touch && query ? <Crumb key="q" name={`the search for "${query}"`} onRemove={() => write({ q: '' })}>{`"${query}"`}</Crumb> : null,
 		category ? <Crumb key="category" name={categoryName} onRemove={() => write({ category: '' })}>{categoryName}</Crumb> : null,
 		sheeted && archived ? <Crumb key="archived" name="Archived" onRemove={() => write({ archived: '' })}>Archived</Crumb> : null
 	].filter(Boolean)

@@ -9,7 +9,7 @@ budget, and keep a list of things worth buying later.
 ## The design system
 
 The design system lives in [`design/`](design/), and it is the specification. Start with
-[`design/README.md`](design/README.md) and [`design/CLAUDE.md`](design/CLAUDE.md),
+[`design/README.md`](design/README.md) and [`design/PROJECT-RULES.md`](design/PROJECT-RULES.md),
 then `design/index.html`, the map of every page.
 
 - **Screens.** Each `*.dc.html` page draws its screens with an id (`1a`, `2b`, ...) and notes

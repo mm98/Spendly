@@ -133,7 +133,7 @@
    the name centred, so a card and a list carry their names at the same height. The card
    gives up its top padding to it, so the place does not depend on the card's padding.
    The head is one line and never wraps: anything beside the name is centred on it and
-   shrinks, and a button in it is always the small outline button (c6), and what can grow with the data (a legend, filters) goes below the head.
+   shrinks, and a button in it is always the small outline button (c6), and what can grow with the data (filters) goes below the head. A chart's legend goes below the chart (c14).
    The gap below is taken into the head, so content starts where a list's rows start. */
 .sp-card:has(> .sp-card__head:first-child) { padding-top: 0; }
 /* the gap is the list toolbar's, since the head is the toolbar's box. Only a card's first
@@ -156,6 +156,11 @@
    line whatever the data puts in it, and no page adds a class to make it so. */
 .sp-card > .sp-card__head:first-child > .sp-section-label:first-child,
 .sp-list__toolbar > .sp-section-label:first-child { flex: none; white-space: nowrap; }
+/* everything in a head is centred on the name's line, whatever the part's own rule says:
+   a segmented control aligns itself to the start, for a form column, and in a head that
+   put the Stacked / Total switch on the head's top edge */
+.sp-card > .sp-card__head:first-child > *,
+.sp-list__toolbar > * { align-self: center; }
 .sp-card > .sp-card__head:first-child > :is(.sp-meta, .sp-note, .sp-subtitle),
 .sp-list__toolbar > :is(.sp-meta, .sp-note, .sp-subtitle) { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the bar above a list, and the header of a card that has one: the same object, so
@@ -1597,8 +1602,28 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 /* ---------- DrillCrumb: the drill path in statistics ----------
    The root level is text; every level the user drilled into is a removable crumb. */
 
-/* The Showing bar is a card with a head: the name, Reset and Open in orders are the
-   head, and the path sits below it, where it wraps. It has no class of its own (c8). */
+/* A card whose head carries a path (the Showing bar, c8): sp-card--path. The card is a
+   CardHeader - the name, then the actions - and the path after it. Where the card is at
+   least --path-fold wide the path stands in the head's line, between the name and the
+   actions, on one line, and the longest crumb takes the cut. In a narrower card (a phone)
+   it drops below the head and wraps there. The head is the same 54px box either way. */
+.sp-card--path { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; column-gap: var(--sp-12); padding-bottom: 0; container-type: inline-size; }
+.sp-card--path > .sp-card__head:first-child { grid-row: 1; grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; margin-bottom: 0; }
+.sp-card--path > .sp-card__head:first-child > .sp-section-label:first-child { grid-column: 1; }
+.sp-card--path > .sp-card__head:first-child > .sp-grow { display: none; }
+.sp-card--path > .sp-card__head:first-child > :nth-last-child(2):not(.sp-grow) { grid-column: 3; }
+.sp-card--path > .sp-card__head:first-child > :last-child { grid-column: 4; }
+.sp-card--path > nav { grid-row: 1; grid-column: 2; align-self: center; min-width: 0; }
+.sp-card--path > nav > .sp-crumbs { flex-wrap: nowrap; min-width: 0; }
+.sp-card--path > nav > .sp-crumbs > li { min-width: 0; }
+.sp-card--path > nav > .sp-crumbs > li:first-child { flex: none; }
+.sp-card--path > nav .sp-crumb { min-width: 0; max-width: 100%; }
+.sp-card--path > nav .sp-crumb__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-width: 639.98px) {
+  .sp-card--path > nav { grid-row: 2; grid-column: 1 / -1; margin-top: calc(var(--sp-12) * -1); padding-bottom: var(--sp-16); }
+  .sp-card--path > nav > .sp-crumbs { flex-wrap: wrap; }
+  .sp-card--path > nav .sp-crumb__label { white-space: normal; }
+}
 
 .sp-crumbs {
   display: flex;
@@ -1636,6 +1661,8 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   font-weight: 600;
   cursor: default;
 }
+/* the crumb's text, so a crumb can take the cut (sp-card--path) */
+.sp-crumb__label { min-width: 0; }
 .sp-crumb__remove {
   display: grid;
   place-items: center;
@@ -2967,6 +2994,8 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-bars__col[aria-pressed="true"] .sp-bars__bar { background: var(--green); }
 .sp-bars__tick { font-size: var(--t-11); color: var(--ink-5); text-align: center; }
 
+/* A chart's legend is always under the chart it keys, never between the head and the
+   chart: one place for every chart, read after the bars (Spend by month, Spend vs saving). */
 .sp-legend {
   display: flex;
   flex-wrap: wrap;

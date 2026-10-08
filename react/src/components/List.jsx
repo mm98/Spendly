@@ -1,4 +1,4 @@
-import { cloneElement, useContext, useEffect, useId, useRef, useState } from 'react'
+import { Children, cloneElement, useContext, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
@@ -428,11 +428,13 @@ export function Facets({ children, ...rest }) {
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
 	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }
-	// a crumb wraps rather than truncate: a name the reader cannot read is a filter they cannot verify (4c)
-	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} onKeyDown={backspace} {...rest}>{children}</button>
+	// a crumb is text only, never a mark: most levels (a period, a status, a range) have none (c8)
+	if (Children.toArray(children).some(c => typeof c !== 'string' && typeof c !== 'number')) console.error('<Crumb> is text only')
+	const label = <span className="sp-crumb__label">{children}</span>
+	if (onOpen) return <button type="button" className="sp-crumb" onClick={onOpen} onKeyDown={backspace} {...rest}>{label}</button>
 	return (
 		<span className="sp-crumb" {...rest}>
-			{children}
+			{label}
 			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove} onKeyDown={backspace}>×</button>
 		</span>
 	)

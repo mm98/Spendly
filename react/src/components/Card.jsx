@@ -8,6 +8,8 @@ const VARIANT = {
 	flush: 'sp-card--flush',
 	row: 'sp-card--row',
 	shell: 'sp-card--shell',
+	// the Showing bar: its path stands in the head's line where the card is wide enough (c8)
+	path: 'sp-card--path',
 	// the sign-in card, the one card that floats on the page rather than in the shell (20a)
 	float: 'au-panel',
 	// the first run's card, a step wider for its two-column choices (20d)
