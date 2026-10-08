@@ -1697,11 +1697,13 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-topbar .sp-btn:not(.sp-btn--block) { width: auto; }
 /* A text link in a card's head ("All 5" on Drafts, "All 248" on Recent orders) keeps the
    small button's 34px box on touch and takes the touch height as a hit area above and
-   below, so a head with a link is as tall as one without and the name sits the same
-   distance from the card's top edge on every card (Brief 32). The area reaches into the
-   card's padding above and the gap below, which both exceed it. */
+   below. Its box is drawn but takes no height in the row: a negative margin of half the
+   box on each side brings its outer height to zero, so the row is as tall as the name
+   and the name sits the same distance from the card's top edge on every card (Brief 32,
+   33). The link stays on the name's baseline; the box reaches 8.5 into the card's
+   padding above and the gap below, which both exceed it. */
 .sp-touch .sp-list__toolbar > .sp-btn--text,
-.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; }
+.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(34px / -2); }
 .sp-touch .sp-list__toolbar > .sp-btn--text::before,
 .sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - 34px) / -2) 0; }
 /* two commits sharing a row each take half of it */
@@ -1720,7 +1722,7 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
   /* the head link rule above, for the shell's own query */
   .sp-list__toolbar > .sp-btn--text,
-  .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; }
+  .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(34px / -2); }
   .sp-list__toolbar > .sp-btn--text::before,
   .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - 34px) / -2) 0; }
 }
