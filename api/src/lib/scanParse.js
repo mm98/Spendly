@@ -2,7 +2,7 @@ import Anthropic, { APIError } from '@anthropic-ai/sdk'
 import sharp from 'sharp'
 import { decompressBlob } from './blobCompression.js'
 import { pdfText, renderPdfPage, toSize } from './images.js'
-import { readPage, readable } from './pageText.js'
+import { readPage, wordsHold } from './pageText.js'
 import { todayIso } from './dates.js'
 import { categoryNamesOf, vatNumberOf, webAddressOf } from './names.js'
 import { fromPrintedLineTotals, reconcileWithTotal } from './lineTotals.js'
@@ -205,14 +205,13 @@ export async function readingBlocks(upload, bytes) {
 	if (PDF_READING === 'text') {
 		const { text, pages } = await pdfText(bytes, PDF_PAGES) ?? {}
 		const read = text?.map(readPage) ?? []
-		const words = read.map(page => page.text)
-		if (!read.some(page => page.scan) && readable(words.join('\n'))) return [{
+		if (wordsHold(read)) return [{
 			type: 'text',
 			text: 'The words of a PDF document, page by page. Each line is one printed row, its columns kept apart by spaces.'
-				+ skipped(pages) + words.map((page, i) => `\n\nPage ${i + 1}:\n${page}`).join('')
+				+ skipped(pages) + read.map((page, i) => `\n\nPage ${i + 1}:\n${page.text}`).join('')
 		}]
 	}
-	// a scan saved as a PDF (no words, or a picture over half a page) is read from pictures of its pages
+	// a scan saved as a PDF, or words that cannot be trusted, are read from pictures of the pages
 	const blocks = []
 	let pages = 1
 	for (let i = 0; i < Math.min(pages, PDF_PAGES); i++) {

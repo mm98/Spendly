@@ -34,9 +34,22 @@ function pageTexts(doc, count) {
 	for (let i = 0; i < count; i++) {
 		const one = doc.loadPage(i), text = one.toStructuredText('preserve-whitespace,preserve-images')
 		const [x0, y0, x1, y1] = one.getBounds()
-		try { texts.push({ json: text.asJSON(), width: x1 - x0, height: y1 - y0 }) } finally { text.destroy(); one.destroy() }
+		try { texts.push({ json: text.asJSON(), width: x1 - x0, height: y1 - y0, ...drawnText(one) }) } finally { text.destroy(); one.destroy() }
 	}
 	return texts.length ? texts : null
+}
+
+// the characters a page draws against those it places unseen, as a scanner app hides its guesses at the words
+function drawnText(page) {
+	const counts = { shown: 0, hidden: 0 }
+	const glyphs = text => { let n = 0; text.walk({ showGlyph() { n++ } }); return n }
+	const device = new mupdf.Device({
+		fillText(text) { counts.shown += glyphs(text) },
+		strokeText(text) { counts.shown += glyphs(text) },
+		ignoreText(text) { counts.hidden += glyphs(text) }
+	})
+	try { page.run(device, mupdf.Matrix.identity); device.close() } finally { device.destroy() }
+	return counts
 }
 
 let doc, page, pixmap
