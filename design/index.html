@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spendly - design mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="46" font-weight="600" fill="#f2f0ea" text-anchor="middle">S</text></svg></template>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; text-decoration: none; }
+  a:hover { color: #2f7a51; }
+  .card { background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; gap: 18px; align-items: flex-start; transition: border-color .12s ease; }
+  .card:hover { border-color: #1d4d33; }
+  .ids { display: flex; gap: 5px; width: 84px; flex: none; flex-wrap: wrap; }
+  .step { font-size: 10px; letter-spacing: 0.1em; color: #8b8a82; font-weight: 600; }
+  .step b { color: #1d4d33; font-weight: 600; }
+  .ids span { background: #1d4d33; color: #fff; border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 600; }
+  .t { font-size: 15px; font-weight: 600; color: #1b1a17; }
+  .d { font-size: 13px; color: #57564f; line-height: 1.5; }
+  .lab { font-size: 12px; letter-spacing: 0.14em; color: #6b6a63; }
+  .rule { background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 5px; }
+  .rule .t { font-size: 14px; }
+  .prompt { background: #1f1c19; border-radius: 12px; padding: 20px 22px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.75; color: #d8d4ca; white-space: pre-wrap; overflow-wrap: break-word; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; background: #f2f1eb; border-radius: 4px; padding: 1px 5px; color: #3d3c36; }
+  .prompt b { color: #f2f0ea; font-weight: 600; }
+  .prompt i { color: #8fc0a2; font-style: normal; }
+</style>
+</head>
+<body>
+<div style="max-width: 980px; margin: 0 auto; padding: 64px 40px 80px; display: flex; flex-direction: column; gap: 40px">
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">SPENDLY · DESIGN MOCKUPS</div>
+    <h1 style="margin: 0; font-size: 36px; font-weight: 600; line-height: 1.15; max-width: 660px; text-wrap: pretty">Order tracking for personal receipts, from capture to what it all added up to.</h1>
+    <p style="margin: 0; font-size: 15px; color: #57564f; max-width: 640px; line-height: 1.55; text-wrap: pretty">Twenty files, sixty-three screens. It started with one problem - the order header took too much room above the items - and grew into the flows around it: the list, creating from a scanned receipt, statistics, vendors and categories, the states in between, and the phone.</p>
+    <p style="margin: 4px 0 0; font-size: 13px; color: #8b8a82">Every screen carries a visible id badge, unique across the whole set, so it can be pointed at in review.</p>
+  </div>
+
+  <div style="height: 1px; background: #dedcd4"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">HANDING THIS TO A DEVELOPER</div>
+    <p style="margin: 0; font-size: 14px; color: #57564f; max-width: 660px; line-height: 1.55; text-wrap: pretty">Copy the block below as the opening message. It sets the reading order, names what outranks what, and stops the two mistakes this set invites: treating the static canvases as responsive layouts, and building screens before the shared pieces exist.</p>
+
+    <div class="prompt">This project has a design handoff in <i>design/</i>. Read it in
+this order before writing any code, and don't start implementing until you've
+finished step 3.
+
+<b>1. Orientation</b>
+   <i>README.md</i> - what to build. Screens, layout, exact values, tokens.
+   <i>DECISIONS.md</i> - why it is this way, and what was rejected. Read before
+   changing anything that looks like it could be simplified; most of the
+   obvious simplifications were tried and rejected for recorded reasons.
+   <i>BEHAVIOUR.md</i> - the precise rules the mockups can't show: edge cases,
+   facet counting, validation timing, scan failure modes, statistic
+   definitions. It ends with open questions that need a product answer.
+
+<b>2. Foundations - read these before writing anything</b>
+   <i>Responsive reference.dc.html</i> (18a, 18b) - the only file with working
+   responsive CSS. Every other file is a static canvas at one width, so
+   nothing about narrow behaviour can be inferred from them. <b>Where a static
+   mockup and 18a disagree about narrow behaviour, 18a wins.</b>
+   <i>Input types.dc.html</i> (14a - 14f) - the control set, the four button levels,
+   the palette rule, and the component API each control needs.
+   <i>Layout rules.dc.html</i> (15a - 15c) - column shapes and field widths.
+   <i>Actions inventory.dc.html</i> (16a - 16f) - every action on every screen, what
+   surface it uses, and what is behind each overflow menu. Read before
+   wiring a screen's actions, or they get invented per page.
+   <i>Icon legend.dc.html</i> (19a, 19b) - what every action icon means, its
+   tooltip and its aria-label. An icon-only button needs both.
+   <i>Typography.dc.html</i> (13a) - the scale, rendered at size.
+
+<b>3. Ask me the open questions</b>
+   The ones in BEHAVIOUR.md that affect the screens you're starting with.
+   Don't guess these - several change the data model.
+
+<b>4. Build order</b>
+   The index page carries a STEP badge on every card, matching this list.
+   Ids are stable names, not an order - 1a is not step one.
+
+   0  Foundations. Read 18a, 14a - 14f, 15a - 15c, 16a - 16f, 13a, 19a. Build the four
+      container-query layout wrappers from 18a first; every screen then
+      picks one and fills it. Screens that hand-roll their own grid are
+      how a fifth breakpoint appears. Then the shared field wrapper,
+      TextField and Button (14d), then Combobox - the largest single
+      piece, with four screens waiting on it. Do the keyboard table in
+      14a before the styling, not after.
+   1  Auth and first run (20a - 20e). AuthLayout and the route guards, or
+      there is nothing for an app route to sit behind.
+   2  Navigation shell (9a - 9d).
+   3  Order edit and inline item editing (1a - 1d). The original problem
+      and the highest-traffic screen.
+   4  Order list with facets (2a - 2d).
+   5  States and confirmations (6a - 6f) and file handling (17a, 17b),
+      as shared components before they get reinvented per page.
+   6  Order create and the scan flow (3a - 3c).
+   7  Vendors and categories (5a - 5d).
+   8  Statistics (4a).
+   9  Home (10a) - mostly composes what the earlier steps produced.
+   10 Settings and import (11a, 11b), duplicate and alerts (8a, 8b).
+   11 Dark theme (12a, 12b), once the tokens are in real use.
+
+   Mobile (7a) is not a step. Do each screen's narrow layout with that
+   screen, using 18a - never as a pass at the end.
+
+<b>The contract</b>
+   <b>This design set is the only source of truth for the UI.</b> Where it
+   specifies something - a value, a state, a piece of copy, an ordering,
+   a behaviour - implement exactly that. Do not approximate, round,
+   improve or substitute. If two files disagree, ask; do not pick one.
+   <b>Reproduce the markup, as components.</b> The structure, element order,
+   nesting, spacing values, colours and text in each screen are the
+   specification. Lift them, then factor the repeated parts into the
+   components named in 14d - same output, better structure. Do not
+   redraw a screen from a description of it.
+   <b>When two files disagree, the .dc.html markup wins.</b> The mockup is
+   the design; README.md is prose describing it and can drift behind an
+   edit. Tell me what you found so the prose gets fixed - but build the
+   markup, and do not wait for an answer. This resolves every conflict
+   except one: <i>Responsive reference.dc.html</i> outranks all other files on
+   narrow-width behaviour, because it is the only one with working
+   responsive CSS.
+   <b>Where the design states how something works, follow it.</b> Do not
+   propose an alternative, ask whether it is intended, or flag it as a
+   possible improvement. The reasoning is already recorded in
+   DECISIONS.md, including what was rejected and why - read the entry
+   before assuming a rule is an oversight. Rules that look like
+   mistakes and are not: a limit never blocks a save, reorder needs
+   both drag and buttons, thirds appear exactly once, destructive
+   buttons exist only in dialogs, the top bar takes no actions at all.
+   <b>If something is not specified, stop and ask.</b> A missing state, an
+   unnamed error case, a field with no defined behaviour: these are
+   gaps in the design, not invitations to invent. BEHAVIOUR.md ends
+   with open questions for exactly this reason - add to that list
+   rather than guessing. Ask about silence, never about instructions.
+   <b>The data is fake, the shapes are real.</b> Every vendor, amount, date
+   and category in these files is an example. Wire the real data to the
+   same shapes - do not hardcode "Indbo Møbler", 7.635,00 or 41 orders,
+   and do not treat the sample counts as limits.
+   <b>Copy is final.</b> Button labels, empty-state sentences, dialog titles
+   and hint text are written deliberately, in Danish-market English.
+   Use them verbatim. Do not reword, shorten, or add exclamation marks.
+
+<b>How to build one screen - do this every time</b>
+   Working from the README's description of a screen instead of the
+   screen itself is what produces approximations. The description
+   explains the markup; it is not a substitute for reading it.
+
+   1. Open the .dc.html file and find the section whose badge matches
+      the id. Read the markup for that section top to bottom before
+      writing anything. Every value you need is an inline style there.
+   2. Transcribe, do not estimate. padding: 10px 12px is 10px 12px.
+      #1d4d33 is #1d4d33. If you are about to write a number that is
+      not in the file, stop - you are guessing.
+   3. Copy text is a string literal from the file. Select it, don't
+      retype it from memory.
+   4. Factor into components only after the markup renders correctly.
+      Get it identical first, then extract.
+   5. Diff your result against the screenshot in screenshots/ at the
+      same width. Not "does it look similar" - walk the elements in
+      order and check each one is present, in that order.
+
+   Say which screen id you are implementing before you start it, and
+   list anything the file did not answer. An empty list on a screen
+   you have not read is the failure mode this is written to prevent.
+
+<b>Ground rules</b>
+   • The mockups are design references in HTML. Recreate them in the existing
+     codebase using its patterns - do not copy the files in. <i>support.js</i> is a
+     preview harness with no place in the product.
+   • If you cannot open the files, use <i>offline/</i> instead of <i>design/</i>. Those
+     are the same screens bundled with every dependency inlined, so they
+     open from disk with no network and no sibling files. Same names, same
+     ids, same relative links between them.
+   • Container queries, not media queries. The same components sit in a 1fr
+     column, a 360px rail and a 400px panel. Media queries are for exactly
+     two things: the sidebar becoming a tab bar, and print.
+   • Side-by-side panels in the mockups are annotation, not layout. Columns
+     headed "empty"/"loaded" or "light"/"dark" are never on screen together.
+   • Thin-rule "NOTES FOR IMPLEMENTATION" blocks are notes to you, not UI.
+   • A monthly limit never blocks a save. Amber informs, red blocks. Keep the
+     limit check out of the validation layer entirely.
+   • NO actions in the top bar - none, not even global ones. It carries the
+     page title and search only. Every action lives inside a page or in the
+     sidebar. If you find yourself wanting a shell button, that is the rule
+     working, not a gap.
+
+Start with step 1 and tell me what you've read before moving on.</div>
+
+    <p style="margin: 0; font-size: 12px; color: #8b8a82; max-width: 660px; line-height: 1.55">Ids in the prompt refer to the badges on each screen below. If you are handing over one area rather than the whole set, keep steps 1 - 3 and replace step 4 with just that area's screens.</p>
+  </div>
+
+  <div style="height: 1px; background: #dedcd4"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">WHERE THE CODE GOES</div>
+    <p style="margin: 0; font-size: 14px; color: #57564f; max-width: 660px; line-height: 1.55; text-wrap: pretty">Paste this alongside the prompt. Without it, files land wherever the current task happened to be, and the same component gets built twice under two names.</p>
+
+    <div class="prompt"><b>Folder structure</b>
+
+<i>src/</i>
+  <i>components/</i>        the control set from 14d - nothing app-specific
+    <i>Field/</i>           the shared wrapper, and it owns label + error
+      Field.tsx
+      Field.module.css
+      index.ts
+    <i>TextField/</i>
+    <i>AmountField/</i>
+    <i>Combobox/</i>        the big one - may hold useCombobox.ts, Option.tsx
+    <i>Button/</i>
+    <i>Chip/</i>
+    …one folder per component, same three files
+  <i>layouts/</i>           the four container-query wrappers from 18a
+    MainWithRail.tsx
+    RailWithMain.tsx
+    ListWithPanel.tsx
+    CardGrid.tsx
+  <i>features/</i>          app-specific, grouped by thing not by type
+    <i>orders/</i>
+      OrderList.tsx          screen
+      OrderDetail.tsx        screen
+      OrderEdit.tsx          screen
+      ItemLineRow.tsx        used only by orders
+      ItemLineEditor.tsx
+      useOrderDraft.ts
+      orders.api.ts
+      orders.types.ts
+    <i>scan/</i>
+    <i>statistics/</i>
+    <i>vendors/</i>
+    <i>categories/</i>
+    <i>settings/</i>
+  <i>shell/</i>             Sidebar, TopBar, CommandPalette, ToastHost, DialogHost
+  <i>lib/</i>               formatMoney.ts, parseAmount.ts, dates.ts
+  <i>styles/</i>            tokens.css, themes.css, reset.css
+
+<b>The one rule that decides placement</b>
+   Used by two or more features → <i>components/</i>. Used by one → that feature's
+   folder. Don't pre-promote something to <i>components/</i> because it looks
+   reusable; move it when the second caller appears.
+
+<b>Naming</b>
+   • Components and screens: <i>PascalCase.tsx</i>, one component per file, file
+     named after the export. No <i>index.tsx</i> holding a component - <i>index.ts</i>
+     is a re-export only, so stack traces and tabs stay readable.
+   • Hooks: <i>useThing.ts</i>. Utilities: <i>camelCase.ts</i>. Types: <i>thing.types.ts</i>.
+     API access: <i>thing.api.ts</i>. Styles: <i>Component.module.css</i> beside it.
+   • Name by what it is, not what it looks like or where it sits:
+     <i>ItemLineRow</i>, not <i>GreenRow</i> or <i>LeftColumnItem</i>. A name containing a
+     colour, a position, or a screen name will be wrong after one change.
+   • No <i>utils.ts</i>, <i>helpers.ts</i>, <i>common/</i>, <i>shared/</i>, <i>misc/</i>. Every one of those
+     becomes a bin nobody can safely delete from. Name the file after the
+     thing it does: <i>parseAmount.ts</i>.
+   • No <i>New</i>, <i>V2</i>, <i>Old</i>, <i>Wrapper</i>, <i>Container</i>, <i>Base</i>, <i>Enhanced</i> in a name.
+     If two versions must coexist, the reason goes in a comment, not the
+     filename.
+   • Booleans read as questions: <i>isDirty</i>, <i>hasAttachments</i>, <i>canEdit</i>.
+     Handlers are <i>onX</i> as props, <i>handleX</i> as implementations.
+   • One concept, one word, everywhere - in code, tests, API and copy. It is
+     <i>vendor</i> (never supplier or merchant), <i>category</i> (never tag or group),
+     <i>item line</i> (never product, article or row), <i>attachment</i> for a file on
+     an order, <i>photo</i> for the image on an item line, <i>limit</i> for the monthly
+     category amount, and <i>budget</i> only for the yearly plan of
+     income and costs, never for a limit. Renaming these later touches
+     everything.
+
+<b>Screens map to routes, one file each</b>
+   <i>/</i> Home · <i>/orders</i> OrderList · <i>/orders/:id</i> OrderDetail ·
+   <i>/orders/:id/edit</i> OrderEdit · <i>/orders/new</i> NewOrder · <i>/scan</i> Scan ·
+   <i>/statistics</i> Statistics · <i>/vendors</i> Vendors · <i>/categories</i> Categories ·
+   <i>/settings/:section</i> Settings · <i>/import</i> Import
+   Edit is a route, not a toggle - it has to be linkable and survive Back.
+
+<b>Don't create</b>
+   A <i>pages/</i> folder next to <i>features/</i> (screens live with their feature) ·
+   a folder for one file · a barrel file re-exporting everything in
+   <i>components/</i> (it defeats tree-shaking and hides real dependencies) ·
+   a <i>designSystem/</i> or <i>ui/</i> folder duplicating <i>components/</i> · <i>tokens.js</i> - tokens are CSS custom properties in <i>styles/</i>, read by both themes.
+
+<b>Vite specifics</b>
+   <i>index.html</i> stays at the project root, not in <i>public/</i> - it is the
+   entry Vite transforms, and it loads <i>/src/main.tsx</i> as a module.
+   <i>src/main.tsx</i> mounts the app and imports the global stylesheets from
+   <i>styles/</i> in order: reset, tokens, themes. Nothing else imports them.
+   <i>public/</i> is only for files served verbatim at a stable URL (favicon,
+   robots.txt). Fonts and images that components reference go in <i>src/</i> and
+   are imported, so they get hashed filenames and long-cache headers.
+   Set one alias in <i>vite.config.ts</i> - <i>@</i> → <i>./src</i> - and mirror it in
+   <i>tsconfig.json</i> paths. Relative imports beyond <i>../</i> make a file
+   impossible to move, which is the whole point of the structure above.
+   Route-level code splitting with <i>React.lazy</i> per screen: statistics
+   and import pull in the most and are visited the least.
+   Theme is applied before first paint by a small inline script in
+   <i>index.html</i> that reads the stored preference and sets a data attribute
+   on <i>&lt;html&gt;</i>. Doing it in React costs a flash of the wrong theme.</div>
+
+    <p style="margin: 0; font-size: 12px; color: #8b8a82; max-width: 660px; line-height: 1.55">Written for Vite + React. TypeScript and plain JSX are both fine - swap the extensions and keep everything else; with JSX, PropTypes on the thirteen controls in <code>components/</code> is worth adding, since that is where 14d's contract needs enforcing. Same for styling: CSS Modules, plain CSS or a library. The folder boundaries and naming rules are what matter, not the file suffixes.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 10px">
+      <div class="lab">WHY IT IS SHAPED THIS WAY</div>
+      <p style="margin: 0; font-size: 14px; color: #57564f; max-width: 660px; line-height: 1.55; text-wrap: pretty">Six principles produced every rule above. They are here so the rules can be extended rather than just followed - a new case that isn't listed should be settled by working out which principle applies.</p>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; max-width: 700px">
+        <div style="display: flex; gap: 13px">
+          <div style="width: 22px; height: 22px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; margin-top: 1px">1</div>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 14px; font-weight: 600">Group by what changes together, not by what things are</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">A change to how order editing works touches its screen, its row component, its draft hook and its API call. In a type-grouped tree those sit in four distant folders and the change is four unrelated diffs; in a feature folder it is one. <code>components/</code> is the exception because a control genuinely does change independently of any feature.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 13px">
+          <div style="width: 22px; height: 22px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; margin-top: 1px">2</div>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 14px; font-weight: 600">Let the second caller do the promoting</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">Something built in a feature folder and moved to <code>components/</code> when a second feature needs it arrives with a known set of requirements. Something placed in <code>components/</code> up front is designed against a guess, and its props end up shaped for a use that never came. Moving a file is cheap; unpicking a speculative API is not.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 13px">
+          <div style="width: 22px; height: 22px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; margin-top: 1px">3</div>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 14px; font-weight: 600">A name should survive the next change</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">Names describing appearance or position - <code>GreenRow</code>, <code>LeftColumnItem</code>, <code>WideCard</code> - are wrong the moment the design moves, and then either mislead or force a rename that touches every import. Naming by what a thing <em>is</em> means the name outlives its styling. The same reasoning rejects <code>V2</code> and <code>New</code>: they describe a moment in the project's history, and that moment passes.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 13px">
+          <div style="width: 22px; height: 22px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; margin-top: 1px">4</div>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 14px; font-weight: 600">One concept, one word, in every layer</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">When the database says <code>supplier</code>, the code says <code>vendor</code> and the UI says merchant, every conversation and every search needs a translation step, and a bug report can't be traced to a line of code. The vocabulary list is short and deliberately dull. It is also why <code>limit</code> is never called budget: the design decided a limit does not block a save, and calling it a budget invites someone to make it behave like one.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 13px">
+          <div style="width: 22px; height: 22px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; margin-top: 1px">5</div>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 14px; font-weight: 600">No folder or file may be a bin</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55"><code>utils</code>, <code>helpers</code>, <code>shared</code>, <code>common</code>, <code>misc</code> all share one property: nothing can be ruled out of them, so they only ever grow, and nobody can delete from them safely because there is no way to know what a given function was for. A file named after the thing it does - <code>parseAmount.ts</code> - states its own scope, and an unused one is obviously unused.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 13px">
+          <div style="width: 22px; height: 22px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; margin-top: 1px">6</div>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 14px; font-weight: 600">Optimise for reading, not for typing</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">One component per file named after its export means a stack trace, a tab bar and a search result all name the thing you want. Twelve files called <code>index.tsx</code> save a few characters at the import site and cost that clarity everywhere else. The same trade rejects the barrel file over <code>components/</code>: one convenient import line, in exchange for hidden dependencies and a tree that can't be shaken.</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin: 0; font-size: 13px; color: #57564f; max-width: 660px; line-height: 1.55; text-wrap: pretty">The through-line is that all six trade a small, immediate convenience for the ability to change things later. That is the right trade here specifically because this is a design handoff - every screen in this index is going to move at least once after it ships.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 14px">
+      <div class="lab">CSS AND CLASS NAMING</div>
+      <p style="margin: 0; font-size: 14px; color: #57564f; max-width: 660px; line-height: 1.55; text-wrap: pretty">With CSS Modules the scoping is already handled, so class names need to say what an element is inside its own component and nothing more. Most of the conventions invented to avoid collisions - BEM prefixes, component names repeated in every class - are solving a problem the tooling already solved.</p>
+
+      <div class="prompt"><b>Class names</b>
+   camelCase, scoped to the component, describing the element's role:
+   <i>.row</i> <i>.rowPrimary</i> <i>.amount</i> <i>.rail</i> <i>.panelHeader</i> <i>.thumb</i>
+   No component prefix - <i>OrderRow.module.css</i> already namespaces it, so
+   <i>.orderRow</i> inside it is <i>styles.orderRow</i> at the call site: stuttering.
+   No BEM: <i>.order-row__amount--large</i> is three mechanisms for scoping,
+   nesting and variance that CSS Modules, nesting and data attributes
+   already provide.
+
+<b>State goes on data attributes, not class names</b>
+   <i>&lt;tr data-selected data-dragging&gt;</i>, styled as <i>.row[data-selected]</i>.
+   State is then visible in devtools, queryable in tests, and readable
+   from the DOM - none of which is true of a hashed <i>.row--selected</i>.
+   Use it for: selected, dragging, expanded, over-limit, uncertain,
+   loading, empty. Booleans get a bare attribute, not <i>="true"</i>.
+
+<b>Variants are props that map to classes</b>
+   <i>level="primary"</i> → <i>styles[level]</i>. One class per value, no
+   concatenated modifier strings - a typo'd variant then fails at the
+   call site instead of silently rendering unstyled.
+
+<b>Tokens are custom properties, defined once</b>
+   <i>styles/tokens.css</i> holds the palette, spacing, radii and shadows on
+   <i>:root</i>; <i>themes.css</i> reassigns the surface and text tokens under
+   <i>[data-theme="dark"]</i>. Components read <i>var(--surface)</i>, never a hex.
+   Name tokens by role, not value: <i>--surface</i>, <i>--surface-raised</i>,
+   <i>--text-muted</i>, <i>--border-hairline</i>, <i>--accent</i> - not <i>--green-700</i>
+   or <i>--grey-3</i>, which stop being true the moment the theme flips.
+   Component-local variables are fine and stay local: <i>--row-height</i>.
+
+<b>One stylesheet per component, beside it</b>
+   <i>OrderRow.tsx</i> + <i>OrderRow.module.css</i>. No shared <i>utilities.css</i>, no
+   global class used from two places - that is the bin problem again.
+   The only global stylesheets are <i>reset.css</i>, <i>tokens.css</i>, <i>themes.css</i>,
+   imported once in <i>main.tsx</i> and never from a component.
+
+<b>Layout containers name their query</b>
+   An element with <i>container-type: inline-size</i> gets a
+   <i>container-name</i> matching the shape it is: <i>main</i>, <i>rail</i>, <i>panel</i>,
+   <i>row</i>. Queries then read <i>@container rail (max-width: 340px)</i>, which
+   says what is narrow instead of leaving a bare number.
+
+<b>Don't write</b>
+   Nesting deeper than two levels · element selectors for styling
+   (<i>div &gt; span</i> breaks when the markup changes) · <i>!important</i> ·
+   ID selectors · a class that exists only to hang a JS query off - use <i>data-testid</i> · <i>:global</i> outside <i>reset.css</i> · magic numbers where
+   a token exists · media queries for anything but the tab bar and print.</div>
+
+      <p style="margin: 0; font-size: 12px; color: #8b8a82; max-width: 660px; line-height: 1.55">If the project uses Tailwind or a CSS-in-JS library instead, the transferable rules are the last four: role-named tokens rather than value-named, state on data attributes, variants as props mapping to one class each, and container queries named after the shape they measure.</p>
+    </div>
+  </div>
+
+  <div style="height: 1px; background: #dedcd4"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">START HERE</div>
+    <p style="margin: 0 0 2px; font-size: 13px; color: #57564f; max-width: 660px; line-height: 1.55">Each card shows a <b>STEP</b> number - where it sits in the build order above. The <span style="background: #1d4d33; color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600">1a</span> badges are screen ids: stable names for pointing at a screen in review, in the order the screens were drawn. They are deliberately not the build order, because the build order changes and a name that changes breaks every reference to it.</p>
+    <a class="card" href="Home.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>9</b></div><div class="ids" style="width: auto"><span>10a</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Home</div>
+        <div class="d">The start page: this month against the limits, receipt capture, what needs a look, recent orders and categories.</div>
+      </div>
+    </a>
+    <a class="card" href="Auth and first run.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>1</b></div><div class="ids" style="width: auto"><span>20a</span><span>20b</span><span>20c</span><span>20d</span><span>20e</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Sign in, register, and first run</div>
+        <div class="d">Email and password with open registration, the token link that confirms the address, forgotten-password recovery, lockout, the two questions asked on first run, and which chrome each route renders in.</div>
+      </div>
+    </a>
+    <a class="card" href="Navigation shell.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>2</b></div><div class="ids" style="width: auto"><span>9a</span><span>9b</span><span>9c</span><span>9d</span><span>9e</span><span>9f</span><span>9g</span><span>9h</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Navigation shell</div>
+        <div class="d">The frame the pages sit in: sidebar areas with counts, the locked top bar and what it may never hold, a collapsed rail, the ⌘K palette, and the truncation rules for every text in the shell.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">ORDERS</div>
+    <a class="card" href="Order editing layouts.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>3</b></div><div class="ids" style="width: auto"><span>1a</span><span>1b</span><span>1c</span><span>1d</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Order editing</div>
+        <div class="d">Where it began. The header moved into the right rail so the items own the width: read view, editing an item in place with its photo, the mobile screens, and the edit layout with drag to reorder.</div>
+      </div>
+    </a>
+    <a class="card" href="Order list.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>4</b></div><div class="ids" style="width: auto"><span>2a</span><span>2b</span><span>2c</span><span>2d</span><span>2e</span><span>2g</span><span>2h</span><span>2i</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Order list</div>
+        <div class="d">Rows with a facet rail, search and filter chips; the cards view; and the bulk actions for setting status or adding a category.</div>
+      </div>
+    </a>
+    <a class="card" href="Order create.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>6</b></div><div class="ids" style="width: auto"><span>3a</span><span>3b</span><span>3c</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Creating an order</div>
+        <div class="d">From a scanned receipt: how to start, reading, checking what was read line by line, created.</div>
+      </div>
+    </a>
+    <a class="card" href="Settings and import.dc.html#11b">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>10</b></div><div class="ids" style="width: auto"><span>11b</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Import a file</div>
+        <div class="d">The bulk path: a spreadsheet or a JSON export, mapped column by column against real rows, checked, then written - with a 24-hour undo.</div>
+      </div>
+    </a>
+    <a class="card" href="Duplicate and alerts.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>10</b></div><div class="ids" style="width: auto"><span>8a</span><span>8b</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Duplicating, and budget alerts</div>
+        <div class="d">What carries over when an order is repeated, and the three moments a limit speaks up: as you cross it, on the category, and once a month.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">LIBRARY AND NUMBERS</div>
+    <a class="card" href="Budget.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>11</b></div><div class="ids" style="width: auto"><span>21a</span><span>21b</span><span>21c</span><span>21d</span><span>21e</span><span>21f</span><span>21g</span><span>21h</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Budget</div>
+        <div class="d">The yearly plan of income and costs, month by month and as the whole year, editing its rows, groups and accounts, starting a year, and checking a bank statement against it.</div>
+      </div>
+    </a>
+    <a class="card" href="Order statistics.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>8</b></div><div class="ids" style="width: auto"><span>4a</span><span>4b</span><span>4c</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Statistics</div>
+        <div class="d">Headline figures, spend by month, category and status breakdowns, monthly limits, and a drill path down to the orders behind any slice.</div>
+      </div>
+    </a>
+    <a class="card" href="Bookmarks.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>12</b></div><div class="ids" style="width: auto"><span>22a</span><span>22b</span><span>22c</span><span>22d</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Bookmarks</div>
+        <div class="d">Things you are interested in buying, as cards with a picture, shop and price: search, a category filter and sort, and the bookmark form. Bookmarks use the same categories as orders.</div>
+      </div>
+    </a>
+    <a class="card" href="Vendors and categories.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>7</b></div><div class="ids" style="width: auto"><span>5a</span><span>5b</span><span>5c</span><span>5d</span><span>5e</span><span>5f</span><span>5g</span><span>5h</span><span>5i</span><span>5j</span><span>5k</span><span>5l</span><span>5m</span><span>5n</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Vendors and categories</div>
+        <div class="d">Two lists with a shared panel: vendors with merge for scan duplicates, categories carrying icon, colour and the monthly limit, and the roll-up shown when nothing is selected.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">ACROSS EVERYTHING</div>
+    <a class="card" href="States and confirmations.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>5</b></div><div class="ids" style="width: auto"><span>6a</span><span>6b</span><span>6c</span><span>6d</span><span>6e</span><span>6f</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">States and confirmations</div>
+        <div class="d">Empty states, loading skeletons, validation, confirmations and toasts, and what happens when a scan cannot be read.</div>
+      </div>
+    </a>
+    <a class="card" href="Settings and import.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>10</b></div><div class="ids" style="width: auto"><span>11a</span><span>11b</span><span>11c</span><span>11d</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Settings, and import</div>
+        <div class="d">Account, appearance, currency and format, defaults for a new order, and renaming or reordering statuses - then the file import flow.</div>
+      </div>
+    </a>
+    <a class="card" href="Images and files.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>5</b></div><div class="ids" style="width: auto"><span>17a</span><span>17b</span><span>17c</span><span>17d</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Images and files</div>
+        <div class="d">How upload, replace and delete work in all four places that take a file, the photo menu, and a closed list of the nine image positions with what each shows when empty.</div>
+      </div>
+    </a>
+    <a class="card" href="Actions inventory.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>16a</span><span>16b</span><span>16c</span><span>16d</span><span>16e</span><span>16f</span><span>16g</span><span>16h</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Actions inventory</div>
+        <div class="d">Every control in the set, what it does and what the user sees afterwards - plus the ten that had no described behaviour, resolved and the six that needed layout drawn.</div>
+      </div>
+    </a>
+    <a class="card" href="Icon legend.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>19a</span><span>19b</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Icon legend</div>
+        <div class="d">Every icon that carries an action - what it does, where it appears, its tooltip and its accessible name - plus the rules for drawing and labelling them.</div>
+      </div>
+    </a>
+    <a class="card" href="Responsive reference.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>18a</span><span>18b</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Responsive reference</div>
+        <div class="d">The only page here that actually responds: working container-query layouts with the CSS beside them, plus a per-screen table of what changes at 1280, 900 and 640.</div>
+      </div>
+    </a>
+    <a class="card" href="Layout rules.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>15a</span><span>15b</span><span>15c</span><span>15d</span><span>15e</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Layout rules</div>
+        <div class="d">The four column shapes, when a field is full width and when it is a fraction, how rows hold their columns, which field groups survive the phone breakpoint, and which pixel values in these files are real versus mockup scaffolding.</div>
+      </div>
+    </a>
+    <a class="card" href="Input types.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>14a</span><span>14b</span><span>14c</span><span>14d</span><span>14e</span><span>14f</span><span>14g</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Input types</div>
+        <div class="d">Every control with its states, the four button levels, the rule the palette follows when a colour has to be added, and the option list each control needs to exist as a reusable component.</div>
+      </div>
+    </a>
+    <a class="card" href="Typography.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>13a</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Typography</div>
+        <div class="d">The family and its four weights, the whole scale rendered at size, how it is loaded and what the fallback costs, tabular figures, truncation per role, and six rules.</div>
+      </div>
+    </a>
+    <a class="card" href="Dark mode and image viewer.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>11</b></div><div class="ids" style="width: auto"><span>12a</span><span>12b</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Dark mode, and images at full size</div>
+        <div class="d">The warm dark theme as a token map plus three screens in it, and the viewer that opens an attachment or item photo full size.</div>
+      </div>
+    </a>
+    <a class="card" href="Mobile screens.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step"><b>ALL</b></div><div class="ids" style="width: auto"><span>7a</span><span>7b</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Mobile</div>
+        <div class="d">The phone as the capture device: orders list, filters as a sheet, checking a scan, and statistics in one column.</div>
+      </div>
+    </a>
+    <a class="card" href="React components.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step"><b>TOOL</b></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">React components</div>
+        <div class="d">Every component rendered from the files in react_handoff, with the call that produced each specimen printed beneath it.</div>
+      </div>
+    </a>
+    <a class="card" href="Playground.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step"><b>TOOL</b></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Playground</div>
+        <div class="d">Drop components on a canvas, set their props, nest them, and read the JSX for what you built.</div>
+      </div>
+    </a>
+    <a class="card" href="Type specimen.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step"><b>TOOL</b></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Type specimen</div>
+        <div class="d">The type scale set as running text at every size and weight.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="height: 1px; background: #dedcd4"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">RULES EVERY SCREEN FOLLOWS</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+      <div class="rule">
+        <div class="t">The top shell is locked</div>
+        <div class="d">No page actions live up there. Everything a page does belongs to the page.</div>
+      </div>
+      <div class="rule">
+        <div class="t">A limit never blocks a save</div>
+        <div class="d">Red blocks, amber informs. A monthly limit is a fact about your month, not a rule.</div>
+      </div>
+      <div class="rule">
+        <div class="t">Nothing saves by itself</div>
+        <div class="d">Scans propose, they never overwrite. A duplicate opens unsaved and can still be abandoned.</div>
+      </div>
+      <div class="rule">
+        <div class="t">Numbers answer the current filter</div>
+        <div class="d">Totals and counts reflect what is on screen, not the whole account.</div>
+      </div>
+      <div class="rule" style="grid-column: span 2">
+        <div class="t">Single user, personal receipts</div>
+        <div class="d">No item catalogue, no shared editing, no permissions. A conflict means two tabs, not two people.</div>
+      </div>
+    </div>
+    <p style="margin: 6px 0 0; font-size: 13px; color: #8b8a82; line-height: 1.55">These are design references, not production code: layout and states only, no data or behaviour. Where a mockup and the code disagree, the code is the current truth - the mockup is the proposal.</p>
+  </div>
+
+</div>
+</body>
+</html>

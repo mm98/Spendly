@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4f7f63"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">18</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/responsive-reference.css?v=v20260917b">
+<script src="./icons.js?v=v20260917b"></script>
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+
+  </style>
+</helmet>
+<div class="sp">
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="18a">18a</span>
+    <span class="doc-section__title">Responsive reference - working layouts, not descriptions</span>
+  </div>
+  <div class="doc-lede">Every other page in this set is a static canvas drawn at one width, so there is nothing in them to infer breakpoint behaviour from. This page is the exception: the layouts below are the real CSS running at the widths named, and each one is annotated with the CSS that makes it happen. Read this page as the implementation and the others as the visual target.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
+    <div class="doc-note"><b class="sp-ink">Container queries, not media queries.</b> Every rule below keys off the width of the element's own container (<b>container-type: inline-size</b> on the layout wrapper), not the viewport. This matters because the same components sit in a 1fr main column, a 360px rail, and a 400px panel - a viewport query gets all three wrong at once. Media queries are correct for exactly two things: the shell breakpoint that turns the sidebar into a tab bar, and the print sheet.</div>
+    <div class="doc-note"><b class="sp-ink">Every value here is copied from the screen it illustrates, never invented.</b> This page owns the <em>breakpoints and the CSS</em>; it owns nothing else. Column order, checkbox width, chip geometry, date format, amount format and thumbnail size all come from <a href="Order list.dc.html#2b">2b</a> and <a href="Order editing layouts.dc.html#1a">1a</a>. If a value here disagrees with the screen, this page is stale - the screen wins.</div>
+    <div class="doc-note"><b class="sp-ink">Hiding a cell needs the hide rule to win.</b> A cell centred with an inline <b>display: flex</b> can never be hidden by a container query, because inline style beats a stylesheet rule. Put the centring in the class and keep <b>display</b> under the query's control - otherwise the header narrows while the rows keep their cell, and the row wraps to a second line.</div>
+    <div class="doc-note"><b class="sp-ink">Each demo below is inside its own resizable frame.</b> Drag the canvas narrower, or resize the browser, and each one crosses its own threshold independently - which is the whole point of container queries and impossible to show in a static mockup.</div>
+    <div class="doc-note"><b class="sp-ink">The thresholds are container widths, not viewport widths.</b> 900 on a main column inside a 248px sidebar and the page's own 16px inset means a viewport of roughly 1180. Don't translate them - put the query on the container and the numbers work out.</div>
+    <div class="doc-note"><b class="sp-ink">Four thresholds exist in the entire product:</b> <b>1280</b> (a left rail leaves the layout), <b>900</b> (two columns become one), <b>640</b> (phone treatment: rows become cards, dialogs become sheets, field grids collapse), and the shell's own <b>640</b> viewport query. Nothing else. A fifth threshold is a design change, not an implementation detail.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <span class="sp-section-label">SHAPE 1 - MAIN + RIGHT RAIL · ORDER EDIT (1a, 1d), HOME (10a)</span>
+
+  <div class="rr-stage rr-stage--rail">
+    <div class="rr-frame">
+      <div class="rr-shape-rail">
+      <div class="sp-stack sp-gap-6">
+        <span class="sp-section-label">ITEM LINES · 3</span>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-list-item">
+            <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+            <span class="sp-stacked">
+              <span class="sp-title sp-truncate">Nordal vase, large</span>
+              <span class="sp-subtitle">1 × 349,00 kr.</span>
+            </span>
+            <span class="sp-grow"></span>
+            <div class="sp-stacked sp-cell-amount"><span class="sp-amount">349,00 kr.</span></div>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+            <span class="sp-stacked">
+              <span class="sp-title sp-truncate">Stol - eg</span>
+              <span class="sp-subtitle">1 × 2.598,00 kr.</span>
+            </span>
+            <span class="sp-grow"></span>
+            <div class="sp-stacked sp-cell-amount"><span class="sp-amount">2.598,00 kr.</span></div>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+            <span class="sp-stacked">
+              <span class="sp-title sp-truncate">Bord - sortmalet</span>
+              <span class="sp-subtitle">1 × 4.190,00 kr.</span>
+            </span>
+            <span class="sp-grow"></span>
+            <div class="sp-stacked sp-cell-amount"><span class="sp-amount">4.190,00 kr.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rr-rail sp-stack">
+        <div class="rr-rail-summary">
+          <div class="sp-list-item sp-list-item--card">
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-section-label">ORDER DETAILS</span>
+              <span class="sp-title sp-truncate">Indbo Møbler · 12/08/2026 · Received</span>
+            </div>
+            <span class="sp-grow"></span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+          </div>
+        </div>
+        <div class="rr-rail-full">
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">ORDER DETAILS</span></div>
+            <div class="sp-field">
+                <label class="sp-field__label" for="rr-f1">Vendor</label>
+                <input class="sp-input" id="rr-f1" type="text" defaultValue="Indbo Møbler">
+              </div>
+            <div class="rr-f-halves">
+              <div class="sp-field">
+                <label class="sp-field__label" for="rr-f2">Order date</label>
+                <input class="sp-input" id="rr-f2" type="text" defaultValue="12/08/2026">
+              </div>
+              <div class="sp-field">
+                <span class="sp-field__label" id="rr-f3">Status</span>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="rr-f3">
+                    <span>Delivered</span>
+                    <span class="sp-grow"></span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                  <ul class="sp-combobox__panel" role="listbox" aria-labelledby="rr-f3">
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Draft</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Ordered</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Delivered</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Returned</span><span class="sp-grow"></span></button></li>
+                    <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Cancelled</span><span class="sp-grow"></span></button></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="sp-card sp-card--row sp-baseline">
+            <span class="sp-subtitle">Total</span>
+            <span class="sp-grow"></span>
+            <span class="sp-stat__figure">7.137,00 kr.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="rr-code">
+      <div class="rr-code__label">CSS</div>
+      <div class="rr-code__body"><span class="rr-dim">/* the frame is the container the queries measure, not the viewport */</span><br>.rr-frame <span class="rr-dim">{</span> container-type<span class="rr-dim">:</span> inline-size<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><br>.rr-shape-rail <span class="rr-dim">{</span><br>    display<span class="rr-dim">:</span> grid<span class="rr-dim">;</span><br>    grid-template-columns<span class="rr-dim">:</span> <span class="rr-green">minmax(0, 2fr) minmax(0, 1fr)</span><span class="rr-dim">;</span><br>    gap<span class="rr-dim">:</span> var(--sp-12)<span class="rr-dim">;</span> align-items<span class="rr-dim">:</span> start<span class="rr-dim">;</span><br><span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 900px) <span class="rr-dim">{</span><br>    .rr-shape-rail <span class="rr-dim">{</span> grid-template-columns<span class="rr-dim">:</span> 1fr<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-shape-rail > .rr-rail <span class="rr-dim">{</span> order<span class="rr-dim">:</span> -1<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-rail-full <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-rail-summary <span class="rr-dim">{</span> display<span class="rr-dim">:</span> block<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-dim">}</span></div>
+    </div>
+    <div class="sp-stack sp-gap-10 rr-w400">
+      <div class="doc-note"><b class="sp-ink">order: -1 is the whole trick.</b> The rail moves <i>above</i> the item list, not below it. A form appended under a list of forty lines is somewhere nobody scrolls to.</div>
+      <div class="doc-note"><b class="sp-ink">The rail collapses to a summary line</b> rather than staying expanded: same element, two children, one shown at a time. The summary states its own contents ("Indbo Møbler · 12/08/2026 · Received") so a closed section is never a mystery.</div>
+      <div class="doc-note"><b class="sp-ink">minmax(560px, 1fr) is deliberate.</b> The main column refuses to go under 560px; the grid overflows its container instead, which surfaces the problem in development rather than silently crushing the item rows.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <span class="sp-section-label">SHAPE 2 - LEFT RAIL + MAIN · ORDER LIST (2a), SETTINGS (11a)</span>
+
+  <div class="rr-stage rr-stage--facets">
+    <div class="rr-frame">
+      <div class="rr-shape-facets">
+        <div class="rr-facets">
+          <div class="sp-rail">
+            <div class="sp-facets">
+              <fieldset class="sp-field-group">
+                <legend class="sp-field-group__head">Status</legend>
+                <div class="sp-filters">
+                  <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" name="rr-status"><span data-label="Draft">Draft</span></label>
+                  <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" name="rr-status" defaultChecked="{{ true }}"><span data-label="Ordered">Ordered</span></label>
+                  <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" name="rr-status"><span data-label="Delivered">Delivered</span></label>
+                </div>
+              </fieldset>
+              <fieldset class="sp-field-group">
+                <legend class="sp-field-group__head">Category</legend>
+                <div class="sp-filters">
+                  <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" name="rr-category"><span data-label="Decor">Decor</span></label>
+                  <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" name="rr-category"><span data-label="Seating">Seating</span></label>
+                  <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" name="rr-category"><span data-label="Lighting">Lighting</span></label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+        <div class="rr-main sp-stack">
+          <div class="rr-facet-trigger">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
+              <span class="sp-grow">Filters</span>
+              <span class="sp-list-item__count">1</span>
+            </button>
+          </div>
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search vendor, item, reference or note" aria-label="Search orders">
+          </div>
+          <div class="sp-list rr-row-table">
+            <table class="sp-table">
+              <thead>
+                <tr>
+                  <th class="sp-col-box rr-hide-m"><input type="checkbox" class="sp-check" data-indeterminate="true" aria-label="Select all 25 orders on this page"></th>
+                  <th scope="col" class="sp-col-title">Vendor</th>
+                  <th scope="col" class="sp-col-date rr-hide-m">Date</th>
+                  <th scope="col" class="rr-hide-m rr-col-cat">Categories</th>
+                  <th scope="col" class="rr-hide-m rr-col-items sp-right">Items</th>
+                  <th scope="col" class="sp-col-status rr-hide-m">Status</th>
+                  <th scope="col" class="sp-col-amount">Total</th>
+                  <th class="rr-m2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="rr-hide-m"><input type="checkbox" class="sp-check" aria-label="Select order SPENDLY-447"></td>
+                  <td>
+                    <div class="sp-cell-flex">
+                      <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                      <span class="sp-stacked">
+                        <span class="sp-title sp-truncate">Indbo Møbler</span>
+                        <span class="sp-subtitle sp-truncate">SPENDLY-447</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="sp-data rr-hide-m sp-nowrap">12 Aug</td>
+                  <td class="rr-hide-m rr-col-cat"><span class="sp-chip"><span>Decor</span></span></td>
+                  <td class="sp-data rr-hide-m rr-col-items sp-right">4</td>
+                  <td class="rr-hide-m"><span class="sp-pill" data-state="progress">Ordered</span></td>
+                  <td>
+                    <div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.980,00 kr.</span></div>
+                  </td>
+                  <td class="rr-m2 sp-data">12 Aug · 4 items · Ordered</td>
+                </tr>
+                <tr>
+                  <td class="rr-hide-m"><input type="checkbox" class="sp-check" aria-label="Select order SPENDLY-446"></td>
+                  <td>
+                    <div class="sp-cell-flex">
+                      <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                      <span class="sp-stacked">
+                        <span class="sp-title sp-truncate">Hay Danmark ApS</span>
+                        <span class="sp-subtitle sp-truncate">SPENDLY-446</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="sp-data rr-hide-m sp-nowrap">09 Aug</td>
+                  <td class="rr-hide-m rr-col-cat"><span class="sp-chip"><span>Seating</span></span></td>
+                  <td class="sp-data rr-hide-m rr-col-items sp-right">2</td>
+                  <td class="rr-hide-m"><span class="sp-pill" data-color="success">Delivered</span></td>
+                  <td>
+                    <div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.240,00 kr.</span></div>
+                  </td>
+                  <td class="rr-m2 sp-data">09 Aug · 2 items · Delivered</td>
+                </tr>
+                <tr>
+                  <td class="rr-hide-m"><input type="checkbox" class="sp-check" aria-label="Select order SPENDLY-445"></td>
+                  <td>
+                    <div class="sp-cell-flex">
+                      <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                      <span class="sp-stacked">
+                        <span class="sp-title sp-truncate">Muuto A/S</span>
+                        <span class="sp-subtitle sp-truncate">SPENDLY-445</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="sp-data rr-hide-m sp-nowrap">03 Aug</td>
+                  <td class="rr-hide-m rr-col-cat"><span class="sp-chip"><span>Lighting</span></span></td>
+                  <td class="sp-data rr-hide-m rr-col-items sp-right">3</td>
+                  <td class="rr-hide-m"><span class="sp-pill" data-state="progress">Ordered</span></td>
+                  <td>
+                    <div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.240,00 kr.</span></div>
+                  </td>
+                  <td class="rr-m2 sp-data">03 Aug · 3 items · Ordered</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+  </div>
+  </div><div class="doc-specimens">
+    <div class="rr-code">
+      <div class="rr-code__label">CSS - TWO INDEPENDENT THRESHOLDS</div>
+      <div class="rr-code__body"><span class="rr-dim">/* the rail column is .sp-rail, so the track fits what the component states */</span><br>.rr-shape-facets <span class="rr-dim">{</span><br>    display<span class="rr-dim">:</span> grid<span class="rr-dim">;</span><br>    grid-template-columns<span class="rr-dim">:</span> <span class="rr-green">auto minmax(0, 1fr)</span><span class="rr-dim">;</span><br>    gap<span class="rr-dim">:</span> var(--sp-12)<span class="rr-dim">;</span> align-items<span class="rr-dim">:</span> start<span class="rr-dim">;</span><br><span class="rr-dim">}</span><br>.sp-rail <span class="rr-dim">{</span> width<span class="rr-dim">:</span> 232px<span class="rr-dim">;</span> flex<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 1280px) <span class="rr-dim">{</span>  <span class="rr-dim">/* the facet rail leaves */</span><br>    .rr-shape-facets <span class="rr-dim">{</span> grid-template-columns<span class="rr-dim">:</span> minmax(0, 1fr)<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-facets <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-facet-trigger <span class="rr-dim">{</span> display<span class="rr-dim">:</span> block<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 1040px) <span class="rr-dim">{</span> .rr-col-items <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span> <span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 880px) <span class="rr-dim">{</span> .rr-col-cat <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span> <span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 640px) <span class="rr-dim">{</span>  <span class="rr-dim">/* rows → cards */</span><br>    .rr-row-table .sp-table,<br>    .rr-row-table .sp-table tbody <span class="rr-dim">{</span> display<span class="rr-dim">:</span> block<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-row-table .sp-table thead <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-row-table .sp-table tr <span class="rr-dim">{</span><br>        display<span class="rr-dim">:</span> grid<span class="rr-dim">;</span><br>        grid-template-columns<span class="rr-dim">:</span> minmax(0, 1fr) auto<span class="rr-dim">;</span><br>        border<span class="rr-dim">:</span> 1px solid var(--line)<span class="rr-dim">;</span> border-radius<span class="rr-dim">:</span> var(--r-card)<span class="rr-dim">;</span><br>    <span class="rr-dim">}</span><br>    .rr-row-table .sp-table td <span class="rr-dim">{</span> display<span class="rr-dim">:</span> block<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-hide-m <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-m2 <span class="rr-dim">{</span> display<span class="rr-dim">:</span> block<span class="rr-dim">;</span> grid-column<span class="rr-dim">:</span> 1 / -1<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-dim">}</span></div>
+    </div>
+    <div class="sp-stack sp-gap-10 rr-w400">
+      <div class="doc-note"><b class="sp-ink">The two thresholds are independent.</b> At 1000px the facets are a drawer but the table is still a table. Chaining them into one breakpoint is what produces the cramped intermediate state.</div>
+      <div class="doc-note"><b class="sp-ink">One row markup, two presentations.</b> The desktop cells carry <b>.rr-hide-m</b>; the phone lines carry <b>.rr-m2</b> and are in the DOM the whole time, hidden. Two separate row components drift apart within a sprint.</div>
+      <div class="doc-note"><b class="sp-ink">Vendor is the fluid cell; amount stays 120px.</b> Fixed columns must never add up to more than the container, so two intermediate queries drop items at 1040 and category at 880 - before the grid runs out of room. A starved <b>minmax(0, 1fr)</b> silently collapses a cell to zero rather than overflowing, which is the failure mode to watch for.</div>
+    </div>
+  </div>
+</section>
+
+
+<section class="doc-section">
+  <span class="sp-section-label">SHAPE 3 - LIST + PANEL · VENDORS AND CATEGORIES (5a, 5b)</span>
+
+  <div class="rr-stage rr-stage--panel">
+    <div class="rr-frame">
+      <div class="rr-shape-panel">
+      <div class="sp-stack">
+        <span class="sp-section-label">CATEGORIES</span>
+        <div class="sp-list">
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sp-col-title">Category</th>
+                <th scope="col" class="sp-col-amount">This month</th>
+                <th scope="col" class="sp-col-amount">Monthly limit</th>
+                <th class="sp-col-menu" aria-label="Row actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr aria-selected="true">
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="110" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">7.240 kr.</b> · 1.240 over</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">6.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><span class="rr-list-chevron"><span class="sp-icon-btn sp-icon-btn--quiet" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span></span></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid" data-swatch="green-2"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Seating</span>
+                  <span class="sp-meta sp-truncate">28 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="40" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="40"></span>
+                </span>
+                <span class="sp-meta">3.240 kr.</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">8.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><span class="rr-list-chevron"><span class="sp-icon-btn sp-icon-btn--quiet" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span></span></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid" data-swatch="green-3"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Lighting</span>
+                  <span class="sp-meta sp-truncate">17 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="30" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="30"></span>
+                </span>
+                <span class="sp-meta">1.180 kr.</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">4.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><span class="rr-list-chevron"><span class="sp-icon-btn sp-icon-btn--quiet" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span></span></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="rr-panel">
+          <div class="sp-panel">
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">DECOR</span></div>
+            <div class="sp-field">
+                  <label class="sp-field__label" for="rr-f4">Name</label>
+                  <input class="sp-input" id="rr-f4" type="text" defaultValue="Decor">
+                </div>
+            <div class="sp-field">
+                  <label class="sp-field__label" for="rr-f5">Monthly limit</label>
+                  <input class="sp-input sp-number" id="rr-f5" type="text" defaultValue="6.000,00 kr.">
+                </div>
+            <div class="sp-card__footer sp-card__footer--stack">
+              <div class="sp-sum"><span>This month</span><span class="sp-grow"></span><span class="sp-ink-warning sp-strong">7.240 kr.</span></div>
+              <span class="sp-gauge sp-gauge--thin"><meter value="100" min="0" max="100" aria-label="Share of the limit used"></meter><span class="sp-gauge__fill sp-gauge__fill--over" data-fill="100"></span><span class="sp-gauge__marker" data-at="65"></span></span>
+            </div>
+          </div>
+        </div>
+        </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="rr-code">
+      <div class="rr-code__label">CSS</div>
+      <div class="rr-code__body"><span class="rr-dim">/* the panel states its own width, so the track fits it */</span><br>.rr-shape-panel <span class="rr-dim">{</span><br>    display<span class="rr-dim">:</span> grid<span class="rr-dim">;</span><br>    grid-template-columns<span class="rr-dim">:</span> <span class="rr-green">minmax(0, 1fr) auto</span><span class="rr-dim">;</span><br>    gap<span class="rr-dim">:</span> var(--sp-12)<span class="rr-dim">;</span> align-items<span class="rr-dim">:</span> start<span class="rr-dim">;</span><br><span class="rr-dim">}</span><br>.sp-panel <span class="rr-dim">{</span> width<span class="rr-dim">:</span> 360px<span class="rr-dim">;</span> flex<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 900px) <span class="rr-dim">{</span><br>    .rr-shape-panel <span class="rr-dim">{</span> grid-template-columns<span class="rr-dim">:</span> minmax(0, 1fr)<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-panel <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-list-chevron <span class="rr-dim">{</span> display<span class="rr-dim">:</span> block<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-dim">}</span></div>
+    </div>
+    <div class="sp-stack sp-gap-10 rr-w400">
+      <div class="doc-note"><b class="sp-ink">The panel leaves and the rows gain a chevron</b> - the two halves of one change. It becomes a second view reached by tapping a row, not a card stacked under a long list.</div>
+      <div class="doc-note"><b class="sp-ink">The panel never collapses to nothing on desktop.</b> With no selection it shows the roll-up (5c), so the column width is constant whatever is selected - a layout that changes width on selection makes the list jump under the cursor.</div>
+      <div class="doc-note">In the app the narrow case is a route, not a hidden div. Hiding it here is what makes the threshold visible on one page.</div>
+    </div>
+  </div>
+
+
+</section>
+
+<section class="doc-section">
+  <span class="sp-section-label">SHAPE 4 - CARD GRID · ORDER CARDS (2c), STATISTICS (4a)</span>
+
+  <div class="rr-stage rr-stage--cards">
+    <div class="rr-frame">
+    <div class="sp-cards sp-cards--fluid rr-shape-cards">
+        <article class="sp-record">
+          <div class="sp-record__photos">
+            <span class="sp-record__photo"></span>
+            <span class="sp-record__photo"></span>
+            <span class="sp-record__photo"></span>
+          </div>
+          <div class="sp-record__body">
+            <div class="sp-record__head">
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">Indbo Møbler</span>
+                <span class="sp-subtitle sp-truncate">SPENDLY-447 · Sommertilbud 80%</span>
+              </span>
+              <span class="sp-pill" data-color="success">Delivered</span>
+            </div>
+            <div class="sp-record__chips">
+              <button type="button" class="sp-chip"><span>Decor</span></button>
+            </div>
+            <span class="sp-grow"></span>
+            <div class="sp-record__foot">
+              <span class="sp-stack sp-gap-6">
+                <span class="sp-subtitle">12/08/2026 · 4 items</span>
+                <span class="sp-amount-secondary" data-color="success">Saved 995,00 kr.</span>
+              </span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">3.980,00 kr.</span>
+            </div>
+          </div>
+        </article>
+        <article class="sp-record">
+          <div class="sp-record__photos">
+            <span class="sp-record__photo"></span>
+            <span class="sp-record__photo"></span>
+          </div>
+          <div class="sp-record__body">
+            <div class="sp-record__head">
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">Hay Danmark ApS</span>
+                <span class="sp-subtitle sp-truncate">SPENDLY-446</span>
+              </span>
+              <span class="sp-pill" data-state="progress">Ordered</span>
+            </div>
+            <div class="sp-record__chips">
+              <button type="button" class="sp-chip"><span>Seating</span></button>
+            </div>
+            <span class="sp-grow"></span>
+            <div class="sp-record__foot">
+              <span class="sp-stack sp-gap-6">
+                <span class="sp-subtitle">09/08/2026 · 2 items</span>
+                
+              </span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">3.240,00 kr.</span>
+            </div>
+          </div>
+        </article>
+        <article class="sp-record">
+          <div class="sp-record__photos">
+            <span class="sp-record__photo"></span>
+            <span class="sp-record__photo"></span>
+            <span class="sp-record__photo"></span>
+          </div>
+          <div class="sp-record__body">
+            <div class="sp-record__head">
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">Muuto A/S</span>
+                <span class="sp-subtitle sp-truncate">SPENDLY-445</span>
+              </span>
+              <span class="sp-pill" data-color="danger">Returned</span>
+            </div>
+            <div class="sp-record__chips">
+              <button type="button" class="sp-chip"><span>Lighting</span></button>
+            </div>
+            <span class="sp-grow"></span>
+            <div class="sp-record__foot">
+              <span class="sp-stack sp-gap-6">
+                <span class="sp-subtitle">01/08/2026 · 3 items</span>
+                
+              </span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">7.240,00 kr.</span>
+            </div>
+          </div>
+        </article>
+      </div>
+  </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="rr-code">
+      <div class="rr-code__label">CSS - NO QUERY AT ALL</div>
+      <div class="rr-code__body"><span class="rr-dim">/* .sp-cards as it ships: four tracks, stepped twice */</span><br>.sp-cards <span class="rr-dim">{</span><br>    display<span class="rr-dim">:</span> grid<span class="rr-dim">;</span><br>    grid-template-columns<span class="rr-dim">:</span> <span class="rr-green">repeat(4, minmax(0, 1fr))</span><span class="rr-dim">;</span><br>    gap<span class="rr-dim">:</span> var(--sp-12)<span class="rr-dim">;</span><br><span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 1100px) <span class="rr-dim">{</span><br>    .sp-cards <span class="rr-dim">{</span> grid-template-columns<span class="rr-dim">:</span> repeat(2, minmax(0, 1fr))<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-dim">}</span><br><span class="rr-amber">@container</span> (max-width: 640px) <span class="rr-dim">{</span><br>    .sp-cards <span class="rr-dim">{</span> grid-template-columns<span class="rr-dim">:</span> minmax(0, 1fr)<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-dim">}</span><br><br><span class="rr-dim">/* the same grid with no query at all, which is what the frame above draws */</span><br>.sp-cards.sp-cards--fluid <span class="rr-dim">{</span><br>    grid-template-columns<span class="rr-dim">:</span> <span class="rr-green">repeat(auto-fill, minmax(min(var(--card-min-w), 100%), 1fr))</span><span class="rr-dim">;</span><br><span class="rr-dim">}</span><br><br><span class="rr-dim">/* Statistics (4a): four figure cards across, one per track */</span><br>.sp-stats <span class="rr-dim">{</span><br>    display<span class="rr-dim">:</span> grid<span class="rr-dim">;</span><br>    grid-template-columns<span class="rr-dim">:</span> <span class="rr-green">repeat(4, minmax(0, 1fr))</span><span class="rr-dim">;</span><br>    gap<span class="rr-dim">:</span> var(--sp-12)<span class="rr-dim">;</span><br><span class="rr-dim">}</span></div>
+    </div>
+    <div class="sp-stack sp-gap-10 rr-w400">
+      <div class="doc-note"><b class="sp-ink">Order cards need no query.</b> <b>auto-fill</b> with a <code>--card-min-w</code> floor (280px) reflows at every width on its own: one column below 572px, two from 572, and as many as fit above. Adding breakpoints to a grid that already works is the most common unnecessary complexity here.</div>
+      <div class="doc-note"><b class="sp-ink">Statistics states its tracks instead.</b> Its four figure cards sit one per track in <code>.sp-stats</code>, a four-column grid, because a figure card has a floor no auto-fill can express: below about 240px the figure and its sparkline stop being readable together. The tracks step with the shell rather than the content.</div>
+      <div class="doc-note">Verify Statistics at 1280, 1440 and 1920 specifically - those are the widths where a four-track row either fits or leaves a card short of its floor.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <span class="sp-section-label">FIELD GRIDS - HALVES AND THIRDS</span>
+
+  <div class="doc-specimens">
+<div class="rr-frame rr-w660">
+      <span class="sp-section-label sp-section-label--ruled">Halves - above 640</span>
+      <div class="rr-f-halves">
+        <div class="sp-field">
+          <label class="sp-field__label" for="rr-date">Order date</label>
+          <input class="sp-input" id="rr-date" type="text" defaultValue="12/08/2026">
+        </div>
+        <div class="sp-field">
+          <span class="sp-field__label" id="rr-grp2">Status</span>
+          <div class="sp-combobox">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="rr-grp2">
+              <span>Delivered</span>
+              <span class="sp-grow"></span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+            </button>
+            <ul class="sp-combobox__panel" role="listbox" aria-labelledby="rr-grp2">
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Draft</span><span class="sp-grow"></span></button></li>
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Ordered</span><span class="sp-grow"></span></button></li>
+              <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Delivered</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Returned</span><span class="sp-grow"></span></button></li>
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Cancelled</span><span class="sp-grow"></span></button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rr-frame rr-w420">
+      <span class="sp-section-label sp-section-label--ruled">Halves - below 640</span>
+      <div class="rr-f-halves">
+        <div class="sp-field">
+          <label class="sp-field__label" for="rr-date-narrow">Order date</label>
+          <input class="sp-input" id="rr-date-narrow" type="text" defaultValue="12/08/2026">
+        </div>
+        <div class="sp-field">
+          <span class="sp-field__label" id="rr-grp1">Status</span>
+          <div class="sp-combobox">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="rr-grp1">
+              <span>Delivered</span>
+              <span class="sp-grow"></span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+            </button>
+            <ul class="sp-combobox__panel" role="listbox" aria-labelledby="rr-grp1">
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Draft</span><span class="sp-grow"></span></button></li>
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Ordered</span><span class="sp-grow"></span></button></li>
+              <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Delivered</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Returned</span><span class="sp-grow"></span></button></li>
+              <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Cancelled</span><span class="sp-grow"></span></button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      </div>
+
+  <div class="doc-specimens">
+<div class="rr-frame rr-w660">
+      <span class="sp-section-label sp-section-label--ruled">Thirds - above 640</span>
+      <div class="rr-f-thirds">
+        <div class="sp-field">
+          <label class="sp-field__label" for="rr-qty">Quantity</label>
+          <div class="sp-stepper">
+            <button type="button" class="sp-stepper__btn" aria-label="Decrease">−</button>
+            <input class="sp-stepper__value" id="rr-qty" type="number" defaultValue="2" min="1" step="1">
+            <button type="button" class="sp-stepper__btn" aria-label="Increase">+</button>
+          </div>
+        </div>
+        <div class="sp-field">
+          <label class="sp-field__label" for="rr-unit">Unit price</label>
+          <span class="sp-field__wrap">
+            <input class="sp-input sp-input--unit sp-number" id="rr-unit" type="text" inputMode="decimal" defaultValue="4.190,00">
+            <span class="sp-field__unit">kr.</span>
+          </span>
+        </div>
+        <div class="rr-computed">
+          <div class="sp-field">
+            <label class="sp-field__label" for="rr-total-a">Line total</label>
+            <span class="sp-field__wrap">
+              <input class="sp-input sp-input--unit sp-number" id="rr-total-a" type="text" readOnly defaultValue="8.380,00">
+              <span class="sp-field__unit">kr.</span>
+            </span>
+          </div>
+        </div>
+        <div class="rr-as-total">
+          <div class="sp-sum sp-sum--total">
+            <span class="sp-ink-2">Line total</span>
+            <span class="sp-sum__value">8.380,00 kr.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><div class="rr-frame rr-w420">
+      <span class="sp-section-label sp-section-label--ruled">Thirds - below 640, the computed cell becomes a total</span>
+      <div class="rr-f-thirds">
+        <div class="sp-field">
+          <label class="sp-field__label" for="rr-qty-narrow">Quantity</label>
+          <div class="sp-stepper">
+            <button type="button" class="sp-stepper__btn" aria-label="Decrease">−</button>
+            <input class="sp-stepper__value" id="rr-qty-narrow" type="number" defaultValue="2" min="1" step="1">
+            <button type="button" class="sp-stepper__btn" aria-label="Increase">+</button>
+          </div>
+        </div>
+        <div class="sp-field">
+          <label class="sp-field__label" for="rr-unit-narrow">Unit price</label>
+          <span class="sp-field__wrap">
+            <input class="sp-input sp-input--unit sp-number" id="rr-unit-narrow" type="text" inputMode="decimal" defaultValue="4.190,00">
+            <span class="sp-field__unit">kr.</span>
+          </span>
+        </div>
+        <div class="rr-computed">
+          <div class="sp-field">
+            <label class="sp-field__label" for="rr-total-b">Line total</label>
+            <span class="sp-field__wrap">
+              <input class="sp-input sp-input--unit sp-number" id="rr-total-b" type="text" readOnly defaultValue="8.380,00">
+              <span class="sp-field__unit">kr.</span>
+            </span>
+          </div>
+        </div>
+        <div class="rr-as-total">
+          <div class="sp-sum sp-sum--total">
+            <span class="sp-ink-2">Line total</span>
+            <span class="sp-sum__value">8.380,00 kr.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  <div class="doc-specimens">
+    <div class="rr-code">
+      <div class="rr-code__label">CSS</div>
+      <div class="rr-code__body"><span class="rr-amber">@container</span> (max-width: 640px) <span class="rr-dim">{</span><br>    .rr-f-halves <span class="rr-dim">{</span> grid-template-columns<span class="rr-dim">:</span> 1fr<span class="rr-dim">;</span> gap<span class="rr-dim">:</span> var(--sp-8)<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><br>    <span class="rr-dim">/* the equation survives; the computed cell does not */</span><br>    .rr-f-thirds <span class="rr-dim">{</span> grid-template-columns<span class="rr-dim">:</span> 132px minmax(0, 1fr)<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-f-thirds .rr-computed <span class="rr-dim">{</span> display<span class="rr-dim">:</span> none<span class="rr-dim">;</span> <span class="rr-dim">}</span><br>    .rr-f-thirds .rr-as-total <span class="rr-dim">{</span> display<span class="rr-dim">:</span> flex<span class="rr-dim">;</span> grid-column<span class="rr-dim">:</span> 1 / -1<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><br>    <span class="rr-dim">/* the control keeps its type size and takes the touch height */</span><br>    .sp-input, .sp-btn, .sp-select <span class="rr-dim">{</span> height<span class="rr-dim">:</span> var(--control-h-touch)<span class="rr-dim">;</span> <span class="rr-dim">}</span><br><span class="rr-dim">}</span></div>
+    </div>
+    <div class="sp-stack sp-gap-10 rr-w400">
+      <div class="doc-note"><b class="sp-ink">Both frames above are 420px, so both are past 640 and both have collapsed</b> - regardless of how wide the browser window is. Widen the window as far as you like and they stay collapsed; the same field grid in a 1fr main column does not. That is the container query doing its job, and it is the behaviour a viewport query cannot produce.</div>
+      <div class="doc-note"><b class="sp-ink">The computed cell is replaced, not moved.</b> Two elements, one shown at a time - a read-only field becomes a total line, because a box you cannot type into is a target that does nothing.</div>
+      <div class="doc-note"><b class="sp-ink">Only padding changes for touch.</b> 42px to 48px clears the 44px minimum. Type sizes never change between desktop and phone.</div>
+    </div>
+  </div>
+
+
+</section>
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="18b">18b</span>
+    <span class="doc-section__title">Per-screen table - what changes, and at which threshold</span>
+  </div>
+  <div class="doc-lede">One row per screen in the set. Everything not listed here does not change at that threshold - an empty cell means the layout is identical to the column on its left.</div>
+
+  <div class="sp-list rr-w1400">
+    <div class="rr-row doc-table__head">
+      <div>SCREEN</div><div>AT 1280</div><div>AT 900</div><div>AT 640</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Shell (9a)</div>
+      <div>Sidebar may collapse to the 68px icon rail; labels become tooltips.</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Sidebar becomes a bottom tab bar (5 destinations, Settings and account under More). Top bar keeps the title only. <b>Viewport media query</b>, not container.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Order read (1a)</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Rail moves above the items as a collapsed summary. Totals, under the items, takes the column's width, like the cards above it. Attachments stay a horizontal strip.</div>
+      <div>Actions become a full-width stacked group. Attachment tiles 96px → 80px.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Order edit (1d)</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Same as 1a. Sticky save bar spans the single column.</div>
+      <div>Inline row expansion becomes a bottom sheet. Pencil permanently visible. Save bar respects the safe-area inset and sits above the keyboard.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Order list (2a - 2c)</div>
+      <div>Facet rail becomes a "Filters" trigger with an active count; opens a drawer from the left, 320px wide. Below 640 it is a bottom sheet (15e).</div>
+      <div>Bulk-action bar wraps to two lines. Result count moves under the search field.</div>
+      <div>Rows become cards (vendor + amount, one meta line, category chip). Filters open a bottom sheet with a sticky "Show 128 orders". Cards view unchanged - it already reflows.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Order create (3a, 3b)</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Review splits: receipt preview collapses to a thumbnail strip above the proposed order.</div>
+      <div>Preview becomes a tap-to-open viewer. Drop zone gains "Take a photo" as the primary. Field grids stack.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Statistics (4a)</div>
+      <div>12-column grid: cards spanning 3 become 4, 4 become 6. Rows still close. Period bar wraps: the sizes keep their width, and the window, the range and the compare switch move to a second line when the first has no room. The day count leaves at 1100.</div>
+      <div>Two columns of cards. Vendor table drops its sparkline column. Period bar as at 1280.</div>
+      <div>One column, charts full width. Vendor table becomes a stacked list. Breadcrumb wraps. Period control becomes a single select.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Library (5a - 5c)</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Becomes two views: list, then panel with a back action. <b>Not stacked.</b> The roll-up is the list's own footer card.</div>
+      <div>Panel is a full-screen view. Icon picker grid 8 columns → 6.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Home (10a)</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Rail moves below the main column - the exception, because it is a read-only summary rather than a form.</div>
+      <div>Capture becomes the FAB (56px, bottom-right above the tab bar) and the drop zone shrinks to a labelled button.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Settings (11a)</div>
+      <div>Section nav 208px stays; cards keep their 640px cap.</div>
+      <div>Section nav becomes a horizontal scrolling tab strip above the cards.</div>
+      <div>Field grids stack. Status rows lose their drag handle in favour of up/down buttons.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Import (11b)</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Mapping rows go from three columns (file · arrow · field) to two stacked pairs; the arrow becomes a downward chevron.</div>
+      <div>Preview table scrolls horizontally inside its card - the one place horizontal scroll is allowed, because a dry-run table is read, not tapped.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Image viewer (12b)</div>
+      <div class="sp-ink-5"> - </div>
+      <div>Page thumbnail rail stays on the left: the viewer is an overlay with no container to measure, and a media query is for the shell and print only (18a).</div>
+      <div>Full-screen. The bar is filename, Previous, Next, download and close; swipe moves between files as well.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Dialogs, toasts (6d)</div>
+      <div class="sp-ink-5"> - </div>
+      <div class="sp-ink-5"> - </div>
+      <div>Dialog (440px) becomes a bottom sheet, radius on top corners only. Buttons full width, stacked, primary on top. Toast spans the width above the tab bar.</div>
+    </div>
+    <div class="rr-row doc-table__row">
+      <div class="sp-strong">Combobox (14a)</div>
+      <div class="sp-ink-5"> - </div>
+      <div class="sp-ink-5"> - </div>
+      <div>Popover becomes a full-screen sheet with the search field at the top, above the keyboard. Option rows 44px minimum.</div>
+    </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="sp-card rr-w620" data-color="warning">
+      <div class="sp-section-label sp-ink-warning">HOW TO USE THIS PAGE WHEN BUILDING</div>
+      <div class="doc-note"><b>Build the container-query wrappers first</b> - the four shapes above, as four layout components. Every screen then picks one and fills it. Screens that hand-roll their own grid are how a fifth threshold appears.</div>
+      <div class="doc-note"><b>The static mockups are the visual target at desktop width only.</b> They are drawn at one width with fixed pixel values and no queries, so nothing about narrow behaviour can be read off them. Where a mockup and this page disagree about a narrow layout, this page wins.</div>
+      <div class="doc-note"><b>Side-by-side panels in the other files are annotation, not layout.</b> The comparison columns headed "1 - pick a file", "empty" / "loaded", or "light" / "dark" are never on screen together. Don't build a responsive row out of them.</div>
+      <div class="doc-note"><b>Test at container widths, not viewport widths.</b> Resize the layout wrapper in isolation - a component that only works at one page width will pass a viewport test and fail in the rail.</div>
+    </div>
+    <div class="sp-card rr-w400">
+      <div class="sp-card__head"><span class="sp-section-label">ACCEPTANCE, PER SCREEN</span></div>
+      <div class="doc-note">At each of <b>1440 · 1280 · 1024 · 900 · 768 · 640 · 390</b>: no horizontal scroll except the two places it is named above; no text under 11px; every target 44px or more below 640; no element overlapping another; and the sticky save bar reachable without the keyboard covering it.</div>
+      <div class="doc-note">The two widths that catch the most: <b>1024</b>, where a rail has left but the table has not yet become cards, and <b>390</b>, the narrowest phone that matters.</div>
+    </div>
+  </div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

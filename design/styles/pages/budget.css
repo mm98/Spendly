@@ -1,0 +1,26 @@
+/* Page composition for Budget.dc.html.
+   Layout scaffolding only: the two month panels side by side, the sheet's sideways
+   scroll and its two named columns, and the input laid over a cell while it is typed in.
+   Everything else is a component class from components.css.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  /* the year is wider and taller than the page, so it scrolls inside its card, and the
+     month header and the row names stay in view while it does */
+  .bg-scroll { overflow: auto; max-height: 560px; }
+  .bg-sheet thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+  .bg-sheet tbody td:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .bg-sheet thead th:first-child { left: 0; z-index: 3; }
+  /* a section or group row spans the sheet, so its label is what holds still - at the
+     card's inset, the line the card's title and every row name start on */
+  .bg-sheet tbody td[colspan] { position: static; }
+  .bg-sheet tbody td[colspan] > span { position: sticky; left: var(--card-pad); display: inline-block; }
+  .bg-sheet { min-width: 1760px; }
+  .bg-sheet .bg-col-name { width: 180px; }
+  .bg-sheet .bg-col-account { width: 120px; }
+
+
+  .sp-table .bg-col-map { width: 240px; }
+
+}

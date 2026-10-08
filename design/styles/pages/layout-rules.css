@@ -1,0 +1,97 @@
+/* Page composition for Layout rules.dc.html.
+   Layout scaffolding only: the widths each specimen is drawn at, the two
+   documentation tables, and the block diagram that stands in for a column.
+   Everything else is a component class from components.css.
+   In @layer base, so none of it can outrank a component rule. */
+
+@layer base {
+
+  /* widths the specimens are drawn at */
+  .lr-w80 { width: 80px; flex: none; }
+  .lr-w104 { width: 104px; flex: none; }
+  .lr-w118 { width: 118px; flex: none; }
+  .lr-w340 { width: 340px; }
+  .lr-w420 { width: 420px; }
+  .lr-w430 { width: 430px; }
+  
+  .lr-w520 { width: 520px; }
+  .lr-w560 { width: 560px; }
+  .lr-w620 { width: 620px; }
+  .lr-w640 { width: 640px; }
+  .lr-w660 { width: 660px; }
+  .lr-w700 { width: 700px; }
+  .lr-w760 { width: 760px; }
+  .lr-w900 { width: 900px; }
+  
+  /* The column-shape diagram: a row of blocks whose heights are the point, so it
+     stretches them rather than borrowing .sp-row-flex, which centres its items. */
+  .lr-h116 {
+    display: flex;
+    gap: var(--sp-10);
+    height: 116px;
+    align-items: stretch;
+  }
+
+  /* The diagram that stands in for a column: a quiet block where the page is
+     talking about the shape of a layout rather than its contents. */
+  .lr-block {
+    background: var(--surface-3);
+    border: 1px solid var(--line-3);
+    border-radius: var(--r-tile);
+  }
+  .lr-block--label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+  }
+  /* a block standing for a column whose width is fixed rather than fluid */
+  .lr-block--fixed {
+    background: var(--green-tint);
+    border-color: var(--green-5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+  }
+  /* the rule marking a measurement beside a block */
+  .lr-bar { width: 4px; border-radius: var(--r-marker); background: var(--green); flex: none; }
+  .lr-bar--quiet { background: var(--line-5); }
+  /* the same diagram in three equal tracks */
+  .lr-h116-grid { height: 116px; }
+  .lr-thirds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-10); align-items: stretch; }
+  .lr-bottom { align-items: flex-end; }
+  .lr-centre { display: grid; place-items: center; }
+  .lr-readonly { background: var(--surface-2); color: var(--ink-2); }
+
+  /* documentation tables: doc.css draws the row and the head, the page states columns */
+  .lr-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lr-row--kv { grid-template-columns: 120px minmax(0, 1fr); }
+
+  /* A row of the table being documented. The column set is data, so one rule
+     draws the row and the width decides which columns exist - the same rule as
+     Order list 2i and Vendors 5m. */
+  .lr-trow {
+    display: grid;
+    gap: var(--sp-12);
+    align-items: center;
+    padding: var(--sp-12) var(--sp-14);
+    border-bottom: 1px solid var(--line-2);
+    font-size: var(--t-13);
+  }
+  .lr-trow--head {
+    padding: var(--sp-8) var(--sp-14);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--t-11);
+    letter-spacing: var(--ls-label);
+    color: var(--ink-5);
+    text-transform: uppercase;
+  }
+  .lr-trow:last-child { border-bottom: 0; }
+  .lr-trow[data-cols="full"] { grid-template-columns: 18px minmax(0, 1fr) 104px 150px 118px 130px 40px; }
+  .lr-trow[data-cols="mid"] { grid-template-columns: 18px minmax(0, 1fr) 104px 118px 130px 40px; }
+  .lr-trow[data-cols="min"] { grid-template-columns: 18px minmax(0, 1fr) 130px 40px; }
+
+}

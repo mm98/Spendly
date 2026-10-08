@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"></rect><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="46" font-weight="600" fill="#f2f0ea" text-anchor="middle">1</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/order-editing.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="1a">1a</span>
+    <span class="doc-section__title">Order - read view</span>
+  </div>
+  <div class="doc-lede">Same 2fr / 1fr skeleton as the edit screen, so switching between reading and editing moves nothing. Row actions and Add item drop away, fields become label and value rows, status becomes a row in Order details, and the rail ends with Duplicate, Delete and Edit order.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Intent</b> - The read view exists so the common case - looking something up - costs nothing. It shares the edit screen's grid exactly, so entering edit changes controls, never positions. Build both from one layout component.</div>
+    <div class="doc-note"><b>Product link</b> - A line with a product link shows its name as a link, opening the product page in a new tab (Hay - Palissade chair). A line without one shows plain text. Only the name is the link; the row itself does not open anything. On touch a tap on the name opens the page the same way. In edit mode (<a href="#1b">1b</a>, <a href="#1c">1c</a>) the name is always plain text, link or not, so a click on a row edits it rather than leaving the page.</div>
+    <div class="doc-note"><b>Vendor and category link to their orders</b> - The vendor opens the order list filtered to that vendor, <code>/orders?vendor=indbo-mobler</code>; a category opens it filtered to that category, <code>/orders?category=decor</code>. The same routes as "Open in the order list" on Vendors and categories, with the filter chip visible and removable. With several categories, each name is its own link, separated by commas. They are plain links in the app's link colour and open in a new tab like any other. Read view only: in edit the same rows are fields.</div>
+    <div class="doc-note"><b>Field order</b> - The rows follow the edit screen's field order (<a href="#1d">1d</a>): Vendor, Date, Kind, Status, the status date, Validated, Categories, Reference, Note. Discount and shipping are in Totals.</div>
+    <div class="doc-note"><b>Validated</b> - Shown only when the order has been checked against a receipt (<a href="Order create.dc.html#3d">3d</a>), with the date it was applied. Read only: it is not a field in 1d.</div>
+    <div class="doc-note"><b>Note</b> - Shown only when the order has a note; an order without one has no Note row. The text sits in a full-width well (the bordered box inside a card, no ground) at regular weight, as the user typed it, line breaks kept.</div>
+    <div class="doc-note"><b>Watch out</b> - Do not render inputs as disabled fields here. Values are text. A page full of greyed-out inputs reads as broken permissions, and it doubles the DOM for no gain.</div>
+    <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px the rail moves above the item list, collapsed to a summary line (1d, <a href="Responsive reference.dc.html#18a">Responsive reference 18a</a>). Attachments stay a horizontal filmstrip on both - it is the one place sideways scroll is correct, because a receipt strip has no meaningful order.</div>
+    <div class="doc-note"><b>Easy to get wrong</b> - Edit, Duplicate and Delete belong in the page, never the top bar (global rule 1). The top shell is shared and locked.</div>
+  </div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body sp-shell__body--split">
+      <div class="sp-stack sp-gap-12">
+        <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Items · 4</span>
+            <span class="sp-meta">Indbo Møbler · 08/08/2026</span>
+          </div>
+          <div class="sp-stack sp-gap-8">
+            <div class="sp-list-item">
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Vitra - Nuage Céramique</span>
+                <span class="sp-subtitle">1 × 330,00 kr. · retail 1.650,00 kr.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <span class="sp-stacked sp-cell-amount">
+                <span class="sp-amount">330,00 kr.</span>
+                <span class="sp-amount-secondary" data-color="success">Saved 1.320,00 kr.</span>
+              </span>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <div class="sp-stacked">
+                <a class="sp-title sp-truncate" href="https://hay.dk/palissade-chair" target="_blank" rel="noopener">Hay - Palissade chair</a>
+                <span class="sp-subtitle">2 × 890,00 kr.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.780,00 kr.</span></div>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-mark sp-mark--medium sp-mark--empty" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span>
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span>
+                <span class="sp-subtitle">1 × 1.240,00 kr.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00 kr.</span></div>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Ferm Living - Vuelta vase</span>
+                <span class="sp-subtitle">3 × 210,00 kr.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <div class="sp-stacked sp-cell-amount"><span class="sp-amount">630,00 kr.</span></div>
+            </div>
+          </div>
+          <div class="sp-totals">
+            <span class="sp-strong">4 items · 3.980,00 kr. paid</span>
+            <span class="sp-grow"></span>
+            <span class="sp-amount-secondary" data-color="success">Saved 1.320,00 kr.</span>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Attachments · 3</span>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Download all</button>
+          </div>
+          <div class="sp-strip-wrap">
+              <button type="button" class="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <div class="sp-strip">
+              <span class="sp-attachment">
+                <span class="sp-mark sp-mark--xlarge sp-mark--photo"><button type="button" class="sp-mark__open" aria-label="Open receipt-front.jpg"></button></span>
+                <span class="sp-attachment__name">receipt-front.jpg</span>
+              </span>
+              <span class="sp-attachment">
+                <span class="sp-mark sp-mark--xlarge sp-mark--photo"><button type="button" class="sp-mark__open" aria-label="Open delivery-note.jpg"></button></span>
+                <span class="sp-attachment__name">delivery-note.jpg</span>
+              </span>
+              <span class="sp-attachment">
+                <span class="sp-mark sp-mark--xlarge sp-mark--none"><button type="button" class="sp-mark__open" aria-label="Open invoice-4471.pdf">PDF</button></span>
+                <span class="sp-attachment__name">invoice-4471.pdf</span>
+              </span>
+            </div>
+              <button type="button" class="sp-strip-nav" data-strip="next" aria-label="Show later attachments"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-panel">
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">Order details</span></div>
+          <div class="sp-stack">
+          <div class="sp-sum"><span class="sp-ink-2">Vendor</span><span class="sp-sum__value"><a href="Order list.dc.html">Indbo Møbler</a></span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Date</span><span class="sp-sum__value">08/08/2026</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Kind</span><span class="sp-sum__value">Expense</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Status</span><span class="sp-sum__value">Delivered</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Delivered</span><span class="sp-sum__value">09/08/2026</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Validated</span><span class="sp-sum__value">07/10/2026</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Categories</span><span class="sp-sum__value"><a href="Order list.dc.html">Decor</a></span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Reference</span><span class="sp-sum__value">SPENDLY-447</span></div>
+          <div class="sp-sum sp-sum--stacked"><span class="sp-ink-2">Note</span><span class="sp-well">Sommertilbud 80%</span></div>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
+          <div class="sp-stack">
+          <div class="sp-sum"><span class="sp-ink-2">Items (4)</span><span class="sp-sum__value">3.980,00 kr.</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Discount</span><span class="sp-sum__value">0,00 kr.</span></div>
+          <div class="sp-sum"><span class="sp-ink-2">Shipping</span><span class="sp-sum__value">0,00 kr.</span></div>
+          <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Total</span><span class="sp-sum__value">3.980,00 kr.</span></div>
+          </div>
+          <span class="sp-stat__delta">Saved 1.320,00 kr.</span>
+          <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+            <button type="button" class="sp-btn sp-btn--outline">Duplicate</button>
+            <button type="button" class="sp-btn">Edit order</button>
+          </div>
+          <button type="button" class="sp-btn sp-btn--small sp-btn--block" data-color="danger">Delete order</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="1b">1b</span>
+    <span class="doc-section__title">Desktop - edit an item in place</span>
+  </div>
+  <div class="doc-lede">The pencil turns the row into a form without moving it in the list. Same fields as the mobile sheet: quantity stepper, unit price, retail price, line total. Enter saves, Escape cancels, Cmd/Ctrl+Enter saves and opens the line below. The photo lives in the open row: the thumbnail is the control - clicking it replaces the image, a file can be dropped straight onto it, and Remove sits underneath. Lines with no photo show a dashed tile.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Intent</b> - Editing a line happens next to its neighbours because that is what makes the edit correct - you fix a quantity by reading the line above it. The row becomes a form and does not move.</div>
+    <div class="doc-note"><b>Product link</b> - Optional, per line. The link button at the end of the Item field opens a Product page field directly under it and focuses it. Pressed again while the field is empty, it closes it; while the field holds a link, it only focuses the field, so a link is never hidden. Its label follows: "Add a product link" without one, "Edit product link" with one. A line that already has a link opens with the field showing: <a href="#1b">1b</a> draws a line without one, the mobile sheet (<a href="#1c">1c</a>) a line with one.</div>
+    <div class="doc-note"><b>Product link - validation</b> - On blur and on save, as every field (<a href="Components.dc.html#c3">c3</a>). An address typed without a scheme ("hay.dk/palissade-chair") is valid and saved with https:// in front. Anything still not a web address turns the field red with "Not a link." under it, and the line does not save until it is fixed or cleared. Try it in 1b: type a word and leave the field.</div>
+    <div class="doc-note"><b>Product link - saving</b> - The address is cleaned when it is saved, as a bookmark's is: tracking parts such as <code>utm_</code> and <code>fbclid</code> are removed, and a missing https:// is added.</div>
+    <div class="doc-note"><b>Product link - copies</b> - A copy of an order keeps each line's link, in every way of copying: Home's Copy an order, the create screen's, and an order's own Duplicate.</div>
+    <div class="doc-note"><b>Product link - clearing</b> - Emptying the field and saving removes the link: the name in the read view (<a href="#1a">1a</a>) goes back to plain text, and the editor opens with the field closed next time.</div>
+    <div class="doc-note"><b>Watch out</b> - Only one row is open at a time; opening another closes the first and keeps its changes in the order draft. The line is never saved to the server on its own - the order save is the only write.</div>
+    <div class="doc-note"><b>Watch out</b> - Line total is computed and read-only. Do not make it editable "for convenience" - two sources for one number is how totals start disagreeing with receipts.</div>
+    <div class="doc-note"><b>Desktop vs mobile</b> - This inline expansion is desktop only. On a phone the same fields open in a bottom sheet (1c), because in one column "expands in place" and "takes over the screen" are the same thing. Same fields, same order, same validation - one form component, two containers.</div>
+    <div class="doc-note"><b>The Add item row keeps the handle's space only where the rows have handles.</b> On a phone the rows have none (<a href="#1c">1c</a>), so the add row has no spacer and its + lines up with the photos above it.</div>
+    <div class="doc-note"><b>The open editor has no drag handle.</b> Its photo spans the row's handle, gap and photo, so it starts on the row's handle line and the Item label starts on the rows' title line. The sheet (<a href="#1c">1c</a>) uses the same 70px photo.</div>
+    <div class="doc-note"><b>Easy to get wrong</b> - Discoverability. A row must never look inert: pointer cursor, hover fill, and a pencil at the right edge. All three, not one. On touch there is no hover and no pencil: the whole row opens the sheet (<a href="#1c">1c</a>).</div>
+  </div>
+
+  <div class="sp-card oe-card">
+    <div class="sp-card__head">
+      <span class="sp-section-label">Items · 4</span>
+      <span class="sp-grow"></span>
+      <button type="button" class="sp-btn sp-btn--outline sp-btn--small">+ Add item</button>
+    </div>
+    <div class="sp-stack sp-gap-8">
+      <div class="sp-list-item">
+        <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+        <div class="sp-stacked">
+          <span class="sp-title sp-truncate">Vitra - Nuage Céramique</span>
+          <span class="sp-subtitle">1 × 330,00 kr. · retail 1.650,00 kr.</span>
+        </div>
+        <span class="sp-grow"></span>
+        <div class="sp-stacked sp-cell-amount"><span class="sp-amount">330,00 kr.</span></div>
+        <div class="sp-list-item__actions">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+        </div>
+      </div>
+
+      <div class="sp-line-editor">
+        <span class="sp-slot">
+          <label class="sp-mark sp-mark--medium sp-mark--photo" for="1b-slot" data-tip="Replace the image">
+            <span class="sp-mark__text">Photo</span>
+            <input id="1b-slot" type="file" accept="image/*">
+          </label>
+          <button type="button" class="sp-slot__remove">Remove</button>
+        </span>
+        <div class="sp-line-editor__form">
+          <div class="sp-field">
+            <label class="sp-field__label" for="1b-item">Item</label>
+            <span class="sp-field__wrap">
+              <input class="sp-input sp-input--trail" id="1b-item" type="text" defaultValue="Hay - Palissade chair">
+              <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="{{ linkLabel1b }}" aria-expanded="{{ adv1bOpen }}" onClick="{{ toggleadv1b }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg></button>
+            </span>
+          </div>
+          <sc-if value="{{ adv1bOpen }}" hint-placeholder-val="{{ false }}">
+            <div class="sp-field">
+              <label class="sp-field__label" for="adv1b-link">Product page</label>
+              <input class="sp-input" id="adv1b-link" type="url" inputMode="url" placeholder="https://" aria-invalid="{{ adv1bInvalid }}" aria-describedby="adv1b-link-help" onBlur="{{ check1b }}" onInput="{{ typed1b }}">
+              <sc-if value="{{ adv1bInvalid }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="adv1b-link-help">Not a link.</span></sc-if>
+            </div>
+          </sc-if>
+          <div class="sp-line-editor__grid">
+            <div class="sp-field">
+              <label class="sp-field__label" for="1b-qty">Quantity</label>
+              <div class="sp-stepper">
+                <button type="button" class="sp-stepper__btn" aria-label="Decrease">−</button>
+                <input class="sp-stepper__value" id="1b-qty" type="number" defaultValue="2" min="1" step="1">
+                <button type="button" class="sp-stepper__btn" aria-label="Increase">+</button>
+              </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="1b-unit">Unit price</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input sp-input--unit sp-number" id="1b-unit" type="text" inputMode="decimal" defaultValue="890,00">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="1b-retail">Retail price</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input sp-input--unit sp-number" id="1b-retail" type="text" inputMode="decimal" placeholder="0,00">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="1b-total">Line total</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input sp-input--unit sp-number" id="1b-total" type="text" readOnly defaultValue="1.780,00">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+            </div>
+          </div>
+          <div class="sp-dialog__actions">
+            <span class="sp-note">Enter saves · Escape cancels · ⌘↵ saves and opens the next line</span>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+            <button type="button" class="sp-btn">Save line</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-list-item">
+        <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+        <span class="sp-mark sp-mark--medium sp-mark--empty" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span>
+        <div class="sp-stacked">
+          <span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span>
+          <span class="sp-subtitle">1 × 1.240,00 kr. · no photo</span>
+        </div>
+        <span class="sp-grow"></span>
+        <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00 kr.</span></div>
+        <div class="sp-list-item__actions">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+        </div>
+      </div>
+
+      <button type="button" class="sp-list-item sp-list-item--add">
+        <span class="sp-list-item__handle" aria-hidden="true"></span>
+        <span class="sp-mark sp-mark--medium sp-mark--add" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span>
+        <span class="sp-title">Add item</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="1c">1c</span>
+    <span class="doc-section__title">Mobile</span>
+  </div>
+  <div class="doc-lede">The rail becomes the bottom of the page. Items lead, attachments scroll sideways, details collapse into one folded section. Total and Save live in a fixed bar so they're reachable without scrolling.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Intent</b> - The phone is the capture device, so this layout assumes one hand and a receipt in the other. Items lead because that is the work; details fold away.</div>
+    <div class="doc-note"><b>Watch out</b> - The details section is collapsed by default with a summary line of its categories, kind and reference ("Decor · Expense · SPENDLY-447"), as drawn. Collapsed must still tell you what is inside, or it reads as an empty accordion.</div>
+    <div class="doc-note"><b>Watch out</b> - 44px minimum on every target, including the row itself and the sheet buttons. Row density in Settings does not apply here - compact affects list rows on desktop only.</div>
+    <div class="doc-note"><b>Desktop vs mobile</b> - This is not the desktop layout at a smaller width. Fields were removed, not shrunk: vendor and amount on line one, then the date and item count with the saving under the amount (<a href="Order list.dc.html#2i">Order list 2i</a>). Reference, status and category are on the order itself. Anything else lives one level deeper. Do not reintroduce columns to "use the space".</div>
+    <div class="doc-note"><b>Reorder is a mode, not an action</b> - the same mode the saved-views card uses. Tapping it turns each row into a reorder row: the drag handle appears at the leading edge and an up and a down button at the trailing edge, both required, since drag is awkward on touch inside a scrolling list and the buttons are the accessible path (see <a href="#1d">1d</a>). The button becomes <b>Done</b>, which leaves the mode. The moves are changes to the order like any other: they wait for the order's Save, as an explicit position on each line rather than a sort order (<a href="#1b">1b</a>). Nothing else about the row changes: same height, same content, same 44px targets.</div>
+    <div class="doc-note"><b>Easy to get wrong</b> - Sticky save on iOS. The save bar must sit above the keyboard and the home indicator - use dynamic viewport units and safe-area insets, or it ends up under both.</div>
+  </div>
+
+  <div class="doc-specimens sp-touch">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Edit · items</span>
+      <div class="sp-phone oe-phone">
+        <div class="oe-status">
+          <span class="sp-data">9:41</span>
+          <span class="sp-meta">▮▮▮</span>
+        </div>
+        <div class="sp-topbar sp-topbar--touch">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <div class="sp-stack sp-gap-6 sp-grow sp-truncate">
+            <span class="sp-title sp-truncate">Edit order</span>
+            <span class="sp-meta sp-truncate">Indbo Møbler · 08/08/2026</span>
+          </div>
+          <span class="sp-pill" data-color="success">Delivered</span>
+        </div>
+
+        <div class="oe-scroll sp-scrolls">
+          <div class="sp-card">
+            <div class="sp-card__head">
+              <span class="sp-section-label">Items · 4</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reorder</button>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Vitra - Nuage Céramique</span>
+                  <span class="sp-subtitle">1 × 330,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">330,00 kr.</span></div>
+              </div>
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Hay - Palissade chair</span>
+                  <span class="sp-subtitle">2 × 890,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.780,00 kr.</span></div>
+              </div>
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span>
+                  <span class="sp-subtitle">1 × 1.240,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00 kr.</span></div>
+              </div>
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Ferm Living - Vuelta vase</span>
+                  <span class="sp-subtitle">3 × 210,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">630,00 kr.</span></div>
+              </div>
+              <button type="button" class="sp-list-item sp-list-item--add">
+                <span class="sp-mark sp-mark--medium sp-mark--add" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span>
+                <span class="sp-title sp-truncate">Add item</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">Attachments · 3</span></div>
+            <div class="sp-strip-wrap">
+              <button type="button" class="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+              <div class="sp-strip">
+                <span class="sp-mark sp-mark--xlarge sp-mark--photo"><button type="button" class="sp-mark__open" aria-label="Open receipt-front.jpg"></button><button type="button" class="sp-mark__remove" aria-label="Remove receipt-front.jpg"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+                <span class="sp-mark sp-mark--xlarge sp-mark--photo"><button type="button" class="sp-mark__open" aria-label="Open delivery-note.jpg"></button><button type="button" class="sp-mark__remove" aria-label="Remove delivery-note.jpg"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+                <span class="sp-mark sp-mark--xlarge sp-mark--none"><button type="button" class="sp-mark__open" aria-label="Open invoice-4471.pdf">PDF</button></span>
+              <label class="sp-mark sp-mark--xlarge sp-mark--add" for="1c-add" data-tip="Add attachment">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                <input id="1c-add" type="file" multiple="{{ true }}" accept="application/pdf,image/*">
+              </label>
+              </div>
+              <button type="button" class="sp-strip-nav" data-strip="next" aria-label="Show later attachments"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+            </div>
+          </div>
+
+          <div class="sp-card sp-card--flush">
+            <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="false">
+              <span class="sp-stacked">
+                <span class="sp-title sp-truncate">Order details</span>
+                <span class="sp-meta">Decor · Expense · SPENDLY-447</span>
+              </span>
+              <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+            </button>
+            <div class="sp-card__body">
+              <span class="sp-meta">Vendor, date, kind, categories, reference and note.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-savebar"><span class="sp-subtitle sp-grow">Unsaved changes</span><button type="button" class="sp-btn sp-btn--outline">Discard</button><button type="button" class="sp-btn">Save</button></div>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Tap a line · edit sheet</span>
+      <div class="sp-phone oe-phone">
+        <div class="oe-status">
+          <span class="sp-data">9:41</span>
+          <span class="sp-meta">▮▮▮</span>
+        </div>
+        <div class="sp-topbar sp-topbar--touch">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <div class="sp-stack sp-gap-6 sp-grow sp-truncate">
+            <span class="sp-title sp-truncate">Edit order</span>
+            <span class="sp-meta">Indbo Møbler · 08/08/2026</span>
+          </div>
+        </div>
+
+        <div class="oe-scroll sp-scrolls">
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">Items · 4</span></div>
+            <div class="sp-stack sp-gap-8">
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <div class="sp-stacked">
+                  <span class="sp-title sp-truncate">Vitra - Nuage Céramique</span>
+                  <span class="sp-subtitle">1 × 330,00 kr.</span>
+                </div>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">330,00 kr.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-scrim"></div>
+        <div class="sp-sheet">
+          <span class="sp-sheet__handle" aria-hidden="true"></span>
+          <span class="sp-heading">Edit line</span>
+          <div class="sp-line-editor sp-line-editor--sheet">
+            <span class="sp-slot">
+              <label class="sp-mark sp-mark--medium sp-mark--photo" for="1c-slot" data-tip="Replace the image">
+                <span class="sp-mark__text">Photo</span>
+                <input id="1c-slot" type="file" accept="image/*">
+              </label>
+              <button type="button" class="sp-slot__remove">Remove</button>
+            </span>
+            <div class="sp-line-editor__form">
+              <div class="sp-field">
+                <label class="sp-field__label" for="1c-item">Item</label>
+                <span class="sp-field__wrap">
+                  <input class="sp-input sp-input--trail" id="1c-item" type="text" defaultValue="Hay - Palissade chair">
+                  <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="{{ linkLabel1c }}" aria-expanded="{{ adv1cOpen }}" onClick="{{ toggleadv1c }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg></button>
+                </span>
+              </div>
+              <sc-if value="{{ adv1cOpen }}" hint-placeholder-val="{{ false }}">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="adv1c-link">Product page</label>
+                  <input class="sp-input" id="adv1c-link" type="url" inputMode="url" placeholder="https://" defaultValue="https://hay.dk/palissade-chair" aria-invalid="{{ adv1cInvalid }}" aria-describedby="{{ adv1cDescribedBy }}" onBlur="{{ check1c }}" onInput="{{ typed1c }}">
+                  <sc-if value="{{ adv1cInvalid }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="adv1c-link-help">Not a link.</span></sc-if>
+                </div>
+              </sc-if>
+              <div class="sp-line-editor__grid">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="1c-qty">Quantity</label>
+                  <div class="sp-stepper">
+                    <button type="button" class="sp-stepper__btn" aria-label="Decrease">−</button>
+                    <input class="sp-stepper__value" id="1c-qty" type="number" defaultValue="2" min="1" step="1">
+                    <button type="button" class="sp-stepper__btn" aria-label="Increase">+</button>
+                  </div>
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="1c-unit">Unit price</label>
+                  <span class="sp-field__wrap">
+                    <input class="sp-input sp-input--unit sp-number" id="1c-unit" type="text" inputMode="decimal" defaultValue="890,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="1c-retail">Retail price</label>
+                  <span class="sp-field__wrap">
+                    <input class="sp-input sp-input--unit sp-number" id="1c-retail" type="text" inputMode="decimal" placeholder="0,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="1c-total">Line total</label>
+                  <span class="sp-field__wrap">
+                    <input class="sp-input sp-input--unit sp-number" id="1c-total" type="text" readOnly defaultValue="1.780,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
+                </div>
+              </div>
+              <div class="sp-dialog__actions">
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Cancel</button>
+                <button type="button" class="sp-btn sp-btn--block">Save line</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="1d">1d</span>
+    <span class="doc-section__title">Edit order</span>
+  </div>
+  <div class="doc-lede">Details and totals in the 1/3 rail, items and attachments in the wide column. Attachments grow sideways as a filmstrip, so the rail never out-runs the items list.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Intent</b> - The screen this whole exercise produced. The header moved into the rail so the item list starts at the top of the page and owns the width; nearly every session is adjusting lines.</div>
+    <div class="doc-note"><b>Watch out</b> - The rail must stay shorter than the item list. If it grows past it, the page scrolls for the rail's benefit and the original problem is back in a new form. Attachments are below the items for exactly this reason - anything new in the rail has to displace something, not extend it.</div>
+    <div class="doc-note"><b>Watch out</b> - Reorder needs both the drag handle and the up/down buttons. Drag is unusable with a keyboard and awkward on touch inside a scrolling list; the buttons are the accessible path. Order persists as an explicit position field, never derived from a sort.</div>
+    <div class="doc-note"><b>Adding a receipt</b> - A file added to Attachments asks whether to compare it with the order's lines (<a href="Order create.dc.html#3d">3d</a>).</div>
+    <div class="doc-note"><b>Status</b> - A select, not a fixed set. Statuses are custom per user, set up in Settings: their names, how many there are and their order differ from one user to the next. The options are that user's statuses in their Settings order; the trigger shows the current one. Draft, Ordered, Delivered, Returned and Cancelled here are example data, and no status name is special in code. Same combobox as Vendor and Kind (<a href="Components.dc.html#c5">c5</a>).</div>
+    <div class="doc-note"><b>Status date</b> - Each status is mapped to a date in Settings: either the order's Date, or a date of its own. A status mapped to the order's Date (Ordered in this example) shows nothing extra. A status with its own date shows a date field under Status, labelled with the status name. Date only, no time. Try it: change the status in 1d.</div>
+    <div class="doc-note"><b>Changing the status</b> - Picking a status that has no date yet fills in today and says so under the field, so the common case costs nothing and a delivery that happened yesterday is one edit. Picking a status that already has a date (switching back to Delivered after trying Returned) restores the saved one, not today. Nothing is written until Save, like every other field here.</div>
+    <div class="doc-note"><b>Status date - validation</b> - On blur and on save (<a href="Components.dc.html#c3">c3</a>): a Delivered or Returned date before the order's Date is an error, and the order does not save until it is fixed. A future date is allowed. Same date format and picker as Date above.</div>
+    <div class="doc-note"><b>Read view</b> - <a href="#1a">1a</a> shows the date of the current status as its own row under Status, labelled with the status name ("Delivered 09/08/2026"). A status mapped to the order's Date has no extra row.</div>
+    <div class="doc-note"><b>Watch out</b> - Crossing a category limit shows the amber notice and the save proceeds. Keep that check out of the validation layer entirely - once it shares a code path with required fields, it eventually starts blocking.</div>
+    <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px this becomes 1c: rail collapses to a section above the items, inline expansion becomes a sheet. The sticky save bar survives the transition and is the one element that must never be scrolled away.</div>
+    <div class="doc-note"><b>Easy to get wrong</b> - Sticky positioning here is relative to the content column, which is the page's only scroll container - not the viewport. Get the shell right first (see the README) or every sticky element in the app misbehaves.</div>
+  </div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body sp-shell__body--split">
+      <div class="sp-stack sp-gap-12">
+        <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Items · 4</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">Drag the handle, or select a line and use ↑ ↓</span>
+          </div>
+          <div class="sp-stack sp-gap-8">
+            <div class="sp-list-item">
+              <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Vitra - Nuage Céramique</span>
+                <span class="sp-subtitle">1 × 330,00 kr. · retail 1.650,00 kr.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <div class="sp-stacked sp-cell-amount"><span class="sp-amount">330,00 kr.</span></div>
+        <div class="sp-list-item__actions">
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+              </div>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Hay - Palissade chair</span>
+                <span class="sp-subtitle">2 × 890,00 kr.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.780,00 kr.</span></div>
+        <div class="sp-list-item__actions">
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+              </div>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+              <span class="sp-mark sp-mark--medium sp-mark--empty" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span>
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span>
+                <span class="sp-subtitle">1 × 1.240,00 kr. · no photo</span>
+              </div>
+              <span class="sp-grow"></span>
+              <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00 kr.</span></div>
+        <div class="sp-list-item__actions">
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+              </div>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Ferm Living - Vuelta vase</span>
+                <span class="sp-subtitle">3 × 210,00 kr.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <div class="sp-stacked sp-cell-amount"><span class="sp-amount">630,00 kr.</span></div>
+        <div class="sp-list-item__actions">
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+              </div>
+            </div>
+            <button type="button" class="sp-list-item sp-list-item--add">
+              <span class="sp-list-item__handle" aria-hidden="true"></span>
+              <span class="sp-mark sp-mark--medium sp-mark--add" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span>
+              <span class="sp-title">Add item</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">Attachments · 3</span></div>
+          <div class="sp-strip-wrap">
+              <button type="button" class="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <div class="sp-strip">
+              <span class="sp-attachment">
+                <span class="sp-mark sp-mark--xlarge sp-mark--photo"><button type="button" class="sp-mark__open" aria-label="Open receipt-front.jpg"></button><button type="button" class="sp-mark__remove" aria-label="Remove receipt-front.jpg"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+                <span class="sp-attachment__name">receipt-front.jpg</span>
+              </span>
+              <span class="sp-attachment">
+                <span class="sp-mark sp-mark--xlarge sp-mark--photo"><button type="button" class="sp-mark__open" aria-label="Open delivery-note.jpg"></button><button type="button" class="sp-mark__remove" aria-label="Remove delivery-note.jpg"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+                <span class="sp-attachment__name">delivery-note.jpg</span>
+              </span>
+              <span class="sp-attachment">
+                <span class="sp-mark sp-mark--xlarge sp-mark--none"><button type="button" class="sp-mark__open" aria-label="Open invoice-4471.pdf">PDF</button></span>
+                <span class="sp-attachment__name">invoice-4471.pdf</span>
+              </span>
+              <label class="sp-mark sp-mark--xlarge sp-mark--add" for="1d-add" data-tip="Add attachment">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                <input id="1d-add" type="file" multiple="{{ true }}" accept="application/pdf,image/*">
+              </label>
+            </div>
+              <button type="button" class="sp-strip-nav" data-strip="next" aria-label="Show later attachments"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-panel">
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">Order details</span></div>
+          <div class="sp-field">
+            <label  class="sp-field__label" for="oe-lbl5">Vendor</label>
+            <input id="oe-lbl5" class="sp-input" type="text" defaultValue="Indbo Møbler" aria-label="Vendor">
+          </div>
+          <div class="sp-fields">
+            <div class="sp-field">
+              <label  class="sp-field__label" for="oe-lbl4">Date</label>
+              <input id="oe-lbl4" class="sp-input" type="text" defaultValue="08/08/2026" aria-label="Date">
+            </div>
+            <div class="sp-field">
+              <span class="sp-field__label" id="oe-lbl6">Kind</span>
+              <div class="sp-combobox" data-open="{{ kindOpen }}">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="{{ kindOpen }}" aria-labelledby="oe-lbl6" onClick="{{ toggleKind }}">
+                  <span>{{ kindName }}</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+                <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oe-lbl6">
+                  <li role="option" aria-selected="{{ kindExpense }}"><button type="button" class="sp-combobox__option" aria-selected="{{ kindExpense }}" onClick="{{ pickKindExpense }}"><span>Expense</span><span class="sp-grow"></span><sc-if value="{{ kindExpense }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                  <li role="option" aria-selected="{{ kindIncome }}"><button type="button" class="sp-combobox__option" aria-selected="{{ kindIncome }}" onClick="{{ pickKindIncome }}"><span>Income</span><span class="sp-grow"></span><sc-if value="{{ kindIncome }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="oe-grp1">Status</span>
+            <div class="sp-combobox" data-open="{{ statusOpen }}">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="{{ statusOpen }}" aria-labelledby="oe-grp1" onClick="{{ toggleStatus }}">
+                <span>{{ statusName }}</span>
+                <span class="sp-grow"></span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+              <ul class="sp-combobox__panel" role="listbox" aria-labelledby="oe-grp1">
+                <li role="option" aria-selected="{{ selDraft }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selDraft }}" onClick="{{ pickDraft }}"><span>Draft</span><span class="sp-grow"></span><sc-if value="{{ selDraft }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selOrdered }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selOrdered }}" onClick="{{ pickOrdered }}"><span>Ordered</span><span class="sp-grow"></span><sc-if value="{{ selOrdered }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selDelivered }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selDelivered }}" onClick="{{ pickDelivered }}"><span>Delivered</span><span class="sp-grow"></span><sc-if value="{{ selDelivered }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selReturned }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selReturned }}" onClick="{{ pickReturned }}"><span>Returned</span><span class="sp-grow"></span><sc-if value="{{ selReturned }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+                <li role="option" aria-selected="{{ selCancelled }}"><button type="button" class="sp-combobox__option" aria-selected="{{ selCancelled }}" onClick="{{ pickCancelled }}"><span>Cancelled</span><span class="sp-grow"></span><sc-if value="{{ selCancelled }}" hint-placeholder-val="{{ false }}"><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></sc-if></button></li>
+              </ul>
+            </div>
+          </div>
+          <sc-if value="{{ hasStatusDate }}" hint-placeholder-val="{{ true }}">
+            <div class="sp-field">
+              <label class="sp-field__label" for="1d-status-date">{{ statusName }}</label>
+              <input id="1d-status-date" class="sp-input" type="text" inputMode="numeric" value="{{ statusDate }}" onChange="{{ typeStatusDate }}" aria-invalid="{{ statusDateBad }}" aria-describedby="{{ statusDescribedBy }}">
+              <sc-if value="{{ statusDateBad }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="1d-status-help">Can't be before the order date, 08/08/2026.</span></sc-if>
+              <sc-if value="{{ statusDateJustSet }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" id="1d-status-note">Set to today. Change it if it happened earlier.</span></sc-if>
+            </div>
+          </sc-if>
+          <div class="sp-field">
+            <label  class="sp-field__label" for="oe-tok1">Categories</label>
+            <div class="sp-field__wrap">
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+              </span>
+              <input id="oe-tok1" class="sp-tokens__add" type="text" placeholder="Add category…" aria-label="Add a category">
+            </div>
+            <button type="button" class="sp-field__trail" aria-label="Suggest categories" title="Suggest categories"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /><path d="M9.7 17l4.6 0" /></svg></button>
+            </div>
+          </div>
+          <div class="sp-fields">
+            <div class="sp-field">
+              <label  class="sp-field__label" for="oe-lbl1">Reference</label>
+              <input id="oe-lbl1" class="sp-input" type="text" defaultValue="SPENDLY-447" aria-label="Reference">
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="1d-note">Note</label>
+              <input class="sp-input" id="1d-note" type="text" defaultValue="Sommertilbud 80%">
+            </div>
+          </div>
+          <div class="sp-fields">
+            <div class="sp-field">
+              <label  class="sp-field__label" for="oe-lbl3">Discount</label>
+              <span class="sp-field__wrap">
+                <input id="oe-lbl3" class="sp-input sp-input--unit" type="text" placeholder="0,00" aria-label="Discount">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+            </div>
+            <div class="sp-field">
+              <label  class="sp-field__label" for="oe-lbl2">Shipping fee</label>
+              <span class="sp-field__wrap">
+                <input id="oe-lbl2" class="sp-input sp-input--unit" type="text" placeholder="0,00" aria-label="Shipping fee">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-stack">
+            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Total</span><span class="sp-sum__value">3.980,00 kr.</span></div>
+          </div>
+          <span class="sp-meta">4 items · discount 0,00 · shipping 0,00</span>
+          <span class="sp-stat__delta">Saved 1.320,00 kr.</span>
+          <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+            <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+            <button type="button" class="sp-btn">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  state = { st: 'Delivered', stDates: { Delivered: '09/08/2026' }, stJust: false, stBad: false, stOpen: false, kind: 'Expense', kindOpen: false, adv1b: false, adv1c: true, bad1b: false, bad1c: false, has1b: false, has1c: true };
+  // a field holding a link never closes: the button focuses it instead
+  toggle(p) {
+    const open = this.state['adv' + p];
+    if (open && this.state['has' + p]) { const el = document.getElementById('adv' + p + '-link'); if (el) el.focus(); return; }
+    this.setState({ ['adv' + p]: !open, ['bad' + p]: false }, () => { if (!open) { const el = document.getElementById('adv' + p + '-link'); if (el) el.focus(); } });
+  }
+  isLink(v) {
+    v = (v || '').trim();
+    if (!v) return true;
+    try { const u = new URL(v.includes('://') ? v : 'https://' + v); return /^https?:$/.test(u.protocol) && u.hostname.includes('.'); } catch (e) { return false; }
+  }
+  pickStatus(s) {
+    const d = { ...this.state.stDates }; let just = false;
+    if (s !== 'Ordered' && !d[s]) { const n = new Date(), p = x => String(x).padStart(2, '0'); d[s] = p(n.getDate()) + '/' + p(n.getMonth() + 1) + '/' + n.getFullYear(); just = true; }
+    this.setState({ st: s, stDates: d, stJust: just, stBad: false, stOpen: false });
+  }
+  editStatus(v) {
+    const d = { ...this.state.stDates }; d[this.state.st] = v;
+    const m = v.split('/'); const bad = m.length === 3 && new Date(+m[2], m[1] - 1, +m[0]) < new Date(2026, 7, 8);
+    this.setState({ stDates: d, stJust: false, stBad: bad });
+  }
+  renderVals() {
+    const { adv1b, adv1c, bad1b, bad1c } = this.state;
+    const st = this.state.st, sel = {};
+    ['Draft', 'Ordered', 'Delivered', 'Returned', 'Cancelled'].forEach(k => { sel['sel' + k] = st === k; sel['pick' + k] = () => this.pickStatus(k); });
+    return {
+      kindName: this.state.kind, kindOpen: this.state.kindOpen,
+      toggleKind: () => this.setState(s => ({ kindOpen: !s.kindOpen })),
+      kindExpense: this.state.kind === 'Expense', kindIncome: this.state.kind === 'Income',
+      pickKindExpense: () => this.setState({ kind: 'Expense', kindOpen: false }),
+      pickKindIncome: () => this.setState({ kind: 'Income', kindOpen: false }),
+      ...sel, statusName: st, statusOpen: this.state.stOpen,
+      toggleStatus: () => this.setState(s => ({ stOpen: !s.stOpen })),
+      hasStatusDate: st !== 'Ordered' /* example mapping: Ordered -> order Date */, statusDate: this.state.stDates[st] || '',
+      statusDateJustSet: this.state.stJust && !this.state.stBad, statusDateBad: this.state.stBad,
+      statusDescribedBy: this.state.stBad ? '1d-status-help' : (this.state.stJust ? '1d-status-note' : undefined),
+      typeStatusDate: (e) => this.editStatus(e.target.value),
+      adv1bInvalid: bad1b, adv1cInvalid: bad1c,
+      // a reference only to a message that is on screen
+      adv1cDescribedBy: bad1c ? 'adv1c-link-help' : undefined,
+      check1b: (e) => this.setState({ bad1b: !this.isLink(e.target.value) }),
+      check1c: (e) => this.setState({ bad1c: !this.isLink(e.target.value) }),
+      adv1bOpen: adv1b, adv1bClosed: !adv1b, toggleadv1b: () => this.toggle('1b'),
+      adv1cOpen: adv1c, adv1cClosed: !adv1c, toggleadv1c: () => this.toggle('1c'),
+      linkLabel1b: this.state.has1b ? 'Edit product link' : 'Add a product link',
+      linkLabel1c: this.state.has1c ? 'Edit product link' : 'Add a product link',
+      typed1b: (e) => this.setState({ has1b: !!e.target.value.trim() }),
+      typed1c: (e) => this.setState({ has1c: !!e.target.value.trim() }),
+    };
+  }
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

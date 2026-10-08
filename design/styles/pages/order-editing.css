@@ -1,0 +1,31 @@
+/* Page composition for Order editing layouts.dc.html.
+   Layout scaffolding only: the screen frames, the 2fr/1fr split, the phone's
+   scrolling region. Everything else is a component class from components.css.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+  /* 1b draws the item card on its own, at the width the content column gives it */
+  .oe-card { width: 812px; }
+  /* the one scrolling region inside a phone: the bar below it must not move */
+  /* the phone is a device, so it has the device's height; the component states a
+     width and its padding, never a height */
+  .oe-phone { height: 844px; }
+  /* the one scrolling region: the commit card below it sits outside it, so it is
+     never scrolled away - the behaviour 1c's notes require, from layout alone */
+  .oe-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-12); }
+  /* what it holds keeps its own height and scrolls; a card shrunk to fit clipped its body and its head */
+  .oe-scroll > * { flex: none; }
+  /* the status bar the operating system draws, at the inset iOS uses; like every
+     bar in the frame it reaches the glass, and as the first child it takes the
+     frame's own top corners */
+  .oe-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: calc(var(--sp-16) * -1) calc(var(--sp-16) * -1) 0;
+    padding: var(--sp-12) 22px 2px;
+    border-radius: var(--r-phone) var(--r-phone) 0 0;
+    background: var(--surface);
+  }
+
+}

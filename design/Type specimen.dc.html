@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4f7f63"/><text x="50" y="68" font-family="Poppins,system-ui,sans-serif" font-size="52" font-weight="600" fill="#f2f0ea" text-anchor="middle">Aa</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Schibsted+Grotesk:wght@400..800&family=Geist:wght@400..700&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/type-specimen.css?v=v20260917b">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp" data-notes="on">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="1a">1a</span>
+    <span class="doc-section__title">Typeface candidates - the order row, nothing else changed</span>
+  </div>
+  <div class="doc-lede">The same three rows, the same component CSS, the same sizes: title 14/600, subtitle 12/400, amount 14/600, saving 11/600. Only the family differs. Two things to judge: how the two-line stack sits in the 42px row, and how far the vendor name gets before it truncates at one column width.</div>
+
+  <div class="doc-specimens">
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">POPPINS - IN USE</span>
+      <div class="sp-list doc-w1280 ts-poppins">
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select all 25 orders on this page"></th>
+              <th scope="col" class="sp-col-title">Order</th>
+              <th scope="col" class="sp-col-date">Date</th>
+              <th scope="col" class="sp-col-flex">Categories</th>
+              <th scope="col" class="sp-col-number">Items</th>
+              <th scope="col" class="sp-col-status">Status</th>
+              <th scope="col" class="sp-col-amount">Amount</th>
+              <th class="sp-col-menu"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-438"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+7</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Hay</span>
+                    <span class="sp-subtitle sp-truncate">No reference yet</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">28/07/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Seating</span></button>
+                  <button type="button" class="sp-chip sp-chip--static"><span>+2</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">8</td>
+              <td><span class="sp-pill" data-state="progress">Ordered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">14.910,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 3.280,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-447"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+1</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Bolighuset Skandinavisk Indretning A/S</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-447 · Sommertilbud</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">12/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Decor</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">4</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">3.980,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 995,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-441"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Indbo Møbler</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-441</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">02/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Lighting</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">2</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">7.240,00 kr.</span>
+                  <span class="sp-amount-secondary">Saved 0,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">SCHIBSTED GROTESK</span>
+      <div class="sp-list doc-w1280 ts-schibsted">
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select all 25 orders on this page"></th>
+              <th scope="col" class="sp-col-title">Order</th>
+              <th scope="col" class="sp-col-date">Date</th>
+              <th scope="col" class="sp-col-flex">Categories</th>
+              <th scope="col" class="sp-col-number">Items</th>
+              <th scope="col" class="sp-col-status">Status</th>
+              <th scope="col" class="sp-col-amount">Amount</th>
+              <th class="sp-col-menu"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-438"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+7</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Hay</span>
+                    <span class="sp-subtitle sp-truncate">No reference yet</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">28/07/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Seating</span></button>
+                  <button type="button" class="sp-chip sp-chip--static"><span>+2</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">8</td>
+              <td><span class="sp-pill" data-state="progress">Ordered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">14.910,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 3.280,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-447"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+1</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Bolighuset Skandinavisk Indretning A/S</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-447 · Sommertilbud</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">12/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Decor</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">4</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">3.980,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 995,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-441"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Indbo Møbler</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-441</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">02/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Lighting</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">2</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">7.240,00 kr.</span>
+                  <span class="sp-amount-secondary">Saved 0,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">GEIST</span>
+      <div class="sp-list doc-w1280 ts-geist">
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select all 25 orders on this page"></th>
+              <th scope="col" class="sp-col-title">Order</th>
+              <th scope="col" class="sp-col-date">Date</th>
+              <th scope="col" class="sp-col-flex">Categories</th>
+              <th scope="col" class="sp-col-number">Items</th>
+              <th scope="col" class="sp-col-status">Status</th>
+              <th scope="col" class="sp-col-amount">Amount</th>
+              <th class="sp-col-menu"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-438"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+7</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Hay</span>
+                    <span class="sp-subtitle sp-truncate">No reference yet</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">28/07/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Seating</span></button>
+                  <button type="button" class="sp-chip sp-chip--static"><span>+2</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">8</td>
+              <td><span class="sp-pill" data-state="progress">Ordered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">14.910,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 3.280,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-447"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+1</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Bolighuset Skandinavisk Indretning A/S</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-447 · Sommertilbud</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">12/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Decor</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">4</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">3.980,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 995,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-441"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Indbo Møbler</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-441</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">02/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Lighting</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">2</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">7.240,00 kr.</span>
+                  <span class="sp-amount-secondary">Saved 0,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">INSTRUMENT SANS</span>
+      <div class="sp-list doc-w1280 ts-instrument">
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select all 25 orders on this page"></th>
+              <th scope="col" class="sp-col-title">Order</th>
+              <th scope="col" class="sp-col-date">Date</th>
+              <th scope="col" class="sp-col-flex">Categories</th>
+              <th scope="col" class="sp-col-number">Items</th>
+              <th scope="col" class="sp-col-status">Status</th>
+              <th scope="col" class="sp-col-amount">Amount</th>
+              <th class="sp-col-menu"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-438"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+7</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Hay</span>
+                    <span class="sp-subtitle sp-truncate">No reference yet</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">28/07/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Seating</span></button>
+                  <button type="button" class="sp-chip sp-chip--static"><span>+2</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">8</td>
+              <td><span class="sp-pill" data-state="progress">Ordered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">14.910,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 3.280,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-447"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__count">+1</span></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Bolighuset Skandinavisk Indretning A/S</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-447 · Sommertilbud</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">12/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Decor</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">4</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">3.980,00 kr.</span>
+                  <span class="sp-amount-secondary" data-color="success">Saved 995,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="sp-check" aria-label="Select SPENDLY-441"></td>
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                  <span class="sp-stacked sp-grow">
+                    <span class="sp-title sp-truncate">Indbo Møbler</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-441</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data">02/08/2026</td>
+              <td>
+                <div class="sp-row-flex sp-gap-6 sp-wrap">
+                  <button type="button" class="sp-chip sp-chip--static"><span>Lighting</span></button>
+                </div>
+              </td>
+              <td class="sp-col-number sp-data">2</td>
+              <td><span class="sp-pill" data-color="success">Delivered</span></td>
+              <td>
+                <div class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">7.240,00 kr.</span>
+                  <span class="sp-amount-secondary">Saved 0,00 kr.</span>
+                </div>
+              </td>
+              <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Order menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
+    <div class="doc-note">This page exists to settle one question and is not a product screen. Nothing here changes the system: the family is set on each specimen's list wrapper only, and <b>--font</b> in tokens.css is still Poppins.</div>
+    <div class="doc-note">What to look at, in order. First, the two-line stack against the 42px mark: the white above the cap of the title comes from the family's ascender-to-cap gap, not from padding, so the row reads more evenly in a family where that gap is small. Second, the vendor name in row 2, which is the same string at the same column width in all four - where it truncates tells you how much the family costs in table width. Third, the amounts: all four carry tabular figures, so the columns stay aligned, but the figures differ in width and in how well they read at 11px.</div>
+    <div class="doc-note">If a family is adopted, the change is one token, but the consequences are not: column widths, truncation points, mark and control dimensions and the phone layouts were all set against Poppins' widths, and every page plus the handoff snapshots would need a pass.</div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

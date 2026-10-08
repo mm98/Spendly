@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4f7f63"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">16</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/actions-inventory.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+<section class="doc-section doc-section--first" data-screen-label="16a">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="16a">16a</span>
+    <span class="doc-section__title">Actions inventory</span>
+  </div>
+  <div class="doc-lede">Every control drawn in the mockups, what it does, and what the user sees afterwards. Compiled by walking each file rather than from memory, so this is what is actually on the pages - including ten controls that had no described behaviour anywhere. Those are resolved at the end, in 16b.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">How to read this</span>
+    <div class="doc-note"><b class="sp-ink">"After" is the observable result</b>, because that is what the user judges. <b>toast + Undo</b> means the change applies immediately and is reversible for the toast's life. <b>dialog</b> means it cannot be undone and is confirmed first. Nothing in this document contradicts that pairing - if an action is reversible it does not get a dialog, and if it is not, it does not get a toast.</div>
+    <div class="doc-note"><b class="sp-ink">Global actions live in the shell; page actions do not.</b> Scan receipt and New order live in the <b>sidebar</b> - at the top of the nav when expanded, as the capture tile and + on the collapsed rail - because they belong to the app, not to whatever page is open. The top bar carries search and nothing else. The rule is not that global actions get a special place up there; it is that a page may not put <i>its own</i> actions in the shell at all.</div>
+  </div>
+
+
+<div class="sp-stack sp-gap-16">
+  <span class="sp-section-label">SHELL - 9a - 9g</span>
+  <div class="sp-list ai-w1320">
+    <div class="ai-act doc-table__head">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Search field / ⌘K</span><span class="sp-ink-2">Opens the palette over the page. Empty query lists what you last touched; typing searches orders, vendors and actions.</span><span class="sp-ink-5">Enter navigates and closes. Esc closes, focus returns to the page.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Scan receipt</span><span class="sp-ink-2">Opens the file picker at once (the camera is one of its choices on a phone or tablet), and the chosen file goes straight to reading, 3a step 2. It skips step 1, which is what New order is for. Global, on every page except a phone, where the New order FAB covers it.</span><span class="sp-ink-5">Leaves the current page once a file is chosen, prompting first if there are unsaved changes. Cancelling the picker stays where you were.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">New order</span><span class="sp-ink-2">Opens New order, step 1 (<a href="Order create.dc.html#3a">3a</a>): scan a receipt, start an empty order, or copy a previous one. A plain row, and the FAB on a phone.</span><span class="sp-ink-5">Nothing is created until a choice is made. An empty order is a draft from its first change until Create or Discard; leaving keeps it in Drafts, without asking.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Nav item</span><span class="sp-ink-2">Navigates. The count on the right is live and is part of the link, not a separate target.</span><span class="sp-ink-5">Active row fills <b>#1f3d2c</b>. Scroll position resets; returning by Back restores it.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Collapse rail</span><span class="sp-ink-2">The grip on the sidebar's edge collapses it to the 68px icon rail, and opens it again (<b>9i</b>). Below 1280px the viewport produces the rail on its own.</span><span class="sp-ink-5">The choice is stored per user. Labels become tooltips. No hover peek.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Dark mode toggle</span><span class="sp-ink-2">Switches theme immediately. Writes the same preference as the Settings cards.</span><span class="sp-ink-5">No confirm, no toast. Set to <b>system</b> in Settings, the toggle reflects the OS and switching it pins the choice.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Account block ▾</span><span class="sp-ink-2">Opens the account menu (9c): the email, Account and profile, Shortcuts, Sign out.</span><span class="sp-ink-5">The chevron points up in both states; aria-expanded carries it. Esc closes and returns focus. Sign out confirms only when there are unsaved changes.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sp-stack sp-gap-16">
+  <span class="sp-section-label">HOME - 10a</span>
+  <div class="sp-list ai-w1320">
+    <div class="ai-act doc-table__head">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Drop zone / Choose file</span><span class="sp-ink-2">Accepts a receipt by drop or picker and starts the scan. On a phone, offers the camera.</span><span class="sp-ink-5">Goes straight to stage two of 3a. Drag-over: border <b>#1d4d33</b>, fill <b>#e7efe8</b>.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Copy an order</span><span class="sp-ink-2">Opens the 3b dialog over Home - the same dialog as the create screen. Hidden when there are no orders.</span><span class="sp-ink-5">Escape or Cancel stays on Home. Picking an order opens the copy in edit, under 8a's duplicate rules, a draft from its first change.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Needs-a-look row</span><span class="sp-ink-2">Each row is a link to the filtered list holding those records - not a dismissible notice.</span><span class="sp-ink-5">Lands on the list with the filter chips already applied and removable.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Recent order row</span><span class="sp-ink-2">Opens the order's read view (1a). The whole row is the target.</span><span class="sp-ink-5">Cmd-click opens a new tab. "See orders" goes to the unfiltered list.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Category row (limits)</span><span class="sp-ink-2">Opens that category in the library (5b), where the limit is editable.</span><span class="sp-ink-5">The bar itself is not a control.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sp-stack sp-gap-16">
+  <span class="sp-section-label">ORDER READ AND EDIT - 1a - 1d</span>
+  <div class="sp-list ai-w1320">
+    <div class="ai-act doc-table__head">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Edit order</span><span class="sp-ink-2">Navigates to <b>/orders/:id/edit</b> - a route, not a mode toggle, so Back works.</span><span class="sp-ink-5">Same layout, values become inputs. Nothing moves.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Duplicate</span><span class="sp-ink-2">Opens an unsaved copy (8a): vendor, category, reference, notes and all lines. Not the date, status or attachments.</span><span class="sp-ink-5">Green notice names the source and offers Discard. A draft from its first change.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Delete order</span><span class="sp-ink-2">Opens the confirm dialog, which names the item count and the attachments that go with it.</span><span class="sp-ink-5">Dialog, not a toast - it cannot be undone from the UI. Returns to the list.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Item row</span><span class="sp-ink-2">Expands into the inline form, pushing rows below down. One at a time.</span><span class="sp-ink-5">Opening another closes the first, keeping its edits in the draft. Esc reverts that line; ⌘/Ctrl-Enter closes it keeping changes.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Save line / Cancel</span><span class="sp-ink-2">Closes the expanded row. Neither touches the server - the order's Save is the only write.</span><span class="sp-ink-5">The sticky save bar appears the moment anything is dirty.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Item photo controls</span><span class="sp-ink-2">On hover over the 80px thumb: replace (opens the picker, accepts drop) and delete.</span><span class="sp-ink-5">Delete confirms only if the photo came from a scan. Empty slot is a dashed "Add photo" target.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Move up / down</span><span class="sp-ink-2">Reorders one position. Disabled at the ends. The keyboard and touch path for what the handle does with a mouse.</span><span class="sp-ink-5">Marks the order dirty; position saves with the order, never on its own.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Drag handle</span><span class="sp-ink-2">Drags the row; a 2px <b>#1d4d33</b> line shows the drop position.</span><span class="sp-ink-5">Row lifts with the raised shadow and drops it on release.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Duplicate / delete line</span><span class="sp-ink-2">Copies the line below itself, or removes it.</span><span class="sp-ink-5">Delete is a toast + Undo, no dialog - it is cheap to restore.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Add item</span><span class="sp-ink-2">Appends an empty line, opens it, focuses the name.</span><span class="sp-ink-5">An empty line never filled is dropped silently on save.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Add files</span><span class="sp-ink-2">Adds order attachments. Upload starts on drop, shown as a tile with a progress ring.</span><span class="sp-ink-5">A failed upload keeps its tile with a retry control rather than vanishing.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Attachment tile</span><span class="sp-ink-2">Opens the viewer (12b) with the order's files as the set.</span><span class="sp-ink-5">Arrow keys move between files, Esc closes. "Download all" zips the order's attachments.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Save / Discard</span><span class="sp-ink-2">One request with the whole order and its lines. Discard reverts to the loaded values.</span><span class="sp-ink-5">Success: toast, and you stay on the screen; on a phone the save bar goes and the tab bar returns. After Create the screen is the same edit screen in its created state (3a), at the order's own address. Server validation maps to fields and scrolls the first error in.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sp-stack sp-gap-16">
+  <span class="sp-section-label">ORDER LIST - 2a - 2c</span>
+  <div class="sp-list ai-w1320">
+    <div class="ai-act doc-table__head">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Facet checkbox</span><span class="sp-ink-2">Filters. Within a group values OR; across groups they AND.</span><span class="sp-ink-5">List, counts, total and URL all update. Page resets to 1; selection clears.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Show N more</span><span class="sp-ink-2">Expands a facet group beyond its top six. Over 20 values it also gains a filter field.</span><span class="sp-ink-5">Scrolls within the group at 240px. Purely local - no request.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Filter chip ×</span><span class="sp-ink-2">Removes that one value. "Clear all" removes every filter and the query.</span><span class="sp-ink-5">Same refresh as a facet change.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Rows / Cards</span><span class="sp-ink-2">Switches presentation. Same data, same filters.</span><span class="sp-ink-5">Persists per user in local storage, deliberately not in the URL - a shared link renders in the recipient's preference.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Row checkbox</span><span class="sp-ink-2">Selects for bulk action. Header checkbox selects the page; if the filter matches more, a second explicit "Select all N matching" appears.</span><span class="sp-ink-5">Selection is per page and clears on any filter, sort or page change, without warning - it is no longer meaningful.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Set status</span><span class="sp-ink-2">Popover with the statuses as a radio list. Applies to the selection.</span><span class="sp-ink-5">Optimistic: rows update at once, toast + Undo. Partial failure reports both counts.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Add category</span><span class="sp-ink-2">Searchable multi-select popover with a "Create X" row quoting what was typed.</span><span class="sp-ink-5">Same optimistic pattern. Creating a category from here names it only - colour and icon get defaults, editable in 5b.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Bulk delete</span><span class="sp-ink-2">Dialog naming the count, as in 6d ("Delete 12 orders?").</span><span class="sp-ink-5">Dialog, no undo. Selection clears on success.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Sort</span><span class="sp-ink-2">Newest (default), Oldest, Highest total, Lowest total, Vendor A - Z - as 2b draws it. No item count.</span><span class="sp-ink-5">In the URL. Ties break on order id descending so paging stays stable.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Save current</span><span class="sp-ink-2">Saves the filter set, query and sort as a named view, listed above the facets.</span><span class="sp-ink-5">See 16b - this needed defining. A view stores the filter, never the result.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Export CSV</span><span class="sp-ink-2">Exports the current filter, not the page and not the account.</span><span class="sp-ink-5">See 16b.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Row / row actions</span><span class="sp-ink-2">The row opens the order. The action cluster and the checkbox stop propagation.</span><span class="sp-ink-5">Cmd-click opens a new tab.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sp-stack sp-gap-16">
+  <span class="sp-section-label">SCAN AND CREATE - 3a, 6e</span>
+  <div class="sp-list ai-w1320">
+    <div class="ai-act doc-table__head">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Drop / Choose file</span><span class="sp-ink-2">Validates type and size client-side, then uploads and starts reading.</span><span class="sp-ink-5">Rejection is inline on the zone, which stays usable.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Copy an order</span><span class="sp-ink-2">The third way to start: pick a recent order and duplicate it, instead of scanning or typing.</span><span class="sp-ink-5">Hands off to 8a's duplicate rules exactly.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Discard (reading)</span><span class="sp-ink-2">Throws the scan away, file included.</span><span class="sp-ink-5">6d's dialog, then back to stage one. Leaving the page instead keeps the scan in Drafts.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Uncertain field</span><span class="sp-ink-2">Editable like any field. Touching it clears the uncertain marker whether or not the value changed - the user has looked at it.</span><span class="sp-ink-5">Amber left edge disappears. The scan's original reading is still held separately.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Open full size</span><span class="sp-ink-2">Opens the receipt in the viewer (12b) while reviewing, for the lines too small to read in the preview pane.</span><span class="sp-ink-5">Closing returns to review with edits intact.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Create order</span><span class="sp-ink-2">Validates fully and turns the draft into an order. The uploaded file is attached to it.</span><span class="sp-ink-5">Confirmation with the summary, then open-the-order or scan-another. A totals mismatch does not block it.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Discard</span><span class="sp-ink-2">Confirms, then deletes the draft and its file. There is no Save as draft: leaving in any other way keeps the scan in Drafts, as it is on screen.</span><span class="sp-ink-5">Discard is 6d's dialog, because the file goes with it.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Retry now / Continue manually</span><span class="sp-ink-2">On failure (6e): retry the read, or go to manual entry with the file already attached.</span><span class="sp-ink-5">The file is never lost to an error state. Manual entry is the primary action.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sp-stack sp-gap-16">
+  <span class="sp-section-label">STATISTICS - 4a · LIBRARY - 5a - 5c · ALERTS - 8b</span>
+  <div class="sp-list ai-w1320">
+    <div class="ai-act doc-table__head">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Period / compare</span><span class="sp-ink-2">Year, month or custom range; compare against the preceding period of equal length.</span><span class="sp-ink-5">URL-encoded. Deltas suppress to " - " when the base is zero.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Chart bar / table row</span><span class="sp-ink-2">Pushes a drill crumb and re-filters every card to that slice. "Other N categories" is a real crumb, not inert.</span><span class="sp-ink-5">Crumbs are individually removable; Reset clears them all. The last level is a list of matching orders.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Open in orders</span><span class="sp-ink-2">Carries the current crumbs to the order list as filters.</span><span class="sp-ink-5">Leaves Statistics. The reverse of "See in Statistics".</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Edit on category</span><span class="sp-ink-2">From the limits card, opens the categories that have a limit (<code>/categories?flag=limited</code>); a limit is edited on the category's form (5b).</span><span class="sp-ink-5">Statistics never edits data; it links to where the data lives.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">List row (library)</span><span class="sp-ink-2">Loads that record into the panel. Deselecting returns the roll-up (5c).</span><span class="sp-ink-5">Unsaved panel changes prompt before switching. Column width never changes.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">New vendor / New category</span><span class="sp-ink-2">Opens an empty form in the panel with the name focused.</span><span class="sp-ink-5">A category gets a default colour and icon, both immediately editable.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Merge into…</span><span class="sp-ink-2">Picker of similar records, then a field-by-field comparison showing which value wins and how many orders move.</span><span class="sp-ink-5">Dialog naming the order count. Not reversible; the source is deleted.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Archive</span><span class="sp-ink-2">Hides a vendor from the pickers while keeping its orders and history intact. The answer to "no orders in 12 months" that isn't deletion.</span><span class="sp-ink-5">See 16b - reversible, toast + Undo.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Icon Change</span><span class="sp-ink-2">Opens the searchable 8-column picker. Fixed set; never accepts uploads.</span><span class="sp-ink-5">Selection previews immediately in the tile; the card's Save commits it.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Save anyway / Adjust</span><span class="sp-ink-2">On the over-limit notice (8b): Save anyway proceeds; Adjust returns focus to the lines.</span><span class="sp-ink-5">Amber never blocks. Save is not disabled at any point.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Monthly summary</span><span class="sp-ink-2">Desktop only. Close in the head hides it; rows have no close. Each row links to that month's filtered list. Not shown on a phone.</span><span class="sp-ink-5">Hiding is remembered for that month on every device.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sp-stack sp-gap-16">
+  <span class="sp-section-label">SETTINGS AND IMPORT - 11a, 11b · VIEWER - 12b · MOBILE - 7a</span>
+  <div class="sp-list ai-w1320">
+    <div class="ai-act doc-table__head">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Settings card Save</span><span class="sp-ink-2">Each card saves independently; only the card you touched goes dirty.</span><span class="sp-ink-5">One sticky bar naming the section ("Unsaved changes in Statuses").</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Upload / Remove photo</span><span class="sp-ink-2">Avatar image. Remove falls back to the initials block.</span><span class="sp-ink-5">Applies with the card's Save, like every other field there.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Change password</span><span class="sp-ink-2">Opens a dialog: current password, new, confirm. Not inline fields on the card.</span><span class="sp-ink-5">See 16b. Success is a toast; other sessions are unaffected.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Status rename / reorder / delete</span><span class="sp-ink-2">Renaming is free - orders reference the id. Order is drag or arrow keys. A status with orders cannot be deleted.</span><span class="sp-ink-5">Delete is absent on a status with orders, not disabled (11a); reassigning them makes it appear. All three wait for the save bar. Draft is built in and never deletable.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Download template</span><span class="sp-ink-2">An XLSX whose columns map themselves, so the mapping step can be skipped.</span><span class="sp-ink-5">Plain download, no state change.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Reuse mapping</span><span class="sp-ink-2">Applies a previous import's column mapping to the file just picked, matching on column name.</span><span class="sp-ink-5">See 16b. Lands on the mapping step with rows pre-filled, never skipping straight to preview.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Match them / Pick or create</span><span class="sp-ink-2">Resolves unmatched values one row at a time. An unresolved row blocks the import.</span><span class="sp-ink-5">Nothing is guessed silently - a category invented by an import is worse than one you chose.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Import N orders</span><span class="sp-ink-2">Writes. Unimportable rows are skipped, not fixed.</span><span class="sp-ink-5">Skipped rows come back as a downloadable file. Undo removes exactly what the import wrote, including created vendors, for 24 hours.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Viewer controls</span><span class="sp-ink-2">Prev/next across the order's files, page thumbs for multi-page PDFs, download, close.</span><span class="sp-ink-5">Arrows move, Esc closes and returns focus to the tile that opened it.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">Filter sheet (mobile)</span><span class="sp-ink-2">Facets as expandable sections. Reset clears; the sticky primary states the count it will show.</span><span class="sp-ink-5">Filters apply on "Show N orders", not as you tap - one round trip, not twelve.</span>
+    </div>
+    <div class="ai-act doc-table__row">
+      <span class="sp-strong">New order FAB (mobile)</span><span class="sp-ink-2">Opens 3a step 1 - receipt zone, empty order, copy an order. The only floating action in the app.</span><span class="sp-ink-5">The create screen, receipt zone first.</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="doc-section" data-screen-label="16b">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="16b">16b</span>
+    <span class="doc-section__title">Loose ends found, and closed</span>
+  </div>
+  <div class="doc-lede">Ten controls were drawn with no behaviour described anywhere. Each is resolved below - seven by writing down what they do, three by a product answer that is still open and marked as such.</div>
+
+  <div class="doc-specimens">
+    <div class="sp-card ai-w640">
+      <div class="sp-card__head"><span class="sp-section-label">RESOLVED HERE</span></div>
+      <div class="doc-note"><b class="sp-ink">Export CSV / Export.</b> Appeared on four screens meaning four things. Now one behaviour: it exports <b>the current filter or drill state</b>, never the page and never the whole account, and the button label carries the count ("Export 128 orders"). One row per item line, with order fields repeated, because that is the shape the import reads back - export and import are the same column set, which is what makes a round trip possible.</div>
+      <div class="doc-note"><b class="sp-ink">Save current (saved views).</b> Stores query, facets and sort under a name, listed above the facet rail. It stores <b>the filter, not the result</b> - opening a view re-runs it. Renameable and deletable from the list; a view is never shared, since there is one user.</div>
+      <div class="doc-note"><b class="sp-ink">Archive (vendor).</b> The middle option between keeping and deleting, and the answer to 5c's "no orders in 12 months". Hides the vendor from pickers and facet lists while its orders, totals and history stay exactly as they are. Reversible, so toast + Undo, and archived vendors are reachable behind a filter in the library.</div>
+      <div class="doc-note"><b class="sp-ink">Copy an order (Home and create screen).</b> One action with one set of rules wherever it appears: it opens the 3b dialog, because the order to copy is rarely the newest one. Picking an order applies 8a's duplicate - no date, no status, no attachments - and opens it unsaved, so nothing is created by accident. Hidden when there are no orders. An order's own Duplicate (order page, row menu) still goes straight to the copy, since the source is already chosen.</div>
+      <div class="doc-note"><b class="sp-ink">Reuse mapping.</b> Applies a previous import's column mapping to the newly picked file by matching column names. It always lands on the <b>mapping step</b> with rows pre-filled, never straight on preview: a file with the same headers can still hold different data, and the confirmation step is the point of the flow. Columns that don't match are left unmapped and flagged.</div>
+      <div class="doc-note"><b class="sp-ink">Change password.</b> A dialog - current, new, confirm - not inline fields, so it is never half-filled inside a card that saves other things. Success is a toast; other sessions stay signed in, since signing yourself out of your phone for changing a password on your laptop is a punishment for good hygiene.</div>
+      <div class="doc-note"><b class="sp-ink">Open full size (scan review).</b> Opens the same viewer as 12b, with the receipt as its only file, so the small print can be read without leaving review. Edits in the panel behind it are untouched.</div>
+    </div>
+
+    <div class="sp-stack sp-gap-12 ai-w430">
+      <div class="sp-card" data-color="warning">
+        <span class="sp-section-label sp-ink-warning">NEEDS A PRODUCT ANSWER</span>
+        <span class="sp-subtitle sp-ink-warning"><b>See theirs</b> (6d, the two-tab conflict). Recommendation: it opens the other version read-only beside yours, and the only actions are keep-mine and take-theirs. There is no field-level merge - for one user in two tabs that is more machinery than the problem deserves.</span>
+        <span class="sp-subtitle sp-ink-warning"><b>Duplicate name</b> (6c). A vendor or category name colliding with an existing one. Recommendation: warn, don't block - offer "use the existing one" as the primary and let the duplicate through as secondary, since two vendors can genuinely share a name.</span>
+        <span class="sp-subtitle sp-ink-warning"><b>Export format.</b> CSV is drawn. Recommendation: CSV only, UTF-8 with BOM so Excel opens Danish characters correctly, and the user's own number format. XLSX only if someone asks.</span>
+      </div>
+
+      <div class="sp-card">
+        <div class="sp-card__head"><span class="sp-section-label">WHERE THE SIX THAT NEEDED LAYOUT NOW LIVE</span></div>
+        <div class="doc-note">Each went to the page that implements it, rather than being drawn a second time here: saved views to <a href="Order list.dc.html#2g">Order list 2g</a>, the archived state to the overview's own filter in <a href="Vendors and categories.dc.html#5a">5a</a>, the password dialog to <a href="Auth and first run.dc.html">Auth</a>, and the duplicate name to the create and rename fields in <a href="Vendors and categories.dc.html#5b">5b</a> and <a href="Vendors and categories.dc.html#5c">5c</a>, where a name collision blocks the save. Export and the two-tab conflict view were dropped - the first is the one behaviour described above, the second describes a situation the app does not produce.</div>
+      </div>
+
+      <div class="sp-card">
+        <div class="sp-card__head"><span class="sp-section-label">TWO PATTERNS THE AUDIT CONFIRMED</span></div>
+        <div class="doc-note"><b class="sp-ink">Every destructive action has exactly one dialog</b>, and every reversible one has exactly one toast. Nothing in the set has both, and nothing has neither. Delete order, bulk delete, merge and discard-scan are dialogs; line delete, status change, category add, archive and import are toasts.</div>
+        <div class="doc-note"><b class="sp-ink">Every "See X" link is a filter handoff, not a new view.</b> See in Statistics, Open in orders, the Needs-a-look rows and the monthly summary rows all carry state into a screen that already exists. No screen in the set is reachable only through one link.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

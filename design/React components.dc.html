@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="40" font-weight="600" fill="#f2f0ea" text-anchor="middle">R</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<script src="./icons.js?v=v20260917b"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<style>
+	body { margin: 0; background: var(--bg); font-family: Poppins, system-ui, sans-serif; color: var(--ink); }
+	/* the wrapper carries the theme too, so the ground under the sections is the
+	   theme's own rather than whatever the document element was left on */
+	.sp { min-height: 100vh; background: var(--bg); color: var(--ink); }
+	a { color: var(--green); }
+	a:hover { color: var(--green-2); }
+	code { font-size: 11px; background: var(--hover); padding: 1px 4px; border-radius: 4px; }
+	/* the call behind a specimen: read off the element, so it cannot drift from it */
+	code.doc-usage { display: block; width: fit-content; max-width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.5; color: var(--ink-4); background: var(--surface-2); border: 1px solid var(--line); padding: 2px 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r0">R</span>
+		<span class="doc-page-title">React components</span>
+	</div>
+	<div class="doc-lede">The components in <code>react_handoff/</code>, rendered from their own source files rather than redrawn. Every specimen below is a real call to a real component, so a prop set that has drifted from <a href="Components.dc.html">the library</a> shows up here as a broken specimen rather than as a surprise in the app.</div>
+	<div class="doc-notes">
+		<div class="doc-notes__label">Notes for implementation</div>
+		<div class="doc-note"><b>This page is a harness, not a build.</b> It fetches each <code>.jsx</code> file, strips the module syntax, and evaluates it against React with three stand-ins: the router's link, the app's <code>Icon</code>, and the shared variant helpers. The app compiles the same files properly; nothing here is a second implementation of them.</div>
+		<div class="doc-note"><b>A console error is the point.</b> The components report an unknown prop value, a <code>className</code> or a <code>style</code> rather than rendering something wrong quietly. The last block on this page calls them wrongly on purpose, so the reporting is visible in the browser console.</div>
+		<div class="doc-note"><b>The stylesheets are the ones the pages use.</b> No copy, no override: <code>tokens.css</code> then <code>components.css</code>, loaded from <code>styles/</code>.</div>
+		<div class="doc-note"><b>Every specimen sits on the surface it sits on in the product.</b> Not decoration: the focus ring is <code>--ring</code>, three pixels of <code>#e7efe8</code>, and against the page ground it is almost the same colour as the page. A field drawn loose on the page therefore looked as though it had no ring at all, when the ring was there and the specimen was wrong. Controls live inside a card, rows live inside a card or a list, and the specimens do too.</div>
+	</div>
+	<div class="doc-note">{{ status }}</div>
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r1">r1</span>
+		<span class="doc-section__title">Button, IconButton</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">variant · color · size · fullWidth · iconStart · iconEnd</span>
+	</div>
+	<span class="doc-specimen__label">variant, at the primary colour</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12">{{ buttonVariants }}</div></div>
+	{{ buttonVariantsCode }}
+	<span class="doc-specimen__label">colour, at each variant</span>
+	<div class="sp-card"><div class="sp-stack sp-gap-12">{{ buttonColors }}</div></div>
+	{{ buttonColorsCode }}
+	<span class="doc-specimen__label">size</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12">{{ buttonSizes }}</div></div>
+	{{ buttonSizesCode }}
+	<span class="doc-specimen__label">disabled, at every variant and colour</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12">{{ buttonStates }}</div></div>
+	{{ buttonStatesCode }}
+	<span class="doc-specimen__label">a label with an icon at either end</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12">{{ buttonIcons }}</div></div>
+	{{ buttonIconsCode }}
+	<span class="doc-specimen__label">IconButton: variant, then size</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12">{{ iconButtons }}</div></div>
+	{{ iconButtonsCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r2">r2</span>
+		<span class="doc-section__title">Mark</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">size · fill · swatch · count · text · error · remove</span>
+	</div>
+	<span class="doc-specimen__label">size - four, and nothing between them</span>
+	<div class="sp-card"><div class="sp-stack sp-gap-12">{{ markSizes }}</div></div>
+	{{ markSizesCode }}
+	<span class="doc-specimen__label">fill, at the medium size</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-wrap sp-top">{{ markFills }}</div></div>
+	{{ markFillsCode }}
+	<div class="doc-note"><b>Initials and colour are derived inside the component, from the canonical name, and never passed in.</b> That is what keeps one vendor looking the same in every list - a page that sliced the name itself got a different mark the first time it sliced differently. The rules are the library's: the first letter of the first two words, uppercased, accents kept, and one word takes its first two letters; the colour is a stable hash of the name over the eight colour swatches, so it survives between sessions with nothing stored. The shape carries the kind - a person is a circle. A category is the one exception: its icon and colour are picked by the user, so those are passed.</div>
+	<span class="doc-specimen__label">kind - pass a name and nothing else</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-wrap sp-top">{{ kinds }}</div></div>
+	{{ kindsCode }}
+	<span class="doc-specimen__label">swatch, for a category or a mark with no kind</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-8 sp-wrap">{{ markSwatches }}</div></div>
+	{{ markSwatchesCode }}
+	<span class="doc-specimen__label">count, then the banner - what the image is, and why it could not be kept</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-wrap sp-top">{{ markSlots }}</div></div>
+	{{ markSlotsCode }}
+	<div class="doc-note"><b>The attachment size is the fourth size, not a second component.</b> The box an uploaded image is shown in had its own component until four of its nine rules turned out to be the mark's already: the square box itself, the dashed box that invites the first one, the glyph where there is no thumbnail, and the label naming what the image is. So it is <code>size="xlarge"</code>, with the mark's own fills and banner doing the rest, and a remove control as the mark's part. A document is a mark too: <code>fill="none"</code> with a file glyph, at the same size as the rest.</div>
+	<span class="doc-specimen__label">at the attachment size: an image that opens, one that can be removed, a file with no thumbnail, one that failed, one uploading, and the way to add</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-wrap sp-top">{{ attachments }}</div></div>
+	{{ attachmentsCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r3">r3</span>
+		<span class="doc-section__title">Chip, Pill</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">variant · color · state</span>
+	</div>
+	<span class="doc-specimen__label">Chip: variant, then the danger colour</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-8 sp-wrap">{{ chips }}</div></div>
+	{{ chipsCode }}
+	<span class="doc-specimen__label">Chip: the facet variant, uncontrolled then controlled</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-8 sp-wrap">{{ facets }}</div></div>
+	{{ facetsCode }}
+	<span class="doc-specimen__label">Pill: colour, then the progress state</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-8 sp-wrap">{{ pills }}</div></div>
+	{{ pillsCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r4">r4</span>
+		<span class="doc-page-title">Inputs</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">every control the reader types, picks or drops into</span>
+	</div>
+	<div class="doc-lede">One segment for all of them, because a reader choosing a control is choosing between these and not between three pages. Every one is controlled - <code>value</code> and <code>onChange</code>, no internal copy - and none takes a colour: an error is a boolean and a message, never a variant.</div>
+
+	<span class="doc-specimen__label">Field owns the label, the message and the spacing; each control renders only its own box</span>
+	<div class="sp-card"><div class="sp-fields">{{ fieldSlots }}</div></div>
+	{{ fieldSlotsCode }}
+
+	<span class="doc-specimen__label">the three messages, and what each does to the control</span>
+	<div class="sp-card"><div class="sp-fields">{{ fieldMessages }}</div></div>
+	{{ fieldMessagesCode }}
+	<span class="doc-specimen__label">required, against one that is not - the marker is quiet ink, because a field not yet filled in is not a field in error</span>
+	<div class="sp-card"><div class="sp-fields">{{ required }}</div></div>
+	{{ requiredCode }}
+
+	<span class="doc-specimen__label">text, amount, password, date, search, note, a computed figure, and one that blocks the save</span>
+	<div class="sp-card"><div class="sp-fields">{{ inputs }}</div></div>
+	{{ inputsCode }}
+	<div class="doc-note"><b>Numbers are written the reader's way.</b> The amount reads <code>1.320,00</code> because a native number input cannot render a comma separator - its value is always dot-decimal - so an amount is a text input with a decimal input mode, formatted on blur and accepting either separator while typing. The value stays a number; only the text is localised. The specimens pass <code>da-DK</code>; with no locale they follow the browser.</div>
+	<div class="doc-note"><b>A native control's own glyphs are the only ones in the design that are not from the register.</b> The search field's clear is removed outright. The date field's calendar cannot be: in current Chromium it survives <code>display: none</code>, a cleared background and a zero width, so it is covered instead - the field keeps its ordinary padding, which puts the glyph in the field's own trailing slot, and the trail button sits over it on the field's ground carrying the register's calendar. That button opens the field's calendar: the library's own on desktop, the native one on a phone (next note).</div>
+
+	<div class="doc-note"><b>A date is drawn on desktop and native on touch, and the surface decides.</b> On a phone the platform's picker beats anything drawn - a full-screen wheel, the reader's format, the keyboard they expect. On a desktop it is a small dark dropdown nobody can style, so the field opens the library's own calendar. The field looks for a <code>.sp-touch</code> surface above it rather than asking the caller which it is.</div>
+	<div class="doc-note"><b>The calendar takes the keyboard.</b> One month grid, used three times - the date field's dropdown, the range's two months, the phone's sheet. It is a real grid: rows of gridcells with one day in the tab order, so the arrow keys walk the month instead of the reader tabbing through 31 buttons. Arrows move a day and a week, PageUp and PageDown a month, with Shift a year, Home and End the ends of the week; Enter picks, Escape closes and returns focus to the trigger, and clicking away closes it. Every day carries its full date for a screen reader, today is <code>aria-current</code>, and a day outside min or max is disabled rather than missing. The weekday order comes from the locale.</div>
+	<span class="doc-specimen__label">the same field on a desktop surface and inside a touch one - click the calendar, then use the arrow keys</span>
+	<div class="sp-card"><div class="sp-fields">{{ dates }}</div></div>
+	{{ datesCode }}
+	<span class="doc-specimen__label">two dates chosen against each other, with the ranges worth one click</span>
+	{{ rangePicker }}
+	{{ rangePickerCode }}
+	<div class="doc-note"><b>A range with a floor moves the other end rather than refusing the click.</b> <code>minDays</code> is the shortest range that means anything - a hire of at least three days, a period that has to cover a week - counted inclusively. The end the reader did not just touch is what moves: picking a start too close to the end pushes the end out, picking an end too close to the start pulls the start back. Refusing the click instead leaves the reader holding a range they cannot fix without working out which end the control objects to. Where the push would cross <code>min</code> or <code>max</code> it is taken from the other end, so the floor holds at the edge of what can be picked.</div>
+	<span class="doc-specimen__label">a floor of three days, inside a month that can be picked - pick two days apart and watch the other end move</span>
+	{{ rangeFloor }}
+	{{ rangeFloorCode }}
+	<span class="doc-specimen__label">the period a page is read through - the custom preset holds the range picker</span>
+	{{ period }}
+	{{ periodCode }}
+
+
+	<span class="doc-specimen__label">a native type where it earns its keyboard, and several values in one field</span>
+	<div class="sp-card"><div class="sp-fields">{{ more }}</div></div>
+	{{ moreCode }}
+
+	<span class="doc-specimen__label">disabled, read-only, empty - then tab into the last one for hover and focus</span>
+	<div class="sp-card"><div class="sp-fields">{{ fieldStates }}</div></div>
+	{{ fieldStatesCode }}
+	<div class="doc-note"><b>States are the element's own, and nothing here simulates one.</b> Disabled, read-only and empty are attributes, so they are drawn above. Hover and focus are not: tab into the last field and the ring appears, because <code>:focus-visible</code> is the browser's, not a class. A specimen that faked either would be a second implementation of the state.</div>
+
+	<span class="doc-specimen__label">the choosing control: never a native select, because an option carries a dot, a mark, a meta value and a check</span>
+	<div class="sp-card"><div class="sp-fields">{{ fieldControls }}</div></div>
+	{{ fieldControlsCode }}
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-top">{{ combobox }}</div></div>
+	{{ comboboxCode }}
+	<div class="doc-note">Two modes. <b>Pick only</b> is a button showing the chosen value, for a closed set. <b>Searchable</b> makes the trigger the input itself - <code>role="combobox"</code> with <code>aria-autocomplete="list"</code> - because a set the reader types into is one they are narrowing, not one they are opening. The component holds the typed text and reports it; the page filters, since only the page knows what an option matches on - an option carries a mark, a dot and a meta value, so matching on its rendered text would match on the wrong things.</div>
+	<span class="doc-specimen__label">searchable: type to narrow the set, and Escape clears before it closes</span>
+	<div class="sp-card"><div class="sp-fields">{{ searchable }}</div></div>
+	{{ searchableCode }}
+
+	<span class="doc-specimen__label">the boxes, each with its label as one target</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-wrap">{{ boxes }}</div></div>
+	{{ boxesCode }}
+	<div class="doc-note">Each box is the input, restyled - not a span pretending to be one - so hover, focus, checked, indeterminate and disabled are the element's own states and the control works in a form with no JavaScript. A switch applies at once; a checkbox waits for the save. That is why they are two controls and not one with a variant.</div>
+
+	<span class="doc-specimen__label">a choice that is a row, and one that carries a second line</span>
+	<div class="sp-card"><div class="sp-fields">{{ choices }}</div></div>
+	{{ choicesCode }}
+
+	<span class="doc-specimen__label">two, three, and one with an option that cannot be picked - past four it is a Combobox</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-wrap">{{ segmented }}</div></div>
+	{{ segmentedCode }}
+	<span class="doc-specimen__label">the facet variant: equal shares of its column, no border of its own</span>
+	<div class="sp-card">{{ segmentedFacet }}</div>
+	{{ segmentedFacetCode }}
+
+	<span class="doc-specimen__label">the stepper: whole numbers, bounded, and one stepping by 0,25</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-wrap">{{ steppers }}</div></div>
+	{{ steppersCode }}
+
+	<span class="doc-specimen__label">a pair of bounds over one rail: the coarse control and the exact fields are one value seen twice</span>
+	<div class="sp-card">{{ range }}</div>
+	{{ rangeCode }}
+
+	<span class="doc-specimen__label">one cell group, two kinds of cell: colours with a custom one, and icons from the register</span>
+	<div class="sp-card"><div class="sp-fields">{{ pickers }}</div></div>
+	{{ pickersCode }}
+	<div class="doc-note">A swatch is either a name from the library's set, which the stylesheet already paints, or any colour value, which the cell carries to it - so a caller with its own palette passes it straight in and one using the system's set never handles a hex. A colour chosen through the native picker becomes the group's value like any other: the custom cell wears it and is marked as chosen, because a colour that cannot be seen or unpicked is not a choice.</div>
+	<span class="doc-specimen__label">the same component, given a palette of its own</span>
+	<div class="sp-card">{{ palette }}</div>
+	{{ paletteCode }}
+
+	<span class="doc-specimen__label">what a controls bar carries: the list's search, and the position in the set</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-wrap">{{ bars }}</div></div>
+	{{ barsCode }}
+
+	<span class="doc-specimen__label">the drop area: a label around a real file input, so the platform picker does the rest</span>
+	<div class="sp-card">{{ filedrop }}</div>
+	{{ filedropCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r5">r5</span>
+		<span class="doc-section__title">Card, Well</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">variant · color · footer · footerLayout · CardHeader</span>
+	</div>
+	<span class="doc-specimen__label">CardHeader: every view in its own slot</span>
+	<div class="sp-stack sp-gap-12 doc-w400">{{ cardHeaders }}</div>
+	{{ cardHeadersCode }}
+	<span class="doc-specimen__label">the footer: one action fills the width, a pair splits it</span>
+	<div class="sp-cards">{{ cardFooters }}</div>
+	{{ cardFootersCode }}
+	<span class="doc-specimen__label">colour, and the row variant</span>
+	<div class="sp-cards">{{ cardColors }}</div>
+	{{ cardColorsCode }}
+	<span class="doc-specimen__label">the shell ground, and a card that opens</span>
+	{{ cardShell }}
+	{{ cardShellCode }}
+	<span class="doc-specimen__label">Well: variant, then colour</span>
+	<div class="sp-cards">{{ wells }}</div>
+	{{ wellsCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r6">r6</span>
+		<span class="doc-section__title">ListItem</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">variant · color · mark · handle · actions · count · chevron</span>
+	</div>
+	<div class="doc-note">One row for every list in the product. It was two components - one for an editable set, one for everything else - until the two were compared: they differed by one shade of ground and 2px of radius. What varies is what the row carries, not the row.</div>
+	<div class="doc-note"><b>A surface is not a row.</b> A Card owns a ground, an edge and padding and holds a section of a page; its <code>row</code> variant is layout only, laying its own children in a line. A row that wants a card's ground is this component's <code>card</code> variant, because it repeats - and repeating is what separates a row from a surface. The control states, the text column and the line parts live here, not on the card. Which body a list shows is a question about the list's own width, answered by a container query - one implementation, no phone-only component.</div>
+	<span class="doc-specimen__label">the card variant: a list with no columns to align</span>
+	<div class="sp-list sp-list--cards">{{ listItemCards }}</div>
+	{{ listItemCardsCode }}
+	<span class="doc-specimen__label">variant, then colour</span>
+	<div class="sp-card"><div class="sp-stack sp-gap-8">{{ noteRows }}</div></div>
+	{{ noteRowsCode }}
+	<span class="doc-specimen__label">the same row in an editable set: a handle, a slot, actions on hover, the add row</span>
+	<div class="sp-card">{{ lines }}</div>
+	{{ linesCode }}
+	<div class="doc-note">A form's commit bar is the <code>sticky</code> row: a card row that stays where it is while the page scrolls under it, lifted off what it covers and a little taller. The variant is named for what it does rather than for the one place it is used: it was <code>.sp-savebar--page</code>, which restated the row's ground, border, radius, padding, gap and centring to arrive at the same box. The phone's own bar is not this: it keeps a border-top and no radius, because a bar welded to an edge is a different shape.</div>
+	<span class="doc-specimen__label">the bar a form commits from - the card row that stays put while the page scrolls under it</span>
+	<div class="doc-scrollbox">
+		<div class="doc-scrollfill">Scroll this box - the bar stays at its foot</div>
+		{{ savebar }}
+	</div>
+	{{ savebarCode }}
+
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r7">r7</span>
+		<span class="doc-section__title">Menu, Popover, Dialog</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">three promises, not three sizes</span>
+	</div>
+	<div class="doc-note">A Menu acts on click: every item does its thing and closes. A Popover waits - it holds a decision and a Cancel / Apply pair, so nothing happens until the reader applies it. A Dialog interrupts, and cannot be answered by ignoring it. That is why they are three components.</div>
+	<span class="doc-specimen__label">the menu, and the panel that waits</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-top sp-wrap">{{ menus }}</div></div>
+	{{ menusCode }}
+	<span class="doc-specimen__label">the dialog, drawn without its scrim so the panel can be read</span>
+	<div class="sp-card">{{ dialog }}</div>
+	{{ dialogCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r8">r8</span>
+		<span class="doc-section__title">Toast, Alert</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">what happened, and what is still true</span>
+	</div>
+	<div class="doc-note">A Toast reports what already happened and takes itself away; the <code>asks</code> variant needs an answer, so it sits on the page's own surface rather than reading as something that will disappear. An Alert states a condition that persists and stays until the condition does.</div>
+	<span class="doc-specimen__label">a result with the way back, a problem, a count, and one that asks</span>
+	<div class="sp-card"><div class="sp-stack sp-gap-12">{{ toasts }}</div></div>
+	{{ toastsCode }}
+	<span class="doc-specimen__label">warning, danger, success</span>
+	<div class="sp-card"><div class="sp-stack sp-gap-12">{{ alerts }}</div></div>
+	{{ alertsCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r9">r9</span>
+		<span class="doc-section__title">List</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">records · columns · bulkActions</span>
+	</div>
+	<div class="doc-note"><b>Written the way a table is written.</b> A <code>Caption</code> says what it is, a <code>ListHead</code> of cells declares each column's heading and width, and a <code>ListRow</code> is the template every record is drawn through - its child is a function of one record, returning that record's cells in the head's order. That order is the one thing this shape asks of a page, so the list checks it: a row drawing a different number of cells from the head is reported, because every cell after the gap would otherwise sit under the wrong heading in silence.</div>
+	<div class="doc-note"><b>The page supplies the data, the head, the row and what can be done to a selection.</b> Everything else is the list's, because it is the same on every list: the count, the caption becoming the bulk bar, the select-all box and its three states, shift-click taking the run, Escape clearing, the pager, and paging keeping a selection where a filter change drops it. <code>Selected</code> is the only reason a list has boxes - leave it out and the list is a plain table.</div>
+	<div class="doc-note">A head cell states a role, never a width: seven roles, each with its width declared once in the stylesheet, and exactly one <code>title</code> - the column with no width of its own, which absorbs whatever the fixed ones leave. That is why the title looks different on every page and every other column is identical everywhere.</div>
+	<span class="doc-specimen__label">tick a row, shift-click a later one, press Escape - and page through with the arrows</span>
+	{{ table }}
+	{{ tableCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r10">r10</span>
+		<span class="doc-section__title">Gauge, Bars, Plot, Stat, Sum</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">measurements, drawn</span>
+	</div>
+	<div class="doc-note">A measurement is the one thing a class cannot carry - no stylesheet can have seen the value - so these write their own width and height. The library's pages state theirs as data attributes with a rule each, which is right for a drawn page; a live component has a number that arrived a moment ago. Nothing here sets a colour, a size or a radius.</div>
+	<span class="doc-specimen__label">under its limit, past it with the limit marked, and with no limit set</span>
+	<div class="sp-card"><div class="sp-fields">{{ gauges }}</div></div>
+	{{ gaugesCode }}
+	<div class="doc-note"><b>A column is a period, not a label.</b> A step carries <code>from</code> and <code>to</code> - the first and last day it counts, as ISO dates - and <code>onSelect</code> reports <code>(key, from, to)</code>, the same pair in the same order <code>RangePicker</code> reports. The reader who clicks August is asking for August's orders, so the range is what the page needs to filter on; a key alone would make every call site map months back to dates itself. A column with one end and not the other is reported.</div>
+	<span class="doc-specimen__label">the plot: an axis, gridlines, the limit the bars cross, and one column split by category</span>
+	<div class="sp-card"><div class="sp-stack sp-gap-12">{{ plot }}{{ plotSelection }}</div></div>
+	{{ plotCode }}
+	<span class="doc-specimen__label">a figure and what it is - the delta is a saving, so it is an amount and never a percentage</span>
+	{{ stats }}
+	{{ statsCode }}
+	<span class="doc-specimen__label">a sum, ending in its total</span>
+	{{ sums }}
+	{{ sumsCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r11">r11</span>
+		<span class="doc-section__title">Skeleton, Spinner</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">what is still arriving</span>
+	</div>
+	<div class="doc-note">A skeleton is the shape of what is loading rather than a spinner: a row being fetched looks like the row it will become. The spinner is for work of unknown length on one line of text.</div>
+	<span class="doc-specimen__label">a row on its way, and work of unknown length</span>
+	<div class="sp-card">{{ loading }}</div>
+	{{ loadingCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r12">r12</span>
+		<span class="doc-section__title">Shell, Sidebar</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">the page's own furniture</span>
+	</div>
+	<div class="doc-note">The shell is a grid of two tracks, and collapsing it is a track width rather than an animation - an animated track reflows every card beside it on every frame. The rail is the same sidebar at its narrow width, and peeking shows its labels over the page rather than pushing it.</div>
+	<span class="doc-specimen__label">the menu, and the top bar above the page</span>
+	{{ shell }}
+	{{ shellCode }}
+	<span class="doc-specimen__label">nothing here yet: one inviting the first record, one reporting an empty filter</span>
+	{{ empties }}
+	{{ emptiesCode }}
+	<span class="doc-specimen__label">keys, as the reader sees them</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-wrap">{{ keys }}</div></div>
+	{{ keysCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r13">r13</span>
+		<span class="doc-section__title">Touch</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">the touch surface's own furniture</span>
+	</div>
+	<div class="doc-note">Not the desktop shell's parts at a smaller size. A bar welded to the frame's edge, a row of destinations a thumb reaches, a surface that rises from the bottom - a touch screen has places a desktop page does not, and grouping them in <code>Touch.jsx</code> keeps a desktop page from reaching for one by accident.</div>
+	<div class="doc-note">The save bar and the tab bar never share a screen. A record opened for editing is a screen pushed over its list: it has a back button, and the bar it commits from takes the tab bar's place at the bottom. The tab bar belongs to the top-level screens.</div>
+	<span class="doc-specimen__label">a record being edited: the top bar, the body and the bar it commits from</span>
+	<div class="sp-row-flex sp-gap-16 sp-wrap sp-top">{{ phone }}{{ sheet }}</div>
+	{{ phoneCode }}
+	<span class="doc-specimen__label">a top-level screen: the destinations</span>
+	{{ tabs }}
+	{{ tabsCode }}
+</section>
+
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r14">r14</span>
+		<span class="doc-section__title">LineEditor</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">photo · title · what · first · last · handle · commit · saving · hint</span>
+	</div>
+	<div class="doc-note">What a list row opens into, in place. An existing row passes onMoveUp, onMoveDown and onDelete and gets the move and delete controls in its head; a new one passes none and shows only the title. The fields are the caller's children, laid two by two without a photo. The order line passes <code>photo</code> and lays its own fields.</div>
+	<span class="doc-specimen__label">an existing row: move and delete in the head</span>
+	{{ lineEditorRow }}
+	{{ lineEditorRowCode }}
+	<span class="doc-specimen__label">a new one: the title only</span>
+	{{ lineEditorNew }}
+	{{ lineEditorNewCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head">
+		<span class="doc-badge" id="r15">r15</span>
+		<span class="doc-section__title">Called wrongly, on purpose</span>
+		<span class="sp-grow"></span>
+		<span class="sp-meta">open the console</span>
+	</div>
+	<div class="doc-note">Four calls that a caller should not be able to make quietly: an unknown variant value, a <code>className</code>, a swatch on a mark that is not filled, and an icon control with no label. Each reports what to do instead and renders without the class it could not resolve.</div>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-wrap">{{ misuse }}</div></div>
+	{{ misuseCode }}
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;top&quot;, &quot;r1 Button&quot;, &quot;r2 Mark&quot;, &quot;r3 Chip, Pill&quot;, &quot;r4 Inputs&quot;, &quot;r5 Card, Well&quot;, &quot;r6 ListItem&quot;, &quot;r7 Menu, Popover, Dialog&quot;, &quot;r8 Toast, Alert&quot;, &quot;r9 List&quot;, &quot;r10 Gauge, Bars, Plot&quot;, &quot;r11 Skeleton, Spinner&quot;, &quot;r12 Shell, Sidebar&quot;, &quot;r13 Touch&quot;, &quot;r14 LineEditor&quot;, &quot;r15 Called wrongly&quot;], &quot;default&quot;: &quot;top&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Go to&quot;}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;'light' | 'dark'&quot;, &quot;section&quot;: &quot;Theme&quot;}, &quot;menu&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;expanded&quot;, &quot;rail&quot;, &quot;peek&quot;], &quot;default&quot;: &quot;expanded&quot;, &quot;tsType&quot;: &quot;'expanded' | 'rail' | 'peek'&quot;, &quot;section&quot;: &quot;Shell&quot;}}">
+/* Helpers first: a stripped module has no imports left, so each file is evaluated
+   with what the earlier ones exported - a helper loaded after its callers leaves
+   them with no binding at all. */
+const FILES = ['variants.js', 'format.js',
+		'Button.jsx', 'Mark.jsx', 'Chip.jsx', 'Pill.jsx',
+	// Choice before Field: a field handed a box renders a Choice around it, and a
+	// file evaluated after its callers leaves them with no binding at all
+	'Choice.jsx', 'Field.jsx',
+	'Card.jsx', 'Well.jsx', 'ListItem.jsx', 'Combobox.jsx',
+	'Segmented.jsx', 'Stepper.jsx', 'FileDrop.jsx',
+	// DatePickers before Inputs: DateField reaches for the Calendar, and a file
+	// evaluated after its callers leaves them with no binding at all
+	'DatePickers.jsx', 'Inputs.jsx', 'Utilities.jsx',
+	'Shell.jsx', 'Touch.jsx', 'Overlays.jsx', 'List.jsx', 'Data.jsx', 'LineEditor.jsx'];
+
+/* The harness. It evaluates the real component files so this page cannot drift from
+   them: no copy of a component lives here.
+
+   Three stand-ins replace what only the app can provide - the router's Link, the
+   app's Icon, and React's own hooks - and the shared helpers from variants.js are
+   passed in the same way, since a stripped module has no imports left. */
+class Component extends DCLogic {
+	state = {
+		mods: null,
+		byFile: null, error: null, facet: true, qty: 1, picked: [], plain: '', focusDemo: '', chipStatus: 'done', demo: {}, shellSearch: '', railed: null,
+		// the specimens that hold a choice, so each one can actually be tried
+		sortBy: 'Newest first', sortOpen: false,
+		vendorQuery: '',
+		vendor: 'Indbo Møbler', vendorOpen: false,
+		// the searchable specimen holds its own: two controls on one key open together
+		found: 'HAY', foundOpen: false,
+		status: 'In progress', statusOpen: false,
+		lastAction: null, month: 'aug', page: 1,
+		files: [
+			{ id: 'receipt', fill: 'photo' },
+			{ id: 'invoice', fill: 'photo', text: 'PDF' },
+			{ id: 'note', fill: 'none', text: 'DOCX' },
+			{ id: 'failed', fill: 'photo', danger: 'Too large' },
+			{ id: 'busy', fill: 'photo', busy: true }
+		],
+		toasts: ['removed', 'unreadable', 'count', 'asks'],
+		// the inputs are controlled, so the page owns every value they show
+		text: 'Nordal vase, small', note: 'Delivered to the shop, not the client.',
+		email: 'mm@example.net', tokens: ['HAY', 'Muuto'], swatch: 'green-3', own: '#3f5d6b',
+		glyph: 'armchair', page: 1, listSearch: '',
+		secret: 'tulipan', amount: 1320, quantity: 0.25, day: '2026-08-08', delivery: '2026-08-10',
+		search: '', bounds: [200, 4800], range: ['2026-08-03', '2026-08-12'], period: 'month', compare: true,
+		hire: ['2026-08-10', '2026-08-12']
+	};
+
+	componentDidMount() { this.load() }
+
+	componentDidUpdate() { this.jump() }
+
+	/* The tweak names a section and the page goes there. It is a jump, not a state, so
+	   it fires once per change: the section id is remembered and a repeat of the same
+	   pick does nothing, which is what lets a reader scroll away and come back without
+	   being dragged back.
+
+	   The first value is remembered without acting on it, because the first update is
+	   not a pick - it is the page arriving, or another tweak changing. Jumping then
+	   dragged the reader to the top whenever they changed the theme. */
+	jump() {
+		const to = this.props.jumpTo ?? 'top'
+		if (this.jumped === undefined) { this.jumped = to; return }
+		if (to === this.jumped) return
+		this.jumped = to
+		const id = to === 'top' ? 'r0' : to.split(' ')[0]
+		const at = document.getElementById(id)
+		if (at) window.scrollTo({ top: at.getBoundingClientRect().top + window.scrollY - 16, behavior: 'smooth' })
+	}
+
+	/* The theme is set on the document element, not on this page's own wrapper: the
+	   body's background comes from --bg, and a wrapper cannot reach it. Light is the
+	   default, which is what :root already declares.
+
+	   Applied from renderVals rather than from a lifecycle hook, so it follows every
+	   render there is - including the first, before paint, and any render a hook does
+	   not see. A theme that depends on componentDidUpdate having fired is a theme that
+	   silently stops when something else changes how the page re-renders. */
+	applyTheme() {
+		const theme = this.props.theme ?? 'light'
+		/* On the page's own wrapper as well as the document element. The token blocks are
+		   plain [data-theme] selectors, so they apply wherever the attribute lands and
+		   cascade to everything inside - and the wrapper is the one element this page
+		   owns. Relying on the document element alone means anything else that writes
+		   that attribute silently wins. */
+		for (const at of [document.documentElement, document.querySelector('.sp')])
+			if (at && at.getAttribute('data-theme') !== theme) at.setAttribute('data-theme', theme)
+	}
+
+	async waitForBabel() {
+		for (let i = 0; i < 100 && !window.Babel; i++) await new Promise(r => setTimeout(r, 50));
+		if (!window.Babel) throw new Error('Babel did not load');
+	}
+
+	async load() {
+		try {
+			await this.waitForBabel();
+			const Link = ({ children, to, ...rest }) =>
+				React.createElement('a', { href: '#', ...rest }, children);
+			const Icon = ({ name, size }) =>
+				React.createElement('span', {
+					style: { display: 'inline-flex' },
+					dangerouslySetInnerHTML: { __html: window.spIcon(name, size) }
+				});
+			// the hooks a stripped module can no longer import for itself
+			const byFile = { flat: {}, shadowed: {} };
+			const scope = {
+				React, Link, Icon,
+				useId: React.useId,
+				cloneElement: React.cloneElement,
+				Children: React.Children,
+				createContext: React.createContext,
+				useContext: React.useContext,
+				useLayoutEffect: React.useLayoutEffect,
+				Fragment: React.Fragment,
+				useState: React.useState,
+				useRef: React.useRef,
+				useEffect: React.useEffect,
+				useMemo: React.useMemo,
+				useCallback: React.useCallback
+			};
+			for (const file of FILES) {
+				// the files are edited while this page is open, so each is fetched past
+				// the cache - a harness showing a stale component is worse than none
+				const src = await (await fetch('react_handoff/' + file, { cache: 'reload' })).text();
+				try {
+					const exported = this.evaluate(file, src, scope);
+					/* Per-file as well as merged. Two files may each export a Selected - React
+					   resolves that by import, and the library should not be renamed to suit
+					   a harness - so a collision is reported rather than silently overwritten,
+					   and a specimen that wants a particular one asks for it by file. */
+					/* A name exported twice is not a fault: React resolves that by import, and
+					   a specimen asks for the one it means through byFile. What it does to this
+					   harness is shadow the merged scope, so the collision is recorded and
+					   only reported if a specimen reads the shadowed name from there - an
+					   error for a handled case is noise beside the deliberate ones in r15. */
+					for (const key of Object.keys(exported))
+						if (key in byFile.flat) byFile.shadowed[key] = (byFile.shadowed[key] || [byFile.flat[key]]).concat(file);
+						else byFile.flat[key] = file;
+					byFile[file] = exported;
+					Object.assign(scope, exported);
+				} catch (err) {
+					console.error('[harness]', file, err);
+					throw new Error(file + ': ' + (err && err.message || err));
+				}
+			}
+			this.setState({ mods: scope, byFile });
+		} catch (e) {
+			this.setState({ error: String(e && e.message || e) });
+		}
+	}
+
+	/** Strips the module syntax a bundler would resolve, then returns what the file
+	    exported. The names are read off the source rather than guessed. */
+	evaluate(file, src, scope) {
+		const names = [...src.matchAll(/export\s+(?:function|const)\s+(\w+)/g)].map(m => m[1]);
+		// one line at a time: these files carry no semicolons, so a pattern allowed to
+		// cross a newline swallows the whole file
+		const body = src
+			.replace(/^[ \t]*import[^\n;]*;?[ \t]*$/gm, '')
+			.replace(/export\s+(function|const)/g, '$1');
+		// the return is appended after the transform: Babel reads the file as a module,
+		// where a top-level return is a syntax error
+		const code = window.Babel.transform(body, { filename: file, presets: ['react'] }).code;
+		const keys = Object.keys(scope);
+		return new Function(...keys, code + '\nreturn {' + names.join(',') + '};')(...keys.map(k => scope[k]));
+	}
+
+	renderVals() {
+		this.applyTheme();
+		const m = this.state.mods;
+		if (this.state.error) return { status: 'The harness could not load: ' + this.state.error };
+		if (!m) return { status: 'Loading the component files.' };
+		const { Button, IconButton, Mark, Chip, Pill, Field, Icon,
+			Card, CardHeader, Cards, CardBody, Well, ListItem, Insertion, ListItemRemove,
+			Stacked, Line, Combobox, ComboboxOption, ComboboxGroup, ComboboxEmpty,
+			Check, Radio, Switch, Choice, FieldGroup, Segmented, Stepper, FileDrop,
+			TextField, PasswordField, NumberField, SearchInput, RangeSlider,
+			TokensField, Picker,
+			Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor,
+			Dialog, DialogTitle, DialogBody, DialogActions, Toast, ToastUndo, Alert,
+			List, Caption, ListHead, ListRow, ListCell, Foot, Toolbar, ListFooter,
+			Gauge, GaugeKey, Bars, Plot, Stat, Sum, Skeleton, Spinner, MarkRemove,
+			SelectAllBox, Shell, TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarGrip, NavItem,
+			SaveBar, TabBar, TabBarItem, Sheet, Scrim, Empty, EmptyTitle, EmptyBody, Kbd,
+			RangePicker, PeriodPicker, Calendar, DateField, LineEditor } = m;
+		// both List and DatePickers export a Selected, which React resolves by import -
+		// so each is asked for by file rather than one of them being renamed to suit
+		const { Selected } = this.state.byFile['List.jsx'];
+		const { Selected: PeriodSelected } = this.state.byFile['DatePickers.jsx'];
+		const e = React.createElement;
+		/* The menu's state. The grip writes it and the tweak sets it, because the two
+		   are the same state: what the user left the sidebar in. `peek` is the
+		   experiment the library flags as unsettled - the rail opening over the page on
+		   hover rather than pushing it - so it is a state to look at here, not a
+		   default. */
+		const menuState = this.props.menu ?? 'expanded';
+		const railed = this.state.railed ?? (menuState !== 'expanded');
+		const key = (i, node) => React.cloneElement(node, { key: i });
+		const row = nodes => nodes.map((n, i) => key(i, n));
+		const rowPlain = row;
+
+		// one range picker, configured once: the standalone specimen and the one inside
+		// the period's custom preset are the same control with the same offer
+		const rangeProps = {
+			from: this.state.range[0],
+			to: this.state.range[1],
+			onChange: (from, to) => this.setState({ range: [from, to] }),
+			locale: 'da-DK'
+		};
+
+		/* The call that produced a specimen, read off the element itself rather than
+		   written beside it - a usage line typed by hand is a usage line that goes
+		   stale the first time a prop is renamed. Node props print as {…}, handlers
+		   as {fn}, because what matters is which props a call passes. */
+		/* The name of a node, and its open tag built from its props. It is built rather
+		   than sliced out of the finished string: a prop whose value is an element
+		   carries its own '>', so looking for the first one cut the tag in half at
+		   lead={<Icon /> and lost the rest of the line. */
+		const nameOf = node =>
+			typeof node.type === 'function' ? (node.type.name || 'Component') : String(node.type);
+
+		/* An object written the way it was passed. Functions and elements are named
+		   rather than printed - a render function is not readable and not the point -
+		   but the keys and the words are, and those are what shape the render. */
+		/* A renderer is written out by running it. It is handed a stand-in record whose
+		   every field reads back as the expression that fetched it, so the template
+		   prints as a template: name={o.name}, not name="Indbo Møbler". A renderer that
+		   does arithmetic on a field gets nonsense, so the fallback is still {fn}. */
+		const EXPR = '\u0000';
+		/* A stand-in record whose every read prints as the expression that fetched it.
+		   Recursive, because a slot handed a nested object reads two levels deep -
+		   `o.past.name` - and a flat marker string would make the second read undefined,
+		   which printed as literal text in the code block while the specimen above it
+		   rendered correctly. The target is a function so the proxy can carry both a
+		   further read and a string value. */
+		const standIn = path => new Proxy(function () {}, {
+			get: (t, key) => {
+				if (key === Symbol.toPrimitive || key === 'toString' || key === 'valueOf') return () => EXPR + path;
+				if (typeof key !== 'string') return undefined;
+				return standIn(path + '.' + key);
+			},
+			apply: () => standIn(path + '()')
+		});
+		const isExpr = v => (typeof v === 'string' && v.startsWith(EXPR)) ||
+			(v && (typeof v === 'object' || typeof v === 'function') && String(v).startsWith(EXPR));
+		const exprOf = v => String(v).slice(1);
+		/* A record's field read inside a longer string - `${o.length} of 18` - arrives
+		   as one string with the marker embedded, so the marker is replaced wherever it
+		   sits rather than only at the start. */
+		const text = v => String(v).replace(/\u0000([\w.$]+)/g, '{$1}');
+
+		// prop is still part of the call, and '…' there is the reader's question
+		const inline = kids => (Array.isArray(kids) ? kids : [kids])
+			.filter(c => c !== null && c !== undefined && c !== false)
+			// a renderer is named, not printed: its source is not the point and it is
+			// where a call turns into forty characters of transpiled output
+			.map(c => typeof c === 'function' ? '{fn}' : typeof c === 'object' && c.type ? jsx(c) : text(c))
+			.join('');
+
+		const plain = v => {
+			if (v === null || v === undefined) return String(v);
+			if (isExpr(v)) return exprOf(v);
+			if (typeof v === 'string') return "'" + v + "'";
+			if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+			if (typeof v === 'function') return 'fn';
+			if (v.type) return jsx(v);
+			if (Array.isArray(v)) return '[' + v.map(plain).join(', ') + ']';
+			return '{ ' + Object.keys(v).map(x => x + ': ' + plain(v[x])).join(', ') + ' }';
+		};
+
+		const openTag = node => {
+			const { children, ...props } = node.props || {};
+			const parts = Object.entries(props).map(([k, v]) => {
+				if (v === true) return k;
+				if (v === undefined || v === null) return null;
+				// false is printed, not dropped: for a controlled prop, off and absent are
+				// different things - compare={false} offers the switch, no compare at all
+				// does not
+				if (v === false) return k + '={false}';
+				if (isExpr(v)) return k + '={' + exprOf(v) + '}';
+				if (typeof v === 'string') return k + '="' + v + '"';
+				if (typeof v === 'number') return k + '={' + v + '}';
+				if (typeof v === 'function') return k + '={fn}';
+				// an element handed to a prop is written out, not named: footer={<Button />}
+				// told you a button was there and nothing about which button
+				if (Array.isArray(v)) {
+					const nodes = v.filter(x => x && typeof x === 'object' && x.type);
+					if (nodes.length) return k + '={[' + nodes.map(x => jsx(x)).join(', ') + ']}';
+					// a pair of dates or a handful of words is worth reading; a list of
+					// objects is not, so it stays summarised by its length
+					const flat = v.every(x => typeof x === 'string' || typeof x === 'number');
+					if (flat && v.length <= 4) return k + '={[' + v.map(x => typeof x === 'string' ? "'" + x + "'" : x).join(', ') + ']}';
+					return k + '={[' + v.length + ' items]}';
+				}
+				if (v && v.type) return k + '={' + jsx(v) + '}';
+				return k + '={' + plain(v) + '}';
+			}).filter(Boolean);
+			return '<' + nameOf(node) + (parts.length ? ' ' + parts.join(' ') : '');
+		};
+
+		/* One line while it fits, one prop per line when it does not. A call written as
+		   a single 400-character line is a call nobody reads, and the props are where
+		   the answer to "why does it render like that" lives. */
+		const propsOf = (node, pad) => {
+			const { children, ...props } = node.props || {};
+			const lines = [];
+			for (const [k, v] of Object.entries(props)) {
+				if (v === true) { lines.push(pad + k); continue; }
+				if (v === undefined || v === null) continue;
+				if (v === false) { lines.push(pad + k + '={false}'); continue; }
+				const objects = Array.isArray(v) && v.length && v.every(x => x && typeof x === 'object' && !x.type);
+				/* A list of settings - the columns - is the answer to "why does it render
+				   like that", so every one gets a line. A list of records is data: the
+				   first shows the shape and the rest is a count, since eighteen orders
+				   printed in full is a wall nobody reads. */
+				if (objects && v.length <= 8) {
+					lines.push(pad + k + '={[');
+					v.forEach((x, n) => lines.push(pad + '  ' + plain(x) + (n < v.length - 1 ? ',' : '')));
+					lines.push(pad + ']}');
+					continue;
+				}
+				if (objects) {
+					lines.push(pad + k + '={[');
+					lines.push(pad + '  ' + plain(v[0]) + ',');
+					lines.push(pad + '  // and ' + (v.length - 1) + ' more');
+					lines.push(pad + ']}');
+					continue;
+				}
+				lines.push((pad + k + '={' + plain(v) + '}').replace(/=\{'([^']*)'\}$/, '="$1"'));
+			}
+			return lines;
+		};
+
+		const jsx = node => {
+			if (!node || typeof node !== 'object') return String(node ?? '');
+			const children = (node.props || {}).children;
+			const open = openTag(node);
+			// written all the way down, on one line: an element inside an element inside a
+			// named for what it is, since `text` is the marker-stripper above
+			const body = children === undefined || children === null ? null : inline(children);
+			return body === null || body === '' ? open + ' />' : open + '>' + body + '</' + nameOf(node) + '>';
+		};
+
+		/* Every editable specimen holds its value here. A control with a no-op onChange
+		   looks broken in exactly the way a real one would be: you type, nothing is
+		   stored, and on blur the field redraws the value it was given. */
+		const bind = (key, initial) => ({
+			value: this.state.demo[key] ?? initial,
+			onChange: next => this.setState(s => ({ demo: { ...s.demo, [key]: next } }))
+		});
+
+		// the five order statuses and the dot each one paints
+		/* Eighteen orders, so the pager has somewhere to go and the select-all box has a
+		   page to claim. */
+		const VENDORS = ['Indbo Møbler', 'HAY', 'Muuto', 'Nordal', 'Ferm Living', 'Menu', 'Gubi', 'Fritz Hansen'];
+		// the page filters, because only the page knows what an option matches on
+		const q = (this.state.vendorQuery || '').toLowerCase();
+		const matches = VENDORS.filter(v => v.toLowerCase().includes(q));
+
+		const ORDERS = [
+			['Indbo Møbler', '08.08.2026', 'Approved', 'success', '3.980,00', '1.320,00'],
+			['HAY', '28.07.2026', null, null, '890,00', '0,00'],
+			['Muuto', '14.08.2026', 'Failed', 'danger', '1.240,00', '310,00'],
+			['Nordal', '15.08.2026', 'Approved', 'success', '2.410,00', '640,00'],
+			['Ferm Living', '16.08.2026', null, null, '1.870,00', '0,00'],
+			['Menu', '17.08.2026', 'Approved', 'success', '640,00', '120,00'],
+			['Gubi', '18.08.2026', 'Returned', 'danger', '4.310,00', '0,00'],
+			['Normann', '19.08.2026', 'Approved', 'success', '1.120,00', '280,00'],
+			['Woud', '20.08.2026', null, null, '2.040,00', '0,00'],
+			['Bolia', '21.08.2026', 'Approved', 'success', '3.470,00', '910,00'],
+			['Eva Solo', '22.08.2026', 'Approved', 'success', '560,00', '80,00'],
+			['Stelton', '23.08.2026', null, null, '740,00', '0,00'],
+			['Kähler', '24.08.2026', 'Approved', 'success', '980,00', '210,00'],
+			['Rosendahl', '25.08.2026', 'Failed', 'danger', '1.310,00', '0,00'],
+			['Skagerak', '26.08.2026', 'Approved', 'success', '2.780,00', '520,00'],
+			['Audo', '27.08.2026', null, null, '3.150,00', '0,00'],
+			['Vipp', '28.08.2026', 'Approved', 'success', '5.220,00', '1.480,00'],
+			['Frama', '29.08.2026', 'Approved', 'success', '1.640,00', '340,00']
+		].map(([name, date, pill, color, amount, saved], n) => ({
+			ref: 'SPENDLY-' + (441 + n), name, date, pill, color,
+			amount: amount + ' kr.', saved: 'Saved ' + saved + ' kr.'
+		}));
+
+		const STATUS_DOTS = { Draft: 'draft', 'In progress': 'progress', Done: 'done', Returned: 'returned', Cancelled: 'cancelled' };
+
+		const labelled = (text, node) =>
+			e('div', { className: 'sp-stack sp-gap-6' }, node, e('span', { className: 'sp-meta' }, text));
+
+		// the size is read off the token, not written here: a scale printed from memory
+		// is a scale that disagrees with the stylesheet the first time one value moves
+		const scale = document.querySelector('.sp') || document.documentElement;
+		const sized = (name, node) => {
+			const px = getComputedStyle(scale).getPropertyValue('--mark-' + name).trim();
+			return e('div', { className: 'sp-row-flex sp-gap-12' },
+				node ?? e(Mark, { size: name, fill: 'solid' }, 'HAY'),
+				e('span', { className: 'sp-meta' }, name + ' \u00b7 ' + px));
+		};
+
+		/* One call per component, read off a representative element - so a renamed prop
+		   changes the line on the page in the same pass. */
+		const calls = {};
+		const call = (name, node) => { calls[name] = jsx(node); return node; };
+
+		/* The code under each specimen is generated from the element that was rendered,
+		   never typed beside it: a call written by hand is a second copy of the
+		   specimen, and it goes stale the first time a prop changes. */
+		/* The call, not the layout around it. A specimen is often wrapped in a row or a
+		   column so it sits properly on the page, and those wrappers are the harness's
+		   own - so the walk descends through plain elements and stops at the first real
+		   component, which is the call the card is showing. */
+		const componentsIn = node => {
+			if (!node || typeof node !== 'object') return [];
+			if (Array.isArray(node)) return node.flatMap(componentsIn);
+			if (typeof node.type === 'function') return [node];
+			const kids = node.props && node.props.children;
+			return kids ? componentsIn(Array.isArray(kids) ? kids : [kids]) : [];
+		};
+
+		/* What to write inside a call. Components if it holds any - a table shows its
+		   rows, not the spans inside them. Where it holds none, the plain markup is
+		   what the call contains, so that is written instead: a card whose children are
+		   a title and a subtitle said "…" and left the reader guessing. */
+		const childrenOf = node => {
+			const kids = (node.props || {}).children;
+			if (!kids) return [];
+			if (typeof kids === 'function') {
+				try {
+					const out = [].concat(kids(standIn('o'))).flat().filter(x => x && typeof x === 'object');
+					return out.length ? out : [];
+				} catch (e) { return []; }
+			}
+			// strings stay: a label beside a nested element is part of the call, and
+			// dropping it printed <MenuItem icon="tag"> with its own label missing.
+			// Flattened, because a run of items written as one .map() arrives as a
+			// single array child - unflattened it was named <undefined /> and the two
+			// items it held never reached the page.
+			const list = (Array.isArray(kids) ? kids.flat(Infinity) : [kids]).filter(x => x !== null && x !== undefined && x !== false && x !== '');
+			const elements = list.filter(x => x && typeof x === 'object');
+			if (elements.some(x => typeof x.type === 'function')) return list.filter(x => typeof x !== 'object' || typeof x.type === 'function' || componentsIn([x]).length);
+			return list;
+		};
+
+		/* A call whose child is another call is written out in full, on two lines and an
+		   indent, because the card is showing both: a Field is only half a specimen
+		   without the control it wraps. */
+		const jsxLines = (node, depth) => {
+			const pad = '  '.repeat(depth);
+			if (typeof node === 'string') return [pad + text(node)];
+			const inner = childrenOf(node);
+			const name = nameOf(node);
+			const parts = propsOf(node, pad + '  ');
+			const templated = typeof (node.props || {}).children === 'function' && inner.length;
+			if (templated) {
+				// a renderer's cells sit inside {o => ( … )}, since that is what they are
+				return [
+					pad + openTag(node) + '>{o => (',
+					...inner.flatMap(k => jsxLines(k, depth + 1)),
+					pad + ')}</' + name + '>'
+				];
+			}
+			const oneLine = inner.length ? openTag(node) + '>' : jsx(node);
+
+			/* A tag stays on one line however long it gets. Wrapping its props made the
+			   call read as a form to fill in rather than a line of code, and a reader
+			   scanning for which component is used lost the name among its arguments.
+			   Nesting is what the indentation is for. */
+			if (!inner.length) return [pad + oneLine];
+			// a tag holding only words keeps them: nesting is for elements
+			if (inner.every(k => typeof k !== 'object'))
+				return [pad + openTag(node) + '>' + inline(inner) + '</' + name + '>'];
+			return [pad + oneLine, ...inner.flatMap(k => jsxLines(k, depth + 1)), pad + '</' + name + '>'];
+		};
+
+		const code = value => {
+			const nodes = componentsIn(Array.isArray(value) ? value : [value]);
+			const lines = nodes.flatMap(n => jsxLines(n, 0)).filter(Boolean);
+			if (!lines.length) return null;
+			return e('pre', { className: 'doc-code' },
+				lines.map((line, i) => e('span', { className: 'doc-code__line', key: i }, line)));
+		};
+
+		const vals = {
+			calls,
+			status: 'Loaded ' + FILES.length + ' files: ' + Object.keys(m).filter(k => /^[A-Z]/.test(k) && k !== 'React').join(', ') + '.',
+
+			buttonVariants: row([
+				call('Button', e(Button, { variant: 'solid', color: 'primary', size: 'standard' }, 'Solid')),
+				e(Button, { variant: 'outline' }, 'Outline'),
+				e(Button, { variant: 'text' }, 'Text')
+			]),
+
+			buttonColors: ['solid', 'outline', 'text'].map((variant, i) =>
+				e('div', { className: 'sp-row-flex sp-gap-12', key: i },
+					e(Button, { variant }, 'Primary'),
+					e(Button, { variant, color: 'warning' }, 'Warning'),
+					e(Button, { variant, color: 'danger' }, 'Danger')
+				)
+			),
+
+			buttonSizes: row([
+				e(Button, null, 'Standard'),
+				e(Button, { size: 'small' }, 'Small'),
+				e(Button, { size: 'xsmall', variant: 'outline' }, 'Xsmall'),
+				e(Button, { fullWidth: true }, 'Full width')
+			]),
+
+			buttonIcons: row([
+				e(Button, { iconStart: 'plus' }, 'Add line'),
+				e(Button, { variant: 'outline', iconEnd: 'chevron-right' }, 'Continue'),
+				e(Button, { color: 'danger', iconStart: 'trash' }, 'Delete order')
+			]),
+
+			iconButtons: row([
+				call('IconButton', e(IconButton, { icon: 'dots-vertical', 'aria-label': 'More' })),
+				e(IconButton, { icon: 'dots-vertical', 'aria-label': 'More', variant: 'outline' }),
+				e(IconButton, { icon: 'dots-vertical', 'aria-label': 'More', variant: 'quiet' }),
+				e(IconButton, { icon: 'x', 'aria-label': 'Clear', size: 'small' }),
+				e(IconButton, { icon: 'x', 'aria-label': 'Clear', size: 'field' })
+			]),
+
+			markSizes: row([
+				sized('small', call('Mark', e(Mark, { size: 'small', fill: 'solid' }, 'HAY'))),
+				sized('medium'),
+				sized('large'),
+				sized('xlarge')
+			]),
+
+			markFills: row([
+				labelled('default', e(Mark, { size: 'medium' }, 'HAY')),
+				labelled('solid', e(Mark, { size: 'medium', fill: 'solid' }, 'HAY')),
+				labelled('plain', e(Mark, { size: 'medium', fill: 'plain' }, 'HAY')),
+				labelled('photo', e(Mark, { size: 'medium', fill: 'photo', 'aria-label': "A photo of the item" })),
+				labelled('empty', e(Mark, { size: 'medium', fill: 'empty', 'aria-label': "No photo yet" })),
+				labelled('none', e(Mark, { size: 'medium', fill: 'none', 'aria-label': 'No vendor yet' }, '?')),
+				labelled('add', e(Mark, { size: 'medium', fill: 'add', 'aria-label': 'Add a vendor' }, '+')),
+				labelled('round', e(Mark, { size: 'medium', fill: 'solid', round: true }, 'HAY'))
+			]),
+
+			kinds: row([
+				labelled('person', e(Mark, { size: 'medium', fill: 'solid', round: true }, 'Mikkel Munk' )),
+				labelled('vendor', e(Mark, { size: 'medium', fill: 'solid' }, 'Indbo Møbler' )),
+				labelled('vendor', e(Mark, { size: 'medium', fill: 'solid' }, 'HAY' )),
+				labelled('vendor', e(Mark, { size: 'medium', fill: 'solid' }, 'Ferm Living' )),
+				labelled('category, picked', e(Mark, { size: 'medium', fill: 'solid', swatch: 'amber-ink', 'aria-label': 'Belysning' }, e(Icon, { name: 'lamp' })))
+			]),
+
+			markSwatches: ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
+				.map((swatch, i) => e(Mark, { key: i, size: 'small', fill: 'solid', swatch, 'aria-label': swatch })),
+
+			markSlots: row([
+				labelled('count', e(Mark, { size: 'large', fill: 'photo', count: 3, 'aria-label': 'Open photo', onClick: () => {} })),
+				labelled('text', e(Mark, { size: 'large', fill: 'photo', text: 'Receipt', 'aria-label': 'The receipt from Indbo Møbler' })),
+				labelled('error', e(Mark, { size: 'large', fill: 'photo', danger: 'Too large', 'aria-label': 'An upload that was too large' }))
+			]),
+
+			chips: row([
+				call('Chip', e(Chip, null, 'A value')),
+				e(Chip, {
+					variant: 'solid',
+					trail: e(IconButton, { icon: 'x', 'aria-label': 'Clear the vendor filter', size: 'small' })
+				}, 'Vendor: HAY'),
+				e(Chip, { variant: 'dashed', onClick: () => {} }, 'Vendor'),
+				e(Chip, { onClick: () => {} }, 'The same, clickable'),
+				e(Chip, { variant: 'pill', onClick: () => {} }, 'Pill'),
+				e(Chip, { color: 'danger' }, 'Danger')
+			]),
+
+			facets: rowPlain([
+				e(Chip, { variant: 'facet', defaultSelected: true }, 'Uncontrolled'),
+				e(Chip, { variant: 'facet', selected: this.state.facet, onSelect: facet => this.setState({ facet }) }, 'Controlled'),
+				e(Chip, {
+					variant: 'facet', inputType: 'radio', name: 'chip-status', value: 'done',
+					selected: this.state.chipStatus === 'done',
+					onSelect: (on, value) => on && this.setState({ chipStatus: value })
+				}, 'Approved'),
+				e(Chip, {
+					variant: 'facet', inputType: 'radio', name: 'chip-status', value: 'progress',
+					selected: this.state.chipStatus === 'progress',
+					onSelect: (on, value) => on && this.setState({ chipStatus: value })
+				}, 'In progress'),
+				e(Chip, {
+					variant: 'facet', inputType: 'radio', name: 'chip-status', value: 'cancelled',
+					selected: this.state.chipStatus === 'cancelled',
+					onSelect: (on, value) => on && this.setState({ chipStatus: value })
+				}, 'Failed'),
+				e('span', { className: 'sp-meta' }, 'stored: ' + this.state.chipStatus)
+			]),
+
+			pills: row([
+				call('Pill', e(Pill, null, 'Default')),
+				e(Pill, { color: 'success' }, 'Approved'),
+				e(Pill, { color: 'danger' }, 'Failed'),
+				e(Pill, { state: 'progress' }, 'Scanning')
+			]),
+
+			fieldSlots: row([
+				call('Field', e(Field, { label: 'Plain' }, e(TextField, { value: this.state.plain, onChange: plain => this.setState({ plain }), placeholder: 'Placeholder' }))),
+				e(Field, { label: 'Lead', lead: e(Icon, { name: 'search' }) },
+					e(TextField, { ...bind('lead', ''), placeholder: 'Search' })),
+				e(Field, { label: 'Unit', unit: 'kr.' }, e(NumberField, { ...bind('unit', 1320), locale: 'da-DK' })),
+				e(Field, { label: 'Trail', trail: e(IconButton, { icon: 'x', 'aria-label': 'Clear', size: 'field' }) },
+					e(TextField, { ...bind('trail', 'Value') })),
+				e(Field, { label: 'Kbd', kbd: e(Kbd, null, 'S') },
+					e(TextField, { ...bind('kbd', ''), placeholder: 'Search' })),
+				e(Field, { label: 'Chevron' },
+					e(TextField, { value: 'Opens a menu', onChange: () => {}, readOnly: true }))
+			]),
+
+			fieldMessages: row([
+				e(Field, { label: 'Hint', message: 'Shown while the value is right.' }, e(TextField, { ...bind('hint', 'Value') })),
+				e(Field, { label: 'Warning', messageType: 'warning', message: 'Later than the usual date.' }, e(TextField, { ...bind('warning', '24.12.2026') })),
+				e(Field, { label: 'Danger', messageType: 'danger', message: 'An amount is required.' }, e(NumberField, { ...bind('danger', null), locale: 'da-DK' }))
+			]),
+
+			fieldControls: row([
+				e(Field, { label: 'Vendor' },
+					e(Combobox, {
+						'aria-label': 'Vendor',
+						value: this.state.vendor,
+							open: this.state.vendorOpen,
+						onOpenChange: vendorOpen => this.setState({ vendorOpen })
+					},
+						e(ComboboxGroup, null, 'Recent'),
+						[
+							{ name: 'Indbo Møbler', orders: '7 orders' },
+							{ name: 'HAY', orders: '3 orders' },
+							{ name: 'Muuto', orders: '1 order' }
+						].map(v => e(ComboboxOption, {
+							key: v.name,
+							mark: e(Mark, { size: 'small', fill: 'solid' }, v.name ),
+							meta: v.orders,
+							selected: this.state.vendor === v.name,
+									onSelect: () => this.setState({ vendor: v.name, vendorOpen: false })
+						}, v.name)))),
+				e(Field, { label: 'Textarea' }, e(TextField, { multiline: true, rows: 3, ...bind('area', 'A note on the order.') }))
+			]),
+
+			required: row([
+				e(Field, { label: 'Vendor', required: true },
+					e(TextField, { ...bind('required', 'Indbo Møbler') })),
+				e(Field, { label: 'Reference', message: 'Yours, if you use one.' },
+					e(TextField, { ...bind('optional', ''), placeholder: 'Optional' }))
+			]),
+
+			fieldStates: row([
+				e(Field, { label: 'Disabled' }, e(TextField, { value: 'Value', onChange: () => {}, disabled: true })),
+				e(Field, { label: 'Read-only' }, e(TextField, { value: 'Value', onChange: () => {}, readOnly: true })),
+				e(Field, { label: 'Empty' }, e(TextField, { variant: 'empty', ...bind('emptyState', ''), placeholder: 'Nothing yet' })),
+				e(Field, { label: 'Focus and hover' }, e(TextField, { value: this.state.focusDemo, onChange: focusDemo => this.setState({ focusDemo }), placeholder: 'Tab into this one' }))
+			]),
+
+			buttonStates: row([
+				e(Button, { disabled: true }, 'Solid'),
+				e(Button, { variant: 'outline', disabled: true }, 'Outline'),
+				e(Button, { variant: 'text', disabled: true }, 'Text'),
+				e(Button, { color: 'danger', disabled: true }, 'Danger'),
+				e(IconButton, { icon: 'dots-vertical', 'aria-label': 'More', disabled: true })
+			]),
+
+			searchable: call('Combobox searchable', e(Combobox, {
+				searchable: true,
+				'aria-label': 'Vendor',
+				placeholder: 'Start typing a vendor',
+				value: this.state.found,
+				chevron: e(Icon, { name: 'chevron-down' }),
+				search: this.state.vendorQuery,
+				onSearch: vendorQuery => this.setState({ vendorQuery }),
+				open: this.state.foundOpen,
+				onOpenChange: foundOpen => this.setState({ foundOpen })
+			},
+				matches.length
+					? matches.map(v => e(ComboboxOption, {
+						key: v,
+						selected: v === this.state.found,
+						mark: e(Mark, { size: 'small', fill: 'solid' }, v),
+							onSelect: () => this.setState({ found: v, vendorQuery: '', foundOpen: false })
+					}, v))
+					: e(ComboboxEmpty, null, 'No vendor by that name.'))),
+
+			combobox: row([
+				e(Combobox, {
+					variant: 'sort',
+					'aria-label': 'Sort',
+					lead: e('span', { className: 'sp-combobox__chevron' }, 'Sort'),
+					value: this.state.sortBy,
+					open: this.state.sortOpen,
+					onOpenChange: sortOpen => this.setState({ sortOpen })
+				},
+					['Newest first', 'Oldest first', 'Amount, high to low'].map(option => e(ComboboxOption, {
+						key: option,
+						selected: this.state.sortBy === option,
+							onSelect: () => this.setState({ sortBy: option, sortOpen: false })
+					}, option))),
+				e(Combobox, {
+					'aria-label': 'Status',
+					value: this.state.status,
+					lead: e('span', { className: 'sp-combobox__dot', 'data-dot': STATUS_DOTS[this.state.status] }),
+					open: this.state.statusOpen,
+					onOpenChange: statusOpen => this.setState({ statusOpen })
+				},
+					e(ComboboxGroup, null, 'Status'),
+					Object.entries(STATUS_DOTS).map(([label, dot]) => e(ComboboxOption, {
+						key: label,
+						dot,
+						selected: this.state.status === label,
+							onSelect: () => this.setState({ status: label, statusOpen: false })
+					}, label))),
+				e(Combobox, { 'aria-label': 'Nothing matches', value: 'Vitra' },
+					e(ComboboxEmpty, null, 'No vendor by that name.'))
+			]),
+
+			cardHeaders: row([
+				e(Card, null,
+					e(CardHeader, { name: 'Needs a look' }),
+					e('span', { className: 'sp-data' }, '2 categories over their limit')),
+				e(Card, null,
+					e(CardHeader, { name: 'Drafts', meta: 'newest 3', actions: [{ label: 'All 5', to: '#' }] }),
+					e('span', { className: 'sp-data' }, 'Indbo Møbler · 19/08')),
+				e(Card, null,
+					e(CardHeader, { name: 'Top vendors', aside: 'August · top 8 of 10' }),
+					e('span', { className: 'sp-data' }, 'Indbo Møbler · 24.310 kr.')),
+				e(Card, null,
+					e(CardHeader, { name: 'Items · 2', aside: '1 line needs attention', asideTone: 'danger' }),
+					e('span', { className: 'sp-data' }, 'Lounge chair · 2 × 4.129,00')),
+				e(Card, null,
+					e(CardHeader, { name: 'Spend by month', control: e(Segmented, { name: 'r5-head', options: [{ value: 's', label: 'Stacked' }, { value: 't', label: 'Total' }], defaultValue: 's' }) }),
+					e('span', { className: 'sp-data' }, 'Jan to Aug')),
+				e(Card, null,
+					e(CardHeader, { name: 'Spend, August', status: e(Pill, { color: 'danger' }, '2.100 over') }),
+					e('span', { className: 'sp-stat__figure' }, '24.100 kr.')),
+				e(Card, null,
+					e(CardHeader, { name: 'Showing', actions: [{ label: 'Reset', onClick: () => {} }, { label: 'Open in orders', to: '#' }] }),
+					e('span', { className: 'sp-data' }, '2026 · Indbo Møbler')),
+				e(Card, null,
+					e(CardHeader, { name: 'August 2026', onDismiss: () => {}, dismissLabel: 'Hide the August summary' }),
+					e('span', { className: 'sp-data' }, '61.480 kr. across 18 orders'))
+			]),
+
+			cardFooters: row([
+				e(Card, { footer: e(Button, null, 'Save') },
+					e('span', { className: 'sp-title' }, 'One action'),
+					e('span', { className: 'sp-subtitle' }, 'It fills the footer.')),
+				e(Card, { footerLayout: 'split', footerCommits: true, footer: [e(Button, { key: 'a', variant: 'text' }, 'Cancel'), e(Button, { key: 'b' }, 'Save')] },
+					e('span', { className: 'sp-title' }, 'A pair'),
+					e('span', { className: 'sp-subtitle' }, 'Equal halves, both at the committing size.')),
+				e(Card, { variant: 'flush' },
+					e(CardBody, null,
+						e('div', { className: 'sp-stacked' },
+							e('span', { className: 'sp-title' }, 'Flush'),
+							e('span', { className: 'sp-subtitle' }, 'No gap and no padding of its own: the content owns both, which is what a table or an image needs.'))))
+			]),
+
+			cardShell: e(Cards, null,
+				e(Card, { key: 's', variant: 'shell' },
+					e('span', { className: 'sp-section-label' }, 'August'),
+					e('span', { className: 'sp-stat__figure' }, '61.480,00 kr.'),
+					e('span', { className: 'sp-meta' }, 'Across 18 orders')),
+				e(Card, { key: 'c', chevron: e(Icon, { name: 'chevron-right' }), to: '#' },
+					e('span', { className: 'sp-title' }, 'A card that opens'),
+					e('span', { className: 'sp-subtitle' }, 'The chevron is the card\'s part, and the whole card is the link.'))
+			),
+
+			cardColors: row([
+				e(Card, { color: 'warning' },
+					e('span', { className: 'sp-title' }, 'Warning'),
+					e('span', { className: 'sp-subtitle' }, 'Something to deal with.')),
+				e(Card, { color: 'danger' },
+					e('span', { className: 'sp-title' }, 'Danger'),
+					e('span', { className: 'sp-subtitle' }, 'Something that failed.')),
+				e(Card, { variant: 'row' },
+					e(Mark, { size: 'medium', fill: 'solid' }, 'IM'),
+					e('div', { className: 'sp-stack' },
+						e('span', { className: 'sp-title' }, 'Row'),
+						e('span', { className: 'sp-subtitle' }, 'Layout only: the card lays its own children in a line.')))
+			]),
+
+			wells: row([
+				e(Card, null, e(Well, null,
+					e('span', { className: 'sp-title' }, 'Default'),
+					e('span', { className: 'sp-subtitle' }, 'Its own thing inside the card.'))),
+				e(Card, null, e(Well, { variant: 'quiet' },
+					e('span', { className: 'sp-data' }, '18 records'),
+					e('span', { className: 'sp-subtitle' }, 'Tighter, for a pair of lines.'))),
+				e(Card, null, e(Well, { color: 'danger' },
+					e('span', { className: 'sp-title' }, 'Danger'),
+					e('span', { className: 'sp-subtitle' }, 'What went wrong.')))
+			]),
+
+			listItemCards: row([
+				e(ListItem, { variant: 'card', mark: e(Mark, { size: 'medium', fill: 'solid' }, 'IM'), onClick: () => {} },
+					e(Stacked, null,
+						e(Line, null,
+							e('span', { className: 'sp-title sp-truncate' }, 'Indbo Møbler'),
+							e('span', { className: 'sp-grow' }),
+							e('span', { className: 'sp-amount' }, '4.310,00')),
+						e(Line, null,
+							e('span', { className: 'sp-meta' }, 'SPENDLY-447 · 08/08/2026'),
+							e('span', { className: 'sp-grow' }),
+							e(Pill, { color: 'success' }, 'Approved')))),
+				e(ListItem, { variant: 'card', selected: true, mark: e(Mark, { size: 'medium', fill: 'photo', 'aria-label': "A photo of the item" }), onClick: () => {} },
+					e(Stacked, null,
+						e(Line, null,
+							e('span', { className: 'sp-title sp-truncate' }, 'HAY'),
+							e('span', { className: 'sp-grow' }),
+							e('span', { className: 'sp-amount' }, '890,00')),
+						e(Line, null,
+							e('span', { className: 'sp-meta' }, 'Selected'))))
+			]),
+
+			noteRows: row([
+				e(ListItem, { mark: e(Mark, { size: 'small', fill: 'solid' }, 'IM'), count: 4 },
+					e('span', { className: 'sp-data' }, 'Default')),
+				e(ListItem, { variant: 'outline', selected: true, chevron: e(Icon, { name: 'chevron-right' }), onClick: () => {} },
+					e('span', { className: 'sp-data' }, 'Outline')),
+				e(ListItem, { variant: 'primary' }, e('span', { className: 'sp-data' }, 'Primary')),
+				e(ListItem, { color: 'warning', count: 2 }, e('span', { className: 'sp-data' }, 'Warning')),
+				e(ListItem, { color: 'danger' }, e('span', { className: 'sp-data' }, 'Danger')),
+				e(ListItem, { color: 'success' }, e('span', { className: 'sp-data' }, 'Success')),
+				e(ListItem, { variant: 'stack' },
+					e('span', { className: 'sp-data' }, 'Stacked'),
+					e('span', { className: 'sp-subtitle' }, 'Two lines rather than a row.'))
+			]),
+
+			lines: e('div', { className: 'sp-stack sp-gap-8' },
+				e(ListItem, {
+					key: 'a',
+					handle: e(Icon, { name: 'grip-vertical' }),
+					mark: e(Mark, { size: 'medium', fill: 'photo', 'aria-label': "A photo of the item" }),
+					actions: e(ListItemRemove, null, e(IconButton, { icon: 'trash', 'aria-label': 'Remove line', size: 'small' }))
+				}, e('div', { className: 'sp-stack' },
+					e('span', { className: 'sp-data' }, 'Lounge chair, oak'),
+					e('span', { className: 'sp-subtitle' }, '2 × 4.310,00 kr.'))),
+				e(Insertion, { key: 'i' }),
+				e(ListItem, {
+					key: 'b',
+					color: 'warning',
+					handle: e(Icon, { name: 'grip-vertical' }),
+					mark: e(Mark, { size: 'medium', fill: 'empty', 'aria-label': "No photo yet" })
+				}, e('div', { className: 'sp-stack' },
+					e('span', { className: 'sp-data' }, 'Side table'),
+					e('span', { className: 'sp-subtitle' }, 'No amount yet.'))),
+				e(ListItem, { key: 'd', variant: 'carried', handle: e(Icon, { name: 'grip-vertical' }) },
+					e('span', { className: 'sp-data' }, 'Carried, mid-drag')),
+				e(ListItem, { key: 'e', variant: 'add', mark: e(Mark, { size: 'medium', fill: 'add', 'aria-label': 'Add a vendor' }, '+') },
+					e('span', { className: 'sp-title' }, 'Add line'))
+			),
+
+			boxes: row([
+				e(Choice, { control: e(Check, { defaultChecked: true }) }, 'Checkbox'),
+				e(Choice, { control: e(Check, { indeterminate: true }) }, 'Some of the set'),
+				e(Choice, { control: e(Check, { disabled: true }) }, 'Disabled'),
+				e(Choice, { control: e(Radio, { name: 'r9', defaultChecked: true }) }, 'Radio'),
+				e(Choice, { control: e(Switch, { defaultChecked: true }) }, 'Applies at once')
+			]),
+
+			choices: row([
+				e(FieldGroup, { legend: 'Where the amount comes from' },
+					e(Choice, { variant: 'row', control: e(Radio, { name: 'r10', defaultChecked: true }) }, 'The receipt total'),
+					e(Choice, { variant: 'row', control: e(Radio, { name: 'r10' }) }, 'The sum of the lines')),
+				e(FieldGroup, { legend: 'What happens on import' },
+					e(Choice, {
+						variant: 'described',
+						control: e(Radio, { name: 'r11', defaultChecked: true }),
+						description: 'Rows that match an existing order are skipped.'
+					}, 'Skip duplicates'),
+					e(Choice, {
+						variant: 'described',
+						control: e(Radio, { name: 'r11' }),
+						description: 'Every row is kept, and duplicates are flagged for review.'
+					}, 'Keep everything'))
+			]),
+
+			segmented: row([
+				e(Segmented, { name: 's1', defaultValue: 'list', options: [
+					{ value: 'list', label: 'List' },
+					{ value: 'cards', label: 'Cards' }
+				] }),
+				e(Segmented, { name: 's2', defaultValue: 'month', options: [
+					{ value: 'week', label: 'Week' },
+					{ value: 'month', label: 'Month' },
+					{ value: 'year', label: 'Year' }
+				] }),
+				e(Segmented, { name: 's3', defaultValue: 'all', options: [
+					{ value: 'all', label: 'All' },
+					{ value: 'mine', label: 'Mine' },
+					{ value: 'flagged', label: 'Flagged', disabled: true }
+				] })
+			]),
+
+			segmentedFacet: e(Segmented, { name: 's4', variant: 'facet', defaultValue: 'any', options: [
+				{ value: 'any', label: 'Any' },
+				{ value: 'mine', label: 'Mine' },
+				{ value: 'shared', label: 'Shared' }
+			] }),
+
+			more: row([
+				e(Field, { label: 'Email' },
+					e(TextField, { type: 'email', value: this.state.email, onChange: email => this.setState({ email }), placeholder: 'name@example.net' })),
+				e(Field, { label: 'Vendors this rule covers' },
+					e(TokensField, {
+						value: this.state.tokens,
+						onChange: tokens => this.setState({ tokens }),
+						'aria-label': 'Vendors this rule covers',
+						placeholder: 'Add a vendor'
+					}))
+			]),
+
+			palette: e(Picker, {
+				'aria-label': 'A palette of its own',
+				swatches: ['#1d4d33', '#7a5c23', '#8a4a41', '#3f5d6b', '#6b5b7b'],
+				value: this.state.own,
+				onChange: own => this.setState({ own })
+			}),
+
+			pickers: row([
+				e(Field, { label: 'Colour' },
+					e(Picker, {
+						'aria-label': 'Colour',
+						swatches: ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6'],
+						value: this.state.swatch,
+						onChange: swatch => this.setState({ swatch }),
+						custom: true,
+						customIcon: e(Icon, { name: 'plus' })
+					})),
+				e(Field, { label: 'Icon' },
+					e(Picker, {
+						'aria-label': 'Icon',
+						value: this.state.glyph,
+						onChange: glyph => this.setState({ glyph }),
+						icons: ['armchair', 'lamp', 'flower', 'bookmark', 'shopping-bag', 'receipt', 'tag', 'diamond']
+							.map(name => ({ name, icon: e(Icon, { name }) }))
+					}))
+			]),
+
+			bars: row([
+				e(SearchInput, {
+					value: this.state.listSearch,
+					onChange: listSearch => this.setState({ listSearch }),
+					placeholder: 'Search orders',
+					'aria-label': 'Search orders'
+				})
+			]),
+
+			inputs: row([
+				e(Field, { label: 'Text', message: 'A hint that is always true.' },
+					call('TextField', e(TextField, { value: this.state.text, onChange: text => this.setState({ text }), maxLength: 64, placeholder: 'What was bought' }))),
+				e(Field, { label: 'Amount', unit: 'kr.' },
+					call('NumberField', e(NumberField, { value: this.state.amount, onChange: amount => this.setState({ amount }), locale: 'da-DK' }))),
+				e(Field, { label: 'Password' },
+					e(PasswordField, {
+						value: this.state.secret,
+						onChange: secret => this.setState({ secret }),
+						autoComplete: 'current-password'
+					})),
+				e(Field, { label: 'Date, weekends closed', message: 'Deliveries run Monday to Friday, and two days are already full.' },
+					e(DateField, {
+						// its own value, and a weekday: the guard reports a value the reader
+						// could not have picked, and a specimen is not exempt from it
+						value: this.state.delivery,
+						onChange: delivery => this.setState({ delivery }),
+						native: false,
+						locale: 'da-DK',
+						min: '2026-08-01',
+						max: '2026-09-30',
+						// a rule, not a list: every weekend, plus the two days already taken
+						unavailable: date => [0, 6].includes(new Date(date + 'T00:00').getDay()) || ['2026-08-12', '2026-08-19'].includes(date)
+					})),
+				e(Field, { label: 'Date' },
+					e(DateField, {
+						value: this.state.day,
+						onChange: day => this.setState({ day }),
+						locale: 'da-DK'
+					})),
+				e(Field, { label: 'Search' },
+					e(SearchInput, {
+						value: this.state.search,
+						onChange: search => this.setState({ search }),
+							kbd: e('kbd', { className: 'sp-kbd' }, 'S'),
+						placeholder: 'Search orders'
+					})),
+				e(Field, { label: 'Note' },
+					e(TextField, { value: this.state.note, onChange: note => this.setState({ note }), multiline: true, rows: 3 })),
+				e(Field, { label: 'A computed figure', unit: 'kr.' },
+					e(NumberField, { value: 1650, onChange: () => {}, computed: true, locale: 'da-DK' })),
+				e(Field, { label: 'Danger', messageType: 'danger', message: 'An amount is required.' },
+					e(NumberField, { ...bind('blocked', null), danger: true, locale: 'da-DK' }))
+			]),
+
+			range: e(Field, { label: 'Amount between' },
+				e(RangeSlider, {
+					value: this.state.bounds,
+					onChange: bounds => this.setState({ bounds }),
+					min: 0,
+					max: 6000,
+					step: 100,
+					label: 'Amount'
+				})),
+
+			steppers: row([
+				call('Stepper', e(Stepper, { 'aria-label': 'quantity', defaultValue: 2, min: 1, max: 99 })),
+				e(Stepper, {
+					'aria-label': 'quantity',
+					value: this.state.qty,
+					min: 1,
+					max: 4,
+					onChange: qty => this.setState({ qty })
+				}),
+				e(Stepper, {
+					'aria-label': 'metres',
+					value: this.state.quantity,
+					min: 0,
+					max: 10,
+					step: 0.25,
+					locale: 'da-DK',
+					onChange: quantity => this.setState({ quantity })
+				})
+			]),
+
+			filedrop: e(FileDrop, { icon: 'upload', accept: 'image/*,application/pdf', multiple: true },
+				e('span', null, 'Drop a receipt here, or choose a file'),
+				e('span', { className: 'sp-meta' }, 'Images and PDF')),
+
+			menus: row([
+				e('div', { className: 'sp-stack sp-gap-8' },
+					e(Menu, { 'aria-label': 'This order' },
+						e(MenuLabel, null, 'This order'),
+						[['Edit', 'pencil'], ['Duplicate', 'copy']].map(([word, icon]) => e(MenuItem, {
+							key: word, icon, onClick: () => this.setState({ lastAction: word })
+						}, word)),
+						e(MenuSeparator, null),
+						e(MenuItem, { icon: 'download', onClick: () => this.setState({ lastAction: 'Export' }) }, 'Export'),
+						e(MenuItem, { icon: 'trash', disabled: true }, 'Delete')),
+					e('span', { className: 'sp-meta' }, this.state.lastAction ? 'chose: ' + this.state.lastAction : 'nothing chosen yet')),
+				e(Popover, {
+					position: 'static',
+					head: e('div', { className: 'sp-stack sp-gap-6' },
+						e('span', { className: 'sp-title' }, 'Move to a category'),
+						e('span', { className: 'sp-subtitle' }, 'Applies to the 4 orders you picked.')),
+					summary: e('span', { className: 'sp-subtitle' }, '4 orders move to Havemøbler'),
+					actions: [
+						e(Button, { key: 'c', variant: 'outline', onClick: () => this.setState({ lastAction: 'Cancelled the move' }) }, 'Cancel'),
+						e(Button, { key: 'a', onClick: () => this.setState({ lastAction: 'Moved 4 orders' }) }, 'Apply')
+					]
+				},
+					e(Choice, { variant: 'row', control: e(Radio, { name: 'p1', defaultChecked: true }) }, 'Havemøbler'),
+					e(Choice, { variant: 'row', control: e(Radio, { name: 'p1' }) }, 'Boligtilbehør'),
+					e(Choice, { variant: 'row', control: e(Radio, { name: 'p1' }) }, 'Belysning'))
+			]),
+
+			dialog: e(Dialog, { scrim: false },
+				e(DialogTitle, { key: 't' }, 'Delete this order?'),
+				e(DialogBody, { key: 'b' }, 'SPENDLY-447 from Indbo Møbler, 3.980,00 kr. Its 4 lines and 3 attachments go with it, and the August total drops by 3.980,00 kr.'),
+				e(DialogActions, { key: 'a' },
+					e(Button, { key: 'k', variant: 'outline', onClick: () => this.setState({ lastAction: 'Kept the order' }) }, 'Keep it'),
+					e('span', { key: 'g', className: 'sp-grow' }),
+					e(Button, { key: 'd', color: 'danger', iconStart: 'trash', onClick: () => this.setState({ lastAction: 'Deleted the order' }) }, 'Delete order'))),
+
+			toasts: (() => {
+				const drop = id => this.setState(s => ({ toasts: s.toasts.filter(x => x !== id) }));
+				const shown = [
+					this.state.toasts.includes('removed') && e(Toast, { key: 'removed', icon: 'check' },
+						'Line removed from SPENDLY-447',
+						e(ToastUndo, { key: 'u', onClick: () => drop('removed') }, 'Undo')),
+					this.state.toasts.includes('unreadable') && e(Toast, {
+						key: 'unreadable', color: 'danger', icon: 'alert-circle'
+					}, 'That file could not be read'),
+					this.state.toasts.includes('count') && e(Toast, { key: 'count', compact: true }, '4 picked'),
+					this.state.toasts.includes('asks') && e(Toast, { key: 'asks', asks: true, icon: 'alert-triangle' },
+						'This cannot be undone after the toast disappears',
+						e(ToastUndo, { key: 'u', onClick: () => drop('asks') }, 'Keep it'))
+				].filter(Boolean);
+				return shown.length
+					? shown
+					: [e(Button, { key: 'again', variant: 'outline', size: 'small', onClick: () => this.setState({ toasts: ['removed', 'unreadable', 'count', 'asks'] }) }, 'Bring them back')];
+			})(),
+
+			alerts: row([
+				e(Alert, { mark: '!', title: 'This order puts Decor over its limit' },
+					'24.100 of 22.000 kr. for August. Saving is fine - you will just see it flagged.'),
+				e(Alert, { color: 'danger', mark: '!', title: 'Two of the rows could not be imported' },
+					'They have no price. The other 36 are ready.'),
+				e(Alert, { color: 'success', mark: e(Icon, { name: 'check' }), title: 'The order was created' },
+					'SPENDLY-452, with its 3 lines and 2 attachments.')
+			]),
+
+			table: e(List, {
+				data: ORDERS,
+				recordKey: o => o.ref,
+				// five only so the specimen has something to load; in the product this is the
+				// reader's own setting and a page never chooses it
+				pageSize: 5,
+				onRowClick: o => this.setState({ lastAction: 'Opened ' + o.ref })
+			},
+				e(Caption, { key: 'caption' },
+					e('strong', { className: 'sp-data' }, ORDERS.length + ' orders'),
+					e('span', { className: 'sp-subtitle' }, '\u00b7 41.960,00 kr.')),
+
+				e(Selected, { key: 'selected' }, chosen => [
+					// the count on the left, as Order list states it, and the actions pushed
+					// to the right - the spacer is the page's, since only the page knows
+					// what belongs on each side of it
+					e('span', { key: 'n', className: 'sp-bulkbar__count' },
+						chosen.length + ' of ' + ORDERS.length + ' selected'),
+					e('span', { key: 'g', className: 'sp-grow' }),
+					e(Button, { key: 'm', variant: 'outline', size: 'small', border: 'inherit' }, 'Set status'),
+					e(Button, { key: 'c', variant: 'outline', size: 'small', border: 'inherit' }, 'Add category'),
+					e(Button, { key: 'x', variant: 'outline', size: 'small', border: 'inherit' }, 'Export'),
+					e(Button, {
+						key: 'd', color: 'danger', size: 'small', iconStart: 'trash',
+						onClick: () => this.setState({ lastAction: 'Delete ' + chosen.length + ' orders?' })
+					}, 'Delete')
+				]),
+
+				e(ListHead, { key: 'head' },
+					e(ListCell, { key: 'c', cell: 'checkbox' }),
+					e(ListCell, { key: 't', width: 'title' }, 'Order'),
+					e(ListCell, { key: 'd', width: 'date' }, 'Date'),
+					e(ListCell, { key: 's', width: 'status' }, 'Status'),
+					e(ListCell, { key: 'a', width: 'amount' }, 'Amount'),
+					e(ListCell, { key: 'm', width: 'menu' })),
+
+				e(ListRow, { key: 'row' }, o => [
+					e(ListCell, { key: 'c', cell: 'checkbox' }),
+					e(ListCell, { key: 't', cell: 'flex' },
+						e(Mark, { size: 'medium', fill: 'solid' }, o.name ),
+						e(Stacked, null,
+							e('span', { className: 'sp-title sp-truncate' }, o.name),
+							e('span', { className: 'sp-subtitle' }, o.ref))),
+					e(ListCell, { key: 'd' }, e('span', { className: 'sp-data sp-number' }, o.date)),
+					e(ListCell, { key: 's' }, o.pill ? e(Pill, { color: o.color }, o.pill) : e(Pill, { state: 'progress' }, 'Scanning')),
+					e(ListCell, { key: 'a', cell: 'amount' },
+						e('span', { className: 'sp-amount' }, o.amount),
+						e('span', {
+							className: 'sp-amount-secondary',
+							...(o.saved.startsWith('Saved 0,00') ? {} : { 'data-color': 'success' })
+						}, o.saved)),
+					e(ListCell, { key: 'm', cell: 'menu' }, e(Anchor, { open: this.state.menuFor === o.ref },
+						e(IconButton, {
+							icon: 'dots-vertical',
+							'aria-label': 'This order',
+							'aria-haspopup': 'menu',
+							'aria-expanded': this.state.menuFor === o.ref ? 'true' : 'false',
+							onClick: ev => { ev.stopPropagation(); this.setState({ menuFor: this.state.menuFor === o.ref ? null : o.ref }) }
+						}),
+						// always rendered: the anchor's open state is what shows it, which is
+						// what the stylesheet reads - so the menu is part of the row, not
+						// something a page conjures on click
+						e(Menu, { position: 'floating', 'aria-label': 'This order' },
+								e(MenuItem, { icon: 'pencil', onClick: () => this.setState({ menuFor: null }) }, 'Edit'),
+								e(MenuItem, { icon: 'tag' }, 'Set status',
+								e(Menu, { position: 'sub', 'aria-label': 'Set the status' },
+									['draft', 'progress', 'done', 'returned', 'cancelled'].map(d => e(MenuItem, {
+										key: d, dot: d, selected: d === (o.dot || 'progress'),
+										onClick: () => this.setState({ menuFor: null })
+									}, d[0].toUpperCase() + d.slice(1))))),
+								e(MenuItem, { icon: 'download', onClick: () => this.setState({ menuFor: null }) }, 'Export'),
+								e(MenuSeparator, null),
+								e(MenuItem, { icon: 'trash', danger: true, onClick: () => this.setState({ menuFor: null }) }, 'Delete order'))
+					))
+				])
+			),
+
+			gauges: row([
+				e('div', { className: 'sp-stack sp-gap-8' },
+					e(Gauge, { value: 72, 'aria-label': 'Decor, August' }),
+					e('span', { className: 'sp-meta' }, '15.800 of 22.000 kr.')),
+				e('div', { className: 'sp-stack sp-gap-8' },
+					e(Gauge, { value: 91, over: 9, marker: 68, 'aria-label': 'Furniture, August' }),
+					e('span', { className: 'sp-row-flex sp-gap-6' },
+						e(GaugeKey, null),
+						e('span', { className: 'sp-meta sp-meta--over' }, '24.100 of 22.000 kr., 2.100 over'))),
+				e('div', { className: 'sp-stack sp-gap-8' },
+					e(Gauge, { value: 40, untargeted: true, 'aria-label': 'Lighting, August' }),
+					e('span', { className: 'sp-meta' }, 'No limit set'))
+			]),
+
+			plot: e(Plot, {
+				axis: ['30k', '20k', '10k', '0'],
+				limit: { at: 34, label: 'Limit' }
+			},
+				e(Bars, {
+					variant: 'plot',
+					selected: this.state.month,
+					onSelect: (month, from, to) => this.setState({ month, monthFrom: from, monthTo: to }),
+					columns: [
+						{ key: 'may', height: 45, tick: 'May', from: '2026-05-01', to: '2026-05-31' },
+						{ key: 'jun', height: 60, tick: 'Jun', from: '2026-06-01', to: '2026-06-30' },
+						{ key: 'jul', height: 51, tick: 'Jul', from: '2026-07-01', to: '2026-07-31' },
+						{ key: 'aug', height: 81, tick: 'Aug', from: '2026-08-01', to: '2026-08-31', segments: [{ key: '1', share: 39 }, { key: '2', share: 28 }, { key: '3', share: 21 }, { key: '4', share: 12 }] },
+						{ key: 'sep', height: 33, tick: 'Sep', from: '2026-09-01', to: '2026-09-30', muted: true }
+					]
+				})),
+
+			plotSelection: e('span', { className: 'sp-meta' },
+				this.state.monthFrom
+					? 'onSelect("' + this.state.month + '", "' + this.state.monthFrom + '", "' + this.state.monthTo + '")'
+					: 'Click a column'),
+
+			stats: row([
+				e(Card, null, e(Stat, { label: 'August', figure: '61.480,00 kr.', delta: 'Saved 8.240,00 kr.' })),
+				e(Card, null, e(Stat, { label: 'Orders', figure: '18', delta: 'Saved 1.320,00 kr.' })),
+				e(Card, null, e('div', { className: 'sp-stack sp-gap-8' },
+					e(Stat, { label: 'This week', figure: '7.310,00 kr.' }),
+					e(Bars, { variant: 'spark', columns: [45, 60, 51, 81, 33, 54, 71].map((h, i) => ({ key: String(i), height: h, muted: i !== 3 })) })))
+			]),
+
+			sums: e(Card, null,
+				e(Sum, { value: '3.640,00 kr.' }, 'Stacked'),
+				e(Sum, { value: '340,00 kr.' }, 'Shipping'),
+				e(Sum, { variant: 'total', value: '3.980,00 kr.' }, 'Total')),
+
+			attachments: (() => {
+				const remove = id => this.setState(s => ({ files: s.files.filter(f => f.id !== id) }));
+				const add = () => this.setState(s => ({
+					files: [...s.files, { id: 'file-' + (s.files.length + 1), fill: 'photo' }]
+				}));
+				return [
+					...this.state.files.map(file => e(Mark, {
+						key: file.id,
+						size: 'xlarge',
+						fill: file.fill,
+						'aria-label': file.id,
+						text: file.text,
+						danger: file.danger,
+						onClick: file.busy || file.danger ? undefined : () => this.setState({ lastAction: 'Opened ' + file.id }),
+						remove: e(MarkRemove, { 'aria-label': 'Remove ' + file.id, onClick: () => remove(file.id) }, e(Icon, { name: 'x' }))
+					}, file.busy ? e(Spinner, null) : file.fill === 'none' ? e(Icon, { name: 'file' }) : null)),
+					e(Mark, { key: 'add', size: 'xlarge', fill: 'add', 'aria-label': 'Add a file', onClick: add }, e(Icon, { name: 'plus' }))
+				];
+			})(),
+
+			loading: e('div', { className: 'sp-stack sp-gap-12' },
+				e('div', { className: 'sp-row-flex sp-gap-12' },
+					e(Skeleton, { shape: 'mark' }),
+					e('div', { className: 'sp-stack sp-gap-6 sp-grow' },
+						e(Skeleton, { shape: 'title' }),
+						e(Skeleton, { shape: 'line' })),
+					e(Skeleton, { shape: 'pill' }),
+					e(Skeleton, { shape: 'end' })),
+				e('div', { className: 'sp-row-flex sp-gap-8' },
+					e(Spinner, null),
+					e('span', { className: 'sp-subtitle' }, 'Reading the receipt'))),
+
+			phone: e('div', { className: 'sp-phone sp-touch' },
+				e(TopBar, { touch: true },
+					e(IconButton, { icon: 'chevron-left', 'aria-label': 'Back to the orders' }),
+					e(Stacked, null,
+						e('span', { className: 'sp-title' }, 'Indbo Møbler'),
+						e('span', { className: 'sp-subtitle' }, 'SPENDLY-441')),
+					e(IconButton, { icon: 'dots-vertical', 'aria-label': 'This order' })),
+				e('div', { className: 'doc-phone-body' },
+					e(Card, null,
+						e('span', { className: 'sp-section-label' }, 'Total'),
+						e('span', { className: 'sp-stat__figure' }, '3.980,00 kr.'),
+						e('span', { className: 'sp-amount-secondary', 'data-color': 'success' }, 'Saved 1.320,00 kr.')),
+					e(Card, null,
+						e('span', { className: 'sp-title' }, 'Lines'),
+						e('span', { className: 'sp-subtitle' }, '4 lines, 3 attachments'))),
+				e(SaveBar, null,
+					e('span', { className: 'sp-subtitle sp-grow' }, 'Unsaved changes'),
+					e(Button, { variant: 'outline' }, 'Discard'),
+					e(Button, null, 'Save'))
+			),
+
+			tabs: e('div', { className: 'sp-phone sp-touch' },
+				e(TopBar, { touch: true },
+					e('span', { className: 'sp-title sp-grow' }, 'Orders')),
+				e('div', { className: 'doc-phone-body' },
+					e(Card, null,
+						e('span', { className: 'sp-title' }, 'Indbo Møbler'),
+						e('span', { className: 'sp-subtitle' }, 'SP-2026-0412'))),
+				e(TabBar, null,
+					e(TabBarItem, { icon: 'home' }, 'Home'),
+					e(TabBarItem, { icon: 'receipt', current: true }, 'Orders'),
+					e(TabBarItem, { icon: 'building-store' }, 'Vendors'),
+					e(TabBarItem, { icon: 'settings' }, 'Settings'))
+			),
+
+			sheet: e('div', { className: 'sp-phone sp-touch' },
+				e('div', { className: 'doc-phone-body' },
+					e(Card, null,
+						e('span', { className: 'sp-title' }, 'The screen underneath'),
+						e('span', { className: 'sp-subtitle' }, 'Still there, dimmed by the scrim.'))),
+				e(Scrim, null),
+				e(Sheet, null,
+					e('span', { className: 'sp-heading' }, 'Set a status'),
+					e(FieldGroup, null,
+						e(Choice, { variant: 'row' }, e(Radio, { name: 'ph', defaultChecked: true }), 'Approved'),
+						e(Choice, { variant: 'row' }, e(Radio, { name: 'ph' }), 'In progress'),
+						e(Choice, { variant: 'row' }, e(Radio, { name: 'ph' }), 'Returned')),
+					e(Button, { fullWidth: true }, 'Apply'))
+			),
+
+			shell: e(Shell, { collapsed: railed },
+				e(Sidebar, { key: 'menu', variant: menuState === 'peek' ? 'peek' : railed ? 'rail' : 'default' },
+					e(SidebarBrand, { key: 'b' },
+						e(Mark, { size: 'small', fill: 'solid' }, 'S'),
+						e('span', { className: 'sp-strong' }, 'Spendly')),
+					// rows are the menu's own children: its column is what spaces them
+					e(NavItem, { key: 'h', icon: 'home', current: true }, 'Home'),
+					e(SidebarGroup, { key: 'g1' }, 'Orders'),
+					e(NavItem, { key: 'o', icon: 'receipt', count: 18 }, 'All orders'),
+					e(NavItem, { key: 'v', icon: 'building-store', count: 24 }, 'Vendors'),
+					e(NavItem, { key: 'c', icon: 'category', count: 6 }, 'Categories'),
+					e(SidebarDivider, { key: 'd' }),
+					e(SidebarGroup, { key: 'g2' }, 'Needs attention'),
+					e(NavItem, { key: 'r', icon: 'bookmark', count: 4, countColor: 'warning' }, 'No receipt'),
+					e(NavItem, { key: 's', icon: 'settings' }, 'Settings'),
+					e('span', { key: 'sp', className: 'sp-grow' }),
+					e(SidebarDivider, { key: 'd2' }),
+					e(NavItem, { key: 'a', icon: 'user' }, 'Account'),
+					// the grip is the committed control, so the menu carries it - the state it
+					// writes is the page's, stored per user, and here it is the Menu tweak
+					e(SidebarGrip, {
+						key: 'grip',
+						expanded: !railed,
+						onClick: () => this.setState({ railed: !railed })
+					})
+				),
+
+				e(TopBar, { key: 'top' },
+					e(SearchInput, {
+						value: this.state.shellSearch,
+						onChange: shellSearch => this.setState({ shellSearch }),
+						placeholder: 'Search orders, vendors, items\u2026',
+						'aria-label': 'Search orders',
+						kbd: e(Kbd, null, '\u2318K')
+					})),
+
+				e(ShellContent, { key: 'content' },
+					e(Card, null,
+						e('span', { className: 'sp-section-label' }, 'August'),
+						e('span', { className: 'sp-stat__figure' }, '61.480,00 kr.')),
+					e(Card, { key: 'c2' },
+						e('span', { className: 'sp-section-label' }, 'July'),
+						e('span', { className: 'sp-stat__figure' }, '54.120,00 kr.')))
+			),
+
+			savebar: e(ListItem, { variant: 'sticky' },
+				e(Stacked, null,
+					e('span', { className: 'sp-subtitle' }, 'Total'),
+					e('span', { className: 'sp-amount' }, '3.980,00 kr.')),
+				e('span', { className: 'sp-grow' }),
+				e(Button, { variant: 'text' }, 'Discard'),
+				e(Button, null, 'Save order')),
+
+			empties: row([
+				e(Card, null, e(Empty, null,
+					e(Mark, { key: 'm', size: 'large', fill: 'none', 'aria-label': 'No orders' }, e(Icon, { name: 'receipt' })),
+					e(EmptyTitle, { key: 't' }, 'No orders in August'),
+					e(EmptyBody, { key: 'b' }, 'Every order you scan or enter will appear here.'),
+					e(Button, { key: 'a', iconStart: 'plus' }, 'New order'))),
+				e(Card, null, e(Empty, { dashed: true },
+					e(EmptyTitle, { key: 't' }, 'Nothing matches those filters'),
+					e(EmptyBody, { key: 'b' }, 'Three filters are on: August, Decor, over 1.000 kr.'),
+					e(Button, { key: 'a', variant: 'outline' }, 'Clear the filters')))
+			]),
+
+			keys: row([
+				e('span', { className: 'sp-row-flex sp-gap-8' }, e(Kbd, null, 'S'), e('span', { className: 'sp-subtitle' }, 'focuses the search')),
+				e('span', { className: 'sp-row-flex sp-gap-8' }, e(Kbd, null, 'N'), e('span', { className: 'sp-subtitle' }, 'starts an order')),
+				e('span', { className: 'sp-row-flex sp-gap-8' }, e(Kbd, { accent: true }, '?'), e('span', { className: 'sp-subtitle' }, 'lists every shortcut'))
+			]),
+
+			dates: row([
+				e('div', { className: 'sp-stack sp-gap-8' },
+					e(Field, { label: 'Date, on desktop' },
+						e(DateField, {
+							value: this.state.day,
+							onChange: day => this.setState({ day }),
+							locale: 'da-DK'
+						})),
+					e('span', { className: 'sp-meta' }, 'Typed or picked, in the reader\'s own format')),
+				e('div', { className: 'sp-touch sp-stack sp-gap-8' },
+					e(Field, { label: 'The same field on touch' },
+						e(DateField, {
+							value: this.state.day,
+							onChange: day => this.setState({ day }),
+							icon: 'calendar',
+							locale: 'da-DK'
+						})),
+					e('span', { className: 'sp-meta' }, 'The platform\'s own picker, because it is better than anything drawn'))
+			]),
+
+			rangePicker: call('RangePicker', e(RangePicker, rangeProps)),
+
+			rangeFloor: call('RangePicker minDays', e(RangePicker, {
+				from: this.state.hire[0],
+				to: this.state.hire[1],
+				onChange: (from, to) => this.setState({ hire: [from, to] }),
+				minDays: 3,
+				min: '2026-08-01',
+				max: '2026-09-30',
+				locale: 'da-DK'
+			})),
+
+			period: call('PeriodPicker', e(PeriodPicker, {
+				name: 'period',
+				value: this.state.period,
+				// one object for the preset, both periods and the comparison - the same shape
+				// the Picked child is handed, so the page reads one thing either way
+				onChange: p => this.setState({
+					period: p.period,
+					range: p.selected ? [p.selected.from, p.selected.to] : this.state.range
+				}),
+				from: this.state.range[0],
+				to: this.state.range[1],
+				locale: 'da-DK',
+				// the same control with the same offer: a panel that drops the quick
+				// ranges is a second range picker with a worse one
+				custom: e(RangePicker, rangeProps)
+			},
+				// the Picked child is what offers the comparison, and it is handed the
+				// period it compares against - here it takes the derived sentence
+				// the area is the page's: the switch and its label are rendered here, from
+				// the periods the bar derives
+				e(PeriodSelected, { key: 'compare' }, ({ past }) => e(Choice, {
+					control: e(Switch, {
+						checked: this.state.compare,
+						onChange: ev => this.setState({ compare: ev.target.checked })
+					})
+				}, 'Compare with ' + past.name))
+			)),
+
+			lineEditorRow: e(LineEditor, { title: 'Row 2 of 4 in Housing', what: 'row', commit: 'Save row',
+					onMoveUp: () => {}, onMoveDown: () => {}, onDelete: () => {}, onCommit: () => {}, onCancel: () => {} },
+					e(Field, { label: 'Name' }, e(TextField, { ...bind('leName', 'Electricity') })),
+					e(Field, { label: 'Expected each month', unit: 'kr.' }, e(TextField, { ...bind('leAmount', '400,00') })),
+					e(Field, { label: 'Account' }, e(TextField, { ...bind('leAccount', 'Budget') })),
+					e(Field, { label: 'Group' }, e(TextField, { ...bind('leGroup', 'Housing') }))),
+
+			lineEditorNew: e(LineEditor, { title: 'New group in costs', commit: 'Add group', onCommit: () => {}, onCancel: () => {} },
+					e(Field, { label: 'Name' }, e(TextField, { ...bind('leNewGroup', ''), placeholder: 'Insurance' }))),
+
+			misuse: row([
+				e(Button, { variant: 'ghost' }, 'Unknown variant'),
+				e(Button, { className: 'my-own-class' }, 'className'),
+				e(Mark, { size: 'medium', fill: 'plain', swatch: 'green' }, 'Swatch on a plain mark'),
+				e(IconButton, { icon: 'dots-vertical' })
+			])
+		};
+
+		for (const [key, value] of Object.entries(vals)) {
+			if (key === 'calls' || key === 'status' || key.endsWith('Code')) continue;
+			vals[key + 'Code'] = code(value);
+		}
+		return vals;
+	}
+}
+</script>
+</body>
+</html>

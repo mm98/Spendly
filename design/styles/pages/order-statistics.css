@@ -1,0 +1,31 @@
+/* Page composition for Order statistics.dc.html.
+   Layout scaffolding only: the viewport stand-in and the column splits.
+   Everything else is a component class from components.css.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  .os-screen { width: 1400px; }
+  .os-body { display: flex; flex-direction: column; gap: var(--sp-12); padding: var(--sp-16); }
+  /* the picker's panel is absolute, so the specimen needs room beneath it */
+  .os-picker { width: 1240px; padding-bottom: 420px; }
+
+  .os-col { position: relative; }
+  /* a stat's bar readout hangs above the bar it describes, its right edge on the bar's */
+  .os-spark-tip { position: absolute; right: 0; bottom: calc(100% + var(--sp-6)); z-index: 3; }
+  /* an expanded breakdown scrolls inside its card rather than growing the page */
+  .os-scroll { max-height: 322px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-10); padding-right: var(--sp-4); }
+  /* the signed chart: positives above the axis, the one negative hanging below it */
+  .os-signed { border-bottom: 1px solid var(--line); }
+  /* the negative hangs off the axis itself, so the card's gap is cancelled here -
+     a space between the two would read as two charts rather than one scale */
+  .os-below { display: flex; align-items: flex-start; gap: var(--sp-8); height: 26px; margin-top: calc(var(--sp-12) * -1); }
+  .os-below > span { flex: 1; }
+  .os-below__bar { background: var(--red-ink); border-radius: 0 0 var(--r-marker) var(--r-marker); height: 22px; }
+  .os-menu-stage { width: 620px; }
+  .os-col-320 { width: 320px; }
+
+  /* the key for the pace marker, in the line that explains it */
+  .os-marker-key { display: inline-block; width: 2px; height: 12px; background: var(--amber); }
+
+}

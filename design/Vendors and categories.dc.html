@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendors and categories</title>
+<script src="support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">5</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5a">5a</span>
+    <span class="doc-section__title">Vendors - overview</span>
+  </div>
+  <div class="doc-lede">The list and nothing beside it. A row opens the vendor for editing in <a href="#5c">5c</a> - one click, not two - and the figures that used to sit in a panel here are in that page's rail, beside the fields they describe. This screen finds a vendor and creates one.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The overview has no panel.</b> A row opens the edit page (<a href="#5b">5b</a>, <a href="#5c">5c</a>), the same shape an order uses, so there is one form mechanism in the app rather than two - and one click to the thing the screen is for rather than a summary and then a click. The figures live in that page's rail, which is 360px and could never have held a sticky save bar anyway; the save bar spans the form.</div>
+    <div class="doc-note"><b>A row is a link.</b> Clicking one navigates to <code>/vendors/indbo/edit</code> - it middle-clicks and deep-links like any other, and there is no selected state to survive a reload because selecting is not a thing this screen does.</div>
+  </div>
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+        <div class="sp-picker__search doc-w420">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders, vendors, items">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+        <span class="sp-grow"></span>
+      </div>
+    <div class="sp-shell__body">
+        
+            <div class="sp-controls">
+              <div class="sp-picker__search">
+                <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias">
+              </div>
+              <div class="sp-segmented" role="radiogroup" aria-label="Which records">
+                <label class="sp-segmented__item" data-label="Active"><input type="radio" name="vc-seg1" defaultChecked="{{ true }}"><span class="sp-label">Active</span></label>
+                <label class="sp-segmented__item" data-label="Archived"><input type="radio" name="vc-seg1"><span class="sp-label">Archived</span></label>
+              </div>
+              <div class="sp-combobox sp-combobox--sort">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+                  <span class="sp-combobox__chevron">Sort</span>
+                  <span>Spend ↓</span>
+                  <span class="sp-combobox__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                </button>
+              </div>
+              <button type="button" class="sp-btn">New vendor</button>
+            </div>
+            <div class="sp-list">
+            <div class="sp-list__toolbar">
+              <strong class="sp-data">42 vendors</strong>
+            </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-col-title">VENDOR</th>
+            <th scope="col" class="sp-col-date">LAST ORDER</th>
+              <th scope="col" class="sp-col-amount">SPEND ↓</th>
+              <th class="sp-col-menu" aria-label="Row actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr aria-selected="true" data-open="true">
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">IM</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">38 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-date"><span class="sp-data">08/08/2026</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">142.310,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 41.220,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu sp-anchor" data-open="true"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu" aria-expanded="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                <menu class="sp-menu sp-menu--floating" role="menu" aria-label="Indbo Møbler">
+                  <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" /><path d="M11 13l9 -9" /><path d="M15 4h5v5" /></svg><span>Open in the order list</span></button></li>
+                  <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg><span>Edit vendor</span></button></li>
+                  <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h5l3.5 5h9.5" /><path d="M3 17h5l3.495 -5" /><path d="M18 15l3 -3l-3 -3" /></svg><span>Merge into…</span></button></li>
+                  <li><hr></li>
+                  <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2" /><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" /><path d="M10 12l4 0" /></svg><span>Archive</span></button></li>
+                </menu>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">H</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Hay</span>
+                  <span class="sp-meta sp-truncate">27 orders</span>
+                </span>
+              </div></td><td class="sp-col-date"><span class="sp-data">28/07/2026</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">98.740,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 22.610,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">M</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Muuto</span>
+                  <span class="sp-meta sp-truncate">21 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-date"><span class="sp-data">19/07/2026</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">64.180,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 14.940,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">FL</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Ferm Living</span>
+                  <span class="sp-meta sp-truncate">14 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-date"><span class="sp-data">11/07/2026</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">38.920,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 11.480,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">IN</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Indbo Moebler A/S</span>
+                  <span class="sp-meta sp-truncate">2 orders · created by receipt scan</span>
+                </span>
+              </div></td>
+              <td class="sp-col-date"><span class="sp-data">12/06/2026</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">4.310,00 kr.</span><span class="sp-amount-secondary">Saved 0,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+            <div class="sp-list__footer">
+              <span class="sp-subtitle">Showing 5 of 42</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+            </div>
+          </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">What each row action opens</span>
+    <div class="doc-note"><b>Drawn flat here; in the app each hangs off the row's kebab.</b> They are popovers - <code>.sp-popover</code> anchored to the trigger, positioned by the one positioner in <a href="Components.dc.html#c9">c9</a>, so they flip up or shift sideways to stay on screen and never cover the row they belong to. This page shows them detached only so the copy can be read. Escape or a click outside closes one, focus returns to the kebab, and nothing is applied on the way out.</div>
+    <div class="doc-note"><b>Open in the order list</b> and <b>Edit</b> are routes, so they leave the screen - <code>/orders?vendor=indbo-mobler</code> and <code>/vendors/indbo-mobler/edit</code>. Both middle-click and deep-link.</div>
+    <div class="doc-note"><b>Archive applies at once</b> from the row, with a toast that names the vendor and offers Undo (<a href="States and confirmations.dc.html#6f">6f</a>): "Indbo Møbler archived. Its 38 orders keep it." The Archived filter brings it back. <b>Merge into…</b> opens a popover from the row - the same component the order list's bulk actions use, so the row being acted on stays visible behind it.</div>
+    <div class="doc-note"><b>Merge takes two steps, because it is the one action that shows a comparison before it runs.</b> The popover picks the target; confirming it opens the dialog in <a href="#5j">5j</a>, which states which value wins per field and carries the count in its button.</div>
+    <div class="doc-note"><b>The target list is searched, not scrolled.</b> With 200 vendors the list cannot be read, so the popover leads with a search and shows the most recently used beneath it - the same shape as the order list's Add category. The list caps its height and scrolls; it never grows the popover past the viewport.</div>
+    <div class="doc-note"><b>Picking a target is the action, so the popover has no buttons.</b> Clicking a row opens <a href="#5j">5j</a> with that target loaded; Escape or a click outside closes it. A radio list with a Continue button would add a press that decides nothing, and the confirmation the user actually needs is the comparison on the next screen.</div>
+    <div class="doc-note"><b>Archive is reversible, so it asks nothing</b> and Undo is the way back. Delete is not offered here at all: a vendor with orders cannot be deleted, so the action is absent from the menu rather than shown and refused.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Merge into… - clicking a vendor opens the comparison in <a href="#5j">5j</a></span>
+      <div class="sp-popover sp-popover--static">
+        <div class="sp-popover__head">
+          <span class="sp-title">Merge Indbo Moebler A/S into</span>
+          <span class="sp-subtitle">Its 2 orders move to the vendor you pick, its name becomes an alias there, and this record is deleted.</span>
+        </div>
+        <div class="sp-picker__search">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search 42 vendors…" aria-label="Search vendors">
+        </div>
+        <menu class="sp-menu sp-menu--plain sp-popover__list" role="menu" aria-label="Target vendor">
+          <li><button type="button" class="sp-menu__item"><span class="sp-mark sp-mark--small" aria-hidden="true">IM</span><span>Indbo Møbler</span><span class="sp-grow"></span><span class="sp-meta">38 orders</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></li>
+          <li><button type="button" class="sp-menu__item"><span class="sp-mark sp-mark--small" aria-hidden="true">H</span><span>Hay</span><span class="sp-grow"></span><span class="sp-meta">27 orders</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></li>
+          <li><button type="button" class="sp-menu__item"><span class="sp-mark sp-mark--small" aria-hidden="true">N</span><span>Normann</span><span class="sp-grow"></span><span class="sp-meta">14 orders</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></li>
+        </menu>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5b">5b</span>
+    <span class="doc-section__title">Vendors - create</span>
+  </div>
+  <div class="doc-lede">Reached from <b>New vendor</b> in the toolbar, or from a scan that found a name it does not know. A page at <code>/vendors/new</code>, with the same rail and sticky bar an order uses.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Name is the only required field.</b> Everything else has a working default, so a vendor created mid-scan costs one field. <b>Save stays enabled.</b> Pressing it with an empty name runs validation and marks the field - the button never explains what is missing better than the field itself can.</div>
+    <div class="doc-note"><b>Create and edit are the same page.</b> One route component, one form, one rail. The differences are the crumb, the primary label, and whether the delete card is present. Do not build them separately - they drift.</div>
+    <div class="doc-note"><b>Duplicate names are checked on blur, not on submit.</b> A name within 0.85 of an existing vendor shows an amber notice under the field offering that vendor instead. The same name, compared without case or accents, is an error: two vendors cannot share a name, because a receipt string matching two vendors is how a scan files things wrongly (<a href="#5h">5h</a>).</div>
+    <div class="doc-note"><b>Created from a scan, it returns to the scan.</b> The page carries the return in its route state and the new vendor is selected on arrival back - never dropping the user on the vendor list with their receipt abandoned.</div>
+    <div class="doc-note"><b>The image is optional, can be any picture - a logo, a shop front, anything - and its only use is in place of the item photo on this vendor's orders that have none, drawn as an item photo and faded. It is the c17 thumb slot at <code>--mark-large</code>, unchanged.</b> Empty it is the dashed add frame; filled it is <code>.sp-mark--photo</code>, as an item photo slot with Remove beneath it, and choosing a new file replaces it. Validation, sizes, renditions and every place it appears are in <a href="Images and files.dc.html#17e">17e</a>. The vendor's own mark stays initials everywhere, with or without an image.</div>
+    <div class="doc-note"><b>Aliases are on this page, because creating from a scan is when the first one matters most.</b> The receipt name that triggered the create is pre-filled as an alias - the one moment the app knows it. Forcing a second trip to the edit page to keep it means the next receipt from the same shop creates another duplicate.</div>
+  </div>
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+        <div class="sp-picker__search doc-w420">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders, vendors, items">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+        <span class="sp-grow"></span>
+      </div>
+    <div class="sp-shell__body sp-shell__body--split">
+        <div>
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">THE VENDOR</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f1">Name</label>
+            <input class="sp-input" id="vc-f1" type="text" placeholder="Where you bought it">
+            <span class="sp-field__help">The name you will recognise in a list. Receipts can spell it differently.</span>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-image1">Image</label>
+            <span class="sp-slot sp-slot--start">
+              <label class="sp-mark sp-mark--large sp-mark--empty" for="vc-image1" data-tip="Add an image">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+                <input id="vc-image1" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+              </label>
+              <span class="sp-meta">Add</span>
+            </span>
+            <span class="sp-field__help">Shown on this vendor's orders that have no item photo. A logo, the shop, anything you know it by.</span>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">ALIASES</span></div>
+<div class="sp-field">
+            <label class="sp-field__label" for="vc-tok1">Also matches</label>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">INDBO MØBLER A/S<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove INDBO MØBLER A/S"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok1" type="text" placeholder="Add…" aria-label="Add a value">
+            </div>
+            <span class="sp-field__help">Other names this vendor uses on receipts. The name the scan read is already here - keep it so the next receipt files itself.</span>
+<div class="sp-field">
+            <span   class="sp-field__label" id="vc-cbl3">Colour</span>
+            <div class="sp-options" role="group" aria-labelledby="vc-cbl3">
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Green" data-swatch="green" data-tip="Green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="true" aria-label="Deep green" data-swatch="green-2" data-tip="Deep green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Mid green" data-swatch="green-3" data-tip="Mid green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Light green" data-swatch="green-4" data-tip="Light green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Brown" data-swatch="amber-ink" data-tip="Brown"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour1" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour1" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+            </div>
+            <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
+          </div>
+        <label class="sp-choice sp-choice--described">
+            <input class="sp-check" type="checkbox" defaultChecked="{{ true }}">
+            <span class="sp-choice__text">
+              <strong>Favourite</strong>
+              <span class="sp-field__help">Kept at the top of Vendors, and leads the list on a new order.</span>
+            </span>
+          </label>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">DEFAULTS FOR ITS ORDERS</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f4">Default categories</label>
+            <input class="sp-input" id="vc-f4" type="text" placeholder="none">
+            <span class="sp-field__help">Suggested on a new order from this vendor. Not applied automatically.</span>
+          </div>
+        </div>
+        
+<div class="sp-list-item sp-list-item--card sp-list-item--sticky">
+        <span class="sp-data sp-ink-5">Nothing saved yet</span>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+        <button type="button" class="sp-btn">Create</button>
+      </div>
+        </div>
+        <div class="sp-panel">
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">VENDOR SUMMARY</span></div>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-mark sp-mark--medium">IM</span>
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">Indbo Møbler</span>
+              <span class="sp-meta">Nothing saved yet</span>
+            </div>
+          </div>
+          
+          <div class="sp-stack">
+              <div class="sp-sum">
+                    <span class="sp-ink-2">Name</span>
+                    <span class="sp-sum__value">Indbo Møbler</span>
+                  </div>
+              <div class="sp-sum">
+                    <span class="sp-ink-2">Aliases</span>
+                    <span class="sp-sum__value">1</span>
+                  </div>
+              <div class="sp-sum">
+                    <span class="sp-ink-2">Default categories</span>
+                    <span class="sp-sum__value">0</span>
+                  </div>
+            
+                </div>
+        </div>
+        </div>
+      
+      
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5c">5c</span>
+    <span class="doc-section__title">Vendors - edit</span>
+  </div>
+  <div class="doc-lede">The same page as <a href="#5b">5b</a> with the record loaded, at <code>/vendors/indbo/edit</code>. One card appears that create does not have: the end-of-life card. Aliases are on create too (<a href="#5b">5b</a>).</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Dirty tracking is per field</b> against the loaded values. Reverting a field by hand clears its flag; when none remain the save bar disappears. Whitespace-only edits do not count.</div>
+    <div class="doc-note"><b>Leaving while dirty prompts</b>, including browser back and reload. Cancelling the prompt keeps the page and its state.</div>
+    <div class="doc-note"><b>Save returns to the list.</b> The row shows the saved values, which is the confirmation - no toast needed for a change the user can see.</div>
+    <div class="doc-note"><b>Archive and Delete are not the same action.</b> Archive always works and is reversible from the Archived toggle. Delete is not offered at all until zero orders, because there is no correct owner for an orphaned order - the card states the count and offers Archive instead. Merging into another vendor is <a href="#5j">5j</a>.</div>
+    <div class="doc-note"><b>The rail stays shorter than the form.</b> Three cards is its ceiling. Anything new has to displace something, or the page starts scrolling for the rail's sake.</div>
+  </div>
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+        <div class="sp-picker__search doc-w420">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders, vendors, items">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+        <span class="sp-grow"></span>
+      </div>
+    <div class="sp-shell__body sp-shell__body--split">
+        <div>
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">THE VENDOR</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f5">Name</label>
+            <input class="sp-input" id="vc-f5" type="text">
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-image2">Image</label>
+            <span class="sp-slot sp-slot--start">
+              <label class="sp-mark sp-mark--large sp-mark--photo" for="vc-image2" data-tip="Replace the image">
+                <input id="vc-image2" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+              </label>
+              <button type="button" class="sp-slot__remove">Remove</button>
+            </span>
+            <span class="sp-field__help">Shown on this vendor's orders that have no item photo.</span>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">ALIASES</span></div>
+<div class="sp-field">
+            <label class="sp-field__label" for="vc-tok2">Also matches</label>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">INDBO MØBLER A/S<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove INDBO MØBLER A/S"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">indbo.dk<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove indbo.dk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">Indbo Interiør<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Indbo Interiør"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">CVR 12345678<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove CVR 12345678"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok2" type="text" placeholder="Add…" aria-label="Add a value">
+            </div>
+            <span class="sp-field__help">Other names this vendor uses on receipts. A receipt with one of these is filed here.</span>
+<div class="sp-field">
+            <span  class="sp-field__label" id="vc-grp4">Colour</span>
+            <div class="sp-options" role="group" aria-labelledby="vc-grp4">
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Green" data-swatch="green" data-tip="Green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="true" aria-label="Deep green" data-swatch="green-2" data-tip="Deep green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Mid green" data-swatch="green-3" data-tip="Mid green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Light green" data-swatch="green-4" data-tip="Light green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Brown" data-swatch="amber-ink" data-tip="Brown"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour2" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour2" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+            </div>
+            <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
+          </div>
+        <label class="sp-choice sp-choice--described">
+            <input class="sp-check" type="checkbox" defaultChecked="{{ true }}">
+            <span class="sp-choice__text">
+              <strong>Favourite</strong>
+              <span class="sp-field__help">Kept at the top of Vendors, and leads the list on a new order.</span>
+            </span>
+          </label>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">DEFAULTS FOR ITS ORDERS</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f8">Default categories</label>
+            <input class="sp-input" id="vc-f8" type="text">
+            <span class="sp-field__help">Suggested on a new order from this vendor. Not applied automatically.</span>
+          </div>
+        </div>
+        
+<div class="sp-list-item sp-list-item--card sp-list-item--sticky">
+        <span class="sp-data">Unsaved changes</span>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+        <button type="button" class="sp-btn">Save vendor</button>
+      </div>
+        </div>
+        <div class="sp-panel">
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">VENDOR SUMMARY</span></div>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-mark sp-mark--medium">IM</span>
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">Indbo M&oslash;bler</span>
+              <span class="sp-meta">38 orders</span>
+            </div>
+          </div>
+          <div class="sp-stack">
+            <div class="sp-sum"><span class="sp-ink-2">Spend this year</span><span class="sp-sum__value">142.310 kr.</span></div>
+            <div class="sp-sum"><span class="sp-ink-2">Average order</span><span class="sp-sum__value">3.745 kr.</span></div>
+            <div class="sp-sum"><span class="sp-ink-2">Saved</span><span class="sp-sum__value sp-ink-accent">41.220 kr.</span></div>
+            <div class="sp-sum"><span class="sp-ink-2">Returned</span><span class="sp-sum__value">3 orders</span></div>
+          </div>
+          <a class="sp-btn sp-btn--outline sp-btn--small" href="Order statistics.dc.html">See more in statistics</a>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">RECENT ORDERS</span></div>
+          <a class="sp-list-item sp-ink" href="Order editing layouts.dc.html">
+          <div class="sp-stacked sp-grow">
+          <span class="sp-title sp-truncate">SPENDLY-447</span>
+          <span class="sp-meta">08/08/2026 · 4 items</span>
+          </div>
+          <span class="sp-title sp-nowrap">3.980,00 kr.</span>
+          </a>
+          <a class="sp-list-item sp-ink" href="Order editing layouts.dc.html">
+          <div class="sp-stacked sp-grow">
+          <span class="sp-title sp-truncate">SPENDLY-441</span>
+          <span class="sp-meta">28/07/2026 · 2 items</span>
+          </div>
+          <span class="sp-title sp-nowrap">1.240,00 kr.</span>
+          </a>
+            <a class="sp-btn sp-btn--outline sp-btn--small" href="Order list.dc.html">See all 38 orders</a>
+        </div>
+        
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">END OF ITS LIFE</span></div>
+          <div class="sp-well">
+            <span class="sp-title">Archiving takes it out of the list and the order list's filters.</span>
+            <span class="sp-subtitle">Its 38 orders keep it as their vendor.</span>
+          </div>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Archive vendor</button>
+        </div>
+        </div>
+      
+      
+    </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">While orders point at it - no delete is offered, only the way out</span>
+      <div class="sp-card doc-w440">
+    <div class="sp-card__head"><span class="sp-section-label">END OF ITS LIFE</span></div>
+    <div class="sp-well">
+      <span class="sp-title">A vendor with orders cannot be deleted</span>
+      <span class="sp-subtitle">Every order must name a vendor, so its 38 orders keep this one. Archiving takes it out of the list and the order list's filters, and leaves the orders as they are.</span>
+    </div>
+    <div class="sp-card__footer sp-card__footer--commits">
+      <button type="button" class="sp-btn sp-btn--outline">Archive vendor</button>
+    </div>
+        </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">At zero orders - delete joins it</span>
+      <div class="sp-card doc-w440">
+    <div class="sp-card__head"><span class="sp-section-label">END OF ITS LIFE</span></div>
+    <div class="sp-well">
+      <span class="sp-title">Nothing points at this vendor any more</span>
+      <span class="sp-subtitle">Archiving keeps it out of the way; deleting removes it outright.</span>
+    </div>
+    <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+      <button type="button" class="sp-btn sp-btn--outline">Archive vendor</button>
+      <button type="button" class="sp-btn" data-color="danger">Delete</button>
+    </div>
+        </div>
+    </div>
+        </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5d">5d</span>
+    <span class="doc-section__title">Categories - overview</span>
+  </div>
+  <div class="doc-lede">The same shape as <a href="#5a">5a</a>, answering a different question. A vendor list asks how much and how recently; a category list asks what the limit is and how close this month is to it - so its columns lead with the month rather than the year. A row opens the category in <a href="#5f">5f</a>.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The row menu holds every action the edit page does, and only the ones that can run.</b> Open in the order list, Edit, Merge into… and Delete - so a user working down the list never has to select a row first. A vendor with orders shows Archive and no Delete, exactly as its edit page does; nothing lives only in the menu, and nothing lives only in the edit page.</div>
+    <div class="doc-note"><b>Same components as 5a, different content.</b> List to an edit page, figures in the page's rail. If you built the vendor screen, this is the same components with a different record type - not a second implementation.</div>
+    <div class="doc-note"><b>Over the limit fills amber and states the overage in words.</b> The bar caps at 100%, so it cannot say how far past it went - see <a href="#5i">5i</a>. Amber informs; nothing about being over stops the user doing anything.</div>
+    <div class="doc-note"><b>The pace marker is a reference line, not a threshold.</b> At <code>day / daysInMonth</code>, it exists because a flat monthly limit is unreadable against a partial month.</div>
+    <div class="doc-note"><b>Bookmarks use these categories too.</b> There is one set of categories in the app; a bookmark carries them the way an order does, and the Bookmarks filter in <a href="Bookmarks.dc.html#22b">22b</a> lists the ones bookmarks use. A category typed into a bookmark in <a href="Bookmarks.dc.html#22c">22c</a> lands in this list.</div>
+    <div class="doc-note"><b>A category is never archived.</b> Unlike a vendor it is a label the user invented, so there is nothing to keep out of the way - its three exits are rename, merge into another category, and delete, all in <a href="#5f">5f</a>. Delete is not gated behind a merge: the field is optional on an order, so a category can be removed outright.</div>
+  </div>
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+        <div class="sp-picker__search doc-w420">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders, vendors, items">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+        <span class="sp-grow"></span>
+      </div>
+    <div class="sp-shell__body">
+        
+            <div class="sp-controls">
+              <div class="sp-picker__search">
+                <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search categories" aria-label="Search categories">
+              </div>
+              <div class="sp-combobox sp-combobox--sort">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+                  <span class="sp-combobox__chevron">Sort</span>
+                  <span>Name A - Z</span>
+                  <span class="sp-combobox__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                </button>
+              </div>
+              <button type="button" class="sp-btn">New category</button>
+            </div>
+            <div class="sp-list">
+            <div class="sp-list__toolbar">
+              <strong class="sp-data">9 categories</strong>
+            </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-col-title">CATEGORY</th>
+              <th scope="col" class="sp-col-amount">THIS MONTH</th>
+              <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+              <th class="sp-col-menu" aria-label="Row actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr aria-selected="true" data-open="true">
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu sp-anchor" data-open="true"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu" aria-expanded="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                <menu class="sp-menu sp-menu--floating" role="menu" aria-label="Decor">
+                  <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" /><path d="M11 13l9 -9" /><path d="M15 4h5v5" /></svg><span>Open in the order list</span></button></li>
+                  <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg><span>Edit category</span></button></li>
+                  <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h5l3.5 5h9.5" /><path d="M3 17h5l3.495 -5" /><path d="M18 15l3 -3l-3 -3" /></svg><span>Merge into…</span></button></li>
+                  <li><hr></li>
+                  <li role="menuitem"><button type="button" class="sp-menu__item sp-ink-danger"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg><span>Delete</span></button></li>
+                </menu>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Seating</span>
+                  <span class="sp-meta sp-truncate">41 orders · 21.140 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="70" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta">17.320 kr. · 6.680 left</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">24.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid" data-swatch="green-3"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Lighting</span>
+                  <span class="sp-meta sp-truncate">33 orders · 10.910 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="90"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">12.740 kr.</b> · ahead of pace</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">14.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Textiles</span>
+                  <span class="sp-meta sp-truncate">22 orders · 5.240 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="40" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="40"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta">3.180 kr. · 4.820 left</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">8.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Storage</span>
+                  <span class="sp-meta sp-truncate">19 orders · 3.020 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin sp-gauge--untargeted"><meter value="0" min="0" max="100" aria-label="No limit set"></meter></span>
+                <span class="sp-meta">2.140 kr. spent</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-data sp-ink-5">no limit</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+            <div class="sp-list__footer">
+              <span class="sp-subtitle">Showing 5 of 9</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+            </div>
+          </div>
+          
+        
+      
+    </div>
+  </div>
+
+  
+  <div class="doc-notes">
+    <span class="doc-notes__label">What each row action opens</span>
+    <div class="doc-note"><b>Drawn flat here; in the app each hangs off the row's kebab.</b> They are popovers - <code>.sp-popover</code> anchored to the trigger, positioned by the one positioner in <a href="Components.dc.html#c9">c9</a>, so they flip up or shift sideways to stay on screen and never cover the row they belong to. This page shows them detached only so the copy can be read. Escape or a click outside closes one, focus returns to the kebab, and nothing is applied on the way out.</div>
+    <div class="doc-note"><b>The same three shapes as <a href="#5a">5a</a>, with Archive replaced by Delete.</b> Open in the order list and Edit are routes; Merge into… picks a target in a popover and confirms in <a href="#5j">5j</a>; Delete confirms in a popover from the row.</div>
+    <div class="doc-note"><b>The button names what is deleted, and only that.</b> &quot;Delete category&quot;, never &quot;Delete · 64 orders&quot; - a count in a destructive button reads as the number of things about to be destroyed. The orders are not touched; they lose one label. The copy above carries the numbers, including how many are left with no category at all, and that the limit goes too.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Delete - not reversible, so the copy says what it touches</span>
+      <div class="sp-popover sp-popover--static">
+        <div class="sp-popover__head">
+          <span class="sp-title">Delete Decor?</span>
+          <span class="sp-subtitle">The label comes off 64 orders; 9 of them carry no other category. Its limit of 6.000 kr. goes with it.</span>
+        </div>
+        <div class="sp-popover__actions">
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Cancel</button>
+          <button type="button" class="sp-btn sp-btn--block" data-color="danger">Delete category</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Merge into… - every category except this one; clicking one opens <a href="#5j">5j</a></span>
+      <div class="sp-popover sp-popover--static">
+        <div class="sp-popover__head">
+          <span class="sp-title">Merge Decor into</span>
+          <span class="sp-subtitle">Its 64 orders move to the category you pick, and Decor is deleted.</span>
+        </div>
+        <div class="sp-picker__search">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search 9 categories…" aria-label="Search categories">
+        </div>
+        <menu class="sp-menu sp-menu--plain sp-popover__list" role="menu" aria-label="Target category">
+          <li><button type="button" class="sp-menu__item"><span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-2" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span><span>Seating</span><span class="sp-grow"></span><span class="sp-meta">41 orders</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></li>
+          <li><button type="button" class="sp-menu__item"><span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-3" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></svg></span><span>Lighting</span><span class="sp-grow"></span><span class="sp-meta">33 orders</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></li>
+          <li><button type="button" class="sp-menu__item"><span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-4" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span><span>Textiles</span><span class="sp-grow"></span><span class="sp-meta">22 orders</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></li>
+        </menu>
+      </div>
+    </div>
+  </div>
+<div class="doc-notes">
+    <span class="doc-notes__label">URL filters - over the limit, near the limit, has a limit, and a month</span>
+    <div class="doc-note"><b>Four filters that exist only in the URL.</b> The page has no control for any of them. <code>flag=over-limit</code> cuts the list to the categories over their limit; <code>flag=near-limit</code> cuts it to the categories at or past the "Tell me early" share of their limit and not over it; <code>flag=limited</code> cuts it to the categories that have a limit; <code>month=2026-08</code> keeps only the categories with spend in that month, and every figure on the list is measured against that month; a category with no spend in it is not listed. Together they list the categories over their limit in that month, the over test using that month's spend. Either or both arrive from a link.</div>
+    <div class="doc-note"><b>Each applied URL filter shows as a removable crumb</b> above the list, the same <code>sp-crumb</code> in <code>sp-filters</code> the order list uses (<a href="Order list.dc.html#2b">2b</a>), so the user can see why the list is short and get back to all of it. Removing a crumb drops that parameter. Search and sort keep working.</div>
+    <div class="doc-note"><b><code>flag=limited</code> shows the removable tag "Has a limit"</b>, the same <code>sp-crumb</code> as "Over the limit". With no category that has a limit, the list reads "No category has a limit".</div>
+    <div class="doc-note"><b><code>flag=near-limit</code> shows the removable tag "Near the limit"</b>, the same <code>sp-crumb</code> as "Over the limit". A category over its limit is not in this list; it is in the over-limit one. When the list is empty it reads "No category is near its limit this month".</div>
+    <div class="doc-note"><b>Which links open this list filtered.</b> Needs a look's "N over their limit" opens <code>/categories?flag=over-limit</code>, on Home and on a phone; the toolbar count matches the count on Home. Needs a look's "near its limit" row opens <code>/categories?flag=near-limit</code>. Edit on category on the Monthly limit card (<a href="Order statistics.dc.html#4a">4a</a>) opens <code>/categories?flag=limited</code>. "All N" in Categories this month on Home opens <code>/categories?month=2026-08</code>, so the list holds the same N categories the button counts. A link that shows a number opens a list with exactly that many items; if it cannot, the number is not shown.</div>
+    <div class="doc-note"><b>With a month set, the column names it</b> - AUGUST in place of THIS MONTH - and the pace marker goes, since the month is over. The limit column shows the limit as it stands today.</div>
+    <div class="doc-note"><b>When nothing matches</b> the list shows its empty state and the crumbs stay. With the over-limit filter it reads "No category is over its limit in August 2026"; with the month filter alone, "No category has spend in August 2026". With no month set the text ends "this month" instead: "No category is over its limit this month". On a phone the crumb row sits above the category cards in <a href="Mobile screens.dc.html#7a">7a</a> (Categories).</div>
+  </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">/categories?flag=over-limit - from Needs a look</span>
+      <div class="sp-stack doc-w1040">
+        <div class="sp-filters">
+          <span class="sp-crumb"><span class="sp-crumb__label">Over the limit</span><button type="button" class="sp-crumb__remove" aria-label="Remove Over the limit">×</button></span>
+        </div>
+        <div class="sp-list">
+          <div class="sp-list__toolbar">
+            <strong class="sp-data">1 category</strong>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sp-col-title">CATEGORY</th>
+                <th scope="col" class="sp-col-amount">THIS MONTH</th>
+                <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+                <th class="sp-col-menu" aria-label="Row actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">/categories?flag=over-limit&amp;month=2026-08</span>
+      <div class="sp-stack doc-w1040">
+        <div class="sp-filters">
+          <span class="sp-crumb"><span class="sp-crumb__label">Over the limit</span><button type="button" class="sp-crumb__remove" aria-label="Remove Over the limit">×</button></span>
+          <span class="sp-crumb"><span class="sp-crumb__label">August 2026</span><button type="button" class="sp-crumb__remove" aria-label="Remove August 2026">×</button></span>
+        </div>
+        <div class="sp-list">
+          <div class="sp-list__toolbar">
+            <strong class="sp-data">1 category</strong>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sp-col-title">CATEGORY</th>
+                <th scope="col" class="sp-col-amount">AUGUST</th>
+                <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+                <th class="sp-col-menu" aria-label="Row actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5e">5e</span>
+    <span class="doc-section__title">Categories - create</span>
+  </div>
+  <div class="doc-lede">At <code>/categories/new</code>. Reached from <b>New category</b>, from the &quot;Create …&quot; row in any category picker, or from an import that met a value it does not know.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Name is the only required field.</b> A default icon and the next unused colour are pre-selected, so a category created from a picker costs one field and one Enter.</div>
+    <div class="doc-note"><b>The icon is picked, not derived.</b> This is the one asymmetry with a vendor: a vendor gets initials from its name, a category gets any icon from the Tabler outline library, picked in <a href="Components.dc.html#c7">c7</a>. Neither ever accepts an upload.</div>
+    <div class="doc-note"><b>Created from a picker, it is selected on return.</b> The picker reopens with the new category chosen, so the order the user was filling in continues.</div>
+    <div class="doc-note"><b>Duplicate names are rejected here, as for vendors.</b> Two categories with one name make every chart ambiguous. Case- and accent-insensitive.</div>
+      <div class="doc-note"><b>The message is at the field, and there is no summary card.</b> One place per problem. A short form does not need a second surface repeating what is already marked, and a long one gets focus moved for it instead.</div>
+    <div class="doc-note"><b>Save stays clickable.</b> Pressing it moves focus to the first problem rather than doing nothing.</div>
+    <div class="doc-note"><b>Marked on leaving the field, or on Save.</b> Never per keystroke, and the error clears on the next valid blur rather than the first character typed. Whatever was typed survives.</div>
+  </div>
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+        <div class="sp-picker__search doc-w420">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders, vendors, items">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+        <span class="sp-grow"></span>
+      </div>
+    <div class="sp-shell__body sp-shell__body--split">
+        <div>
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">THE CATEGORY</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f9">Name</label>
+            <input class="sp-input" id="vc-f9" type="text" placeholder="What you spent it on">
+            <span class="sp-field__help">Appears on chips, facets and charts, so short wins - &quot;Decor&quot;, not &quot;Home decoration items&quot;.</span>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">MARK</span></div>
+          <div class="sp-stack sp-gap-16">
+            <div class="sp-stack sp-gap-12">
+              <div class="sp-field">
+              <label class="sp-field__label" for="vc-icon1">Icon</label>
+              <div class="sp-picker">
+                <div class="sp-picker__search">
+                <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                <input class="sp-input sp-input--lead sp-input--search" id="vc-icon1" type="search" placeholder="Search icons…">
+              </div>
+              <div class="sp-options" role="group" aria-label="Icon">
+            <button type="button" class="sp-option" aria-pressed="true" aria-label="Flower" data-tip="Flower"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Armchair" data-tip="Armchair"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Lamp" data-tip="Lamp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 20h6" /><path d="M12 20v-8" /><path d="M5 12h14l-4 -8h-6l-4 8" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Photo" data-tip="Photo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8h.01" /><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" /><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Star" data-tip="Star"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Home" data-tip="Home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Shopping bag" data-tip="Shopping bag"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304" /><path d="M9 11v-5a3 3 0 0 1 6 0v5" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Heart" data-tip="Heart"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Diamond" data-tip="Diamond"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5h12l3 5l-8.5 9.5a.7 .7 0 0 1 -1 0l-8.5 -9.5l3 -5" /><path d="M10 12l-2 -2.2l.6 -1" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Clock" data-tip="Clock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Archive" data-tip="Archive"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2" /><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" /><path d="M10 12l4 0" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Tag" data-tip="Tag"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Store" data-tip="Store"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21l0 -10.15" /><path d="M19 21l0 -10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg></button>
+            <button type="button" class="sp-option sp-ink-5">+46</button>
+          </div>
+              </div>
+            </div>
+<div class="sp-field">
+            <span  class="sp-field__label" id="vc-grp3">Colour</span>
+            <div class="sp-options" role="group" aria-labelledby="vc-grp3">
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="true" aria-label="Green" data-swatch="green" data-tip="Green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Deep green" data-swatch="green-2" data-tip="Deep green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Mid green" data-swatch="green-3" data-tip="Mid green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Light green" data-swatch="green-4" data-tip="Light green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Brown" data-swatch="amber-ink" data-tip="Brown"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour3" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour3" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+            </div>
+            <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">MONTHLY LIMIT</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f10">Limit</label>
+            <input class="sp-input" id="vc-f10" type="text" placeholder="no limit">
+            <span class="sp-field__help">One amount that applies to every month. Leave empty for no limit.</span>
+          </div>
+        </div>
+        
+<div class="sp-list-item sp-list-item--card sp-list-item--sticky">
+        <span class="sp-data sp-ink-5">Nothing saved yet</span>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+        <button type="button" class="sp-btn">Create</button>
+      </div>
+        </div>
+        <div class="sp-panel">
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">CATEGORY SUMMARY</span></div>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-mark sp-mark--medium"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">New category</span>
+              <span class="sp-meta"></span>
+            </div>
+          </div>
+          <div class="sp-stack">
+              <div class="sp-sum">
+                    <span class="sp-ink-2">Name</span>
+                    <span class="sp-sum__value"> - </span>
+                  </div>
+              <div class="sp-sum">
+                    <span class="sp-ink-2">Monthly limit</span>
+                    <span class="sp-sum__value">none</span>
+                  </div>
+            
+                </div>
+        </div>
+        </div>
+      
+      
+    </div>
+  </div>
+
+  
+    </section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5f">5f</span>
+    <span class="doc-section__title">Categories - edit</span>
+  </div>
+  <div class="doc-lede">The same page as <a href="#5e">5e</a> with the record loaded, at <code>/categories/decor/edit</code>. The limit card gains this month's position against the limit, and the end-of-life card appears.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Changing the limit is retroactive in display only.</b> The bar and every amber notice recompute against the new number immediately, and nothing already saved is rejected or re-validated. A limit is a fact about a month, not a rule about data.</div>
+    <div class="doc-note"><b>The limit is not a series.</b> One amount, applied to every month, with no history of changes - see <a href="#5i">5i</a> for why, and for what to do instead if per-month planning is ever wanted.</div>
+    <div class="doc-note"><b>Deleting or merging reaches bookmarks as well.</b> Delete takes the label off bookmarks the same way it does off orders, and Merge moves them to the target category. A bookmark keeps its other categories.</div>
+    <div class="doc-note"><b>Renaming does not break references.</b> Orders point at an id. The name is display only, so a rename shows up everywhere at once with no migration.</div>
+    <div class="doc-note"><b>Delete is offered whatever the count, because a category is optional on an order.</b> Deleting one takes the label off its 64 orders; each keeps whatever other categories it carries, and any left with none is in a state an order is allowed to be in. A vendor is different on both counts: one per order, and required - so the record can be archived but never removed from under it. Without this, a category made by mistake and attached to one order could never be removed without mislabelling that order.</div>
+    <div class="doc-note"><b>Three exits, and they do different things.</b> Rename, for a category that should be called something else - orders point at an id, so it reaches every screen at once. Merge, for one that belongs inside another. Delete, for one that should not exist - the label comes off its orders and their other categories stay.</div>
+    <div class="doc-note"><b>The confirmation names the consequence, not the count alone.</b> the dialog states &quot;the label comes off 64 orders, 9 of them carry no other category&quot; in its copy, while the button says only <b>Delete category</b> - a count in a destructive button reads as the number of records about to be destroyed. Deleting also removes the limit; nothing about the orders themselves changes but their label.</div>
+    <div class="doc-note"><b>Save returns to the list</b>, exactly as the vendor page does. Same route pattern, same return behaviour.</div>
+  </div>
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+        <div class="sp-picker__search doc-w420">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders, vendors, items">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+        <span class="sp-grow"></span>
+      </div>
+    <div class="sp-shell__body sp-shell__body--split">
+        <div>
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">THE CATEGORY</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f12">Name</label>
+            <input class="sp-input" id="vc-f12" type="text">
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">MARK</span></div>
+          <div class="sp-stack sp-gap-16">
+            <div class="sp-stack sp-gap-12">
+              <div class="sp-field">
+              <label class="sp-field__label" for="vc-icon2">Icon</label>
+              <div class="sp-picker">
+                <div class="sp-picker__search">
+                <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                <input class="sp-input sp-input--lead sp-input--search" id="vc-icon2" type="search" placeholder="Search icons…">
+              </div>
+              <div class="sp-options" role="group" aria-label="Icon">
+            <button type="button" class="sp-option" aria-pressed="true" aria-label="Flower" data-tip="Flower"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Armchair" data-tip="Armchair"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Lamp" data-tip="Lamp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 20h6" /><path d="M12 20v-8" /><path d="M5 12h14l-4 -8h-6l-4 8" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Photo" data-tip="Photo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8h.01" /><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" /><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Star" data-tip="Star"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Home" data-tip="Home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Shopping bag" data-tip="Shopping bag"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304" /><path d="M9 11v-5a3 3 0 0 1 6 0v5" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Heart" data-tip="Heart"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Diamond" data-tip="Diamond"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5h12l3 5l-8.5 9.5a.7 .7 0 0 1 -1 0l-8.5 -9.5l3 -5" /><path d="M10 12l-2 -2.2l.6 -1" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Clock" data-tip="Clock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Archive" data-tip="Archive"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2" /><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" /><path d="M10 12l4 0" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Tag" data-tip="Tag"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button>
+            <button type="button" class="sp-option" aria-pressed="false" aria-label="Store" data-tip="Store"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21l0 -10.15" /><path d="M19 21l0 -10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg></button>
+            <button type="button" class="sp-option sp-ink-5">+46</button>
+          </div>
+              </div>
+            </div>
+<div class="sp-field">
+            <span  class="sp-field__label" id="vc-grp2">Colour</span>
+            <div class="sp-options" role="group" aria-labelledby="vc-grp2">
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="true" aria-label="Green" data-swatch="green" data-tip="Green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Deep green" data-swatch="green-2" data-tip="Deep green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Mid green" data-swatch="green-3" data-tip="Mid green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Light green" data-swatch="green-4" data-tip="Light green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Brown" data-swatch="amber-ink" data-tip="Brown"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour4" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour4" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+            </div>
+            <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">MONTHLY LIMIT</span></div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f13">Limit</label>
+            <input class="sp-input" id="vc-f13" type="text">
+            <span class="sp-field__help">One amount for every month. Statistics reads this.</span>
+          </div>
+        </div>
+        
+<div class="sp-list-item sp-list-item--card sp-list-item--sticky">
+        <span class="sp-data">Unsaved changes</span>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+        <button type="button" class="sp-btn">Save category</button>
+      </div>
+        </div>
+        <div class="sp-panel">
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">CATEGORY SUMMARY</span></div>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">Decor</span>
+              <span class="sp-meta">64 orders &middot; 7.240 kr. this month</span>
+            </div>
+          </div>
+          <div class="sp-row-flex sp-gap-12 sp-baseline">
+            <span class="sp-stat__figure sp-stat__figure--large sp-ink-warning">7.240 kr.</span>
+            <span class="sp-data sp-ink-5">of 6.000 kr.</span>
+          </div>
+          <span class="sp-gauge">
+            <meter value="100" min="0" max="100" aria-label="Share of the limit used"></meter>
+            <span class="sp-gauge__fill" data-fill="100"></span>
+            <span class="sp-gauge__marker" data-at="65"></span>
+          </span>
+          <span class="sp-meta sp-ink-warning">1.240 kr. over the limit, on day 20 of 31.</span>
+          <div class="sp-stack">
+            <div class="sp-sum"><span class="sp-ink-2">12-month average</span><span class="sp-sum__value">5.410 kr.</span></div>
+            <div class="sp-sum"><span class="sp-ink-2">Orders</span><span class="sp-sum__value">64</span></div>
+          </div>
+          <a class="sp-btn sp-btn--outline sp-btn--small" href="Order statistics.dc.html">See more in statistics</a>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">RECENT ORDERS</span></div>
+          <a class="sp-list-item sp-ink" href="Order editing layouts.dc.html">
+            <div class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">SPENDLY-452</span>
+              <span class="sp-meta">14/08/2026 &middot; 3 items</span>
+            </div>
+            <span class="sp-title sp-nowrap">2.180,00 kr.</span>
+          </a>
+          <a class="sp-list-item sp-ink" href="Order editing layouts.dc.html">
+            <div class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">SPENDLY-449</span>
+              <span class="sp-meta">02/08/2026 &middot; 5 items</span>
+            </div>
+            <span class="sp-title sp-nowrap">4.060,00 kr.</span>
+          </a>
+          <a class="sp-btn sp-btn--outline sp-btn--small" href="Order list.dc.html">See all 64 orders</a>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">REMOVING IT</span></div>
+          <div class="sp-well">
+            <span class="sp-title">Merge it into another category, or delete it</span>
+            <span class="sp-subtitle">Merging hands its 64 orders to the category you pick. Deleting takes the label off them; any other categories they carry stay. To keep the grouping under a different name, rename it instead.</span>
+          </div>
+          <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+      <button type="button" class="sp-btn sp-btn--outline">Merge…</button>
+      <button type="button" class="sp-btn" data-color="danger">Delete</button>
+    </div>
+        </div>
+        </div>
+      
+      
+    </div>
+  </div>
+
+  </section>
+
+
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5h">5h</span>
+    <span class="doc-section__title">Aliases - the names on receipts</span>
+  </div>
+  <div class="doc-lede">A vendor has one name you recognise and any number of names its receipts actually print. The alias list is what lets a scan file a receipt without asking.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Matching is normalised, not literal.</b> Case-folded, accents stripped, punctuation and legal suffixes removed (A/S, ApS, Ltd, GmbH), whitespace collapsed. &quot;INDBO MØBLER A/S&quot; and &quot;indbo møbler&quot; both reach the same vendor without either being stored twice.</div>
+    <div class="doc-note"><b>An alias can be a name, a domain or a VAT number.</b> One field, three kinds - the scan tries all three against whatever it read. Do not split them into three inputs; the user does not think of them as different.</div>
+    <div class="doc-note"><b>Aliases are unique across all vendors.</b> Adding one already claimed elsewhere shows which vendor holds it and offers to move it, because two vendors matching one receipt string is how a scan silently files things wrongly.</div>
+    <div class="doc-note"><b>Merging moves aliases.</b> The source vendor's name becomes an alias of the target, along with everything it already held - see <a href="#5j">5j</a>. That is what stops the same duplicate reappearing on the next receipt.</div>
+    <div class="doc-note"><b>Removing an alias does not touch existing orders.</b> They keep their vendor. It only changes what future scans match.</div>
+    <div class="doc-note"><b>The green chip is the one that matched most recently</b>, so a user checking why a receipt landed here has an answer without opening anything.</div>
+  </div>
+  <div class="doc-specimens">
+      <div class="sp-stack sp-gap-8 doc-w440">
+        <span class="sp-section-label">THE FIELD</span>
+        <div class="sp-card">
+<div class="sp-field">
+            <label class="sp-field__label" for="vc-tok3">Also matches</label>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">INDBO MØBLER A/S<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove INDBO MØBLER A/S"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">indbo.dk<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove indbo.dk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">Indbo Interiør<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Indbo Interiør"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">CVR 12345678<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove CVR 12345678"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok3" type="text" placeholder="Add…" aria-label="Add a value">
+            </div>
+            <span class="sp-field__help">Other names this vendor uses on receipts. A receipt with one of these is filed here.</span>
+<div class="sp-field">
+            <span  class="sp-field__label" id="vc-grp1">Colour</span>
+            <div class="sp-options" role="group" aria-labelledby="vc-grp1">
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Green" data-swatch="green" data-tip="Green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="true" aria-label="Deep green" data-swatch="green-2" data-tip="Deep green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Mid green" data-swatch="green-3" data-tip="Mid green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Light green" data-swatch="green-4" data-tip="Light green"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Brown" data-swatch="amber-ink" data-tip="Brown"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
+              <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour5" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour5" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+            </div>
+            <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
+          </div>
+        <label class="sp-choice sp-choice--described">
+            <input class="sp-check" type="checkbox" defaultChecked="{{ true }}">
+            <span class="sp-choice__text">
+              <strong>Favourite</strong>
+              <span class="sp-field__help">Kept at the top of Vendors, and leads the list on a new order.</span>
+            </span>
+          </label>
+          </div>
+        </div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w440">
+        <span class="sp-section-label">ADDING ONE THAT IS TAKEN</span>
+        <div class="sp-card">
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-tok4">Also matches</label>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">INDBO MØBLER A/S<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove INDBO MØBLER A/S"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok4" type="text" placeholder="Add…" aria-label="Add a value" aria-invalid="true" aria-describedby="vc-tok4-err">
+            </div>
+            <span class="sp-field__help" data-color="danger" id="vc-tok4-err">Hay already matches &quot;hay.dk&quot;. Move it here, or pick a different one.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Move it here</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Keep it on Hay</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5i">5i</span>
+    <span class="doc-section__title">The monthly limit</span>
+  </div>
+  <div class="doc-lede">One amount on a category, applied to every month. The number itself is a plain amount field - everything interesting is what it renders as, and what it deliberately does not do.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>It is one value, not a series.</b> No per-month editing, no history of changes. A series invites a calendar, a &quot;copy last month&quot;, and a question about which month's limit a historical comparison should use - none of which was asked for. If per-month planning is ever wanted, that is a new concept with its own screen, not a change to this field.</div>
+    <div class="doc-note"><b>Empty means no limit. Zero means nothing should be spent here.</b> They are different, and both are valid. If you do not want the distinction, reject zero - do not silently convert it.</div>
+    <div class="doc-note"><b>The pace marker exists because the limit is flat and the month is partial.</b> &quot;3.400 of 6.000&quot; on day 20 is unreadable without it. Position is <code>day / daysInMonth</code>; it is a reference line, never a threshold, and never coloured red.</div>
+    <div class="doc-note"><b>Over the limit fills amber and caps the bar at 100%.</b> A capped bar cannot express how far past it went, so the overage is always stated in words beside it. On a phone there is no adjacent column, so that sentence goes underneath - never omitted.</div>
+    <div class="doc-note"><b>A list row splits the amber into two segments.</b> The part up to the limit is <code>--amber-2</code>; the overage beyond it is <code>--amber-3</code>, one step paler, so the row shows both how much the limit was and how far past it went inside the same 100% track. The edit page has room for the sentence instead, and uses the single fill.</div>
+    <div class="doc-note"><b>Four fills in total, and no others.</b> <code>--green</code> under the limit, <code>--amber-2</code> up to a limit that has been passed, <code>--amber-3</code> for the overage segment, and the bare <code>--surface-2</code> track when no limit is set. Red never appears on a limit bar - it would read as a blocked save.</div>
+  </div>
+  <div class="sp-card">
+    <div class="sp-card__head"><span class="sp-section-label">EVERY FILL, AND WHAT IT MEANS</span></div>
+    <div class="doc-legends">
+      <div class="doc-legend">
+              <span class="sp-gauge sp-gauge--thin"><meter value="60" min="0" max="100" aria-label="Share of the limit used"></meter><span class="sp-gauge__fill" data-fill="60"></span></span>
+              <span class="sp-title">#1d4d33</span>
+              <span class="sp-subtitle">Under the limit - whatever the pace marker says</span>
+              <span class="sp-meta">list row, rail, form</span>
+            </div>
+      <div class="doc-legend">
+              <span class="sp-gauge sp-gauge--thin"><meter value="100" min="0" max="100" aria-label="Share of the limit used"></meter><span class="sp-gauge__fill" data-fill="100"></span></span>
+              <span class="sp-title">#d3b98a</span>
+              <span class="sp-subtitle">Up to a limit that has been passed</span>
+              <span class="sp-meta">list row, rail, form</span>
+            </div>
+      <div class="doc-legend">
+              <span class="sp-gauge sp-gauge--thin"><meter value="100" min="0" max="100" aria-label="Share of the limit used"></meter><span class="sp-gauge__fill sp-gauge__fill--over" data-fill="100"></span></span>
+              <span class="sp-title">#e2d3ae</span>
+              <span class="sp-subtitle">The overage beyond the limit</span>
+              <span class="sp-meta">list row only</span>
+            </div>
+      <div class="doc-legend">
+              <span class="sp-gauge sp-gauge--thin sp-gauge--untargeted"><meter value="0" min="0" max="100" aria-label="No limit set"></meter></span>
+              <span class="sp-title">#f7f6f2</span>
+              <span class="sp-subtitle">No limit set - an empty track, and no marker</span>
+              <span class="sp-meta">anywhere</span>
+            </div>
+      <div class="doc-legend">
+        <span class="sp-gauge sp-gauge--thin"><meter value="0" min="0" max="100" aria-label="Where the month should be by now"></meter><span class="sp-gauge__marker" data-at="65"></span></span>
+        <span class="sp-title">#b58a2b</span>
+        <span class="sp-subtitle">The pace marker - a reference line, never a threshold</span>
+        <span class="sp-meta">2px, always</span>
+      </div>
+    </div>
+    <div class="sp-card__footer sp-meta">Track is <b>#eef1ee</b> in every case except no-limit. A bar is <b>8px / radius 4</b> in a list row and <b>10px / radius 5</b> in a rail or a form - the only dimension that changes by context.</div>
+  </div>
+  
+    <div class="doc-note"><b>Crossing a limit never blocks a save.</b> Keep this check out of the validation layer entirely: once it shares a code path with required fields, it eventually starts blocking. It is a fact about the month, not a rule about the data.</div>
+    <div class="doc-note"><b>Progress is spend in the calendar month of the order date</b>, in the user's timezone, all statuses. Whether cancelled orders count is the open question in BEHAVIOUR.md - answer it once, in one place.</div>
+  
+  <div class="doc-specimens">
+      <div class="sp-stack sp-gap-8 doc-w330">
+        <span class="sp-section-label">UNDER - DAY 20 OF 31</span>
+        <div class="sp-card">
+          <div class="sp-stack">
+            <div class="sp-sum">
+                  <span class="sp-ink-2">Seating</span>
+                  <span class="sp-sum__value">3.240 of 8.000 kr.</span>
+                </div>
+            <span class="sp-gauge">
+              <meter value="40" min="0" max="100" aria-label="Share of the limit used"></meter>
+              <span class="sp-gauge__fill" data-fill="40"></span>
+              <span class="sp-gauge__marker" data-at="65"></span>
+            </span>
+            <span class="sp-meta">Comfortably behind the pace marker.</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w330">
+        <span class="sp-section-label">AHEAD OF PACE, STILL UNDER</span>
+        <div class="sp-card">
+          <div class="sp-stack">
+            <div class="sp-sum">
+                  <span class="sp-ink-2">Textiles</span>
+                  <span class="sp-sum__value">1.640 of 2.000 kr.</span>
+                </div>
+            <span class="sp-gauge">
+              <meter value="80" min="0" max="100" aria-label="Share of the limit used"></meter>
+              <span class="sp-gauge__fill" data-fill="80"></span>
+              <span class="sp-gauge__marker" data-at="65"></span>
+            </span>
+            <span class="sp-meta">Past the marker by less than 10 points - no amber, nothing said. More than 10 points over the pace reads "ahead of pace" in amber.</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w330">
+        <span class="sp-section-label">OVER</span>
+        <div class="sp-card">
+          <div class="sp-stack">
+            <div class="sp-sum">
+                  <span class="sp-ink-2">Decor</span>
+                  <span class="sp-sum__value sp-ink-warning">7.240 of 6.000 kr.</span>
+                </div>
+            <span class="sp-gauge">
+              <meter value="100" min="0" max="100" aria-label="Share of the limit used"></meter>
+              <span class="sp-gauge__fill" data-fill="100"></span>
+              <span class="sp-gauge__marker" data-at="65"></span>
+            </span>
+            <span class="sp-meta sp-ink-warning">1.240 kr. over the limit.</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w330">
+        <span class="sp-section-label">OVER - IN A LIST ROW</span>
+        <div class="sp-card">
+          <div class="sp-stack">
+            <div class="sp-sum">
+                  <span class="sp-ink-2">Seating</span>
+                  <span class="sp-sum__value sp-ink-warning">8.780 of 8.000 kr.</span>
+                </div>
+            <span class="sp-gauge sp-gauge--thin">
+              <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+              <span class="sp-gauge__over" data-over="10"></span>
+              <span class="sp-gauge__marker" data-at="65"></span>
+            </span>
+            <span class="sp-meta sp-ink-warning">780 kr. over - the paler segment is the overage.</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w330">
+        <span class="sp-section-label">NO LIMIT SET</span>
+        <div class="sp-card">
+          <div class="sp-stack">
+            <div class="sp-sum">
+                  <span class="sp-ink-2">Lighting</span>
+                  <span class="sp-sum__value">2.480 kr.</span>
+                </div>
+            <span class="sp-gauge sp-gauge--untargeted"><meter value="0" min="0" max="100" aria-label="No limit set"></meter></span>
+            <span class="sp-meta">No limit - an empty track, not a full one, and no marker.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5j">5j</span>
+    <span class="doc-section__title">Merge, and moving orders</span>
+  </div>
+  <div class="doc-lede">Merging one record into another, for both kinds. The source's orders move to the target and the source is deleted. Irreversible, and confirmed by naming the number of orders that will move.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Merging a vendor:</b> the source's orders move to the target, its name and aliases become the target's aliases, and the source is deleted. Moving the aliases is the important half - without it the next receipt recreates the duplicate.</div>
+    <div class="doc-note"><b>The comparison shows which value wins per field.</b> The target keeps its own unless the source has one and the target does not. Nothing is silently blended, and the user can see the result before agreeing to it.</div>
+    <div class="doc-note"><b>A category merges the same way, with less to combine.</b> Its orders move to the target and it is deleted; there are no aliases to carry, and the target keeps its own limit. Same dialog, same confirmation shape.</div>
+<div class="doc-note"><b>The target list is every category except the source.</b> Merging a record into itself is the one selection that cannot be allowed, so it is absent from the list rather than shown and refused. Since categories are multi-valued, an order already carrying both ends up with one label, not a duplicate.</div>
+<div class="doc-note"><b>Merging is not required in order to delete.</b> It is for when the orders belong in another category. A category can be deleted outright from <a href="#5f">5f</a>, which takes the label off its orders and leaves their other categories alone - and an order with none at all is allowed, since the field is optional.</div>
+    <div class="doc-note"><b>Not reversible, and the dialog says so.</b> Undo is the pattern everywhere else, but this moves rows across records; write an audit record instead of promising a rollback you cannot do.</div>
+    <div class="doc-note"><b>Suggested merges are advisory.</b> Normalised name similarity above 0.85, or an identical VAT number. Never merged automatically, at any confidence - the cost of a wrong merge is unrecoverable.</div>
+    <div class="doc-note"><b>The count is the last thing in the button.</b> &quot;Merge 2 orders&quot;, not &quot;Confirm&quot; - a number the user reads on the button is one they cannot claim not to have seen.</div>
+  </div>
+  <div class="doc-specimens">
+      <div class="doc-specimen">
+        <span class="doc-specimen__label">Merge a vendor</span>
+        <div class="sp-card doc-w440">
+          <div class="sp-card__head"><span class="sp-section-label">MERGE A VENDOR</span></div>
+          <div class="sp-field">
+            <span  class="sp-field__label" id="vc-lab1">Move everything from <b class="sp-ink">Indbo Moebler A/S</b> into</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-lab1">
+                <span class="sp-mark sp-mark--small" aria-hidden="true">IM</span>
+                <span>Indbo Møbler</span>
+                <span class="sp-grow"></span>
+                <span class="sp-combobox__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+              </button>
+            </div>
+            <span class="sp-field__help">&quot;Indbo Moebler A/S&quot; becomes an alias, so the next receipt printing that name files here.</span>
+          </div>
+          <div class="sp-list">
+            <table class="sp-table sp-table--compact sp-table--static">
+                  <thead>
+                    <tr><th></th><th>SOURCE</th><th>RESULT</th></tr>
+                  </thead>
+                  <tbody>
+            <tr><td class="sp-ink-2">Name</td><td class="sp-ink-5">Indbo Moebler A/S</td><td class="sp-strong">Indbo Møbler</td></tr>
+            <tr><td class="sp-ink-2">Aliases</td><td class="sp-ink-5">1</td><td class="sp-strong">5</td></tr>
+            <tr><td class="sp-ink-2">Orders</td><td class="sp-ink-5">2</td><td class="sp-strong">40</td></tr>
+                  </tbody>
+                </table>
+          </div>
+          <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+            <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+            <button type="button" class="sp-btn">Merge 2 orders</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-specimen">
+      <span class="doc-specimen__label">Picking the target - every category except this one</span>
+      <div class="sp-card doc-w440 doc-h300">
+        <div class="sp-field">
+          <span  class="sp-field__label" id="vc-cbl2">Merge <b class="sp-ink">Decor</b> and its <b class="sp-ink">64 orders</b> into</span>
+          <div class="sp-combobox sp-anchor" data-open="true">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" id="vc-merge-open" aria-labelledby="vc-cbl2">
+              <span class="sp-ink-5">Choose a category</span>
+              <span class="sp-grow"></span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+            </button>
+            <ul class="sp-combobox__panel" role="listbox" aria-labelledby="vc-merge-open">
+                <li role="option"><button type="button" class="sp-combobox__option"><span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-2" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span><span>Seating</span><span class="sp-grow"></span><span class="sp-meta">41 orders</span></button></li>
+                <li role="option"><button type="button" class="sp-combobox__option"><span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-3" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></svg></span><span>Lighting</span><span class="sp-grow"></span><span class="sp-meta">33 orders</span></button></li>
+                <li role="option"><button type="button" class="sp-combobox__option"><span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-4" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span><span>Textiles</span><span class="sp-grow"></span><span class="sp-meta">22 orders</span></button></li>
+              </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Merge a category</span>
+      <div class="sp-card doc-w440">
+          <div class="sp-card__head"><span class="sp-section-label">MERGE A CATEGORY</span></div>
+          <div class="sp-field">
+            <span  class="sp-field__label" id="vc-cbl1">Merge <b class="sp-ink">Decor</b> and its <b class="sp-ink">64 orders</b> into</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" id="vc-merge-target" aria-labelledby="vc-cbl1">
+                <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-2" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                <span>Seating</span>
+                <span class="sp-grow"></span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+              
+            </div>
+            <span class="sp-field__help">Every category except this one. Totals and charts count them under the one you pick.</span>
+          </div>
+          <div class="sp-well" data-color="danger">
+            <span class="sp-title">Decor is deleted once its orders have moved</span>
+            <span class="sp-subtitle">Seating ends with 105 orders. Orders carrying both keep one label, not two. Decor's limit of 6.000 kr. goes with it; Seating's stays at 24.000 kr.</span>
+          </div>
+          <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+            <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+            <button type="button" class="sp-btn" data-color="danger">Merge 64 orders</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5k">5k</span>
+    <span class="doc-section__title">Both tables at every width</span>
+  </div>
+  <div class="doc-lede">Same rule as <a href="Order list.dc.html#2i">2i</a>: columns are dropped whole, never squeezed until their content wraps. What differs is which column can go, because the two tables answer different questions - a vendor list is about how much and how recently, a category list is about a limit and how close this month is to it. Both tables are the ones <a href="#5a">5a</a> and <a href="#5d">5d</a> draw, at the widths the list column takes.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Vendors drop <i>last order</i>, and nothing else.</b> Orders and saved are not columns at any width - they are the name's second line, where a vendor with 38 orders and one with 2 read as different kinds of vendor without costing a track. That leaves two columns to defend, and the date is the one that can go: it joins the second line at 880 in its short form, so the row still says when you last bought there. <b>Spend never leaves</b> - it is what the list is sorted by.</div>
+    <div class="doc-note"><b>Categories drop the <i>monthly limit</i>.</b> It is the only column that can go, because the gauge in <i>this month</i> is already drawn against it - the limit's own figure is a second statement of something the row shows. It joins the name's second line at 880 rather than vanishing, since a category without its limit is just a name. The order count and the 12-month average are not columns at any width; they are the second line, the same as a vendor's. <b>This month never leaves.</b></div>
+    <div class="doc-note"><b>The progress bar is a column, not decoration.</b> It stays at every width and goes full width on the phone, where it becomes the row's primary shape. Over the limit it fills amber and the overage is stated in words underneath - a bar pinned at 100% cannot say how far past it went, and on a phone there is no adjacent column to say it for you.</div>
+    <div class="doc-note"><b>The edit page is why these tables can shed columns at all.</b> A row is one click from the full record (<a href="#5c">5c</a>), so anything a narrow table drops is still exact one screen away. The tables become cards at a list column of 640px or less, the order list's rule (<a href="Order list.dc.html#2i">2i</a>); above that the 880 table holds, with the last order or the limit on the second line. Below 900px the edit page's rail moves above its form, as the order page's does (<a href="Responsive reference.dc.html#18a">Responsive reference 18a</a>).</div>
+    <div class="doc-note"><b>Same three implementation rules as 2i.</b> Container queries on the list column, not the viewport - this list is the full width of the page, and on the edit page the same table sits beside a 360px rail, so its width is never the window's. One grid definition shared by header and rows, declared once and overridden per breakpoint. And <b>min-width: 0</b> on every fluid cell, with the ellipsis triple on every text cell: without it a grid child refuses to shrink below its content and the row overflows instead of truncating.</div>
+    <div class="doc-note"><b>The identity mark never shrinks and never drops.</b> The row mark, <code>42px</code>, at every width. It is the fastest way to find a row, and it is the only thing in the row that survives on a phone unchanged.</div>
+  </div>
+
+  <div class="sp-stack sp-gap-16 doc-w1280">
+    <span class="sp-section-label sp-section-label--ruled">VENDORS - 5a</span>
+    <div class="sp-stack sp-gap-12 doc-w1280">
+      <div class="sp-row-flex sp-gap-12 sp-baseline">
+        <span class="sp-section-label">1280px</span>
+        <span class="sp-meta">the full set - last order and spend beside the name</span>
+      </div>
+      <div class="doc-w1280">
+      <div class="sp-list">
+            <div class="sp-list__toolbar">
+              <strong class="sp-data">42 vendors</strong>
+            </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-col-title">VENDOR</th>
+              <th scope="col" class="sp-col-date">LAST ORDER</th>
+              <th scope="col" class="sp-col-amount">SPEND ↓</th>
+              <th class="sp-col-menu" aria-label="Row actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr aria-selected="true" data-open="true">
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">IM</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">38 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-date"><span class="sp-data">08/08/2026</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">142.310,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 41.220,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">H</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Hay</span>
+                  <span class="sp-meta sp-truncate">27 orders</span>
+                </span>
+              </div></td>
+              <td class="sp-col-date"><span class="sp-data">28/07/2026</span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">98.740,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 22.610,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+</tbody>
+        </table>
+            <div class="sp-list__footer">
+              <span class="sp-subtitle">Showing 2 of 42</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+            </div>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-12 doc-w880">
+      <div class="sp-row-flex sp-gap-12 sp-baseline">
+        <span class="sp-section-label">880px</span>
+        <span class="sp-meta">last order folds into the name line</span>
+      </div>
+      <div class="doc-w880">
+      <div class="sp-list">
+            <div class="sp-list__toolbar">
+              <strong class="sp-data">42 vendors</strong>
+            </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-col-title">VENDOR</th>
+              <th scope="col" class="sp-col-amount">SPEND ↓</th>
+              <th class="sp-col-menu" aria-label="Row actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr aria-selected="true" data-open="true">
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">IM</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">38 orders · last 08/08</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">142.310,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 41.220,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex">
+                <span class="sp-mark sp-mark--medium">H</span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Hay</span>
+                  <span class="sp-meta sp-truncate">27 orders · last 28/07</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">98.740,00 kr.</span><span class="sp-amount-secondary" data-color="success">Saved 22.610,00 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+</tbody>
+        </table>
+            <div class="sp-list__footer">
+              <span class="sp-subtitle">Showing 2 of 42</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-stack sp-gap-16 doc-w1280">
+    <span class="sp-section-label sp-section-label--ruled">CATEGORIES - 5d</span>
+    <div class="sp-stack sp-gap-12 doc-w1280">
+      <div class="sp-row-flex sp-gap-12 sp-baseline">
+        <span class="sp-section-label">1280px</span>
+        <span class="sp-meta">the full set - this month and its limit beside the name</span>
+      </div>
+      <div class="doc-w1280">
+      <div class="sp-list">
+            <div class="sp-list__toolbar">
+              <strong class="sp-data">9 categories</strong>
+            </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-col-title">CATEGORY</th>
+              <th scope="col" class="sp-col-amount">THIS MONTH</th>
+              <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+              <th class="sp-col-menu" aria-label="Row actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr aria-selected="true" data-open="true">
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Seating</span>
+                  <span class="sp-meta sp-truncate">41 orders · 21.140 kr. avg. per month</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="70" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta">17.320 kr. · 6.680 left</span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">24.000 kr.</span></div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+</tbody>
+        </table>
+            <div class="sp-list__footer">
+              <span class="sp-subtitle">Showing 2 of 9</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+            </div>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-12 doc-w880">
+      <div class="sp-row-flex sp-gap-12 sp-baseline">
+        <span class="sp-section-label">880px</span>
+        <span class="sp-meta">the limit folds into the name line; the gauge already carries it</span>
+      </div>
+      <div class="doc-w880">
+      <div class="sp-list">
+            <div class="sp-list__toolbar">
+              <strong class="sp-data">9 categories</strong>
+            </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-col-title">CATEGORY</th>
+              <th scope="col" class="sp-col-amount">THIS MONTH</th>
+              <th class="sp-col-menu" aria-label="Row actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr aria-selected="true" data-open="true">
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Decor</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month · limit 22.000 kr.</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="90" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
+              </div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+            <tr>
+              <td class="sp-col-title"><div class="sp-cell-flex sp-gap-12">
+                <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Seating</span>
+                  <span class="sp-meta sp-truncate">41 orders · 21.140 kr. avg. per month · limit 24.000 kr.</span>
+                </span>
+              </div></td>
+              <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
+                <span class="sp-gauge sp-gauge--thin">
+                  <meter value="70" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta">17.320 kr. · 6.680 left</span>
+              </div></td>
+              <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+            </tr>
+</tbody>
+        </table>
+            <div class="sp-list__footer">
+              <span class="sp-subtitle">Showing 2 of 9</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5l">5l</span>
+    <span class="doc-section__title">Default categories - set here, offered there</span>
+  </div>
+  <div class="doc-lede">A vendor can carry categories it usually gets filed under. They do nothing on the vendor page - they exist to be offered on an order the moment that vendor is chosen. Four states, in the order a user meets them.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Add both</b> adds the suggested categories to the order's category field. Nothing else changes.</div>
+    <div class="doc-note"><b>Offered, never applied.</b> Choosing a vendor fills the categories field with the vendor's defaults and says where they came from. The user can remove any of them before saving, and the order stores what is in the field at save - not a reference to the vendor's list.</div>
+    <div class="doc-note"><b>It fills only when the field is empty.</b> If the user already picked categories, or a scan read one, choosing a vendor leaves them alone and offers its defaults as an add - a suggestion the user acts on, not a replacement.</div>
+    <div class="doc-note"><b>Changing the vendor clears what the previous vendor suggested</b>, and nothing else. Track which chips arrived as suggestions; a chip the user added by hand survives every vendor change. Without that flag the only correct behaviour is to leave everything, which strands the wrong categories on the order.</div>
+    <div class="doc-note"><b>The suggestion notice is not an error, a warning, or a toast.</b> It is one muted line under the field, and it disappears the moment the user edits the field. It never uses amber or red - nothing is wrong, and nothing is blocked.</div>
+    <div class="doc-note"><b>Editing a saved order does not re-suggest.</b> Defaults apply to the first vendor choice on a new order. Reopening an order months later and touching the vendor field must not quietly rewrite categories the user settled at the time.</div>
+    <div class="doc-note"><b>Deleting a category takes it off its orders</b>, past ones included, and off the vendor's default list (<a href="#5f">5f</a>).</div>
+    <div class="doc-note"><b>Nothing is learnt automatically.</b> Filing three orders under Decor does not make Decor a default. The list is only ever what the user typed on the vendor page - a guess that edits itself is one nobody can predict.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="sp-stack sp-gap-8 doc-w400">
+        <span class="sp-section-label">1 - ON THE VENDOR PAGE</span>
+        <div class="sp-card">
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title">Default categories</span>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">Storage<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Storage"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok5" type="text" placeholder="Add…" aria-label="Add a value">
+            </div>
+            <span class="sp-field__help">Offered on a new order from this vendor. Nothing is filed automatically.</span>
+          </div>
+        </div>
+      </div>
+
+    <div class="sp-stack sp-gap-8 doc-w400">
+        <span class="sp-section-label">2 - NEW ORDER, NO VENDOR YET</span>
+        <div class="sp-card">
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title">Vendor</span>
+            <div class="sp-tokens">
+
+              <input class="sp-tokens__add" id="vc-tok6" type="text" placeholder="Where you bought it" aria-label="Add a value">
+            </div>
+
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title">Categories</span>
+            <div class="sp-tokens">
+
+              <input class="sp-tokens__add" id="vc-tok7" type="text" placeholder="none" aria-label="Add a value">
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    <div class="sp-stack sp-gap-8 doc-w400">
+        <span class="sp-section-label">3 - VENDOR CHOSEN, FIELD WAS EMPTY</span>
+        <div class="sp-card">
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title sp-truncate">Vendor</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Vendor">
+                <span>Indbo Møbler</span>
+                <span class="sp-grow"></span>
+                <span class="sp-combobox__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+              </button>
+            </div>
+
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title">Categories</span>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <span class="sp-chip sp-chip--static">Storage<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Storage"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok8" type="text" placeholder="Add…" aria-label="Add a value">
+            </div>
+            <span class="sp-field__help">Filled from Indbo Møbler. Remove any that do not fit.</span>
+          </div>
+        </div>
+      </div>
+
+    <div class="sp-stack sp-gap-8 doc-w400">
+        <span class="sp-section-label">4 - VENDOR CHOSEN, FIELD ALREADY HAD ONE</span>
+        <div class="sp-card">
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title sp-truncate">Vendor</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Vendor">
+                <span>Indbo Møbler</span>
+                <span class="sp-grow"></span>
+                <span class="sp-combobox__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+              </button>
+            </div>
+
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title">Categories</span>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">Lighting<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Lighting"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok9" type="text" placeholder="Add…" aria-label="Add a value">
+            </div>
+
+          </div>
+          <div class="sp-alert">
+            <span class="sp-alert__mark" aria-hidden="true">!</span>
+            <span class="sp-alert__body">
+              <span class="sp-alert__title">Indbo Møbler usually gets Decor and Storage</span>
+              <span class="sp-alert__note">Its last 38 orders carry both.</span>
+            </span>
+          </div>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Add both</button>
+          </div>
+        </div>
+      </div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

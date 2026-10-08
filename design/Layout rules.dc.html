@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="currentColor"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="currentColor" text-anchor="middle">15</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/layout-rules.css?v=v20260917b">
+<script src="./icons.js?v=v20260917b"></script>
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="15a">15a</span>
+    <span class="doc-section__title">Columns, rows, and what goes full width</span>
+  </div>
+    <div class="doc-note"><b class="sp-ink">Which controls carry an icon, and which do not.</b> <b>Search</b> has a leading magnifier - it is the one control whose purpose is not obvious from an empty field. <b>Create</b> has a leading plus, and keeps it at every width because the plus alone is what the button becomes when the label goes. <b>Sort</b> and any <b>filter</b> control carry a trailing chevron and nothing leading: the word "Sort" and the filter's own name already say what they are, and a leading glyph on each turns the toolbar into a row of competing marks. A <b>segmented control</b> never carries an icon - its labels are the whole control.</div>
+    <div class="doc-note"><b class="sp-ink">Leading means what it is, trailing means what it does</b> - the same rule as the fields in 14a. The magnifier and the plus describe the control; the chevron says a panel will open. Never both on one control.</div>
+  <div class="doc-lede">Every screen in the set uses one of four column shapes, and every field is either full width or a fraction for a reason that can be stated. Written down here because it was consistent across the designs but never explicit - and an undocumented grid is the first thing to drift.</div>
+
+  <div class="doc-notes">
+    <div class="doc-notes__label">THE ONE RULE BEHIND ALL OF IT</div>
+    <div class="doc-note"><b class="sp-ink">One fluid column per layout. Everything else is a fixed pixel width.</b> The main column takes <b>1fr</b>; rails, navs and facet columns are fixed. Two fluid columns means neither has a predictable width, so nothing inside either can be sized with confidence - and the first long vendor name changes the whole page.</div>
+    <div class="doc-note"><b class="sp-ink">Gaps, not margins.</b> <b>12px</b> between columns, between stacked cards and in a card grid - one gap, owned by <code>.sp-shell__body</code>, which the columns inherit rather than restate. <b>8px</b> between the fields of one row. Set on the container, never per child, so reordering and deleting stay safe.</div>
+    <div class="doc-note"><b class="sp-ink">An overlay's inset is never a free number.</b> A control positioned over something - a checkbox on a card, a badge on a thumbnail, a PDF tag on an attachment tile - is inset by <b>the padding of whatever it must line up with</b>, not by whatever looks about right. A card's checkbox sits 16px in because the bulk bar above it has 16px padding, so the two checkboxes share an x. Pick the element it aligns against first, read its padding, use that number.</div>
+    <div class="doc-note"><b class="sp-ink">A number never gets a fixed-width box.</b> Counts, badges and totals change length with the data - 3 today, 438 next month. A box sized to the digits you happened to draw clips the moment the count grows. Use <b>min-width</b> at single-digit size plus horizontal padding, so the shape stays a circle at one digit and grows into a pill at three, with <b>font-variant-numeric: tabular-nums</b> so the width changes only when the digit count does.</div>
+    <div class="doc-note"><b class="sp-ink">If a growing number leads a label, reserve its column.</b> A pill that widens in a flex row pushes its label sideways, so a list stops sharing a left edge and reads as ragged. Put the number in a <b>fixed-width cell</b> - 40px for a 22px pill, 44px for a 26px one - left-aligned inside. The pill still grows; the label does not move. Anything else leading the same list - an icon, a status dot - goes in the same cell, so every row starts at one x.</div>
+    <div class="doc-note"><b class="sp-ink">A list of rows is a grid, not a stack of flex rows.</b> Give the list one <b>grid-template-columns</b> and let every row - and its header - read the same one. A flex row with a <b>flex: 1</b> spacer places only some of its cells, so each row negotiates its own widths and a wider count or a longer label in one row shifts that row alone. Under a shared grid the columns hold whatever any single row contains: <b>44px minmax(0, 1fr) auto</b> for a leading mark, a label and an action.</div>
+    <div class="doc-note"><b class="sp-ink">Cap at four digits.</b> Past <b>9999</b>, show <b>9999+</b>. A five-digit count is not something a user acts on, and it is wide enough to cost the label its space.</div>
+    <div class="doc-note"><b class="sp-ink">A row's <span class="sp-nowrap">align-items: center</span> centres its cells, not the content inside them.</b> An inline-block in a grid cell - a chip, a status pill, a badge - sits on the text baseline, about 2px low against the text cells beside it. The cell itself has to be <b>display: flex; align-items: center</b>. This is the most common alignment fault in a data table, because it looks correct until a chip sits next to a plain text cell.</div>
+    <div class="doc-note"><b class="sp-ink">An overlay on an image needs its own edge.</b> Anything placed over a photo - a checkbox, a badge, a tag - carries <b>0 1px 4px rgba(27, 26, 23, 0.28)</b>, because the lightness behind it is not knowable. A white control on a white product shot is invisible; a dark one on a dark photo is too. The shadow costs nothing on a photo that already contrasts and saves the one that does not.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="sp-section-label">THE FOUR COLUMN SHAPES</div>
+  <div class="doc-specimens">
+
+    <div class="sp-card lr-w430">
+      <div class="sp-sum">
+        <div class="sp-heading">1 - Main plus right rail</div>
+        <div class="sp-meta">1a, 1d, 10a</div>
+      </div>
+      <div class="lr-h116">
+        <div class="lr-block lr-block--label sp-grow">
+          <div class="sp-title">1fr</div>
+          <div class="sp-meta">min 560px</div>
+        </div>
+        <div class="lr-block lr-block--fixed lr-w104">
+          <div class="sp-title sp-ink-accent">360px</div>
+          <div class="sp-meta sp-ink-accent">fixed</div>
+        </div>
+      </div>
+      <div class="doc-note">The default for a record: the thing you work on takes the fluid column, its metadata takes the rail. <b>Rail widths are 320 / 360 / 400</b> - 320 for read-only summaries (Home), 360 for a form rail (order edit), 400 for a panel that is itself a form (the library). Nothing in between; three values is already generous.</div>
+      <div class="doc-note"><b class="sp-ink">The rail stays shorter than the main column.</b> Once it is the longest thing on the page, the page scrolls for the rail's sake - which is the problem the whole redesign started from. Anything added to a rail has to displace something.</div>
+    </div>
+
+    <div class="sp-card lr-w430">
+      <div class="sp-sum">
+        <div class="sp-heading">2 - Left rail plus main</div>
+        <div class="sp-meta">2a, 11a</div>
+      </div>
+      <div class="lr-h116">
+        <div class="lr-block lr-block--fixed lr-w80">
+          <div class="sp-title sp-ink-accent">260px</div>
+          <div class="sp-meta sp-ink-accent">facets</div>
+        </div>
+        <div class="lr-block lr-block--label sp-grow">
+          <div class="sp-title">1fr</div>
+          <div class="sp-meta">the list</div>
+        </div>
+      </div>
+      <div class="doc-note">Controls on the left, results on the right - the reading order matches the causal order. <b>260px</b> for facets, <b>208px</b> for a page-level nav (Settings). A left rail is always narrower than a right rail, because it holds controls rather than content.</div>
+      <div class="doc-note">Below <b>1280px</b> this rail becomes a drawer or a sheet rather than compressing. A facet list at 180px is unusable, so it leaves the layout instead.</div>
+    </div>
+
+    <div class="sp-card lr-w430">
+      <div class="sp-sum">
+        <div class="sp-heading">3 - List plus panel</div>
+        <div class="sp-meta">5a, 5b</div>
+      </div>
+      <div class="lr-h116">
+        <div class="lr-block lr-block--label sp-grow">
+          <div class="sp-title">1fr</div>
+          <div class="sp-meta">the list</div>
+        </div>
+        <div class="lr-block lr-block--fixed lr-w118">
+          <div class="sp-title sp-ink-accent">400px</div>
+          <div class="sp-meta sp-ink-accent">form</div>
+        </div>
+      </div>
+      <div class="doc-note">Shape 1 with a wider rail, because the rail is a form rather than a summary. <b>The panel never collapses to nothing</b> - with no selection it shows the roll-up (5c), so the column width is constant whatever is selected. A layout that changes width on selection makes the list jump under the cursor.</div>
+      <div class="doc-note">Below <b>900px</b> the two become separate views: list, then panel, with a back action. Not stacked - a form below a long list is unreachable.</div>
+    </div>
+
+    <div class="sp-card lr-w430">
+      <div class="sp-sum">
+        <div class="sp-heading">4 - Card grid</div>
+        <div class="sp-meta">2c, 4a</div>
+      </div>
+      <div class="lr-thirds lr-h116-grid">
+        <div class="lr-block"></div>
+        <div class="lr-block"></div>
+        <div class="lr-block"></div>
+        <div class="lr-block"></div>
+        <div class="lr-block"></div>
+        <div class="lr-block"></div>
+      </div>
+      <div class="doc-note">No rail at all. Order cards use <b>repeat(auto-fill, minmax(280px, 1fr))</b> at a <b>16px</b> gap and reflow freely - the four-across in the 2c mockup is that rule at the canvas width, not a fixed count. Statistics uses a <b>12-column grid</b> where every card spans a whole number of columns, so rows always close - no half-filled row, no gap in the middle. Verify at 1280, 1440 and 1920.</div>
+      <div class="doc-note"><b class="sp-ink">Cards in a grid row share a height, cards in a column do not.</b> Grid handles the first automatically; don't fight it with fixed heights.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="sp-section-label">FIELDS - FULL WIDTH, OR A FRACTION</div>
+  <div class="doc-specimens">
+
+    <div class="sp-card lr-w560">
+      <div class="sp-data"><b class="sp-ink">The test is the content, not the importance.</b> A field goes full width when what it holds has no predictable length. It takes a fraction when its content is a bounded token - a date, a status, a number - where a wide box is just empty space that makes the value look lost.</div>
+
+      <div class="sp-stack sp-gap-10">
+        <div class="sp-section-label">FULL WIDTH - UNBOUNDED CONTENT</div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-title">Item name</div>
+          <input class="sp-input" id="lr-f1" type="text" defaultValue="Egetræsbord med sortmalet stålstel" aria-label="Value">
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-title">Notes</div>
+          <textarea class="sp-textarea" rows="3" aria-label="Note" defaultValue="Delivery moved to week 34."></textarea>
+        </div>
+        <div class="sp-meta">Vendor, item name, reference, notes, search, and every drop zone. Also: a field in error keeps its width - the message wraps beneath rather than the box growing.</div>
+      </div>
+
+      <div class="sp-divider"></div>
+
+      <div class="sp-stack sp-gap-10">
+        <div class="sp-section-label">HALVES - TWO BOUNDED VALUES THAT BELONG TOGETHER</div>
+        <div class="sp-fields">
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title">Order date</div>
+            <input class="sp-input" id="lr-f2" type="text" defaultValue="12 Aug 2026" aria-label="Value">
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title">Status</div>
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Status">
+              <span class="sp-grow">Received</span>
+              <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sp-meta">Date and status, currency and format, name and email. Two halves are only right when the pair is read together - otherwise stack them, because a half-width field beside empty space reads as a layout accident.</div>
+      </div>
+
+      <div class="sp-divider"></div>
+
+      <div class="sp-stack sp-gap-10">
+        <div class="sp-section-label">THIRDS - A CALCULATION READ LEFT TO RIGHT</div>
+        <div class="lr-thirds">
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title">Quantity</div>
+            <input class="sp-input sp-number" id="lr-f3" type="text" inputMode="decimal" defaultValue="2" aria-label="Value">
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title">Unit price</div>
+            <input class="sp-input sp-number" id="lr-f4" type="text" inputMode="decimal" defaultValue="4.190,00" aria-label="Value">
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title">Line total</div>
+            <input class="sp-input sp-number lr-readonly" id="lr-f5" type="text" readOnly defaultValue="8.380,00" aria-label="Value">
+          </div>
+        </div>
+        <div class="sp-meta">Thirds exist once: quantity × unit price = line total, in that order, because the row is an equation. <b>Never four in a row</b> - at a 360px rail width each cell falls under 80px and the numbers stop being readable.</div>
+      </div>
+
+      <div class="sp-divider"></div>
+
+      <div class="sp-stack sp-gap-10">
+        <div class="sp-section-label">MIXED - FIXED PLUS FLUID</div>
+        <div class="sp-row-flex sp-gap-10 lr-bottom">
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title">Quantity</div>
+            <div class="sp-stepper">
+              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h8"></path></svg></button>
+              <div class="sp-grow sp-number lr-centre">2</div>
+              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg></button>
+            </div>
+          </div>
+          <div class="sp-stack sp-gap-6 sp-grow">
+            <div class="sp-title">Item name</div>
+            <input class="sp-input sp-truncate" id="lr-f6" type="text" defaultValue="Egetræsbord med stålstel" aria-label="Value">
+          </div>
+        </div>
+        <div class="sp-meta">A control with an intrinsic width - the stepper, an icon tile, a currency suffix - takes <b>flex: none</b> at its own size, and the text field beside it takes the remainder with <b>min-width: 0</b>. The fixed one never stretches to fill; a 400px-wide stepper is absurd.</div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-12 lr-w430">
+      <div class="sp-card">
+        <div class="sp-section-label">ALWAYS FULL WIDTH OF ITS CONTAINER</div>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar"></span><div class="doc-note"><b class="sp-ink">Tables and item lists.</b> A table narrower than its column leaves the row-hover band ending in mid-air.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar"></span><div class="doc-note"><b class="sp-ink">Drop zones.</b> The target should be as large as the space allows.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar"></span><div class="doc-note"><b class="sp-ink">Progress bars and their pace markers.</b> The bar is a proportion, so its full width has to mean the limit.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar"></span><div class="doc-note"><b class="sp-ink">The sticky save bar and the bulk-action bar.</b> Full width of the main column, not the page - they belong to the content, not the shell.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar"></span><div class="doc-note"><b class="sp-ink">Cards.</b> A card always fills its column; its <i>column</i> is what varies.</div></div>
+        </div>
+      </div>
+
+      <div class="sp-card">
+        <div class="sp-section-label">NEVER FULL WIDTH ON DESKTOP</div>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Buttons.</b> Sized to their label, right-aligned in a group. Full width only inside a mobile sheet, where there is one action and the thumb is the pointer.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Body text.</b> Capped at <b>640px</b> for prose, <b>900px</b> for a description line. A 1200px line of 13px text can't be read back to its own start.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">A form column.</b> Settings caps its cards at <b>640px</b> even on a 1920px screen - a 42px-tall input stretched to 1200px looks like an error.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Segmented controls, chips, steppers, swatch rows.</b> Intrinsic width, <b>align-self: flex-start</b>. Stretching them adds nothing and hides which is selected.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Dialogs and popovers.</b> A dialog is 420px; a popover takes its content's width between 240px and 320px (<a href="Components.dc.html#c13">Components c13</a>) - never a proportion of the viewport.</div></div>
+        </div>
+      </div>
+
+      <div class="sp-card">
+        <div class="sp-section-label">ROWS</div>
+        <div class="doc-note"><b class="sp-ink">A list row is one line by default.</b> Height comes from padding - 12 - 14px vertical, 8px in compact - never from a fixed height, so a row with a 26px icon tile grows correctly instead of clipping it.</div>
+        <div class="doc-note"><b class="sp-ink">Columns in a row are fixed except one.</b> In 2b the box, date 104, count 90, status 120, amount 152 right-aligned and menu 40 are fixed, and the title states no width and absorbs the slack (<a href="Components.dc.html#c1">Components c1</a>). This is what keeps every value at the same x position down the list.</div>
+        <div class="doc-note"><b class="sp-ink">Second lines never displace the first.</b> An item preview or a meta line sits below the primary, inside its cell. Nothing is allowed to move the vendor name.</div>
+        <div class="doc-note"><b class="sp-ink">Rows in a table share one grid definition</b> with the header - declared once on a shared class or a CSS variable, not repeated per row, or the header drifts out of alignment the first time a column changes.</div>
+        <div class="doc-note"><b class="sp-ink">An expanding row pushes, never overlays.</b> Item editing (1b) grows the row and moves the rest down; nothing floats above its neighbours.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="sp-section-label">WHAT HAPPENS AS THE WINDOW NARROWS</div>
+  <div class="doc-specimens">
+
+    <div class="sp-list lr-w700">
+      <div class="lr-row lr-row--kv doc-table__head">
+        <div>WIDTH</div><div>WHAT CHANGES</div>
+      </div>
+      <div class="lr-row lr-row--kv doc-table__row">
+        <div class="sp-strong">≥ 1440px</div>
+        <div class="sp-ink-2">Nothing. The fluid column absorbs everything above this - rails stay at their fixed width and the main column simply gets wider. No layout has a maximum width except the caps listed above.</div>
+      </div>
+      <div class="lr-row lr-row--kv doc-table__row">
+        <div class="sp-strong">1280px</div>
+        <div class="sp-ink-2">The facet rail becomes a drawer, and the sidebar may collapse to its 68px icon rail. Both give width back to the fluid column rather than shrinking themselves.</div>
+      </div>
+      <div class="lr-row lr-row--kv doc-table__row">
+        <div class="sp-strong">900px</div>
+        <div class="sp-ink-2">Two columns become one, and each screen decides how: order edit folds its rail into a collapsed section <i>above</i> the items; the library splits into list-then-panel as separate views; Statistics stacks its cards. A rail is never simply appended below a long list, because that puts a form somewhere nobody scrolls to.</div>
+      </div>
+      <div class="lr-row lr-row--kv doc-table__row">
+        <div class="sp-strong">640px</div>
+        <div class="sp-ink-2">Phone layout. Page padding drops to the phone's own 16px inset, the sidebar becomes a bottom tab bar, table rows become cards, filters move to a sheet, and inline expansion becomes a sheet. Field grouping changes too - see below.</div>
+      </div>
+    </div>
+
+    <div class="sp-card lr-w430" data-color="warning">
+      <div class="sp-section-label sp-ink-warning">THE TWO THINGS THAT GO WRONG</div>
+      <div class="doc-note"><b>Shrinking instead of removing.</b> Every breakpoint here removes or relocates something. Nothing is scaled down: a compressed facet rail, a four-column equation at 300px, or a table squeezed into a phone row are all the same mistake.</div>
+      <div class="doc-note"><b>A second fluid column.</b> The moment two columns are both <b>1fr</b>, nothing inside either can be sized, truncation stops being predictable, and the first long vendor name reflows the page. One fluid column, always.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="15b">15b</span>
+    <span class="doc-section__title">Fields on mobile - what stays grouped</span>
+  </div>
+  <div class="doc-lede">Below 640px most fields go full width, but not all of them - and the exceptions aren't arbitrary. A group survives the breakpoint when splitting it would break something the user reads as one thing.</div>
+
+  <div class="doc-specimens sp-touch">
+
+    <div class="sp-card lr-w340">
+      <div class="sp-section-label">STACKS - MOST PAIRS DO</div>
+      <div class="doc-note">Two halves holding unrelated values become two full-width fields. Date and status read together on desktop as a convenience, not because they belong to one another.</div>
+      <div class="sp-well">
+        <div class="sp-section-label">375px</div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-title">Order date</div>
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Date format">
+              <span class="sp-grow">12 Aug 2026</span>
+              <svg class="sp-combobox__chevron" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+            </button>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-title">Status</div>
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Status">
+              <span class="sp-grow">Received</span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+        </div>
+      </div>
+      <div class="doc-note">Padding goes from <b>10px 12px</b> to <b>12px</b>, taking the control from 42px to <b>48px</b> - over the 44px minimum without changing the type size. The gap between fields does not change: it is <b>8px</b> on both, from <code>.sp-line-editor__grid</code>. The taller control is the separation a thumb needs.</div>
+    </div>
+
+    <div class="sp-card lr-w340">
+      <div class="sp-section-label">STAYS GROUPED - ONE CALCULATION</div>
+      <div class="doc-note">The item equation keeps its row. Split across three lines, the user loses the relationship - and the line total, which is the whole point of the row, ends up furthest from the numbers producing it.</div>
+      <div class="sp-well">
+        <div class="sp-section-label">375px</div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-title">Item</div>
+          <input class="sp-input sp-truncate" id="lr-f7" type="text" defaultValue="Egetræsbord med stålstel" aria-label="Value">
+        </div>
+        <div class="sp-row-flex sp-gap-10 lr-bottom">
+          <div class="sp-stack sp-gap-6 sp-flex-none">
+            <div class="sp-title">Qty</div>
+            <div class="sp-stepper">
+              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h8"></path></svg></button>
+              <div class="sp-grow sp-number lr-centre">2</div>
+              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg></button>
+            </div>
+          </div>
+          <div class="sp-stack sp-gap-6 sp-grow">
+            <div class="sp-title">Unit price</div>
+            <input class="sp-input sp-number" id="lr-f8" type="text" inputMode="decimal" defaultValue="4.190,00" aria-label="Value">
+          </div>
+        </div>
+        <div class="sp-card__footer sp-sum">
+          <div class="sp-subtitle">Line total</div>
+          <div class="sp-grow"></div>
+          <div class="sp-stat__figure">8.380,00</div>
+        </div>
+      </div>
+      <div class="doc-note">Thirds become <b>fixed + fluid</b>, and the computed third stops being a field at all - it becomes a total line, which is what it always was. A read-only box on a phone is a target that does nothing.</div>
+    </div>
+
+    <div class="sp-card lr-w340">
+      <div class="sp-section-label">STAYS GROUPED - ONE OBJECT</div>
+      <div class="doc-note">A control and the thing it acts on stay on one line: the photo with its replace and delete buttons, the icon tile beside the name it belongs to. These aren't two fields that happen to be adjacent.</div>
+      <div class="sp-well">
+        <div class="sp-section-label">375px</div>
+        <div class="sp-row-flex sp-gap-12">
+          <div class="sp-mark sp-mark--large sp-mark--photo"></div>
+          <div class="sp-stack sp-gap-8">
+            <button type="button" class="sp-btn sp-btn--outline">Replace</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-ink-danger">Delete</button>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-title">Category</div>
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Category">
+              <span class="sp-grow">Decor</span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg>
+            </button>
+        </div>
+      </div>
+      <div class="doc-note">Hover-revealed controls become permanent and full-size - the 28px overlay icons on desktop become 48px labelled buttons here, because there is no hover and an icon over a photo is an unmarked target.</div>
+    </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="sp-card lr-w520">
+      <div class="sp-section-label">THE TEST, IN ORDER</div>
+      <div class="sp-stack sp-gap-10">
+        <div class="sp-row-flex sp-gap-10">
+          <div class="sp-list-item__count">1</div>
+          <div class="doc-note"><b class="sp-ink">Is it one calculation or one object?</b> Keep it grouped. Quantity × price, photo + its controls, icon + its name.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-10">
+          <div class="sp-list-item__count">2</div>
+          <div class="doc-note"><b class="sp-ink">Would each part fall under 100px?</b> Stack it, whatever the answer to 1 was. Three fields at 375px minus padding is 105px each before gaps - that is the hard floor, and it is why nothing keeps thirds on a phone.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-10">
+          <div class="sp-list-item__count">3</div>
+          <div class="doc-note"><b class="sp-ink">Does one part have an intrinsic width?</b> Fixed plus fluid, not halves. A stepper and a name field, an amount and its currency.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-10">
+          <div class="sp-list-item__count">4</div>
+          <div class="doc-note"><b class="sp-ink">Otherwise, full width.</b> The default, and the right answer for most fields.</div>
+        </div>
+      </div>
+      <div class="sp-card__footer sp-subtitle">Implementation: a single container query or breakpoint that flips the field grid from <b>1fr 1fr</b> to <b>1fr</b>, with the groups that survive marked explicitly rather than each screen re-deciding. The exceptions are few enough to name - the item equation, the photo row, and the icon-plus-name field.</div>
+    </div>
+
+    <div class="sp-card lr-w430">
+      <div class="sp-section-label">ALSO CHANGES BELOW 640px</div>
+      <div class="doc-note"><b class="sp-ink">Buttons in a sheet go full width</b>, stacked, primary on top - the only place a full-width button is correct. In a page they stay right-aligned.</div>
+      <div class="doc-note"><b class="sp-ink">Dialogs become sheets</b>, anchored to the bottom, radius on the top corners only.</div>
+      <div class="doc-note"><b class="sp-ink">Comboboxes become full-screen sheets</b> with the search field at the top, above the keyboard - not a 200px popover under a field the keyboard is covering.</div>
+      <div class="doc-note"><b class="sp-ink">Segmented controls may go full width</b> - the one exception to their intrinsic-width rule, because two thumb targets side by side want the room.</div>
+      <div class="doc-note"><b class="sp-ink">The sticky save bar spans the viewport</b> and respects the safe-area inset, sitting above the keyboard rather than under it.</div>
+      <div class="doc-note"><b class="sp-ink">Labels stay above their fields.</b> No inline or left-aligned labels at any width - the vertical rhythm is the same on both, only the column count changes.</div>
+    </div>
+  </div>
+</section>
+
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="15c">15c</span>
+    <span class="doc-section__title">Which numbers are real</span>
+  </div>
+  <div class="doc-lede">A mockup has to be <i>some</i> width to be drawn, so these files are full of pixel values that are scaffolding rather than specification. Read the wrong ones as spec and you get an app that is pixel-perfect at 1400px and broken at every other size. This says which is which.</div>
+
+  <div class="doc-specimens">
+
+    <div class="sp-list lr-w620">
+      <div class="lr-row doc-table__head">
+        <div>REAL - BUILD TO THESE</div><div>MOCKUP ONLY - IGNORE</div>
+      </div>
+      <div class="lr-row doc-table__row">
+        <div class="sp-ink-2"><b class="sp-ink">Fixed rail widths</b> - 320 / 360 / 400 right, 260 facets, 208 page nav, 248 sidebar, 68 collapsed.</div>
+        <div class="sp-ink-5"><b class="sp-ink-2">The 1400px shell frame</b> on 9a and 10a. That is a stand-in for a viewport, and it carries the rounded corners and shadow that are not part of the design either.</div>
+      </div>
+      <div class="lr-row doc-table__row">
+        <div class="sp-ink-2"><b class="sp-ink">Control and row geometry</b> - 42px control height (48 on touch), 12 - 14px row padding, 8px compact, 44px minimum target.</div>
+        <div class="sp-ink-5"><b class="sp-ink-2">Every card width on these reference pages</b> - 430, 470, 520, 560, 620, 700. They exist so annotations sit beside their subject on a canvas. No app card has a fixed width.</div>
+      </div>
+      <div class="lr-row doc-table__row">
+        <div class="sp-ink-2"><b class="sp-ink">Table column widths</b> - vendor 200, date 110, items 72, category 160, status 120, amount 120. These are the point of the fixed-column rule.</div>
+        <div class="sp-ink-5"><b class="sp-ink-2">Fixed heights on demonstration boxes</b> - the 116px column diagrams, the 460px viewer, the 240px photo pane. Illustrative only.</div>
+      </div>
+      <div class="lr-row doc-table__row">
+        <div class="sp-ink-2"><b class="sp-ink">Gaps and paddings</b> - 12 between cards, wherever they sit: side by side, stacked, or in a grid. 16 inside a card, and 16 as a page's own inset, both from <code>--card-pad</code>. 6 and 8 inside a card, for lines of one thing and for separate things. The scale stops at 16.</div>
+        <div class="sp-ink-5"><b class="sp-ink-2">Side-by-side comparison columns.</b> Where a page shows three states in a row, that is a canvas layout for review - those states are sequential in the app and never share a screen.</div>
+      </div>
+      <div class="lr-row doc-table__row">
+        <div class="sp-ink-2"><b class="sp-ink">Radii, type sizes, borders, shadows</b> - all final, all in the token tables.</div>
+        <div class="sp-ink-5"><b class="sp-ink-2">Phone frames at 375px.</b> A representative width, not a target. The phone layout has to hold from 320 to 430.</div>
+      </div>
+      <div class="lr-row doc-table__row">
+        <div class="sp-ink-2"><b class="sp-ink">Caps</b> - 640 prose and form columns, 900 description lines, 440 dialog, 520 palette, 560 popover, 232 account menu.</div>
+        <div class="sp-ink-5"><b class="sp-ink-2">The 1180px Settings shell</b> and the 1320px inventory tables. Both are canvas widths chosen so the content composes for reading.</div>
+      </div>
+      <div class="lr-row doc-table__row">
+        <div class="sp-ink-2"><b class="sp-ink">Minimums</b> - 560 main column on order edit, 280 order card, 100 mobile field floor, 80 desktop equation cell.</div>
+        <div class="sp-ink-5"><b class="sp-ink-2">The id badges, the annotation rules, the small-caps state headings.</b> Review furniture. None of it ships.</div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-12 lr-w430">
+      <div class="sp-card">
+        <div class="sp-section-label">THE TEST</div>
+        <div class="doc-note"><b class="sp-ink">Does the number describe a thing, or the space around it?</b> A rail is 360px because a form needs 360px - that travels. A card is 430px in these files because two of them plus a gap fit the page I was drawing on - that does not.</div>
+        <div class="doc-note">Put differently: <b>every fixed width in the app is on something that holds controls</b> - a rail, a nav, a dialog, a table column. Everything that holds <i>content</i> is fluid, with a minimum and sometimes a maximum.</div>
+      </div>
+
+      <div class="sp-card">
+        <div class="sp-section-label">HOW TO WRITE IT INSTEAD</div>
+        <div class="doc-note"><b class="sp-ink">min-width, not width.</b> The main column is <span class="sp-nowrap">1fr</span> with <span class="sp-nowrap">min-width: 560px</span> - it never has a width of its own.</div>
+        <div class="doc-note"><b class="sp-ink">auto-fill, not a column count.</b> Order cards are <span class="sp-nowrap">repeat(auto-fill, minmax(280px, 1fr))</span>. Nothing anywhere says "three across".</div>
+        <div class="doc-note"><b class="sp-ink">max-width for reading, not width.</b> A 640px cap on a form column is a ceiling, not a size - at 500px available it is 500px wide.</div>
+        <div class="doc-note"><b class="sp-ink">Container queries over viewport breakpoints</b> for anything inside a column. A field grid should stack because <i>its column</i> got narrow, not because the window did - that is what makes the same form work in a 360px rail and a 640px page.</div>
+        <div class="doc-note"><b class="sp-ink">Height from content and padding.</b> No fixed heights outside the deliberate ones in 14a (the 42px control) - a row with a 26px icon tile must grow, not clip.</div>
+      </div>
+
+      <div class="sp-card" data-color="warning">
+        <div class="sp-section-label sp-ink-warning">CHECK IT AT THESE WIDTHS</div>
+        <div class="doc-note"><b>1920, 1440, 1280, 1024, 900, 768, 430, 375, 320.</b> Not because they are devices, but because each one crosses something: a breakpoint, a rail's disappearance, or a minimum. A layout correct at all nine is correct everywhere between them.</div>
+        <div class="doc-note">The two that catch the most: <b>1024</b>, where the facet rail has gone but the two-column layout has not, and <b>320</b>, where the mobile field floor actually bites.</div>
+        <div class="doc-note">And check <b>1920 with the sidebar collapsed</b> - the widest the main column ever gets, and where a missing max-width shows up as a 1700px line of 13px text.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="15d">15d</span>
+    <span class="doc-section__title">Table columns - widths, and the last two</span>
+  </div>
+  <div class="doc-lede">Every data list in the app is one grid definition shared by its header and its rows. The interesting part is not the widths themselves - it is which column absorbs a resize, and how the amount and the action menu behave when everything else moves.</div>
+
+  <div class="doc-notes">
+    <div class="doc-notes__label">THE ANATOMY</div>
+    <div class="doc-note"><b class="sp-ink">Exactly one column is fluid. Everything else is a fixed px width.</b> The fluid one is the name - vendor, category, order. Every resize is absorbed there, so no other column ever changes width and none of them need to be re-measured at a new viewport.</div>
+    <div class="doc-note"><b class="sp-ink">The fluid column is <code class="sp-meta">minmax(0, 1fr)</code>, never <code class="sp-meta">1fr</code>.</b> A bare <code class="sp-meta">1fr</code> has an automatic minimum of its content, so it refuses to shrink below the longest name and the row overflows instead of truncating. This one missing <code class="sp-meta">minmax</code> is the single most common cause of a table blowing out of its container.</div>
+    <div class="doc-note"><b class="sp-ink">Fixed columns are sized to the longest value the FORMAT can produce</b>, not the longest in the sample data. A date column is wide enough for <code class="sp-meta">31/12/2026</code>; an amount column for the largest number the currency will realistically print, plus its suffix. Data grows; formats do not.</div>
+    <div class="doc-note"><b class="sp-ink">One definition, declared once.</b> Put the template in a custom property on the table and let the header and every row read it. Two copies means the header drifts from its rows the first time a column changes - and it will be off by exactly one column, which is the hardest kind to see.</div>
+  </div>
+
+  <div class="doc-notes">
+    <div class="doc-notes__label">THE LAST TWO COLUMNS</div>
+    <div class="doc-note"><b class="sp-ink">The action column is 40px, fixed, and never leaves.</b> It fits one 32px icon button centred in it. It is not part of the responsive story at all: a row without its menu has no way to reach Duplicate or Delete, at any width.</div>
+    <div class="doc-note"><b class="sp-ink">The amount is the second-to-last column, right-aligned, and also never leaves.</b> Right-aligned so the decimal points stack - that is the whole reason a money column is readable at a glance - with <code class="sp-meta">font-variant-numeric: tabular-nums</code> and <code class="sp-meta">white-space: nowrap</code>. It never wraps and never truncates; if it does not fit, a different column had to go.</div>
+    <div class="doc-note"><b class="sp-ink">Do not put the action column against the container edge.</b> The row's own <code class="sp-meta">14px</code> padding is what separates the kebab from the border. The gap between the amount and the kebab is the grid's ordinary <code class="sp-meta">12px</code> - no extra margin, no <code class="sp-meta">margin-left: auto</code> on either. The moment one of them is pushed by a margin instead of placed by the grid, the two stop agreeing at some width.</div>
+    <div class="doc-note"><b class="sp-ink">Never <code class="sp-meta">justify-content: space-between</code> on a row.</b> It looks identical at one width and diverges at every other, because the free space lands between the last two items instead of inside the fluid column. If a row is a grid, every cell is placed; if it is a flex row with a spacer, only some are.</div>
+    <div class="doc-note"><b class="sp-ink">The menu opens right-aligned to its own column</b>, and flips above the trigger near the bottom of the list - <a href="Input types.dc.html#14g">14g</a> owns that behaviour. It is anchored to the 40px cell, not to the row, so its position does not move when a column is dropped.</div>
+  </div>
+
+  <div class="sp-stack sp-gap-14">
+    <div class="sp-section-label">THE SAME TABLE AT THREE CONTAINER WIDTHS</div>
+    <div class="doc-specimens">
+      <div class="sp-stack sp-gap-8 lr-w900">
+          <div class="sp-section-label">≥ 1040px - EVERYTHING</div>
+          <div class="sp-list">
+            <div class="lr-trow lr-trow--head" data-cols="full">
+              <div></div><div>VENDOR</div><div>DATE</div><div>CATEGORY</div><div>ITEMS</div><div class="sp-right">TOTAL</div><div></div>
+            </div>
+            <div class="lr-trow" data-cols="full">
+              <div><input class="sp-check" type="checkbox" aria-label="Select row"></div><div class="sp-stacked"><span class="sp-strong sp-truncate">Indbo Møbler</span></div><div class="sp-ink-2 sp-nowrap">12/08/2026</div><div class="sp-row-flex"><span class="sp-chip sp-chip--solid">Decor</span></div><div class="sp-ink-2 sp-nowrap">4 items</div><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-nowrap">7.635,00</span></div><div class="sp-icon-btn"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+            <div class="lr-trow" data-cols="full">
+              <div><input class="sp-check" type="checkbox" aria-label="Select row"></div><div class="sp-stacked"><span class="sp-strong sp-truncate">Hay Danmark ApS</span></div><div class="sp-ink-2 sp-nowrap">03/08/2026</div><div class="sp-row-flex"><span class="sp-chip sp-chip--solid">Seating</span></div><div class="sp-ink-2 sp-nowrap">2 items</div><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-nowrap">3.240,00</span></div><div class="sp-icon-btn"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+          </div>
+        </div>
+      <div class="sp-stack sp-gap-8 lr-w660">
+          <div class="sp-section-label">880 - 1040px - ITEMS GONE</div>
+          <div class="sp-list">
+            <div class="lr-trow lr-trow--head" data-cols="mid">
+              <div></div><div>VENDOR</div><div>DATE</div><div>CATEGORY</div><div class="sp-right">TOTAL</div><div></div>
+            </div>
+            <div class="lr-trow" data-cols="mid">
+              <div><input class="sp-check" type="checkbox" aria-label="Select row"></div><div class="sp-stacked"><span class="sp-strong sp-truncate">Indbo Møbler</span></div><div class="sp-ink-2 sp-nowrap">12/08/2026</div><div class="sp-row-flex"><span class="sp-chip sp-chip--solid">Decor</span></div><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-nowrap">7.635,00</span></div><div class="sp-icon-btn"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+            <div class="lr-trow" data-cols="mid">
+              <div><input class="sp-check" type="checkbox" aria-label="Select row"></div><div class="sp-stacked"><span class="sp-strong sp-truncate">Hay Danmark ApS</span></div><div class="sp-ink-2 sp-nowrap">03/08/2026</div><div class="sp-row-flex"><span class="sp-chip sp-chip--solid">Seating</span></div><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-nowrap">3.240,00</span></div><div class="sp-icon-btn"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+          </div>
+        </div>
+      <div class="sp-stack sp-gap-8 lr-w420">
+          <div class="sp-section-label">&lt; 880px - NAME, TOTAL, MENU</div>
+          <div class="sp-list">
+            <div class="lr-trow lr-trow--head" data-cols="min">
+              <div></div><div>VENDOR</div><div class="sp-right">TOTAL</div><div></div>
+            </div>
+            <div class="lr-trow" data-cols="min">
+              <div><input class="sp-check" type="checkbox" aria-label="Select row"></div><div class="sp-stacked"><div class="sp-stacked"><span class="sp-strong sp-truncate">Indbo Møbler</span></div><div class="sp-meta sp-truncate">12/08 · Decor · 4 items</div></div><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-nowrap">7.635,00</span></div><div class="sp-icon-btn"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+            <div class="lr-trow" data-cols="min">
+              <div><input class="sp-check" type="checkbox" aria-label="Select row"></div><div class="sp-stacked"><div class="sp-stacked"><span class="sp-strong sp-truncate">Hay Danmark ApS</span></div><div class="sp-meta sp-truncate">03/08 · Seating · 2 items</div></div><div class="sp-stacked sp-cell-amount"><span class="sp-amount sp-nowrap">3.240,00</span></div><div class="sp-icon-btn"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="doc-notes">
+      <div class="doc-notes__label">WHAT MOVED, AND WHAT DID NOT</div>
+      <div class="doc-note"><b class="sp-ink">Only the fluid column changed width.</b> Checkbox 18, date 104, category 118, items 130, total 130, actions 40 - identical in all three. Compare any fixed cell across the frames and it lines up.</div>
+      <div class="doc-note"><b class="sp-ink">Columns are dropped whole, in a fixed order</b>, and the header drops the same one in the same step. Items first, then category. The date never drops: it is what nothing else on the screen can tell you.</div>
+      <div class="doc-note"><b class="sp-ink">A dropped column reappears as a second line, not as nothing.</b> At the narrowest width the category and count fold under the name as one muted line. The row keeps its meaning; it just stops being a table.</div>
+      <div class="doc-note"><b class="sp-ink">Amount and menu hold their positions relative to the right edge</b> at every width. That is the pair the eye returns to, so it is the pair that must not move.</div>
+      <div class="doc-note"><b class="sp-ink">Hide with the query, not with an inline style.</b> An inline <code class="sp-meta">display: flex</code> on a cell beats the stylesheet, so the query's <code class="sp-meta">display: none</code> never lands and the row wraps to a second line. Centring belongs in the class; <code class="sp-meta">display</code> belongs to the query.</div>
+      <div class="doc-note"><b class="sp-ink">Verify by counting, not by looking.</b> Header child count must equal every row's child count at every width, and no grid may report a <code class="sp-meta">0px</code> first column. Both failures look almost right and read completely wrong.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="15e">15e</span>
+    <span class="doc-section__title">The list toolbar</span>
+  </div>
+  <div class="doc-lede">One card above every data list. It has been drawn three times in this set and came out slightly different each time - this is the version all of them now use, so there is nothing left to invent.</div>
+
+  <div class="doc-notes">
+    <div class="doc-notes__label">THE PARTS, AND THEIR ORDER</div>
+    <div class="doc-note"><b class="sp-ink">Always the same order, left to right:</b> search (fluid) · spacer · optional segmented control · optional Filters · sort. Search is the only fluid item; everything else is <code class="sp-meta">flex: none</code>. Nothing is ever centred, and the sort control is always last.</div>
+    <div class="doc-note"><b class="sp-ink">The card is <code class="sp-meta">14px 16px</code>, radius 12, on <code class="sp-meta">#fff</code> with the hairline border</b> - the same card every other surface uses. It sits <code class="sp-meta">14px</code> above the list, from the column's gap, never a margin.</div>
+    <div class="doc-note"><b class="sp-ink">Every control inside is 42px tall with radius 9.</b> That is <code>--r-field</code>, the same radius a field has anywhere else in the app - there is no toolbar exception. One radius for every box you can type in or open, whatever it sits inside.</div>
+    <div class="doc-note"><b class="sp-ink">Set the height explicitly on every one of them: <code class="sp-meta">box-sizing: border-box; height: 42px</code>.</b> Do not size any of them by padding. A search field is a text box and gets 42px from <code class="sp-meta">10px 12px</code> padding; a segmented control is a 3px-padded track holding two centred cells; a sort control is an icon and two labels in a row. Left to their own padding those come out 42, 36 and 38 - the row then aligns on nothing, and the difference is small enough to look like an accident rather than a bug. <b>This has already happened twice in this set.</b></div>
+    <div class="doc-note"><b class="sp-ink">Segment cells fill their track with <code class="sp-meta">flex: 1</code> and <code class="sp-meta">display: grid; place-items: center</code></b> - no vertical padding of their own. Padding inside a fixed-height track leaves the label sitting above centre while the track itself measures correctly, which is the harder version of the same fault to spot.</div>
+    <div class="doc-note"><b class="sp-ink">Check it by measuring, not by looking.</b> Every direct child of the toolbar must report the same height. One value, no exceptions - a 40px control beside a 42px one is invisible in a screenshot and obvious in a row.</div>
+    <div class="doc-note"><b class="sp-ink">Search carries the <code class="sp-meta">⌘K</code> badge above 720px</b>, as <code class="sp-meta">.sp-input--search-kbd</code> with the <code class="sp-meta">.sp-kbd</code> chip in <code class="sp-meta">.sp-field__kbd</code> - never as placeholder text, which has no box and vanishes the moment anything is typed. A query is cleared with the field's own trailing x (<code class="sp-meta">.sp-field__trail</code>), inside the field, so the bar holds nothing extra for it. The browser's native clear control is hidden: not every browser shows one, so the field draws its own. The query renders in <code class="sp-meta">--ink</code>, the placeholder in <code class="sp-meta">--ink-5</code>, and only one of them is ever visible.</div>
+    <div class="doc-note"><b class="sp-ink">Sort shows its label and its value</b>, not a bare value. &quot;Sort&quot; in 12px <code class="sp-meta">#6b6a63</code>, the value in 13px/600 - a control reading only &quot;Newest first&quot; is a mystery until opened.</div>
+    <div class="doc-note"><b class="sp-ink">The result count is not in the toolbar.</b> It belongs on the list's own header strip, where it sits beside the thing it counts. Putting it here means it competes with the controls for the same row.</div>
+  </div>
+
+  <div class="sp-stack sp-gap-14">
+    <div class="sp-section-label">EVERY COMBINATION IN USE</div>
+    <div class="doc-specimens">
+      <div class="sp-stack sp-gap-8 lr-w760">
+          <div class="sp-section-label">SEARCH AND SORT - THE MINIMUM</div>
+          <div class="sp-controls">
+<div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search categories" aria-label="Search">
+              <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+            </div>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+              <span class="sp-meta sp-nowrap">Sort</span>
+              <span class="sp-title sp-nowrap">Name A - Z</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+              </div>
+              <button type="button" class="sp-btn">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+                New category
+              </button>
+          </div>
+        </div>
+      <div class="sp-stack sp-gap-8 lr-w760">
+          <div class="sp-section-label">WITH A SEGMENTED CONTROL</div>
+          <div class="sp-controls">
+<div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search vendors by name, website or alias" aria-label="Search">
+              <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+            </div>
+            <div class="sp-segmented" role="radiogroup" aria-label="Which records">
+              <label class="sp-segmented__item" data-label="Active"><input type="radio" name="lr-seg1" defaultChecked="{{ true }}"><span class="sp-label">Active</span></label>
+              <label class="sp-segmented__item" data-label="Archived"><input type="radio" name="lr-seg1"><span class="sp-label">Archived</span></label>
+            </div>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+              <span class="sp-meta sp-nowrap">Sort</span>
+              <span class="sp-title sp-nowrap">Spend ↓</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+              </div>
+              <button type="button" class="sp-btn">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+                New category
+              </button>
+          </div>
+        </div>
+      <div class="sp-stack sp-gap-8 lr-w760">
+          <div class="sp-section-label">WITH FILTERS, NONE APPLIED</div>
+          <div class="sp-controls">
+<div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search vendor, item, reference or note" aria-label="Search">
+              <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+            </div>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
+              <span class="sp-meta sp-nowrap">Filters</span>
+              <span class="sp-title sp-nowrap"></span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+            </button>
+              </div>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+              <span class="sp-meta sp-nowrap">Sort</span>
+              <span class="sp-title sp-nowrap">Newest first</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+              </div>
+              <button type="button" class="sp-btn">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+                New category
+              </button>
+          </div>
+        </div>
+      <div class="sp-stack sp-gap-8 lr-w760">
+          <div class="sp-section-label">SEARCHING, WITH FILTERS APPLIED</div>
+          <div class="sp-controls">
+<div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search vendor, item, reference or note" defaultValue="nuage" aria-label="Search">
+              <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+            </div>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
+              <span class="sp-meta sp-nowrap">Filters</span>
+              <span class="sp-title sp-nowrap">3</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+            </button>
+              </div>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+              <span class="sp-meta sp-nowrap">Sort</span>
+              <span class="sp-title sp-nowrap">Newest first</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+              </div>
+              <button type="button" class="sp-btn">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+                New category
+              </button>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <div class="doc-notes__label">WHAT IS OPTIONAL, AND WHEN</div>
+    <div class="doc-note"><b class="sp-ink">Search and sort are never optional.</b> Every list has both, even a nine-row category list - the sort a list opens with is a setting, so the control that changes it has to exist.</div>
+    <div class="doc-note"><b class="sp-ink">A segmented control appears only for a state that partitions the list</b> and is not a filter: Active/Archived on vendors, rows/cards on orders. Two or three options, never four. If it would take four, it is a sort or a filter.</div>
+    <div class="doc-note"><b class="sp-ink">Filters appears when the list has a facet rail that can be hidden</b>, and carries the count of applied facets as a badge. Zero applied means no badge, not a &quot;0&quot;. Below 1280px the rail becomes a drawer and this button is how it opens; above that it still exists, because a collapsed rail must be reachable at any width.</div>
+    <div class="doc-note"><b class="sp-ink">Nothing else goes in here.</b> No New order button - an order is created from the sidebar. A library list (vendors, categories) is the exception: it ends its toolbar with its own New button, because its records are made nowhere else. No export, no view menu, no bulk actions: the bulk bar replaces the toolbar in place when a row is ticked, which only works because the two are the same height.</div>
+  </div>
+
+  <div class="doc-notes">
+    <div class="doc-notes__label">AS THE COLUMN NARROWS</div>
+    <div class="doc-note"><b class="sp-ink">Search shrinks first, to a 160px floor.</b> It is the fluid item, so it absorbs the change - with <code class="sp-meta">min-width: 0</code>, or its placeholder holds the row open and the sort control is pushed out.</div>
+    <div class="doc-note"><b class="sp-ink">Then the sort value drops, leaving the label and chevron.</b> Then the <code class="sp-meta">⌘K</code> badge goes - it is a hint, and the shortcut still works.</div>
+    <div class="doc-note"><b class="sp-ink">Below 640px the row becomes search on one line, controls on a second.</b> Controls go full width and split the row evenly - the one place a toolbar control stretches. It never wraps mid-row leaving one control alone on a line.</div>
+  </div>
+
+  <div class="sp-stack sp-gap-14">
+    <div class="sp-section-label">THE SAME TOOLBAR AT FOUR CONTAINER WIDTHS</div>
+    <div class="doc-specimens">
+      <div class="sp-stack sp-gap-8 lr-w760">
+            <div class="sp-section-label">≥ 720px - EVERYTHING</div>
+            <div class="sp-controls">
+<div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search vendor, item, reference or note" aria-label="Search">
+              <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+            </div>
+<div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
+              <span class="sp-meta sp-nowrap">Filters</span>
+              <span class="sp-title sp-nowrap">3</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+            </button>
+              </div>
+<div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+              <span class="sp-meta sp-nowrap">Sort</span>
+              <span class="sp-title sp-nowrap">Newest first</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+              </div>
+              <button type="button" class="sp-btn">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+                New order
+              </button>
+              </div>
+          </div>
+      <div class="sp-stack sp-gap-8 lr-w640">
+            <div class="sp-section-label">560 - 720px - ⌘K GONE</div>
+            <div class="sp-controls">
+<div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search vendor, item, reference…" aria-label="Search">
+            </div>
+<div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
+              <span class="sp-meta sp-nowrap">Filters</span>
+              <span class="sp-title sp-nowrap">3</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+            </button>
+              </div>
+<div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+              <span class="sp-meta sp-nowrap">Sort</span>
+              <span class="sp-title sp-nowrap">Newest first</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+              </div>
+              <button type="button" class="sp-btn">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+                New order
+              </button>
+              </div>
+          </div>
+      <div class="sp-stack sp-gap-8 lr-w520">
+            <div class="sp-section-label">440 - 560px - SORT VALUE GONE</div>
+            <div class="sp-controls">
+<div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search orders…" aria-label="Search">
+            </div>
+<div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
+              <span class="sp-meta sp-nowrap">Filters</span>
+              <span class="sp-title sp-nowrap">3</span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+            </button>
+              </div>
+<div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+              <span class="sp-meta sp-nowrap">Sort</span>
+              <span class="sp-title sp-nowrap"></span>
+              <svg class="sp-combobox__chevron sp-flex-none" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+            </button>
+              </div>
+              <button type="button" class="sp-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+              </button>
+              </div>
+          </div>
+      <div class="sp-stack sp-gap-8 lr-w420">
+            <div class="sp-section-label">&lt; 440px - TWO ROWS</div>
+            <div class="sp-touch">
+              <div class="sp-controls">
+                <div class="sp-picker__search">
+              <span class="sp-field__lead"><svg class="sp-flex-none" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search orders…" aria-label="Search">
+            </div>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filters">
+                    <span class="sp-meta sp-nowrap">Filters</span>
+                    <span class="sp-title sp-nowrap">3</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
+                    <span class="sp-meta sp-nowrap">Sort</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+                <button type="button" class="sp-icon-btn" aria-label="New order">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+    </div>
+    <div class="doc-notes">
+      <div class="doc-notes__label">WHAT MOVED, AND IN WHAT ORDER</div>
+      <div class="doc-note"><b class="sp-ink">This is a container query on the list column, not a viewport media query.</b> Collapsing the sidebar widens the column without the viewport changing, and the toolbar has to respond to that - the same rule as the tables in <a href="#15d">15d</a>. The one exception is the two-row break, which coincides with the phone layout.</div>
+      <div class="doc-note"><b class="sp-ink">Things leave in order of how little they cost:</b> the <code class="sp-meta">⌘K</code> hint (the shortcut still works) · the sort <em>value</em>, leaving its label and chevron · then the row splits. Nothing is ever narrowed to the point of truncating its own label.</div>
+      <div class="doc-note"><b class="sp-ink">Search keeps its placeholder meaningful as it shrinks.</b> The long placeholder is replaced by a shorter one rather than being ellipsised - &quot;Search vendor, item, refe…&quot; tells the user less than &quot;Search orders…&quot; does.</div>
+      <div class="doc-note"><b class="sp-ink">Two rows, never a wrap.</b> Search takes the first row alone; every remaining control shares the second with <code class="sp-meta">flex: 1</code>. Letting the row wrap naturally leaves one control stranded on a line of its own at some widths, which looks like a bug because it is one.</div>
+      <div class="doc-note"><b class="sp-ink">This is the only place a toolbar control stretches.</b> Everywhere else they are <code class="sp-meta">flex: none</code> at their intrinsic width - see the never-full-width list in <a href="#15a">15a</a>. On the second row they are thumb targets, so the room is worth having.</div>
+      <div class="doc-note"><b class="sp-ink">Below 640px Filters opens a bottom sheet, not a drawer</b>, matching the phone filter pattern. The button itself does not change; only what it opens does.</div>
+      <div class="doc-note"><b class="sp-ink">No control shrinks vertically.</b> Every control is 42px on desktop and 48px on touch (<code>--control-h-touch</code>), at every width - taking height out is the one change that would break usability rather than just looks.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="15f">15f</span>
+    <span class="doc-section__title">Rules every element follows</span>
+  </div>
+  <div class="doc-lede">General rules that hold for every element in the app. A screen does not restate them, and a case they already answer needs no drawing.</div>
+  <div class="doc-notes">
+    <div class="doc-notes__label">Tooltips and readouts</div>
+    <div class="doc-note"><b>A tooltip or readout behaves like the browser's native tooltip.</b> It is drawn on its own layer, on top of everything else, next to what it describes, and is never held inside the box it belongs to: it may stand outside its chart, card, table, sidebar or any other container, so it never has to cover what it reads. This is what lets a tooltip sit on a pill or a mark.</div>
+    <div class="doc-note"><b>Only the window's edge moves it.</b> It keeps its place relative to what it describes and shifts or flips only where it would leave the window. No container clips it, and no container's scroll cuts it off.</div>
+    <div class="doc-note"><b>It never moves anything.</b> Showing a tooltip or readout takes no space in the layout; nothing around it shifts.</div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

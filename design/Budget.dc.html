@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="40" font-weight="600" fill="#f2f0ea" text-anchor="middle">21</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20261002d">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/budget.css?v=v20261002d">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21a">21a</span>
+    <span class="doc-section__title">Budget - month by month</span>
+  </div>
+  <div class="doc-lede">The budget is the yearly plan: rows in groups, each with one amount expected every month and the real amount of each month as it happens. It opens on the month it is now and the one after it. The example is built from a real bank export for January to October 2026. Its bills are paid automatically from the Budget account; Salary comes into the Salary account and is typed in by hand each month. The month in front is read on the dark card; every month below it is a panel of its own, and an amount is typed straight into it.</div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body">
+      <div class="sp-controls">
+        <div class="sp-segmented" role="radiogroup" aria-label="Year">
+          <label class="sp-segmented__item" data-label="2024"><input type="radio" name="a-year"><span class="sp-label">2024</span></label>
+          <label class="sp-segmented__item" data-label="2025"><input type="radio" name="a-year"><span class="sp-label">2025</span></label>
+          <label class="sp-segmented__item" data-label="2026"><input type="radio" name="a-year" defaultChecked="{{ true }}"><span class="sp-label">2026</span></label>
+        </div>
+        <div class="sp-segmented" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Months"><input type="radio" name="a-view" defaultChecked="{{ true }}"><span class="sp-label">Months</span></label>
+          <label class="sp-segmented__item" data-label="Whole year"><input type="radio" name="a-view"><span class="sp-label">Whole year</span></label>
+        </div>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Show income</button>
+        <button type="button" class="sp-btn sp-btn--outline">Check a bank statement</button>
+        <button type="button" class="sp-btn sp-btn--outline">Edit</button>
+      </div>
+      <div class="sp-card sp-card--shell">
+        <div class="sp-card__head"><span class="sp-section-label">October 2026</span></div>
+        <div class="sp-row-flex sp-gap-16 sp-wrap sp-top">
+          <div class="sp-stat">
+            <span class="sp-section-label">Left over</span>
+            <span class="sp-stat__figure"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Income</span>
+            <span class="sp-stat__figure"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
+            <span class="sp-meta">As expected</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Costs</span>
+            <span class="sp-stat__figure">7.947 kr.</span>
+            <span class="sp-meta">As expected</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Real amounts</span>
+            <span class="sp-stat__figure">0 of 8</span>
+            <span class="sp-meta">8 rows still expected</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+            <span class="sp-gauge sp-gauge--untargeted" aria-hidden="true"></span>
+            <div class="sp-row-flex sp-gap-12">
+              <span class="sp-meta">Show income to see how much of it is used</span>
+            </div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Months 2026</span>
+          <span class="sp-grow"></span>
+          <span class="sp-note">Grey amounts are expected</span>
+          <div class="sp-window">
+            <button type="button" class="sp-window__btn" aria-label="Earlier month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <span class="sp-window__label" data-w="month">Oct to Nov</span>
+            <button type="button" class="sp-window__btn" aria-label="Later month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+        </div>
+        <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-label="Month">
+          <label class="sp-segmented__item" data-label="Jan"><input type="radio" name="a-month"><span class="sp-label">Jan</span></label>
+          <label class="sp-segmented__item" data-label="Feb"><input type="radio" name="a-month"><span class="sp-label">Feb</span></label>
+          <label class="sp-segmented__item" data-label="Mar"><input type="radio" name="a-month"><span class="sp-label">Mar</span></label>
+          <label class="sp-segmented__item" data-label="Apr"><input type="radio" name="a-month"><span class="sp-label">Apr</span></label>
+          <label class="sp-segmented__item" data-label="May"><input type="radio" name="a-month"><span class="sp-label">May</span></label>
+          <label class="sp-segmented__item" data-label="Jun"><input type="radio" name="a-month"><span class="sp-label">Jun</span></label>
+          <label class="sp-segmented__item" data-label="Jul"><input type="radio" name="a-month"><span class="sp-label">Jul</span></label>
+          <label class="sp-segmented__item" data-label="Aug"><input type="radio" name="a-month"><span class="sp-label">Aug</span></label>
+          <label class="sp-segmented__item" data-label="Sep"><input type="radio" name="a-month"><span class="sp-label">Sep</span></label>
+          <label class="sp-segmented__item" data-label="Oct"><input type="radio" name="a-month" defaultChecked="{{ true }}"><span class="sp-label">Oct</span></label>
+          <label class="sp-segmented__item" data-label="Nov"><input type="radio" name="a-month"><span class="sp-label">Nov</span></label>
+          <label class="sp-segmented__item" data-label="Dec"><input type="radio" name="a-month"><span class="sp-label">Dec</span></label>
+        </div>
+        <div class="sp-halves">
+          <div class="sp-well">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-title">October</span>
+              <span class="sp-pill">Now</span>
+              <span class="sp-grow"></span>
+              <span class="sp-pill">Left <span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-gauge sp-gauge--thin sp-gauge--untargeted" aria-hidden="true"></span>
+              <div class="sp-row-flex sp-gap-12">
+              <span class="sp-meta">Show income to see how much of it is used</span>
+            </div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Income</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Work</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0" data-hover="true"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
+                </div>
+                
+              </div>
+              
+              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Costs</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Housing</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Mortgage</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Property tax</span><span class="sp-meta">Budget · Only Mar</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Homeowners' association</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Heating</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Water</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Wastewater</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">245,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Electricity</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">400,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">TV antenna</span><span class="sp-meta">Budget · Only Jul, Oct</span></span><span class="sp-sum__value sp-ink-5">874,50 kr.</span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Transport</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car loan</span><span class="sp-meta">Budget</span></span><span class="sp-sum__value sp-ink-5">4.449,48 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car tax</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Insurance</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Private insurance</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Unemployment insurance</span><span class="sp-meta">Budget · Not every month</span></span><span class="sp-sum__value sp-ink-5">1.710,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Health insurance</span><span class="sp-meta">Budget · Not every month</span></span><span class="sp-sum__value sp-ink-5">99,00 kr.</span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Subscriptions</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Phone</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">169,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Broadband</span><span class="sp-meta">Budget · Only Jul</span></span></div>
+                </div>
+                
+              </div>
+              
+              <div class="sp-sum"><span class="sp-strong">Costs</span><span class="sp-sum__value">7.946,98 kr.</span></div>
+            </div>
+            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
+          </div>
+          <div class="sp-well">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-title">November</span>
+              
+              <span class="sp-grow"></span>
+              <span class="sp-pill">Left <span class="sp-redacted" role="img" aria-label="Hidden"></span></span>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-gauge sp-gauge--thin sp-gauge--untargeted" aria-hidden="true"></span>
+              <div class="sp-row-flex sp-gap-12">
+              <span class="sp-meta">Show income to see how much of it is used</span>
+            </div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Income</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Work</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
+                </div>
+                
+              </div>
+              
+              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Costs</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Housing</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Mortgage</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Property tax</span><span class="sp-meta">Budget · Only Mar</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Homeowners' association</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Heating</span><span class="sp-meta">Budget · Not every month</span></span><span class="sp-sum__value sp-ink-5">2.090,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Water</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Wastewater</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">245,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Electricity</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">400,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">TV antenna</span><span class="sp-meta">Budget · Only Jul, Oct</span></span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Transport</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car loan</span><span class="sp-meta">Budget</span></span><span class="sp-sum__value sp-ink-5">4.449,48 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car tax</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Insurance</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Private insurance</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Unemployment insurance</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Health insurance</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Subscriptions</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Phone</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">169,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Broadband</span><span class="sp-meta">Budget · Only Jul</span></span></div>
+                </div>
+                
+              </div>
+              
+              <div class="sp-sum"><span class="sp-strong">Costs</span><span class="sp-sum__value">7.353,48 kr.</span></div>
+            </div>
+            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value"><span class="sp-redacted" role="img" aria-label="Hidden"></span></span></div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Every part is an existing component.</b> The bar is the controls bar (<a href="Components.dc.html#c20">c20</a>). The dark card is Home 10a's month card: the same stat row and the same gauge with its plan marker (<a href="Components.dc.html#c10">c10</a>, <a href="Components.dc.html#c14">c14</a>). The month stepper is the period control's window (<a href="Components.dc.html#c14">c14</a>) and the twelve months under it are the full-width Segmented (<a href="Components.dc.html#c5">c5</a>, <code>--facet</code>). Each month is a well (<a href="Components.dc.html#c26">c26</a>) of summary rows (<a href="Components.dc.html#c21">c21</a>).</div>
+    <div class="doc-note"><b>The year is a Segmented while there are four years or fewer.</b> From the fifth it becomes a Combobox, the rule every set in the library follows. The months are the one exception: twelve is fixed and ordered, never a list that grows, so all twelve stay visible as segments across the card.</div>
+    <div class="doc-note"><b>Below 600px one month is shown</b>, and the segments page one month at a time. The window label then reads the one month.</div>
+    <div class="doc-note"><b>Income is hidden every time Budget opens.</b> Every amount that is income or reveals it is drawn as a bar of fixed length (<code>sp-redacted</code>): the Income and Left over figures, each income row, the Income sum, Left over in each month and on its pill. The bars on income are drawn empty (<code>sp-gauge--untargeted</code>) and their line reads "Show income to see how much of it is used". Costs stay as they are, and so do the names of income rows: only amounts are hidden. The bar has the same length whatever the figure, and the figure is not in the page at all while hidden, so nothing can be read from it.</div>
+    <div class="doc-note"><b>Show income is a toggle button</b> (<code>aria-pressed</code>) in the controls bar, with the eye from the register. Pressed, it reads Hide income and every figure appears in place, as <a href="#21b">21b</a> is drawn; nothing else moves. It holds until Budget is left. Edit (<a href="#21c">21c</a>) shows income while editing, since amounts are typed there, and leaving edit hides it again unless it was shown before.</div>
+    <div class="doc-note"><b>The gauge is costs over income.</b> The marker is the same share computed from the expected amounts. Where no row has an expected amount the marker and the second half of the line are absent. Costs with no income count as 100%.</div>
+    <div class="doc-note"><b>Under the pointer the whole line takes the grey <code>--hover</code> ground</b>, corner to corner at <code>--r-tile</code>, as Salary is drawn, and does the same in edit mode. Keyboard focus keeps the <code>--ring</code>; hover and focus can show together. On a phone nothing changes.</div>
+    <div class="doc-note"><b>Clicking an amount turns it into a NumberField in place</b>, the same input as <a href="#21b">21b</a>. Enter saves and moves down, Tab saves and moves right, Escape cancels. Typing a digit on a focused amount starts the edit with that digit.</div>
+    <div class="doc-note"><b>A row's tag is computed:</b> Varies when its months differ, Only Mar when it falls in three months or fewer, Not every month otherwise. A row that is the same every month has none.</div>
+    <div class="doc-note"><b>Grey is an expected amount with no real amount yet.</b> The real amount replaces it as soon as one is typed. Grey uses <code>sp-ink-5</code>; there is no budget-specific colour.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21b">21b</span>
+    <span class="doc-section__title">The whole year</span>
+  </div>
+  <div class="doc-lede">The same budget drawn the way the spreadsheet it replaces was: rows down the side in groups, the twelve months across, the year and the monthly average at the end of each row, and the totals under it.</div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body">
+      <div class="sp-controls">
+        <div class="sp-segmented" role="radiogroup" aria-label="Year">
+          <label class="sp-segmented__item" data-label="2024"><input type="radio" name="b-year"><span class="sp-label">2024</span></label>
+          <label class="sp-segmented__item" data-label="2025"><input type="radio" name="b-year"><span class="sp-label">2025</span></label>
+          <label class="sp-segmented__item" data-label="2026"><input type="radio" name="b-year" defaultChecked="{{ true }}"><span class="sp-label">2026</span></label>
+        </div>
+        <div class="sp-segmented" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Months"><input type="radio" name="b-view"><span class="sp-label">Months</span></label>
+          <label class="sp-segmented__item" data-label="Whole year"><input type="radio" name="b-view" defaultChecked="{{ true }}"><span class="sp-label">Whole year</span></label>
+        </div>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Hide income</button>
+        <button type="button" class="sp-btn sp-btn--outline">Check a bank statement</button>
+        <button type="button" class="sp-btn sp-btn--outline">Edit</button>
+      </div>
+      <div class="sp-card sp-card--flush">
+        <div class="sp-list__toolbar">
+          <span class="sp-section-label">Budget 2026</span>
+          <span class="sp-grow"></span>
+          <span class="sp-note">Grey amounts are expected · Amounts in kr.</span>
+        </div>
+        <div class="bg-scroll">
+          <table class="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet" aria-label="Budget 2026, amounts in kr.">
+            <thead>
+            <tr>
+              <th scope="col" class="bg-col-name">Row</th>
+              <th scope="col" class="bg-col-account">Account</th>
+              <th scope="col" class="sp-col-number">Jan (1)</th>
+              <th scope="col" class="sp-col-number">Feb (2)</th>
+              <th scope="col" class="sp-col-number">Mar (3)</th>
+              <th scope="col" class="sp-col-number">Apr (4)</th>
+              <th scope="col" class="sp-col-number">May (5)</th>
+              <th scope="col" class="sp-col-number">Jun (6)</th>
+              <th scope="col" class="sp-col-number">Jul (7)</th>
+              <th scope="col" class="sp-col-number">Aug (8)</th>
+              <th scope="col" class="sp-col-number">Sep (9)</th>
+              <th scope="col" class="sp-col-number"><span class="sp-ink-accent">Oct (10)</span></th>
+              <th scope="col" class="sp-col-number">Nov (11)</th>
+              <th scope="col" class="sp-col-number">Dec (12)</th>
+              <th scope="col" class="sp-col-number">Year</th>
+              <th scope="col" class="sp-col-number">Per month</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td colspan="16"><span class="sp-section-label">Income</span></td></tr>
+            <tr><td colspan="16"><span class="sp-title">Work</span></td></tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Salary</span></span></td>
+              <td class="sp-truncate">Salary</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, January" defaultValue="34.000,00" data-hover="true"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, February" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, March" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, April" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, May" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, June" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, July" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, August" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, September" defaultValue="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, October" placeholder="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, November" placeholder="34.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Salary, December" placeholder="34.000,00"></td>
+              <td class="sp-col-number">408.000,00</td>
+              <td class="sp-col-number">34.000,00</td>
+            </tr>
+            <tr><td colspan="16"><span class="sp-section-label">Costs</span></td></tr>
+            <tr><td colspan="16"><span class="sp-title">Housing</span></td></tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Mortgage</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, January"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, March" defaultValue="12.581,78"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, June" defaultValue="12.571,89"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, July"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, September" defaultValue="12.762,21"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Mortgage, December" placeholder="12.700,00"></td>
+              <td class="sp-col-number">50.615,88</td>
+              <td class="sp-col-number">4.217,99</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Property tax</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, January"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, March" defaultValue="4.947,11"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, July"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Property tax, December"></td>
+              <td class="sp-col-number">4.947,11</td>
+              <td class="sp-col-number">412,26</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Homeowners' association</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, January" defaultValue="4.000,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, July"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Homeowners' association, December"></td>
+              <td class="sp-col-number">4.000,00</td>
+              <td class="sp-col-number">333,33</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Heating</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, January"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, February" defaultValue="2.516,59"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, May" defaultValue="2.090,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, July"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, August" defaultValue="2.090,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, November" placeholder="2.090,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Heating, December"></td>
+              <td class="sp-col-number">8.786,59</td>
+              <td class="sp-col-number">732,22</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Water</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, January"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, February" defaultValue="3.295,92"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, July"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, August" defaultValue="3.367,01"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Water, December"></td>
+              <td class="sp-col-number">6.662,93</td>
+              <td class="sp-col-number">555,24</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Wastewater</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, January" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, February" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, March" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, April" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, May" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, June" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, July" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, August" defaultValue="229,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, September" defaultValue="245,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, October" placeholder="245,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, November" placeholder="245,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Wastewater, December" placeholder="245,00"></td>
+              <td class="sp-col-number">2.812,00</td>
+              <td class="sp-col-number">234,33</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Electricity</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, January" defaultValue="658,30"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, February" defaultValue="649,64"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, March" defaultValue="484,49"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, April" defaultValue="433,83"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, May" defaultValue="449,69"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, June" defaultValue="345,71"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, July" defaultValue="356,89"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, August" defaultValue="351,04"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, September" defaultValue="350,53"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, October" placeholder="400,00" data-focus="true"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, November" placeholder="400,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Electricity, December" placeholder="400,00"></td>
+              <td class="sp-col-number">5.280,12</td>
+              <td class="sp-col-number">440,01</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">TV antenna</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, January"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, July" defaultValue="874,50"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, October" placeholder="874,50"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, TV antenna, December"></td>
+              <td class="sp-col-number">1.749,00</td>
+              <td class="sp-col-number">145,75</td>
+            </tr>
+            <tr><td colspan="16"><span class="sp-title">Transport</span></td></tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Car loan</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, January" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, February" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, March" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, April" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, May" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, June" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, July" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, August" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, September" defaultValue="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, October" placeholder="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, November" placeholder="4.449,48"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car loan, December" placeholder="4.449,48"></td>
+              <td class="sp-col-number">53.393,76</td>
+              <td class="sp-col-number">4.449,48</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Car tax</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, January"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, February" defaultValue="1.220,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, July"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, August" defaultValue="1.220,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Car tax, December"></td>
+              <td class="sp-col-number">2.440,00</td>
+              <td class="sp-col-number">203,33</td>
+            </tr>
+            <tr><td colspan="16"><span class="sp-title">Insurance</span></td></tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Private insurance</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, January" defaultValue="17.644,13"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, July"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Private insurance, December"></td>
+              <td class="sp-col-number">17.644,13</td>
+              <td class="sp-col-number">1.470,34</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Unemployment insurance</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, January" defaultValue="1.710,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, April" defaultValue="1.710,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, July" defaultValue="1.710,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, October" placeholder="1.710,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Unemployment insurance, December"></td>
+              <td class="sp-col-number">6.840,00</td>
+              <td class="sp-col-number">570,00</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Health insurance</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, January" defaultValue="99,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, April" defaultValue="99,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, July" defaultValue="99,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, October" placeholder="99,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Health insurance, December"></td>
+              <td class="sp-col-number">396,00</td>
+              <td class="sp-col-number">33,00</td>
+            </tr>
+            <tr><td colspan="16"><span class="sp-title">Subscriptions</span></td></tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Phone</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, January" defaultValue="159,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, February" defaultValue="159,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, March" defaultValue="159,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, April" defaultValue="159,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, May" defaultValue="159,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, June" defaultValue="159,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, July" defaultValue="159,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, August" defaultValue="169,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, September" defaultValue="169,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, October" placeholder="169,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, November" placeholder="169,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Phone, December" placeholder="169,00"></td>
+              <td class="sp-col-number">1.958,00</td>
+              <td class="sp-col-number">163,17</td>
+            </tr>
+            <tr>
+              <td><span class="sp-cell-flex"><span class="sp-truncate">Broadband</span></span></td>
+              <td class="sp-truncate">Budget</td>
+              <td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, January"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, February"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, March"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, April"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, May"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, June"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, July" defaultValue="418,00"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, August"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, September"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, October"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, November"></td><td class="sp-col-number"><input class="sp-input sp-number sp-input--cell" type="text" inputMode="decimal" aria-label="Real amount, Broadband, December"></td>
+              <td class="sp-col-number">418,00</td>
+              <td class="sp-col-number">34,83</td>
+            </tr>
+            <tr><td colspan="16"><span class="sp-section-label">Totals</span></td></tr>
+            <tr>
+              <td><span class="sp-strong">Income</span></td>
+              <td></td>
+              <td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td><td class="sp-col-number">34.000,00</td>
+              <td class="sp-col-number sp-strong">408.000,00</td>
+              <td class="sp-col-number">34.000,00</td>
+            </tr>
+            <tr>
+              <td><span class="sp-strong">Costs</span></td>
+              <td></td>
+              <td class="sp-col-number">28.948,91</td><td class="sp-col-number">12.519,63</td><td class="sp-col-number">22.850,86</td><td class="sp-col-number">7.080,31</td><td class="sp-col-number">7.377,17</td><td class="sp-col-number">17.755,08</td><td class="sp-col-number">8.295,87</td><td class="sp-col-number">11.875,53</td><td class="sp-col-number">17.976,22</td><td class="sp-col-number">7.946,98</td><td class="sp-col-number">7.353,48</td><td class="sp-col-number">17.963,48</td>
+              <td class="sp-col-number sp-strong">167.943,52</td>
+              <td class="sp-col-number">13.995,29</td>
+            </tr>
+            <tr>
+              <td><span class="sp-strong">Left over</span></td>
+              <td></td>
+              <td class="sp-col-number sp-ink-success">5.051,09</td><td class="sp-col-number sp-ink-success">21.480,37</td><td class="sp-col-number sp-ink-success">11.149,14</td><td class="sp-col-number sp-ink-success">26.919,69</td><td class="sp-col-number sp-ink-success">26.622,83</td><td class="sp-col-number sp-ink-success">16.244,92</td><td class="sp-col-number sp-ink-success">25.704,13</td><td class="sp-col-number sp-ink-success">22.124,47</td><td class="sp-col-number sp-ink-success">16.023,78</td><td class="sp-col-number sp-ink-success">26.053,02</td><td class="sp-col-number sp-ink-success">26.646,52</td><td class="sp-col-number sp-ink-success">16.036,52</td>
+              <td class="sp-col-number sp-strong sp-ink-success">240.056,48</td>
+              <td class="sp-col-number sp-ink-success">20.004,71</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The sheet is the table (<a href="Components.dc.html#c1">c1</a>) in its compact, static form.</b> Rows are not opened, so the lit row and the hand are off; each amount cell takes focus on its own. Number columns are <code>sp-col-number</code>. It is page markup, not a component: nothing else in the app is a grid of this shape.</div>
+    <div class="doc-note"><b>Not on a phone.</b> Below 640px the Months / Whole year switch is not drawn and Budget shows Months only, where amounts are typed one month at a time (<a href="Mobile screens.dc.html">Mobile screens</a>, Budget).</div>
+    <div class="doc-note"><b>Where the year does not fit, it scrolls sideways and opens on the month it is now.</b> The sheet scrolls inside its card, and the month header and the row names stay in view in both directions; a section or group label holds still at the left. The month it is now is the accent ink in the header.</div>
+    <div class="doc-note"><b>Under the pointer an amount cell takes the grey <code>--hover</code> ground</b> inside its own box, as the first cell is drawn; it has no border until it is focused, and focus replaces the grey with the field's white, border and ring. On a phone nothing changes.</div>
+    <div class="doc-note"><b>Every amount is a NumberField</b> (<a href="Components.dc.html#c3">c3</a>) in its cell state: it reads as the figure until it is clicked or focused, then takes the field's border and ring inside its own cell, so nothing moves. It has no visible label - its accessible name is the real amount, the row and the month. A month with only an expected amount shows it as the grey placeholder. Electricity in October is drawn focused.</div>
+    <div class="doc-note"><b>Arrows move between cells, Home and End go to January and December, Delete clears the real amount.</b> Only the real amount is typed in a cell. The expected amount is one figure for the whole row, set in the row editor (<a href="#21c">21c</a>).</div>
+    <div class="doc-note"><b>Costs by account</b> appears under Totals only when cost rows use two or more accounts. It lists each account in the accounts list's order, then No account if any cost row has none. An account set to Greyed out in the totals draws its row in <code>sp-ink-5</code>. With one account, as here, it is absent. Left over is green above zero and red below it.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21c">21c</span>
+    <span class="doc-section__title">Editing the budget</span>
+  </div>
+  <div class="doc-lede">Amounts are typed at all times. Everything that changes the budget's shape - rows, groups, accounts and years - waits behind Edit, because it is done a few times a year. In edit mode a name opens its editor in place, every group ends in a row that adds to it, and the accounts list appears under the months.</div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body">
+      <div class="sp-controls">
+        <div class="sp-segmented" role="radiogroup" aria-label="Year">
+          <label class="sp-segmented__item" data-label="2024"><input type="radio" name="c-year"><span class="sp-label">2024</span></label>
+          <label class="sp-segmented__item" data-label="2025"><input type="radio" name="c-year"><span class="sp-label">2025</span></label>
+          <label class="sp-segmented__item" data-label="2026"><input type="radio" name="c-year" defaultChecked="{{ true }}"><span class="sp-label">2026</span></label>
+        </div>
+        
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline">New year</button>
+        <button type="button" class="sp-btn">Done</button>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Months 2026</span>
+          <span class="sp-grow"></span>
+          <span class="sp-note">Grey amounts are expected</span>
+          <div class="sp-window">
+            <button type="button" class="sp-window__btn" aria-label="Earlier month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <span class="sp-window__label" data-w="month">Oct to Nov</span>
+            <button type="button" class="sp-window__btn" aria-label="Later month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+        </div>
+        <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-label="Month">
+          <label class="sp-segmented__item" data-label="Jan"><input type="radio" name="c-month"><span class="sp-label">Jan</span></label>
+          <label class="sp-segmented__item" data-label="Feb"><input type="radio" name="c-month"><span class="sp-label">Feb</span></label>
+          <label class="sp-segmented__item" data-label="Mar"><input type="radio" name="c-month"><span class="sp-label">Mar</span></label>
+          <label class="sp-segmented__item" data-label="Apr"><input type="radio" name="c-month"><span class="sp-label">Apr</span></label>
+          <label class="sp-segmented__item" data-label="May"><input type="radio" name="c-month"><span class="sp-label">May</span></label>
+          <label class="sp-segmented__item" data-label="Jun"><input type="radio" name="c-month"><span class="sp-label">Jun</span></label>
+          <label class="sp-segmented__item" data-label="Jul"><input type="radio" name="c-month"><span class="sp-label">Jul</span></label>
+          <label class="sp-segmented__item" data-label="Aug"><input type="radio" name="c-month"><span class="sp-label">Aug</span></label>
+          <label class="sp-segmented__item" data-label="Sep"><input type="radio" name="c-month"><span class="sp-label">Sep</span></label>
+          <label class="sp-segmented__item" data-label="Oct"><input type="radio" name="c-month" defaultChecked="{{ true }}"><span class="sp-label">Oct</span></label>
+          <label class="sp-segmented__item" data-label="Nov"><input type="radio" name="c-month"><span class="sp-label">Nov</span></label>
+          <label class="sp-segmented__item" data-label="Dec"><input type="radio" name="c-month"><span class="sp-label">Dec</span></label>
+        </div>
+        <div class="sp-halves">
+          <div class="sp-well">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-title">October</span>
+              <span class="sp-pill">Now</span>
+              <span class="sp-grow"></span>
+              <span class="sp-pill" data-color="success">Left 26.053,02 kr.</span>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-gauge sp-gauge--thin">
+              <meter value="23" min="0" max="100" aria-label="Share of October's income used"></meter>
+              <span class="sp-gauge__fill" data-fill="25"></span>
+              <span class="sp-gauge__marker" data-at="25"></span>
+            </span>
+              <div class="sp-row-flex sp-gap-12">
+              <span class="sp-meta">23% of the income is used</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta sp-row-flex sp-gap-6"><span class="sp-gauge__key" aria-hidden="true"></span>The plan was 23%</span>
+            </div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Income</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Work</span>
+                  <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit the group Work"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value sp-ink-5">34.000,00 kr.</span></div>
+                </div>
+                <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add a row to Work</span></button>
+              </div>
+              <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add a group to income</span></button>
+              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value">34.000,00 kr.</span></div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Costs</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Housing</span>
+                  <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit the group Housing"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Mortgage</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Property tax</span><span class="sp-meta">Budget · Only Mar</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Homeowners' association</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Heating</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Water</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Wastewater</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">245,00 kr.</span></div>
+                  <div class="sp-line-editor sp-line-editor--plain">
+<div class="sp-line-editor__form">
+            <div class="sp-line-editor__head">
+              <span class="sp-title">Row 7 of 8 in Housing</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Move the row up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg></button>
+              <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Move the row down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></button>
+              <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Delete the row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+            </div>
+            <div class="sp-line-editor__grid">
+              <div class="sp-field">
+                <label class="sp-field__label" for="ed-name">Name</label>
+                <input class="sp-input" id="ed-name" type="text" defaultValue="Electricity">
+              </div>
+              <div class="sp-field">
+                <label class="sp-field__label" for="ed-expected">Expected each month</label>
+                <span class="sp-field__wrap">
+                  <input class="sp-input sp-input--unit sp-number" id="ed-expected" type="text" inputMode="decimal" defaultValue="400,00">
+                  <span class="sp-field__unit">kr.</span>
+                </span>
+              </div>
+              <div class="sp-field">
+                <span class="sp-field__label" id="ed-account-label">Account</span>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" id="ed-account" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ed-account-label">
+                    <span class="sp-grow">Budget</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="sp-field">
+                <span class="sp-field__label" id="ed-group-label">Group</span>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" id="ed-group" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ed-group-label">
+                    <span class="sp-grow">Housing</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="sp-dialog__actions">
+              <span class="sp-note">Enter saves · Escape cancels</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+              <button type="button" class="sp-btn">Save row</button>
+            </div>
+          </div>
+</div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">TV antenna</span><span class="sp-meta">Budget · Only Jul, Oct</span></span><span class="sp-sum__value sp-ink-5">874,50 kr.</span></div>
+                </div>
+                <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add a row to Housing</span></button>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Transport</span>
+                  <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit the group Transport"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car loan</span><span class="sp-meta">Budget</span></span><span class="sp-sum__value sp-ink-5">4.449,48 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car tax</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                </div>
+                <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add a row to Transport</span></button>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Insurance</span>
+                  <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit the group Insurance"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Private insurance</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Unemployment insurance</span><span class="sp-meta">Budget · Not every month</span></span><span class="sp-sum__value sp-ink-5">1.710,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Health insurance</span><span class="sp-meta">Budget · Not every month</span></span><span class="sp-sum__value sp-ink-5">99,00 kr.</span></div>
+                </div>
+                <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add a row to Insurance</span></button>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Subscriptions</span>
+                  <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Edit the group Subscriptions"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></button>
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Phone</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">169,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Broadband</span><span class="sp-meta">Budget · Only Jul</span></span></div>
+                </div>
+                <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add a row to Subscriptions</span></button>
+              </div>
+              <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add a group to costs</span></button>
+              <div class="sp-sum"><span class="sp-strong">Costs</span><span class="sp-sum__value">7.946,98 kr.</span></div>
+            </div>
+            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value sp-ink-success">26.053,02 kr.</span></div>
+          </div>
+          <div class="sp-well">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-title">November</span>
+              
+              <span class="sp-grow"></span>
+              <span class="sp-pill" data-color="success">Left 26.646,52 kr.</span>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-gauge sp-gauge--thin">
+              <meter value="22" min="0" max="100" aria-label="Share of November's income used"></meter>
+              <span class="sp-gauge__fill" data-fill="20"></span>
+              <span class="sp-gauge__marker" data-at="20"></span>
+            </span>
+              <div class="sp-row-flex sp-gap-12">
+              <span class="sp-meta">22% of the income is used</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta sp-row-flex sp-gap-6"><span class="sp-gauge__key" aria-hidden="true"></span>The plan was 22%</span>
+            </div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Income</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Work</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Salary</span><span class="sp-meta">Salary</span></span><span class="sp-sum__value sp-ink-5">34.000,00 kr.</span></div>
+                </div>
+                
+              </div>
+              
+              <div class="sp-sum"><span class="sp-strong">Income</span><span class="sp-sum__value">34.000,00 kr.</span></div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label sp-section-label--ruled">Costs</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Housing</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Mortgage</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Property tax</span><span class="sp-meta">Budget · Only Mar</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Homeowners' association</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Heating</span><span class="sp-meta">Budget · Not every month</span></span><span class="sp-sum__value sp-ink-5">2.090,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Water</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Wastewater</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">245,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Electricity</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">400,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">TV antenna</span><span class="sp-meta">Budget · Only Jul, Oct</span></span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Transport</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car loan</span><span class="sp-meta">Budget</span></span><span class="sp-sum__value sp-ink-5">4.449,48 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Car tax</span><span class="sp-meta">Budget · Only Feb, Aug</span></span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Insurance</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Private insurance</span><span class="sp-meta">Budget · Only Jan</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Unemployment insurance</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Health insurance</span><span class="sp-meta">Budget · Not every month</span></span></div>
+                </div>
+                
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-subtitle sp-strong sp-ink">Subscriptions</span>
+                  
+                </div>
+                <div class="sp-stack">
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Phone</span><span class="sp-meta">Budget · Varies</span></span><span class="sp-sum__value sp-ink-5">169,00 kr.</span></div>
+                  <div class="sp-sum sp-sum--edits" role="button" tabindex="0"><span class="sp-stacked"><span class="sp-ink-2">Broadband</span><span class="sp-meta">Budget · Only Jul</span></span></div>
+                </div>
+                
+              </div>
+              
+              <div class="sp-sum"><span class="sp-strong">Costs</span><span class="sp-sum__value">7.353,48 kr.</span></div>
+            </div>
+            <div class="sp-sum sp-sum--total"><span class="sp-ink-2">Left over</span><span class="sp-sum__value sp-ink-success">26.646,52 kr.</span></div>
+          </div>
+        </div>
+        <div class="sp-card__footer sp-card__footer--commits">
+          <button type="button" class="sp-btn" data-color="danger">Delete 2026</button>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card__head"><span class="sp-section-label">Accounts</span></div>
+        <span class="sp-subtitle">The accounts a row is paid from, or paid into. The totals add up the costs on each account in this order. Every year uses this list.</span>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-list-item">
+            <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+            <span class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">Salary</span>
+              <span class="sp-subtitle">34.000,00 kr. a month in, in 2026</span>
+            </span>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+            <span class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">Budget</span>
+              <span class="sp-subtitle">13.995,29 kr. a month out, in 2026</span>
+            </span>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+            <span class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">Savings</span>
+              <span class="sp-subtitle">Nothing in or out in 2026</span>
+            </span>
+          </div>
+          <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add an account</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The editor is the line editor in its plain form (<a href="Components.dc.html#c15">c15</a>, <code>--plain</code>)</b>, the one an order line opens, without the photo. A row is four fields in two pairs: its name and the amount expected each month, then its account and group. Real amounts are not in it - they are typed in the cells, here and in <a href="#21b">21b</a>. It takes the line editor's frame (<a href="Components.dc.html#c15">c15</a>) and its action row: the key hint at the left, Cancel and the commit at the right.</div>
+    <div class="doc-note"><b>It opens in place of the row it edits</b>, in the months view and in the whole year alike. In the whole year it spans the table's width and stays in view when the sheet is scrolled sideways.</div>
+    <div class="doc-note"><b>Move up and Move down are disabled at the ends</b>, and focus goes to the other one. Delete asks first, with the dialog from <a href="Components.dc.html#c13">c13</a>: the row, with every amount in it.</div>
+    <div class="doc-note"><b>The add rows are AddRow</b> (<a href="Components.dc.html#c33">c33</a>), the add control for any set that is not order lines. Each group ends in one, each side ends in one for a new group, and the accounts list ends in one.</div>
+    <div class="doc-note"><b>Delete 2026 is the card footer's destructive button</b>, the same as Delete on a vendor or a category (<a href="Components.dc.html#c10">c10</a>): solid red in a committing footer, and as the footer's only button it fills it. It asks first, stating the number of rows.</div>
+    <div class="doc-note"><b>Under each account is what goes through it in the year being viewed</b>: the monthly average of the income rows on it, or of the cost rows, or both on two lines. An account no row uses that year says so. The list itself is shared by every year; only this line changes with the year.</div>
+    <div class="doc-note"><b>The accounts list appears under the months card while editing, and only then</b>, since accounts are set up once and shared by every year. A name opens its editor in place (<a href="#21d">21d</a>), and the list ends in an add row.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21d">21d</span>
+    <span class="doc-section__title">Groups and accounts</span>
+  </div>
+  <div class="doc-lede">A group and an account are a name to edit. An account also says whether its line in the totals is greyed out, for one that matters less. The accounts list is shared by every year and is shown only while editing.</div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">GROUP</span>
+      <div class="sp-line-editor sp-line-editor--plain doc-w460">
+<div class="sp-line-editor__form">
+            <div class="sp-line-editor__head">
+              <span class="sp-title">Group 1 of 4 in costs</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Move the group up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg></button>
+              <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Move the group down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></button>
+              <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Delete the group"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+            </div>
+            <div class="sp-line-editor__grid sp-line-editor__grid--one">
+              <div class="sp-field">
+                <label class="sp-field__label" for="dg-name">Name</label>
+                <input class="sp-input" id="dg-name" type="text" defaultValue="Housing">
+              </div>
+              
+            </div>
+            <div class="sp-dialog__actions">
+              <span class="sp-note">Enter saves · Escape cancels</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+              <button type="button" class="sp-btn">Save group</button>
+            </div>
+          </div>
+</div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">ACCOUNTS, ONE OPEN</span>
+      <div class="sp-card doc-w460">
+        <div class="sp-card__head"><span class="sp-section-label">Accounts</span></div>
+        <span class="sp-subtitle">The accounts a row is paid from, or paid into. The totals add up the costs on each account in this order. Every year uses this list.</span>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-list-item">
+            <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+            <span class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">Salary</span>
+              <span class="sp-subtitle">34.000,00 kr. a month in, in 2026</span>
+            </span>
+          </div>
+          <div class="sp-line-editor sp-line-editor--plain">
+            <span class="sp-list-item__handle" aria-hidden="true"></span>
+            <div class="sp-line-editor__form">
+              <div class="sp-line-editor__head">
+                <span class="sp-title">Account 2 of 3</span>
+                <span class="sp-grow"></span>
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Move the account up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg></button>
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Move the account down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></button>
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Delete the account"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+              </div>
+              <div class="sp-line-editor__grid sp-line-editor__grid--one">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="da-name">Name</label>
+                  <input class="sp-input" id="da-name" type="text" defaultValue="Budget">
+                </div>
+                <label class="sp-choice sp-choice--described"><input class="sp-switch" type="checkbox" role="switch"><span class="sp-choice__text"><strong>Greyed out in the totals</strong><span class="sp-meta">The account's line under Totals is greyed out, so it reads as less important. Its costs still count in every sum.</span></span></label>
+              </div>
+              <div class="sp-dialog__actions">
+                <span class="sp-note">Enter saves · Escape cancels</span>
+                <span class="sp-grow"></span>
+                <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+                <button type="button" class="sp-btn">Save account</button>
+              </div>
+            </div>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-list-item__handle" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></span>
+            <span class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">Savings</span>
+              <span class="sp-subtitle">Nothing in or out in 2026</span>
+            </span>
+          </div>
+          <button type="button" class="sp-add-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>Add an account</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">NEW GROUP</span>
+      <div class="sp-line-editor sp-line-editor--plain doc-w460">
+<div class="sp-line-editor__form">
+            <div class="sp-line-editor__head">
+              <span class="sp-title">New group in costs</span>
+              <span class="sp-grow"></span>
+              
+            </div>
+            <div class="sp-line-editor__grid sp-line-editor__grid--one">
+              <div class="sp-field">
+                <label class="sp-field__label" for="dn-name">Name</label>
+                <input class="sp-input" id="dn-name" type="text" defaultValue="">
+              </div>
+              
+            </div>
+            <div class="sp-dialog__actions">
+              <span class="sp-note">Enter saves · Escape cancels</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+              <button type="button" class="sp-btn">Add group</button>
+            </div>
+          </div>
+</div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Both are the plain line editor with one field</b> (<code>sp-line-editor__grid--one</code>). A new group or account has no move or delete, and its commit reads Add.</div>
+    <div class="doc-note"><b>Two accounts cannot share a name</b>, since the rows and the totals tell them apart by it. The message is the field's danger message: You already have an account called Budget.</div>
+    <div class="doc-note"><b>Deleting an account counts its rows across every year</b> in the dialog, since the list is shared. Its rows are left with no account.</div>
+    <div class="doc-note"><b>Accounts reorder by dragging the handle</b>, or with the keyboard from the handle. The order is the order of Costs by account in the totals.</div>
+    <div class="doc-note"><b>An open account has no grip</b>, as an open order line has none: it cannot be dragged while open. The handle column stays, empty, so the name keeps its line; with nothing to grab it takes no grab cursor. Move up and Move down in the head are how an open account moves.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21e">21e</span>
+    <span class="doc-section__title">Starting a new year</span>
+  </div>
+  <div class="doc-lede">New year starts the year after the newest one as a copy of it, with the same groups and rows. The one choice is what happens to the amounts.</div>
+
+  <div class="doc-specimens">
+    <div class="sp-dialog">
+      <div class="sp-stack sp-gap-6">
+        <span class="sp-heading">Start 2027?</span>
+        <span class="sp-dialog__body">2027 starts as a copy of 2026, with the same groups and rows. Choose what happens to the amounts.</span>
+      <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-label="Amounts">
+          <label class="sp-segmented__item" data-label="As they are"><input type="radio" name="e-amounts"><span class="sp-label">As they are</span></label>
+          <label class="sp-segmented__item" data-label="As expected"><input type="radio" name="e-amounts" defaultChecked="{{ true }}"><span class="sp-label">As expected</span></label>
+          <label class="sp-segmented__item" data-label="No amounts"><input type="radio" name="e-amounts"><span class="sp-label">No amounts</span></label>
+        </div>
+      <span class="sp-note">Every amount is copied as an expected amount, shown grey. Write the real amount as each month happens.</span>
+      <div class="sp-dialog__actions">
+        <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn">Start 2027</button>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The dialog is <a href="Components.dc.html#c13">c13</a> unchanged</b>: the question, what it does, then Cancel at the left and the commit at the right.</div>
+    <div class="doc-note"><b>The note under the Segmented changes with the choice.</b> As they are: Every amount is copied as it is. Then clear the ones you do not know yet, like your salary, and write what you expect instead. No amounts: The groups and rows are copied, and every month is left empty.</div>
+    <div class="doc-note"><b>Afterwards the page opens on 2027</b> and a toast says 2027 is ready.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21f">21f</span>
+    <span class="doc-section__title">No budget yet</span>
+  </div>
+  <div class="doc-lede">The first visit. A budget usually exists already as a spreadsheet, so bringing it in comes first; starting from empty rows is the other way in.</div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body">
+      <div class="sp-card">
+        <div class="sp-empty">
+          <span class="sp-mark sp-mark--medium sp-mark--empty"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span>
+          <span class="sp-empty__title">No budget yet</span>
+          <span class="sp-empty__body">Bring in your Excel budget, with one sheet for each year, or start 2026 with empty rows.</span>
+          <div class="sp-row-flex sp-gap-8">
+            <button type="button" class="sp-btn sp-btn--small">Import from Excel</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Start 2026</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The empty state is <a href="Components.dc.html#c13">c13</a> unchanged.</b> The bar is absent: there is no year to pick and nothing to edit.</div>
+    <div class="doc-note"><b>Import from Excel reads the file in the browser</b> and asks before writing, with the dialog from <a href="Components.dc.html#c13">c13</a>: Bring in 3 years? It lists the years and their row counts, which years it replaces, and any sheet that is not a year and is left out. The same button sits on Settings' Import tab (<a href="Settings and import.dc.html#11b">11b</a>).</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21g">21g</span>
+    <span class="doc-section__title">Checking a bank statement</span>
+  </div>
+  <div class="doc-lede">A bank's CSV export, checked against the budget. Every payment is looked up in its year and month, and the ones no row accounts for are listed to place. Amounts the file found on a row can then be saved as that month's real amount.</div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body">
+      <div class="sp-controls">
+        <div class="sp-segmented" role="radiogroup" aria-label="Show">
+          <label class="sp-segmented__item" data-label="To place"><input type="radio" name="g-show" defaultChecked="{{ true }}"><span class="sp-label">To place</span></label>
+          <label class="sp-segmented__item" data-label="Other amount"><input type="radio" name="g-show"><span class="sp-label">Other amount</span></label>
+          <label class="sp-segmented__item" data-label="Left out"><input type="radio" name="g-show"><span class="sp-label">Left out</span></label>
+          <label class="sp-segmented__item" data-label="All"><input type="radio" name="g-show"><span class="sp-label">All</span></label>
+        </div>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline" aria-pressed="false">Columns</button>
+        <button type="button" class="sp-btn sp-btn--outline">Another file</button>
+      </div>
+      <div class="sp-card sp-card--shell">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Posteringsdetaljer.csv</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">93 payments read · 30 December 2025 to 2 October 2026</span>
+        </div>
+        <div class="sp-row-flex sp-gap-16 sp-wrap sp-top">
+          <div class="sp-stat">
+            <span class="sp-section-label">Not in the budget</span>
+            <span class="sp-stat__figure">19 payments</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Same amount</span>
+            <span class="sp-stat__figure">63</span>
+            <span class="sp-meta">Found in the budget</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Other amount</span>
+            <span class="sp-stat__figure">2</span>
+            <span class="sp-meta">The budget says another amount</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Left out</span>
+            <span class="sp-stat__figure">9</span>
+            <span class="sp-meta">Always, or this time only</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-gauge">
+            <meter value="80" min="0" max="100" aria-label="Share of payments accounted for"></meter>
+            <span class="sp-gauge__fill" data-fill="80"></span>
+          </span>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-meta">74 of 93 payments are accounted for</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">14 texts to place</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card__head">
+          <span class="sp-section-label">To place</span>
+          <span class="sp-grow"></span>
+          <span class="sp-note">Amounts in kr.</span>
+        </div>
+        <span class="sp-subtitle">Payments with the same text are shown together. Place a text once, and Spendly uses your choice for all of its payments, also in later files. Each choice is saved the moment you make it.</span>
+        <label class="sp-choice"><input class="sp-check" type="checkbox">Select every text</label>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-list-head">
+            <span class="sp-section-label">Costs</span>
+            <span class="sp-grow"></span>
+            <span class="sp-amount">23.223,27 kr.</span>
+          </div>
+          <div class="sp-stack sp-gap-8">
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Codan forsikring">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Codan forsikring</span>
+                  <span class="sp-subtitle">30 Jun</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">8.706,54 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Consens">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Consens</span>
+                  <span class="sp-subtitle">2 Aug</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="true">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="bk-place" id="bk-place-label">All payments with this text go to</label>
+                  <div class="sp-combobox" data-open="true">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" id="bk-place" type="text" role="combobox" aria-expanded="true" aria-autoComplete="list" aria-controls="bk-place-panel" placeholder="Type or pick from your costs" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg></span>
+                    </span>
+                    <ul class="sp-combobox__panel" id="bk-place-panel" role="listbox" aria-label="Your costs">
+                      <li class="sp-combobox__group">Housing</li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Mortgage</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Property tax</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Homeowners' association</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Heating</span><span class="sp-grow"></span><span class="sp-combobox__meta">2.090,00 kr. in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Water</span><span class="sp-grow"></span><span class="sp-combobox__meta">3.367,01 kr. in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Wastewater</span><span class="sp-grow"></span><span class="sp-combobox__meta">229,00 kr. in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Electricity</span><span class="sp-grow"></span><span class="sp-combobox__meta">351,04 kr. in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>TV antenna</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                      <li><hr></li>
+                      <li class="sp-combobox__group">Transport</li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Car loan</span><span class="sp-grow"></span><span class="sp-combobox__meta">4.449,48 kr. in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Car tax</span><span class="sp-grow"></span><span class="sp-combobox__meta">1.220,00 kr. in Aug</span></button></li>
+                      <li><hr></li>
+                      <li class="sp-combobox__group">Insurance</li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Private insurance</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Unemployment insurance</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Health insurance</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                      <li><hr></li>
+                      <li class="sp-combobox__group">Subscriptions</li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Phone</span><span class="sp-grow"></span><span class="sp-combobox__meta">169,00 kr. in Aug</span></button></li>
+                      <li role="option"><button type="button" class="sp-combobox__option"><span>Broadband</span><span class="sp-grow"></span><span class="sp-combobox__meta">No amount in Aug</span></button></li>
+                    </ul>
+                  </div>
+                </div>
+              </span>
+              <span class="sp-amount">4.125,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Til Lønkonto">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Til Lønkonto</span>
+                  <span class="sp-subtitle">3 payments, 1 Jan to 8 Apr</span>
+                </span>
+                <span class="sp-note sp-ink-warning">Close to TV antenna in amount.</span>
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Use TV antenna</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">3.319,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" defaultChecked="{{ true }}" disabled="{{ true }}" aria-label="Til Opsparing, saved">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Til Opsparing</span>
+                  <span class="sp-subtitle">2 payments, 2 Jan to 30 Jan</span>
+                </span>
+                <span class="sp-note sp-ink-success">Saved: Always left out.</span>
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Undo</button></span>
+                
+              </span>
+              <span class="sp-amount">3.290,80 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Udligning erhvervskonto">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Udligning erhvervskonto</span>
+                  <span class="sp-subtitle">2 payments, 30 Jan to 30 Jul</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">1.400,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select SCANNET.DK, SKANDERBORG">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">SCANNET.DK, SKANDERBORG</span>
+                  <span class="sp-subtitle">10 Jul</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">585,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Til VEJEN VVS SERVICE">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Til VEJEN VVS SERVICE</span>
+                  <span class="sp-subtitle">30 Dec</span>
+                </span>
+                <span class="sp-note sp-ink-danger">There is no budget for 2025.</span>
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">553,13 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select gaiasportdk, Vejle">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">gaiasportdk, Vejle</span>
+                  <span class="sp-subtitle">17 Jul</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">439,80 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select MobilePay Saphe A/S">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">MobilePay Saphe A/S</span>
+                  <span class="sp-subtitle">10 Jun</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">285,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select MOB.PAY*HOS REBAR, BRORUP">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">MOB.PAY*HOS REBAR, BRORUP</span>
+                  <span class="sp-subtitle">20 Jul</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">210,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Udligning (Erhvervskonto)">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Udligning (Erhvervskonto)</span>
+                  <span class="sp-subtitle">2 payments on 22 Jan</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">200,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Kort bestilling">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Kort bestilling</span>
+                  <span class="sp-subtitle">1 Jun</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">100,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select MobilePay Podimo ApS">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">MobilePay Podimo ApS</span>
+                  <span class="sp-subtitle">7 Apr</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">9,00 kr.</span>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-list-head">
+            <span class="sp-section-label">Income</span>
+            <span class="sp-grow"></span>
+            <span class="sp-amount">8.706,54 kr.</span>
+          </div>
+          <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Overførsel">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Overførsel</span>
+                  <span class="sp-subtitle">30 Jun</span>
+                </span>
+                
+                <span class="sp-row-flex sp-wrap sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="false">Pick from budget</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button></span>
+                
+              </span>
+              <span class="sp-amount">8.706,54 kr.</span>
+            </div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Save to the budget</span>
+          <span class="sp-grow"></span>
+          <span class="sp-note">Amounts in kr.</span>
+        </div>
+        <span class="sp-subtitle">These amounts from the bank are found on a budget item, but are not yet the real amount for their month. Saving writes them into the budget. Payments that still need a place are not saved.</span>
+        <label class="sp-choice"><input class="sp-check" type="checkbox" defaultChecked="{{ true }}">Select every amount</label>
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-list-head">
+            <span class="sp-section-label">Costs</span>
+            <span class="sp-grow"></span>
+            <span class="sp-amount">7.694,47 kr.</span>
+          </div>
+          <div class="sp-stack sp-gap-8">
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Car loan" defaultChecked="{{ true }}">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Car loan</span>
+                  <span class="sp-subtitle">October 2026 · Transport</span>
+                </span>
+                
+                
+                
+              </span>
+              <span class="sp-amount">4.449,48 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select TV antenna" defaultChecked="{{ true }}">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">TV antenna</span>
+                  <span class="sp-subtitle">October 2026 · Housing</span>
+                </span>
+                
+                
+                
+              </span>
+              <span class="sp-amount">874,50 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Phone" defaultChecked="{{ true }}">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Phone</span>
+                  <span class="sp-subtitle">October 2026 · Subscriptions</span>
+                </span>
+                <span class="sp-note sp-ink-warning">The budget expects 169,00 kr.. Saving makes 39,00 kr. the real amount.</span>
+                
+                
+              </span>
+              <span class="sp-amount">39,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Electricity" defaultChecked="{{ true }}">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Electricity</span>
+                  <span class="sp-subtitle">October 2026 · Housing</span>
+                </span>
+                <span class="sp-note sp-ink-warning">The budget expects 400,00 kr.. Saving makes 376,49 kr. the real amount.</span>
+                
+                
+              </span>
+              <span class="sp-amount">376,49 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Wastewater" defaultChecked="{{ true }}">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Wastewater</span>
+                  <span class="sp-subtitle">October 2026 · Housing</span>
+                </span>
+                
+                
+                
+              </span>
+              <span class="sp-amount">245,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <input type="checkbox" class="sp-check" aria-label="Select Unemployment insurance" defaultChecked="{{ true }}">
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Unemployment insurance</span>
+                  <span class="sp-subtitle">October 2026 · Insurance</span>
+                </span>
+                
+                
+                
+              </span>
+              <span class="sp-amount">1.710,00 kr.</span>
+            </div>
+          </div>
+        </div>
+        <div class="sp-card__footer">
+          <button type="button" class="sp-btn">Save 6 amounts</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Not on a phone.</b> Below 640px Check a bank statement is not drawn; the phone bar carries only the year and Edit (<a href="Mobile screens.dc.html">Mobile screens</a>, Budget).</div>
+    <div class="doc-note"><b>Use TV antenna</b> places the payment on the suggested row and marks it saved.</div>
+    <div class="doc-note"><b>Pick from budget</b> opens a searchable list of the budget's rows; picking one places the payment there.</div>
+    <div class="doc-note"><b>Always leave out</b> hides this text in every future file; <b>Leave out once</b> hides it for this file only.</div>
+    <div class="doc-note"><b>Each side's heading is the list head</b> (<code>sp-list-head</code>): inset like the rows, so Costs starts on the boxes and its total ends on the amounts. <b>The same three parts as the months view:</b> the controls bar, the dark card and its stats and gauge, then cards. Each payment line is the list row (<a href="Components.dc.html#c15">c15</a>) in its top-aligned form, with its actions as small outline buttons (<a href="Components.dc.html#c6">c6</a>), so they read as controls on the row rather than floating text.</div>
+    <div class="doc-note"><b>Money coming in from another of your accounts is a transfer, not income.</b> The monthly Fast overførsel is placed once as Always left out, so it never asks again; income is typed in the budget by hand. A payment refunded the same day, like Codan forsikring and the Overførsel back, is left out once on both sides.</div>
+    <div class="doc-note"><b>The file is read on the device and never sent.</b> Only the choices are saved: a text placed on a row, or always left out, and a payment left out once.</div>
+    <div class="doc-note"><b>Show is a Segmented of four.</b> To place lists the texts no row accounts for; Other amount, the payments found on a row where the budget holds another amount; Left out, what was left out; All, every payment with its status.</div>
+    <div class="doc-note"><b>A note under a payment takes the ink of what it says:</b> <code>sp-ink-warning</code> for a suggestion or an amount about to be replaced, <code>sp-ink-danger</code> for a year with no budget, <code>sp-ink-success</code> once a choice is saved. It is <code>sp-note</code> with an ink utility, not a new state.</div>
+    <div class="doc-note"><b>A placed text stays in the list, marked saved, until the next file</b>, so its choice can be undone where it was made.</div>
+    <div class="doc-note"><b>Selecting texts replaces the hint with the bulk bar</b> (<a href="Components.dc.html#c12">c12</a>): Put them all on, Always leave out, Leave out once. Put them all on is offered only when every selected text is money out, or every one is money in.</div>
+    <div class="doc-note"><b>Save 6 amounts is the card footer's single button</b>, so it fills the footer. Its count follows the ticks.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="21h">21h</span>
+    <span class="doc-section__title">Bank check - the columns</span>
+  </div>
+  <div class="doc-lede">Banks name and order their columns differently, so the first file of a shape asks which column holds what. A file of the same shape later opens on the same choice, folded away.</div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body">
+      <div class="sp-controls">
+        <div class="sp-segmented" role="radiogroup" aria-label="Show">
+          <label class="sp-segmented__item" data-label="To place"><input type="radio" name="h-show" defaultChecked="{{ true }}"><span class="sp-label">To place</span></label>
+          <label class="sp-segmented__item" data-label="Other amount"><input type="radio" name="h-show"><span class="sp-label">Other amount</span></label>
+          <label class="sp-segmented__item" data-label="Left out"><input type="radio" name="h-show"><span class="sp-label">Left out</span></label>
+          <label class="sp-segmented__item" data-label="All"><input type="radio" name="h-show"><span class="sp-label">All</span></label>
+        </div>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline" aria-pressed="true">Close columns</button>
+        <button type="button" class="sp-btn sp-btn--outline">Another file</button>
+      </div>
+      <div class="sp-card sp-card--flush">
+        <div class="sp-list__toolbar">
+          <span class="sp-section-label">Columns</span>
+          <span class="sp-grow"></span>
+          <span class="sp-note">Posteringsdetaljer.csv</span>
+        </div>
+        <div class="sp-card__body">
+          <div class="sp-stack sp-gap-12">
+            <span class="sp-subtitle">Your file has 16 columns. What does each one hold?</span>
+            <label class="sp-choice"><input class="sp-check" type="checkbox">The first line of the file holds column names</label>
+          </div>
+        </div>
+        <table class="sp-table sp-table--static">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-col-title">File</th>
+              <th scope="col" class="sp-col-flex">First three values</th>
+              <th scope="col" class="bg-col-map">Spendly</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="sp-title">Column 1</span></td>
+              <td><span class="sp-subtitle sp-truncate">(empty) · (empty) · MobilePay Telmore</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 1 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 2</span></td>
+              <td><span class="sp-subtitle sp-truncate">VOLKSWAGEN SEMLER FINANS DANMARK · antenneforeningenv · MobilePay Telmore</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 2 is mapped to">
+                    <span class="sp-grow">Text</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 3</span></td>
+              <td><span class="sp-subtitle sp-truncate">An account number</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 3 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 4</span></td>
+              <td><span class="sp-subtitle sp-truncate">An account number, or empty</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 4 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 5</span></td>
+              <td><span class="sp-subtitle sp-truncate">-4.449,48 · -874,50 · -39,00</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 5 is mapped to">
+                    <span class="sp-grow">Amount</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 6</span></td>
+              <td><span class="sp-subtitle sp-truncate">A name, or empty</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 6 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 7</span></td>
+              <td><span class="sp-subtitle sp-truncate">(empty) · (empty) · (empty)</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 7 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 8</span></td>
+              <td><span class="sp-subtitle sp-truncate">02-10-2026 · 01-10-2026 · 01-10-2026</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 8 is mapped to">
+                    <span class="sp-grow">Date</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 9</span></td>
+              <td><span class="sp-subtitle sp-truncate">02-10-2026 · 01-10-2026 · 01-10-2026</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 9 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 10</span></td>
+              <td><span class="sp-subtitle sp-truncate">02-10-2026 · 01-10-2026 · 01-10-2026</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 10 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 11</span></td>
+              <td><span class="sp-subtitle sp-truncate">A reference number</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 11 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 12</span></td>
+              <td><span class="sp-subtitle sp-truncate">A MobilePay number, or empty</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 12 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 13</span></td>
+              <td><span class="sp-subtitle sp-truncate">(empty) · (empty) · (empty)</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 13 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 14</span></td>
+              <td><span class="sp-subtitle sp-truncate">(empty) · (empty) · (empty)</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 14 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 15</span></td>
+              <td><span class="sp-subtitle sp-truncate">(empty) · (empty) · MobilePay Telmore</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 15 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="sp-title">Column 16</span></td>
+              <td><span class="sp-subtitle sp-truncate">(empty) · (empty) · (empty)</span></td>
+              <td>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Column 16 is mapped to">
+                    <span class="sp-grow sp-ink-5">Not used</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="sp-card__body">
+          <span class="sp-note">Money out is read as a minus amount. Choose a column as money out only when your bank shows it in a column of its own.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Close columns</b> returns to the payment list with the chosen mapping.</div>
+    <div class="doc-note"><b>Another file</b> opens the file picker; the new file replaces the current one, and payments already placed stay placed.</div>
+    <div class="doc-note"><b>The mapping is the table (<a href="Components.dc.html#c1">c1</a>), static</b>, with a pick-only Combobox (<a href="Components.dc.html#c5">c5</a>) per column. It is page markup, not a component.</div>
+    <div class="doc-note"><b>Each Spendly role is taken by one column at most:</b> Date, Text, Amount, and Money out as its own column. Picking a role for a column takes it from the column that had it.</div>
+    <div class="doc-note"><b>When every date in the file reads two ways</b>, a second Combobox under Date asks which is right. This file writes 02-10-2026, and a date like 30-09-2026 can only be day first, so it is not asked. When the dates cannot be read, the date row carries the danger message: These are not dates Spendly can read.</div>
+    <div class="doc-note"><b>A file with no header row is read from its first line.</b> The columns are then named by number, and the samples are the first three payments. Columns 8 to 10 all hold dates; the booking date is the one taken. Columns that identify an account, a person or a payment are shown here as a description rather than their values.</div>
+    <div class="doc-note"><b>The choice is kept in this browser, per column count.</b> Closing the columns accepts them.</div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

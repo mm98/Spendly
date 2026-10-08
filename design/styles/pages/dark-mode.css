@@ -1,0 +1,70 @@
+/* Page composition for Dark mode and image viewer.dc.html.
+   Layout scaffolding only. Every colour in the previews comes from the theme
+   blocks in tokens.css: a preview carries data-theme and the components resolve
+   the rest, so nothing here restates a theme value.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  .dm-stack { display: flex; flex-direction: column; gap: var(--sp-16); }
+  .dm-w900 { display: flex; flex-direction: column; gap: var(--sp-8); width: 100%; max-width: 900px; }
+
+  /* The ground a preview sits on: the canvas and ink of whichever theme it shows.
+     It states both - a frame that switched the surface and left the text colour
+     inherited from the page would be unreadable. */
+  .dm-frame {
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    padding: var(--sp-16);
+  }
+
+  /* The token map. Each row names its token and the two chips read it, the second
+     inside a dark context - so one rule per token produces both values, and the
+     page never writes a hex outside the reference text beside it. */
+  .dm-map .dm-pair { display: inline-flex; align-items: center; gap: var(--sp-6); }
+  .dm-map .dm-swatch { width: 15px; height: 15px; border-radius: var(--r-marker); border: 1px solid var(--line-3); flex: none; }
+  [data-token="bg"] .dm-swatch { background: var(--bg); }
+  [data-token="surface"] .dm-swatch { background: var(--surface); }
+  [data-token="surface-2"] .dm-swatch { background: var(--surface-2); }
+  [data-token="surface-3"] .dm-swatch { background: var(--surface-3); }
+  [data-token="hover"] .dm-swatch { background: var(--hover); }
+  [data-token="line"] .dm-swatch { background: var(--line); }
+  [data-token="line-2"] .dm-swatch { background: var(--line-2); }
+  [data-token="line-3"] .dm-swatch { background: var(--line-3); }
+  [data-token="line-4"] .dm-swatch { background: var(--line-4); }
+  [data-token="line-5"] .dm-swatch { background: var(--line-5); }
+  [data-token="ink"] .dm-swatch { background: var(--ink); }
+  [data-token="ink-2"] .dm-swatch { background: var(--ink-2); }
+  [data-token="ink-3"] .dm-swatch { background: var(--ink-3); }
+  [data-token="ink-4"] .dm-swatch { background: var(--ink-4); }
+  [data-token="ink-5"] .dm-swatch { background: var(--ink-5); }
+  [data-token="ink-6"] .dm-swatch { background: var(--ink-6); }
+  [data-token="green"] .dm-swatch { background: var(--green); }
+  [data-token="green-2"] .dm-swatch { background: var(--green-2); }
+  [data-token="green-press"] .dm-swatch { background: var(--green-press); }
+  [data-token="green-tint"] .dm-swatch { background: var(--green-tint); }
+  [data-token="green-tint-2"] .dm-swatch { background: var(--green-tint-2); }
+  [data-token="range-in"] .dm-swatch { background: var(--range-in); }
+  [data-token="range-line"] .dm-swatch { background: var(--range-line); }
+  [data-token="amber"] .dm-swatch { background: var(--amber); }
+  [data-token="amber-ink"] .dm-swatch { background: var(--amber-ink); }
+  [data-token="amber-ink-2"] .dm-swatch { background: var(--amber-ink-2); }
+  [data-token="amber-tint"] .dm-swatch { background: var(--amber-tint); }
+  [data-token="amber-tint-2"] .dm-swatch { background: var(--amber-tint-2); }
+  [data-token="red"] .dm-swatch { background: var(--red); }
+  [data-token="red-ink"] .dm-swatch { background: var(--red-ink); }
+  [data-token="red-tint"] .dm-swatch { background: var(--red-tint); }
+  [data-token="red-tint-2"] .dm-swatch { background: var(--red-tint-2); }
+  [data-token="hatch-a"] .dm-swatch { background: var(--hatch-a); }
+  [data-token="hatch-b"] .dm-swatch { background: var(--hatch-b); }
+  [data-token="overlay-photo"] .dm-swatch { background: var(--overlay-photo); }
+  [data-token="overlay-badge"] .dm-swatch { background: var(--overlay-badge); }
+
+  /* a group row: the rule above it and the quiet ground are the grouping; the
+     label itself is .sp-section-label, so its size comes from the library */
+  .dm-map__group th { background: var(--surface-2); border-top: 1px solid var(--line); padding: var(--sp-8) var(--sp-16); text-align: left; }
+  .dm-map__group:first-child th { border-top: 0; }
+
+}
