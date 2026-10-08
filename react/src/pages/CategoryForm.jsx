@@ -335,7 +335,7 @@ function CategorySummary({ category, preview, budget }) {
 				: (
 					<>
 						<div className="sp-row-flex sp-gap-12 sp-baseline">
-							<Stat large figure={over ? <span className="sp-ink-warning">{currency(spend, 0)}</span> : currency(spend, 0)} />
+							<Stat bare large figure={over ? <span className="sp-ink-warning">{currency(spend, 0)}</span> : currency(spend, 0)} />
 							{limit !== null ? <span className="sp-data sp-ink-5">of {currency(limit, 0)}</span> : null}
 						</div>
 						{limit !== null

@@ -1056,7 +1056,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	const brokenCount = tried && !relaxed ? lines.filter(l => l.include !== false && Object.keys(lineErrors(l)).length).length : 0
 	const itemsHead = (
-		<div className="sp-row-flex sp-wrap sp-gap-8">
+		<div className="sp-row-flex sp-gap-8">
 			<span className="sp-section-label">{scan ? 'Lines found' : 'Items'}{dot}{lines.length}</span>
 			<span className="sp-grow" />
 			{brokenCount

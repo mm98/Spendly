@@ -123,16 +123,26 @@
 .sp-card--flush { gap: 0; padding: 0; overflow: hidden; }
 .sp-card[data-color="warning"] { background: var(--amber-tint-2); border-color: var(--amber); }
 .sp-card[data-color="danger"] { background: var(--red-tint-2); border-color: var(--red-ink); }
-/* A card's head, the row that opens with its name, is the list toolbar's height
-   (--card-header-h), with the name centred in it, so a card and a list beside it carry
-   their names at the same height whatever action sits beside them. It takes the card's
-   top padding and the gap below into itself, so the content starts where a list's rows
-   start (Brief 34). */
-.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) {
+/* A card's head. A card's name is always in one: the row that opens with the name, or
+   the name standing alone as the card's first child. The head is the list toolbar's box
+   exactly - --card-header-h tall including a 1px bottom border, transparent here - with
+   the name centred, so a card and a list carry their names at the same height. The card
+   gives up its top padding to it, so the place does not depend on the card's padding.
+   The head is one line and never wraps: anything beside the name is centred on it and
+   shrinks, and a button in it is always the small outline button (c6), and what can grow with the data (a legend, filters) goes below the head.
+   The gap below is taken into the head, so content starts where a list's rows start. */
+.sp-card:has(> .sp-row-flex:first-child > .sp-section-label:first-child),
+.sp-card:has(> .sp-section-label:first-child) { padding-top: 0; }
+.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child),
+.sp-card > .sp-section-label:first-child {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  flex: none;
+  min-width: 0;
   height: var(--card-header-h);
   box-sizing: border-box;
-  align-items: center;
-  margin-top: calc(var(--card-pad) * -1);
+  border-bottom: 1px solid transparent;
   margin-bottom: calc(var(--sp-12) * -1);
 }
 /* the bar above a list, and the header of a card that has one: the same object, so
@@ -1707,17 +1717,6 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-list__toolbar .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-controls .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-topbar .sp-btn:not(.sp-btn--block) { width: auto; }
-/* A text link in a card's head ("All 5" on Drafts, "All 248" on Recent orders) keeps the
-   small button's box (--btn-h-small) on touch and takes the touch height as a hit area above and
-   below. Its box is drawn but takes no height in the row: a negative margin of half the
-   box on each side brings its outer height to zero, so the row is as tall as the name
-   and the name sits the same distance from the card's top edge on every card (Brief 32,
-   33). The link stays on the name's baseline; the box reaches 8.5 into the card's
-   padding above and the gap below, which both exceed it. */
-.sp-touch .sp-list__toolbar > .sp-btn--text,
-.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(var(--btn-h-small) / -2); }
-.sp-touch .sp-list__toolbar > .sp-btn--text::before,
-.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2) 0; }
 /* two commits sharing a row each take half of it */
 .sp-dialog__actions > .sp-btn--block { flex: 1; min-width: 0; }
 .sp-touch .sp-switch { width: 44px; height: 26px; }
@@ -1732,10 +1731,6 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
   .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
-  /* the head link rule above, for the shell's own query */
-  .sp-list__toolbar > .sp-btn--text,
-  .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(var(--btn-h-small) / -2); }
-  .sp-list__toolbar > .sp-btn--text::before,
   .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2) 0; }
 }
 

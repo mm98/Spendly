@@ -104,7 +104,7 @@ function OrderView({ order, touch, onGone }) {
 	const attachments = order.attachments.length
 		? (
 			<Card>
-				<div className="sp-row-flex sp-wrap sp-gap-8">
+				<div className="sp-row-flex sp-gap-8">
 					<span className="sp-section-label">Attachments{dot}{order.attachments.length}</span>
 					<span className="sp-grow" />
 					<Button variant="outline" size="small" onClick={() => downloadAll(order)}>Download all</Button>

@@ -242,10 +242,10 @@ function DesktopHome({ month, compared, categories, view, recent, drafts, attent
 	)
 }
 
-/** A skeleton the size of the small text button it stands in for. */
+/** A skeleton the size of the small outline button it stands in for. */
 function ButtonSkeleton({ label }) {
 	return (
-		<Hold shape={<Button variant="text" size="small">{label}</Button>}>
+		<Hold shape={<Button variant="outline" size="small">{label}</Button>}>
 			<span className="hm-fill"><Skeleton shape="line" data-w="44" data-h="13" /></span>
 		</Hold>
 	)
@@ -256,21 +256,19 @@ function MonthCard({ w, compared, lastAdded }) {
 	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
 		<Card variant="shell">
-			<div className="sp-stack sp-grow sp-gap-12 hm-spread">
-				<div className="sp-row-flex sp-gap-12">
-					{w
-						? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
-						: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
-					<span className="sp-grow" />
-					{ago ? <span className="sp-meta">last added {ago}</span> : null}
-				</div>
-				<div className="sp-stats sp-stats--line">
-					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
-					<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
-					<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
-				</div>
-				<Limits w={w} compared={compared} />
+			<div className="sp-row-flex sp-gap-12">
+				{w
+					? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
+					: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
+				<span className="sp-grow" />
+				{ago ? <span className="sp-meta">last added {ago}</span> : null}
 			</div>
+			<div className="sp-stats sp-stats--line">
+				<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
+				<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
+				<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
+			</div>
+			<Limits w={w} compared={compared} />
 		</Card>
 	)
 }
@@ -334,7 +332,7 @@ function AlertsCard({ view, attention, looks }) {
 				<span className="sp-section-label">Needs a look</span>
 				{more ? counted : null}
 				<span className="sp-grow" />
-				{more ? <Button variant="text" size="small" to={alerts.all.to}>All {amount(alerts.all.count, 0)}</Button> : counted}
+				{more ? <Button variant="outline" size="small" to={alerts.all.to}>All {amount(alerts.all.count, 0)}</Button> : counted}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
@@ -410,15 +408,16 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 			</div>,
 			<Button key="open" size="small" to={`/statistics?range=month&period=${summary.month}`}>Open statistics</Button>
 		]}>
-			<div className="hm-top">
-				<div className="sp-stack sp-gap-6 sp-grow">
-					<span className="sp-section-label">{month} {summary.month.slice(0, 4)}</span>
-					<span className="sp-heading">
-						{heading}
-					</span>
-					{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
-				</div>
+			<div className="sp-row-flex sp-gap-12">
+				<span className="sp-section-label">{month} {summary.month.slice(0, 4)}</span>
+				<span className="sp-grow" />
 				<IconButton icon="x" aria-label={`Hide the ${month} summary`} onClick={onHide} />
+			</div>
+			<div className="sp-stack sp-gap-6">
+				<span className="sp-heading">
+					{heading}
+				</span>
+				{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
 			</div>
 			{lines.length
 				? (
@@ -447,7 +446,7 @@ function RecentCard({ recent }) {
 			<span className="sp-section-label">Recent orders</span>
 			{total ? <span className="sp-meta">newest {Math.min(RECENT, orders.length)}</span> : null}
 			<span className="sp-grow" />
-			{total ? <Button variant="text" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
+			{total ? <Button variant="outline" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
 		</>
 	)
 	const loading = <RecentList caption={caption} />
@@ -554,7 +553,7 @@ function DraftsCard({ drafts }) {
 				<span className="sp-section-label">Drafts</span>
 				<span className="sp-meta">newest {rows.length}</span>
 				<span className="sp-grow" />
-				<Button variant="text" size="small" to={all}>All {amount(total, 0)}</Button>
+				<Button variant="outline" size="small" to={all}>All {amount(total, 0)}</Button>
 			</Caption>
 			<ListHead>
 				<ListCell width="title" />
@@ -654,7 +653,7 @@ function CategoriesCard({ view }) {
 			<span className="sp-section-label">Categories this month</span>
 			{top.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
 			<span className="sp-grow" />
-			{view.withSpend ? <Button variant="text" size="small" to={`/categories?month=${view.window.from.slice(0, 7)}`}>All {amount(view.withSpend, 0)}</Button> : null}
+			{view.withSpend ? <Button variant="outline" size="small" to={`/categories?month=${view.window.from.slice(0, 7)}`}>All {amount(view.withSpend, 0)}</Button> : null}
 		</div>
 	)
 	if (top.length) return (
@@ -724,7 +723,7 @@ function MonthsCard() {
 			<div className="sp-row-flex sp-gap-8">
 				<span className="sp-section-label">Last {MONTHS} months</span>
 				<span className="sp-grow" />
-				<Button variant="text" size="small" to="/statistics">Statistics</Button>
+				<Button variant="outline" size="small" to="/statistics">Statistics</Button>
 			</div>
 			<Bars variant="card" columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
 				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
@@ -868,7 +867,7 @@ function PhoneRecent({ recent }) {
 				<span className="sp-section-label">Recent orders</span>
 				<span className="sp-meta">newest {Math.min(3, orders.length)}</span>
 				<span className="sp-grow" />
-				<Button variant="text" size="small" to="/orders">All {amount(recent.data.total, 0)}</Button>
+				<Button variant="outline" size="small" to="/orders">All {amount(recent.data.total, 0)}</Button>
 			</div>
 			{orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)}
 		</Card>
@@ -899,7 +898,7 @@ function PhoneDrafts({ drafts }) {
 				<span className="sp-section-label">Drafts</span>
 				<span className="sp-meta">newest {rows.length}</span>
 				<span className="sp-grow" />
-				<Button variant="text" size="small" to={all}>All {amount(drafts.data.total, 0)}</Button>
+				<Button variant="outline" size="small" to={all}>All {amount(drafts.data.total, 0)}</Button>
 			</div>
 			{rows.map(o => (o.draft
 				? (

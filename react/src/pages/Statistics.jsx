@@ -590,7 +590,7 @@ function busyParts({ unit, name, monthName, monthRunning, running, touch, compar
 	return {
 		kpis: (drilled ? ['Spend', 'Orders', 'Average order', 'Saved'] : ['Total spend', 'Orders', 'Average order', 'Saved']).map(label => (
 			<Card key={label} aria-busy="true">
-				<Stat label={label} figure={hold('104', '22')} />
+				<Stat bare quietLabel={touch} label={label} figure={hold('104', '22')} />
 				{comparing ? <Skeleton shape="pill" /> : null}
 				{!touch && !drilled ? <Bars variant="spark" loading /> : null}
 			</Card>
@@ -626,7 +626,7 @@ function Spark({ columns, value, format, label }) {
 	)
 }
 
-// on touch a figure card is its label and figure only (Mobile screens 7a)
+// on touch a figure card is its quiet label and figure only (Mobile screens 7a)
 function Kpis({ view, chart, was, by, waiting, touch }) {
 	const shown = chart.steps
 	const spark = (value, format, label) => (touch ? null : <Spark columns={shown} value={value} format={format} label={label} />)
@@ -641,12 +641,12 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 	const cost = (now, then) => (!then || now === then ? 'default' : now > then ? 'danger' : 'success')
 	return [
 		<Card key="spend">
-			<Stat label={per('Total spend')} figure={figure(view.spent)} />
+			<Stat bare quietLabel={touch} label={per('Total spend')} figure={figure(view.spent)} />
 			{compared(then => <Change tone={cost(view.spent, then.spent)} against={currency(then.spent, 0)} by={by}>{rise(view.spent, then.spent)}</Change>)}
 			{spark(c => c.spend, money, `Total spend in each ${chart.unit}`)}
 		</Card>,
 		<Card key="orders">
-			<Stat label={per('Orders')} figure={amount(view.orders, 0)} />
+			<Stat bare quietLabel={touch} label={per('Orders')} figure={amount(view.orders, 0)} />
 			{compared(then => (
 				<Change tone={view.orders > then.orders ? 'success' : 'default'} against={amount(then.orders, 0)} by={by}>
 					{signed(view.orders - then.orders, amount(Math.abs(view.orders - then.orders), 0))}
@@ -655,7 +655,7 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 			{spark(c => c.orders, n => amount(n, 0), `Orders in each ${chart.unit}`)}
 		</Card>,
 		<Card key="average">
-			<Stat label={per('Average order')} figure={figure(view.average)} />
+			<Stat bare quietLabel={touch} label={per('Average order')} figure={figure(view.average)} />
 			{compared(then => (
 				<Change state={then.average && Math.round(view.average) !== Math.round(then.average) ? 'progress' : undefined} against={currency(then.average, 0)} by={by}>
 					{rise(view.average, then.average)}
@@ -664,7 +664,7 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 			{spark(c => (c.orders ? c.spend / c.orders : 0), money, `Average order in each ${chart.unit}`)}
 		</Card>,
 		<Card key="saved">
-			<Stat label={per('Saved')} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
+			<Stat bare quietLabel={touch} label={per('Saved')} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
 			{compared(then => (
 				<Change tone={view.saved > then.saved ? 'success' : 'default'} against={currency(then.saved, 0)} by={by}>
 					{signed(view.saved - then.saved, currency(Math.abs(view.saved - then.saved), 0))}
@@ -692,12 +692,12 @@ function DrilledKpis({ view, parent, above, versusAll, chart, time, category, fl
 		limit = { spent, allowed, help: `${label}, ${spent > allowed ? 'over' : 'under'}`, over: spent > allowed }
 	}
 	return [
-		<Card key="spend"><Stat label="Spend" figure={figure(view.spent)} help={of} /></Card>,
-		<Card key="orders"><Stat label="Orders" figure={amount(view.orders, 0)} /></Card>,
-		<Card key="average"><Stat label="Average order" figure={figure(view.average)} help={versus} helpColor={higher > 0 ? 'warning' : 'default'} /></Card>,
+		<Card key="spend"><Stat bare quietLabel={touch} label="Spend" figure={figure(view.spent)} help={of} /></Card>,
+		<Card key="orders"><Stat bare quietLabel={touch} label="Orders" figure={amount(view.orders, 0)} /></Card>,
+		<Card key="average"><Stat bare quietLabel={touch} label="Average order" figure={figure(view.average)} help={versus} helpColor={higher > 0 ? 'warning' : 'default'} /></Card>,
 		limit
-			? <Card key="limit"><Stat label="Against the limit" figure={`${amount(limit.spent, 0)} / ${amount(limit.allowed, 0)}`} help={limit.help} helpColor={limit.over ? 'warning' : 'default'} /></Card>
-			: <Card key="saved"><Stat label="Saved" color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} /></Card>
+			? <Card key="limit"><Stat bare quietLabel={touch} label="Against the limit" figure={`${amount(limit.spent, 0)} / ${amount(limit.allowed, 0)}`} help={limit.help} helpColor={limit.over ? 'warning' : 'default'} /></Card>
+			: <Card key="saved"><Stat bare quietLabel={touch} label="Saved" color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} /></Card>
 	]
 }
 
@@ -790,26 +790,26 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 		: undefined
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
-			<div className="sp-row-flex sp-gap-12 sp-wrap">
+			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Spend by {unit}</span>
 				<span className="sp-grow" />
-				{narrowed ? <span className="sp-meta">{narrowed}</span> : null}
-				{stackedNow || (running && !narrowed) || limitLine
-					? (
-						<Legend>
-							{stackedNow
-								? <>{categories.map((c, i) => <LegendItem series={i + 1} key={c.id}>{c.name}</LegendItem>)}<LegendItem series={4}>Other</LegendItem></>
-								: running && !narrowed
-									? <><LegendItem series={1}>Spend</LegendItem><LegendItem series={4}>Not yet complete</LegendItem></>
-									: null}
-							{limitLine ? <LegendItem series="limit">{limitLine.label}</LegendItem> : null}
-						</Legend>
-					)
-					: null}
+				{narrowed ? <span className="sp-meta sp-truncate">{narrowed}</span> : null}
 				{splits && !touch
 					? <Segmented name="statistics-bar-shape" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" />
 					: null}
 			</div>
+			{stackedNow || (running && !narrowed) || limitLine
+				? (
+					<Legend>
+						{stackedNow
+							? <>{categories.map((c, i) => <LegendItem series={i + 1} key={c.id}>{c.name}</LegendItem>)}<LegendItem series={4}>Other</LegendItem></>
+							: running && !narrowed
+								? <><LegendItem series={1}>Spend</LegendItem><LegendItem series={4}>Not yet complete</LegendItem></>
+								: null}
+						{limitLine ? <LegendItem series="limit">{limitLine.label}</LegendItem> : null}
+					</Legend>
+				)
+				: null}
 			{touch
 				? <Bars ref={bars} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 				: (
@@ -846,7 +846,7 @@ function CategoryShares({ view, known, name, ring, onOpen }) {
 		<div className="sp-row-flex sp-gap-8">
 			<span className="sp-section-label">By category</span>
 			<span className="sp-grow" />
-			{ring ? null : <span className="sp-meta">{name}</span>}
+			{ring ? null : <span className="sp-meta sp-truncate">{name}</span>}
 		</div>
 	)
 	if (!view) {
@@ -987,7 +987,7 @@ function CategoryRows({ view, known, name, onOpen, hint = false }) {
 			<div className="sp-row-flex sp-gap-8">
 				<span className="sp-section-label">By category</span>
 				<span className="sp-grow" />
-				{hint && onOpen ? <span className="sp-meta">click to narrow further</span> : name ? <span className="sp-meta">{name}</span> : null}
+				{hint && onOpen ? <span className="sp-meta">click to narrow further</span> : name ? <span className="sp-meta sp-truncate">{name}</span> : null}
 			</div>
 			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} onOpen={onOpen} />
 		</Card>
@@ -1058,7 +1058,7 @@ function VendorsCard({ view, name, touch, onOpen }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Top vendors</span>
 				<span className="sp-grow" />
-				<span className="sp-meta">{vendors ? `${name}${dot}${count > shown || (folds && !open) ? `top ${open ? shown : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
+				<span className="sp-meta sp-truncate">{vendors ? `${name}${dot}${count > shown || (folds && !open) ? `top ${open ? shown : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name}</span>
 			</div>
 			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} onOpen={onOpen} counts={!touch} />
 			<CardFooter>
@@ -1119,7 +1119,7 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Spend vs saving</span>
 				<span className="sp-grow" />
-				<span className="sp-meta">{name}</span>
+				<span className="sp-meta sp-truncate">{name}</span>
 			</div>
 			{chart
 				? (
@@ -1198,7 +1198,7 @@ function LimitCard({ view, name, running, categories, touch, onRetry }) {
 		<div className="sp-row-flex sp-gap-12">
 			<span className="sp-section-label">Monthly limit</span>
 			<span className="sp-grow" />
-			<span className="sp-meta">{name}</span>
+			<span className="sp-meta sp-truncate">{name}</span>
 			{touch ? null : edit}
 		</div>
 	)

@@ -2,7 +2,7 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 import { flushSync } from 'react-dom'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardBody } from '../components/Card.jsx'
+import { Card, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Combobox, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
@@ -304,13 +304,11 @@ function SheetLoading() {
 	const label = (key, text) => <tr key={key}><td colSpan={MONTHS + 4}><span className="sp-section-label">{text}</span></td></tr>
 	return (
 		<Card variant="flush" aria-busy="true" aria-label="Loading the budget">
-			<CardBody>
-				<div className="sp-row-flex sp-gap-12">
-					{bar('130', '11', 'sp-section-label')}
-					<span className="sp-grow" />
-					<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
-				</div>
-			</CardBody>
+			<Toolbar>
+				{bar('130', '11', 'sp-section-label')}
+				<span className="sp-grow" />
+				<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
+			</Toolbar>
 			<div className="bg-view">
 				<div className="bg-scroll">
 					<table className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet">
@@ -1259,13 +1257,11 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 
 	return (
 		<Card variant="flush">
-			<CardBody>
-				<div className="sp-row-flex sp-gap-12">
-					<span className="sp-section-label">Budget {sheet.year}</span>
-					<span className="sp-grow" />
-					<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
-				</div>
-			</CardBody>
+			<Toolbar>
+				<span className="sp-section-label">Budget {sheet.year}</span>
+				<span className="sp-grow" />
+				<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
+			</Toolbar>
 			<div className="bg-view">
 				<div className="bg-scroll" ref={scroller}>
 					<table ref={table} className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet" aria-label={`Budget ${sheet.year}, amounts in ${currencySymbol()}`}>

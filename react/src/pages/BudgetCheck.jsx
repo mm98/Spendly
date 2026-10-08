@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Card, CardBody } from '../components/Card.jsx'
+import { Card, CardBody, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Combobox, ComboboxEmpty, ComboboxGroup, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
@@ -217,13 +217,13 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 	}
 	return (
 		<Card variant="flush">
+			<Toolbar>
+				<span className="sp-section-label">Columns</span>
+				<span className="sp-grow" />
+				<span className="sp-note sp-truncate">{file}</span>
+			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-12">
-					<div className="sp-row-flex sp-gap-12">
-						<span className="sp-section-label">Columns</span>
-						<span className="sp-grow" />
-						<span className="sp-note">{file}</span>
-					</div>
 					<span className="sp-subtitle">Your file has {plural(width, 'column')}. What does each one hold?</span>
 					{problem ? <span className="sp-note sp-ink-danger">{problem}</span> : null}
 					{left ? <span className="sp-note sp-ink-warning">{left}</span> : null}

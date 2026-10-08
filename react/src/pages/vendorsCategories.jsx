@@ -119,13 +119,12 @@ export function RecordPage({ notice, cards, rail, alone = rail, bar }) {
 	const touch = useShellShape() === 'touch'
 	if (touch || folded)
 		return <div className="sp-stack sp-gap-12" ref={ref}>{notice}{cards}{touch ? alone : rail}{bar}</div>
+	// the body is the split (18b): the form and the rail are its two columns
 	return (
-		<div ref={ref}>
-			<div className="lb-split">
-				<div className="sp-stack sp-gap-12">{notice}{cards}{bar}</div>
-				<Panel>{rail}</Panel>
-			</div>
-		</div>
+		<>
+			<div ref={ref}>{notice}{cards}{bar}</div>
+			<Panel>{rail}</Panel>
+		</>
 	)
 }
 
