@@ -3,7 +3,7 @@ import { db } from '../db.js'
 import { decorateOrderListRows } from '../lib/decorate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { keyOfType } from '../lib/statuses.js'
-import { discardDraft, draftListRow, draftsAsOrders, keepForm } from '../lib/orderDrafts.js'
+import { discardDraft, draftListRow, draftRow, draftsAsOrders, keepForm, makeDraft } from '../lib/orderDrafts.js'
 
 /* Orders not created yet (lib/orderDrafts.js): the form kept as it is edited, Discard, and Home's
    Drafts card, which counts the orders whose status is Draft as drafts too (10a). */
@@ -27,6 +27,23 @@ router.get('/', (req, res) => {
 		...orders.map((o, i) => ({ at: o.created_at, seq: o.seq, row: decorated[i] }))
 	].sort((a, b) => b.at - a.at || b.seq - a.seq).slice(0, limit).map(r => r.row)
 	res.json({ drafts: rows, total: kept.length + countDraftOrders.get(req.user.id, status).c })
+})
+
+/** A draft made by hand, at the form's first change (3a): `{ id }`. */
+router.post('/', (req, res) => {
+	res.status(201).json({ id: makeDraft(req.user.id, req.body?.form) })
+})
+
+/** One draft as it was left, to open it again: its form, and its file when it came from a scan. */
+router.get('/:id', (req, res) => {
+	const row = draftRow(req.user.id, req.params.id)
+	if (!row) return res.status(404).json({ error: 'No draft ' + req.params.id })
+	let form = null
+	try { form = row.form ? JSON.parse(row.form) : null } catch { /* a form that cannot be read opens empty */ }
+	res.json({
+		id: row.id, form,
+		file: row.upload_id ? { key: row.upload_id, name: row.name, kind: row.kind, hasThumbnail: Boolean(row.has_thumbnail) } : null
+	})
 })
 
 /** The form as it is on screen (3a): written as it is edited, so leaving keeps it. */

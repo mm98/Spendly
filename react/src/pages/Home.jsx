@@ -524,16 +524,18 @@ function DraftFile({ file }) {
 		: <Mark size="medium" fill="none" aria-hidden="true" aria-label={file.name}><span>{file.kind === 'pdf' ? 'PDF' : 'IMG'}</span></Mark>
 }
 
-/** A draft's picture and words: a scan's file and what is left to check, else as an order row shows it. */
+/** What is left on a draft, first so a long file name is the part cut: a scan's file after it, a copy's source day. */
+const draftLine = d => [d.draft.left, d.draft.file?.name, d.draft.copiedFrom ? `Copied from ${rowDate(d.draft.copiedFrom)}` : null].filter(Boolean).join(dot)
+
+/** A draft's picture and words: a scan's file, else the order row's picture; an order with status Draft as an order row shows it. */
 function DraftHead({ order }) {
-	const file = order.draft?.file
-	if (!file) return <OrderHead order={order} />
+	if (!order.draft) return <OrderHead order={order} />
 	return (
 		<>
-			<DraftFile file={file} />
+			{order.draft.file ? <DraftFile file={order.draft.file} /> : <OrderPhoto order={order} />}
 			<span className="sp-stacked">
 				<span className="sp-title sp-truncate">{vendorName(order)}</span>
-				<span className="sp-meta sp-truncate">{file.name}{dot}{order.draft.left}</span>
+				<span className="sp-meta sp-truncate">{draftLine(order)}</span>
 			</span>
 		</>
 	)
@@ -899,13 +901,13 @@ function PhoneDrafts({ drafts }) {
 				<span className="sp-grow" />
 				<Button variant="text" size="small" to={all}>All {amount(drafts.data.total, 0)}</Button>
 			</div>
-			{rows.map(o => (o.draft?.file
+			{rows.map(o => (o.draft
 				? (
 					<Link key={o.id} className="sp-row-flex sp-gap-12 hm-order" to={`/orders/${o.id}`}>
-						<DraftFile file={o.draft.file} />
+						{o.draft.file ? <DraftFile file={o.draft.file} /> : <OrderPhoto order={o} />}
 						<div className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{vendorName(o)}</span>
-							<span className="sp-meta">{rowDate(draftDay(o))}{dot}{o.draft.left}</span>
+							<span className="sp-meta">{rowDate(draftDay(o))}{dot}{o.draft.left}{o.draft.copiedFrom ? `${dot}Copied from ${rowDate(o.draft.copiedFrom)}` : ''}</span>
 						</div>
 						{o.total == null ? null : <span className="sp-title sp-nowrap">{amount(o.total)}</span>}
 					</Link>

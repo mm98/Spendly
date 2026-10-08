@@ -172,11 +172,13 @@ export const draftCount = userId => countDrafts.get(userId).c
 const parse = text => { try { return text ? JSON.parse(text) : null } catch { return null } }
 const uploadOf = row => ({ id: row.upload_id, name: row.name, size: row.size, kind: row.kind, pages: row.pages, has_thumbnail: row.has_thumbnail })
 
-/** The form as it was left, or as the reading starts it when it was never changed. */
+/** The form as it was left, or as the reading starts it when it was never changed. `origin` is the
+    order a copy came from (3b). */
 function formOf(row, answer) {
 	const kept = parse(row.form)
-	if (kept) return { values: kept.values ?? {}, lines: Array.isArray(kept.lines) ? kept.lines : [], files: Array.isArray(kept.files) ? kept.files : [] }
+	if (kept) return { values: kept.values ?? {}, lines: Array.isArray(kept.lines) ? kept.lines : [], files: Array.isArray(kept.files) ? kept.files : [], origin: kept.origin ?? null }
 	return {
+		origin: null,
 		values: answer
 			? { vendor: answer.vendor ?? '', date: answer.date, kind: answer.kind, categories: [], shipping: answer.shipping || 0, discount: answer.discount || 0, reference: answer.reference ?? '', note: '' }
 			: {},
@@ -202,10 +204,12 @@ export function stillToLook(answer, form) {
 
 const words = (n, one, many) => `${n} ${n === 1 ? one : many}`
 
-/** What is left to check on a draft (Home 10a): "2 values need a look", "4 lines", "Still reading", "Nothing read". */
-function leftOf(answer, form, reading) {
+/** What is left to check on a draft (Home 10a): "2 values need a look", "4 lines", "Still reading", "Nothing read";
+    for one made by hand its lines, "4 lines" or "No lines yet". */
+function leftOf(answer, form, reading, scanned) {
 	if (reading) return 'Still reading'
 	const kept = form.lines.filter(l => l.include !== false).length
+	if (!scanned) return kept ? words(kept, 'line', 'lines') : 'No lines yet'
 	if (!answer?.linesRead) return kept ? words(kept, 'line', 'lines') : 'Nothing read'
 	const looks = stillToLook(answer, form)
 	return looks ? `${looks} ${looks === 1 ? 'value needs' : 'values need'} a look` : words(kept, 'line', 'lines')
@@ -221,6 +225,14 @@ function sumsOf(form) {
 }
 
 const selectCategories = db.prepare('SELECT id, name FROM categories WHERE user_id = ?')
+const selectVendorImage = db.prepare('SELECT hash FROM vendor_images WHERE vendor_id = ? AND user_id = ?')
+
+/** A draft's first line photo, as the order list's thumbnail shows it (2b): one sent to the draft, or one a copy carried. */
+function photoOf(lines) {
+	const line = lines.find(l => l.photo?.hasThumbnail && (l.photo.key || l.copiedFrom))
+	if (!line) return null
+	return line.photo.key ? { key: line.photo.key } : { orderId: line.copiedFrom.orderId, itemId: line.copiedFrom.itemId, attachmentId: line.copiedFrom.attachmentId }
+}
 
 /** Every draft of an account as an order, or the one `only` names: what the order list, its filters and Home read. */
 export function draftsAsOrders(userId, only = null) {
@@ -239,12 +251,15 @@ export function draftsAsOrders(userId, only = null) {
 		const vendor = String(v.vendor ?? '').trim()
 		const own = (v.categories ?? []).map(name => categories.get(String(name).toLowerCase())).filter(Boolean)
 		const lines = form.lines.filter(l => l.include !== false)
+		const vendorId = vendor ? resolveVendor(userId, vendor)?.id ?? null : null
+		const photo = row.upload_id ? null : photoOf(lines)
+		const image = !row.upload_id && !photo && vendorId ? selectVendorImage.get(vendorId, userId)?.hash : null
 		return {
 			id: row.id,
 			date: /^\d{4}-\d{2}-\d{2}$/.test(v.date ?? '') ? v.date : scanned,
 			status, kind: v.kind ?? null, reference: v.reference ?? '', note: v.note ?? '',
-			photo: null, photoCount: 0,
-			vendor: vendor ? { name: vendor } : null, vendorImage: null,
+			photo, photoCount: lines.filter(l => l.photo?.hasThumbnail).length,
+			vendor: vendor ? { name: vendor } : null, vendorImage: image ? { vendorId, hash: image } : null,
 			categories: own.map(c => ({ id: c.id, name: c.name })),
 			itemCount: lines.length,
 			total: sums.any ? sums.total : null,
@@ -255,13 +270,14 @@ export function draftsAsOrders(userId, only = null) {
 			draft: {
 				scanned,
 				file: row.upload_id ? { key: row.upload_id, name: row.name, kind: row.kind, hasThumbnail: Boolean(row.has_thumbnail) } : null,
-				reading, left: row.upload_id ? leftOf(answer, form, reading) : null
+				reading, left: leftOf(answer, form, reading, Boolean(row.upload_id)),
+				copiedFrom: form.origin?.copy?.date ?? null
 			},
 			// what the order list's filters and sorts read, never sent
 			sort: {
 				date: toEpoch(/^\d{4}-\d{2}-\d{2}$/.test(v.date ?? '') ? v.date : scanned), created: row.created_at, seq: row.seq,
 				total: sums.any ? sums.total : 0, discount: sums.discount, saved: sums.any ? sums.saved : 0,
-				vendor: vendor || row.name || '', vendorId: vendor ? resolveVendor(userId, vendor)?.id ?? null : null,
+				vendor: vendor || row.name || '', vendorId,
 				categoryIds: own.map(c => c.id), text: [vendor, v.reference, v.note, ...lines.map(l => l.title), ...own.map(c => c.name)].join('\n').toLowerCase()
 			}
 		}
@@ -286,7 +302,7 @@ const MAX_FORM = 512 * 1024
 export const keepForm = db.transaction((userId, id, form) => {
 	const row = selectDraft.get(id, userId)
 	if (!row) return false
-	const text = JSON.stringify({ values: form?.values ?? {}, lines: form?.lines ?? [], files: form?.files ?? [] })
+	const text = JSON.stringify({ values: form?.values ?? {}, lines: form?.lines ?? [], files: form?.files ?? [], origin: form?.origin ?? null })
 	if (text.length > MAX_FORM) throw Object.assign(new Error('The draft is too large to keep.'), { status: 413 })
 	updateForm.run(text, id, userId)
 	deleteDraftFiles.run(id)
@@ -294,6 +310,15 @@ export const keepForm = db.transaction((userId, id, form) => {
 	for (const uploadId of new Set(held.filter(k => typeof k === 'string' && k !== row.upload_id)))
 		insertDraftFile.run({ draftId: id, uploadId, userId })
 	return true
+})
+
+const insertHandDraft = db.prepare('INSERT INTO order_drafts (id, user_id) VALUES (?, ?)')
+/** A draft made by hand (3a), from its first change: the form as it is then. */
+export const makeDraft = db.transaction((userId, form) => {
+	const id = newId('od')
+	insertHandDraft.run(id, userId)
+	keepForm(userId, id, form)
+	return id
 })
 
 const selectDraftUploads = db.prepare(`SELECT upload_id FROM order_drafts WHERE id = @id AND upload_id IS NOT NULL

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Gauge, SumHead } from '../components/Data.jsx'
 import { Button } from '../components/Button.jsx'
@@ -12,7 +12,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Viewer } from '../components/Attachments.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentPageUrl, discardDraft, discardScanDocument, failureMessage, getCurrentUser, getOrder, itemAttachmentThumbnailUrl,
+	attachmentFileUrl, attachmentPageUrl, discardDraft, discardScanDocument, failureMessage, getCurrentUser, getDraft, getOrder, itemAttachmentThumbnailUrl,
 	getOrderDraft, getOrders, getScanReview, invalidateDraftData, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
 	watchScanProgress
 } from '../api/client.js'
@@ -35,19 +35,60 @@ const sizeLabel = bytes => {
 }
 const kindWord = file => (file.kind === 'pdf' ? 'PDF' : String(file.name ?? '').split('.').pop().toUpperCase().slice(0, 4) || 'FILE')
 
+// a form made here keeps its place when it becomes a draft and its address names the draft
+const madeHere = new Map()
+
 export default function OrderNew() {
 	const [params] = useSearchParams()
 	const location = useLocation()
 	const duplicate = params.get('duplicate')
 	const doc = params.get('doc')
+	const draft = params.get('draft')
 	const source = params.get('source')
 	const vendor = params.get('vendor')
 
-	// ?duplicate=id, ?source=scan&doc=key, ?source=empty or ?vendor=name, else step 1
-	if (duplicate) return <Copy key={duplicate} id={duplicate} />
+	// ?source=scan&doc=key, ?draft=id, ?duplicate=id, ?source=empty or ?vendor=name, else step 1
 	if (doc) return <Scanned key={doc} documentKey={doc} upload={location.state?.upload} from={location.state?.from} />
-	if (source === 'empty' || vendor) return <Blank vendor={vendor ?? ''} restored={location.state?.seed} />
+	if (draft || duplicate || source === 'empty' || vendor) {
+		const place = (draft && madeHere.get(draft)) ?? location.key
+		return <ByHand key={place} place={place} draft={draft} duplicate={duplicate} vendor={vendor ?? ''} restored={location.state?.seed} />
+	}
 	return <Start scanOnly={source === 'scan'} file={location.state?.file} from={location.state?.from} picking={params.get('pick') === 'copy'} />
+}
+
+/** An order made by hand: empty, a copy, or a draft opened again. What it opens on is taken once,
+    since its address changes to the draft's at its first change (3a). */
+function ByHand({ place, draft, duplicate, vendor, restored }) {
+	const navigate = useNavigate()
+	const [opened] = useState(() => ({ draft, duplicate, vendor, restored }))
+	const named = id => {
+		madeHere.set(id, place)
+		navigate(`/orders/new?draft=${id}`, { replace: true })
+	}
+	if (opened.draft) return <Kept id={opened.draft} />
+	if (opened.duplicate) return <Copy id={opened.duplicate} onDraft={named} />
+	return <Blank vendor={opened.vendor} restored={opened.restored} onDraft={named} />
+}
+
+/** A draft's photo: one sent to the draft, or one a copy carried from its order. */
+export const draftPhotoUrl = line => {
+	if (!line.photo?.hasThumbnail) return null
+	if (line.photo.key) return scanThumbnailUrl(line.photo.key)
+	return line.copiedFrom ? itemAttachmentThumbnailUrl(line.copiedFrom.orderId, line.copiedFrom.itemId, line.copiedFrom.attachmentId) : null
+}
+
+/** A draft made by hand, opened again as it was left: the edit screen, not created yet (3a). */
+function Kept({ id }) {
+	const navigate = useNavigate()
+	const kept = useApi(getDraft, [id])
+	const blank = useApi(getOrderDraft)
+	const form = kept.data?.id === id ? kept.data.form : null
+	const seed = useMemo(() => (form && blank.data ? { ...fromBlank(blank.data), ...form.values, lines: form.lines ?? [], files: form.files ?? [] } : null), [form, blank.data])
+	if (kept.error || blank.error) return <OrderFailed what="This draft" error={kept.error ?? blank.error} retry={kept.error ? kept.refresh : blank.refresh} />
+	if (kept.data?.file) return <Navigate replace to={`/orders/new?source=scan&doc=${kept.data.file.key}`} state={{ upload: { ...kept.data.file, draftId: id } }} />
+	if (!seed) return <Waiting />
+	const away = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/', { replace: true }))
+	return <OrderForm mode="new" region seed={seed} origin={{ draftId: id, ...(form.origin?.copy ? { copy: form.origin.copy } : {}) }} photoUrl={draftPhotoUrl} onLeave={away} />
 }
 
 const fromBlank = blank => ({
@@ -57,17 +98,17 @@ const fromBlank = blank => ({
 })
 
 /** An empty order, or one an Undo on its saved page sent back as `restored` (3a). */
-function Blank({ vendor, restored }) {
+function Blank({ vendor, restored, onDraft }) {
 	const blank = useApi(getOrderDraft)
-	if (restored) return <OrderForm mode="new" region seed={restored} />
+	if (restored) return <OrderForm mode="new" region seed={restored} onDraft={onDraft} />
 	if (blank.error) return <OrderFailed what="The new order" error={blank.error} retry={blank.refresh} />
 	if (!blank.data) return <Waiting />
-	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} />
+	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} onDraft={onDraft} />
 }
 
 /* A copy carries the vendor, categories, kind, reference, note and priced lines with their photos; the
    date is today, the status the account's default (3b, 8b), and the order's own files stay behind. */
-function Copy({ id }) {
+function Copy({ id, onDraft }) {
 	const order = useApi(getOrder, [id])
 	const blank = useApi(getOrderDraft)
 	const navigate = useNavigate()
@@ -94,14 +135,11 @@ function Copy({ id }) {
 	if (!seed) return <Waiting />
 	return (
 		<OrderForm mode="new" region seed={seed}
-			photoUrl={line => (line.copiedFrom && line.photo?.hasThumbnail ? itemAttachmentThumbnailUrl(line.copiedFrom.orderId, line.copiedFrom.itemId, line.copiedFrom.attachmentId) : null)}
+			photoUrl={draftPhotoUrl}
 			origin={{ copy: { id, vendor: order.data.vendor?.name ?? 'the order', date: order.data.date, files: (order.data.attachments?.length ?? 0) > 0 } }}
-			onLeave={() => navigate(`/orders/${id}`)} />
+			onLeave={() => navigate(`/orders/${id}`)} onDraft={onDraft} />
 	)
 }
-
-/** A line's photo a draft kept: sent, and not on an order yet. */
-const keptPhotoUrl = line => (line.photo?.key && !line.photo.id && line.photo.hasThumbnail ? scanThumbnailUrl(line.photo.key) : null)
 
 /** A scan (3a): its reading, then the review, a draft until it is created or discarded. Its address is
     the file's, so a draft opened again from Home or the order list is the same page. */
@@ -138,8 +176,7 @@ function Scanned({ documentKey, upload, from }) {
 	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onDiscard={discard} />
 	if (answer.failure && answer.failure !== 'unread' && !manual)
 		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={another} onDiscard={discard} />
-	// the review's Discard has asked already (6d)
-	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer, draftId: answer.draftId }} photoUrl={keptPhotoUrl} onLeave={discard} />
+	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer, draftId: answer.draftId }} photoUrl={draftPhotoUrl} onLeave={away} />
 }
 
 /** Discard on a scan (6d), asked before the draft and its file go. */

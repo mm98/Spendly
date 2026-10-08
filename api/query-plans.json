@@ -2364,6 +2364,15 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT name FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1": {
+			"plan": [
+				"SEARCH vendors USING COVERING INDEX sqlite_autoindex_vendors_2 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_vendors_2"
+			]
+		},
 		"SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_id = ?": {
 			"plan": [
 				"SEARCH attachments USING INDEX sqlite_autoindex_attachments_1 (id=?)"

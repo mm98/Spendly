@@ -223,7 +223,8 @@ for (let i = 0; i < NEIGHBOURS; i++)
 // one import on record, so the single-import read answers rather than 404s
 db.prepare('INSERT INTO imports (id, user_id, file_name, created_at) VALUES (?, ?, ?, ?)').run('im-fixture', USER, 'fixture.csv', 1)
 // two drafts, so every list request plans its orders beside them, one to keep and one to create
-const draftForm = JSON.stringify({ values: { vendor: 'Netto', date: '2026-08-20', kind: 'Expense', categories: ['Groceries'], shipping: 0, discount: 0, reference: '', note: '' },
+const draftVendor = db.prepare('SELECT name FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1').get(USER).name
+const draftForm = JSON.stringify({ values: { vendor: draftVendor, date: '2026-08-20', kind: 'Expense', categories: ['Groceries'], shipping: 0, discount: 0, reference: '', note: '' },
 	lines: [{ key: 'k', title: 'Kaffe', quantity: 1, price: 40, include: true }], files: [] })
 for (const id of ['od-fixture', 'od-created']) db.prepare('INSERT INTO order_drafts (id, user_id, form) VALUES (?, ?, ?)').run(id, USER, draftForm)
 // every account next door has drafts too, one scanned with a file added to it, so the drafts' plans meet a spread like a real one
@@ -314,7 +315,7 @@ const REQUESTS = [
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
-	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture'
+	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture', '/drafts/od-fixture'
 ]
 
 for (const request of REQUESTS) {
@@ -371,6 +372,7 @@ for (const [method, path, body] of [
 	['POST', '/orders/bulk', { ids: [ids.order], status: 'Delivered', deliveredToday: true }],
 	['POST', '/orders/bulk', { restore: [{ id: ids.order, status: 'Ordered', events: [{ status: 'Ordered', date: 1 }] }] }],
 	// a draft's form kept as it is edited, a draft created into an order, and one discarded
+	['POST', '/drafts', { form: JSON.parse(draftForm) }],
 	['PUT', '/drafts/od-fixture', { form: JSON.parse(draftForm) }],
 	['POST', '/orders', { ...asSaved, items: asSaved.items.map(({ id, ...i }) => i), clientKey: 'check-draft', draftId: 'od-created' }],
 	['DELETE', '/drafts/od-fixture'],

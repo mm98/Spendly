@@ -1695,6 +1695,15 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-list__toolbar .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-controls .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-topbar .sp-btn:not(.sp-btn--block) { width: auto; }
+/* A text link in a card's head ("All 5" on Drafts, "All 248" on Recent orders) keeps the
+   small button's 34px box on touch and takes the touch height as a hit area above and
+   below, so a head with a link is as tall as one without and the name sits the same
+   distance from the card's top edge on every card (Brief 32). The area reaches into the
+   card's padding above and the gap below, which both exceed it. */
+.sp-touch .sp-list__toolbar > .sp-btn--text,
+.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; }
+.sp-touch .sp-list__toolbar > .sp-btn--text::before,
+.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - 34px) / -2) 0; }
 /* two commits sharing a row each take half of it */
 .sp-dialog__actions > .sp-btn--block { flex: 1; min-width: 0; }
 .sp-touch .sp-switch { width: 44px; height: 26px; }
@@ -1709,6 +1718,11 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
   .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
+  /* the head link rule above, for the shell's own query */
+  .sp-list__toolbar > .sp-btn--text,
+  .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; }
+  .sp-list__toolbar > .sp-btn--text::before,
+  .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - 34px) / -2) 0; }
 }
 
 /* a measurement arrives as a data attribute with its own rule below, so no

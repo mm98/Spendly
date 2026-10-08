@@ -2,7 +2,7 @@
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, look-alike vendors, an archived vendor, more categories than a page
    holds, names too long for a row, every status, a receipt and none, bookmarks with and
-   without a category, more drafts than Home shows, one with no vendor and no prices.
+   without a category, more drafts than Home shows, one with no vendor and no prices, drafts made by hand.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
    it fills first on a new account:
@@ -185,6 +185,25 @@ if (unpriced?.draftId) {
 		files: added ? [{ key: added.key, name: 'added.pdf', kind: 'pdf', hasThumbnail: added.hasThumbnail }] : []
 	} }))
 }
+// drafts made by hand: one with nothing chosen yet, and a copy of an order whose line has a photo
+const handDrafts = async note => ((await call('GET', `/orders?status=Draft&pageSize=10&query=${encodeURIComponent(note)}`)).data?.matched ?? 0) > 0
+const handValues = note => ({ vendor: '', date: day(0), status: 'Delivered', kind: 'Expense', categories: [], shipping: null, discount: null, reference: '', note, refunded: false })
+if (await handDrafts('edge: hand draft')) there()
+else step('draft made by hand', await call('POST', '/drafts', { form: { values: handValues('edge: hand draft'), lines: [], files: [] } }))
+const copied = (await call('GET', `/orders?pageSize=1&query=${encodeURIComponent('edge: With a line photo')}`)).data?.orders?.[0]
+const source = copied && (await call('GET', `/orders/${copied.id}`)).data
+if (await handDrafts('edge: copy draft')) there()
+else if (source) step('copy kept as a draft', await call('POST', '/drafts', { form: {
+	values: { ...handValues('edge: copy draft'), vendor: source.vendor?.name ?? '' },
+	lines: source.items.map((item, i) => {
+		const photo = item.attachments?.find(a => a.kind === 'image') ?? null
+		return { key: `copy-${i}`, title: item.title, quantity: item.quantity, price: item.price, retail: item.retail ?? null, note: '', url: '', include: true,
+			photo: photo && { id: photo.id, name: photo.name, hasThumbnail: photo.hasThumbnail },
+			copiedFrom: photo && { orderId: source.id, itemId: item.id, attachmentId: photo.id } }
+	}),
+	files: [],
+	origin: { copy: { id: source.id, vendor: source.vendor?.name ?? '', date: source.date, files: (source.attachments?.length ?? 0) > 0 } }
+} }))
 
 // custom statuses and saved views, one flagged
 step('status', await call('POST', '/statuses', { name: 'On hold', tone: 'progress' }))
@@ -277,6 +296,7 @@ const unseen = async path => {
 	if (seen.length) leaks.push(`GET ${path} lists ${seen.length} of the edge account's records`)
 }
 for (const o of orders) await refused('GET', `/orders/${o.id}`)
+for (const d of drafts) await refused('GET', `/drafts/${d.id}`)
 for (const v of vendors) await refused('GET', `/vendors/${v.id}`)
 for (const c of categories) await refused('GET', `/categories/${c.id}`)
 for (const b of bookmarks) await refused('GET', `/bookmarks/${b.id}`)

@@ -1016,6 +1016,23 @@ export async function getDrafts(limit = 3, signal) {
 	return request('/api/drafts' + qs({ limit }), { signal })
 }
 
+/** A draft as it was left: `{ id, form, file }`, `file` the scanned one or null. */
+export async function getDraft(id, signal) {
+	return request(`/api/drafts/${id}`, { signal })
+}
+
+/** Makes a draft of an order made by hand, from its form (3a): `{ id }`. */
+export async function makeDraft(form, { keepalive = false } = {}) {
+	const path = '/api/drafts'
+	const body = JSON.stringify({ form })
+	const made = !keepalive || body.length > 60000
+		? await request(path, { method: 'POST', body: { form } })
+		: await fetch(path, { method: 'POST', credentials: 'include', keepalive: true, body, headers: { [TODAY]: today(), 'Content-Type': 'application/json' } })
+			.then(res => (res.ok ? res.json() : Promise.reject(refusal(path, 'POST', res.status, null))))
+	invalidateDraftData()
+	return made
+}
+
 /** Keeps the form as it is on screen. `keepalive` lets it outlive a closing tab, for a small form. */
 export function keepDraft(id, form, { keepalive = false } = {}) {
 	const path = `/api/drafts/${id}`
@@ -1036,7 +1053,7 @@ export async function discardDraft(id, signal) {
 
 /** A draft was made, changed or discarded: only the lists that show drafts read it. */
 export function invalidateDraftData() {
-	drop(getOrders, getOrder, getDrafts, getViews, getScanReview)
+	drop(getOrders, getOrder, getDrafts, getDraft, getViews, getScanReview)
 }
 
 /** Sends one file to be kept until a save files it (17a). `onSent` hears the fraction sent, 0 to 1;

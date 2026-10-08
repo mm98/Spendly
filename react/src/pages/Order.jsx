@@ -37,13 +37,13 @@ export default function Order() {
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
 	if (!order) return <OrderLoading />
-	// a draft from a scan opens in its review (3a)
-	if (order.draft?.file) return <Navigate replace to={draftAddress(order)} state={{ upload: { ...order.draft.file, draftId: order.id } }} />
+	// a draft opens where it is finished: a scan in its review, one made by hand in the edit screen (3a)
+	if (order.draft) return <Navigate replace to={draftAddress(order)} state={order.draft.file ? { upload: { ...order.draft.file, draftId: order.id } } : null} />
 	return <OrderView key={order.id} order={order} touch={touch} onGone={() => setGone(true)} />
 }
 
-/** Where a draft from a scan is reviewed: the address of its file. */
-export const draftAddress = draft => `/orders/new?source=scan&doc=${draft.draft.file.key}`
+/** Where a draft is finished: a scan at the address of its file, one made by hand at its own. */
+export const draftAddress = d => (d.draft.file ? `/orders/new?source=scan&doc=${d.draft.file.key}` : `/orders/new?draft=${d.id}`)
 
 function OrderView({ order, touch, onGone }) {
 	const navigate = useNavigate()
