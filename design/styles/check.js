@@ -887,6 +887,26 @@
     if (/\/letters\b|Monthly letter\.dc\.html|sp-letter/.test(s)) fail('removed feature leaves no trace', f.replace('.dc.html', ''), 'monthly letter');
   }
 
+  /* What is left to check stays in view. A Drafts row read "file name · 1 line" on one
+     cut line, so a long file name hid what was left. The count leads and the file
+     name takes the cut (Brief 32). Swept on text: any one-line meta where a file name
+     comes before more text. */
+  for (const [f, s] of Object.entries(src)) {
+    for (const m of s.matchAll(/class="sp-meta sp-truncate">([^<]*)</g)) {
+      if (/\.(pdf|jpe?g|png|webp|gif|heic) · /i.test(m[1])) fail('what is left to check leads the file name', f.replace('.dc.html', ''), m[1]);
+    }
+  }
+
+  /* A link in a card's head does not make the head taller on touch. On a phone the
+     "All 4" link took the 48px button height, so Drafts and Recent orders had a 48px
+     head and This month a 17px one (Brief 32). The link keeps the small button's box
+     and takes the touch height as a hit area, under .sp-touch and below 640px alike. */
+  {
+    const touch = /\.sp-touch \.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0/.test(comp);
+    const narrow = /@media \(max-width: 639\.98px\) \{[^@]*\.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0/.test(comp);
+    if (!touch || !narrow) fail('a head link keeps the head height on touch', 'components.css', (touch ? '' : 'no .sp-touch rule ') + (narrow ? '' : 'no below-640 rule'));
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

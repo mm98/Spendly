@@ -53,7 +53,7 @@
       <span class="sp-strong">Scan receipt</span><span class="sp-ink-2">Opens the file picker at once (the camera is one of its choices on a phone or tablet), and the chosen file goes straight to reading, 3a step 2. It skips step 1, which is what New order is for. Global, on every page except a phone, where the New order FAB covers it.</span><span class="sp-ink-5">Leaves the current page once a file is chosen, prompting first if there are unsaved changes. Cancelling the picker stays where you were.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">New order</span><span class="sp-ink-2">Opens New order, step 1 (<a href="Order create.dc.html#3a">3a</a>): scan a receipt, start an empty order, or copy a previous one. A plain row, and the FAB on a phone.</span><span class="sp-ink-5">Nothing is created until a choice is made. An empty order is unsaved until Save; leaving discards, with a confirm.</span>
+      <span class="sp-strong">New order</span><span class="sp-ink-2">Opens New order, step 1 (<a href="Order create.dc.html#3a">3a</a>): scan a receipt, start an empty order, or copy a previous one. A plain row, and the FAB on a phone.</span><span class="sp-ink-5">Nothing is created until a choice is made. An empty order is a draft from its first change until Create or Discard; leaving keeps it in Drafts, without asking.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Nav item</span><span class="sp-ink-2">Navigates. The count on the right is live and is part of the link, not a separate target.</span><span class="sp-ink-5">Active row fills <b>#1f3d2c</b>. Scroll position resets; returning by Back restores it.</span>
@@ -80,7 +80,7 @@
       <span class="sp-strong">Drop zone / Choose file</span><span class="sp-ink-2">Accepts a receipt by drop or picker and starts the scan. On a phone, offers the camera.</span><span class="sp-ink-5">Goes straight to stage two of 3a. Drag-over: border <b>#1d4d33</b>, fill <b>#e7efe8</b>.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Copy an order</span><span class="sp-ink-2">Opens the 3b dialog over Home - the same dialog as the create screen. Hidden when there are no orders.</span><span class="sp-ink-5">Escape or Cancel stays on Home. Picking an order opens an unsaved copy in edit, under 8a's duplicate rules.</span>
+      <span class="sp-strong">Copy an order</span><span class="sp-ink-2">Opens the 3b dialog over Home - the same dialog as the create screen. Hidden when there are no orders.</span><span class="sp-ink-5">Escape or Cancel stays on Home. Picking an order opens the copy in edit, under 8a's duplicate rules, a draft from its first change.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Needs-a-look row</span><span class="sp-ink-2">Each row is a link to the filtered list holding those records - not a dismissible notice.</span><span class="sp-ink-5">Lands on the list with the filter chips already applied and removable.</span>
@@ -104,7 +104,7 @@
       <span class="sp-strong">Edit order</span><span class="sp-ink-2">Navigates to <b>/orders/:id/edit</b> - a route, not a mode toggle, so Back works.</span><span class="sp-ink-5">Same layout, values become inputs. Nothing moves.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Duplicate</span><span class="sp-ink-2">Opens an unsaved copy (8a): vendor, category, reference, notes and all lines. Not the date, status or attachments.</span><span class="sp-ink-5">Green notice names the source and offers Discard.</span>
+      <span class="sp-strong">Duplicate</span><span class="sp-ink-2">Opens an unsaved copy (8a): vendor, category, reference, notes and all lines. Not the date, status or attachments.</span><span class="sp-ink-5">Green notice names the source and offers Discard. A draft from its first change.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Delete order</span><span class="sp-ink-2">Opens the confirm dialog, which names the item count and the attachments that go with it.</span><span class="sp-ink-5">Dialog, not a toast - it cannot be undone from the UI. Returns to the list.</span>

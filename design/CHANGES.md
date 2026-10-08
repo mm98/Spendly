@@ -1,17 +1,15 @@
-# Spendly - changes since handoff_2026_10_07g_changes
+# Spendly - changes since handoff_2026_10_08c_changes
 
-Copy these files over handoff_2026_10_07g_changes. Replaces handoff_2026_10_08_changes and handoff_2026_10_08b_changes, which it holds together. Answers to Brief 31 (a scan stays a draft) are in Brief 31 answers.md.
+Copy these files over handoff_2026_10_08c_changes. Answers to Brief 32 (drafts of orders made by hand, and two faults on Home) are in Brief 32 answers.md.
 
 ## Changes
-- Home 10a: new Drafts card, first in the left column, newest 3, "All 5" to /orders?status=Draft, absent with no drafts. Recent orders leaves drafts out. Notes and routes added.
-- Mobile screens 7a: Drafts card on Home under This month, with a note.
-- Order create 3a: the lede and reading copy say the scan is kept as a draft. The reading's Cancel is now Discard. New notes group "A scan is a draft until it is created or discarded".
-- Order create 3a step 3: the scanned file is in the Attachments card beneath the lines, the same card as the saved state. It is not shown beside the form.
-- Order create 3c: note on a file whose draft exists.
-- States and confirmations 6d: the discard dialog says the file goes too. 6e: the slow-reading line names Drafts, and Discard uses 6d.
-- Actions inventory 16a: Save as draft removed. Cancel (reading) is now Discard (reading).
-- Images and files 17a: a scan's file is outside the 24-hour cleanup.
-- Order list 2b: note that drafts stay in the list.
+- Order create 3a: new notes group "An order made by hand is a draft from its first change": when it starts, leaving keeps it with "Kept in Drafts", reopening, Discard. 3b: a copy is a draft from its first change.
+- Duplicate and alerts 8a: Duplicate is a draft from its first change, Create creates it.
+- Actions inventory: New order, Copy an order and Duplicate follow the draft rule; no leave confirm on a new order.
+- Home 10a: Drafts rows put what is left to check before the file name. New state 5: a copy, an empty order and a long file name. Notes for the hand-made row.
+- Mobile screens 7a: notes on the hand-made Drafts row and on the card head link.
+- components.css: a text link in a card's head keeps its 34px box on touch and below 640px, with a 48px hit area, so the head does not grow.
+- check.js: two new assertions, for both faults.
 
 ## Check
 - 0 findings across 26 pages.
@@ -20,8 +18,8 @@ Copy these files over handoff_2026_10_07g_changes. Replaces handoff_2026_10_08_c
 - Home.dc.html
 - Mobile screens.dc.html
 - Order create.dc.html
-- States and confirmations.dc.html
+- Duplicate and alerts.dc.html
 - Actions inventory.dc.html
-- Images and files.dc.html
-- Order list.dc.html
-- Brief 31 answers.md
+- styles/components.css
+- styles/check.js
+- Brief 32 answers.md
