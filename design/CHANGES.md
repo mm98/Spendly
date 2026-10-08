@@ -1,23 +1,24 @@
 # Spendly - changes since handoff_2026_10_08d_changes_fixed
 
-Copy these files over handoff_2026_10_08d_changes_fixed. Answers in Brief 34 answers.md.
+Replaces handoff_2026_10_08e_changes. Copy these files over handoff_2026_10_08d_changes_fixed. Answers in Brief 34 answers.md.
 
 ## Changes
-- tokens.css: new `--btn-h-small: 34px`, the small button's height.
-- components.css: the small button, xsmall on touch, the add row and the Brief 33 head link rule use `--btn-h-small` in place of 34px. Values unchanged.
-- components.css: a text link in a card's head takes no height in the row on desktop as well, so the name sits 17px below the card's top edge with or without it.
-- Home 10a: note on the head link.
+- components.css c10: a card's head (the first row, opening with `sp-section-label`) is `--card-header-h` tall, the list toolbar's height, with the name centred. It takes the card's top padding and the gap below, so content starts where a list's rows start. Cards and lists side by side carry their names at the same height, whatever sits beside the name.
+- components.css: the desktop head link margin from 08e is gone; the fixed head covers it.
+- tokens.css: `--btn-h-small: 34px`, used for the small button, xsmall on touch, the add row and the touch head link rule. Values unchanged.
+- Home 10a and Mobile screens 7a: notes on the head height.
 - Components c6 and the add row note name the token.
-- check.js: asserts the token, the desktop rule, and no raw 34px in height, margin, padding, gap or inset.
+- check.js: asserts the card head height, the token, and no raw 34px in height, margin, padding, gap or inset.
 
 ## Open
-- Outline buttons in a card head (Download all, Edit on category, Views Edit) still make the head taller. See Brief 34 answers, question 1.
+- Whether a card head takes the toolbar's rule under it.
 
 ## Check
 - 0 findings across 26 pages.
 
 ## Files
 - Home.dc.html
+- Mobile screens.dc.html
 - Components.dc.html
 - styles/components.css
 - styles/tokens.css
