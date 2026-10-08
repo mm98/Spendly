@@ -4,13 +4,13 @@
    In @layer base, so it can never outrank a component rule. */
 
 @layer base {
-  .oc-narrow { width: 720px; max-width: 100%; margin: 0 auto; }
+  /* the reading column the ways to start and the reading card sit in: a box of the
+     page's own around the parts, so no part carries a page rule */
+  .oc-narrow { display: flex; flex-direction: column; gap: inherit; width: 720px; max-width: 100%; margin: 0 auto; }
   .oc-choices {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--sp-12);
-    width: 720px;
-    max-width: 100%;
     text-align: left;
   }
   /* a row whose first child is a fixed preview reads aligned to the text it labels,

@@ -142,6 +142,7 @@
   --step: 20px;
   --mark-medium: 42px;
   --mark-small: 24px;
+  --field-w: 280px;            /* a pick field or switch that need not span its form column (11a) */
   --card-min-w: 280px;         /* the narrowest a card in a card grid gets; the row holds as many as fit */
   --window-w: 190px;           /* the period stepper, sized by its longest label - September - so it never resizes */
   --field-trail: calc(var(--control-h) - var(--sp-6) - var(--sp-6));  /* a button inside a field, inset one step on every side */
