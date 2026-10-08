@@ -11,7 +11,7 @@ import { useDismiss } from '../components/Utilities.jsx'
 import { attachmentDownloadUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentFileUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
-import { OverLimitDot, StatusPill, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
+import { OverLimitDot, StatusPill, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
 import { CategoryMark } from '../app/categoryMark.jsx'
@@ -23,7 +23,7 @@ const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral
 // a category search appears once there are more than this many (2e)
 const SEARCH_FROM = 7
 
-export const orderName = order => [order.vendor?.name ?? 'No vendor', order.reference, shortDate(order.date)].filter(Boolean).join(', ')
+export const orderName = order => [vendorName(order), order.reference, shortDate(order.date)].filter(Boolean).join(', ')
 
 /** Saves a file the server already holds, under the name it was stored with. */
 export function download(href) {
@@ -224,7 +224,7 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 			empty="No photos"
 			more={more}
 			pick={<Check checked={picked} aria-label={`Select ${orderName(order)}`} onClick={ev => ev.stopPropagation()} onChange={ev => onPick(ev.nativeEvent?.shiftKey)} />}
-			title={order.vendor?.name ?? 'No vendor'}
+			title={vendorName(order)}
 			subtitle={orderLine(order)}
 			status={<StatusPill status={order.status} />}
 			chips={order.categories.length

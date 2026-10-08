@@ -105,6 +105,13 @@ have to. Putting screens together from its patterns is the build's job:
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
   file found there is deleted in the same pull request that builds its answers.
 
+## Build for the general case
+
+A feature is built for every case its idea covers, not only for the case that asked for it. Name and
+store it by what it is, and keep the first case's specifics at its edge, so the next case uses the same
+thing as it is instead of a second version of it. A feature that serves one case only is the exception,
+and the pull request says why.
+
 ## The API's queries
 
 ### `npm run queries:check` is the standing guard, and it is a guard rather than a goal

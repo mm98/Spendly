@@ -9,6 +9,32 @@
 				"idx_orders_user_uncategorised"
 			]
 		},
+		"SELECT 1 FROM attachments a JOIN orders o ON o.id = a.order_id WHERE o.user_id = ? AND a.sha256 = ? LIMIT 1": {
+			"plan": [
+				"SEARCH a USING INDEX idx_attachments_sha256 (sha256=?)",
+				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_sha256",
+				"sqlite_autoindex_orders_1"
+			]
+		},
+		"SELECT 1 FROM order_drafts WHERE upload_id = @uploadId UNION ALL SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = @userId AND f.upload_id = @uploadId LIMIT 1": {
+			"plan": [
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
+				"SEARCH order_drafts USING COVERING INDEX sqlite_autoindex_order_drafts_2 (upload_id=?)",
+				"UNION ALL",
+				"SCAN f",
+				"SEARCH d USING INDEX sqlite_autoindex_order_drafts_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_order_drafts_1",
+				"sqlite_autoindex_order_drafts_2"
+			]
+		},
 		"SELECT 1 FROM sqlite_master WHERE name = 'sqlite_stat1'": {
 			"plan": [
 				"SCAN sqlite_master"
@@ -1567,23 +1593,36 @@
 				"idx_orders_user_kind"
 			]
 		},
+		"SELECT d.id FROM scan_uploads u JOIN order_drafts d ON d.upload_id = u.id WHERE u.user_id = ? AND u.sha256 = ? LIMIT 1": {
+			"plan": [
+				"SEARCH u USING INDEX idx_scan_uploads_user_hash (user_id=? AND sha256=?)",
+				"SEARCH d USING INDEX sqlite_autoindex_order_drafts_2 (upload_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_scan_uploads_user_hash",
+				"sqlite_autoindex_order_drafts_2"
+			]
+		},
 		"SELECT d.id, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256, (u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id WHERE d.id = ? AND d.user_id = ?": {
 			"plan": [
-				"SCAN d",
+				"SEARCH d USING INDEX sqlite_autoindex_order_drafts_1 (id=?)",
 				"SEARCH u USING INDEX sqlite_autoindex_scan_uploads_1 (id=?) LEFT-JOIN"
 			],
 			"findings": [],
 			"indexes": [
+				"sqlite_autoindex_order_drafts_1",
 				"sqlite_autoindex_scan_uploads_1"
 			]
 		},
 		"SELECT d.id, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256, (u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id WHERE d.user_id = ?": {
 			"plan": [
-				"SCAN d",
+				"SEARCH d USING INDEX idx_order_drafts_user (user_id=?)",
 				"SEARCH u USING INDEX sqlite_autoindex_scan_uploads_1 (id=?) LEFT-JOIN"
 			],
 			"findings": [],
 			"indexes": [
+				"idx_order_drafts_user",
 				"sqlite_autoindex_scan_uploads_1"
 			]
 		},
@@ -1635,6 +1674,15 @@
 			]
 		},
 		"SELECT default_status, default_kind FROM settings WHERE user_id = ?": {
+			"plan": [
+				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_settings_1"
+			]
+		},
+		"SELECT default_status, default_kind, scan_overrides FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
 			],
@@ -1696,6 +1744,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_categories_2"
+			]
+		},
+		"SELECT id FROM order_drafts WHERE upload_id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH order_drafts USING INDEX sqlite_autoindex_order_drafts_2 (upload_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_order_drafts_2"
 			]
 		},
 		"SELECT id FROM order_items WHERE order_id = ?": {
@@ -1844,6 +1901,21 @@
 			],
 			"findings": [],
 			"indexes": []
+		},
+		"SELECT id, kind, size, pages, sha256, (thumbnail IS NOT NULL) AS has_thumbnail FROM scan_uploads u WHERE user_id = ? AND sha256 = ? AND expires_at > ? AND NOT EXISTS (SELECT 1 FROM order_drafts d WHERE d.upload_id = u.id) ORDER BY created_at DESC LIMIT 1": {
+			"plan": [
+				"SEARCH u USING INDEX idx_scan_uploads_user_hash (user_id=? AND sha256=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH d USING COVERING INDEX sqlite_autoindex_order_drafts_2 (upload_id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_scan_uploads_user_hash",
+				"sqlite_autoindex_order_drafts_2"
+			]
 		},
 		"SELECT id, name FROM budget_accounts WHERE id = ? AND user_id = ?": {
 			"plan": [
@@ -2097,6 +2169,15 @@
 				"idx_order_items_order"
 			]
 		},
+		"SELECT id, user_id, name, size, kind, content_type, data, data_is_compressed, (thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM scan_uploads WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH scan_uploads USING INDEX sqlite_autoindex_scan_uploads_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_scan_uploads_1"
+			]
+		},
 		"SELECT id, vendor_id FROM orders WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_vendor (user_id=?)",
@@ -2253,6 +2334,18 @@
 				"sqlite_autoindex_categories_2"
 			]
 		},
+		"SELECT name FROM categories WHERE user_id = ? ORDER BY favourite DESC, name LIMIT ?": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
 		"SELECT name FROM vendor_aliases WHERE user_id = ?": {
 			"plan": [
 				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)"
@@ -2305,12 +2398,37 @@
 				"sqlite_autoindex_attachments_1"
 			]
 		},
+		"SELECT name, original, original_is_compressed, original_content_type FROM scan_uploads WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH scan_uploads USING INDEX sqlite_autoindex_scan_uploads_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_scan_uploads_1"
+			]
+		},
 		"SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name IN ('order_items', 'orders', 'order_categories')": {
 			"plan": [
 				"SCAN sqlite_master"
 			],
 			"findings": [],
 			"indexes": []
+		},
+		"SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.name AS file_name, a.kind AS file_kind FROM attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id WHERE a.sha256 = @sha256 AND o.user_id = @userId ORDER BY o.date DESC, o.created_at DESC": {
+			"plan": [
+				"SEARCH a USING INDEX idx_attachments_sha256 (sha256=?)",
+				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_attachments_sha256",
+				"sqlite_autoindex_orders_1",
+				"sqlite_autoindex_vendors_1"
+			]
 		},
 		"SELECT oc.category_id AS categoryId, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = ? GROUP BY oc.category_id": {
 			"plan": [
@@ -3493,6 +3611,15 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT read_at FROM scan_readings WHERE user_id = ? AND sha256 = ?": {
+			"plan": [
+				"SEARCH scan_readings USING INDEX sqlite_autoindex_scan_readings_1 (user_id=? AND sha256=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_scan_readings_1"
+			]
+		},
 		"SELECT revision, client_key FROM orders WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -3508,6 +3635,15 @@
 			],
 			"findings": [],
 			"indexes": []
+		},
+		"SELECT sha256 FROM scan_uploads WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH scan_uploads USING INDEX sqlite_autoindex_scan_uploads_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_scan_uploads_1"
+			]
 		},
 		"SELECT shown FROM saved_view_prefs WHERE user_id = ?": {
 			"plan": [
@@ -4097,7 +4233,7 @@
 			"columns": [
 				"sha256"
 			],
-			"readers": 0
+			"readers": 2
 		},
 		"idx_categories_import": {
 			"table": "categories",
@@ -4111,7 +4247,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 29
+			"readers": 30
 		},
 		"idx_imports_user_created": {
 			"table": "imports",
@@ -4143,7 +4279,7 @@
 				"user_id",
 				"created_at"
 			],
-			"readers": 1
+			"readers": 2
 		},
 		"idx_order_items_order": {
 			"table": "order_items",
@@ -4268,7 +4404,7 @@
 				"user_id",
 				"sha256"
 			],
-			"readers": 0
+			"readers": 2
 		},
 		"idx_sessions_user": {
 			"table": "sessions",

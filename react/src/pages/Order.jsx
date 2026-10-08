@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -37,8 +37,13 @@ export default function Order() {
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
 	if (!order) return <OrderLoading />
+	// a draft from a scan opens in its review (3a)
+	if (order.draft?.file) return <Navigate replace to={draftAddress(order)} state={{ upload: { ...order.draft.file, draftId: order.id } }} />
 	return <OrderView key={order.id} order={order} touch={touch} onGone={() => setGone(true)} />
 }
+
+/** Where a draft from a scan is reviewed: the address of its file. */
+export const draftAddress = draft => `/orders/new?source=scan&doc=${draft.draft.file.key}`
 
 function OrderView({ order, touch, onGone }) {
 	const navigate = useNavigate()

@@ -60,6 +60,9 @@ import Database from 'better-sqlite3'
    the different layout, and two indexes of equal rank swap places in a plan -- which reads as
    "the plan changed" on a tree nobody touched. Real randomness is what the app must ship
    (ids.js is the security boundary here); a fixed sequence is what a comparison needs. */
+// a scan below is sent to be read when a key is set, and every reading is paid
+delete process.env.ANTHROPIC_API_KEY
+
 const require = createRequire(import.meta.url)
 const crypto = require('node:crypto')
 let idCounter = 0n
@@ -223,6 +226,16 @@ db.prepare('INSERT INTO imports (id, user_id, file_name, created_at) VALUES (?, 
 const draftForm = JSON.stringify({ values: { vendor: 'Netto', date: '2026-08-20', kind: 'Expense', categories: ['Groceries'], shipping: 0, discount: 0, reference: '', note: '' },
 	lines: [{ key: 'k', title: 'Kaffe', quantity: 1, price: 40, include: true }], files: [] })
 for (const id of ['od-fixture', 'od-created']) db.prepare('INSERT INTO order_drafts (id, user_id, form) VALUES (?, ?, ?)').run(id, USER, draftForm)
+// every account next door has drafts too, one scanned with a file added to it, so the drafts' plans meet a spread like a real one
+const insertDraft = db.prepare('INSERT INTO order_drafts (id, user_id, upload_id, form) VALUES (?, ?, ?, ?)')
+for (let i = 0; i < NEIGHBOURS; i++) {
+	const id = `u-neighbour${String(i).padStart(6, '0')}`
+	insertUpload.run(`su-draft-n${i}`, id)
+	insertUpload.run(`su-file-n${i}`, id)
+	insertDraft.run(`od-n${i}-0`, id, `su-draft-n${i}`, null)
+	for (let j = 1; j < 4; j++) insertDraft.run(`od-n${i}-${j}`, id, null, draftForm)
+	db.prepare('INSERT INTO order_draft_files (draft_id, upload_id) VALUES (?, ?)').run(`od-n${i}-0`, `su-file-n${i}`)
+}
 
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
@@ -389,6 +402,26 @@ for (const [method, path, body] of [
 		console.error(`  ${method} ${path} answered ${response.status} -- the check cannot read plans for it`)
 		process.exitCode = 1
 	}
+	await response.arrayBuffer()
+}
+
+// a scan, which only a file reaches: it becomes a draft, the same bytes again point to it, and each goes
+const sharp = (await import('sharp')).default
+const receipt = new Blob([await sharp({ create: { width: 8, height: 8, channels: 3, background: '#ffffff' } }).png().toBuffer()], { type: 'image/png' })
+const scanned = []
+for (let i = 0; i < 2; i++) {
+	const form = new FormData()
+	form.append('file', receipt, 'receipt.png')
+	const response = await fetch(BASE + '/scan/documents?scan=1', { method: 'POST', headers: H, body: form })
+	if (!response.ok) { console.error(`  POST /scan/documents answered ${response.status}`); process.exitCode = 1 }
+	scanned.push((await response.json()).key)
+}
+for (const [method, path] of [
+	['GET', `/scan/draft/${scanned[1]}?draft=1`], ['POST', `/scan/documents/${scanned[1]}/reread`],
+	['DELETE', `/scan/documents/${scanned[1]}`], ['DELETE', `/scan/documents/${scanned[0]}`]
+]) {
+	const response = await fetch(BASE + path, { method, headers: H })
+	if (!response.ok) { console.error(`  ${method} ${path} answered ${response.status}`); process.exitCode = 1 }
 	await response.arrayBuffer()
 }
 

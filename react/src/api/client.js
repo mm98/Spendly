@@ -416,6 +416,8 @@ const toApiDraft = draft => ({
 	...(draft.clientKey ? { clientKey: draft.clientKey } : {}),
 	// the receipt this save checked the lines against (3d)
 	...(draft.validatedBy ? { validatedBy: draft.validatedBy } : {}),
+	// the draft this order is created from, which goes once it is (3a)
+	...(draft.draftId ? { draftId: draft.draftId } : {}),
 	// a saved line keeps its id, so PUT edits it in place and its photo stays; a new line sends none
 	items: (draft.items ?? []).map(i => ({
 		...(i.id ? { id: i.id } : {}),
@@ -942,9 +944,18 @@ const tellProgress = (documentKey, progress) => {
 	for (const fn of entry.listeners) fn(progress)
 }
 
-/** The review's draft for an uploaded receipt, read as it streams so its progress can be shown. */
+/** What was read from an uploaded receipt, read as it streams so its progress can be shown. */
 export async function getScanDraft(documentKey, signal) {
-	const path = `/api/scan/draft/${documentKey}?progress=stream`
+	return readScan(documentKey, '', signal)
+}
+
+/** A scan's review (3a): what was read, and the draft the file is from now on, with the form as it was left. */
+export async function getScanReview(documentKey, signal) {
+	return readScan(documentKey, '&draft=1', signal)
+}
+
+async function readScan(documentKey, extra, signal) {
+	const path = `/api/scan/draft/${documentKey}?progress=stream${extra}`
 	const res = await fetch(path, { signal, credentials: 'include', headers: { [TODAY]: today() } })
 	if (!res.ok) {
 		let data = null
@@ -991,25 +1002,47 @@ export async function rereadScanDocument(documentKey, signal) {
 	return request(`/api/scan/documents/${documentKey}/reread`, { method: 'POST', signal })
 }
 
+/** Throws an upload away; a scan's file takes its draft with it (6d). */
 export async function discardScanDocument(documentKey, signal) {
-	return request(`/api/scan/documents/${documentKey}`, { method: 'DELETE', signal })
+	const out = await request(`/api/scan/documents/${documentKey}`, { method: 'DELETE', signal })
+	invalidateDraftData()
+	return out
 }
 
-/** The reader left a receipt still being read: the reading becomes a Draft order when it ends (6e),
-    and the lists ask again then, so it appears. Sent so that it outlives a closing tab. */
-export function leaveScanDocument(documentKey) {
-	const path = `/api/scan/documents/${documentKey}/leave`
-	try {
-		fetch(path, { method: 'POST', credentials: 'include', keepalive: true, headers: { [TODAY]: today() } })
-			.then(res => (res.ok ? res.json() : null))
-			.then(answer => { if (answer?.orderId) invalidateOrderData() })
-			.catch(() => {})
-	} catch { /* nothing to tell: the upload stays 24 hours either way */ }
+/* ---- drafts: orders not created yet (3a, 10a) ---- */
+
+/** Home's Drafts card: the newest `limit` drafts and how many there are, `{ drafts, total }`. */
+export async function getDrafts(limit = 3, signal) {
+	return request('/api/drafts' + qs({ limit }), { signal })
 }
 
-/** Sends one file to be kept until a save files it (17a). `onSent` hears the fraction sent, 0 to 1. */
-export function sendFile(file, { signal, onSent } = {}) {
-	const path = '/api/scan/documents'
+/** Keeps the form as it is on screen. `keepalive` lets it outlive a closing tab, for a small form. */
+export function keepDraft(id, form, { keepalive = false } = {}) {
+	const path = `/api/drafts/${id}`
+	const body = JSON.stringify({ form })
+	if (!keepalive || body.length > 60000) return request(path, { method: 'PUT', body: { form } })
+	return fetch(path, {
+		method: 'PUT', credentials: 'include', keepalive: true, body,
+		headers: { [TODAY]: today(), 'Content-Type': 'application/json' }
+	}).then(res => (res.ok ? res.json() : Promise.reject(refusal(path, 'PUT', res.status, null))))
+}
+
+/** Discard (6d): the draft goes, and its file with it. */
+export async function discardDraft(id, signal) {
+	const out = await request(`/api/drafts/${id}`, { method: 'DELETE', signal })
+	invalidateDraftData()
+	return out
+}
+
+/** A draft was made, changed or discarded: only the lists that show drafts read it. */
+export function invalidateDraftData() {
+	drop(getOrders, getOrder, getDrafts, getViews, getScanReview)
+}
+
+/** Sends one file to be kept until a save files it (17a). `onSent` hears the fraction sent, 0 to 1;
+    `scan` makes the file a scan, which a draft holds until it is created or discarded (3a). */
+export function sendFile(file, { signal, onSent, scan = false } = {}) {
+	const path = '/api/scan/documents' + (scan ? '?scan=1' : '')
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest()
 		xhr.open('POST', path)
@@ -1063,7 +1096,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getDrafts, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendorPage, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
 const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getUncategorised, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]

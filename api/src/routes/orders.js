@@ -481,7 +481,7 @@ router.get('/:id', (req, res) => {
 	const order = getDecoratedOrder(req.user.id, req.params.id)
 	if (order) return res.json(order)
 	// a draft opens as itself (3a): the order it will become, and what it was started from
-	const draft = draftsAsOrders(req.user.id).find(d => d.id === req.params.id)
+	const [draft] = draftsAsOrders(req.user.id, req.params.id)
 	if (!draft) return res.status(404).json({ error: 'No order ' + req.params.id })
 	res.json(draftListRow(draft, { itemTitles: false, listRows: true }))
 })

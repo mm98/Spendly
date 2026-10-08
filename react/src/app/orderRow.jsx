@@ -33,6 +33,9 @@ export function OrderFiles({ count }) {
 	return <Mark size="small" role="img" aria-label={label} title={label}><Icon name="paperclip" size={12} /></Mark>
 }
 
+/** What a row is called: its vendor, or a draft's file while no vendor was read (10a). */
+export const vendorName = order => order.vendor?.name || order.draft?.file?.name || 'No vendor'
+
 /** The line under an order's vendor: its reference and its note (2b). */
 export const orderLine = order => [order.reference || 'No reference yet', order.note].filter(Boolean).join(dot)
 

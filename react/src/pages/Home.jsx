@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardBody, Toolbar } from '../components/Card.jsx'
@@ -15,10 +15,11 @@ import { Icon } from '../components/Icon.jsx'
 import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
-import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
+import { OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
+import { useStatusTypes } from '../app/statuses.js'
 import {
-	failureMessage, getCategoryPage, getCurrentUser, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsSlice,
-	overBudget, putSummaryAway, withMonthSpend
+	failureMessage, getCategoryPage, getCurrentUser, getDrafts, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsSlice,
+	overBudget, putSummaryAway, scanThumbnailUrl, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
@@ -26,6 +27,9 @@ import { CopyPicker } from './CopyPicker.jsx'
 import { alertsOf, looksIn, monthOf } from './needsLook.jsx'
 
 const RECENT = 4
+const DRAFTS = 3
+// how often a draft still being read asks again, so its row moves on once the reading ends
+const READING_MS = 5000
 const MONTHS = 8
 const ALERTS = 3
 // Home's figures are what was paid, as Statistics opens on
@@ -153,7 +157,15 @@ export default function Home() {
 	const touch = useShellShape() === 'touch'
 	const month = useApi(getStatsSlice, [MONTH])
 	const categories = useApi(getHomeCategories)
-	const recent = useApi(getOrders, [{ pageSize: RECENT }])
+	// Recent orders leaves drafts out; they have their own card (10a)
+	const recent = useApi(getOrders, [{ pageSize: RECENT, drafts: 'none' }])
+	const drafts = useApi(getDrafts, [DRAFTS])
+	const reading = Boolean(drafts.data?.drafts.some(d => d.draft?.reading))
+	useEffect(() => {
+		if (!reading) return undefined
+		const timer = setTimeout(drafts.refresh, READING_MS)
+		return () => clearTimeout(timer)
+	}, [drafts.data])
 	const attention = useApi(getHomeAttention)
 	const name = firstName(useApi(getCurrentUser).data)
 	const compared = useApi(getComparedMonth)
@@ -185,7 +197,7 @@ export default function Home() {
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	// the card waits for the settings, so a row switched off never flashes up
-	const props = { month, compared, categories, view, recent, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
+	const props = { month, compared, categories, view, recent, drafts, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
 }
@@ -193,7 +205,7 @@ export default function Home() {
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, compared, categories, view, recent, attention, looks, notice }) {
+function DesktopHome({ month, compared, categories, view, recent, drafts, attention, looks, notice }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error
 	return (
@@ -211,6 +223,7 @@ function DesktopHome({ month, compared, categories, view, recent, attention, loo
 			</div>
 			<div className="hm-split hm-split--start sp-gap-12">
 				<div className="sp-stack sp-gap-12">
+					<DraftsCard drafts={drafts} />
 					{lost ? null : <AlertsCard view={view} attention={attention} looks={looks} />}
 					<RecentCard recent={recent} />
 				</div>
@@ -493,6 +506,70 @@ function RecentList({ caption, orders }) {
 	)
 }
 
+/* ---- drafts: orders not created yet, newest scan first (10a, 7a) ---- */
+
+/** The address of all drafts: the order list filtered to the status Draft. */
+function useDraftsAddress() {
+	const key = useStatusTypes().keyOf('draft') ?? 'Draft'
+	return `/orders?status=${encodeURIComponent(key)}`
+}
+
+/** A draft's own day: the day it was scanned, or an order's date for one that did not come from a scan. */
+const draftDay = o => o.draft?.scanned ?? o.date
+
+/** A scan's picture: its first page, or the kind of file while it has none. */
+function DraftFile({ file }) {
+	return file.hasThumbnail
+		? <Mark size="medium" fill="photo" aria-hidden="true" aria-label={file.name}><img src={scanThumbnailUrl(file.key)} alt="" /></Mark>
+		: <Mark size="medium" fill="none" aria-hidden="true" aria-label={file.name}><span>{file.kind === 'pdf' ? 'PDF' : 'IMG'}</span></Mark>
+}
+
+/** A draft's picture and words: a scan's file and what is left to check, else as an order row shows it. */
+function DraftHead({ order }) {
+	const file = order.draft?.file
+	if (!file) return <OrderHead order={order} />
+	return (
+		<>
+			<DraftFile file={file} />
+			<span className="sp-stacked">
+				<span className="sp-title sp-truncate">{vendorName(order)}</span>
+				<span className="sp-meta sp-truncate">{file.name}{dot}{order.draft.left}</span>
+			</span>
+		</>
+	)
+}
+
+function DraftsCard({ drafts }) {
+	const all = useDraftsAddress()
+	const rows = drafts.data?.drafts
+	const total = drafts.data?.total
+	// absent while there are none, and until it is known that there are some
+	if (drafts.error) return <Failed variant="card" label="Drafts" what="Your drafts" error={drafts.error} onRetry={drafts.refresh} />
+	if (!rows?.length) return null
+	return (
+		<List data={rows} recordKey={o => o.id} noun="drafts" headless locale={NUMBER_LOCALE} rowTo={o => `/orders/${o.id}`}>
+			<Caption>
+				<span className="sp-section-label">Drafts</span>
+				<span className="sp-meta">newest {rows.length}</span>
+				<span className="sp-grow" />
+				<Button variant="text" size="small" to={all}>All {amount(total, 0)}</Button>
+			</Caption>
+			<ListHead>
+				<ListCell width="title" />
+				<ListCell width="date" />
+				<ListCell width="amount" />
+			</ListHead>
+			<ListRow>{o => (
+				<>
+					<ListCell cell="flex"><DraftHead order={o} /></ListCell>
+					<ListCell><span className="sp-data">{rowDate(draftDay(o))}</span></ListCell>
+					<ListCell cell="amount">{o.total == null ? null : <span className="sp-amount">{currency(o.total)}</span>}</ListCell>
+				</>
+			)}</ListRow>
+		</List>
+	)
+}
+
 function OrderHead({ order }) {
 	return (
 		<>
@@ -661,7 +738,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, compared, categories, view, recent, attention, looks, name }) {
+function PhoneHome({ month, compared, categories, view, recent, drafts, attention, looks, name }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -678,6 +755,7 @@ function PhoneHome({ month, compared, categories, view, recent, attention, looks
 					</Hold>
 				)
 				: <PhoneMonth w={w} compared={compared} />}
+			<PhoneDrafts drafts={drafts} />
 			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
 			<PhoneRecent recent={recent} />
 		</>
@@ -805,6 +883,35 @@ function PhoneOrder({ order }) {
 			</div>
 			<span className="sp-title sp-nowrap">{amount(order.total)}</span>
 		</Link>
+	)
+}
+
+function PhoneDrafts({ drafts }) {
+	const all = useDraftsAddress()
+	const rows = drafts.data?.drafts
+	if (drafts.error) return <Failed variant="card" label="Drafts" what="Your drafts" error={drafts.error} onRetry={drafts.refresh} />
+	if (!rows?.length) return null
+	return (
+		<Card>
+			<div className="sp-row-flex sp-gap-8 sp-baseline">
+				<span className="sp-section-label">Drafts</span>
+				<span className="sp-meta">newest {rows.length}</span>
+				<span className="sp-grow" />
+				<Button variant="text" size="small" to={all}>All {amount(drafts.data.total, 0)}</Button>
+			</div>
+			{rows.map(o => (o.draft?.file
+				? (
+					<Link key={o.id} className="sp-row-flex sp-gap-12 hm-order" to={`/orders/${o.id}`}>
+						<DraftFile file={o.draft.file} />
+						<div className="sp-stacked sp-grow">
+							<span className="sp-title sp-truncate">{vendorName(o)}</span>
+							<span className="sp-meta">{rowDate(draftDay(o))}{dot}{o.draft.left}</span>
+						</div>
+						{o.total == null ? null : <span className="sp-title sp-nowrap">{amount(o.total)}</span>}
+					</Link>
+				)
+				: <PhoneOrder key={o.id} order={o} />))}
+		</Card>
 	)
 }
 

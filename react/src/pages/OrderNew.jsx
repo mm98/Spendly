@@ -1,25 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Gauge, SumHead } from '../components/Data.jsx'
 import { Button } from '../components/Button.jsx'
 import { FILE_TYPES, FileDrop, MAX_FILE_MB, fileProblem, sniffedProblem } from '../components/FileDrop.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Alert, useToast } from '../components/Overlays.jsx'
+import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Spinner } from '../components/Utilities.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Viewer } from '../components/Attachments.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentPageUrl, discardScanDocument, failureMessage, getCurrentUser, getOrder, itemAttachmentThumbnailUrl,
-	getOrderDraft, getOrders, getScanDraft, leaveScanDocument, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
+	attachmentFileUrl, attachmentPageUrl, discardDraft, discardScanDocument, failureMessage, getCurrentUser, getOrder, itemAttachmentThumbnailUrl,
+	getOrderDraft, getOrders, getScanReview, invalidateDraftData, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
 	watchScanProgress
 } from '../api/client.js'
 import { activeLocaleCode, amount, dayShortMonth, dot, plural, sep, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { ScreenBar } from '../app/topBarEnd.jsx'
-import { OrderForm } from './OrderForm.jsx'
+import { OrderForm, discardWords, scanSeed } from './OrderForm.jsx'
 import { CopyPicker } from './CopyPicker.jsx'
 import { OrderFailed, OrderLoading, isPdf, pagesOf } from './OrderParts.jsx'
 
@@ -100,49 +100,34 @@ function Copy({ id }) {
 	)
 }
 
-const leaving = new Map()
+/** A line's photo a draft kept: sent, and not on an order yet. */
+const keptPhotoUrl = line => (line.photo?.key && !line.photo.id && line.photo.hasThumbnail ? scanThumbnailUrl(line.photo.key) : null)
 
+/** A scan (3a): its reading, then the review, a draft until it is created or discarded. Its address is
+    the file's, so a draft opened again from Home or the order list is the same page. */
 function Scanned({ documentKey, upload, from }) {
 	const navigate = useNavigate()
 	// a file read before is asked about first (3c); "Use the reading" goes on to the review
 	const [asking, setAsking] = useState(Boolean(upload?.seen))
 	// a failed reading is shown as such (6e) until the reader chooses to go on by hand
 	const [manual, setManual] = useState(false)
-	const read = useApi(getScanDraft, [documentKey], { enabled: !asking })
+	const read = useApi(getScanReview, [documentKey], { enabled: !asking })
 	const answer = read.data?.documentKey === documentKey ? read.data : null
-	const seed = useMemo(() => (answer && !answer.draftOrderId
-		? {
-			vendor: answer.vendor ?? '', date: answer.date, status: answer.status, kind: answer.kind,
-			statusDates: { Delivered: answer.deliveredDate, Returned: answer.returnedDate }, categories: [],
-			shipping: answer.shipping || null, discount: answer.discount || null,
-			reference: answer.reference ?? '', note: '', refunded: false,
-			lines: answer.lines.map(l => ({
-				key: l.id, title: l.title ?? '', quantity: l.quantity ?? 1, price: l.price ?? null,
-				retail: l.retail ?? null, note: '', uncertain: Boolean(l.uncertain), unclearPart: l.unclearPart ?? null, include: true
-			}))
-		}
-		: null), [answer])
+	const seed = useMemo(() => (answer ? scanSeed(answer) : null), [answer])
 	const back = () => navigate('/orders/new?source=scan')
-	const dropThen = to => discardScanDocument(documentKey).catch(() => {}).finally(() => navigate(to))
+	// Discard goes back to the page the scan started from, or the one the draft was opened from (6e)
+	const away = () => {
+		if (from) navigate(from, { replace: true })
+		else if ((window.history.state?.idx ?? 0) > 0) navigate(-1)
+		else navigate('/', { replace: true })
+	}
+	const draftId = answer?.draftId ?? upload?.draftId ?? null
+	const drop = () => (draftId ? discardDraft(draftId) : discardScanDocument(documentKey)).catch(() => {})
+	const discard = () => drop().finally(away)
 	// a new file takes the failed one's place and is read from the start (6e)
-	const another = file => discardScanDocument(documentKey).catch(() => {})
-		.finally(() => navigate('/orders/new?source=scan', { replace: true, state: { file, from } }))
-	/* Leaving while the file is read leaves the reading to finish and become a Draft order (6e, 3a
-	   step 2): another page, or a closed tab. Cancel abandons it, upload and all (16a). */
-	const reading = !asking && !answer && !read.error
-	const away = useRef({ reading, cancelled: false })
-	away.current.reading = reading
-	useEffect(() => {
-		// a page that comes straight back (a remount, not a visit away) has not left
-		clearTimeout(leaving.get(documentKey))
-		const left = () => { if (away.current.reading && !away.current.cancelled) leaveScanDocument(documentKey) }
-		window.addEventListener('pagehide', left)
-		return () => { window.removeEventListener('pagehide', left); leaving.set(documentKey, setTimeout(left, 0)) }
-	}, [documentKey])
-	// Cancel goes back to where the scan started: New order's first step, or the page Scan receipt was used on
-	const cancel = () => { away.current.cancelled = true; dropThen(from ?? '/orders/new') }
-	if (answer?.draftOrderId) return <Navigate to={`/orders/${answer.draftOrderId}`} replace />
-	if (asking) return <SeenBefore upload={upload} onUse={() => setAsking(false)} onDiscard={() => dropThen('/orders/new')} />
+	const another = file => drop().finally(() => navigate('/orders/new?source=scan', { replace: true, state: { file, from } }))
+	if (asking)
+		return <SeenBefore upload={upload} onUse={() => setAsking(false)} onDiscard={() => discardScanDocument(documentKey).catch(() => {}).finally(() => navigate('/orders/new'))} />
 	if (read.error)
 		return (
 			<Alert color="danger" mark="!" title="This receipt could not be opened."
@@ -150,15 +135,35 @@ function Scanned({ documentKey, upload, from }) {
 				{failureMessage(read.error, 'Check your connection, then try again.')}
 			</Alert>
 		)
-	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onCancel={cancel} />
+	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onDiscard={discard} />
 	if (answer.failure && answer.failure !== 'unread' && !manual)
-		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={another} onDiscard={() => dropThen(from ?? '/orders/new')} />
-	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer }} onLeave={back} />
+		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={another} onDiscard={discard} />
+	// the review's Discard has asked already (6d)
+	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer, draftId: answer.draftId }} photoUrl={keptPhotoUrl} onLeave={discard} />
+}
+
+/** Discard on a scan (6d), asked before the draft and its file go. */
+function DiscardScan({ file, onKeep, onDiscard }) {
+	return (
+		<Dialog onCancel={onKeep} aria-label="Discard this scan?">
+			<div className="sp-stack sp-gap-12">
+				<DialogTitle>Discard this scan?</DialogTitle>
+				<DialogBody>{discardWords({ file })}</DialogBody>
+				<DialogActions>
+					<Button variant="outline" fullWidth onClick={onKeep}>Keep checking</Button>
+					<Button color="danger" fullWidth onClick={onDiscard}>Discard</Button>
+				</DialogActions>
+			</div>
+		</Dialog>
+	)
 }
 
 /** Step 2 (3a): the receipt while it is sent and read, with what has been found so far. The
-    gauge counts the steps: sent, vendor and date found, the whole reading in. */
-export function Reading({ file, documentKey, onCancel }) {
+    gauge counts the steps: sent, vendor and date found, the whole reading in. A scan has Discard,
+    which asks first (6d), since it is a draft by now; a receipt read for another page has Cancel. */
+export function Reading({ file, documentKey, onCancel, onDiscard }) {
+	const [asking, setAsking] = useState(false)
+	const scan = Boolean(onDiscard)
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [progress, setProgress] = useState(null)
 	useEffect(() => (documentKey ? watchScanProgress(documentKey, setProgress) : undefined), [documentKey])
@@ -206,10 +211,14 @@ export function Reading({ file, documentKey, onCancel }) {
 								<Mark size="small" fill="plain" aria-hidden="true"><Spinner /></Mark>
 								<strong className="sp-data">{doing}</strong>
 							</div>
-							{reads && file.key ? <span className="sp-meta">Usually 5 - 10 seconds. You can keep working.</span> : null}
+							{reads && file.key
+								? <span className="sp-meta">{scan ? 'Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.' : 'Usually 5 - 10 seconds. You can keep working.'}</span>
+								: null}
 						</div>
 						<div className="oc-read__foot">
-							<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
+							{scan
+								? <Button variant="outline" size="small" onClick={() => setAsking(true)}>Discard</Button>
+								: <Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>}
 						</div>
 					</div>
 				</div>
@@ -220,11 +229,14 @@ export function Reading({ file, documentKey, onCancel }) {
 						<Mark size="small" aria-hidden="true" aria-label="Slow"><Icon name="wifi" size={15} /></Mark>
 						<div className="sp-stack sp-gap-6">
 							<span className="sp-title">Reading is taking longer than usual</span>
-							<span className="sp-subtitle">You can leave this page - the order appears in the list when it is done.</span>
+							<span className="sp-subtitle">
+								{scan ? 'You can leave this page. The scan is kept in Drafts on Home and the reading carries on.' : 'You can leave this page - the order appears in the list when it is done.'}
+							</span>
 						</div>
 					</Card>
 				)
 				: null}
+			{asking ? <DiscardScan file={file} onKeep={() => setAsking(false)} onDiscard={() => { setAsking(false); onDiscard() }} /> : null}
 		</div>
 	)
 }
@@ -234,8 +246,8 @@ const SLOW_READING_MS = 20000
 const timeFormat = () => new Intl.DateTimeFormat(activeLocaleCode(), { hour: '2-digit', minute: '2-digit' })
 const localDay = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
-/** Step 2 replaced (3c): these exact bytes are already on an order. The matched orders first,
-    then what to do instead of reading the same file twice. */
+/** Step 2 replaced (3c): these exact bytes are already on an order or in a draft. The matched
+    records first, then what to do instead of reading the same file twice. */
 function SeenBefore({ upload, onUse, onDiscard }) {
 	const toast = useToast()
 	const [comparing, setComparing] = useState(null)
@@ -248,7 +260,7 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 	const again = () => {
 		setBusy(true)
 		rereadScanDocument(upload.key)
-			.then(() => { invalidate(getScanDraft); onUse() })
+			.then(() => { invalidate(getScanReview); onUse() })
 			.catch(e => { setBusy(false); toast({ message: failureMessage(e, 'The receipt was not read again. Try again.'), color: 'danger' }) })
 	}
 	const compare = o => setComparing({
@@ -262,28 +274,37 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 		}
 	})
 	const touch = useShellShape() === 'touch'
-	const said = seen.count === 0 ? `The same file was read ${readAt ? `${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : 'before'}. No order holds it now.`
+	const draft = seen.draft ?? null
+	const said = seen.count === 0
+		? (draft ? 'The same file is already in Drafts.' : `The same file was read ${readAt ? `${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : 'before'}. No order holds it now.`)
 		: seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`
-	const open = o => <Button size={touch ? undefined : 'small'} fullWidth={touch} to={`/orders/${o.id}`}>Open that order</Button>
-	const side = o => <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => compare(o)}>Compare the files</Button>
+	const open = o => <Button size={touch ? undefined : 'small'} fullWidth={touch} to={`/orders/${o.id}`}>{o.draft ? 'Open that draft' : 'Open that order'}</Button>
+	// a draft holds this very file, so there is nothing to compare it with
+	const side = o => (o.draft ? null : <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => compare(o)}>Compare the files</Button>)
 	const useIt = <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} disabled={busy} onClick={onUse}>Use the reading</Button>
 	const scanAgain = <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} disabled={busy} onClick={again}>Scan again</Button>
 	const discard = <Button variant="outline" fullWidth={touch} disabled={busy} onClick={onDiscard}>Discard the upload</Button>
 	const kept = <span className="sp-meta">The upload is kept for 24 hours either way.</span>
+	// the draft is named by its vendor, or its file while no vendor was read, and the day it was scanned (3c)
+	const records = [
+		...(draft ? [{ id: draft.id, draft: true, vendor: draft.vendor || draft.file?.name, total: draft.total, file: draft.file ?? { kind: upload.kind } }] : []),
+		...seen.orders
+	]
 	const matched = o => {
 		const mark = (
 			<Mark size="medium" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label="Receipt">
 				{thumb ? <img src={thumb} alt="" /> : <span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
 			</Mark>
 		)
-		const facts = [o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)
+		const facts = o.draft ? `Scanned ${dayShortMonth(draft.scanned)}` : [o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)
 		const title = (
 			<span className="sp-stacked">
 				<span className="sp-title sp-truncate">{o.vendor}</span>
 				<span className="sp-subtitle">{facts}</span>
 			</span>
 		)
-		const scanned = [readAt && o === newest ? `Scanned ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)
+		const scanned = o.draft ? (draft.vendor ? draft.file?.name : null)
+			: [readAt && o === newest ? `Scanned ${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : null, o.file.name].filter(Boolean).join(dot)
 		// the amount shares the title's line, so the lines under it run to the row's edge
 		if (touch) return (
 			<Card key={o.id}>
@@ -291,10 +312,10 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 					<span className="sp-stacked sp-grow">
 						<span className="sp-row-flex sp-baseline sp-gap-12">
 							<span className="sp-title sp-truncate sp-grow">{o.vendor}</span>
-							<span className="sp-amount sp-flex-none">{amount(o.total)}</span>
+							{o.total == null ? null : <span className="sp-amount sp-flex-none">{amount(o.total)}</span>}
 						</span>
 						<span className="sp-subtitle">{facts}</span>
-						<span className="sp-meta">{scanned}</span>
+						{scanned ? <span className="sp-meta">{scanned}</span> : null}
 					</span>
 				</ListItem>
 				<div className="sp-stack sp-gap-8">{open(o)}{side(o)}</div>
@@ -304,10 +325,10 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 			<ListItem key={o.id} variant="top" mark={mark}>
 				<span className="sp-stack sp-gap-8 sp-grow">
 					{title}
-					<span className="sp-meta">{scanned}</span>
+					{scanned ? <span className="sp-meta">{scanned}</span> : null}
 					<span className="sp-row-flex sp-gap-8 sp-wrap">{open(o)}{side(o)}</span>
 				</span>
-				<span className="sp-stacked sp-cell-amount sp-flex-none"><span className="sp-amount">{amount(o.total)}</span></span>
+				<span className="sp-stacked sp-cell-amount sp-flex-none">{o.total == null ? null : <span className="sp-amount">{amount(o.total)}</span>}</span>
 			</ListItem>
 		)
 	}
@@ -327,17 +348,17 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 			{touch ? (
 				<div className="sp-stack sp-gap-12">
 					{lead}
-					{seen.orders.map(matched)}
-					{seen.count ? <span className="sp-section-label">If that is not what you meant</span> : null}
+					{records.map(matched)}
+					{records.length ? <span className="sp-section-label">If that is not what you meant</span> : null}
 					{choices.map(c => <SeenChoice key={c.key} {...c} touch />)}
 					<div className="sp-stack sp-gap-8">{discard}{kept}</div>
 				</div>
 			) : (
 				<Card>
 					{lead}
-					{seen.orders.map(matched)}
+					{records.map(matched)}
 					<div className="sp-stack sp-gap-12">
-						{seen.count ? <span className="sp-section-label">If that is not what you meant</span> : null}
+						{records.length ? <span className="sp-section-label">If that is not what you meant</span> : null}
 						{choices.map(c => <SeenChoice key={c.key} {...c} />)}
 					</div>
 					<div className="sp-card__footer sp-card__footer--commits">
@@ -367,6 +388,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 	const { file, found } = answer
 	const photo = file.kind !== 'pdf'
 	const picker = useRef(null)
+	const [asking, setAsking] = useState(false)
 	const take = ev => {
 		const chosen = ev.target.files?.[0]
 		ev.target.value = ''
@@ -414,11 +436,12 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 							<Button size="small" onClick={onManual}>Continue manually</Button>
 							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>{photo ? 'Try another photo' : 'Try another file'}</Button>
 							<input ref={picker} type="file" accept={FILE_TYPES} hidden tabIndex={-1} onChange={take} />
-							<Button variant="outline" size="small" onClick={onDiscard}>Discard</Button>
+							<Button variant="outline" size="small" onClick={() => setAsking(true)}>Discard</Button>
 						</div>
 					</div>
 				</div>
 			</Card>
+			{asking ? <DiscardScan file={file} onKeep={() => setAsking(false)} onDiscard={onDiscard} /> : null}
 		</div>
 	)
 }
@@ -450,10 +473,12 @@ function Start({ scanOnly, file, from, picking }) {
 		cancelled.current = false
 		const pdf = isPdf(f)
 		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${dot}${sizeLabel(f.size)}` })
-		sendFile(f, { onSent: sent => setSending(s => (s ? { ...s, sent } : s)) })
+		sendFile(f, { scan: true, onSent: sent => setSending(s => (s ? { ...s, sent } : s)) })
 			.then(upload => {
+				// a scan discarded while it was sent goes as it arrives, its draft with it
 				if (cancelled.current) return discardScanDocument(upload.key).catch(() => {})
-				invalidate(getScanDraft)
+				invalidate(getScanReview)
+				invalidateDraftData()
 				navigate(`/orders/new?source=scan&doc=${upload.key}`, { replace: true, state: { upload, from: origin } })
 			})
 			.catch(e => {
@@ -472,7 +497,7 @@ function Start({ scanOnly, file, from, picking }) {
 		send([file])
 	}, [file])
 
-	if (sending) return <Reading file={sending} onCancel={() => { cancelled.current = true; setSending(null); navigate(origin, { replace: true }) }} />
+	if (sending) return <Reading file={sending} onDiscard={() => { cancelled.current = true; setSending(null); navigate(origin, { replace: true }) }} />
 
 	const copyable = (any.data?.total ?? 0) > 0
 	return (

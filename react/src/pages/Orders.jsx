@@ -25,7 +25,7 @@ import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDa
 import { useListMemory } from '../app/listMemory.js'
 import { useScanPicker } from '../app/scanPicker.jsx'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
-import { CategoryChips, OrderFiles, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds } from '../app/orderRow.jsx'
+import { CategoryChips, OrderFiles, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
@@ -620,7 +620,7 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 					<ListCell cell="flex">
 						<OrderPhoto order={o} />
 						<span className="sp-stacked sp-grow">
-							<span className="sp-title sp-truncate">{o.vendor?.name ?? 'No vendor'}</span>
+							<span className="sp-title sp-truncate">{vendorName(o)}</span>
 							<span className="sp-subtitle sp-truncate">{orderLine(o)}</span>
 						</span>
 						<OrderFiles count={o.fileCount} />
@@ -711,7 +711,10 @@ function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, 
 /* A cancelled order did not happen, so its amount is struck and says it is not counted, where a
    saving would stand (2b). */
 function OrderAmount({ order }) {
-	if (useStatusTypes().typeOf(order.status) === 'cancelled')
+	const { typeOf } = useStatusTypes()
+	// a draft whose lines have no prices yet has no total, and its cell stays empty (10a)
+	if (order.total == null) return null
+	if (typeOf(order.status) === 'cancelled')
 		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">not counted</span></>
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
@@ -725,7 +728,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 			{bulk ?? <span className="sp-meta">{plural(data.matched, 'order')}{summary ? `${dot}${currency(summary.total)}` : ''}</span>}
 			{data.orders.map(o => {
 				const on = picked.includes(o.id)
-				const amount = <span className={typeOf(o.status) === 'cancelled' ? 'sp-amount sp-void sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(o.total)}</span>
+				const amount = o.total == null ? null : <span className={typeOf(o.status) === 'cancelled' ? 'sp-amount sp-void sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(o.total)}</span>
 				const when = `${shortDate(o.date)}${dot}${plural(o.itemCount, 'item')}`
 				const saving = typeOf(o.status) === 'cancelled' ? <span className="sp-amount-secondary">not counted</span> : <Saving value={o.saved} />
 				return (
@@ -734,7 +737,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 							<ListItem key={o.id} variant="card" mark={<OrderPhoto order={o} />} onClick={() => onOpen(o)}>
 								<Stacked>
 									<Line>
-										<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
+										<span className="sp-title sp-truncate sp-grow">{vendorName(o)}</span>
 										{amount}
 									</Line>
 									<Line>
@@ -752,7 +755,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 								<ListItem variant="card" selected={on} mark={<><span className="ol-pick-room" /><OrderPhoto order={o} /></>} onClick={() => onOpen(o)}>
 									<Stacked>
 										<Line>
-											<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
+											<span className="sp-title sp-truncate sp-grow">{vendorName(o)}</span>
 											{amount}
 										</Line>
 										<Line>

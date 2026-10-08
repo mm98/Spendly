@@ -222,9 +222,9 @@ function sumsOf(form) {
 
 const selectCategories = db.prepare('SELECT id, name FROM categories WHERE user_id = ?')
 
-/** Every draft of an account as an order: what the order list, its filters and Home read. */
-export function draftsAsOrders(userId) {
-	const rows = selectDrafts.all(userId)
+/** Every draft of an account as an order, or the one `only` names: what the order list, its filters and Home read. */
+export function draftsAsOrders(userId, only = null) {
+	const rows = only ? [selectDraft.get(only, userId)].filter(Boolean) : selectDrafts.all(userId)
 	if (!rows.length) return []
 	const status = keyOfType(userId, 'draft')
 	const categories = new Map(selectCategories.all(userId).map(c => [c.name.toLowerCase(), c]))
@@ -233,6 +233,7 @@ export function draftsAsOrders(userId) {
 		const scanned = fromEpoch(row.created_at)
 		const answer = row.upload_id ? answerOf({ userId, today: scanned }, uploadOf(row), read, null, { look: true }) : null
 		const form = formOf(row, answer)
+		const reading = Boolean(row.upload_id && readings.has(row.upload_id))
 		const v = form.values
 		const sums = sumsOf(form)
 		const vendor = String(v.vendor ?? '').trim()
@@ -254,7 +255,7 @@ export function draftsAsOrders(userId) {
 			draft: {
 				scanned,
 				file: row.upload_id ? { key: row.upload_id, name: row.name, kind: row.kind, hasThumbnail: Boolean(row.has_thumbnail) } : null,
-				left: row.upload_id ? leftOf(answer, form, readings.has(row.upload_id)) : null
+				reading, left: row.upload_id ? leftOf(answer, form, reading) : null
 			},
 			// what the order list's filters and sorts read, never sent
 			sort: {
@@ -299,7 +300,7 @@ const selectDraftUploads = db.prepare(`SELECT upload_id FROM order_drafts WHERE 
 	UNION SELECT upload_id FROM order_draft_files WHERE draft_id = @id`)
 const deleteDraft = db.prepare('DELETE FROM order_drafts WHERE id = ? AND user_id = ?')
 const heldElsewhere = db.prepare(`SELECT 1 FROM order_drafts WHERE upload_id = @uploadId
-	UNION ALL SELECT 1 FROM order_draft_files WHERE upload_id = @uploadId LIMIT 1`)
+	UNION ALL SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = @userId AND f.upload_id = @uploadId LIMIT 1`)
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
 const renewUpload = db.prepare('UPDATE scan_uploads SET expires_at = ? WHERE id = ? AND user_id = ?')
 const fileOnAnOrder = db.prepare('SELECT 1 FROM attachments a JOIN orders o ON o.id = a.order_id WHERE o.user_id = ? AND a.sha256 = ? LIMIT 1')
@@ -312,7 +313,7 @@ export const discardDraft = db.transaction((userId, id) => {
 	if (!row) return false
 	const uploads = selectDraftUploads.all({ id }).map(u => u.upload_id)
 	deleteDraft.run(id, userId)
-	for (const uploadId of uploads) if (!heldElsewhere.get({ uploadId })) deleteUpload.run(uploadId, userId)
+	for (const uploadId of uploads) if (!heldElsewhere.get({ uploadId, userId })) deleteUpload.run(uploadId, userId)
 	if (row.sha256 && !fileOnAnOrder.get(userId, row.sha256)) forgetReading.run(userId, row.sha256)
 	return true
 })

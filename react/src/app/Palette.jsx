@@ -10,6 +10,7 @@ import { MAC } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { forgetRecent, noteRecent, readRecent } from './recent.js'
 import { useScanPicker } from './scanPicker.jsx'
+import { vendorName } from './orderRow.jsx'
 
 export { forgetRecent }
 
@@ -35,7 +36,7 @@ export function useRecentRecords() {
 
 // a phone keeps the name and one line of detail, without the amount (7b)
 const orderRow = (o, touch) => ({
-	key: 'recent-order-' + o.id, icon: 'receipt', name: o.vendor?.name ?? 'No vendor', open: true, read: [getOrder, [o.id]],
+	key: 'recent-order-' + o.id, icon: 'receipt', name: vendorName(o), open: true, read: [getOrder, [o.id]],
 	meta: [o.reference, dayShortMonth(o.date), touch ? null : currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
 })
 const vendorRow = v => ({
@@ -110,7 +111,7 @@ function shape(needle, list, hits, vendors, touch) {
 		needle,
 		touch,
 		orders: list.orders.map(o => ({
-			key: 'order-' + o.id, icon: 'receipt', name: o.vendor?.name ?? 'No vendor',
+			key: 'order-' + o.id, icon: 'receipt', name: vendorName(o),
 			meta: [o.reference, dayShortMonth(o.date)].filter(Boolean).join(dot), value: amount(o.total), to: `/orders/${o.id}`
 		})),
 		ordersCount: list.matched,

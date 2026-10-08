@@ -15,7 +15,7 @@ import { pageCount, pageImage } from '../lib/filePages.js'
 import { fromEpoch, nowEpoch } from '../lib/dates.js'
 import { assertImageOrPdf } from '../lib/fileType.js'
 import { MAX_UPLOAD_MB } from '../lib/constants.js'
-import { UPLOAD_TTL_SECONDS, answerOf, draftOfUpload, draftRow, draftsAsOrders, heldBy, readings } from '../lib/orderDrafts.js'
+import { UPLOAD_TTL_SECONDS, answerOf, discardDraft, draftOfUpload, draftRow, draftsAsOrders, heldBy, readings } from '../lib/orderDrafts.js'
 import { forgetReads } from '../lib/readCache.js'
 
 export const router = Router()
@@ -39,17 +39,21 @@ const selectOrdersWithFile = db.prepare(`
 	WHERE a.sha256 = @sha256 AND o.user_id = @userId
 	ORDER BY o.date DESC, o.created_at DESC`)
 
+// a draft scanned from these bytes
+const selectDraftWithFile = db.prepare(`SELECT d.id FROM scan_uploads u JOIN order_drafts d ON d.upload_id = u.id
+	WHERE u.user_id = ? AND u.sha256 = ? LIMIT 1`)
+
 /** What is already known about these bytes: when they were read, the orders that hold them and the
-    draft that does (3c). Nothing is known of a file that was never read and no draft holds. */
-function seenBefore(userId, sha256, uploadId) {
+    draft scanned from them (3c). Nothing is known of a file that was never read and no draft holds. */
+function seenBefore(userId, sha256) {
 	const orders = selectOrdersWithFile.all({ sha256, userId })
 	const read = selectReadingTime.get(userId, sha256)
-	const holder = uploadId ? heldBy(userId, uploadId) : null
-	const draft = holder ? draftsAsOrders(userId).find(d => d.id === holder) : null
+	const holder = selectDraftWithFile.get(userId, sha256)?.id
+	const [draft] = holder ? draftsAsOrders(userId, holder) : []
 	if (!read && !draft) return null
 	return {
 		readAt: read ? new Date(read.read_at * 1000).toISOString() : null,
-		draft: draft ? { id: draft.id, vendor: draft.vendor?.name ?? null, scanned: draft.draft.scanned, total: draft.total } : null,
+		draft: draft ? { id: draft.id, vendor: draft.vendor?.name ?? null, file: draft.draft.file, scanned: draft.draft.scanned, total: draft.total } : null,
 		count: orders.length,
 		orders: orders.slice(0, 3).map(o => ({
 			id: o.id, reference: o.reference, date: fromEpoch(o.date), itemCount: o.item_count, status: o.status,
@@ -60,7 +64,7 @@ function seenBefore(userId, sha256, uploadId) {
 const uploadAnswer = (row, name, userId) => ({
 	key: row.id, name, kind: row.kind, hasThumbnail: Boolean(row.has_thumbnail), pages: row.pages ?? null,
 	meta: `${row.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(row.size)}`,
-	sha256: row.sha256, seen: seenBefore(userId, row.sha256, row.id)
+	sha256: row.sha256, seen: seenBefore(userId, row.sha256)
 })
 /* An upload nobody holds, or one that already became an order's attachment, is swept once
    expires_at passes (lib/orderDrafts.js sets the lifetime); one a draft holds stays while it does. */
@@ -83,11 +87,12 @@ export function scheduleUploadCleanup() {
    same file, a re-export from the camera roll, a receipt dropped twice, or the same document
    scanned again after the order it first produced was deleted. The existing row is the answer
    either way: same id, same cached ai_read_json if the draft was already opened, no second
-   resize and no second model call for a document this account has already paid to read once. */
+   resize and no second model call for a document this account has already paid to read once.
+   A draft's own file is never the answer: it goes with the draft, so the new upload is its own. */
 const selectUploadByHash = db.prepare(`
 	SELECT id, kind, size, pages, sha256, (thumbnail IS NOT NULL) AS has_thumbnail
-	FROM scan_uploads WHERE user_id = @userId AND sha256 = @sha256
-		AND (expires_at > @now OR id IN (SELECT upload_id FROM order_drafts WHERE user_id = @userId AND upload_id IS NOT NULL))
+	FROM scan_uploads u WHERE user_id = ? AND sha256 = ? AND expires_at > ?
+		AND NOT EXISTS (SELECT 1 FROM order_drafts d WHERE d.upload_id = u.id)
 	ORDER BY created_at DESC LIMIT 1`)
 /* Split by what each reader draws: the draft screen wants the row's facts, the thumbnail route
    its own bytes -- never both BLOBs decoded to answer a metadata question. */
@@ -103,10 +108,9 @@ const selectUploadForRead = db.prepare(`SELECT id, user_id, name, size, kind, co
 	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM scan_uploads WHERE id = ? AND user_id = ?`)
 const saveAiRead = db.prepare('UPDATE scan_uploads SET ai_read_json = @json WHERE id = @id AND user_id = @userId')
 
-/** A dropped receipt, kept until review turns it into an order. There is no OCR behind this —
-    see getDraft below — so nothing here reads the file's contents beyond resizing it (an image
-    gets a display copy and a thumbnail; a PDF's bytes are kept as-is with a rendered-first-page
-    thumbnail — lib/images.js — same processing a direct order attachment upload gets). */
+/** A file kept until a save files it: an image gets a display copy and a thumbnail, a PDF keeps its
+    bytes and gets a thumbnail of its first page (lib/images.js). `?scan=1` makes it a scan (3a): a
+    file not seen before becomes a draft, and is read whether or not anyone waits. */
 router.post('/documents', requireConfirmed, upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
@@ -115,8 +119,8 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 	// The source bytes' own hash, before any resizing -- two uploads of the same file hash the
 	// same regardless of what processAttachment below would make of either.
 	const sha256 = createHash('sha256').update(file.buffer).digest('hex')
-	const existing = selectUploadByHash.get({ userId: req.user.id, sha256, now: nowEpoch() })
-	if (existing) return res.status(200).json(uploadAnswer(existing, file.originalname, req.user.id))
+	const existing = selectUploadByHash.get(req.user.id, sha256, nowEpoch())
+	if (existing) return res.status(200).json(scanned(req, uploadAnswer(existing, file.originalname, req.user.id)))
 
 	// The kind the bytes declare, not the one the filename claims -- see lib/fileType.js.
 	// kept for an order's own file; attaching it to a line leaves the full size behind
@@ -132,17 +136,18 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 		expiresAt: nowEpoch() + UPLOAD_TTL_SECONDS, pages: processed.pages ?? null,
 		original: processed.original, originalCompressed: processed.originalCompressed ? 1 : 0, originalContentType: processed.originalContentType
 	})
-	const answer = uploadAnswer({
+	res.status(201).json(scanned(req, uploadAnswer({
 		id, kind, size: processed.size, pages: processed.pages, sha256, has_thumbnail: processed.thumbnail != null
-	}, file.originalname, req.user.id)
-	// a file not seen before is a draft from now on (3a), and is read whether or not anyone waits
-	if (!answer.seen) {
-		answer.draftId = draftOfUpload(req.user.id, id)
-		const row = selectUploadForRead.get(id, req.user.id)
-		if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(() => {})
-	}
-	res.status(201).json(answer)
+	}, file.originalname, req.user.id)))
 })
+
+function scanned(req, answer) {
+	if (req.query.scan !== '1' || answer.seen) return answer
+	const draftId = draftOfUpload(req.user.id, answer.key)
+	const row = selectUploadForRead.get(answer.key, req.user.id)
+	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(() => {})
+	return { ...answer, draftId }
+}
 
 /** A stored upload's own bytes: an image's display copy, or the PDF as it arrived. */
 const selectUploadFile = db.prepare('SELECT name, content_type, data, data_is_compressed FROM scan_uploads WHERE id = ? AND user_id = ?')
@@ -178,7 +183,9 @@ router.get('/documents/:key/pages/:page', async (req, res) => {
 })
 
 /** Forget the reading of these bytes, so the next opening of the draft reads the file again (3c). */
-const clearUploadReading = db.prepare('UPDATE scan_uploads SET ai_read_json = NULL WHERE user_id = ? AND sha256 = ?')
+// a draft keeps the reading it was opened with
+const clearUploadReading = db.prepare(`UPDATE scan_uploads SET ai_read_json = NULL WHERE user_id = ? AND sha256 = ?
+	AND NOT EXISTS (SELECT 1 FROM order_drafts d WHERE d.upload_id = scan_uploads.id)`)
 const forgetReading = db.prepare('DELETE FROM scan_readings WHERE user_id = ? AND sha256 = ?')
 const selectUploadHash = db.prepare('SELECT sha256 FROM scan_uploads WHERE id = ? AND user_id = ?')
 router.post('/documents/:key/reread', (req, res) => {
@@ -191,12 +198,18 @@ router.post('/documents/:key/reread', (req, res) => {
 	res.json({ key: req.params.key })
 })
 
-/** Throws an upload away now rather than when it expires. The reading of it is kept; a draft's file goes with the draft. */
+/** Throws an upload away now rather than when it expires. The reading of it is kept. A scanned file
+    is its draft's: the draft goes with it (6d). One a draft holds as an added file stays. */
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
-const heldAsFile = db.prepare('SELECT 1 FROM order_draft_files WHERE upload_id = ? LIMIT 1')
+const heldAsFile = db.prepare(`SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id
+	WHERE d.user_id = ? AND f.upload_id = ? LIMIT 1`)
 router.delete('/documents/:key', (req, res) => {
-	if (heldBy(req.user.id, req.params.key) || heldAsFile.get(req.params.key))
-		return res.status(409).json({ error: 'This file belongs to a draft. Discard the draft to remove it.' })
+	const holder = heldBy(req.user.id, req.params.key)
+	if (holder) {
+		discardDraft(req.user.id, holder)
+		return res.json({ key: req.params.key })
+	}
+	if (heldAsFile.get(req.user.id, req.params.key)) return res.status(409).json({ error: 'This file belongs to a draft. Discard the draft to remove it.' })
 	deleteUpload.run(req.params.key, req.user.id)
 	res.json({ key: req.params.key })
 })
@@ -205,12 +218,13 @@ router.delete('/documents/:key', (req, res) => {
     (lib/scanParse.js) and caches the result on the upload row, so a reload of step 2 or 3 --
     both fetch this for the same key -- never pays for a second read. Falls back to the same
     honest blank draft this route always returned when no ANTHROPIC_API_KEY is configured, or
-    when the read fails. The answer names the scan's draft and the form as it was left (3a). */
+    when the read fails. `?draft=1` is the scan's review (3a): the file is a draft from then on, and the
+    answer names it and the form as it was left. A receipt compared with an order (3d) makes none. */
 router.get('/draft/:key', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
-	const made = !heldBy(req.user.id, upload.id)
-	const draft = draftRow(req.user.id, draftOfUpload(req.user.id, upload.id))
+	const made = req.query.draft === '1' && !heldBy(req.user.id, upload.id)
+	const draft = req.query.draft === '1' ? draftRow(req.user.id, draftOfUpload(req.user.id, upload.id)) : null
 	if (made) forgetReads(req.user.id)
 
 	/* ?progress=stream answers in NDJSON: `{ progress: { found, lines } }` lines while the file is
@@ -224,8 +238,8 @@ router.get('/draft/:key', async (req, res) => {
 		? { read: JSON.parse(upload.ai_read_json), failure: null }
 		: await readOnce(req.user.id, upload, req.today, progress => { if (streaming && !res.writableEnded) res.write(JSON.stringify({ progress }) + '\n') }, res)
 	const answer = {
-		...answerOf({ userId: req.user.id, today: fromEpoch(draft.created_at) }, upload, read, failure),
-		draftId: draft.id, form: draft.form ? JSON.parse(draft.form) : null
+		...answerOf({ userId: req.user.id, today: draft ? fromEpoch(draft.created_at) : req.today }, upload, read, failure),
+		draftId: draft?.id ?? null, form: draft?.form ? JSON.parse(draft.form) : null
 	}
 	if (streaming) res.end(JSON.stringify({ draft: answer }) + '\n')
 	else res.json(answer)
