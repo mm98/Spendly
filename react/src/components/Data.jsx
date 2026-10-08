@@ -34,9 +34,8 @@ const BARS = { default: null, plot: 'sp-bars--plot', card: 'sp-bars--plot sp-bar
 // the columns that have not arrived, as States 6b draws them
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
-/** The step between labelled bars when not every label fits (c14): counted from the first bar, the
-    smallest that keeps `--sp-16` x 3 clear between labels, one that divides the span where there is
-    one, else one whose last gap is at least half a step. The last bar is always labelled. */
+/** Labels stand a step apart from the first bar, and the last is always labelled (c14): the smallest step
+    keeping `--sp-16` x 3 clear, one dividing the span where one does, else one leaving a last gap of half or more. */
 function stepOf(span, least) {
 	if (least <= 1) return 1
 	for (let k = least; k < least * 2; k++) if (span % k === 0) return k
