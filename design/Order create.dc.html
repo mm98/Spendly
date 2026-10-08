@@ -32,7 +32,7 @@
     <span class="doc-badge" id="3a">3a</span>
     <span class="doc-section__title">New order - scan a receipt</span>
   </div>
-  <div class="doc-lede">Three steps: pick a way to start, drop the file, then check what was read - in the ordinary edit screen, which is also where you stay once it is saved. Reviewing a scan and editing a saved order are one screen in two states, not two screens. Nothing is saved until you create the order, and every extracted value stays editable.</div>
+  <div class="doc-lede">Three steps: pick a way to start, drop the file, then check what was read - in the ordinary edit screen, which is also where you stay once it is saved. Reviewing a scan and editing a saved order are one screen in two states, not two screens. Nothing becomes an order until you create it: from the moment the file is uploaded the scan is kept as a draft, and every extracted value stays editable.</div>
 
   <div class="doc-specimen">
     <span class="doc-specimen__label">Step 1 · how to start</span>
@@ -130,10 +130,10 @@
                   <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><span class="sp-spinner"></span></span>
                   <strong class="sp-data">Reading the lines…</strong>
                 </div>
-                <span class="sp-meta">Usually 5 - 10 seconds. You can keep working.</span>
+                <span class="sp-meta">Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.</span>
               </div>
               <div class="oc-read__foot">
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Cancel</button>
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Discard</button>
               </div>
             </div>
           </div>
@@ -226,6 +226,20 @@
                 <button type="button" class="sp-btn sp-btn--outline sp-btn--small">+ Add a line the scan missed</button>
                 <span class="sp-grow"></span>
                 <span class="sp-subtitle">Lines 3.980,00 kr. · shipping 149,00 kr.</span>
+              </div>
+            </div>
+
+            <div class="sp-card">
+              <span class="sp-section-label">Attachments · 1</span>
+              <div class="sp-strip">
+                <span class="sp-attachment">
+                  <span class="sp-mark sp-mark--xlarge sp-mark--none"><button type="button" class="sp-mark__open">PDF</button></span>
+                  <span class="sp-attachment__name">faktura-indbo-4471.pdf</span>
+                </span>
+                <label class="sp-mark sp-mark--xlarge sp-mark--add">
+                  <input type="file" multiple="{{ true }}" accept="application/pdf,image/jpeg,image/png,image/webp,image/gif">
+                  <span class="sp-meta">Add files</span>
+                </label>
               </div>
             </div>
           </div>
@@ -643,8 +657,14 @@
     <div class="doc-note"><b>A tick on every line, and the confidence tones,</b> belong to the unsaved state: a line can still be left out, and a value read badly is marked amber. Once the order is saved there is nothing to leave out, so the column and the tones go.</div>
     <div class="doc-note"><b>The bar at the top changes tone, not place:</b> amber with a count of values to look at while the order is a proposal, green with the file it came from once it is created.</div>
     <div class="doc-note"><b>The action pair is Discard / Create order, then Cancel / Save.</b> Same footer, same two slots.</div>
-    <div class="doc-note"><b>Attachments appear only in the saved state,</b> because the receipt is attached by the save. Before that the file is an upload, not an attachment.</div>
+    <div class="doc-note"><b>Attachments is the same card in both states,</b> beneath the lines, with the scanned file as its first attachment. Opening it is the viewer (<a href="Dark mode and image viewer.dc.html#12b">12b</a>), as on any order. The file is never shown beside the form.</div>
     <div class="doc-note">Building it twice would produce two screens in code that have to be kept identical by hand. It is one screen with an <b>unsaved</b> flag.</div>
+    <span class="doc-notes__label">A scan is a draft until it is created or discarded</span>
+    <div class="doc-note"><b>The scan is an order with status Draft from the moment its file is uploaded</b>, through the reading and the review, until Create or Discard. Leaving in any other way keeps it: Back, another page, closing the tab or the app, a phone put away while it reads. There is no Save as draft button and no question on leaving. Leaving the review shows the toast "Kept in Drafts", with no Undo, since nothing was lost. Like every draft it moves no money until it is created.</div>
+    <div class="doc-note"><b>What is on the screen is what is kept.</b> The review is written to the draft as it is edited: the values as changed, the lines ticked and unticked, and the marks - which values were hard to read, which lines were unsure, which of them have been touched. A draft never removes itself, and its file stays with it for as long as it exists.</div>
+    <div class="doc-note"><b>Opening a draft later is step 3 exactly as drawn</b>, on desktop and on a phone: the amber bar with the count still to look at, the ticks, the tones, Jump to first. A value touched before leaving stays cleared. The file is in Attachments, beneath the lines. A draft whose reading has not finished opens step 2, and step 3 when the reading is done. It opens from Home's Drafts card, the order list (status Draft) and the palette's Drafts.</div>
+    <div class="doc-note"><b>Create turns the draft into an order</b> with the status a scan gets today: the account's default status, or the one the document shows when Settings, Defaults lets a scan set it (<a href="Settings and import.dc.html#11a">11a</a>). The button stays <b>Create</b>, the rule on every new record: the draft is not an order until then. <b>Discard</b> is the 6d dialog (<a href="States and confirmations.dc.html#6d">6d</a>), because the file goes with it.</div>
+    <div class="doc-note"><b>Without a reader key</b> the blank scan is kept as a draft the same way: the file, and no values.</div>
     <span class="doc-notes__label">Category suggestions</span>
     <div class="doc-note"><b>Vendor defaults fill the field; suggestions sit under it.</b> A suggestion is a dashed chip and adds nothing until it is tapped. Tapped, it moves into the field as an ordinary chip - the saved state above shows Lighting taken and Seating left.</div>
     <div class="doc-note"><b>A category that does not exist yet says so in its label:</b> "+ New: Seating". Tapping it creates the category and adds it to the order in one step. Existing categories read "+ Lighting".</div>
@@ -862,7 +882,8 @@
         <div class="doc-note"><b>The cost is ours, so it stays out of the UI.</b> Each scan is a paid API call, which is the reason this screen exists - but a per-action price tag would make the user manage our infrastructure bill, and they cannot act on a figure they did not agree to. The design carries the intent instead: reusing the reading is the primary button and reads as the obvious choice, re-reading is a secondary. No amounts, no warnings, no counters.</div>
         <div class="doc-note"><b>Never blocks.</b> Re-reading is legitimate when the cached reading was wrong and the model has improved since - the one case where a second call is worth making. It stays one click.</div>
         <div class="doc-note"><b>Show the matched order, not just the fact.</b> Vendor, reference, date, line count, total, and when it was scanned. "You have already imported this file" without the order is a dead end - the user's next question is always <i>which one</i>, and answering it here saves a trip to the list.</div>
-        <div class="doc-note"><b>Compare the files</b> opens both in the viewer (12b) side by side. Rarely needed for an exact hash match, but it is the only way to be sure the stored file is what you think it is - and it costs one link.</div>
+        <div class="doc-note"><b>A file whose draft still exists</b> is "Scanned before" too, pointing to the draft: the record shows its vendor or file name and scan day, and the first button reads "Open that draft", opening it in the review (<a href="#3a">3a</a> step 3).</div>
+    <div class="doc-note"><b>Compare the files</b> opens both in the viewer (12b) side by side. Rarely needed for an exact hash match, but it is the only way to be sure the stored file is what you think it is - and it costs one link.</div>
         <div class="doc-note"><b>There is no Attach.</b> A matched hash means that order already holds this exact file, so there is nothing to add from here.</div>
         <div class="doc-note"><b>Multiple matches</b> list up to three orders, newest first, with a count if there are more. Each row carries its own "Open that order".</div>
         <div class="doc-note"><b class="sp-ink">One primary on this screen: Open that order.</b> The two alternatives are equal-weight rows with outline buttons, and neither carries the green border. A tinted, bordered option plus its own filled button would be a second primary - and it would recommend the path the user most likely did not want, since a repeated receipt usually means they meant the existing order.</div>

@@ -1,32 +1,27 @@
-# Spendly - changes since handoff_2026_10_07f_changes_fixed
+# Spendly - changes since handoff_2026_10_07g_changes
 
-Copy these files over handoff_2026_10_07f_changes_fixed.
-
-## Answer to "phone top bar: Back and title, or search only?"
-Yes, a screen one level down on a phone has Back and a title. The drawings were right; the rule text was wrong.
-
-- Places (the four destinations and anything inside them) keep the search-only top bar and the tab bar, at every width.
-- On a phone, a screen one level down swaps the search bar for Back and a title:
-  - a record's own page (Mobile screens, order and vendor frames)
-  - a record in create or edit (Order editing layouts 1c)
-  - the scan review (Order create 3a, Mobile screens "Check the reading")
-  - the receipt comparison (Order create 3d, specimen 4)
-- This is the same list of screens that already drops the tab bar (Navigation shell, tab bar note).
-- Search is not offered inside these screens. It is one Back away, and the task ends first, as with the tab bar.
-- On 3d, Back is Cancel: the file stays attached and nothing else changes.
-- Desktop is unchanged: the search bar on every screen.
+Copy these files over handoff_2026_10_07g_changes. Replaces handoff_2026_10_08_changes and handoff_2026_10_08b_changes, which it holds together. Answers to Brief 31 (a scan stays a draft) are in Brief 31 answers.md.
 
 ## Changes
-- Navigation shell: the top bar note now states the rule above.
-- Mobile screens: the shell note now states the rule above. The three back buttons were labelled "Action"; they are now labelled "Back".
-- Order create 3d: the Top bar note points to the rule.
-- styles/check.js: new rule "Back is labelled Back". Run against the previous Mobile screens it flags 3 buttons.
+- Home 10a: new Drafts card, first in the left column, newest 3, "All 5" to /orders?status=Draft, absent with no drafts. Recent orders leaves drafts out. Notes and routes added.
+- Mobile screens 7a: Drafts card on Home under This month, with a note.
+- Order create 3a: the lede and reading copy say the scan is kept as a draft. The reading's Cancel is now Discard. New notes group "A scan is a draft until it is created or discarded".
+- Order create 3a step 3: the scanned file is in the Attachments card beneath the lines, the same card as the saved state. It is not shown beside the form.
+- Order create 3c: note on a file whose draft exists.
+- States and confirmations 6d: the discard dialog says the file goes too. 6e: the slow-reading line names Drafts, and Discard uses 6d.
+- Actions inventory 16a: Save as draft removed. Cancel (reading) is now Discard (reading).
+- Images and files 17a: a scan's file is outside the 24-hour cleanup.
+- Order list 2b: note that drafts stay in the list.
 
 ## Check
 - 0 findings across 26 pages.
 
 ## Files
-- Navigation shell.dc.html
+- Home.dc.html
 - Mobile screens.dc.html
 - Order create.dc.html
-- styles/check.js
+- States and confirmations.dc.html
+- Actions inventory.dc.html
+- Images and files.dc.html
+- Order list.dc.html
+- Brief 31 answers.md

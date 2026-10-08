@@ -45,10 +45,11 @@
     <div class="doc-note"><b>Past the compared month the bar stops full and stays green</b> (state 2 below). That month is a reference, not a limit, so there is no over segment and no amber on the bar. The share keeps counting past 100%. The only amber is the "ahead of pace" word, by the same rule as before.</div>
     <div class="doc-note"><b>With nothing in the compared month the bar is drawn empty</b> (state 4 below): a new account, an account younger than a year on Same month last year, or a month with no orders. There is no fallback to the other choice; the line names the month it looked at. The track takes the faded <code>sp-gauge--untargeted</code> ground, with no fill and no marker, and the line under it reads "Nothing from July to compare with yet." (or the month with its year). No pace words. The card keeps its height.</div>
     <div class="doc-note"><b>A very large reference month is not corrected.</b> The line names its amount and month, which is enough to explain a short bar. Only the chosen month is shown, never both.</div>
-    <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400. No list on Home or Statistics shows more than one page of rows (Rows per page, never fewer than 10); Home's caps sit below it. The Statistics rule is in <a href="Order statistics.dc.html#4d">4d</a>.</div>
+    <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Drafts: newest 3. Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400. No list on Home or Statistics shows more than one page of rows (Rows per page, never fewer than 10); Home's caps sit below it. The Statistics rule is in <a href="Order statistics.dc.html#4d">4d</a>.</div>
     <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
-    <div class="doc-note"><b>Card scopes differ and each says so.</b> Recent orders is all time, newest first. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
+    <div class="doc-note"><b>Card scopes differ and each says so.</b> Drafts is all time, newest scan first. Recent orders is all time, newest first, and leaves drafts out. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
     <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> categories over their limit, categories near it, orders not delivered, then possible duplicate vendors. The cap of three holds, so an account with three categories over their limit shows no other row. Each kind can be switched off in Settings, Needs a look (<a href="Settings and import.dc.html#11a">11a</a>); a switched-off kind is skipped and the next one moves up. Orders without a receipt is a kind too, off by default, since most orders have none. Each row links to the filtered list that resolves it - over the limit to <code>/categories?flag=over-limit</code>, near its limit to <code>/categories?flag=near-limit</code> - and the card is absent when there is nothing to say - never a card with a tick in it.</div>
+    <div class="doc-note"><b>Drafts lists the orders with status Draft</b>, newest scan first, at most 3, above Needs a look. A row is the file's first page as its picture, the vendor (the file name when no vendor was read), the file name and what is left to check under it, the day it was scanned, and the total when one was read. With no total the amount cell is empty. What is left to check reads "2 values need a look", "4 lines" when everything was read cleanly, "Still reading", or "Nothing read" for a blank scan. A row opens the draft in the scan review, <a href="Order create.dc.html#3a">3a</a> step 3, with its marks. A draft that did not come from a scan shows its thumbnail cell and reference as in the order list. The card is absent when there are no drafts, like Needs a look.</div>
     <div class="doc-note"><b>Orders not delivered</b> counts the orders with status Ordered dated 14 or more days ago. It is the plain count row, not a warning: "4 orders ordered over 2 weeks ago and not delivered", "1 order ordered ..." for one; on a phone "not delivered after 2 weeks". A count of zero is no row.</div>
     <div class="doc-note"><b>Last 8 months uses the plot's bars from Statistics</b>, at the size the card already has: 140 high, 8 between columns. A bar that a hover or focus reaches takes the soft tile and shows the Statistics readout (<a href="Order statistics.dc.html#4a">4a</a>) - the month and year with its total, then the note - placed by the same rules: 8 clear of the tallest of that bar and its two neighbours, standing above the chart and the card where there is no room inside (<a href="Layout rules.dc.html#15f">15f</a>), and aligned to the outer edge at either end of the chart. It never moves a bar. No category rows, since the bars are one colour.</div>
     <div class="doc-note"><b>The note reads "18 orders · click to open"</b> for a month of this year. For a month of last year it reads only "click to open", since Home holds only that year's total spend.</div>
@@ -74,6 +75,10 @@
       <div><code>/orders?status=Ordered&amp;to=&lt;day&gt;</code> - the order list filtered to status Ordered, dated up to the cutoff day, 14 days before today (<code>to=2026-08-07</code> on 21 August). It lists exactly the orders the count counts.</div>
       <div><b>Merge (duplicate vendors)</b></div>
       <div><code>/vendors?flag=possible-duplicate</code> - the vendor list filtered to the flagged pairs, panel closed.</div>
+      <div><b>A draft row</b></div>
+      <div><code>/orders/452</code> - the draft, in the scan review (<a href="Order create.dc.html#3a">3a</a> step 3).</div>
+      <div><b>All 5 (drafts)</b></div>
+      <div><code>/orders?status=Draft</code> - the order list filtered to Draft, the status chip visible and removable. It holds the same 5 drafts the link counts.</div>
       <div><b>All 248</b></div>
       <div><code>/orders</code> - unfiltered, default sort.</div>
       <div><b>An order row</b></div>
@@ -185,6 +190,58 @@
 
         <div class="hm-split hm-split--start">
           <div class="sp-stack">
+            <div class="sp-list">
+              <div class="sp-list__toolbar">
+                <span class="sp-section-label">Drafts</span>
+                <span class="sp-meta">newest 3</span>
+                <span class="sp-grow"></span>
+                <a class="sp-btn sp-btn--text sp-btn--small" href="Order list.dc.html#2b">All 5</a>
+              </div>
+              <table class="sp-table">
+                <tbody>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-cell-flex">
+                        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                        <span class="sp-stacked">
+                          <span class="sp-title sp-truncate">Indbo Møbler</span>
+                          <span class="sp-meta sp-truncate">faktura-indbo-4471.pdf · 2 values need a look</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">19/08</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">4.129,00 kr.</span></div></td>
+                  </tr>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-cell-flex">
+                        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                        <span class="sp-stacked">
+                          <span class="sp-title sp-truncate">Hay</span>
+                          <span class="sp-meta sp-truncate">kvittering-hay-1708.jpg · 3 lines</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">17/08</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.860,00 kr.</span></div></td>
+                  </tr>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-cell-flex">
+                        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                        <span class="sp-stacked">
+                          <span class="sp-title sp-truncate">IMG_2041.jpg</span>
+                          <span class="sp-meta sp-truncate">IMG_2041.jpg · Nothing read</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">16/08</span></td>
+                    <td class="sp-col-amount"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
             <div class="sp-card sp-card--flush">
               <div class="sp-list__toolbar">
                 <span class="sp-section-label">Needs a look</span>

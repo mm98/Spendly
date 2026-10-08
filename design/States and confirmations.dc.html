@@ -476,7 +476,7 @@
       <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">DIALOG</span><span class="sp-meta">irreversible · says what survives</span></div>
     <div class="sp-dialog">
       <span class="sp-heading">Discard this scan?</span>
-      <span class="sp-dialog__body">The receipt was read and 4 lines are waiting to be checked. Discarding throws away the reading, not the file - faktura-indbo-4471.pdf stays in your uploads.</span>
+      <span class="sp-dialog__body">The receipt was read and 4 lines are waiting to be checked. Discarding removes the reading and faktura-indbo-4471.pdf, and the draft leaves Drafts.</span>
       <div class="sp-dialog__actions">
         <button type="button" class="sp-btn sp-btn--outline sp-grow">Keep checking</button>
         <button type="button" class="sp-btn sp-grow" data-color="danger">Discard</button>
@@ -662,7 +662,7 @@
         </span>
         <div class="sp-stack sp-gap-6">
           <span class="sp-title">Reading is taking longer than usual</span>
-          <span class="sp-subtitle">You can leave this page - the order appears in the list when it is done.</span>
+          <span class="sp-subtitle">You can leave this page. The scan is kept in Drafts on Home and the reading carries on.</span>
         </div>
       </div>
     </div>
@@ -671,7 +671,8 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Continue manually</b> opens <a href="Order create.dc.html#3a">3a</a> step 3 with whatever was read and the file attached.</div>
     <div class="doc-note"><b>Try another photo</b> opens the file picker; the new file replaces the failed one and reading starts again.</div>
-    <div class="doc-note"><b>Discard</b> deletes the file and returns to the page the scan started from.</div>
+    <div class="doc-note"><b>Discard</b> opens the discard dialog (<a href="#6d">6d</a>); confirmed, it deletes the draft and its file and returns to the page the scan started from.</div>
+    <div class="doc-note"><b>Leaving any of these keeps the scan in Drafts</b> with what was read and the file, as leaving the review does (<a href="Order create.dc.html#3a">3a</a>). Discard is the only way to throw it away.</div>
   </div>
 </section>
 
