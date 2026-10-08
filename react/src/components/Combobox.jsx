@@ -15,7 +15,9 @@ const VARIANT = {
 	'sort-end': 'sp-combobox--sort sp-combobox--end',
 	end: 'sp-combobox--end',
 	stretch: 'sp-combobox--stretch',
-	bare: 'sp-combobox--bare'
+	bare: 'sp-combobox--bare',
+	// a pick field whose values are short: at most the field width, not the whole form column (11a)
+	narrow: 'sp-combobox--narrow'
 }
 
 const DOTS = ['draft', 'progress', 'done', 'returned', 'cancelled']

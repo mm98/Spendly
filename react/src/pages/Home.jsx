@@ -255,7 +255,7 @@ function MonthCard({ w, compared, lastAdded }) {
 	const ago = lastAdded ? daysAgo(localDay(lastAdded)) : null
 	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
-		<Card variant="shell">
+		<Card variant="shell" spread>
 			<div className="sp-row-flex sp-gap-12">
 				{w
 					? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
@@ -693,7 +693,7 @@ function CategoryLine({ category: c, early }) {
 	const limited = c.budget > 0
 	const warn = overBudget(c) || nearLimit(c, early)
 	return (
-		<Link className="sp-stack sp-gap-6 hm-link" to={`/statistics?range=month&crumbs=category:${c.id}`}>
+		<Link className="sp-stack sp-gap-6 sp-row-opens" to={`/statistics?range=month&crumbs=category:${c.id}`}>
 			<div className="sp-row-flex sp-gap-8">
 				<CategoryMark category={c} size="small" />
 				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
@@ -837,7 +837,7 @@ function PhoneRecent({ recent }) {
 		<Card>
 			<span className="sp-section-label">Recent orders</span>
 			{[0, 1, 2].map(i => (
-				<div className="sp-row-flex sp-gap-12 hm-order" key={i}>
+				<div className="sp-row-flex sp-gap-12" key={i}>
 					<Skeleton shape="mark" />
 					<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w="62pc" data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span>
 					<Skeleton shape="line" data-w="64" />
@@ -876,7 +876,7 @@ function PhoneRecent({ recent }) {
 
 function PhoneOrder({ order }) {
 	return (
-		<Link className="sp-row-flex sp-gap-12 hm-order" to={`/orders/${order.id}`}>
+		<Link className="sp-row-flex sp-gap-12 sp-row-opens" to={`/orders/${order.id}`}>
 			<OrderPhoto order={order} />
 			<div className="sp-stacked sp-grow">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
@@ -902,7 +902,7 @@ function PhoneDrafts({ drafts }) {
 			</div>
 			{rows.map(o => (o.draft
 				? (
-					<Link key={o.id} className="sp-row-flex sp-gap-12 hm-order" to={`/orders/${o.id}`}>
+					<Link key={o.id} className="sp-row-flex sp-gap-12 sp-row-opens" to={`/orders/${o.id}`}>
 						{o.draft.file ? <DraftFile file={o.draft.file} /> : <OrderPhoto order={o} />}
 						<div className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{vendorName(o)}</span>

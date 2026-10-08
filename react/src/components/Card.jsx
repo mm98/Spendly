@@ -10,9 +10,7 @@ const VARIANT = {
 	// the sign-in card, the one card that floats on the page rather than in the shell (20a)
 	float: 'au-panel',
 	// the first run's card, a step wider for its two-column choices (20d)
-	'float-wide': 'au-panel au-panel--wide',
-	// the drill path's bar above the cards it filters (c8)
-	crumbs: 'sp-crumbs-bar'
+	'float-wide': 'au-panel au-panel--wide'
 }
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }
@@ -22,6 +20,8 @@ const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__f
 export function Card({
 	variant = 'default',
 	color = 'default',
+	// stretched to the card beside it, the card shares the free height out between its groups (10a)
+	spread = false,
 	to,
 	footer,
 	footerLayout = 'fill',
@@ -33,7 +33,7 @@ export function Card({
 	...rest
 }) {
 	reject(rest, 'Card')
-	const classes = join('sp-card', pick(VARIANT, variant, 'variant', 'Card'))
+	const classes = join('sp-card', pick(VARIANT, variant, 'variant', 'Card'), spread && 'sp-card--spread')
 	const paint = color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'Card') }
 	const actions = Children.toArray(footer)
 	if (actions.length > 2) console.error('<Card> three actions is a menu, not a footer')

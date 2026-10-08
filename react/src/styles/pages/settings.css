@@ -37,8 +37,6 @@
 	.st-tone:has(input:checked) { outline: 2px solid var(--green); outline-offset: 1px; }
 	.st-tone:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
 
-	.st-w280 { max-width: 280px; }
-
 	/* import step 2 (11b): a column in the file, an arrow on the field's line, the field it maps to */
 	.st-map { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: var(--sp-10); align-items: stretch; }
 	.st-map > svg { align-self: center; justify-self: center; }

@@ -517,23 +517,23 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 		levels[Math.min(focusAt.at, levels.length - 1)]?.querySelector('button')?.focus()
 	}, [focusAt, path, root])
 	return (
-		<Card variant="crumbs">
-			<div className="os-crumbs" ref={bar}>
+		<Card ref={bar}>
+			<div className="sp-row-flex sp-gap-8">
 				<span className="sp-section-label">Showing</span>
-				<Crumbs root={root} aria-label="Showing">
-					{crumbs.map((c, i) => {
-						const label = crumbLabel(c, labels)
-						const vendor = c.kind === 'vendor' ? labels.vendors?.find(v => v.id === c.value) : null
-						const mark = c.kind === 'vendor' ? <VendorMark name={label} colour={vendor?.colour} size="small" /> : null
-						return i === crumbs.length - 1
-							? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={dropping(i)}>{mark}{label}</Crumb>
-							: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)} onRemove={dropping(i)}>{mark}{label}</Crumb>
-					})}
-				</Crumbs>
 				<span className="sp-grow" />
-				<Button variant="text" size="small" onClick={onReset}>Reset</Button>
+				<Button variant="outline" size="small" onClick={onReset}>Reset</Button>
 				<Button variant="outline" size="small" to={link}>Open in orders</Button>
 			</div>
+			<Crumbs root={root} aria-label="Showing">
+				{crumbs.map((c, i) => {
+					const label = crumbLabel(c, labels)
+					const vendor = c.kind === 'vendor' ? labels.vendors?.find(v => v.id === c.value) : null
+					const mark = c.kind === 'vendor' ? <VendorMark name={label} colour={vendor?.colour} size="small" /> : null
+					return i === crumbs.length - 1
+						? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={dropping(i)}>{mark}{label}</Crumb>
+						: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)} onRemove={dropping(i)}>{mark}{label}</Crumb>
+				})}
+			</Crumbs>
 		</Card>
 	)
 }
@@ -901,10 +901,11 @@ function CategoryShares({ view, known, name, ring, onOpen }) {
 	)
 }
 
-/** A row a reader presses to drill into what it names: the whole row is the button. */
-function Pick({ onPick, label, children }) {
-	if (!onPick) return children
-	return <button type="button" className="os-pick" onClick={onPick} aria-label={label}>{children}</button>
+/** A row a reader presses to drill into what it names: the row itself is the button, in the
+    state of a row that opens (4a). Without `onPick` it is the plain row. */
+function Pick({ onPick, label, className, children }) {
+	if (!onPick) return <div className={className}>{children}</div>
+	return <button type="button" className={`${className} sp-row-opens`} onClick={onPick} aria-label={label}>{children}</button>
 }
 
 /** A ranked list with a bar under each line: the top eight and one line for the rest, or the top
@@ -946,23 +947,23 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 		const pick = !entry.other && onOpen ? () => onOpen(entry.id ?? 'none') : undefined
 		const gauge = <Gauge thin={touch} value={share(Math.abs(entry.amount), most)} remainder={entry.other} negative={entry.amount < 0} aria-label={entry.name} />
 		return (
-			<Pick key={entry.id ?? 'none'} onPick={pick} label={`${entry.name}, ${currency(entry.amount, 0)}`}>
+			<Pick key={entry.id ?? 'none'} onPick={pick} label={`${entry.name}, ${currency(entry.amount, 0)}`} className={touch ? 'sp-stack' : 'sp-stack sp-gap-6'}>
 				{touch
 					? (
-						<div className="sp-stack">
+						<>
 							<Sum named value={amount(entry.amount, 0)}>{entry.other ? <span className="sp-subtitle">{entry.name}</span> : entry.name}</Sum>
 							{gauge}
-						</div>
+						</>
 					)
 					: (
-						<div className="sp-stack sp-gap-6">
+						<>
 							<div className="sp-row-flex sp-gap-8">
 								<span className={entry.other ? 'sp-data sp-subtitle sp-grow sp-truncate' : 'sp-data sp-grow sp-truncate'}>{entry.name}</span>
 								<span className={ink(entry)}>{currency(entry.amount, 0)}</span>
 								{counts ? <span className="sp-meta">{counted(entry.orders, 'order')}</span> : null}
 							</div>
 							{gauge}
-						</div>
+						</>
 					)}
 			</Pick>
 		)
@@ -1086,22 +1087,20 @@ function StatusCard({ view, flow = 'expenses', onOpen }) {
 			{shown.map(status => {
 				const count = view ? counts.get(status) ?? 0 : null
 				return (
-					<Pick key={status} onPick={onOpen && count ? () => onOpen(status) : undefined} label={`${nameOf(status)}, ${counted(count ?? 0, 'order')}`}>
-						<div className="sp-stack sp-gap-6">
-							<div className="sp-row-flex sp-gap-8">
-								<span className="sp-data">{nameOf(status)}</span>
-								<span className="sp-grow" />
-								{count == null
-									? <span className="sp-amount">{hold('44')}</span>
-									: (
-										<>
-											<span className="sp-amount">{amount(count, 0)}</span>
-											<span className="sp-meta">{Math.round(share(count, total))}%</span>
-										</>
-									)}
-							</div>
-							<Gauge value={share(count ?? 0, total)} aria-label={nameOf(status)} />
+					<Pick key={status} onPick={onOpen && count ? () => onOpen(status) : undefined} label={`${nameOf(status)}, ${counted(count ?? 0, 'order')}`} className="sp-stack sp-gap-6">
+						<div className="sp-row-flex sp-gap-8">
+							<span className="sp-data">{nameOf(status)}</span>
+							<span className="sp-grow" />
+							{count == null
+								? <span className="sp-amount">{hold('44')}</span>
+								: (
+									<>
+										<span className="sp-amount">{amount(count, 0)}</span>
+										<span className="sp-meta">{Math.round(share(count, total))}%</span>
+									</>
+								)}
 						</div>
+						<Gauge value={share(count ?? 0, total)} aria-label={nameOf(status)} />
 					</Pick>
 				)
 			})}

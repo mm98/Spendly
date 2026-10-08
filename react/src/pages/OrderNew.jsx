@@ -225,7 +225,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 		</div>
 	)
 	return (
-		<div className="oc-narrow sp-stack sp-gap-12">
+		<div className="oc-narrow">
 			<Card aria-busy="true">
 				<div className="oc-row-top">
 					<div className="oc-preview" role="img" aria-label={file.name ?? 'The receipt'}>
@@ -551,21 +551,21 @@ function Start({ scanOnly, file, from, picking }) {
 					<span className="sp-title">Drop receipt here</span>
 					<span className="sp-meta">PDF, JPG, PNG, WebP or GIF{dot}up to {MAX_FILE_MB} MB per file</span>
 				</FileDrop>
+				{refused ? <div className="oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
+				{scanOnly
+					? null
+					: (
+						<>
+							<div className="sp-divider">or</div>
+							<div className="oc-choices">
+								<StartChoice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
+								{copyable
+									? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy an order" body="Same vendor, same lines, new date." />
+									: null}
+							</div>
+						</>
+					)}
 			</div>
-			{refused ? <div className="oc-narrow oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
-			{scanOnly
-				? null
-				: (
-					<>
-						<div className="sp-divider oc-narrow">or</div>
-						<div className="oc-choices">
-							<StartChoice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
-							{copyable
-								? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy an order" body="Same vendor, same lines, new date." />
-								: null}
-						</div>
-					</>
-				)}
 			{picking ? <CopyPicker onClose={() => navigate('/orders/new', { replace: true })} /> : null}
 		</Empty>
 	)
