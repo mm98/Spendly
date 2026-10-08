@@ -43,6 +43,7 @@ Lift these closely; they are written to be ported, not reinterpreted.
 7. Do not change any settled font size, weight, colour, radius or dimension. If content does not fit, say so and ask.
 8. A card's name is always in a `CardHeader`, passed as a child of `Card`. Never build a card head from a row, a label and a spacer: `CardHeader` renders nothing outside `Card`, and the checks report a head built any other way. Pick the head's content from its slots (`name`, `meta`, `aside`, `control`, `status`, `actions`, `onDismiss`); a head the slots cannot express is a gap in the library, so ask.
 9. A chart's legend goes under the chart. A crumb is text only. A row that opens something is `sp-row-opens` on a link or a button.
+10. Every field a finger types into is 16px on touch (`.sp-touch`), or iOS zooms in on focus. Never prevent it with `maximum-scale` or `user-scalable=no` in the viewport.
 
 Screens and their pages:
 

@@ -41,6 +41,7 @@
     <div class="doc-note"><b>Native element per job.</b> A field is <code>&lt;label&gt;</code> plus <code>&lt;input&gt;</code>, a list is a <code>&lt;table&gt;</code>, a menu is a <code>&lt;menu&gt;</code> of <code>&lt;li&gt;&lt;button&gt;</code>, a measurement is a <code>&lt;meter&gt;</code>. Hover, focus, checked, disabled and validity are the element's own states; nothing here simulates one.</div>
     <div class="doc-note"><b>Data belongs to the page.</b> Labels, counts and figures below are example data. Only what the notes name is fixed.</div>
     <div class="doc-note"><b>Touch is the same component.</b> A touch surface adds <code>.sp-touch</code>: control height goes to <code>--control-h-touch</code> and buttons fill the width. Nothing is redrawn.</div>
+    <div class="doc-note"><b>Every field you type into is 16px on touch</b>, its text and its placeholder: an input, a textarea, the add field of a tokens field, the palette's search, a cell input, a stepper's value. Below 16px iOS (Safari and any app web view) zooms the page in when the field takes focus and leaves it zoomed, as the category picker in a bookmark did on an iPhone 15. Fix the size, never the viewport: <code>maximum-scale=1</code> or <code>user-scalable=no</code> stops the zoom by taking pinch zoom away from everyone.</div>
   </div>
 </section>
 

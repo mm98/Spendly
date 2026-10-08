@@ -65,6 +65,18 @@ const PAGES = ['Actions inventory','Auth and first run','Bookmarks','Budget','Co
    caught a real defect; `why` names it, so nobody has to guess whether it matters. */
 const RULES = [
 {
+  id: 'a field on touch is 16px',
+  why: 'The add field in the bookmark category picker was 14px on a phone, so iOS zoomed the page in when it took focus and left it zoomed.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-touch input, .sp-touch textarea').forEach(e => {
+      if (/^(checkbox|radio|range|file|hidden|button|submit)$/.test(e.type) || e.readOnly || e.disabled) return;
+      if (!e.getBoundingClientRect().width) return;
+      const fs = parseFloat(CS(e).fontSize);
+      if (fs < 16) add(`a ${e.type || 'text'} field (.${(e.className || '').split(' ')[0] || e.tagName.toLowerCase()}) is ${fs}px on touch; under 16px the phone zooms in on focus`, e);
+    });
+  }
+},
+{
   id: 'unique ids',
   why: 'Responsive reference drew one field grid at two widths, so three ids existed twice and every label pointed at the first copy.',
   run(doc, add) {
@@ -723,7 +735,7 @@ function render() {
         if (seen.has(f.detail) || seen.size >= 8) continue;
         seen.add(f.detail);
         const li = document.createElement('li');
-        li.innerHTML = `<span class="page">${page}</span> — ${f.detail} `;
+        li.innerHTML = `<span class="page">${page}</span> - ${f.detail} `;
         if (f.el && f.frame) {
           const a = document.createElement('button');
           a.className = 'show';
@@ -735,7 +747,7 @@ function render() {
       }
       if (new Set(details).size > 8) {
         const li = document.createElement('li');
-        li.textContent = `${page} — and ${new Set(details).size - 8} more`;
+        li.textContent = `${page} - and ${new Set(details).size - 8} more`;
         ul.appendChild(li);
       }
     }
@@ -758,7 +770,7 @@ function render() {
       : list;
     for (const x of rows.slice(0, 80)) {
       const li = document.createElement('li');
-      li.innerHTML = collapse ? `${x.detail} ` : `<span class="page">${x.page}</span> — ${x.detail} `;
+      li.innerHTML = collapse ? `${x.detail} ` : `<span class="page">${x.page}</span> - ${x.detail} `;
       if (!collapse && x.el && x.frame) {
         const b = document.createElement('button');
         b.className = 'show';

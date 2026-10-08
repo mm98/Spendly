@@ -62,24 +62,19 @@ one variant per group. The roles that matter:
 
 | Role | How to detect it | What it must be |
 | --- | --- | --- |
-| Dialog or sheet foot | inside `.sp-dialog`, `.sp-sheet`, `.sp-line-editor__foot` | `--caps` |
-| Card footer, committing | inside `.sp-card__footer`, and it changes data or closes a decision | `--caps` |
-| Card footer, revealing | inside `.sp-card__footer`, and it only shows more of what is already there ("Show all 200 vendors") | `--text --small` |
-| Card header | inside `.sp-card` beside a `.sp-section-label` | `--small` |
+| Dialog, popover or line editor foot, save bar | inside `.sp-dialog__actions`, `.sp-popover__actions`, `.sp-list-item--sticky`, `.sp-savebar` | the surface sets the committing size; the button states no size |
+| Card footer, committing | inside `.sp-card__footer--commits` (it changes data or closes a decision) | the footer sets the committing size |
+| Card footer, revealing | inside a plain `.sp-card__footer` ("Show all 200 vendors") | `--outline --small` |
+| Card head or list toolbar | inside `.sp-card__head` or `.sp-list__toolbar` | `--outline --small`, at most two |
 | Page or form action | loose in a page, a toolbar, or a form | default, 42px |
 
 The distinction in a footer is **commit versus reveal**: "Update view", "Merge
-them", "Delete order" change something, so they are caps; "Show top 8 only"
-expands the card's own content, so it stays a text button.
+them", "Delete order" change something, so the footer carries `--commits`;
+"Show top 8 only" expands the card's own content, so it does not.
 
-**The footer decides, not the button.** A footer either commits or it does not, so
-every button in it agrees - including the way out. "Cancel" beside a caps "Save"
-is caps too, at `--text --caps`: it keeps the quiet treatment and takes the
-committing size, because a pair reads as a pair only when both halves are the
-same size. A 12px sentence-case Cancel next to an 11px caps Save is the most
-common version of this defect, and it looks deliberate until you measure it.
-
-Check: for every group of two or more buttons, if any is `--caps` they all are.
+**The surface decides, not the button.** A committing surface states its size once,
+and every button on it takes it - including the way out. A Cancel beside a Save is
+the same height as the Save. Labels are sentence case everywhere.
 
 Same exercise for every other repeated element: a list row, an identity mark, a
 gauge, a summary row, a field label. If two pages draw the same role differently,
@@ -99,15 +94,16 @@ that boundary is already drawn.
 
 Check: `.sp-card > .sp-btn` must return nothing. Settings had nine.
 
-## 2. Labels are written in sentence case
+## 2. A card's name is in a CardHeader
 
-`--caps` uppercases in CSS. A label typed in capitals renders identically, so the
-defect is invisible in the browser and only shows up in the source - and it is
-how a button ends up uppercase in the *wrong size*, because the text was changed
-instead of the variant.
+A card's name is always in `.sp-card__head`, the card's first child, with the name
+as its own first child - React `CardHeader`, only ever a child of `Card`. Never a row
+helper with a label and a spacer, never the name standing alone. Every part of the
+head is centred on its line. A chart's legend goes under the chart, never between the
+head and the chart. A crumb is text only.
 
-Check: any `<button>` whose text is all capitals. If it is on a `--caps` button,
-put the text back to sentence case. If it is not, the variant is missing.
+Check: `styles/check.js` and `checks.html` assert all of this; a head built any other
+way is a finding.
 
 ## 3. No class for a state the element owns
 
@@ -199,9 +195,8 @@ markup, and sort them by what they separate rather than by their value.
 
 ## 8. A token with a fallback is two values
 
-`var(--sp-24, 24px)` looks like a token and is a literal: `--sp-24` does not
-exist, so the 24 is what renders, off a scale that stops at 16. Worse, the same
-invented name can carry different literals on different pages - `--shell-deep`
+A token with a fallback such as `var(--sp-24, 24px)` (an invented name, since removed) is a literal: no `--sp-24` token exists, so the 24 is what renders, off a scale that stops at 16. Worse, the same
+invented name can carry different literals on different pages - `--shell-deep` (also removed)
 was `#14261c` on one page and `#1f1c19` on another, giving the system two dark
 grounds where it has one.
 
@@ -209,7 +204,7 @@ A fallback is legitimate only for a per-instance hook that something actually
 sets (`--swatch`, `--p`). Everywhere else it hides either a missing token or a
 value that should not exist.
 
-Check: every `var(--x, y)` in every stylesheet. Assert `--x` is defined
+Check: every `var(--name, fallback)` in every stylesheet. Assert the name is defined
 somewhere; if nothing sets it, the fallback *is* the value, so write the value.
 
 ## 9. One name, one rule
@@ -250,7 +245,7 @@ Two rules that need this check:
 - **A saving sits under the amount it belongs to**, never in a meta line beside the
   record's name: in a table row that is `.sp-cell-amount` (amount, then the saving
   beneath it), in a card it is `.sp-record__foot`, and in the narrow list card it is
-  the third line of the right column. A saving stated as a fact in a grey subtitle
+  the second line of the right column. A saving stated as a fact in a grey subtitle
   reads as prose and takes the subtitle's ink, which is how nine of them ended up
   grey while the rest were green.
 - **No em dashes, no en dashes, no curly punctuation, no decorative emoji** - anywhere,

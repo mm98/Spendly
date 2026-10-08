@@ -953,6 +953,41 @@
   /* Every part of a head is centred on its line: .sp-segmented aligns itself to the start,
      and in a head that put the switch on the head's top edge (Spend by month, 4a). */
   if (!/\.sp-card > \.sp-card__head:first-child > \*,\n\.sp-list__toolbar > \* \{ align-self: center; \}/.test(comp)) fail('every part of a head is centred', 'components.css', 'no align-self rule on head parts');
+  /* The start page lists each page's screen ids, and the docs name only what exists.
+     The handoff shipped an index listing 14b-14g and 16c-16h, which no page has, and
+     notes naming classes and tokens that were removed (sp-amount-secondary--positive,
+     --caps). The status log is history and exempt; it says so at its head. */
+  {
+    const idx = await readFile('index.html');
+    for (const m of idx.matchAll(/<a class="card" href="([^"#]+)[^"]*">[\s\S]*?<\/a>/g)) {
+      const f = decodeURIComponent(m[1]); if (!src[f]) continue;
+      const real = [...src[f].matchAll(/class="doc-badge"[^>]*>([^<]+)</g)].map(x => x[1].trim()).filter(x => /^\d+[a-z]$/.test(x));
+      const listed = [...(m[0].match(/<div class="ids"[^>]*>([\s\S]*?)<\/div>/) || [, ''])[1].matchAll(/<span>([^<]+)<\/span>/g)].map(x => x[1].trim());
+      if (listed.join() !== real.join()) fail('the start page lists each page\'s screens', 'index.html', f + ' lists ' + (listed.join(',') || 'none') + ', the page has ' + (real.join(',') || 'none'));
+    }
+    for (const w of ['DECISIONS.md', 'BEHAVIOUR.md', 'offline/', 'screenshots/']) if (idx.includes(w)) fail('the start page names only files that exist', 'index.html', w);
+    { const n = Object.values(src).reduce((t, s) => t + [...s.matchAll(/class="doc-badge"[^>]*>\d+[a-z]</g)].length, 0); const said = (idx.match(/and (\d+) screens/) || [])[1]; if (String(n) !== said) fail('the start page counts the screens', 'index.html', 'says ' + said + ', the pages have ' + n); }
+    /* the rules file is CLAUDE.md in the project and PROJECT-RULES.md in a handoff */
+    const root = await ls('');
+    const docs = [root.includes('CLAUDE.md') ? 'CLAUDE.md' : 'PROJECT-RULES.md', 'styles/CONVERSION-CHECKS.md', 'react_handoff/README.md'];
+    const toks = new Set([...tok.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+    const hooks = new Set([...allCss.matchAll(/(--[\w-]+)\s*:/g)].map(x => x[1]));
+    for (const d of docs) {
+      const s = await readFile(d);
+      /* a line saying the name was removed or does not exist is a deliberate negative example */
+      const neg = i => /never|deleted|does not exist|removed|retired|invented|were the same/i.test(s.slice(s.lastIndexOf('\n', i), s.indexOf('\n', i + 1) < 0 ? s.length : s.indexOf('\n', i + 1)));
+      for (const m of s.matchAll(/`\.?(sp-[a-z][\w-]*[a-z0-9])`/g)) if (!neg(m.index) && !new RegExp('\\.' + m[1] + '(?![\\w-])').test(allCss)) fail('the docs name only classes that exist', d, m[1]);
+      for (const m of s.matchAll(/`(--[a-z][\w-]*)`/g)) if (!toks.has(m[1]) && !hooks.has(m[1]) && !neg(m.index) && !/^--(outline|small|xsmall|commits|text|loose|link|toggle|path|spread|narrow|flush|row|shell|block|caps)$/.test(m[1])) fail('the docs name only tokens that exist', d, m[1]);
+    }
+  }
+  /* Every typed field is 16px on touch, or iOS zooms in on focus (the bookmark category
+     picker on a phone). The rule must exist and name every field that takes text. */
+  {
+    const m = comp.match(/\.sp-touch :is\(([^)]*)\)[^{]*\{ font-size: var\(--t-16\); \}/);
+    const need = ['.sp-input', '.sp-textarea', '.sp-tokens__add', '.sp-palette__term', '.sp-stepper__value', '.sp-input.sp-input--cell'];
+    if (!m) fail('a field on touch is 16px', 'components.css', 'no touch font-size rule for typed fields');
+    else for (const n of need) if (!m[1].split(',').map(x => x.trim()).includes(n)) fail('a field on touch is 16px', 'components.css', n + ' is not in the touch rule');
+  }
   /* A chart's legend is under the chart it keys. Spend by month drew it between the head
      and the chart, Spend vs saving under it: two places for one part. Checked on markup:
      the element before a legend, in its card, is the chart. */

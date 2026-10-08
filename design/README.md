@@ -1,6 +1,18 @@
 # Spendly - design system handoff, full
 
-8 October 2026. A complete package: replaces handoff_2026_10_02 and every changes package after it (10_03 to 10_08l). Nothing needs to be applied on top of an older one.
+8 October 2026. A complete package: replaces handoff_2026_10_02, handoff_2026_10_08_full and every changes package between them. Nothing needs to be applied on top of an older one.
+
+## Fixed since handoff_2026_10_08_full
+
+- **index.html** carried four developer sections from an older system: a build prompt pointing at DECISIONS.md, BEHAVIOUR.md, `screenshots/` and an `offline/` folder, none of which exist, and telling the reader to transcribe inline styles; a folder structure of CSS modules and `tokens.js`; and naming rules that contradicted `react_handoff/`. They are replaced by one section pointing at README.md, PROJECT-RULES.md and CLAUDE-CODE-PROMPT.md. The STEP numbers on the cards numbered that removed prompt and are gone.
+- **index.html screen ids** now match the pages exactly. It listed 14b-14g, 16c-16h, 5g, 5m and 5n, which no page has, and left out 3d, 4d-4f, 9i, 11a, 11c, 11d, 15f and 17e.
+- **Type specimen** used the id 1a, which is Order editing's first screen. It is 23a now.
+- **PROJECT-RULES.md** named `sp-amount-secondary--positive`, which does not exist. A green saving is `sp-amount-secondary` with `data-color="success"`.
+- **styles/CONVERSION-CHECKS.md**: rule 1 told dialog and footer buttons to be `--caps`, a variant that was removed; it now says the committing surface sets the size. Rule 2 (uppercase labels) is replaced by the CardHeader rule. Rule 11 said the saving is the third line of the narrow list card; it is the second. Removed names kept as examples now say they were removed.
+- **styles/COMPONENT-STATUS.md**: the limits named five image sizes (there are four), a type scale and radius list that did not match tokens.css, and "the twenty controls in Input types 14d" (no such section); all corrected from tokens.css. The status table gains CardHeader, the path and spread cards, the row that opens, and the narrow fields. The log now says at its head that its entries name classes as they were on their date.
+- **styles/RECOVERED-NOTES.md** is not shipped. It was working notes from removed sections, with literal colours and sizes from before the tokens.
+- Every doc in the package names the rules file PROJECT-RULES.md, its name here. In the repo, update the root README's link to it.
+- **check.js** now also asserts that the start page's ids match each page, that it names no missing file, and that PROJECT-RULES, CONVERSION-CHECKS and the React README name only classes and tokens that exist.
 
 ## About these files
 
@@ -20,7 +32,7 @@ Everything here is a design reference built in HTML: high-fidelity mockups with 
     styles/doc.css               the documentation chrome, not part of the product
     styles/pages/*.css           one file per page, for that page's layout only
     styles/check.js              the mechanical rules as assertions
-    styles/COMPONENT-STATUS.md   what is settled, the limits, the change log
+    styles/COMPONENT-STATUS.md   what is settled, the limits, the change log (history)
     styles/CONVERSION-CHECKS.md  the checks to port into the app
     react_handoff/               the React components, see its README
     Playground.dc.html           drop components on a canvas and set their props

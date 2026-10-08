@@ -4,12 +4,12 @@
 
 This library is the whole vocabulary. A screen that needs something outside it is a signal to reconsider the screen - not to add a value.
 
-- **Image sizes - five.** 64 in a form, 42 on a panel header, 36 in a list row, 24 in a chip or field, and 104 for an attachment tile. Nothing between them, and nothing outside them.
+- **Image sizes - four.** `--mark-xlarge` 104 for an attachment tile, `--mark-large` 64, `--mark-medium` 42, `--mark-small` 24. Nothing between them, and nothing outside them.
 - **Spacing - six.** 6, 8, 10, 12, 14, 16, and nothing else. Two smaller insets exist for what the scale cannot express - `--sp-2` for a badge in a corner or a switch thumb, `--sp-4` for a tile's corner control. Component-specific numbers that already exist in the implementation (a 14px row padding, a 34×38 stepper button) live inside that component and are named in its notes; they are not new spacing steps.
-- **Radius - five.** 4 marker, 8 tile, 9 field, 12 card, 999 pill, plus 10 where the implementation already uses it (SortControl, a line row, the photo menu).
-- **Type - seven sizes.** 10 eyebrow, 11 meta, 12 small, 13 body, 14 base, 15 large, 20/24/26/34 for headings and figures.
+- **Radius - six.** 4 marker, 8 tile, 9 field, 12 card, 28 phone, 999 pill (`--r-*` in tokens.css), plus 10 where the implementation already uses it (SortControl, a line row, the photo menu).
+- **Type - the `--t-*` sizes in tokens.css.** 10, 11, 12, 13, 14, 15, 16 for text; 20, 24, 34 and 64 for headings and figures.
 - **Tones - four.** Positive green, in-progress amber, problem red, neutral. There is no fifth tone and no second green for the same meaning.
-- **Controls - the twenty named in Input types 14d.** A control that is not on that list does not exist yet; adding one is a decision to take with the design, not in passing.
+- **Controls - the ones drawn in Components.dc.html.** A control that is not there does not exist yet; adding one is a decision to take with the design, not in passing.
 
 Adding to any of these lists is a change to the system: put it in the list, say why, and log it below.
 
@@ -17,7 +17,7 @@ Adding to any of these lists is a change to the system: put it in the list, say 
 A component is **locked** when its appearance has been reviewed and accepted. After that:
 
 - Its rules in `styles/components.css` are closed. Do not edit them, and do not add a rule anywhere that outranks them.
-- A new need becomes a **variant class beside it** (`.sp-btn--commits`, `.sp-icon-btn--outline`), never a change to the base.
+- A new need becomes a **variant class beside it** (`.sp-card--path`, `.sp-icon-btn--outline`), never a change to the base.
 - Generalising - folding duplicate rules, reusing tokens, merging two implementations into one - happens as its own pass, and must leave every locked component rendering exactly as it did. If it cannot, stop and ask.
 - Base and page rules live in `@layer base`, so they can never reach into a component. Component rules stay unlayered.
 
@@ -57,8 +57,15 @@ A component is **locked** when its appearance has been reviewed and accepted. Af
 | Divider with a word | c27 | Draft |
 | Source view - the file, with the regions read from it | c16 | Draft |
 | Card on the shell ground - one dark panel per page | c10 | Draft |
+| CardHeader - a card's name, its one head, centred parts | c10 | Locked |
+| Card, path - a CardHeader with the drill path on its line | c8 | Draft |
+| Card, spread - groups shared over a stretched height | c10 | Draft |
+| A row that opens something | c10 | Draft |
+| Combobox and segmented, narrow | c5 | Draft |
 
 ## Log
+
+Each entry names classes and values as they were on its date. Many were renamed or removed since, so an entry is history, not a reference: the current set is `styles/components.css` and `styles/tokens.css`, and the rules above.
 
 - 2026-09-16 - **Every text button moved to Secondary.** `.sp-btn--text` reads as
   floating text beside bordered controls, and its left edge does not line up with them.
@@ -122,7 +129,7 @@ A component is **locked** when its appearance has been reviewed and accepted. Af
 
   **A commit row right-aligns by default.** `.sp-dialog__actions` had relied on a `sp-grow` spacer in the markup, which seven rows across four pages did not have; the component sets `justify-content: flex-end` now and a spacer is only needed to separate something placed before the buttons.
 
-  **Two writing rules are now in CLAUDE.md**: a saving is always `Saved N kr.` in green and never a percentage, and no em dashes or curly punctuation anywhere - 2,107 dashes and 89 curly marks removed across 40 files, including the entity forms a character sweep cannot see.
+  **Two writing rules are now in PROJECT-RULES.md**: a saving is always `Saved N kr.` in green and never a percentage, and no em dashes or curly punctuation anywhere - 2,107 dashes and 89 curly marks removed across 40 files, including the entity forms a character sweep cannot see.
 
 - 2026-09-15 - **Collapsing the sidebar is an experiment, and it lives in 9i.**
 
@@ -712,7 +719,7 @@ first.
 - 2026-10-04 - c15 plain line editor (Brief 16): an open row draws no grip. The handle column stays as an empty spacer when the list reorders. Budget 21d and the c15 specimen updated.
 
 - 2026-10-04 - React: `Picker` keeps its name. It renders `.sp-options`, the options part of the picker; `styles/check.js` lists it as a named exception beside `DialogTitle` and `RangeSlider`.
-- 2026-10-04 - Order list, narrow card: the saving is now the second line of the right column (the card is two lines); CLAUDE.md updated to say so.
+- 2026-10-04 - Order list, narrow card: the saving is now the second line of the right column (the card is two lines); PROJECT-RULES.md updated to say so.
 
 - 2026-10-04 - Brief 17: `.sp-stats--fold` (four across at a row of 996px or more, two by two below; Statistics) and `.sp-touch .sp-stats` (two by two on a phone). `.sp-list-item__handle:empty` takes `cursor: auto`.
 
