@@ -173,7 +173,7 @@ export function AttachmentTile({ name, kind, thumb, problem, sending, twin = fal
 /* An empty text of the line's own type sizes a skeleton line to the real one exactly. */
 const strut = role => <span className={role} aria-hidden="true">{'\u200b'}</span>
 // a box a field or a button will fill, at its own height; `small` is a commit's
-const control = (key, small = false) => <div key={key} className={small ? 'or-control or-control--small' : 'or-control'}><Skeleton shape="bar" /></div>
+const control = (key, small = false) => <div key={key} className={small ? 'or-control or-control--small' : 'or-control'}><Skeleton shape="fill" /></div>
 
 const rowsLoading = n => Array.from({ length: n }, (_, i) => (
 	<ListItem key={i} mark={<Skeleton shape="mark" />}>

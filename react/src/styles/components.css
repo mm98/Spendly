@@ -2607,8 +2607,13 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
   flex: none;
   border-radius: var(--r-pill);
 }
-/* a bar in a chart that has not arrived */
-.sp-skeleton--bar { flex: 1; border-radius: 2px; height: auto; align-self: stretch; }
+/* a bar in a chart that has not arrived: it stands on the chart's baseline, as the bar
+   it stands in for does. align-self: stretch put a bar with a height on the chart's top. */
+.sp-skeleton--bar { flex: 1; border-radius: 2px; height: auto; align-self: flex-end; }
+/* a part that is not there yet, held at that part's own box (a field, a button, a limit
+   bar, a chip): the shape fills the box it sits in, in a flex row, a flex column, a grid
+   cell or a block with a height. The box gives the size; the shape never has one. */
+.sp-skeleton--fill { width: 100%; height: 100%; flex: 1 1 auto; align-self: stretch; justify-self: stretch; box-sizing: border-box; }
 
 .sp-skeleton--mark { width: var(--mark-medium); height: var(--mark-medium); border-radius: var(--r-tile); flex: none; }
 /* the mark at its form size, for a skeleton standing in for a --row card's thumbnail */

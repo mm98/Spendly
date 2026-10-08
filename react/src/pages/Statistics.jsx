@@ -572,7 +572,7 @@ const hold = (w, h = '13', shape = 'line') => <span className="sp-row-flex"><Ske
 const buttonHold = key => (
 	<span className="os-hold" key={key}>
 		<span className="os-ghost" aria-hidden="true"><Button variant="outline" size="small">Show all</Button></span>
-		<span className="os-over"><Skeleton shape="bar" /></span>
+		<span className="os-over"><Skeleton shape="fill" /></span>
 	</span>
 )
 
