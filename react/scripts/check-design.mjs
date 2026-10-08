@@ -192,6 +192,40 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- a card's head is CardHeader, and nothing else draws one ---- */
+
+{
+	const home = join(src, 'components/Card.jsx')
+	const classOf = el => {
+		const a = el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name.name === 'className')
+		return a?.value?.type === 'Literal' ? a.value.value : ''
+	}
+	const isName = el => el?.type === 'JSXElement' && /\bsp-section-label\b/.test(classOf(el))
+	// what a child expression can put in its place: the element itself, or either branch of a condition
+	const placed = c => {
+		if (!c) return []
+		if (c.type === 'JSXElement') return [c]
+		if (c.type === 'JSXExpressionContainer') return placed(c.expression)
+		if (c.type === 'ConditionalExpression') return [...placed(c.consequent), ...placed(c.alternate)]
+		if (c.type === 'LogicalExpression') return placed(c.right)
+		if (c.type === 'ParenthesizedExpression') return placed(c.expression)
+		return []
+	}
+	const firstChild = el => el.children.find(c => c.type === 'JSXElement'
+		|| (c.type === 'JSXExpressionContainer' && c.expression.type !== 'JSXEmptyExpression'))
+	for (const [p, ast] of parsed) {
+		if (p === home) continue
+		for (const s of stringsIn(ast)) if (/\bsp-card__head\b/.test(s)) fail('a card head is CardHeader', rel(p), 'writes .sp-card__head: use <CardHeader>')
+		visit(ast, n => {
+			if (n.type !== 'JSXElement') return
+			const rows = n.children.filter(c => c.type === 'JSXElement')
+			if (/\bsp-row-flex\b/.test(classOf(n)) && isName(rows[0])) fail('a card head is CardHeader', rel(p), 'a row that opens with a card name: use <CardHeader>')
+			if (n.openingElement.name.name === 'Card' && placed(firstChild(n)).some(isName))
+				fail('a card head is CardHeader', rel(p), 'a card that opens with a name written by hand: use <CardHeader>')
+		})
+	}
+}
+
 /* ---- what the product says ---- */
 
 const TELLS = [/—/, /–/, /[‘’“”]/, /&(mdash|ndash|rsquo|lsquo|ldquo|rdquo);/, /\p{Extended_Pictographic}/u]

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField, TokensField } from '../components/Inputs.jsx'
 import { useStatusTypes } from '../app/statuses.js'
@@ -275,7 +275,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const cards = (
 		<>
 			<Card>
-				<span className="sp-section-label">The vendor</span>
+				<CardHeader name="The vendor" />
 				<Field id="vendor-name" label="Name"
 					message={errors.name ?? (editing ? undefined : 'The name you will recognise in a list. Receipts can spell it differently.')}
 					messageType={errors.name ? 'danger' : 'hint'}>
@@ -300,7 +300,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			</Card>
 
 			<Card>
-				<span className="sp-section-label">Aliases</span>
+				<CardHeader name="Aliases" />
 				<Field id="vendor-aliases" label="Also matches"
 					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
 						? 'Other names this vendor uses on receipts. The name the scan read is already here - keep it so the next receipt files itself.'
@@ -327,7 +327,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			</Card>
 
 			<Card>
-				<span className="sp-section-label">Defaults for its orders</span>
+				<CardHeader name="Defaults for its orders" />
 				<Field id="vendor-defaults" label="Default categories"
 					message="Suggested on a new order from this vendor. Not applied automatically.">
 					{h(<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder="none" />)}
@@ -377,7 +377,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			)
 			: (
 				<Card>
-					<span className="sp-section-label">Vendor summary</span>
+					<CardHeader name="Vendor summary" />
 					<div className="sp-row-flex sp-gap-12">
 						<VendorMark name={name || 'New vendor'} colour={storedColour(values.colour)} />
 						<Stacked>
@@ -440,7 +440,7 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 	return (
 		<Card footer={footer} footerLayout={footer.length > 1 ? 'split' : 'fill'} footerCommits
 			after={<MergeButton merge={merge} size="small" disabled={busy}>Merge into…</MergeButton>}>
-			<span className="sp-section-label">End of its life</span>
+			<CardHeader name="End of its life" />
 			<Well>
 				<span className="sp-title">{title}</span>
 				<span className="sp-subtitle">{body}</span>
@@ -458,7 +458,7 @@ function VendorSummary({ vendor, name, colour }) {
 	const thisYear = year.data ? year.data.window.vendorSplit.find(v => v.id === vendor.id)?.amount ?? 0 : null
 	return (
 		<Card>
-			<span className="sp-section-label">Vendor summary</span>
+			<CardHeader name="Vendor summary" />
 			<div className="sp-row-flex sp-gap-12">
 				<VendorMark name={name} colour={colour} />
 				<Stacked>

@@ -1,6 +1,6 @@
 import { failureMessage } from '../api/client.js'
 import { Button } from './Button.jsx'
-import { Card } from './Card.jsx'
+import { Card, CardHeader } from './Card.jsx'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Alert } from './Overlays.jsx'
@@ -31,7 +31,7 @@ export function Failed({ variant = 'page', what, label, error, onRetry, back, ..
 		: <Button key="retry" variant="outline" size="small" onClick={onRetry}>Try again</Button>
 	if (form === 'card') return (
 		<Card footer={[action]} {...rest}>
-			<span className="sp-section-label">{label}</span>
+			<CardHeader name={label} />
 			<Alert color="danger" mark="!" title={title}>{reason}</Alert>
 		</Card>
 	)

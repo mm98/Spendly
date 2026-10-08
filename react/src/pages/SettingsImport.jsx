@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { FileDrop } from '../components/FileDrop.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -17,7 +17,7 @@ import {
 } from '../api/client.js'
 import { amount, amountRound, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
 import { buildOrders, download, guessMapping, readSheet, reuseMapping, skippedCsv, templateWorkbook } from '../api/orderImport.js'
-import { Heading, useStepFocus } from './SettingsParts.jsx'
+import { landing, useStepFocus } from './SettingsParts.jsx'
 import { ImportFooter, MapStep } from './SettingsImportMap.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { ImportButton } from './BudgetImport.jsx'
@@ -183,7 +183,7 @@ export function ImportCard() {
 
 	if (stage.name === 'undone') return (
 		<Card ref={box}>
-			<Heading section="import">Import</Heading>
+			<CardHeader name="Import" {...landing('import')} />
 			<ListItem color="success">
 				<span className="sp-row-flex sp-flex-none"><Icon name="check" /></span>
 				<span className="sp-subtitle sp-ink-accent">The import is undone. {ordersWord(stage.removed)} {stage.removed === 1 ? 'was' : 'were'} removed, with the vendors and categories it created.</span>
@@ -197,7 +197,7 @@ export function ImportCard() {
 	return (
 		<>
 			<Card ref={box}>
-				<Heading section="import">Import</Heading>
+				<CardHeader name="Import" {...landing('import')} />
 				{held
 					? (
 						<FileDrop disabled>
@@ -255,7 +255,7 @@ function BudgetImport() {
 	const navigate = useNavigate()
 	return (
 		<Card>
-			<span className="sp-section-label">Budget</span>
+			<CardHeader name="Budget" />
 			<span className="sp-data">An Excel workbook with one sheet for each year, named like 2026. You see the years it holds before anything is written.</span>
 			<div className="sp-row-flex">
 				<ImportButton onImported={years => navigate(`/budget/${Math.max(...years)}`)} />
@@ -280,7 +280,7 @@ function History({ history, onReuse }) {
 	}
 	return (
 		<Card>
-			<span className="sp-section-label">Previous imports</span>
+			<CardHeader name="Previous imports" />
 			{list.map((item, i) => {
 				const facts = [dayShortMonth(new Date(item.createdAt * 1000).toISOString().slice(0, 10)), ordersWord(item.orders)]
 				if (item.skipped) facts.push(`${amount(item.skipped, 0)} skipped`)
@@ -370,7 +370,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 		}
 	}
 
-	const heading = <Heading section="import">Import</Heading>
+	const heading = <CardHeader name="Import" {...landing('import')} />
 	const preview = drafts$.slice(0, 5)
 	const wholeOrders = source.mapping?.shape === 'order'
 	return (
@@ -535,7 +535,7 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 	useEffect(() => { history.refresh() }, [])
 	const record = history.data?.find(h => h.id === importId)
 	const vendorsMade = record ? record.vendors : fresh
-	const heading = <Heading section="import">Import</Heading>
+	const heading = <CardHeader name="Import" {...landing('import')} />
 	const again = <Button variant="outline" onClick={restart}>Import another file</Button>
 
 	// every row the file had that was not written: unreadable here, or refused by the server

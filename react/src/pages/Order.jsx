@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router'
-import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
+import { Card, CardBody, CardHeader, Panel, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
@@ -67,11 +67,7 @@ function OrderView({ order, touch, onGone }) {
 
 	const items = (
 		<Card>
-			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-section-label sp-nowrap">Items{dot}{order.items.length}</span>
-				{/* a narrow phone wraps the line rather than cutting the date */}
-				<span className={touch ? 'sp-meta or-wrap' : 'sp-meta sp-truncate'}>{order.vendor?.name}{dot}{shortDate(order.date)}</span>
-			</div>
+			<CardHeader name={`Items${dot}${order.items.length}`} meta={`${order.vendor?.name ?? ''}${dot}${shortDate(order.date)}`} />
 			<div className="sp-stack sp-gap-8">
 				{order.items.map(item => {
 					const photo = itemPhoto(order.id, item)
@@ -104,11 +100,7 @@ function OrderView({ order, touch, onGone }) {
 	const attachments = order.attachments.length
 		? (
 			<Card>
-				<div className="sp-row-flex sp-gap-8">
-					<span className="sp-section-label">Attachments{dot}{order.attachments.length}</span>
-					<span className="sp-grow" />
-					<Button variant="outline" size="small" onClick={() => downloadAll(order)}>Download all</Button>
-				</div>
+				<CardHeader name={`Attachments${dot}${order.attachments.length}`} actions={[{ label: 'Download all', onClick: () => downloadAll(order) }]} />
 				<Strip>
 					{order.attachments.map(a => (
 						<AttachmentTile key={a.id} name={a.name} kind={a.kind} bare={touch}
@@ -148,7 +140,7 @@ function OrderView({ order, touch, onGone }) {
 		)
 		: (
 			<Card>
-				<span className="sp-section-label">Order details</span>
+				<CardHeader name="Order details" />
 				{sums}
 			</Card>
 		)
@@ -163,7 +155,7 @@ function OrderView({ order, touch, onGone }) {
 			footerCommits
 			after={<Button size="small" color="danger" fullWidth onClick={() => setAsking(true)}>Delete order</Button>}
 		>
-			<span className="sp-section-label">Totals</span>
+			<CardHeader name="Totals" />
 			<div className="sp-stack">
 				<Sum value={money(order.subtotal)}>Items ({order.items.length})</Sum>
 				<Sum value={order.discount ? money(-order.discount) : money(0)}>Discount</Sum>

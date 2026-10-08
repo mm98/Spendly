@@ -2,7 +2,7 @@ import { httpUrl } from '../api/rules.js'
 import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
-import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
+import { Card, CardBody, CardHeader, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
@@ -1055,20 +1055,19 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	}
 
 	const brokenCount = tried && !relaxed ? lines.filter(l => l.include !== false && Object.keys(lineErrors(l)).length).length : 0
+	// what the head says beside the lines: what needs attention first, then how to use the list
+	const itemsAside = brokenCount
+		? (brokenCount === 1 ? '1 line needs attention' : `${brokenCount} lines need attention`)
+		: scan
+			? (lines.length ? 'Untick a line to leave it out' : undefined)
+			: touch
+				? undefined
+				: origin.copy
+					? `dated ${shortDate(draft.date)}${dot}status ${statuses.find(s => s.key === draft.status)?.name ?? draft.status}`
+					: (lines.length > 1 ? 'Drag the handle, or select a line and use ↑ ↓' : undefined)
 	const itemsHead = (
-		<div className="sp-row-flex sp-gap-8">
-			<span className="sp-section-label">{scan ? 'Lines found' : 'Items'}{dot}{lines.length}</span>
-			<span className="sp-grow" />
-			{brokenCount
-				? <span className="sp-subtitle sp-ink-danger">{brokenCount === 1 ? '1 line needs attention' : `${brokenCount} lines need attention`}</span>
-				: scan
-					? (lines.length ? <span className="sp-meta">Untick a line to leave it out</span> : null)
-					: touch
-						? (lines.length > 1 ? <Button variant="outline" size="small" onClick={() => setReordering(r => !r)}>{reordering ? 'Done' : 'Reorder'}</Button> : null)
-						: origin.copy
-							? <span className="sp-meta">dated {shortDate(draft.date)}{dot}status {statuses.find(s => s.key === draft.status)?.name ?? draft.status}</span>
-							: (lines.length > 1 ? <span className="sp-meta">Drag the handle, or select a line and use ↑ ↓</span> : null)}
-		</div>
+		<CardHeader name={`${scan ? 'Lines found' : 'Items'}${dot}${lines.length}`} aside={itemsAside} asideTone={brokenCount ? 'danger' : 'default'}
+			actions={!brokenCount && !scan && touch && lines.length > 1 ? [{ label: reordering ? 'Done' : 'Reorder', onClick: () => setReordering(r => !r) }] : undefined} />
 	)
 
 	const printed = scan?.total ?? null
@@ -1146,7 +1145,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		)
 		: (
 			<Card>
-				<span className="sp-section-label">Attachments{dot}{(receipt ? 1 : 0) + shownFiles.length + files.length}</span>
+				<CardHeader name={`Attachments${dot}${(receipt ? 1 : 0) + shownFiles.length + files.length}`} />
 				{/* a copy of an order with files starts with none (8a): the row offers them until one is added */}
 				{origin.copy?.files && !shownFiles.length && !files.length
 					? (
@@ -1275,13 +1274,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		)
 		: (
 			<Card data-details="">
-				<div className="sp-row-flex sp-gap-8">
-					<span className="sp-section-label">Order details</span>
-					<span className="sp-grow" />
-					{fixCount
-						? <Pill color="danger">{fixCount === 1 ? '1 to fix' : `${fixCount} to fix`}</Pill>
-						: creating ? <span className="sp-meta">Every value can be changed</span> : null}
-				</div>
+				<CardHeader name="Order details" aside={!fixCount && creating ? 'Every value can be changed' : undefined}
+					status={fixCount ? <Pill color="danger">{fixCount === 1 ? '1 to fix' : `${fixCount} to fix`}</Pill> : undefined} />
 				{fields}
 			</Card>
 		)
@@ -1337,7 +1331,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			footerCommits
 			after={crossed.length && !stacked && !touch ? <span className="sp-meta">You can still save. Nothing is blocked.</span> : null}
 		>
-			{scan ? <span className="sp-section-label">Totals</span> : null}
+			{scan ? <CardHeader name="Totals" /> : null}
 			{touch ? null : limitNotice}
 			<div className="sp-stack">
 				{scan

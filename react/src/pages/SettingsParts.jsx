@@ -1,10 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 
-/** A card's heading, which is where /settings/<section> lands focus. */
-export function Heading({ section, children }) {
-	return <span className="sp-section-label st-landing" data-section={section} tabIndex={-1}>{children}</span>
-}
+/** What a card's head carries to be where /settings/<section> lands focus (9c). */
+export const landing = section => ({ 'data-section': section, tabIndex: -1 })
 
 /** A combobox over a fixed list of `{ id, label }`. `figure` and `suffix` draw a number and its
     unit in the trigger, as Rows per page does; both sit in the value, so the trigger's name reads them.

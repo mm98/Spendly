@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { TextField } from '../components/Inputs.jsx'
@@ -12,7 +12,7 @@ import { Skeleton } from '../components/Utilities.jsx'
 import { addStatus, changeStatus, deleteStatus, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { TONES } from '../app/statuses.js'
-import { Heading } from './SettingsParts.jsx'
+import { landing } from './SettingsParts.jsx'
 
 const TONE_NAMES = [['success', 'Positive'], ['progress', 'In progress'], ['danger', 'Problem'], ['neutral', 'Neutral']]
 
@@ -73,7 +73,7 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	if (!list)
 		return (
 			<Card>
-				<Heading section="statuses">Statuses</Heading>
+				<CardHeader name="Statuses" {...landing('statuses')} />
 				<div className="sp-stack sp-gap-6" aria-busy="true" aria-label="Loading your statuses">
 					<Skeleton shape="line" /><Skeleton shape="line" /><Skeleton shape="line" />
 				</div>
@@ -100,11 +100,7 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	return (
 		<Card footer={editing === 'new' ? null : <Button variant="outline" onClick={() => setEditing('new')}>Add a status</Button>}
 			footerLayout="stack" footerCommits>
-			<div className="sp-row-flex">
-				<Heading section="statuses">Statuses</Heading>
-				<span className="sp-grow" />
-				{touch ? null : <span className="sp-meta">Drag to reorder</span>}
-			</div>
+			<CardHeader name="Statuses" {...landing('statuses')} aside={touch ? undefined : 'Drag to reorder'} />
 			<div className="sp-stack sp-gap-6" {...reorder.list}>
 				<Announce>{touch ? said : reorder.said}</Announce>
 				{reorder.items.map((status, i) => (

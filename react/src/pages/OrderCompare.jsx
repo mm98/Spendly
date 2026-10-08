@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
-import { Card, Panel } from '../components/Card.jsx'
+import { Card, CardHeader, Panel } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Check } from '../components/Choice.jsx'
 import { Segmented } from '../components/Segmented.jsx'
@@ -164,11 +164,7 @@ function Comparison({ order, file, answer }) {
 
 	const list = (
 		<Card>
-			<div className="sp-row-flex sp-gap-8">
-				<span className="sp-section-label">Lines that differ{dot}{rows.length}</span>
-				<span className="sp-grow" />
-				<Button variant="outline" size="small" onClick={() => setPicks(defaultPicks(rows))}>{narrow ? 'Accept all' : 'Accept all from receipt'}</Button>
-			</div>
+			<CardHeader name={`Lines that differ${dot}${rows.length}`} actions={[{ label: narrow ? 'Accept all' : 'Accept all from receipt', onClick: () => setPicks(defaultPicks(rows)) }]} />
 			<div className="sp-stack sp-gap-8">
 				{rows.map(row => <Difference key={row.key} row={row} pick={picks[row.key]} onPick={v => set(row.key, v)} order={order} narrow={narrow} />)}
 			</div>
@@ -183,7 +179,7 @@ function Comparison({ order, file, answer }) {
 	)
 	const totals = (
 		<Card footer={narrow ? [] : commits} footerLayout="split" footerCommits>
-			<span className="sp-section-label">Totals</span>
+			<CardHeader name="Totals" />
 			<div className="sp-stack">
 				<Sum value={money(order.total)}>Order now</Sum>
 				<Sum value={money(after)}>After changes</Sum>

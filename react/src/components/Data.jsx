@@ -248,13 +248,13 @@ const HELP_INK = { default: null, warning: 'warning', success: 'success', danger
 /** `meta` is the quiet line under the figure that says what it is measured against; `help` is the
     same line said as a field's help, which a drilled figure uses for its share of the level above (4b).
     `bare` sets the parts straight in what holds the figure, a card or a row, with no box of their
-    own: in a card the name then opens it and takes the head (4a). `quietLabel` names it in the meta
-    line's ink, as a phone tile does (7a). */
-export function Stat({ figure, large = false, color = 'default', label, quietLabel = false, delta, meta, help, helpColor = 'default', bare = false, ...rest }) {
+    own. A card's name is its CardHeader (4a), so a bare figure's label is only ever the quiet line
+    a phone tile names it with (7a). */
+export function Stat({ figure, large = false, color = 'default', label, delta, meta, help, helpColor = 'default', bare = false, ...rest }) {
 	reject(rest, 'Stat')
 	const parts = (
 		<>
-			{label ? <span className={quietLabel ? 'sp-meta' : 'sp-section-label'}>{label}</span> : null}
+			{label ? <span className={bare ? 'sp-meta' : 'sp-section-label'}>{label}</span> : null}
 			<span className={join('sp-stat__figure', large && 'sp-stat__figure--large', pick(STAT_INK, color, 'color', 'Stat'))}>{figure}</span>
 			{delta ? <span className="sp-stat__delta">{delta}</span> : null}
 			{meta ? <span className="sp-meta">{meta}</span> : null}

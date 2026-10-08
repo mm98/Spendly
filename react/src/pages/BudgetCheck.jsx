@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Card, CardBody, Toolbar } from '../components/Card.jsx'
+import { Card, CardBody, CardHeader, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Combobox, ComboboxEmpty, ComboboxGroup, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
@@ -498,13 +498,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 			</div>
 		) : null
 	})
-	const head = title => (
-		<div className="sp-row-flex sp-gap-12">
-			<span className="sp-section-label">{title}</span>
-			<span className="sp-grow" />
-			<span className="sp-note">Amounts in {currencySymbol()}</span>
-		</div>
-	)
+	const head = title => <CardHeader name={title} aside={`Amounts in ${currencySymbol()}`} asideTone="note" />
 	const nothing = text => <Empty><EmptyTitle>{text}</EmptyTitle></Empty>
 
 	const placeRow = g => {
@@ -609,13 +603,8 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 	return (
 		<>
 			<Card variant="shell">
-				<div className="sp-row-flex sp-gap-12">
-					<span className="sp-section-label">{file}</span>
-					<span className="sp-grow" />
-					<span className="sp-meta">
-						{plural(payments.length, 'payment')} read{unread ? `${dot}${plural(unread, 'line')} could not be read` : ''}{dot}{longDate(dates[0])} to {longDate(dates[dates.length - 1])}
-					</span>
-				</div>
+				<CardHeader name={file}
+					aside={`${plural(payments.length, 'payment')} read${unread ? `${dot}${plural(unread, 'line')} could not be read` : ''}${dot}${longDate(dates[0])} to ${longDate(dates[dates.length - 1])}`} />
 				<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 					<Stat label="Not in the budget" figure={plural(missing, 'payment')} />
 					<Stat label="Same amount" figure={String(count(['match']))} meta="Found in the budget" />

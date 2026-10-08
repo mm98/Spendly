@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { Well } from '../components/Well.jsx'
@@ -9,7 +9,7 @@ import { Gauge } from '../components/Data.jsx'
 import { invalidate } from '../api/useApi.js'
 import { populateDemoData } from '../api/client.js'
 import { amount, plural } from '../api/format.js'
-import { Choose, Heading, useStepFocus } from './SettingsParts.jsx'
+import { Choose, landing, useStepFocus } from './SettingsParts.jsx'
 
 const COUNTS = [500, 1000, 5000, 10000, 25000, 50000]
 // months, which is the unit the fill spreads by; offered in years
@@ -48,7 +48,7 @@ export function DemoCard() {
 			})
 	}
 
-	const heading = <Heading section="demo">Demo data</Heading>
+	const heading = <CardHeader name="Demo data" {...landing('demo')} />
 
 	if (stage.name === 'choosing') return (
 		<Card ref={box} footerCommits footerLayout="split" footer={[

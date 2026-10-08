@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom'
 import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Card, Panel } from '../components/Card.jsx'
+import { Card, CardHeader, Panel } from '../components/Card.jsx'
 import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace } from '../components/Combobox.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
@@ -157,7 +157,7 @@ export const isGone = error => Boolean(error?.gone)
 export function SummaryLoading({ label, sums, action, children }) {
 	return (
 		<Card aria-busy="true">
-			<span className="sp-section-label">{label}</span>
+			<CardHeader name={label} />
 			<div className="sp-row-flex sp-gap-12">
 				<Skeleton shape="mark" />
 				<Stacked><Bar role="sp-title" w="62pc" h="13" /><Bar role="sp-meta" w="44pc" h="10" /></Stacked>
@@ -174,7 +174,7 @@ export function SummaryLoading({ label, sums, action, children }) {
 export function RecentLoading() {
 	return (
 		<Card aria-busy="true">
-			<span className="sp-section-label">Recent orders</span>
+			<CardHeader name="Recent orders" />
 			{['62pc', '48pc'].map(w => (
 				<ListItem key={w}>
 					<Stacked><Bar role="sp-title" w={w} h="13" /><Bar role="sp-meta" w="44pc" h="10" /></Stacked>
@@ -192,7 +192,7 @@ export function EndLoading({ label, title, body, action, after }) {
 	return (
 		<Card aria-busy="true" {...(action ? { footer: [<Held key="action" shape={action} />], footerCommits: true } : {})}
 			{...(after ? { after: <Held shape={after} /> } : {})}>
-			<span className="sp-section-label">{label}</span>
+			<CardHeader name={label} />
 			<Well>
 				<Held shape={<span className="sp-title">{title}</span>}><Skeleton shape="line" data-w="62pc" data-h="13" /></Held>
 				<Held shape={<span className="sp-subtitle">{body}</span>} />
@@ -499,7 +499,7 @@ export function RecentOrders({ filter, to, total }) {
 	if (!total || !orders.length) return null
 	return (
 		<Card>
-			<span className="sp-section-label">Recent orders</span>
+			<CardHeader name="Recent orders" />
 			{orders.map(order => <RecentOrder key={order.id} order={order} />)}
 			<Button variant="outline" size="small" to={to}>See all {plural(total, 'order')}</Button>
 		</Card>

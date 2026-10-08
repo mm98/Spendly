@@ -2,7 +2,7 @@ import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } fr
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel, FieldGroupValues, Switch } from '../components/Choice.jsx'
 import { Chip } from '../components/Chip.jsx'
@@ -313,11 +313,7 @@ export default function OrderList() {
 	const facetData = { highest: highest.data?.orders?.[0]?.total }
 	const filtersCard = (
 		<Card>
-			<div className="sp-row-flex">
-				<span className="sp-section-label">Filters</span>
-				<span className="sp-grow" />
-				<Button variant="outline" size="small" onClick={clearAll}>Clear all</Button>
-			</div>
+			<CardHeader name="Filters" actions={[{ label: 'Clear all', onClick: clearAll }]} />
 			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} counts={facets.data?.facets} {...facetData} />
 		</Card>
 	)

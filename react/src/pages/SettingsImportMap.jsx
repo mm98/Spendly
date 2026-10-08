@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Card, CardFooter } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -14,7 +14,7 @@ import { MoreMatches, groupPicks, pickGroups, usePickList, useRecent } from '../
 import {
 	DATE_LABELS, DATE_SHAPES, FIELDS, NONE, REQUIRED, dateFormatsOf, decimalOf, fieldsFor, unknownCategories
 } from '../api/orderImport.js'
-import { Heading } from './SettingsParts.jsx'
+import { landing } from './SettingsParts.jsx'
 
 const SHAPES = [
 	{ value: 'line', label: 'one item line' },
@@ -158,7 +158,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 
 	return (
 		<Card ref={box}>
-			<Heading section="import">Import</Heading>
+			<CardHeader name="Import" {...landing('import')} />
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-row-flex sp-flex-none"><Icon name="file" /></span>
 				<span className="sp-title sp-truncate">{file}</span>

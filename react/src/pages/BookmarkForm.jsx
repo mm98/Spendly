@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Slot } from '../components/FileDrop.jsx'
@@ -183,7 +183,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 				choose(file)
 			}}
 		>
-			<span className="sp-section-label">The bookmark</span>
+			<CardHeader name="The bookmark" />
 			<Field label="Picture" id="bookmark-picture">
 				{h(<Slot start src={picture} kind="Photo" name="the picture" onFile={choose}
 					onRemove={() => { setPicked(null); setOffered(null); setCleared(true) }} />)}
@@ -217,7 +217,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	)
 	const summaryCard = (
 		<Card>
-			<span className="sp-section-label">Bookmark summary</span>
+			<CardHeader name="Bookmark summary" />
 			<div className="sp-stack">
 				<Sum value={v(site || '-', '88')}>Shop</Sum>
 				<Sum value={v(chosen.length ? chosen.join(', ') : '-', '104')}>Categories</Sum>
@@ -237,7 +237,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 				h(<Button key="archive" variant="outline" onClick={() => guard.ask(archive)}>{archived ? 'Unarchive' : 'Archive'}</Button>),
 				h(<Button key="delete" color="danger" onClick={() => setConfirming(true)}>Delete</Button>)
 			]}>
-				<span className="sp-section-label">End of its life</span>
+				<CardHeader name="End of its life" />
 				<Well>
 					<span className="sp-title">Nothing else points at a bookmark</span>
 					<span className="sp-subtitle">Archiving keeps it off your list; deleting removes it outright.</span>

@@ -1,6 +1,7 @@
-import { Children } from 'react'
+import { Children, createContext, useContext } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
+import { Button, IconButton } from './Button.jsx'
 
 const VARIANT = {
 	default: null,
@@ -37,9 +38,15 @@ export function Card({
 	const paint = color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'Card') }
 	const actions = Children.toArray(footer)
 	if (actions.length > 2) console.error('<Card> three actions is a menu, not a footer')
+	// the head renders first wherever it was written; one nested anywhere else renders nothing (c10)
+	const all = Children.toArray(children)
+	const heads = all.filter(c => c && c.type === CardHeader)
+	if (heads.length > 1) console.error('<Card> takes one <CardHeader>')
+	const content = all.filter(c => !(c && c.type === CardHeader))
 	const body = (
 		<>
-			{children}
+			{heads.length ? <HeadSlot.Provider value={true}>{heads[0]}</HeadSlot.Provider> : null}
+			<HeadSlot.Provider value={false}>{content}</HeadSlot.Provider>
 			{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}
 			{actions.length
 				? (
@@ -57,6 +64,49 @@ export function Card({
 	)
 	if (to) return <Link className={classes} to={to} data-go={to} {...paint} {...rest}>{body}</Link>
 	return <div className={classes} {...paint} {...rest}>{body}</div>
+}
+
+/* true only where Card places its own head */
+const HeadSlot = createContext(false)
+
+const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink-danger' }
+
+/** A card's head (c10): one slot per view, drawn in a fixed order, so it cannot be assembled by hand.
+    Only a child of Card; `actions` are at most two `{ label, to, href, onClick }`. */
+export function CardHeader({
+	name,
+	meta,
+	aside,
+	asideTone = 'default',
+	control,
+	status,
+	actions,
+	onDismiss,
+	dismissLabel = 'Close',
+	...rest
+}) {
+	const placed = useContext(HeadSlot)
+	reject(rest, 'CardHeader')
+	if (!placed) { console.error('<CardHeader> is only a child of <Card>'); return null }
+	if ('children' in rest) { console.error('<CardHeader> takes no children: every view is a named slot'); delete rest.children }
+	if (!name) console.error('<CardHeader> needs a name')
+	const list = Array.isArray(actions) ? actions.filter(Boolean) : actions ? [actions] : []
+	if (list.length > 2) console.error('<CardHeader> three actions is a menu, not a head')
+	const end = aside || control || status || list.length || onDismiss
+	return (
+		<div className="sp-card__head" {...rest}>
+			<span className="sp-section-label">{name}</span>
+			{meta ? <span className="sp-meta">{meta}</span> : null}
+			{end ? <span className="sp-grow" /> : null}
+			{aside ? <span className={pick(ASIDE, asideTone, 'asideTone', 'CardHeader')}>{aside}</span> : null}
+			{control || null}
+			{status || null}
+			{list.slice(0, 2).map(a => (
+				<Button key={a.label} variant="outline" size="small" to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
+			))}
+			{onDismiss ? <IconButton icon="x" aria-label={dismissLabel} onClick={onDismiss} /> : null}
+		</div>
+	)
 }
 
 /** The grid cards sit in. `fluid` fills the available width instead of holding a

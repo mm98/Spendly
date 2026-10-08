@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardBody, Toolbar } from '../components/Card.jsx'
+import { Card, CardBody, CardHeader, Toolbar } from '../components/Card.jsx'
 import { Bars, ChartTip, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
 import { FILE_TYPES, FileDrop } from '../components/FileDrop.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
+import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -256,13 +256,8 @@ function MonthCard({ w, compared, lastAdded }) {
 	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
 		<Card variant="shell" spread>
-			<div className="sp-row-flex sp-gap-12">
-				{w
-					? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
-					: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
-				<span className="sp-grow" />
-				{ago ? <span className="sp-meta">last added {ago}</span> : null}
-			</div>
+			<CardHeader name={w ? `${capital(monthOf(w))} ${w.from.slice(0, 4)}${dot}day ${w.pace.daysIn} of ${w.pace.unitDays}` : <Skeleton shape="line" data-w="130" data-h="11" />}
+				aside={ago ? `last added ${ago}` : undefined} />
 			<div className="sp-stats sp-stats--line">
 				<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
 				<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
@@ -408,11 +403,7 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 			</div>,
 			<Button key="open" size="small" to={`/statistics?range=month&period=${summary.month}`}>Open statistics</Button>
 		]}>
-			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-section-label">{month} {summary.month.slice(0, 4)}</span>
-				<span className="sp-grow" />
-				<IconButton icon="x" aria-label={`Hide the ${month} summary`} onClick={onHide} />
-			</div>
+			<CardHeader name={`${month} ${summary.month.slice(0, 4)}`} onDismiss={onHide} dismissLabel={`Hide the ${month} summary`} />
 			<div className="sp-stack sp-gap-6">
 				<span className="sp-heading">
 					{heading}
@@ -596,7 +587,7 @@ function CaptureCard({ newest, loading }) {
 		: loading ? <ButtonSkeleton label="Copy an order" /> : null
 	return (
 		<Card>
-			<span className="sp-section-label">Add an order</span>
+			<CardHeader name="Add an order" />
 			{held
 				? (
 					<FileDrop disabled row>
@@ -629,11 +620,7 @@ function CategoriesCard({ view }) {
 	const top = view?.top
 	const loading = (
 		<Card>
-			<div className="sp-row-flex sp-gap-8">
-				<span className="sp-section-label">Categories this month</span>
-				<span className="sp-grow" />
-				<ButtonSkeleton label="All 10" />
-			</div>
+			<CardHeader name="Categories this month" />
 			{['96', '76', '88', '64'].map(width => (
 				<div className="sp-stack sp-gap-6" key={width}>
 					<div className="sp-row-flex sp-gap-8">
@@ -649,12 +636,8 @@ function CategoriesCard({ view }) {
 	)
 	if (!view) return loading
 	const header = (
-		<div className="sp-row-flex sp-gap-8">
-			<span className="sp-section-label">Categories this month</span>
-			{top.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
-			<span className="sp-grow" />
-			{view.withSpend ? <Button variant="outline" size="small" to={`/categories?month=${view.window.from.slice(0, 7)}`}>All {amount(view.withSpend, 0)}</Button> : null}
-		</div>
+		<CardHeader name="Categories this month" meta={top.length ? `top ${top.length} by spend` : undefined}
+			actions={view.withSpend ? [{ label: `All ${amount(view.withSpend, 0)}`, to: `/categories?month=${view.window.from.slice(0, 7)}` }] : undefined} />
 	)
 	if (top.length) return (
 		<Card>
@@ -720,11 +703,7 @@ function MonthsCard() {
 				? <span className="sp-amount hm-line" key="value"><Skeleton shape="line" data-w="76" data-h="13" /></span>
 				: <span className="sp-amount" key="value">{currency(average, 0)}</span>
 		]}>
-			<div className="sp-row-flex sp-gap-8">
-				<span className="sp-section-label">Last {MONTHS} months</span>
-				<span className="sp-grow" />
-				<Button variant="outline" size="small" to="/statistics">Statistics</Button>
-			</div>
+			<CardHeader name={`Last ${MONTHS} months`} actions={[{ label: 'Statistics', to: '/statistics' }]} />
 			<Bars variant="card" columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
 				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
 		</Card>
@@ -768,14 +747,14 @@ function PhoneMonth({ w, compared }) {
 	const earlier = compared?.data
 	if (!w) return (
 		<Card>
-			<span className="sp-section-label">This month</span>
+			<CardHeader name="This month" />
 			<span className="sp-stat__figure sp-stat__figure--large hm-line"><Skeleton shape="line" data-w="130" data-h="22" /></span>
 			<Gauge value={0} aria-label="This month against an earlier month" />
 		</Card>
 	)
 	if (!earlier) return (
 		<Card>
-			<span className="sp-section-label">This month</span>
+			<CardHeader name="This month" />
 			<span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>
 			<Gauge value={0} untargeted={!!compared?.error} aria-label="This month against an earlier month" />
 			{compared?.error
@@ -792,7 +771,7 @@ function PhoneMonth({ w, compared }) {
 	const pace = w.pace.unitDays ? (w.pace.daysIn / w.pace.unitDays) * 100 : 100
 	return (
 		<Card>
-			<span className="sp-section-label">This month</span>
+			<CardHeader name="This month" />
 			{earlier.orders
 				? (
 					<div className="sp-row-flex sp-gap-8 sp-baseline">
@@ -819,7 +798,7 @@ function PhoneAlerts({ view, attention, looks }) {
 	const chevron = <Icon name="chevron-right" size={13} />
 	return (
 		<Card>
-			<span className="sp-section-label">Needs a look</span>
+			<CardHeader name="Needs a look" />
 			{alerts
 				? alerts.phone.map(a => (
 					<ListItem key={a.key} to={a.to} color={a.color} chevron={chevron} count={a.count}>
@@ -835,7 +814,7 @@ function PhoneRecent({ recent }) {
 	const orders = recent.data?.orders
 	const loading = (
 		<Card>
-			<span className="sp-section-label">Recent orders</span>
+			<CardHeader name="Recent orders" />
 			{[0, 1, 2].map(i => (
 				<div className="sp-row-flex sp-gap-12" key={i}>
 					<Skeleton shape="mark" />
@@ -854,7 +833,7 @@ function PhoneRecent({ recent }) {
 	if (!orders.length) return (
 		<Hold shape={loading}>
 			<Card>
-				<span className="sp-section-label">Recent orders</span>
+				<CardHeader name="Recent orders" />
 				<div className="sp-stack sp-grow hm-fill">
 					<span className="sp-meta">No orders yet. Press the plus button to add your first.</span>
 				</div>
@@ -863,12 +842,7 @@ function PhoneRecent({ recent }) {
 	)
 	return (
 		<Card>
-			<div className="sp-row-flex sp-gap-8 sp-baseline">
-				<span className="sp-section-label">Recent orders</span>
-				<span className="sp-meta">newest {Math.min(3, orders.length)}</span>
-				<span className="sp-grow" />
-				<Button variant="outline" size="small" to="/orders">All {amount(recent.data.total, 0)}</Button>
-			</div>
+			<CardHeader name="Recent orders" meta={`newest ${Math.min(3, orders.length)}`} actions={[{ label: `All ${amount(recent.data.total, 0)}`, to: '/orders' }]} />
 			{orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)}
 		</Card>
 	)
@@ -894,12 +868,7 @@ function PhoneDrafts({ drafts }) {
 	if (!rows?.length) return null
 	return (
 		<Card>
-			<div className="sp-row-flex sp-gap-8 sp-baseline">
-				<span className="sp-section-label">Drafts</span>
-				<span className="sp-meta">newest {rows.length}</span>
-				<span className="sp-grow" />
-				<Button variant="outline" size="small" to={all}>All {amount(drafts.data.total, 0)}</Button>
-			</div>
+			<CardHeader name="Drafts" meta={`newest ${rows.length}`} actions={[{ label: `All ${amount(drafts.data.total, 0)}`, to: all }]} />
 			{rows.map(o => (o.draft
 				? (
 					<Link key={o.id} className="sp-row-flex sp-gap-12 sp-row-opens" to={`/orders/${o.id}`}>
