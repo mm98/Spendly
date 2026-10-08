@@ -13,6 +13,8 @@
   /* the one scrolling region: the commit card below it sits outside it, so it is
      never scrolled away - the behaviour 1c's notes require, from layout alone */
   .oe-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-12); }
+  /* what it holds keeps its own height and scrolls; a card shrunk to fit clipped its body and its head */
+  .oe-scroll > * { flex: none; }
   /* the status bar the operating system draws, at the inset iOS uses; like every
      bar in the frame it reaches the glass, and as the first child it takes the
      frame's own top corners */
