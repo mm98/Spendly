@@ -3030,6 +3030,7 @@
 
   <div class="doc-notes">
     <div class="doc-notes__label">Uses</div>
+    <div class="doc-note"><b>A part that is not there yet keeps its own box: <code>sp-skeleton--fill</code>.</b> A field, a button, a limit bar or a chip that is still loading is its box at the part's own size with this shape inside; the shape fills the box whatever the box's layout, and has no size of its own. A chart's loading bar is <code>sp-skeleton--bar</code>, which stands on the chart's baseline at its own height and is not used anywhere else.</div>
     <div class="doc-note"><a href="#c2">c2</a> for the mark an empty state may carry, <a href="#c6">c6</a> for the buttons in an empty state, a sheet and a dialog. Each is that component unchanged - same markup, same dimensions, same states; this one adds no variant of it.</div>
     <div class="doc-notes__label">Slots</div>
     <div class="doc-note">Empty: an optional mark, a title, one sentence, and the steps out of it. Loading: the shape of the rows that are coming. Sheet: handle, title, content, one action. Dialog: title, what will happen, cancel and the action, whose label carries the count.</div>

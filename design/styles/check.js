@@ -988,6 +988,11 @@
     if (!m) fail('a field on touch is 16px', 'components.css', 'no touch font-size rule for typed fields');
     else for (const n of need) if (!m[1].split(',').map(x => x.trim()).includes(n)) fail('a field on touch is 16px', 'components.css', n + ' is not in the touch rule');
   }
+  /* A chart's loading bar is only ever a chart's child; a part held at its own box is
+     sp-skeleton--fill. The app used the bar for fields and buttons, and they fell to 0px
+     once the bar stood on the baseline. */
+  if (!/\.sp-skeleton--fill \{[^}]*height: 100%[^}]*align-self: stretch/.test(comp)) fail('a loading shape fits its job', 'components.css', 'no sp-skeleton--fill');
+  for (const f of pages) for (const m of src[f].matchAll(/<span class="sp-skeleton sp-skeleton--bar"/g)) if (!/<div class="sp-bars[^"]*">\s*(?:<span class="sp-skeleton sp-skeleton--bar"[^>]*><\/span>\s*)*$/.test(src[f].slice(Math.max(0, m.index - 1200), m.index))) fail('a loading shape fits its job', f, 'a chart loading bar outside .sp-bars');
   /* A chart's legend is under the chart it keys. Spend by month drew it between the head
      and the chart, Spend vs saving under it: two places for one part. Checked on markup:
      the element before a legend, in its card, is the chart. */

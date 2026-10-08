@@ -65,6 +65,14 @@ const PAGES = ['Actions inventory','Auth and first run','Bookmarks','Budget','Co
    caught a real defect; `why` names it, so nobody has to guess whether it matters. */
 const RULES = [
 {
+  id: 'a loading shape fits its job',
+  why: 'The app held a field, a button, a limit bar and a chip with the chart bar, which filled its box only by accident; once the bar stood on the baseline those boxes were 0px tall.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-skeleton--bar').forEach(e => { if (!e.parentElement.matches('.sp-bars')) add('a chart\'s loading bar outside a chart; a part held at its own box is sp-skeleton--fill', e); });
+    doc.querySelectorAll('.sp-skeleton--fill').forEach(e => { const r = e.getBoundingClientRect(), p = e.parentElement.getBoundingClientRect(); if (p.width && p.height && (Math.abs(r.width - p.width) > 1 && Math.abs(r.width - (p.width - parseFloat(CS(e.parentElement).paddingLeft) - parseFloat(CS(e.parentElement).paddingRight))) > 1 || r.height < 1)) add(`a fill shape is ${r.width.toFixed(0)}x${r.height.toFixed(0)} in a ${p.width.toFixed(0)}x${p.height.toFixed(0)} box`, e); });
+  }
+},
+{
   id: 'a chart bar stands on the baseline',
   why: 'The loading bars on States and confirmations hung from the top of the chart: the skeleton bar stretched itself, which overrode the chart putting its bars on the baseline.',
   run(doc, add) {
