@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Picker } from '../components/Choice.jsx'
@@ -210,7 +210,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const cards = (
 		<>
 			<Card>
-				<span className="sp-section-label">The category</span>
+				<CardHeader name="The category" />
 				<Field id="category-name" label="Name"
 					message={errors.name ?? (editing ? undefined : 'Appears on chips, filters and charts, so short wins - "Decor", not "Home decoration items".')}
 					messageType={errors.name ? 'danger' : 'hint'}>
@@ -228,7 +228,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			</Card>
 
 			<Card>
-				<span className="sp-section-label">Mark</span>
+				<CardHeader name="Mark" />
 				<div className="sp-stack sp-gap-12">
 					<Field label="Icon">
 						{h(<CategoryIconPicker value={values.icon} onChange={v => set('icon', v)} />)}
@@ -241,7 +241,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			</Card>
 
 			<Card>
-				<span className="sp-section-label">Monthly limit</span>
+				<CardHeader name="Monthly limit" />
 				{/* the field's own blur formats the amount, so the check listens from around it */}
 				<div onBlur={() => { setErrors(e => ({ ...e, budget: budgetProblem(values.budget) })); setCheckedBudget(values.budget) }}>
 					<Field id="category-limit" label="Limit"
@@ -281,7 +281,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			)
 			: (
 				<Card>
-					<span className="sp-section-label">Category summary</span>
+					<CardHeader name="Category summary" />
 					<div className="sp-row-flex sp-gap-12">
 						<CategoryMark category={preview} />
 						<Stacked>
@@ -320,7 +320,7 @@ function CategorySummary({ category, preview, budget }) {
 	const over = limit !== null && spend > limit
 	return (
 		<Card>
-			<span className="sp-section-label">Category summary</span>
+			<CardHeader name="Category summary" />
 			<div className="sp-row-flex sp-gap-12">
 				<CategoryMark category={preview} />
 				<Stacked>
@@ -335,7 +335,7 @@ function CategorySummary({ category, preview, budget }) {
 				: (
 					<>
 						<div className="sp-row-flex sp-gap-12 sp-baseline">
-							<Stat large figure={over ? <span className="sp-ink-warning">{currency(spend, 0)}</span> : currency(spend, 0)} />
+							<Stat bare large figure={over ? <span className="sp-ink-warning">{currency(spend, 0)}</span> : currency(spend, 0)} />
 							{limit !== null ? <span className="sp-data sp-ink-5">of {currency(limit, 0)}</span> : null}
 						</div>
 						{limit !== null
@@ -391,7 +391,7 @@ function Removing({ category, merge, onDelete }) {
 			<MergeButton key="merge" merge={merge}>Merge…</MergeButton>,
 			<Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
 		]} footerLayout="split" footerCommits>
-			<span className="sp-section-label">Removing it</span>
+			<CardHeader name="Removing it" />
 			<Well>
 				<span className="sp-title">{title}</span>
 				<span className="sp-subtitle">{body}</span>

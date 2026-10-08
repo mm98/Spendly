@@ -26,18 +26,11 @@
 		background: var(--line-3);
 	}
 
-	/* where /settings/<section> lands focus (9c): the system's ring for a keyboard reader, never
-	   the browser's own outline */
-	.st-landing:focus { outline: none; }
-	.st-landing:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
-
 	/* a status's tone is picked by clicking the pill that shows it; the ring marks the chosen one */
 	.st-tone { display: inline-flex; cursor: pointer; border-radius: var(--r-pill); }
 	.st-tone input { position: absolute; opacity: 0; pointer-events: none; }
 	.st-tone:has(input:checked) { outline: 2px solid var(--green); outline-offset: 1px; }
 	.st-tone:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
-
-	.st-w280 { max-width: 280px; }
 
 	/* import step 2 (11b): a column in the file, an arrow on the field's line, the field it maps to */
 	.st-map { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: var(--sp-10); align-items: stretch; }

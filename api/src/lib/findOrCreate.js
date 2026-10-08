@@ -49,13 +49,13 @@ export function findVendorIdByAnyName(userId, name) {
 }
 
 /** The vendor a receipt names, tried as 5h says: its VAT number, then its web address, then the
-    name it printed. Each is matched against every vendor's name and aliases. */
-export function findVendorIdForReceipt(userId, { vendor, website, vatNumber }) {
+    name it printed. Each is matched against every vendor's name and aliases, by `find`. */
+export function findVendorIdForReceipt(userId, { vendor, website, vatNumber }, find = findVendorIdByAnyName) {
 	const vat = vatNumberOf(vatNumber)
 	const web = webAddressOf(website)
-	return (vat ? findVendorIdByAnyName(userId, 'CVR ' + vat) : undefined)
-		?? (web ? findVendorIdByAnyName(userId, web) : undefined)
-		?? findVendorIdByAnyName(userId, vendor)
+	return (vat ? find(userId, 'CVR ' + vat) : undefined)
+		?? (web ? find(userId, web) : undefined)
+		?? find(userId, vendor)
 }
 
 /** `orderId` is the order being saved, kept on a vendor it makes (migrations/190). */

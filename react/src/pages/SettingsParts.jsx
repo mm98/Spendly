@@ -1,24 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 
-/** A card's heading, which is where /settings/<section> lands focus. */
-export function Heading({ section, children }) {
-	return <span className="sp-section-label st-landing" data-section={section} tabIndex={-1}>{children}</span>
-}
+/** What a card's head carries to be where /settings/<section> lands focus (9c). */
+export const landing = section => ({ 'data-section': section, tabIndex: -1 })
 
 /** A combobox over a fixed list of `{ id, label }`. `figure` and `suffix` draw a number and its
     unit in the trigger, as Rows per page does; both sit in the value, so the trigger's name reads them.
-    `narrow` caps it at the 280 that 11a draws a half's combobox at. */
+    `narrow` caps it at the field width 11a draws a half's combobox at. */
 export function Choose({ options, value, onChange, figure, suffix, id, narrow = false }) {
 	const chosen = options.find(o => o.id === value)
-	const box = (
-		<Combobox id={id} value={figure ? <span className="sp-row-flex sp-gap-8">{figure} {suffix}</span> : chosen?.label ?? ''}>
+	return (
+		<Combobox id={id} variant={narrow ? 'narrow' : 'default'} value={figure ? <span className="sp-row-flex sp-gap-8">{figure} {suffix}</span> : chosen?.label ?? ''}>
 			{options.map(o => (
 				<ComboboxOption key={o.id} selected={o.id === value} onSelect={() => onChange(o.id)}>{o.label}</ComboboxOption>
 			))}
 		</Combobox>
 	)
-	return narrow ? <div className="st-w280">{box}</div> : box
 }
 
 /** `then(target)` before a step sends focus, once drawn, to the id `target`, the first footer

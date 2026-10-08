@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useReducer, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { Field } from '../components/Field.jsx'
@@ -27,7 +27,7 @@ import { ImportCard } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard } from './SettingsAccount.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
-import { Choose, Heading } from './SettingsParts.jsx'
+import { Choose, landing } from './SettingsParts.jsx'
 import { LOOKS } from './needsLook.jsx'
 import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
 import { useViews } from '../app/views.jsx'
@@ -352,13 +352,13 @@ function AppearanceCard({ value, change, touch }) {
 	}
 	return (
 		<Card>
-			<Heading section="appearance">Appearance</Heading>
+			<CardHeader name="Appearance" {...landing('appearance')} />
 			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
 				<Segmented name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
 			</Field>
 			<span className="sp-rule" />
 			<Field label="Row density" message="Compact fits more rows on screen.">
-				<Segmented name="density" options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
+				<Segmented name="density" variant={touch ? 'default' : 'narrow'} options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
 			</Field>
 			<span className="sp-rule" />
 			<Field label="Compare this month with" message="What Home and the monthly summary measure this month against.">
@@ -376,7 +376,7 @@ function Pair({ touch, children }) {
 function MoneyCard({ value, change, touch }) {
 	return (
 		<Card>
-			<Heading section="money">Money, dates and times</Heading>
+			<CardHeader name="Money, dates and times" {...landing('money')} />
 			<Pair touch={touch}>
 				<Field label="Currency" message="The currency all amounts are shown in. This renames your figures. It does not convert them.">
 					<Choose narrow={!touch} value={value('currency')} onChange={v => change('currency', v)}
@@ -403,7 +403,7 @@ function DefaultsCard({ value, change, touch, reads }) {
 	const statuses = useStatuses()
 	return (
 		<Card>
-			<Heading section="defaults">Defaults for a new order</Heading>
+			<CardHeader name="Defaults for a new order" {...landing('defaults')} />
 			<Pair touch={touch}>
 				<Field label="Kind" message="What the Kind field opens with on a new order.">
 					<Choose narrow={!touch} value={value('defaultKind')} onChange={v => change('defaultKind', v)}
@@ -443,7 +443,7 @@ function AlertsCard({ value, change, mail }) {
 			<Segmented key="early" variant="facet" name="alerts-early" options={EARLY} value={value('notifyEarly')}
 				onChange={v => change('notifyEarly', v)} role="radiogroup" aria-labelledby="alerts-early" />
 		]}>
-			<Heading section="alerts">Limit alerts</Heading>
+			<CardHeader name="Limit alerts" {...landing('alerts')} />
 			{switchOf('notifyWhileSaving', 'Warn me while I am saving an order')}
 			{switchOf('notifyMonthlySummary', 'Monthly summary on the first of the month')}
 			{mail ? switchOf('notifyEmail', 'Also by email', { disabled: !value('notifyMonthlySummary') }) : null}
@@ -455,7 +455,7 @@ function AlertsCard({ value, change, mail }) {
 function LooksCard({ value, change }) {
 	return (
 		<Card>
-			<Heading section="looks">Needs a look</Heading>
+			<CardHeader name="Needs a look" {...landing('looks')} />
 			<span className="sp-data">What Home points out. It shows at most three at a time, in this order.</span>
 			<FieldGroup aria-label="Rows Home can show">
 				{LOOKS.map(l => (
@@ -476,7 +476,7 @@ function ListsCard({ value, change, touch }) {
 	const rows = value('pageSize')
 	return (
 		<Card>
-			<Heading section="lists">Lists</Heading>
+			<CardHeader name="Lists" {...landing('lists')} />
 			<Field label="Order views in the menu" message="How many order views the sidebar shows before the rest fold under More.">
 				<Choose value={value('orderViews')} onChange={v => change('orderViews', v)}
 					figure={<span className="sp-data sp-number">{value('orderViews')}</span>}

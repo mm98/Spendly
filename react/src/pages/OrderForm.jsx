@@ -2,7 +2,7 @@ import { httpUrl } from '../api/rules.js'
 import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
-import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
+import { Card, CardBody, CardHeader, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
@@ -27,7 +27,7 @@ import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
-	getVendorPage, invalidateCategoryData, invalidateOrderData, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
+	getVendorPage, discardDraft, invalidateCategoryData, invalidateDraftData, invalidateOrderData, keepDraft, makeDraft, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, quantity, shortDate, today
@@ -46,11 +46,11 @@ import { CategoryTokens, useLeaveGuard } from './vendorsCategories.jsx'
 import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
-   state (3a, 3b). Nothing reaches the server until Save or Create writes the order, then its files. */
+   state (3a, 3b). Save or Create writes the order, then its files; a draft keeps the form as it is edited. */
 
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
 
-/** What blocks a save. Every one of these blocks a Draft too: it is what the order is filed by. */
+/** What blocks a save. Every one of these blocks a Draft status too: it is what the order is filed by. */
 const orderErrors = (d, dated) => {
 	const e = {}
 	if (!d.vendor.trim()) e.vendor = 'A vendor is required. Pick one or create it here.'
@@ -110,8 +110,34 @@ export function apiDraft(d, lines, dated) {
 	}
 }
 
+/** A scan's form as the reading starts it (3a). */
+export function readSeed(answer) {
+	return {
+		vendor: answer.vendor ?? '', date: answer.date, status: answer.status, kind: answer.kind,
+		statusDates: { Delivered: answer.deliveredDate, Returned: answer.returnedDate }, categories: [],
+		shipping: answer.shipping || null, discount: answer.discount || null,
+		reference: answer.reference ?? '', note: '', refunded: false,
+		lines: answer.lines.map(l => ({
+			key: l.id, title: l.title ?? '', quantity: l.quantity ?? 1, price: l.price ?? null,
+			retail: l.retail ?? null, note: '', uncertain: Boolean(l.uncertain), unclearPart: l.unclearPart ?? null, include: true
+		}))
+	}
+}
+
+/** A scan's form as its draft kept it, else as the reading starts it (3a). */
+export const scanSeed = answer => (answer.form
+	? { ...readSeed(answer), ...answer.form.values, lines: answer.form.lines, files: answer.form.files ?? [] }
+	: readSeed(answer))
+
 let made = 0
 const freshKey = () => `new-${++made}`
+
+// a draft is written this long after the last change, so typing sends it once
+const KEEP_MS = 600
+/** A file a draft kept, as the form holds a file that has arrived. */
+const keptFile = f => ({ key: freshKey(), name: f.name, kind: f.kind, upload: { key: f.key, hasThumbnail: f.hasThumbnail, sha256: f.sha256 ?? null }, sending: false, sent: 1 })
+/** Whether a line's photo is one a draft kept: sent, and not on an order yet. */
+const keptPhoto = l => Boolean(!l.newPhoto && !l.dropPhoto && l.photo?.key && !l.photo.id)
 
 /* A new order left to set up its vendor first (Vendors 5b), kept in memory with its files and
    photos until the form at the same address opens again. Taken once: any other visit drops it. */
@@ -122,9 +148,9 @@ const takeAway = address => {
 	return kept?.address === address ? kept : null
 }
 
-/** `origin` is `{ copy: { id, vendor, date } }` or `{ scan: answer }`; `region` draws the split for
-    a route whose body is not one. `revision` is the saved copy this form edits (6d). */
-export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave }) {
+/** `origin` is `{ copy, draftId }` or `{ scan, draftId }`; `region` draws the split for a route whose body is not
+    one; `revision` is the copy this form edits (6d); `onDraft(id)` hears when an order made here becomes a draft. */
+export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave, onDraft }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const listAddress = useListReturn('orders')
@@ -132,6 +158,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const latest = useApi(getOrders, [{ pageSize: 20 }])
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
+	// the values as the receipt gave them, which a note stays beside until they are changed (3a)
+	const [asRead] = useState(() => (scan ? readSeed(scan) : null))
+	// a draft keeps the form as it is edited, until Create or Discard (3a): a scan is one from the start,
+	// an order made here from its first change
+	const [draftId, setDraftId] = useState(creating ? origin.draftId ?? null : null)
+	const draftNow = useRef(draftId)
 	const here = useLocation()
 	const address = here.pathname + here.search
 	const [back] = useState(() => (creating ? takeAway(address) : null))
@@ -150,14 +182,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const [editing, setEditing] = useState(() => {
 		if (back) return back.editing
 		// a copy is nearly always changed in its first line, so that line opens ready to type in
-		if (creating && origin.copy && seed.lines.length) return { key: seed.lines[0].key, isNew: false, values: { ...seed.lines[0] } }
+		if (creating && origin.copy && !origin.draftId && seed.lines.length) return { key: seed.lines[0].key, isNew: false, values: { ...seed.lines[0] } }
 		return creating && !seed.lines.length && !scan ? newEditing() : null
 	})
 	// the vendor is the first field, unless a line opened with the form and holds the cursor
 	const [vendorFirst] = useState(() => !editing)
 	const [tried, setTried] = useState(false)
 	const [saving, setSaving] = useState(false)
-	const [files, setFiles] = useState(back?.files ?? [])
+	const [files, setFiles] = useState(back?.files ?? (seed.files ?? []).map(keptFile))
 	const [gone, setGone] = useState([])
 	// the files the saved order holds, as this form last read them
 	const [saved, setSaved] = useState(savedFiles)
@@ -209,9 +241,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const statuses = useStatuses()
 
 	const set = patch => setDraft(d => ({ ...d, ...patch }))
-	// a Draft keeps its lines as they are so far (16a): none yet, or one not filled in, waits for later
-	const { typeOf, keyOf } = useStatusTypes()
-	const relaxed = typeOf(draft.status) === 'draft' || tried === 'draft'
+	// an order with status Draft keeps its lines as they are so far (16a): none yet, or one not filled in, waits for later
+	const { typeOf } = useStatusTypes()
+	const relaxed = typeOf(draft.status) === 'draft'
 	const statusDated = statuses.find(s => s.key === draft.status)?.ownDate
 	const errors = orderErrors(draft, statusDated)
 	const shown = tried ? errors : {}
@@ -227,10 +259,15 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// a line's photo is sent when it is chosen (17a); one still on its way is a file the leave question counts (17b)
 	const [photosSending, setPhotosSending] = useState(() => new Set())
 	const refusedPhotos = useRef(new WeakSet())
+	// what each photo became once it arrived, for the draft to keep
+	const arrived = useRef(new WeakMap())
 	const sendPhoto = file => {
 		const sent = sendFile(file).catch(e => { if (e?.status === 415) refusedPhotos.current.add(sent); return null })
 		setPhotosSending(p => new Set(p).add(sent))
-		sent.then(() => setPhotosSending(p => { const next = new Set(p); next.delete(sent); return next }))
+		sent.then(upload => {
+			if (upload) arrived.current.set(sent, upload)
+			setPhotosSending(p => { const next = new Set(p); next.delete(sent); return next })
+		})
 		return sent
 	}
 	const photosOnTheirWay = [...lines.map(l => l.newPhoto), editing?.values.newPhoto].filter(p => p && photosSending.has(p.sent)).length
@@ -238,8 +275,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const kept = waiting?.at === JSON.stringify({ draft, lines, files: files.map(f => f.key), gone })
 	// a new order's steps differ only in the query, so a step away asks as a page away does
 	// a copy is unsaved from the start (8a), so leaving it asks until it is saved
-	const unsavedCopy = Boolean(origin.copy) && creating && !createdAs
-	const guard = useLeaveGuard((dirty || unsavedCopy) && !kept, { search: creating, uploading: files.filter(f => f.sending).length + photosOnTheirWay })
+	// a new order is kept as a draft, so only a created one asks before its changes are left (3a)
+	const guard = useLeaveGuard(dirty && !kept && !(creating && !createdAs), { search: creating, uploading: files.filter(f => f.sending).length + photosOnTheirWay })
 
 	/* ---- lines ---- */
 
@@ -408,7 +445,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		const hash = f.upload?.sha256
 		if (hash && saved.some(s => !gone.includes(s.id) && s.sha256 === hash)) return true
 		const earlier = files.slice(0, files.indexOf(f))
-		return earlier.some(o => !o.problem && ((hash && o.upload?.sha256 === hash) || (o.file.name === f.file.name && o.file.size === f.file.size)))
+		return earlier.some(o => !o.problem && ((hash && o.upload?.sha256 === hash) || (o.file && f.file && o.file.name === f.file.name && o.file.size === f.file.size)))
 	}
 	const keptAway = useRef(false)
 	useEffect(() => () => {
@@ -450,7 +487,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	useEffect(() => {
 		if (seeded.current || !creating || origin.copy) return
 		if (returned) { seeded.current = true; pickVendor(returned); return }
-		if (back) { seeded.current = true; return }
+		// a form brought back, or kept by its draft, is as the reader left it
+		if (back || scan?.form) { seeded.current = true; return }
 		if (!draft.vendor) return
 		seeded.current = true
 		resolveVendor(draft.vendor).then(known => {
@@ -558,30 +596,31 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const creatingNow = creating && !createdAs
 
 	/** The save as a plan `writeOrder` carries out, now or once the connection returns. */
-	const planOf = (target, kept, asDraft) => ({
+	const planOf = (target, kept) => ({
 		key: newSaveKey(), creating: creatingNow, orderId: createdAs ?? orderId, revision: creatingNow ? null : base.current,
-		body: apiDraft(target, kept, new Set(statuses.filter(s => s.ownDate).map(s => s.key))),
+		body: { ...apiDraft(target, kept, new Set(statuses.filter(s => s.ownDate).map(s => s.key))), ...(draftNow.current && creatingNow ? { draftId: draftNow.current } : {}) },
 		scan: scan && creatingNow ? { documentKey: scan.documentKey, vendor: scan.vendor } : null,
 		gone,
 		photos: kept.map((l, index) => ({
-			index, name: l.newPhoto?.file.name ?? null, file: l.newPhoto?.file ?? null, sent: l.newPhoto?.sent ?? null,
+			index, name: l.newPhoto?.file.name ?? (keptPhoto(l) ? l.photo.name : null), file: l.newPhoto?.file ?? null, sent: l.newPhoto?.sent ?? null,
+			upload: keptPhoto(l) ? { key: l.photo.key } : null,
 			// a copied line's photo belongs to the order it came from: it is copied in, never changed there
 			oldId: l.copiedFrom ? null : l.photo?.id ?? null, oldName: l.copiedFrom ? null : l.photo?.name ?? null, drop: Boolean(l.dropPhoto),
-			copy: creatingNow && l.copiedFrom && !l.newPhoto && !l.dropPhoto ? { fromOrderId: l.copiedFrom.orderId, attachmentId: l.copiedFrom.attachmentId, name: l.photo?.name ?? 'A photo' } : null
+			copy: creatingNow && l.copiedFrom && !l.newPhoto && !l.dropPhoto && !keptPhoto(l) ? { fromOrderId: l.copiedFrom.orderId, attachmentId: l.copiedFrom.attachmentId, name: l.photo?.name ?? 'A photo' } : null
 		})),
 		files: files.map(f => ({
 			name: f.name, problem: f.problem ?? null, file: f.file, upload: f.upload ?? null,
 			sending: f.upload ? null : sends.current.get(f.key) ?? null
 		})),
-		label: target.vendor.trim(), asDraft,
+		label: target.vendor.trim(),
 		// what reopens the form if the save, sent later, finds the order changed meanwhile
 		form: { orderId: createdAs ?? orderId, draft: { ...target, lines: undefined }, lines: kept.map(({ newPhoto, ...l }) => l) }
 	})
 
-	const save = async ({ asDraft = false } = {}) => {
-		const target = asDraft ? { ...draft, status: keyOf('draft') } : draft
+	const save = async () => {
+		const target = draft
 		const loose = typeOf(target.status) === 'draft'
-		setTried(asDraft ? 'draft' : 'save')
+		setTried(true)
 		let current = lines
 		const untouched = untouchedNew(editing)
 		reopen.current = null
@@ -610,7 +649,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			}
 			if (!kept.length) return focusFirst('[data-add]')
 		}
-		const plan = planOf(target, kept, asDraft)
+		// a draft still being made is the one this order is created from
+		clearTimeout(keepSoon.current)
+		if (making.current) await making.current
+		const plan = planOf(target, kept)
 		// the form as this save takes it, which leaving can then keep (see `kept` above)
 		const at = JSON.stringify({ draft, lines: current, files: files.map(f => f.key), gone })
 		// saving again while an earlier save waits sends this one in its place
@@ -665,7 +707,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (plan.creating) {
 			// a new order becomes this screen saved, at its own address, with the notice that can undo it (3a)
 			guard.release()
-			const made = { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference, draft: plan.asDraft }
+			finished.current = true
+			const made = { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference }
 			return navigate(`/orders/${order.id}/edit`, { replace: true, state: { created: made } })
 		}
 		// a save keeps the reader here (16a), on the order as the server now holds it, files included
@@ -692,6 +735,113 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	useEffect(() => (waiting
 		? watchOutbox(() => setSaving(waitingSaves().some(w => w.key === waiting.plan.key && w.state === 'sending')))
 		: undefined), [waiting])
+
+	/* ---- a draft, kept as it is edited (3a) ---- */
+
+	// created or discarded: nothing is left to keep
+	const finished = useRef(false)
+	const keptAs = useRef(null)
+	const keepSoon = useRef(0)
+	// the draft an order made here is becoming, while it is asked for
+	const making = useRef(null)
+	const alive = useRef(true)
+	const goneSoon = useRef(0)
+	// the form as on screen: an open line as it stands once changed, and the files and photos that have arrived
+	const keptForm = () => {
+		const { draft: values, lines: rows, files: added } = now.current
+		const open = editingNow.current
+		const changed = open && !untouchedNew(open) && (open.isNew || JSON.stringify(open.values) !== JSON.stringify(rows.find(l => l.key === open.key)))
+		const all = !changed ? rows
+			: open.isNew ? [...rows, { ...open.values, key: open.key, include: true, uncertain: false }]
+				: rows.map(l => (l.key === open.key ? { ...open.values, uncertain: false, checked: true } : l))
+		return {
+			values: { ...values, lines: undefined },
+			lines: all.map(({ newPhoto, dropPhoto, photoProblem, ...l }) => {
+				const upload = newPhoto?.sent && arrived.current.get(newPhoto.sent)
+				return { ...l, photo: upload ? { key: upload.key, name: newPhoto.file.name, hasThumbnail: Boolean(upload.hasThumbnail) } : dropPhoto ? null : l.photo ?? null }
+			}),
+			files: added.flatMap(f => {
+				const upload = f.upload ?? arrived.current.get(sends.current.get(f.key))
+				return upload ? [{ key: upload.key, name: f.name, kind: f.kind, hasThumbnail: Boolean(upload.hasThumbnail), sha256: upload.sha256 ?? null }] : []
+			}),
+			...(origin.copy ? { origin: { copy: origin.copy } } : {})
+		}
+	}
+	// an order made here becomes a draft at its first change, and not before (3a); answers its id, or null
+	const becomeDraft = ({ keepalive = false } = {}) => {
+		if (draftNow.current) return Promise.resolve(draftNow.current)
+		if (!making.current) {
+			if (!creating || scan || !dirtyNow.current) return Promise.resolve(null)
+			const form = keptForm()
+			making.current = makeDraft(form, { keepalive }).then(made => {
+				draftNow.current = made.id
+				keptAs.current = JSON.stringify(form)
+				if (alive.current) { setDraftId(made.id); onDraft?.(made.id) }
+				return made.id
+			}, () => { making.current = null; return null })
+		}
+		return making.current
+	}
+	// answers whether the draft holds the form now: true, false, or null when there is no draft to keep it in
+	const keep = async ({ keepalive = false } = {}) => {
+		if (finished.current) return null
+		const id = await becomeDraft({ keepalive })
+		if (!id || finished.current) return null
+		const form = keptForm()
+		const text = JSON.stringify(form)
+		if (text === keptAs.current) return true
+		return keepDraft(id, form, { keepalive }).then(() => { keptAs.current = text; return true }, e => (e?.status === 404 ? null : false))
+	}
+	useEffect(() => { keptAs.current = JSON.stringify(keptForm()) }, [])
+	useEffect(() => {
+		if (!creating) return
+		clearTimeout(keepSoon.current)
+		keepSoon.current = setTimeout(keep, KEEP_MS)
+	}, [draft, lines, files, editing, photosSending])
+	useEffect(() => {
+		if (!creating) return undefined
+		const hide = () => { keep({ keepalive: true }) }
+		window.addEventListener('pagehide', hide)
+		return () => window.removeEventListener('pagehide', hide)
+	}, [])
+	// leaving keeps the draft as it is, files still on their way included, and says so (3a); a page
+	// that comes straight back (a remount, not a visit away) has not left
+	useEffect(() => {
+		alive.current = true
+		clearTimeout(goneSoon.current)
+		return () => {
+			alive.current = false
+			goneSoon.current = setTimeout(() => {
+				if (!creating || finished.current) return
+				clearTimeout(keepSoon.current)
+				const pending = [...sends.current.values(), ...[...now.current.lines, editingNow.current?.values ?? {}].map(l => l.newPhoto?.sent)].filter(Boolean)
+				Promise.all(pending).then(() => keep()).then(held => {
+					if (held === null) return
+					invalidateDraftData()
+					if (!keptAway.current) toast(held ? { message: 'Kept in Drafts.' } : { message: 'The last changes were not kept. Check your connection.', color: 'danger' })
+				})
+			}, 0)
+		}
+	}, [])
+	// Discard (6d): the draft and what it holds go, then the form closes
+	const throwAway = async () => {
+		finished.current = true
+		clearTimeout(keepSoon.current)
+		const id = draftNow.current ?? await making.current
+		if (id) await discardDraft(id).catch(() => {})
+		leave()
+	}
+	// the files and photos an order made here would take with it, by the names the reader knows them by
+	const ownFiles = () => [
+		...files.filter(f => !f.problem).map(f => f.name),
+		...lines.filter(l => (l.newPhoto && !l.dropPhoto) || keptPhoto(l)).map(l => `the photo of ${shortened(l.title) || 'a line'}`)
+	]
+	// a draft with nothing but its form goes at once, and Undo brings it back as it was (6d, 6f)
+	const dropDraft = async () => {
+		const form = keptForm()
+		await throwAway()
+		toast({ message: 'Draft discarded.', undo: { label: 'Undo', onClick: () => makeDraft(form).then(made => navigate(`/orders/new?draft=${made.id}`)) } })
+	}
 
 	/* ---- another copy of the order (6d) ---- */
 
@@ -765,7 +915,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		}
 	}, [orderId])
 
-	const discard = () => (scan && lines.length ? setAsking(true) : leave())
+	// a scan's Discard always asks, since its file goes with it; an order made here asks only when files or
+	// photos go too, and closes as it is before its first change (6d)
+	const discard = () => {
+		if (!creating) return leave()
+		if (scan) return setAsking(true)
+		if (!draftNow.current && !making.current && !dirty) return leave()
+		return ownFiles().length ? setAsking(true) : dropDraft()
+	}
 
 	/* ---- the parts ---- */
 
@@ -780,7 +937,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			download: attachmentDownloadUrl(orderId, f.id),
 			...pagesOf(orderId, f)
 		})),
-		...files.filter(f => !f.problem).map(f => ({ key: f.key, name: f.name, src: f.thumb })),
+		...files.filter(f => !f.problem).map(f => ({ key: f.key, name: f.name, kind: f.kind, src: f.thumb ?? (f.upload ? (f.kind === 'pdf' ? scanPageUrl(f.upload.key, 0) : scanFileUrl(f.upload.key)) : null) })),
 		...lines.flatMap(l => {
 			const src = l.newPhoto?.url ?? (l.dropPhoto ? null : photoUrl(l))
 			return src ? [{ key: `line:${l.key}`, name: l.title, src }] : []
@@ -898,20 +1055,19 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	}
 
 	const brokenCount = tried && !relaxed ? lines.filter(l => l.include !== false && Object.keys(lineErrors(l)).length).length : 0
+	// what the head says beside the lines: what needs attention first, then how to use the list
+	const itemsAside = brokenCount
+		? (brokenCount === 1 ? '1 line needs attention' : `${brokenCount} lines need attention`)
+		: scan
+			? (lines.length ? 'Untick a line to leave it out' : undefined)
+			: touch
+				? undefined
+				: origin.copy
+					? `dated ${shortDate(draft.date)}${dot}status ${statuses.find(s => s.key === draft.status)?.name ?? draft.status}`
+					: (lines.length > 1 ? 'Drag the handle, or select a line and use ↑ ↓' : undefined)
 	const itemsHead = (
-		<div className="sp-row-flex sp-wrap sp-gap-8">
-			<span className="sp-section-label">{scan ? 'Lines found' : 'Items'}{dot}{lines.length}</span>
-			<span className="sp-grow" />
-			{brokenCount
-				? <span className="sp-subtitle sp-ink-danger">{brokenCount === 1 ? '1 line needs attention' : `${brokenCount} lines need attention`}</span>
-				: scan
-					? (lines.length ? <span className="sp-meta">Untick a line to leave it out</span> : null)
-					: touch
-						? (lines.length > 1 ? <Button variant="outline" size="small" onClick={() => setReordering(r => !r)}>{reordering ? 'Done' : 'Reorder'}</Button> : null)
-						: origin.copy
-							? <span className="sp-meta">dated {shortDate(draft.date)}{dot}status {statuses.find(s => s.key === draft.status)?.name ?? draft.status}</span>
-							: (lines.length > 1 ? <span className="sp-meta">Drag the handle, or select a line and use ↑ ↓</span> : null)}
-		</div>
+		<CardHeader name={`${scan ? 'Lines found' : 'Items'}${dot}${lines.length}`} aside={itemsAside} asideTone={brokenCount ? 'danger' : 'default'}
+			actions={!brokenCount && !scan && touch && lines.length > 1 ? [{ label: reordering ? 'Done' : 'Reorder', onClick: () => setReordering(r => !r) }] : undefined} />
 	)
 
 	const printed = scan?.total ?? null
@@ -971,37 +1127,25 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	const shownFiles = saved.filter(f => !gone.includes(f.id))
 	const picker = useRef(null)
-	// before the save the receipt is an upload, not an attachment (3a): shown to read the lines against
 	const receiptPages = receipt?.pages > 1 ? `${receipt.pages} pages` : null
-	const attachmentsCard = scan
-		? touch
-			? (
-				<Card>
-					<ListItem onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}`}
-						mark={<Mark size="medium" fill={scan.file.hasThumbnail ? 'photo' : 'none'} text={scan.file.kind === 'pdf' && scan.file.hasThumbnail ? 'PDF' : undefined} aria-hidden="true" aria-label="Receipt">
-							{scan.file.hasThumbnail ? <img src={scanThumbnailUrl(scan.file.key)} alt="" /> : <span>{scan.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
-						</Mark>}>
-						<span className="sp-stacked sp-grow">
-							<span className="sp-title sp-truncate">{receiptPages ? `Receipt, ${receiptPages}` : 'Receipt'}</span>
-							<span className="sp-subtitle">Tap to see it at full size</span>
-						</span>
-					</ListItem>
-				</Card>
-			)
-			: (
-				<Card>
-					<div className="sp-row-flex sp-gap-8">
-						<span className="sp-section-label">Receipt</span>
-						<span className="sp-meta sp-truncate">{[scan.file.name, receiptPages].filter(Boolean).join(dot)}</span>
-					</div>
-					<button type="button" className="or-receipt" onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}, at full size`}>
-						<ReceiptPage src={receipt.src} />
-					</button>
-				</Card>
-			)
+	// on a phone the receipt is its own card above the details (7b); elsewhere it is the first attachment (3a)
+	const attachmentsCard = scan && touch
+		? (
+			<Card>
+				<ListItem onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}`}
+					mark={<Mark size="medium" fill={scan.file.hasThumbnail ? 'photo' : 'none'} text={scan.file.kind === 'pdf' && scan.file.hasThumbnail ? 'PDF' : undefined} aria-hidden="true" aria-label="Receipt">
+						{scan.file.hasThumbnail ? <img src={scanThumbnailUrl(scan.file.key)} alt="" /> : <span>{scan.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
+					</Mark>}>
+					<span className="sp-stacked sp-grow">
+						<span className="sp-title sp-truncate">{receiptPages ? `Receipt, ${receiptPages}` : 'Receipt'}</span>
+						<span className="sp-subtitle">Tap to see it at full size</span>
+					</span>
+				</ListItem>
+			</Card>
+		)
 		: (
 			<Card>
-				<span className="sp-section-label">Attachments{dot}{shownFiles.length + files.length}</span>
+				<CardHeader name={`Attachments${dot}${(receipt ? 1 : 0) + shownFiles.length + files.length}`} />
 				{/* a copy of an order with files starts with none (8a): the row offers them until one is added */}
 				{origin.copy?.files && !shownFiles.length && !files.length
 					? (
@@ -1014,6 +1158,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						</ListItem>
 					)
 					: <Strip>
+						{receipt
+							? <AttachmentTile key="receipt" name={scan.file.name} kind={scan.file.kind} bare={touch}
+								thumb={scan.file.hasThumbnail ? scanThumbnailUrl(scan.file.key) : null} onOpen={() => open('receipt')} />
+							: null}
 						{shownFiles.map(f => (
 							<AttachmentTile key={f.id} name={f.name} kind={f.kind} thumb={f.thumb} bare={touch}
 								onOpen={() => open(f.id)} onRemove={() => removeSaved(f)} />
@@ -1034,8 +1182,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	const fixCount = Object.keys(shown).length
 	// a note beside a value the receipt gave, while it is still the value read (3a)
-	const lookAt = field => (scan?.unclear?.includes(field) && draft[field] === start[field] ? { note: 'needs a look', noteType: 'warning' } : {})
-	const vendorNote = !scan || !scan.vendor || draft.vendor !== start.vendor ? {}
+	const lookAt = field => (scan?.unclear?.includes(field) && draft[field] === asRead[field] ? { note: 'needs a look', noteType: 'warning' } : {})
+	const vendorNote = !scan || !scan.vendor || draft.vendor !== asRead.vendor ? {}
 		: scan.unclear?.includes('vendor') ? lookAt('vendor')
 			: scan.vendorMatched ? { note: 'matched existing vendor', noteType: 'success' } : { note: 'new vendor, created on save' }
 	const fields = (
@@ -1126,13 +1274,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		)
 		: (
 			<Card data-details="">
-				<div className="sp-row-flex sp-gap-8">
-					<span className="sp-section-label">Order details</span>
-					<span className="sp-grow" />
-					{fixCount
-						? <Pill color="danger">{fixCount === 1 ? '1 to fix' : `${fixCount} to fix`}</Pill>
-						: creating ? <span className="sp-meta">Every value can be changed</span> : null}
-				</div>
+				<CardHeader name="Order details" aside={!fixCount && creating ? 'Every value can be changed' : undefined}
+					status={fixCount ? <Pill color="danger">{fixCount === 1 ? '1 to fix' : `${fixCount} to fix`}</Pill> : undefined} />
 				{fields}
 			</Card>
 		)
@@ -1177,22 +1320,18 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const commitWord = saving ? 'Saving…' : crossed.length ? (creating ? 'Create anyway' : 'Save anyway') : creating ? 'Create' : 'Save'
 	const leaveButton = <Button key="leave" variant="outline" onClick={discard}>{leaveWord}</Button>
 	const commitButton = lost ? null : <Button key="save" disabled={saving} onClick={() => save()}>{commitWord}</Button>
-	const state = lost ? 'Not saved' : waiting ? 'Waiting for the connection' : dirty ? 'Unsaved changes' : creatingNow ? 'Nothing saved yet' : null
+	// a draft holds every change as it is made, so it has nothing unsaved to say (3a)
+	const state = lost ? 'Not saved' : waiting ? 'Waiting for the connection' : draftId ? null
+		: creatingNow ? (dirty ? null : 'Nothing saved yet') : dirty ? 'Unsaved changes' : null
 	const totalsCard = (
 		<Card
 			// once the split folds the commits move to the bar that stays in view (1d)
 			footer={stacked || touch ? [] : [leaveButton, commitButton]}
 			footerLayout="split"
 			footerCommits
-			// a scan's proposal can be kept as it is, file and all, and checked later (16a)
-			after={<>
-				{scan && creatingNow && !lost
-					? <Button variant="outline" size="small" fullWidth disabled={saving} onClick={() => save({ asDraft: true })}>Save as draft</Button>
-					: null}
-				{crossed.length && !stacked && !touch ? <span className="sp-meta">You can still save. Nothing is blocked.</span> : null}
-			</>}
+			after={crossed.length && !stacked && !touch ? <span className="sp-meta">You can still save. Nothing is blocked.</span> : null}
 		>
-			{scan ? <span className="sp-section-label">Totals</span> : null}
+			{scan ? <CardHeader name="Totals" /> : null}
 			{touch ? null : limitNotice}
 			<div className="sp-stack">
 				{scan
@@ -1256,7 +1395,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		quietVendor.current = false
 		;(row ?? field)?.scrollIntoView?.({ block: 'center' })
 	}
-	const notice = notices({ origin, scan, lines, leave, touch, jump: looking ? jumpFirst : null })
+	// a field read badly counts until it is changed, the printed total always (as Home counts it)
+	const unclear = (scan?.unclear ?? []).filter(f => !UNCLEAR_EDITABLE.includes(f) || lookAt(f).note)
+	const notice = notices({ origin, scan, unclear, lines, leave: discard, touch, jump: looking ? jumpFirst : null })
 
 	// on a phone the sheet's line is copied as it stands in the sheet, once it reads as a whole line
 	const copyEditing = () => {
@@ -1288,7 +1429,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// the lines the receipt gave, apart from any typed in since: only those were read
 	const read = scan ? lines.filter(l => scan.lines.some(r => r.id === l.key)).length : 0
 	const typed = lines.length - read
-	const lineWord = n => plural(n, 'line')
 	const confirmRemoval = removing
 		? (
 			<Dialog onCancel={() => setRemoving(null)} aria-label={removing.file ? 'Remove the scanned receipt?' : 'Remove the scanned photo?'}>
@@ -1370,17 +1510,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			)
 	const dialog = asking
 		? (
-			<Dialog onCancel={() => setAsking(false)} aria-label="Discard this scan?">
+			<Dialog onCancel={() => setAsking(false)} aria-label={scan ? 'Discard this scan?' : 'Discard this draft?'}>
 				<div className="sp-stack sp-gap-12">
-					<DialogTitle>Discard this scan?</DialogTitle>
-					<DialogBody>
-						{read
-							? `The receipt was read and ${lineWord(read)} ${read === 1 ? 'is' : 'are'} waiting to be checked${typed ? `, with ${lineWord(typed)} you added` : ''}. Nothing is saved if you discard.`
-							: `If you discard, nothing is saved, and ${typed === 1 ? 'the line you added is' : `the ${typed} lines you added are`} lost.`}
-					</DialogBody>
+					<DialogTitle>{scan ? 'Discard this scan?' : 'Discard this draft?'}</DialogTitle>
+					<DialogBody>{scan ? discardWords(scan, read, typed) : `Discarding removes ${names(ownFiles())}, and the draft leaves Drafts.`}</DialogBody>
 					<DialogActions>
-						<Button variant="outline" fullWidth onClick={() => setAsking(false)}>Keep checking</Button>
-						<Button color="danger" fullWidth onClick={leave}>Discard</Button>
+						<Button variant="outline" fullWidth onClick={() => setAsking(false)}>{scan ? 'Keep checking' : 'Keep editing'}</Button>
+						<Button color="danger" fullWidth onClick={() => { setAsking(false); throwAway() }}>Discard</Button>
 					</DialogActions>
 				</div>
 			</Dialog>
@@ -1448,14 +1584,21 @@ function Created({ created, touch, orderId, files, typed, onGone }) {
 	return (
 		<div className="or-span">
 			<Alert color="success" mark={<Icon name="check" size={12} />}
-				title={created.draft
-					? (created.file ? `Saved as a draft from ${created.file}.` : 'Saved as a draft.')
-					: (created.file ? `Order created from ${created.file}.` : 'Order created.')}
+				title={created.file ? `Order created from ${created.file}.` : 'Order created.'}
 				action={actions} below={under}>
 				{said}
 			</Alert>
 		</div>
 	)
+}
+
+/** Discard's words for a draft (6d): what was read, and that its file goes with it. */
+export function discardWords(scan, read = 0, typed = 0) {
+	const file = shortened(scan?.file?.name ?? 'the file', 40)
+	const lineWord = n => plural(n, 'line')
+	if (read) return `The receipt was read and ${lineWord(read)} ${read === 1 ? 'is' : 'are'} waiting to be checked${typed ? `, with ${lineWord(typed)} you added` : ''}. Discarding removes the reading and ${file}, and the draft leaves Drafts.`
+	if (typed) return `Discarding removes ${file} and ${typed === 1 ? 'the line you added' : `the ${typed} lines you added`}, and the draft leaves Drafts.`
+	return `Discarding removes ${file}, and the draft leaves Drafts.`
 }
 
 const LOOK = '[data-line][data-color="warning"], .sp-field__label + .sp-field__help[data-color="warning"]'
@@ -1502,6 +1645,7 @@ const receiptOf = file => ({
 })
 
 const UNCLEAR_FIELD = { vendor: 'the vendor name', date: 'the date', shipping: 'the shipping fee', discount: 'the discount', total: 'the printed total' }
+const UNCLEAR_EDITABLE = ['vendor', 'date', 'shipping', 'discount']
 // what was hard to read on a line of a scanned receipt, by the part the reading named (3a)
 const UNCLEAR_LINE = {
 	price: 'price unclear - check against the receipt',
@@ -1557,7 +1701,7 @@ function Include({ line, setLines }) {
 
 /** Where a copy came from, or what a scan could not read. On a phone the save bar is the way
     out, so there the copy notice has no Discard. */
-function notices({ origin, scan, lines, leave, touch, jump }) {
+function notices({ origin, scan, unclear: fields, lines, leave, touch, jump }) {
 	if (origin.copy)
 		return (
 			<Alert color="success" mark={<Icon name="copy" size={13} />}
@@ -1573,7 +1717,7 @@ function notices({ origin, scan, lines, leave, touch, jump }) {
 			</Alert>
 		)
 	const unclear = lines.filter(l => l.uncertain && l.unclearPart !== 'title').length
-	const hard = [unclear ? plural(unclear, 'line') : null, ...(scan.unclear ?? []).map(f => UNCLEAR_FIELD[f])].filter(Boolean)
+	const hard = [unclear ? plural(unclear, 'line') : null, ...fields.map(f => UNCLEAR_FIELD[f])].filter(Boolean)
 	const looks = [
 		...(scan.vendorMatched ? [] : ['the vendor is new and will be created']),
 		...(scan.total == null ? ['no printed total was found'] : []),
@@ -1582,7 +1726,7 @@ function notices({ origin, scan, lines, leave, touch, jump }) {
 			? `the amounts are in ${c.from} and were not changed to ${c.to}`
 			: `the amounts were changed from ${c.from} to ${c.to}`))
 	]
-	const count = looks.length + unclear + (scan.unclear?.length ?? 0)
+	const count = looks.length + unclear + fields.length
 	if (!count) return null
 	const one = hard.length === 1 && unclear < 2
 	const said = [hard.length ? `${names(hard)} ${one ? 'was' : 'were'} hard to read` : null, ...looks].filter(Boolean)
@@ -1770,17 +1914,6 @@ function NewVendorFromScan({ onSetUp }) {
 			<span className="sp-note sp-grow">Want to add its details now?</span>
 			<Button variant="outline" size="small" onClick={onSetUp}>Set it up first</Button>
 		</div>
-	)
-}
-
-/** A receipt page drawn the first time it is opened: the spinner holds its place until it arrives. */
-function ReceiptPage({ src }) {
-	const [shown, setShown] = useState(null)
-	return (
-		<>
-			{shown === src ? null : <Spinner />}
-			<img src={src} alt="" onLoad={() => setShown(src)} />
-		</>
 	)
 }
 

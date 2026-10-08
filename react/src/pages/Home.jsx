@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardBody, Toolbar } from '../components/Card.jsx'
+import { Card, CardBody, CardHeader, Toolbar } from '../components/Card.jsx'
 import { Bars, ChartTip, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
 import { FILE_TYPES, FileDrop } from '../components/FileDrop.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
+import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -15,10 +15,11 @@ import { Icon } from '../components/Icon.jsx'
 import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
-import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
+import { OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
+import { useStatusTypes } from '../app/statuses.js'
 import {
-	failureMessage, getCategoryPage, getCurrentUser, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsSlice,
-	overBudget, putSummaryAway, withMonthSpend
+	failureMessage, getCategoryPage, getCurrentUser, getDrafts, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsSlice,
+	overBudget, putSummaryAway, scanThumbnailUrl, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
@@ -26,6 +27,9 @@ import { CopyPicker } from './CopyPicker.jsx'
 import { alertsOf, looksIn, monthOf } from './needsLook.jsx'
 
 const RECENT = 4
+const DRAFTS = 3
+// how often a draft still being read asks again, so its row moves on once the reading ends
+const READING_MS = 5000
 const MONTHS = 8
 const ALERTS = 3
 // Home's figures are what was paid, as Statistics opens on
@@ -153,7 +157,15 @@ export default function Home() {
 	const touch = useShellShape() === 'touch'
 	const month = useApi(getStatsSlice, [MONTH])
 	const categories = useApi(getHomeCategories)
-	const recent = useApi(getOrders, [{ pageSize: RECENT }])
+	// Recent orders leaves drafts out; they have their own card (10a)
+	const recent = useApi(getOrders, [{ pageSize: RECENT, drafts: 'none' }])
+	const drafts = useApi(getDrafts, [DRAFTS])
+	const reading = Boolean(drafts.data?.drafts.some(d => d.draft?.reading))
+	useEffect(() => {
+		if (!reading) return undefined
+		const timer = setTimeout(drafts.refresh, READING_MS)
+		return () => clearTimeout(timer)
+	}, [drafts.data])
 	const attention = useApi(getHomeAttention)
 	const name = firstName(useApi(getCurrentUser).data)
 	const compared = useApi(getComparedMonth)
@@ -185,7 +197,7 @@ export default function Home() {
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	// the card waits for the settings, so a row switched off never flashes up
-	const props = { month, compared, categories, view, recent, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
+	const props = { month, compared, categories, view, recent, drafts, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
 }
@@ -193,7 +205,7 @@ export default function Home() {
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, compared, categories, view, recent, attention, looks, notice }) {
+function DesktopHome({ month, compared, categories, view, recent, drafts, attention, looks, notice }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error
 	return (
@@ -211,6 +223,7 @@ function DesktopHome({ month, compared, categories, view, recent, attention, loo
 			</div>
 			<div className="hm-split hm-split--start sp-gap-12">
 				<div className="sp-stack sp-gap-12">
+					<DraftsCard drafts={drafts} />
 					{lost ? null : <AlertsCard view={view} attention={attention} looks={looks} />}
 					<RecentCard recent={recent} />
 				</div>
@@ -229,10 +242,10 @@ function DesktopHome({ month, compared, categories, view, recent, attention, loo
 	)
 }
 
-/** A skeleton the size of the small text button it stands in for. */
+/** A skeleton the size of the small outline button it stands in for. */
 function ButtonSkeleton({ label }) {
 	return (
-		<Hold shape={<Button variant="text" size="small">{label}</Button>}>
+		<Hold shape={<Button variant="outline" size="small">{label}</Button>}>
 			<span className="hm-fill"><Skeleton shape="line" data-w="44" data-h="13" /></span>
 		</Hold>
 	)
@@ -242,22 +255,15 @@ function MonthCard({ w, compared, lastAdded }) {
 	const ago = lastAdded ? daysAgo(localDay(lastAdded)) : null
 	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
-		<Card variant="shell">
-			<div className="sp-stack sp-grow sp-gap-12 hm-spread">
-				<div className="sp-row-flex sp-gap-12">
-					{w
-						? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
-						: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
-					<span className="sp-grow" />
-					{ago ? <span className="sp-meta">last added {ago}</span> : null}
-				</div>
-				<div className="sp-stats sp-stats--line">
-					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
-					<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
-					<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
-				</div>
-				<Limits w={w} compared={compared} />
+		<Card variant="shell" spread>
+			<CardHeader name={w ? `${capital(monthOf(w))} ${w.from.slice(0, 4)}${dot}day ${w.pace.daysIn} of ${w.pace.unitDays}` : <Skeleton shape="line" data-w="130" data-h="11" />}
+				aside={ago ? `last added ${ago}` : undefined} />
+			<div className="sp-stats sp-stats--line">
+				<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
+				<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
+				<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
 			</div>
+			<Limits w={w} compared={compared} />
 		</Card>
 	)
 }
@@ -321,7 +327,7 @@ function AlertsCard({ view, attention, looks }) {
 				<span className="sp-section-label">Needs a look</span>
 				{more ? counted : null}
 				<span className="sp-grow" />
-				{more ? <Button variant="text" size="small" to={alerts.all.to}>All {amount(alerts.all.count, 0)}</Button> : counted}
+				{more ? <Button variant="outline" size="small" to={alerts.all.to}>All {amount(alerts.all.count, 0)}</Button> : counted}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
@@ -397,15 +403,12 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 			</div>,
 			<Button key="open" size="small" to={`/statistics?range=month&period=${summary.month}`}>Open statistics</Button>
 		]}>
-			<div className="hm-top">
-				<div className="sp-stack sp-gap-6 sp-grow">
-					<span className="sp-section-label">{month} {summary.month.slice(0, 4)}</span>
-					<span className="sp-heading">
-						{heading}
-					</span>
-					{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
-				</div>
-				<IconButton icon="x" aria-label={`Hide the ${month} summary`} onClick={onHide} />
+			<CardHeader name={`${month} ${summary.month.slice(0, 4)}`} onDismiss={onHide} dismissLabel={`Hide the ${month} summary`} />
+			<div className="sp-stack sp-gap-6">
+				<span className="sp-heading">
+					{heading}
+				</span>
+				{rows.length ? <span className="sp-data">{summarySentence(over, close, room)}</span> : null}
 			</div>
 			{lines.length
 				? (
@@ -434,7 +437,7 @@ function RecentCard({ recent }) {
 			<span className="sp-section-label">Recent orders</span>
 			{total ? <span className="sp-meta">newest {Math.min(RECENT, orders.length)}</span> : null}
 			<span className="sp-grow" />
-			{total ? <Button variant="text" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
+			{total ? <Button variant="outline" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
 		</>
 	)
 	const loading = <RecentList caption={caption} />
@@ -493,6 +496,72 @@ function RecentList({ caption, orders }) {
 	)
 }
 
+/* ---- drafts: orders not created yet, newest scan first (10a, 7a) ---- */
+
+/** The address of all drafts: the order list filtered to the status Draft. */
+function useDraftsAddress() {
+	const key = useStatusTypes().keyOf('draft') ?? 'Draft'
+	return `/orders?status=${encodeURIComponent(key)}`
+}
+
+/** A draft's own day: the day it was scanned, or an order's date for one that did not come from a scan. */
+const draftDay = o => o.draft?.scanned ?? o.date
+
+/** A scan's picture: its first page, or the kind of file while it has none. */
+function DraftFile({ file }) {
+	return file.hasThumbnail
+		? <Mark size="medium" fill="photo" aria-hidden="true" aria-label={file.name}><img src={scanThumbnailUrl(file.key)} alt="" /></Mark>
+		: <Mark size="medium" fill="none" aria-hidden="true" aria-label={file.name}><span>{file.kind === 'pdf' ? 'PDF' : 'IMG'}</span></Mark>
+}
+
+/** What is left on a draft, first so a long file name is the part cut: a scan's file after it, a copy's source day. */
+const draftLine = d => [d.draft.left, d.draft.file?.name, d.draft.copiedFrom ? `Copied from ${rowDate(d.draft.copiedFrom)}` : null].filter(Boolean).join(dot)
+
+/** A draft's picture and words: a scan's file, else the order row's picture; an order with status Draft as an order row shows it. */
+function DraftHead({ order }) {
+	if (!order.draft) return <OrderHead order={order} />
+	return (
+		<>
+			{order.draft.file ? <DraftFile file={order.draft.file} /> : <OrderPhoto order={order} />}
+			<span className="sp-stacked">
+				<span className="sp-title sp-truncate">{vendorName(order)}</span>
+				<span className="sp-meta sp-truncate">{draftLine(order)}</span>
+			</span>
+		</>
+	)
+}
+
+function DraftsCard({ drafts }) {
+	const all = useDraftsAddress()
+	const rows = drafts.data?.drafts
+	const total = drafts.data?.total
+	// absent while there are none, and until it is known that there are some
+	if (drafts.error) return <Failed variant="card" label="Drafts" what="Your drafts" error={drafts.error} onRetry={drafts.refresh} />
+	if (!rows?.length) return null
+	return (
+		<List data={rows} recordKey={o => o.id} noun="drafts" headless locale={NUMBER_LOCALE} rowTo={o => `/orders/${o.id}`}>
+			<Caption>
+				<span className="sp-section-label">Drafts</span>
+				<span className="sp-meta">newest {rows.length}</span>
+				<span className="sp-grow" />
+				<Button variant="outline" size="small" to={all}>All {amount(total, 0)}</Button>
+			</Caption>
+			<ListHead>
+				<ListCell width="title" />
+				<ListCell width="date" />
+				<ListCell width="amount" />
+			</ListHead>
+			<ListRow>{o => (
+				<>
+					<ListCell cell="flex"><DraftHead order={o} /></ListCell>
+					<ListCell><span className="sp-data">{rowDate(draftDay(o))}</span></ListCell>
+					<ListCell cell="amount">{o.total == null ? null : <span className="sp-amount">{currency(o.total)}</span>}</ListCell>
+				</>
+			)}</ListRow>
+		</List>
+	)
+}
+
 function OrderHead({ order }) {
 	return (
 		<>
@@ -518,7 +587,7 @@ function CaptureCard({ newest, loading }) {
 		: loading ? <ButtonSkeleton label="Copy an order" /> : null
 	return (
 		<Card>
-			<span className="sp-section-label">Add an order</span>
+			<CardHeader name="Add an order" />
 			{held
 				? (
 					<FileDrop disabled row>
@@ -551,11 +620,7 @@ function CategoriesCard({ view }) {
 	const top = view?.top
 	const loading = (
 		<Card>
-			<div className="sp-row-flex sp-gap-8">
-				<span className="sp-section-label">Categories this month</span>
-				<span className="sp-grow" />
-				<ButtonSkeleton label="All 10" />
-			</div>
+			<CardHeader name="Categories this month" />
 			{['96', '76', '88', '64'].map(width => (
 				<div className="sp-stack sp-gap-6" key={width}>
 					<div className="sp-row-flex sp-gap-8">
@@ -571,12 +636,8 @@ function CategoriesCard({ view }) {
 	)
 	if (!view) return loading
 	const header = (
-		<div className="sp-row-flex sp-gap-8">
-			<span className="sp-section-label">Categories this month</span>
-			{top.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
-			<span className="sp-grow" />
-			{view.withSpend ? <Button variant="text" size="small" to={`/categories?month=${view.window.from.slice(0, 7)}`}>All {amount(view.withSpend, 0)}</Button> : null}
-		</div>
+		<CardHeader name="Categories this month" meta={top.length ? `top ${top.length} by spend` : undefined}
+			actions={view.withSpend ? [{ label: `All ${amount(view.withSpend, 0)}`, to: `/categories?month=${view.window.from.slice(0, 7)}` }] : undefined} />
 	)
 	if (top.length) return (
 		<Card>
@@ -615,7 +676,7 @@ function CategoryLine({ category: c, early }) {
 	const limited = c.budget > 0
 	const warn = overBudget(c) || nearLimit(c, early)
 	return (
-		<Link className="sp-stack sp-gap-6 hm-link" to={`/statistics?range=month&crumbs=category:${c.id}`}>
+		<Link className="sp-stack sp-gap-6 sp-row-opens" to={`/statistics?range=month&crumbs=category:${c.id}`}>
 			<div className="sp-row-flex sp-gap-8">
 				<CategoryMark category={c} size="small" />
 				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
@@ -642,11 +703,7 @@ function MonthsCard() {
 				? <span className="sp-amount hm-line" key="value"><Skeleton shape="line" data-w="76" data-h="13" /></span>
 				: <span className="sp-amount" key="value">{currency(average, 0)}</span>
 		]}>
-			<div className="sp-row-flex sp-gap-8">
-				<span className="sp-section-label">Last {MONTHS} months</span>
-				<span className="sp-grow" />
-				<Button variant="text" size="small" to="/statistics">Statistics</Button>
-			</div>
+			<CardHeader name={`Last ${MONTHS} months`} actions={[{ label: 'Statistics', to: '/statistics' }]} />
 			<Bars variant="card" columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
 				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
 		</Card>
@@ -661,7 +718,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, compared, categories, view, recent, attention, looks, name }) {
+function PhoneHome({ month, compared, categories, view, recent, drafts, attention, looks, name }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -678,6 +735,7 @@ function PhoneHome({ month, compared, categories, view, recent, attention, looks
 					</Hold>
 				)
 				: <PhoneMonth w={w} compared={compared} />}
+			<PhoneDrafts drafts={drafts} />
 			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
 			<PhoneRecent recent={recent} />
 		</>
@@ -689,14 +747,14 @@ function PhoneMonth({ w, compared }) {
 	const earlier = compared?.data
 	if (!w) return (
 		<Card>
-			<span className="sp-section-label">This month</span>
+			<CardHeader name="This month" />
 			<span className="sp-stat__figure sp-stat__figure--large hm-line"><Skeleton shape="line" data-w="130" data-h="22" /></span>
 			<Gauge value={0} aria-label="This month against an earlier month" />
 		</Card>
 	)
 	if (!earlier) return (
 		<Card>
-			<span className="sp-section-label">This month</span>
+			<CardHeader name="This month" />
 			<span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>
 			<Gauge value={0} untargeted={!!compared?.error} aria-label="This month against an earlier month" />
 			{compared?.error
@@ -713,7 +771,7 @@ function PhoneMonth({ w, compared }) {
 	const pace = w.pace.unitDays ? (w.pace.daysIn / w.pace.unitDays) * 100 : 100
 	return (
 		<Card>
-			<span className="sp-section-label">This month</span>
+			<CardHeader name="This month" />
 			{earlier.orders
 				? (
 					<div className="sp-row-flex sp-gap-8 sp-baseline">
@@ -740,7 +798,7 @@ function PhoneAlerts({ view, attention, looks }) {
 	const chevron = <Icon name="chevron-right" size={13} />
 	return (
 		<Card>
-			<span className="sp-section-label">Needs a look</span>
+			<CardHeader name="Needs a look" />
 			{alerts
 				? alerts.phone.map(a => (
 					<ListItem key={a.key} to={a.to} color={a.color} chevron={chevron} count={a.count}>
@@ -756,9 +814,9 @@ function PhoneRecent({ recent }) {
 	const orders = recent.data?.orders
 	const loading = (
 		<Card>
-			<span className="sp-section-label">Recent orders</span>
+			<CardHeader name="Recent orders" />
 			{[0, 1, 2].map(i => (
-				<div className="sp-row-flex sp-gap-12 hm-order" key={i}>
+				<div className="sp-row-flex sp-gap-12" key={i}>
 					<Skeleton shape="mark" />
 					<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w="62pc" data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span>
 					<Skeleton shape="line" data-w="64" />
@@ -775,7 +833,7 @@ function PhoneRecent({ recent }) {
 	if (!orders.length) return (
 		<Hold shape={loading}>
 			<Card>
-				<span className="sp-section-label">Recent orders</span>
+				<CardHeader name="Recent orders" />
 				<div className="sp-stack sp-grow hm-fill">
 					<span className="sp-meta">No orders yet. Press the plus button to add your first.</span>
 				</div>
@@ -784,12 +842,7 @@ function PhoneRecent({ recent }) {
 	)
 	return (
 		<Card>
-			<div className="sp-row-flex sp-gap-8 sp-baseline">
-				<span className="sp-section-label">Recent orders</span>
-				<span className="sp-meta">newest {Math.min(3, orders.length)}</span>
-				<span className="sp-grow" />
-				<Button variant="text" size="small" to="/orders">All {amount(recent.data.total, 0)}</Button>
-			</div>
+			<CardHeader name="Recent orders" meta={`newest ${Math.min(3, orders.length)}`} actions={[{ label: `All ${amount(recent.data.total, 0)}`, to: '/orders' }]} />
 			{orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)}
 		</Card>
 	)
@@ -797,7 +850,7 @@ function PhoneRecent({ recent }) {
 
 function PhoneOrder({ order }) {
 	return (
-		<Link className="sp-row-flex sp-gap-12 hm-order" to={`/orders/${order.id}`}>
+		<Link className="sp-row-flex sp-gap-12 sp-row-opens" to={`/orders/${order.id}`}>
 			<OrderPhoto order={order} />
 			<div className="sp-stacked sp-grow">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
@@ -805,6 +858,30 @@ function PhoneOrder({ order }) {
 			</div>
 			<span className="sp-title sp-nowrap">{amount(order.total)}</span>
 		</Link>
+	)
+}
+
+function PhoneDrafts({ drafts }) {
+	const all = useDraftsAddress()
+	const rows = drafts.data?.drafts
+	if (drafts.error) return <Failed variant="card" label="Drafts" what="Your drafts" error={drafts.error} onRetry={drafts.refresh} />
+	if (!rows?.length) return null
+	return (
+		<Card>
+			<CardHeader name="Drafts" meta={`newest ${rows.length}`} actions={[{ label: `All ${amount(drafts.data.total, 0)}`, to: all }]} />
+			{rows.map(o => (o.draft
+				? (
+					<Link key={o.id} className="sp-row-flex sp-gap-12 sp-row-opens" to={`/orders/${o.id}`}>
+						{o.draft.file ? <DraftFile file={o.draft.file} /> : <OrderPhoto order={o} />}
+						<div className="sp-stacked sp-grow">
+							<span className="sp-title sp-truncate">{vendorName(o)}</span>
+							<span className="sp-meta">{rowDate(draftDay(o))}{dot}{o.draft.left}{o.draft.copiedFrom ? `${dot}Copied from ${rowDate(o.draft.copiedFrom)}` : ''}</span>
+						</div>
+						{o.total == null ? null : <span className="sp-title sp-nowrap">{amount(o.total)}</span>}
+					</Link>
+				)
+				: <PhoneOrder key={o.id} order={o} />))}
+		</Card>
 	)
 }
 

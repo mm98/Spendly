@@ -2,7 +2,7 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 import { flushSync } from 'react-dom'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardBody } from '../components/Card.jsx'
+import { Card, CardHeader, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Combobox, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
@@ -228,7 +228,7 @@ function Loading({ view, touch }) {
 function HeroLoading({ touch }) {
 	return (
 		<Card variant="shell" aria-busy="true" aria-label="Loading the budget">
-			{bar('130', '11', 'sp-section-label')}
+			<CardHeader name={<Skeleton shape="line" data-w="130" data-h="11" />} />
 			<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 				{['Left over', 'Income', 'Costs', ...(touch ? [] : ['Real amounts'])].map((label, i) => (
 					<Stat key={label} label={label} figure={bar('96', '22')} meta={i ? bar('130', '11') : undefined} />
@@ -281,14 +281,7 @@ function MonthsLoading({ touch }) {
 	)
 	return (
 		<Card ref={card} aria-busy="true">
-			{touch ? stepper : (
-				<div className="sp-row-flex sp-gap-12">
-					{bar('130', '11', 'sp-section-label')}
-					<span className="sp-grow" />
-					<span className="sp-note">Grey amounts are expected</span>
-					{stepper}
-				</div>
-			)}
+			{touch ? stepper : <CardHeader name={<Skeleton shape="line" data-w="130" data-h="11" />} aside="Grey amounts are expected" asideTone="note" control={stepper} />}
 			{count === 1 ? null : (
 				<Segmented variant="facet" fixed name="budget-month-loading" aria-label="Month" value={-1}
 					options={short.map((label, m) => ({ value: m, label, disabled: true }))} />
@@ -304,13 +297,11 @@ function SheetLoading() {
 	const label = (key, text) => <tr key={key}><td colSpan={MONTHS + 4}><span className="sp-section-label">{text}</span></td></tr>
 	return (
 		<Card variant="flush" aria-busy="true" aria-label="Loading the budget">
-			<CardBody>
-				<div className="sp-row-flex sp-gap-12">
-					{bar('130', '11', 'sp-section-label')}
-					<span className="sp-grow" />
-					<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
-				</div>
-			</CardBody>
+			<Toolbar>
+				{bar('130', '11', 'sp-section-label')}
+				<span className="sp-grow" />
+				<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
+			</Toolbar>
 			<div className="bg-view">
 				<div className="bg-scroll">
 					<table className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet">
@@ -617,14 +608,7 @@ function MonthsView({ sheet, write, editing, covered, touch, panel, setPanel, on
 				{/* on touch the window fills its row, with no label beside it (Mobile screens 7a) */}
 				{touch
 					? stepper
-					: (
-						<div className="sp-row-flex sp-gap-12">
-							<span className="sp-section-label">Months {sheet.year}</span>
-							<span className="sp-grow" />
-							<span className="sp-note">Grey amounts are expected</span>
-							{stepper}
-						</div>
-					)}
+					: <CardHeader name={`Months ${sheet.year}`} aside="Grey amounts are expected" asideTone="note" control={stepper} />}
 				{/* twelve segments fit beside two months only; with one month the window steps through them */}
 				{count === 1 ? null : (
 					<Segmented variant="facet" fixed name="budget-month" aria-label="Month" value={month} onChange={go}
@@ -654,7 +638,7 @@ function MonthHero({ sheet, month, totals, long, touch, covered }) {
 	const waiting = withAmount.length - real
 	return (
 		<Card variant="shell">
-			<span className="sp-section-label">{capitalised(long[month])} {sheet.year}</span>
+			<CardHeader name={`${capitalised(long[month])} ${sheet.year}`} />
 			<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 				<Stat label="Left over" figure={covered ? <Redacted /> : currency(cents(totals.left[month]), 0)} />
 				<Stat label="Income" figure={covered ? <Redacted /> : currency(cents(totals.income[month]), 0)}
@@ -1009,7 +993,7 @@ const ACCOUNTS_NOTE = 'The accounts a row is paid from, or paid into. The totals
 function AccountsLoading() {
 	return (
 		<Card aria-busy="true" aria-label="Loading the accounts">
-			<span className="sp-section-label">Accounts</span>
+			<CardHeader name="Accounts" />
 			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
 			<div className="sp-stack sp-gap-8">
 				{['96', '120', '82'].map(w => (
@@ -1070,7 +1054,7 @@ function AccountsCard({ sheet, onChanged }) {
 
 	return (
 		<Card>
-			<span className="sp-section-label">Accounts</span>
+			<CardHeader name="Accounts" />
 			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
 			<div className="sp-stack sp-gap-8" {...reorder.list}>
 				<Announce>{reorder.said}</Announce>
@@ -1259,13 +1243,11 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 
 	return (
 		<Card variant="flush">
-			<CardBody>
-				<div className="sp-row-flex sp-gap-12">
-					<span className="sp-section-label">Budget {sheet.year}</span>
-					<span className="sp-grow" />
-					<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
-				</div>
-			</CardBody>
+			<Toolbar>
+				<span className="sp-section-label">Budget {sheet.year}</span>
+				<span className="sp-grow" />
+				<span className="sp-note">Grey amounts are expected{dot}Amounts in {currencySymbol()}</span>
+			</Toolbar>
 			<div className="bg-view">
 				<div className="bg-scroll" ref={scroller}>
 					<table ref={table} className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet" aria-label={`Budget ${sheet.year}, amounts in ${currencySymbol()}`}>

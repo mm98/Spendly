@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { FieldGroup } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
@@ -82,10 +82,11 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 		}
 	})
 
-	const slot = mode === 'editing' ? <Button variant="outline" size="xsmall" onClick={() => setMode('rest')}>Done</Button>
-		: mode === 'naming' ? <Button variant="outline" size="xsmall" onMouseDown={ev => ev.preventDefault()} onClick={() => setMode('rest')}>Cancel</Button>
-			: now && (!active || edited) ? <Button variant="outline" size="xsmall" onClick={() => setMode('naming')}>Save</Button>
-				: <Button variant="outline" size="xsmall" onClick={() => setMode('editing')}>Edit</Button>
+	// a new label is a new button, so a press that ends naming never lands on the Save that replaces Cancel
+	const slot = mode === 'editing' ? { label: 'Done', onClick: () => setMode('rest') }
+		: mode === 'naming' ? { label: 'Cancel', onClick: () => setMode('rest') }
+			: now && (!active || edited) ? { label: 'Save', onClick: () => setMode('naming') }
+				: { label: 'Edit', onClick: () => setMode('editing') }
 	const count = n => (n == null ? undefined : amount(n, 0))
 
 	return (
@@ -93,11 +94,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 			footer={edited && mode === 'rest'
 				? [<Button key="u" variant="outline" fullWidth onClick={update}>Update</Button>, <Button key="r" variant="outline" fullWidth onClick={revert}>Revert</Button>]
 				: null}>
-			<div className="sp-row-flex">
-				<span className="sp-section-label">Views</span>
-				<span className="sp-grow" />
-				{slot}
-			</div>
+			<CardHeader name="Views" actions={[slot]} />
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
 			<div className="sp-nav-list" {...reorder.list}>
 				<Announce>{reorder.said}</Announce>

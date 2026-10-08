@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Card, CardFooter } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
@@ -9,7 +9,7 @@ import { Halves } from '../components/Well.jsx'
 import { changePassword, failureMessage } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { MIN_PASSWORD, PasswordHint } from './SignIn.jsx'
-import { Heading } from './SettingsParts.jsx'
+import { landing } from './SettingsParts.jsx'
 
 const DAY = 24 * 60 * 60
 
@@ -96,7 +96,7 @@ export function AccountCard({ user, value, change, touch }) {
 
 	return (
 		<Card>
-			<Heading section="account">Account and profile</Heading>
+			<CardHeader name="Account and profile" {...landing('account')} />
 			<div className="sp-row-flex sp-gap-16">
 				{avatar}
 				<div className="sp-stack sp-gap-6">

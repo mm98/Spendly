@@ -1,5 +1,5 @@
 import { Failed } from '../components/Failed.jsx'
-import { Card, Panel, Toolbar } from '../components/Card.jsx'
+import { Card, CardHeader, Panel, Toolbar } from '../components/Card.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 
 import { Skeleton, Spinner } from '../components/Utilities.jsx'
@@ -201,9 +201,7 @@ export function OrderLoading({ region = false, form = false }) {
 	)
 	const items = (
 		<Card aria-busy="true" aria-label="Loading the order">
-			{form
-				? <div className="sp-row-flex sp-gap-8"><span className="sp-section-label">Items</span>{touch ? <><span className="sp-grow" />{control('reorder', true)}</> : null}</div>
-				: <div className="sp-row-flex sp-gap-12"><span className="sp-section-label">Items</span><Skeleton shape="line" data-w="130" data-h="13" /><span className="sp-grow" /><Skeleton shape="line" data-w="74" data-h="22" /></div>}
+			<CardHeader name="Items" />
 			<div className="sp-stack sp-gap-8">
 				{rowsLoading(3)}
 				{form ? <ListItem mark={<Skeleton shape="mark" />}><Skeleton shape="line" data-w="88" data-h="13" /></ListItem> : null}
@@ -214,7 +212,7 @@ export function OrderLoading({ region = false, form = false }) {
 	const attachments = form
 		? (
 			<Card aria-hidden="true">
-				<span className="sp-section-label">Attachments</span>
+				<CardHeader name="Attachments" />
 				<div className="or-tiles">{control()}</div>
 			</Card>
 		)
@@ -235,7 +233,7 @@ export function OrderLoading({ region = false, form = false }) {
 		rail = (
 			<>
 				<Card aria-hidden="true">
-					<div className="sp-row-flex sp-gap-8"><span className="sp-section-label">Order details</span></div>
+					<CardHeader name="Order details" />
 					{fieldLoading('vendor')}
 					<div className="sp-fields">{fieldLoading('date')}{fieldLoading('kind')}</div>
 					{fieldLoading('status')}
@@ -254,12 +252,12 @@ export function OrderLoading({ region = false, form = false }) {
 		rail = (
 			<>
 				<Card aria-hidden="true">
-					<span className="sp-section-label">Order details</span>
+					<CardHeader name="Order details" />
 					<div className="sp-stack">{['Vendor', 'Date', 'Kind', 'Categories', 'Reference'].map(k => sum(k))}</div>
 				</Card>
 				<Card aria-hidden="true" footer={[control('copy', true), control('edit', true)]} footerLayout="split" footerCommits
 					after={control('delete', true)}>
-					<span className="sp-section-label">Totals</span>
+					<CardHeader name="Totals" />
 					<div className="sp-stack">{['Items', 'Discount', 'Shipping'].map(k => sum(k))}{sum('Total', 'total')}</div>
 					<span className="sp-row-flex">{strut('sp-stat__delta')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
 				</Card>

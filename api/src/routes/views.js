@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { countMatching } from './orders.js'
+import { draftCount } from '../lib/orderDrafts.js'
 
 /* Saved order views (Order list 2g, Navigation shell 9e): one list, read by the sidebar and the
    order list's rail alike, each view with its live count. */
@@ -58,7 +59,8 @@ function requestOf(query, today) {
 }
 
 const list = (userId, today) => ({
-	all: countAll.get(userId).c,
+	// drafts are in the list, so All orders counts them as the list does
+	all: countAll.get(userId).c + draftCount(userId),
 	shown: selectShown.get(userId)?.shown ?? SHOWN_FIRST,
 	views: selectViews.all(userId).map(v => ({
 		id: v.id, name: v.name, query: v.query, isDefault: Boolean(v.is_default), attention: Boolean(v.attention),

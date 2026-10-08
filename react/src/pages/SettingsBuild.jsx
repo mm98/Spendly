@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Card } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Well } from '../components/Well.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -8,7 +8,7 @@ import { Skeleton, Spinner } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import { checkVersion, failureMessage, getVersion, startUpdate } from '../api/client.js'
 import { activeLocaleCode } from '../api/format.js'
-import { Heading } from './SettingsParts.jsx'
+import { landing } from './SettingsParts.jsx'
 
 // a check that answers at once still shows Checking for this long, or it reads as nothing happening
 const HOLD_MS = 2000
@@ -69,7 +69,7 @@ export function BuildCard() {
 			.catch(e => { setWhy(failureMessage(e, 'The update did not finish.')); setState('update-failed') })
 	}
 
-	const heading = <Heading section="build">This build</Heading>
+	const heading = <CardHeader name="This build" {...landing('build')} />
 	const { builtAt, commit, canUpdate } = version.data ?? {}
 
 	if (!version.data) return (

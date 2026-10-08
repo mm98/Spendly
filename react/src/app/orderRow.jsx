@@ -3,7 +3,7 @@ import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { getOverLimitCategories, itemAttachmentThumbnailUrl, vendorImageUrl } from '../api/client.js'
+import { getOverLimitCategories, itemAttachmentThumbnailUrl, scanThumbnailUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { dot, morePhotos, plural, today } from '../api/format.js'
 import { TONES, useStatuses } from './statuses.js'
@@ -19,9 +19,12 @@ export function OrderPhoto({ order }) {
 	)
 	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="photo" size={16} /></Mark>
 	const more = order.photoCount > 1 ? morePhotos(order.photoCount - 1) : null
+	// a draft's photo is one sent to it, or one a copy carried from its order
+	const { key, orderId = order.id, itemId, attachmentId } = order.photo
+	const src = key ? scanThumbnailUrl(key) : itemAttachmentThumbnailUrl(orderId, itemId, attachmentId)
 	return (
 		<Mark size="medium" fill="photo" goods count={more} aria-label={`Photo from ${order.vendor?.name ?? 'this order'}`} aria-hidden="true">
-			<img src={itemAttachmentThumbnailUrl(order.id, order.photo.itemId, order.photo.attachmentId)} alt="" />
+			<img src={src} alt="" />
 		</Mark>
 	)
 }
@@ -32,6 +35,9 @@ export function OrderFiles({ count }) {
 	const label = plural(count, 'attachment')
 	return <Mark size="small" role="img" aria-label={label} title={label}><Icon name="paperclip" size={12} /></Mark>
 }
+
+/** What a row is called: its vendor, or for a draft its file, or "New order" while it has neither (10a). */
+export const vendorName = order => order.vendor?.name || order.draft?.file?.name || (order.draft ? 'New order' : 'No vendor')
 
 /** The line under an order's vendor: its reference and its note (2b). */
 export const orderLine = order => [order.reference || 'No reference yet', order.note].filter(Boolean).join(dot)

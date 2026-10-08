@@ -2,14 +2,6 @@
 
 @layer base {
 
-	/* a record's form beside its rail: the form takes the width, the rail keeps its own */
-	.lb-split {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) max-content;
-		gap: var(--sp-12);
-		align-items: start;
-	}
-
 	/* a skeleton laid over the part it stands in for, which is kept unseen beneath so the size holds */
 	.lb-hold { display: grid; min-width: 0; }
 	.lb-ghost,

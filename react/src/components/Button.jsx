@@ -4,7 +4,7 @@ import { join, pick, reject } from './variants.js'
 
 const STYLE = { solid: null, outline: 'sp-btn--outline', text: 'sp-btn--text' }
 const COLOR = { primary: true, warning: true, danger: true }
-// xsmall is a rail section header's action; on touch it renders at the small size
+// on touch xsmall renders at the small size
 const SIZE = { standard: null, small: 'sp-btn--small', xsmall: 'sp-btn--xsmall' }
 
 const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
