@@ -459,7 +459,6 @@ export default function Statistics() {
 		limits: flow === 'refunds' ? null
 			: month.error ? <Failed variant="card" label="Monthly limit" what={`${monthName} against the limits`} error={month.error} onRetry={retry} />
 				: <LimitCard key={`limits ${monthId}`} view={monthView} name={monthName} running={monthRunning} categories={categories} touch={touch} onRetry={retry} />,
-		vendorChart: <VendorChart view={view} onOpen={drillTo('vendor')} />,
 		slice: table
 	})
 }
@@ -532,7 +531,7 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 
 /** Where each card sits: beside the chart on a wide screen, in pairs on a narrower one, and one
     column below 900 and on a phone. Inside a crumb, the chart and one breakdown, then the orders (4b). */
-function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = null, kpis, chart, side, byCategory, byStatus, vendors, saving, limits, vendorChart, slice }) {
+function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = null, kpis, chart, side, byCategory, byStatus, vendors, saving, limits, slice }) {
 	const figures = <div className="sp-stats sp-stats--fold">{kpis}</div>
 	if (drilled) {
 		if (shape === 'touch' || stacked) return <>{period}{crumbsBar}{figures}{chart}{side}{slice}</>
@@ -540,7 +539,7 @@ function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = n
 	}
 	// the period control stays first in every state, so it keeps its focus while a window loads
 	if (shape === 'touch') return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{slice}</>
-	if (stacked) return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{vendorChart}{slice}</>
+	if (stacked) return <>{period}{notice}{figures}{chart}{byCategory}{byStatus}{vendors}{saving}{limits}{slice}</>
 	return (
 		<>
 			{period}
@@ -553,7 +552,6 @@ function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = n
 				<div className="sp-stack sp-gap-12">{vendors}{saving}</div>
 				{limits}
 			</Halves>
-			{vendorChart}
 			{slice}
 		</>
 	)
@@ -593,7 +591,6 @@ function busyParts({ unit, name, monthName, monthRunning, running, touch, compar
 		vendors: <VendorsCard name={monthName} touch={touch} />,
 		saving: <SavingChart name={name} touch={touch} />,
 		limits: <LimitCard name={monthName} running={monthRunning} categories={categories} touch={touch} />,
-		vendorChart: <VendorChart />,
 		slice: touch ? <SliceCard /> : <OrdersTable rows={[]} drilled={drilled} />
 	}
 }
@@ -979,42 +976,6 @@ function ShowAll({ open, onClick, count, noun }) {
 		<Button variant="outline" size="small" onClick={onClick}>
 			{open ? `Show top ${TOP} only` : count > shown ? `Show top ${shown} of ${amount(count, 0)} ${noun}` : `Show all ${amount(count, 0)} ${noun}`}
 		</Button>
-	)
-}
-
-// a chart past ten bars collides its labels, so it stops at ten and the remainder is one bar (4d)
-const CHART_TOP = 10
-
-/** The window's spend by vendor as bars: the top ten and the rest as one bar that opens nothing (4d). */
-function VendorChart({ view, onOpen }) {
-	const bars = useRef(null)
-	const vendors = view?.vendorSplit
-	const rest = vendors ? vendors.slice(CHART_TOP) : []
-	const folded = rest.length > 1
-	const fit = useFit(bars, `${vendors?.length} ${folded}`)
-	const head = <CardHeader name="Spend by vendor" aside={folded ? `top ${CHART_TOP}, remainder as one bar` : undefined} />
-	if (!vendors) return <Card aria-busy="true">{head}<Bars loading /></Card>
-	const lines = folded
-		? [...vendors.slice(0, CHART_TOP), {
-			id: 'other', other: true, name: `Other ${amount(rest.length, 0)}`,
-			amount: rest.reduce((sum, entry) => sum + entry.amount, 0), orders: rest.reduce((sum, entry) => sum + entry.orders, 0)
-		}]
-		: vendors
-	// the remainder can outweigh the top vendor, so each bar is a share of the tallest one drawn
-	const most = Math.max(...lines.map(entry => entry.amount), 0)
-	const columns = lines.map(entry => ({
-		key: entry.id,
-		label: `${entry.other ? `Other ${counted(rest.length, 'vendor')}` : entry.name}, ${currency(entry.amount, 0)}`,
-		height: share(Math.max(0, entry.amount), most) * fit,
-		muted: entry.other,
-		inert: entry.other,
-		tick: entry.name
-	}))
-	return (
-		<Card>
-			{head}
-			<Bars ref={bars} columns={columns} named onSelect={onOpen} />
-		</Card>
 	)
 }
 

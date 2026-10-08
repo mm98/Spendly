@@ -71,14 +71,13 @@ function useTickStep(box, columns, skip) {
 
 /** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
     `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `future` is a step still to come;
-    `named` ticks truncate. A `card` variant is the plot at a card's height (10a); `days` is one bar per day (4g). */
-export function Bars({ columns = [], variant = 'default', days = false, selected, onSelect, loading = false, named = false, ref, ...rest }) {
+    A `card` variant is the plot at a card's height (10a); `days` is one bar per day (4g). */
+export function Bars({ columns = [], variant = 'default', days = false, selected, onSelect, loading = false, ref, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)
 	const tipId = useId()
 	const box = useRef(null)
-	// a named tick truncates in its own column, so it never meets its neighbour
-	const step = useTickStep(box, columns, named || loading)
+	const step = useTickStep(box, columns, loading)
 	const hold = el => {
 		box.current = el
 		if (typeof ref === 'function') ref(el)
@@ -140,7 +139,7 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 										</span>
 									)
 									: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }} {...(column.future ? { 'data-future': '' } : {})}>{onBar ? readout : null}</span>}
-						{column.tick ? <span className={join('sp-bars__tick', named && 'sp-truncate')}>{i % step && i < columns.length - 1 ? null : column.tick}</span> : null}
+						{column.tick ? <span className="sp-bars__tick">{i % step && i < columns.length - 1 ? null : column.tick}</span> : null}
 					</>
 				)
 				// the readout follows the pointer and the keyboard alike, and Escape puts it away

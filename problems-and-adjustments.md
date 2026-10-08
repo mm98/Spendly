@@ -17,15 +17,3 @@ reader sees, what was measured and when. An entry is removed in the change that 
   fill their space.
 - **Likely cause:** each of these boxes sits in a row that gives it no width of its own, so it
   shrinks to nothing.
-
-## The vendor chart: long names run into each other in a narrower window
-
-- **Where:** Statistics, the vendor chart, in a window about 1000px wide.
-- **What the reader sees:** a long vendor name under a bar is no longer cut with "…" at the bar's
-  width, so it runs into the next name, by up to 16.5px. A 1440px window and the phone are not
-  affected.
-- **Measured:** 8 October 2026, in Chrome, on the edge-case account, in 3 of 9 periods.
-- **Why:** since the design centres a chart label on one line, a label is as wide as its text. The
-  design's own vendor chart only has short names, so it has no rule for cutting a long one.
-- **Needs Claude Design:** a name under a bar is cut with "…" at its bar's width, while day, week and
-  month labels stay centred and uncut.
