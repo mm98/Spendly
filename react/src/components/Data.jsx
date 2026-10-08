@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Skeleton } from './Utilities.jsx'
 
@@ -34,15 +34,57 @@ const BARS = { default: null, plot: 'sp-bars--plot', card: 'sp-bars--plot sp-bar
 // the columns that have not arrived, as States 6b draws them
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
+/** Every `step`-th column's tick is drawn, from the first: the smallest step that keeps two ticks apart.
+    Measured, since a chart's width and its labels both vary. */
+function useTickStep(box, columns, skip) {
+	const [step, setStep] = useState(1)
+	const ticks = columns.map(c => c.tick ?? '').join('\n')
+	useLayoutEffect(() => {
+		const el = box.current
+		if (!el || skip) return
+		const pen = document.createElement('canvas').getContext('2d')
+		const fit = () => {
+			const cols = el.querySelectorAll(':scope > .sp-bars__col')
+			const tick = el.querySelector('.sp-bars__tick')
+			if (cols.length < 2 || !tick) return setStep(1)
+			const pitch = cols[1].getBoundingClientRect().left - cols[0].getBoundingClientRect().left
+			const look = getComputedStyle(tick)
+			const widest = weight => {
+				pen.font = `${weight} ${look.fontSize} ${look.fontFamily}`
+				return Math.max(...ticks.split('\n').map(t => pen.measureText(t).width))
+			}
+			// the closest pair is the pressed column's tick, at its 600 (components.css), beside a plain one
+			const pair = (widest(look.fontWeight) + widest(600)) / 2
+			// two ticks keep at least a default chart's bar gap between them, whatever this chart's gap is
+			const clear = parseFloat(getComputedStyle(el).getPropertyValue('--sp-8')) || 0
+			setStep(pitch > 0 ? Math.max(1, Math.ceil((pair + clear) / pitch)) : 1)
+		}
+		fit()
+		document.fonts?.ready.then(fit)
+		const watch = new ResizeObserver(fit)
+		watch.observe(el)
+		return () => watch.disconnect()
+	}, [box, ticks, skip])
+	return step
+}
+
 /** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
     `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `future` is a step still to come;
     `named` ticks truncate. A `card` variant is the plot at a card's height (10a). */
-export function Bars({ columns = [], variant = 'default', selected, onSelect, loading = false, named = false, ...rest }) {
+export function Bars({ columns = [], variant = 'default', selected, onSelect, loading = false, named = false, ref, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)
 	const tipId = useId()
+	const box = useRef(null)
+	// a named tick truncates in its own column, so it never meets its neighbour
+	const step = useTickStep(box, columns, named || loading)
+	const hold = el => {
+		box.current = el
+		if (typeof ref === 'function') ref(el)
+		else if (ref) ref.current = el
+	}
 	if (loading) return (
-		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} {...rest}>
+		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} ref={hold} {...rest}>
 			{LOADING_BARS.map((h, i) => <Skeleton shape="bar" data-h-pc={h} key={i} />)}
 		</span>
 	)
@@ -67,7 +109,7 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 		if (c.from && c.to && c.from > c.to) console.error(`<Bars> column "${c.key}" runs backwards: ${c.from} → ${c.to}`)
 	}
 	return (
-		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} {...rest}>
+		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} ref={hold} {...rest}>
 			{columns.map((column, i) => {
 				const tip = column.tip && peek === column.key ? column.tip : null
 				// a figure card's readout keeps to the side with room: the left half of the card carries it on the right
@@ -97,7 +139,8 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 										</span>
 									)
 									: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }} {...(column.future ? { 'data-future': '' } : {})}>{onBar ? readout : null}</span>}
-						{column.tick ? <span className={join('sp-bars__tick', named && 'sp-truncate')}>{column.tick}</span> : null}
+						{/* a tick left out keeps its line, so every bar stands on the same baseline */}
+						{column.tick ? <span className={join('sp-bars__tick', named && 'sp-truncate')}>{i % step ? '\u00a0' : column.tick}</span> : null}
 					</>
 				)
 				// the readout follows the pointer and the keyboard alike, and Escape puts it away

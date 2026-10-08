@@ -35,6 +35,8 @@ then `design/index.html`, the map of every page.
   button's name from its icon.
 - A saving is always an amount (`Saved 1.320,00 kr.`), green above zero and grey at zero, never a
   percentage.
+- A chart labels only as many bars as its width holds: the first bar and every n-th after it, so two
+  labels are always at least 8 apart.
 - Copy uses plain hyphens and straight quotes, no decorative emoji, and plain words a
   non-technical reader understands. Explanations of how the design works live in the notes,
   never on the screen.
