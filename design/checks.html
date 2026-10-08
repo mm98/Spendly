@@ -473,6 +473,55 @@ const RULES = [
   }
 },
 {
+  id: 'a card name sits in the head',
+  why: 'Briefs 32 to 35: card names sat 17, 19, 19.5 and 1.5px from the top depending on what stood beside them, and a wrapping legend pushed the Stacked / Total switch over the chart. A name is in a head - a row opening with it, or the name alone as the card\u2019s first child - the head is the toolbar\u2019s 54px box, the name is centred in it like a list toolbar\u2019s, and nothing in the head reaches outside it.',
+  run(doc, add) {
+    /* a page may draw a screen scaled down; measure in the element's own pixels */
+    const R0 = e => e.getBoundingClientRect();
+    const scaleOf = e => { const c = e.closest('.sp-card, .sp-list') || e; return c.offsetWidth ? R0(c).width / c.offsetWidth : 1; };
+    const R = e => { const r = R0(e), k = scaleOf(e); return { top: r.top / k, bottom: r.bottom / k, right: r.right / k, height: r.height / k, width: r.width }; };
+    const want = (box, name) => 1 + (R(box).height - 1 - R(name).height) / 2;   // border, then centred in the box above its bottom border
+    const STAT = '.sp-stat, .sp-stats, .sp-list-head';
+    doc.querySelectorAll('.sp-list__toolbar').forEach(t => {
+      if (!inProduct(t) || !R(t).width) return;
+      const name = t.querySelector(':scope > .sp-section-label:first-child');
+      const holder = t.parentElement;
+      t.querySelectorAll(':scope > .sp-btn').forEach(btn => { if (!btn.matches('.sp-btn--outline.sp-btn--small')) add(`a toolbar button is not the small outline button: "${btn.textContent.trim().slice(0, 24)}"`, btn); });
+      if (!name || !holder || Math.abs(R0(holder).top - R0(t).top + 1) > 0.6) return;
+      const got = R(name).top - R(holder).top;
+      if (Math.abs(got - want(t, name)) > 0.6) add(`a list toolbar name sits ${got.toFixed(1)} from the top`, name);
+    });
+    doc.querySelectorAll('.sp-card').forEach(card => {
+      if (!inProduct(card) || !R(card).width) return;
+      const first = card.firstElementChild;
+      if (!first) return;
+      let head = null, name = null;
+      if (first.matches('.sp-section-label')) head = name = first;
+      else if (first.matches('.sp-row-flex') && first.firstElementChild && first.firstElementChild.matches('.sp-section-label')) { head = first; name = first.firstElementChild; }
+      if (first.matches('.sp-list__toolbar')) return;          // a list head, measured above
+      if (!head) {
+        const lone = first.querySelector('.sp-section-label');
+        if (lone && !lone.closest(STAT) && R(lone).top - R(card).top < 40)
+          add(`a card name is not in a head: "${lone.textContent.trim().slice(0, 30)}"`, lone);
+        return;
+      }
+      const hr = R(head), cr = R(card);
+      if (Math.abs(hr.height - 54) > 0.6) add(`a card head is ${hr.height.toFixed(1)}px, not 54: "${name.textContent.trim().slice(0, 30)}"`, head);
+      const got = R(name).top - cr.top;
+      const exp = 1 + (54 - 1 - R(name).height) / 2;
+      if (Math.abs(got - exp) > 0.6) add(`a card name sits ${got.toFixed(1)} from the top, not ${exp.toFixed(1)}: "${name.textContent.trim().slice(0, 30)}"`, name);
+      if (head !== name) [...head.children].forEach(k => {
+        const r = R(k);
+        if (!r.height) return;
+        if (r.top < hr.top - 0.6 || r.bottom > hr.bottom + 0.6 || r.right > hr.right + 0.6)
+          add(`.${(k.className || k.tagName).split(' ')[0]} reaches out of the head of "${name.textContent.trim().slice(0, 30)}"`, k);
+      });
+      head.querySelectorAll(':scope > .sp-btn').forEach(btn => { if (!btn.matches('.sp-btn--outline.sp-btn--small')) add(`a head button is not the small outline button: "${btn.textContent.trim().slice(0, 24)}"`, btn); });
+      if (head.querySelector('.sp-legend, .sp-filters')) add(`a legend or filters in the head of "${name.textContent.trim().slice(0, 30)}"; it goes below the head`, head);
+    });
+  }
+},
+{
   id: 'nothing overlaps or is clipped',
   why: 'The one class of defect no source scan can see: real geometry. It only means anything for elements actually on screen - comparing a collapsed rail against the expanded sidebar it sits behind produced 24 findings about nothing.',
   run(doc, add) {
@@ -724,7 +773,7 @@ PAGES.forEach(name => {
       const probe = doc.querySelector('.sp-stack.sp-gap-6, .sp-card');
       if (!probe) return false;
       const cs = fr.contentWindow.getComputedStyle(probe);
-      return cs.rowGap === '6px' || cs.paddingTop === '16px';
+      return cs.rowGap === '6px' || cs.paddingTop === '16px' || cs.paddingLeft === '16px';
     };
     const wait = () => {
       const ready = doc.querySelector('#dc-root .sp') && styled();
