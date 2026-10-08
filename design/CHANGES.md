@@ -1,26 +1,35 @@
 # Spendly - changes since handoff_2026_10_08d_changes_fixed
 
-Replaces handoff_2026_10_08e_changes. Copy these files over handoff_2026_10_08d_changes_fixed. Answers in Brief 34 answers.md.
+Replaces handoff_2026_10_08e_changes and handoff_2026_10_08f_changes. Copy these files over handoff_2026_10_08d_changes_fixed. Answers in Brief 35 answers.md; it replaces every earlier card head rule.
 
 ## Changes
-- components.css c10: a card's head (the first row, opening with `sp-section-label`) is `--card-header-h` tall, the list toolbar's height, with the name centred. It takes the card's top padding and the gap below, so content starts where a list's rows start. Cards and lists side by side carry their names at the same height, whatever sits beside the name.
-- components.css: the desktop head link margin from 08e is gone; the fixed head covers it.
-- tokens.css: `--btn-h-small: 34px`, used for the small button, xsmall on touch, the add row and the touch head link rule. Values unchanged.
-- Home 10a and Mobile screens 7a: notes on the head height.
-- Components c6 and the add row note name the token.
-- check.js: asserts the card head height, the token, and no raw 34px in height, margin, padding, gap or inset.
-
-## Open
-- Whether a card head takes the toolbar's rule under it.
+- components.css c10: one card head. The name, in a row or alone, sits in a --card-header-h box with a 1px transparent bottom border, centred, one line, no wrap. The card's top padding goes to 0 under a head. Same box as the list toolbar, so names sit 19px from the top on every card and list.
+- components.css: the touch and below-640 text link head rules (Briefs 32, 33) are removed; nothing uses them.
+- tokens.css: --btn-h-small: 34px.
+- Every button in a card head or list toolbar is sp-btn--outline sp-btn--small: Home (5), Mobile screens (2), Components (1), Navigation shell (2), Order list (9).
+- Order statistics 4a and Dark mode: the Spend by month legend moved below the head.
+- Budget: Budget 2026 and Columns heads are list toolbars.
+- Duplicate and alerts, Mobile screens: the August summary and Spend, August put the name in the head.
+- checks.html: new rendered rule "a card name sits in the head"; the style gate also accepts a 16px side inset, since a card with a head has no top padding.
+- check.js: asserts the head rule, the token, no raw 34px, and no text link head rule.
 
 ## Check
-- 0 findings across 26 pages.
+- styles/check.js: 0 findings across 26 pages.
+- checks.html, "a card name sits in the head": 0 findings across 26 pages. The other findings it reports (title stacks, three aria-describedby references in Order editing layouts, Type specimen and Playground load time) are not about the card head.
 
 ## Files
 - Home.dc.html
 - Mobile screens.dc.html
 - Components.dc.html
+- Order statistics.dc.html
+- Dark mode and image viewer.dc.html
+- Duplicate and alerts.dc.html
+- Budget.dc.html
+- Navigation shell.dc.html
+- Order list.dc.html
 - styles/components.css
 - styles/tokens.css
 - styles/check.js
+- checks.html
 - Brief 34 answers.md
+- Brief 35 answers.md

@@ -904,11 +904,9 @@
      Brief 33: a 34px box still made the head 34px against the name's 17, so the box
      must also take no height in the row - a negative block margin of half the box. */
   {
-    const touch = /\.sp-touch \.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(var\(--btn-h-small\) \/ -2\)/.test(comp);
-    const narrow = /@media \(max-width: 639\.98px\) \{[^@]*\.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(var\(--btn-h-small\) \/ -2\)/.test(comp);
-    if (!touch || !narrow) fail('a head link keeps the head height on touch', 'components.css', (touch ? '' : 'no .sp-touch rule ') + (narrow ? '' : 'no below-640 rule'));
     /* Brief 34: a card head is the toolbar's height, and the small height is a token, not a raw 34px */
-    const head = /\n\.sp-card > \.sp-row-flex:first-child:has\(> \.sp-section-label:first-child\) \{[^}]*height: var\(--card-header-h\)/.test(comp);
+    const head = /\n\.sp-card > \.sp-row-flex:first-child:has\(> \.sp-section-label:first-child\),\n\.sp-card > \.sp-section-label:first-child \{[^}]*flex-wrap: nowrap[^}]*height: var\(--card-header-h\)[^}]*border-bottom: 1px solid transparent/.test(comp);
+    if (/sp-btn--text[^{]*\{[^}]*margin-block: calc\(var\(--btn-h-small\)/.test(comp)) fail('no head link rule is left', 'components.css', 'the text link head rule is back');
     if (!head) fail('a card head is the list toolbar height', 'components.css', 'no --card-header-h rule on the card head');
     if (!/--btn-h-small: 34px;/.test(tok)) fail('the small button height is a token', 'tokens.css', 'no --btn-h-small');
     const raw = comp.replace(/\/\*[\s\S]*?\*\//g, '').match(/(?:height|margin[a-z-]*|padding[a-z-]*|gap|inset):[^;]*\b34px/g) || [];

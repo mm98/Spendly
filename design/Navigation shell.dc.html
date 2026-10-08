@@ -452,7 +452,7 @@
         <div class="sp-row-flex sp-gap-8">
           <span class="sp-section-label">Views</span>
           <span class="sp-grow"></span>
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Edit</button>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Edit</button>
         </div>
         <div class="sp-nav-list">
           <a class="sp-nav-item sp-nav-item--light" href="#2b" aria-current="page"><span class="sp-nav-item__icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span class="sp-truncate">All orders</span><span class="sp-nav-item__count">248</span></a>
@@ -471,7 +471,7 @@
         <div class="sp-row-flex sp-gap-8">
           <span class="sp-section-label">Views</span>
           <span class="sp-grow"></span>
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Done</button>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Done</button>
         </div>
         <div class="sp-nav-list">
           <div class="sp-nav-item sp-nav-item--light" aria-current="page"><span class="sp-nav-item__icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span class="sp-truncate sp-grow">All orders</span><span class="sp-meta">locked</span></div>
@@ -762,7 +762,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Below 1280px is the collapsed rail, not a new layout.</b> Same three zones, same order, labels become tooltips. Saved views drop out - they are the one group that cannot be told apart as glyphs alone. Everything else survives one-to-one.</div>
-    <div class="doc-note"><b>Below 640px the sidebar is a bottom tab bar, not a drawer.</b> Four destinations - Home, Orders, Statistics, More - with the account, Vendors, Categories, saved views and Settings inside More, which is drawn in <b>7a</b>. The theme is under Settings, in Appearance, not on More itself. A hamburger drawer puts the most-used navigation two taps away on the device where capture matters most.</div>
+    <div class="doc-note"><b>Below 640px the sidebar is a bottom tab bar, not a drawer.</b> Four destinations - Home, Orders, Statistics, More - with the account, Budget, Vendors, Categories, Bookmarks, saved views and Settings inside More, which is drawn in <b>7a</b>. The theme is under Settings, in Appearance, not on More itself. A hamburger drawer puts the most-used navigation two taps away on the device where capture matters most.</div>
     <div class="doc-note"><b>New order becomes the floating action button</b> and is the only FAB in the app. It opens step 1 of <b>3a</b>, where the receipt zone is the first and largest choice - the phone is the camera, so capture leads, but the same button also reaches an empty order and a copy. It is on Home and Orders, and nowhere else (<a href="Mobile screens.dc.html#7a">7a</a>). 56px, bottom right, clear of the tab bar.</div>
     <div class="doc-note"><b>The tab bar is present on every place and absent on every task.</b> Present: the four destinations and anything reached inside them - a filtered list, a drilled statistics slice, a vendor or category list, Settings and the rest of More. Absent: a record in create or edit, where the sticky save bar takes the bottom instead; the scan review; full-screen search; the image viewer; and while a bottom sheet or dialog is open, which covers it rather than removing it. It returns when the task ends - saved, cancelled or dismissed - and a screen never carries both the tab bar and a save bar. The bar does not animate away on scroll: content scrolls under it, because a navigation bar that hides while reading a list is a navigation bar you cannot find.</div>
     <div class="doc-note"><b>The FAB is on Home and Orders only.</b> It creates an order, so it appears where orders are the subject - the Home overview and the order list, including a filtered or drilled list. It is absent on Statistics, on Settings and everything under More, and on the vendor and category lists, which create their own records from a <b>+</b> in the list head. It hides while a save bar, a sheet, a dialog or the image viewer is up, and returns when that closes. No screen shows two floating actions, and no screen shows a second one of its own.</div>
