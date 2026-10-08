@@ -100,6 +100,9 @@ have to. Putting screens together from its patterns is the build's job:
   covers is the build's to decide, and is not a question for Claude Design.
 - **Ask in one batch.** Compare the whole change with `design/` before building, and put every real
   question in one brief, not one per round of building.
+- **A brief names every place the change reaches.** Before a note goes to Claude Design, find every
+  use of the part it changes in `react/src`, check what the change would do to each, and name them
+  in the note. When the answer comes back, check all of them in one pass.
 - A design fault (a rule that breaks in practice, such as a clipped outline) goes in that same brief;
   the app may carry a minimal workaround in `app.css` until the design takes it in.
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
