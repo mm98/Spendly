@@ -115,7 +115,6 @@
   .st-w40 { width: 40px; flex: none; display: flex; align-items: center; }
   .st-w120 { min-width: 120px; }
   .st-w260 { max-width: 260px; }
-  .st-w280 { max-width: 280px; }
   .st-w560 { width: 560px; }
 
 }

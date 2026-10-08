@@ -13,9 +13,6 @@
   .hm-split { display: grid; grid-template-columns: 1.35fr 1fr; gap: inherit; align-items: stretch; }
   .hm-split--start { align-items: start; }
   .hm-split > * { gap: inherit; }
-  /* the month panel is as tall as the capture zone beside it, so its three groups
-     spread over that height rather than packing at the top */
-  .hm-split > .sp-card--shell { justify-content: space-between; }
 
   /* the key for the gauge's pace marker, in the line that reads the gauge */
   .hm-marker-key { display: inline-block; width: 2px; height: 11px; background: var(--amber); }

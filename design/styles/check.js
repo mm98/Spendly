@@ -913,6 +913,40 @@
     for (const r of raw) fail('the small button height is written with --btn-h-small', 'components.css', r);
   }
 
+  /* Brief 36. The Showing bar is a card with a head, not a row of its own: as one row
+     its path wrapped, the name drifted to the row's middle and "Open in orders" ran
+     101px past a phone's edge. A head button on touch keeps its 34px box with the 48px
+     area invisible, as the bookmark chip does. A part takes no page rule: the spread,
+     the narrow field and the reading column are the design's own, and a row that opens
+     something is the row's state, not a page's look. */
+  {
+    if (/sp-crumbs-bar/.test(allCss + Object.values(src).join(''))) fail('the Showing bar is a card with a head', 'pages', 'sp-crumbs-bar is back');
+    for (const f of pages) for (const m of src[f].matchAll(/<span class="sp-section-label">Showing<\/span>/g)) {
+      const before = src[f].slice(Math.max(0, m.index - 80), m.index);
+      if (!/<div class="sp-row-flex[^"]*">\s*$/.test(before)) fail('the Showing bar is a card with a head', f, 'the name is not the first child of a head row');
+    }
+    if (!/\.sp-touch \.sp-card > \.sp-row-flex:first-child:has\(> \.sp-section-label:first-child\) > \.sp-btn--small,\n\.sp-touch \.sp-list__toolbar > \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no touch rule');
+    if (!/\.sp-touch \.sp-list__toolbar > \.sp-btn--small::before \{ content: ""; position: absolute; inset: calc\(\(var\(--control-h-touch\) - var\(--btn-h-small\)\) \/ -2 - 1px\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no invisible touch area');
+    for (const v of ['.sp-card--spread', '.sp-combobox--narrow', '.sp-segmented--narrow', '.sp-row-opens:hover', '.sp-row-opens:focus-visible'])
+      if (!comp.includes(v + ' {')) fail('a part changes only through the design', 'components.css', v + ' missing');
+    for (const [f, css] of Object.entries(pageCss))
+      for (const sel of css.replace(/\/\*[\s\S]*?\*\//g, '').match(/[^{}]+\{/g) || [])
+        if (/\.sp-card(--[\w-]+)?\b/.test(sel) && /justify-content|align-content/.test(css.slice(css.indexOf(sel), css.indexOf('}', css.indexOf(sel))))) fail('a part changes only through the design', f, sel.trim());
+    for (const f of pages) for (const m of src[f].matchAll(/class="([^"]*)"/g)) {
+      const c = m[1].split(/\s+/);
+      if (c.some(x => /^sp-/.test(x)) && c.some(x => x === 'st-w280' || x === 'oc-narrow')) fail('a part takes no page rule', f, m[1]);
+    }
+    /* swept on the card's name, not on a class: every row under these names opens something */
+    const OPENS = ['By status', 'Top vendors', 'Categories this month', 'DRAFTS', 'RECENT ORDERS'];
+    for (const f of pages) for (const name of OPENS) for (const m of src[f].matchAll(new RegExp('<span class="sp-section-label">' + name + '</span>', 'g'))) {
+      const cs = src[f].lastIndexOf('<div class="sp-card', m.index);
+      const next = src[f].slice(m.index).search(/<div class="sp-card|<\/section>/);
+      const seg = src[f].slice(m.index, m.index + (next < 0 ? 4000 : next));
+      for (const r of seg.matchAll(/<div class="(?:sp-stack sp-gap-6|sp-row-flex sp-gap-12)">\s*<(?:div class="sp-(?:row-flex|mark)|span class="sp-mark)([\s\S]{0,400})/g))
+        if (/sp-gauge|sp-mark--medium/.test(r[0]) && !/>Other \d/.test(r[0])) fail('a row that opens something is drawn as one', f, name + ' has a plain row');
+    }
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

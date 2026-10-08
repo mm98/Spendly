@@ -291,7 +291,7 @@ const RULES = [
          the cards above and below it. A bar carrying text rather than a 42px control
          is legitimately shorter - the crumbs bar pads 12/16 - so asserting paddingTop
          reported four defects on a system where every inset was already right. */
-      const isBar = /sp-crumbs-bar|sp-controls|sp-savebar|sp-list__toolbar|sp-topbar/.test(c.className);
+      const isBar = /sp-controls|sp-savebar|sp-list__toolbar|sp-topbar/.test(c.className);
       if (cs.paddingLeft !== '16px' && cs.paddingLeft !== '0px') add(`a card is inset ${cs.paddingLeft}, not 16`, c);
       if (!isBar && cs.paddingTop !== '16px' && cs.paddingTop !== '0px') add(`a card is padded ${cs.paddingTop}, not 16`, c);
     });
@@ -484,7 +484,7 @@ const RULES = [
     const STAT = '.sp-stat, .sp-stats, .sp-list-head';
     /* a head button is judged by what it draws, not by its classes: a visible border all round */
     const bordered = btn => { const s = CS(btn); return ['Top','Right','Bottom','Left'].every(e => parseFloat(s['border' + e + 'Width']) > 0 && s['border' + e + 'Style'] !== 'none' && !/rgba\(.*, 0\)$|transparent/.test(s['border' + e + 'Color'])); };
-    const headBtn = (btn, where) => { if (!R0(btn).width) return; if (!btn.matches('.sp-btn--outline.sp-btn--small')) add(`a ${where} button is not the small outline button: "${btn.textContent.trim().slice(0, 24)}"`, btn); else if (!bordered(btn)) add(`a ${where} button draws no border: "${btn.textContent.trim().slice(0, 24)}"`, btn); };
+    const headBtn = (btn, where) => { if (!R0(btn).width) return; if (!btn.matches('.sp-btn--outline.sp-btn--small')) add(`a ${where} button is not the small outline button: "${btn.textContent.trim().slice(0, 24)}"`, btn); else if (!bordered(btn)) add(`a ${where} button draws no border: "${btn.textContent.trim().slice(0, 24)}"`, btn); else if (Math.abs(R(btn).height - 34) > 0.6) add(`a ${where} button is ${R(btn).height.toFixed(1)}px, not 34; on touch it keeps the 34px box: "${btn.textContent.trim().slice(0, 24)}"`, btn); };
     doc.querySelectorAll('.sp-list__toolbar').forEach(t => {
       if (!inProduct(t) || !R(t).width) return;
       const name = t.querySelector(':scope > .sp-section-label:first-child');

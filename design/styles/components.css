@@ -121,6 +121,9 @@
   gap: var(--sp-12);
 }
 .sp-card--flush { gap: 0; padding: 0; overflow: hidden; }
+/* a card stretched to the height of the card beside it shares the free height out
+   between its groups, rather than leaving it under the last one (10a, the month panel) */
+.sp-card--spread { justify-content: space-between; }
 .sp-card[data-color="warning"] { background: var(--amber-tint-2); border-color: var(--amber); }
 .sp-card[data-color="danger"] { background: var(--red-tint-2); border-color: var(--red-ink); }
 /* A card's head. A card's name is always in one: the row that opens with the name, or
@@ -1537,6 +1540,8 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 /* in a narrow column the control stays inside it and its labels give way */
 .sp-segmented { max-width: 100%; }
 .sp-segmented__item { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* narrow: a switch that need not span its form column, at most --field-w (11a) */
+.sp-segmented--narrow { max-width: min(var(--field-w), 100%); }
 .sp-segmented__item input[type="radio"] {
   position: absolute;
   width: 1px;
@@ -1591,7 +1596,8 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 /* ---------- DrillCrumb: the drill path in statistics ----------
    The root level is text; every level the user drilled into is a removable crumb. */
 
-.sp-crumbs-bar { flex-direction: row; align-items: center; gap: var(--sp-12); padding: var(--sp-12) var(--sp-16); }
+/* The Showing bar is a card with a head: the name, Reset and Open in orders are the
+   head, and the path sits below it, where it wraps. It has no class of its own (c8). */
 
 .sp-crumbs {
   display: flex;
@@ -1718,6 +1724,14 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 /* xsmall is a desktop size: on touch it is the small button, height and width */
 .sp-touch .sp-btn--xsmall { width: auto; height: var(--btn-h-small); padding: 0 var(--sp-16); font-weight: 600; }
+/* A small button in a head - a card's or a list toolbar's - keeps its 34px box on touch,
+   so the 54px head keeps the space above and below it, and takes the touch height as
+   an invisible area above and below, as the bookmark chip does (Brief 36). The area is
+   placed from the padding box, so it reaches out past the 1px border too. */
+.sp-touch .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small,
+.sp-touch .sp-list__toolbar > .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
+.sp-touch .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small::before,
+.sp-touch .sp-list__toolbar > .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
    without the card padding pushing the bar past the height every other bar holds */
 .sp-phone .sp-savebar { height: var(--phone-bar-h); padding-top: 0; padding-bottom: 0; }
@@ -1742,7 +1756,10 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
   .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
-  .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2) 0; }
+  .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small,
+  .sp-list__toolbar > .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
+  .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small::before,
+  .sp-list__toolbar > .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
 }
 
 /* a measurement arrives as a data attribute with its own rule below, so no
@@ -1774,6 +1791,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
    Not a native select: options carry dots, marks, meta and a check. */
 
 .sp-combobox { position: relative; display: block; }
+/* narrow: a pick field whose values are short, at most --field-w rather than the
+   whole form column (11a); in a narrower column it takes the column's width */
+.sp-combobox--narrow { max-width: var(--field-w); }
 .sp-combobox__trigger {
   display: flex;
   align-items: center;
@@ -5168,6 +5188,27 @@ a.sp-menu__item { text-decoration: none; }
 /* a row that opens is never inert: pointer and hover fill (c15) */
 .sp-list-item--opens { cursor: pointer; }
 .sp-list-item--opens:hover { background: var(--hover); }
+/* A plain row in a card that opens something - another page, or this one narrowed -
+   is a link or a button in this state (4a By status and Top vendors, 10a Categories
+   this month, 7a Drafts and Recent orders). Its content stays where the row draws it:
+   the hover fill and the ring reach 6 above and below and 8 at the sides, so two rows
+   12 apart meet and never overlap. On touch it is at least a finger's row tall. */
+.sp-row-opens {
+  margin: calc(var(--sp-6) * -1) calc(var(--sp-8) * -1);
+  padding: var(--sp-6) var(--sp-8);
+  border: 0;
+  border-radius: var(--r-tile);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+}
+.sp-row-opens:hover { background: var(--hover); }
+.sp-row-opens:focus-visible { box-shadow: var(--ring); }
+.sp-touch .sp-row-opens { box-sizing: border-box; min-height: var(--row-h-touch); }
 /* a row opens from its title too, as a link a new tab can take (c1, 16a) */
 a.sp-cell-flex { color: inherit; text-decoration: none; outline: none; border-radius: var(--r-tile); }
 a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
