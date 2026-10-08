@@ -169,9 +169,8 @@ const weekColumns = (first, days) => 1 + Array.from({ length: days - 1 }, (_, d)
 export const unitOf = (range, days, first) => UNIT[range] ?? (days <= 12 ? 'day' : weekColumns(first, days) <= 12 ? 'week' : 'month')
 
 const weekday = iso => new Intl.DateTimeFormat(activeLocaleCode(), { weekday: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
-// a clipped week holds only the window's own days, so a week's column is named by its days;
-// the word joiner keeps the span on one line, so a column narrower than it cannot break it at the hyphen
-const daySpan = (from, to) => (from === to ? String(Number(from.slice(8))) : `${Number(from.slice(8))}-\u2060${Number(to.slice(8))}`)
+// a clipped week holds only the window's own days, so a week's column is named by its days
+const daySpan = (from, to) => (from === to ? String(Number(from.slice(8))) : `${Number(from.slice(8))}-${Number(to.slice(8))}`)
 
 /** Months for a year, weeks for a quarter, days otherwise, each with its totals from the API's running sums.
     `steps` is every step of the period, for the bars; `columns` stops at the step holding today. */
