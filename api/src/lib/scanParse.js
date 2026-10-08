@@ -1,5 +1,8 @@
 import Anthropic, { APIError } from '@anthropic-ai/sdk'
+import sharp from 'sharp'
 import { decompressBlob } from './blobCompression.js'
+import { pdfText, renderPdfPage, toSize } from './images.js'
+import { pageText, readable } from './pageText.js'
 import { todayIso } from './dates.js'
 import { categoryNamesOf, vatNumberOf, webAddressOf } from './names.js'
 import { fromPrintedLineTotals, reconcileWithTotal } from './lineTotals.js'
@@ -7,10 +10,9 @@ import { fromPrintedLineTotals, reconcileWithTotal } from './lineTotals.js'
 /* The one place a scanned document's bytes are actually read. Everything in routes/scan.js
    around this stayed an honest blank draft until now -- see that route's own comment, and the
    one on Scan.jsx -- because nothing behind GET /scan/draft/:key looked at the file at all. This
-   does, via Claude's vision: the same bytes lib/images.js already stores for the review screen's
-   own preview (a PDF's original bytes, or an image's resized display copy) go to the model as a
-   document or image content block, and a forced tool call is what gets a receipt's loose,
-   inconsistent layout back as the fixed shape the review form already knows how to edit.
+   does, via Claude's vision: a picture goes at the size the model reads it at, a PDF as its
+   words, its pages' pictures or the whole file (readingBlocks), and a forced tool call is what
+   gets a receipt's loose, inconsistent layout back as the fixed shape the review form can edit.
 
    No API key configured is a real, supported state -- not every install runs one -- so this
    never throws into its caller. A missing key, a failed request and a response the model
@@ -18,6 +20,11 @@ import { fromPrintedLineTotals, reconcileWithTotal } from './lineTotals.js'
    draft this app shipped with before any of this existed. */
 
 export const MODEL = 'claude-sonnet-4-5-20250929'
+// MODEL's own picture limits (standard tier); a model from Claude 4.7 on reads up to 2576 px and 4784
+const MAX_EDGE = 1568, MAX_PICTURE_TOKENS = 1568
+// SPENDLY_PDF_READING, set in docker-compose.yml
+const PDF_READING = ['text', 'pictures', 'document'].find(m => m === process.env.SPENDLY_PDF_READING) ?? 'text'
+const PDF_PAGES = 5
 const REQUEST_TIMEOUT_MS = 45_000
 
 let client
@@ -157,10 +164,64 @@ function progressOf(snapshot) {
 	return { found: Boolean(snapshot.vendor && snapshot.date), lines: complete }
 }
 
-function contentBlockFor(bytes, contentType, kind) {
-	const base64 = bytes.toString('base64')
-	if (kind === 'pdf') return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
-	return { type: 'image', source: { type: 'base64', media_type: contentType || 'image/jpeg', data: base64 } }
+const imageBlock = (bytes, contentType) => ({ type: 'image', source: { type: 'base64', media_type: contentType, data: bytes.toString('base64') } })
+const documentBlock = bytes => ({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: bytes.toString('base64') } })
+const roundHalfEven = v => (v - Math.floor(v) === 0.5 ? Math.floor(v) + (Math.floor(v) % 2) : Math.round(v))
+
+/** The size the model shrinks a picture to before reading it, by the vision docs' own rule: the
+    picture's own size when it already fits. */
+export function readingSize(width, height) {
+	const fits = (w, h) => Math.ceil(w / 28) * 28 <= MAX_EDGE && Math.ceil(h / 28) * 28 <= MAX_EDGE
+		&& Math.ceil(w / 28) * Math.ceil(h / 28) <= MAX_PICTURE_TOKENS
+	if (fits(width, height)) return [width, height]
+	if (height > width) return readingSize(height, width).reverse()
+	const aspect = width / height
+	let lo = 1, hi = width
+	while (lo + 1 < hi) {
+		const mid = Math.floor((lo + hi) / 2)
+		if (fits(mid, Math.max(roundHalfEven(mid / aspect), 1))) lo = mid
+		else hi = mid
+	}
+	return [lo, Math.max(roundHalfEven(lo / aspect), 1)]
+}
+
+/** `picture` at the size the model reads it at, made from `source` (the full-size original) when it must shrink. */
+async function pictureBlock(picture, contentType, source = picture, png = false) {
+	const { width, height } = await sharp(picture).metadata()
+	const [w, h] = readingSize(width, height)
+	if (w === width && h === height) return imageBlock(picture, contentType)
+	return imageBlock(await toSize(source, w, h, { png }), png ? 'image/png' : 'image/webp')
+}
+
+const skipped = pages => (pages > PDF_PAGES ? `\nThe document has ${pages} pages; only the first ${PDF_PAGES} are shown.` : '')
+
+/** What the model is shown of an upload, before the instructions. */
+export async function readingBlocks(upload, bytes) {
+	if (upload.kind !== 'pdf') {
+		const original = upload.original ? decompressBlob(upload.original, upload.original_is_compressed) : undefined
+		return [await pictureBlock(bytes, upload.content_type || 'image/webp', original)]
+	}
+	if (PDF_READING === 'document') return [documentBlock(bytes)]
+	if (PDF_READING === 'text') {
+		const { text, pages } = await pdfText(bytes, PDF_PAGES) ?? {}
+		const words = text?.map(pageText) ?? []
+		if (readable(words.join('\n'))) return [{
+			type: 'text',
+			text: 'The words of a PDF document, page by page. Each line is one printed row, its columns kept apart by spaces.'
+				+ skipped(pages) + words.map((page, i) => `\n\nPage ${i + 1}:\n${page}`).join('')
+		}]
+	}
+	// a PDF with no words in it is a scan saved as one: it is read from pictures of its pages
+	const blocks = []
+	let pages = 1
+	for (let i = 0; i < Math.min(pages, PDF_PAGES); i++) {
+		const drawn = await renderPdfPage(bytes, i)
+		if (!drawn?.png) break
+		pages = drawn.pages
+		blocks.push({ type: 'text', text: `Page ${i + 1}:` }, await pictureBlock(drawn.png, 'image/png', drawn.png, true))
+	}
+	if (!blocks.length) return [documentBlock(bytes)]
+	return skipped(pages) ? [{ type: 'text', text: skipped(pages).trim() }, ...blocks] : blocks
 }
 
 // 402 billing_error is the documented refusal; "credit balance is too low" has come back as a 400.
@@ -170,7 +231,8 @@ export const isBillingRefusal = e => e instanceof APIError
 /** Reads a stored upload's own bytes (the same `data` column routes/scan.js's own /file route
     serves) via Claude, and returns `{ read, failure }`: the normalised fields above or null, and
     null when the model answered, 'billing' when the account was refused, 'failed' otherwise.
-    `upload` is a full row from scan_uploads -- data, data_is_compressed, content_type, kind. */
+    `upload` is a full row from scan_uploads -- data, data_is_compressed, content_type, kind, and
+    for a picture its original and original_is_compressed. */
 export async function parseReceipt(upload, today = todayIso(), onProgress, categories = []) {
 	const anthropic = getClient()
 	if (!anthropic || !upload.data) return { read: null, failure: 'failed' }
@@ -178,6 +240,7 @@ export async function parseReceipt(upload, today = todayIso(), onProgress, categ
 	if (!bytes?.length) return { read: null, failure: 'failed' }
 
 	try {
+		const shown = await readingBlocks(upload, bytes)
 		const stream = anthropic.messages.stream({
 			model: MODEL,
 			max_tokens: 4096,
@@ -186,7 +249,7 @@ export async function parseReceipt(upload, today = todayIso(), onProgress, categ
 			messages: [{
 				role: 'user',
 				content: [
-					contentBlockFor(bytes, upload.content_type, upload.kind),
+					...shown,
 					{
 						type: 'text',
 						text: 'Read this receipt, invoice or order confirmation and report its contents with the '

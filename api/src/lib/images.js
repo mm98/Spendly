@@ -28,6 +28,11 @@ export async function toSquare(buffer) {
 	return encode(sharp(buffer).rotate().resize(side, side, { fit: 'cover', position: sharp.strategy.attention }))
 }
 export const toWide = buffer => encode(sharp(buffer).rotate().resize({ width: WIDE, height: WEBP_MAX, fit: 'inside', withoutEnlargement: true }))
+// PNG for a drawn page: a lossy pass blurs the edges of its text
+export const toSize = (buffer, width, height, { png = false } = {}) => {
+	const image = sharp(buffer).rotate().resize(width, height, { fit: 'fill' })
+	return png ? image.png().toBuffer() : encode(image)
+}
 
 /** { data, contentType, size, thumbnail, thumbnailContentType } for a stored image attachment,
     or null when sharp cannot open it. Both sizes come from the source, never one from the other. */
@@ -51,13 +56,23 @@ const PDF_RENDER_TIMEOUT_MS = 15_000
 /** One page of a PDF (from 0), rendered to a PNG on a worker thread: `{ png, pages }`. `png` is
     null for a page that cannot be rendered (encrypted, corrupt, past the end, not a PDF); the
     whole answer is null for a render that outruns the timeout. */
-function renderPdfPage(buffer, index = 0) {
+export async function renderPdfPage(buffer, index = 0) {
+	const message = await inPdfWorker({ buffer, width: WIDE, maxHeight: WEBP_MAX, page: index })
+	return message && { png: message.png ? Buffer.from(message.png) : null, pages: message.pages ?? null }
+}
+
+/** The words of a PDF's first `count` pages, as mupdf's structured text (one JSON string per
+    page): `{ text, pages }`, with `text` null when none can be read; null on a timeout. */
+export async function pdfText(buffer, count) {
+	const message = await inPdfWorker({ buffer, textPages: count })
+	return message && { text: message.text ?? null, pages: message.pages ?? null }
+}
+
+function inPdfWorker(workerData) {
 	return new Promise(resolve => {
 		let settled = false
 		const settle = value => { if (!settled) { settled = true; clearTimeout(timer); resolve(value) } }
-		const worker = new Worker(PDF_WORKER, {
-			workerData: { buffer, width: WIDE, maxHeight: WEBP_MAX, page: index }
-		})
+		const worker = new Worker(PDF_WORKER, { workerData })
 		/* A worker that has already posted its result is left to exit on its own rather than
 		   force-terminated here. mupdf's own module has a top-level await (WASM instantiation),
 		   and calling worker.terminate() in the same turn as its 'message' event races V8's
@@ -69,7 +84,7 @@ function renderPdfPage(buffer, index = 0) {
 		   milliseconds regardless, so nothing here waits on terminate() for that case. Only a
 		   genuinely hung worker -- the timeout below -- still needs it. */
 		const timer = setTimeout(() => { worker.terminate(); settle(null) }, PDF_RENDER_TIMEOUT_MS)
-		worker.on('message', message => settle({ png: message.png ? Buffer.from(message.png) : null, pages: message.pages ?? null }))
+		worker.on('message', settle)
 		worker.on('error', () => settle(null))
 		worker.on('exit', () => settle(null))
 	})

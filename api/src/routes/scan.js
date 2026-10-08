@@ -269,7 +269,9 @@ function readOnce(userId, upload, today, onProgress, res) {
 	if (!reading) {
 		const listeners = new Set()
 		const waiting = new Set()
-		const promise = parseReceipt(upload, today, progress => { for (const fn of listeners) fn(progress) }, listedNames(userId))
+		const original = upload.kind === 'image' ? selectUploadOriginal.get(upload.id, userId) : null
+		const toRead = { ...upload, original: original?.original, original_is_compressed: original?.original_is_compressed }
+		const promise = parseReceipt(toRead, today, progress => { for (const fn of listeners) fn(progress) }, listedNames(userId))
 			// restated before it is kept, so a reload never asks for the rate again
 			.then(async result => result.read
 				? { ...result, read: await inAccountCurrency(result.read, selectAccountCurrency.get(userId)?.currency ?? 'DKK') }

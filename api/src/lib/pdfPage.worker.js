@@ -12,7 +12,7 @@
    keep alive, so each render gets a clean heap that goes away with it, and mupdf's native
    allocations cannot accumulate across uploads.
 
-   This file is the whole worker: bytes in, a PNG of one page and the page count out, and nothing else. sharp is
+   This file is the whole worker: bytes in, one page's PNG or the first pages' words out, with the page count. sharp is
    deliberately left in the parent -- it is already asynchronous (libvips has its own
    threadpool), so importing it here would add startup for work that never blocked the loop. */
 
@@ -27,12 +27,23 @@ mupdf.setLog(() => {})
 const { width: WIDTH, maxHeight: MAX_HEIGHT } = workerData
 // the page to render, counted from 0; the page count travels back with it
 const PAGE = workerData.page ?? 0
+const TEXT_PAGES = workerData.textPages ?? 0
+
+function pageTexts(doc, count) {
+	const texts = []
+	for (let i = 0; i < count; i++) {
+		const one = doc.loadPage(i), text = one.toStructuredText('preserve-whitespace')
+		try { texts.push(text.asJSON()) } finally { text.destroy(); one.destroy() }
+	}
+	return texts.length ? texts : null
+}
 
 let doc, page, pixmap
 try {
 	doc = mupdf.Document.openDocument(Buffer.from(workerData.buffer), 'application/pdf')
 	const pages = doc.needsPassword() ? 0 : doc.countPages()
-	if (pages < 1 || PAGE >= pages) parentPort.postMessage({ png: null, pages })
+	if (TEXT_PAGES) parentPort.postMessage({ text: pageTexts(doc, Math.min(pages, TEXT_PAGES)), pages })
+	else if (pages < 1 || PAGE >= pages) parentPort.postMessage({ png: null, pages })
 	else {
 		page = doc.loadPage(PAGE)
 		const [x0, y0, x1, y1] = page.getBounds()
