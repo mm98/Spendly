@@ -201,6 +201,10 @@ paged or searched on the server, and is tested with more rows than the demo data
 
 ### The environment, settled — do not re-derive it
 
+- **Never use an Anthropic API key to verify, test or render.** Every request is paid and counts
+  against the account's limit. Where a check needs a scan's reading, write the reading by hand and
+  store it on the upload in a scratch database; say in the report that the reading was not real.
+  If a key turns up anywhere, never print it: say only where it is.
 - **A rendered account with real records is one flow.** No seed script, no shortcut route: register
   at `#/register`, open Settings' "Demo data" section, click "Fill with demo data", then confirm ("Yes,
   fill it"). Seeds two favourite vendors and three favourite categories every time.
