@@ -24,6 +24,11 @@ services:
       SPENDLY_PLAIN_HTTP: "1"
       # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...
+      # Optional: how Scan sends a PDF to be read. "text" (the default) sends only the words in it
+      # and costs the least. "pictures" sends a picture of each page, like a photo. "document" sends
+      # the whole file and costs the most. Text and pictures read the first 5 pages only. A PDF
+      # with no words in it, such as a scanned page, is sent as pictures.
+      # SPENDLY_PDF_READING: text
       # Lets Settings > This build install a newer version with "Update and reload": the app asks
       # the watchtower service below to do it. The token must match WATCHTOWER_HTTP_API_TOKEN.
       SPENDLY_UPDATER_URL: "http://watchtower:8080/v1/update"
