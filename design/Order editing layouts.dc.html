@@ -42,7 +42,7 @@
     <div class="doc-note"><b>Validated</b> - Shown only when the order has been checked against a receipt (<a href="Order create.dc.html#3d">3d</a>), with the date it was applied. Read only: it is not a field in 1d.</div>
     <div class="doc-note"><b>Note</b> - Shown only when the order has a note; an order without one has no Note row. The text sits in a full-width well (the bordered box inside a card, no ground) at regular weight, as the user typed it, line breaks kept.</div>
     <div class="doc-note"><b>Watch out</b> - Do not render inputs as disabled fields here. Values are text. A page full of greyed-out inputs reads as broken permissions, and it doubles the DOM for no gain.</div>
-    <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px the rail moves under the item list. Attachments stay a horizontal filmstrip on both - it is the one place sideways scroll is correct, because a receipt strip has no meaningful order.</div>
+    <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px the rail moves above the item list, collapsed to a summary line (1d, <a href="Responsive reference.dc.html#18a">Responsive reference 18a</a>). Attachments stay a horizontal filmstrip on both - it is the one place sideways scroll is correct, because a receipt strip has no meaningful order.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Edit, Duplicate and Delete belong in the page, never the top bar (global rule 1). The top shell is shared and locked.</div>
   </div>
 
@@ -57,7 +57,7 @@
     <div class="sp-shell__body sp-shell__body--split">
       <div class="sp-stack sp-gap-12">
         <div class="sp-card">
-          <div class="sp-row-flex sp-gap-12">
+          <div class="sp-card__head">
             <span class="sp-section-label">Items · 4</span>
             <span class="sp-meta">Indbo Møbler · 08/08/2026</span>
           </div>
@@ -110,7 +110,7 @@
         </div>
 
         <div class="sp-card">
-          <div class="sp-row-flex sp-gap-8">
+          <div class="sp-card__head">
             <span class="sp-section-label">Attachments · 3</span>
             <span class="sp-grow"></span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Download all</button>
@@ -138,7 +138,7 @@
 
       <div class="sp-panel">
         <div class="sp-card">
-          <span class="sp-section-label">Order details</span>
+          <div class="sp-card__head"><span class="sp-section-label">Order details</span></div>
           <div class="sp-stack">
           <div class="sp-sum"><span class="sp-ink-2">Vendor</span><span class="sp-sum__value"><a href="Order list.dc.html">Indbo Møbler</a></span></div>
           <div class="sp-sum"><span class="sp-ink-2">Date</span><span class="sp-sum__value">08/08/2026</span></div>
@@ -153,7 +153,7 @@
         </div>
 
         <div class="sp-card">
-          <span class="sp-section-label">Totals</span>
+          <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
           <div class="sp-stack">
           <div class="sp-sum"><span class="sp-ink-2">Items (4)</span><span class="sp-sum__value">3.980,00 kr.</span></div>
           <div class="sp-sum"><span class="sp-ink-2">Discount</span><span class="sp-sum__value">0,00 kr.</span></div>
@@ -195,7 +195,7 @@
   </div>
 
   <div class="sp-card oe-card">
-    <div class="sp-row-flex sp-gap-8">
+    <div class="sp-card__head">
       <span class="sp-section-label">Items · 4</span>
       <span class="sp-grow"></span>
       <button type="button" class="sp-btn sp-btn--outline sp-btn--small">+ Add item</button>
@@ -314,7 +314,7 @@
     <div class="doc-note"><b>Intent</b> - The phone is the capture device, so this layout assumes one hand and a receipt in the other. Items lead because that is the work; details fold away.</div>
     <div class="doc-note"><b>Watch out</b> - The details section is collapsed by default with a summary line of its categories, kind and reference ("Decor · Expense · SPENDLY-447"), as drawn. Collapsed must still tell you what is inside, or it reads as an empty accordion.</div>
     <div class="doc-note"><b>Watch out</b> - 44px minimum on every target, including the row itself and the sheet buttons. Row density in Settings does not apply here - compact affects list rows on desktop only.</div>
-    <div class="doc-note"><b>Desktop vs mobile</b> - This is not the desktop layout at a smaller width. Fields were removed, not shrunk: vendor and amount on line one, date/items/status on line two, category on line three. Anything else lives one level deeper. Do not reintroduce columns to "use the space".</div>
+    <div class="doc-note"><b>Desktop vs mobile</b> - This is not the desktop layout at a smaller width. Fields were removed, not shrunk: vendor and amount on line one, then the date and item count with the saving under the amount (<a href="Order list.dc.html#2i">Order list 2i</a>). Reference, status and category are on the order itself. Anything else lives one level deeper. Do not reintroduce columns to "use the space".</div>
     <div class="doc-note"><b>Reorder is a mode, not an action</b> - the same mode the saved-views card uses. Tapping it turns each row into a reorder row: the drag handle appears at the leading edge and an up and a down button at the trailing edge, both required, since drag is awkward on touch inside a scrolling list and the buttons are the accessible path (see <a href="#1d">1d</a>). The button becomes <b>Done</b>, which leaves the mode. The moves are changes to the order like any other: they wait for the order's Save, as an explicit position on each line rather than a sort order (<a href="#1b">1b</a>). Nothing else about the row changes: same height, same content, same 44px targets.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Sticky save on iOS. The save bar must sit above the keyboard and the home indicator - use dynamic viewport units and safe-area insets, or it ends up under both.</div>
   </div>
@@ -338,7 +338,7 @@
 
         <div class="oe-scroll sp-scrolls">
           <div class="sp-card">
-            <div class="sp-row-flex sp-gap-8">
+            <div class="sp-card__head">
               <span class="sp-section-label">Items · 4</span>
               <span class="sp-grow"></span>
               <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reorder</button>
@@ -388,7 +388,7 @@
           </div>
 
           <div class="sp-card">
-            <span class="sp-section-label">Attachments · 3</span>
+            <div class="sp-card__head"><span class="sp-section-label">Attachments · 3</span></div>
             <div class="sp-strip-wrap">
               <button type="button" class="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
               <div class="sp-strip">
@@ -439,7 +439,7 @@
 
         <div class="oe-scroll sp-scrolls">
           <div class="sp-card">
-            <span class="sp-section-label">Items · 4</span>
+            <div class="sp-card__head"><span class="sp-section-label">Items · 4</span></div>
             <div class="sp-stack sp-gap-8">
               <div class="sp-list-item">
                 <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
@@ -477,7 +477,7 @@
               <sc-if value="{{ adv1cOpen }}" hint-placeholder-val="{{ false }}">
                 <div class="sp-field">
                   <label class="sp-field__label" for="adv1c-link">Product page</label>
-                  <input class="sp-input" id="adv1c-link" type="url" inputMode="url" placeholder="https://" defaultValue="https://hay.dk/palissade-chair" aria-invalid="{{ adv1cInvalid }}" aria-describedby="adv1c-link-help" onBlur="{{ check1c }}" onInput="{{ typed1c }}">
+                  <input class="sp-input" id="adv1c-link" type="url" inputMode="url" placeholder="https://" defaultValue="https://hay.dk/palissade-chair" aria-invalid="{{ adv1cInvalid }}" aria-describedby="{{ adv1cDescribedBy }}" onBlur="{{ check1c }}" onInput="{{ typed1c }}">
                   <sc-if value="{{ adv1cInvalid }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="adv1c-link-help">Not a link.</span></sc-if>
                 </div>
               </sc-if>
@@ -536,7 +536,7 @@
     <div class="doc-note"><b>Watch out</b> - The rail must stay shorter than the item list. If it grows past it, the page scrolls for the rail's benefit and the original problem is back in a new form. Attachments are below the items for exactly this reason - anything new in the rail has to displace something, not extend it.</div>
     <div class="doc-note"><b>Watch out</b> - Reorder needs both the drag handle and the up/down buttons. Drag is unusable with a keyboard and awkward on touch inside a scrolling list; the buttons are the accessible path. Order persists as an explicit position field, never derived from a sort.</div>
     <div class="doc-note"><b>Adding a receipt</b> - A file added to Attachments asks whether to compare it with the order's lines (<a href="Order create.dc.html#3d">3d</a>).</div>
-    <div class="doc-note"><b>Status</b> - A select, not a fixed set. Statuses are custom per user, set up in Settings: their names, how many there are and their order differ from one user to the next. The options are that user's statuses in their Settings order; the trigger shows the current one. Draft, Ordered, Delivered, Returned and Cancelled here are example data, and no status name is special in code. Same combobox as Vendor and Kind (<a href="Components.dc.html#c3">c3</a>).</div>
+    <div class="doc-note"><b>Status</b> - A select, not a fixed set. Statuses are custom per user, set up in Settings: their names, how many there are and their order differ from one user to the next. The options are that user's statuses in their Settings order; the trigger shows the current one. Draft, Ordered, Delivered, Returned and Cancelled here are example data, and no status name is special in code. Same combobox as Vendor and Kind (<a href="Components.dc.html#c5">c5</a>).</div>
     <div class="doc-note"><b>Status date</b> - Each status is mapped to a date in Settings: either the order's Date, or a date of its own. A status mapped to the order's Date (Ordered in this example) shows nothing extra. A status with its own date shows a date field under Status, labelled with the status name. Date only, no time. Try it: change the status in 1d.</div>
     <div class="doc-note"><b>Changing the status</b> - Picking a status that has no date yet fills in today and says so under the field, so the common case costs nothing and a delivery that happened yesterday is one edit. Picking a status that already has a date (switching back to Delivered after trying Returned) restores the saved one, not today. Nothing is written until Save, like every other field here.</div>
     <div class="doc-note"><b>Status date - validation</b> - On blur and on save (<a href="Components.dc.html#c3">c3</a>): a Delivered or Returned date before the order's Date is an error, and the order does not save until it is fixed. A future date is allowed. Same date format and picker as Date above.</div>
@@ -557,7 +557,7 @@
     <div class="sp-shell__body sp-shell__body--split">
       <div class="sp-stack sp-gap-12">
         <div class="sp-card">
-          <div class="sp-row-flex sp-gap-8">
+          <div class="sp-card__head">
             <span class="sp-section-label">Items · 4</span>
             <span class="sp-grow"></span>
             <span class="sp-meta">Drag the handle, or select a line and use ↑ ↓</span>
@@ -628,7 +628,7 @@
         </div>
 
         <div class="sp-card">
-          <span class="sp-section-label">Attachments · 3</span>
+          <div class="sp-card__head"><span class="sp-section-label">Attachments · 3</span></div>
           <div class="sp-strip-wrap">
               <button type="button" class="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
             <div class="sp-strip">
@@ -656,7 +656,7 @@
 
       <div class="sp-panel">
         <div class="sp-card">
-          <span class="sp-section-label">Order details</span>
+          <div class="sp-card__head"><span class="sp-section-label">Order details</span></div>
           <div class="sp-field">
             <label  class="sp-field__label" for="oe-lbl5">Vendor</label>
             <input id="oe-lbl5" class="sp-input" type="text" defaultValue="Indbo Møbler" aria-label="Vendor">
@@ -701,7 +701,7 @@
           <sc-if value="{{ hasStatusDate }}" hint-placeholder-val="{{ true }}">
             <div class="sp-field">
               <label class="sp-field__label" for="1d-status-date">{{ statusName }}</label>
-              <input id="1d-status-date" class="sp-input" type="text" inputMode="numeric" value="{{ statusDate }}" onChange="{{ typeStatusDate }}" aria-invalid="{{ statusDateBad }}" aria-describedby="1d-status-help 1d-status-note">
+              <input id="1d-status-date" class="sp-input" type="text" inputMode="numeric" value="{{ statusDate }}" onChange="{{ typeStatusDate }}" aria-invalid="{{ statusDateBad }}" aria-describedby="{{ statusDescribedBy }}">
               <sc-if value="{{ statusDateBad }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="1d-status-help">Can't be before the order date, 08/08/2026.</span></sc-if>
               <sc-if value="{{ statusDateJustSet }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" id="1d-status-note">Set to today. Change it if it happened earlier.</span></sc-if>
             </div>
@@ -801,8 +801,11 @@ class Component extends DCLogic {
       toggleStatus: () => this.setState(s => ({ stOpen: !s.stOpen })),
       hasStatusDate: st !== 'Ordered' /* example mapping: Ordered -> order Date */, statusDate: this.state.stDates[st] || '',
       statusDateJustSet: this.state.stJust && !this.state.stBad, statusDateBad: this.state.stBad,
+      statusDescribedBy: this.state.stBad ? '1d-status-help' : (this.state.stJust ? '1d-status-note' : undefined),
       typeStatusDate: (e) => this.editStatus(e.target.value),
       adv1bInvalid: bad1b, adv1cInvalid: bad1c,
+      // a reference only to a message that is on screen
+      adv1cDescribedBy: bad1c ? 'adv1c-link-help' : undefined,
       check1b: (e) => this.setState({ bad1b: !this.isLink(e.target.value) }),
       check1c: (e) => this.setState({ bad1c: !this.isLink(e.target.value) }),
       adv1bOpen: adv1b, adv1bClosed: !adv1b, toggleadv1b: () => this.toggle('1b'),

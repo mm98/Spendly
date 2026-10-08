@@ -97,7 +97,7 @@
         </div>
         <div class="rr-rail-full">
           <div class="sp-card">
-            <span class="sp-section-label">ORDER DETAILS</span>
+            <div class="sp-card__head"><span class="sp-section-label">ORDER DETAILS</span></div>
             <div class="sp-field">
                 <label class="sp-field__label" for="rr-f1">Vendor</label>
                 <input class="sp-input" id="rr-f1" type="text" defaultValue="Indbo Møbler">
@@ -366,7 +366,7 @@
       <div class="rr-panel">
           <div class="sp-panel">
           <div class="sp-card">
-            <span class="sp-section-label">DECOR</span>
+            <div class="sp-card__head"><span class="sp-section-label">DECOR</span></div>
             <div class="sp-field">
                   <label class="sp-field__label" for="rr-f4">Name</label>
                   <input class="sp-input" id="rr-f4" type="text" defaultValue="Decor">
@@ -754,7 +754,7 @@
       <div class="doc-note"><b>Test at container widths, not viewport widths.</b> Resize the layout wrapper in isolation - a component that only works at one page width will pass a viewport test and fail in the rail.</div>
     </div>
     <div class="sp-card rr-w400">
-      <span class="sp-section-label">ACCEPTANCE, PER SCREEN</span>
+      <div class="sp-card__head"><span class="sp-section-label">ACCEPTANCE, PER SCREEN</span></div>
       <div class="doc-note">At each of <b>1440 · 1280 · 1024 · 900 · 768 · 640 · 390</b>: no horizontal scroll except the two places it is named above; no text under 11px; every target 44px or more below 640; no element overlapping another; and the sticky save bar reachable without the keyboard covering it.</div>
       <div class="doc-note">The two widths that catch the most: <b>1024</b>, where a rail has left but the table has not yet become cards, and <b>390</b>, the narrowest phone that matters.</div>
     </div>

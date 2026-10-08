@@ -126,21 +126,23 @@
 .sp-card--spread { justify-content: space-between; }
 .sp-card[data-color="warning"] { background: var(--amber-tint-2); border-color: var(--amber); }
 .sp-card[data-color="danger"] { background: var(--red-tint-2); border-color: var(--red-ink); }
-/* A card's head. A card's name is always in one: the row that opens with the name, or
-   the name standing alone as the card's first child. The head is the list toolbar's box
+/* A card's head - CardHeader, .sp-card__head. A card's name is always in one, and it is
+   always this element: the card's first child, with the name as its own first child.
+   There is no other markup for it - not a row helper, not the name standing alone. The head is the list toolbar's box
    exactly - --card-header-h tall including a 1px bottom border, transparent here - with
    the name centred, so a card and a list carry their names at the same height. The card
    gives up its top padding to it, so the place does not depend on the card's padding.
    The head is one line and never wraps: anything beside the name is centred on it and
    shrinks, and a button in it is always the small outline button (c6), and what can grow with the data (a legend, filters) goes below the head.
    The gap below is taken into the head, so content starts where a list's rows start. */
-.sp-card:has(> .sp-row-flex:first-child > .sp-section-label:first-child),
-.sp-card:has(> .sp-section-label:first-child) { padding-top: 0; }
-.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child),
-.sp-card > .sp-section-label:first-child {
+.sp-card:has(> .sp-card__head:first-child) { padding-top: 0; }
+/* the gap is the list toolbar's, since the head is the toolbar's box. Only a card's first
+   child is a head: the class anywhere else draws nothing, and the checks report it. */
+.sp-card > .sp-card__head:first-child {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  gap: var(--sp-12);
   flex: none;
   min-width: 0;
   height: var(--card-header-h);
@@ -152,10 +154,9 @@
    width and never breaks; text beside it (a meta, a note) stays on one line and takes
    the cut with an ellipsis. A control or button keeps its own width. So a head is one
    line whatever the data puts in it, and no page adds a class to make it so. */
-.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-section-label:first-child,
-.sp-list__toolbar > .sp-section-label:first-child,
-.sp-card > .sp-section-label:first-child { flex: none; white-space: nowrap; }
-.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > :is(.sp-meta, .sp-note, .sp-subtitle),
+.sp-card > .sp-card__head:first-child > .sp-section-label:first-child,
+.sp-list__toolbar > .sp-section-label:first-child { flex: none; white-space: nowrap; }
+.sp-card > .sp-card__head:first-child > :is(.sp-meta, .sp-note, .sp-subtitle),
 .sp-list__toolbar > :is(.sp-meta, .sp-note, .sp-subtitle) { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the bar above a list, and the header of a card that has one: the same object, so
    the same name. Defined with the list - see .sp-list__toolbar there. */
@@ -1728,9 +1729,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
    so the 54px head keeps the space above and below it, and takes the touch height as
    an invisible area above and below, as the bookmark chip does (Brief 36). The area is
    placed from the padding box, so it reaches out past the 1px border too. */
-.sp-touch .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small,
+.sp-touch .sp-card > .sp-card__head:first-child > .sp-btn--small,
 .sp-touch .sp-list__toolbar > .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
-.sp-touch .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small::before,
+.sp-touch .sp-card > .sp-card__head:first-child > .sp-btn--small::before,
 .sp-touch .sp-list__toolbar > .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
    without the card padding pushing the bar past the height every other bar holds */
@@ -1756,9 +1757,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
   .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
-  .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small,
+  .sp-card > .sp-card__head:first-child > .sp-btn--small,
   .sp-list__toolbar > .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
-  .sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) > .sp-btn--small::before,
+  .sp-card > .sp-card__head:first-child > .sp-btn--small::before,
   .sp-list__toolbar > .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
 }
 

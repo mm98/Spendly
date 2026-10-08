@@ -1,4 +1,7 @@
+import { Children, createContext, useContext } from 'react'
 import { join, pick, reject } from './variants.js'
+import { Button, IconButton } from './Button.jsx'
+import { Icon } from './Icon.jsx'
 
 /* The card: a surface. It owns a ground, an edge and padding, and holds a section of
    a page.
@@ -59,9 +62,18 @@ export function Card({
 	const paint = color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'Card') }
 	const actions = Array.isArray(footer) ? footer.filter(Boolean) : footer ? [footer] : []
 	if (actions.length > 2) console.error('<Card> three actions is a menu, not a footer')
+	/* A CardHeader is passed as a child, and the card renders it first wherever it was
+	   written, inside the one context that lets it render. Everything else in the card is
+	   outside that context, so a CardHeader nested deeper in the card, or anywhere outside
+	   a card, renders nothing and says why. */
+	const all = Children.toArray(children)
+	const heads = all.filter(c => c && c.type === CardHeader)
+	if (heads.length > 1) console.error('<Card> takes one <CardHeader>')
+	const content = all.filter(c => !(c && c.type === CardHeader))
 	const body = (
 		<>
-			{children}
+			{heads.length ? <HeadSlot.Provider value={true}>{heads[0]}</HeadSlot.Provider> : null}
+			<HeadSlot.Provider value={false}>{content}</HeadSlot.Provider>
 			{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}
 			{actions.length
 				? (
@@ -87,6 +99,75 @@ export function Cards({ fluid = false, children, ...rest }) {
 	return <div className={join('sp-cards', fluid && 'sp-cards--fluid')} {...rest}>{children}</div>
 }
 
+/* The head of a card: its name, and what the card says or offers about itself. It is
+   the list toolbar's box, one line at a fixed height: the name never breaks, text
+   beside it truncates, controls and buttons keep their width, and anything that grows
+   with the data goes below it, in the card.
+
+   Each view has one slot and one place, so a head cannot be assembled two ways. The
+   name comes first, the meta beside it; the right-end slots render in a fixed order -
+   aside, control, status, actions, dismiss - whatever order they are passed in. */
+
+/* true only where Card places its own head */
+const HeadSlot = createContext(false)
+
+const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink-danger' }
+
+/**
+ * @param {object} props
+ * @param {string} props.name The card's name.
+ * @param {string} [props.meta] Beside the name: what the visible rows are ("newest 3").
+ * @param {string} [props.aside] At the right end: a fact about the card
+ *   ("August · top 8 of 10").
+ * @param {'default'|'note'|'danger'} [props.asideTone]
+ * @param {React.ReactNode} [props.control] At the right end: one control that changes
+ *   what the card shows - a Segmented, a period window, a Switch.
+ * @param {React.ReactNode} [props.status] At the right end: one Pill.
+ * @param {Array<{label: string, to?: string, href?: string, onClick?: () => void}>} [props.actions]
+ *   At most two. Always the small outline button: the caller names the action, not its look.
+ * @param {() => void} [props.onDismiss] Closes the card; renders the close button last.
+ * @param {string} [props.dismissLabel] What the close button hides ("Hide the August summary").
+ *
+ * Only a child of Card: <Card><CardHeader name="Top vendors" />...</Card>. The card
+ * renders it first. Anywhere else - outside a card, or nested inside a card's content -
+ * it renders nothing and reports the call. Takes no `className`, no `style` and no children.
+ */
+export function CardHeader({
+	name,
+	meta,
+	aside,
+	asideTone = 'default',
+	control,
+	status,
+	actions,
+	onDismiss,
+	dismissLabel = 'Close',
+	...rest
+}) {
+	const placed = useContext(HeadSlot)
+	reject(rest, 'CardHeader')
+	if (!placed) { console.error('<CardHeader> is only a child of <Card>'); return null }
+	if ('children' in rest) { console.error('<CardHeader> takes no children: every view is a named slot'); delete rest.children }
+	if (!name) console.error('<CardHeader> needs a name')
+	const list = Array.isArray(actions) ? actions.filter(Boolean) : actions ? [actions] : []
+	if (list.length > 2) console.error('<CardHeader> three actions is a menu, not a head')
+	const end = aside || control || status || list.length || onDismiss
+	return (
+		<div className="sp-card__head" {...rest}>
+			<span className="sp-section-label">{name}</span>
+			{meta ? <span className="sp-meta">{meta}</span> : null}
+			{end ? <span className="sp-grow" /> : null}
+			{aside ? <span className={pick(ASIDE, asideTone, 'asideTone', 'CardHeader')}>{aside}</span> : null}
+			{control || null}
+			{status || null}
+			{list.slice(0, 2).map(a => (
+				<Button key={a.label} variant="outline" size="small" to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
+			))}
+			{onDismiss ? <IconButton icon={<Icon name="x" />} aria-label={dismissLabel} onClick={onDismiss} /> : null}
+		</div>
+	)
+}
+
 /** A part of a flush card that needs the padding back. */
 export function CardBody({ children, ...rest }) {
 	reject(rest, 'CardBody')
@@ -104,6 +185,8 @@ export function CardBody({ children, ...rest }) {
  * @param {boolean} [props.expanded] Toggle only.
  * @param {() => void} [props.onClick]
  */
+const TOOLBAR = { default: null, loose: 'sp-list__toolbar--loose', link: 'sp-list__toolbar--link', toggle: 'sp-list__toolbar--toggle' }
+
 export function Toolbar({ variant = 'default', expanded, onClick, children, ...rest }) {
 	reject(rest, 'Toolbar')
 	const classes = join('sp-list__toolbar', pick(TOOLBAR, variant, 'variant', 'Toolbar'))
