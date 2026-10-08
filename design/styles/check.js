@@ -900,10 +900,12 @@
   /* A link in a card's head does not make the head taller on touch. On a phone the
      "All 4" link took the 48px button height, so Drafts and Recent orders had a 48px
      head and This month a 17px one (Brief 32). The link keeps the small button's box
-     and takes the touch height as a hit area, under .sp-touch and below 640px alike. */
+     and takes the touch height as a hit area, under .sp-touch and below 640px alike.
+     Brief 33: a 34px box still made the head 34px against the name's 17, so the box
+     must also take no height in the row - a negative block margin of half the box. */
   {
-    const touch = /\.sp-touch \.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0/.test(comp);
-    const narrow = /@media \(max-width: 639\.98px\) \{[^@]*\.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0/.test(comp);
+    const touch = /\.sp-touch \.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(34px \/ -2\)/.test(comp);
+    const narrow = /@media \(max-width: 639\.98px\) \{[^@]*\.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(34px \/ -2\)/.test(comp);
     if (!touch || !narrow) fail('a head link keeps the head height on touch', 'components.css', (touch ? '' : 'no .sp-touch rule ') + (narrow ? '' : 'no below-640 rule'));
   }
 
