@@ -1148,7 +1148,7 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 /** One category inside a crumb, month by month against its one limit (4c). */
 function LimitByMonth({ chart, selected, category, pace, touch }) {
 	const budget = category.budget
-	const edit = <EditLimit key="edit" category={category} />
+	const edit = <EditLimit key="edit" category={category} head={!touch} />
 	const upTo = selected ? chart.columns.findIndex(c => c.key === selected) + 1 : chart.columns.length
 	const months = chart.columns.slice(Math.max(0, upTo - 3), upTo)
 	return (
@@ -1185,14 +1185,15 @@ const LIMITED = 'spendly:limited'
 const rememberedLimits = () => { try { return Number(sessionStorage.getItem(LIMITED)) || 0 } catch { return 0 } }
 const rememberLimits = n => { try { sessionStorage.setItem(LIMITED, String(n)) } catch { /* storage denied */ } }
 
-/** Every category's limit is set on the overview (5d); one category's on its own page, at the limit (5f). */
-const EditLimit = ({ category }) => (
-	<Button variant="outline" size="small" to={category ? `/categories/${category.id}/edit?focus=limit` : '/categories?flag=limited'}>Edit on category</Button>
+/** Every category's limit is set on the overview (5d); one category's on its own page, at the limit (5f). Beside
+    the card's name it is the head's text link; on a phone it is the footer's button. */
+const EditLimit = ({ category, head = false }) => (
+	<Button variant={head ? 'text' : 'outline'} size="small" to={category ? `/categories/${category.id}/edit?focus=limit` : '/categories?flag=limited'}>Edit on category</Button>
 )
 
 function LimitCard({ view, name, running, categories, touch, onRetry }) {
 	const shown = useShown()
-	const edit = <EditLimit key="edit" />
+	const edit = <EditLimit key="edit" head={!touch} />
 	// a phone button takes the full width, so there it sits in the card's footer rather than squeezing the label
 	const head = (
 		<div className="sp-row-flex sp-gap-12">
