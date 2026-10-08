@@ -5338,3 +5338,11 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-bars--plot .sp-bars__col[data-future] { background: none; }
 /* the limit is named in the legend, not on the line, so no bar is ever under its label */
 .sp-legend__key--limit { width: 14px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--amber); }
+
+/* Every field a finger types into is 16px on touch, its typed text and its placeholder.
+   Below 16px iOS zooms the page in when the field takes focus, and the page stays
+   zoomed: the category picker's add field in a bookmark on a phone was 14px, from the
+   tokens field it sits in. .sp-touch .sp-input alone left the add field, the textarea,
+   the palette's term and a cell input out. Last in the file so it is not outranked. */
+.sp-touch :is(.sp-input, .sp-input.sp-input--cell, .sp-textarea, .sp-tokens__add, .sp-palette__term, .sp-stepper__value),
+.sp-touch :is(.sp-input, .sp-textarea, .sp-tokens__add, .sp-palette__term)::placeholder { font-size: var(--t-16); }

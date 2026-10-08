@@ -8,7 +8,7 @@ import {
 } from '../api/client.js'
 import {
 	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, onward, useCountdown, useMail
-} from './SignIn.jsx'
+} from './AuthParts.jsx'
 
 const clock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 const NO_MAIL = 'This Spendly server cannot send email. Ask the person who runs it to reset your password for you.'
