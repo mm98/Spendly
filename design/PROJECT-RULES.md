@@ -44,7 +44,7 @@ After any writing pass, sweep the files for `—`, `–`, `'`, `"`, `&mdash;`, `
 
 ## A saving is always an amount, never a percentage
 
-Anywhere the design shows what an order or a vendor saved, it reads `Saved 1.320,00 kr.` - the capital, the amount, the currency - and it is green (`sp-amount-secondary` with `data-color="success"`, or `sp-stat__delta`). Never a percentage, never "vs retail", never "compared to retail", never a bare `-80%`.
+Anywhere the design shows what an order or a vendor saved, it reads `Saved 1.320,00 kr.` - the capital, the amount, the currency - and it is green (`sp-amount-secondary--positive`, or `sp-stat__delta`). Never a percentage, never "vs retail", never "compared to retail", never a bare `-80%`.
 
 A saving of zero stays grey: `Saved 0,00 kr.` on plain `sp-amount-secondary`, since nothing was saved.
 

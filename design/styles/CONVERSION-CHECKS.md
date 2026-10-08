@@ -1,28 +1,27 @@
 # Checks to run after converting a page
 
-**Run `styles/check.js` first, then `checks.html`.** `check.js` reads the files; `checks.html`
-measures the rendered pages. A clean run of both means the mechanical rules hold. From a
-script step:
+**Run `styles/check.js` first.** It is this document as assertions, and a clean run
+means the mechanical rules hold. From a script step:
 
     const factory = eval(await readFile('styles/check.js'));
     const { report } = await (await factory)({ readFile, ls });
     log(report);
 
-`check.js` covers, across every page and stylesheet: markup balance, unique ids, resolving
+It checks, across every page and stylesheet: markup balance, unique ids, resolving
 references, every class resolving to a rule, every token defined, no `var()` fallbacks
-outside the per-instance hooks, no inline styles, one rule per selector per scope,
-at-rules declared after their base rule, no duplicate rules, one name per role, the stacked
-pair rules, the saving rules, typographic tells, and gaps on the scale. `checks.html` covers
-what needs a layout: the title stack, field labels, combobox names, card gaps, the screen
-frame and selection.
+outside the four per-instance hooks, no inline styles, one rule per selector per scope,
+at-rules declared after their base rule, no duplicate rules, one name per role, every
+control named, a field label bound to its control, a combobox named once, the title
+stack pattern and its card-body exception, the saving rules, typographic tells, and
+gaps on the scale.
 
-The specimen gap rule (`a specimen gap follows its content`) answers the question that kept recurring - "why is this card gap 16?" The
+Rule 19 answers the question that kept recurring - "why is this card gap 16?" The
 documentation frame separates *drawings* at 16, and a drawing is a labelled specimen.
 A wrapper holding bare components with no label between them is not separating
 drawings; it is a row of cards, and it takes 12. The wrapper decides this itself in
 `doc.css`, so it applies to specimens that do not exist yet.
 
-The screen frame rule (`a full screen sits in a screen frame`) is worth stating in words too: **a full screen sits in a screen frame.** A
+Rule 18 is worth stating in words too: **a full screen sits in a screen frame.** A
 drawn screen - anything carrying a bar and the content under it - is
 `.doc-screen.doc-frame` on desktop and `.sp-phone` on a phone, so every screen is the
 same 1400 width, on the same ground, with the same border and radius. Three pages had
@@ -42,7 +41,7 @@ The single largest source of defects in this conversion. Every one of these was
 built by looking at an old page's drawing and assembling something that resembled
 it, instead of copying the component's own markup:
 
-- an attention row as count + text + spacer + label, where c23 is count + text
+- an attention row as count + text + spacer + label, where c24 is count + text
   carrying `sp-grow` + `.sp-list-item__chevron` - two type sizes each centred on
   the row, so their baselines never met
 - a toolbar as a flex row of boxes, where c20's `.sp-controls` already grows the
@@ -63,25 +62,24 @@ one variant per group. The roles that matter:
 
 | Role | How to detect it | What it must be |
 | --- | --- | --- |
-| Dialog or sheet foot | inside `.sp-dialog__actions` or `.sp-sheet` | the committing size, set by the surface |
-| Card footer, committing | inside `.sp-card__footer`, and it changes data or closes a decision | the committing size, set by the surface |
+| Dialog or sheet foot | inside `.sp-dialog`, `.sp-sheet`, `.sp-line-editor__foot` | `--caps` |
+| Card footer, committing | inside `.sp-card__footer`, and it changes data or closes a decision | `--caps` |
 | Card footer, revealing | inside `.sp-card__footer`, and it only shows more of what is already there ("Show all 200 vendors") | `--text --small` |
 | Card header | inside `.sp-card` beside a `.sp-section-label` | `--small` |
 | Page or form action | loose in a page, a toolbar, or a form | default, 42px |
 
 The distinction in a footer is **commit versus reveal**: "Update view", "Merge
-them", "Delete order" change something, so they take the committing size; "Show top 8
-only" expands the card's own content, so it stays a text button.
+them", "Delete order" change something, so they are caps; "Show top 8 only"
+expands the card's own content, so it stays a text button.
 
-**The surface decides, not the button.** A footer either commits or it does not, so
-every button in it agrees - including the way out. "Cancel" beside "Save" takes the
-same size, because a pair reads as a pair only when both halves are the same size. The
-surface sets that size (`.sp-dialog__actions`, `.sp-savebar`, `.sp-card__footer--commits`),
-so no button carries a size variant of its own. A smaller Cancel next to a larger Save is the
-most common version of this defect, and it looks deliberate until you measure it.
+**The footer decides, not the button.** A footer either commits or it does not, so
+every button in it agrees - including the way out. "Cancel" beside a caps "Save"
+is caps too, at `--text --caps`: it keeps the quiet treatment and takes the
+committing size, because a pair reads as a pair only when both halves are the
+same size. A 12px sentence-case Cancel next to an 11px caps Save is the most
+common version of this defect, and it looks deliberate until you measure it.
 
-Check, by hand: for every group of two or more buttons in one surface, they all share
-one size.
+Check: for every group of two or more buttons, if any is `--caps` they all are.
 
 Same exercise for every other repeated element: a list row, an identity mark, a
 gauge, a summary row, a field label. If two pages draw the same role differently,
@@ -99,14 +97,17 @@ The rule above the footer is about context, not about the footer: it draws where
 content ends and action begins, and `.sp-well + .sp-card__footer` drops it where
 that boundary is already drawn.
 
-Check, by hand: `.sp-card > .sp-btn` must return nothing.
+Check: `.sp-card > .sp-btn` must return nothing. Settings had nine.
 
 ## 2. Labels are written in sentence case
 
-Labels are typed in sentence case, and CSS never uppercases an action. A label typed in
-capitals renders as typed, which is wrong in the browser and in the source.
+`--caps` uppercases in CSS. A label typed in capitals renders identically, so the
+defect is invisible in the browser and only shows up in the source - and it is
+how a button ends up uppercase in the *wrong size*, because the text was changed
+instead of the variant.
 
-Check: any `<button>` whose text is all capitals. `check.js` asserts it.
+Check: any `<button>` whose text is all capitals. If it is on a `--caps` button,
+put the text back to sentence case. If it is not, the variant is missing.
 
 ## 3. No class for a state the element owns
 

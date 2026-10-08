@@ -24,7 +24,10 @@ const VARIANT = {
 	default: null,
 	flush: 'sp-card--flush',
 	row: 'sp-card--row',
-	shell: 'sp-card--shell'
+	shell: 'sp-card--shell',
+	// a CardHeader, then a drill path: the path stands in the head's line when the card
+	// is wide enough, below the head when it is not
+	path: 'sp-card--path'
 }
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }
@@ -33,7 +36,7 @@ const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__f
 
 /**
  * @param {object} props
- * @param {'default'|'flush'|'row'|'shell'} [props.variant]
+ * @param {'default'|'flush'|'row'|'shell'|'path'} [props.variant]
  * @param {'default'|'warning'|'danger'} [props.color]
  * @param {string} [props.to] Makes the whole card a link. A card is not a control,
  *   so there is no onClick: a repeating row the user picks is a ListItem.

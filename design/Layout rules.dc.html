@@ -233,14 +233,14 @@
           <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Body text.</b> Capped at <b>640px</b> for prose, <b>900px</b> for a description line. A 1200px line of 13px text can't be read back to its own start.</div></div>
           <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">A form column.</b> Settings caps its cards at <b>640px</b> even on a 1920px screen - a 42px-tall input stretched to 1200px looks like an error.</div></div>
           <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Segmented controls, chips, steppers, swatch rows.</b> Intrinsic width, <b>align-self: flex-start</b>. Stretching them adds nothing and hides which is selected.</div></div>
-          <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Dialogs and popovers.</b> 440px and 560px respectively, centred - never a proportion of the viewport.</div></div>
+          <div class="sp-row-flex sp-gap-10"><span class="lr-bar lr-bar--quiet"></span><div class="doc-note"><b class="sp-ink">Dialogs and popovers.</b> A dialog is 420px; a popover takes its content's width between 240px and 320px (<a href="Components.dc.html#c13">Components c13</a>) - never a proportion of the viewport.</div></div>
         </div>
       </div>
 
       <div class="sp-card">
         <div class="sp-section-label">ROWS</div>
         <div class="doc-note"><b class="sp-ink">A list row is one line by default.</b> Height comes from padding - 12 - 14px vertical, 8px in compact - never from a fixed height, so a row with a 26px icon tile grows correctly instead of clipping it.</div>
-        <div class="doc-note"><b class="sp-ink">Columns in a row are fixed except one.</b> In 2b: checkbox 34px, order 2.1fr, date 104px, categories 1.3fr, items 78px, status 118px, amount 150px right-aligned, actions 40px - and the fluid cells absorb the slack. This is what keeps every value at the same x position down the list.</div>
+        <div class="doc-note"><b class="sp-ink">Columns in a row are fixed except one.</b> In 2b the box, date 104, count 90, status 120, amount 152 right-aligned and menu 40 are fixed, and the title states no width and absorbs the slack (<a href="Components.dc.html#c1">Components c1</a>). This is what keeps every value at the same x position down the list.</div>
         <div class="doc-note"><b class="sp-ink">Second lines never displace the first.</b> An item preview or a meta line sits below the primary, inside its cell. Nothing is allowed to move the vendor name.</div>
         <div class="doc-note"><b class="sp-ink">Rows in a table share one grid definition</b> with the header - declared once on a shared class or a CSS variable, not repeated per row, or the header drifts out of alignment the first time a column changes.</div>
         <div class="doc-note"><b class="sp-ink">An expanding row pushes, never overlays.</b> Item editing (1b) grows the row and moves the rest down; nothing floats above its neighbours.</div>
@@ -822,7 +822,7 @@
       <div class="doc-note"><b class="sp-ink">Two rows, never a wrap.</b> Search takes the first row alone; every remaining control shares the second with <code class="sp-meta">flex: 1</code>. Letting the row wrap naturally leaves one control stranded on a line of its own at some widths, which looks like a bug because it is one.</div>
       <div class="doc-note"><b class="sp-ink">This is the only place a toolbar control stretches.</b> Everywhere else they are <code class="sp-meta">flex: none</code> at their intrinsic width - see the never-full-width list in <a href="#15a">15a</a>. On the second row they are thumb targets, so the room is worth having.</div>
       <div class="doc-note"><b class="sp-ink">Below 640px Filters opens a bottom sheet, not a drawer</b>, matching the phone filter pattern. The button itself does not change; only what it opens does.</div>
-      <div class="doc-note"><b class="sp-ink">Every control stays 42px at every width.</b> Nothing shrinks vertically - on touch that is already at the 44px floor, so taking height out is the one change that would break usability rather than just looks.</div>
+      <div class="doc-note"><b class="sp-ink">No control shrinks vertically.</b> Every control is 42px on desktop and 48px on touch (<code>--control-h-touch</code>), at every width - taking height out is the one change that would break usability rather than just looks.</div>
     </div>
   </div>
 </section>
