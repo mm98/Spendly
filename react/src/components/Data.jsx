@@ -288,12 +288,16 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 
 /** A line of a sum: what it is, and what it comes to. `total` is the last line. A `named` line is
     a name the reader typed, which ends in an ellipsis rather than wrapping. An `edits` line opens its
-    amount in place when pressed, and shows it under the pointer (Budget 21a). */
-export function Sum({ variant = 'default', tone = 'default', named = false, edits = false, value, children, ...rest }) {
+    amount in place when pressed, and shows it under the pointer (Budget 21a); `meta` is the line under its name. */
+export function Sum({ variant = 'default', tone = 'default', named = false, edits = false, meta, value, children, ...rest }) {
 	reject(rest, 'Sum')
+	// a line typed into is a title stack, the row's own child: the touch rule cuts its name there (7a)
+	const name = edits || meta
+		? <span className="sp-stacked"><span className="sp-ink-2">{children}</span>{meta ? <span className="sp-meta">{meta}</span> : null}</span>
+		: <span className={join('sp-ink-2', named && 'sp-grow sp-truncate')}>{children}</span>
 	return (
 		<div className={join('sp-sum', pick(SUM, variant, 'variant', 'Sum'), edits && 'sp-sum--edits')} {...rest}>
-			<span className={join('sp-ink-2', named && 'sp-grow sp-truncate')}>{children}</span>
+			{name}
 			<span className={join('sp-sum__value', pick(SUM_TONE, tone, 'tone', 'Sum'))}>{value}</span>
 		</div>
 	)
