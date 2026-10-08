@@ -42,6 +42,7 @@
     <div class="doc-note"><b>Data belongs to the page.</b> Labels, counts and figures below are example data. Only what the notes name is fixed.</div>
     <div class="doc-note"><b>Touch is the same component.</b> A touch surface adds <code>.sp-touch</code>: control height goes to <code>--control-h-touch</code> and buttons fill the width. Nothing is redrawn.</div>
     <div class="doc-note"><b>Every field you type into is 16px on touch</b>, its text and its placeholder: an input, a textarea, the add field of a tokens field, the palette's search, a cell input, a stepper's value. Below 16px iOS (Safari and any app web view) zooms the page in when the field takes focus and leaves it zoomed, as the category picker in a bookmark did on an iPhone 15. Fix the size, never the viewport: <code>maximum-scale=1</code> or <code>user-scalable=no</code> stops the zoom by taking pinch zoom away from everyone.</div>
+    <div class="doc-note"><b>A field at 16px must not take its width from its font.</b> The amount field on a budget line (<code>sp-sum--edits</code>) holds ten characters on touch, an amount up to 999.999,99, and the line's name takes the cut with an ellipsis however long it is, so nothing goes past the card. A colour field is not raised: it opens a picker, not a keyboard, and the phone does not zoom on it.</div>
   </div>
 </section>
 

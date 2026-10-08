@@ -1,20 +1,20 @@
-# Spendly - fields on touch are 16px
+# Spendly - the budget amount field on touch
 
-Copy these files over handoff_2026_10_08_full_fixed.
+Copy these files over handoff_2026_10_08m_changes.
 
-**Fixed: the phone zoomed in when the category picker in a bookmark took focus** (iPhone 15, iOS 27). On touch only `.sp-input` was raised to 16px. The add field of a tokens field, which the category picker types into, took the tokens field's 14px, and iOS zooms the page in on focus for any field under 16px, then leaves it zoomed. The textarea, the palette's search and a cell input had the same gap.
+**Fixed: the 16px touch rule made the budget amount field wider.** A cell field has no width of its own and takes it from its font, so at 16px the field on a budget line (`sp-input--cell` in `sp-sum--edits`) grew, pushed the line's name aside and, with a long name, went past the card and scrolled the page sideways. It already went past at 12px.
 
-- components.css: one rule, last in the file: on `.sp-touch`, `.sp-input` (including a cell input), `.sp-textarea`, `.sp-tokens__add`, `.sp-palette__term` and `.sp-stepper__value` are `--t-16`, the text and the placeholder. 16px on touch was already the settled field size; this applies it to the fields it missed. Nothing changes on desktop.
-- Components, Notes for implementation (the opening section): the rule, and why the viewport must not be used to stop the zoom (`maximum-scale=1` and `user-scalable=no` take pinch zoom away from everyone).
-- CLAUDE-CODE-PROMPT.md: rule 10 says the same.
-- check.js: the touch rule must exist and name every typed field. checks.html: any typed field inside a touch frame rendered under 16px is a finding.
-- check.js: 0 findings across 26 pages.
+- components.css: on touch, the amount field on a budget line holds ten characters (`10ch` at its 16px, an amount up to 999.999,99, plus its padding and border: 110px), and the line's name and its meta take the cut with an ellipsis however long they are. The field still hangs its 4px padding outside the figure column, so its figures line up with the plain amounts above and below.
+- checks.html: the 16px check leaves out a colour field (`type="color"`, the custom swatch in Components c7): it opens a picker, not a keyboard, and the phone does not zoom on it.
+- Components, Notes for implementation (the opening section): both rules.
 
-In the app: make sure the picker field gets the touch class. If a page under 640px does not carry `.sp-touch`, this rule does not reach it, and the zoom stays.
+## Tested
+- Mobile 7a, as drawn: the three budget lines are 53px each; the field is 110px at 16px; nothing past the card.
+- The same line with an 83-character name: the name ends in an ellipsis, the field is 110px, nothing past the card, no sideways scroll.
+- The 16px rule switched on and off and measured on every page with touch frames: Mobile screens (1 field changes, now no reflow), Layout rules, Order create, Order editing layouts, States and confirmations, React components (no field changes size). Components is covered by checks.html.
+- check.js: 0 findings across 26 pages. checks.html: clean, 24 rules over 26 pages.
 
 ## Files
 - styles/components.css
-- styles/check.js
 - checks.html
 - Components.dc.html
-- CLAUDE-CODE-PROMPT.md
