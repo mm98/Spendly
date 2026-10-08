@@ -399,6 +399,9 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   rendered it. Mid-work, "not rendered yet" is a complete, honest status.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag what you couldn't close, in the same breath as what you did.
+- **A problem found that is not the change's own, and not urgent, goes in
+  `problems-and-adjustments.md`,** never into the change: where, what the reader sees, what was
+  measured and when. The change that fixes one removes its entry.
 - **The pull request is where the session ends. Never offer to watch it.** This has been asked and
   declined repeatedly across this repo's history — it isn't a default choice to offer. If watching is
   wanted, it will be asked for explicitly, and then the PR is subscribed to and driven to merge.
