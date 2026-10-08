@@ -904,9 +904,15 @@
      Brief 33: a 34px box still made the head 34px against the name's 17, so the box
      must also take no height in the row - a negative block margin of half the box. */
   {
-    const touch = /\.sp-touch \.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(34px \/ -2\)/.test(comp);
-    const narrow = /@media \(max-width: 639\.98px\) \{[^@]*\.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(34px \/ -2\)/.test(comp);
+    const touch = /\.sp-touch \.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(var\(--btn-h-small\) \/ -2\)/.test(comp);
+    const narrow = /@media \(max-width: 639\.98px\) \{[^@]*\.sp-card > \.sp-row-flex:first-child > \.sp-btn--text[^{]*\{[^}]*min-height: 0[^}]*margin-block: calc\(var\(--btn-h-small\) \/ -2\)/.test(comp);
     if (!touch || !narrow) fail('a head link keeps the head height on touch', 'components.css', (touch ? '' : 'no .sp-touch rule ') + (narrow ? '' : 'no below-640 rule'));
+    /* Brief 34: the same head on desktop, and the small height is a token, not a raw 34px */
+    const desk = /\n\.sp-card > \.sp-row-flex:first-child > \.sp-btn--text \{ margin-block: calc\(var\(--btn-h-small\) \/ -2\); \}/.test(comp);
+    if (!desk) fail('a head link keeps the head height on desktop', 'components.css', 'no unscoped rule');
+    if (!/--btn-h-small: 34px;/.test(tok)) fail('the small button height is a token', 'tokens.css', 'no --btn-h-small');
+    const raw = comp.replace(/\/\*[\s\S]*?\*\//g, '').match(/(?:height|margin[a-z-]*|padding[a-z-]*|gap|inset):[^;]*\b34px/g) || [];
+    for (const r of raw) fail('the small button height is written with --btn-h-small', 'components.css', r);
   }
 
   /* ---- report ------------------------------------------------------------ */

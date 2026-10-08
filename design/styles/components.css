@@ -1684,7 +1684,7 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
    otherwise two commits and their label cannot share 375px. */
 .sp-touch .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 /* xsmall is a desktop size: on touch it is the small button, height and width */
-.sp-touch .sp-btn--xsmall { width: auto; height: 34px; padding: 0 var(--sp-16); font-weight: 600; }
+.sp-touch .sp-btn--xsmall { width: auto; height: var(--btn-h-small); padding: 0 var(--sp-16); font-weight: 600; }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
    without the card padding pushing the bar past the height every other bar holds */
 .sp-phone .sp-savebar { height: var(--phone-bar-h); padding-top: 0; padding-bottom: 0; }
@@ -1696,16 +1696,20 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-controls .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-topbar .sp-btn:not(.sp-btn--block) { width: auto; }
 /* A text link in a card's head ("All 5" on Drafts, "All 248" on Recent orders) keeps the
-   small button's 34px box on touch and takes the touch height as a hit area above and
+   small button's box (--btn-h-small) on touch and takes the touch height as a hit area above and
    below. Its box is drawn but takes no height in the row: a negative margin of half the
    box on each side brings its outer height to zero, so the row is as tall as the name
    and the name sits the same distance from the card's top edge on every card (Brief 32,
    33). The link stays on the name's baseline; the box reaches 8.5 into the card's
    padding above and the gap below, which both exceed it. */
 .sp-touch .sp-list__toolbar > .sp-btn--text,
-.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(34px / -2); }
+.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(var(--btn-h-small) / -2); }
 .sp-touch .sp-list__toolbar > .sp-btn--text::before,
-.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - 34px) / -2) 0; }
+.sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2) 0; }
+/* On desktop the head link is the small button at its own height, and its box takes no
+   height in the row either, so the name sits 17 below the card's top edge with or without
+   it (Brief 34). The box reaches 8.5 into the padding above and the gap below. */
+.sp-card > .sp-row-flex:first-child > .sp-btn--text { margin-block: calc(var(--btn-h-small) / -2); }
 /* two commits sharing a row each take half of it */
 .sp-dialog__actions > .sp-btn--block { flex: 1; min-width: 0; }
 .sp-touch .sp-switch { width: 44px; height: 26px; }
@@ -1722,9 +1726,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
   /* the head link rule above, for the shell's own query */
   .sp-list__toolbar > .sp-btn--text,
-  .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(34px / -2); }
+  .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(var(--btn-h-small) / -2); }
   .sp-list__toolbar > .sp-btn--text::before,
-  .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - 34px) / -2) 0; }
+  .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2) 0; }
 }
 
 /* a measurement arrives as a data attribute with its own rule below, so no
@@ -3206,7 +3210,7 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-popover__actions .sp-btn,
 .sp-list-item--sticky .sp-btn,
 .sp-savebar .sp-btn {
-  height: 34px;
+  height: var(--btn-h-small);
   padding: 0 var(--sp-16);
 }
 
@@ -5039,7 +5043,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   align-items: center;
   gap: var(--sp-8);
   width: 100%;
-  height: 34px;
+  height: var(--btn-h-small);
   padding: 0 var(--sp-12);
   border: 1px dashed var(--line-4);
   border-radius: var(--r-tile);
