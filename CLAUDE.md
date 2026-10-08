@@ -100,6 +100,9 @@ have to. Putting screens together from its patterns is the build's job:
   covers is the build's to decide, and is not a question for Claude Design.
 - **Ask in one batch.** Compare the whole change with `design/` before building, and put every real
   question in one brief, not one per round of building.
+- **A drawing of one thing several ways is not a list of cards.** A screen that shows a part in its
+  states, or a rule at a large size, shows how that part behaves; a page's cards come from the screen
+  that draws that page.
 - **A brief names every place the change reaches.** Before a note goes to Claude Design, find every
   use of the part it changes in `react/src`, check what the change would do to each, and name them
   in the note. When the answer comes back, check all of them in one pass.
