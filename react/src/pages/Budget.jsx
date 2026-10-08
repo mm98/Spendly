@@ -790,11 +790,8 @@ function MonthWell({ sheet, write, editing, covered, touch, panel, setPanel, tot
 		}
 		return (
 			<Sum key={line.id} edits={!hidden} data-row={`${line.id}-${month}`} tone={!typing && !hidden && m.real == null && m.expected != null ? 'expected' : 'default'}
-				value={typing ? amounts.field(line, month) : hidden ? <Redacted /> : value != null ? money(value) : null} {...control}>
-				<span className="sp-stacked">
-					<span>{line.name}</span>
-					{meta ? <span className="sp-meta">{meta}</span> : null}
-				</span>
+				value={typing ? amounts.field(line, month) : hidden ? <Redacted /> : value != null ? money(value) : null} meta={meta} {...control}>
+				{line.name}
 			</Sum>
 		)
 	}

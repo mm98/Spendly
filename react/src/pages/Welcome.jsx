@@ -15,7 +15,7 @@ import {
 	createCategory, failureMessage, finishSetup, getCategoryPage, getCurrentUser, getOrders, getSettings, saveSettings
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, detectLocale, localeSample, setCurrency, setLocale } from '../api/format.js'
-import { landing } from './SignIn.jsx'
+import { landing } from './AuthParts.jsx'
 
 // the currency a browser's region most likely keeps its books in
 const CURRENCY_OF = { 'da-DK': 'DKK', 'sv-SE': 'SEK', 'nb-NO': 'NOK', 'de-DE': 'EUR', 'en-GB': 'GBP', 'en-US': 'USD' }

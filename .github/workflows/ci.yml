@@ -17,81 +17,78 @@ on:
       - '.github/workflows/docker.yml'
 
 jobs:
-  build:
+  # One job, not one per check: every job is billed as at least a whole minute, and each check
+  # takes seconds. A check runs even when one before it failed, so one run names every failure.
+  checks:
     runs-on: ubuntu-latest
     # Sized to catch a hang and nothing else: GitHub's own default is six hours, long enough
     # for a stuck step to hold a runner most of a day, and a slow platform day is not a failure.
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: react
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: react/package-lock.json
-      - run: npm ci
-      - run: npm audit --audit-level=high
-      - run: npm run build
-      - run: npm run bank:check
-      - run: npm run design:check
-      - run: npm run icons:check
-
-  # Every SQL statement the API runs, against the plan SQLite picks for it, compared to the
-  # blessed baseline -- so a query added or edited here arrives with its plan reviewed, and an
-  # index arrives with its write cost counted. Its own job: it needs api/'s dependencies, not
-  # react/'s, and a red plan check should read as a red plan check rather than a failed build.
-  queries:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # the language model's runtime fetches GPU extras on install; the plans need none of it
-    env:
-      ONNXRUNTIME_NODE_INSTALL: skip
-    defaults:
-      run:
-        working-directory: api
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: api/package-lock.json
-      - run: npm ci
-      - run: npm run queries:check
-
-  # Every control that opens a new browsing context carries rel="noopener". Whole tree, not the
-  # diff: one that lands without it is wrong every day after, and a diff-scoped guard would let
-  # it through forever once merged.
-  external-links:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-      - run: node scripts/check-external-links.mjs
-
-  # CLAUDE.md's Comments rule, made mechanical and scoped to the diff -- a comment nobody
-  # touched never fails a run it has nothing to do with, the same shape as queries: above.
-  comments:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
         with:
+          # the comment check diffs against the main this push landed on
           fetch-depth: 0
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-      - run: node scripts/check-comments.mjs
+          cache: npm
+          cache-dependency-path: |
+            react/package-lock.json
+            api/package-lock.json
+
+      # Every control that opens a new browsing context carries rel="noopener". Whole tree, not
+      # the diff: one that lands without it is wrong every day after.
+      - name: External links
+        run: node scripts/check-external-links.mjs
+
+      # CLAUDE.md's Comments rule, scoped to the diff: a comment nobody touched never fails a run.
+      - name: Comments
+        if: ${{ !cancelled() }}
+        run: node scripts/check-comments.mjs
         env:
           # github.event.before is the main this push landed on, so the diff is what the merge
           # actually brought in.
           CHECK_BASE_SHA: ${{ github.event.before }}
+
+      - name: Install the app
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm ci
+      - name: Audit the app's packages
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm audit --audit-level=high
+      - name: Build
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm run build
+      - name: Bank statements
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm run bank:check
+      - name: Design rules
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm run design:check
+      - name: Icons
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm run icons:check
+
+      - name: Install the API
+        if: ${{ !cancelled() }}
+        working-directory: api
+        # the language model's runtime fetches GPU extras on install; the plans need none of it
+        env:
+          ONNXRUNTIME_NODE_INSTALL: skip
+        run: npm ci
+      # Every SQL statement the API runs, against the plan SQLite picks for it, compared to the
+      # blessed baseline, so a query added or edited arrives with its plan reviewed.
+      - name: Query plans
+        if: ${{ !cancelled() }}
+        working-directory: api
+        run: npm run queries:check
 
   # Lighthouse against the built bundle served by the API process -- the deployed shape, not
   # the dev server, which serves unminified modules one file per import and scores something

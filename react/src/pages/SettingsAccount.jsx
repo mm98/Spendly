@@ -8,7 +8,7 @@ import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../com
 import { Halves } from '../components/Well.jsx'
 import { changePassword, failureMessage } from '../api/client.js'
 import { plural } from '../api/format.js'
-import { MIN_PASSWORD, PasswordHint } from './SignIn.jsx'
+import { MIN_PASSWORD, PasswordHint } from './AuthParts.jsx'
 import { landing } from './SettingsParts.jsx'
 
 const DAY = 24 * 60 * 60

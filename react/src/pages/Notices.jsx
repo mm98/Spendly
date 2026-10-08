@@ -4,7 +4,7 @@ import { Card } from '../components/Card.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
-import { useAuthOptions } from './SignIn.jsx'
+import { useAuthOptions } from './AuthParts.jsx'
 
 /* The terms and the privacy notice that Create your account links to, for a copy whose operator
    has set no pages of their own. Each sentence states what this app does, nothing more. */

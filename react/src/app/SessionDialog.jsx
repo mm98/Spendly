@@ -6,7 +6,7 @@ import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
 import { failureMessage, login } from '../api/client.js'
-import { useCountdown, waitWords } from '../pages/SignIn.jsx'
+import { useCountdown, waitWords } from '../pages/AuthParts.jsx'
 
 /** A session that ended mid-use (20e, level 3): the reader signs in again over the page, which
     stays mounted with whatever was typed. With no address in hand, Sign in goes to the sign-in page. */
