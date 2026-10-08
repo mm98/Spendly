@@ -18,6 +18,7 @@ import { pageCount, pageImage } from '../lib/filePages.js'
 import { restoreOrder, trashOrder } from '../lib/orderTrash.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
+import { discardDraft, draftCount, draftListRow, draftsAsOrders, takeDraft } from '../lib/orderDrafts.js'
 
 export const router = Router()
 // defParamCharset: busboy (multer's parser) decodes every multipart header as latin1 by
@@ -120,6 +121,8 @@ function buildOrderFilter(userId, q, except = null) {
 	const params = { userId }
 
 	if (sortKey.startsWith('discount-')) where.push('ot.discount > 0')
+	// Home's Recent orders leaves drafts out (10a), the order row's and its own record alike
+	if (q.drafts === 'none') where.push("ot.status_type <> 'draft'")
 
 	// a facet takes several values, comma-separated; `except` leaves one facet out, for its own counts
 	const vendorIds = listOf(q.vendorId)
@@ -218,8 +221,57 @@ function buildOrderFilter(userId, q, except = null) {
 /** How many orders a list request matches: a saved view's live count (routes/views.js). */
 export function countMatching(userId, q) {
 	const { whereSql, params } = buildOrderFilter(userId, q)
-	return db.prepare(`SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}`).get(params).c
+	return db.prepare(`SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}`).get(params).c + draftsMatching(userId, q).length
 }
+
+/** The drafts a list request matches, by the rules buildOrderFilter writes for orders, in its sort. */
+function draftsMatching(userId, q, except = null) {
+	if (q.drafts === 'none' || q.importId) return []
+	const sortKey = SORT_SQL[q.sort] ? q.sort : 'date-desc'
+	const vendorIds = listOf(q.vendorId), categoryIds = listOf(q.categoryId), ids = listOf(q.ids)
+	const statuses = listOf(q.status).filter(s => s !== 'Any')
+	const receipt = listOf(q.receipt).filter(r => r === 'attached' || r === 'missing')
+	const from = toEpoch(q.from), to = toEpoch(q.to)
+	const bound = v => (v != null && v !== '' ? Number(v) : NaN)
+	const min = bound(q.minAmount), max = bound(q.maxAmount)
+	const needle = String(q.query ?? '').trim().toLowerCase()
+	return draftsAsOrders(userId).filter(d => {
+		const k = d.sort
+		if (sortKey.startsWith('discount-') && !(k.discount > 0)) return false
+		if (vendorIds.length && except !== 'vendor' && !vendorIds.includes(k.vendorId)) return false
+		if (categoryIds.length && except !== 'category'
+			&& !(categoryIds.includes('none') && !k.categoryIds.length) && !k.categoryIds.some(id => categoryIds.includes(id))) return false
+		if (statuses.length && except !== 'status' && !statuses.includes(d.status)) return false
+		if (q.kind && d.kind !== q.kind) return false
+		if (ids.length && !ids.includes(d.id)) return false
+		if (receipt.length === 1 && except !== 'receipt' && (receipt[0] === 'attached') !== (d.fileCount > 0)) return false
+		if (q.files === '1' && !d.fileCount) return false
+		if (q.discounted === '1' && !(k.saved > 0)) return false
+		if ((Number.isFinite(from) && k.date < from) || (Number.isFinite(to) && k.date > to)) return false
+		if ((Number.isFinite(min) && k.total < min) || (Number.isFinite(max) && k.total > max)) return false
+		return !needle || k.text.includes(needle)
+	}).sort((a, b) => compareRows(sortKey, sortOfDraft(a), sortOfDraft(b)))
+}
+
+/* Where a draft falls among the rows SORT_SQL orders: the same keys, then the id; on a date sort, ahead
+   of an order added at the same moment. Vendor names fold as COLLATE NOCASE does, ASCII only. */
+const nocase = s => String(s ?? '').replace(/[A-Z]/g, c => c.toLowerCase())
+const SORT_KEYS = {
+	'date-desc': x => [-x.date, -x.created], 'date-asc': x => [x.date, x.created],
+	'amount-desc': x => [-x.total], 'amount-asc': x => [x.total],
+	'discount-desc': x => [-x.discount], 'discount-asc': x => [x.discount],
+	'vendor-asc': x => [nocase(x.vendor)]
+}
+function compareRows(sortKey, a, b) {
+	const ka = SORT_KEYS[sortKey](a), kb = SORT_KEYS[sortKey](b)
+	for (let i = 0; i < ka.length; i++) if (ka[i] !== kb[i]) return ka[i] < kb[i] ? -1 : 1
+	if (sortKey.startsWith('date-') && a.draft !== b.draft) return a.draft ? -1 : 1
+	const byId = a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+	return sortKey.endsWith('-desc') ? -byId : byId
+}
+const sortOfDraft = d => ({ draft: true, id: d.id, ...d.sort })
+const sortOfRow = r => ({ draft: false, id: r.id, date: r.date, created: r.sort_created, total: r.total, discount: r.discount, vendor: r.sort_vendor })
+
 
 const listOf = v => [...new Set([].concat(v ?? []).flatMap(x => String(x).split(',')).map(x => x.trim()).filter(Boolean))]
 
@@ -234,13 +286,24 @@ function orderFacets(userId, q) {
 	const [receipt] = counts('receipt', 'COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached')
 	const [sum] = counts(null, `COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE ot.total END), 0) total,
 		COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved`)
+	// the drafts each facet would match too, counted as their orders are
+	const add = (counted, rows, keysOf) => {
+		for (const d of rows) for (const key of keysOf(d)) counted[key] = (counted[key] ?? 0) + 1
+		return counted
+	}
+	const drafts = draftsMatching(userId, q)
+	const draftsWith = draftsMatching(userId, q, 'receipt')
+	const attached = draftsWith.filter(d => d.fileCount > 0).length
 	return {
-		summary: { total: sum.total, saved: sum.saved },
+		summary: {
+			total: sum.total + drafts.reduce((s, d) => s + d.sort.total, 0),
+			saved: sum.saved + drafts.reduce((s, d) => s + Math.max(d.sort.saved, 0), 0)
+		},
 		facets: {
-			status: byKey(counts('status', 'ot.status, COUNT(*) n', 'ot.status'), 'status'),
-			vendor: byKey(counts('vendor', 'ot.vendor_id, COUNT(*) n', 'ot.vendor_id'), 'vendor_id'),
-			category: byKey(counts('category', 'oc.category_id, COUNT(*) n', 'oc.category_id', 'JOIN order_categories oc ON oc.order_id = ot.id'), 'category_id'),
-			receipt: { attached: receipt.attached, missing: receipt.n - receipt.attached }
+			status: add(byKey(counts('status', 'ot.status, COUNT(*) n', 'ot.status'), 'status'), draftsMatching(userId, q, 'status'), d => [d.status]),
+			vendor: add(byKey(counts('vendor', 'ot.vendor_id, COUNT(*) n', 'ot.vendor_id'), 'vendor_id'), draftsMatching(userId, q, 'vendor'), d => (d.sort.vendorId ? [d.sort.vendorId] : [])),
+			category: add(byKey(counts('category', 'oc.category_id, COUNT(*) n', 'oc.category_id', 'JOIN order_categories oc ON oc.order_id = ot.id'), 'category_id'), draftsMatching(userId, q, 'category'), d => d.sort.categoryIds),
+			receipt: { attached: receipt.attached + attached, missing: receipt.n - receipt.attached + draftsWith.length - attached }
 		}
 	}
 }
@@ -264,11 +327,14 @@ router.get('/', (req, res) => {
 	const pageWhereSql = vendorSort ? `v.user_id = @userId AND ${whereSql}` : whereSql
 
 	// An unfiltered request's "matched" is the account's own count, already queried below for
-	// `total` on every response -- only a narrowed set is a second question.
-	const total = countAllOrders.get(req.user.id).c
-	const matched = filtered ? db.prepare(`
+	// `total` on every response -- only a narrowed set is a second question. Drafts count as orders.
+	const drafts = draftsMatching(req.user.id, q)
+	const orderCount = countAllOrders.get(req.user.id).c
+	const total = orderCount + draftCount(req.user.id)
+	const matchedOrders = filtered ? db.prepare(`
 		SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}
-	`).get(params).c : total
+	`).get(params).c : orderCount
+	const matched = matchedOrders + drafts.length
 
 	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
 	// pageSize has to be made safe before it reaches SQL: SQLite treats any negative LIMIT as
@@ -282,22 +348,50 @@ router.get('/', (req, res) => {
 	const pages = Math.max(1, Math.ceil(matched / size))
 	const at = Math.min(Math.max(1, Number(q.page) || 1), pages)
 
-	const totalsRows = db.prepare(`
-		SELECT ${orderTotalsSelectList('ot')} FROM ${fromSql}
-		WHERE ${pageWhereSql}
-		ORDER BY ${orderSql}
-		LIMIT @limit OFFSET @offset
-	`).all({ ...params, limit: size, offset: (at - 1) * size })
-
 	// `with=itemTitles` is the copy picker's: each row's first line names. The order list asks
 	// `with=rows` for what only its rows and cards draw, and `with=facets` for its rail and sum.
 	const wants = listOf(q.with)
+	const shape = { itemTitles: wants.includes('itemTitles'), listRows: wants.includes('rows') }
+	const offset = (at - 1) * size
+	// the sort's own keys come along, for the drafts to fall in among the rows
+	const fetch = (limit, from) => db.prepare(`
+		SELECT ${orderTotalsSelectList('ot')}, ot.created_at AS sort_created${vendorSort ? ', v.name AS sort_vendor' : ''} FROM ${fromSql}
+		WHERE ${pageWhereSql}
+		ORDER BY ${orderSql}
+		LIMIT @limit OFFSET @offset
+	`).all({ ...params, limit, offset: from })
+	const page = drafts.length ? withDrafts({ drafts, size, offset, matchedOrders, fetch, sortKey }) : fetch(size, offset)
+	const decorated = new Map(decorateOrderListRows(page.filter(r => !r.draft), shape).map(o => [o.id, o]))
 	res.json({
-		orders: decorateOrderListRows(totalsRows, { itemTitles: wants.includes('itemTitles'), listRows: wants.includes('rows') }),
+		orders: page.map(r => (r.draft ? draftListRow(r, shape) : decorated.get(r.id))),
 		matched, total, pages,
 		...(wants.includes('facets') ? orderFacets(req.user.id, q) : {})
 	})
 })
+
+/* One page of orders and drafts. Orders are read from the first one the drafts can push onto the page;
+   every draft that sorts before the first order read lies before the page. */
+function withDrafts({ drafts, size, offset, matchedOrders, fetch, sortKey }) {
+	const before = (d, row) => compareRows(sortKey, sortOfDraft(d), sortOfRow(row)) < 0
+	const from = Math.max(0, offset - drafts.length)
+	const rows = from < matchedOrders ? fetch(size + drafts.length, from) : []
+	let start = from, rest = drafts
+	if (!matchedOrders) start = 0
+	else if (from > 0) {
+		const anchor = rows[0] ?? fetch(1, matchedOrders - 1)[0]
+		const ahead = drafts.filter(d => before(d, anchor))
+		rest = drafts.filter(d => !before(d, anchor))
+		start = rows.length ? from + ahead.length : matchedOrders + ahead.length
+	}
+	const merged = []
+	let i = 0
+	for (const row of rows) {
+		while (i < rest.length && before(rest[i], row)) merged.push(rest[i++])
+		merged.push(row)
+	}
+	merged.push(...rest.slice(i))
+	return merged.slice(offset - start, offset - start + size)
+}
 
 /* Every item line of the orders a list request matches, in the list's order, the order's fields
    repeated on each (16b): the column set an import reads back. A lineless order is one row. */
@@ -385,8 +479,11 @@ router.get('/limits', (req, res) => {
 
 router.get('/:id', (req, res) => {
 	const order = getDecoratedOrder(req.user.id, req.params.id)
-	if (!order) return res.status(404).json({ error: 'No order ' + req.params.id })
-	res.json(order)
+	if (order) return res.json(order)
+	// a draft opens as itself (3a): the order it will become, and what it was started from
+	const draft = draftsAsOrders(req.user.id).find(d => d.id === req.params.id)
+	if (!draft) return res.status(404).json({ error: 'No order ' + req.params.id })
+	res.json(draftListRow(draft, { itemTitles: false, listRows: true }))
 })
 
 /* ---- create / update / delete ---- */
@@ -471,7 +568,11 @@ router.post('/', (req, res) => {
 	const clientKey = clientKeyOf(req.body)
 	const sent = clientKey ? selectOrderByClientKey.get(req.user.id, clientKey) : null
 	if (sent) return res.status(200).json(getDecoratedOrder(req.user.id, sent.id))
-	const id = createOrderRecord(req.user.id, req.body, req.today, made => { if (clientKey) setClientKey.run(clientKey, made) })
+	const id = createOrderRecord(req.user.id, req.body, req.today, made => {
+		if (clientKey) setClientKey.run(clientKey, made)
+		// a draft created is the order now (3a), so it leaves Drafts in the same write
+		if (req.body?.draftId) takeDraft(req.user.id, String(req.body.draftId))
+	})
 	res.status(201).json(getDecoratedOrder(req.user.id, id))
 })
 
@@ -543,6 +644,8 @@ router.put('/:id', (req, res) => {
 
 // `undo` names the kept copy that POST /trash/:undo/restore puts back (6d)
 router.delete('/:id', (req, res) => {
+	// a draft is discarded, its file with it (6d): there is nothing to put back
+	if (discardDraft(req.user.id, req.params.id)) return res.json({ id: req.params.id, undo: null })
 	const undo = trashOrder(req.user.id, req.params.id)
 	if (!undo) throw notFound(req.params.id)
 	res.json({ id: req.params.id, undo })
@@ -636,8 +739,10 @@ router.post('/bulk', (req, res) => {
 		removeCategories: Array.isArray(body.removeCategories) ? body.removeCategories.map(String) : []
 	}
 	if (change.status && !isStatus(req.user.id, change.status)) return res.status(400).json({ error: 'That status does not exist.' })
+	// a draft is deleted by discarding it; it takes no other change, as Create is what makes it an order
+	const discarded = change.delete ? ids.filter(id => discardDraft(req.user.id, id)).length : 0
 	const { changed, kept } = applyBulk(req.user.id, ids, change, req.today)
-	res.json(change.status ? { changed, kept } : { changed })
+	res.json(change.status ? { changed, kept } : { changed: changed + discarded })
 })
 
 /* ---- attachments ----

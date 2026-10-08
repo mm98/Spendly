@@ -14,6 +14,7 @@ import { router as profileRouter } from './routes/profile.js'
 import { router as importsRouter } from './routes/imports.js'
 import { router as statsRouter } from './routes/stats.js'
 import { router as scanRouter } from './routes/scan.js'
+import { router as draftsRouter } from './routes/drafts.js'
 import { router as searchRouter } from './routes/search.js'
 import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
@@ -225,6 +226,7 @@ app.use('/api/views', viewsRouter)
 app.use('/api', accountRouter)
 app.use('/api/stats', statsRouter)
 app.use('/api/scan', scanRouter)
+app.use('/api/drafts', draftsRouter)
 app.use('/api/search', searchRouter)
 
 /* react/'s own dev server (Vite) serves the app locally, proxying /api to this process --
