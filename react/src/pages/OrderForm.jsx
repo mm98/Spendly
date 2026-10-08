@@ -1577,7 +1577,10 @@ function notices({ origin, scan, lines, leave, touch, jump }) {
 	const looks = [
 		...(scan.vendorMatched ? [] : ['the vendor is new and will be created']),
 		...(scan.total == null ? ['no printed total was found'] : []),
-		...(scan.checks?.some(c => c.id === 'vat' && c.warning) ? ['it was not clear if the prices include VAT'] : [])
+		...(scan.checks?.some(c => c.id === 'vat' && c.warning) ? ['it was not clear if the prices include VAT'] : []),
+		...(scan.checks ?? []).filter(c => c.id === 'currency').map(c => (c.warning
+			? `the amounts are in ${c.from} and were not changed to ${c.to}`
+			: `the amounts were changed from ${c.from} to ${c.to}`))
 	]
 	const count = looks.length + unclear + (scan.unclear?.length ?? 0)
 	if (!count) return null

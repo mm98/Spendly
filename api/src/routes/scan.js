@@ -10,6 +10,7 @@ import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdForReceipt } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
+import { inAccountCurrency } from '../lib/exchange.js'
 import { describe, listedNames } from '../lib/categorySuggest.js'
 import { keyOfType } from '../lib/statuses.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
@@ -97,6 +98,7 @@ const selectUploadMeta = db.prepare(`SELECT id, name, size, kind, (thumbnail IS 
 	CASE WHEN original IS NULL THEN size ELSE length(data) END AS display_size FROM scan_uploads WHERE id = ? AND user_id = ?`)
 const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM settings WHERE user_id = ?')
+const selectAccountCurrency = db.prepare('SELECT currency FROM settings WHERE user_id = ?')
 
 // what each kind of document sets when the account lets a scan override its defaults (Settings, Defaults)
 const FROM_DOCUMENT = {
@@ -268,6 +270,10 @@ function readOnce(userId, upload, today, onProgress, res) {
 		const listeners = new Set()
 		const waiting = new Set()
 		const promise = parseReceipt(upload, today, progress => { for (const fn of listeners) fn(progress) }, listedNames(userId))
+			// restated before it is kept, so a reload never asks for the rate again
+			.then(async result => result.read
+				? { ...result, read: await inAccountCurrency(result.read, selectAccountCurrency.get(userId)?.currency ?? 'DKK') }
+				: result)
 			.then(result => {
 				// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
 				if (!result.failure && result.read?.lines.length) {
@@ -439,6 +445,13 @@ function draftOf(req, upload, read, failure) {
 						? 'Prices already included VAT'
 						: `Converted from ex-VAT prices${read.vatRate != null ? ` at ${read.vatRate}%` : ''}`
 				},
+			...(read.converted
+				? [read.converted.rate
+					? { id: 'currency', warning: false, from: read.converted.from, to: read.converted.to, title: `Changed from ${read.converted.from} to ${read.converted.to}`,
+						meta: `1 ${read.converted.from} = ${read.converted.rate} ${read.converted.to}, the rate on the date of the document. Check the amounts.` }
+					: { id: 'currency', warning: true, from: read.converted.from, to: read.converted.to, title: `The document is in ${read.converted.from}`,
+						meta: `The amounts below are not changed. Change them to ${read.converted.to} yourself.` }]
+				: []),
 			...(read.linesFromTotals
 				? [{ id: 'lineTotals', warning: false, title: 'Price per item worked out from the line amount',
 					meta: `${read.linesFromTotals === 1 ? 'One line' : `${read.linesFromTotals} lines`} showed the amount for all items. It is divided by the quantity.` }]
