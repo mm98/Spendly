@@ -493,6 +493,7 @@ const RULES = [
       const holder = t.parentElement;
       t.querySelectorAll(':scope > .sp-btn').forEach(btn => headBtn(btn, 'toolbar'));
       t.querySelectorAll(':scope > .sp-meta, :scope > .sp-note, :scope > .sp-subtitle').forEach(k => { const s = CS(k); if (s.whiteSpace !== 'nowrap' || s.textOverflow !== 'ellipsis') add(`text in a toolbar can wrap: "${k.textContent.trim().slice(0, 24)}"`, k); });
+      { const tr = R(t), mid = tr.top + (tr.height - 1) / 2; [...t.children].forEach(k => { const r = R(k); if (!r.height) return; const m = (r.top + r.bottom) / 2; if (Math.abs(m - mid) > 1) add(`.${(k.className || k.tagName).split(' ')[0]} in a list toolbar is ${(m - mid).toFixed(1)}px off centre`, k); }); }
       if (Math.abs(R(t).height - 54) > 0.6) add(`a list toolbar is ${R(t).height.toFixed(1)}px, not 54: "${(t.querySelector('.sp-section-label') || t).textContent.trim().slice(0, 30)}"`, t);
       if (!name || !holder || Math.abs(R0(holder).top - R0(t).top + 1) > 0.6) return;
       const got = R(name).top - R(holder).top;
@@ -529,6 +530,15 @@ const RULES = [
           add(`.${(k.className || k.tagName).split(' ')[0]} reaches out of the head of "${name.textContent.trim().slice(0, 30)}"`, k);
       });
       head.querySelectorAll(':scope > .sp-btn').forEach(btn => headBtn(btn, 'card head'));
+      /* every part is centred on the head's line (the box above its 1px bottom border):
+         a part's own align-self put the Stacked / Total switch on the head's top edge */
+      const mid = hr.top + (hr.height - 1) / 2;
+      [...head.children].forEach(k => { const r = R(k); if (!r.height) return; const m = (r.top + r.bottom) / 2; if (Math.abs(m - mid) > 1) add(`.${(k.className || k.tagName).split(' ')[0]} in the head of "${name.textContent.trim().slice(0, 24)}" is ${(m - mid).toFixed(1)}px off centre`, k); });
+      /* a legend is under its chart: nothing that is a chart starts below the legend's top */
+      card.querySelectorAll(':scope > .sp-legend').forEach(lg => { const lt = R(lg).top; card.querySelectorAll(':scope > .sp-plot, :scope > .sp-bars, :scope > .sp-donut').forEach(ch => { if (R(ch).top > lt) add('a legend is above its chart in "' + name.textContent.trim().slice(0, 24) + '"; it goes under the chart', lg); }); });
+      card.querySelectorAll('.sp-crumb .sp-mark').forEach(mk => add('a crumb is text only: "' + mk.closest('.sp-crumb').textContent.trim().slice(0, 24) + '" carries a mark', mk));
+      /* a Showing bar in a card wide enough holds its path on the head's line */
+      if (card.matches('.sp-card--path') && card.offsetWidth >= 640) { const nav = card.querySelector(':scope > nav'); if (nav) { const r = R(nav); if (Math.abs((r.top + r.bottom) / 2 - mid) > 1) add(`the path of "${name.textContent.trim()}" is not on the head's line in a ${card.offsetWidth}px card`, nav); if (nav.scrollWidth > nav.clientWidth + 1 && !nav.querySelector('.sp-crumb__label')) add('a path is cut with no crumb label to take the cut', nav); } }
       /* one line: the name never breaks or shrinks, and text beside it truncates rather than wraps */
       const line = parseFloat(CS(name).lineHeight) || R(name).height;
       if (name.scrollWidth > name.clientWidth + 1 || R(name).height > line * 1.5) add(`a card name breaks or is cut: "${name.textContent.trim().slice(0, 30)}"`, name);

@@ -100,6 +100,8 @@
     for (const [id, n] of Object.entries(ids.reduce((a, i) => (a[i] = (a[i] || 0) + 1, a), {})))
       if (n > 1) fail('unique ids', p, `id "${id}" declared ${n}×`);
     for (const m of s.matchAll(/\s(for|aria-describedby|aria-labelledby|aria-controls)="([^"]+)"/g))
+      /* a {{ hole }} is resolved at render, where checks.html reads the real reference */
+      if (!m[2].includes('{{'))
       for (const ref of m[2].split(/\s+/))
         if (!ids.includes(ref)) fail('references resolve', p, `${m[1]}="${ref}" points at no id`);
   }
@@ -924,6 +926,7 @@
     for (const f of pages) for (const m of src[f].matchAll(/<span class="sp-section-label">Showing<\/span>/g)) {
       const before = src[f].slice(Math.max(0, m.index - 80), m.index);
       if (!/<div class="sp-card__head">\s*$/.test(before)) fail('the Showing bar is a card with a head', f, 'the name is not the first child of a head row');
+      if (!/<div class="sp-card sp-card--path(?: [^"]*)?">\s*<div class="sp-card__head">\s*$/.test(src[f].slice(Math.max(0, m.index - 120), m.index))) fail('the Showing bar holds its path in the head line when it fits', f, 'no sp-card--path');
     }
     if (!/\.sp-touch \.sp-card > \.sp-card__head:first-child > \.sp-btn--small,\n\.sp-touch \.sp-list__toolbar > \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no touch rule');
     if (!/\.sp-touch \.sp-list__toolbar > \.sp-btn--small::before \{ content: ""; position: absolute; inset: calc\(\(var\(--control-h-touch\) - var\(--btn-h-small\)\) \/ -2 - 1px\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no invisible touch area');
@@ -946,6 +949,25 @@
         if (/sp-gauge|sp-mark--medium/.test(r[0]) && !/>Other \d/.test(r[0])) fail('a row that opens something is drawn as one', f, name + ' has a plain row');
     }
   }
+
+  /* Every part of a head is centred on its line: .sp-segmented aligns itself to the start,
+     and in a head that put the switch on the head's top edge (Spend by month, 4a). */
+  if (!/\.sp-card > \.sp-card__head:first-child > \*,\n\.sp-list__toolbar > \* \{ align-self: center; \}/.test(comp)) fail('every part of a head is centred', 'components.css', 'no align-self rule on head parts');
+  /* A chart's legend is under the chart it keys. Spend by month drew it between the head
+     and the chart, Spend vs saving under it: two places for one part. Checked on markup:
+     the element before a legend, in its card, is the chart. */
+  for (const f of pages) for (const m of src[f].matchAll(/<div class="sp-legend[\s"]/g)) {
+    const before = src[f].slice(Math.max(0, m.index - 4000), m.index);
+    const card = before.lastIndexOf('<div class="sp-card');
+    const scope = before.slice(card < 0 ? 0 : card);
+    const lastChart = Math.max(scope.lastIndexOf('class="sp-plot"'), scope.lastIndexOf('class="sp-bars'), scope.lastIndexOf('class="sp-donut'));
+    if (lastChart < 0) fail('a legend is under its chart', f, 'a legend with no chart before it in its card: ' + src[f].slice(m.index, m.index + 120).replace(/\s+/g, ' '));
+  }
+  /* A crumb is text only, and its text is its label. A path mixes periods, statuses and
+     ranges with vendors and categories, and only the last two have a mark, so a mark on
+     some crumbs is the inconsistency itself: Indbo Møbler had one in 4b and 4c, Decor
+     beside it did not. */
+  for (const f of pages) for (const m of src[f].matchAll(/<span class="sp-crumb">(?!<span class="sp-crumb__label")/g)) fail(/^<span class="sp-crumb"><span class="sp-mark/.test(src[f].slice(m.index, m.index + 50)) ? 'a crumb is text only' : 'a crumb carries its label', f, src[f].slice(m.index, m.index + 60));
 
   /* CardHeader. The head was a structural rule - a row helper whose first child is the
      name, or the name standing alone - so it had no name of its own, and code built from
