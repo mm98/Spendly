@@ -54,7 +54,9 @@ const SKELETON = {
 	end: 'sp-skeleton--end',
 	title: 'sp-skeleton--title',
 	pill: 'sp-skeleton--pill',
+	// a chart's loading bar, inside Bars only; a part held at its own box takes `fill`
 	bar: 'sp-skeleton--bar',
+	fill: 'sp-skeleton--fill',
 	mark: 'sp-skeleton--mark',
 	'mark-large': 'sp-skeleton--mark-large',
 	check: 'sp-skeleton--check',

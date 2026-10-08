@@ -228,11 +228,15 @@ const tagOf = el => el.openingElement.name.name
 	}
 }
 
-/* ---- a chart's key is under the chart, and a crumb is text ---- */
+/* ---- a chart's key is under the chart, a crumb is text, a chart's loading bar is in a chart ---- */
 
+const charts = join(src, 'components/Data.jsx')
 for (const [p, ast] of parsed) {
 	visit(ast, n => {
 		if (n.type !== 'JSXElement') return
+		const shape = n.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name.name === 'shape')
+		if (p !== charts && tagOf(n) === 'Skeleton' && shape?.value?.value === 'bar')
+			fail('a loading shape fits its job', rel(p), 'a chart\'s loading bar outside a chart: a part held at its own box takes shape="fill"')
 		const holds = (c, tags) => placed(c).some(el => tags.includes(tagOf(el)))
 		const key = n.children.findIndex(c => holds(c, ['Legend']))
 		if (key >= 0 && !n.children.slice(0, key).some(c => holds(c, ['Plot', 'Bars', 'Donut'])))

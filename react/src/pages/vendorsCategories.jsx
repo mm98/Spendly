@@ -89,7 +89,7 @@ export function Held({ shape, children }) {
 	return (
 		<span className="lb-hold">
 			<span className="lb-ghost" aria-hidden="true" inert>{shape}</span>
-			<span className="lb-state">{children ?? <Skeleton shape="bar" />}</span>
+			<span className="lb-state">{children ?? <Skeleton shape="fill" />}</span>
 		</span>
 	)
 }
