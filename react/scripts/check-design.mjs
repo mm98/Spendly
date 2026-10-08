@@ -192,6 +192,18 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+// what a child expression can put in its place: the element itself, or either branch of a condition
+const placed = c => {
+	if (!c) return []
+	if (c.type === 'JSXElement') return [c]
+	if (c.type === 'JSXExpressionContainer') return placed(c.expression)
+	if (c.type === 'ConditionalExpression') return [...placed(c.consequent), ...placed(c.alternate)]
+	if (c.type === 'LogicalExpression') return placed(c.right)
+	if (c.type === 'ParenthesizedExpression') return placed(c.expression)
+	return []
+}
+const tagOf = el => el.openingElement.name.name
+
 /* ---- a card's head is CardHeader, and nothing else draws one ---- */
 
 {
@@ -201,16 +213,6 @@ for (const [p, ast] of parsed) {
 		return a?.value?.type === 'Literal' ? a.value.value : ''
 	}
 	const isName = el => el?.type === 'JSXElement' && /\bsp-section-label\b/.test(classOf(el))
-	// what a child expression can put in its place: the element itself, or either branch of a condition
-	const placed = c => {
-		if (!c) return []
-		if (c.type === 'JSXElement') return [c]
-		if (c.type === 'JSXExpressionContainer') return placed(c.expression)
-		if (c.type === 'ConditionalExpression') return [...placed(c.consequent), ...placed(c.alternate)]
-		if (c.type === 'LogicalExpression') return placed(c.right)
-		if (c.type === 'ParenthesizedExpression') return placed(c.expression)
-		return []
-	}
 	const firstChild = el => el.children.find(c => c.type === 'JSXElement'
 		|| (c.type === 'JSXExpressionContainer' && c.expression.type !== 'JSXEmptyExpression'))
 	for (const [p, ast] of parsed) {
@@ -224,6 +226,22 @@ for (const [p, ast] of parsed) {
 				fail('a card head is CardHeader', rel(p), 'a card that opens with a name written by hand: use <CardHeader>')
 		})
 	}
+}
+
+/* ---- a chart's key is under the chart, and a crumb is text ---- */
+
+for (const [p, ast] of parsed) {
+	visit(ast, n => {
+		if (n.type !== 'JSXElement') return
+		const holds = (c, tags) => placed(c).some(el => tags.includes(tagOf(el)))
+		const key = n.children.findIndex(c => holds(c, ['Legend']))
+		if (key >= 0 && !n.children.slice(0, key).some(c => holds(c, ['Plot', 'Bars', 'Donut'])))
+			fail('a legend is under its chart', rel(p), 'a <Legend> with no chart before it')
+		// one child, so a mark held in a variable cannot ride in beside the words
+		const words = n.children.filter(c => !(c.type === 'JSXText' && !c.value.trim()))
+		if (tagOf(n) === 'Crumb' && (words.length > 1 || words.some(c => placed(c).length || c.type === 'JSXFragment')))
+			fail('a crumb is text only', rel(p), 'a <Crumb> holding more than its words')
+	})
 }
 
 /* ---- what the product says ---- */

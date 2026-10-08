@@ -21,7 +21,6 @@ import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
-import { VendorMark } from '../app/categoryMark.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
 import { getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -517,16 +516,14 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 		levels[Math.min(focusAt.at, levels.length - 1)]?.querySelector('button')?.focus()
 	}, [focusAt, path, root])
 	return (
-		<Card ref={bar}>
+		<Card variant="path" ref={bar}>
 			<CardHeader name="Showing" actions={[{ label: 'Reset', onClick: onReset }, { label: 'Open in orders', to: link }]} />
 			<Crumbs root={root} aria-label="Showing">
 				{crumbs.map((c, i) => {
 					const label = crumbLabel(c, labels)
-					const vendor = c.kind === 'vendor' ? labels.vendors?.find(v => v.id === c.value) : null
-					const mark = c.kind === 'vendor' ? <VendorMark name={label} colour={vendor?.colour} size="small" /> : null
 					return i === crumbs.length - 1
-						? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={dropping(i)}>{mark}{label}</Crumb>
-						: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)} onRemove={dropping(i)}>{mark}{label}</Crumb>
+						? <Crumb key={`${c.kind}:${c.value}`} name={label} onRemove={dropping(i)}>{label}</Crumb>
+						: <Crumb key={`${c.kind}:${c.value}`} onOpen={() => onTruncate(i)} onRemove={dropping(i)}>{label}</Crumb>
 				})}
 			</Crumbs>
 		</Card>
@@ -786,6 +783,23 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 		<Card aria-busy={chart ? undefined : 'true'}>
 			<CardHeader name={`Spend by ${unit}`} aside={narrowed || undefined}
 				control={splits && !touch ? <Segmented name="statistics-bar-shape" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" /> : undefined} />
+			{touch
+				? <Bars ref={bars} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
+				: (
+					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5} limit={limitLine}>
+						<Bars ref={bars} variant="plot" columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
+					</Plot>
+				)}
+			{below.length
+				? (
+					<div className="os-below" aria-hidden="true">
+						{columns.map(column => (
+							<span key={column.key} className={column.spend < 0 ? 'os-below__bar' : undefined} />
+						))}
+					</div>
+				)
+				: null}
+			{/* the key is under the chart, read after it (c14) */}
 			{stackedNow || (running && !narrowed) || limitLine
 				? (
 					<Legend>
@@ -798,25 +812,11 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 					</Legend>
 				)
 				: null}
-			{touch
-				? <Bars ref={bars} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
-				: (
-					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5} limit={limitLine}>
-						<Bars ref={bars} variant="plot" columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
-					</Plot>
-				)}
 			{below.length
 				? (
-					<>
-						<div className="os-below" aria-hidden="true">
-							{columns.map(column => (
-								<span key={column.key} className={column.spend < 0 ? 'os-below__bar' : undefined} />
-							))}
-						</div>
-						<span className="sp-meta">
-							{below.map(column => column.name).join(', ')} returned more than {below.length === 1 ? 'it' : 'they'} bought.
-						</span>
-					</>
+					<span className="sp-meta">
+						{below.map(column => column.name).join(', ')} returned more than {below.length === 1 ? 'it' : 'they'} bought.
+					</span>
 				)
 				: null}
 		</Card>
