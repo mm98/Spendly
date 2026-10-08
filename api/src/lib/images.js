@@ -61,8 +61,8 @@ export async function renderPdfPage(buffer, index = 0) {
 	return message && { png: message.png ? Buffer.from(message.png) : null, pages: message.pages ?? null }
 }
 
-/** The words and pictures of a PDF's first `count` pages, as mupdf's structured text (`{ json,
-    width, height }` per page): `{ text, pages }`, with `text` null when none can be read; null on a timeout. */
+/** The words and pictures of a PDF's first `count` pages, as mupdf's structured text (`{ json, width,
+    height, shown, hidden }` per page): `{ text, pages }`, `text` null when none can be read; null on a timeout. */
 export async function pdfText(buffer, count) {
 	const message = await inPdfWorker({ buffer, textPages: count })
 	return message && { text: message.text ?? null, pages: message.pages ?? null }

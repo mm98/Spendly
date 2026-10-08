@@ -1,10 +1,10 @@
-/** A PDF page (mupdf's structured text, asJSON) as `{ text, scan }`: its words one printed row per line,
-    and whether a picture covers half the page or more, as on a scan, whose words are a stamp or guesses. */
-export function readPage({ json, width, height }) {
+/** A PDF page (mupdf's structured text, asJSON) as `{ text, scan }`: its words one printed row per line, and
+    whether it is a scan: pictures over half of it, or more words hidden than shown (a scanner app's guesses). */
+export function readPage({ json, width, height, shown = 0, hidden = 0 }) {
 	let blocks
 	try { blocks = JSON.parse(json).blocks ?? [] } catch { return { text: '', scan: false } }
-	const covered = blocks.filter(b => b.type === 'image').reduce((most, b) => Math.max(most, b.bbox.w * b.bbox.h), 0)
-	return { text: inRows(blocks.filter(b => b.type === 'text')), scan: covered * 2 >= width * height }
+	const covered = blocks.filter(b => b.type === 'image').reduce((sum, b) => sum + b.bbox.w * b.bbox.h, 0)
+	return { text: inRows(blocks.filter(b => b.type === 'text')), scan: covered * 2 >= width * height || hidden > shown }
 }
 
 // An invoice often stores its columns one after another: its lines go back into rows by height, columns by spaces.
@@ -33,6 +33,25 @@ function inRows(blocks) {
 	}, '')).concat(lines.filter(sideways).map(l => l.text)).join('\n')
 }
 
-// a receipt always prints an amount; glyphs a PDF never mapped to letters come out as U+FFFD or private-use characters
-export const readable = text => /\d/.test(text)
-	&& (text.match(/[�-]/g)?.length ?? 0) * 10 < text.replace(/\s/g, '').length
+const UNREADABLE = /[\0-\x08\x0E-\x1F\x7F-\x9F\uFFFD\uE000-\uF8FF]/g
+const PUNCTUATION = /[!-/:-@[-`{-~]/g
+const PUNCTUATION_RUN = new RegExp(`${PUNCTUATION.source}{4,}`, 'g')
+
+/** Whether a PDF's words can be read in place of its pictures, by the checks MinerU's DocVortex makes: no page is a
+    scan, the pages average 50 characters, under 3% are unreadable, and none came out as runs of punctuation. */
+export function wordsHold(pages) {
+	if (!pages.length || pages.some(page => page.scan)) return false
+	const text = pages.map(page => page.text).join('\n'), chars = text.replace(/\s/g, '')
+	// a receipt always prints an amount
+	if (!/\d/.test(text) || chars.length < 50 * pages.length) return false
+	if ((chars.match(UNREADABLE)?.length ?? 0) * 100 >= chars.length * 3) return false
+	return !pages.some(page => punctuated(page.text))
+}
+
+// a font with no letters behind its glyphs can come out as punctuation, in runs of mixed marks
+function punctuated(text) {
+	const chars = text.replace(/\s/g, '')
+	const marks = chars.match(PUNCTUATION)?.length ?? 0
+	const runs = (text.match(PUNCTUATION_RUN) ?? []).filter(run => new Set(run).size > 1).join('').length
+	return chars.length >= 100 && marks * 4 >= chars.length && runs * 10 >= chars.length
+}
