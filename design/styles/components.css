@@ -123,6 +123,18 @@
 .sp-card--flush { gap: 0; padding: 0; overflow: hidden; }
 .sp-card[data-color="warning"] { background: var(--amber-tint-2); border-color: var(--amber); }
 .sp-card[data-color="danger"] { background: var(--red-tint-2); border-color: var(--red-ink); }
+/* A card's head, the row that opens with its name, is the list toolbar's height
+   (--card-header-h), with the name centred in it, so a card and a list beside it carry
+   their names at the same height whatever action sits beside them. It takes the card's
+   top padding and the gap below into itself, so the content starts where a list's rows
+   start (Brief 34). */
+.sp-card > .sp-row-flex:first-child:has(> .sp-section-label:first-child) {
+  height: var(--card-header-h);
+  box-sizing: border-box;
+  align-items: center;
+  margin-top: calc(var(--card-pad) * -1);
+  margin-bottom: calc(var(--sp-12) * -1);
+}
 /* the bar above a list, and the header of a card that has one: the same object, so
    the same name. Defined with the list - see .sp-list__toolbar there. */
 /* the whole header is the target: a link out, or the card's own collapse */
@@ -1706,10 +1718,6 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text { min-height: 0; position: relative; margin-block: calc(var(--btn-h-small) / -2); }
 .sp-touch .sp-list__toolbar > .sp-btn--text::before,
 .sp-touch .sp-card > .sp-row-flex:first-child > .sp-btn--text::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2) 0; }
-/* On desktop the head link is the small button at its own height, and its box takes no
-   height in the row either, so the name sits 17 below the card's top edge with or without
-   it (Brief 34). The box reaches 8.5 into the padding above and the gap below. */
-.sp-card > .sp-row-flex:first-child > .sp-btn--text { margin-block: calc(var(--btn-h-small) / -2); }
 /* two commits sharing a row each take half of it */
 .sp-dialog__actions > .sp-btn--block { flex: 1; min-width: 0; }
 .sp-touch .sp-switch { width: 44px; height: 26px; }
