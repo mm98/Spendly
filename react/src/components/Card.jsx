@@ -119,7 +119,7 @@ export function Cards({ fluid = false, children, ...rest }) {
 }
 
 /** A footer row of figures inside the card's body, under its rule, where more follows it: the
-    Monthly limit card's "All categories" total (Order statistics). Actions go in Card's `footer`. */
+    Top vendors card's total (Order statistics). Actions go in Card's `footer`. */
 export function CardFooter({ children, ...rest }) {
 	reject(rest, 'CardFooter')
 	return <div className="sp-card__footer" {...rest}>{children}</div>
