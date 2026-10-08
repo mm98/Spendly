@@ -784,10 +784,10 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 			<CardHeader name={`Spend by ${unit}`} aside={narrowed || undefined}
 				control={splits && !touch ? <Segmented name="statistics-bar-shape" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" /> : undefined} />
 			{touch
-				? <Bars ref={bars} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
+				? <Bars ref={bars} days={unit === 'day'} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 				: (
 					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5} limit={limitLine}>
-						<Bars ref={bars} variant="plot" columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
+						<Bars ref={bars} variant="plot" days={unit === 'day'} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 					</Plot>
 				)}
 			{below.length
@@ -1087,6 +1087,7 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 			{chart
 				? (
 					<Bars
+						days={chart.unit === 'day'}
 						columns={columns.map(column => ({
 							key: column.key,
 							from: column.from,
