@@ -474,7 +474,7 @@ const RULES = [
 },
 {
   id: 'a card name sits in the head',
-  why: 'Briefs 32 to 35: card names sat 17, 19, 19.5 and 1.5px from the top depending on what stood beside them, and a wrapping legend pushed the Stacked / Total switch over the chart. A name is in a head - a row opening with it, or the name alone as the card\u2019s first child - the head is the toolbar\u2019s 54px box, the name is centred in it like a list toolbar\u2019s, and nothing in the head reaches outside it.',
+  why: 'Briefs 32 to 35: card names sat 17, 19, 19.5 and 1.5px from the top depending on what stood beside them, and a wrapping legend pushed the Stacked / Total switch over the chart. Every card head and list toolbar is 54px, and a button in either is the small outline button and draws a border all round. A name is in a head - a row opening with it, or the name alone as the card\u2019s first child - the head is the toolbar\u2019s 54px box, the name is centred in it like a list toolbar\u2019s, and nothing in the head reaches outside it.',
   run(doc, add) {
     /* a page may draw a screen scaled down; measure in the element's own pixels */
     const R0 = e => e.getBoundingClientRect();
@@ -482,11 +482,16 @@ const RULES = [
     const R = e => { const r = R0(e), k = scaleOf(e); return { top: r.top / k, bottom: r.bottom / k, right: r.right / k, height: r.height / k, width: r.width }; };
     const want = (box, name) => 1 + (R(box).height - 1 - R(name).height) / 2;   // border, then centred in the box above its bottom border
     const STAT = '.sp-stat, .sp-stats, .sp-list-head';
+    /* a head button is judged by what it draws, not by its classes: a visible border all round */
+    const bordered = btn => { const s = CS(btn); return ['Top','Right','Bottom','Left'].every(e => parseFloat(s['border' + e + 'Width']) > 0 && s['border' + e + 'Style'] !== 'none' && !/rgba\(.*, 0\)$|transparent/.test(s['border' + e + 'Color'])); };
+    const headBtn = (btn, where) => { if (!R0(btn).width) return; if (!btn.matches('.sp-btn--outline.sp-btn--small')) add(`a ${where} button is not the small outline button: "${btn.textContent.trim().slice(0, 24)}"`, btn); else if (!bordered(btn)) add(`a ${where} button draws no border: "${btn.textContent.trim().slice(0, 24)}"`, btn); };
     doc.querySelectorAll('.sp-list__toolbar').forEach(t => {
       if (!inProduct(t) || !R(t).width) return;
       const name = t.querySelector(':scope > .sp-section-label:first-child');
       const holder = t.parentElement;
-      t.querySelectorAll(':scope > .sp-btn').forEach(btn => { if (!btn.matches('.sp-btn--outline.sp-btn--small')) add(`a toolbar button is not the small outline button: "${btn.textContent.trim().slice(0, 24)}"`, btn); });
+      t.querySelectorAll(':scope > .sp-btn').forEach(btn => headBtn(btn, 'toolbar'));
+      t.querySelectorAll(':scope > .sp-meta, :scope > .sp-note, :scope > .sp-subtitle').forEach(k => { const s = CS(k); if (s.whiteSpace !== 'nowrap' || s.textOverflow !== 'ellipsis') add(`text in a toolbar can wrap: "${k.textContent.trim().slice(0, 24)}"`, k); });
+      if (Math.abs(R(t).height - 54) > 0.6) add(`a list toolbar is ${R(t).height.toFixed(1)}px, not 54: "${(t.querySelector('.sp-section-label') || t).textContent.trim().slice(0, 30)}"`, t);
       if (!name || !holder || Math.abs(R0(holder).top - R0(t).top + 1) > 0.6) return;
       const got = R(name).top - R(holder).top;
       if (Math.abs(got - want(t, name)) > 0.6) add(`a list toolbar name sits ${got.toFixed(1)} from the top`, name);
@@ -516,7 +521,15 @@ const RULES = [
         if (r.top < hr.top - 0.6 || r.bottom > hr.bottom + 0.6 || r.right > hr.right + 0.6)
           add(`.${(k.className || k.tagName).split(' ')[0]} reaches out of the head of "${name.textContent.trim().slice(0, 30)}"`, k);
       });
-      head.querySelectorAll(':scope > .sp-btn').forEach(btn => { if (!btn.matches('.sp-btn--outline.sp-btn--small')) add(`a head button is not the small outline button: "${btn.textContent.trim().slice(0, 24)}"`, btn); });
+      head.querySelectorAll(':scope > .sp-btn').forEach(btn => headBtn(btn, 'card head'));
+      /* one line: the name never breaks or shrinks, and text beside it truncates rather than wraps */
+      const line = parseFloat(CS(name).lineHeight) || R(name).height;
+      if (name.scrollWidth > name.clientWidth + 1 || R(name).height > line * 1.5) add(`a card name breaks or is cut: "${name.textContent.trim().slice(0, 30)}"`, name);
+      if (head !== name) [...head.children].forEach(k => {
+        if (k === name || !k.matches('.sp-meta, .sp-note, .sp-subtitle')) return;
+        const s = CS(k);
+        if (s.whiteSpace !== 'nowrap' || s.textOverflow !== 'ellipsis') add(`text beside "${name.textContent.trim().slice(0, 24)}" can wrap: "${k.textContent.trim().slice(0, 24)}"`, k);
+      });
       if (head.querySelector('.sp-legend, .sp-filters')) add(`a legend or filters in the head of "${name.textContent.trim().slice(0, 30)}"; it goes below the head`, head);
     });
   }
