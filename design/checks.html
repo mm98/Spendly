@@ -65,6 +65,54 @@ const PAGES = ['Actions inventory','Auth and first run','Bookmarks','Budget','Co
    caught a real defect; `why` names it, so nobody has to guess whether it matters. */
 const RULES = [
 {
+  id: 'chart labels are evenly spaced',
+  why: 'A month of days was labelled 1, 8, 15, 22, 31: three gaps of 7 days and a last of 9.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-bars').forEach(ch => {
+      const ticks = [...ch.querySelectorAll(':scope > .sp-bars__col > .sp-bars__tick')]; const at = ticks.map((t, i) => t.textContent.trim() ? i : -1).filter(i => i >= 0);
+      if (at.length < 3 || at.length === ticks.length) return;
+      const gaps = at.slice(1).map((x, i) => x - at[i]); const step = gaps[0];
+      if (gaps.slice(0, -1).some(g => g !== step)) add('labels at bars ' + at.map(i => i + 1).join(', ') + ' are not evenly spaced', ch);
+      const last = gaps[gaps.length - 1]; if (last > step || last < step / 2) add('the last label gap is ' + last + ' bars for a step of ' + step, ch);
+    });
+  }
+},
+{
+  id: 'an axis value sits on its grid line',
+  why: 'The value labels on Spend by month were spread over a different height than the grid lines, so 80k sat 7.3px below its line and 0 sat 8.3px above the baseline.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-plot').forEach(p => {
+      const ax = [...p.querySelectorAll('.sp-plot__axis > span')], gr = [...p.querySelectorAll('.sp-plot__grid > span')];
+      if (!ax.length || ax.length !== gr.length) { if (ax.length) add(`${ax.length} axis values for ${gr.length} grid lines`, p); return; }
+      ax.forEach((a, i) => { const rg = doc.createRange(); rg.selectNodeContents(a); const t = rg.getBoundingClientRect(), g = gr[i].getBoundingClientRect(); const off = (t.top + t.bottom) / 2 - (g.top + g.bottom) / 2; if (t.height && Math.abs(off) > 1) add(`the value "${a.textContent.trim()}" sits ${off.toFixed(1)}px off its grid line`, a); });
+    });
+  }
+},
+{
+  id: 'a chart labels its first and last bar',
+  why: 'A month of days was labelled 1, 8, 15, 22, 29, which leaves the reader to guess where the month ends.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-bars').forEach(ch => {
+      const ticks = [...ch.querySelectorAll(':scope > .sp-bars__col > .sp-bars__tick')]; if (ticks.length < 2 || !ticks.some(t => t.textContent.trim())) return;
+      if (!ticks[0].textContent.trim()) add('the first bar of a chart has no label', ch);
+      if (!ticks[ticks.length - 1].textContent.trim()) add('the last bar of a chart has no label', ch);
+    });
+  }
+},
+{
+  id: 'a chart label is centred under its bar',
+  why: 'A label wider than its column started at the bar\'s left edge and ran right: 11.6px off on ten years of months, 8.4px on a phone quarter chart of weeks.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-bars__tick').forEach(t => {
+      const col = t.closest('.sp-bars__col') || t.parentElement; const bar = col.querySelector('.sp-bars__bar, .sp-bars__stack, .sp-bars__pair'); if (!bar || !t.textContent.trim()) return;
+      const b = bar.getBoundingClientRect(); if (!b.width) return; const r = doc.createRange(); r.selectNodeContents(t); const tr = r.getBoundingClientRect();
+      const off = (tr.left + tr.right) / 2 - (b.left + b.right) / 2;
+      if (Math.abs(off) > 0.5) add(`the label "${t.textContent.trim()}" sits ${off.toFixed(1)}px off its bar's middle`, t);
+      if (t.getBoundingClientRect().height > parseFloat(CS(t).fontSize) * 2) add(`the label "${t.textContent.trim()}" breaks onto two lines`, t);
+    });
+  }
+},
+{
   id: 'a loading shape fits its job',
   why: 'The app held a field, a button, a limit bar and a chip with the chart bar, which filled its box only by accident; once the bar stood on the baseline those boxes were 0px tall.',
   run(doc, add) {

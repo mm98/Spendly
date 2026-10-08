@@ -49,6 +49,7 @@
     <div class="doc-note"><b class="sp-ink">Rows become cards, and cards drop fields rather than shrinking them.</b> An order card is the card from <a href="Order list.dc.html#2i">2i</a>: vendor and amount on line one, then the date and items with the saving under the amount. The reference, the status and the category are not on the card; the order page shows them. Everything else lives one level deeper.</div>
     <div class="doc-note"><b class="sp-ink">Filters and sort become two controls above the list</b>, not a facet rail. Filters opens the bottom sheet in <b>7b</b> and carries a count when any are applied.</div>
     <div class="doc-note"><b class="sp-ink">Anything that creates or edits gets a sticky save bar</b> at the bottom of the content, clear of the safe-area inset. It takes the tab bar's place rather than sitting above it - the screen is a task until it is saved or cancelled. The primary reads <b>Create</b> on a new record and <b>Save</b> on an existing one, and the page title already says which record it is.</div>
+    <div class="doc-note"><b class="sp-ink">With the period on Month, Spend by month becomes Spend by day</b> (Statistics · one month): 31 bars, labelled every 6 days from the first to the last: 1, 7, 13, 19, 25 and 31. The rule in c14 picks 6 at this width; on desktop, with more room, it picks 2 (<a href="Order statistics.dc.html#4g">4g</a>), as on desktop (<a href="Order statistics.dc.html#4g">4g</a>). The chosen day's label shows in its tooltip.</div>
     <div class="doc-note"><b class="sp-ink">These frames are drawn at 375px</b>, but the rule is the 640px threshold in 9h - not this device.</div>
     <div class="doc-note"><b class="sp-ink">Budget shows one month at a time.</b> The twelve-month strip from 21a does not fit, so the window control steps through the months and the halves become a single well. Year and <b>Edit</b> share one bar, the year as the compact select (<code>sp-combobox--bare</code>: the value and its chevron, no field box), which saves 20px. Edit is the desktop bar's Edit button, unchanged.</div>
     <div class="doc-note"><b class="sp-ink">There is no whole year on a phone.</b> Below 640px the Months / Whole year switch is not drawn and Budget always shows Months; a link to the whole year opens Months on the month it is now. <a href="Budget.dc.html#21b">21b</a> is a desktop view: sixteen columns of amounts cannot be read or typed into at this width.</div>
@@ -1130,6 +1131,220 @@
                 <span class="sp-bars__bar" data-h="80"></span>
                 <span class="sp-bars__tick">A</span>
               </button>
+            </div>
+          </div>
+
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">Top vendors, August</span></div>
+            <div class="sp-stack">
+              <div class="sp-sum"><span class="sp-strong">Indbo Møbler</span><span class="sp-grow"></span><span class="sp-strong">24.310</span></div>
+              <div class="sp-gauge sp-gauge--thin"><div class="sp-gauge__fill" data-fill="100"></div></div>
+            </div>
+            <div class="sp-stack">
+              <div class="sp-sum"><span>Hay</span><span class="sp-grow"></span><span class="sp-strong">16.980</span></div>
+              <div class="sp-gauge sp-gauge--thin"><div class="sp-gauge__fill" data-fill="70"></div></div>
+            </div>
+            <div class="sp-stack">
+              <div class="sp-sum"><span>Muuto</span><span class="sp-grow"></span><span class="sp-strong">11.240</span></div>
+              <div class="sp-gauge sp-gauge--thin"><div class="sp-gauge__fill" data-fill="45"></div></div>
+            </div>
+          </div>
+
+          <div class="sp-list-item sp-list-item--card">
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">7 orders in this slice</span>
+            </div>
+            <span class="sp-grow"></span>
+            <span class="sp-stacked sp-cell-amount">
+              <span class="sp-amount">24.310,00 kr.</span>
+              <span class="sp-amount-secondary" data-color="success">Saved 8.140,00 kr.</span>
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6" /></svg>
+          </div>
+        </div>
+        </div>
+        <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta">Orders</span>
+              </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta sp-strong">Statistics</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span class="sp-meta">More</span>
+              </button></div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-12">
+      <span class="sp-section-label">STATISTICS · ONE MONTH</span>
+      <div class="sp-phone ms-device ms-device--tall">
+        <div class="ms-status">
+          <span>9:41</span>
+          <span class="sp-ink-5">▮▮▮</span>
+        </div>
+                <div class="sp-topbar sp-topbar--touch"><div class="sp-picker__search">
+                  <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                  <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
+                </div></div>
+        <div class="ms-pane">
+        <div class="ms-head">
+          <div class="sp-window sp-window--select">
+            <button type="button" class="sp-window__btn" aria-label="Earlier month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Period">
+                    <span class="sp-grow">Month · August 2026</span>
+                    <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+            <button type="button" class="sp-window__btn" aria-label="Later month" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+        </div>
+        <div class="ms-scroll ms-scroll--pad">
+          <div class="sp-card sp-card--path">
+            <div class="sp-card__head">
+              <span class="sp-section-label">Showing</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reset</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
+            </div>
+            <nav aria-label="Showing">
+              <ol class="sp-crumbs">
+                <li><span class="sp-crumbs__root">August 2026</span></li>
+                <li><span class="sp-crumb"><span class="sp-crumb__label">Decor</span><button type="button" class="sp-crumb__remove" aria-label="Remove Decor">×</button></span></li>
+              </ol>
+            </nav>
+          </div>
+          <div class="sp-card">
+            <div class="sp-card__head">
+              <span class="sp-section-label">Spend, August</span>
+              <span class="sp-grow"></span>
+              <span class="sp-pill" data-color="danger">2.100 over</span>
+            </div>
+            <span class="sp-stat__figure sp-stat__figure--large">24.100 kr.</span>
+            <div class="sp-gauge">
+              <div class="sp-gauge__fill" data-fill="90"></div>
+              <div class="sp-gauge__fill" data-fill="10"></div>
+              <div class="sp-gauge__marker" data-at="65"></div>
+            </div>
+            <span class="sp-meta">Limit 22.000 kr. per month · day 20 of 31</span>
+          </div>
+
+          <div class="sp-card">
+            <div class="sp-card__head">
+              <span class="sp-section-label">Spend by day</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta">tap a bar to drill</span>
+            </div>
+            <div class="sp-bars sp-bars--days">
+              <button type="button" class="sp-bars__col" aria-label="Saturday 1 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+                <span class="sp-bars__tick">1</span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Sunday 2 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Monday 3 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="15"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Tuesday 4 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="10"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Wednesday 5 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="55"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Thursday 6 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Friday 7 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+                <span class="sp-bars__tick">7</span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Saturday 8 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="35"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Sunday 9 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Monday 10 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="20"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Tuesday 11 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="15"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Wednesday 12 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Thursday 13 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="75"></span>
+                <span class="sp-bars__tick">13</span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Friday 14 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Saturday 15 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="25"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Sunday 16 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Monday 17 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="10"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Tuesday 18 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="15"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-label="Wednesday 19 August">
+                <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+                <span class="sp-bars__tick">19</span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-pressed="true" aria-label="Thursday 20 August">
+                <span class="sp-bars__bar" data-h="80"></span>
+                <span class="sp-bars__tick"></span>
+              </button>
+              <span class="sp-bars__col" data-future aria-label="21 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="22 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="23 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="24 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="25 August">
+                <span class="sp-bars__tick">25</span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="26 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="27 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="28 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="29 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="30 August">
+                <span class="sp-bars__tick"></span>
+              </span>
+              <span class="sp-bars__col" data-future aria-label="31 August">
+                <span class="sp-bars__tick">31</span>
+              </span>
             </div>
           </div>
 
