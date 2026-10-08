@@ -2997,7 +2997,16 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 }
 .sp-bars__bar--muted { background: var(--green-5); }
 .sp-bars__col[aria-pressed="true"] .sp-bars__bar { background: var(--green); }
-.sp-bars__tick { font-size: var(--t-11); color: var(--ink-5); text-align: center; }
+/* A tick is one line, centred under its bar's middle even when it is wider than the
+   column: a stretched tick wider than its column started at the bar's left edge and ran
+   right, up to 11.6px off. Centred in the column, an overflow spills evenly both ways.
+   Where two ticks would touch, the app leaves the ones between empty. */
+.sp-bars__tick { font-size: var(--t-11); color: var(--ink-5); text-align: center; align-self: center; white-space: nowrap; }
+/* A tick left empty keeps its line, so every bar in a chart stands on the same baseline
+   whether its label shows or not (4g). */
+.sp-bars__tick:empty::before { content: "\00a0"; }
+/* one bar per day: 31 bars want a narrower gap than 12 months, or a bar is a hairline (4g) */
+.sp-bars.sp-bars--days { gap: var(--sp-4); }
 
 /* A chart's legend is always under the chart it keys, never between the head and the
    chart: one place for every chart, read after the bars (Spend by month, Spend vs saving). */
@@ -4445,6 +4454,11 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   color: var(--ink-5);
   text-align: right;
 }
+/* Each value is centred on its grid line. The labels were spread over the axis box and
+   the lines over the same box less a label's height, so they drifted 0 to 8px apart
+   (7.3 at the top, -8.3 at 0). Now a label is a 1px box laid out exactly as a line is,
+   and its text is centred on that pixel. */
+.sp-plot__axis > span { height: 1px; display: flex; align-items: center; justify-content: flex-end; white-space: nowrap; }
 .sp-plot__area { position: relative; }
 .sp-plot__grid {
   position: absolute;
