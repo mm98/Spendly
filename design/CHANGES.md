@@ -1,20 +1,33 @@
-# Spendly - a domain longer than its line
+# Spendly - emails rounded in Outlook
 
-Copy these files over handoff_2026_10_09c_changes.
+Copy these files over handoff_2026_10_09d_changes. All four templates change the same way.
 
-## .sp-email-line - what gives, in order
-1. The part before the @ shortens first, down to its first three characters and the ellipsis (`__local`: flex-shrink 100000, min-width 4ch).
-2. Only then does the @domain shorten, from its end (`__domain`: flex 0 1 auto, min-width 0, ellipsis). Example: mik...@a-rather-long-company-na...
-3. The line never runs out of its box (`.sp-email-line`: max-width 100%, overflow hidden). Nothing runs under the phone card's chevron or over the page beside the sidebar, and Settings' Email field no longer scrolls the phone page sideways.
+## Button
+- The button's cell no longer carries a fill. In Outlook its square fill showed behind the VML rounded button.
+- Other clients: the fill (#1d4d33) and the 9px radius sit on the link itself.
 
-This matches what the app already does. An email that fits looks as before.
+## Card
+- Outlook for Windows: the card sits inside a VML rounded rectangle, white fill and a 1px #e6e4dc stroke. It grows to its content (mso-fit-shape-to-text).
+- An Outlook-only style in the head drops the table's own square border and fill.
+- Other clients are unchanged: the table's 12px border-radius.
+
+## Address
+- The address in the body is a span inside an anchor with no href. Both are inked (#1b1a17) and undecorated, so Outlook does not show it as an underlined link.
 
 ## Docs
-- Navigation shell 9c: the account block note and the truncation table state the order above.
+- emails/README.md says so.
 
 ## Checks
 - 0 finding(s) across 26 pages.
+- Not verified in Outlook from here. Send one to Outlook for Windows before shipping.
 
 ## Files
-- styles/components.css
-- Navigation shell.dc.html
+- emails/README.md
+- emails/confirm-email.html
+- emails/confirm-email.txt
+- emails/passkey-added.html
+- emails/passkey-added.txt
+- emails/password-changed.html
+- emails/password-changed.txt
+- emails/reset-password.html
+- emails/reset-password.txt
