@@ -1,24 +1,19 @@
-# Spendly - emails rounded in Outlook
+# Spendly - emails rounded in Outlook (fixed)
 
-Copy these files over handoff_2026_10_09d_changes. All four templates change the same way.
+**Fixed:** in handoff_2026_10_09e_changes the card was wrapped in a VML rounded rectangle for Outlook. Outlook cannot nest the mark and button shapes inside it, so the card collapsed to the top-left corner and the S and button label vanished. That wrapper and its Outlook-only style are removed. In Outlook the card is square again, with its border and white fill. Everything else in 09e stands.
+
+Copy these files over handoff_2026_10_09d_changes (or over 09e).
 
 ## Button
-- The button's cell no longer carries a fill. In Outlook its square fill showed behind the VML rounded button.
-- Other clients: the fill (#1d4d33) and the 9px radius sit on the link itself.
+- The button's cell carries no fill; the fill (#1d4d33) and 9px radius sit on the link, and Outlook draws the VML rounded button. No square fill behind it.
 
 ## Card
-- Outlook for Windows: the card sits inside a VML rounded rectangle, white fill and a 1px #e6e4dc stroke. It grows to its content (mso-fit-shape-to-text).
-- An Outlook-only style in the head drops the table's own square border and fill.
-- Other clients are unchanged: the table's 12px border-radius.
+- Rounded (12px) everywhere except Outlook for Windows, where it is square. That engine draws no rounded box, and a VML wrapper breaks the shapes inside.
 
 ## Address
-- The address in the body is a span inside an anchor with no href. Both are inked (#1b1a17) and undecorated, so Outlook does not show it as an underlined link.
-
-## Docs
-- emails/README.md says so.
+- A span inside an anchor with no href, both inked (#1b1a17) and undecorated.
 
 ## Checks
-- 0 finding(s) across 26 pages.
 - Not verified in Outlook from here. Send one to Outlook for Windows before shipping.
 
 ## Files
