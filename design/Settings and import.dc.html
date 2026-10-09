@@ -36,6 +36,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>A very long status name ends in an ellipsis in this list</b> (<code>.sp-pill--truncate</code>), so its row keeps its height; the full name is in the edit field. This is the one place a pill truncates.</div>
+    <div class="doc-note"><b>Passkeys</b> is a card under Account and profile. Add a passkey opens the device's prompt (iPhone, Android, 1Password); the new row takes the name the device reports, which Rename changes. Remove asks first with the confirm dialog, and the password always keeps working, so removing the last one locks nobody out. With none, the card holds only its line and Add a passkey. Adding one sends the passkey-added email (<a href="Auth and first run.dc.html#20f">20f</a>).</div>
     <div class="doc-note"><b>Limit alerts</b> is its own pane, between Lists and Statuses: the in-app switches and "Tell me early, at" (<a href="Duplicate and alerts.dc.html#8b">8b</a>).</div>
     <div class="doc-note"><b>Needs a look</b> is its own pane, after Limit alerts: one switch per row Home's Needs a look card can show (<a href="Home.dc.html#10a">10a</a>), in the order Home ranks them. Off removes that row from Home and from the phone's Home; the cap of three applies to what is left, and with every switch off the card is absent. Orders without a receipt is off by default, since most orders have none. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>Compare this month with</b> sits in Appearance and offers Last month (the default) and Same month last year. It sets what Home's month card (<a href="Home.dc.html#10a">10a</a>), the phone's Home and the monthly summary (<a href="Duplicate and alerts.dc.html#8b">8b</a>) measure against. It saves with the card's own save, like every card here.</div>
@@ -135,6 +136,34 @@
             <span class="sp-data">Password last changed 4 months ago.</span>
             <span class="sp-grow"></span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap">Change password</button>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">PASSKEYS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0" /><path d="M15 9h.01" /></svg>Add a passkey</button></div>
+          <span class="sp-data">Sign in with your fingerprint or face instead of typing your password. Your password keeps working.</span>
+          <div class="sp-row-flex sp-gap-12">
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-strong sp-truncate">iPhone</span>
+              <span class="sp-meta">Added 2 Sep 2026 · last used today</span>
+            </div>
+            <span class="sp-grow"></span>
+            <div class="sp-row-flex sp-gap-8">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Rename</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+          </div>
+          <span class="sp-rule"></span>
+          <div class="sp-row-flex sp-gap-12">
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-strong sp-truncate">1Password</span>
+              <span class="sp-meta">Added 14 Sep 2026 · last used 3 Oct 2026</span>
+            </div>
+            <span class="sp-grow"></span>
+            <div class="sp-row-flex sp-gap-8">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Rename</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
           </div>
         </div>
 
