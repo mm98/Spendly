@@ -172,8 +172,11 @@ export function AttachmentTile({ name, kind, thumb, problem, sending, twin = fal
 
 /* An empty text of the line's own type sizes a skeleton line to the real one exactly. */
 const strut = role => <span className={role} aria-hidden="true">{'\u200b'}</span>
-// a box a field or a button will fill, at its own height; `small` is a commit's
-const control = (key, small = false) => <div key={key} className={small ? 'or-control or-control--small' : 'or-control'}><Skeleton shape="fill" /></div>
+// a box a field or a button will fill, at its own height; `small` is a commit's. `width` is for a
+// button in a row that gives it none, at about its word's width
+const control = (key, small = false, width) => (
+	<div key={key} className={small ? 'or-control or-control--small' : 'or-control'}><Skeleton shape="fill" data-w={width} /></div>
+)
 
 const rowsLoading = n => Array.from({ length: n }, (_, i) => (
 	<ListItem key={i} mark={<Skeleton shape="mark" />}>
@@ -213,7 +216,7 @@ export function OrderLoading({ region = false, form = false }) {
 		? (
 			<Card aria-hidden="true">
 				<CardHeader name="Attachments" />
-				<div className="or-tiles">{control()}</div>
+				<div className="or-tiles"><div className="or-tile"><Skeleton shape="fill" /></div></div>
 			</Card>
 		)
 		: null
@@ -263,7 +266,7 @@ export function OrderLoading({ region = false, form = false }) {
 				</Card>
 			</>
 		)
-	const bar = form && touch ? <SaveBar aria-hidden="true">{control('leave')}{control('save')}</SaveBar> : null
+	const bar = form && touch ? <SaveBar aria-hidden="true"><span className="sp-grow" />{control('leave', false, '88')}{control('save', false, '70')}</SaveBar> : null
 	if (touch) return <div className="sp-stack sp-gap-12">{items}{attachments}{rail}{bar}</div>
 	const split = <><div className="sp-stack sp-gap-12">{items}{attachments}</div><Panel>{rail}</Panel></>
 	return region ? <div className="sp-shell__body--split">{split}</div> : split
