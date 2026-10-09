@@ -4401,9 +4401,11 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
    it is. text-overflow alone cannot express that - it needs the two parts as
    separate children of a row. One component wherever an email sits on one line:
    the sidebar's account block, the phone's account card, a read-only email field. */
-.sp-email-line { display: flex; min-width: 0; }
-.sp-email-line > .sp-email-line__local { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sp-email-line > .sp-email-line__domain { flex: none; }
+.sp-email-line { display: flex; min-width: 0; max-width: 100%; overflow: hidden; }
+/* The part before the @ gives first, down to its first three characters and the
+   ellipsis. Only a domain wider than what is left then shortens, from its end. */
+.sp-email-line > .sp-email-line__local { flex: 0 100000 auto; min-width: 4ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-email-line > .sp-email-line__domain { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* in a read-only field it stands on the field's centre line, at any field height */
 .sp-input:has(> .sp-email-line) { display: flex; align-items: center; }
 .sp-input > .sp-email-line { flex: 1; }
