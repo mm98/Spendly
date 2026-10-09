@@ -65,25 +65,60 @@
             <div class="sp-row-flex sp-baseline">
               <label class="sp-field__label" for="au-p1">Password</label>
               <div class="sp-grow"></div>
-              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Forgot it?</button>
+              <span class="au-desk"><button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Forgot it?</button></span>
             </div>
             <span class="sp-field__wrap">
-              <input class="sp-input au-code" id="au-p1" type="password" autoComplete="current-password" defaultValue="correct-horse">
+              <input class="sp-input" id="au-p1" type="password" autoComplete="current-password" defaultValue="correct-horse">
               <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
             </span>
           </div>
-          <div class="sp-row-flex sp-gap-10">
-            <div class="sp-check">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg>
-            </div>
-            <div class="sp-data">Stay signed in for 30 days</div>
-          </div>
+          <span class="au-touch"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Forgot it?</button></span>
+          <label class="sp-choice"><input class="sp-check" type="checkbox" defaultChecked="{{ true }}">Stay signed in for 30 days</label>
         </div>
         <div class="sp-stack sp-gap-14">
           <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
-          <div class="sp-data sp-center">New here? <span class="sp-strong sp-ink-accent">Create an account</span></div>
+          <div class="sp-data sp-center">New here? <a class="sp-strong" href="#20a">Create an account</a></div>
         </div>
       </div>
+    </div>
+
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">SIGN IN, ON A PHONE</div>
+      <div class="sp-phone sp-touch">
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Sign in to Spendly</div>
+            <div class="sp-data">Your orders, receipts and monthly limits.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-f9">Email</label>
+            <input class="sp-input" id="au-f9" type="email" autoComplete="email" inputMode="email" defaultValue="mikkel@example.net">
+          </div>
+          <div class="sp-field">
+            <div class="sp-row-flex sp-baseline">
+              <label class="sp-field__label" for="au-p9">Password</label>
+              <div class="sp-grow"></div>
+              <span class="au-desk"><button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Forgot it?</button></span>
+            </div>
+            <span class="sp-field__wrap">
+              <input class="sp-input" id="au-p9" type="password" autoComplete="current-password" defaultValue="correct-horse">
+              <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+            </span>
+          </div>
+          <span class="au-touch"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Forgot it?</button></span>
+          <label class="sp-choice"><input class="sp-check" type="checkbox" defaultChecked="{{ true }}">Stay signed in for 30 days</label>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-data sp-center">New here? <a class="sp-strong" href="#20a">Create an account</a></div>
+        </div>
+      </div>
+      </div>
+      <div class="sp-meta au-w400">Below 640px Forgot it? leaves the label's line for a full-width button under the field, so the Password label sits as close to its field as Email does.</div>
     </div>
 
     <div class="sp-stack sp-gap-10">
@@ -108,13 +143,14 @@
             <div class="sp-row-flex sp-baseline">
               <label class="sp-field__label" for="au-p2">Password</label>
               <div class="sp-grow"></div>
-              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Forgot it?</button>
+              <span class="au-desk"><button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Forgot it?</button></span>
             </div>
             <span class="sp-field__wrap">
-              <input class="sp-input au-code" id="au-p2" type="password" autoComplete="new-password" defaultValue="correct-horse" data-focus="true">
+              <input class="sp-input" id="au-p2" type="password" autoComplete="new-password" defaultValue="correct-horse" data-focus="true">
               <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
             </span>
           </div>
+          <span class="au-touch"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Forgot it?</button></span>
         </div>
         <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
       </div>
@@ -144,7 +180,7 @@
           </div>
           <div class="sp-field">
             <label class="sp-field__label" for="au-f4">Password</label>
-            <input class="sp-input au-code" id="au-f4" type="password" defaultValue="correct-horse" autoComplete="current-password" disabled="{{ true }}">
+            <input class="sp-input" id="au-f4" type="password" defaultValue="correct-horse" autoComplete="current-password" disabled="{{ true }}">
           </div>
         </div>
         <div class="sp-stack sp-gap-12">
@@ -182,12 +218,7 @@
               <button type="button" class="sp-field__trail" aria-label="Show password" aria-pressed="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
             </span>
             <div class="sp-row-flex sp-gap-8">
-              <div class="sp-gauge sp-gauge--thin sp-grow au-strength">
-                <div class="sp-grow au-fill"></div>
-                <div class="sp-grow au-fill"></div>
-                <div class="sp-grow au-fill"></div>
-                <div class="sp-grow au-fill au-fill--off"></div>
-              </div>
+              <div class="sp-gauge sp-gauge--thin sp-grow"><div class="sp-gauge__fill" data-fill="75"></div></div>
               <div class="sp-meta sp-strong sp-ink-accent sp-nowrap">Strong</div>
             </div>
             <div class="sp-meta">At least 12 characters. Longer beats complicated.</div>
@@ -195,8 +226,8 @@
         </div>
         <div class="sp-stack sp-gap-14">
           <button type="button" class="sp-btn sp-btn--block sp-btn--small">Create account</button>
-          <div class="sp-meta sp-center">By creating an account you accept the <span class="sp-ink-accent sp-strong">terms</span> and <span class="sp-ink-accent sp-strong">privacy notice</span>.</div>
-          <div class="sp-data sp-center">Already have one? <span class="sp-strong sp-ink-accent">Sign in</span></div>
+          <div class="sp-meta sp-center">By creating an account you accept the <a class="sp-strong" href="#20a">terms</a> and <a class="sp-strong" href="#20a">privacy notice</a>.</div>
+          <div class="sp-data sp-center">Already have one? <a class="sp-strong" href="#20a">Sign in</a></div>
         </div>
       </div>
       <div class="sp-meta au-w400">No confirm-password field - reveal does the same job with half the typing, as in 14a's change-password dialog.</div>
@@ -215,7 +246,7 @@
           <div class="sp-field">
             <label class="sp-field__label" for="au-f7">Email</label>
             <input class="sp-input" id="au-f7" type="email" autoComplete="email" inputMode="email" defaultValue="mikkel@example.net" aria-invalid="true" aria-describedby="au-f7-err">
-            <span class="sp-field__help" data-color="danger" id="au-f7-err">There's already an account with this email. <b>Sign in instead?</b></span>
+            <span class="sp-field__help" data-color="danger" id="au-f7-err">There's already an account with this email. <a class="sp-strong" href="#20a">Sign in instead?</a></span>
           </div>
         </div>
         <button type="button" class="sp-btn sp-btn--small sp-btn--block" disabled="{{ true }}">Create account</button>
@@ -240,8 +271,8 @@
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
     <div class="doc-note"><b class="sp-ink">One token component, two uses.</b> Email confirmation and password reset are the same mechanism - a single-use token with an expiry, arriving as a link, landing on a page that has to handle valid, already-used, expired and malformed. Build it once; the only difference is what happens on success.</div>
     <div class="doc-note"><b class="sp-ink">Expired is not an error, it is a resend.</b> The most common path to this screen is a link opened a day later. The primary action is always "send a new one", never a message telling the user what went wrong and stopping.</div>
-    <div class="doc-note"><b class="sp-ink">The banner is amber and dismissible for the session</b>, not a modal. Blocking the whole app behind confirmation means someone who mistyped their address can never get to Settings to fix it - which is the one thing they need.</div>
-    <div class="doc-note"><b class="sp-ink">Changing the email re-opens confirmation</b> and invalidates any outstanding token. The old address keeps working until the new one is confirmed, so a typo cannot lock the account out.</div>
+    <div class="doc-note"><b class="sp-ink">The banner is amber and dismissible for the session</b>, not a modal. Typing an order by hand, Settings and signing out all still work, so blocking the whole app behind confirmation would hold back far more than it protects.</div>
+    <div class="doc-note"><b class="sp-ink">The address cannot be changed in the app.</b> Settings shows it read-only, and none of these screens offers a way to change it.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Tokens are consumed on use, so a link opened twice - mail clients prefetch - must show "already confirmed" and not an error. Resend is throttled with a visible countdown rather than a disabled button.</div>
   </div>
 
@@ -259,7 +290,6 @@
         </div>
         <div class="sp-stack sp-gap-10">
           <button type="button" class="sp-btn sp-btn--outline sp-btn--block sp-btn--small">Send it again</button>
-          <div class="sp-subtitle sp-center">Wrong address? <span class="sp-strong sp-ink-accent">Change it</span></div>
         </div>
         <div class="sp-card__footer sp-meta sp-center">Nothing after a few minutes? Check spam.</div>
       </div>
@@ -280,7 +310,6 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg>
             Send again in 0:47
           </button>
-          <div class="sp-subtitle sp-center">Wrong address? <span class="sp-strong sp-ink-accent">Change it</span></div>
         </div>
       </div>
       <div class="sp-meta au-w400">A visible countdown, not a dead grey button - the user learns when it will work instead of wondering what broke.</div>
@@ -298,7 +327,6 @@
         </div>
         <div class="sp-stack sp-gap-12">
           <button type="button" class="sp-btn sp-btn--block sp-btn--small">Send a new link</button>
-          <div class="sp-subtitle sp-center">Wrong address? <span class="sp-strong sp-ink-accent">Change it</span></div>
         </div>
       </div>
       <div class="sp-meta au-w400">Amber, and the primary action is the fix. Same screen for a malformed token - the user cannot act on the difference, so the design does not draw one.</div>
@@ -326,8 +354,8 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg>
           <div class="sp-data sp-ink-warning">Confirm <b>mikkel@example.net</b> to scan receipts and import orders.</div>
           <div class="sp-grow"></div>
-          <div class="sp-meta sp-strong sp-ink-warning sp-nowrap">Resend</div>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall" data-color="warning">Resend</button>
+          <button type="button" class="sp-icon-btn" aria-label="Dismiss"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
         </div>
         <div class="sp-row-flex sp-gap-14 sp-top">
           <div class="sp-filedrop sp-grow sp-muted">
@@ -337,7 +365,7 @@
           </div>
           <div class="sp-stack sp-gap-8 au-w200">
             <span class="doc-specimen__label">STILL AVAILABLE</span>
-            <div class="sp-subtitle">Typing an order by hand · Settings · changing your email · signing out</div>
+            <div class="sp-subtitle">Typing an order by hand · Settings · signing out</div>
           </div>
         </div>
       </div>
@@ -371,7 +399,7 @@
         </div>
         <div class="sp-stack sp-gap-12">
           <button type="button" class="sp-btn sp-btn--block sp-btn--small">Send the link</button>
-          <div class="sp-title sp-ink-accent sp-center">Back to sign in</div>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block sp-btn--small">Back to sign in</button>
         </div>
       </div>
     </div>
@@ -411,12 +439,7 @@
               <button type="button" class="sp-field__trail" aria-label="Show password" aria-pressed="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
             </span>
           <div class="sp-row-flex sp-gap-8">
-            <div class="sp-gauge sp-gauge--thin sp-grow au-strength">
-              <div class="sp-grow au-fill"></div>
-              <div class="sp-grow au-fill"></div>
-              <div class="sp-grow au-fill"></div>
-              <div class="sp-grow au-fill"></div>
-            </div>
+            <div class="sp-gauge sp-gauge--thin sp-grow"><div class="sp-gauge__fill" data-fill="100"></div></div>
             <div class="sp-meta sp-strong sp-ink-accent sp-nowrap">Very strong</div>
           </div>
         </div>
@@ -440,7 +463,7 @@
         </div>
         <div class="sp-stack sp-gap-12">
           <button type="button" class="sp-btn sp-btn--block sp-btn--small">Start again</button>
-          <div class="sp-title sp-ink-accent sp-center">Back to sign in</div>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block sp-btn--small">Back to sign in</button>
         </div>
       </div>
       <div class="sp-meta au-w400">Same shape as 20b's expiry, one token component behind both. Reset links are shorter-lived than confirmation links - an hour against a day - because this one can change a password.</div>
@@ -460,14 +483,13 @@
     <span class="doc-badge" id="20f">20f</span>
     <span class="doc-section__title">The emails</span>
   </div>
-  <div class="doc-lede">Three messages, all transactional: the confirmation link from <a href="#20b">20b</a>, the reset link from <a href="#20c">20c</a>, and a notice to the old address when the email on an account changes. Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
+  <div class="doc-lede">Two messages, both transactional: the confirmation link from <a href="#20b">20b</a> and the reset link from <a href="#20c">20c</a>. Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
-    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b> and <b>email-changed</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
+    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b> and <b>reset-password</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
     <div class="doc-note"><b class="sp-ink">Built for mail clients, not the browser.</b> Tables and inline styles, no web fonts (Poppins where installed, then Helvetica), a VML button for Outlook, and a dark block that maps to the dark tokens. The card keeps the auth panel's values: 400 wide, 16 padding, the 64 mark, the small button.</div>
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
-    <div class="doc-note"><b class="sp-ink">Email changed goes to the old address</b> the moment the change is asked for; the new address gets the confirmation email. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. Resetting the password cancels any pending email change.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
   </div>
 
@@ -481,11 +503,6 @@
       <div class="sp-section-label">2 - RESET YOUR PASSWORD</div>
       <iframe class="au-email" title="Reset your password" srcDoc="{{ resetDoc }}" onLoad="{{ fit }}"></iframe>
       <div class="sp-meta au-w600">Subject: Reset your Spendly password. Sent on Send the link.</div>
-    </div>
-    <div class="sp-stack sp-gap-10">
-      <div class="sp-section-label">3 - EMAIL CHANGED, TO THE OLD ADDRESS</div>
-      <iframe class="au-email" title="Your email is changing" srcDoc="{{ changedDoc }}" onLoad="{{ fit }}"></iframe>
-      <div class="sp-meta au-w600">Subject: The email on your Spendly account is changing. Sent when a new email is saved in Settings.</div>
     </div>
   </div>
 </section>
@@ -553,7 +570,7 @@
         </div>
       </div>
       <div class="sp-stack sp-gap-8 au-w420">
-        <div class="doc-note">The normal app. Confirmation pending is a <b>banner at the top of the content column</b>, inside the shell - never a modal, because someone who mistyped their address needs Settings to fix it.</div>
+        <div class="doc-note">The normal app. Confirmation pending is a <b>banner at the top of the content column</b>, inside the shell - never a modal, because the rest of the app still works.</div>
         <div class="doc-note"><b class="sp-ink">Which screens:</b> everything else in the set, plus the unconfirmed state. The banner scrolls with the content rather than sticking - it is a reminder, not a warning.</div>
       </div>
     </div>
@@ -647,9 +664,7 @@
       <div class="sp-card au-panel au-panel--wide">
         <div class="sp-stack sp-gap-12">
           <div class="sp-row-flex sp-gap-8">
-            <div class="au-seg"></div>
-            <div class="au-seg au-seg--off"></div>
-            <div class="sp-grow"></div>
+            <div class="sp-gauge sp-gauge--thin sp-grow"><div class="sp-gauge__fill" data-fill="50"></div></div>
             <div class="sp-meta">Step 1 of 2</div>
           </div>
           <div class="sp-stack sp-gap-6">
@@ -658,19 +673,19 @@
           </div>
         </div>
         <div class="sp-stack sp-gap-12">
-          <div class="sp-stack sp-gap-6">
-            <div class="sp-title">Currency</div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="au-s5-label">Currency</span>
             <div class="sp-combobox">
-              <button type="button" class="sp-combobox__trigger" id="au-s5" aria-haspopup="listbox" aria-expanded="false" aria-label="Currency">
+              <button type="button" class="sp-combobox__trigger" id="au-s5" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="au-s5-label">
                 <span class="sp-grow">DKK - Danish krone</span>
                 <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
               </button>
             </div>
           </div>
-          <div class="sp-stack sp-gap-6">
-            <div class="sp-title">Number format</div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="au-s6-label">Number format</span>
             <div class="sp-combobox">
-              <button type="button" class="sp-combobox__trigger" id="au-s6" aria-haspopup="listbox" aria-expanded="false" aria-label="Number format">
+              <button type="button" class="sp-combobox__trigger" id="au-s6" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="au-s6-label">
                 <span class="sp-grow">1.234,50</span>
                 <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
               </button>
@@ -684,7 +699,7 @@
           </div>
         </div>
         <div class="sp-row-flex sp-gap-10">
-          <div class="sp-title sp-ink-2">Skip</div>
+          <button type="button" class="sp-btn sp-btn--outline">Skip</button>
           <div class="sp-grow"></div>
           <button type="button" class="sp-btn">Next</button>
         </div>
@@ -697,9 +712,7 @@
       <div class="sp-card au-panel au-panel--wide">
         <div class="sp-stack sp-gap-12">
           <div class="sp-row-flex sp-gap-8">
-            <div class="au-seg"></div>
-            <div class="au-seg"></div>
-            <div class="sp-grow"></div>
+            <div class="sp-gauge sp-gauge--thin sp-grow"><div class="sp-gauge__fill" data-fill="100"></div></div>
             <div class="sp-meta">Step 2 of 2</div>
           </div>
           <div class="sp-stack sp-gap-6">
@@ -728,7 +741,7 @@
           </div>
         </div>
         <div class="sp-row-flex sp-gap-10">
-          <div class="sp-title sp-ink-2">Skip</div>
+          <button type="button" class="sp-btn sp-btn--outline">Skip</button>
           <div class="sp-grow"></div>
           <button type="button" class="sp-btn">Finish</button>
         </div>
@@ -748,7 +761,7 @@
           <div class="sp-heading">Start with a receipt</div>
           <div class="sp-data au-w300">Drop a photo or a PDF and we'll read the lines for you.</div>
           <button type="button" class="sp-btn">Capture a receipt</button>
-          <div class="sp-title sp-ink-accent">Or enter one by hand</div>
+          <button type="button" class="sp-btn sp-btn--outline">Enter one by hand</button>
         </div>
         <div class="sp-row-flex sp-gap-14">
           <div class="sp-well sp-grow">
@@ -763,7 +776,7 @@
               <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
               <div class="sp-title">Home and decor</div>
             </div>
-            <div class="sp-title sp-ink-accent">Add another</div>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Add another</button>
           </div>
         </div>
       </div>
@@ -779,9 +792,9 @@ class Component extends DCLogic {
   state = {};
   componentDidMount() {
     this.applyView();
-    const sample = { name: 'Mikkel', email: 'mikkel@example.net', new_email: 'm.moller@example.net', action_url: 'https://app.example.net/confirm/7f3a9c' };
-    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net' };
-    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'email-changed']].forEach(([k, f]) => {
+    const sample = { name: 'Mikkel', email: 'mikkel@example.net' };
+    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04' };
+    [['confirm', 'confirm-email'], ['reset', 'reset-password']].forEach(([k, f]) => {
       fetch('emails/' + f + '.html').then(r => r.text()).then(t => {
         const v = { ...sample, action_url: urls[k] };
         this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
@@ -790,7 +803,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     return {
-      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed,
+      confirmDoc: this.state.confirm, resetDoc: this.state.reset,
       fit: e => { const d = e.target.contentDocument; if (d && d.body) e.target.style.height = d.documentElement.scrollHeight + 'px'; }
     };
   }
