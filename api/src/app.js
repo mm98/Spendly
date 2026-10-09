@@ -230,8 +230,23 @@ app.use('/api/drafts', draftsRouter)
 app.use('/api/search', searchRouter)
 
 /* Where a password manager looks for the page that changes a password (W3C "change-password URL").
-   Every other /.well-known address stays a 404: that is how the manager knows it can trust this one. */
+   An unknown /.well-known address stays a 404: that is how the manager knows it can trust this one. */
 app.get('/.well-known/change-password', (req, res) => res.redirect(302, '/#/settings/account'))
+
+/* Where to report a security problem (RFC 9116), when SPENDLY_SECURITY_CONTACT names someone.
+   Expires is required and must stay under a year ahead, so it is always half a year from today. */
+app.get('/.well-known/security.txt', (req, res, next) => {
+	const contact = process.env.SPENDLY_SECURITY_CONTACT
+	if (!contact) return next()
+	const expires = new Date(Date.now() + 182 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z')
+	const site = process.env.SPENDLY_PUBLIC_URL?.replace(/\/$/, '')
+	res.type('text/plain').send([
+		`Contact: ${/^(mailto|https?):/.test(contact) ? contact : 'mailto:' + contact}`,
+		`Expires: ${expires}`,
+		'Preferred-Languages: en, da',
+		...(site ? [`Canonical: ${site}/.well-known/security.txt`] : [])
+	].join('\n') + '\n')
+})
 
 /* react/'s own dev server (Vite) serves the app locally, proxying /api to this process --
    nothing here needs to serve HTML in that mode, and CLIENT_DIST simply won't exist. A

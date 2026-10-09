@@ -42,6 +42,9 @@ services:
       # The address you open Spendly at. The links in emails point here, so email stays off
       # without it. Use the same name as caddy's --from below.
       SPENDLY_PUBLIC_URL: "https://spendly.qnap.roob.dk"
+      # The address in /.well-known/security.txt, where people report a security problem. It is
+      # public: anyone on the internet can read it. Without this line there is no such file.
+      SPENDLY_SECURITY_CONTACT: offtopic74@gmail.com
       # Lets Settings > This build install a newer version with "Update and reload": the app asks
       # the watchtower service below to do it. The token must match WATCHTOWER_HTTP_API_TOKEN.
       SPENDLY_UPDATER_URL: "http://watchtower:8080/v1/update"
