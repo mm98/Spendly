@@ -23,6 +23,10 @@
   .au-w400 { width: 400px; }
   .au-w420 { width: 420px; }
   .au-w620 { width: 620px; }
+  .au-w600 { width: 600px; }
+
+  /* 20f: a send-ready email shown at the 600 an inbox gives it; its height follows its content */
+  .au-email { display: block; width: 600px; height: 560px; border: 0; border-radius: var(--r-card); }
   .au-right { justify-content: flex-end; }
 
   /* A one-time code: spaced numerals, so six digits read as six rather than a number. */

@@ -457,6 +457,41 @@
 
 <section class="doc-section">
   <div class="doc-section__head">
+    <span class="doc-badge" id="20f">20f</span>
+    <span class="doc-section__title">The emails</span>
+  </div>
+  <div class="doc-lede">Three messages, all transactional: the confirmation link from <a href="#20b">20b</a>, the reset link from <a href="#20c">20c</a>, and a notice to the old address when the email on an account changes. Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
+    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b> and <b>email-changed</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
+    <div class="doc-note"><b class="sp-ink">Built for mail clients, not the browser.</b> Tables and inline styles, no web fonts (Poppins where installed, then Helvetica), a VML button for Outlook, and a dark block that maps to the dark tokens. The card keeps the auth panel's values: 400 wide, 16 padding, the 64 mark, the small button.</div>
+    <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
+    <div class="doc-note"><b class="sp-ink">Email changed goes to the old address</b> the moment the change is asked for; the new address gets the confirmation email. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. Resetting the password cancels any pending email change.</div>
+    <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">1 - CONFIRM YOUR EMAIL</div>
+      <iframe class="au-email" title="Confirm your email" srcDoc="{{ confirmDoc }}" onLoad="{{ fit }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Confirm your email for Spendly. Sent on registering and on Send it again.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">2 - RESET YOUR PASSWORD</div>
+      <iframe class="au-email" title="Reset your password" srcDoc="{{ resetDoc }}" onLoad="{{ fit }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Reset your Spendly password. Sent on Send the link.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">3 - EMAIL CHANGED, TO THE OLD ADDRESS</div>
+      <iframe class="au-email" title="Your email is changing" srcDoc="{{ changedDoc }}" onLoad="{{ fit }}"></iframe>
+      <div class="sp-meta au-w600">Subject: The email on your Spendly account is changing. Sent when a new email is saved in Settings.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
     <span class="doc-badge" id="20e">20e</span>
     <span class="doc-section__title">Where these sit in the chrome</span>
   </div>
@@ -741,7 +776,24 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
-  componentDidMount() { this.applyView(); }
+  state = {};
+  componentDidMount() {
+    this.applyView();
+    const sample = { name: 'Mikkel', email: 'mikkel@example.net', new_email: 'm.moller@example.net', action_url: 'https://app.example.net/confirm/7f3a9c' };
+    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net' };
+    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'email-changed']].forEach(([k, f]) => {
+      fetch('emails/' + f + '.html').then(r => r.text()).then(t => {
+        const v = { ...sample, action_url: urls[k] };
+        this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
+      });
+    });
+  }
+  renderVals() {
+    return {
+      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed,
+      fit: e => { const d = e.target.contentDocument; if (d && d.body) e.target.style.height = d.documentElement.scrollHeight + 'px'; }
+    };
+  }
   componentDidUpdate() { this.applyView(); }
   applyView() {
     const el = document.querySelector('.sp');
