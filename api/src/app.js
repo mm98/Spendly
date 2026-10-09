@@ -229,6 +229,10 @@ app.use('/api/scan', scanRouter)
 app.use('/api/drafts', draftsRouter)
 app.use('/api/search', searchRouter)
 
+/* Where a password manager looks for the page that changes a password (W3C "change-password URL").
+   Every other /.well-known address stays a 404: that is how the manager knows it can trust this one. */
+app.get('/.well-known/change-password', (req, res) => res.redirect(302, '/#/settings/account'))
+
 /* react/'s own dev server (Vite) serves the app locally, proxying /api to this process --
    nothing here needs to serve HTML in that mode, and CLIENT_DIST simply won't exist. A
    deploy that builds react/dist first (see render.yaml) is the one case this matters: same
