@@ -419,7 +419,7 @@ export default function Statistics() {
 		const side = !categoryCrumb
 			? <CategoryRows key={`category ${slice}`} view={view} onOpen={drillTo('category')} hint />
 			: category?.budget > 0 && chart.unit === 'month' && flow !== 'refunds'
-				? <LimitByMonth key={`by month ${slice}`} chart={chart} category={category} pace={pace} touch={touch} />
+				? <LimitByMonth key={`by month ${slice}`} chart={chart} category={category} touch={touch} />
 				: !vendorCrumb
 					? <VendorsCard key={`vendors ${slice}`} view={view} name={sliceName} touch={touch} onOpen={drillTo('vendor')} />
 					: !statusCrumb
@@ -1064,7 +1064,7 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 
 /** One category inside a crumb, month by month against its one limit (4c): every month of the period
     up to today, newest first, resting at the newest eight as the other long cards do (4d). */
-function LimitByMonth({ chart, category, pace, touch }) {
+function LimitByMonth({ chart, category, touch }) {
 	const budget = category.budget
 	const edit = <EditLimit key="edit" category={category} />
 	const editing = limitEdit(category)
@@ -1080,11 +1080,12 @@ function LimitByMonth({ chart, category, pace, touch }) {
 	const years = new Set(chart.columns.map(column => column.from.slice(0, 4))).size > 1
 	return (
 		<Card footer={footer.length ? footer : null} footerLayout={touch && all ? 'stack' : 'fill'}>
-			<CardHeader name="By month, against the limit" aside={`limit ${currency(budget, 0)}`} actions={touch ? undefined : [editing]} />
+			<CardHeader name="By month, against the limit" aside={`limit ${currency(budget, 0)} a month`} actions={touch ? undefined : [editing]} />
 			{months.map(column => {
 				const scale = Math.max(column.spend, budget)
 				const over = column.spend > budget
-				const marker = column.running && pace.running ? share(budget * (pace.daysIn / pace.unitDays), scale) : undefined
+				// a past month's marker is its whole limit; the running month's, how far the month has come
+				const marker = share(budget * (column.running ? column.reach : 1), scale)
 				const month = `${monthNames('long', true)[Number(column.from.slice(5, 7)) - 1]}${years ? ` ${column.from.slice(0, 4)}` : ''}`
 				return (
 					<div className="sp-stack sp-gap-6" key={column.key}>

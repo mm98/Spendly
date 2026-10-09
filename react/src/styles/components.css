@@ -355,6 +355,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); }
 
 .sp-field__label { font-size: var(--t-12); font-weight: 600; color: var(--ink-2); }
+/* a label with a small action at its end (Password - Forgot it?): the row is the label's
+   own line, so the field sits as close as it does under a bare label. The xsmall button
+   stands centred on that line and overhangs it rather than making it taller. */
+.sp-field__head { display: flex; align-items: center; gap: var(--sp-8); font-size: var(--t-12); height: 1lh; }
 /* A required field says so on its label. Quiet ink rather than red: red in this
    system means something is wrong, and a field that has not been filled in yet is
    not wrong. The asterisk is decoration for a screen reader - the control carries

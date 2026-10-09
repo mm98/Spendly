@@ -101,7 +101,7 @@ export function Field({
 	return (
 		<div className="sp-field">
 			{labelAction
-				? <div className="sp-row-flex sp-baseline">{labelled}<span className="sp-grow" />{labelAction}</div>
+				? <div className="sp-field__head">{labelled}<span className="sp-grow" />{labelAction}</div>
 				: note
 					? (
 						<div className="sp-row-flex sp-gap-8">

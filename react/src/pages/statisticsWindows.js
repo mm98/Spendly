@@ -192,6 +192,7 @@ export function chartOf(view) {
 		const to = isoOf(first + (end - 1) * DAY_MS)
 		const month = new Date(at).getUTCMonth()
 		const week = isoWeekOf(at).week
+		const running = view.todayIndex != null && view.todayIndex >= start && view.todayIndex < end
 		return {
 			key: from,
 			from,
@@ -206,7 +207,9 @@ export function chartOf(view) {
 			saved: between(saved, start, end),
 			orders: between(orders, start, end),
 			byCategory: view.series.byCategory.map(series => between(series, start, end)),
-			running: view.todayIndex != null && view.todayIndex >= start && view.todayIndex < end,
+			running,
+			// how much of a running column has passed, today included
+			reach: running ? (view.todayIndex - start + 1) / (end - start) : null,
 			future: view.todayIndex != null && view.todayIndex < start
 		}
 	})

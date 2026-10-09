@@ -9,6 +9,7 @@
 	.sp-touch .or-control { height: var(--control-h-touch); }
 	/* the attachment strip with its add tile */
 	.or-tiles { display: flex; height: calc(var(--mark-xlarge) + var(--sp-6)); }
+	.or-tile { display: flex; width: var(--mark-xlarge); height: var(--mark-xlarge); }
 
 	/* an item row: the name takes what is left, the amount at most 45% and then ends in "…" */
 	.or-line { flex: 1 1 0; }
