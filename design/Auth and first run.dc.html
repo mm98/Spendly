@@ -64,7 +64,7 @@
             <input class="sp-input" id="au-f1" type="email" autoComplete="username webauthn" inputMode="email" defaultValue="mikkel@example.net">
           </div>
           <div class="sp-field">
-            <div class="sp-row-flex sp-baseline">
+            <div class="sp-field__head">
               <label class="sp-field__label" for="au-p1">Password</label>
               <div class="sp-grow"></div>
               <span class="au-desk"><button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Forgot it?</button></span>
@@ -103,7 +103,7 @@
             <input class="sp-input" id="au-f9" type="email" autoComplete="username webauthn" inputMode="email" defaultValue="mikkel@example.net">
           </div>
           <div class="sp-field">
-            <div class="sp-row-flex sp-baseline">
+            <div class="sp-field__head">
               <label class="sp-field__label" for="au-p9">Password</label>
               <div class="sp-grow"></div>
               <span class="au-desk"><button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Forgot it?</button></span>
@@ -146,7 +146,7 @@
             <input class="sp-input" id="au-f2" type="email" autoComplete="username webauthn" inputMode="email" defaultValue="mikkel@example.net">
           </div>
           <div class="sp-field">
-            <div class="sp-row-flex sp-baseline">
+            <div class="sp-field__head">
               <label class="sp-field__label" for="au-p2">Password</label>
               <div class="sp-grow"></div>
               <span class="au-desk"><button type="button" class="sp-btn sp-btn--outline sp-btn--xsmall">Forgot it?</button></span>
@@ -262,6 +262,7 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The Password label and Forgot it? share <code>.sp-field__head</code></b>, a row as tall as the label's own line, so the 22px button overhangs it and the field sits 24px under the label, as under Email.</div>
     <div class="doc-note"><b>Forgot it?</b> opens the forgotten password flow (<a href="#20c">20c</a>) with the email already in its field.</div>
   </div>
 </section>

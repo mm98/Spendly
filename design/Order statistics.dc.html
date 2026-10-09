@@ -774,9 +774,8 @@
     <div class="doc-note"><b>The period bar wraps rather than squeezing.</b> The sizes keep their full width at every desktop width. When the row has no room for everything, the window, the resolved range and the compare switch move to a second line, in that order. The day count is hidden below 1100. Below 640 the bar is the single select.</div>
     <div class="doc-note"><b>Edit on category</b> opens the categories list showing only the categories that have a limit, <code>/categories?flag=limited</code>, with the removable tag "Has a limit" (<a href="Vendors and categories.dc.html#5d">5d</a>). Each category's limit is set from there. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
     <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
-    <div class="doc-note"><b>By category, Top vendors and Monthly limit show the current month</b> of the period, named in each card's meta ("August"): limits are monthly, and the side cards read against them. The four figures and Spend by month cover the whole period.</div>
-    <div class="doc-note"><b>Monthly limit draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The card has no foot line: limits belong to one category each and are never added together. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
-    <div class="doc-note"><b>Monthly limit holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
+    <div class="doc-note"><b>Limits draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The card has no foot line: limits belong to one category each and are never added together. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
+    <div class="doc-note"><b>Limits holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
     <div class="doc-note"><b>"Ahead of pace" shows when the share used is more than 10 points over the pace</b> - Lighting at 91% against 65%, not Seating at 72%. The same rule holds in the category list (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
     <div class="doc-note"><b>The drill path is the Showing card under the period row</b> (<a href="#4b">4b</a>). Its head holds the name, Reset and Open in orders; the path sits below the head and wraps there, so the head stays one line at every width and on a phone (<a href="Mobile screens.dc.html#7a">7a</a>). At rest there are no crumbs and no card.</div>
     <div class="doc-note"><b>The pointed column carries a full-height <code>--hover</code> band</b>, and the readout stands in it, so it reads as that month's however tall the bars beside it are. Its head is the month as a word with a capital and the year, "January 2026", in every locale. The same holds for every month name that stands alone or starts a label - the period crumb, chart ticks, row labels - Danish included. Inside running text a month follows the language.</div>
@@ -1661,9 +1660,8 @@
     <div class="doc-note"><b>The period bar wraps rather than squeezing.</b> The sizes keep their full width at every desktop width. When the row has no room for everything, the window, the resolved range and the compare switch move to a second line, in that order. The day count is hidden below 1100. Below 640 the bar is the single select.</div>
     <div class="doc-note"><b>Edit on category</b> opens the categories list showing only the categories that have a limit, <code>/categories?flag=limited</code>, with the removable tag "Has a limit" (<a href="Vendors and categories.dc.html#5d">5d</a>). Each category's limit is set from there. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
     <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
-    <div class="doc-note"><b>By category, Top vendors and Monthly limit show the current month</b> of the period, named in each card's meta ("August"): limits are monthly, and the side cards read against them. The four figures and Spend by month cover the whole period.</div>
-    <div class="doc-note"><b>Monthly limit draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The card has no foot line: limits belong to one category each and are never added together. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
-    <div class="doc-note"><b>Monthly limit holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
+    <div class="doc-note"><b>Limits draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The card has no foot line: limits belong to one category each and are never added together. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
+    <div class="doc-note"><b>Limits holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
     <div class="doc-note"><b>"Ahead of pace" shows when the share used is more than 10 points over the pace</b> - Lighting at 91% against 65%, not Seating at 72%. The same rule holds in the category list (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
     <div class="doc-note"><b>The drill path is the Showing card under the period row</b> (<a href="#4b">4b</a>). Its head holds the name, Reset and Open in orders; the path sits below the head and wraps there, so the head stays one line at every width and on a phone (<a href="Mobile screens.dc.html#7a">7a</a>). At rest there are no crumbs and no card.</div>
     <div class="doc-note"><b>The pointed column carries a full-height <code>--hover</code> band</b>, and the readout stands in it, so it reads as that month's however tall the bars beside it are. Its head is the month as a word with a capital and the year, "January 2026", in every locale. The same holds for every month name that stands alone or starts a label - the period crumb, chart ticks, row labels - Danish included. Inside running text a month follows the language.</div>
@@ -2005,8 +2003,8 @@
         </div>
         <div class="sp-card">
           <div class="sp-card__head"><span class="sp-section-label">Against the limit</span></div>
-          <span class="sp-stat__figure">7.240 / 6.000</span>
-          <span class="sp-field__help" data-color="warning">August, over</span>
+          <span class="sp-stat__figure">62.400 / 64.000</span>
+          <span class="sp-field__help">2026, under</span>
         </div>
       </div>
 
@@ -2019,31 +2017,31 @@
           </div>
           <div class="sp-bars">
             <button type="button" class="sp-bars__col" data-from="2026-01-01" data-to="2026-01-31" aria-label="Jan">
-              <span class="sp-bars__bar sp-bars__bar--muted" data-h="20"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="55"></span>
               <span class="sp-bars__tick">Jan</span>
             </button>
             <button type="button" class="sp-bars__col" data-from="2026-02-01" data-to="2026-02-28" aria-label="Feb">
-              <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="75"></span>
               <span class="sp-bars__tick">Feb</span>
             </button>
             <button type="button" class="sp-bars__col" data-from="2026-03-01" data-to="2026-03-31" aria-label="Mar">
-              <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
               <span class="sp-bars__tick">Mar</span>
             </button>
             <button type="button" class="sp-bars__col" data-from="2026-04-01" data-to="2026-04-30" aria-label="Apr">
-              <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="90"></span>
               <span class="sp-bars__tick">Apr</span>
             </button>
             <button type="button" class="sp-bars__col" data-from="2026-05-01" data-to="2026-05-31" aria-label="May">
-              <span class="sp-bars__bar sp-bars__bar--muted" data-h="35"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="75"></span>
               <span class="sp-bars__tick">May</span>
             </button>
             <button type="button" class="sp-bars__col" data-from="2026-06-01" data-to="2026-06-30" aria-label="Jun">
-              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="95"></span>
               <span class="sp-bars__tick">Jun</span>
             </button>
             <button type="button" class="sp-bars__col" data-from="2026-07-01" data-to="2026-07-31" aria-label="Jul">
-              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="95"></span>
               <span class="sp-bars__tick">Jul</span>
             </button>
             <button type="button" class="sp-bars__col" aria-pressed="true" data-from="2026-08-01" data-to="2026-08-31" aria-label="Aug">
@@ -2056,17 +2054,17 @@
           <div class="sp-card__head">
             <span class="sp-section-label">By month, against the limit</span>
             <span class="sp-grow"></span>
-            <span class="sp-meta">limit 6.000 kr.</span>
+            <span class="sp-meta">limit 8.000 kr. a month</span>
           </div>
           <div class="sp-stack sp-gap-6">
             <div class="sp-row-flex sp-gap-8">
-              <span class="sp-data">June</span>
+              <span class="sp-data sp-subtitle">August</span>
               <span class="sp-grow"></span>
-              <span class="sp-amount">3.740</span>
+              <span class="sp-amount">9.600</span>
             </div>
             <span class="sp-gauge">
-              <meter value="60" min="0" max="100" aria-label="June"></meter>
-              <span class="sp-gauge__fill" data-fill="60"></span>
+              <meter value="100" min="0" max="100" aria-label="August"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="100"></span>
               <span class="sp-gauge__marker" data-at="65"></span>
             </span>
           </div>
@@ -2074,24 +2072,84 @@
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-data">July</span>
               <span class="sp-grow"></span>
-              <span class="sp-amount">5.180</span>
+              <span class="sp-amount">9.200</span>
             </div>
             <span class="sp-gauge">
-              <meter value="85" min="0" max="100" aria-label="July"></meter>
-              <span class="sp-gauge__fill" data-fill="85"></span>
-              <span class="sp-gauge__marker" data-at="65"></span>
+              <meter value="100" min="0" max="100" aria-label="July"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="100"></span>
+              <span class="sp-gauge__marker" data-at="100"></span>
             </span>
           </div>
           <div class="sp-stack sp-gap-6">
             <div class="sp-row-flex sp-gap-8">
-              <span class="sp-data sp-subtitle">August</span>
+              <span class="sp-data">June</span>
               <span class="sp-grow"></span>
-              <span class="sp-amount">7.240</span>
+              <span class="sp-amount">9.000</span>
             </div>
             <span class="sp-gauge">
-              <meter value="100" min="0" max="100" aria-label="August"></meter>
+              <meter value="100" min="0" max="100" aria-label="June"></meter>
               <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="100"></span>
-              <span class="sp-gauge__marker" data-at="65"></span>
+              <span class="sp-gauge__marker" data-at="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">May</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">7.000</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="88" min="0" max="100" aria-label="May"></meter>
+              <span class="sp-gauge__fill" data-fill="88"></span>
+              <span class="sp-gauge__marker" data-at="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">April</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">8.400</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="100" min="0" max="100" aria-label="April"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="100"></span>
+              <span class="sp-gauge__marker" data-at="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">March</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">6.600</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="85" min="0" max="100" aria-label="March"></meter>
+              <span class="sp-gauge__fill" data-fill="85"></span>
+              <span class="sp-gauge__marker" data-at="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">February</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">7.200</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="90" min="0" max="100" aria-label="February"></meter>
+              <span class="sp-gauge__fill" data-fill="90"></span>
+              <span class="sp-gauge__marker" data-at="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">January</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">5.400</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="68" min="0" max="100" aria-label="January"></meter>
+              <span class="sp-gauge__fill" data-fill="68"></span>
+              <span class="sp-gauge__marker" data-at="100"></span>
             </span>
           </div>
         </div>
