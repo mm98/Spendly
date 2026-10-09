@@ -16,6 +16,17 @@
   .au-panel { width: 400px; box-shadow: var(--shadow-menu); }
   .au-panel--wide { width: 420px; }
   .au-centred { align-items: center; text-align: center; }
+  /* below 480px the panel spans the phone's own inset */
+  .sp-touch .au-panel { width: auto; }
+  @media (max-width: 479.98px) { .au-panel { width: auto; } }
+
+  /* Forgot it? sits on the Password label's line on a computer, and under the field
+     below 640px (the touch query), where a 48px button on that line would push the
+     field lower than Email's */
+  .au-touch { display: none; }
+  .sp-touch .au-desk { display: none; }
+  .sp-touch .au-touch { display: contents; }
+  @media (max-width: 639.98px) { .au-desk { display: none; } .au-touch { display: contents; } }
 
   /* widths the specimens and their captions are drawn at */
   .au-w200 { width: 200px; }
@@ -29,17 +40,8 @@
   .au-email { display: block; width: 600px; height: 560px; border: 0; border-radius: var(--r-card); }
   .au-right { justify-content: flex-end; }
 
-  /* A one-time code: spaced numerals, so six digits read as six rather than a number. */
-  .au-code { font-size: var(--t-15); letter-spacing: 0.16em; }
   .au-mono { font-family: ui-monospace, Menlo, monospace; font-size: var(--t-11); color: var(--ink-2); }
 
-  /* The password strength meter: segments inside the gauge rather than one fill,
-     because it reports a score out of four and not a percentage. */
-  .au-strength { display: flex; gap: 3px; overflow: hidden; }
-  .au-fill { background: var(--green); }
-  .au-fill--off { background: var(--green-tint-2); }
-  .au-seg { width: 22px; height: 5px; border-radius: var(--r-marker); background: var(--green); }
-  .au-seg--off { background: var(--line-3); }
 
   /* The app drawn small, so a first-run screen can show where the user lands.
      Not a device frame - there is no bezel; it is the shell at a readable scale. */

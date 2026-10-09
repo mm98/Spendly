@@ -131,7 +131,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Alerts arrive in the app and by email.</b> There are no phone notifications. The switches under How loud live in Settings, in the <b>Limit alerts</b> pane (<a href="Settings and import.dc.html#11a">11a</a>).</div>
+    <div class="doc-note"><b>Alerts arrive in the app only.</b> There is no email and no phone notification. The switches under How loud live in Settings, in the <b>Limit alerts</b> pane (<a href="Settings and import.dc.html#11a">11a</a>).</div>
     <div class="doc-note"><b>The close button in the head hides the summary for that month</b>, on every device, and it does not come back. Rows have no close button; remove the per-row hide and its Undo message from the app. The summary is desktop only; Home on a phone does not show it (<a href="Mobile screens.dc.html#7a">7a</a>, the Home frame).</div>
     <div class="doc-note"><b>The heading compares the month with the month chosen in Settings, Appearance, "Compare this month with"</b> (<a href="Settings and import.dc.html#11a">11a</a>), as Home does, by amount: "You spent 61.480 kr., 3.040 kr. less than in July", or "... 2.300 kr. more than in August 2025" on Same month last year. Category limits are never added together. With no orders in that month, it reads "You spent 61.480 kr. in August". The heading stays in plain ink either way: the difference is neither a saving nor a limit.</div>
     <div class="doc-note"><b>Open statistics</b> opens Statistics (<a href="Order statistics.dc.html#4a">4a</a>) for the month the summary is about, with no crumb: the card names several categories, and the page shows them all.</div>
@@ -188,7 +188,6 @@
       <div class="sp-card">
         <label class="sp-choice"><input class="sp-switch" type="checkbox" role="switch" id="da-sw1" defaultChecked="{{ true }}">Warn me while I am saving an order</label>
         <label class="sp-choice"><input class="sp-switch" type="checkbox" role="switch" id="da-sw2" defaultChecked="{{ true }}">Monthly summary on the first of the month</label>
-        <label class="sp-choice"><input class="sp-switch" type="checkbox" role="switch" id="da-sw3" defaultChecked="{{ true }}">Also by email</label>
         <div class="sp-card__footer sp-card__footer--stack">
           <span class="sp-section-label">Tell me early, at</span>
           <div class="sp-segmented sp-segmented--facet" role="radiogroup">

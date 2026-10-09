@@ -993,6 +993,8 @@
      once the bar stood on the baseline. */
   if (!/\.sp-skeleton--fill \{[^}]*height: 100%[^}]*align-self: stretch/.test(comp)) fail('a loading shape fits its job', 'components.css', 'no sp-skeleton--fill');
   for (const f of pages) for (const m of src[f].matchAll(/<span class="sp-skeleton sp-skeleton--bar"/g)) if (!/<div class="sp-bars[^"]*">\s*(?:<span class="sp-skeleton sp-skeleton--bar"[^>]*><\/span>\s*)*$/.test(src[f].slice(Math.max(0, m.index - 1200), m.index))) fail('a loading shape fits its job', f, 'a chart loading bar outside .sp-bars');
+  /* A chart's label is one line, centred under its bar even when wider than the column. */
+  if (!/\.sp-bars__tick \{[^}]*align-self: center;[^}]*white-space: nowrap;/.test(comp)) fail('a chart label is centred under its bar', 'components.css', '.sp-bars__tick does not centre itself on one line');
   /* A chart's legend is under the chart it keys. Spend by month drew it between the head
      and the chart, Spend vs saving under it: two places for one part. Checked on markup:
      the element before a legend, in its card, is the chart. */
@@ -1030,6 +1032,19 @@
     if (!/export function CardHeader\(/.test(card) || !/className="sp-card__head"/.test(card)) fail('a CardHeader is a component', 'react_handoff/Card.jsx', 'no CardHeader rendering .sp-card__head');
     if (!/useContext\(HeadSlot\)/.test(card) || !/<HeadSlot\.Provider value=\{true\}>/.test(card)) fail('a CardHeader is only a child of Card', 'react_handoff/Card.jsx', 'CardHeader does not refuse to render outside Card');
   }
+
+  /* A button on a field label's line is the xsmall size: a 34px button beside a 12px
+     label pushed that field's input lower than the field beside it (20a, Forgot it?). */
+  for (const f of pages) for (const m of src[f].matchAll(/<label class="sp-field__label"[^>]*>[^<]*<\/label>\s*(?:<div class="sp-grow"><\/div>\s*)?(?:<span class="[a-z]{2}-[\w-]+">\s*)?<button[^>]*class="([^"]*)"/g))
+    if (/\bsp-btn\b/.test(m[1]) && !/\bsp-btn--xsmall\b/.test(m[1])) fail('a button beside a field label is xsmall', f, m[1]);
+
+  /* A checkbox is the input. A drawn box (a div.sp-check holding a tick) has no state,
+     no label and no keyboard - 20a's Stay signed in was one. */
+  for (const f of pages) for (const m of src[f].matchAll(/<(div|span) class="sp-check"/g)) fail('a checkbox is the input', f, m[0]);
+  /* An action is a link or a button. Green bold text standing in for one has no hover,
+     no focus and no target - 20a-20d had nine. Swept on the ink, not on the words. */
+  for (const f of pages) for (const m of src[f].matchAll(/<(div|span) class="(?:sp-title|sp-strong)(?: sp-center)? sp-ink-accent(?: sp-center)?"[^>]*>([^<]{1,40})</g)) if (!/^[\d.,]+\s*(px|kr\.)?$/.test(m[2].trim())) fail('an action is a link or a button', f, m[2]);
+  for (const f of pages) for (const m of src[f].matchAll(/<(div|span) class="sp-(?:ink-accent sp-strong|strong sp-ink-accent)"[^>]*>([^<]{1,40})</g)) if (!/^[\d.,]+\s*(px|kr\.)?$/.test(m[2].trim())) fail('an action is a link or a button', f, m[2]);
 
   /* ---- report ------------------------------------------------------------ */
 
