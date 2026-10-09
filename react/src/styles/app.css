@@ -251,11 +251,6 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 .sp-sheet { transition: transform 160ms ease-out; }
 .sp-sheet__handle { position: relative; cursor: grab; touch-action: none; }
 .sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
-/* A domain longer than its line (.sp-email-line) still shortens, once the part before the @ has given
-   all its room, rather than running out of its box. Until the design says what gives there. */
-.sp-email-line > .sp-email-line__local { flex-shrink: 1000; }
-.sp-email-line > .sp-email-line__domain { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
 @media (prefers-reduced-motion: reduce) {
 	.sp-sheet { transition: none; }
 }
