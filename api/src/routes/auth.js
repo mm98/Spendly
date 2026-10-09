@@ -137,7 +137,7 @@ router.get('/options', (req, res) => res.json({
 	receiptReading: Boolean(process.env.ANTHROPIC_API_KEY)
 }))
 
-const selectProfile = db.prepare(`SELECT u.name, u.pending_email, u.password_changed_at, p.updated_at AS picture_at
+const selectProfile = db.prepare(`SELECT u.name, u.password_changed_at, p.updated_at AS picture_at
 	FROM users u LEFT JOIN user_pictures p ON p.user_id = u.id WHERE u.id = ?`)
 
 router.get('/me', requireAuth, (req, res) => {
@@ -148,7 +148,6 @@ router.get('/me', requireAuth, (req, res) => {
 		// the time it changed rides in the address, so a new picture is never answered from a cache
 		picture: profile.picture_at ? `/api/account/picture?v=${profile.picture_at}` : null,
 		emailConfirmed: Boolean(req.user.email_confirmed),
-		pendingEmail: profile.pending_email ?? null,
 		passwordChangedAt: profile.password_changed_at ?? null,
 		mail: mailAvailable(),
 		// An install fact, not an account one -- whether this server can actually read a
@@ -162,14 +161,9 @@ router.get('/me', requireAuth, (req, res) => {
 
 /* ---- links by email: confirming an address (20b) and resetting a password (20c) ---- */
 
-const selectUser = db.prepare('SELECT id, name, email, email_confirmed, pending_email FROM users WHERE id = ?')
-const confirmEmail = db.prepare('UPDATE users SET email = ?, email_confirmed = 1, pending_email = NULL WHERE id = ?')
-const setPending = db.prepare('UPDATE users SET pending_email = ? WHERE id = ?')
-const setUnconfirmedEmail = db.prepare('UPDATE users SET email = ?, pending_email = NULL WHERE id = ?')
+const selectUser = db.prepare('SELECT id, name, email, email_confirmed FROM users WHERE id = ?')
+const confirmEmail = db.prepare('UPDATE users SET email_confirmed = 1 WHERE id = ?')
 const setPassword = db.prepare('UPDATE users SET password_hash = ?, password_changed_at = unixepoch() WHERE id = ?')
-const dropPendingLinks = db.prepare(`DELETE FROM account_tokens WHERE user_id = @id AND kind = 'confirm' AND used_at IS NULL
-	AND email = (SELECT pending_email FROM users WHERE id = @id)`)
-const cancelPending = db.prepare('UPDATE users SET pending_email = NULL WHERE id = ?')
 const endSessions = db.prepare('DELETE FROM sessions WHERE user_id = ?')
 const noMail = res => res.status(409).json({ error: 'This server cannot send email.' })
 const notSent = (res, e) => {
@@ -177,41 +171,15 @@ const notSent = (res, e) => {
 	return res.status(409).json({ error: 'The email could not be sent. Try again in a few minutes.' })
 }
 
-/** Tells the confirmed address that a move to `newEmail` was asked for (20f). Its link has no token, so it never expires. */
-const sendEmailChanged = (req, email, newEmail) => inBackground(sendMail(emailMessage('email-changed', email,
-	{ email, new_email: newEmail, action_url: linkTo(req, '/reset?email=' + encodeURIComponent(email)) })))
-
 /** Sends the confirming link again, at most once a minute; the earlier link stops working. */
 router.post('/confirm/resend', requireAuth, async (req, res) => {
 	if (!mailAvailable()) return noMail(res)
 	const user = selectUser.get(req.user.id)
-	const email = user.pending_email ?? (user.email_confirmed ? null : user.email)
-	if (!email) return res.status(409).json({ error: 'Your email is already confirmed.' })
+	if (user.email_confirmed) return res.status(409).json({ error: 'Your email is already confirmed.' })
 	const wait = resendWait(user.id, 'confirm')
 	if (wait) return res.status(429).json({ error: 'A link was sent a moment ago.', retryAfter: wait })
-	try { await sendLink(req, user, 'confirm', email) } catch (e) { return notSent(res, e) }
-	res.json({ email, retryAfter: resendWait(user.id, 'confirm') })
-})
-
-/** A new address to confirm. A confirmed address keeps working until the new one is confirmed. */
-router.post('/email', requireAuth, async (req, res) => {
-	if (!mailAvailable()) return noMail(res)
-	const email = String(req.body?.email ?? '').trim().toLowerCase()
-	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
-	const user = selectUser.get(req.user.id)
-	const owner = findUserByEmail.get(email)
-	if (owner && owner.id !== user.id) return res.status(409).json({ error: 'There is already an account with this email.' })
-	if (user.email_confirmed && email === user.email) return res.status(400).json({ error: 'That is the address you already have.' })
-	// the address changes only once its link is sent, so a failed send leaves the account as it was
-	try { await sendLink(req, user, 'confirm', email) } catch (e) { return notSent(res, e) }
-	if (user.email_confirmed) {
-		setPending.run(email, user.id)
-		// only a confirmed address hears of it: an unconfirmed one may be a typo for someone else's
-		sendEmailChanged(req, user.email, email)
-	} else {
-		setUnconfirmedEmail.run(email, user.id)
-	}
-	res.json({ email, retryAfter: resendWait(user.id, 'confirm') })
+	try { await sendLink(req, user, 'confirm', user.email) } catch (e) { return notSent(res, e) }
+	res.json({ email: user.email, retryAfter: resendWait(user.id, 'confirm') })
 })
 
 /** Opening a confirming link confirms the address and signs this browser in. Opened twice, it
@@ -220,15 +188,11 @@ router.post('/confirm', (req, res) => {
 	const token = String(req.body?.token ?? '')
 	const { state, row } = readToken(token, 'confirm')
 	const user = row ? selectUser.get(row.user_id) : null
-	if (state === 'expired') return res.json({ state, email: user ? user.pending_email ?? user.email : null })
-	if (state === 'used') {
-		const done = user.email === row.email && user.email_confirmed
-		return res.json({ state: done ? 'already' : 'expired', email: user.pending_email ?? user.email })
-	}
-	const owner = findUserByEmail.get(row.email)
-	if (owner && owner.id !== user.id) return res.status(409).json({ error: 'There is already an account with this email.' })
+	// a link for any address but the account's own confirms nothing: the address cannot be changed (20b)
+	if (state === 'expired' || row.email !== user.email) return res.json({ state: 'expired', email: user?.email ?? null })
+	if (state === 'used') return res.json({ state: user.email_confirmed ? 'already' : 'expired', email: user.email })
 	db.transaction(() => {
-		confirmEmail.run(row.email, user.id)
+		confirmEmail.run(user.id)
 		useToken(token)
 	})()
 	createSession(req, res, user.id)
@@ -252,8 +216,7 @@ router.get('/reset/:token', (req, res) => {
 	res.json({ state, email: row?.email ?? null })
 })
 
-/** The new password from a reset link: every other session ends, a pending change of email is cancelled (20f),
-    and this browser is signed in. */
+/** The new password from a reset link: every other session ends, and this browser is signed in. */
 router.post('/reset/:token', async (req, res) => {
 	const { state, row } = readToken(req.params.token, 'reset')
 	if (state !== 'valid') return res.status(410).json({ error: 'That link has expired.', state })
@@ -263,8 +226,6 @@ router.post('/reset/:token', async (req, res) => {
 	db.transaction(() => {
 		setPassword.run(hash, row.user_id)
 		endSessions.run(row.user_id)
-		dropPendingLinks.run({ id: row.user_id })
-		cancelPending.run(row.user_id)
 		useToken(req.params.token)
 	})()
 	clearFailures.run(row.email)

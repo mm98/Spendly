@@ -6,6 +6,7 @@ import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Check, Choice } from '../components/Choice.jsx'
 import { failureMessage, login } from '../api/client.js'
 import { EMAIL_PATTERN, EMAIL_PROBLEM, focusField, waitWords, useCountdown, AuthCard, landing, onward, useSignedOut, useMail } from './AuthParts.jsx'
+import { useShellShape } from '../app/useMedia.js'
 
 export default function SignIn() {
 	const navigate = useNavigate()
@@ -19,6 +20,7 @@ export default function SignIn() {
 	const [busy, setBusy] = useState(false)
 	const [lockedFor, setLockedFor] = useCountdown()
 	const mail = useMail()
+	const touch = useShellShape() === 'touch'
 	const signedOut = useSignedOut()
 	const locked = lockedFor > 0
 	const resetTo = `/reset${email.trim() ? `?email=${encodeURIComponent(email.trim().toLowerCase())}` : ''}`
@@ -54,7 +56,8 @@ export default function SignIn() {
 			})
 	}
 
-	const forgot = mail && !locked ? <Button variant="outline" size="small" to={resetTo}>Forgot it?</Button> : null
+	// on the Password label's line on a computer; below 640 a full-width button under the field (20a)
+	const canReset = mail && !locked
 
 	if (!signedOut) return null
 	if (locked) return (
@@ -73,16 +76,18 @@ export default function SignIn() {
 	return (
 		<AuthCard title="Sign in to Spendly" lead={alert ? null : 'Your orders, receipts and monthly limits.'} alert={alert}
 			onSubmit={submit} submit="Sign in" busy={busy} busyLabel="Signing in…"
-			across={alert ? null : <>New here? <Link className="sp-strong sp-ink-accent au-across" to="/register">Create an account</Link></>}>
+			across={alert ? null : <>New here? <Link className="sp-strong au-across" to="/register">Create an account</Link></>}>
 			<Field label="Email" id="signin-email" message={emailProblem ?? undefined} messageType={emailProblem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
-			<Field label="Password" id="signin-password" labelAction={forgot}
+			<Field label="Password" id="signin-password"
+				labelAction={canReset && !touch ? <Button variant="outline" size="xsmall" to={resetTo}>Forgot it?</Button> : null}
 				message={passwordProblem ?? undefined} messageType={passwordProblem ? 'danger' : 'hint'}>
 				<PasswordField autoComplete="current-password" value={password}
 					onChange={v => { setPassword(v); setPasswordProblem(null) }} />
 			</Field>
+			{canReset && touch ? <Button variant="outline" fullWidth to={resetTo}>Forgot it?</Button> : null}
 			{alert ? null : (
 				<Choice control={<Check checked={remember} onChange={ev => setRemember(ev.target.checked)} />}>
 					Stay signed in for 30 days

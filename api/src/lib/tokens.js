@@ -19,7 +19,8 @@ const lastSent = db.prepare('SELECT MAX(created_at) AS at FROM account_tokens WH
 
 /** A new single-use token. The earlier ones of its kind keep working until settleToken says it was sent. */
 export function issueToken(userId, kind, email) {
-	const token = randomBytes(24).toString('base64url')
+	// 16 characters: still unguessable, and short enough that an email's written-out link fits on one line
+	const token = randomBytes(12).toString('base64url')
 	const now = nowEpoch()
 	insertToken.run(hashOf(token), userId, kind, email, now + TOKEN_TTL[kind], now)
 	return token

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import {
-	askPasswordReset, changeEmail, confirmEmail, failureMessage, getCurrentUser, readResetLink, resendConfirmation, resetPassword
+	askPasswordReset, confirmEmail, failureMessage, getCurrentUser, readResetLink, resendConfirmation, resetPassword
 } from '../api/client.js'
 import {
 	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, onward, useCountdown, useMail
@@ -21,40 +21,6 @@ const confirmOnce = token => {
 	return confirmed.get(token)
 }
 
-/** "Wrong address? Change it": the address field in place of the line, then a new link to it. */
-function ChangeAddress({ onSent }) {
-	const [open, setOpen] = useState(false)
-	const [email, setEmail] = useState('')
-	const [problem, setProblem] = useState(null)
-	const [busy, setBusy] = useState(false)
-	if (!open) return (
-		<span className="sp-subtitle sp-center">
-			Wrong address? <Button variant="text" size="small" onClick={() => { setOpen(true); focusField('confirm-email') }}>Change it</Button>
-		</span>
-	)
-	const send = () => {
-		const address = email.trim().toLowerCase()
-		if (!EMAIL_PATTERN.test(address)) { setProblem(EMAIL_PROBLEM); return focusField('confirm-email') }
-		setBusy(true)
-		changeEmail(address)
-			.then(out => { setOpen(false); setEmail(''); onSent(out) })
-			.catch(e => { setProblem(failureMessage(e, UNREACHABLE)); focusField('confirm-email') })
-			.finally(() => setBusy(false))
-	}
-	return (
-		<div className="sp-stack sp-gap-8">
-			<Field label="New email" id="confirm-email" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
-				<TextField type="email" autoComplete="email" inputMode="email" value={email}
-					onChange={v => { setEmail(v); setProblem(null) }}
-					onKeyDown={ev => { if (ev.key === 'Enter') { ev.preventDefault(); send() } }} />
-			</Field>
-			<span className="sp-subtitle sp-center">
-				<Button variant="text" size="small" disabled={busy} onClick={send}>Send the link there</Button>
-			</span>
-		</div>
-	)
-}
-
 /** /confirm: the page that says a link was sent (20b 1 and 2). */
 export function ConfirmSent() {
 	const navigate = useNavigate()
@@ -66,14 +32,13 @@ export function ConfirmSent() {
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const sent = out => {
-		setUser(u => ({ ...u, ...(u.emailConfirmed ? { pendingEmail: out.email } : { email: out.email }) }))
 		setAgain(true)
 		setWait(out.retryAfter ?? 60)
 	}
 	useEffect(() => {
 		getCurrentUser()
 			.then(me => {
-				if (me.emailConfirmed && !me.pendingEmail) return navigate(onward(me, '/'), { replace: true })
+				if (me.emailConfirmed) return navigate(onward(me, '/'), { replace: true })
 				setUser(me)
 				if (state?.sent) sent(state.sent)
 				else if (state?.wait) setWait(state.wait)
@@ -81,7 +46,7 @@ export function ConfirmSent() {
 			.catch(() => navigate('/signin?next=%2Fconfirm', { replace: true }))
 	}, [])
 	if (!user) return null
-	const address = user.pendingEmail ?? user.email
+	const address = user.email
 	const resend = () => {
 		setBusy(true)
 		setAlert(null)
@@ -101,7 +66,6 @@ export function ConfirmSent() {
 			alert={alert} onSubmit={resend} submitVariant="outline" busy={busy} busyLabel="Sending…"
 			disabled={wait > 0} submitIcon={wait > 0 ? 'clock' : null}
 			submit={wait > 0 ? `Send again in ${clock(wait)}` : again ? 'Send again' : 'Send it again'}
-			across={<ChangeAddress onSent={sent} />}
 			footer={<span className="sp-meta sp-center sp-grow">Nothing after a few minutes? Check spam.</span>} />
 	)
 }
@@ -131,7 +95,7 @@ export function ConfirmLink() {
 		<AuthCard mark={false} title="That link could not be checked" alert={answer.error}
 			onSubmit={() => window.location.reload()} submit="Try again" />
 	)
-	const address = answer.email ?? me?.pendingEmail ?? me?.email
+	const address = answer.email ?? me?.email
 	const sendNew = () => {
 		if (!me) return navigate('/signin?next=%2Fconfirm')
 		setBusy(true)
@@ -148,8 +112,7 @@ export function ConfirmLink() {
 		<AuthCard icon="clock" gap={12} title="That link has expired"
 			lead={<>Links last 24 hours and work once.{address ? <> We can send a fresh one to <b className="sp-ink">{address}</b>.</> : null}</>}
 			alert={alert} onSubmit={sendNew} busy={busy} busyLabel="Sending…"
-			submit={me ? 'Send a new link' : 'Sign in to get a new link'}
-			across={me ? <ChangeAddress onSent={out => navigate('/confirm', { state: { sent: out } })} /> : null} />
+			submit={me ? 'Send a new link' : 'Sign in to get a new link'} />
 	)
 }
 
@@ -163,7 +126,7 @@ export function ResetAsk() {
 	const [busy, setBusy] = useState(false)
 	const [sentTo, setSentTo] = useState(null)
 	const [wait, setWait] = useCountdown()
-	const back = <Link className="sp-title sp-ink-accent" to="/signin">Back to sign in</Link>
+	const back = <Button variant="outline" size="small" fullWidth to="/signin">Back to sign in</Button>
 
 	const send = () => {
 		const address = email.trim().toLowerCase()
@@ -188,7 +151,7 @@ export function ResetAsk() {
 	return (
 		<AuthCard title="Reset your password" lead={mail ? "Enter the email you signed up with and we'll send a link." : null}
 			alert={mail ? alert : NO_MAIL} alertColor={mail ? 'danger' : 'warning'} alertTitle="Email is not set up"
-			onSubmit={send} submit="Send the link" busy={busy} busyLabel="Sending…" disabled={!mail} gap={12} across={back}>
+			onSubmit={send} submit="Send the link" busy={busy} busyLabel="Sending…" disabled={!mail} gap={12} secondary={back}>
 			<Field label="Email" id="reset-email" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					placeholder="you@example.com" onChange={v => { setEmail(v); setProblem(null) }} />
@@ -218,7 +181,7 @@ export function ResetLink() {
 		<AuthCard icon="clock" gap={12} title="That link has expired"
 			lead="Reset links last an hour and work once. Ask for a new one and we'll send it straight away."
 			onSubmit={() => navigate(link.email ? `/reset?email=${encodeURIComponent(link.email)}` : '/reset')} submit="Start again"
-			across={<Link className="sp-title sp-ink-accent" to="/signin">Back to sign in</Link>} />
+			secondary={<Button variant="outline" size="small" fullWidth to="/signin">Back to sign in</Button>} />
 	)
 	const save = () => {
 		if (password.length < MIN_PASSWORD) { setProblem(`Use at least ${MIN_PASSWORD} characters.`); return focusField('reset-password') }

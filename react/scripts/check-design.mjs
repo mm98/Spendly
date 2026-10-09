@@ -255,6 +255,34 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- a label-line button is xsmall, a checkbox is the input, an action is a link or a button ---- */
+
+{
+	const classOf = el => {
+		const a = el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+		return a?.value?.type === 'Literal' ? a.value.value : ''
+	}
+	const attr = (el, name) => el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === name)
+	// the design's own sweep (design/styles/check.js): green bold words in a span or div, numbers aside
+	const ACTION_INK = [/^(?:sp-title|sp-strong)(?: sp-center)? sp-ink-accent(?: sp-center)?$/, /^sp-(?:ink-accent sp-strong|strong sp-ink-accent)$/]
+	for (const [p, ast] of parsed) {
+		const declared = new Map()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier') declared.set(n.id.name, n.init) })
+		visit(ast, n => {
+			if (n.type === 'JSXAttribute' && n.name?.name === 'labelAction' && n.value?.type === 'JSXExpressionContainer') {
+				const value = n.value.expression.type === 'Identifier' ? declared.get(n.value.expression.name) : n.value.expression
+				for (const el of placed(value)) if (tagOf(el) === 'Button' && attr(el, 'size')?.value?.value !== 'xsmall')
+					fail('a button beside a field label is xsmall', rel(p), '<Field labelAction={<Button>}> without size="xsmall"')
+			}
+			if (n.type !== 'JSXElement' || !['div', 'span'].includes(tagOf(n))) return
+			if (/\bsp-check\b/.test(classOf(n))) fail('a checkbox is the input', rel(p), `<${tagOf(n)} className="${classOf(n)}">`)
+			const words = n.children.filter(c => c.type === 'JSXText').map(c => c.value).join('').trim()
+			if (ACTION_INK.some(r => r.test(classOf(n))) && words && words.length <= 40 && !/^[\d.,]+\s*(px|kr\.)?$/.test(words))
+				fail('an action is a link or a button', rel(p), words)
+		})
+	}
+}
+
 /* ---- what the product says ---- */
 
 const TELLS = [/—/, /–/, /[‘’“”]/, /&(mdash|ndash|rsquo|lsquo|ldquo|rdquo);/, /\p{Extended_Pictographic}/u]

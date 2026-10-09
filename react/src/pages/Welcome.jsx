@@ -3,6 +3,7 @@ import { useMatches, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
+import { Gauge } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
@@ -110,9 +111,7 @@ export default function Welcome() {
 	const head = (
 		<div className="sp-stack sp-gap-12">
 			<div className="sp-row-flex sp-gap-8">
-				<span className="au-seg" />
-				<span className={step === 2 ? 'au-seg' : 'au-seg au-seg--off'} />
-				<span className="sp-grow" />
+				<span className="sp-grow"><Gauge thin value={step * 50} aria-hidden="true" /></span>
 				<span className="sp-meta">Step {step} of 2</span>
 			</div>
 			<div className="sp-stack sp-gap-6">
@@ -193,7 +192,7 @@ export default function Welcome() {
 				{body}
 				{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}
 				<div className="sp-row-flex sp-gap-10">
-					<Button variant="text" disabled={busy} onClick={skip}>Skip</Button>
+					<Button variant="outline" disabled={busy} onClick={skip}>Skip</Button>
 					<span className="sp-grow" />
 					<Button disabled={busy} onClick={step === 1 ? toStep2 : finish}>{busy ? <><Spinner />{primary}</> : primary}</Button>
 				</div>

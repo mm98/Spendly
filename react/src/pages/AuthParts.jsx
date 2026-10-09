@@ -6,6 +6,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Spinner } from '../components/Utilities.jsx'
+import { Gauge } from '../components/Data.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { getAuthOptions, getCurrentUser } from '../api/client.js'
 
@@ -21,7 +22,7 @@ export function strengthOf(password) {
 	return n < 12 ? 2 : n < 16 ? 3 : 4
 }
 
-/** The new-password field's meter (20a, 20c): four segments and a word, then the field's hint. */
+/** The new-password field's meter (20a, 20c): a thin gauge at a quarter per step, a word, then the field's hint. */
 export function PasswordHint({ password, hint }) {
 	if (!password) return hint
 	const level = strengthOf(password)
@@ -29,13 +30,7 @@ export function PasswordHint({ password, hint }) {
 	return (
 		<span className="sp-stack sp-gap-6">
 			<span className="sp-row-flex sp-gap-8">
-				<span className="sp-gauge sp-gauge--thin sp-grow" aria-hidden="true">
-					<span className="au-strength">
-						{[1, 2, 3, 4].map(i => (
-							<span key={i} className={'sp-grow au-fill' + (i > level ? ' au-fill--off' : weak ? ' au-fill--weak' : '')} />
-						))}
-					</span>
-				</span>
+				<span className="sp-grow"><Gauge thin value={level * 25} aria-hidden="true" /></span>
 				<span className={'sp-meta sp-strong sp-nowrap ' + (weak ? 'sp-ink-warning' : 'sp-ink-accent')}>{password.length < MIN_PASSWORD ? 'Too short' : STRENGTH[level - 1]}</span>
 			</span>
 			{hint ? <span>{hint}</span> : null}
@@ -71,10 +66,11 @@ const STATUS_ICON = { mail: 21, check: 24, clock: 20 }
 const UNDER = { 10: 'sp-gap-10', 12: 'sp-gap-12', 14: 'sp-gap-14' }
 
 /** Every screen outside the shell is one card (20a-20d): the brand or a round status mark, a heading and
-    a line, an alert slot, the fields, the primary action and what sits under it. A warning alert carries a title. */
+    a line, an alert slot, the fields, the primary action and what sits under it. A warning alert carries a title.
+    `secondary` is a second full-width button under the primary one. */
 export function AuthCard({
 	title, lead, mark = true, icon, alert, alertColor = 'danger', alertIcon = 'alert-circle', alertTitle, onSubmit, submit,
-	submitIcon, submitVariant = 'solid', busy, busyLabel, disabled = false, gap = 14, across, note, terms, footer, children
+	submitIcon, submitVariant = 'solid', busy, busyLabel, disabled = false, gap = 14, secondary, across, note, terms, footer, children
 }) {
 	const shape = useShellShape()
 	// outside the shell, so the tab is named here, from the route's own title
@@ -113,6 +109,7 @@ export function AuthCard({
 					<Button type="submit" size="small" variant={submitVariant} fullWidth disabled={busy || disabled}>
 						{busy ? <><Spinner />{busyLabel}</> : <>{submitIcon ? <Icon name={submitIcon} size={14} /> : null}{submit}</>}
 					</Button>
+					{secondary}
 					{terms ? <span className="sp-meta sp-center">{terms}</span> : null}
 					{across ? <span className="sp-data sp-center">{across}</span> : null}
 					{note ? <span className="sp-meta sp-center">{note}</span> : null}

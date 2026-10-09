@@ -16,9 +16,8 @@ export function ConfirmBanner() {
 	const [closed, setClosed] = useState(hidden)
 	const [said, setSaid] = useState(null)
 	const [busy, setBusy] = useState(false)
-	const waiting = user && (!user.emailConfirmed || user.pendingEmail) && user.mail
+	const waiting = user && !user.emailConfirmed && user.mail
 	if (!waiting || closed) return null
-	const address = user.pendingEmail ?? user.email
 	const resend = () => {
 		setBusy(true)
 		resendConfirmation()
@@ -31,12 +30,10 @@ export function ConfirmBanner() {
 			<ListItem color="warning">
 				<Icon name="mail" size={18} />
 				<span className="sp-data sp-ink-warning sp-grow">
-					{said ?? (user.emailConfirmed
-						? <>Confirm <b>{address}</b> to start using it. Until then you sign in with {user.email}.</>
-						: <>Confirm <b>{address}</b> to scan receipts and import orders.</>)}
+					{said ?? <>Confirm <b>{user.email}</b> to scan receipts and import orders.</>}
 				</span>
-				{said ? null : <Button variant="text" size="small" color="warning" disabled={busy} onClick={resend}>Resend</Button>}
-				<IconButton icon="x" size="small" aria-label="Hide this message" onClick={() => { hide(); setClosed(true) }} />
+				{said ? null : <Button variant="outline" size="xsmall" color="warning" disabled={busy} onClick={resend}>Resend</Button>}
+				<IconButton icon="x" size="small" aria-label="Dismiss" onClick={() => { hide(); setClosed(true) }} />
 			</ListItem>
 		</div>
 	)
