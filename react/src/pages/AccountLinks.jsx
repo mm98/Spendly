@@ -176,6 +176,7 @@ export function ResetAsk() {
 			.finally(() => setBusy(false))
 	}
 
+	if (mail === null) return null
 	if (sentTo) return (
 		<AuthCard icon="mail" gap={10} title="Check your email"
 			lead={<>If there's an account for <b className="sp-ink">{sentTo}</b>, a reset link is on its way. It works once, and expires in an hour.</>}

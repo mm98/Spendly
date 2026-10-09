@@ -9,22 +9,26 @@ export const RESEND_AFTER_SECONDS = 60
 
 const hashOf = token => createHash('sha256').update(String(token)).digest('hex')
 
-const dropOpen = db.prepare('DELETE FROM account_tokens WHERE user_id = ? AND kind = ? AND used_at IS NULL')
+const dropEarlier = db.prepare('DELETE FROM account_tokens WHERE user_id = ? AND kind = ? AND used_at IS NULL AND token_hash <> ?')
+const dropToken = db.prepare('DELETE FROM account_tokens WHERE token_hash = ?')
 const insertToken = db.prepare(`INSERT INTO account_tokens (token_hash, user_id, kind, email, expires_at, created_at)
 	VALUES (?, ?, ?, ?, ?, ?)`)
 const selectToken = db.prepare('SELECT user_id, kind, email, expires_at, used_at FROM account_tokens WHERE token_hash = ?')
 const markUsed = db.prepare('UPDATE account_tokens SET used_at = ? WHERE token_hash = ?')
 const lastSent = db.prepare('SELECT MAX(created_at) AS at FROM account_tokens WHERE user_id = ? AND kind = ?')
 
-/** A new single-use token; any earlier one of the same kind for this account stops working. */
+/** A new single-use token. The earlier ones of its kind keep working until settleToken says it was sent. */
 export function issueToken(userId, kind, email) {
 	const token = randomBytes(24).toString('base64url')
 	const now = nowEpoch()
-	db.transaction(() => {
-		dropOpen.run(userId, kind)
-		insertToken.run(hashOf(token), userId, kind, email, now + TOKEN_TTL[kind], now)
-	})()
+	insertToken.run(hashOf(token), userId, kind, email, now + TOKEN_TTL[kind], now)
 	return token
+}
+
+/** A sent token ends every earlier open one of its kind; an unsent one is removed, so a failed send changes nothing. */
+export function settleToken(userId, kind, token, sent) {
+	if (sent) dropEarlier.run(userId, kind, hashOf(token))
+	else dropToken.run(hashOf(token))
 }
 
 /** Seconds until another link of this kind may be sent, 0 when it may be sent now. */

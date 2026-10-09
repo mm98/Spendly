@@ -31,3 +31,14 @@ reader sees, what was measured and when. An entry is removed in the change that 
   - 7a (phone, the year 2026): "Top vendors, August".
 - **Found:** 8 October 2026, while building "every card follows the period".
 - **Why not urgent:** the app follows the new rule. Only the design text is old.
+
+## The server: one package has a security warning
+
+- **Where:** `api/`, the package `proxy-addr`, which the web server package brings in.
+- **What the reader sees:** nothing. `npm audit` in `api/` reports one critical warning: a wrong
+  sender address can be believed when the server trusts a range of proxy addresses.
+- **Measured:** 9 October 2026, with `npm audit --omit=dev` in `api/`. The warning is there with
+  and without the email change, so it is older than that change.
+- **Why not urgent:** the warning only matters when the server is told to trust proxy addresses,
+  and Spendly never does. CI audits only `react/`, so the warning does not stop a build.
+- **Likely fix:** `npm audit fix` in `api/`, which moves `proxy-addr` to a fixed version.

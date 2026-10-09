@@ -1,0 +1,13 @@
+Subject: Confirm your email for Spendly
+
+Confirm your email
+
+Hi {{name}}, open this link to confirm {{email}} and you're in.
+
+Confirm my email:
+{{action_url}}
+
+It works once and expires in 24 hours.
+
+--
+Someone created a Spendly account with this address. If it wasn't you, ignore this email and the account stays unconfirmed.

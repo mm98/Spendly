@@ -171,7 +171,7 @@ export default function Settings() {
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
-		alerts: <AlertsCard key="alerts" mail={user.data?.mail} {...fields} />,
+		alerts: <AlertsCard key="alerts" {...fields} />,
 		looks: <LooksCard key="looks" {...fields} />,
 		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
 		import: <ImportCard key="import" />,
@@ -432,8 +432,8 @@ function DefaultsCard({ value, change, touch, reads }) {
 	)
 }
 
-/* How loudly a category's limit speaks up (8b). Email is offered only when this server can send it. */
-function AlertsCard({ value, change, mail }) {
+/* How loudly a category's limit speaks up (8b). "Also by email" is left out: no monthly summary email is sent. */
+function AlertsCard({ value, change }) {
 	const switchOf = (key, label, rest) => (
 		<Choice control={<Switch role="switch" checked={value(key)} onChange={ev => change(key, ev.target.checked)} {...rest} />}>{label}</Choice>
 	)
@@ -446,7 +446,6 @@ function AlertsCard({ value, change, mail }) {
 			<CardHeader name="Limit alerts" {...landing('alerts')} />
 			{switchOf('notifyWhileSaving', 'Warn me while I am saving an order')}
 			{switchOf('notifyMonthlySummary', 'Monthly summary on the first of the month')}
-			{mail ? switchOf('notifyEmail', 'Also by email', { disabled: !value('notifyMonthlySummary') }) : null}
 		</Card>
 	)
 }

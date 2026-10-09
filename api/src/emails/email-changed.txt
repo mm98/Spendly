@@ -1,0 +1,13 @@
+Subject: The email on your Spendly account is changing
+
+Your email is changing
+
+Someone asked to move your Spendly account from {{email}} to {{new_email}}. Until the new address is confirmed, this one keeps working.
+
+Reset my password:
+{{action_url}}
+
+If this was you, there's nothing to do. If it wasn't, reset your password: that cancels the change and signs you out everywhere else.
+
+--
+We write to the current address whenever the email on an account changes.

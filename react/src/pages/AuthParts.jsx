@@ -150,9 +150,10 @@ export function useSignedOut() {
 	return signedOut
 }
 
-/** Whether this server can send a link by email, which decides if a reset is offered at all. */
+/** Whether this server can send a link by email, which decides if a reset is offered at all; null until it answers. */
 export function useMail() {
-	return Boolean(useAuthOptions()?.mail)
+	const options = useAuthOptions()
+	return options ? Boolean(options.mail) : null
 }
 
 /** The server's answer for the signed-out pages, or null until it comes. */
