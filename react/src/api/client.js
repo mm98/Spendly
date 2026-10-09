@@ -196,6 +196,44 @@ export async function finishSetup(signal) {
 	return out
 }
 
+/* ---- passkeys (20a, 20b, Settings > Passkeys): the device's prompt is app/passkeys.js's ---- */
+
+export async function startPasskeySignIn(signal) {
+	return request('/api/auth/passkey/start', { method: 'POST', signal })
+}
+
+export async function finishPasskeySignIn(ticket, response, remember = true, signal) {
+	const user = await request('/api/auth/passkey/finish', { method: 'POST', body: { ticket, response, remember }, signal })
+	signedOut = false
+	invalidate()
+	return user
+}
+
+export async function getPasskeys(signal) {
+	return request('/api/account/passkeys', { signal })
+}
+
+export async function startAddingPasskey(signal) {
+	return request('/api/account/passkeys/start', { method: 'POST', signal })
+}
+
+export async function addPasskey(response, signal) {
+	const out = await request('/api/account/passkeys', { method: 'POST', body: { response }, signal })
+	invalidate(getPasskeys)
+	return out
+}
+
+export async function renamePasskey(id, name, signal) {
+	const out = await request(`/api/account/passkeys/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name }, signal })
+	invalidate(getPasskeys)
+	return out
+}
+
+export async function removePasskey(id, signal) {
+	await request(`/api/account/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+	invalidate(getPasskeys)
+}
+
 /* The page still on screen is leaving: its readers are not asked again, since every answer
    now would be a refusal. */
 export async function logout(signal) {

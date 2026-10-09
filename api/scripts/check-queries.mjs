@@ -157,6 +157,8 @@ Database.prototype.prepare = function (sql, ...rest) {
 
 // the plans do not depend on which model turns an item name into numbers, so none is loaded
 process.env.SPENDLY_EMBEDDER = 'shapes'
+// passkeys answer only at a public address, so the check gives the server one
+process.env.SPENDLY_PUBLIC_URL = 'http://localhost'
 const { db } = await import('../src/db.js')
 const { seedAccountDefaults } = await import('../src/seed.js')
 const { populateDemoData } = await import('../src/lib/demoData.js')
@@ -237,6 +239,10 @@ for (let i = 0; i < NEIGHBOURS; i++) {
 	for (let j = 1; j < 4; j++) insertDraft.run(`od-n${i}-${j}`, id, null, draftForm)
 	db.prepare('INSERT INTO order_draft_files (draft_id, upload_id) VALUES (?, ?)').run(`od-n${i}-0`, `su-file-n${i}`)
 }
+// passkeys: two on the account and one next door each, so the list and the sign-in read meet a spread
+const insertPasskey = db.prepare("INSERT INTO passkeys (id, user_id, public_key, transports, name) VALUES (?, ?, x'00', '[]', ?)")
+for (const id of ['pk-fixture', 'pk-removed']) insertPasskey.run(id, USER, 'iPhone')
+for (let i = 0; i < NEIGHBOURS; i++) insertPasskey.run(`pk-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Mac')
 
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
@@ -311,7 +317,7 @@ const REQUESTS = [
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/settings', '/imports', '/imports/im-fixture', '/statuses', '/views',
+	'/settings', '/imports', '/imports/im-fixture', '/statuses', '/views', '/account/passkeys',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
@@ -349,6 +355,9 @@ const spare = (await (await fetch(BASE + '/statuses', {
 	method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Spare', tone: 'neutral' })
 })).json()).find(s => s.name === 'Spare').key
 for (const [method, path, body] of [
+	['POST', '/account/passkeys/start'],
+	['PATCH', '/account/passkeys/pk-fixture', { name: 'Work laptop' }],
+	['DELETE', '/account/passkeys/pk-removed'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
 	['POST', '/categories/known', { names: ['Groceries', 'groceries', 'Nothing'] }],
 	['PATCH', `/budget/lines/${line.id}`, { month: 3, real: 123.45 }],
@@ -406,6 +415,14 @@ for (const [method, path, body] of [
 	}
 	await response.arrayBuffer()
 }
+
+// a passkey sign-in reads its passkey before the device's answer is checked, so a made-up answer runs the read and is refused
+const { ticket } = await (await fetch(BASE + '/auth/passkey/start', { method: 'POST' })).json()
+const refused = await fetch(BASE + '/auth/passkey/finish', {
+	method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket, response: { id: 'pk-fixture', response: {} } })
+})
+if (refused.status !== 401) { console.error(`  POST /auth/passkey/finish answered ${refused.status}, not 401`); process.exitCode = 1 }
+await refused.arrayBuffer()
 
 // a scan, which only a file reaches: it becomes a draft, the same bytes again point to it, and each goes
 const sharp = (await import('sharp')).default

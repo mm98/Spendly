@@ -283,6 +283,34 @@ for (const [p, ast] of parsed) {
 	}
 }
 
+/* ---- an email on one line keeps its domain; an email in a sentence wraps ---- */
+
+{
+	const classOf = el => {
+		const a = el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+		return a?.value?.type === 'Literal' ? a.value.value : ''
+	}
+	// the design's own sweep (design/styles/check.js) reads an @ in the text; here the value is named for what it holds
+	const holdsEmail = node => {
+		let found = false
+		visit(node, n => { if (n.type === 'Identifier' && /email|address|sentTo/i.test(n.name)) found = true })
+		return found
+	}
+	for (const [p, ast] of parsed) {
+		for (const s of stringsIn(ast)) if (/sp-nav-item__(sub--email|local|domain)/.test(s))
+			fail('an email on one line is .sp-email-line', rel(p), 'the old nav-only name is back')
+		visit(ast, (n, above) => {
+			if (n.type !== 'JSXElement' || !/^[a-z]/.test(tagOf(n))) return
+			if (!n.children.some(c => c.type === 'JSXExpressionContainer' && holdsEmail(c.expression))) return
+			const cls = classOf(n)
+			if (/\bsp-truncate\b/.test(cls)) fail('an email on one line is .sp-email-line', rel(p), `<${tagOf(n)} className="${cls}">`)
+			const around = above.findLast(a => a.type === 'JSXElement' || a.type === 'JSXFragment')
+			const inProse = around?.children.some(c => c.type === 'JSXText' && /[a-z]{2}/i.test(c.value))
+			if (inProse && !/\bsp-(break|email-line)/.test(cls)) fail('a typed value in a sentence is .sp-break', rel(p), `<${tagOf(n)} className="${cls}">`)
+		})
+	}
+}
+
 /* ---- what the product says ---- */
 
 const TELLS = [/—/, /–/, /[‘’“”]/, /&(mdash|ndash|rsquo|lsquo|ldquo|rdquo);/, /\p{Extended_Pictographic}/u]

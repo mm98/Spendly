@@ -30,7 +30,7 @@ export function ConfirmBanner() {
 			<ListItem color="warning">
 				<Icon name="mail" size={18} />
 				<span className="sp-data sp-ink-warning sp-grow">
-					{said ?? <>Confirm <b>{user.email}</b> to scan receipts and import orders.</>}
+					{said ?? <>Confirm <b className="sp-break">{user.email}</b> to scan receipts and import orders.</>}
 				</span>
 				{said ? null : <Button variant="outline" size="xsmall" color="warning" disabled={busy} onClick={resend}>Resend</Button>}
 				<IconButton icon="x" size="small" aria-label="Dismiss" onClick={() => { hide(); setClosed(true) }} />

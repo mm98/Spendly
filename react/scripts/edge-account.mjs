@@ -1,7 +1,7 @@
 /* A test account with the cases real accounts have and the demo data does not: a limit nobody
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, look-alike vendors, an archived vendor, more categories than a page
-   holds, names too long for a row, every status, a receipt and none, bookmarks with and
+   holds, names too long for a row, an account name and an address too long for a line, every status, a receipt and none, bookmarks with and
    without a category, more drafts than Home shows, one with no vendor and no prices, drafts made by hand.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
@@ -12,7 +12,8 @@
 import { crc32, deflateSync } from 'node:zlib'
 
 const BASE = process.env.SPENDLY_API ?? 'http://localhost:4000'
-const email = process.argv[2] ?? 'edge@example.com'
+// long on purpose: an address on one line keeps its domain, and inside a sentence it wraps (9c, 20b)
+const email = process.argv[2] ?? 'edge.account.with.a.long.address@a-rather-long-company-name.example.com'
 const password = process.argv[3] ?? 'edge-pass-12345'
 
 const day = offset => {
@@ -90,6 +91,8 @@ if (isNew) {
 	r = await call('POST', '/demo-data', { seed: 1, months: 14, orders: 60 })
 	console.log('demo data', r.status)
 }
+// a name that has to be cut on one line, and wraps in Home's greeting
+step('account name', await call('PATCH', '/account', { name: 'Maximiliane-Alexandrina Kristensen-Vestergaard' }))
 
 const makeCategory = async (name, look = {}) => step(`category ${name}`, await call('POST', '/categories', { name, look }))
 const makeVendor = async (name, look = {}) => step(`vendor ${name}`, await call('POST', '/vendors', { name, look }))

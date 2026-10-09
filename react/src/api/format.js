@@ -193,6 +193,15 @@ export const dayShortMonth = iso => {
 	return withShortMonth(thisYear(date) ? dayShortMonthFormat() : dayShortMonthYearFormat(), date)
 }
 
+/** A moment in epoch seconds -> "2 Sep 2026", year always, in the reader's own order (Settings > Passkeys). */
+export const dayShortMonthYear = seconds => withShortMonth(dayShortMonthYearFormat(), new Date(seconds * 1000))
+
+/** Whether a moment in epoch seconds falls on the reader's today. */
+export const isToday = seconds => {
+	const at = new Date(seconds * 1000)
+	return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}` === today()
+}
+
 /** "2026-07-18" -> "18 July 2026", in the reader's own order. */
 export const longDate = iso => longDateFormat().format(dateOf(iso))
 

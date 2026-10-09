@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useReducer, useRef, useState } from 'react'
+import { EmailLine } from '../components/EmailLine.jsx'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
@@ -26,6 +27,7 @@ import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } fro
 import { ImportCard } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard } from './SettingsAccount.jsx'
+import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, landing } from './SettingsParts.jsx'
 import { LOOKS } from './needsLook.jsx'
@@ -115,7 +117,9 @@ export default function Settings() {
 	const saved = settings.data && user.data
 		? { ...ALERT_DEFAULTS, ...settings.data, ...lookValues(settings.data), name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
 		: null
-	const current = SECTIONS.some(s => s.key === section) ? section : null
+	// Passkeys is a card under Account and profile, and on a phone a page of its own (7a)
+	const current = SECTIONS.some(s => s.key === section) || section === 'passkeys' ? section : null
+	const navCurrent = key => (key === 'passkeys' ? 'account' : key)
 
 	const value = key => (key in draft ? draft[key] : saved?.[key])
 	const change = (key, next) => setDraft(d => {
@@ -166,7 +170,10 @@ export default function Settings() {
 	const touch = shape === 'touch'
 	const fields = { value, change, touch }
 	const cards = {
-		account: <AccountCard key="account" user={user.data} {...fields} />,
+		account: touch
+			? <AccountCard key="account" user={user.data} {...fields} />
+			: [<AccountCard key="account" user={user.data} {...fields} />, <PasskeysCard key="passkeys" />],
+		passkeys: <PasskeysCard key="passkeys" />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
@@ -222,9 +229,9 @@ export default function Settings() {
 
 	return (
 		<div className="sp-row-flex sp-top sp-gap-16" ref={row}>
-			{narrow ? null : <SectionNav current={seen ?? current} />}
+			{narrow ? null : <SectionNav current={navCurrent(seen ?? current)} />}
 			<div className="sp-stack sp-gap-12 sp-grow sp-column--form st-cards">
-				{narrow ? <SectionPicker current={seen ?? current} /> : null}
+				{narrow ? <SectionPicker current={navCurrent(seen ?? current)} /> : null}
 				{body ?? <Arrive section={current} visit={visit} room={row}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
 			</div>
@@ -501,9 +508,10 @@ function ListsCard({ value, change, touch }) {
 	)
 }
 
-/* Below 640 the panes are a list (7a): the account first, then one row per pane. */
+/* Below 640 the panes are a list (7a): the account first, then its passkeys, then one row per pane. */
 function PhoneIndex({ user }) {
 	const chevron = <Icon name="chevron-right" />
+	const passkeys = usePasskeyCount()
 	const email = user?.email
 	const name = user?.name || email?.split('@')[0]
 	return (
@@ -516,11 +524,19 @@ function PhoneIndex({ user }) {
 					? (
 						<span className="sp-stack sp-gap-6 sp-grow">
 							{user.name ? <span className="sp-title sp-truncate">{user.name}</span> : null}
-							<span className="sp-meta sp-truncate">{email}</span>
+							<EmailLine email={email} tone="meta" />
 						</span>
 					)
 					: <Skeleton shape="line" />}
 			</ListItem>
+			{passkeys === undefined
+				? null
+				: (
+					<ListItem variant="card" chevron={chevron} to="/settings/passkeys">
+						<span className="sp-data sp-grow">Passkeys</span>
+						{passkeys === null ? null : <span className="sp-meta">{passkeys}</span>}
+					</ListItem>
+				)}
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
 					<span className="sp-data sp-grow">{s.label}</span>

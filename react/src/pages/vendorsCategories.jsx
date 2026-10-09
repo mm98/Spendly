@@ -384,8 +384,8 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 			<DialogTitle>{vendor ? 'Merge a vendor' : 'Merge a category'}</DialogTitle>
 			<Field id="merge-target"
 				label={vendor
-					? <>Move everything from <b className="sp-ink">{source.name}</b> into</>
-					: <>Merge <b className="sp-ink">{source.name}</b> and its <b className="sp-ink">{plural(source.orders, 'order')}</b> into</>}
+					? <>Move everything from <b className="sp-ink sp-break">{source.name}</b> into</>
+					: <>Merge <b className="sp-ink sp-break">{source.name}</b> and its <b className="sp-ink">{plural(source.orders, 'order')}</b> into</>}
 				message={vendor
 					? `"${source.name}" becomes an alias, so the next receipt printing that name files here.`
 					: 'Every category except this one. Totals and charts count them under the one you pick.'}>

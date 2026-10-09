@@ -5,7 +5,9 @@ import { hashPassword, verifyPassword, createSession, destroySession, requireAut
 import { LOCALES } from '../lib/constants.js'
 import { nowEpoch } from '../lib/dates.js'
 import { emailMessage } from '../lib/emails.js'
-import { linkTo, mailAvailable, sendMail } from '../lib/mail.js'
+import { inBackground, linkTo, mailAvailable, sendMail } from '../lib/mail.js'
+import { sendPasswordChanged } from '../lib/notices.js'
+import { passkeySite } from '../lib/passkeys.js'
 import { issueToken, readToken, resendWait, settleToken, useToken } from '../lib/tokens.js'
 import { seedAccountDefaults } from '../seed.js'
 
@@ -56,8 +58,6 @@ async function sendLink(req, user, kind, email) {
 	}
 	settleToken(user.id, kind, token, true)
 }
-
-const inBackground = sending => sending.catch(e => console.error(`[mail] could not send: ${e.message}`))
 
 router.post('/register', async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
@@ -134,7 +134,9 @@ router.get('/options', (req, res) => res.json({
 	mail: mailAvailable(),
 	terms: ownPage('SPENDLY_TERMS_URL'),
 	privacy: ownPage('SPENDLY_PRIVACY_URL'),
-	receiptReading: Boolean(process.env.ANTHROPIC_API_KEY)
+	receiptReading: Boolean(process.env.ANTHROPIC_API_KEY),
+	// the one address passkeys work at; a page opened anywhere else does not offer them
+	passkeys: passkeySite()?.origin ?? null
 }))
 
 const selectProfile = db.prepare(`SELECT u.name, u.password_changed_at, p.updated_at AS picture_at
@@ -229,6 +231,7 @@ router.post('/reset/:token', async (req, res) => {
 		useToken(req.params.token)
 	})()
 	clearFailures.run(row.email)
+	sendPasswordChanged(req, row.user_id)
 	createSession(req, res, row.user_id)
 	res.json({ email: row.email })
 })

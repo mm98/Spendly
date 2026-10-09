@@ -145,7 +145,7 @@ function lastMonths(window) {
 function greeting(name) {
 	const hour = new Date().getHours()
 	const words = hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening'
-	return name ? `${words}, ${name}` : words
+	return name ? <>{words}, <span className="sp-break">{name}</span></> : words
 }
 
 /** The account's own first name, when it has one. */

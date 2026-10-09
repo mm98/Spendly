@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { EmailLine } from '../components/EmailLine.jsx'
 import { Card, CardFooter, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
@@ -88,9 +89,13 @@ export function AccountCard({ user, value, change, touch }) {
 			<Field label="Name" id="account-name">
 				<TextField autoComplete="name" value={name} maxLength={80} onChange={v => change('name', v)} />
 			</Field>
-			<Field label="Email" id="account-email">
-				<TextField type="email" variant="readonly" readOnly value={user?.email ?? ''} />
-			</Field>
+			{/* read-only, so not a field to type in: the address kept whole on one line (11a) */}
+			<div className="sp-field">
+				<span className="sp-field__label" id="account-email-label">Email</span>
+				<div className="sp-input sp-input--readonly" id="account-email" role="textbox" aria-readonly="true" aria-labelledby="account-email-label">
+					<EmailLine email={user?.email ?? ''} />
+				</div>
+			</div>
 		</>
 	)
 

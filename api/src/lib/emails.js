@@ -12,7 +12,7 @@ function load(name) {
 	return { subject: head[1], text: txt.slice(head[0].length), html: readFileSync(new URL(`${name}.html`, dir), 'utf8') }
 }
 
-const TEMPLATES = Object.fromEntries(['confirm-email', 'reset-password'].map(n => [n, load(n)]))
+const TEMPLATES = Object.fromEntries(['confirm-email', 'reset-password', 'password-changed', 'passkey-added'].map(n => [n, load(n)]))
 
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
