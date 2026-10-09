@@ -1,40 +1,40 @@
-# Fixed in this package
+# Spendly - password changed email, and passkeys
 
-- 20a: Forgot it? was the small button (34px) beside the 12px Password label, so the password field sat lower than the email field. It is now the xsmall outline button, the size a label-line action takes (as Views - Save in the Components page).
-- check.js: a button on a field label's line that is not xsmall is a finding.
+Copy these files over handoff_2026_10_09_changes_fixed.
 
-Auth and first run now draws every part from components.css:
-- Password fields (20a): the one-time-code style (15px, wide spacing) is gone; they are plain sp-input. .au-code is removed.
-- Text actions are links or buttons. Inline in a sentence they are links (Create an account, Sign in, terms, privacy notice, Sign in instead?, Change it). Standing alone they are outline buttons: Back to sign in (small, block), Skip (beside Next, same size), Enter one by hand (was "Or enter one by hand"), Add another (small). The unconfirmed banner's Resend is the xsmall outline warning button and its close is an sp-icon-btn labelled Dismiss.
-- Stay signed in is the checkbox component: label.sp-choice with input.sp-check.
-- First run: Currency and Number format take sp-field__label, labelling the combobox by aria-labelledby, as in Settings.
-- The strength meter and the step indicator are the thin sp-gauge: Strong 75, Very strong 100, Step 1 of 2 at 50, Step 2 of 2 at 100. .au-strength, .au-fill and .au-seg are removed.
-- check.js: a drawn checkbox, and green bold text standing in for an action, are findings.
+## Password changed email (20f)
+- emails/password-changed.html and .txt. Subject "Your Spendly password was changed".
+- Sent whenever a password is saved: Change password in Settings, or Save and sign in on 20c.
+- Its button opens /reset with the address filled in, so it never expires. Merge field {{changed_at}}.
 
-Answers to Claude Code's three questions:
-- **Email cannot be changed in the app.** Settings keeps it read-only. Removed: "Wrong address? Change it" from the three 20b cards, "changing your email" from Still available, the 20b note on changing the email, and the email-changed email (20f, emails/email-changed.*). 20b's banner notes no longer give "fix the address in Settings" as the reason the banner is not a modal.
-- **No email for limit alerts.** The Also by email switch is gone from 8b; the notes in 8b, Settings (11a) and Mobile screens now say alerts arrive in the app only.
-- **Forgot it? on a phone.** Below 640px it leaves the Password label's line and is a full-width outline button under the field, so the label sits as close to its field as Email's does. 20a gains a "Sign in, on a phone" specimen showing it.
+## Passkeys - beside the password, never instead of it
+- **Sign in (20a, desktop and phone):** the email field carries autocomplete="username webauthn", so the browser offers a saved passkey from it. Under Sign in, an "or" divider (sp-divider) and an outline "Sign in with a passkey" button for browsers that do not offer it in the field. A cancelled prompt says nothing; an unknown passkey gets the vague sign-in error; lockout pauses passwords only.
+- **Email confirmed (20b):** offers Add a passkey or Not now, both then going to first run. A device without passkey support shows one Continue button.
+- **Settings, Account:** a Passkeys card under Account and profile. Head: Add a passkey. Each row: the name the device reported, added and last used, Rename and Remove. Remove asks first; the password always keeps working. On the phone (Mobile screens, Settings) a Passkeys row with its count.
+- **Passkey added email (20f):** emails/passkey-added.html and .txt. Subject "A passkey was added to your Spendly account". Button opens /settings/account. Merge fields {{passkey_name}}, {{changed_at}}. Removing a passkey sends nothing; resetting the password leaves passkeys alone.
+- **Icon:** key, from Tabler, added to icons.js and registered in Icon legend 19a.
 
-Copy these files over handoff_2026_10_08t_changes_fixed (this replaces handoff_2026_10_09_changes), and delete emails/email-changed.html and .txt if an earlier copy left them.
-
----
-
-# Spendly - the auth emails
-
-**New: 20f, The emails** in Auth and first run. Two send-ready transactional emails, each an HTML file with a plain-text version:
-- **confirm-email** - the 20b link. Subject "Confirm your email for Spendly". 24 hours, single use.
-- **reset-password** - the 20c link. Subject "Reset your Spendly password". 1 hour, single use. Nothing is sent to an address with no account.
-
-Sender, merge fields and the client notes are in emails/README.md. The card keeps the auth panel's values (400 wide, 16 padding, 64 mark, small button); no style value changed.
+## Also
+- 20f's previews now size to their content, without console errors.
 
 ## Checks
 - check.js: 0 findings across 26 pages.
 
 ## Files
 - Auth and first run.dc.html
-- styles/pages/auth-and-first-run.css
-- index.html (20f listed, 98 screens)
-- Duplicate and alerts.dc.html, Settings and import.dc.html, Mobile screens.dc.html
-- emails/ (5 files)
+- Settings and import.dc.html
+- Mobile screens.dc.html
+- Icon legend.dc.html
+- index.html
+- icons.js
 - styles/check.js
+- styles/pages/auth-and-first-run.css
+- emails/README.md
+- emails/confirm-email.html
+- emails/confirm-email.txt
+- emails/passkey-added.html
+- emails/passkey-added.txt
+- emails/password-changed.html
+- emails/password-changed.txt
+- emails/reset-password.html
+- emails/reset-password.txt

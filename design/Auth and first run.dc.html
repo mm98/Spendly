@@ -41,7 +41,9 @@
     <div class="doc-note"><b class="sp-ink">Sign-in errors are deliberately vague, register's are specific.</b> A failed sign-in must not reveal which half was wrong - that confirms whether an email has an account. Register has nothing to protect yet, so it names the field and offers the useful next step.</div>
     <div class="doc-note"><b class="sp-ink">Stay signed in is checked by default</b> and worded as a duration rather than a promise. On a personal receipt tracker the realistic alternative is a weaker password written down somewhere.</div>
     <div class="doc-note"><b class="sp-ink">Desktop vs mobile.</b> Below 480px the card goes full width at the phone's own 16px inset, with 48px fields. The primary button is already full width, so nothing else changes.</div>
-    <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Enter submits from any field. Email is <b>type="email" autocomplete="email"</b> and autofocused; password carries <b>autocomplete="current-password"</b> on sign in and <b>new-password</b> on register, or the browser offers the wrong thing. Email format is checked on blur and on submit, never on keystroke - a half-typed address is not an error.</div>
+    <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Enter submits from any field. Email is <b>type="email"</b> and autofocused, with <b>autocomplete="username webauthn"</b> on sign in, so the browser can offer a saved passkey from the field, and <b>email</b> on register; password carries <b>autocomplete="current-password"</b> on sign in and <b>new-password</b> on register, or the browser offers the wrong thing. Email format is checked on blur and on submit, never on keystroke - a half-typed address is not an error.</div>
+    <div class="doc-note"><b class="sp-ink">Passkeys sit beside the password, never instead of it.</b> Two ways in: the browser offers a saved passkey from the email field as the page loads (WebAuthn conditional mediation), and <b>Sign in with a passkey</b> opens the device's own prompt for browsers that do not offer it in the field. iPhone, Android and 1Password answer the same request; the passkey is discoverable, so no email is needed first.</div>
+    <div class="doc-note"><b class="sp-ink">A cancelled prompt says nothing</b> - the form is still there. A passkey the account does not know shows the vague sign-in error above, worded "That passkey didn't work. Try again, or use your password." Lockout pauses passwords only; a passkey still signs in.</div>
   </div>
 
   <div class="doc-specimens">
@@ -59,7 +61,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-f1">Email</label>
-            <input class="sp-input" id="au-f1" type="email" autoComplete="email" inputMode="email" defaultValue="mikkel@example.net">
+            <input class="sp-input" id="au-f1" type="email" autoComplete="username webauthn" inputMode="email" defaultValue="mikkel@example.net">
           </div>
           <div class="sp-field">
             <div class="sp-row-flex sp-baseline">
@@ -77,6 +79,8 @@
         </div>
         <div class="sp-stack sp-gap-14">
           <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-divider">or</div>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0" /><path d="M15 9h.01" /></svg>Sign in with a passkey</button>
           <div class="sp-data sp-center">New here? <a class="sp-strong" href="#20a">Create an account</a></div>
         </div>
       </div>
@@ -96,7 +100,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-f9">Email</label>
-            <input class="sp-input" id="au-f9" type="email" autoComplete="email" inputMode="email" defaultValue="mikkel@example.net">
+            <input class="sp-input" id="au-f9" type="email" autoComplete="username webauthn" inputMode="email" defaultValue="mikkel@example.net">
           </div>
           <div class="sp-field">
             <div class="sp-row-flex sp-baseline">
@@ -114,6 +118,8 @@
         </div>
         <div class="sp-stack sp-gap-14">
           <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-divider">or</div>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0" /><path d="M15 9h.01" /></svg>Sign in with a passkey</button>
           <div class="sp-data sp-center">New here? <a class="sp-strong" href="#20a">Create an account</a></div>
         </div>
       </div>
@@ -137,7 +143,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-f2">Email</label>
-            <input class="sp-input" id="au-f2" type="email" autoComplete="email" inputMode="email" defaultValue="mikkel@example.net">
+            <input class="sp-input" id="au-f2" type="email" autoComplete="username webauthn" inputMode="email" defaultValue="mikkel@example.net">
           </div>
           <div class="sp-field">
             <div class="sp-row-flex sp-baseline">
@@ -339,12 +345,15 @@
           <span class="sp-mark sp-mark--large sp-mark--round"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
           <div class="sp-stack sp-gap-6">
             <div class="sp-heading">Email confirmed</div>
-            <div class="sp-data">You're signed in. Two quick choices and you're done.</div>
+            <div class="sp-data">You're signed in. Add a passkey and next time you can sign in with your fingerprint or face.</div>
           </div>
         </div>
-        <button type="button" class="sp-btn sp-btn--block sp-btn--small">Continue</button>
+        <div class="sp-stack sp-gap-12">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0" /><path d="M15 9h.01" /></svg>Add a passkey</button>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block sp-btn--small">Not now</button>
+        </div>
       </div>
-      <div class="sp-meta au-w400">Opening the link signs the session in, so this never asks for the password again. Continue goes to first run (20d). A link opened a second time lands here too, reading "Already confirmed".</div>
+      <div class="sp-meta au-w400">Opening the link signs the session in, so this never asks for the password again. Add a passkey opens the device's prompt and then first run (20d); Not now goes straight to first run, and the offer stays in Settings. On a device with no passkey support the buttons are one: Continue. A link opened a second time lands here too, reading "Already confirmed".</div>
     </div>
 
     <div class="sp-stack sp-gap-10">
@@ -483,26 +492,38 @@
     <span class="doc-badge" id="20f">20f</span>
     <span class="doc-section__title">The emails</span>
   </div>
-  <div class="doc-lede">Two messages, both transactional: the confirmation link from <a href="#20b">20b</a> and the reset link from <a href="#20c">20c</a>. Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
+  <div class="doc-lede">Four messages, all transactional: the confirmation link from <a href="#20b">20b</a>, the reset link from <a href="#20c">20c</a>, and a notice whenever the password changes or a passkey is added. Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
-    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b> and <b>reset-password</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
+    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b>, <b>password-changed</b> and <b>passkey-added</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
     <div class="doc-note"><b class="sp-ink">Built for mail clients, not the browser.</b> Tables and inline styles, no web fonts (Poppins where installed, then Helvetica), a VML button for Outlook, and a dark block that maps to the dark tokens. The card keeps the auth panel's values: 400 wide, 16 padding, the 64 mark, the small button.</div>
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
+    <div class="doc-note"><b class="sp-ink">Password changed is sent on every change</b> - from Settings and from the reset flow alike - to the account's address. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. It carries no link that undoes the change.</div>
+    <div class="doc-note"><b class="sp-ink">Passkey added is sent each time one is added</b>, naming it as the device reported it. Its button opens Settings, Account, where the passkey can be removed. Removing one sends nothing, and resetting the password leaves passkeys as they are.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
   </div>
 
   <div class="doc-specimens">
     <div class="sp-stack sp-gap-10">
       <div class="sp-section-label">1 - CONFIRM YOUR EMAIL</div>
-      <iframe class="au-email" title="Confirm your email" srcDoc="{{ confirmDoc }}" onLoad="{{ fit }}"></iframe>
+      <iframe class="au-email" title="Confirm your email" srcDoc="{{ confirmDoc }}"></iframe>
       <div class="sp-meta au-w600">Subject: Confirm your email for Spendly. Sent on registering and on Send it again.</div>
     </div>
     <div class="sp-stack sp-gap-10">
       <div class="sp-section-label">2 - RESET YOUR PASSWORD</div>
-      <iframe class="au-email" title="Reset your password" srcDoc="{{ resetDoc }}" onLoad="{{ fit }}"></iframe>
+      <iframe class="au-email" title="Reset your password" srcDoc="{{ resetDoc }}"></iframe>
       <div class="sp-meta au-w600">Subject: Reset your Spendly password. Sent on Send the link.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">3 - PASSWORD CHANGED</div>
+      <iframe class="au-email" title="Your password was changed" srcDoc="{{ changedDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Your Spendly password was changed. Sent when a password is saved, in Settings or on 20c.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">4 - PASSKEY ADDED</div>
+      <iframe class="au-email" title="A passkey was added" srcDoc="{{ addedDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: A passkey was added to your Spendly account. Sent when a passkey is added, on 20b or in Settings.</div>
     </div>
   </div>
 </section>
@@ -792,22 +813,31 @@ class Component extends DCLogic {
   state = {};
   componentDidMount() {
     this.applyView();
-    const sample = { name: 'Mikkel', email: 'mikkel@example.net' };
-    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04' };
-    [['confirm', 'confirm-email'], ['reset', 'reset-password']].forEach(([k, f]) => {
+    const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone' };
+    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account' };
+    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added']].forEach(([k, f]) => {
       fetch('emails/' + f + '.html').then(r => r.text()).then(t => {
         const v = { ...sample, action_url: urls[k] };
         this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
       });
     });
   }
+  size(el) {
+    const go = () => { const d = el.contentDocument; const h = d && d.documentElement ? d.documentElement.scrollHeight : 0; if (h > 0) el.style.height = h + 'px'; };
+    go(); requestAnimationFrame(go); setTimeout(go, 300);
+  }
+  componentDidUpdate() {
+    this.applyView();
+    document.querySelectorAll('iframe.au-email').forEach(el => {
+      if (!el.dataset.sized) { el.dataset.sized = 'on'; el.addEventListener('load', () => this.size(el)); }
+      this.size(el);
+    });
+  }
   renderVals() {
     return {
-      confirmDoc: this.state.confirm, resetDoc: this.state.reset,
-      fit: e => { const d = e.target.contentDocument; if (d && d.body) e.target.style.height = d.documentElement.scrollHeight + 'px'; }
+      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added
     };
   }
-  componentDidUpdate() { this.applyView(); }
   applyView() {
     const el = document.querySelector('.sp');
     if (!el) return;
