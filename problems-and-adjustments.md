@@ -31,3 +31,25 @@ reader sees, what was measured and when. An entry is removed in the change that 
   - 7a (phone, the year 2026): "Top vendors, August".
 - **Found:** 8 October 2026, while building "every card follows the period".
 - **Why not urgent:** the app follows the new rule. Only the design text is old.
+
+## The server: one package has a security warning
+
+- **Where:** `api/`, the package `proxy-addr`, which the web server package brings in.
+- **What the reader sees:** nothing. `npm audit` in `api/` reports one critical warning: a wrong
+  sender address can be believed when the server trusts a range of proxy addresses.
+- **Measured:** 9 October 2026, with `npm audit --omit=dev` in `api/`. The warning is there with
+  and without the email change, so it is older than that change.
+- **Why not urgent:** the warning only matters when the server is told to trust proxy addresses,
+  and Spendly never does. CI audits only `react/`, so the warning does not stop a build.
+- **Likely fix:** `npm audit fix` in `api/`, which moves `proxy-addr` to a fixed version.
+
+## The design: "Forgot it?" still puts the Password field 2px lower than Email's
+
+- **Where:** `design/Auth and first run.dc.html`, 20a, and the sign-in page on a computer, which
+  follows it.
+- **What the reader sees:** the space from the Password label to its field is 26px. From the Email
+  label to its field it is 24px. The xsmall "Forgot it?" button is 22px tall and the label is
+  18px, so the button makes the label's line taller.
+- **Measured:** 9 October 2026, in Chrome at 1440px: 26px and 24px on the design's own page and
+  in the app. On a phone the button sits under the field, and both are 24px.
+- **Why not urgent:** 2px, and the app follows the drawing. The fix belongs in the design.

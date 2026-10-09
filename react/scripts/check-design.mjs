@@ -63,6 +63,13 @@ for (const name of ['tokens.css', 'components.css'])
 	if (read(join(root, '../design/styles', name)) !== read(join(src, 'styles', name)))
 		fail('copies of the design', `src/styles/${name}`, `differs from design/styles/${name}: copy it over, and put anything the app adds in app.css`)
 
+// the server sends the design's emails as they are, so its copies match file for file
+const emailsOf = dir => readdirSync(dir).filter(n => /\.(html|txt)$/.test(n)).sort()
+const designEmails = join(root, '../design/emails'), apiEmails = join(root, '../api/src/emails')
+for (const name of new Set([...emailsOf(designEmails), ...emailsOf(apiEmails)]))
+	if ((() => { try { return read(join(designEmails, name)) !== read(join(apiEmails, name)) } catch { return true } })())
+		fail('copies of the design', `api/src/emails/${name}`, `differs from design/emails/${name}: copy design/emails over api/src/emails`)
+
 /* ---- classes resolve, tokens are defined ---- */
 
 const cssClasses = new Set([...[components, app, ...pages.map(([, css]) => css)].join('\n').matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map(m => m[1]))
@@ -246,6 +253,34 @@ for (const [p, ast] of parsed) {
 		if (tagOf(n) === 'Crumb' && (words.length > 1 || words.some(c => placed(c).length || c.type === 'JSXFragment')))
 			fail('a crumb is text only', rel(p), 'a <Crumb> holding more than its words')
 	})
+}
+
+/* ---- a label-line button is xsmall, a checkbox is the input, an action is a link or a button ---- */
+
+{
+	const classOf = el => {
+		const a = el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+		return a?.value?.type === 'Literal' ? a.value.value : ''
+	}
+	const attr = (el, name) => el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === name)
+	// the design's own sweep (design/styles/check.js): green bold words in a span or div, numbers aside
+	const ACTION_INK = [/^(?:sp-title|sp-strong)(?: sp-center)? sp-ink-accent(?: sp-center)?$/, /^sp-(?:ink-accent sp-strong|strong sp-ink-accent)$/]
+	for (const [p, ast] of parsed) {
+		const declared = new Map()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier') declared.set(n.id.name, n.init) })
+		visit(ast, n => {
+			if (n.type === 'JSXAttribute' && n.name?.name === 'labelAction' && n.value?.type === 'JSXExpressionContainer') {
+				const value = n.value.expression.type === 'Identifier' ? declared.get(n.value.expression.name) : n.value.expression
+				for (const el of placed(value)) if (tagOf(el) === 'Button' && attr(el, 'size')?.value?.value !== 'xsmall')
+					fail('a button beside a field label is xsmall', rel(p), '<Field labelAction={<Button>}> without size="xsmall"')
+			}
+			if (n.type !== 'JSXElement' || !['div', 'span'].includes(tagOf(n))) return
+			if (/\bsp-check\b/.test(classOf(n))) fail('a checkbox is the input', rel(p), `<${tagOf(n)} className="${classOf(n)}">`)
+			const words = n.children.filter(c => c.type === 'JSXText').map(c => c.value).join('').trim()
+			if (ACTION_INK.some(r => r.test(classOf(n))) && words && words.length <= 40 && !/^[\d.,]+\s*(px|kr\.)?$/.test(words))
+				fail('an action is a link or a button', rel(p), words)
+		})
+	}
 }
 
 /* ---- what the product says ---- */

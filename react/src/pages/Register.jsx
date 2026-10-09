@@ -9,7 +9,7 @@ const HINT = `At least ${MIN_PASSWORD} characters. Longer beats complicated.`
 
 // a new tab, so what is typed here is still here after reading; the operator's own page when set
 function NoticeLink({ to, page, children }) {
-	return <a className="sp-ink-accent sp-strong" href={to ?? '#' + page} target="_blank" rel="noopener noreferrer">{children}</a>
+	return <a className="sp-strong" href={to ?? '#' + page} target="_blank" rel="noopener noreferrer">{children}</a>
 }
 
 export default function Register() {
@@ -66,7 +66,7 @@ export default function Register() {
 			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
 			disabled={isTaken}
 			terms={isTaken ? null : <>By creating an account you accept the <NoticeLink to={options?.terms} page="/terms">terms</NoticeLink> and <NoticeLink to={options?.privacy} page="/privacy">privacy notice</NoticeLink>.</>}
-			across={isTaken ? null : <>Already have one? <Link className="sp-strong sp-ink-accent au-across" to="/signin">Sign in</Link></>}>
+			across={isTaken ? null : <>Already have one? <Link className="sp-strong au-across" to="/signin">Sign in</Link></>}>
 			{isTaken ? null : (
 				<Field label="Name" id="register-name">
 					<TextField autoComplete="name" value={name} maxLength={80} onChange={setName} />

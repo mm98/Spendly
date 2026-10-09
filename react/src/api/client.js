@@ -162,12 +162,6 @@ export async function resendConfirmation(signal) {
 	return request('/api/auth/confirm/resend', { method: 'POST', signal })
 }
 
-export async function changeEmail(email, signal) {
-	const out = await request('/api/auth/email', { method: 'POST', body: { email }, signal })
-	invalidate(getCurrentUser)
-	return out
-}
-
 /* ---- the account's own profile ---- */
 
 export async function updateProfile(patch, signal) {

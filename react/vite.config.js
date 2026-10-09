@@ -19,6 +19,9 @@ const stripHtmlComments = () => ({
 	transformIndexHtml: html => html.replace(/[ \t]*<!--(?!\[if)[\s\S]*?-->\n?/g, '')
 })
 
+// /.well-known/change-password is answered by the API, as it is when the API serves the build
+const api = { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true }
+
 export default defineConfig({
 	base: './',
 	plugins: [react(), stripHtmlComments()],
@@ -29,14 +32,14 @@ export default defineConfig({
 		port: 5173,
 		// Same-origin from the browser's point of view, so the session cookie the API sets is a
 		// first-party cookie rather than a cross-site one a browser might refuse.
-		proxy: { '/api': { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true } }
+		proxy: { '/api': api, '/.well-known': api }
 	},
 	// `vite preview` serves the production build but does not inherit `server.proxy` -- it
 	// reads its own `preview.proxy`, so without this a built app has no way to reach the API
 	// locally and every fetch('/api/...') 404s against the preview server itself.
 	preview: {
 		port: 4173,
-		proxy: { '/api': { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true } }
+		proxy: { '/api': api, '/.well-known': api }
 	},
 	build: {
 		/* No maps: a stack trace off this bundle names `index-<hash>.js:1:24817`, and the source

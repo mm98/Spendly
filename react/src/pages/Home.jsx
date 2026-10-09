@@ -908,7 +908,7 @@ function DayOne({ name, touch }) {
 								<span className="sp-title sp-ink-2">Capture a receipt</span>
 								<span className="sp-meta">Available once your email is confirmed</span>
 							</FileDrop>
-							<Button variant="text" size="small" to="/orders/new?source=empty">Or enter one by hand</Button>
+							<Button variant="outline" to="/orders/new?source=empty">Enter one by hand</Button>
 						</>
 					)
 					: (
@@ -920,7 +920,7 @@ function DayOne({ name, touch }) {
 									: 'Drop a photo or a PDF and the lines are read for you to check.'}
 							</span>
 							<span className="sp-btn">Capture a receipt</span>
-							<Button variant="text" size="small" to="/orders/new?source=empty">Or enter one by hand</Button>
+							<Button variant="outline" to="/orders/new?source=empty">Enter one by hand</Button>
 						</FileDrop>
 					)}
 				<div className={touch ? 'sp-stack sp-gap-12' : 'hm-wells'}>
@@ -939,7 +939,7 @@ function DayOne({ name, touch }) {
 							</span>
 						))}
 						{page && !page.matched ? <span className="sp-meta">No categories yet.</span> : null}
-						<Button variant="text" size="small" to="/categories/new">{page?.matched ? 'Add another' : 'Add one'}</Button>
+						<Button variant="outline" size="small" to="/categories/new">{page?.matched ? 'Add another' : 'Add one'}</Button>
 					</Well>
 				</div>
 			</Card>

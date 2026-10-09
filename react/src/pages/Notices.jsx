@@ -75,7 +75,7 @@ export function Privacy() {
 								? 'When you scan a receipt, its picture is sent to Anthropic, the company that makes Claude, so the text on it can be read. '
 								: 'Receipts are not sent anywhere. '}
 							When you add a bookmark with a web address, the server opens that address to read the page's name and picture.
-							{options.mail ? ' Links to confirm your email or to reset your password are sent to your email address.' : ''}
+							{options.mail ? ' Links to confirm your email or to reset your password are sent to your email address, through the email service this server uses.' : ''}
 						</span>
 					)
 					: <Skeleton shape="line" />}

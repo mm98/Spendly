@@ -41,7 +41,7 @@ const SECTIONS = [
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'sort', 'listSort'] },
-	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEmail', 'notifyEarly'] },
+	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
 	{ key: 'looks', label: 'Needs a look', keys: LOOKS.map(l => `look.${l.id}`) },
 	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
 	{ key: 'import', label: 'Import' },
@@ -79,7 +79,7 @@ const EARLY = [
 	{ value: 100, label: 'Only over' }
 ]
 // what a key the server does not send yet stands at, as 8b draws it
-const ALERT_DEFAULTS = { notifyWhileSaving: true, notifyMonthlySummary: true, notifyEmail: true, notifyEarly: 90, scanOverrides: true }
+const ALERT_DEFAULTS = { notifyWhileSaving: true, notifyMonthlySummary: true, notifyEarly: 90, scanOverrides: true }
 // a rule of Needs a look is kept in the draft as `look.<rule>` and saved as one `looks` map
 const lookValues = settings => Object.fromEntries(LOOKS.map(l => [`look.${l.id}`, settings?.looks?.[l.id] ?? l.on]))
 
@@ -171,7 +171,7 @@ export default function Settings() {
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
-		alerts: <AlertsCard key="alerts" mail={user.data?.mail} {...fields} />,
+		alerts: <AlertsCard key="alerts" {...fields} />,
 		looks: <LooksCard key="looks" {...fields} />,
 		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
 		import: <ImportCard key="import" />,
@@ -432,8 +432,8 @@ function DefaultsCard({ value, change, touch, reads }) {
 	)
 }
 
-/* How loudly a category's limit speaks up (8b). Email is offered only when this server can send it. */
-function AlertsCard({ value, change, mail }) {
+/* How loudly a category's limit speaks up (8b), in the app only. */
+function AlertsCard({ value, change }) {
 	const switchOf = (key, label, rest) => (
 		<Choice control={<Switch role="switch" checked={value(key)} onChange={ev => change(key, ev.target.checked)} {...rest} />}>{label}</Choice>
 	)
@@ -446,7 +446,6 @@ function AlertsCard({ value, change, mail }) {
 			<CardHeader name="Limit alerts" {...landing('alerts')} />
 			{switchOf('notifyWhileSaving', 'Warn me while I am saving an order')}
 			{switchOf('notifyMonthlySummary', 'Monthly summary on the first of the month')}
-			{mail ? switchOf('notifyEmail', 'Also by email', { disabled: !value('notifyMonthlySummary') }) : null}
 		</Card>
 	)
 }
