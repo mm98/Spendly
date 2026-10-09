@@ -1046,6 +1046,23 @@
   for (const f of pages) for (const m of src[f].matchAll(/<(div|span) class="(?:sp-title|sp-strong)(?: sp-center)? sp-ink-accent(?: sp-center)?"[^>]*>([^<]{1,40})</g)) if (!/^[\d.,]+\s*(px|kr\.)?$/.test(m[2].trim())) fail('an action is a link or a button', f, m[2]);
   for (const f of pages) for (const m of src[f].matchAll(/<(div|span) class="sp-(?:ink-accent sp-strong|strong sp-ink-accent)"[^>]*>([^<]{1,40})</g)) if (!/^[\d.,]+\s*(px|kr\.)?$/.test(m[2].trim())) fail('an action is a link or a button', f, m[2]);
 
+  /* An email on one line keeps its domain: .sp-email-line, never .sp-truncate, which
+     cuts the domain - the part that says which account it is. The phone's account card
+     did. An email or a name inside a sentence is .sp-break, or a long one runs out of
+     its card (20b, 20c). Swept on the text, not on a class. */
+  if (/sp-nav-item__(sub--email|local|domain)/.test(comp + Object.values(src).join(''))) fail('an email on one line is .sp-email-line', 'pages', 'the old nav-only name is back');
+  for (const f of pages) {
+    const t = src[f].replace(/<script[\s\S]*?<\/script>/g, '');
+    for (const m of t.matchAll(/class="[^"]*\bsp-truncate\b[^"]*"[^>]*>[^<]*@[\w-]+\./g)) fail('an email on one line is .sp-email-line', f, m[0].slice(0, 70));
+    for (const m of t.matchAll(/<(b|strong|span|div)\b([^>]*)>([^<]*[\w.+-]+@[\w-]+\.[\w.-]+[^<]*)</g)) {
+      const cls = (m[2].match(/class="([^"]*)"/) || [, ''])[1];
+      if (/\bsp-break\b|sp-email-line__|^doc-|\bdoc-/.test(cls)) continue;
+      const before = t.slice(0, m.index);
+      if (!cls && /^<div class="doc-/.test(before.slice(before.lastIndexOf('<div')))) continue;
+      fail('a typed value in a sentence is .sp-break', f, m[3].trim().slice(0, 50));
+    }
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

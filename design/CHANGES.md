@@ -1,34 +1,36 @@
-# Spendly - password changed email, and passkeys
+# Spendly - long emails and names, and the emails in Outlook
 
-Copy these files over handoff_2026_10_09_changes_fixed.
+Copy these files over handoff_2026_10_09b_changes.
 
-## Password changed email (20f)
-- emails/password-changed.html and .txt. Subject "Your Spendly password was changed".
-- Sent whenever a password is saved: Change password in Settings, or Save and sign in on 20c.
-- Its button opens /reset with the address filled in, so it never expires. Merge field {{changed_at}}.
+## Long emails and names - one rule everywhere
+- **On one line, an email keeps its domain.** The part before the @ shortens with an ellipsis; the @domain never does. This is now one general component, `.sp-email-line` with `__local` and `__domain`, renamed from the sidebar-only `.sp-nav-item__sub--email` / `__local` / `__domain`. The sidebar looks the same.
+  - Pages renamed: Bookmarks, Dark mode and image viewer, Home, Navigation shell, Settings and import.
+  - Now also used by the phone's account card (Mobile screens, Navigation shell), which used to cut the domain with plain truncation.
+  - Settings, Email (read-only) is now a div.sp-input.sp-input--readonly holding `.sp-email-line`, labelled by aria-labelledby, centred by `.sp-input:has(> .sp-email-line)`. It used to clip the domain.
+- **On one line, a name** shortens from the right with `.sp-truncate`, unchanged.
+- **Inside a sentence, an email or a name is `.sp-break`** (overflow-wrap: anywhere), so a long one wraps instead of running past its card: 20b and 20c addresses, the unconfirmed banner, "Good morning, Mikkel" on 20d.
+- 20b gains "Link sent, a long address" with mikkel.mortensen.receipts@verylongcompany.example.net. Navigation shell 9c's note states the rule.
 
-## Passkeys - beside the password, never instead of it
-- **Sign in (20a, desktop and phone):** the email field carries autocomplete="username webauthn", so the browser offers a saved passkey from it. Under Sign in, an "or" divider (sp-divider) and an outline "Sign in with a passkey" button for browsers that do not offer it in the field. A cancelled prompt says nothing; an unknown passkey gets the vague sign-in error; lockout pauses passwords only.
-- **Email confirmed (20b):** offers Add a passkey or Not now, both then going to first run. A device without passkey support shows one Continue button.
-- **Settings, Account:** a Passkeys card under Account and profile. Head: Add a passkey. Each row: the name the device reported, added and last used, Rename and Remove. Remove asks first; the password always keeps working. On the phone (Mobile screens, Settings) a Passkeys row with its count.
-- **Passkey added email (20f):** emails/passkey-added.html and .txt. Subject "A passkey was added to your Spendly account". Button opens /settings/account. Merge fields {{passkey_name}}, {{changed_at}}. Removing a passkey sends nothing; resetting the password leaves passkeys alone.
-- **Icon:** key, from Tabler, added to icons.js and registered in Icon legend 19a.
-
-## Also
-- 20f's previews now size to their content, without console errors.
+## Emails (all four)
+- The body cell wraps a long address or name (overflow-wrap: anywhere; word-break: break-word).
+- Outlook for Windows: the mark and the button are VML rounded rectangles, so they round there and the S is centred; the Word namespace their anchorlock needs is declared. The card stays square there - that engine draws no rounded box.
+- The address in the body sits in an anchor with no href, so Outlook does not make it a mailto link; format-detection asks Apple Mail and iOS the same.
+- emails/README.md says so.
 
 ## Checks
-- check.js: 0 findings across 26 pages.
+- check.js: an email in .sp-truncate, an email or name in a sentence without .sp-break, and the old nav-only class names are findings.
+- 0 finding(s) across 26 pages.
 
 ## Files
+- styles/components.css
+- styles/check.js
 - Auth and first run.dc.html
 - Settings and import.dc.html
+- Navigation shell.dc.html
 - Mobile screens.dc.html
-- Icon legend.dc.html
-- index.html
-- icons.js
-- styles/check.js
-- styles/pages/auth-and-first-run.css
+- Bookmarks.dc.html
+- Dark mode and image viewer.dc.html
+- Home.dc.html
 - emails/README.md
 - emails/confirm-email.html
 - emails/confirm-email.txt

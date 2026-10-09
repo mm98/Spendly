@@ -23,4 +23,6 @@ Every value is HTML-escaped before it is merged. The subject line is in the firs
 
 ## Built for mail clients
 
-Tables and inline styles only; no web fonts (Poppins where installed, then Helvetica, Arial); a VML button for Outlook; a prefers-color-scheme block that maps to the dark tokens; the link is also written out as text under the button. Each file is under 10 KB.
+Tables and inline styles only; no web fonts (Poppins where installed, then Helvetica, Arial); a VML button for Outlook; a prefers-color-scheme block that maps to the dark tokens; the link is also written out as text under the button.
+
+Outlook for Windows (the Word engine) does not draw rounded corners on boxes, so there the card is square. The mark and the button are VML rounded rectangles in an Outlook-only block, so they round everywhere. The address in the body sits in an anchor with no href, so Outlook does not turn it into an underlined mailto link; format-detection asks Apple Mail and iOS not to either. Each file is under 10 KB.

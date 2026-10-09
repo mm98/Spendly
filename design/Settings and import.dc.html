@@ -77,7 +77,7 @@
         <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
-          <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
+          <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
         </span>
         <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
       </a>
@@ -128,8 +128,8 @@
               <input class="sp-input" id="st-f1" type="text" defaultValue="Mikkel M.">
             </div>
             <div class="sp-field">
-              <label class="sp-field__label" for="st-f2">Email</label>
-              <input class="sp-input sp-input--readonly" id="st-f2" type="text" defaultValue="mikkel@example.net" readOnly="{{ true }}">
+              <span class="sp-field__label" id="st-f2-label">Email</span>
+              <div class="sp-input sp-input--readonly" id="st-f2" role="textbox" aria-readonly="true" aria-labelledby="st-f2-label"><span class="sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span></div>
             </div>
           </div>
           <div class="sp-card__footer sp-row-flex sp-gap-12">
