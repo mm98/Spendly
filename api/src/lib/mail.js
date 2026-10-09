@@ -33,6 +33,9 @@ export async function sendMail({ to, subject, text, html }) {
 	console.log(`[mail] to ${to}: ${subject}\n${text}\n`)
 }
 
+/** Sends without holding up the answer; a failure goes to the log. */
+export const inBackground = sending => sending.catch(e => console.error(`[mail] could not send: ${e.message}`))
+
 /** Signs in to the SMTP server once at start, so a wrong password shows in the log before anyone needs a link. */
 export function checkMail() {
 	if (host && missing.length) console.error(`[mail] email is off until ${missing.join(' and ')} is set`)

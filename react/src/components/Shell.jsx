@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { EmailLine } from './EmailLine.jsx'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
@@ -232,12 +233,7 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
 	const bind = el => { block.current = el; button.current = el }
 	const split = email.lastIndexOf('@')
-	const address = (
-		<span className="sp-nav-item__sub sp-nav-item__sub--email">
-			<span className="sp-nav-item__local">{split > 0 ? email.slice(0, split) : email}</span>
-			{split > 0 ? <span className="sp-nav-item__domain">{email.slice(split)}</span> : null}
-		</span>
-	)
+	const address = <EmailLine email={email} tone="nav" />
 	return (
 		<>
 			<button type="button" className="sp-nav-item" ref={bind} onClick={onClick} aria-haspopup="menu"

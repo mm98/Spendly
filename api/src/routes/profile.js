@@ -7,6 +7,7 @@ import { MAX_UPLOAD_MB } from '../lib/constants.js'
 import { nowEpoch } from '../lib/dates.js'
 import { detectFileType } from '../lib/fileType.js'
 import { toSquare } from '../lib/images.js'
+import { sendPasswordChanged } from '../lib/notices.js'
 import { MAX_NAME, MIN_PASSWORD, cleanName } from './auth.js'
 
 /* The account's own profile (Settings 11a): name, picture, password, and the first run's end. */
@@ -71,6 +72,7 @@ router.post('/password', async (req, res) => {
 	if (password.length < MIN_PASSWORD)
 		return res.status(400).json({ error: `Use at least ${MIN_PASSWORD} characters.`, fields: { password: `Use at least ${MIN_PASSWORD} characters.` } })
 	setPassword.run(await hashPassword(password), req.user.id)
+	sendPasswordChanged(req, req.user.id)
 	res.json({ passwordChangedAt: nowEpoch() })
 })
 

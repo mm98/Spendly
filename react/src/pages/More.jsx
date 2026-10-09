@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { EmailLine } from '../components/EmailLine.jsx'
 import { Navigate } from 'react-router'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
@@ -57,7 +58,7 @@ function Account({ name, picture, email, chevron }) {
 					: <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={name || email}><>{initialsOf(name || email.split('@')[0])}</></Mark>}>
 				<span className="sp-stack sp-gap-6 sp-grow">
 					{name ? <span className="sp-data sp-truncate">{name}</span> : null}
-					<span className="sp-meta sp-truncate">{email}</span>
+					<EmailLine email={email} tone="meta" />
 				</span>
 			</ListItem>
 			<AccountMenu name={name} email={email} position="floating" onClose={close} />

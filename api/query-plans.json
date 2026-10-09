@@ -1865,6 +1865,15 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
+		"SELECT id, email, name FROM users WHERE id = ?": {
+			"plan": [
+				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_users_1"
+			]
+		},
 		"SELECT id, file_name, mapping, orders, lines, skipped, vendors, created_at, undone_at FROM imports WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?": {
 			"plan": [
 				"SEARCH imports USING INDEX idx_imports_user_created (user_id=?)"
@@ -2131,6 +2140,15 @@
 			"findings": [],
 			"indexes": [
 				"idx_saved_views_user"
+			]
+		},
+		"SELECT id, name, transports, created_at, last_used_at FROM passkeys WHERE user_id = ? ORDER BY created_at": {
+			"plan": [
+				"SEARCH passkeys USING INDEX idx_passkeys_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_passkeys_user"
 			]
 		},
 		"SELECT id, name, url, price, archived, created_at, photo_id FROM bookmarks WHERE id = ? AND user_id = ?": {
@@ -3613,6 +3631,17 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT p.id, p.user_id, p.public_key, p.counter, p.transports, u.email, u.needs_setup FROM passkeys p JOIN users u ON u.id = p.user_id WHERE p.id = ?": {
+			"plan": [
+				"SEARCH p USING INDEX sqlite_autoindex_passkeys_1 (id=?)",
+				"SEARCH u USING INDEX sqlite_autoindex_users_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_passkeys_1",
+				"sqlite_autoindex_users_1"
+			]
+		},
 		"SELECT pattern, kind, line_name FROM bank_links WHERE user_id = ?": {
 			"plan": [
 				"SEARCH bank_links USING PRIMARY KEY (user_id=?)"
@@ -4391,6 +4420,14 @@
 				"id"
 			],
 			"readers": 32
+		},
+		"idx_passkeys_user": {
+			"table": "passkeys",
+			"columns": [
+				"user_id",
+				"created_at"
+			],
+			"readers": 1
 		},
 		"idx_saved_views_user": {
 			"table": "saved_views",

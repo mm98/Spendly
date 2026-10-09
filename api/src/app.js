@@ -11,6 +11,7 @@ import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as accountRouter, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
+import { router as passkeysRouter, signInRouter as passkeySignInRouter } from './routes/passkeys.js'
 import { router as importsRouter } from './routes/imports.js'
 import { router as statsRouter } from './routes/stats.js'
 import { router as scanRouter } from './routes/scan.js'
@@ -204,6 +205,7 @@ app.get('/api/version/check', async (req, res) => {
 })
 
 app.use('/api/auth', authRouter)
+app.use('/api/auth/passkey', passkeySignInRouter)
 
 /* One auth gate for every data route, rather than requireAuth repeated per mount: the session
    lookup runs once per request this way, and readCache (which needs req.user) sits behind it
@@ -218,6 +220,7 @@ app.use('/api/orders', ordersRouter)
 app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
+app.use('/api/account/passkeys', passkeysRouter)
 app.use('/api/account', profileRouter)
 app.use('/api/imports', importsRouter)
 app.use('/api/statuses', statusesRouter)

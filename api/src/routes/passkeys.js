@@ -1,0 +1,125 @@
+import { Router } from 'express'
+import {
+	generateAuthenticationOptions, generateRegistrationOptions, verifyAuthenticationResponse, verifyRegistrationResponse
+} from '@simplewebauthn/server'
+import { db } from '../db.js'
+import { createSession } from '../lib/auth.js'
+import { nowEpoch } from '../lib/dates.js'
+import { sendPasskeyAdded } from '../lib/notices.js'
+import { keepChallenge, newTicket, passkeyName, passkeySite, takeChallenge } from '../lib/passkeys.js'
+import { forgetReads } from '../lib/readCache.js'
+import { MAX_NAME, cleanName } from './auth.js'
+
+/* Passkeys (20a, 20b, Settings > Passkeys): signing in with one, before the auth gate, and the
+   account's own list, behind it. A passkey sits beside the password, never instead of it. */
+export const signInRouter = Router()
+export const router = Router()
+
+const NOT_SET_UP = 'Passkeys are not set up on this server.'
+// the vague sign-in error (20a): a passkey this server does not know reads like one that failed
+const DID_NOT_WORK = "That passkey didn't work. Try again, or use your password."
+
+const selectForSignIn = db.prepare(`SELECT p.id, p.user_id, p.public_key, p.counter, p.transports, u.email, u.needs_setup
+	FROM passkeys p JOIN users u ON u.id = p.user_id WHERE p.id = ?`)
+const markUsed = db.prepare('UPDATE passkeys SET counter = ?, last_used_at = ? WHERE id = ?')
+const selectMine = db.prepare('SELECT id, name, transports, created_at, last_used_at FROM passkeys WHERE user_id = ? ORDER BY created_at')
+const insertPasskey = db.prepare(`INSERT INTO passkeys (id, user_id, public_key, counter, transports, name, created_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?)`)
+const renamePasskey = db.prepare('UPDATE passkeys SET name = ? WHERE id = ? AND user_id = ?')
+const deletePasskey = db.prepare('DELETE FROM passkeys WHERE id = ? AND user_id = ?')
+const selectUser = db.prepare('SELECT id, email, name FROM users WHERE id = ?')
+
+const transportsOf = row => (row.transports ? JSON.parse(row.transports) : undefined)
+const shown = row => ({ id: row.id, name: row.name, createdAt: row.created_at, lastUsedAt: row.last_used_at ?? null })
+const notSetUp = res => res.status(409).json({ error: NOT_SET_UP })
+const userHandleOf = userId => Buffer.from(userId).toString('base64url')
+
+/** A sign-in prompt. No address is asked for first: a passkey names its own account. */
+signInRouter.post('/start', async (req, res) => {
+	const site = passkeySite()
+	if (!site) return notSetUp(res)
+	const options = await generateAuthenticationOptions({ rpID: site.rpID, userVerification: 'preferred' })
+	const ticket = newTicket()
+	keepChallenge(`in:${ticket}`, options.challenge)
+	res.json({ ticket, options })
+})
+
+/** The device's answer. A known passkey that proves itself signs in; a password lock-out does not stop it. */
+signInRouter.post('/finish', async (req, res) => {
+	const site = passkeySite()
+	if (!site) return notSetUp(res)
+	const challenge = takeChallenge(`in:${String(req.body?.ticket ?? '')}`)
+	const answer = req.body?.response
+	const row = challenge && typeof answer?.id === 'string' ? selectForSignIn.get(answer.id) : null
+	const handle = answer?.response?.userHandle
+	if (!row || (handle && handle !== userHandleOf(row.user_id))) return res.status(401).json({ error: DID_NOT_WORK })
+	const result = await verifyAuthenticationResponse({
+		response: answer, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
+		credential: { id: row.id, publicKey: new Uint8Array(row.public_key), counter: row.counter, transports: transportsOf(row) },
+		requireUserVerification: false
+	}).catch(() => null)
+	if (!result?.verified) return res.status(401).json({ error: DID_NOT_WORK })
+	markUsed.run(result.authenticationInfo.newCounter, nowEpoch(), row.id)
+	// "last used" changed outside any request of the account's own, so its cached reads go
+	forgetReads(row.user_id)
+	const token = createSession(req, res, row.user_id, { remember: req.body?.remember !== false })
+	res.json({ id: row.user_id, email: row.email, token, needsSetup: Boolean(row.needs_setup) })
+})
+
+/** The account's passkeys, oldest first. */
+router.get('/', (req, res) => res.json({ passkeys: selectMine.all(req.user.id).map(shown) }))
+
+/** A prompt to add one. The device is told which passkeys it already holds for this account. */
+router.post('/start', async (req, res) => {
+	const site = passkeySite()
+	if (!site) return notSetUp(res)
+	const user = selectUser.get(req.user.id)
+	const options = await generateRegistrationOptions({
+		rpName: 'Spendly', rpID: site.rpID,
+		userID: new TextEncoder().encode(user.id), userName: user.email, userDisplayName: user.name || user.email,
+		attestationType: 'none',
+		excludeCredentials: selectMine.all(user.id).map(p => ({ id: p.id, transports: transportsOf(p) })),
+		authenticatorSelection: { residentKey: 'required', userVerification: 'preferred' }
+	})
+	keepChallenge(`add:${user.id}`, options.challenge)
+	res.json(options)
+})
+
+/** The device's new passkey, under the name its maker or device gives. The address is told (20f). */
+router.post('/', async (req, res) => {
+	const site = passkeySite()
+	if (!site) return notSetUp(res)
+	const challenge = takeChallenge(`add:${req.user.id}`)
+	if (!challenge) return res.status(400).json({ error: 'That took too long. Try again.' })
+	const result = await verifyRegistrationResponse({
+		response: req.body?.response, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
+		requireUserVerification: false
+	}).catch(() => null)
+	if (!result?.verified) return res.status(400).json({ error: 'The passkey could not be added. Try again.' })
+	const { credential, aaguid } = result.registrationInfo
+	const name = passkeyName(aaguid, req.get('user-agent'))
+	const at = nowEpoch()
+	try {
+		insertPasskey.run(credential.id, req.user.id, Buffer.from(credential.publicKey), credential.counter,
+			JSON.stringify(credential.transports ?? []), name, at)
+	} catch (e) {
+		if (e.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') return res.status(409).json({ error: 'That passkey is already added.' })
+		throw e
+	}
+	sendPasskeyAdded(req, req.user.id, name)
+	res.status(201).json(shown({ id: credential.id, name, created_at: at }))
+})
+
+router.patch('/:id', (req, res) => {
+	const name = cleanName(req.body?.name)
+	if (!name) return res.status(400).json({ error: 'Give the passkey a name.' })
+	if (name.length > MAX_NAME) return res.status(400).json({ error: `A name is ${MAX_NAME} characters at most.` })
+	if (!renamePasskey.run(name, req.params.id, req.user.id).changes) return res.status(404).json({ error: 'That passkey is not on this account.' })
+	res.json({ id: req.params.id, name })
+})
+
+/** Removing one sends nothing, and the password keeps working, so removing the last one locks nobody out. */
+router.delete('/:id', (req, res) => {
+	if (!deletePasskey.run(req.params.id, req.user.id).changes) return res.status(404).json({ error: 'That passkey is not on this account.' })
+	res.status(204).end()
+})

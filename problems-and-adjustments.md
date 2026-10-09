@@ -53,3 +53,15 @@ reader sees, what was measured and when. An entry is removed in the change that 
 - **Measured:** 9 October 2026, in Chrome at 1440px: 26px and 24px on the design's own page and
   in the app. On a phone the button sits under the field, and both are 24px.
 - **Why not urgent:** 2px, and the app follows the drawing. The fix belongs in the design.
+
+## The design: a shortened address can leave a gap before the @
+
+- **Where:** `.sp-email-line` in `design/styles/components.css`, wherever an address too long for its
+  line is shown on one line: the sidebar, the account menu, the phone's account cards, Settings' Email.
+- **What the reader sees:** the part before the @ keeps a box four characters wide ("4ch", the width
+  of four zeros). The letters that fit in it, with "…", can be narrower than the box, so a gap shows
+  before the @: "ed…  @a-rather-long…". Only two letters fit there, not the three the design names.
+- **Measured:** 9 October 2026, in Chrome at 1440px. In the app's sidebar, "ed…" is 20.6px wide in its
+  28px box, a 7.4px gap. On the design's own page, "mik…" is 27.8px in the same box, a 0.2px gap.
+- **Why not urgent:** only an address too long for its line shows it, and nothing runs out of its box.
+  The app follows the design's rule, so the fix belongs in the design.

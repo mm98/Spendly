@@ -4396,13 +4396,23 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-nav-item__sub { font-size: var(--t-11); color: var(--shell-group); }
 /* the "N more in Orders" row is current when the open view is one of the N (brief 13) */
 .sp-nav-item[aria-current="page"] > .sp-nav-item__sub { color: #fff; }
-/* An email on that second line truncates from the middle, not the right: the local
-   part shrinks and the domain never does, because the domain is what says which
-   account is signed in. text-overflow alone cannot express that - it needs the two
-   parts as separate children of a row. */
-.sp-nav-item__sub--email { display: flex; min-width: 0; }
-.sp-nav-item__sub--email > .sp-nav-item__local { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sp-nav-item__sub--email > .sp-nav-item__domain { flex: none; }
+/* An email on one line truncates from the middle, not the right: the local part
+   shrinks and the domain never does, because the domain is what says which account
+   it is. text-overflow alone cannot express that - it needs the two parts as
+   separate children of a row. One component wherever an email sits on one line:
+   the sidebar's account block, the phone's account card, a read-only email field. */
+.sp-email-line { display: flex; min-width: 0; max-width: 100%; overflow: hidden; }
+/* The part before the @ gives first, down to its first three characters and the
+   ellipsis. Only a domain wider than what is left then shortens, from its end. */
+.sp-email-line > .sp-email-line__local { flex: 0 100000 auto; min-width: 4ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-email-line > .sp-email-line__domain { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* in a read-only field it stands on the field's centre line, at any field height */
+.sp-input:has(> .sp-email-line) { display: flex; align-items: center; }
+.sp-input > .sp-email-line { flex: 1; }
+/* A value the user typed - an email, a name - inside a sentence. It wraps with the
+   sentence and, often having no space of its own, breaks anywhere rather than running
+   out of its card. A name on one line truncates from the right with .sp-truncate. */
+.sp-break { overflow-wrap: anywhere; }
 
 /* ---------- the brand mark sits in the icon column - c11 ----------
    The mark is 24 and a nav row's icon slot is 16, so left-aligning the two boxes

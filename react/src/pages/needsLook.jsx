@@ -16,7 +16,7 @@ export const LOOKS = [
 		rows: ({ view }) => ({
 			rows: view.over.map(c => ({
 				key: c.id, to: ordersFor(c, view.window), color: 'warning', count: '!',
-				text: <><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(view.window)}</>
+				text: <><b className="sp-break">{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(view.window)}</>
 			})),
 			phone: view.over.length
 				? [{ ...rowOf('over', '/categories?flag=over-limit', view.over.length, null, `over ${noun(view.over.length, 'its', 'their')} limit`), color: 'warning' }]
@@ -29,7 +29,7 @@ export const LOOKS = [
 		rows: ({ view }) => ({
 			rows: view.near.map(c => ({
 				key: c.id, to: ordersFor(c, view.window), color: 'warning', count: '!',
-				text: <><b>{c.name} is at {Math.floor((c.monthSpend / c.budget) * 100)}%</b> of its limit for {monthOf(view.window)}</>
+				text: <><b className="sp-break">{c.name} is at {Math.floor((c.monthSpend / c.budget) * 100)}%</b> of its limit for {monthOf(view.window)}</>
 			})),
 			phone: view.near.length
 				? [{ ...rowOf('near', '/categories?flag=near-limit', view.near.length, null, `near ${noun(view.near.length, 'its', 'their')} limit`), color: 'warning' }]

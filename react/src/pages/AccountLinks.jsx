@@ -7,8 +7,9 @@ import {
 	askPasswordReset, confirmEmail, failureMessage, getCurrentUser, readResetLink, resendConfirmation, resetPassword
 } from '../api/client.js'
 import {
-	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, onward, useCountdown, useMail
+	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, onward, useAuthOptions, useCountdown, useMail
 } from './AuthParts.jsx'
+import { addPasskeyHere, alreadyHere, closedPrompt, deviceFailed, passkeysHere } from '../app/passkeys.js'
 
 const clock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 const NO_MAIL = 'This Spendly server cannot send email. Ask the person who runs it to reset your password for you.'
@@ -61,8 +62,8 @@ export function ConfirmSent() {
 	return (
 		<AuthCard icon={again ? 'check' : 'mail'} gap={10} title={again ? 'Sent again' : 'Confirm your email'}
 			lead={again
-				? <>A new link is on its way to <b className="sp-ink">{address}</b>. The earlier one no longer works.</>
-				: <>We sent a link to <b className="sp-ink">{address}</b>. Open it and you're in. It expires in 24 hours.</>}
+				? <>A new link is on its way to <b className="sp-ink sp-break">{address}</b>. The earlier one no longer works.</>
+				: <>We sent a link to <b className="sp-ink sp-break">{address}</b>. Open it and you're in. It expires in 24 hours.</>}
 			alert={alert} onSubmit={resend} submitVariant="outline" busy={busy} busyLabel="Sending…"
 			disabled={wait > 0} submitIcon={wait > 0 ? 'clock' : null}
 			submit={wait > 0 ? `Send again in ${clock(wait)}` : again ? 'Send again' : 'Send it again'}
@@ -78,18 +79,39 @@ export function ConfirmLink() {
 	const [me, setMe] = useState(undefined)
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
+	const options = useAuthOptions()
 	useEffect(() => {
 		confirmOnce(token)
 			.then(setAnswer)
 			.catch(e => setAnswer({ state: 'failed', error: failureMessage(e, UNREACHABLE) }))
 			.finally(() => getCurrentUser().then(setMe).catch(() => setMe(null)))
 	}, [token])
-	if (!answer || me === undefined) return null
+	if (!answer || me === undefined || !options) return null
 	const next = me ? onward(me, '/') : '/signin'
+	const go = () => navigate(next, { replace: true })
+	// signed in here, so a passkey can be added on the spot; then first run, as Not now goes straight there (20b)
+	const offer = me && passkeysHere(options)
+	const add = () => {
+		setBusy(true)
+		setAlert(null)
+		addPasskeyHere()
+			.then(go)
+			.catch(e => {
+				setBusy(false)
+				if (closedPrompt(e)) return
+				setAlert(alreadyHere(e) ? 'This device already has a passkey for your account.'
+					: deviceFailed(e) ? 'The passkey could not be added. Try again.' : failureMessage(e, UNREACHABLE))
+			})
+	}
 	if (answer.state === 'confirmed' || answer.state === 'already') return (
 		<AuthCard icon="check" title={answer.state === 'confirmed' ? 'Email confirmed' : 'Already confirmed'}
-			lead={!me ? 'Sign in to carry on.' : me.needsSetup ? "You're signed in. Two quick choices and you're done." : "You're signed in."}
-			onSubmit={() => navigate(next, { replace: true })} submit={me ? 'Continue' : 'Sign in'} />
+			lead={!me ? 'Sign in to carry on.'
+				: offer ? "You're signed in. Add a passkey and next time you can sign in with your fingerprint or face."
+				: me.needsSetup ? "You're signed in. Two quick choices and you're done." : "You're signed in."}
+			alert={offer ? alert : null} gap={offer ? 12 : 14}
+			onSubmit={offer ? add : go} submit={!me ? 'Sign in' : offer ? 'Add a passkey' : 'Continue'} submitIcon={offer ? 'key' : null}
+			busy={busy} busyLabel="Adding…"
+			secondary={offer ? <Button variant="outline" size="small" fullWidth disabled={busy} onClick={go}>Not now</Button> : null} />
 	)
 	if (answer.state === 'failed') return (
 		<AuthCard mark={false} title="That link could not be checked" alert={answer.error}
@@ -110,7 +132,7 @@ export function ConfirmLink() {
 	}
 	return (
 		<AuthCard icon="clock" gap={12} title="That link has expired"
-			lead={<>Links last 24 hours and work once.{address ? <> We can send a fresh one to <b className="sp-ink">{address}</b>.</> : null}</>}
+			lead={<>Links last 24 hours and work once.{address ? <> We can send a fresh one to <b className="sp-ink sp-break">{address}</b>.</> : null}</>}
 			alert={alert} onSubmit={sendNew} busy={busy} busyLabel="Sending…"
 			submit={me ? 'Send a new link' : 'Sign in to get a new link'} />
 	)
@@ -142,7 +164,7 @@ export function ResetAsk() {
 	if (mail === null) return null
 	if (sentTo) return (
 		<AuthCard icon="mail" gap={10} title="Check your email"
-			lead={<>If there's an account for <b className="sp-ink">{sentTo}</b>, a reset link is on its way. It works once, and expires in an hour.</>}
+			lead={<>If there's an account for <b className="sp-ink sp-break">{sentTo}</b>, a reset link is on its way. It works once, and expires in an hour.</>}
 			alert={alert} onSubmit={send} submitVariant="outline" busy={busy} busyLabel="Sending…"
 			disabled={wait > 0} submitIcon={wait > 0 ? 'clock' : null}
 			submit={wait > 0 ? `Send again in ${clock(wait)}` : 'Send it again'}
@@ -197,7 +219,7 @@ export function ResetLink() {
 			})
 	}
 	return (
-		<AuthCard title="Choose a new password" lead={`For ${link.email}`} alert={alert}
+		<AuthCard title="Choose a new password" lead={<>For <span className="sp-break">{link.email}</span></>} alert={alert}
 			onSubmit={save} submit="Save and sign in" busy={busy} busyLabel="Saving…" gap={12}
 			note="This signs you out everywhere else.">
 			<Field label="New password" id="reset-password"

@@ -1,4 +1,5 @@
 import { Suspense, useCallback, useMemo, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { EmailLine } from '../components/EmailLine.jsx'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
@@ -385,7 +386,7 @@ export function AccountMenu({ name, email, position, short = false, onShortcuts,
 		<Menu position={position} aria-label="Account">
 			<li className="ns-menu-head" role="presentation">
 				{name ? <span className="sp-data sp-truncate">{name}</span> : null}
-				<span className="sp-meta sp-truncate">{email}</span>
+				<EmailLine email={email} tone="meta" />
 			</li>
 			<MenuItem icon="user" onClick={() => { onClose(); navigate('/settings/account') }}>Account and profile</MenuItem>
 			{/* on a short window the sidebar has no room for these two, so they live here (9g) */}
