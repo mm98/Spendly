@@ -28,6 +28,13 @@ export async function toSquare(buffer) {
 	return encode(sharp(buffer).rotate().resize(side, side, { fit: 'cover', position: sharp.strategy.attention }))
 }
 export const toWide = buffer => encode(sharp(buffer).rotate().resize({ width: WIDE, height: WEBP_MAX, fit: 'inside', withoutEnlargement: true }))
+/* The light copy: a wide copy made smaller and lighter, for a picture drawn small on a phone. Made when
+   asked for and not kept, as the browser keeps it; a lower effort than encode's, as the reader waits. */
+const LIGHT = 720
+export async function toLight(wide, contentType) {
+	const light = await sharp(wide).resize({ width: LIGHT, height: WEBP_MAX, fit: 'inside', withoutEnlargement: true }).webp({ quality: 75, effort: 4 }).toBuffer()
+	return light.length < wide.length ? { image: light, contentType: 'image/webp' } : { image: wide, contentType }
+}
 // PNG for a drawn page: a lossy pass blurs the edges of its text
 export const toSize = (buffer, width, height, { png = false } = {}) => {
 	const image = sharp(buffer).rotate().resize(width, height, { fit: 'fill' })

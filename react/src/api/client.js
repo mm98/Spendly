@@ -609,6 +609,8 @@ export const forgetBankLink = ({ pattern, kind }, signal) =>
     keep one forever never shows a replaced photo. */
 export const bookmarkPhotoThumbnailUrl = (id, photoId) => `/api/bookmarks/${id}/photo/${photoId}/thumbnail`
 export const bookmarkPhotoWideUrl = (id, photoId) => `/api/bookmarks/${id}/photo/${photoId}/wide`
+// the wide copy made smaller and lighter, for a phone
+export const bookmarkPhotoLightUrl = (id, photoId) => `/api/bookmarks/${id}/photo/${photoId}/light`
 
 export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })
