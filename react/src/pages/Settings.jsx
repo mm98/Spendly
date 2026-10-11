@@ -23,7 +23,7 @@ import {
 	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getHomeAttention, getHomeCategories, getMonthlySummary, getComparedMonth, getOrderDraft, getOrders, getSettings, getStatsSlice, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
 	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
-import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
+import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard } from './SettingsAccount.jsx'
@@ -42,7 +42,7 @@ const SECTIONS = [
 	{ key: 'appearance', label: 'Appearance', keys: ['density', 'compareMonth'] },
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
-	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'sort', 'listSort'] },
+	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'recentRows', 'sort', 'listSort'] },
 	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
 	{ key: 'looks', label: 'Needs a look', keys: LOOKS.map(l => `look.${l.id}`) },
 	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
@@ -55,6 +55,8 @@ const SECTIONS = [
 const TOOLS = 'import'
 
 const PAGE_SIZES = [5, 10, 15, 20, 25, 50, 100]
+// how many orders Home's Recent orders card can show, as the server allows
+const RECENT_ROWS = Array.from({ length: 15 }, (_, i) => i + 1)
 // how many saved views the sidebar lists (11a), as the server allows
 const VIEWS_SHOWN = [2, 3, 4, 5, 6, 8, 10]
 
@@ -480,6 +482,7 @@ const known = (options, id) => (options.some(o => o.id === id) ? id : options[0]
 
 function ListsCard({ value, change, touch }) {
 	const rows = value('pageSize')
+	const recent = value('recentRows')
 	return (
 		<Card>
 			<CardHeader name="Lists" {...landing('lists')} />
@@ -495,6 +498,13 @@ function ListsCard({ value, change, touch }) {
 					figure={<span className="sp-data sp-number">{rows}</span>}
 					suffix={<span className="sp-data sp-ink-5">rows</span>}
 					options={PAGE_SIZES.map(n => ({ id: n, label: `${n} rows` }))} />
+			</Field>
+			<span className="sp-rule" />
+			<Field label="Recent orders on Home" message="How many of your newest orders Home shows.">
+				<Choose value={recent} onChange={v => change('recentRows', v)}
+					figure={<span className="sp-data sp-number">{recent}</span>}
+					suffix={<span className="sp-data sp-ink-5">{recent === 1 ? 'order' : 'orders'}</span>}
+					options={RECENT_ROWS.map(n => ({ id: n, label: plural(n, 'order') }))} />
 			</Field>
 			<Pair touch={touch}>
 				<Field label="Sort orders by" message="The order All orders opens with.">
