@@ -556,7 +556,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			})
 	}
 	const bulb = scanFound ? undefined : (
-		<IconButton variant="bare" icon={asked === 'looking' ? <Spinner /> : 'bulb'} aria-label="Suggest categories" title="Suggest categories"
+		<IconButton variant="bare" size="field" icon={asked === 'looking' ? <Spinner /> : 'bulb'} aria-label="Suggest categories" title="Suggest categories"
 			{...(asked === 'looking' ? { 'aria-busy': 'true' } : {})} onClick={askModel} />
 	)
 	const suggestionRow = asked === 'looking' ? <span className="sp-meta">Looking at the items…</span>
