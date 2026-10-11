@@ -5,7 +5,7 @@ import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { findOrCreateCategory } from '../lib/findOrCreate.js'
 import { assertValidBookmarkDraft, normaliseUrl } from '../lib/validate.js'
-import { processImage, processPicture } from '../lib/images.js'
+import { processImage, processPicture, toLight } from '../lib/images.js'
 import { detectFileType } from '../lib/fileType.js'
 import { fetchImage, fetchPagePreview } from '../lib/pageTitle.js'
 import { decompressBlob } from '../lib/blobCompression.js'
@@ -316,4 +316,13 @@ router.get('/:id/photo/:photoId/wide', (req, res) => {
 	res.set('Content-Type', photo.photo_thumbnail_content_type || 'image/webp')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
 	res.send(decompressBlob(photo.image, photo.compressed))
+})
+
+router.get('/:id/photo/:photoId/light', async (req, res) => {
+	const photo = selectPhotoWide.get(req.params.id, req.user.id, req.params.photoId)
+	if (!photo?.image) return res.status(404).json({ error: 'No picture stored for that bookmark.' })
+	const { image, contentType } = await toLight(decompressBlob(photo.image, photo.compressed), photo.photo_thumbnail_content_type || 'image/webp')
+	res.set('Content-Type', contentType)
+	res.set('Cache-Control', 'private, max-age=31536000, immutable')
+	res.send(image)
 })

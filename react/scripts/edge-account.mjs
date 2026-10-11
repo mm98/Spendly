@@ -263,6 +263,10 @@ for (const bookmark of [
 ]) bookmarkNames.has(bookmark.name) ? there() : step('bookmark', await call('POST', '/bookmarks', bookmark))
 const lamp = (await listed(false)).find(b => b.name === 'Lamp without a category')
 if (lamp && !lamp.photoId) step('bookmark picture', await call('POST', `/bookmarks/${lamp.id}/photo`, undefined, upload('lamp.png', 'image/png', png(300, 200, [210, 190, 120]), 'file')))
+// the ten newest crowd bookmarks carry a picture larger than the copy a phone is sent, so Bookmarks opens on cards with pictures
+const newest = new Set(crowded.slice(-10).map(n => `Crowd bookmark ${n}`))
+for (const b of (await listed(false)).filter(b => newest.has(b.name) && !b.photoId))
+	step('bookmark picture', await call('POST', `/bookmarks/${b.id}/photo`, undefined, upload('crowd.png', 'image/png', png(1600, 1200, [90, 140, 110]), 'file')))
 
 console.log([...made].map(([k, n]) => `${n} ${k}`).join(', '))
 
