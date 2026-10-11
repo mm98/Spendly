@@ -8,30 +8,31 @@ export const router = Router()
 
 const selectSettings = db.prepare(`
 	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density,
-		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month
+		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows
 	FROM settings WHERE user_id = ?
 `)
 // show_scan_card and confirm_delete are NOT NULL without a default, so a first write fills them
 const upsertSettings = db.prepare(`
 	INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
 		confirm_delete, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary,
-		notify_early, scan_overrides, sidebar, compare_month)
+		notify_early, scan_overrides, sidebar, compare_month, recent_rows)
 	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale, @density,
-		@notifyWhileSaving, @notifyMonthlySummary, @notifyEarly, @scanOverrides, @sidebar, @compareMonth)
+		@notifyWhileSaving, @notifyMonthlySummary, @notifyEarly, @scanOverrides, @sidebar, @compareMonth, @recentRows)
 	ON CONFLICT (user_id) DO UPDATE SET
 		default_kind = excluded.default_kind, default_status = excluded.default_status,
 		page_size = excluded.page_size, sort = excluded.sort, list_sort = excluded.list_sort,
 		currency = excluded.currency, locale = excluded.locale, density = excluded.density,
 		notify_while_saving = excluded.notify_while_saving, notify_monthly_summary = excluded.notify_monthly_summary,
 		notify_early = excluded.notify_early, scan_overrides = excluded.scan_overrides,
-		sidebar = excluded.sidebar, compare_month = excluded.compare_month
+		sidebar = excluded.sidebar, compare_month = excluded.compare_month, recent_rows = excluded.recent_rows
 `)
 
 const toApi = row => ({
 	defaultKind: row.default_kind, defaultStatus: row.default_status, pageSize: row.page_size,
 	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density,
 	notifyWhileSaving: Boolean(row.notify_while_saving), notifyMonthlySummary: Boolean(row.notify_monthly_summary),
-	notifyEarly: row.notify_early, scanOverrides: Boolean(row.scan_overrides), sidebar: row.sidebar, compareMonth: row.compare_month
+	notifyEarly: row.notify_early, scanOverrides: Boolean(row.scan_overrides), sidebar: row.sidebar, compareMonth: row.compare_month,
+	recentRows: row.recent_rows
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -50,6 +51,8 @@ const SIDEBARS = ['open', 'rail']
 const COMPARES = ['last', 'year']
 // the share of a limit a warning starts at; 100 is "only when over"
 const EARLY = [75, 90, 100]
+// how many orders Home's Recent orders card can show
+const RECENT_ROWS = Array.from({ length: 15 }, (_, i) => i + 1)
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)
 // a switch takes only true or false; anything else keeps what is stored
 const onOff = (asked, fallback) => (typeof asked === 'boolean' ? asked : fallback) ? 1 : 0
@@ -64,7 +67,8 @@ router.patch('/', (req, res) => {
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
 		listSort: 'name-asc', currency: 'DKK', locale: 'auto', density: 'comfortable',
-		notifyWhileSaving: true, notifyMonthlySummary: true, notifyEarly: 90, scanOverrides: true, sidebar: 'open', compareMonth: 'last'
+		notifyWhileSaving: true, notifyMonthlySummary: true, notifyEarly: 90, scanOverrides: true, sidebar: 'open', compareMonth: 'last',
+		recentRows: 5
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
@@ -100,7 +104,8 @@ router.patch('/', (req, res) => {
 		notifyEarly: oneOf(EARLY, Number(next.notifyEarly), currentApi.notifyEarly),
 		scanOverrides: onOff(next.scanOverrides, currentApi.scanOverrides),
 		sidebar: oneOf(SIDEBARS, String(next.sidebar ?? ''), currentApi.sidebar),
-		compareMonth: oneOf(COMPARES, String(next.compareMonth ?? ''), currentApi.compareMonth)
+		compareMonth: oneOf(COMPARES, String(next.compareMonth ?? ''), currentApi.compareMonth),
+		recentRows: oneOf(RECENT_ROWS, next.recentRows, currentApi.recentRows)
 	})
 	setLooks(req.user.id, req.body?.looks)
 	res.json({ ...toApi(selectSettings.get(req.user.id)), looks: looksOf(req.user.id) })

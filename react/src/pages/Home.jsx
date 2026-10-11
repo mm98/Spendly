@@ -26,7 +26,8 @@ import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, month
 import { CopyPicker } from './CopyPicker.jsx'
 import { alertsOf, looksIn, monthOf } from './needsLook.jsx'
 
-const RECENT = 4
+// how many orders Recent orders shows when the settings did not load
+const RECENT = 5
 const DRAFTS = 3
 // how often a draft still being read asks again, so its row moves on once the reading ends
 const READING_MS = 5000
@@ -157,8 +158,12 @@ export default function Home() {
 	const touch = useShellShape() === 'touch'
 	const month = useApi(getStatsSlice, [MONTH])
 	const categories = useApi(getHomeCategories)
+	const settings = useApi(getSettings)
+	const known = settings.data !== undefined || !!settings.error
+	const rows = settings.data?.recentRows ?? RECENT
 	// Recent orders leaves drafts out; they have their own card (10a)
-	const recent = useApi(getOrders, [{ pageSize: RECENT, drafts: 'none' }])
+	// it asks once the settings are in, so the card never draws one count and then another
+	const recent = useApi(getOrders, [{ pageSize: rows, drafts: 'none' }], { enabled: known })
 	const drafts = useApi(getDrafts, [DRAFTS])
 	const reading = Boolean(drafts.data?.drafts.some(d => d.draft?.reading))
 	useEffect(() => {
@@ -169,7 +174,6 @@ export default function Home() {
 	const attention = useApi(getHomeAttention)
 	const name = firstName(useApi(getCurrentUser).data)
 	const compared = useApi(getComparedMonth)
-	const settings = useApi(getSettings)
 	const loud = loudness(settings.data)
 	// the four categories that spent most this month, by the window's own figures, ties by name
 	const topIds = (month.data?.window.split ?? []).filter(s => s.id && s.amount > 0)
@@ -178,7 +182,6 @@ export default function Home() {
 	const top = !topIds.length ? [] : topRead.data ? topIds.map(id => topRead.data.categories.find(c => c.id === id)).filter(Boolean) : topRead.error ? [] : null
 	const view = monthView(month.data?.window, categories.data, loud.early, top)
 	// the summary waits for the settings, so one switched off never flashes up
-	const known = settings.data !== undefined || !!settings.error
 	const summary = useApi(getMonthlySummary, [], { enabled: known && loud.summary })
 	const toast = useToast()
 	const [putAway, setPutAway] = useState(null)
@@ -197,7 +200,7 @@ export default function Home() {
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	// the card waits for the settings, so a row switched off never flashes up
-	const props = { month, compared, categories, view, recent, drafts, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
+	const props = { month, compared, categories, view, recent, rows, drafts, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
 }
@@ -205,7 +208,7 @@ export default function Home() {
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, compared, categories, view, recent, drafts, attention, looks, notice }) {
+function DesktopHome({ month, compared, categories, view, recent, rows, drafts, attention, looks, notice }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error
 	return (
@@ -219,13 +222,13 @@ function DesktopHome({ month, compared, categories, view, recent, drafts, attent
 						</Hold>
 					)
 					: <MonthCard w={month.data?.window} compared={compared} lastAdded={attention?.lastAdded} />}
-				<CaptureCard newest={newest} loading={recent.loading && !recent.data} />
+				<CaptureCard newest={newest} loading={!recent.data && !recent.error} />
 			</div>
 			<div className="hm-split hm-split--start sp-gap-12">
 				<div className="sp-stack sp-gap-12">
 					<DraftsCard drafts={drafts} />
 					{lost ? null : <AlertsCard view={view} attention={attention} looks={looks} />}
-					<RecentCard recent={recent} />
+					<RecentCard recent={recent} rows={rows} />
 				</div>
 				<div className="sp-stack sp-gap-12">
 					{lost
@@ -429,18 +432,18 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	)
 }
 
-function RecentCard({ recent }) {
+function RecentCard({ recent, rows }) {
 	const orders = recent.data?.orders
 	const total = recent.data?.total
 	const caption = (
 		<>
 			<span className="sp-section-label">Recent orders</span>
-			{total ? <span className="sp-meta">newest {Math.min(RECENT, orders.length)}</span> : null}
+			{total ? <span className="sp-meta">newest {orders.length}</span> : null}
 			<span className="sp-grow" />
 			{total ? <Button variant="outline" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
 		</>
 	)
-	const loading = <RecentList caption={caption} />
+	const loading = <RecentList caption={caption} rows={rows} />
 	if (recent.error) return (
 		<Hold shape={loading}>
 			<Failed variant="card" label="Recent orders" what="Your recent orders" error={recent.error} onRetry={recent.refresh} />
@@ -460,12 +463,12 @@ function RecentCard({ recent }) {
 			</Card>
 		</Hold>
 	)
-	return <RecentList caption={caption} orders={orders} />
+	return <RecentList caption={caption} orders={orders} rows={rows} />
 }
 
-function RecentList({ caption, orders }) {
+function RecentList({ caption, orders, rows }) {
 	return (
-		<List data={orders ?? [1, 2, 3, 4]} recordKey={o => o.id ?? o} noun="orders" headless locale={NUMBER_LOCALE}
+		<List data={orders ?? Array.from({ length: rows }, (_, i) => i + 1)} recordKey={o => o.id ?? o} noun="orders" headless locale={NUMBER_LOCALE}
 			rowTo={orders ? o => `/orders/${o.id}` : undefined}>
 			<Caption>{caption}</Caption>
 			<ListHead>
@@ -718,7 +721,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, compared, categories, view, recent, drafts, attention, looks, name }) {
+function PhoneHome({ month, compared, categories, view, recent, rows, drafts, attention, looks, name }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -737,7 +740,7 @@ function PhoneHome({ month, compared, categories, view, recent, drafts, attentio
 				: <PhoneMonth w={w} compared={compared} />}
 			<PhoneDrafts drafts={drafts} />
 			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
-			<PhoneRecent recent={recent} />
+			<PhoneRecent recent={recent} rows={rows} />
 		</>
 	)
 }
@@ -810,12 +813,12 @@ function PhoneAlerts({ view, attention, looks }) {
 	)
 }
 
-function PhoneRecent({ recent }) {
+function PhoneRecent({ recent, rows }) {
 	const orders = recent.data?.orders
 	const loading = (
 		<Card>
 			<CardHeader name="Recent orders" />
-			{[0, 1, 2].map(i => (
+			{Array.from({ length: rows }, (_, i) => (
 				<div className="sp-row-flex sp-gap-12" key={i}>
 					<Skeleton shape="mark" />
 					<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w="62pc" data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span>
@@ -842,8 +845,8 @@ function PhoneRecent({ recent }) {
 	)
 	return (
 		<Card>
-			<CardHeader name="Recent orders" meta={`newest ${Math.min(3, orders.length)}`} actions={[{ label: `All ${amount(recent.data.total, 0)}`, to: '/orders' }]} />
-			{orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)}
+			<CardHeader name="Recent orders" meta={`newest ${orders.length}`} actions={[{ label: `All ${amount(recent.data.total, 0)}`, to: '/orders' }]} />
+			{orders.map(o => <PhoneOrder key={o.id} order={o} />)}
 		</Card>
 	)
 }
