@@ -2,7 +2,7 @@
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, look-alike vendors, an archived vendor, more categories than a page
    holds, names too long for a row, an account name and an address too long for a line, every status, a receipt and none, bookmarks with and
-   without a category, more drafts than Home shows, one with no vendor and no prices, drafts made by hand.
+   without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
    it fills first on a new account:
@@ -81,6 +81,16 @@ const step = (what, r) => {
 	return r
 }
 const there = () => step('kept', { status: 409 })
+// every page of a list, a hundred at a time
+const pagesOf = async (path, key) => {
+	const all = []
+	for (let page = 1; ; page++) {
+		const got = (await call('GET', `${path}${path.includes('?') ? '&' : '?'}pageSize=100&page=${page}`)).data
+		all.push(...(got?.[key] ?? []))
+		if (!got?.[key]?.length || page * 100 >= (got.matched ?? got.total ?? 0)) break
+	}
+	return all
+}
 
 let r = await call('POST', '/auth/register', { email, password })
 const isNew = r.status === 201
@@ -242,13 +252,14 @@ for (const n of crowded) {
 	await order(`Crowd order ${n}`, { vendor: `Crowd vendor ${n}`, date: day(-(Number(n) % 5)), categories: [`Crowd category ${n}`], items: [{ title: `Crowd ${n}`, quantity: 1, price: 20 + Number(n) }] })
 }
 
-// bookmarks: with and without a category, and an archived one
-const listed = async archived => (await call('GET', `/bookmarks?pageSize=100${archived ? '&archived=yes' : ''}`)).data?.bookmarks ?? []
+// bookmarks: with and without a category, an archived one, and more than a hundred, so Load more is met at every page size
+const listed = archived => pagesOf(`/bookmarks${archived ? '?archived=yes' : ''}`, 'bookmarks')
 const bookmarkNames = new Set([...(await listed(false)), ...(await listed(true))].map(b => b.name))
 for (const bookmark of [
 	{ name: 'Chair with a category', url: 'https://example.dk/chair', price: '1499', categories: ['Favourite with limit'] },
 	{ name: 'Lamp without a category', url: 'https://example.dk/lamp' },
-	{ name: 'Bought already', url: 'https://example.dk/done', archived: true }
+	{ name: 'Bought already', url: 'https://example.dk/done', archived: true },
+	...crowded.map(n => ({ name: `Crowd bookmark ${n}`, url: `https://example.dk/crowd-${n}`, price: String(50 + Number(n)) }))
 ]) bookmarkNames.has(bookmark.name) ? there() : step('bookmark', await call('POST', '/bookmarks', bookmark))
 const lamp = (await listed(false)).find(b => b.name === 'Lamp without a category')
 if (lamp && !lamp.photoId) step('bookmark picture', await call('POST', `/bookmarks/${lamp.id}/photo`, undefined, upload('lamp.png', 'image/png', png(300, 200, [210, 190, 120]), 'file')))
@@ -258,15 +269,6 @@ console.log([...made].map(([k, n]) => `${n} ${k}`).join(', '))
 /* ---- nothing of this account reaches another one ---- */
 
 // every record this account holds, by the addresses that open it
-const pagesOf = async (path, key) => {
-	const all = []
-	for (let page = 1; ; page++) {
-		const got = (await call('GET', `${path}${path.includes('?') ? '&' : '?'}pageSize=100&page=${page}`)).data
-		all.push(...(got?.[key] ?? []))
-		if (!got?.[key]?.length || page * 100 >= (got.matched ?? got.total ?? 0)) break
-	}
-	return all
-}
 const orders = await pagesOf('/orders', 'orders')
 const vendors = await pagesOf('/vendors', 'vendors')
 const categories = (await call('GET', '/categories')).data ?? []

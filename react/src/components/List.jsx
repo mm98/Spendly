@@ -309,19 +309,22 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 	reject(rest, 'ListMore')
 	const line = useRef(null)
 	const asked = useRef(null)
-	// the last Load more goes with its page: focus moves to the first record it brought, else to this line
+	// Load more takes the reader to the first record it brought: at the top of the window, and focused,
+	// else focus goes to this line. A reader who has moved focus elsewhere since the press is left there.
 	useEffect(() => {
 		const from = asked.current
-		if (from == null || shown <= from) return
+		if (from == null || shown <= from || !line.current) return
 		asked.current = null
-		const lost = !document.activeElement || document.activeElement === document.body
-		if (!lost || !line.current) return
 		const foot = line.current.parentElement
+		const at = document.activeElement
+		if (at && at !== document.body && !foot.contains(at)) return
+		// the records: in a table, beside this foot, or in the one box of cards beside it
 		const kin = [...foot.parentElement.children].filter(c => c !== foot)
-		const rows = kin.length >= shown ? kin : [...foot.parentElement.querySelectorAll('tbody > tr')]
-		const row = rows.length >= shown ? rows[rows.length - shown + from] : null
+		const rows = [[...foot.parentElement.querySelectorAll('tbody > tr')], kin, ...kin.map(k => [...k.children])].find(g => g.length >= shown)
+		const row = rows ? rows[rows.length - shown + from] : null
+		row?.scrollIntoView({ block: 'start' })
 		const target = row?.matches('a[href], button') ? row : row?.querySelector('a[href], button')
-		;(target ?? line.current).focus()
+		;(target ?? line.current).focus({ preventScroll: Boolean(row) })
 	}, [shown])
 	if (!(total > pageSize)) return null
 	const counted = n => formatNumber(n, { locale, decimals: 0 })
