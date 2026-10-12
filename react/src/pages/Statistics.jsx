@@ -23,7 +23,7 @@ import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRo
 import { Saving } from '../app/saving.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
 import { getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
-import { useApi } from '../api/useApi.js'
+import { peek, useApi } from '../api/useApi.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, shortDate, today
 } from '../api/format.js'
@@ -63,6 +63,20 @@ const useShown = () => Math.max(usePageSize() ?? 10, TOP + 2)
 
 /** The id a range opens on when the address names none: the window holding today. */
 const defaultId = range => windowIdAt(range, todayUtc())
+
+/* The period size the reader last chose, kept in this browser for each account; a custom range
+   keeps its dates, every other size opens on the window holding today. */
+const keptKey = () => `spendly:statistics-period:${peek(getCurrentUser)?.id ?? ''}`
+function keptPeriod() {
+	try {
+		const kept = JSON.parse(localStorage.getItem(keptKey()))
+		if (kept?.range === 'custom') return validId('custom', kept.period) ? kept : null
+		return RANGES.includes(kept?.range) ? { range: kept.range } : null
+	} catch { return null }
+}
+const keepPeriod = (range, id) => {
+	try { localStorage.setItem(keptKey(), JSON.stringify(range === 'custom' ? { range, period: id } : { range })) } catch { /* storage denied: this visit only */ }
+}
 
 /* useApi keeps its last answer while new arguments load or fail. This returns data only when it
    answers these arguments, so one window's figures never stand under another window's name. */
@@ -115,8 +129,11 @@ export default function Statistics() {
 	// Layout rules: below 900 the paired cards stack
 	const stacked = useMedia('(max-width: 899.98px)')
 	const [params, setParams] = useSearchParams()
-	const range = RANGES.includes(params.get('range')) ? params.get('range') : 'year'
-	const asked = params.get('period')
+	// a period's id names its range by its shape; an address with neither opens on the kept choice, else this month
+	const named = RANGES.includes(params.get('range')) ? params.get('range') : RANGES.find(r => validId(r, params.get('period')))
+	const kept = named ? null : keptPeriod()
+	const range = named ?? kept?.range ?? 'month'
+	const asked = named ? params.get('period') : kept?.period
 	const id = validId(range, asked) && !(range === 'days30' && asked > today()) ? asked : defaultId(range)
 	const compareOn = params.get('compare') !== 'off'
 	const flow = FLOWS.some(f => f.value === params.get('flow')) ? params.get('flow') : 'expenses'
@@ -161,9 +178,10 @@ export default function Statistics() {
 		for (const call of [stats, past, parent, categories, read]) if (call.error) call.refresh()
 	}
 
-	// the URL holds only what differs from the page's own default
+	// the range is always in the address, since an address without one opens on the kept choice;
+	// everything else only where it differs from the page's own default
 	const write = ({ range: r = range, id: i = id, compare: c = compareOn, flow: f = flow, crumbs: cr = crumbs }) => setParams({
-		...(r === 'year' ? {} : { range: r }),
+		range: r,
 		...(r !== 'custom' && i === defaultId(r) ? {} : { period: i }),
 		...(c ? {} : { compare: 'off' }),
 		...(f === 'expenses' ? {} : { flow: f }),
@@ -172,8 +190,17 @@ export default function Statistics() {
 	// a period the reader chooses here is the one the order list opens on next (c14)
 	const show = (nextRange, nextId) => {
 		carryPeriod(...boundsOf(nextRange, nextId).map(isoOf))
+		keepPeriod(nextRange, nextId)
 		write({ range: nextRange, id: nextId })
 	}
+	// an address naming no period is given the one shown, so Back and a reload keep it after a new choice is kept
+	useEffect(() => {
+		if (named) return
+		const next = new URLSearchParams(params)
+		next.set('range', range)
+		if (range === 'custom') next.set('period', id)
+		setParams(next, { replace: true })
+	}, [named, params, range, id, setParams])
 
 	/* A crumb of a kind already in the path takes its place; a new kind is pushed, up to three. */
 	const sameKind = (a, b) => a.kind === b.kind || (isTime(a) && isTime(b))
