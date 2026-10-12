@@ -40,12 +40,12 @@ const CATEGORIES = [
 	{ name: 'Electronics', icon: 'plug', budget: 1800 },
 	{ name: 'Household', icon: 'home', budget: 900 },
 	{ name: 'Home office', icon: 'device-desktop', budget: 700 },
-	{ name: 'Clothing', icon: 'tag', budget: 800 },
-	{ name: 'Health', icon: 'tag', budget: 500 },
-	{ name: 'Transport', icon: 'tag', budget: 600 },
-	{ name: 'Eating out', icon: 'tag', budget: 1000 },
-	{ name: 'Hobby', icon: 'tag', budget: 400 },
-	{ name: 'Everything else', icon: 'tag', budget: 0 }
+	{ name: 'Clothing', icon: 'shirt', budget: 800 },
+	{ name: 'Health', icon: 'first-aid-kit', budget: 500 },
+	{ name: 'Transport', icon: 'bus', budget: 600 },
+	{ name: 'Eating out', icon: 'tools-kitchen-2', budget: 1000 },
+	{ name: 'Hobby', icon: 'puzzle', budget: 400 },
+	{ name: 'Everything else', icon: 'box', budget: 0 }
 ]
 
 /* Items per category, so a Groceries order is not full of monitors. Prices are a starting

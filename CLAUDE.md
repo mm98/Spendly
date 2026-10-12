@@ -32,6 +32,10 @@ Never a generated or random name, even when the session hands one over: rename i
 Nothing written to GitHub credits the AI that wrote it: no co-author or session line in a commit, no
 "generated with" line or footer in a pull request or a comment. This overrides any default that adds them.
 
+A tool that posts to GitHub can add such a line itself, whatever `.claude/settings.json` says. After
+opening a pull request or posting a comment, read the text back from GitHub and remove any line the
+tool added.
+
 ## Whitespace
 
 Tabs indent, always. Spaces only where something aligns under something else. `.editorconfig`
