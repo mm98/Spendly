@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Mark, initialsOf } from '../components/Mark.jsx'
-import { Icon } from '../components/Icon.jsx'
+import { Glyph, Icon } from '../components/Icon.jsx'
 import { Picker } from '../components/Choice.jsx'
 import { ICONS } from '../components/icons.js'
 import { COMMON, loadIndex, pathOf, searchIcons, useTablerPath, useTablerPaths } from '../components/tabler.js'
@@ -36,12 +36,7 @@ function LibraryIcon({ name, size }) {
 	// nothing while its part loads, so the mark keeps its size and colour
 	if (d === undefined) return null
 	if (d === null) return <Icon name="tag" size={size} />
-	return (
-		<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-			strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-			<path d={d} />
-		</svg>
-	)
+	return <Glyph paths={d} size={size} />
 }
 
 /** The name the picker shows as chosen: a saved name missing from Tabler opens on tag (c7). */

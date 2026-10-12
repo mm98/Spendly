@@ -9,10 +9,18 @@ export function Icon({ name, size = 16 }) {
 		console.error(`<Icon> "${name}" is not in the register`)
 		return null
 	}
+	return <Glyph paths={paths} size={size} />
+}
+
+// the marks scripts/sync-icons.mjs puts on a path Tabler draws other than as a plain line
+const MARKS = { '*': { fill: 'currentColor' }, '#': { fill: 'currentColor', stroke: 'none' }, '~': { opacity: 0.5 } }
+
+/** A Tabler icon from its paths, each drawn on its own as Tabler draws it. */
+export function Glyph({ paths, size }) {
 	return (
 		<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
 			strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-			{paths.map(d => <path d={d} key={d} />)}
+			{paths.map((d, i) => (MARKS[d[0]] ? <path d={d.slice(1)} {...MARKS[d[0]]} key={i} /> : <path d={d} key={i} />))}
 		</svg>
 	)
 }

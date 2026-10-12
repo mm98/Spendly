@@ -15,7 +15,7 @@ function loadPart(key) {
 	if (!PARTS[key]) return Promise.resolve(new Map())
 	if (!pending.has(key)) {
 		pending.set(key, PARTS[key]().then(module => {
-			const paths = new Map(module.default.map(line => line.split('\t')))
+			const paths = new Map(module.default.map(line => { const [name, ...d] = line.split('\t'); return [name, d] }))
 			loaded.set(key, paths)
 			return paths
 		}))
@@ -23,7 +23,7 @@ function loadPart(key) {
 	return pending.get(key)
 }
 
-/** The path data for an icon already loaded: a string, null when Tabler has no such icon, undefined while unknown. */
+/** The paths of an icon already loaded, as Glyph draws them: null when Tabler has no such icon, undefined while unknown. */
 export function pathOf(name) {
 	const part = loaded.get(partOf(String(name)))
 	return part ? part.get(name) ?? null : undefined

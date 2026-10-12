@@ -1,7 +1,7 @@
 /* A test account with the cases real accounts have and the demo data does not: a limit nobody
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, look-alike vendors, an archived vendor, more categories than a page
-   holds, names too long for a row, an account name and an address too long for a line, every status, a receipt and none, bookmarks with and
+   holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, bookmarks with and
    without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
@@ -117,6 +117,9 @@ await makeCategory('Favourite with limit', { favourite: 1, budget: 800 })
 await makeCategory('No limit, spent')
 await makeCategory('No limit, unused')
 await makeCategory('A category name so long that it has to be cut somewhere before it reaches the amounts at the end of a row')
+// icons with filled dots, and one that is a filled shape only
+await makeCategory('Icon with dots', { icon: 'dice-5' })
+await makeCategory('Icon filled only', { icon: 'percentage-100' })
 for (let i = 1; i <= 30; i++) await makeCategory(`Filler ${String(i).padStart(2, '0')}`)
 
 // vendors: a favourite, a look-alike pair, an archived one, one with no orders, a long name, one with an alias

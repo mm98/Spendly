@@ -1,7 +1,7 @@
-# Problems and adjustments
+# Problems
 
-Small problems and adjustments that are known but not urgent. Each one says where it is, what the
-reader sees, what was measured and when. An entry is removed in the change that fixes it.
+Small problems that are known but not urgent. Each one says where it is, what the reader sees,
+what was measured and when. An entry is removed in the change that fixes it.
 
 ## The design: the Categories field moves its first row, so the bulb is 1-2px off it
 
@@ -27,3 +27,14 @@ reader sees, what was measured and when. An entry is removed in the change that 
   Rows per page set from 10 to 25 showed "10 rows" for 33ms. Recent orders on Home showed the old
   value for 26-39ms in three tries.
 - **Why not urgent:** the saved value is right, and the old one shows for a fraction of a second.
+
+## Demo data: Groceries and Home office are drawn with the tag icon
+
+- **Where:** the categories that Settings' "Fill with demo data" makes, on every page that shows a
+  category's icon.
+- **What the reader sees:** Groceries and Home office show a tag, the icon for a category with no
+  icon of its own, instead of a cart and a screen.
+- **Measured:** 12 October 2026, in Chrome at 1440px, on a filled account. The demo data stores the
+  icon names "cart" and "display", and the icon library has neither ("shopping-cart" and
+  "device-desktop" are the nearest). Both marks draw the same paths as the tag icon.
+- **Why not urgent:** only demo data is affected, and a category's icon can be changed by hand.
