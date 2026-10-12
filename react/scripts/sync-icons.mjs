@@ -103,8 +103,17 @@ const registerText = icons => fs.readFileSync(REGISTER, 'utf8').replace(/^\t"([^
 	return `\t"${name}": [${icons[name].map(d => `'${d}'`).join(', ')}]${comma}`
 })
 
+const library = collect()
+// an icon the server gives a category by name, as the demo data does, has to be one the library draws
+const API = path.join(here, '..', '..', 'api', 'src')
+for (const file of fs.readdirSync(API, { recursive: true }).filter(f => f.endsWith('.js'))) {
+	for (const [, name] of fs.readFileSync(path.join(API, file), 'utf8').matchAll(/\bicon: '([^']*)'/g)) {
+		if (!library[name]) throw new Error(`api/src/${file} names the icon "${name}", which @tabler/icons does not have`)
+	}
+}
+
 const built = build()
-built.files.set('../icons.js', registerText(collect()))
+built.files.set('../icons.js', registerText(library))
 const current = new Map()
 if (fs.existsSync(TARGET)) for (const name of fs.readdirSync(TARGET)) current.set(name, fs.readFileSync(path.join(TARGET, name), 'utf8'))
 current.set('../icons.js', fs.readFileSync(REGISTER, 'utf8'))
