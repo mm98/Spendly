@@ -3801,6 +3801,7 @@ pepper-off	food	chili chilli mild not spicy vegetable disabled slash
 pepper	food	chili chilli hot spicy vegetable food paprika
 percentage-0	system	empty none percent progress pie chart ratio share fraction loading proportion statistics
 percentage-10	system	percent progress pie chart ratio share fraction loading proportion statistics
+percentage-100	system	full complete percent progress pie chart ratio share fraction loading proportion statistics
 percentage-20	system	percent progress pie chart ratio share fraction loading proportion statistics
 percentage-25	system	quarter one percent progress pie chart ratio share fraction loading proportion statistics
 percentage-30	system	percent progress pie chart ratio share fraction loading proportion statistics

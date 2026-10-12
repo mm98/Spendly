@@ -37,19 +37,26 @@ const keywords = (name, tags) => {
 	return words.join(' ')
 }
 
+/* Each icon's paths as Tabler draws them, one by one, since one merged path draws its crossings
+   differently. A path's settings besides its line are carried as a mark Icon.jsx reads; a setting
+   with no mark stops the sync, so a drawing never changes unnoticed. */
+const MARKS = { '': '', 'fill=currentColor': '*', 'fill=currentColor stroke=none': '#', 'opacity=.5': '~' }
+
 const collect = () => {
 	const icons = {}
 	for (const file of fs.readdirSync(SOURCE).filter(f => f.endsWith('.svg')).sort()) {
 		const svg = fs.readFileSync(path.join(SOURCE, file), 'utf8')
-		// outline icons are stroked only, so a filled path is left out
-		const paths = [...svg.matchAll(/<path\b([^>]*)>/g)]
-			.map(m => m[1])
-			.filter(attrs => {
-				const d = /\bd="([^"]*)"/.exec(attrs)?.[1] ?? ''
-				const fill = /\bfill="([^"]*)"/.exec(attrs)?.[1]
-				return d && d !== BOUNDS && (!fill || fill === 'none')
-			})
-			.map(attrs => /\bd="([^"]*)"/.exec(attrs)[1].trim())
+		for (const [, tag] of svg.matchAll(/<([a-z]+)\b/g)) if (tag !== 'svg' && tag !== 'path') throw new Error(`${file} draws a ${tag}`)
+		const paths = []
+		for (const [, attrs] of svg.matchAll(/<path\b([^>]*)>/g)) {
+			const d = /\bd="([^"]*)"/.exec(attrs)?.[1].trim()
+			if (!d || d === BOUNDS) continue
+			const style = [...attrs.matchAll(/([a-z-]+)="([^"]*)"/g)]
+				.filter(([, key, value]) => key !== 'd' && !(key === 'fill' && value === 'none'))
+				.map(([, key, value]) => `${key}=${value}`).sort().join(' ')
+			if (!(style in MARKS) || !d.startsWith('M')) throw new Error(`${file} draws a path this sync does not carry: ${style || d}`)
+			paths.push(MARKS[style] + d)
+		}
 		if (paths.length) icons[file.slice(0, -4)] = paths
 	}
 	return icons
@@ -76,11 +83,11 @@ const build = () => {
 	for (const name of names) {
 		const key = partOf(name)
 		if (!parts.has(key)) parts.set(key, [])
-		parts.get(key).push(`${name}\t${icons[name].join(' ')}`)
+		parts.get(key).push(`${name}\t${icons[name].join('\t')}`)
 	}
 	parts.get('common').sort((a, b) => COMMON.indexOf(a.split('\t')[0]) - COMMON.indexOf(b.split('\t')[0]))
 	const keys = [...parts.keys()].sort()
-	// one line per icon: name, then its path data
+	// one line per icon: name, then each of its paths
 	for (const key of keys) files.set(`${key}.js`, `${HEAD}export default ${literal(parts.get(key))}\n`)
 
 	files.set('parts.js', `${HEAD}export const COMMON = ${JSON.stringify(COMMON)}\n\n`
