@@ -36,10 +36,10 @@ const VENDORS = [
 ]
 
 const CATEGORIES = [
-	{ name: 'Groceries', icon: 'cart', budget: 4500 },
+	{ name: 'Groceries', icon: 'shopping-cart', budget: 4500 },
 	{ name: 'Electronics', icon: 'plug', budget: 1800 },
 	{ name: 'Household', icon: 'home', budget: 900 },
-	{ name: 'Home office', icon: 'display', budget: 700 },
+	{ name: 'Home office', icon: 'device-desktop', budget: 700 },
 	{ name: 'Clothing', icon: 'tag', budget: 800 },
 	{ name: 'Health', icon: 'tag', budget: 500 },
 	{ name: 'Transport', icon: 'tag', budget: 600 },
