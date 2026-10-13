@@ -291,8 +291,6 @@ const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
 	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, @size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, @fromScan,
 		CASE WHEN @itemId IS NULL THEN original END, CASE WHEN @itemId IS NULL THEN original_is_compressed ELSE 0 END, CASE WHEN @itemId IS NULL THEN original_content_type END
 	FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
-const copyUploadPages = db.prepare(`INSERT INTO attachment_pages (attachment_id, page, image, content_type)
-	SELECT @id, page, image, content_type FROM scan_upload_pages WHERE upload_id = @uploadId`)
 const selectItemOfOrder = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
 const markVendorScanned = db.prepare(`UPDATE vendors SET origin = 'scan'
 	WHERE id = (SELECT vendor_id FROM orders WHERE id = @order) AND made_by_order = @order AND user_id = @userId`)
@@ -316,7 +314,6 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId, size,
 			name, meta: `${scanned ? 'Scanned' : 'Added'} today${sep}${fileSizeLabel(size)}`,
 			fromScan: scanned ? 1 : 0, uploadId: upload.id, userId: req.user.id })
-		copyUploadPages.run({ id, uploadId: upload.id })
 		// the receipt this order was created from: a vendor that order's save made came from the scan (5a)
 		if (scanned && !itemId) markVendorScanned.run({ order: order.id, userId: req.user.id })
 	})()
