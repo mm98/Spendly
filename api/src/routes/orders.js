@@ -536,28 +536,19 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 	})
 })
 
-/* An order saved without a reference gets the account's next number. The first one counts on
-   from the orders the account already has, so it reads like the ledger's own position. */
-const nextReference = db.prepare(`UPDATE users
-	SET order_reference_last = COALESCE(order_reference_last, (SELECT COUNT(*) FROM orders WHERE user_id = @userId)) + 1
-	WHERE id = @userId RETURNING order_reference_last`).pluck()
-export const REFERENCE_PREFIX = 'SPENDLY-'
-
 /* A save carries a key its browser chose (`clientKey`), stored on what it wrote: a save sent again
    because its answer never arrived (6d) finds that key and answers with what is there. */
 const selectOrderByClientKey = db.prepare('SELECT id FROM orders WHERE user_id = ? AND client_key = ?')
 const setClientKey = db.prepare('UPDATE orders SET client_key = ? WHERE id = ?')
 const clientKeyOf = body => (typeof body?.clientKey === 'string' && body.clientKey ? body.clientKey.slice(0, 64) : null)
 
-/** Writes a new order from a draft as POST takes it, given the next reference when it has none;
-    `also` runs inside the same transaction with the new id. Answers the id. */
+/** Writes a new order from a draft as POST takes it; `also` runs inside the same transaction with the new id. Answers the id. */
 export function createOrderRecord(userId, body, today, also = () => {}) {
 	const draft = fillDraftGaps(keyed(userId, body ?? {}))
 	assertValidOrderDraft(draft, today, statusKeys(userId))
 	const id = newId('o')
 	db.transaction(() => {
-		const reference = String(draft.reference ?? '').trim() || REFERENCE_PREFIX + nextReference.get({ userId })
-		insertOrderRows(userId, id, { ...draft, reference })
+		insertOrderRows(userId, id, { ...draft, reference: String(draft.reference ?? '').trim() })
 		also(id)
 	})()
 	return id
