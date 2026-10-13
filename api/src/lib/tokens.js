@@ -15,6 +15,7 @@ const insertToken = db.prepare(`INSERT INTO account_tokens (token_hash, user_id,
 	VALUES (?, ?, ?, ?, ?, ?)`)
 const selectToken = db.prepare('SELECT user_id, kind, email, expires_at, used_at FROM account_tokens WHERE token_hash = ?')
 const markUsed = db.prepare('UPDATE account_tokens SET used_at = ? WHERE token_hash = ?')
+const dropExpired = db.prepare('DELETE FROM account_tokens WHERE expires_at <= ?')
 const lastSent = db.prepare('SELECT MAX(created_at) AS at FROM account_tokens WHERE user_id = ? AND kind = ?')
 
 /** A new single-use token. The earlier ones of its kind keep working until settleToken says it was sent. */
@@ -46,5 +47,8 @@ export function readToken(token, kind) {
 	if (row.expires_at <= nowEpoch()) return { state: 'expired', row }
 	return { state: 'valid', row }
 }
+
+/** Removes the links past their time: used or not, they now only read as expired. */
+export const dropExpiredTokens = () => dropExpired.run(nowEpoch())
 
 export const useToken = token => markUsed.run(nowEpoch(), hashOf(token))

@@ -2,6 +2,9 @@ import { mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync, existsSync
 import path from 'node:path'
 import { db, DB_PATH } from '../db.js'
 import { zipSingleFile } from './zip.js'
+import { dropExpiredTokens } from './tokens.js'
+import { pruneVectors } from './categoryModel.js'
+import { dropExpiredUploads } from '../routes/scan.js'
 import { todayIso as todayStamp } from './dates.js'
 
 const BACKUP_DIR = path.join(path.dirname(DB_PATH), 'backup')
@@ -43,9 +46,15 @@ export async function backupDatabase() {
 	return zipPath
 }
 
+// what has outlived its use, removed before the backup so the space it held is given back with the rest
+const OUTLIVED = [dropExpiredUploads, dropExpiredTokens, pruneVectors]
+
 /* Empty space and the WAL file never shrink on their own. VACUUM blocks writes while it runs, so only
    here, at night; a failure (it needs disk room for a second copy) must not stop the backup. */
 function compactDatabase() {
+	for (const job of OUTLIVED) {
+		try { job() } catch (err) { console.error('Nightly clean-up failed:', err) }
+	}
 	try {
 		db.exec('VACUUM')
 		db.pragma('wal_checkpoint(TRUNCATE)')

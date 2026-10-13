@@ -9,17 +9,6 @@
 				"idx_orders_user_uncategorised"
 			]
 		},
-		"SELECT 1 FROM attachments a JOIN orders o ON o.id = a.order_id WHERE o.user_id = ? AND a.sha256 = ? LIMIT 1": {
-			"plan": [
-				"SEARCH a USING INDEX idx_attachments_sha256 (sha256=?)",
-				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_attachments_sha256",
-				"sqlite_autoindex_orders_1"
-			]
-		},
 		"SELECT 1 FROM order_drafts WHERE upload_id = @uploadId UNION ALL SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = @userId AND f.upload_id = @uploadId LIMIT 1": {
 			"plan": [
 				"COMPOUND QUERY",
@@ -55,12 +44,32 @@
 				"idx_order_items_order"
 			]
 		},
+		"SELECT a.read_json, a.read_at FROM attachments a JOIN orders o ON o.id = a.order_id WHERE a.sha256 = @sha256 AND o.user_id = @userId AND a.read_json IS NOT NULL LIMIT 1": {
+			"plan": [
+				"SEARCH a USING INDEX idx_attachments_sha256 (sha256=?)",
+				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_attachments_sha256",
+				"sqlite_autoindex_orders_1"
+			]
+		},
 		"SELECT account_id FROM budget_lines WHERE user_id = ? AND account_id IS NOT NULL": {
 			"plan": [
 				"SCAN budget_lines"
 			],
 			"findings": [],
 			"indexes": []
+		},
+		"SELECT ai_read_json AS read_json, read_at FROM scan_uploads WHERE user_id = @userId AND sha256 = @sha256 AND ai_read_json IS NOT NULL LIMIT 1": {
+			"plan": [
+				"SEARCH scan_uploads USING INDEX idx_scan_uploads_user_hash (user_id=? AND sha256=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_scan_uploads_user_hash"
+			]
 		},
 		"SELECT attachment_id, validated_at FROM order_validations WHERE order_id = ?": {
 			"plan": [
@@ -3649,15 +3658,6 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT read_at FROM scan_readings WHERE user_id = ? AND sha256 = ?": {
-			"plan": [
-				"SEARCH scan_readings USING INDEX sqlite_autoindex_scan_readings_1 (user_id=? AND sha256=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_scan_readings_1"
-			]
-		},
 		"SELECT revision, client_key FROM orders WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -4333,13 +4333,6 @@
 			],
 			"readers": 2
 		},
-		"idx_order_trash_deleted": {
-			"table": "order_trash",
-			"columns": [
-				"deleted_at"
-			],
-			"readers": 0
-		},
 		"idx_orders_client_key": {
 			"table": "orders",
 			"columns": [
@@ -4450,7 +4443,7 @@
 				"user_id",
 				"sha256"
 			],
-			"readers": 2
+			"readers": 3
 		},
 		"idx_sessions_user": {
 			"table": "sessions",

@@ -40,16 +40,6 @@ what was measured and when. An entry is removed in the change that fixes it.
 - **Possible fix:** the order's file points to the scan's row instead of copying its bytes.
 - **Why not urgent:** the nightly clean-up gives the space back every night.
 
-## The server: deleting an order copies all its files
-
-- **Where:** deleting an order. Its files are copied from `attachments` into `order_trash_files`,
-  so the delete can be undone for 1 hour.
-- **What the reader sees:** nothing on screen. Every delete writes each file once more, and the
-  space stays in the file as empty space until the nightly clean-up.
-- **Measured:** 13 October 2026, on the user's database: `order_trash_files` held 0.06 MB.
-- **Possible fix:** mark the order as deleted and leave its files where they are.
-- **Why not urgent:** the copies live for 1 hour, and the nightly clean-up gives the space back.
-
 ## The server: one picture per record is stored in two different ways
 
 - **Where:** a user's picture is in its own table, `user_pictures`, and a vendor's picture in
