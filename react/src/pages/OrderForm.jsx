@@ -1656,7 +1656,7 @@ const UNCLEAR_LINE = {
 
 const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${dot}no photo`)
 
-const detailsLine = d => [d.categories.join(', '), d.kind, d.reference].filter(Boolean).join(dot)
+const detailsLine = d => [d.categories.join(', '), d.kind].filter(Boolean).join(dot)
 
 const lineShape = l => JSON.stringify([l.title, Number(l.quantity), l.price, l.retail ?? null, String(l.url ?? '').trim()])
 const FIELD_WORDS = {

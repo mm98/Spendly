@@ -74,7 +74,8 @@ const HeadSlot = createContext(false)
 const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink-danger' }
 
 /** A card's head (c10): one slot per view, drawn in a fixed order, so it cannot be assembled by hand.
-    Only a child of Card; `actions` are at most two `{ label, to, href, onClick }`. */
+    Only a child of Card; `actions` are at most two `{ label, to, href, onClick, held }`;
+    a `held` action is hidden but keeps its place, so the head does not change height. */
 export function CardHeader({
 	name,
 	meta,
@@ -103,9 +104,10 @@ export function CardHeader({
 			{aside ? <span className={pick(ASIDE, asideTone, 'asideTone', 'CardHeader')}>{aside}</span> : null}
 			{control || null}
 			{status || null}
-			{list.slice(0, 2).map(a => (
-				<Button key={a.label} variant="outline" size="small" to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
-			))}
+			{list.slice(0, 2).map(a => {
+				const button = <Button key={a.label} variant="outline" size="small" to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
+				return a.held ? <span key={a.label} className="sp-held">{button}</span> : button
+			})}
 			{onDismiss ? <IconButton icon="x" aria-label={dismissLabel} onClick={onDismiss} /> : null}
 		</div>
 	)

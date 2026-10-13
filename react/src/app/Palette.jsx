@@ -37,7 +37,7 @@ export function useRecentRecords() {
 // a phone keeps the name and one line of detail, without the amount (7b)
 const orderRow = (o, touch) => ({
 	key: 'recent-order-' + o.id, icon: 'receipt', name: vendorName(o), open: true, read: [getOrder, [o.id]],
-	meta: [o.reference, dayShortMonth(o.date), touch ? null : currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
+	meta: [dayShortMonth(o.date), touch ? null : currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
 })
 const vendorRow = v => ({
 	key: 'recent-vendor-' + v.id, icon: 'building-store', name: v.name, open: true, read: [getVendor, [v.id]],
@@ -105,14 +105,14 @@ function shape(needle, list, hits, vendors, touch) {
 		})
 		.map(i => ({
 			key: 'item-' + i.id, thumb: true, plain: true, name: i.title, to: `/orders/${o.id}`,
-			meta: 'in ' + (o.reference || [o.vendor?.name, dayShortMonth(o.date)].filter(Boolean).join(dot))
+			meta: 'in ' + [o.vendor?.name, dayShortMonth(o.date)].filter(Boolean).join(dot)
 		})))
 	return {
 		needle,
 		touch,
 		orders: list.orders.map(o => ({
 			key: 'order-' + o.id, icon: 'receipt', name: vendorName(o),
-			meta: [o.reference, dayShortMonth(o.date)].filter(Boolean).join(dot), value: amount(o.total), to: `/orders/${o.id}`
+			meta: dayShortMonth(o.date), value: amount(o.total), to: `/orders/${o.id}`
 		})),
 		ordersCount: list.matched,
 		vendors: hits.vendors.slice(0, SHOWN).map(v => {

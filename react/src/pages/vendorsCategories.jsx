@@ -20,6 +20,7 @@ import { amount, currency, dot, fullStop, plural, shortDate } from '../api/forma
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
+import { OrderAmount, vendorName } from '../app/orderRow.jsx'
 import { MoreMatches, groupPicks, pickGroups, usePickList, useRecent } from '../app/pickList.jsx'
 
 /* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
@@ -510,10 +511,10 @@ function RecentOrder({ order }) {
 	return (
 		<ListItem to={`/orders/${order.id}`}>
 			<Stacked>
-				<span className="sp-title sp-truncate">{order.reference || 'No reference yet'}</span>
+				<span className="sp-title sp-truncate">{vendorName(order)}</span>
 				<span className="sp-meta">{shortDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>
 			</Stacked>
-			<span className="sp-title sp-nowrap">{currency(order.total)}</span>
+			<span className="sp-stacked sp-cell-amount"><OrderAmount order={order} /></span>
 		</ListItem>
 	)
 }

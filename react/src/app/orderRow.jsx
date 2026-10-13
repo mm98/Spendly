@@ -5,8 +5,9 @@ import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { getOverLimitCategories, itemAttachmentThumbnailUrl, scanThumbnailUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { dot, morePhotos, plural, today } from '../api/format.js'
-import { TONES, useStatuses } from './statuses.js'
+import { currency, morePhotos, plural, today } from '../api/format.js'
+import { Saving } from './saving.jsx'
+import { TONES, useStatuses, useStatusTypes } from './statuses.js'
 
 /** An order row's picture (2b): its first line photo with the rest counted over it, the vendor's
     image faded, or the empty photo mark of c2. Hidden from a screen reader: the vendor names it. */
@@ -29,18 +30,35 @@ export function OrderPhoto({ order }) {
 	)
 }
 
-/** The paperclip after a row's reference line (2b): only when a file is on the order itself. */
+/** The paperclip after a row's item line (2b): only when a file is on the order itself. */
 export function OrderFiles({ count }) {
 	if (!count) return null
 	const label = plural(count, 'attachment')
 	return <Mark size="small" role="img" aria-label={label} title={label}><Icon name="paperclip" size={12} /></Mark>
 }
 
+/** The note mark beside the paperclip: only when the order has a note, which it shows on hover. */
+export function OrderNote({ note }) {
+	if (!note) return null
+	return <Mark size="small" role="img" aria-label={`Note: ${note}`} title={note}><Icon name="note" size={12} /></Mark>
+}
+
+/* A cancelled order did not happen, so its amount is struck and says it is not counted, where a
+   saving would stand (2b). */
+export function OrderAmount({ order }) {
+	const { typeOf } = useStatusTypes()
+	// a draft whose lines have no prices yet has no total, and its cell stays empty (10a)
+	if (order.total == null) return null
+	if (typeOf(order.status) === 'cancelled')
+		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">not counted</span></>
+	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
+}
+
 /** What a row is called: its vendor, or for a draft its file, or "New order" while it has neither (10a). */
 export const vendorName = order => order.vendor?.name || order.draft?.file?.name || (order.draft ? 'New order' : 'No vendor')
 
-/** The line under an order's vendor: its reference and its note (2b). */
-export const orderLine = order => [order.reference || 'No reference yet', order.note].filter(Boolean).join(dot)
+/** The line under an order's vendor: how many items it has. */
+export const orderLine = order => plural(order.itemCount, 'item')
 
 /** A status as the account names and colours it, or the stored word when it is not known yet. */
 export function useStatus(key) {
@@ -55,8 +73,8 @@ export function StatusPill({ status }) {
 	return <Pill color={look.color} state={look.state}>{name}</Pill>
 }
 
-/** The columns an order table keeps at its own width (2i): Items goes at 1040 and under, Categories at 880. */
-export const columnsFor = width => ({ items: width > 1040, categories: width > 880 })
+/** The columns an order table keeps at its own width (2i): Categories goes at 880 and under. */
+export const columnsFor = width => ({ categories: width > 880 })
 
 const NONE = new Set()
 

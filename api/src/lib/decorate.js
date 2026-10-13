@@ -156,7 +156,7 @@ const selectOrderFilesFor = db.prepare(`
 
 /** The row shape the order lists render (pages/Orders.jsx, Home's recent orders, Statistics'
     slice, a vendor's recent orders, the palette and the copy picker): the row's facts, its
-    reference and note line, and its first line photo with the count. `itemTitles` adds the
+    reference, its note for the row's note mark, and its first line photo with the count. `itemTitles` adds the
     first line names, which only the copy picker asks for. */
 export function decorateOrderListRows(totalsRows, { itemTitles = false, listRows = false } = {}) {
 	if (!totalsRows.length) return []

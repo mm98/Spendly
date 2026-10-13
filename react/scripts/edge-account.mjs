@@ -1,7 +1,7 @@
 /* A test account with the cases real accounts have and the demo data does not: a limit nobody
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, look-alike vendors, an archived vendor, more categories than a page
-   holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, bookmarks with and
+   holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, a note and none, bookmarks with and
    without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
@@ -173,6 +173,10 @@ await order('Many long lines', { vendor: 'Edge favourite shop', date: day(-10),
 await order('Future-dated', { vendor: 'Alias shop', date: day(12), status: 'Ordered' })
 await order('Last year', { vendor: 'Alias shop', date: day(-400) })
 const withReceipt = await order('With a receipt', { vendor: 'Alias shop', date: day(-11) })
+await order('With a note', { vendor: 'Alias shop', date: day(-11),
+	note: 'A note long enough to be cut in any row it is shown in, and a second line after it\nThe second line' })
+const withNote = await order('With a note and a receipt', { vendor: 'Alias shop', date: day(-11), note: 'Short note' })
+if (withNote) step('receipt beside a note', await call('POST', `/orders/${withNote.id}/attachments`, undefined, upload('receipt.png', 'image/png', png(60, 90, [235, 235, 225]))))
 if (withReceipt) step('receipt picture', await call('POST', `/orders/${withReceipt.id}/attachments`, undefined, upload('receipt.png', 'image/png', png(60, 90, [235, 235, 225]))))
 const withPdf = await order('With a PDF receipt', { vendor: 'Alias shop', date: day(-12) })
 if (withPdf) step('receipt PDF', await call('POST', `/orders/${withPdf.id}/attachments`, undefined, upload('receipt.pdf', 'application/pdf', pdf())))
