@@ -81,7 +81,7 @@ export function DeleteOrder({ order, onClose, onDeleted }) {
 /** What goes, in numbers. The month's total counts every order dated in it, whatever its kind. */
 function consequence(order) {
 	const vendor = order.vendor?.name ?? 'no vendor'
-	const which = order.reference ? `Order ${order.reference} from ${vendor}` : `The order from ${vendor} on ${shortDate(order.date)}`
+	const which = `The order from ${vendor} on ${shortDate(order.date)}`
 	const lines = order.items.length
 	const files = order.attachments.length + order.items.reduce((n, item) => n + (item.attachments?.length ?? 0), 0)
 	const counted = [[lines, 'line'], [files, 'attachment']].filter(([n]) => n > 0)

@@ -132,7 +132,7 @@ function OrderView({ order, touch, onGone }) {
 				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)} chevron={<Icon name="chevron-down" />}>
 					<span className="sp-stacked">
 						<span className="sp-title sp-truncate">Order details</span>
-						<span className="sp-meta sp-truncate">{[order.categories.map(c => c.name).join(', '), order.kind, order.reference].filter(Boolean).join(dot)}</span>
+						<span className="sp-meta sp-truncate">{[order.categories.map(c => c.name).join(', '), order.kind].filter(Boolean).join(dot)}</span>
 					</span>
 				</Toolbar>
 				<CardBody>{sums}</CardBody>

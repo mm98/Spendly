@@ -1274,7 +1274,6 @@ function sliceHead(show) {
 			<ListCell width="title">Order</ListCell>
 			<ListCell width="date">Date</ListCell>
 			{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
-			{show.items ? <ListCell width="number">Items</ListCell> : null}
 			<ListCell width="status">Status</ListCell>
 			<ListCell width="amount">Total</ListCell>
 		</ListHead>
@@ -1317,7 +1316,6 @@ function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onL
 									</ListCell>
 								)
 								: null}
-							{show.items ? <ListCell cell="number"><span className="sp-data">{order.itemCount}</span></ListCell> : null}
 							<ListCell><StatusPill status={order.status} /></ListCell>
 							<ListCell cell="amount"><span className="sp-amount">{currency(order.total)}</span></ListCell>
 						</>
@@ -1346,7 +1344,6 @@ function RowsLoading({ show, size, page, total }) {
 					<ListCell><Stacked><span className="sp-title">{hold(r[0])}</span><span className="sp-meta">{hold('44pc', '10')}</span></Stacked></ListCell>
 					<ListCell><span className="sp-data">{hold(r[1])}</span></ListCell>
 					{show.categories ? <ListCell><Skeleton shape="line" data-w="52" data-h="22" /></ListCell> : null}
-					{show.items ? <ListCell cell="number"><span className="sp-data">{hold('18', '13', 'end')}</span></ListCell> : null}
 					<ListCell><Skeleton shape="pill" /></ListCell>
 					<ListCell cell="amount"><span className="sp-amount">{hold(r[2], '13', 'end')}</span></ListCell>
 				</>

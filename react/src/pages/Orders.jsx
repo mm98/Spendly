@@ -25,7 +25,7 @@ import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDa
 import { useListMemory } from '../app/listMemory.js'
 import { useScanPicker } from '../app/scanPicker.jsx'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
-import { CategoryChips, OrderFiles, OrderNote, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
+import { CategoryChips, OrderAmount, OrderFiles, OrderNote, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
@@ -611,7 +611,6 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 				<ListCell width="title">{headOf(sort, 'title', 'Order')}</ListCell>
 				<ListCell width="date">{headOf(sort, 'date', 'Date')}</ListCell>
 				{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
-				{show.items ? <ListCell width="number">Items</ListCell> : null}
 				<ListCell width="status">Status</ListCell>
 				<ListCell width="amount">{headOf(sort, 'amount', 'Total')}</ListCell>
 				<ListCell width="menu" />
@@ -630,7 +629,6 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 					</ListCell>
 					<ListCell><span className="sp-data">{shortDate(o.date)}</span></ListCell>
 					{show.categories ? <ListCell><CategoryChips categories={o.categories} date={o.date} /></ListCell> : null}
-					{show.items ? <ListCell cell="number"><span className="sp-data">{o.itemCount}</span></ListCell> : null}
 					<ListCell><StatusPill status={o.status} /></ListCell>
 					<ListCell cell="amount"><OrderAmount order={o} /></ListCell>
 					<ListCell cell="menu"><RowMenu order={o} touch={touch} onDelete={onDelete} /></ListCell>
@@ -709,17 +707,6 @@ function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, 
 			</Empty>
 		</Card>
 	)
-}
-
-/* A cancelled order did not happen, so its amount is struck and says it is not counted, where a
-   saving would stand (2b). */
-function OrderAmount({ order }) {
-	const { typeOf } = useStatusTypes()
-	// a draft whose lines have no prices yet has no total, and its cell stays empty (10a)
-	if (order.total == null) return null
-	if (typeOf(order.status) === 'cancelled')
-		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">not counted</span></>
-	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
 
 /** At 640 of list column and under, rows become the 2i card, two lines: in a narrow column with its box;
@@ -818,7 +805,6 @@ function RowsLoading({ width, size, sort }) {
 				<ListCell width="title">{headOf(sort, 'title', 'Order')}</ListCell>
 				<ListCell width="date">{headOf(sort, 'date', 'Date')}</ListCell>
 				{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
-				{show.items ? <ListCell width="number">Items</ListCell> : null}
 				<ListCell width="status">Status</ListCell>
 				<ListCell width="amount">{headOf(sort, 'amount', 'Total')}</ListCell>
 				<ListCell width="menu" />
@@ -831,7 +817,6 @@ function RowsLoading({ width, size, sort }) {
 					</ListCell>
 					<ListCell><Skeleton shape="line" data-w={r[1]} data-h="13" /></ListCell>
 					{show.categories ? <ListCell><Skeleton shape="line" data-w="52" data-h="22" /></ListCell> : null}
-					{show.items ? <ListCell cell="number"><Skeleton shape="end" data-w="18" data-h="13" /></ListCell> : null}
 					<ListCell><Skeleton shape="pill" /></ListCell>
 					<ListCell cell="amount"><Skeleton shape="end" data-w={r[2]} data-h="20" /><Skeleton shape="end" data-w="74" data-h="18" /></ListCell>
 					<ListCell cell="menu"><Skeleton shape="icon" /></ListCell>

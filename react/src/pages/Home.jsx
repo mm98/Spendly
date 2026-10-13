@@ -15,7 +15,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
-import { OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
+import { OrderAmount, OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import {
 	failureMessage, getCategoryPage, getCurrentUser, getDrafts, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsSlice,
@@ -482,7 +482,7 @@ function RecentList({ caption, orders, rows }) {
 					<ListCell cell="flex"><OrderHead order={o} /></ListCell>
 					<ListCell><span className="sp-data">{rowDate(o.date)}</span></ListCell>
 					<ListCell><StatusPill status={o.status} /></ListCell>
-					<ListCell cell="amount"><span className="sp-amount">{currency(o.total)}</span></ListCell>
+					<ListCell cell="amount"><OrderAmount order={o} /></ListCell>
 				</>
 			) : (
 				<>
@@ -571,7 +571,7 @@ function OrderHead({ order }) {
 			<OrderPhoto order={order} />
 			<span className="sp-stacked">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
-				<span className="sp-meta sp-truncate">{order.reference ? `${order.reference}${dot}` : ''}{plural(order.itemCount, 'item')}</span>
+				<span className="sp-meta sp-truncate">{plural(order.itemCount, 'item')}</span>
 			</span>
 		</>
 	)
@@ -859,7 +859,7 @@ function PhoneOrder({ order }) {
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
 				<span className="sp-meta">{rowDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>
 			</div>
-			<span className="sp-title sp-nowrap">{amount(order.total)}</span>
+			<span className="sp-stacked sp-cell-amount"><OrderAmount order={order} /></span>
 		</Link>
 	)
 }

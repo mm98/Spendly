@@ -10,7 +10,7 @@ import { Icon } from '../components/Icon.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
 import { attachmentDownloadUrl, changeOrders, failureMessage, getCategoryPage, invalidateOrderData, itemAttachmentFileUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { currency, dot, morePhotos, plural, shortDate } from '../api/format.js'
+import { currency, morePhotos, shortDate } from '../api/format.js'
 import { OverLimitDot, StatusPill, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
@@ -23,7 +23,7 @@ const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral
 // a category search appears once there are more than this many (2e)
 const SEARCH_FROM = 7
 
-export const orderName = order => [vendorName(order), order.reference, shortDate(order.date)].filter(Boolean).join(', ')
+export const orderName = order => [vendorName(order), shortDate(order.date)].filter(Boolean).join(', ')
 
 /** Saves a file the server already holds, under the name it was stored with. */
 export function download(href) {
@@ -235,7 +235,7 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 				))
 				: <Chip variant="dashed">No category</Chip>}
 			meta={[
-				<span key="when" className="sp-subtitle">{shortDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>,
+				<span key="when" className="sp-subtitle">{shortDate(order.date)}</span>,
 				cancelled ? <span key="saved" className="sp-amount-secondary">not counted</span> : <Saving key="saved" value={order.saved} />
 			]}
 			amount={cancelled ? <span className="sp-void">{currency(order.total)}</span> : currency(order.total)}
