@@ -6,10 +6,9 @@ import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Switch } from '../components/Choice.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
-import { ScreenBarSlot, TopBarEndSlot } from './topBarEnd.jsx'
+import { ScreenBarSlot } from './screenBar.jsx'
 import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
@@ -41,7 +40,6 @@ const TABS = [
 const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'settings', 'more']
 
 export function AppShell() {
-	const [topBarEnd, setTopBarEnd] = useState(null)
 	const [screenSlot, setScreenSlot] = useState(null)
 	const [screenOn, setScreenOn] = useState(false)
 	const screenBar = useMemo(() => ({ slot: screenSlot, setOn: setScreenOn }), [screenSlot])
@@ -175,7 +173,6 @@ export function AppShell() {
 	/* One tree for every shape, so crossing a breakpoint keeps the page mounted with whatever
 	   the reader had not saved. */
 	return (
-		<TopBarEndSlot.Provider value={topBarEnd}>
 		<ScreenBarSlot.Provider value={screenBar}>
 		<Toaster notice={update}>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
@@ -183,7 +180,6 @@ export function AppShell() {
 				<TopBar touch={touch}>
 					{touch && screenOn ? null : search}
 					{touch ? <div className="sp-topbar__screen" ref={setScreenSlot} /> : null}
-					{touch ? null : <><span className="sp-grow" /><span className="sp-row-flex sp-gap-8" ref={setTopBarEnd} /></>}
 				</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
@@ -203,7 +199,6 @@ export function AppShell() {
 			<SavedLater />
 		</Toaster>
 		</ScreenBarSlot.Provider>
-		</TopBarEndSlot.Provider>
 	)
 }
 

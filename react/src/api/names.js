@@ -29,33 +29,3 @@ export function vendorKey(name) {
 	while (words.length > 1 && LEGAL.has(words[words.length - 1])) words.pop()
 	return words.join(' ')
 }
-
-// a receipt without the Danish letters writes them out, so "Møbler" and "Moebler" are compared that way
-const SPELLED = { ø: 'oe', æ: 'ae', å: 'aa', ö: 'oe', ä: 'ae', ü: 'ue' }
-
-function letterPairs(name) {
-	const text = vendorKey(String(name ?? '').toLowerCase().replace(/[øæåöäü]/g, c => SPELLED[c])).replace(/ /g, '')
-	const pairs = new Map()
-	for (let i = 0; i < text.length - 1; i++) pairs.set(text.slice(i, i + 2), (pairs.get(text.slice(i, i + 2)) ?? 0) + 1)
-	return { pairs, count: Math.max(0, text.length - 1) }
-}
-
-/** How alike two names are, 0 to 1: the share of letter pairs they have in common. */
-export function likeness(a, b) {
-	const x = letterPairs(a), y = letterPairs(b)
-	if (x.count + y.count === 0) return 0
-	let shared = 0
-	for (const [pair, n] of x.pairs) shared += Math.min(n, y.pairs.get(pair) ?? 0)
-	return (2 * shared) / (x.count + y.count)
-}
-
-const vatNumbers = vendor => new Set([vendor.name, ...(vendor.aliases ?? [])].map(vatNumberOf).filter(Boolean))
-
-/** Whether two vendors look like one shop (5j): names alike past 0.85, or one VAT number. The
-    API's lib/vendorLookalikes.js flags the same pairs. `b` may be a name still being typed. */
-export function looksAlike(a, b) {
-	const other = typeof b === 'string' ? { name: b } : b
-	if (likeness(a.name, other.name) >= 0.85) return true
-	const theirs = vatNumbers(other)
-	return [...vatNumbers(a)].some(n => theirs.has(n))
-}

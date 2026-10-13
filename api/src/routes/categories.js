@@ -5,7 +5,7 @@ import { newId } from '../lib/ids.js'
 import { findCategoryByFold, nextCategoryColour } from '../lib/findOrCreate.js'
 import { todayIso, toEpoch } from '../lib/dates.js'
 import {
-	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, uncategorisedBookmarks, bookmarkCategoryCounts
+	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, bookmarkCategoryCounts
 } from '../lib/aggregate.js'
 import { wantsPage } from '../lib/listPage.js'
 import { categoryPage, knownCategoryNames } from '../lib/categoryList.js'
@@ -70,13 +70,7 @@ router.get('/', (req, res) => {
 	}))
 })
 
-/* Registered before /:id, or that route would answer it with "No category uncategorised".
-   Its own resource rather than a row in the list above: the list is the account's category
-   records, and every reader of it -- comboboxes, order forms, settings -- maps records.
-   A stand-in row there would be offered as something to assign and to edit. */
-router.get('/uncategorised', (req, res) => res.json(uncategorisedBookmarks(req.user.id)))
-
-// the colour a new category's form starts on; registered before /:id for the same reason
+// the colour a new category's form starts on; registered before /:id, or that route would answer it
 router.get('/colour', (req, res) => res.json({ colour: nextCategoryColour(req.user.id) }))
 
 // The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at

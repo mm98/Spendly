@@ -1,5 +1,5 @@
 import { httpUrl } from '../api/rules.js'
-import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Card, CardBody, CardHeader, Panel, Toolbar } from '../components/Card.jsx'

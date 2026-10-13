@@ -3,10 +3,6 @@
 
 @layer base {
 
-	/* an expanded breakdown scrolls inside its card rather than growing the page (4d); its rows
-	   keep the card's own gap */
-	.os-scroll { max-height: 322px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-12); padding-right: var(--sp-4); }
-
 	/* the signed chart: a column that returned more than it bought hangs below the axis (4e) */
 	.os-below { display: flex; align-items: flex-start; gap: var(--sp-8); height: 26px; }
 	.os-below > span { flex: 1; }

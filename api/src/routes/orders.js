@@ -64,7 +64,6 @@ const insertAttachment = db.prepare(`INSERT INTO attachments
 		@original, @originalCompressed, @originalContentType)`)
 /** The hash of a file's bytes as they arrived, before any resizing. */
 export const sourceHash = buffer => createHash('sha256').update(buffer).digest('hex')
-const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
 const deleteItemAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_item_id = ?')
@@ -772,15 +771,6 @@ async function saveAttachments(files, owner, existingNames) {
 	insertAttachmentRows(rows)
 	return { added: rows.map(a => ({ id: a.id, name: a.name, kind: a.kind, meta: a.meta })), skipped }
 }
-
-router.post('/:id/attachments', upload.array('files'), async (req, res) => {
-	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
-	const orderId = req.params.id
-	assertImageOrPdf(req.files ?? [])
-	const existingNames = new Set(selectExistingAttachmentNames.all(orderId).map(r => r.n))
-	const { added, skipped } = await saveAttachments(req.files, { orderId }, existingNames)
-	res.status(201).json({ order: getDecoratedOrder(req.user.id, orderId), added, skipped })
-})
 
 router.delete('/:id/attachments/:attachmentId', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)

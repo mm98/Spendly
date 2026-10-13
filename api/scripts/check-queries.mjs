@@ -296,7 +296,7 @@ const REQUESTS = [
 	'/vendors?flag=possible-duplicate&query=bil&pageSize=10', `/vendors?ids=${ids.vendor},v-main-1&archived=all&with=duplicates&pageSize=2`,
 	`/vendors?near=${ids.vendor}&except=${ids.vendor}&sort=recent&pageSize=10`, `/vendors?near=${ids.vendor}&except=${ids.vendor}&sort=recent&query=bil&pageSize=10`,
 	'/vendors?name=Netto&pageSize=1', `/vendors?name=Netto&except=${ids.vendor}&pageSize=1`, '/vendors?like=Netto%20ApS&aka=Netto%20Aarhus&pageSize=1',
-	'/categories', `/categories/${ids.category}`, '/categories/uncategorised', '/categories/colour',
+	'/categories', `/categories/${ids.category}`, '/categories/colour',
 	// the paged category list, as above
 	...['name-asc', 'month-desc', 'month-asc', 'limit-desc', 'orders-desc'].map(sort => `/categories?sort=${sort}&with=month&pageSize=10`),
 	'/categories?pageSize=10&page=2', '/categories?sort=month-desc&with=month&pageSize=10&page=2', '/categories?query=mad&pageSize=10',

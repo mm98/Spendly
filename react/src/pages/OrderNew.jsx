@@ -18,7 +18,7 @@ import {
 } from '../api/client.js'
 import { activeLocaleCode, amount, dayShortMonth, dot, plural, sep, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
-import { ScreenBar } from '../app/topBarEnd.jsx'
+import { ScreenBar } from '../app/screenBar.jsx'
 import { OrderForm, discardWords, scanSeed } from './OrderForm.jsx'
 import { CopyPicker } from './CopyPicker.jsx'
 import { OrderFailed, OrderLoading, isPdf, pagesOf } from './OrderParts.jsx'

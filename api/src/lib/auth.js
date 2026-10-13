@@ -104,9 +104,6 @@ export function requireAuth(req, res, next) {
 	next()
 }
 
-/** The token this request is signed in with, so a route can end every session but this one. */
-export const currentSessionId = req => sessionToken(req)
-
 /** Scanning and importing wait until the account's email is confirmed (20b). */
 export function requireConfirmed(req, res, next) {
 	if (!req.user.email_confirmed) return res.status(403).json({ error: 'Confirm your email first. Then you can scan receipts and import orders.' })
