@@ -18,13 +18,13 @@ import { useToast } from '../components/Overlays.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, Kbd, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
 import { failureMessage, getCategoryPage, getCurrentUser, getImport, getOrders, getSettings, getVendorPage, spendKinds } from '../api/client.js'
 import { peek, readAs, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today, withShortMonth } from '../api/format.js'
 import { useListMemory } from '../app/listMemory.js'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
+import { useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, OrderAmount, OrderFiles, OrderNote, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
@@ -121,9 +121,6 @@ const loaded = readAs(getOrders, async (request, size, pages, signal) => {
 })
 
 const importDate = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', year: 'numeric' })
-
-// the search drops its shortcut badge at this width of the list or under (15e)
-const KBD = 720
 
 const RECEIPT = { attached: 'Receipt attached', missing: 'Receipt missing' }
 
@@ -337,7 +334,7 @@ export default function OrderList() {
 	))
 	// on a phone the search stands alone, and Filters and Sort share one card below it (7a)
 	const controls = touch ? <>
-		<OrderSearch key={searchKey} q={f.q} onSearch={search} touch badged={false} />
+		<OrderSearch key={searchKey} q={f.q} onSearch={search} touch />
 		<ListItem variant="card">
 			<div className="sp-combobox sp-combobox--grow">
 				<button type="button" className="sp-combobox__trigger" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'}
@@ -351,7 +348,7 @@ export default function OrderList() {
 	</> : (
 		// without the rail, Filters joins the bar before sort (15e)
 		<Controls>
-			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} badged={width > KBD} />
+			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} />
 			{railed ? null : filtersButton}
 			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>{sortOptions}</Combobox>
 			{narrow
@@ -551,7 +548,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 
 /** The list's search (c20). The field keeps what is typed and writes it to the address once it
     settles, so a key pressed while the list redraws is never overwritten. */
-function OrderSearch({ q, onSearch, touch, badged }) {
+function OrderSearch({ q, onSearch, touch }) {
 	const [text, setText] = useState(q)
 	const wrote = useRef(q)
 	useEffect(() => {
@@ -575,7 +572,6 @@ function OrderSearch({ q, onSearch, touch, badged }) {
 			placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
 			aria-label="Search orders"
 			data-page-search="orders"
-			kbd={badged ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined}
 		/>
 	)
 }
