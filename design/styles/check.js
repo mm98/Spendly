@@ -80,6 +80,15 @@
     if (optIds.join() !== ids.filter(i => optIds.includes(i)).join()) fail('the Go to menu matches the page', f, 'menu order differs from page order');
   }
 
+  /* The shortcut badge sits only on the top bar's search. ⌘K opens the search window,
+     not a list's own search, so a badge in a list toolbar names a key the field does
+     not answer to. Caught: Layout rules 15e drew it on all eight toolbar specimens. */
+  for (const f of pages) {
+    for (const m of src[f].matchAll(/<div class="sp-controls">[\s\S]{0,1200}?<\/div>/g)) {
+      if (/sp-field__kbd|sp-input--search-kbd/.test(m[0])) fail('no shortcut badge in a list toolbar', f.replace('.dc.html',''), 'toolbar search carries the badge');
+    }
+  }
+
   /* ---- 1. markup integrity ------------------------------------------------ */
 
   for (const [f, s] of Object.entries(src)) {
