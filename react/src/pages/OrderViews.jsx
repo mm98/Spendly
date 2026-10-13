@@ -147,7 +147,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 }
 
 /* A name typed where the view's row will stand (2g), beside how many orders it names: Enter saves, Escape
-   or leaving cancels, an empty name is never saved. */
+   or moving to another control cancels, an empty name is never saved. */
 function ViewName({ name = '', count, onSave, onCancel }) {
 	const [text, setText] = useState(name)
 	const field = useRef(null)
@@ -161,11 +161,14 @@ function ViewName({ name = '', count, onSave, onCancel }) {
 	}
 	const keys = ev => {
 		if (ev.key === 'Enter') { ev.preventDefault(); commit() }
-		if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); done.current = true; onCancel() }
 	}
-	const leave = () => { if (!done.current) { done.current = true; onCancel() } }
+	// Escape, a press elsewhere or focus moving to another control cancels; a bare blur does not, since a phone
+	// can drop focus from a field it has just opened
+	const wrap = useRef(null)
+	const leave = useCallback(() => { if (!done.current) { done.current = true; onCancel() } }, [onCancel])
+	useDismiss(wrap, true, leave)
 	return (
-		<div className="sp-field__wrap" onKeyDown={keys} onBlur={leave}>
+		<div ref={wrap} className="sp-field__wrap" onKeyDown={keys}>
 			<span className="sp-field__lead"><Icon name="bookmark" size={14} /></span>
 			<TextField inputRef={field} lead unit value={text} onChange={setText} placeholder="Name this view" aria-label="Name this view" maxLength={60} />
 			{count != null ? <span className="sp-field__unit">{amount(count, 0)}</span> : null}

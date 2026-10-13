@@ -25,7 +25,7 @@ import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDa
 import { useListMemory } from '../app/listMemory.js'
 import { useScanPicker } from '../app/scanPicker.jsx'
 import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
-import { CategoryChips, OrderFiles, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
+import { CategoryChips, OrderFiles, OrderNote, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
@@ -310,10 +310,16 @@ export default function OrderList() {
 		target?.focus()
 	}, [crumbFocus, crumbs.length])
 
+	// Clear all hides once it has cleared, so focus moves to the first facet rather than the page
+	const clearRail = ev => {
+		const rail = ev.currentTarget.closest('.sp-card')
+		clearAll()
+		rail?.querySelector('.sp-facets :is(button, input):not(:disabled)')?.focus()
+	}
 	const facetData = { highest: highest.data?.orders?.[0]?.total }
 	const filtersCard = (
 		<Card>
-			<CardHeader name="Filters" actions={[{ label: 'Clear all', onClick: clearAll }]} />
+			<CardHeader name="Filters" actions={[{ label: 'Clear all', onClick: clearRail, held: !crumbs.length }]} />
 			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} counts={facets.data?.facets} {...facetData} />
 		</Card>
 	)
@@ -620,6 +626,7 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 							<span className="sp-subtitle sp-truncate">{orderLine(o)}</span>
 						</span>
 						<OrderFiles count={o.fileCount} />
+						<OrderNote note={o.note} />
 					</ListCell>
 					<ListCell><span className="sp-data">{shortDate(o.date)}</span></ListCell>
 					{show.categories ? <ListCell><CategoryChips categories={o.categories} date={o.date} /></ListCell> : null}

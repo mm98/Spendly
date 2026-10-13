@@ -5,7 +5,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { getOverLimitCategories, itemAttachmentThumbnailUrl, scanThumbnailUrl, vendorImageUrl } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { dot, morePhotos, plural, today } from '../api/format.js'
+import { morePhotos, plural, today } from '../api/format.js'
 import { TONES, useStatuses } from './statuses.js'
 
 /** An order row's picture (2b): its first line photo with the rest counted over it, the vendor's
@@ -36,11 +36,17 @@ export function OrderFiles({ count }) {
 	return <Mark size="small" role="img" aria-label={label} title={label}><Icon name="paperclip" size={12} /></Mark>
 }
 
+/** The note mark beside the paperclip: only when the order has a note, which it shows on hover. */
+export function OrderNote({ note }) {
+	if (!note) return null
+	return <Mark size="small" role="img" aria-label={`Note: ${note}`} title={note}><Icon name="note" size={12} /></Mark>
+}
+
 /** What a row is called: its vendor, or for a draft its file, or "New order" while it has neither (10a). */
 export const vendorName = order => order.vendor?.name || order.draft?.file?.name || (order.draft ? 'New order' : 'No vendor')
 
-/** The line under an order's vendor: its reference and its note (2b). */
-export const orderLine = order => [order.reference || 'No reference yet', order.note].filter(Boolean).join(dot)
+/** The line under an order's vendor: its reference (2b). */
+export const orderLine = order => order.reference || 'No reference yet'
 
 /** A status as the account names and colours it, or the stored word when it is not known yet. */
 export function useStatus(key) {
