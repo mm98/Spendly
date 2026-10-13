@@ -276,9 +276,7 @@ function readOnce(userId, upload, today, onProgress, res) {
 /** Turns a reviewed draft into the new order's own attachment, so the browser doesn't have to
     upload the same file a second time -- an INSERT ... SELECT, so the bytes go table-to-table
     inside SQLite instead of surfacing into a JS Buffer just to be handed straight back. The
-    scan_uploads row is left in place rather than deleted: its sha256 and cached ai_read_json go
-    on answering a later re-upload of the same bytes -- including one after this very order gets
-    deleted -- until the row's own expires_at retires it (lib/hourly.js). */
+    order's own file takes the reading with it. */
 const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
 	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, from_scan,
 		original, original_is_compressed, original_content_type, read_json, read_at)
@@ -286,6 +284,10 @@ const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
 		CASE WHEN @itemId IS NULL THEN original END, CASE WHEN @itemId IS NULL THEN original_is_compressed ELSE 0 END, CASE WHEN @itemId IS NULL THEN original_content_type END,
 		CASE WHEN @itemId IS NULL THEN ai_read_json END, CASE WHEN @itemId IS NULL THEN read_at END
 	FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
+/* Filed, the scan has handed on all it held, its reading included; it goes at the next nightly
+   clean-up, after a margin for the rest of the same save to file it too. */
+const FILED_MARGIN_SECONDS = 10 * 60
+const expireUpload = db.prepare('UPDATE scan_uploads SET expires_at = MIN(expires_at, @at) WHERE id = @id AND user_id = @userId')
 const selectItemOfOrder = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
 const markVendorScanned = db.prepare(`UPDATE vendors SET origin = 'scan'
 	WHERE id = (SELECT vendor_id FROM orders WHERE id = @order) AND made_by_order = @order AND user_id = @userId`)
@@ -309,6 +311,7 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 		copyUploadToAttachment.run({ id, orderId: itemId ? null : order.id, itemId, size,
 			name, meta: `${scanned ? 'Scanned' : 'Added'} today${sep}${fileSizeLabel(size)}`,
 			fromScan: scanned ? 1 : 0, uploadId: upload.id, userId: req.user.id })
+		expireUpload.run({ id: upload.id, userId: req.user.id, at: nowEpoch() + FILED_MARGIN_SECONDS })
 		// the receipt this order was created from: a vendor that order's save made came from the scan (5a)
 		if (scanned && !itemId) markVendorScanned.run({ order: order.id, userId: req.user.id })
 	})()
