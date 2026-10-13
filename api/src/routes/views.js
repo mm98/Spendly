@@ -17,8 +17,8 @@ const SHOWN = [2, 3, 4, 5, 6, 8, 10]
 const selectViews = db.prepare('SELECT id, name, query, is_default, attention FROM saved_views WHERE user_id = ? ORDER BY position, rowid')
 const selectView = db.prepare('SELECT id FROM saved_views WHERE id = ? AND user_id = ?')
 const selectFirst = db.prepare('SELECT MIN(position) p FROM saved_views WHERE user_id = ?')
-const selectShown = db.prepare('SELECT shown FROM saved_view_prefs WHERE user_id = ?')
-const upsertShown = db.prepare('INSERT INTO saved_view_prefs (user_id, shown) VALUES (?, ?) ON CONFLICT (user_id) DO UPDATE SET shown = excluded.shown')
+const selectShown = db.prepare('SELECT saved_views_shown AS shown FROM users WHERE id = ?')
+const upsertShown = db.prepare('UPDATE users SET saved_views_shown = ? WHERE id = ?')
 const countAll = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const insertView = db.prepare('INSERT INTO saved_views (id, user_id, name, query, position, attention) VALUES (?, ?, ?, ?, ?, ?)')
 const renameView = db.prepare('UPDATE saved_views SET name = ? WHERE id = ? AND user_id = ?')
@@ -90,7 +90,7 @@ router.post('/', (req, res) => {
 router.put('/shown', (req, res) => {
 	const shown = Number(req.body?.shown)
 	if (!SHOWN.includes(shown)) return refuse(res, `Pick one of ${SHOWN.join(', ')}.`)
-	upsertShown.run(req.user.id, shown)
+	upsertShown.run(shown, req.user.id)
 	res.json(list(req.user.id, req.today))
 })
 

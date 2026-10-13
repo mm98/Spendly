@@ -37,15 +37,25 @@ const selectCategoryNames = db.prepare(`SELECT c.name FROM categories c
 const selectCategoryNamesFor = db.prepare(`SELECT bc.bookmark_id, c.name FROM categories c
 	JOIN bookmark_categories bc ON bc.category_id = c.id
 	WHERE bc.bookmark_id IN (SELECT value FROM json_each(?)) ORDER BY bc.bookmark_id, c.name`)
-const updatePhoto = db.prepare(`UPDATE bookmarks SET photo_id=@photoId,
-	photo_thumbnail=@thumbnail, photo_thumbnail_is_compressed=@thumbnailCompressed,
-	photo_wide=@wide, photo_wide_is_compressed=@wideCompressed,
-	photo_thumbnail_content_type=@contentType WHERE id=@id AND user_id=@userId`)
-const selectPhotoThumbnail = db.prepare(
-	'SELECT photo_thumbnail, photo_thumbnail_is_compressed, photo_thumbnail_content_type FROM bookmarks WHERE id = ? AND user_id = ? AND photo_id = ?')
-const selectPhotoWide = db.prepare(`SELECT COALESCE(photo_wide, photo_thumbnail) AS image,
-	CASE WHEN photo_wide IS NULL THEN photo_thumbnail_is_compressed ELSE photo_wide_is_compressed END AS compressed,
-	photo_thumbnail_content_type FROM bookmarks WHERE id = ? AND user_id = ? AND photo_id = ?`)
+// a picture is its own row, so a list of bookmarks never reads one it does not draw
+const setPhotoId = db.prepare('UPDATE bookmarks SET photo_id = @photoId WHERE id = @id AND user_id = @userId')
+const upsertPhoto = db.prepare(`INSERT INTO bookmark_photos (bookmark_id, thumbnail, thumbnail_is_compressed, wide, wide_is_compressed, content_type)
+	VALUES (@id, @thumbnail, @thumbnailCompressed, @wide, @wideCompressed, @contentType)
+	ON CONFLICT (bookmark_id) DO UPDATE SET thumbnail = excluded.thumbnail, thumbnail_is_compressed = excluded.thumbnail_is_compressed,
+		wide = excluded.wide, wide_is_compressed = excluded.wide_is_compressed, content_type = excluded.content_type`)
+const deletePhoto = db.prepare('DELETE FROM bookmark_photos WHERE bookmark_id = ?')
+const savePhoto = db.transaction(photo => {
+	setPhotoId.run(photo)
+	if (photo.photoId) upsertPhoto.run(photo)
+	else deletePhoto.run(photo.id)
+})
+const selectPhotoThumbnail = db.prepare(`SELECT p.thumbnail AS photo_thumbnail, p.thumbnail_is_compressed AS photo_thumbnail_is_compressed,
+	p.content_type AS photo_thumbnail_content_type FROM bookmarks b JOIN bookmark_photos p ON p.bookmark_id = b.id
+	WHERE b.id = ? AND b.user_id = ? AND b.photo_id = ?`)
+const selectPhotoWide = db.prepare(`SELECT COALESCE(p.wide, p.thumbnail) AS image,
+	CASE WHEN p.wide IS NULL THEN p.thumbnail_is_compressed ELSE p.wide_is_compressed END AS compressed,
+	p.content_type AS photo_thumbnail_content_type FROM bookmarks b JOIN bookmark_photos p ON p.bookmark_id = b.id
+	WHERE b.id = ? AND b.user_id = ? AND b.photo_id = ?`)
 
 /* Categories are names rather than records: the row prints names and the form edits them, the
    shape an order draft carries them in. */
@@ -269,7 +279,7 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 			return res.json(decorateOne(bookmark))
 		const processed = await processPicture(fetched.buffer)
 		if (!processed) return res.json(decorateOne(bookmark))
-		updatePhoto.run({
+		savePhoto({
 			id: bookmark.id, userId: req.user.id, photoId: newId('p'),
 			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 			wide: processed.wide, wideCompressed: processed.wideCompressed ? 1 : 0, contentType: processed.contentType
@@ -284,7 +294,7 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 		return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF and TIFF all work.' })
 	const processed = await processPicture(req.file.buffer)
 	if (!processed) return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF and TIFF all work.' })
-	updatePhoto.run({
+	savePhoto({
 		id: bookmark.id, userId: req.user.id, photoId: newId('p'),
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 		wide: processed.wide, wideCompressed: processed.wideCompressed ? 1 : 0, contentType: processed.contentType
@@ -295,7 +305,7 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 router.delete('/:id/photo', (req, res) => {
 	const bookmark = selectOne.get(req.params.id, req.user.id)
 	if (!bookmark) throw notFound(req.params.id)
-	updatePhoto.run({
+	savePhoto({
 		id: bookmark.id, userId: req.user.id, photoId: null,
 		thumbnail: null, thumbnailCompressed: 0, wide: null, wideCompressed: 0, contentType: null
 	})

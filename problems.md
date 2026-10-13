@@ -27,14 +27,3 @@ what was measured and when. An entry is removed in the change that fixes it.
   Rows per page set from 10 to 25 showed "10 rows" for 33ms. Recent orders on Home showed the old
   value for 26-39ms in three tries.
 - **Why not urgent:** the saved value is right, and the old one shows for a fraction of a second.
-
-## The server: one picture per record is stored in two different ways
-
-- **Where:** a user's picture is in its own table, `user_pictures`, and a vendor's picture in
-  `vendor_images`. A bookmark's picture is in columns on `bookmarks`.
-- **What the reader sees:** nothing. Each is one picture per record, so columns on `users` and
-  `vendors` would do, the way `bookmarks` does it. The separate tables add a lookup and a second
-  way of doing the same thing.
-- **Measured:** 13 October 2026, on the user's database: `user_pictures` held 0.01 MB and
-  `vendor_images` 1.4 MB.
-- **Why not urgent:** both ways work, and the cost is a fast lookup by id.

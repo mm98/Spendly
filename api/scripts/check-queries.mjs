@@ -113,14 +113,14 @@ const NEIGHBOURS = 9
 const NEIGHBOUR_ORDER_COUNT = 60
 
 /* Tables where a scan is a real cost -- they grow with the account. Everything else (vendors,
-   categories, settings, dashboard_cards) is a handful of rows per user, where SQLite reading
+   categories, settings) is a handful of rows per user, where SQLite reading
    the table directly is the right plan and flagging it would train the reader to ignore this. */
 const BIG_TABLES = new Set(['orders', 'order_items', 'order_categories', 'attachments', 'scan_uploads'])
 /* Per-account tables: a read of one of these that never names user_id is either a bug or a
    lookup by primary key that reached the row through an already-scoped query. The baseline
    carries the ones that are the latter. */
 const SCOPED_TABLES = new Set([...BIG_TABLES, 'vendors', 'categories', 'vendor_aliases', 'settings',
-	'dashboard_cards', 'bookmarks', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines', 'bank_links'])
+	'bookmarks', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines', 'bank_links'])
 
 const tmp = mkdtempSync(path.join(tmpdir(), 'spendly-queries-'))
 const DB_PATH = path.join(tmp, 'check.sqlite3')

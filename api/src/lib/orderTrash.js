@@ -12,13 +12,14 @@ const selectOrder = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = 
 const selectItems = db.prepare('SELECT * FROM order_items WHERE order_id = ?')
 const selectCategories = db.prepare('SELECT * FROM order_categories WHERE order_id = ?')
 const selectStatuses = db.prepare('SELECT * FROM order_statuses WHERE order_id = ?')
-const selectValidation = db.prepare('SELECT * FROM order_validations WHERE order_id = ?')
 const selectFiles = db.prepare(`SELECT a.* FROM attachments a WHERE a.order_id = @id
 	UNION ALL SELECT a.* FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = @id`)
 const deleteOrderRow = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 const orderExists = db.prepare('SELECT 1 FROM orders WHERE id = ?')
 const vendorExists = db.prepare('SELECT 1 FROM vendors WHERE id = ? AND user_id = ?')
 const categoryExists = db.prepare('SELECT 1 FROM categories WHERE id = ? AND user_id = ?')
+
+const restoreValidation = db.prepare('UPDATE orders SET validated_by = ? WHERE id = ?')
 
 const kept = new Map()
 
@@ -32,8 +33,7 @@ export const trashOrder = db.transaction((userId, orderId) => {
 		items: selectItems.all(orderId),
 		categories: selectCategories.all(orderId),
 		statuses: selectStatuses.all(orderId),
-		files: selectFiles.all({ id: orderId }),
-		validation: selectValidation.get(orderId) ?? null
+		files: selectFiles.all({ id: orderId })
 	}
 	deleteOrderRow.run(orderId, userId)
 	const id = newId('t')
@@ -55,12 +55,13 @@ export const restoreOrder = db.transaction((userId, trashId) => {
 	if (orderExists.get(rows.order.id)) { kept.delete(trashId); return rows.order.id }
 	if (!vendorExists.get(rows.order.vendor_id, userId))
 		throw Object.assign(new Error('The order could not be brought back: its vendor was deleted.'), { status: 409 })
-	insertRow('orders', rows.order)
+	// the file it names is put back below, so the validation follows it
+	insertRow('orders', { ...rows.order, validated_by: null })
 	for (const item of rows.items) insertRow('order_items', item)
 	for (const link of rows.categories) if (categoryExists.get(link.category_id, userId)) insertRow('order_categories', link)
 	for (const status of rows.statuses) insertRow('order_statuses', status)
 	for (const file of rows.files) insertRow('attachments', file)
-	if (rows.validation) insertRow('order_validations', rows.validation)
+	if (rows.order.validated_by) restoreValidation.run(rows.order.validated_by, rows.order.id)
 	kept.delete(trashId)
 	return rows.order.id
 })

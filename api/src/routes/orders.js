@@ -49,9 +49,9 @@ const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, 
 const deleteOrderStatuses = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
 const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
-// an order has one validation, and a receipt backs one: either's earlier row is replaced
-const markValidated = db.prepare(`INSERT OR REPLACE INTO order_validations (attachment_id, order_id, validated_at)
-	SELECT @attachmentId, @id, @day WHERE EXISTS (SELECT 1 FROM attachments WHERE id = @attachmentId AND order_id = @id)`)
+// an order has one validation, backed by one of its own files
+const markValidated = db.prepare(`UPDATE orders SET validated_by = @attachmentId, validated_at = @day
+	WHERE id = @id AND EXISTS (SELECT 1 FROM attachments WHERE id = @attachmentId AND order_id = @id)`)
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note, url)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note, @url)`)
 const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
@@ -538,10 +538,9 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 
 /* An order saved without a reference gets the account's next number. The first one counts on
    from the orders the account already has, so it reads like the ledger's own position. */
-const nextReference = db.prepare(`INSERT INTO order_reference_counters (user_id, last)
-	VALUES (@userId, (SELECT COUNT(*) FROM orders WHERE user_id = @userId) + 1)
-	ON CONFLICT (user_id) DO UPDATE SET last = last + 1
-	RETURNING last`).pluck()
+const nextReference = db.prepare(`UPDATE users
+	SET order_reference_last = COALESCE(order_reference_last, (SELECT COUNT(*) FROM orders WHERE user_id = @userId)) + 1
+	WHERE id = @userId RETURNING order_reference_last`).pluck()
 export const REFERENCE_PREFIX = 'SPENDLY-'
 
 /* A save carries a key its browser chose (`clientKey`), stored on what it wrote: a save sent again
