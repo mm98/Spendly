@@ -22,6 +22,7 @@ const MAX_BACKUPS = 5
    retakes and overwrites today's zip rather than skipping it, so the file on disk is always the
    latest snapshot taken that day, not whichever one happened to be first. */
 export async function backupDatabase() {
+	compactDatabase()
 	const stamp = todayStamp()
 	const zipPath = path.join(BACKUP_DIR, `database-${stamp}.zip`)
 
@@ -40,6 +41,17 @@ export async function backupDatabase() {
 	}
 	pruneOldBackups()
 	return zipPath
+}
+
+/* Empty space and the WAL file never shrink on their own. VACUUM blocks writes while it runs, so only
+   here, at night; a failure (it needs disk room for a second copy) must not stop the backup. */
+function compactDatabase() {
+	try {
+		db.exec('VACUUM')
+		db.pragma('wal_checkpoint(TRUNCATE)')
+	} catch (err) {
+		console.error('Nightly clean-up failed:', err)
+	}
 }
 
 const BACKUP_NAME = /^database-\d{4}-\d{2}-\d{2}\.zip$/
