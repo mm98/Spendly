@@ -8,6 +8,7 @@ export const DB_PATH = process.env.SPENDLY_DB ?? path.join(__dirname, '..', 'spe
 
 export const db = new Database(DB_PATH)
 db.pragma('journal_mode = WAL')       // readers don't block the writer, writer doesn't block readers
+db.pragma('journal_size_limit = 16777216')  // 16MB: a checkpoint cuts the WAL file back to this, else it keeps its largest size
 db.pragma('synchronous = NORMAL')     // safe with WAL (durable at each checkpoint); FULL fsyncs every commit for no benefit here
 db.pragma('foreign_keys = ON')
 db.pragma('temp_store = MEMORY')      // sort/group temp structures off disk
