@@ -27,3 +27,14 @@ what was measured and when. An entry is removed in the change that fixes it.
   Rows per page set from 10 to 25 showed "10 rows" for 33ms. Recent orders on Home showed the old
   value for 26-39ms in three tries.
 - **Why not urgent:** the saved value is right, and the old one shows for a fraction of a second.
+
+## The server: a scanned receipt is stored twice for a day
+
+- **Where:** saving an order from a scan. The picture is copied onto the order, and the scan keeps
+  its own copy until it expires 24 hours after it was last used.
+- **What the reader sees:** nothing on screen. The database holds two copies of every receipt
+  scanned in the last day, and the space the second copy used stays in the file as empty space
+  until the nightly clean-up.
+- **Measured:** 13 October 2026, on the user's database: scans and drafts held 24.7 MB beside
+  73.8 MB of order pictures, and 45.8 MB of the 160.9 MB file was empty space.
+- **Why not urgent:** the nightly clean-up gives the space back every night.
