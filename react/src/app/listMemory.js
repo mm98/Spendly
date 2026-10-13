@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { useLocation, useNavigationType, useSearchParams } from 'react-router'
 
 /* Each section's list address as last shown (c11), and per history step the window's scroll, so Back

@@ -31,7 +31,8 @@ const selectCategories = db.prepare(`
 	WHERE oc.order_id = ?
 	ORDER BY c.name
 `)
-const selectValidation = db.prepare('SELECT attachment_id, validated_at FROM order_validations WHERE order_id = ?')
+// the file behind a validation clears it when the file goes (ON DELETE SET NULL)
+const selectValidation = db.prepare('SELECT validated_by AS attachment_id, validated_at FROM orders WHERE id = ? AND validated_by IS NOT NULL')
 const selectVendor = db.prepare('SELECT id, name, initials, colour FROM vendors WHERE id = ?')
 // No ORDER BY: at most 3 rows, sorted in JS below by workflow order rather than asking SQLite
 // to sort what the index (order_id, status) can't answer without its own temp B-tree.

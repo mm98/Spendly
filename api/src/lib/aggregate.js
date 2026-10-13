@@ -51,11 +51,6 @@ const accountTotalQuery = db.prepare(
 const uncountedTotalQuery = db.prepare(
 	"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND status_type IN ('draft', 'cancelled')")
 
-const uncategorisedBookmarksQuery = db.prepare(`
-	SELECT COUNT(*) AS bookmarks FROM bookmarks b WHERE b.user_id = ?
-	AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)
-`)
-
 /* The one-vendor and one-category questions, asked of that entity's own rows -- not the
    whole-account rollups above with all but one entry thrown away. GET/PATCH /vendors/:id and
    /categories/:id each called the batched map to render a single record: ~25ms grouping
@@ -105,11 +100,6 @@ export function bookmarkCategoryCounts(userId) {
 	for (const { categoryId } of bookmarkCategoryLinksQuery.all(userId))
 		counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1)
 	return counts
-}
-
-/** How many bookmarks carry no category: all the Bookmarks filter reads of its "Without category" row. */
-export function uncategorisedBookmarks(userId) {
-	return { bookmarks: uncategorisedBookmarksQuery.get(userId).bookmarks }
 }
 
 /* Each category's spend over the twelve whole months before this one, an order's total shared

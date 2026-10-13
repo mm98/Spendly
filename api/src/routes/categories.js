@@ -5,7 +5,7 @@ import { newId } from '../lib/ids.js'
 import { findCategoryByFold, nextCategoryColour } from '../lib/findOrCreate.js'
 import { todayIso, toEpoch } from '../lib/dates.js'
 import {
-	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, uncategorisedBookmarks, bookmarkCategoryCounts
+	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, bookmarkCategoryCounts
 } from '../lib/aggregate.js'
 import { wantsPage } from '../lib/listPage.js'
 import { categoryPage, knownCategoryNames } from '../lib/categoryList.js'
@@ -22,7 +22,6 @@ const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon
    (idx_order_categories_cat) with an ownership probe per link -- a plain JOIN let the planner
    start from the orders side and read all 50,000 of an account's rows to count one category's
    links: 12.2ms against 1.5ms, same count. */
-const countOrders = db.prepare('SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?')
 // A bookmark holds a category in use the same way an order does; without this the delete below
 // reaches SQLite's foreign key and answers 500 instead of a sentence.
 const countBookmarks = db.prepare('SELECT COUNT(*) c FROM bookmark_categories bc CROSS JOIN bookmarks b ON b.id = bc.bookmark_id WHERE bc.category_id = ? AND b.user_id = ?')
@@ -71,13 +70,7 @@ router.get('/', (req, res) => {
 	}))
 })
 
-/* Registered before /:id, or that route would answer it with "No category uncategorised".
-   Its own resource rather than a row in the list above: the list is the account's category
-   records, and every reader of it -- comboboxes, order forms, settings -- maps records.
-   A stand-in row there would be offered as something to assign and to edit. */
-router.get('/uncategorised', (req, res) => res.json(uncategorisedBookmarks(req.user.id)))
-
-// the colour a new category's form starts on; registered before /:id for the same reason
+// the colour a new category's form starts on; registered before /:id, or that route would answer it
 router.get('/colour', (req, res) => res.json({ colour: nextCategoryColour(req.user.id) }))
 
 // The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at
@@ -171,8 +164,7 @@ router.delete('/:id', (req, res) => {
 	res.json({ id: category.id })
 })
 
-/* Merge (5j): the links move to the target (one carrying both keeps one), the source is
-   deleted, and `merges` keeps a record, since it cannot be undone. */
+/* Merge (5j): the links move to the target (one carrying both keeps one), and the source is deleted. */
 const moveOrderLinks = db.prepare(`INSERT OR IGNORE INTO order_categories (order_id, category_id)
 	SELECT oc.order_id, @target FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id
 	WHERE oc.category_id = @source AND o.user_id = @userId`)
@@ -181,17 +173,13 @@ const moveBookmarkLinks = db.prepare(`INSERT OR IGNORE INTO bookmark_categories 
 	WHERE bc.category_id = @source AND b.user_id = @userId`)
 const moveDefaults = db.prepare(`INSERT OR IGNORE INTO vendor_default_categories (vendor_id, category_id)
 	SELECT d.vendor_id, @target FROM vendor_default_categories d WHERE d.category_id = @source`)
-const insertMerge = db.prepare(`INSERT INTO merges (id, user_id, kind, source_name, target_id, orders)
-	VALUES (?, ?, ?, ?, ?, ?)`)
 
 const mergeCategories = db.transaction((userId, source, target) => {
-	const moved = countOrders.get(source.id, userId).c
 	const ids = { source: source.id, target: target.id, userId }
 	moveOrderLinks.run(ids)
 	moveBookmarkLinks.run(ids)
 	moveDefaults.run(ids)
 	removeCategory(userId, source.id)
-	insertMerge.run(newId('mg'), userId, 'category', source.name, target.id, moved)
 })
 
 router.post('/:id/merge', (req, res) => {

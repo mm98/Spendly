@@ -149,6 +149,11 @@ const order = async (what, draft) => {
 	}))
 	return out.data
 }
+// a file on an order goes the app's way: uploaded, then filed on the order
+const fileOn = async (orderId, name, type, bytes) => {
+	const sent = await call('POST', '/scan/documents', undefined, upload(name, type, bytes, 'file'))
+	return sent.data?.key ? call('POST', `/scan/documents/${sent.data.key}/attach/${orderId}?as=file`) : sent
+}
 // orders: every status, waiting past two weeks, spent against the limits, savings, discount and shipping
 await order('Passed the line', { vendor: 'Edge favourite shop', date: day(-2), categories: ['Over the line'], items: [{ title: 'Over', quantity: 1, price: 180 }] })
 await order('Close to the line', { vendor: 'Edge favourite shop', date: day(-3), categories: ['Near the line'], items: [{ title: 'Near', quantity: 1, price: 930 }] })
@@ -176,10 +181,10 @@ const withReceipt = await order('With a receipt', { vendor: 'Alias shop', date: 
 await order('With a note', { vendor: 'Alias shop', date: day(-11),
 	note: 'A note long enough to be cut in any row it is shown in, and a second line after it\nThe second line' })
 const withNote = await order('With a note and a receipt', { vendor: 'Alias shop', date: day(-11), note: 'Short note' })
-if (withNote) step('receipt beside a note', await call('POST', `/orders/${withNote.id}/attachments`, undefined, upload('receipt.png', 'image/png', png(60, 90, [235, 235, 225]))))
-if (withReceipt) step('receipt picture', await call('POST', `/orders/${withReceipt.id}/attachments`, undefined, upload('receipt.png', 'image/png', png(60, 90, [235, 235, 225]))))
+if (withNote) step('receipt beside a note', await fileOn(withNote.id, 'receipt.png', 'image/png', png(60, 90, [235, 235, 225])))
+if (withReceipt) step('receipt picture', await fileOn(withReceipt.id, 'receipt.png', 'image/png', png(60, 90, [235, 235, 225])))
 const withPdf = await order('With a PDF receipt', { vendor: 'Alias shop', date: day(-12) })
-if (withPdf) step('receipt PDF', await call('POST', `/orders/${withPdf.id}/attachments`, undefined, upload('receipt.pdf', 'application/pdf', pdf())))
+if (withPdf) step('receipt PDF', await fileOn(withPdf.id, 'receipt.pdf', 'application/pdf', pdf()))
 // a line with its own photo
 const photoOrder = await order('With a line photo', { vendor: 'Alias shop', date: day(-15), items: [{ title: 'A line with a photo', quantity: 1, price: 250 }] })
 if (photoOrder) step('line photo', await call('POST', `/orders/${photoOrder.id}/items/${photoOrder.items[0].id}/attachments`, undefined, upload('line.png', 'image/png', png(80, 80, [120, 160, 200]))))

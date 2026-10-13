@@ -2,15 +2,6 @@ import { createContext, useContext, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { IconButton } from '../components/Button.jsx'
 
-// the right end of the top bar, where a screen puts the controls that act on the whole screen (4a)
-export const TopBarEndSlot = createContext(null)
-
-/** Renders its children at the top bar's right end; on a screen without one, nowhere. */
-export function TopBarEnd({ children }) {
-	const slot = useContext(TopBarEndSlot)
-	return slot ? createPortal(children, slot) : null
-}
-
 /* On a phone a screen one level down swaps the search field for Back and a title. The shell
    holds the slot and hides the search while a screen fills it. */
 export const ScreenBarSlot = createContext({ slot: null, setOn: () => {} })

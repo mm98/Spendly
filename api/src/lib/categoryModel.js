@@ -1,5 +1,5 @@
 import { db } from '../db.js'
-import { DIM, embedder } from './embed.js'
+import { DIM, FALLBACK_ID, embedder } from './embed.js'
 import { resolveVendor } from './findOrCreate.js'
 import { foldName } from './names.js'
 
@@ -33,6 +33,9 @@ const selectLabelsOf = db.prepare(`SELECT oc.order_id, oc.category_id FROM order
 	JOIN categories c ON c.id = oc.category_id WHERE c.user_id = ? AND oc.order_id IN (SELECT value FROM json_each(?))`)
 const selectVectors = db.prepare('SELECT key, vec FROM title_vectors WHERE user_id = ? AND model = ? AND key IN (SELECT value FROM json_each(?))')
 const insertVector = db.prepare('INSERT OR REPLACE INTO title_vectors (user_id, model, key, vec) VALUES (?, ?, ?, ?)')
+const selectVectorUsers = db.prepare('SELECT DISTINCT user_id FROM title_vectors')
+const deleteVectorsBut = db.prepare(`DELETE FROM title_vectors WHERE user_id = @userId
+	AND (model <> @model OR key NOT IN (SELECT value FROM json_each(@keys)))`)
 const selectNames = db.prepare('SELECT id, name FROM categories WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))')
 
 const keyOf = title => foldName(title).slice(0, KEY_MAX)
@@ -70,14 +73,33 @@ function warm(userId, emb, titles) {
 		.finally(() => { warming.delete(id); forgetModel(userId) })
 }
 
-/** One account's examples as one block of numbers: row i is item i, labelled by its order's categories. */
-async function buildState(userId, emb) {
+/** The items an account learns from: the labelled lines of its most recent orders, with their labels. */
+function examplesOf(userId) {
 	const orders = selectRecentOrders.all(userId, RECENT_ORDERS)
 	const ids = JSON.stringify(orders.map(o => o.id))
-	const vendorOf = new Map(selectVendorsOf.all(userId, ids).map(o => [o.id, o.vendor_id]))
 	const labels = new Map()
 	for (const r of selectLabelsOf.all(userId, ids)) (labels.get(r.order_id) ?? labels.set(r.order_id, []).get(r.order_id)).push(r.category_id)
 	const items = selectItemsOf.all(userId, ids).filter(r => labels.has(r.order_id) && keyOf(r.title)).slice(0, MAX_EXAMPLES)
+	return { ids, labels, items }
+}
+
+// the model the suggestions last ran on; the word shapes stand in only while it loads
+let modelInUse = null
+
+/** Drops the kept vectors no account learns from any more: titles past its examples, or another model's. */
+export function pruneVectors() {
+	if (!modelInUse) return
+	for (const { user_id: userId } of selectVectorUsers.all()) {
+		const keys = [...new Set(examplesOf(userId).items.map(r => keyOf(r.title)))]
+		deleteVectorsBut.run({ userId, model: modelInUse, keys: JSON.stringify(keys) })
+	}
+}
+
+/** One account's examples as one block of numbers: row i is item i, labelled by its order's categories. */
+async function buildState(userId, emb) {
+	if (emb.id !== FALLBACK_ID) modelInUse = emb.id
+	const { ids, labels, items } = examplesOf(userId)
+	const vendorOf = new Map(selectVendorsOf.all(userId, ids).map(o => [o.id, o.vendor_id]))
 	const titles = new Map(items.map(r => [keyOf(r.title), r.title]))
 	const known = new Map()
 	for (const row of selectVectors.all(userId, emb.id, JSON.stringify([...titles.keys()]))) known.set(row.key, fromBlob(row.vec))

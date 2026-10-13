@@ -12,7 +12,7 @@ import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from 
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getOrder, getScanDraft, invalidateOrderData, updateOrder } from '../api/client.js'
 import { dot, plural, shortDate } from '../api/format.js'
-import { ScreenBar } from '../app/topBarEnd.jsx'
+import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { useStatuses } from '../app/statuses.js'
 import { Reading } from './OrderNew.jsx'

@@ -44,7 +44,7 @@ export const failureMessage = (error, fallback) =>
 const THINGS = [
 	[/^\/api\/orders\/(?!import|draft|overview|often|limits|trash)[^/?]+/, 'order'],
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
-	[/^\/api\/categories\/(?!uncategorised)[^/?]+/, 'category'],
+	[/^\/api\/categories\/[^/?]+/, 'category'],
 	[/^\/api\/bookmarks\/(?!preview|categories)[^/?]+/, 'bookmark'],
 	[/^\/api\/budget\/lines\//, 'budget row'],
 	[/^\/api\/budget\/groups\//, 'budget group'],
@@ -405,10 +405,6 @@ export const withMonthSpend = (categories, split) => {
 }
 
 /** The account's orders with no category, summed: a filter, not a record of the list. */
-export async function getUncategorised(signal) {
-	return request('/api/categories/uncategorised', { signal })
-}
-
 export async function createCategory(name, look = {}, signal) {
 	return request('/api/categories', { method: 'POST', body: { name, look }, signal })
 }
@@ -739,12 +735,6 @@ export async function changeOrders(change, signal) {
 }
 
 /** Uploads the files picked or dropped, as they are. */
-export async function addAttachments(orderId, files, signal) {
-	const form = new FormData()
-	for (const file of files) form.append('files', file)
-	return request(`/api/orders/${orderId}/attachments`, { method: 'POST', form, signal })
-}
-
 export async function removeAttachment(orderId, attachmentId, signal) {
 	return request(`/api/orders/${orderId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
 }
@@ -956,12 +946,6 @@ export const listSorts = [
 /* ---- scan ---- */
 
 /** Uploads a receipt; its bytes are kept until the new order takes it as an attachment. */
-export async function putScanDocument(file, signal) {
-	const form = new FormData()
-	form.append('file', file)
-	return request('/api/scan/documents', { method: 'POST', form, signal })
-}
-
 /* What the reading of a receipt has found so far, `{ found, lines }`, for whoever shows it (3a step 2). */
 const scanProgress = new Map()
 export function watchScanProgress(documentKey, fn) {
@@ -1149,7 +1133,7 @@ export const bookmarkSorts = [
 
 const orderReads = [getOrders, getDrafts, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendorPage, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
-const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getUncategorised, getMonthlySummary]
+const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 

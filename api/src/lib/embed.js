@@ -34,7 +34,8 @@ function unit(v) {
 	return v
 }
 
-const FALLBACK = { id: 'shapes-1', embed: async texts => texts.map(shapes) }
+export const FALLBACK_ID = 'shapes-1'
+const FALLBACK = { id: FALLBACK_ID, embed: async texts => texts.map(shapes) }
 
 let loading = null
 async function load() {

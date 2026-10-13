@@ -49,9 +49,9 @@ const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, 
 const deleteOrderStatuses = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
 const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
-// an order has one validation, and a receipt backs one: either's earlier row is replaced
-const markValidated = db.prepare(`INSERT OR REPLACE INTO order_validations (attachment_id, order_id, validated_at)
-	SELECT @attachmentId, @id, @day WHERE EXISTS (SELECT 1 FROM attachments WHERE id = @attachmentId AND order_id = @id)`)
+// an order has one validation, backed by one of its own files
+const markValidated = db.prepare(`UPDATE orders SET validated_by = @attachmentId, validated_at = @day
+	WHERE id = @id AND EXISTS (SELECT 1 FROM attachments WHERE id = @attachmentId AND order_id = @id)`)
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note, url)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note, @url)`)
 const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
@@ -64,7 +64,6 @@ const insertAttachment = db.prepare(`INSERT INTO attachments
 		@original, @originalCompressed, @originalContentType)`)
 /** The hash of a file's bytes as they arrived, before any resizing. */
 export const sourceHash = buffer => createHash('sha256').update(buffer).digest('hex')
-const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
 const deleteItemAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_item_id = ?')
@@ -536,29 +535,19 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 	})
 })
 
-/* An order saved without a reference gets the account's next number. The first one counts on
-   from the orders the account already has, so it reads like the ledger's own position. */
-const nextReference = db.prepare(`INSERT INTO order_reference_counters (user_id, last)
-	VALUES (@userId, (SELECT COUNT(*) FROM orders WHERE user_id = @userId) + 1)
-	ON CONFLICT (user_id) DO UPDATE SET last = last + 1
-	RETURNING last`).pluck()
-export const REFERENCE_PREFIX = 'SPENDLY-'
-
 /* A save carries a key its browser chose (`clientKey`), stored on what it wrote: a save sent again
    because its answer never arrived (6d) finds that key and answers with what is there. */
 const selectOrderByClientKey = db.prepare('SELECT id FROM orders WHERE user_id = ? AND client_key = ?')
 const setClientKey = db.prepare('UPDATE orders SET client_key = ? WHERE id = ?')
 const clientKeyOf = body => (typeof body?.clientKey === 'string' && body.clientKey ? body.clientKey.slice(0, 64) : null)
 
-/** Writes a new order from a draft as POST takes it, given the next reference when it has none;
-    `also` runs inside the same transaction with the new id. Answers the id. */
+/** Writes a new order from a draft as POST takes it; `also` runs inside the same transaction with the new id. Answers the id. */
 export function createOrderRecord(userId, body, today, also = () => {}) {
 	const draft = fillDraftGaps(keyed(userId, body ?? {}))
 	assertValidOrderDraft(draft, today, statusKeys(userId))
 	const id = newId('o')
 	db.transaction(() => {
-		const reference = String(draft.reference ?? '').trim() || REFERENCE_PREFIX + nextReference.get({ userId })
-		insertOrderRows(userId, id, { ...draft, reference })
+		insertOrderRows(userId, id, { ...draft, reference: String(draft.reference ?? '').trim() })
 		also(id)
 	})()
 	return id
@@ -782,15 +771,6 @@ async function saveAttachments(files, owner, existingNames) {
 	insertAttachmentRows(rows)
 	return { added: rows.map(a => ({ id: a.id, name: a.name, kind: a.kind, meta: a.meta })), skipped }
 }
-
-router.post('/:id/attachments', upload.array('files'), async (req, res) => {
-	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
-	const orderId = req.params.id
-	assertImageOrPdf(req.files ?? [])
-	const existingNames = new Set(selectExistingAttachmentNames.all(orderId).map(r => r.n))
-	const { added, skipped } = await saveAttachments(req.files, { orderId }, existingNames)
-	res.status(201).json({ order: getDecoratedOrder(req.user.id, orderId), added, skipped })
-})
 
 router.delete('/:id/attachments/:attachmentId', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)

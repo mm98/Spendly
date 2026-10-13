@@ -324,15 +324,12 @@ router.delete('/:id', (req, res) => {
 })
 
 /* Merge (5j): orders move, the source's names become the target's aliases, the target keeps its
-   own values where it has them, and `merges` keeps a record, since it cannot be undone. */
+   own values where it has them. */
 const moveOrders = db.prepare('UPDATE orders SET vendor_id = ? WHERE vendor_id = ? AND user_id = ?')
-const insertMerge = db.prepare(`INSERT INTO merges (id, user_id, kind, source_name, target_id, orders)
-	VALUES (?, ?, ?, ?, ?, ?)`)
 
 const moveImage = db.prepare('UPDATE vendor_images SET vendor_id = ? WHERE vendor_id = ? AND user_id = ?')
 
 const mergeVendors = db.transaction((userId, source, target) => {
-	const moved = countOrders.get(source.id, userId).c
 	const seen = new Set([vendorKey(target.name)])
 	const aliases = []
 	for (const name of [...aliasesFor(userId, target.id), source.name, ...aliasesFor(userId, source.id)]) {
@@ -353,7 +350,6 @@ const mergeVendors = db.transaction((userId, source, target) => {
 	})
 	writeAliases(userId, target.id, aliases)
 	writeDefaultCategories(userId, target.id, defaults.length ? defaults : sourceDefaults)
-	insertMerge.run(newId('mg'), userId, 'vendor', source.name, target.id, moved)
 })
 
 router.post('/:id/merge', (req, res) => {

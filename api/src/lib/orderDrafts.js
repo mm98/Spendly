@@ -328,8 +328,6 @@ const heldElsewhere = db.prepare(`SELECT 1 FROM order_drafts WHERE upload_id = @
 	UNION ALL SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = @userId AND f.upload_id = @uploadId LIMIT 1`)
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
 const renewUpload = db.prepare('UPDATE scan_uploads SET expires_at = ? WHERE id = ? AND user_id = ?')
-const fileOnAnOrder = db.prepare('SELECT 1 FROM attachments a JOIN orders o ON o.id = a.order_id WHERE o.user_id = ? AND a.sha256 = ? LIMIT 1')
-const forgetReading = db.prepare('DELETE FROM scan_readings WHERE user_id = ? AND sha256 = ?')
 
 /** Discard (6d): the draft goes, and with it its file, the files it holds and the reading -- unless
     another draft holds an upload, or an order holds the same file. */
@@ -339,7 +337,6 @@ export const discardDraft = db.transaction((userId, id) => {
 	const uploads = selectDraftUploads.all({ id }).map(u => u.upload_id)
 	deleteDraft.run(id, userId)
 	for (const uploadId of uploads) if (!heldElsewhere.get({ uploadId, userId })) deleteUpload.run(uploadId, userId)
-	if (row.sha256 && !fileOnAnOrder.get(userId, row.sha256)) forgetReading.run(userId, row.sha256)
 	return true
 })
 
