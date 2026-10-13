@@ -7,13 +7,13 @@ import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Gauge } from '../components/Data.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
-import { Empty, EmptyBody, EmptyTitle, Kbd, Skeleton, Stacked } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	deleteCategory, getCategoryPages, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
 } from '../api/client.js'
 import { NUMBER_LOCALE, amountRound, currency, dot, monthNames, plural } from '../api/format.js'
-import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
+import { useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
 	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
@@ -31,8 +31,6 @@ const SORTS = [
 const FOLD = 880
 // at this width of the list or under, the table becomes cards, as the order list does (2i)
 const CARDS = 640
-// the search drops its shortcut badge at this width of the list or under (15e)
-const KBD = 720
 
 // Settings' shared sort in this list's terms: spend here is the month's, and a category saves nothing
 const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
@@ -158,8 +156,7 @@ export default function Categories() {
 	const bar = (
 		<Controls ref={column}>
 			{touch ? null : (
-				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" data-page-search="categories"
-					kbd={width > KBD ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined} />
+				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" data-page-search="categories" />
 			)}
 			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
 			{touch

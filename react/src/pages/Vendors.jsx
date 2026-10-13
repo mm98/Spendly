@@ -7,13 +7,13 @@ import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
-import { Empty, EmptyBody, EmptyTitle, Kbd, Skeleton, Stacked } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	deleteVendor, getSettings, getVendorPage, getVendorPages, invalidateCategoryData, invalidateVendorData, mergeVendor, updateVendor
 } from '../api/client.js'
 import { NUMBER_LOCALE, amount, currency, dayMonth, dot, plural, shortDate } from '../api/format.js'
-import { MAC, useShellShape, useWidth } from '../app/useMedia.js'
+import { useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
@@ -26,8 +26,6 @@ const SHOWN = [{ value: 'active', label: 'Active' }, { value: 'archived', label:
 const FOLD = 880
 // at this width of the list or under, the table becomes cards, as the order list does (2i)
 const CARDS = 640
-// the search drops its shortcut badge at this width of the list or under (15e)
-const KBD = 720
 // the address of the look-alike view, as Home links to it (10a)
 const LOOKALIKES = 'possible-duplicate'
 
@@ -140,8 +138,7 @@ export default function Vendors() {
 		<Controls ref={column}>
 			{touch ? null : (
 				<SearchInput value={query} onChange={q => write(q, sort.id)}
-					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias" data-page-search="vendors"
-					kbd={width > KBD ? <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd> : undefined} />
+					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias" data-page-search="vendors" />
 			)}
 			<Segmented name="vendors-shown" options={SHOWN} value={archived ? 'archived' : 'active'} variant={touch ? 'facet' : 'default'}
 				onChange={v => write(query, sort.id, v === 'archived')} role="radiogroup" aria-label="Which vendors" />
