@@ -333,7 +333,7 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 				{thumb ? <img src={thumb} alt="" /> : <span>{o.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
 			</Mark>
 		)
-		const facts = o.draft ? `Scanned ${dayShortMonth(draft.scanned)}` : [o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)
+		const facts = o.draft ? `Scanned ${dayShortMonth(draft.scanned)}` : [dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status].filter(Boolean).join(dot)
 		const title = (
 			<span className="sp-stacked">
 				<span className="sp-title sp-truncate">{o.vendor}</span>
