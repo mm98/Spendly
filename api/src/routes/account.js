@@ -83,7 +83,9 @@ export const updaterAvailable = () => /^https?:\/\//.test(process.env.SPENDLY_UP
 
 router.post('/version/update', async (req, res) => {
 	if (!updaterAvailable()) return res.status(409).json({ error: 'This copy of Spendly cannot install an update by itself.' })
+	// watchtower's update API answers 405 to anything but POST
 	const asked = fetch(process.env.SPENDLY_UPDATER_URL, {
+		method: 'POST',
 		headers: process.env.SPENDLY_UPDATER_TOKEN ? { Authorization: `Bearer ${process.env.SPENDLY_UPDATER_TOKEN}` } : {}
 	})
 	const answer = await Promise.race([asked.then(r => r, e => e), new Promise(done => setTimeout(() => done(null), UPDATER_ANSWER_MS))])
