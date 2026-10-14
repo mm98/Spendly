@@ -752,7 +752,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-touch .sp-stepper,
 .sp-touch .sp-combobox__trigger,
 .sp-touch .sp-segmented { height: var(--control-h-touch); }
-.sp-touch .sp-tokens { min-height: var(--control-h-touch); }
+.sp-touch .sp-tokens { min-height: var(--control-h-touch); padding-block: calc((var(--control-h-touch) - var(--field-trail)) / 2 - 1px); }
 .sp-touch .sp-stepper__btn { width: 40px; }
 .sp-touch .sp-stepper__value { font-size: var(--t-16); }
 
@@ -3890,8 +3890,12 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
   align-items: center;
   gap: var(--sp-6);
   flex-wrap: wrap;
+  align-content: flex-start;
   min-height: var(--control-h);
-  padding: var(--sp-6) var(--sp-10);
+  /* a line of values is --field-trail tall; the padding is what is left of the field's
+     height after the border, so one line is exactly the field and the first line sits
+     where it sat empty when more lines are added (Brief 40) */
+  padding: calc((var(--control-h) - var(--field-trail)) / 2 - 1px) var(--sp-10);
   border: 1px solid var(--line-3);
   border-radius: var(--r-field);
   background: var(--surface);
@@ -3910,6 +3914,7 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
   outline: none;
   flex: 1;
   min-width: 60px;
+  height: var(--field-trail);
 }
 
 /* ---------- row - c15 / c23 ----------
