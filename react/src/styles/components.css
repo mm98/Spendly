@@ -1138,6 +1138,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table tbody tr:has(input:checked):hover { background: var(--green-tint-2); }
 /* a cancelled row dims every cell but its status, so the label that tells it from a draft keeps full contrast (2b) */
 .sp-table tbody tr[data-void="true"] > td:not(.sp-col-status) { opacity: 0.6; }
+/* a faded part is drawn at full strength while a list or a menu inside it is open: a fade
+   would thin the list and make the part a layer that later parts draw over (brief 37) */
+.sp-table tbody tr[data-void="true"]:has([data-open="true"]) > td:not(.sp-col-status) { opacity: 1; }
 .sp-table td.sp-col-number,
 .sp-table th.sp-col-number { text-align: right; font-variant-numeric: tabular-nums; }
 /* a column is as wide as its own content needs; the title and the flexible column
@@ -1328,6 +1331,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* a picked card: its own border turns green, and nothing else - no second pixel, no fill (2c) */
 .sp-record:has(input:checked) { border-color: var(--green); }
 .sp-record[data-void="true"] { opacity: 0.6; }
+/* full strength while its menu is open (brief 37) */
+.sp-record[data-void="true"]:has([data-open="true"]) { opacity: 1; }
 
 
 /* The card's lines are a column of text at the shared gap - see .sp-stacked. This
@@ -4836,6 +4841,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
    shorter column starts level with the taller one rather than floating in it */
 .sp-top { align-items: flex-start; }
 .sp-muted { opacity: 0.5; }
+/* full strength while a list or a menu inside it is open (brief 37) */
+.sp-muted:has([data-open="true"]) { opacity: 1; }
 .sp-strong { font-weight: 600; }
 
 /* a heading one step above the card title: the name of the record on its own page */

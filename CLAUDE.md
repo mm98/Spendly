@@ -110,8 +110,8 @@ have to. Putting screens together from its patterns is the build's job:
 - **A brief names every place the change reaches.** Before a note goes to Claude Design, find every
   use of the part it changes in `react/src`, check what the change would do to each, and name them
   in the note. When the answer comes back, check all of them in one pass.
-- A design fault (a rule that breaks in practice, such as a clipped outline) goes in that same brief;
-  the app may carry a minimal workaround in `app.css` until the design takes it in.
+- A design fault (a rule that breaks in practice, such as a clipped outline) goes in that same brief.
+  Only Claude Design fixes it; the app carries no workaround of its own.
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
   file found there is deleted in the same pull request that builds its answers.
 
