@@ -11,11 +11,11 @@ export const TONES = {
 
 // the five every account starts with, drawn until the account's own list arrives
 const FIRST = [
-	{ key: 'Draft', name: 'Draft', type: 'draft', tone: 'neutral' },
+	{ key: 'Draft', name: 'Draft', type: 'draft', tone: 'neutral', ownDate: true },
 	{ key: 'Ordered', name: 'Ordered', type: 'ordered', tone: 'progress' },
 	{ key: 'Delivered', name: 'Delivered', type: 'delivered', tone: 'success', ownDate: true },
 	{ key: 'Returned', name: 'Returned', type: 'returned', tone: 'danger', ownDate: true },
-	{ key: 'Cancelled', name: 'Cancelled', type: 'cancelled', tone: 'neutral' }
+	{ key: 'Cancelled', name: 'Cancelled', type: 'cancelled', tone: 'neutral', ownDate: true }
 ]
 
 /** The account's statuses, in its order: `{ key, name, type, tone, ownDate, builtIn, orders }`. */
