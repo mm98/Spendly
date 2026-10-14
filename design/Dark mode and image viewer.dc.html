@@ -790,7 +790,7 @@
 
   <div class="doc-notes">
       <span class="doc-notes__label">Notes for implementation</span>
-      <div class="doc-note">Two things happen to images on dark. Every thumbnail keeps a <code>1px #463f37</code> border, because a white receipt scan with no border floats as a bright rectangle with no edge. And thumbnails render at 90% opacity, taking the glare off without touching colour accuracy - full opacity returns on hover and in the viewer, where the image is the subject.</div>
+      <div class="doc-note">Two things happen to images on dark. Every thumbnail keeps a <code>1px #463f37</code> border, because a white receipt scan with no border floats as a bright rectangle with no edge. And thumbnails render at <code>--fade-photo</code> (0.8), the same as on light, taking the glare off without touching colour accuracy - full strength returns on hover and in the viewer, where the image is the subject.</div>
       <div class="doc-note">The tiles above follow the page's own theme, rather than being drawn once for each. Only the sidebar pair in <a href="#12a">12a</a> is pinned, because there the comparison is the subject.</div>
     </div>
 </section>

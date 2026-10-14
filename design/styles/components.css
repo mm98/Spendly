@@ -470,7 +470,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   background: var(--surface-2);
   border-color: var(--line);
   color: var(--ink-3);
-  opacity: 0.6;
+  opacity: var(--fade-disabled);
   cursor: not-allowed;
 }
 .sp-input--unit { padding-right: calc(var(--sp-12) + var(--mark-small) + var(--sp-8)); }
@@ -693,7 +693,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-switch:checked { background: var(--green); }
 .sp-switch:checked::after { transform: translateX(14px); }
 .sp-switch:focus-visible { box-shadow: var(--ring); }
-.sp-switch:disabled { opacity: 0.4; cursor: not-allowed; }
+.sp-switch:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
 
 /* stepper: two buttons and a field */
 /* ---------- stepper - LOCKED c4 ----------
@@ -888,7 +888,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-btn:focus-visible { box-shadow: var(--ring); }
 /* a disabled button does not answer the pointer: every variant's hover is written
    :not(:disabled), so no colour is named here to override the others */
-.sp-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.sp-btn:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
 
 .sp-btn--outline {
   background: var(--surface);
@@ -955,7 +955,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-icon-btn:hover { background: var(--hover); color: var(--ink); }
 .sp-icon-btn:focus-visible { box-shadow: var(--ring); }
-.sp-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.sp-icon-btn:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
 .sp-icon-btn--small { width: var(--box); height: var(--box); border-radius: var(--r-marker); }
 .sp-icon-btn--field { width: var(--field-trail); height: var(--field-trail); }
 /* beside an xsmall button, the same 22px; on touch it takes the row size */
@@ -1137,7 +1137,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table tbody tr[aria-selected="true"]:hover,
 .sp-table tbody tr:has(input:checked):hover { background: var(--green-tint-2); }
 /* a cancelled row dims every cell but its status, so the label that tells it from a draft keeps full contrast (2b) */
-.sp-table tbody tr[data-void="true"] > td:not(.sp-col-status) { opacity: 0.6; }
+.sp-table tbody tr[data-void="true"] > td:not(.sp-col-status) { opacity: var(--fade-inactive); }
 /* a faded part is drawn at full strength while a list or a menu inside it is open: a fade
    would thin the list and make the part a layer that later parts draw over (brief 37) */
 .sp-table tbody tr[data-void="true"]:has([data-open="true"]) > td:not(.sp-col-status) { opacity: 1; }
@@ -1221,7 +1221,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-record__photo {
   flex: 1;
   background: repeating-linear-gradient(45deg, var(--hatch-a) 0 6px, var(--hatch-b) 6px 12px);
-  opacity: 0.5;
+  opacity: var(--fade-standin);
 }
 /* the strip is far larger than a mark, so its count sits a proper inset in */
 .sp-record__photos .sp-mark__count { right: var(--sp-16); bottom: var(--sp-16); border-radius: var(--r-pill); }
@@ -1330,7 +1330,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
 /* a picked card: its own border turns green, and nothing else - no second pixel, no fill (2c) */
 .sp-record:has(input:checked) { border-color: var(--green); }
-.sp-record[data-void="true"] { opacity: 0.6; }
+.sp-record[data-void="true"] { opacity: var(--fade-inactive); }
 /* full strength while its menu is open (brief 37) */
 .sp-record[data-void="true"]:has([data-open="true"]) { opacity: 1; }
 
@@ -1382,7 +1382,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-menu__item:hover { background: var(--hover); }
 .sp-menu__item:focus-visible { background: var(--hover); box-shadow: var(--ring); }
-.sp-menu__item:disabled { opacity: 0.45; cursor: not-allowed; }
+.sp-menu__item:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
 .sp-menu__item:disabled:hover { background: none; }
 .sp-menu hr {
   height: 1px;
@@ -1486,7 +1486,7 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   height: 0.75em;
   border-radius: var(--r-marker);
   background: currentColor;
-  opacity: 0.18;
+  opacity: var(--fade-redacted);
   vertical-align: baseline;
 }
 .sp-gauge meter {
@@ -1940,7 +1940,7 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
    chosen option already has one and both have to read at once - and the ring is what
    marks where the keyboard is everywhere else in the system. */
 .sp-combobox__option[data-active="true"] { box-shadow: var(--ring); }
-.sp-combobox__option:disabled { opacity: 0.45; cursor: not-allowed; }
+.sp-combobox__option:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
 .sp-combobox__dot {
   width: 8px;
   height: 8px;
@@ -4218,7 +4218,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
    only difference. */
 
 .sp-mark--photo.sp-mark--faded,
-.sp-record__photo--faded { filter: opacity(var(--photo-fallback-opacity)); }
+.sp-record__photo--faded { filter: opacity(var(--fade-standin)); }
 
 .sp-record__photos--empty {
   display: grid;
@@ -4840,7 +4840,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a row whose items are different heights aligns them to their tops, so the
    shorter column starts level with the taller one rather than floating in it */
 .sp-top { align-items: flex-start; }
-.sp-muted { opacity: 0.5; }
+.sp-muted { opacity: var(--fade-inactive); }
 /* full strength while a list or a menu inside it is open (brief 37) */
 .sp-muted:has([data-open="true"]) { opacity: 1; }
 .sp-strong { font-weight: 600; }
