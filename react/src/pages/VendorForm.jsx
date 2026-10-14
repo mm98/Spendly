@@ -16,7 +16,7 @@ import { Alert, useToast } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendorPage,
+	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYearSpend,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeVendor, putVendorImage, removeVendorImage, updateVendor, vendorImageUrl
 } from '../api/client.js'
 import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
@@ -125,7 +125,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	// on leaving the field: the vendor most like this one, when the two look like one shop (5j)
 	const lookAlike = async name => {
 		if (!name.trim() || name.trim() === start.name.trim()) return null
-		const like = await getVendorPage({ like: name, aka: values.aliases.join('\n'), except: vendor?.id, pageSize: 1 }).catch(() => null)
+		const like = await getVendorPage({ like: name, aka: values.aliases.join('\n'), except: vendor?.id, pageSize: 1, shape: 'brief' }).catch(() => null)
 		return like?.vendors[0] ?? null
 	}
 	// what leaving the name field found, kept only while the name is still the one it was asked about
@@ -451,11 +451,11 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 
 /** What the vendor has cost, beside the fields that describe it (5c). */
 function VendorSummary({ vendor, name, colour }) {
-	const year = useApi(getStats, ['year', undefined, undefined])
+	const spend = useApi(getVendorYearSpend, [vendor.id])
 	const { keyOf } = useStatusTypes()
 	const returnedKey = keyOf('returned')
-	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: returnedKey, pageSize: 1 }], { enabled: !!returnedKey })
-	const thisYear = year.data ? year.data.window.vendorSplit.find(v => v.id === vendor.id)?.amount ?? 0 : null
+	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: returnedKey, pageSize: 0 }], { enabled: !!returnedKey })
+	const thisYear = spend.data ? spend.data.amount : null
 	return (
 		<Card>
 			<CardHeader name="Vendor summary" />

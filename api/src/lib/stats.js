@@ -280,6 +280,12 @@ function vendorSplitOver(userId, from, to, scope) {
 	`).all({ userId, from, to, ...scope.params }).map(r => ({ id: r.id, name: r.name, amount: r.spend, orders: r.orders }))
 }
 
+/** One vendor's spend in this year's window, counted as the year's statistics count it (5c). */
+export function vendorYearSpend(userId, vendorId, day = todayIso()) {
+	const { bounds } = resolveWindow(userId, 'year', undefined, toEpoch(day))
+	return vendorSplitOver(userId, bounds.from, bounds.to, scopeOf({ vendorId }))[0]?.amount ?? 0
+}
+
 function statusSplitOver(userId, from, to, scope) {
 	return prepared(`
 		SELECT ot.status, COUNT(*) AS orders FROM orders ot

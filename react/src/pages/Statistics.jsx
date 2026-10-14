@@ -158,7 +158,7 @@ export default function Statistics() {
 	const categories = useApi(getLimitedCategories)
 	const vendors = useCrumbRecords(getVendorPage, crumbs, 'vendor')?.vendors
 	const crumbCategories = useCrumbRecords(getCategoryPage, crumbs, 'category')?.categories
-	const known = useApi(getCategoryPage, [{ pageSize: 1 }]).data?.matched
+	const known = useApi(getCategoryPage, [{ pageSize: 0 }]).data?.matched
 
 	// the table's loaded pages are in the address, as on every list (4d); a new period or crumb drops them
 	const { pages, setPages, restored } = useListMemory()

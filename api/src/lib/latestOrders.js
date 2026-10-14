@@ -24,3 +24,20 @@ export function recentCategoryNames(userId) {
 	for (const row of selectOrdersCategories.all(JSON.stringify(ids))) byOrder.get(row.order_id).push(row.name)
 	return firstNames([...byOrder.values()].flat())
 }
+
+/* How many of a vendor's newest orders carry every one of these category names, counted from the
+   newest until one does not: what a vendor's offered categories say about its orders (5l). */
+const CARRY_ORDERS = 50
+const selectVendorOrders = db.prepare(`
+	SELECT o.id FROM orders o WHERE o.user_id = ? AND o.vendor_id = ?
+	ORDER BY o.date DESC, o.created_at DESC, o.rowid DESC LIMIT ${CARRY_ORDERS}`).pluck()
+
+export function ordersCarrying(userId, vendorId, names) {
+	const wanted = [...new Set(names.map(n => n.trim().toLowerCase()).filter(Boolean))]
+	const ids = selectVendorOrders.all(userId, vendorId)
+	if (!wanted.length || !ids.length) return 0
+	const byOrder = new Map(ids.map(id => [id, new Set()]))
+	for (const row of selectOrdersCategories.all(JSON.stringify(ids))) byOrder.get(row.order_id).add(row.name.toLowerCase())
+	const at = ids.findIndex(id => !wanted.every(n => byOrder.get(id).has(n)))
+	return at < 0 ? ids.length : at
+}

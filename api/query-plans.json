@@ -2296,6 +2296,17 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT MAX(total) FROM orders WHERE user_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX idx_orders_user_total (user_id=?)"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_total"
+			],
+			"indexes": [
+				"idx_orders_user_total"
+			]
+		},
 		"SELECT MIN(date) d FROM orders WHERE user_id = ?": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_date (user_id=?)"
@@ -2429,6 +2440,18 @@
 			],
 			"findings": [],
 			"indexes": []
+		},
+		"SELECT o.id FROM orders o WHERE o.user_id = ? AND o.vendor_id = ? ORDER BY o.date DESC, o.created_at DESC, o.rowid DESC LIMIT 50": {
+			"plan": [
+				"SEARCH o USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=?)",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor"
+			]
 		},
 		"SELECT o.id, (SELECT name FROM vendors WHERE id = o.vendor_id) AS vendor FROM orders o INDEXED BY idx_orders_user_date WHERE o.user_id = ? ORDER BY o.date DESC, o.created_at DESC, o.rowid DESC LIMIT 20": {
 			"plan": [
@@ -3550,6 +3573,20 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
+		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.vendor_id = @vendorId GROUP BY ot.vendor_id ORDER BY spend DESC": {
+			"plan": [
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"SEARCH ot USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') GROUP BY ot.vendor_id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -4008,6 +4045,15 @@
 				"sqlite_autoindex_vendors_2"
 			]
 		},
+		"SELECT v.id, v.name, v.favourite FROM vendors v WHERE v.user_id = @userId": {
+			"plan": [
+				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendors_user_name"
+			]
+		},
 		"SELECT v.id, v.name, v.favourite FROM vendors v WHERE v.user_id = @userId AND v.archived = 0": {
 			"plan": [
 				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)"
@@ -4397,7 +4443,7 @@
 				"total",
 				"id"
 			],
-			"readers": 10
+			"readers": 11
 		},
 		"idx_orders_user_uncategorised": {
 			"table": "orders",
@@ -4418,7 +4464,7 @@
 				"date",
 				"id"
 			],
-			"readers": 32
+			"readers": 34
 		},
 		"idx_uploads_user": {
 			"table": "uploads",
@@ -4502,7 +4548,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 42
+			"readers": 43
 		}
 	}
 }

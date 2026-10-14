@@ -9,7 +9,7 @@ import {
 } from '../lib/aggregate.js'
 import { wantsPage } from '../lib/listPage.js'
 import { categoryPage, knownCategoryNames } from '../lib/categoryList.js'
-import { recentCategoryNames } from '../lib/recentNames.js'
+import { recentCategoryNames } from '../lib/latestOrders.js'
 
 export const router = Router()
 

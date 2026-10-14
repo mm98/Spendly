@@ -486,7 +486,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 /** Step 1 (3a): the receipt zone, then an empty order or a copy. */
 function Start({ scanOnly, file, from, picking }) {
 	const navigate = useNavigate()
-	const any = useApi(getOrders, [{ pageSize: 1 }])
+	const any = useApi(getOrders, [{ pageSize: 0 }])
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [sending, setSending] = useState(null)
 	const [refused, setRefused] = useState(null)

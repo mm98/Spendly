@@ -212,7 +212,7 @@ function useOverLimit() {
 
 function useHasDrafts() {
 	const key = useStatusTypes().keyOf('draft')
-	return useApi(getOrders, [{ status: key, pageSize: 1 }], { enabled: !!key }).data?.matched > 0
+	return useApi(getOrders, [{ status: key, pageSize: 0 }], { enabled: !!key }).data?.matched > 0
 }
 
 const countLabel = (name, count) => (count == null ? name : name + dot + count)

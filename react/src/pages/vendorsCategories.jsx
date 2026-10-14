@@ -376,7 +376,7 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
 	// counted as the merge writes them: one alias per spelling a receipt is matched by
 	// an order carrying both is counted once: the orders in either one
-	const after = useApi(getOrders, [{ categoryId: [source.id, picked?.id], pageSize: 1 }], { enabled: Boolean(picked) && !vendor }).data?.matched
+	const after = useApi(getOrders, [{ categoryId: [source.id, picked?.id], pageSize: 0 }], { enabled: Boolean(picked) && !vendor }).data?.matched
 	const aliasCount = picked
 		? new Set([...(picked.aliases ?? []), source.name, ...(source.aliases ?? [])].map(vendorKey).filter(k => k && k !== vendorKey(picked.name))).size
 		: 0
@@ -526,7 +526,7 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 	const query = typing.trim()
 	const offered = usePickList('category', query, {})
 	// the category the typed name means, wherever it falls in the list
-	const exact = useApi(getCategoryPage, [{ name: query, pageSize: 1 }], { enabled: Boolean(query) }).data?.categories[0]
+	const exact = useApi(getCategoryPage, [{ name: query, pageSize: 1, shape: 'brief' }], { enabled: Boolean(query) }).data?.categories[0]
 	const known = [...(offered.rows ?? []), ...(exact ? [exact] : [])]
 	const same = (a, b) => a.toLowerCase() === b.toLowerCase()
 	// a typed name takes the spelling of the category it names, and names it once

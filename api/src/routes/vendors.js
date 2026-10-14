@@ -10,7 +10,8 @@ import { vendorKey } from '../lib/names.js'
 import { lookalikePairs } from '../lib/vendorLookalikes.js'
 import { wantsPage } from '../lib/listPage.js'
 import { knownVendorNames, vendorPage } from '../lib/vendorList.js'
-import { recentVendorNames } from '../lib/recentNames.js'
+import { ordersCarrying, recentVendorNames } from '../lib/latestOrders.js'
+import { vendorYearSpend } from '../lib/stats.js'
 import { VENDOR_IMAGE_MAX_MB, VendorImageRefusal, processVendorImage } from '../lib/vendorImage.js'
 
 export const router = Router()
@@ -237,6 +238,18 @@ const statsForOne = (userId, vendorId) => new Map([[vendorId, vendorStatsFor(use
 
 // the names the latest orders carry, for a picker's Recent group
 router.get('/recent', (req, res) => res.json({ names: recentVendorNames(req.user.id) }))
+
+// what the vendor cost in this year's window, as Statistics counts it
+router.get('/:id/year-spend', (req, res) => res.json({ amount: vendorYearSpend(req.user.id, req.params.id, req.today) }))
+
+// how many of the vendor's newest orders carry every one of these categories, for an offer of them (5l)
+router.get('/:id/orders-carrying', (req, res) => {
+	// the names arrive as one JSON list, since a category name can hold a comma
+	let names = []
+	try { names = JSON.parse(String(req.query.categories ?? '[]')) } catch {}
+	if (!Array.isArray(names)) names = []
+	res.json({ orders: ordersCarrying(req.user.id, req.params.id, names.map(String)) })
+})
 
 router.get('/:id', (req, res) => {
 	const vendor = selectOne.get(req.params.id, req.user.id)

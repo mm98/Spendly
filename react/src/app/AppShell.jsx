@@ -353,10 +353,10 @@ function Row({ rail, count, children, ...rest }) {
 function Counted({ useCount, ...rest }) {
 	return <Row count={useCount()} {...rest} />
 }
-const useOrdersCount = () => useApi(getOrders, [{ pageSize: 1 }]).data?.total
-const useVendorsCount = () => useApi(getVendorPage, [{ pageSize: 1 }]).data?.matched
-const useCategoriesCount = () => useApi(getCategoryPage, [{ pageSize: 1 }]).data?.matched
-const useBookmarksCount = () => useApi(getBookmarks, [{ pageSize: 1 }]).data?.matched
+const useOrdersCount = () => useApi(getOrders, [{ pageSize: 0 }]).data?.total
+const useVendorsCount = () => useApi(getVendorPage, [{ pageSize: 0 }]).data?.matched
+const useCategoriesCount = () => useApi(getCategoryPage, [{ pageSize: 0 }]).data?.matched
+const useBookmarksCount = () => useApi(getBookmarks, [{ pageSize: 0 }]).data?.matched
 
 /* A switch beside its label on the wide sidebar; on the rail a tile of its own, which keeps it
    in the keyboard's reach once the label and the switch are gone (9b). */
