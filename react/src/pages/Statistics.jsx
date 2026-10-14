@@ -262,7 +262,7 @@ export default function Statistics() {
 							disabled={!older} onClick={older ? () => show(range, older) : undefined}>
 							<Icon name="chevron-left" size={15} />
 						</button>
-						<Combobox value={`${PRESETS.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label="Period">
+						<Combobox value={shown === 'days30' ? stepLabel(range, id) : `${PRESETS.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label="Period">
 							{PRESETS.map(p => (
 								<ComboboxOption key={p.value} selected={p.value === shown} onSelect={() => choose(p.value)}>{p.label}</ComboboxOption>
 							))}

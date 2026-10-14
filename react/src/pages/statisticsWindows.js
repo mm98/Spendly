@@ -109,7 +109,7 @@ export function stepLabel(range, id) {
 	if (range === 'week') return `W${Number(id.slice(6))}`
 	if (range === 'month') return monthNames('long', true)[Number(id.slice(5)) - 1]
 	if (range === 'quarter') return id.slice(5)
-	if (range === 'days30') return boundsOf(range, id).map(ms => dayAndMonth(isoOf(ms))).join(' - ')
+	if (range === 'days30') return '30 days'
 	return id
 }
 
