@@ -286,6 +286,21 @@ export function vendorYearSpend(userId, vendorId, day = todayIso()) {
 	return vendorSplitOver(userId, bounds.from, bounds.to, scopeOf({ vendorId }))[0]?.amount ?? 0
 }
 
+/** The spend and order count of each of the last `count` calendar months, oldest first and ending with
+    today's, counted as the statistics count them: what a chart of months reads, without a day's series. */
+export function monthTotals(userId, count, flow = 'expenses', day = todayIso()) {
+	const [y, m] = day.split('-').map(Number)
+	const start = (i) => Date.UTC(y, m - 1 - (count - 1) + i, 1) / 1000
+	const from = start(0), to = start(count)
+	const months = Array.from({ length: count }, (unused, i) => ({ month: fromEpoch(start(i)).slice(0, 7), spend: 0, orders: 0 }))
+	for (const row of dailyRowsOver(userId, from, to, scopeOf({ flow }))) {
+		const at = months.find((x, i) => row.date >= start(i) && row.date < start(i + 1))
+		at.spend += row.spend
+		at.orders += row.orders
+	}
+	return months
+}
+
 function statusSplitOver(userId, from, to, scope) {
 	return prepared(`
 		SELECT ot.status, COUNT(*) AS orders FROM orders ot

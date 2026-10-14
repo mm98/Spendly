@@ -18,7 +18,7 @@ import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
 import { OrderAmount, OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import {
-	failureMessage, getCategoryPage, getCurrentUser, getDrafts, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsSlice,
+	failureMessage, getCategoryPage, getCurrentUser, getDrafts, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsMonths, getStatsSlice, thisMonthSlice,
 	overBudget, putSummaryAway, scanThumbnailUrl, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -34,8 +34,6 @@ const READING_MS = 5000
 const MONTHS = 8
 const ALERTS = 3
 // Home's figures are what was paid, as Statistics opens on
-const MONTH = { range: 'month', flow: 'expenses' }
-const YEAR = { range: 'year', flow: 'expenses' }
 const CHEVRON = <Icon name="chevron-right" size={15} />
 
 /* ---- reading the data ---- */
@@ -109,34 +107,18 @@ function daysAgo(iso) {
 	return days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
 }
 
-/** The last eight calendar months, ending with this one, from the year's running totals. */
-function lastMonths(window) {
-	const year = Number(window.from.slice(0, 4))
-	const day = (y, m, d) => Math.round((Date.UTC(y, m, d) - Date.UTC(y, 0, 1)) / 86400000)
-	const within = (series, y, m) => {
-		const end = series[Math.min(day(y, m + 1, 0), series.length - 1)] ?? 0
-		const first = day(y, m, 1)
-		return end - (first > 0 ? series[first - 1] ?? 0 : 0)
-	}
-	// a month's running-total step, from the series of its own year
-	const stepIn = (name, y, m) => {
-		const series = y === year ? window.series[name] : y === year - 1 && name === 'current' ? window.series.previous : null
-		return series?.length ? within(series, y, m) : 0
-	}
-	const [y0, m0] = today().split('-').map(Number)
+/** The last eight calendar months, ending with this one: each month's spend and orders, as the chart draws them. */
+function lastMonths(rows) {
 	const short = monthNames('short')
 	const long = monthNames('long', true)
-	const months = Array.from({ length: MONTHS }, (unused, i) => {
-		const at = new Date(y0, m0 - 1 - (MONTHS - 1 - i), 1)
-		const y = at.getFullYear(), m = at.getMonth()
-		const mm = String(m + 1).padStart(2, '0')
-		const spend = stepIn('current', y, m)
-		const orders = y === year ? stepIn('ordersCumulative', y, m) : null
+	const months = rows.map(({ month, spend, orders }) => {
+		const [y, mo] = month.split('-').map(Number)
+		const m = mo - 1
+		const mm = String(mo).padStart(2, '0')
 		return {
 			key: `${y}-${mm}`, from: `${y}-${mm}-01`, to: `${y}-${mm}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, '0')}`,
 			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}, ${currency(spend, 0)}`, spend,
-			tip: <ChartTip title={`${long[m]} ${y}`} value={currency(spend, 0)}
-				note={`${orders == null ? '' : `${plural(orders, 'order')}${dot}`}click to open`} />
+			tip: <ChartTip title={`${long[m]} ${y}`} value={currency(spend, 0)} note={`${plural(orders, 'order')}${dot}click to open`} />
 		}
 	})
 	const most = Math.max(...months.map(c => c.spend), 0)
@@ -156,7 +138,7 @@ const firstName = user => String(user?.name ?? '').trim().split(/\s+/)[0] || nul
 
 export default function Home() {
 	const touch = useShellShape() === 'touch'
-	const month = useApi(getStatsSlice, [MONTH])
+	const month = useApi(getStatsSlice, [thisMonthSlice()])
 	const categories = useApi(getHomeCategories)
 	const settings = useApi(getSettings)
 	const known = settings.data !== undefined || !!settings.error
@@ -696,8 +678,8 @@ function CategoryLine({ category: c, early }) {
 
 function MonthsCard() {
 	const navigate = useNavigate()
-	const year = useApi(getStatsSlice, [YEAR])
-	const months = year.data ? lastMonths(year.data.window) : null
+	const totals = useApi(getStatsMonths, [MONTHS])
+	const months = totals.data ? lastMonths(totals.data.months) : null
 	const average = months ? months.reduce((sum, c) => sum + c.spend, 0) / months.length : null
 	const card = (
 		<Card footer={[
@@ -711,9 +693,9 @@ function MonthsCard() {
 				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
 		</Card>
 	)
-	if (year.error) return (
+	if (totals.error) return (
 		<Hold shape={card}>
-			<Failed variant="card" label={`Last ${MONTHS} months`} what="The last months" error={year.error} onRetry={year.refresh} />
+			<Failed variant="card" label={`Last ${MONTHS} months`} what="The last months" error={totals.error} onRetry={totals.refresh} />
 		</Hold>
 	)
 	return card
