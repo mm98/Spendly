@@ -109,9 +109,12 @@ export function stepLabel(range, id) {
 	if (range === 'week') return `W${Number(id.slice(6))}`
 	if (range === 'month') return monthNames('long', true)[Number(id.slice(5)) - 1]
 	if (range === 'quarter') return id.slice(5)
-	if (range === 'days30') return boundsOf(range, id).map(ms => dayAndMonth(isoOf(ms))).join(' - ')
+	if (range === 'days30') return '30 days'
 	return id
 }
+
+// "16 Aug - 14 Sep": on a phone the period select names the 30 days by their dates
+export const thirtyDaysSpan = id => boundsOf('days30', id).map(ms => dayAndMonth(isoOf(ms))).join(' - ')
 
 /* ---- the drill path: an ordered list of crumbs, in the address as crumbs=kind:value,... ---- */
 
