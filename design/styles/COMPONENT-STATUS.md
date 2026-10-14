@@ -129,7 +129,7 @@ Each entry names classes and values as they were on its date. Many were renamed 
 
   **A commit row right-aligns by default.** `.sp-dialog__actions` had relied on a `sp-grow` spacer in the markup, which seven rows across four pages did not have; the component sets `justify-content: flex-end` now and a spacer is only needed to separate something placed before the buttons.
 
-  **Two writing rules are now in PROJECT-RULES.md**: a saving is always `Saved N kr.` in green and never a percentage, and no em dashes or curly punctuation anywhere - 2,107 dashes and 89 curly marks removed across 40 files, including the entity forms a character sweep cannot see.
+  **Two writing rules are now in CLAUDE.md**: a saving is always `Saved N kr.` in green and never a percentage, and no em dashes or curly punctuation anywhere - 2,107 dashes and 89 curly marks removed across 40 files, including the entity forms a character sweep cannot see.
 
 - 2026-09-15 - **Collapsing the sidebar is an experiment, and it lives in 9i.**
 
@@ -719,7 +719,7 @@ first.
 - 2026-10-04 - c15 plain line editor (Brief 16): an open row draws no grip. The handle column stays as an empty spacer when the list reorders. Budget 21d and the c15 specimen updated.
 
 - 2026-10-04 - React: `Picker` keeps its name. It renders `.sp-options`, the options part of the picker; `styles/check.js` lists it as a named exception beside `DialogTitle` and `RangeSlider`.
-- 2026-10-04 - Order list, narrow card: the saving is now the second line of the right column (the card is two lines); PROJECT-RULES.md updated to say so.
+- 2026-10-04 - Order list, narrow card: the saving is now the second line of the right column (the card is two lines); CLAUDE.md updated to say so.
 
 - 2026-10-04 - Brief 17: `.sp-stats--fold` (four across at a row of 996px or more, two by two below; Statistics) and `.sp-touch .sp-stats` (two by two on a phone). `.sp-list-item__handle:empty` takes `cursor: auto`.
 
@@ -730,3 +730,6 @@ first.
 - 2026-10-04 - Vendor image (Images and files 17e): no new component. On an order with no item photo it is drawn exactly as an item photo - `.sp-mark--photo` in rows, a `.sp-record__photo` in the card band - and faded: one state on each, `.sp-mark--faded` and `.sp-record__photo--faded`, `filter: opacity(var(--photo-fallback-opacity))` (new token, 0.6). Nothing else differs. `styles/check.js` asserts both states sit only on a photo.
 - 2026-10-05 - Brief 25: `.sp-bars--spark .sp-bars__bar` is `border-radius: 2px 2px 0 0`, was 2px on all four corners, so every bar is rounded at the top only; the "bars share one shape" check covers it. A step still to come carries `data-future`: a spark bar at `data-h="0"`, a plot column as a span with its tick and no bar, and `.sp-bars--plot .sp-bars__col[data-future]` takes no hover band. Order statistics 4a draws all twelve months of the year.
 - 2026-10-05 - `.sp-filedrop--row` added as a c4 variant: the mark at the left and the title and subtitle beside it (grid, 12px column gap, 2px row gap, left-aligned), for a card where the stacked drop is taller than it needs. Home Add an order uses it and no longer grows to fill the card.
+- 2026-10-14 - Brief 38, fades: every opacity between 0 and 1 is a token, one per meaning, at four strengths. `--fade-disabled` 0.4: switch, button, icon button (were 0.4), menu item and combobox option (were 0.45), input and textarea (were 0.6), and the photo uploading under its spinner in the app (was 0.6). `--fade-inactive` 0.6: cancelled row and card (0.6), `.sp-muted` (was 0.5). `--fade-standin` 0.6: hatch `.sp-record__photo` (was 0.5) and the vendor image, replacing `--photo-fallback-opacity`, which is removed. `--fade-icon-tone` 0.4: the light part of a two-tone icon in the app (was 0.5). `--fade-photo` 0.9: item photo tone in both themes, set in the app (was 0.92 light, 0.9 dark). `--fade-redacted` 0.18: `.sp-redacted` (unchanged). The app sets its four values from these tokens in the same pass. `styles/check.js` asserts no literal fade remains in any stylesheet and no two fade strengths sit closer than 0.15.
+- 2026-10-14 - Fades generalised to a scale: `--fade-10` 0.1, `--fade-30` 0.3, `--fade-60` 0.6, `--fade-90` 0.9, and every meaning names a step. `--fade-disabled` and `--fade-icon-tone` move from 0.4 to 0.3, `--fade-redacted` from 0.18 to 0.1; `--fade-inactive`, `--fade-standin` (0.6) and `--fade-photo` (0.9) are unchanged. Parts read the meaning tokens only; `styles/check.js` asserts it.
+- 2026-10-14 - Fade scale respaced to even steps: `--fade-20` 0.2, `--fade-40` 0.4, `--fade-60` 0.6, `--fade-80` 0.8, replacing 10 / 30 / 60 / 90. `--fade-redacted` 0.2, `--fade-disabled` and `--fade-icon-tone` 0.4, `--fade-inactive` and `--fade-standin` 0.6, `--fade-photo` 0.8.

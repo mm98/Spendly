@@ -151,6 +151,31 @@
     if (comp.includes(fade) && (i < 0 || !/^[^}]*opacity:\s*1\s*;/.test(comp.slice(i + reset.length))))
       fail('an open list is not faded', 'components.css', fade.slice(0, -2) + ' has no full-strength open state');
   }
+  /* every fade is a named strength (brief 38). Caught: nine literal strengths, three of
+     them for "disabled" (0.4, 0.45, 0.6), with nothing keeping them in step. A fade is
+     any opacity strictly between 0 and 1, as a property or as filter: opacity(). */
+  for (const [name, css] of [['components.css', comp], ['doc.css', doc], ...Object.entries(pageCss)])
+    for (const m of css.matchAll(/opacity(?::\s*|\(\s*)(0?\.\d+)/g))
+      fail('every fade is a token', name, 'literal opacity ' + m[1]);
+  {
+    /* the scale is --fade-NN at NN/100; every other --fade-* is a meaning that names a
+       step of it, never a number of its own */
+    const fades = [...tok.matchAll(/(--fade-\d+):\s*([\d.]+)\s*;/g)].map(m => [m[1], +m[2]]);
+    if (!fades.length) fail('every fade is a token', 'tokens.css', 'no --fade-NN scale');
+    for (const [n, v] of fades) if (Math.round(v * 100) !== +n.slice(7)) fail('every fade is a token', 'tokens.css', n + ' is ' + v + ', not its name');
+    for (const m of tok.matchAll(/(--fade-[a-z][\w-]*):\s*([^;]+);/g))
+      if (!/^var\(--fade-\d+\)$/.test(m[2].trim())) fail('every fade is a token', 'tokens.css', m[1] + ' is not a step of the scale');
+    for (const m of allCss.matchAll(/var\((--fade-\d+)\)/g)) fail('parts read a meaning, not the scale', 'styles', m[1] + ' used directly');
+    const vals = [...new Set(fades.map(f => f[1]))].sort((a, b) => a - b);
+    for (let i = 1; i < vals.length; i++)
+      if (vals[i] - vals[i - 1] < 0.15) fail('fades are told apart', 'tokens.css', vals[i - 1] + ' and ' + vals[i] + ' are too close to read as two strengths');
+    if (/--photo-fallback-opacity/.test(tok + allCss)) fail('every fade is a token', 'styles', '--photo-fallback-opacity is replaced by --fade-standin');
+  }
+  /* a note names the fade by its token, swept on text: a number in prose drifts from the
+     token the next time it changes (Components c-menu still said 0.45) */
+  for (const [f, s] of Object.entries(src))
+    for (const m of s.matchAll(/(opacity\s+0?\.\d+|0?\.\d+\s+opacity|\d+%\s+opacity|var\(--photo-fallback-opacity\))/g))
+      fail('notes name the fade token', f.replace('.dc.html', ''), m[1]);
   /* a tooltip is never held inside its container (15f, brief 36): nothing pins one there */
   for (const [f, s] of Object.entries(src)) if (s.includes('data-pin=')) fail('tooltips are not held in their container', f.replace('.dc.html', ''), 'data-pin on a readout');
   if (/\[data-pin/.test(comp)) fail('tooltips are not held in their container', 'components.css', 'a [data-pin] rule');
