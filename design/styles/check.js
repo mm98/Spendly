@@ -1034,6 +1034,17 @@
     if (!m) fail('a field on touch is 16px', 'components.css', 'no touch font-size rule for typed fields');
     else for (const n of need) if (!m[1].split(',').map(x => x.trim()).includes(n)) fail('a field on touch is 16px', 'components.css', n + ' is not in the touch rule');
   }
+  /* A token field is a field's height with one line of values as when empty, and its first
+     line does not move as values wrap (Brief 40): the padding is the field less the line
+     less the border, the lines pack to the top, and the add input is a line tall. */
+  {
+    const base = comp.match(/\n\.sp-tokens \{[^}]*\}/);
+    if (!base || !/padding: calc\(\(var\(--control-h\) - var\(--field-trail\)\) \/ 2 - 1px\) var\(--sp-10\)/.test(base[0])) fail('a token field keeps its height', 'components.css', '.sp-tokens padding does not leave room for the border');
+    if (!base || !/align-content: flex-start/.test(base[0])) fail('a token field keeps its height', 'components.css', '.sp-tokens lines do not pack to the top');
+    if (!/\.sp-touch \.sp-tokens \{ min-height: var\(--control-h-touch\); padding-block: calc\(\(var\(--control-h-touch\) - var\(--field-trail\)\) \/ 2 - 1px\); \}/.test(comp)) fail('a token field keeps its height', 'components.css', 'touch .sp-tokens padding does not match its height');
+    const add = comp.match(/\n\.sp-tokens__add \{[^}]*\}/);
+    if (!add || !/height: var\(--field-trail\)/.test(add[0])) fail('a token field keeps its height', 'components.css', '.sp-tokens__add is not a line tall');
+  }
   /* A chart's loading bar is only ever a chart's child; a part held at its own box is
      sp-skeleton--fill. The app used the bar for fields and buttons, and they fell to 0px
      once the bar stood on the baseline. */
