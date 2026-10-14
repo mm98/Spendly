@@ -179,6 +179,14 @@ The test is "is it read anywhere," not "might it be handy": before a list route 
 every consumer in `react/src` and confirm it's actually rendered or branched on. A field used by more
 than one consumer still isn't "keep everywhere" — each shape gets what *its own* consumers read.
 
+### A request asks for what the page uses, never rows it reads one value from
+
+A page that needs a count, an id, a name or one number asks for exactly that: a list's counts with
+`pageSize=0`, a record's identity with `shape=brief`, and anything else from a route that computes it
+on the server. Loading rows to find one value in them is the fault, however few rows it is. Reusing a
+request another reader already made is fine, since its answer is shared; asking it for far more than
+this page reads is not.
+
 ## The API's migrations
 
 ### A migration that any database may have run is never edited

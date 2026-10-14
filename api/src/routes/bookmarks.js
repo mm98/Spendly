@@ -171,6 +171,8 @@ router.get('/', (req, res) => {
 	const matched = filtered
 		? db.prepare(`SELECT COUNT(*) c FROM bookmarks b WHERE ${whereSql}`).get(params).c
 		: total
+	// pageSize=0 asks for the counts alone
+	if (q.pageSize === '0') return res.json({ bookmarks: [], matched, total })
 
 	// SQLite reads a negative LIMIT as "no limit at all", so a caller's page size is clamped
 	// here. Same clamp and ceiling as the orders list.

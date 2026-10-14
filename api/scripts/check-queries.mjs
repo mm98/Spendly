@@ -270,6 +270,8 @@ db.prepare(`INSERT INTO order_attachments (id, order_id, name, kind, meta, conte
    is a query this script cannot see, so a new one belongs in this list at the same time. */
 const REQUESTS = [
 	'/orders', '/orders?page=40', '/orders?sort=date-asc', '/orders?sort=amount-desc',
+	'/orders?pageSize=0', '/orders?pageSize=0&with=highest', '/orders?status=Draft&pageSize=0', `/orders?vendorId=${ids.vendor}&status=Returned&pageSize=0`,
+	'/orders?pageSize=0&with=facets', '/bookmarks?pageSize=0',
 	'/orders?sort=amount-asc&page=20', '/orders?sort=discount-desc', '/orders?sort=discount-asc',
 	'/orders?sort=vendor-asc', '/orders?sort=vendor-asc&page=20',
 	`/orders?vendorId=${ids.vendor}`, `/orders?vendorId=${ids.vendor}&page=10`,
@@ -287,7 +289,10 @@ const REQUESTS = [
 	'/orders/lines', '/orders/lines?status=Delivered&sort=amount-desc', '/orders/lines?sort=vendor-asc',
 	`/orders/lines?ids=${ids.order}&sort=date-desc`, '/orders/impact', '/orders/impact?status=Delivered&from=2026-01-01',
 	`/orders/impact?ids=${ids.order}`,
-	'/vendors', `/vendors/${ids.vendor}`,
+	'/vendors', '/vendors/recent', `/vendors/${ids.vendor}`, `/vendors/${ids.vendor}/year-spend`,
+	`/vendors/${ids.vendor}/orders-carrying?categories=${encodeURIComponent(JSON.stringify(['Groceries']))}`,
+	'/vendors?pageSize=0', '/vendors?archived=all&pageSize=0', '/vendors?name=Netto&pageSize=0', '/vendors?name=Netto&pageSize=1&shape=brief',
+	'/vendors?like=Netto%20ApS&aka=Netto%20Aarhus&pageSize=1&shape=brief',
 	// the paged vendor list: each sort, page 2, each filter, and the lookups the pickers and forms make
 	...['name-asc', 'name', 'spend-desc', 'spend-asc', 'orders-desc', 'saved-desc', 'saved-asc', 'use', 'recent'].map(sort => `/vendors?sort=${sort}&pageSize=10`),
 	'/vendors?pageSize=10&page=2', '/vendors?sort=spend-desc&pageSize=10&page=2', '/vendors?archived=yes&pageSize=10',
@@ -296,7 +301,9 @@ const REQUESTS = [
 	'/vendors?flag=possible-duplicate&query=bil&pageSize=10', `/vendors?ids=${ids.vendor},v-main-1&archived=all&with=duplicates&pageSize=2`,
 	`/vendors?near=${ids.vendor}&except=${ids.vendor}&sort=recent&pageSize=10`, `/vendors?near=${ids.vendor}&except=${ids.vendor}&sort=recent&query=bil&pageSize=10`,
 	'/vendors?name=Netto&pageSize=1', `/vendors?name=Netto&except=${ids.vendor}&pageSize=1`, '/vendors?like=Netto%20ApS&aka=Netto%20Aarhus&pageSize=1',
-	'/categories', `/categories/${ids.category}`, '/categories/colour',
+	'/categories', '/categories/recent', `/categories/${ids.category}`, '/categories/colour',
+	'/categories?pageSize=0', '/categories?name=Groceries&pageSize=1&shape=brief', `/categories?ids=${ids.category}&pageSize=1&shape=brief`,
+	'/categories?flag=over-limit&pageSize=1000&shape=brief',
 	// the paged category list, as above
 	...['name-asc', 'month-desc', 'month-asc', 'limit-desc', 'orders-desc'].map(sort => `/categories?sort=${sort}&with=month&pageSize=10`),
 	'/categories?pageSize=10&page=2', '/categories?sort=month-desc&with=month&pageSize=10&page=2', '/categories?query=mad&pageSize=10',

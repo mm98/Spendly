@@ -76,7 +76,7 @@ export default function Vendors() {
 	useEffect(() => { if ((vendors.data || vendors.error) && !vendors.loading) restored() }, [vendors.data, vendors.error, vendors.loading, restored])
 	// an empty list with nothing typed asks whether any vendor exists at all, archived or not
 	const empty = vendors.data?.matched === 0 && !query && !archived && !alike
-	const any = useApi(getVendorPage, [{ archived: 'all', pageSize: 1 }], { enabled: empty })
+	const any = useApi(getVendorPage, [{ archived: 'all', pageSize: 0 }], { enabled: empty })
 
 	const write = (q, sortId, view = archived, flag = alike) => {
 		const next = {}

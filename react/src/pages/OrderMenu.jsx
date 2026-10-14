@@ -47,7 +47,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 	const recentCategories = useRecent('category')
 	// the category the typed name means, wherever it falls in the list
 	const typedName = find.trim()
-	const exact = useApi(getCategoryPage, [{ name: typedName, pageSize: 1 }], { enabled: Boolean(typedName) }).data?.categories[0]
+	const exact = useApi(getCategoryPage, [{ name: typedName, pageSize: 1, shape: 'brief' }], { enabled: Boolean(typedName) }).data?.categories[0]
 	// what the category ticks have changed since the menu opened, so one toast undoes them all
 	const changes = useRef({ added: [], removed: [] })
 	const [has, setHas] = useState(() => new Set(order.categories.map(c => c.id)))
@@ -108,7 +108,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 		changeOrders({ ids: [order.id], addCategories: [name] })
 			.then(async () => {
 				invalidateOrderData()
-				const made = (await getCategoryPage({ name, pageSize: 1 })).categories[0]
+				const made = (await getCategoryPage({ name, pageSize: 1, shape: 'brief' })).categories[0]
 				if (!made) return
 				setHas(h => new Set(h).add(made.id))
 				changes.current.added.push(made)

@@ -32,6 +32,47 @@ export const readAs = (as, wrapper) => Object.defineProperty(wrapper, 'name', { 
 // mounted readers, told when a write forgets their answer so what is on screen asks again
 const readers = new Set()
 
+/* One request per key at a time, shared by every reader of it and aborted when its last reader
+   leaves; a request a write forgot never writes its answer into the cache. */
+const inflight = new Map()   // key -> { promise, controller, waiters }
+
+function join(key, start) {
+	let entry = inflight.get(key)
+	if (!entry) {
+		const controller = new AbortController()
+		entry = { controller, waiters: 0 }
+		const own = entry
+		entry.promise = Promise.resolve()
+			.then(() => start(controller.signal))
+			.then(data => {
+				if (inflight.get(key) === own) {
+					cache.set(key, { data, at: Date.now() })
+					evict()
+				}
+				return data
+			})
+			.finally(() => { if (inflight.get(key) === own) inflight.delete(key) })
+		inflight.set(key, entry)
+	}
+	entry.waiters++
+	const own = entry
+	let left = false
+	return {
+		promise: own.promise,
+		leave: () => {
+			if (left) return
+			left = true
+			if (--own.waiters > 0) return
+			own.controller.abort()
+			if (inflight.get(key) === own) inflight.delete(key)
+		}
+	}
+}
+
+const forgetInflight = prefix => {
+	for (const k of [...inflight.keys()]) if (prefix === null || k.startsWith(prefix)) inflight.delete(k)
+}
+
 export function useApi(fn, args = [], { enabled = true } = {}) {
 	const key = enabled ? keyOf(fn, args) : null
 	const [state, setState] = useState(() => ({
@@ -58,19 +99,16 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 			return
 		}
 
-		const controller = new AbortController()
 		let live = true
 
 		if (hit) setState({ data: hit.data, error: null, loading: false })
 		else setState(s => ({ data: s.data, error: null, loading: true }))
 
 		const { fn: endpoint, args: params } = request.current
-		Promise.resolve()
-			.then(() => endpoint(...params, controller.signal))
+		const shared = join(key, signal => endpoint(...params, signal))
+		shared.promise
 			.then(data => {
 				if (!live) return
-				cache.set(key, { data, at: Date.now() })
-				evict()
 				setState({ data, error: null, loading: false })
 			})
 			.catch(error => {
@@ -79,7 +117,7 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 				setState(s => ({ data: s.data, error, loading: false }))
 			})
 
-		return () => { live = false; controller.abort() }
+		return () => { live = false; shared.leave() }
 	}, [key, nonce])
 
 	useEffect(() => {
@@ -92,7 +130,7 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 	/* Drops the cached answer and asks again -- what a mutation calls once it has changed
 	   something the page is showing. */
 	const refresh = useCallback(() => {
-		if (key !== null) cache.delete(key)
+		if (key !== null) { cache.delete(key); inflight.delete(key) }
 		setNonce(n => n + 1)
 	}, [key])
 
@@ -141,6 +179,7 @@ export function forgetOlder(fn, args, since) {
 /** Forgets every cached answer without telling the readers on screen to ask again. */
 export function forgetAll() {
 	cache.clear()
+	forgetInflight(null)
 }
 
 /** Forgets one endpoint's cached answers, or all of them. Called after a write. */
@@ -148,5 +187,6 @@ export function invalidate(fn) {
 	const prefix = fn ? (fn.name || 'anonymous') + ':' : null
 	if (prefix === null) cache.clear()
 	else for (const k of [...cache.keys()]) if (k.startsWith(prefix)) cache.delete(k)
+	forgetInflight(prefix)
 	for (const reader of [...readers]) reader(prefix)
 }

@@ -262,7 +262,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 	const needle = find.trim().toLowerCase()
 	const shown = categories.rows ?? []
 	// the category the typed name means, wherever it falls in the list
-	const exact = useApi(getCategoryPage, [{ name: find.trim(), pageSize: 1 }], { enabled: Boolean(needle) }).data?.categories[0]
+	const exact = useApi(getCategoryPage, [{ name: find.trim(), pageSize: 1, shape: 'brief' }], { enabled: Boolean(needle) }).data?.categories[0]
 	const known = exact?.name.toLowerCase() === needle
 	const toggle = (name, on) => setAdding(a => (on ? [...a.filter(n => n !== name), name] : a.filter(n => n !== name)))
 	return (

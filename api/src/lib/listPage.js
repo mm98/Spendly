@@ -3,9 +3,14 @@ import { MAX_PAGE_SIZE } from './constants.js'
 /** Whether a vendor or category list request asks for a page rather than the whole list. */
 export const wantsPage = q => ['page', 'pageSize', 'ids', 'name', 'like'].some(k => q[k] !== undefined)
 
+/** Whether a list request asks for its counts and no rows. */
+export const countsOnly = q => String(q.pageSize) === '0'
+
 /** The LIMIT and OFFSET a request's page and pageSize come to. SQLite reads a negative LIMIT as
     "no limit at all", so the size is clamped here: the same clamp and ceiling as the order list. */
 export function pageOf(q, matched) {
+	// pageSize=0 asks for the counts alone: no row is read
+	if (countsOnly(q)) return { limit: 0, offset: 0 }
 	const requested = Number(q.pageSize) || matched || 1
 	const size = Math.min(MAX_PAGE_SIZE, Number.isFinite(requested) ? Math.max(1, Math.floor(requested)) : MAX_PAGE_SIZE)
 	const pages = Math.max(1, Math.ceil(matched / size))

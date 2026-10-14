@@ -307,6 +307,7 @@ function orderFacets(userId, q) {
 	}
 }
 
+const selectHighestTotal = db.prepare('SELECT MAX(total) FROM orders WHERE user_id = ?').pluck()
 router.get('/', (req, res) => {
 	const q = req.query
 	const { whereSql, params, sortKey, filtered } = buildOrderFilter(req.user.id, q)
@@ -334,6 +335,13 @@ router.get('/', (req, res) => {
 		SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}
 	`).get(params).c : orderCount
 	const matched = matchedOrders + drafts.length
+	const wants = listOf(q.with)
+	// pageSize=0 asks for the counts alone: no row is read or decorated; with=highest adds the largest total, for the amount filter
+	if (q.pageSize === '0') return res.json({
+		orders: [], matched, total,
+		...(wants.includes('facets') ? orderFacets(req.user.id, q) : {}),
+		...(wants.includes('highest') ? { highest: selectHighestTotal.get(req.user.id) ?? null } : {})
+	})
 
 	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
 	// pageSize has to be made safe before it reaches SQL: SQLite treats any negative LIMIT as
@@ -349,7 +357,6 @@ router.get('/', (req, res) => {
 
 	// `with=itemTitles` is the copy picker's: each row's first line names. The order list asks
 	// `with=rows` for what only its rows and cards draw, and `with=facets` for its rail and sum.
-	const wants = listOf(q.with)
 	const shape = { itemTitles: wants.includes('itemTitles'), listRows: wants.includes('rows') }
 	const offset = (at - 1) * size
 	// the sort's own keys come along, for the drafts to fall in among the rows

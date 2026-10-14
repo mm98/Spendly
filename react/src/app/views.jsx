@@ -36,7 +36,7 @@ export function ViewMark({ query }) {
 	const dated = p.has('period') || p.has('from') || p.has('to')
 	const ids = groups.length === 1 && groups[0] === 'category' ? p.get('category').split(',') : []
 	const one = ids.length === 1 && ids[0] !== 'none' ? ids[0] : null
-	const category = useApi(getCategoryPage, [{ ids: one, pageSize: 1 }], { enabled: Boolean(one) }).data?.categories[0]
+	const category = useApi(getCategoryPage, [{ ids: one, pageSize: 1, shape: 'brief' }], { enabled: Boolean(one) }).data?.categories[0]
 	if (one && category) return <CategoryMark category={category} size="small" />
 	const icon = groups.length === 1 ? ICON[groups[0]] ?? 'bookmark' : groups.length ? 'bookmark' : dated ? 'calendar' : 'bookmark'
 	return <span className="sp-nav-item__icon"><Icon name={icon} /></span>

@@ -1,7 +1,7 @@
 import { db } from '../db.js'
 import { findCategoryByFold } from './findOrCreate.js'
 import { MATCHERS, asciiNeedle, escapeLike } from './textSearch.js'
-import { listOf, nameOrder, pageOf } from './listPage.js'
+import { countsOnly, listOf, nameOrder, pageOf } from './listPage.js'
 
 /* A page of the account's categories (GET /api/categories with page, pageSize, ids or name): the
    filter, the order and the page boundary are the server's, so no reader holds the whole list. */
@@ -69,6 +69,11 @@ function rowsFor(userId, ids, extras, month, view = null) {
 	if (!ids.length) return []
 	const params = { userId, ids: JSON.stringify(ids), ...month }
 	const byId = new Map(selectRows.all(params).map(c => [c.id, c]))
+	// shape=brief: who the category is, for a lookup or a mark, with nothing counted
+	if (extras.brief) return ids.filter(id => byId.has(id)).map(id => {
+		const c = byId.get(id)
+		return { id, name: c.name, icon: c.icon, colour: c.colour, favourite: Boolean(c.favourite) }
+	})
 	const orders = byCategory(selectOrders.all(params), 'orders')
 	const spend = extras.includes('month') ? sumBy(selectMonth.all(params), 'spend') : null
 	const year = extras.includes('month') ? sumBy(selectYear.all(params), 'spend') : null
@@ -85,7 +90,7 @@ function rowsFor(userId, ids, extras, month, view = null) {
 }
 
 export function categoryPage(userId, q, today, languages = []) {
-	const extras = listOf(q.with)
+	const extras = Object.assign(listOf(q.with), { brief: q.shape === 'brief' })
 	// `month=2026-10` reads the list as that month and keeps the categories with spend in it; anything else reads it as this month
 	const named = MONTH_PARAM.test(q.month)
 	const month = monthOf(named ? q.month : today)
@@ -138,6 +143,7 @@ export function categoryPage(userId, q, today, languages = []) {
 	if (sort.byName) {
 		const compare = nameOrder(languages)
 		const found = db.prepare(`SELECT c.id, c.name, c.favourite FROM ${from} WHERE ${where.join(' AND ')}`).all(params)
+		if (countsOnly(q)) return { categories: [], matched: found.length }
 		return ranked(found.sort((a, b) => (sort.fav ? b.favourite - a.favourite : 0) || compare(a.name, b.name)).map(c => c.id))
 	}
 	// the count needs the month's spend only to find the categories over their limit or with spend in it

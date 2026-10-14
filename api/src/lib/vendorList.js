@@ -2,7 +2,7 @@ import { db } from '../db.js'
 import { fromEpoch } from './dates.js'
 import { resolveVendor } from './findOrCreate.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from './textSearch.js'
-import { listOf, nameOrder, pageOf } from './listPage.js'
+import { countsOnly, listOf, nameOrder, pageOf } from './listPage.js'
 import { vendorKey } from './names.js'
 import { lookalikePairs, vendorsAlikeTo, vendorsLike } from './vendorLookalikes.js'
 
@@ -55,10 +55,15 @@ const groupNames = rows => {
 }
 
 /** The page's rows, in `ids` order: what the list, the pickers and the filters read of a vendor. */
-function rowsFor(userId, ids, { duplicates = null, defaults = false } = {}) {
+function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = false } = {}) {
 	if (!ids.length) return []
 	const params = { userId, ids: JSON.stringify(ids) }
 	const byId = new Map(selectRows.all(params).map(v => [v.id, v]))
+	// shape=brief: who the vendor is, for a lookup or a mark, with nothing counted
+	if (brief) return ids.filter(id => byId.has(id)).map(id => {
+		const v = byId.get(id)
+		return { id, name: v.name, colour: v.colour, favourite: Boolean(v.favourite), archived: Boolean(v.archived) }
+	})
 	const stats = new Map(selectStats.all(params).map(s => [s.vendor_id, s]))
 	const aliases = groupNames(selectAliases.all(params))
 	const defaultsBy = defaults ? groupNames(selectDefaults.all(params)) : null
@@ -86,16 +91,17 @@ function pageOfRanked(userId, q, ranked, options) {
 
 export function vendorPage(userId, q, languages = []) {
 	const except = q.except ? String(q.except) : null
+	const brief = q.shape === 'brief'
 	const duplicates = q.with === 'duplicates' || q.flag === LOOKALIKES
 		? new Map(lookalikePairs(userId).map(p => [p.merge, p.keep])) : null
 
 	// the vendor a string files under, as receipts and orders are matched: one row or none
 	if (q.name !== undefined) {
 		const found = resolveVendor(userId, q.name, except)
-		return pageOfRanked(userId, q, found ? [found.id] : [], { duplicates, defaults: true })
+		return pageOfRanked(userId, q, found ? [found.id] : [], { duplicates, defaults: true, brief })
 	}
 	if (q.like !== undefined)
-		return pageOfRanked(userId, q, vendorsLike(userId, { name: String(q.like), aliases: String(q.aka ?? '').split('\n').filter(Boolean), except }), { duplicates })
+		return pageOfRanked(userId, q, vendorsLike(userId, { name: String(q.like), aliases: String(q.aka ?? '').split('\n').filter(Boolean), except }), { duplicates, brief })
 
 	const sort = SORTS[q.sort] ?? SORTS['name-asc']
 	const where = ['v.user_id = @userId']
@@ -141,7 +147,7 @@ export function vendorPage(userId, q, languages = []) {
 			.get({ ...params, paired }).c
 		const { limit, offset } = pageOf(q, matched)
 		const page = db.prepare(`${sql} ORDER BY placed.at LIMIT @limit OFFSET @offset`).all({ ...params, limit, offset })
-		return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates }), matched }
+		return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates, brief }), matched }
 	}
 
 	// the merge picker: the vendors this one looks like lead (5a)
@@ -153,14 +159,15 @@ export function vendorPage(userId, q, languages = []) {
 	}
 	if (sort.byName) {
 		const found = db.prepare(`SELECT v.id, v.name, v.favourite FROM vendors v WHERE ${where.join(' AND ')}`).all(params)
-		return pageOfRanked(userId, q, byName(found, v => (alike.includes(v.id) ? 0 : 1)), { duplicates })
+		if (countsOnly(q)) return { vendors: [], matched: found.length }
+		return pageOfRanked(userId, q, byName(found, v => (alike.includes(v.id) ? 0 : 1)), { duplicates, brief })
 	}
 	const matched = db.prepare(`SELECT COUNT(*) c FROM vendors v WHERE ${where.join(' AND ')}`).get(params).c
 	const { limit, offset } = pageOf(q, matched)
 	sql = `SELECT v.id FROM vendors v ${sort.stats ? statsJoin : ''} WHERE ${where.join(' AND ')}
 		ORDER BY ${lead}${order} LIMIT @limit OFFSET @offset`
 	const page = db.prepare(sql).all({ ...params, limit, offset })
-	return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates }), matched }
+	return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates, brief }), matched }
 }
 
 /** Which of these names a vendor of the account already files under: what an import would not create. */

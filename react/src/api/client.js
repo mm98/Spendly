@@ -380,7 +380,7 @@ export async function getHomeCategories(signal) {
 
 /** The categories over their monthly limit this month: limits are set by hand, so the server's largest page holds them. */
 export async function getOverLimitCategories(signal) {
-	return (await request('/api/categories' + qs({ flag: 'over-limit', pageSize: MOST }), { signal })).categories
+	return (await request('/api/categories' + qs({ flag: 'over-limit', pageSize: MOST, shape: 'brief' }), { signal })).categories
 }
 
 /** Which of these names a category already has, in any case. */
@@ -676,6 +676,26 @@ export async function restoreOrder(undo, signal) {
 /** The orders the account repeats, newest of each, with how many `times` (3b). */
 export async function getOftenOrders(signal) {
 	return request('/api/orders/often', { signal })
+}
+
+/** What a vendor cost in this year's window, as Statistics counts it: `{ amount }`. */
+export async function getVendorYearSpend(vendorId, signal) {
+	return request(`/api/vendors/${encodeURIComponent(vendorId)}/year-spend`, { signal })
+}
+
+/** How many of a vendor's newest orders carry every one of these category names: `{ orders }`. */
+export async function getVendorOrdersCarrying(vendorId, names, signal) {
+	return request(`/api/vendors/${encodeURIComponent(vendorId)}/orders-carrying` + qs({ categories: JSON.stringify(names) }), { signal })
+}
+
+/** The vendor names the latest orders carry, newest first: `{ names }`. */
+export async function getRecentVendorNames(signal) {
+	return request('/api/vendors/recent', { signal })
+}
+
+/** The category names the latest orders carry, newest first: `{ names }`. */
+export async function getRecentCategoryNames(signal) {
+	return request('/api/categories/recent', { signal })
 }
 
 /** The monthly limits an order dated `date` in `categories` counts against, without `exclude` (8b). */
@@ -1131,9 +1151,9 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getDrafts, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
-const vendorReads = [getVendorPage, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
-const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
+const orderReads = [getOrders, getVendorYearSpend, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const vendorReads = [getVendorPage, getVendorYearSpend, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
+const categoryReads = [getCategoryPage, getVendorOrdersCarrying, getRecentCategoryNames, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 

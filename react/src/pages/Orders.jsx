@@ -165,7 +165,7 @@ export default function OrderList() {
 	// the vendors and categories the filters name, for their crumbs
 	const vendors = usePicked('vendor', listOf(f.vendor))
 	const categories = usePicked('category', listOf(f.category))
-	const highest = useApi(getOrders, [{ sort: 'amount-desc', pageSize: 1 }])
+	const highest = useApi(getOrders, [{ pageSize: 0, with: 'highest' }])
 	const fromImport = useApi(getImport, [f.import], { enabled: !!f.import })
 	const user = useApi(getCurrentUser).data
 	const reads = user?.scanAiEnabled
@@ -200,7 +200,7 @@ export default function OrderList() {
 	const loadMore = () => setPages(pages + 1)
 	useEffect(() => { if ((orders.data || orders.error) && !orders.loading) restored() }, [orders.data, orders.error, orders.loading, restored])
 	// the rail's live counts and the summary's sum, for the same filters
-	const facets = useApi(getOrders, [{ ...request, page: 1, pageSize: 1, with: 'facets' }])
+	const facets = useApi(getOrders, [{ ...request, page: 1, pageSize: 0, with: 'facets' }])
 
 	const column = useRef(null)
 	const width = useWidth(column)
@@ -313,7 +313,7 @@ export default function OrderList() {
 		clearAll()
 		rail?.querySelector('.sp-facets :is(button, input):not(:disabled)')?.focus()
 	}
-	const facetData = { highest: highest.data?.orders?.[0]?.total }
+	const facetData = { highest: highest.data?.highest }
 	const filtersCard = (
 		<Card>
 			<CardHeader name="Filters" actions={[{ label: 'Clear all', onClick: clearRail, held: !crumbs.length }]} />
@@ -509,7 +509,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 	const f = readFilters(draft)
 	const update = useCallback(changes => setDraft(d => withChanges(d, changes)), [])
 	// the date group's order count is for the choices in the sheet, not the list behind it
-	const count = useApi(getOrders, [{ ...requestOf(f, ''), page: 1, pageSize: 1, with: 'facets' }])
+	const count = useApi(getOrders, [{ ...requestOf(f, ''), page: 1, pageSize: 0, with: 'facets' }])
 	const box = useRef(null)
 	// modal while open; closing gives focus back to the Filters button that opened it
 	useFocusTrap(box)

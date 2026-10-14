@@ -91,7 +91,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	// the other category a name already means, case and accents set aside
 	const sameAs = name => getCategoryPage({ name, except: category?.id, pageSize: 1 }).then(r => r.categories[0] ?? null, () => null)
 	const typed = values.name.trim()
-	const holder = useApi(getCategoryPage, [{ name: typed, except: category?.id, pageSize: 1 }], { enabled: !editing && Boolean(typed) })
+	const holder = useApi(getCategoryPage, [{ name: typed, except: category?.id, pageSize: 1, shape: 'brief' }], { enabled: !editing && Boolean(typed) })
 
 	const changed = values.name.trim() !== start.name.trim() || values.icon !== start.icon
 		|| values.colour !== start.colour || values.budget !== start.budget

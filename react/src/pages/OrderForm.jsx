@@ -26,7 +26,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrders, getOverLimitCategories, getScanPages, getSettings,
+	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getVendorOrdersCarrying, getOverLimitCategories, getScanPages, getSettings,
 	getVendorPage, discardDraft, invalidateCategoryData, invalidateDraftData, invalidateOrderData, keepDraft, makeDraft, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
@@ -34,7 +34,7 @@ import {
 } from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
 import { OverLimitDot } from '../app/orderRow.jsx'
-import { MoreMatches, usePickList } from '../app/pickList.jsx'
+import { MoreMatches, usePickList, useRecent } from '../app/pickList.jsx'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
@@ -155,7 +155,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const toast = useToast()
 	const listAddress = useListReturn('orders')
 	const touch = useShellShape() === 'touch'
-	const latest = useApi(getOrders, [{ pageSize: 20 }])
+	const recentVendors = useRecent('vendor')
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
 	// the values as the receipt gave them, which a note stays beside until they are changed (3a)
@@ -500,11 +500,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	}, [])
 	// how many of the vendor's latest orders carry every category offered, newest first (5l)
 	// a receipt's vendor no vendor files under yet can be set up first (5b)
-	const scannedVendor = useApi(getVendorPage, [{ name: draft.vendor, pageSize: 1 }], { enabled: Boolean(scan && creating && draft.vendor) })
-	const offeredFrom = useApi(getVendorPage, [{ name: offer?.vendor, pageSize: 1 }], { enabled: Boolean(offer) }).data?.vendors[0]?.id ?? null
-	const history = useApi(getOrders, [{ vendorId: offeredFrom ?? '', pageSize: 50 }], { enabled: Boolean(offeredFrom) })
-	const carrying = offer && history.data ? (at => (at < 0 ? history.data.orders.length : at))(history.data.orders
-		.findIndex(o => !offer.names.every(n => o.categories.some(c => c.name.toLowerCase() === n.toLowerCase())))) : 0
+	const scannedVendor = useApi(getVendorPage, [{ name: draft.vendor, pageSize: 0 }], { enabled: Boolean(scan && creating && draft.vendor) })
+	const offeredFrom = useApi(getVendorPage, [{ name: offer?.vendor, pageSize: 1, shape: 'brief' }], { enabled: Boolean(offer) }).data?.vendors[0]?.id ?? null
+	const carrying = useApi(getVendorOrdersCarrying, [offeredFrom ?? '', offer?.names ?? []], { enabled: Boolean(offer && offeredFrom) }).data?.orders ?? 0
 	// a category over its monthly limit carries its dot on an order of this month (8b)
 	const overNames = (useApi(getOverLimitCategories).data ?? []).filter(() => draft.date?.slice(0, 7) === today().slice(0, 7)).map(c => c.name.toLowerCase())
 	const trails = Object.fromEntries(draft.categories.filter(n => overNames.includes(n.toLowerCase())).map(n => [n, <OverLimitDot key={n} />]))
@@ -1189,7 +1187,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const fields = (
 		<>
 			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
-				<VendorPicker recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst} />
+				<VendorPicker recent={recentVendors} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst} />
 			</Field>
 			{scan && creating && draft.vendor && scannedVendor.data && !scannedVendor.loading && !scannedVendor.data.matched
 				? <NewVendorFromScan onSetUp={setUpVendor} />
@@ -1837,9 +1835,6 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 	)
 }
 
-/** The vendors of the latest orders, newest first: the picker's Recent group. */
-const recentVendors = orders => [...new Set((orders ?? []).map(o => o.vendor?.name).filter(Boolean))].slice(0, 5)
-
 /** The typed text in bold where it falls in a name (c5). */
 const bolded = (name, typed) => {
 	const at = typed ? name.toLowerCase().indexOf(typed.toLowerCase()) : -1
@@ -1874,7 +1869,7 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 		.filter(x => x && !x.v.favourite)
 	const others = found.filter(x => !favourites.includes(x) && !recents.some(r => r.v.name === x.v.name)).sort((a, b) => a.v.name.localeCompare(b.v.name))
 	const groups = [['Favourites', favourites], ['Recent', recents], ['Other vendors', others]].filter(([, xs]) => xs.length)
-	const exact = useApi(getVendorPage, [{ name: typed, pageSize: 1 }], { enabled: Boolean(typed) })
+	const exact = useApi(getVendorPage, [{ name: typed, pageSize: 0 }], { enabled: Boolean(typed) })
 	const known = typed && (exact.loading || !exact.data || exact.data.matched > 0)
 	return (
 		<Combobox searchable value={value} placeholder="Choose a vendor" open={open}
