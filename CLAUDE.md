@@ -96,6 +96,9 @@ have to. Putting screens together from its patterns is the build's job:
   choice does not change what the user can do: fallback or loading text, which existing variant, an
   empty or error state shaped like a drawn one, spacing by the layout rules. Use the closest pattern,
   and list each such decision once in the pull request so the user can overrule it.
+- **Nothing the user can see or use is added unless `design/` draws it:** no control, setting,
+  option or field, even one an existing component could draw. A part dropped into a drawn layout
+  breaks the layout.
 - **Ask Claude Design** only for a real design question: a pattern that does not exist, two pages
   that contradict each other, or a choice that changes what the user can do.
 - **The text in `design/` is general guidance, not a rule for every case.** It describes components and

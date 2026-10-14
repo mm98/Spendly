@@ -14,8 +14,9 @@ const selectOne = db.prepare('SELECT id, key, name, tone, own_date, type FROM st
 const countByStatus = db.prepare('SELECT status, COUNT(*) n FROM orders WHERE user_id = ? GROUP BY status')
 const countOne = db.prepare('SELECT COUNT(*) n FROM orders WHERE user_id = ? AND status = ?')
 const selectDefault = db.prepare('SELECT default_status FROM settings WHERE user_id = ?')
-const insertStatus = db.prepare('INSERT INTO statuses (id, user_id, key, name, tone, position, own_date) VALUES (?, ?, ?, ?, ?, ?, ?)')
-const updateStatus = db.prepare('UPDATE statuses SET name = ?, tone = ?, own_date = ? WHERE user_id = ? AND key = ?')
+// every status but Ordered is dated on its own; Ordered is the order's own date
+const insertStatus = db.prepare('INSERT INTO statuses (id, user_id, key, name, tone, position, own_date) VALUES (?, ?, ?, ?, ?, ?, 1)')
+const updateStatus = db.prepare('UPDATE statuses SET name = ?, tone = ? WHERE user_id = ? AND key = ?')
 const placeStatus = db.prepare('UPDATE statuses SET position = ? WHERE user_id = ? AND key = ?')
 const deleteStatus = db.prepare('DELETE FROM statuses WHERE user_id = ? AND key = ?')
 
@@ -37,8 +38,7 @@ function checked(userId, body, key = null) {
 	if (clash) return { error: `You already have a status called ${clash.name}.` }
 	const tone = String(body.tone ?? 'neutral')
 	if (!TONES.includes(tone)) return { error: 'Pick one of the four looks.' }
-	if (body.ownDate !== undefined && typeof body.ownDate !== 'boolean') return { error: 'A status has its own date or it does not.' }
-	return { name, tone, ownDate: body.ownDate ? 1 : 0 }
+	return { name, tone }
 }
 
 router.get('/', (req, res) => res.json(list(req.user.id)))
@@ -48,16 +48,16 @@ router.post('/', (req, res) => {
 	if (ok.error) return refuse(res, ok.error)
 	const id = newId('st')
 	const last = selectAll.all(req.user.id).reduce((n, s) => Math.max(n, s.position), -1)
-	insertStatus.run(id, req.user.id, id, ok.name, ok.tone, last + 1, ok.ownDate)
+	insertStatus.run(id, req.user.id, id, ok.name, ok.tone, last + 1)
 	res.status(201).json(list(req.user.id))
 })
 
 router.patch('/:key', (req, res) => {
 	const status = selectOne.get(req.user.id, req.params.key)
 	if (!status) return refuse(res, 'That status does not exist.', 404)
-	const ok = checked(req.user.id, { name: status.name, tone: status.tone, ownDate: Boolean(status.own_date), ...req.body }, status.key)
+	const ok = checked(req.user.id, { name: status.name, tone: status.tone, ...req.body }, status.key)
 	if (ok.error) return refuse(res, ok.error)
-	updateStatus.run(ok.name, ok.tone, ok.ownDate, req.user.id, status.key)
+	updateStatus.run(ok.name, ok.tone, req.user.id, status.key)
 	res.json(list(req.user.id))
 })
 
