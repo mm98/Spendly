@@ -17,13 +17,3 @@ what was measured and when. An entry is removed in the change that fixes it.
   one line and 22px with several; the bulb's is 24px.
 - **Why not urgent:** the offset is 1-2px, and the app copies the design's rules for this field
   unchanged, so the fix belongs in the design first.
-
-## Settings: a choice shows its old value for a moment after Save
-
-- **Where:** every select on the Settings page, for example Rows per page in Lists.
-- **What the reader sees:** after Save, the select goes back to the value it had before for two or
-  three frames, then shows the new value again.
-- **Measured:** 11 October 2026, in Chrome at 1440px, reading the select on every frame after Save.
-  Rows per page set from 10 to 25 showed "10 rows" for 33ms. Recent orders on Home showed the old
-  value for 26-39ms in three tries.
-- **Why not urgent:** the saved value is right, and the old one shows for a fraction of a second.
