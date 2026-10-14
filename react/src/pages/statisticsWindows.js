@@ -113,9 +113,6 @@ export function stepLabel(range, id) {
 	return id
 }
 
-// "16 Aug - 14 Sep": on a phone the period select names the 30 days by their dates
-export const thirtyDaysSpan = id => boundsOf('days30', id).map(ms => dayAndMonth(isoOf(ms))).join(' - ')
-
 /* ---- the drill path: an ordered list of crumbs, in the address as crumbs=kind:value,... ---- */
 
 export const CRUMB_KINDS = ['month', 'week', 'vendor', 'category', 'status']
