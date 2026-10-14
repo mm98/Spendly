@@ -24,15 +24,3 @@ is removed in the change that settles it.
 - **Why not now:** the app is safe as it is. The drawing is what is out of date, and that is
   Claude Design's to change: Returned and Cancelled marked "built in", and no delete button on
   Cancelled.
-
-## Home: two cards read the whole statistics answer for a few numbers
-
-- **Where:** Home's "Last 8 months" card and its month card (`react/src/pages/Home.jsx`).
-- **What the reader sees:** nothing wrong, but Home is the first page most visits open, and it
-  waits for both answers.
-- **What was found:** 14 October 2026, on the edge-case account. "Last 8 months" reads the year's
-  statistics, 54 kB with every day's running total, to draw 8 bars and one average. The month card
-  reads the month's statistics, 25 kB, for its sums and its top categories. Both are the answers the
-  Statistics page reads in full.
-- **Why not now:** it is a change to the statistics routes, which is its own piece of work: a small
-  answer with the 8 months' totals, and a month summary without the daily series.

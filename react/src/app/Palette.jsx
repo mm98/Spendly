@@ -3,7 +3,7 @@ import { useStatusTypes } from './statuses.js'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
-import { getCurrentUser, getOrder, getOrders, getOverLimitCategories, getStats, getVendor, getVendorPage, searchRecords } from '../api/client.js'
+import { getCurrentUser, getOrder, getOrders, getOverLimitCategories, getStatsSlice, getVendor, getVendorPage, searchRecords, thisMonthSlice } from '../api/client.js'
 import { forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
 import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
 import { MAC } from './useMedia.js'
@@ -204,7 +204,7 @@ const actionsFor = (theme, onShortcuts, overLimit, drafts, scan) => [
 
 /* The month's orders in every category over its limit, as Home's notice opens them. */
 function useOverLimit() {
-	const month = useApi(getStats, ['month', undefined, undefined]).data?.window
+	const month = useApi(getStatsSlice, [thisMonthSlice()]).data?.window
 	const over = useApi(getOverLimitCategories).data
 	if (!month || !over) return null
 	return over.length ? `/orders?category=${over.map(c => c.id).join(',')}&from=${month.from}&to=${month.to}` : null

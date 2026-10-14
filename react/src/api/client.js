@@ -911,14 +911,19 @@ export async function populateDemoData(orders, months, { signal, onRows } = {}) 
 
 /* ---- statistics ---- */
 
-export async function getStats(range, windowId, compare, signal) {
-	return request('/api/stats' + qs({ range, windowId, compare: compare === 'year' ? 'year' : undefined }), { signal })
-}
-
 /** A window narrowed by a drill path and a lens: `{ range, windowId, compare, flow, vendorId,
     categoryId, status, from, to }`, every one optional. */
 export async function getStatsSlice(slice, signal) {
 	return request('/api/stats' + qs(slice), { signal })
+}
+
+/** This month's statistics as the Statistics page asks for them, word for word, so every reader of
+    this month shares one answer. */
+export const thisMonthSlice = () => ({ range: 'month', windowId: today().slice(0, 7), flow: 'expenses' })
+
+/** Each of the last `count` months' spend and orders, oldest first: `{ months: [{ month, spend, orders }] }`. */
+export async function getStatsMonths(count, signal) {
+	return request('/api/stats/months' + qs({ count }), { signal })
 }
 
 /** A page of the orders behind a slice, newest first. */
@@ -1151,7 +1156,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getVendorYearSpend, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getVendorYearSpend, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
 const vendorReads = [getVendorPage, getVendorYearSpend, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
 const categoryReads = [getCategoryPage, getVendorOrdersCarrying, getRecentCategoryNames, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]

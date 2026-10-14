@@ -401,6 +401,7 @@ for (const [method, path, body] of [
 	// Home counts a rule only while it is on, and the receipt rule starts off
 	['PATCH', '/settings', { looks: { receipt: true } }],
 	['GET', '/stats/home'],
+	['GET', '/stats/months?count=8'],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
 	['POST', '/categories/suggestions', { items: ['Ceiling lamp', 'Duvet cover'] }],
 	// the names it embedded in the background are stored by now, so the next one reads them back
