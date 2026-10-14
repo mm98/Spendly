@@ -18,10 +18,6 @@
   --surface-3: #f2f1eb;    /* a line item row inside a card */
   --hatch-a: #dcdad2;      /* stand-in for a photo these mockups do not have */
   --hatch-b: #e8e6de;
-  /* a vendor image standing in for a missing item photo is drawn as the photo, faded
-     to this strength. Applied as filter: opacity() so it compounds with any opacity
-     the element already has (the void row's 0.6, the hatch stand-in's 0.5). */
-  --photo-fallback-opacity: 0.6;
   --hover: #f0efe9;        /* hover and selected row */
 
   /* ---- line ---- */
@@ -171,6 +167,32 @@
   /* the editor's slot fills the column left of the fields, so its right edge lands on
      the row photo's right edge above it */
   --slot-editor: calc(var(--line-text-left) - var(--sp-12) - 1px - var(--sp-12));
+
+  /* ---- fade: 20 / 40 / 60 / 80, and nothing else ----
+     Every opacity between 0 and 1 is one of these four, named by value like the
+     spacing scale. Parts never read the scale directly: each meaning below names its
+     step, so a meaning can move to another step without touching a rule. Shadows and
+     overlays keep their own alpha in their colour and are not fades. */
+  --fade-20: 0.2;
+  --fade-40: 0.4;
+  --fade-60: 0.6;
+  --fade-80: 0.8;
+  --fade-disabled: var(--fade-40);   /* a control that cannot be used: button, icon button, switch, field, menu item, option, a photo still uploading */
+  /* a row or card that no longer counts - a cancelled order, a column not imported.
+     One step above disabled on purpose: its figures are still read, a disabled
+     control is only passed over. */
+  --fade-inactive: var(--fade-60);
+  /* a picture standing in for one that is missing: the hatch, and the vendor image in
+     place of an item photo. The vendor image takes it as filter: opacity() so it
+     compounds with a cancelled row's own fade (0.6 x 0.6) instead of replacing it. */
+  --fade-standin: var(--fade-60);
+  --fade-icon-tone: var(--fade-40);  /* the light part of a two-tone icon: as far back as disabled reads */
+  /* an item photo's tone, in both themes: takes the glare off a white scan without
+     touching colour. A correction, not a state, so it stays on the step nearest full. */
+  --fade-photo: var(--fade-80);
+  /* the bar that hides an amount: a shape in the text's ink, never legible as a
+     figure, so on the lowest step */
+  --fade-redacted: var(--fade-20);
 
   /* ---- elevation: menus and sheets only ---- */
   --shadow-menu: 0 6px 16px rgba(27, 26, 23, 0.08);

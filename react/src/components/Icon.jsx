@@ -13,7 +13,7 @@ export function Icon({ name, size = 16 }) {
 }
 
 // the marks scripts/sync-icons.mjs puts on a path Tabler draws other than as a plain line
-const MARKS = { '*': { fill: 'currentColor' }, '#': { fill: 'currentColor', stroke: 'none' }, '~': { opacity: 0.5 } }
+const MARKS = { '*': { fill: 'currentColor' }, '#': { fill: 'currentColor', stroke: 'none' }, '~': { style: { opacity: 'var(--fade-icon-tone)' } } }
 
 /** A Tabler icon from its paths, each drawn on its own as Tabler draws it. */
 export function Glyph({ paths, size }) {
