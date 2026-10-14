@@ -32,9 +32,8 @@ export const readAs = (as, wrapper) => Object.defineProperty(wrapper, 'name', { 
 // mounted readers, told when a write forgets their answer so what is on screen asks again
 const readers = new Set()
 
-/* One request per key at a time: every reader of a key waits on the request already on its way,
-   so a list whose rows each read the same endpoint asks once. It is aborted only when its last
-   reader leaves, and a request a write forgot never writes its answer into the cache. */
+/* One request per key at a time, shared by every reader of it and aborted when its last reader
+   leaves; a request a write forgot never writes its answer into the cache. */
 const inflight = new Map()   // key -> { promise, controller, waiters }
 
 function join(key, start) {
