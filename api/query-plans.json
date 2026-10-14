@@ -2430,6 +2430,22 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT o.id, (SELECT name FROM vendors WHERE id = o.vendor_id) AS vendor FROM orders o INDEXED BY idx_orders_user_date WHERE o.user_id = ? ORDER BY o.date DESC, o.created_at DESC, o.rowid DESC LIMIT 20": {
+			"plan": [
+				"SEARCH o USING INDEX idx_orders_user_date (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.name AS file_name, a.kind AS file_kind FROM order_attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id WHERE a.sha256 = @sha256 AND o.user_id = @userId ORDER BY o.date DESC, o.created_at DESC": {
 			"plan": [
 				"SEARCH a USING INDEX idx_order_attachments_sha256 (sha256=?)",
@@ -2559,6 +2575,21 @@
 			],
 			"findings": [
 				"sorts in a temp B-tree",
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT oc.order_id, c.name FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id IN (SELECT value FROM json_each(?))": {
+			"plan": [
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)"
+			],
+			"findings": [
 				"reads a per-account table without naming user_id"
 			],
 			"indexes": [
@@ -4330,7 +4361,7 @@
 				"date",
 				"id"
 			],
-			"readers": 59
+			"readers": 60
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",

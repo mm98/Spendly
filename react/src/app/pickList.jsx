@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { ComboboxEmpty, ComboboxGroup, ComboboxSeparator } from '../components/Combobox.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategoryPage, getOrders, getSettings, getVendorPage } from '../api/client.js'
+import { getCategoryPage, getRecentCategoryNames, getRecentVendorNames, getSettings, getVendorPage } from '../api/client.js'
 import { amount } from '../api/format.js'
 
 /** A picker's first page (Rows per page) for the typed text, found by the server: `rows`, how many
@@ -33,9 +33,7 @@ export function MoreMatches({ rows, matched, noun, ...rest }) {
 
 /** The vendors or categories the latest orders name, newest first: a picker's Recent group. */
 export function useRecent(kind) {
-	const orders = useApi(getOrders, [{ pageSize: 10 }]).data?.orders
-	const names = (orders ?? []).flatMap(o => (kind === 'vendor' ? [o.vendor?.name] : (o.categories ?? []).map(c => c.name)))
-	return [...new Set(names.filter(Boolean))].slice(0, 5)
+	return useApi(kind === 'vendor' ? getRecentVendorNames : getRecentCategoryNames).data?.names ?? []
 }
 
 /** A picker's rows as Favourites, Recent and the rest, each only when it has rows (c5, 14a). A recent

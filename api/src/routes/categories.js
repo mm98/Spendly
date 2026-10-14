@@ -9,6 +9,7 @@ import {
 } from '../lib/aggregate.js'
 import { wantsPage } from '../lib/listPage.js'
 import { categoryPage, knownCategoryNames } from '../lib/categoryList.js'
+import { recentCategoryNames } from '../lib/recentNames.js'
 
 export const router = Router()
 
@@ -113,6 +114,9 @@ router.post('/', (req, res) => {
 	insert.run(category)
 	res.status(201).json(withStats(category))
 })
+
+// the names the latest orders carry, for a picker's Recent group
+router.get('/recent', (req, res) => res.json({ names: recentCategoryNames(req.user.id) }))
 
 router.get('/:id', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)

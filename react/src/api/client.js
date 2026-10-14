@@ -678,6 +678,16 @@ export async function getOftenOrders(signal) {
 	return request('/api/orders/often', { signal })
 }
 
+/** The vendor names the latest orders carry, newest first: `{ names }`. */
+export async function getRecentVendorNames(signal) {
+	return request('/api/vendors/recent', { signal })
+}
+
+/** The category names the latest orders carry, newest first: `{ names }`. */
+export async function getRecentCategoryNames(signal) {
+	return request('/api/categories/recent', { signal })
+}
+
 /** The monthly limits an order dated `date` in `categories` counts against, without `exclude` (8b). */
 export async function getOrderLimits(date, categories, exclude, signal) {
 	const usp = new URLSearchParams({ date })
@@ -1131,9 +1141,9 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getDrafts, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
-const vendorReads = [getVendorPage, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
-const categoryReads = [getCategoryPage, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
+const orderReads = [getOrders, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStats, getStatsSlice, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const vendorReads = [getVendorPage, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
+const categoryReads = [getCategoryPage, getRecentCategoryNames, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 

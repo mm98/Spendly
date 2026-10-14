@@ -34,7 +34,7 @@ import {
 } from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
 import { OverLimitDot } from '../app/orderRow.jsx'
-import { MoreMatches, usePickList } from '../app/pickList.jsx'
+import { MoreMatches, usePickList, useRecent } from '../app/pickList.jsx'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
@@ -155,7 +155,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const toast = useToast()
 	const listAddress = useListReturn('orders')
 	const touch = useShellShape() === 'touch'
-	const latest = useApi(getOrders, [{ pageSize: 20 }])
+	const recentVendors = useRecent('vendor')
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
 	// the values as the receipt gave them, which a note stays beside until they are changed (3a)
@@ -1189,7 +1189,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const fields = (
 		<>
 			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
-				<VendorPicker recent={recentVendors(latest.data?.orders)} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst} />
+				<VendorPicker recent={recentVendors} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst} />
 			</Field>
 			{scan && creating && draft.vendor && scannedVendor.data && !scannedVendor.loading && !scannedVendor.data.matched
 				? <NewVendorFromScan onSetUp={setUpVendor} />
@@ -1836,9 +1836,6 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 		</LineEditor>
 	)
 }
-
-/** The vendors of the latest orders, newest first: the picker's Recent group. */
-const recentVendors = orders => [...new Set((orders ?? []).map(o => o.vendor?.name).filter(Boolean))].slice(0, 5)
 
 /** The typed text in bold where it falls in a name (c5). */
 const bolded = (name, typed) => {

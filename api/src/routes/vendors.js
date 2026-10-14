@@ -10,6 +10,7 @@ import { vendorKey } from '../lib/names.js'
 import { lookalikePairs } from '../lib/vendorLookalikes.js'
 import { wantsPage } from '../lib/listPage.js'
 import { knownVendorNames, vendorPage } from '../lib/vendorList.js'
+import { recentVendorNames } from '../lib/recentNames.js'
 import { VENDOR_IMAGE_MAX_MB, VendorImageRefusal, processVendorImage } from '../lib/vendorImage.js'
 
 export const router = Router()
@@ -233,6 +234,9 @@ router.post('/', (req, res) => {
    groups all 50,000 of a big account's orders (~25ms) to render a single record this reads
    in ~2ms from that vendor's own indexed rows (lib/aggregate.js). */
 const statsForOne = (userId, vendorId) => new Map([[vendorId, vendorStatsFor(userId, vendorId)]])
+
+// the names the latest orders carry, for a picker's Recent group
+router.get('/recent', (req, res) => res.json({ names: recentVendorNames(req.user.id) }))
 
 router.get('/:id', (req, res) => {
 	const vendor = selectOne.get(req.params.id, req.user.id)
