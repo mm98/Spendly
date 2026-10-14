@@ -3053,6 +3053,26 @@
 
   <div class="sp-period-group">
 
+      <span class="doc-specimen__label">30 days - the last 30 days</span>
+      <div class="sp-period">
+        <div class="sp-period__presets" role="group" aria-label="Window size">
+          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="c14-d" defaultChecked="{{ true }}"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Week"><input type="radio" name="c14-d"><span class="sp-label">Week</span></label>
+          <label class="sp-period__preset" data-label="Month"><input type="radio" name="c14-d"><span class="sp-label">Month</span></label>
+          <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="c14-d"><span class="sp-label">Quarter</span></label>
+          <label class="sp-period__preset" data-label="Year"><input type="radio" name="c14-d"><span class="sp-label">Year</span></label>
+          <label class="sp-period__preset" data-label="Custom"><input type="radio" name="c14-d"><span class="sp-label">Custom</span></label>
+        </div>
+        <div class="sp-window">
+          <button type="button" class="sp-window__btn" aria-label="Previous window"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <span class="sp-window__label">30 days</span>
+          <button type="button" class="sp-window__btn" aria-label="Next window" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+        </div>
+        <span class="sp-period__resolved">22/07 - 20/08/2026</span>
+        <span class="sp-grow"></span>
+        <span class="sp-period__note">to today</span>
+      </div>
+
       <span class="doc-specimen__label">Week - the week in progress</span>
       <div class="sp-period">
         <div class="sp-period__presets" role="group" aria-label="Window size">
@@ -3351,6 +3371,7 @@
     <div class="doc-note">A figure is 26px/700 tabular, 34px when it is the one number on a screen; its label is <code>--t-11</code> at <code>--ls-eyebrow</code>. Series colours are the four greens in order - <code>--green</code>, <code>--green-3</code>, <code>--green-4</code>, <code>--green-5</code> - and the legend key is a 10px square at radius 3, the same key the share list uses. Bars are <code>--green</code>, and a window that is not yet complete is <code>--green-5</code>. A bar's height arrives as <code>data-h</code> and a gauge's fill, overage and marker as <code>data-fill</code>, <code>data-over</code> and <code>data-at</code>, each matched by its own attribute rule in the stylesheet - a measurement is data rather than style, and no element carries an inline style.</div>
     <div class="doc-notes__label">States</div>
     <div class="doc-note">A bar or share hovers and takes <code>aria-pressed</code> when it is the drilled value. The window control is one bordered box at radius 10: 36px arrow cells (<code>--control-h-touch</code> square on touch) divided from the label by a 1px <code>--line</code> rule, the label 13/600 tabular. Its forward arrow is <code>disabled</code> at the present window rather than hidden. Step off it and two things change together: the resolved line reads a closed range rather than one running to today, and the right-hand word becomes a button back to the present - so there is always one press back to now, whichever window size is in force. It is the same control in both cases, not a second one. Presets set the size of the window; the stepper moves it, and the resolved line always states the actual dates.</div>
+    <div class="doc-note"><b>The window's label names the window, never its dates:</b> W34, August, Q3, 2026, and for 30 days the words "30 days", stepped or not. The dates are the resolved line's job. The control stays <code>--window-w</code> wide whichever preset is chosen, so no label may need more room than "September".</div>
     <div class="doc-note"><b>A legend is always under its chart.</b> Never between the card's head and the chart, and never in the head: the chart is read first, then its key. Every chart with a legend draws it this way (<a href="Order statistics.dc.html#4a">4a</a> Spend by month and Spend vs saving).</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>Click a bar or a share</b> - drills, pushing a crumb (c8) and re-filtering every card on the page. <b>Change the preset</b> - resizes the window and keeps the drill path. <b>Step</b> - moves one window and keeps the crumbs, while expanded breakdowns collapse. <b>Custom</b> - is a preset, not a separate button: choosing it opens the range popover, right-aligned under the row - quick ranges, the From → To pair, two months with the selection shaded, and a footer stating the day count with Cancel and Apply. Applying puts the range in the window control, which then steps by that many days. <b>On touch</b> the same range expands inside the filter sheet instead of floating: the two fields, one scrolling month with a sticky weekday row and 40px day targets, the day count, and Apply pinned at the bottom - a 470px popover does not fit a 375px screen. It is the one date range sheet for the whole app: the order filters' Custom (<a href="#c12">c12</a>) opens the same sheet, and there its Apply only sets the dates and returns to the filter sheet, whose own Apply runs the filter. On Statistics, which has no filter sheet around it, its Apply applies the range at once. Selecting a preset never resizes the segments, because each one reserves the width of its selected weight. Every chart element is a filter; nothing on a chart is decoration. Keyboard: a bar or share drills with Enter and the crumb is removed with Backspace. Drilling never navigates - the page keeps its scroll position and every other card re-filters in place, so the numbers around it stay comparable. The period a user chooses persists across pages, so moving from statistics to a list keeps the same window. The chart is not read bar by bar: the shares list beneath it is the same data as text, and it is what a screen reader gets. Numbers are tabular so columns line up, and the window and drill path both survive leaving the page and coming back.</div>

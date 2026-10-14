@@ -1,33 +1,24 @@
-# Spendly - changes since handoff_2026_10_14c_changes
+# Spendly - changes since handoff_2026_10_14d_changes
 
-Copy these files over handoff_2026_10_13_full with handoff_2026_10_13b_changes, handoff_2026_10_14_changes, handoff_2026_10_14b_changes and handoff_2026_10_14c_changes applied. This answers brief 40.
+Copy these files over handoff_2026_10_13_full with handoff_2026_10_13b_changes, handoff_2026_10_14_changes, handoff_2026_10_14b_changes, handoff_2026_10_14c_changes and handoff_2026_10_14d_changes applied. No stylesheet changes.
 
-## 1. The fix (styles/components.css, c3 token field)
-- `.sp-tokens` padding top and bottom is `calc((var(--control-h) - var(--field-trail)) / 2 - 1px)` (5px), was `var(--sp-6)`. Left and right stay `var(--sp-10)`.
-- `.sp-tokens` gains `align-content: flex-start`, so lines pack to the top.
-- `.sp-tokens__add` gains `height: var(--field-trail)` (30px), the height of a value.
-- `.sp-touch .sp-tokens` gains `padding-block: calc((var(--control-h-touch) - var(--field-trail)) / 2 - 1px)` (8px).
-- The trail button rules are unchanged.
+## 1. The fault
+- On the 30 days preset the window control's label read "16. aug. - 14. sep.". It needs about 125px; the label has 92px inside the fixed 190px `--window-w`, so it ran into the next arrow. It also repeated the dates on the resolved line.
 
-## 2. What it measures to
-- Computer: 42px empty and with one line of values. The first line's middle is 21px from the top, level with the bulb's.
-- Phone: 48px empty and with one line. The first line's middle is 24px from the top, level with the bulb's.
-- More lines add 6px gap plus 30px each below the first line, which does not move.
+## 2. The answer
+- The 30 days window's label is the words "30 days", in the present window and when stepped back.
+- The window's label names the window, never its dates: W34, August, Q3, 2026, 30 days. The dates stay on the resolved line beside it (for example 22/07 - 20/08/2026).
+- `--window-w` stays 190px for every preset. No label may need more room than "September".
 
-## 3. Every place it reaches
-- All drawn by `TokensField` in `react/src/components/Inputs.jsx`; no component code changes, only `components.css`.
-- Categories on an order (with the bulb), categories on a bookmark, a vendor's default categories, a vendor's other names.
-- Remove the entry for this fault from `problems.md` in the same change.
+## 3. In the app
+- Change the label the period control passes for the 30 days preset to "30 days". Nothing else changes.
 
 ## 4. In the design
-- Order create 3a: the categories field drawn with no category, one category and three lines, on a computer and on a phone, with the bulb, and notes for implementation on the field's height.
+- Components c14: a 30 days specimen above Week, and a note on the window label.
 
 ## 5. Check (styles/check.js)
-- New assertion "a token field keeps its height": the base and touch padding, `align-content`, and the add input's height.
 - Clean: 0 findings across 26 pages.
 
 ## Files
-- Order create.dc.html
-- styles/components.css
-- styles/check.js
+- Components.dc.html
 - styles/COMPONENT-STATUS.md
