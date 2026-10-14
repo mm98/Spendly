@@ -23,27 +23,27 @@ export const router = Router()
 // multipart filenames as latin1 unless told otherwise, and browsers never say otherwise.
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
-const insertUpload = db.prepare(`INSERT INTO scan_uploads
+const insertUpload = db.prepare(`INSERT INTO uploads
 	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at, pages,
 		original, original_is_compressed, original_content_type, ai_read_json, read_at)
 	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @expiresAt, @pages,
 		@original, @originalCompressed, @originalContentType, @readJson, @readAt)`)
 /* A reading is kept with its file: on the scan while it lasts, then on the order's own file. Bytes read
    before are not paid for again while either holds them. */
-const selectScanReading = db.prepare(`SELECT ai_read_json AS read_json, read_at FROM scan_uploads
+const selectScanReading = db.prepare(`SELECT ai_read_json AS read_json, read_at FROM uploads
 	WHERE user_id = @userId AND sha256 = @sha256 AND ai_read_json IS NOT NULL LIMIT 1`)
-const selectFileReading = db.prepare(`SELECT a.read_json, a.read_at FROM attachments a JOIN orders o ON o.id = a.order_id
+const selectFileReading = db.prepare(`SELECT a.read_json, a.read_at FROM order_attachments a JOIN orders o ON o.id = a.order_id
 	WHERE a.sha256 = @sha256 AND o.user_id = @userId AND a.read_json IS NOT NULL LIMIT 1`)
 const readingOf = (userId, sha256) => selectScanReading.get({ userId, sha256 }) ?? selectFileReading.get({ userId, sha256 })
 /* The orders that already hold a file with these bytes as their own attachment, newest first (3c). */
 const selectOrdersWithFile = db.prepare(`
 	SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.name AS file_name, a.kind AS file_kind
-	FROM attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id
+	FROM order_attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id
 	WHERE a.sha256 = @sha256 AND o.user_id = @userId
 	ORDER BY o.date DESC, o.created_at DESC`)
 
 // a draft scanned from these bytes
-const selectDraftWithFile = db.prepare(`SELECT d.id FROM scan_uploads u JOIN order_drafts d ON d.upload_id = u.id
+const selectDraftWithFile = db.prepare(`SELECT d.id FROM uploads u JOIN order_drafts d ON d.upload_id = u.id
 	WHERE u.user_id = ? AND u.sha256 = ? LIMIT 1`)
 
 /** What is already known about these bytes: when they were read, the orders that hold them and the
@@ -71,7 +71,7 @@ const uploadAnswer = (row, name, userId) => ({
 })
 /* An upload nobody holds, or one that already became an order's attachment, is swept once
    expires_at passes (lib/orderDrafts.js sets the lifetime); one a draft holds stays while it does. */
-const deleteExpiredUploads = db.prepare(`DELETE FROM scan_uploads WHERE expires_at <= ?
+const deleteExpiredUploads = db.prepare(`DELETE FROM uploads WHERE expires_at <= ?
 	AND id NOT IN (SELECT upload_id FROM order_drafts WHERE upload_id IS NOT NULL)
 	AND id NOT IN (SELECT upload_id FROM order_draft_files)`)
 export const dropExpiredUploads = () => deleteExpiredUploads.run(nowEpoch())
@@ -83,22 +83,22 @@ export const dropExpiredUploads = () => deleteExpiredUploads.run(nowEpoch())
    A draft's own file is never the answer: it goes with the draft, so the new upload is its own. */
 const selectUploadByHash = db.prepare(`
 	SELECT id, kind, size, pages, sha256, (thumbnail IS NOT NULL) AS has_thumbnail
-	FROM scan_uploads u WHERE user_id = ? AND sha256 = ? AND expires_at > ?
+	FROM uploads u WHERE user_id = ? AND sha256 = ? AND expires_at > ?
 		AND NOT EXISTS (SELECT 1 FROM order_drafts d WHERE d.upload_id = u.id)
 	ORDER BY created_at DESC LIMIT 1`)
 /* Split by what each reader draws: the draft screen wants the row's facts, the thumbnail route
    its own bytes -- never both BLOBs decoded to answer a metadata question. */
 const selectUploadMeta = db.prepare(`SELECT id, name, size, kind, (thumbnail IS NOT NULL) AS has_thumbnail,
-	CASE WHEN original IS NULL THEN size ELSE length(data) END AS display_size FROM scan_uploads WHERE id = ? AND user_id = ?`)
-const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
-const selectAccountCurrency = db.prepare('SELECT currency FROM settings WHERE user_id = ?')
+	CASE WHEN original IS NULL THEN size ELSE length(data) END AS display_size FROM uploads WHERE id = ? AND user_id = ?`)
+const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM uploads WHERE id = ? AND user_id = ?')
+const selectAccountCurrency = db.prepare('SELECT currency FROM user_settings WHERE user_id = ?')
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
 // Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
 // size, kind, thumbnail) plus the cached read, in one row -- the draft handler either has an
 // AI read already or is about to go make one, and both branches want the same row.
 const selectUploadForRead = db.prepare(`SELECT id, user_id, name, size, kind, content_type, data, data_is_compressed,
-	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM scan_uploads WHERE id = ? AND user_id = ?`)
-const saveAiRead = db.prepare('UPDATE scan_uploads SET ai_read_json = @json, read_at = unixepoch() WHERE id = @id AND user_id = @userId')
+	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM uploads WHERE id = ? AND user_id = ?`)
+const saveAiRead = db.prepare('UPDATE uploads SET ai_read_json = @json, read_at = unixepoch() WHERE id = @id AND user_id = @userId')
 
 /** A file kept until a save files it: an image gets a display copy and a thumbnail, a PDF keeps its
     bytes and gets a thumbnail of its first page (lib/images.js). `?scan=1` makes it a scan (3a): a
@@ -144,8 +144,8 @@ function scanned(req, answer) {
 }
 
 /** A stored upload's own bytes: an image's display copy, or the PDF as it arrived. */
-const selectUploadFile = db.prepare('SELECT name, content_type, data, data_is_compressed FROM scan_uploads WHERE id = ? AND user_id = ?')
-const selectUploadOriginal = db.prepare('SELECT name, original, original_is_compressed, original_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
+const selectUploadFile = db.prepare('SELECT name, content_type, data, data_is_compressed FROM uploads WHERE id = ? AND user_id = ?')
+const selectUploadOriginal = db.prepare('SELECT name, original, original_is_compressed, original_content_type FROM uploads WHERE id = ? AND user_id = ?')
 router.get('/documents/:key/file', (req, res) => {
 	const full = req.query.download === '1' ? selectUploadOriginal.get(req.params.key, req.user.id) : null
 	if (full?.original) {
@@ -178,11 +178,11 @@ router.get('/documents/:key/pages/:page', async (req, res) => {
 
 /** Forget the reading of these bytes, so the next opening of the draft reads the file again (3c). */
 // a draft keeps the reading it was opened with
-const clearUploadReading = db.prepare(`UPDATE scan_uploads SET ai_read_json = NULL WHERE user_id = ? AND sha256 = ?
-	AND NOT EXISTS (SELECT 1 FROM order_drafts d WHERE d.upload_id = scan_uploads.id)`)
-const forgetReading = db.prepare(`UPDATE attachments SET read_json = NULL, read_at = NULL WHERE sha256 = @sha256
+const clearUploadReading = db.prepare(`UPDATE uploads SET ai_read_json = NULL WHERE user_id = ? AND sha256 = ?
+	AND NOT EXISTS (SELECT 1 FROM order_drafts d WHERE d.upload_id = uploads.id)`)
+const forgetReading = db.prepare(`UPDATE order_attachments SET read_json = NULL, read_at = NULL WHERE sha256 = @sha256
 	AND order_id IN (SELECT id FROM orders WHERE user_id = @userId)`)
-const selectUploadHash = db.prepare('SELECT sha256 FROM scan_uploads WHERE id = ? AND user_id = ?')
+const selectUploadHash = db.prepare('SELECT sha256 FROM uploads WHERE id = ? AND user_id = ?')
 router.post('/documents/:key/reread', (req, res) => {
 	const upload = selectUploadHash.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
@@ -195,7 +195,7 @@ router.post('/documents/:key/reread', (req, res) => {
 
 /** Throws an upload away now rather than when it expires. The reading of it is kept. A scanned file
     is its draft's: the draft goes with it (6d). One a draft holds as an added file stays. */
-const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
+const deleteUpload = db.prepare('DELETE FROM uploads WHERE id = ? AND user_id = ?')
 const heldAsFile = db.prepare(`SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id
 	WHERE d.user_id = ? AND f.upload_id = ? LIMIT 1`)
 router.delete('/documents/:key', (req, res) => {
@@ -277,17 +277,17 @@ function readOnce(userId, upload, today, onProgress, res) {
     upload the same file a second time -- an INSERT ... SELECT, so the bytes go table-to-table
     inside SQLite instead of surfacing into a JS Buffer just to be handed straight back. The
     order's own file takes the reading with it. */
-const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
+const copyUploadToAttachment = db.prepare(`INSERT INTO order_attachments
 	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, from_scan,
 		original, original_is_compressed, original_content_type, read_json, read_at)
 	SELECT @id, @orderId, @itemId, COALESCE(@name, name), kind, @meta, content_type, @size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages, @fromScan,
 		CASE WHEN @itemId IS NULL THEN original END, CASE WHEN @itemId IS NULL THEN original_is_compressed ELSE 0 END, CASE WHEN @itemId IS NULL THEN original_content_type END,
 		CASE WHEN @itemId IS NULL THEN ai_read_json END, CASE WHEN @itemId IS NULL THEN read_at END
-	FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
+	FROM uploads WHERE id = @uploadId AND user_id = @userId`)
 /* Filed, the scan has handed on all it held, its reading included; it goes at the next nightly
    clean-up, after a margin for the rest of the same save to file it too. */
 const FILED_MARGIN_SECONDS = 10 * 60
-const expireUpload = db.prepare('UPDATE scan_uploads SET expires_at = MIN(expires_at, @at) WHERE id = @id AND user_id = @userId')
+const expireUpload = db.prepare('UPDATE uploads SET expires_at = MIN(expires_at, @at) WHERE id = @id AND user_id = @userId')
 const selectItemOfOrder = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
 const markVendorScanned = db.prepare(`UPDATE vendors SET origin = 'scan'
 	WHERE id = (SELECT vendor_id FROM orders WHERE id = @order) AND made_by_order = @order AND user_id = @userId`)

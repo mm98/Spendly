@@ -8,12 +8,12 @@ export const MAX_DRAWN_PAGES = 40   // pages past this are not drawn; the count 
 
 const stores = {
 	attachment: {
-		file: db.prepare('SELECT kind, data, data_is_compressed, pages FROM attachments WHERE id = ?'),
-		setPages: db.prepare('UPDATE attachments SET pages = ? WHERE id = ?')
+		file: db.prepare('SELECT kind, data, data_is_compressed, pages FROM order_attachments WHERE id = ?'),
+		setPages: db.prepare('UPDATE order_attachments SET pages = ? WHERE id = ?')
 	},
 	upload: {
-		file: db.prepare('SELECT kind, data, data_is_compressed, pages FROM scan_uploads WHERE id = ?'),
-		setPages: db.prepare('UPDATE scan_uploads SET pages = ? WHERE id = ?')
+		file: db.prepare('SELECT kind, data, data_is_compressed, pages FROM uploads WHERE id = ?'),
+		setPages: db.prepare('UPDATE uploads SET pages = ? WHERE id = ?')
 	}
 }
 

@@ -31,10 +31,10 @@ const insertUser = db.prepare(`INSERT INTO users (id, email, password_hash, need
 const LOCK_AFTER = 5
 const LOCK_WINDOW_SECONDS = 15 * 60
 const LOCK_SECONDS = 5 * 60
-const recentFailures = db.prepare('SELECT COUNT(*) AS n, MAX(at) AS last FROM login_failures WHERE email = ? AND at > ?')
-const insertFailure = db.prepare('INSERT INTO login_failures (email, at) VALUES (?, ?)')
-const purgeFailures = db.prepare('DELETE FROM login_failures WHERE at <= ?')
-const clearFailures = db.prepare('DELETE FROM login_failures WHERE email = ?')
+const recentFailures = db.prepare('SELECT COUNT(*) AS n, MAX(at) AS last FROM user_login_failures WHERE email = ? AND at > ?')
+const insertFailure = db.prepare('INSERT INTO user_login_failures (email, at) VALUES (?, ?)')
+const purgeFailures = db.prepare('DELETE FROM user_login_failures WHERE at <= ?')
+const clearFailures = db.prepare('DELETE FROM user_login_failures WHERE email = ?')
 
 /** Seconds until signing in to this address works again, 0 when it works now. */
 function lockedFor(email, now = nowEpoch()) {
@@ -166,7 +166,7 @@ router.get('/me', requireAuth, (req, res) => {
 const selectUser = db.prepare('SELECT id, name, email, email_confirmed FROM users WHERE id = ?')
 const confirmEmail = db.prepare('UPDATE users SET email_confirmed = 1 WHERE id = ?')
 const setPassword = db.prepare('UPDATE users SET password_hash = ?, password_changed_at = unixepoch() WHERE id = ?')
-const endSessions = db.prepare('DELETE FROM sessions WHERE user_id = ?')
+const endSessions = db.prepare('DELETE FROM user_sessions WHERE user_id = ?')
 const noMail = res => res.status(409).json({ error: 'This server cannot send email.' })
 const notSent = (res, e) => {
 	console.error(`[mail] could not send: ${e.message}`)

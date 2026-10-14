@@ -14,9 +14,9 @@ const RECENT = 5
 const MAX_MAPPING = 20000
 
 const selectRecent = db.prepare(`SELECT id, file_name, mapping, orders, lines, skipped, vendors, created_at, undone_at
-	FROM imports WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?`)
-const selectOne = db.prepare('SELECT id, created_at, undone_at FROM imports WHERE id = ? AND user_id = ?')
-const insertImport = db.prepare(`INSERT INTO imports (id, user_id, file_name, mapping, skipped, created_at) VALUES (?, ?, ?, ?, ?, ?)`)
+	FROM order_imports WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?`)
+const selectOne = db.prepare('SELECT id, created_at, undone_at FROM order_imports WHERE id = ? AND user_id = ?')
+const insertImport = db.prepare(`INSERT INTO order_imports (id, user_id, file_name, mapping, skipped, created_at) VALUES (?, ?, ?, ?, ?, ?)`)
 
 const toApi = row => ({
 	id: row.id, fileName: row.file_name, mapping: row.mapping ? JSON.parse(row.mapping) : null,
@@ -55,7 +55,7 @@ const deleteVendors = db.prepare(`DELETE FROM vendors WHERE user_id = ? AND impo
 const deleteCategories = db.prepare(`DELETE FROM categories WHERE user_id = ? AND import_id = ?
 	AND NOT EXISTS (SELECT 1 FROM order_categories oc WHERE oc.category_id = categories.id)
 	AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.category_id = categories.id)`)
-const markUndone = db.prepare('UPDATE imports SET undone_at = ? WHERE id = ?')
+const markUndone = db.prepare('UPDATE order_imports SET undone_at = ? WHERE id = ?')
 const undo = db.transaction((userId, id) => {
 	const orders = deleteOrders.run(userId, id).changes
 	const vendors = deleteVendors.run(userId, id).changes

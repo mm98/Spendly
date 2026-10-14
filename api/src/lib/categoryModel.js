@@ -31,10 +31,10 @@ const selectItemsOf = db.prepare(`SELECT oi.order_id, oi.title FROM order_items 
 	WHERE o.user_id = ? AND oi.order_id IN (SELECT value FROM json_each(?))`)
 const selectLabelsOf = db.prepare(`SELECT oc.order_id, oc.category_id FROM order_categories oc
 	JOIN categories c ON c.id = oc.category_id WHERE c.user_id = ? AND oc.order_id IN (SELECT value FROM json_each(?))`)
-const selectVectors = db.prepare('SELECT key, vec FROM title_vectors WHERE user_id = ? AND model = ? AND key IN (SELECT value FROM json_each(?))')
-const insertVector = db.prepare('INSERT OR REPLACE INTO title_vectors (user_id, model, key, vec) VALUES (?, ?, ?, ?)')
-const selectVectorUsers = db.prepare('SELECT DISTINCT user_id FROM title_vectors')
-const deleteVectorsBut = db.prepare(`DELETE FROM title_vectors WHERE user_id = @userId
+const selectVectors = db.prepare('SELECT key, vec FROM category_suggestion_vectors WHERE user_id = ? AND model = ? AND key IN (SELECT value FROM json_each(?))')
+const insertVector = db.prepare('INSERT OR REPLACE INTO category_suggestion_vectors (user_id, model, key, vec) VALUES (?, ?, ?, ?)')
+const selectVectorUsers = db.prepare('SELECT DISTINCT user_id FROM category_suggestion_vectors')
+const deleteVectorsBut = db.prepare(`DELETE FROM category_suggestion_vectors WHERE user_id = @userId
 	AND (model <> @model OR key NOT IN (SELECT value FROM json_each(@keys)))`)
 const selectNames = db.prepare('SELECT id, name FROM categories WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))')
 

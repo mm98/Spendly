@@ -20,13 +20,13 @@ const NOT_SET_UP = 'Passkeys are not set up on this server.'
 const DID_NOT_WORK = "That passkey didn't work. Try again, or use your password."
 
 const selectForSignIn = db.prepare(`SELECT p.id, p.user_id, p.public_key, p.counter, p.transports, u.email, u.needs_setup
-	FROM passkeys p JOIN users u ON u.id = p.user_id WHERE p.id = ?`)
-const markUsed = db.prepare('UPDATE passkeys SET counter = ?, last_used_at = ? WHERE id = ?')
-const selectMine = db.prepare('SELECT id, name, transports, created_at, last_used_at FROM passkeys WHERE user_id = ? ORDER BY created_at')
-const insertPasskey = db.prepare(`INSERT INTO passkeys (id, user_id, public_key, counter, transports, name, created_at)
+	FROM user_passkeys p JOIN users u ON u.id = p.user_id WHERE p.id = ?`)
+const markUsed = db.prepare('UPDATE user_passkeys SET counter = ?, last_used_at = ? WHERE id = ?')
+const selectMine = db.prepare('SELECT id, name, transports, created_at, last_used_at FROM user_passkeys WHERE user_id = ? ORDER BY created_at')
+const insertPasskey = db.prepare(`INSERT INTO user_passkeys (id, user_id, public_key, counter, transports, name, created_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?)`)
-const renamePasskey = db.prepare('UPDATE passkeys SET name = ? WHERE id = ? AND user_id = ?')
-const deletePasskey = db.prepare('DELETE FROM passkeys WHERE id = ? AND user_id = ?')
+const renamePasskey = db.prepare('UPDATE user_passkeys SET name = ? WHERE id = ? AND user_id = ?')
+const deletePasskey = db.prepare('DELETE FROM user_passkeys WHERE id = ? AND user_id = ?')
 const selectUser = db.prepare('SELECT id, email, name FROM users WHERE id = ?')
 
 const transportsOf = row => (row.transports ? JSON.parse(row.transports) : undefined)

@@ -1,0 +1,42 @@
+-- Tables are named for what one row is and what it belongs to, so the ones that belong together sort together.
+ALTER TABLE bank_links RENAME TO budget_bank_links;
+ALTER TABLE budget_amounts RENAME TO budget_line_amounts;
+ALTER TABLE title_vectors RENAME TO category_suggestion_vectors;
+ALTER TABLE attachments RENAME TO order_attachments;
+ALTER TABLE imports RENAME TO order_imports;
+ALTER TABLE order_statuses RENAME TO order_status_history;
+ALTER TABLE scan_uploads RENAME TO uploads;
+ALTER TABLE home_attention_rules RENAME TO user_home_rules;
+ALTER TABLE login_failures RENAME TO user_login_failures;
+ALTER TABLE monthly_summary_seen RENAME TO user_monthly_summaries_seen;
+ALTER TABLE passkeys RENAME TO user_passkeys;
+ALTER TABLE saved_views RENAME TO user_saved_views;
+ALTER TABLE sessions RENAME TO user_sessions;
+ALTER TABLE settings RENAME TO user_settings;
+ALTER TABLE account_tokens RENAME TO user_tokens;
+
+-- an index takes its table's new name
+DROP INDEX idx_account_tokens_user_kind;
+CREATE INDEX idx_user_tokens_user_kind ON user_tokens(user_id, kind);
+DROP INDEX idx_attachments_item;
+CREATE INDEX idx_order_attachments_item ON order_attachments(order_item_id);
+DROP INDEX idx_attachments_order;
+CREATE INDEX idx_order_attachments_order ON order_attachments(order_id);
+DROP INDEX idx_attachments_sha256;
+CREATE INDEX idx_order_attachments_sha256 ON order_attachments(sha256) WHERE sha256 IS NOT NULL;
+DROP INDEX idx_imports_user_created;
+CREATE INDEX idx_order_imports_user_created ON order_imports(user_id, created_at);
+DROP INDEX idx_login_failures_email_at;
+CREATE INDEX idx_user_login_failures_email_at ON user_login_failures(email, at);
+DROP INDEX idx_order_statuses_order;
+CREATE INDEX idx_order_status_history_order ON order_status_history(order_id);
+DROP INDEX idx_passkeys_user;
+CREATE INDEX idx_user_passkeys_user ON user_passkeys(user_id, created_at);
+DROP INDEX idx_saved_views_user;
+CREATE INDEX idx_user_saved_views_user ON user_saved_views(user_id, position);
+DROP INDEX idx_scan_uploads_user;
+CREATE INDEX idx_uploads_user ON uploads(user_id);
+DROP INDEX idx_scan_uploads_user_hash;
+CREATE INDEX idx_uploads_user_hash ON uploads(user_id, sha256);
+DROP INDEX idx_sessions_user;
+CREATE INDEX idx_user_sessions_user ON user_sessions(user_id);

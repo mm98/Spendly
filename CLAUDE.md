@@ -36,6 +36,15 @@ A tool that posts to GitHub can add such a line itself, whatever `.claude/settin
 opening a pull request or posting a comment, read the text back from GitHub and remove any line the
 tool added.
 
+## Names
+
+Name and write everything for a developer who opens it in three months and does not know today's
+reasons: a table, a column, a file, a function, a variable. A name says what one of it is and what
+it belongs to. Things that belong together share a prefix, so they sort together and a table reads
+next to the tables it references (`order_items` and `order_attachments` beside `orders`). A name
+that needs a comment to explain it is the wrong name. A name that is wrong is renamed, everywhere
+it is used.
+
 ## Whitespace
 
 Tabs indent, always. Spaces only where something aligns under something else. `.editorconfig`

@@ -27,7 +27,7 @@ const MIN_SAVING = 0.1
     already compressed. The same work through the threadpool leaves the loop free.
 
     Returns { blob, compressed } rather than just the bytes: `compressed` is meant to be stored
-    alongside `blob` in its own column (attachments/scan_uploads' *_compressed columns) and read
+    alongside `blob` in its own column (order_attachments' and uploads' *_compressed columns) and read
     back to decompressBlob, never re-derived by inspecting the bytes. A stored PDF is the
     document exactly as received, so no header signature can be trusted to mean "this blob is a
     zlib stream" without an occasional false match on real content that happens to start the

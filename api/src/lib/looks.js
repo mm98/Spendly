@@ -10,9 +10,9 @@ export const LOOKS = [
 	{ id: 'receipt', on: false }
 ]
 
-const selectSwitches = db.prepare('SELECT rule, enabled FROM home_attention_rules WHERE user_id = ?')
+const selectSwitches = db.prepare('SELECT rule, enabled FROM user_home_rules WHERE user_id = ?')
 const upsertSwitch = db.prepare(`
-	INSERT INTO home_attention_rules (user_id, rule, enabled) VALUES (?, ?, ?)
+	INSERT INTO user_home_rules (user_id, rule, enabled) VALUES (?, ?, ?)
 	ON CONFLICT (user_id, rule) DO UPDATE SET enabled = excluded.enabled
 `)
 

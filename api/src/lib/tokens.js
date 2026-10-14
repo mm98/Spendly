@@ -9,14 +9,14 @@ export const RESEND_AFTER_SECONDS = 60
 
 const hashOf = token => createHash('sha256').update(String(token)).digest('hex')
 
-const dropEarlier = db.prepare('DELETE FROM account_tokens WHERE user_id = ? AND kind = ? AND used_at IS NULL AND token_hash <> ?')
-const dropToken = db.prepare('DELETE FROM account_tokens WHERE token_hash = ?')
-const insertToken = db.prepare(`INSERT INTO account_tokens (token_hash, user_id, kind, email, expires_at, created_at)
+const dropEarlier = db.prepare('DELETE FROM user_tokens WHERE user_id = ? AND kind = ? AND used_at IS NULL AND token_hash <> ?')
+const dropToken = db.prepare('DELETE FROM user_tokens WHERE token_hash = ?')
+const insertToken = db.prepare(`INSERT INTO user_tokens (token_hash, user_id, kind, email, expires_at, created_at)
 	VALUES (?, ?, ?, ?, ?, ?)`)
-const selectToken = db.prepare('SELECT user_id, kind, email, expires_at, used_at FROM account_tokens WHERE token_hash = ?')
-const markUsed = db.prepare('UPDATE account_tokens SET used_at = ? WHERE token_hash = ?')
-const dropExpired = db.prepare('DELETE FROM account_tokens WHERE expires_at <= ?')
-const lastSent = db.prepare('SELECT MAX(created_at) AS at FROM account_tokens WHERE user_id = ? AND kind = ?')
+const selectToken = db.prepare('SELECT user_id, kind, email, expires_at, used_at FROM user_tokens WHERE token_hash = ?')
+const markUsed = db.prepare('UPDATE user_tokens SET used_at = ? WHERE token_hash = ?')
+const dropExpired = db.prepare('DELETE FROM user_tokens WHERE expires_at <= ?')
+const lastSent = db.prepare('SELECT MAX(created_at) AS at FROM user_tokens WHERE user_id = ? AND kind = ?')
 
 /** A new single-use token. The earlier ones of its kind keep working until settleToken says it was sent. */
 export function issueToken(userId, kind, email) {

@@ -16,7 +16,7 @@ export const UPLOAD_TTL_SECONDS = 24 * 60 * 60
 
 /* ---- what a reading starts the form with ---- */
 
-const selectFormDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM settings WHERE user_id = ?')
+const selectFormDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM user_settings WHERE user_id = ?')
 const selectVendorName = db.prepare('SELECT name FROM vendors WHERE id = ? AND user_id = ?')
 /* A possible duplicate: the same vendor within two weeks of the read date, nearest first. Wider would
    flag every order from a vendor the account buys from often. */
@@ -153,9 +153,9 @@ const insertDraft = db.prepare('INSERT INTO order_drafts (id, user_id, upload_id
 const selectDraftOfUpload = db.prepare('SELECT id FROM order_drafts WHERE upload_id = ? AND user_id = ?')
 const DRAFT_COLUMNS = `d.id, d.rowid AS seq, d.form, d.created_at, d.upload_id, u.name, u.size, u.kind, u.pages, u.sha256,
 	(u.thumbnail IS NOT NULL) AS has_thumbnail, u.ai_read_json`
-const selectDrafts = db.prepare(`SELECT ${DRAFT_COLUMNS} FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id
+const selectDrafts = db.prepare(`SELECT ${DRAFT_COLUMNS} FROM order_drafts d LEFT JOIN uploads u ON u.id = d.upload_id
 	WHERE d.user_id = ?`)
-const selectDraft = db.prepare(`SELECT ${DRAFT_COLUMNS} FROM order_drafts d LEFT JOIN scan_uploads u ON u.id = d.upload_id
+const selectDraft = db.prepare(`SELECT ${DRAFT_COLUMNS} FROM order_drafts d LEFT JOIN uploads u ON u.id = d.upload_id
 	WHERE d.id = ? AND d.user_id = ?`)
 const countDrafts = db.prepare('SELECT COUNT(*) c FROM order_drafts WHERE user_id = ?')
 
@@ -295,7 +295,7 @@ export const draftListRow = (d, { itemTitles = false, listRows = false } = {}) =
 const updateForm = db.prepare('UPDATE order_drafts SET form = ? WHERE id = ? AND user_id = ?')
 const deleteDraftFiles = db.prepare('DELETE FROM order_draft_files WHERE draft_id = ?')
 const insertDraftFile = db.prepare(`INSERT OR IGNORE INTO order_draft_files (draft_id, upload_id)
-	SELECT @draftId, id FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
+	SELECT @draftId, id FROM uploads WHERE id = @uploadId AND user_id = @userId`)
 const MAX_FORM = 512 * 1024
 
 /** Keeps the form as it is on screen; the uploads it names stay with the draft. False when there is no such draft. */
@@ -326,8 +326,8 @@ const selectDraftUploads = db.prepare(`SELECT upload_id FROM order_drafts WHERE 
 const deleteDraft = db.prepare('DELETE FROM order_drafts WHERE id = ? AND user_id = ?')
 const heldElsewhere = db.prepare(`SELECT 1 FROM order_drafts WHERE upload_id = @uploadId
 	UNION ALL SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = @userId AND f.upload_id = @uploadId LIMIT 1`)
-const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
-const renewUpload = db.prepare('UPDATE scan_uploads SET expires_at = ? WHERE id = ? AND user_id = ?')
+const deleteUpload = db.prepare('DELETE FROM uploads WHERE id = ? AND user_id = ?')
+const renewUpload = db.prepare('UPDATE uploads SET expires_at = ? WHERE id = ? AND user_id = ?')
 
 /** Discard (6d): the draft goes, and with it its file, the files it holds and the reading -- unless
     another draft holds an upload, or an order holds the same file. */

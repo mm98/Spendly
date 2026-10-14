@@ -231,7 +231,7 @@ export const isBillingRefusal = e => e instanceof APIError
 /** Reads a stored upload's own bytes (the same `data` column routes/scan.js's own /file route
     serves) via Claude, and returns `{ read, failure }`: the normalised fields above or null, and
     null when the model answered, 'billing' when the account was refused, 'failed' otherwise.
-    `upload` is a full row from scan_uploads -- data, data_is_compressed, content_type, kind, and
+    `upload` is a full row from uploads -- data, data_is_compressed, content_type, kind, and
     for a picture its original and original_is_compressed. */
 export async function parseReceipt(upload, today = todayIso(), onProgress, categories = []) {
 	const anthropic = getClient()
