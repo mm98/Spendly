@@ -13,7 +13,7 @@ const selectAll = db.prepare('SELECT id, key, name, tone, position, own_date, ty
 const selectOne = db.prepare('SELECT id, key, name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?')
 const countByStatus = db.prepare('SELECT status, COUNT(*) n FROM orders WHERE user_id = ? GROUP BY status')
 const countOne = db.prepare('SELECT COUNT(*) n FROM orders WHERE user_id = ? AND status = ?')
-const selectDefault = db.prepare('SELECT default_status FROM settings WHERE user_id = ?')
+const selectDefault = db.prepare('SELECT default_status FROM user_settings WHERE user_id = ?')
 // every status but Ordered is dated on its own; Ordered is the order's own date
 const insertStatus = db.prepare('INSERT INTO statuses (id, user_id, key, name, tone, position, own_date) VALUES (?, ?, ?, ?, ?, ?, 1)')
 const updateStatus = db.prepare('UPDATE statuses SET name = ?, tone = ? WHERE user_id = ? AND key = ?')

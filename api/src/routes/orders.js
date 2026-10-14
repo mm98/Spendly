@@ -38,7 +38,7 @@ const notFound = id => Object.assign(new Error('No order ' + id), { status: 404 
 
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
 const selectItemExists = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
-const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
+const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM user_settings WHERE user_id = ?')
 const countAllOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const deleteOrderCategories = db.prepare('DELETE FROM order_categories WHERE order_id = ?')
 const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded)
@@ -46,32 +46,32 @@ const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date
 const updateOrderRow = db.prepare(`UPDATE orders SET vendor_id=@vendorId, date=@date, status=@status, kind=@kind,
 	shipping=@shipping, discount=@discount, note=@note, reference=@reference, refunded=@refunded WHERE id=@id AND user_id=@userId`)
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
-const deleteOrderStatuses = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
-const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
+const deleteOrderStatuses = db.prepare('DELETE FROM order_status_history WHERE order_id = ?')
+const insertOrderStatus = db.prepare('INSERT INTO order_status_history (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
 // an order has one validation, backed by one of its own files
 const markValidated = db.prepare(`UPDATE orders SET validated_by = @attachmentId, validated_at = @day
-	WHERE id = @id AND EXISTS (SELECT 1 FROM attachments WHERE id = @attachmentId AND order_id = @id)`)
+	WHERE id = @id AND EXISTS (SELECT 1 FROM order_attachments WHERE id = @attachmentId AND order_id = @id)`)
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note, url)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note, @url)`)
 const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
 	price=@price, retail=@retail, note=@note, url=@url WHERE id=@id AND order_id=@orderId`)
 const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
-const insertAttachment = db.prepare(`INSERT INTO attachments
+const insertAttachment = db.prepare(`INSERT INTO order_attachments
 	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages,
 		original, original_is_compressed, original_content_type)
 	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @sha256, @pages,
 		@original, @originalCompressed, @originalContentType)`)
 /** The hash of a file's bytes as they arrived, before any resizing. */
 export const sourceHash = buffer => createHash('sha256').update(buffer).digest('hex')
-const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
-const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
-const deleteItemAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_id = ?')
-const selectAttachmentOriginal = db.prepare('SELECT name, original, original_is_compressed, original_content_type FROM attachments WHERE id = ? AND order_id = ?')
-const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
-const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
+const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM order_attachments WHERE order_item_id = ?')
+const deleteAttachment = db.prepare('DELETE FROM order_attachments WHERE id = ? AND order_id = ?')
+const deleteItemAttachment = db.prepare('DELETE FROM order_attachments WHERE id = ? AND order_item_id = ?')
+const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM order_attachments WHERE id = ? AND order_id = ?')
+const selectAttachmentOriginal = db.prepare('SELECT name, original, original_is_compressed, original_content_type FROM order_attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM order_attachments WHERE id = ? AND order_item_id = ?')
+const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM order_attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM order_attachments WHERE id = ? AND order_item_id = ?')
 /* ---- draft ---- */
 
 router.get('/draft', (req, res) => {
@@ -168,10 +168,10 @@ function buildOrderFilter(userId, q, except = null) {
 	// the receipt is a file on the order itself; both values chosen is no filter at all
 	const receipt = listOf(q.receipt).filter(r => r === 'attached' || r === 'missing')
 	if (receipt.length === 1 && except !== 'receipt')
-		where.push(`${receipt[0] === 'missing' ? 'NOT ' : ''}EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)`)
+		where.push(`${receipt[0] === 'missing' ? 'NOT ' : ''}EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)`)
 	// any file at all: the order's own, or one on any of its lines
-	if (q.files === '1') where.push(`(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
-		OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id))`)
+	if (q.files === '1') where.push(`(EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)
+		OR EXISTS (SELECT 1 FROM order_items oi JOIN order_attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id))`)
 	if (q.discounted === '1') where.push('ot.saved > 0')
 
 	/* Finite or absent -- never NaN. better-sqlite3 binds NaN as NULL, and `date >= NULL`
@@ -282,7 +282,7 @@ function orderFacets(userId, q) {
 		return db.prepare(`SELECT ${select} FROM orders ot ${join} WHERE ${whereSql}${group ? ` GROUP BY ${group}` : ''}`).all(params)
 	}
 	const byKey = (rows, key) => Object.fromEntries(rows.map(r => [r[key], r.n]))
-	const [receipt] = counts('receipt', 'COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)), 0) attached')
+	const [receipt] = counts('receipt', 'COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)), 0) attached')
 	const [sum] = counts(null, `COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE ot.total END), 0) total,
 		COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved`)
 	// the drafts each facet would match too, counted as their orders are
@@ -319,7 +319,7 @@ router.get('/', (req, res) => {
 	   does, vendors leads and CROSS JOIN pins it there: idx_vendors_user_name hands the page
 	   the name order and each vendor's orders come off the widened vendor index, instead of a
 	   temp B-tree re-sorting every one of the account's rows on every page (18.5ms -> 2.9ms a
-	   page at 50,000 orders, identical rows -- and settings.sort can make this sort an
+	   page at 50,000 orders, identical rows -- and user_settings.sort can make this sort an
 	   account's every-load default). */
 	const vendorSort = orderSql.includes('v.name')
 	const fromSql = vendorSort ? 'vendors v CROSS JOIN orders ot ON ot.vendor_id = v.id' : 'orders ot'
@@ -421,8 +421,8 @@ router.get('/impact', (req, res) => {
 	const counted = "CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE ot.total END"
 	const row = db.prepare(`
 		SELECT COUNT(*) orders, COALESCE(SUM(${counted}), 0) total,
-			COALESCE(SUM(EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
-				OR EXISTS (SELECT 1 FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles,
+			COALESCE(SUM(EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)
+				OR EXISTS (SELECT 1 FROM order_items oi JOIN order_attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles,
 			COALESCE(SUM(ot.date >= @monthFrom AND ot.date < @monthTo), 0) monthOrders,
 			COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo THEN ${counted} ELSE 0 END), 0) monthTotal
 		FROM orders ot WHERE ${whereSql}
@@ -489,7 +489,7 @@ router.get('/:id', (req, res) => {
 
 const selectOwnDated = db.prepare('SELECT key FROM statuses WHERE user_id = ? AND own_date = 1')
 
-/** order_statuses is a log: Ordered at the order's date, then each status the account dates on its own.
+/** order_status_history is a log: Ordered at the order's date, then each status the account dates on its own.
     `deliveredDate` and `returnedDate` still name Delivered and Returned for callers that send them. */
 function saveOrderStatuses(userId, orderId, draft) {
 	deleteOrderStatuses.run(orderId)
@@ -566,7 +566,7 @@ router.post('/', (req, res) => {
 })
 
 /** Update: the order row itself is UPDATEd in place rather than deleted and reinserted with the
-    same id -- attachments.order_id (like order_items.order_id) is ON DELETE CASCADE, so deleting
+    same id -- order_attachments.order_id (like order_items.order_id) is ON DELETE CASCADE, so deleting
     the row a save is meant to be editing quietly took every receipt on it with it, whether or not
     the edit touched attachments at all. Items are matched against what's already in the database
     by id: one already there is updated in place, keeping its id (and with it, anything keyed to
@@ -650,13 +650,13 @@ router.post('/trash/:trashId/restore', (req, res) => {
 
 const selectOrderForBulk = db.prepare('SELECT id, date, status FROM orders WHERE id = ? AND user_id = ?')
 const updateOrderStatus = db.prepare('UPDATE orders SET status = ? WHERE id = ?')
-const selectStatusEvent = db.prepare('SELECT id, date FROM order_statuses WHERE order_id = ? AND status = ?')
-const deleteStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ? AND status = ?')
+const selectStatusEvent = db.prepare('SELECT id, date FROM order_status_history WHERE order_id = ? AND status = ?')
+const deleteStatusEvents = db.prepare('DELETE FROM order_status_history WHERE order_id = ? AND status = ?')
 const insertOrderCategoryOnce = db.prepare('INSERT OR IGNORE INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const deleteOrderCategory = db.prepare('DELETE FROM order_categories WHERE order_id = ? AND category_id = ?')
 // what a status change replaces, kept for its Undo: the status and every dated event (6d)
-const selectStatusEvents = db.prepare('SELECT status, date FROM order_statuses WHERE order_id = ?')
-const deleteAllStatusEvents = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
+const selectStatusEvents = db.prepare('SELECT status, date FROM order_status_history WHERE order_id = ?')
+const deleteAllStatusEvents = db.prepare('DELETE FROM order_status_history WHERE order_id = ?')
 // a bulk delete is not kept to undo (6d): its dialog asked for the number first
 const deleteOrderRow = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 
@@ -805,7 +805,7 @@ router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
 
 /* A file's pages for the viewer (12b): `{ pages }`, then each page as an image. The file may be
    the order's own or one of its lines' photos. */
-const selectAttachmentOwner = db.prepare(`SELECT a.id FROM attachments a
+const selectAttachmentOwner = db.prepare(`SELECT a.id FROM order_attachments a
 	LEFT JOIN order_items oi ON oi.id = a.order_item_id
 	WHERE a.id = @id AND (a.order_id = @orderId OR oi.order_id = @orderId)`)
 const ownedAttachment = req => {
@@ -844,10 +844,10 @@ router.post('/:id/items/:itemId/attachments', upload.array('files'), async (req,
 
 /* A copy of an order takes each line's photo inside the database: nothing is sent again and the
    copy owns its bytes. Only a picture on one of the user's own lines can be the source. */
-const copyItemAttachment = db.prepare(`INSERT INTO attachments
+const copyItemAttachment = db.prepare(`INSERT INTO order_attachments
 	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
 	SELECT @newId, NULL, @itemId, a.name, a.kind, a.meta, a.content_type, a.size, a.data, a.data_is_compressed, a.thumbnail, a.thumbnail_is_compressed, a.thumbnail_content_type, a.sha256, a.pages
-	FROM attachments a
+	FROM order_attachments a
 	JOIN order_items oi ON oi.id = a.order_item_id
 	JOIN orders o ON o.id = oi.order_id
 	WHERE a.id = @attachmentId AND a.kind = 'image' AND oi.order_id = @fromOrderId AND o.user_id = @userId`)
@@ -923,12 +923,12 @@ const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	original: a.original, originalCompressed: a.originalCompressed ? 1 : 0, originalContentType: a.originalContentType
 })
 
-const selectImport = db.prepare('SELECT id, undone_at FROM imports WHERE id = ? AND user_id = ?')
+const selectImport = db.prepare('SELECT id, undone_at FROM order_imports WHERE id = ? AND user_id = ?')
 const selectCategoryByName = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
 const tagOrder = db.prepare('UPDATE orders SET import_id = ? WHERE id = ?')
 const tagVendor = db.prepare('UPDATE vendors SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
 const tagCategory = db.prepare('UPDATE categories SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
-const countImport = db.prepare(`UPDATE imports SET orders = orders + @orders, lines = lines + @lines,
+const countImport = db.prepare(`UPDATE order_imports SET orders = orders + @orders, lines = lines + @lines,
 	skipped = skipped + @skipped, vendors = vendors + @vendors WHERE id = @id`)
 
 router.post('/import', requireConfirmed, async (req, res) => {

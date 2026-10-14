@@ -35,8 +35,8 @@ export async function verifyPassword(password, stored) {
 	return actual.length === expected.length && timingSafeEqual(actual, expected)
 }
 
-const insertSession = db.prepare('INSERT INTO sessions (id, user_id, expires_at, remember) VALUES (?, ?, ?, ?)')
-const purgeExpiredSessions = db.prepare('DELETE FROM sessions WHERE expires_at <= ?')
+const insertSession = db.prepare('INSERT INTO user_sessions (id, user_id, expires_at, remember) VALUES (?, ?, ?, ?)')
+const purgeExpiredSessions = db.prepare('DELETE FROM user_sessions WHERE expires_at <= ?')
 /* The purge rides on session creation because nothing else ever removed an expired row: the
    lookup below filters them out but leaves them, logout deletes only its own, and no account
    flow deletes users -- so the table only grew, and requireAuth probes it on every request.
@@ -67,7 +67,7 @@ function sessionToken(req) {
 	return readCookie(req, SESSION_COOKIE)
 }
 
-const deleteSession = db.prepare('DELETE FROM sessions WHERE id = ?')
+const deleteSession = db.prepare('DELETE FROM user_sessions WHERE id = ?')
 
 export function destroySession(req, res) {
 	const token = sessionToken(req)
@@ -76,11 +76,11 @@ export function destroySession(req, res) {
 }
 
 const selectSessionUser = db.prepare(`
-	SELECT u.id, u.email, u.needs_setup, u.email_confirmed, s.expires_at, s.remember FROM sessions s
+	SELECT u.id, u.email, u.needs_setup, u.email_confirmed, s.expires_at, s.remember FROM user_sessions s
 	JOIN users u ON u.id = s.user_id
 	WHERE s.id = ? AND s.expires_at > ?
 `)
-const renewSession = db.prepare('UPDATE sessions SET expires_at = ? WHERE id = ?')
+const renewSession = db.prepare('UPDATE user_sessions SET expires_at = ? WHERE id = ?')
 
 /** Loads req.user from the session token — Authorization: Bearer or the session cookie — or
     responds 401. Every data route sits behind this: a route never trusts a userId from the

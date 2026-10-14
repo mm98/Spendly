@@ -5,7 +5,7 @@ import { inBackground, linkTo, mailAvailable, sendMail } from './mail.js'
 /* The notices an account is sent when something about signing in changes (20f): its password, or
    a new passkey. Sent when this server can send email, without holding up the answer. */
 
-const selectAccount = db.prepare('SELECT u.email, s.locale FROM users u LEFT JOIN settings s ON s.user_id = u.id WHERE u.id = ?')
+const selectAccount = db.prepare('SELECT u.email, s.locale FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 
 /** "9 Oct 2026, 14.26" in the account's own locale; 'auto' takes the browser that asked, as the app does. */
 function changedAt(req, locale) {

@@ -113,14 +113,14 @@ const NEIGHBOURS = 9
 const NEIGHBOUR_ORDER_COUNT = 60
 
 /* Tables where a scan is a real cost -- they grow with the account. Everything else (vendors,
-   categories, settings) is a handful of rows per user, where SQLite reading
+   categories, user_settings) is a handful of rows per user, where SQLite reading
    the table directly is the right plan and flagging it would train the reader to ignore this. */
-const BIG_TABLES = new Set(['orders', 'order_items', 'order_categories', 'attachments', 'scan_uploads'])
+const BIG_TABLES = new Set(['orders', 'order_items', 'order_categories', 'order_attachments', 'uploads'])
 /* Per-account tables: a read of one of these that never names user_id is either a bug or a
    lookup by primary key that reached the row through an already-scoped query. The baseline
    carries the ones that are the latter. */
-const SCOPED_TABLES = new Set([...BIG_TABLES, 'vendors', 'categories', 'vendor_aliases', 'settings',
-	'bookmarks', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines', 'bank_links'])
+const SCOPED_TABLES = new Set([...BIG_TABLES, 'vendors', 'categories', 'vendor_aliases', 'user_settings',
+	'bookmarks', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines', 'budget_bank_links'])
 
 const tmp = mkdtempSync(path.join(tmpdir(), 'spendly-queries-'))
 const DB_PATH = path.join(tmp, 'check.sqlite3')
@@ -165,7 +165,7 @@ const { populateDemoData } = await import('../src/lib/demoData.js')
 
 db.prepare('INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)')
 	.run(USER, 'queries@check.local', '16384.8.1.00.00')
-db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
+db.prepare('INSERT INTO user_sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
 	.run(SESSION, USER, Math.floor(Date.now() / 1000) + 86400)
 db.transaction(() => seedAccountDefaults(db, USER))()
 populateDemoData(USER, { months: MONTHS, seed: SEED, orders: ORDER_COUNT })
@@ -188,18 +188,18 @@ function padNames(userId, tag) {
 }
 padNames(USER, 'main')
 
-const insertUpload = db.prepare(`INSERT INTO scan_uploads (id, user_id, name, size, kind, content_type)
+const insertUpload = db.prepare(`INSERT INTO uploads (id, user_id, name, size, kind, content_type)
 	VALUES (?, ?, 'kvittering.jpg', 1024, 'image', 'image/jpeg')`)
 for (let i = 0; i < NEIGHBOURS; i++) {
 	const id = `u-neighbour${String(i).padStart(6, '0')}`
 	db.prepare('INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)')
 		.run(id, `n${i}@check.local`, '16384.8.1.00.00')
-	db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
+	db.prepare('INSERT INTO user_sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
 		.run(`sess-neighbour${String(i).padStart(4, '0')}`, id, Math.floor(Date.now() / 1000) + 86400)
 	db.transaction(() => seedAccountDefaults(db, id))()
 	populateDemoData(id, { months: 6, seed: SEED + i + 1, orders: NEIGHBOUR_ORDER_COUNT })
 	padNames(id, `n${i}`)
-	// A pending scan upload each, so scan_uploads is not an empty table whose index looks unread
+	// A pending scan upload each, so uploads is not an empty table whose index looks unread
 	// because nothing is in it rather than because nothing asks for it.
 	insertUpload.run(`su-neighbour${String(i).padStart(5, '0')}`, id)
 }
@@ -223,7 +223,7 @@ for (let i = 0; i < NEIGHBOURS; i++)
 	replaceYears(`u-neighbour${String(i).padStart(6, '0')}`, [fixtureBudget(2026)], fixtureAccounts)
 
 // one import on record, so the single-import read answers rather than 404s
-db.prepare('INSERT INTO imports (id, user_id, file_name, created_at) VALUES (?, ?, ?, ?)').run('im-fixture', USER, 'fixture.csv', 1)
+db.prepare('INSERT INTO order_imports (id, user_id, file_name, created_at) VALUES (?, ?, ?, ?)').run('im-fixture', USER, 'fixture.csv', 1)
 // two drafts, so every list request plans its orders beside them, one to keep and one to create
 const draftVendor = db.prepare('SELECT name FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1').get(USER).name
 const draftForm = JSON.stringify({ values: { vendor: draftVendor, date: '2026-08-20', kind: 'Expense', categories: ['Groceries'], shipping: 0, discount: 0, reference: '', note: '' },
@@ -240,7 +240,7 @@ for (let i = 0; i < NEIGHBOURS; i++) {
 	db.prepare('INSERT INTO order_draft_files (draft_id, upload_id) VALUES (?, ?)').run(`od-n${i}-0`, `su-file-n${i}`)
 }
 // passkeys: two on the account and one next door each, so the list and the sign-in read meet a spread
-const insertPasskey = db.prepare("INSERT INTO passkeys (id, user_id, public_key, transports, name) VALUES (?, ?, x'00', '[]', ?)")
+const insertPasskey = db.prepare("INSERT INTO user_passkeys (id, user_id, public_key, transports, name) VALUES (?, ?, x'00', '[]', ?)")
 for (const id of ['pk-fixture', 'pk-removed']) insertPasskey.run(id, USER, 'iPhone')
 for (let i = 0; i < NEIGHBOURS; i++) insertPasskey.run(`pk-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Mac')
 
@@ -262,7 +262,7 @@ const ids = {
 	bookmark: db.prepare('SELECT id FROM bookmarks WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').get(USER).id
 }
 // one receipt on that order, with its full-size copy, so the file reads answer rather than 404
-db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data, original, original_content_type)
+db.prepare(`INSERT INTO order_attachments (id, order_id, name, kind, meta, content_type, size, data, original, original_content_type)
 	VALUES ('a-fixture', ?, 'receipt.jpg', 'image', '', 'image/webp', 4, x'00000000', x'ffd8ffd9', 'image/jpeg')`).run(ids.order)
 
 /* Every read the app serves, and every shape of the orders list -- each filter, each sort, and

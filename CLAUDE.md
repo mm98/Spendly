@@ -36,6 +36,15 @@ A tool that posts to GitHub can add such a line itself, whatever `.claude/settin
 opening a pull request or posting a comment, read the text back from GitHub and remove any line the
 tool added.
 
+## Names
+
+Name and write everything for a developer who opens it in three months and does not know today's
+reasons: a table, a column, a file, a function, a variable. A name says what one of it is and what
+it belongs to. Things that belong together share a prefix, so they sort together and a table reads
+next to the tables it references (`order_items` and `order_attachments` beside `orders`). A name
+that needs a comment to explain it is the wrong name. A name that is wrong is renamed, everywhere
+it is used.
+
 ## Whitespace
 
 Tabs indent, always. Spaces only where something aligns under something else. `.editorconfig`
@@ -412,9 +421,9 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   rendered it. Mid-work, "not rendered yet" is a complete, honest status.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag what you couldn't close, in the same breath as what you did.
-- **A problem found that is not the change's own, and not urgent, goes in `problems.md`,** never
-  into the change: where, what the reader sees, what was measured and when. The change that fixes
-  one removes its entry.
+- **A problem found that is not the change's own, and not urgent, goes in `later.md`,** never
+  into the change, and so does anything to remember or look at again: where, what the reader sees,
+  what was found and when. The change that settles one removes its entry.
 - **The pull request is where the session ends. Never offer to watch it.** This has been asked and
   declined repeatedly across this repo's history — it isn't a default choice to offer. If watching is
   wanted, it will be asked for explicitly, and then the PR is subscribed to and driven to merge.

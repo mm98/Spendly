@@ -101,7 +101,7 @@ const insertOrder = db.prepare(`INSERT INTO orders
 	(id, user_id, vendor_id, date, status, kind, shipping, note, reference, refunded)
 	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, '', @reference, 0)`)
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
-const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
+const insertOrderStatus = db.prepare('INSERT INTO order_status_history (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, NULL)`)
 const insertBookmark = db.prepare(`INSERT INTO bookmarks (id, user_id, name, url, price, archived, created_at)

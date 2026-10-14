@@ -13,7 +13,7 @@ const selectYears = db.prepare('SELECT year FROM budget_years WHERE user_id = ? 
 const selectYear = db.prepare('SELECT id, year FROM budget_years WHERE user_id = ? AND year = ?')
 const selectGroups = db.prepare('SELECT id, kind, name, position FROM budget_groups WHERE user_id = ? AND year_id = ?')
 const selectLines = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, l.position, a.month, a.expected, a.real
-	FROM budget_lines l LEFT JOIN budget_amounts a ON a.line_id = l.id
+	FROM budget_lines l LEFT JOIN budget_line_amounts a ON a.line_id = l.id
 	WHERE l.user_id = ? AND l.group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id = ?)`)
 const selectAccounts = db.prepare('SELECT id, name, position, grey FROM budget_accounts WHERE user_id = ?')
 const selectAccount = db.prepare('SELECT id, name FROM budget_accounts WHERE id = ? AND user_id = ?')
@@ -27,7 +27,7 @@ const selectLine = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, g.
 const selectSiblingGroups = db.prepare(
 	'SELECT id, position FROM budget_groups WHERE user_id = ? AND year_id = ? AND kind = ?')
 const selectSiblingLines = db.prepare('SELECT id, position FROM budget_lines WHERE user_id = ? AND group_id = ?')
-const selectAmount = db.prepare('SELECT expected, real FROM budget_amounts WHERE line_id = ? AND month = ?')
+const selectAmount = db.prepare('SELECT expected, real FROM budget_line_amounts WHERE line_id = ? AND month = ?')
 
 const insertYear = db.prepare('INSERT INTO budget_years (id, user_id, year) VALUES (?, ?, ?)')
 const insertGroup = db.prepare(`INSERT INTO budget_groups (id, user_id, year_id, kind, name, position)
@@ -35,9 +35,9 @@ const insertGroup = db.prepare(`INSERT INTO budget_groups (id, user_id, year_id,
 const insertLine = db.prepare(`INSERT INTO budget_lines (id, user_id, group_id, name, account_id, position)
 	VALUES (?, ?, ?, ?, ?, ?)`)
 const insertAccount = db.prepare('INSERT INTO budget_accounts (id, user_id, name, position) VALUES (?, ?, ?, ?)')
-const upsertAmount = db.prepare(`INSERT INTO budget_amounts (line_id, month, expected, real) VALUES (?, ?, ?, ?)
+const upsertAmount = db.prepare(`INSERT INTO budget_line_amounts (line_id, month, expected, real) VALUES (?, ?, ?, ?)
 	ON CONFLICT (line_id, month) DO UPDATE SET expected = excluded.expected, real = excluded.real`)
-const deleteAmount = db.prepare('DELETE FROM budget_amounts WHERE line_id = ? AND month = ?')
+const deleteAmount = db.prepare('DELETE FROM budget_line_amounts WHERE line_id = ? AND month = ?')
 
 const deleteYearRow = db.prepare('DELETE FROM budget_years WHERE user_id = ? AND year = ?')
 const deleteGroupRow = db.prepare('DELETE FROM budget_groups WHERE id = ? AND user_id = ?')
@@ -50,10 +50,10 @@ const renameAccountRow = db.prepare('UPDATE budget_accounts SET name = ? WHERE i
 const setAccountGrey = db.prepare('UPDATE budget_accounts SET grey = ? WHERE id = ? AND user_id = ?')
 const setAccountPosition = db.prepare('UPDATE budget_accounts SET position = ? WHERE id = ? AND user_id = ?')
 const deleteAccountRow = db.prepare('DELETE FROM budget_accounts WHERE id = ? AND user_id = ?')
-const selectLinks = db.prepare('SELECT pattern, kind, line_name FROM bank_links WHERE user_id = ?')
-const upsertLink = db.prepare(`INSERT INTO bank_links (user_id, pattern, kind, line_name) VALUES (?, ?, ?, ?)
+const selectLinks = db.prepare('SELECT pattern, kind, line_name FROM budget_bank_links WHERE user_id = ?')
+const upsertLink = db.prepare(`INSERT INTO budget_bank_links (user_id, pattern, kind, line_name) VALUES (?, ?, ?, ?)
 	ON CONFLICT (user_id, pattern, kind) DO UPDATE SET line_name = excluded.line_name`)
-const deleteLinkRow = db.prepare('DELETE FROM bank_links WHERE user_id = ? AND pattern = ? AND kind = ?')
+const deleteLinkRow = db.prepare('DELETE FROM budget_bank_links WHERE user_id = ? AND pattern = ? AND kind = ?')
 
 /* ---- reading ---- */
 

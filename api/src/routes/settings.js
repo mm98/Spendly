@@ -9,11 +9,11 @@ export const router = Router()
 const selectSettings = db.prepare(`
 	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density,
 		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows
-	FROM settings WHERE user_id = ?
+	FROM user_settings WHERE user_id = ?
 `)
 // show_scan_card and confirm_delete are NOT NULL without a default, so a first write fills them
 const upsertSettings = db.prepare(`
-	INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
+	INSERT INTO user_settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
 		confirm_delete, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary,
 		notify_early, scan_overrides, sidebar, compare_month, recent_rows)
 	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale, @density,

@@ -11,11 +11,11 @@ import { ORDER_STATUSES } from './constants.js'
 const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()}, revision FROM orders WHERE id = ? AND user_id = ?`)
 const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note, url FROM order_items WHERE order_id = ? ORDER BY position')
 const selectAttachments = db.prepare(`
-	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages, from_scan FROM attachments WHERE order_id = ?
+	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages, from_scan FROM order_attachments WHERE order_id = ?
 `)
 const selectItemAttachments = db.prepare(`
 	SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages, a.from_scan
-	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
+	FROM order_attachments a JOIN order_items oi ON oi.id = a.order_item_id
 	WHERE oi.order_id = ?
 `)
 /* ORDER BY name, because without one SQLite is free to return these in whatever order the
@@ -36,7 +36,7 @@ const selectValidation = db.prepare('SELECT validated_by AS attachment_id, valid
 const selectVendor = db.prepare('SELECT id, name, initials, colour FROM vendors WHERE id = ?')
 // No ORDER BY: at most 3 rows, sorted in JS below by workflow order rather than asking SQLite
 // to sort what the index (order_id, status) can't answer without its own temp B-tree.
-const selectOrderStatuses = db.prepare('SELECT status, date FROM order_statuses WHERE order_id = ?')
+const selectOrderStatuses = db.prepare('SELECT status, date FROM order_status_history WHERE order_id = ?')
 
 // hasThumbnail tells the client whether GET .../thumbnail will 404 (a PDF, or an image sharp
 // couldn't decode) — never the bytes themselves, so an order's JSON stays small.
@@ -132,7 +132,7 @@ const selectVendorsFor = db.prepare(`SELECT v.id, v.name, vi.hash AS image FROM 
 // spares the page a sort over every photo it carries
 const selectLinePhotosFor = db.prepare(`
 	SELECT oi.order_id, oi.position, a.rowid AS seq, a.order_item_id, a.id FROM order_items oi
-	JOIN attachments a ON a.order_item_id = oi.id
+	JOIN order_attachments a ON a.order_item_id = oi.id
 	WHERE oi.order_id IN (SELECT value FROM json_each(?)) AND a.kind = 'image'
 `)
 const firstPhoto = photos => photos.reduce((first, p) =>
@@ -152,7 +152,7 @@ const ITEM_TITLES_SHOWN = 3
 // An order card's strip shows this many line photos, then counts the rest (2c).
 const PHOTOS_SHOWN = 3
 const selectOrderFilesFor = db.prepare(`
-	SELECT order_id, rowid AS seq, id FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))
+	SELECT order_id, rowid AS seq, id FROM order_attachments WHERE order_id IN (SELECT value FROM json_each(?))
 `)
 
 /** The row shape the order lists render (pages/Orders.jsx, Home's recent orders, Statistics'

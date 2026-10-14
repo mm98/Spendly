@@ -11,9 +11,9 @@ const writable = table => db.prepare(`SELECT name FROM pragma_table_xinfo('${tab
 const selectOrder = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ?')
 const selectItems = db.prepare('SELECT * FROM order_items WHERE order_id = ?')
 const selectCategories = db.prepare('SELECT * FROM order_categories WHERE order_id = ?')
-const selectStatuses = db.prepare('SELECT * FROM order_statuses WHERE order_id = ?')
-const selectFiles = db.prepare(`SELECT a.* FROM attachments a WHERE a.order_id = @id
-	UNION ALL SELECT a.* FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = @id`)
+const selectStatuses = db.prepare('SELECT * FROM order_status_history WHERE order_id = ?')
+const selectFiles = db.prepare(`SELECT a.* FROM order_attachments a WHERE a.order_id = @id
+	UNION ALL SELECT a.* FROM order_attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = @id`)
 const deleteOrderRow = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 const orderExists = db.prepare('SELECT 1 FROM orders WHERE id = ?')
 const vendorExists = db.prepare('SELECT 1 FROM vendors WHERE id = ? AND user_id = ?')
@@ -59,8 +59,8 @@ export const restoreOrder = db.transaction((userId, trashId) => {
 	insertRow('orders', { ...rows.order, validated_by: null })
 	for (const item of rows.items) insertRow('order_items', item)
 	for (const link of rows.categories) if (categoryExists.get(link.category_id, userId)) insertRow('order_categories', link)
-	for (const status of rows.statuses) insertRow('order_statuses', status)
-	for (const file of rows.files) insertRow('attachments', file)
+	for (const status of rows.statuses) insertRow('order_status_history', status)
+	for (const file of rows.files) insertRow('order_attachments', file)
 	if (rows.order.validated_by) restoreValidation.run(rows.order.validated_by, rows.order.id)
 	kept.delete(trashId)
 	return rows.order.id

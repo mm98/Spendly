@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS = {
 export function seedAccountDefaults(db, userId, overrides = {}) {
 	const settings = { ...DEFAULT_SETTINGS, ...overrides }
 	// show_scan_card and confirm_delete are NOT NULL without a default; nothing reads them
-	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort,
+	db.prepare(`INSERT INTO user_settings (user_id, default_kind, default_status, page_size, sort,
 		show_scan_card, confirm_delete, list_sort, currency, locale)
 		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, 1, 1, @listSort, @currency, @locale)`)
 		.run({ userId, ...settings })

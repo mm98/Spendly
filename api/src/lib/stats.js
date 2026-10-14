@@ -503,7 +503,7 @@ const selectLastAdded = db.prepare('SELECT created_at AS at FROM orders WHERE ro
 const countWithoutReceipt = db.prepare(`
 	SELECT COUNT(*) c FROM orders ot
 	WHERE ot.user_id = ? AND ot.status_type NOT IN ('cancelled', 'draft')
-		AND NOT EXISTS (SELECT 1 FROM attachments a WHERE a.order_id = ot.id)
+		AND NOT EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)
 `)
 
 const selectOrderedKey = db.prepare("SELECT key FROM statuses WHERE user_id = ? AND type = 'ordered'").pluck()
@@ -521,13 +521,13 @@ const selectLimitedMonths = db.prepare(`
 		AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND c.budget > 0
 	GROUP BY oc.category_id, month
 `)
-const selectSummarySeen = db.prepare('SELECT month FROM monthly_summary_seen WHERE user_id = ?')
+const selectSummarySeen = db.prepare('SELECT month FROM user_monthly_summaries_seen WHERE user_id = ?')
 const upsertSummarySeen = db.prepare(`
-	INSERT INTO monthly_summary_seen (user_id, month) VALUES (?, ?)
+	INSERT INTO user_monthly_summaries_seen (user_id, month) VALUES (?, ?)
 	ON CONFLICT (user_id) DO UPDATE SET month = excluded.month
 `)
 
-const selectCompareChoice = db.prepare('SELECT compare_month AS choice FROM settings WHERE user_id = ?')
+const selectCompareChoice = db.prepare('SELECT compare_month AS choice FROM user_settings WHERE user_id = ?')
 
 /** The whole month a month is measured against: the one before it, or the same month a year
     earlier, as the reader chose. `month` is 'YYYY-MM'; answers that month's spend and order count. */
