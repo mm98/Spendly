@@ -139,6 +139,18 @@
       i = s.indexOf('sp-bars__tip', i + 12);
     }
   }
+  /* a faded part is at full strength while a list or a menu inside it is open. Caught:
+     11a's "Don't import" row faded its own field list and let the next rows draw over
+     it (brief 37). Every fade on a part that can hold one carries its open-state reset. */
+  for (const [fade, reset] of [
+    ['.sp-muted {', '.sp-muted:has([data-open="true"]) {'],
+    ['.sp-table tbody tr[data-void="true"] > td:not(.sp-col-status) {', '.sp-table tbody tr[data-void="true"]:has([data-open="true"]) > td:not(.sp-col-status) {'],
+    ['.sp-record[data-void="true"] {', '.sp-record[data-void="true"]:has([data-open="true"]) {'],
+  ]) {
+    const i = comp.indexOf(reset);
+    if (comp.includes(fade) && (i < 0 || !/^[^}]*opacity:\s*1\s*;/.test(comp.slice(i + reset.length))))
+      fail('an open list is not faded', 'components.css', fade.slice(0, -2) + ' has no full-strength open state');
+  }
   /* a tooltip is never held inside its container (15f, brief 36): nothing pins one there */
   for (const [f, s] of Object.entries(src)) if (s.includes('data-pin=')) fail('tooltips are not held in their container', f.replace('.dc.html', ''), 'data-pin on a readout');
   if (/\[data-pin/.test(comp)) fail('tooltips are not held in their container', 'components.css', 'a [data-pin] rule');
