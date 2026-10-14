@@ -113,6 +113,8 @@ export default function Settings() {
 	const statuses = useApi(getStatuses)
 	const toast = useToast()
 	const [draft, setDraft] = useState({})
+	// what a save just stored stays on screen until the page reads it back, so the old value never shows between
+	const [landed, setLanded] = useState({})
 	const [saving, setSaving] = useState(false)
 	// the name is the account's and the sidebar's view count is kept with the views; both save with the rest
 	const shown = useViews().data?.shown
@@ -123,10 +125,12 @@ export default function Settings() {
 	const current = SECTIONS.some(s => s.key === section) || section === 'passkeys' ? section : null
 	const navCurrent = key => (key === 'passkeys' ? 'account' : key)
 
-	const value = key => (key in draft ? draft[key] : saved?.[key])
+	useEffect(() => setLanded({}), [settings.data, user.data, shown, statuses.data])
+	const stored = key => (key in landed ? landed[key] : saved?.[key])
+	const value = key => (key in draft ? draft[key] : stored(key))
 	const change = (key, next) => setDraft(d => {
 		const out = { ...d, [key]: next }
-		if (saved && saved[key] === next) delete out[key]
+		if (saved && stored(key) === next) delete out[key]
 		return out
 	})
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
@@ -159,6 +163,7 @@ export default function Settings() {
 				setDensity(next?.density ?? value('density'))
 				dropStale()
 				settings.refresh()
+				setLanded(draft)
 				setDraft({})
 				toast({ message: 'Your settings are saved.' })
 			})

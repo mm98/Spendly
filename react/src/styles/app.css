@@ -150,20 +150,20 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 /* the hatch and the half tone are how the drawings stand in for a picture they lack (17c) */
 .sp-mark--photo:has(> img, > .sp-mark__open > img),
 .sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }
-/* thumbnail tone (17b, 12b): goods on light at saturate(0.88) under --bg at 8%; on dark edged, at 90% */
+/* thumbnail tone (17b, 12b): goods on light desaturated under --bg; on dark edged; both at --fade-photo */
 [data-theme="light"] :is(.sp-mark--goods, .sp-record__photo):has(> img, > .sp-mark__open > img) { background: var(--bg); }
 [data-theme="light"] :is(.sp-mark--goods, .sp-record__photo) > img,
-[data-theme="light"] .sp-mark--goods > .sp-mark__open > img { filter: saturate(0.88); opacity: 0.92; }
+[data-theme="light"] .sp-mark--goods > .sp-mark__open > img { filter: saturate(0.88); opacity: var(--fade-photo); }
 [data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img, > .sp-mark__open > img) { border-color: var(--line-3); }
 [data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo) > img,
-[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *) > .sp-mark__open > img { opacity: 0.9; }
+[data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *) > .sp-mark__open > img { opacity: var(--fade-photo); }
 [data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo):hover > img,
 [data-theme="dark"] .sp-mark--photo:hover > .sp-mark__open > img { opacity: 1; }
 
 /* uploading, the ring sits over the image, the old one or the new local preview (17b) */
 .sp-mark--photo > .sp-spinner { position: relative; z-index: 1; }
 /* the old picture dims under the ring, at the dim a disabled control takes */
-.sp-mark--photo:has(> .sp-spinner) img { opacity: 0.6; }
+.sp-mark--photo:has(> .sp-spinner) img { opacity: var(--fade-disabled); }
 /* a remove is a 44px target on touch whatever its glyph (19b); the mark clips, so it grows inward */
 .sp-touch .sp-mark__remove::after {
 	content: "";

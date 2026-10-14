@@ -31,6 +31,9 @@ then `design/index.html`, the map of every page.
   something fit. A look the components cannot express is a gap in the system, added to the
   system first.
 - Every variant is a named choice from a closed set. Colour is a separate choice from structure.
+- A fade is one of a few named strengths, one for each meaning. A faded part is at full strength
+  while a list or a menu inside it is open.
+- After Save, a field shows the saved value at once and never the old one, not even for a moment.
 - Anything that can be derived is derived: a vendor's initials and colour from its name, an icon
   button's name from its icon.
 - A saving is always an amount (`Saved 1.320,00 kr.`), green above zero and grey at zero, never a
