@@ -201,10 +201,10 @@ export default function Categories() {
 					<Card key={c.id} to={`/categories/${c.id}/edit`}>
 						<div className="sp-cell-flex">
 							<CategoryMark category={c} />
-							<div className="sp-stack sp-gap-6 sp-grow">
+							<Stacked>
 								<span className="sp-heading sp-truncate">{c.name}</span>
-								<span className="sp-meta">{c.budget > 0 ? `limit ${currency(c.budget, 0)}` : 'no limit'}</span>
-							</div>
+								<span className="sp-meta sp-truncate">{c.budget > 0 ? `limit ${currency(c.budget, 0)}` : 'no limit'}</span>
+							</Stacked>
 							<span className={over ? 'sp-amount sp-ink-warning sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(c.monthSpend, 0)}</span>
 						</div>
 						<MonthGauge category={c} pace={pace} />
@@ -300,7 +300,7 @@ function CategoriesLoading({ cards, size, month, limit, folded }) {
 		<Card key={id} aria-busy="true">
 			<div className="sp-cell-flex">
 				<Skeleton shape="mark" />
-				<div className="sp-stack sp-gap-6 sp-grow"><Bar role="sp-heading" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></div>
+				<Stacked><Bar role="sp-heading" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></Stacked>
 				<Bar role="sp-amount" w={w[2]} h="13" end />
 			</div>
 			{gauge}
