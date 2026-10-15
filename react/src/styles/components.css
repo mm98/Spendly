@@ -4928,9 +4928,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-icon-btn--quiet { border: 0; background: none; color: var(--line-5); }
 
 /* the separator inside a menu - c9 */
-.sp-menu__sep { height: 1px; background: var(--line-2); margin: var(--sp-6) var(--sp-8); border: 0; }
+/* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every separator renders alike at 125% and 150% display scaling */
+.sp-menu__sep { height: 0; border: 0; border-top: 1px solid var(--line-2); margin: var(--sp-6) var(--sp-8); }
 /* in a nav whose column carries the --line-3 divider, the separator takes the divider's colour so two line colours never sit side by side (Settings section nav) */
-.sp-menu__sep--divider { background: var(--line-3); }
+.sp-menu__sep--divider { border-top-color: var(--line-3); }
 
 /* the record's own identity on its own page - c2. The same box as the form mark,
    named separately because the two answer to different things: the form mark is
@@ -5031,7 +5032,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* a divider inside a card: one subject ending and the next beginning, where a
    second card would overstate the break */
-.sp-rule { height: 1px; background: var(--line-2); border: 0; margin: 0; }
+/* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every rule renders alike at 125% and 150% display scaling */
+.sp-rule { height: 0; border: 0; border-top: 1px solid var(--line-2); margin: 0; }
 
 /* the header over a group of menu items - c9 */
 .sp-menu__label {
@@ -5146,7 +5148,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a value that has been superseded: the old amount beside a new one - c21 */
 
 /* the rule turned on its side, separating two values in a row - c10 */
-.sp-rule--vertical { width: 1px; height: 16px; }
+.sp-rule--vertical { width: 0; height: 16px; border-top: 0; border-left: 1px solid var(--line-2); }
 
 
 /* ---------- add row - c33 ----------
