@@ -37,11 +37,13 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>A very long status name ends in an ellipsis in this list</b> (<code>.sp-pill--truncate</code>), so its row keeps its height; the full name is in the edit field. This is the one place a pill truncates.</div>
     <div class="doc-note"><b>Passkeys</b> is a card under Account and profile. Add a passkey opens the device's prompt (iPhone, Android, 1Password); the new row takes the name the device reports, which Rename changes. Remove asks first with the confirm dialog, and the password always keeps working, so removing the last one locks nobody out. With none, the card holds only its line and Add a passkey. Adding one sends the passkey-added email (<a href="Auth and first run.dc.html#20f">20f</a>).</div>
-    <div class="doc-note"><b>People with access</b> is the first pane in Shared. The data model: orders, vendors, categories, lists, statuses, limits, imports and attachments belong to a household, not to a user; a user is a login with personal settings; a membership joins one user to one household with a role, owner or member. Registering (<a href="Auth and first run.dc.html#20a">20a</a>) creates the household with that person as its owner, so a single-person account is a household of one and nothing in the UI names it.</div>
+    <div class="doc-note"><b>People with access</b> is the first pane in Shared. The data model: orders, vendors, categories, saved views, statuses, limits, imports, attachments, the budget, bookmarks, and drafts with their scanned files belong to a household, not to a user; a user is a login with personal settings; a membership joins one user to one household with a role, owner or member. Registering (<a href="Auth and first run.dc.html#20a">20a</a>) creates the household with that person as its owner, so a single-person account is a household of one and nothing in the UI names it.</div>
     <div class="doc-note"><b>Inviting.</b> Send invite checks the address on submit, adds a pending row at the end of the list and sends the invite email (<a href="Auth and first run.dc.html#20f">20f</a>). The link works for 7 days and once. Send again sends a fresh link and resets the 7 days; Cancel invite removes the row and the link stops working. An expired invite stays as a row reading "Invite expired" with Send again and Cancel invite. Inviting an address that is already a member, or already pending, shows the field error "Already in your list".</div>
-    <div class="doc-note"><b>Owner and member.</b> Both can do everything with the data and both can invite. Only the owner removes a person; a member's view of this card has no Remove buttons, and their own row has Leave instead. Remove and Leave ask first with the confirm dialog (<a href="States and confirmations.dc.html#6d">6d</a>). A removed person loses access at once and their orders stay, still showing their name as who added them. The owner cannot leave or be removed; deleting the account deletes the household for everyone.</div>
-    <div class="doc-note"><b>Build roles as permissions, so more can come later.</b> The membership stores a role, and the role maps to a set of named permissions (manage people, delete orders, edit shared settings, import, and so on). The server and the UI check a permission, never the role name: code that reads <code>can('manage_people')</code> keeps working when a third role arrives, code that reads <code>role === 'owner'</code> does not. Today owner has every permission and member has all but manage people. An action the user lacks is absent, not disabled, as with the delete control on a status that has orders.</div>
-    <div class="doc-note"><b>Shared and personal settings.</b> The two groups in the section nav are the split. You, per user: Account and profile (with Passkeys), Appearance (theme, row density, compare this month with), Dates, times and numbers, Limit alerts, Needs a look. Shared, per household: People with access, Currency, Defaults, Lists, Statuses, Import, Demo data. A change to a shared card applies to everyone at once, with the same save as today. This build sits outside both. The profile row at the foot of the sidebar opens Settings on Account and profile. Below roughly 900px the section nav becomes a select, and the two group names become its option groups.</div>
+    <div class="doc-note"><b>Owner and member.</b> Both can do everything with the data and both can invite, except Fill with demo data, which only the owner has (<a href="#11c">11c</a>). Only the owner removes a person; a member's view of this card has no Remove buttons, and their own row has Leave instead. Remove and Leave ask first with the confirm dialog (<a href="States and confirmations.dc.html#6d">6d</a>). A removed person loses access at once and their orders stay, still showing their name as who added them. The owner cannot leave or be removed; deleting the account deletes the household for everyone.</div>
+    <div class="doc-note"><b>Build roles as permissions, so more can come later.</b> The membership stores a role, and the role maps to a set of named permissions (manage people, delete orders, edit shared settings, import, and so on). The server and the UI check a permission, never the role name: code that reads <code>can('manage_people')</code> keeps working when a third role arrives, code that reads <code>role === 'owner'</code> does not. Today owner has every permission and member has all but manage people and fill demo data. An action the user lacks is absent, not disabled, as with the delete control on a status that has orders.</div>
+    <div class="doc-note"><b>Shared and personal settings.</b> The two groups in the section nav are the split. You, per user: Account and profile (with Passkeys), Appearance (theme, row density, compare this month with), Dates, times and numbers, Limit alerts, Needs a look, Lists. Shared, per household: People with access, Currency, Defaults, Statuses, Import, Demo data. A change to a shared card applies to everyone at once, with the same save as today. This build sits outside both. The profile row at the foot of the sidebar opens Settings on Account and profile. Below roughly 900px the section nav becomes a select, and the two group names become its option groups.</div>
+    <div class="doc-note"><b>Lists is personal.</b> Order views in the menu, rows per page and both sort orders are stored per user, so one person's page size or sort never changes another's. It is the last pane in You, on the phone too. The saved views themselves stay shared; only how many of them the sidebar shows is personal.</div>
+    <div class="doc-note"><b>The budget, bookmarks, and drafts with their scanned files are shared</b>, like orders: everyone in the household sees and edits the same ones. None of them has a pane here, so nothing in Settings changes for them.</div>
     <div class="doc-note"><b>Permissions, when they come, live in Shared.</b> Assigning a role is a picker on each row of People with access, shown to whoever may manage people. Defining roles, if custom roles are ever added, is one more pane, Roles, directly after People with access, each role a list of permission switches in the Needs a look pattern.</div>
     <div class="doc-note"><b>Who added what appears only with more than one person.</b> In a household of one there is no Added by facet on the order list (<a href="Order list.dc.html#2b">2b</a>), no Added by row on the order (<a href="Order editing layouts.dc.html#1a">1a</a>) and no name on Scanned before (<a href="Order create.dc.html#3c">3c</a>). They appear when a second person joins and stay while there are two or more. A pending invite does not count. With only you in the list, this card shows your row and the invite field.</div>
     <div class="doc-note"><b>Limit alerts</b> is its own pane in You, after Dates, times and numbers: the in-app switches and "Tell me early, at" (<a href="Duplicate and alerts.dc.html#8b">8b</a>).</div>
@@ -107,12 +109,12 @@
         <button type="button" class="sp-menu__item"><span>Dates, times and numbers</span></button>
         <button type="button" class="sp-menu__item"><span>Limit alerts</span></button>
         <button type="button" class="sp-menu__item"><span>Needs a look</span></button>
+        <button type="button" class="sp-menu__item"><span>Lists</span></button>
         <div class="sp-menu__sep"></div>
         <span class="sp-section-label st-subnav__head">SHARED</span>
         <button type="button" class="sp-menu__item"><span>People with access</span></button>
         <button type="button" class="sp-menu__item"><span>Currency</span></button>
         <button type="button" class="sp-menu__item"><span>Defaults</span></button>
-        <button type="button" class="sp-menu__item"><span>Lists</span></button>
         <button type="button" class="sp-menu__item"><span>Statuses</span></button>
         <button type="button" class="sp-menu__item"><span>Import</span></button>
         <button type="button" class="sp-menu__item"><span>Demo data</span></button>
@@ -314,8 +316,59 @@
         </div>
 
         <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">LISTS</span></div>
+          <div class="sp-field">
+              <span   class="sp-field__label" id="st-cb6">Order views in the menu</span>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb6">
+                  <span class="sp-data sp-number">5</span>
+              <span class="sp-data sp-ink-5">views</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">How many order views the sidebar shows before the rest fold under More.</span>
+          </div>
+          <span class="sp-rule"></span>
+          <div class="sp-field">
+              <span   class="sp-field__label" id="st-cb5">Rows per page</span>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb5">
+                  <span class="sp-data sp-number">10</span>
+              <span class="sp-data sp-ink-5">rows</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">How many rows the order, vendor and category lists show before Load more.</span>
+          </div>
+          <div class="sp-halves">
+          <div class="sp-field">
+              <span   class="sp-field__label" id="st-cb4">Sort orders by</span>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb4">
+                  <span class="sp-grow">Newest first</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">The order All orders opens with.</span>
+          </div>
+          <div class="sp-field">
+              <span   class="sp-field__label" id="st-cb3">Sort vendors and categories by</span>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb3">
+                  <span class="sp-grow">Name, A to Z</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">The order both lists open with.</span>
+          </div>
+          </div>
+        </div>
+
+        <div class="sp-card">
           <div class="sp-card__head"><span class="sp-section-label">PEOPLE WITH ACCESS</span></div>
-          <span class="sp-data">Everyone here sees and adds to the same orders, vendors, categories and limits. Appearance, formats and alerts stay your own.</span>
+          <span class="sp-data">Everyone here sees and adds to the same orders, vendors, categories and limits. Appearance, formats, alerts and lists stay your own.</span>
           <div class="sp-row-flex sp-gap-12">
             <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
             <div class="sp-stack sp-gap-6">
@@ -402,57 +455,6 @@
                 <span class="sp-field__help">When a scan shows what the paper is, such as an order confirmation or a return, it sets the status or the kind to match. Off means your defaults always apply.</span>
               </span>
             </label>
-          </div>
-        </div>
-
-        <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">LISTS</span></div>
-          <div class="sp-field">
-              <span   class="sp-field__label" id="st-cb6">Order views in the menu</span>
-            <div class="sp-combobox">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb6">
-                  <span class="sp-data sp-number">5</span>
-              <span class="sp-data sp-ink-5">views</span>
-                  <span class="sp-grow"></span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            <span class="sp-meta">How many order views the sidebar shows before the rest fold under More.</span>
-          </div>
-          <span class="sp-rule"></span>
-          <div class="sp-field">
-              <span   class="sp-field__label" id="st-cb5">Rows per page</span>
-            <div class="sp-combobox">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb5">
-                  <span class="sp-data sp-number">10</span>
-              <span class="sp-data sp-ink-5">rows</span>
-                  <span class="sp-grow"></span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            <span class="sp-meta">How many rows the order, vendor and category lists show before Load more.</span>
-          </div>
-          <div class="sp-halves">
-          <div class="sp-field">
-              <span   class="sp-field__label" id="st-cb4">Sort orders by</span>
-            <div class="sp-combobox">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb4">
-                  <span class="sp-grow">Newest first</span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            <span class="sp-meta">The order All orders opens with.</span>
-          </div>
-          <div class="sp-field">
-              <span   class="sp-field__label" id="st-cb3">Sort vendors and categories by</span>
-            <div class="sp-combobox">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb3">
-                  <span class="sp-grow">Name, A to Z</span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            <span class="sp-meta">The order both lists open with.</span>
-          </div>
           </div>
         </div>
 
@@ -1051,7 +1053,7 @@
     <span class="doc-badge" id="11c">11c</span>
     <span class="doc-section__title">Demo data - every state</span>
   </div>
-  <div class="doc-lede">The card in Settings shows only the resting state. These are the five it moves through, drawn at the width it occupies in the card column.</div>
+  <div class="doc-lede">The card in Settings shows only the resting state. These are the five it moves through, and the confirm the owner sees with more than one person in the household, drawn at the width it occupies in the card column.</div>
   <div class="sp-stack sp-gap-12">
           <div class="sp-halves">
         <div class="sp-stack sp-gap-8">
@@ -1134,12 +1136,47 @@
             </div>
           </div>
         </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">6 - CHOOSING, MORE THAN ONE PERSON</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">DEMO DATA</span></div>
+            <span class="sp-data">Fill the account with made-up orders so the lists and charts have something to show. Each fill creates a new, different set.</span>
+            <div class="sp-field">
+              <span  class="sp-field__label" id="st-cb2b">How many orders</span>
+              <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb2b">
+                  <span class="sp-grow">500 orders</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="sp-field">
+              <span   class="sp-field__label" id="st-cb1b">Over how long</span>
+              <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb1b">
+                  <span class="sp-grow">1 year</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+              <span class="sp-meta">How far back the orders reach, ending today.</span>
+            </div>
+            <div class="sp-well" data-color="danger">
+              <span class="sp-title sp-ink-danger">This replaces what is here now, for everyone</span>
+              <span class="sp-meta sp-ink-danger">Every order, vendor, category and bookmark in the household is removed first, for both of you: you and Anna M.</span>
+            </div>
+            <div class="sp-card__footer sp-card__footer--commits sp-card__footer--split">
+              <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+              <button type="button" class="sp-btn" data-color="danger">Yes, fill it for everyone</button>
+            </div>
+          </div>
+        </div>
           </div>
           <div class="doc-notes">
             <span class="doc-notes__label">Notes for implementation</span>
             <div class="doc-note"><b>The pickers and the warning are not shown at rest.</b> The card opens as one secondary button. Pressing it reveals the two choices, the warning and the confirm pair - so a destructive action takes two deliberate presses without a dialog, and the settings page never carries a permanent red panel.</div>
             <div class="doc-note"><b>Filling is determinate.</b> The count is known before it starts, so the bar shows real progress and a figure. There is no cancel: a half-filled account is the failure state, and stopping on purpose would produce it deliberately.</div>
             <div class="doc-note"><b>Done and Failed both say what now exists.</b> Failure keeps the partial rows rather than rolling back, and says how many - the user needs to know what is in their lists, and this is demo data, so a partial set costs nothing.</div>
+            <div class="doc-note"><b>With more than one person, only the owner sees this pane.</b> Filling needs the fill demo data permission, which only the owner has. For a member, Demo data is absent from the section nav, the pane and the phone's Settings list. The owner's confirm (6) names everyone whose data will go, by the names People with access shows; a pending invite is not named. In a household of one the confirm is (2).</div>
             <div class="doc-note"><b>Red here is correct.</b> This is the one control in Settings that destroys data, which is why the warning is red rather than amber and why the confirm names the consequence instead of saying OK.</div>
           </div>
         </div>
