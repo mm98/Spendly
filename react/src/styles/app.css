@@ -1,6 +1,9 @@
 /* What the app adds to the design's stylesheet (CHANGES, Brief 2: B3): first the drawn screens in a
    real window (9a, 9h, 18a), then what a design note states in words with no rule for it yet. */
 
+/* the design sets this on every page body; it changes how text is drawn on macOS */
+body { -webkit-font-smoothing: antialiased; }
+
 .sp-shell--viewport {
 	min-height: 100dvh;
 	border: 0;
