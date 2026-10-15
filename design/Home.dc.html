@@ -49,7 +49,7 @@
     <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
     <div class="doc-note"><b>Card scopes differ and each says so.</b> Drafts is all time, newest scan first. Recent orders is all time, newest first, and leaves drafts out. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
     <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> categories over their limit, categories near it, orders not delivered, then possible duplicate vendors. The cap of three holds, so an account with three categories over their limit shows no other row. Each kind can be switched off in Settings, Needs a look (<a href="Settings and import.dc.html#11a">11a</a>); a switched-off kind is skipped and the next one moves up. Orders without a receipt is a kind too, off by default, since most orders have none. Each row links to the filtered list that resolves it - over the limit to <code>/categories?flag=over-limit</code>, near its limit to <code>/categories?flag=near-limit</code> - and the card is absent when there is nothing to say - never a card with a tick in it.</div>
-    <div class="doc-note"><b>Drafts lists the orders with status Draft</b>, newest scan first, at most 3, above Needs a look. A row is the file's first page as its picture, the vendor (the file name when no vendor was read), what is left to check and then the file name under it, the day it was scanned, and the total when one was read. With no total the amount cell is empty. What is left to check reads "2 values need a look", "4 lines" when everything was read cleanly, "Still reading", or "Nothing read" for a blank scan. A row opens the draft in the scan review, <a href="Order create.dc.html#3a">3a</a> step 3, with its marks. What is left to check comes first on that line, so a long file name is cut and the count never is. The card is absent when there are no drafts, like Needs a look.</div>
+    <div class="doc-note"><b>Drafts lists the orders with status Draft</b>, newest scan first, at most 3, under Needs a look. When Needs a look is absent, Drafts heads the column. A row is the file's first page as its picture, the vendor (the file name when no vendor was read), what is left to check and then the file name under it, the day it was scanned, and the total when one was read. With no total the amount cell is empty. What is left to check reads "2 values need a look", "4 lines" when everything was read cleanly, "Still reading", or "Nothing read" for a blank scan. A row opens the draft in the scan review, <a href="Order create.dc.html#3a">3a</a> step 3, with its marks. What is left to check comes first on that line, so a long file name is cut and the count never is. The card is absent when there are no drafts, like Needs a look.</div>
     <div class="doc-note"><b>An order made by hand is a draft too</b> (state 5 below), from its first change until Create or Discard (<a href="Order create.dc.html#3a">3a</a>). Its row has no file. The picture is the order list's thumbnail cell (<a href="Order list.dc.html#2b">2b</a>): the first item photo, the vendor image faded, or the empty square with the image symbol. The name is the vendor, or "New order" before one is chosen. The line under it is the line count, "4 lines" or "No lines yet", and for a copy the day of the order it came from: "4 lines · Copied from 12/08". The day is the day the draft was started, and the total is the lines' total, empty with no priced line. A row opens the draft in the edit screen, unsaved, as it was left.</div>
     <div class="doc-note"><b>Orders not delivered</b> counts the orders with status Ordered dated 14 or more days ago. It is the plain count row, not a warning: "4 orders ordered over 2 weeks ago and not delivered", "1 order ordered ..." for one; on a phone "not delivered after 2 weeks". A count of zero is no row.</div>
     <div class="doc-note"><b>Last 8 months uses the plot's bars from Statistics</b>, at the size the card already has: 140 high, 8 between columns. A bar that a hover or focus reaches takes the soft tile and shows the Statistics readout (<a href="Order statistics.dc.html#4a">4a</a>) - the month and year with its total, then the note - placed by the same rules: 8 clear of the tallest of that bar and its two neighbours, standing above the chart and the card where there is no room inside (<a href="Layout rules.dc.html#15f">15f</a>), and aligned to the outer edge at either end of the chart. It never moves a bar. No category rows, since the bars are one colour.</div>
@@ -193,6 +193,31 @@
 
         <div class="hm-split hm-split--start">
           <div class="sp-stack">
+            <div class="sp-card sp-card--flush">
+              <div class="sp-list__toolbar">
+                <span class="sp-section-label">Needs a look</span>
+                <span class="sp-grow"></span>
+                <span class="sp-meta">3 things</span>
+              </div>
+              <div class="sp-card__body sp-stack sp-gap-8">
+                <a class="sp-list-item" data-color="warning" href="#2b">
+                  <span class="sp-list-item__count">!</span>
+                  <span class="sp-grow"><b>Decor is 2.100 kr. over</b> its limit for August</span>
+                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+                </a>
+                <a class="sp-list-item" href="#2b">
+                  <span class="sp-list-item__count">4</span>
+                  <span class="sp-grow">orders ordered over 2 weeks ago and not delivered</span>
+                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+                </a>
+                <a class="sp-list-item" href="Vendors and categories.dc.html">
+                  <span class="sp-list-item__count">2</span>
+                  <span class="sp-grow">vendors that look like duplicates</span>
+                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+                </a>
+              </div>
+            </div>
+
             <div class="sp-list">
               <div class="sp-list__toolbar">
                 <span class="sp-section-label">Drafts</span>
@@ -243,31 +268,6 @@
                   </tr>
                 </tbody>
               </table>
-            </div>
-
-            <div class="sp-card sp-card--flush">
-              <div class="sp-list__toolbar">
-                <span class="sp-section-label">Needs a look</span>
-                <span class="sp-grow"></span>
-                <span class="sp-meta">3 things</span>
-              </div>
-              <div class="sp-card__body sp-stack sp-gap-8">
-                <a class="sp-list-item" data-color="warning" href="#2b">
-                  <span class="sp-list-item__count">!</span>
-                  <span class="sp-grow"><b>Decor is 2.100 kr. over</b> its limit for August</span>
-                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
-                </a>
-                <a class="sp-list-item" href="#2b">
-                  <span class="sp-list-item__count">4</span>
-                  <span class="sp-grow">orders ordered over 2 weeks ago and not delivered</span>
-                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
-                </a>
-                <a class="sp-list-item" href="Vendors and categories.dc.html">
-                  <span class="sp-list-item__count">2</span>
-                  <span class="sp-grow">vendors that look like duplicates</span>
-                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
-                </a>
-              </div>
             </div>
 
             <div class="sp-list">
