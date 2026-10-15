@@ -16,13 +16,16 @@ const ANSWERS = ['current', 'behind', 'unpublished', 'failed', 'update-failed']
 // while the server restarts on the new version, it is asked this often which version runs, for this long
 const POLL_MS = 2000
 const UPDATE_LIMIT_MS = 2 * 60 * 1000
+// longer than the server's own limits on the updater (api/src/routes/account.js): a request still open after these has hung
+const START_LIMIT_MS = 15000
+const ASK_LIMIT_MS = 5000
 
 /** Waits for the server to come back on a version other than `commit`, then reloads the page on it. */
 async function reloadOnNew(commit) {
 	const end = Date.now() + UPDATE_LIMIT_MS
 	while (Date.now() < end) {
 		await new Promise(done => setTimeout(done, POLL_MS))
-		const now = await fetch('/api/version', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).catch(() => null)
+		const now = await fetch('/api/version', { cache: 'no-store', signal: AbortSignal.timeout(ASK_LIMIT_MS) }).then(r => (r.ok ? r.json() : null)).catch(() => null)
 		if (now?.commit && now.commit !== commit) return window.location.reload()
 	}
 	throw new Error('The update did not finish.')
@@ -65,7 +68,7 @@ export function BuildCard() {
 		setState('updating')
 		setWhy(null)
 		const failed = fallback => e => { setWhy(failureMessage(e, fallback)); setState('update-failed') }
-		startUpdate().then(
+		startUpdate(AbortSignal.timeout(START_LIMIT_MS)).then(
 			() => reloadOnNew(version.data.commit).catch(failed('The update did not finish.')),
 			failed('The update could not be started.'))
 	}
