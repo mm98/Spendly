@@ -25,6 +25,9 @@
     position: sticky;
     top: 0;
   }
+  /* a passkey row turns into its name field on Rename: at rest it is already the field's height, so the card does not move */
+  .st-pk-row { min-height: var(--control-h); }
+
   .st-subnav__head { padding: 0 var(--sp-10) var(--sp-10); }
   /* the pane being edited, at the reading width a form wants */
   .st-pane { padding: var(--card-pad); max-width: 640px; }

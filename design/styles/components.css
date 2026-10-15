@@ -1273,7 +1273,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* a card's menu is the menu's own width, and a label too long for it - "Open at" a long
    domain - ends in an ellipsis on one line rather than wrapping */
 .sp-record__menu .sp-menu { width: 214px; }
-.sp-record__menu .sp-menu__item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* every menu item truncates its label on one line, the same as production; the box keeps its width */
+.sp-menu__item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-record__act {
   display: grid;
   place-items: center;
@@ -4928,6 +4929,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* the separator inside a menu - c9 */
 .sp-menu__sep { height: 1px; background: var(--line-2); margin: var(--sp-6) var(--sp-8); border: 0; }
+/* in a nav whose column carries the --line-3 divider, the separator takes the divider's colour so two line colours never sit side by side (Settings section nav) */
+.sp-menu__sep--divider { background: var(--line-3); }
 
 /* the record's own identity on its own page - c2. The same box as the form mark,
    named separately because the two answer to different things: the form mark is
@@ -5129,6 +5132,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-list-item[data-color="success"] { background: var(--green-tint); color: var(--green); }
 .sp-list-item[data-color="danger"] { background: var(--red-tint-2); border: 1px solid var(--red); }
 .sp-list-item--outline { background: none; border: 1px solid var(--line); }
+/* a row that turns into a field (rename, edit) keeps one height in both states: the field's height plus a 4px inset each side; the content centres, so nothing below it moves */
+.sp-list-item--editable { box-sizing: border-box; height: calc(var(--control-h) + var(--sp-8)); padding-block: 0; }
 .sp-list-item--outline[aria-selected="true"] { border-color: var(--green); }
 
 /* a key carrying a tone, where it marks a value rather than a keystroke - c6 */

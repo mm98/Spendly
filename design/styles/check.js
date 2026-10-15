@@ -648,13 +648,13 @@
   const CONTROL = /class="sp-(tokens|input|select|textarea|field|gauge|segmented|stepper|switch|check|radio|btn|chip|options|option|tone|swatch|meter|bars|donut|table|list|lines|cards|note-row|choice|well|card)\b/;
   for (const [f, s] of Object.entries(src)) {
     const p = f.replace('.dc.html', '');
-    // a title with its second line is one block: sp-stack sp-gap-6, truncating unless
-    // the stack is a card body whose lines are prose
-    // the boundary matters: sp-stacked contains sp-stack, and without it every
-    // stacked pair in the system falls into this rule
-    for (const m of s.matchAll(/class="(sp-stack(?![\w-])[^"]*)"(\s*>\s*<(?:span|div)[^>]*class="sp-(?:title|heading)\b)/g)) {
+    /* A title with its second line is .sp-stacked (2px), never sp-stack sp-gap-6. A card
+       body - a heading over prose, a control or several lines - is sp-stack sp-gap-6 and
+       does not truncate. Caught: this rule used to require gap 6 for the pair, the pattern
+       .sp-stacked replaced, so the Passkeys rows were drawn at 6 and passed.
+       The boundary matters: sp-stacked contains sp-stack. */
+    for (const m of s.matchAll(/class="(sp-stack(?![\w-])[^"]*)"(\s*>\s*<(?:span|div)[^>]*class="sp-(?:title|heading|strong|data)\b)/g)) {
       const cls = m[1].split(/\s+/);
-      if (!cls.includes('sp-gap-6')) fail('a stacked pair is gap 6', p, m[1]);
       const tagStart = s.lastIndexOf('<', m.index);
       const isDiv = s.slice(tagStart, tagStart + 5) === '<div ';
       const open = isDiv ? '<div' : '<span', close = isDiv ? '</div>' : '</span>';
@@ -668,13 +668,36 @@
       /* A pair is a title or heading with one metadata line under it. A label over an
          object (a mark, a control, a specimen) is not one, nor is a heading over prose:
          a second line that is `sp-data`, or that ends a sentence, is a message and wraps. */
-      const lines = [...inner.matchAll(/<(span|div)[^>]*class="(sp-[\w-]+)[^"]*"[^>]*>([\s\S]*?)<\/\1>/g)];
+      const lines = [...inner.slice(inner.indexOf('>') + 1).matchAll(/<(span|div)[^>]*class="(sp-[\w-]+)[^"]*"[^>]*>([\s\S]*?)<\/\1>/g)];
       const second = lines[1];
       const secondText = second ? second[3].replace(/<[^>]+>/g, '').trim() : '';
-      const notAPair = !second || !/^sp-(subtitle|meta)$/.test(second[2]) || /[.!?]$/.test(secondText);
+      const notAPair = lines.length !== 2 || !/^sp-(subtitle|meta)$/.test(second[2]) || /[.!?]$/.test(secondText);
       const isCardBody = notAPair || CONTROL.test(inner) || /class="sp-(field__help|combobox|period)\b/.test(inner);
-      if (!isCardBody && !cls.includes('sp-truncate')) fail('a stacked pair truncates', p, m[1]);
-      if (isCardBody && cls.includes('sp-truncate')) fail('a card body does not truncate', p, m[1] + ' clips prose');
+      if (!isCardBody) { fail('a title with its second line is sp-stacked', p, m[1] + ' holds a pair; use .sp-stacked (2px)'); continue; }
+      if (/^sp-(title|heading)$/.test(lines[0] && lines[0][2]) && !cls.includes('sp-gap-6')) fail('a card body stack is gap 6', p, m[1]);
+      if (cls.includes('sp-truncate')) fail('a card body does not truncate', p, m[1] + ' clips prose');
+    }
+
+    /* The first line of a pair is a text role (sp-title), not the weight utility.
+       Caught: the Passkeys and Previous imports names were sp-strong, which inherits the
+       page's 16px, so the pair stood apart even at the stack's 2px. */
+    for (const m of s.matchAll(/class="sp-stacked[^"]*">\s*<(?:span|div)[^>]*class="sp-strong\b[^"]*"[^>]*>[^<]*<\/(?:span|div)>\s*<(?:span|div)[^>]*class="sp-(subtitle|meta)\b/g))
+      fail('a pair starts with sp-title', p, 'sp-strong opens a pair');
+
+    /* A button on the same line as an input is the input's height: the default button,
+       never --small or --xsmall. Caught: the status rename row drew a 42px field beside
+       34px Cancel and Save, and production copied it into the passkey rename. */
+    for (const m of s.matchAll(/<div class="(?:sp-row-flex|sp-list-item)\b[^"]*"/g)) {
+      let depth = 0, i = m.index, end = -1;
+      while (i < s.length) {
+        const o = s.indexOf('<div', i + 1), cl = s.indexOf('</div>', i + 1);
+        if (cl < 0) break;
+        if (o > -1 && o < cl) { depth++; i = o; } else { if (!depth) { end = cl; break; } depth--; i = cl; }
+      }
+      const inner = s.slice(m.index, end);
+      if (/class="sp-(field|card|well|dialog|popover|menu|palette)\b/.test(inner)) continue;
+      if (/<input class="sp-input\b/.test(inner) && /class="sp-btn\b[^"]*sp-btn--x?small\b/.test(inner))
+        fail('a button beside an input matches its height', p, 'small button in a row with an sp-input');
     }
 
     // the sidebar's foot is the divider, then Settings, Dark mode and the account (9a),

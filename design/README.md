@@ -1,41 +1,63 @@
-# Handoff: Settings section nav divider stays static
+# Handoff: Settings passkeys, row heights and stacked pairs
 
 ## Overview
 
-On Settings, the section nav (the list of panes inside the content column) and the 1px divider on its right edge scroll with the pane today. They should stay put: only the pane scrolls, and the divider always reaches the bottom of the window.
-
-Nothing else changes. No markup, copy, pane order, spacing, colour or component is touched.
+Fixes from a review of Settings, plus one system-wide fix it turned up. Nothing new is added; every change is a correction to something that already exists. The Settings section nav divider (static, does not scroll) was handed off separately and is included in `styles/pages/settings.css` again here.
 
 ## About the design files
 
-`Settings and import.dc.html` is a design reference built in HTML, not production code. Recreate the change in the existing React app's Settings page using its existing layout.
+The `.dc.html` files are design references built in HTML, not production code. Recreate the changes in the existing React app with its components. Open the pages in a browser from this folder; they load `support.js` and `styles/`.
 
 ## Fidelity
 
-High fidelity. The nav keeps its current values: 208px wide, `--card-pad` padding, `--sp-2` gap between items, 1px `--line-3` divider on the right.
+High fidelity. Every value is an existing token. `styles/components.css` is the source of truth for the classes named below.
 
-## The change
+## Changes
 
-- The section nav column is exactly the height of the window below the top bar.
-- It does not scroll. Either `position: sticky; top: 0` inside the scroll area with that height, or a fixed column beside the scrolling pane.
-- The divider is the nav column's own `border-right: 1px solid var(--line-3)`, so it spans that full height.
-- Only the pane (the card column, 640px cap) scrolls.
+### 1. A title with its second line is `.sp-stacked` (2px) - system-wide
 
-## Behaviour
+A name with one metadata line under it is one block, `.sp-stacked`, gap `--sp-2` (2px). 16 pairs were still built as `sp-stack sp-gap-6` (6px):
 
-- **Pane shorter than the window:** the divider still runs to the bottom of the window.
-- **Pane longer than the window, scrolled:** the nav and the divider stay where they are; the cards move.
-- Do not draw the divider on an element that scrolls with the pane, or on one sized to the pane's content. The first scrolls away, the second ends partway down.
-- Below roughly 900px the section nav is a select above the cards, as before; there is no divider there.
-- The sticky save bar at the bottom of the content column is unchanged.
+- Settings: Passkeys (2), Previous imports (2), the import result
+- Components: file and record specimens (6)
+- Order create: Compare with receipt header
+- Order editing layouts: Edit order header (2)
+- Typography: two specimens
 
-## Reference
+In the app, any title-and-second-line stack that uses a 6px gap should use the `Stacked` component (2px). A card body (a heading over a sentence, a control, several lines) stays 6px.
 
-- `Settings and import.dc.html`, frame 11a: the note "The section nav and its divider stay put; only the pane scrolls."
-- `styles/pages/settings.css`, `.st-subnav`: `position: sticky; top: 0` beside the existing `border-right`. The mockup does not scroll, so it looks the same as before.
+### 2. Pair names are `.sp-title`, not `.sp-strong`
+
+On Settings, the Passkeys and Previous imports names were the weight utility, which inherited 16px with normal line height, so the pair looked loose even at 2px. They are now `.sp-title` (14px, 600). Second line stays `.sp-meta`.
+
+### 3. A button beside an input is the input's height
+
+A button on the same line as a text field is the default button, 42px (`--control-h`), never the 34px small button (`--btn-h-small`).
+
+- Status rename row (Settings, Statuses): Cancel and Save are default buttons.
+- Passkey rename: now drawn, on the 1Password row. The row becomes `[name field, grows] [Cancel] [Save]`, the same as renaming a status. Enter saves, Escape cancels.
+
+Small buttons remain right for actions in card headers and rows next to text (Rename, Remove, Add a passkey).
+
+### 4. Rename does not shift the layout
+
+- **Passkeys card:** each row is 42px (`min-height: var(--control-h)`) at rest and while renaming. At rest the name and date line centre in it; on Rename the field and buttons fill it. Lock the row's height, not its content: a row sized by its text grows 3px when the field appears. Settings only (`.st-pk-row`).
+- **Status rows:** `.sp-list-item--editable`, a variant used on Settings only. Fixed height `calc(var(--control-h) + var(--sp-8))` (50px), `padding-block: 0`, `box-sizing: border-box`, content centred. At rest and in edit mode the row is the same height; before, edit mode jumped from 49px to 67px.
+
+### 5. Settings section nav separator
+
+The separator in the Settings section nav uses `--line-3`, the nav divider's colour, via `.sp-menu__sep--divider`. Every other menu keeps `--line-2`. Settings only.
+
+### 6. Menu items truncate - system-wide
+
+Every `.sp-menu__item` label truncates on one line with an ellipsis (`min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap` on the label span). Before, only the record menu did. This matches production.
 
 ## Files
 
-- `Settings and import.dc.html` - Settings, 11a
-- `styles/pages/settings.css` - the `.st-subnav` rule
-- `styles/`, `support.js`, `icons.js` - needed only to open the page in a browser
+- `Settings and import.dc.html` - 11a Settings: Passkeys (rename state, notes), Statuses, Previous imports, section nav
+- `Components.dc.html`, `Order create.dc.html`, `Order editing layouts.dc.html`, `Typography.dc.html` - stacked pairs
+- `styles/components.css` - `.sp-menu__sep--divider`, `.sp-list-item--editable`, `.sp-menu__item > span` truncation
+- `styles/pages/settings.css` - `.st-pk-row`, `.st-subnav` sticky
+- `styles/COMPONENT-STATUS.md` - change log, 2026-10-15 entries
+- `styles/check.js` - three new assertions: a pair is `.sp-stacked`, a pair starts with `.sp-title`, a button beside an input matches its height
+- `support.js`, `icons.js` - needed to open the pages
