@@ -237,7 +237,7 @@ export default function Settings() {
 	return (
 		<div className="sp-row-flex sp-top sp-gap-16" ref={row}>
 			{narrow ? null : <SectionNav current={navCurrent(seen ?? current)} />}
-			<div className="sp-stack sp-gap-12 sp-grow sp-column--form st-cards">
+			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
 				{narrow ? <SectionPicker current={navCurrent(seen ?? current)} /> : null}
 				{body ?? <Arrive section={current} visit={visit} room={row}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
@@ -278,7 +278,7 @@ function useSeenSection(active) {
 function SectionNav({ current }) {
 	return (
 		<nav className="st-subnav" aria-label="Settings">
-			<div className="sp-stack sp-gap-8 st-subnav__body">
+			<div className="sp-stack sp-gap-8">
 				<span className="sp-section-label">Settings</span>
 				<div className="sp-nav-list">
 					{SECTIONS.map(s => (
@@ -315,30 +315,27 @@ function Arrive({ section, visit, room, children }) {
 		const box = column.current
 		const holder = room?.current
 		if (!holder || !box) return
-		// room for the last heading to scroll up to where the first one sits: in the menu's column when
-		// there is one, so the menu stays in view to the end; measured, so set where it is measured
+		// room under the cards for the last heading to reach where the first one sits; counted from the
+		// cards' own end, since the menu's height can make the page longer than the cards
+		const cards = box.parentElement
 		const fit = () => {
 			const heads = box.querySelectorAll('[data-section]')
 			if (heads.length < 2) return
-			const nav = holder.querySelector(':scope > .st-subnav')
-			if (nav) holder.style.removeProperty('padding-bottom')
-			const cards = box.parentElement.getBoundingClientRect().height
-			const now = nav ? parseFloat(nav.style.minHeight) || 0 : parseFloat(holder.style.paddingBottom) || 0
-			const extra = nav ? Math.max(0, now - cards) : now
-			const end = document.documentElement.scrollHeight - extra - window.innerHeight
-			const need = Math.max(0, Math.ceil(heads[heads.length - 1].getBoundingClientRect().top - heads[0].getBoundingClientRect().top - end))
-			if (nav) nav.style.minHeight = need ? cards + need + 'px' : ''
-			else holder.style.paddingBottom = need ? need + 'px' : ''
+			const now = parseFloat(cards.style.paddingBottom) || 0
+			const travel = heads[heads.length - 1].getBoundingClientRect().top - heads[0].getBoundingClientRect().top
+			const cardsEnd = cards.getBoundingClientRect().bottom + window.scrollY - now
+			const below = document.documentElement.scrollHeight - holder.getBoundingClientRect().bottom - window.scrollY
+			const need = Math.max(0, Math.ceil(travel + window.innerHeight - below - cardsEnd))
+			cards.style.paddingBottom = need ? need + 'px' : ''
 		}
 		fit()
 		const watch = new ResizeObserver(fit)
-		watch.observe(box.parentElement)
+		watch.observe(cards)
 		window.addEventListener('resize', fit)
 		return () => {
 			watch.disconnect()
 			window.removeEventListener('resize', fit)
-			holder.style.paddingBottom = ''
-			holder.querySelector(':scope > .st-subnav')?.style.removeProperty('min-height')
+			cards.style.removeProperty('padding-bottom')
 		}
 	}, [room])
 	useEffect(() => {
