@@ -1,0 +1,13 @@
+Subject: {{inviter_name}} invited you to Spendly
+
+{{inviter_name}} invited you to Spendly
+
+{{inviter_name}} invited {{email}} to see and add to the same orders, receipts and monthly limits.
+
+Accept the invite:
+{{action_url}}
+
+The invite works for 7 days. If you weren't expecting it, you can ignore this email.
+
+--
+Sent because {{inviter_name}} invited this address.

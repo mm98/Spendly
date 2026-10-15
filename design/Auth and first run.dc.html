@@ -259,11 +259,51 @@
       </div>
       <div class="sp-meta au-w400">Register names the field, unlike sign in - there is no account to protect yet, and the useful next step is a link across.</div>
     </div>
+
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">ACCEPT AN INVITE</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Join Mikkel M. on Spendly</div>
+            <div class="sp-data">You'll see and add to the same orders, receipts and limits.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-f10">Name</label>
+            <input class="sp-input" id="au-f10" type="text" defaultValue="Anna M.">
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="au-f11-label">Email</span>
+            <div class="sp-input sp-input--readonly" id="au-f11" role="textbox" aria-readonly="true" aria-labelledby="au-f11-label"><span class="sp-email-line"><span class="sp-email-line__local">anna</span><span class="sp-email-line__domain">@example.net</span></span></div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-p10">Password</label>
+            <span class="sp-field__wrap">
+              <input class="sp-input" id="au-p10" type="password" autoComplete="new-password" defaultValue="">
+              <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+            </span>
+            <div class="sp-meta">At least 12 characters. Longer beats complicated.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Create account and join</button>
+          <div class="sp-meta sp-center">By creating an account you accept the <a class="sp-strong" href="#20a">terms</a> and <a class="sp-strong" href="#20a">privacy notice</a>.</div>
+        </div>
+      </div>
+      <div class="sp-meta au-w400">The create-account card with the invite's address fixed: the invite went to that address, so it is the one that joins.</div>
+    </div>
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The Password label and Forgot it? share <code>.sp-field__head</code></b>, a row as tall as the label's own line, so the 22px button overhangs it and the field sits 24px under the label, as under Email.</div>
     <div class="doc-note"><b>Forgot it?</b> opens the forgotten password flow (<a href="#20c">20c</a>) with the email already in its field.</div>
+    <div class="doc-note"><b>Accept an invite</b> is the route <code>/invite/:token</code>, opened from the invite email (<a href="#20f">20f</a>, sent from <a href="Settings and import.dc.html#11a">11a</a>). The heading names the person who sent it. Create account and join creates the user, joins them to the inviter's household as a member and signs them in on Home, showing the household's orders.</div>
+    <div class="doc-note"><b>It skips confirming and first run.</b> Following the link proves the address, so the account is created confirmed and 20b never shows. First run (<a href="#20d">20d</a>) is skipped too: currency and categories belong to the household and are already set. Personal settings start at their defaults.</div>
+    <div class="doc-note"><b>An expired, cancelled or used link</b> shows the sign-in card with a warning above the fields, worded "This invite no longer works. Ask Mikkel M. to send a new one." Signed in already as someone else, the link signs nobody out and shows the same card with "This invite is for anna@example.net".</div>
+    <div class="doc-note"><b>An address that already has an account merges in.</b> A person belongs to one household. Opening the invite while signed out shows the sign-in card with the heading "Join Mikkel M. on Spendly"; after signing in, the confirm dialog (<a href="States and confirmations.dc.html#6d">6d</a>) asks first: "Your 12 orders move to Mikkel M.'s. Vendors and categories with the same name become one." with Join and move them / Cancel. Same name is case- and accent-insensitive, as vendor and category names are everywhere. Where both have a limit on the same category, the household's limit stays. Statuses, lists and other shared settings are the household's; the joining person's are dropped. Their personal settings, passkeys and password stay as they were. Their old household is then deleted. An account with no orders joins without the dialog.</div>
   </div>
 </section>
 
@@ -511,15 +551,16 @@
     <span class="doc-badge" id="20f">20f</span>
     <span class="doc-section__title">The emails</span>
   </div>
-  <div class="doc-lede">Four messages, all transactional: the confirmation link from <a href="#20b">20b</a>, the reset link from <a href="#20c">20c</a>, and a notice whenever the password changes or a passkey is added. Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
+  <div class="doc-lede">Five messages, all transactional: the confirmation link from <a href="#20b">20b</a>, the reset link from <a href="#20c">20c</a>, a notice whenever the password changes or a passkey is added, and the invite sent from People with access (<a href="Settings and import.dc.html#11a">11a</a>). Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
-    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b>, <b>password-changed</b> and <b>passkey-added</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
+    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b>, <b>password-changed</b>, <b>passkey-added</b> and <b>invite</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
     <div class="doc-note"><b class="sp-ink">Built for mail clients, not the browser.</b> Tables and inline styles, no web fonts (Poppins where installed, then Helvetica), a VML button for Outlook, and a dark block that maps to the dark tokens. The card keeps the auth panel's values: 400 wide, 16 padding, the 64 mark, the small button.</div>
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
     <div class="doc-note"><b class="sp-ink">Password changed is sent on every change</b> - from Settings and from the reset flow alike - to the account's address. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. It carries no link that undoes the change.</div>
     <div class="doc-note"><b class="sp-ink">Passkey added is sent each time one is added</b>, naming it as the device reported it. Its button opens Settings, Account, where the passkey can be removed. Removing one sends nothing, and resetting the password leaves passkeys as they are.</div>
+    <div class="doc-note"><b class="sp-ink">Invite is sent on Send invite and on Send again</b>, to the invited address, naming the person who sent it. Its button opens Accept an invite (<a href="#20a">20a</a>). The link works for 7 days and once; Send again issues a new link and the old one stops working.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
   </div>
 
@@ -543,6 +584,11 @@
       <div class="sp-section-label">4 - PASSKEY ADDED</div>
       <iframe class="au-email" title="A passkey was added" srcDoc="{{ addedDoc }}"></iframe>
       <div class="sp-meta au-w600">Subject: A passkey was added to your Spendly account. Sent when a passkey is added, on 20b or in Settings.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">5 - INVITE</div>
+      <iframe class="au-email" title="Invite" srcDoc="{{ inviteDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Mikkel M. invited you to Spendly. Sent on Send invite and Send again in Settings.</div>
     </div>
   </div>
 </section>
@@ -832,11 +878,11 @@ class Component extends DCLogic {
   state = {};
   componentDidMount() {
     this.applyView();
-    const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone' };
-    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account' };
-    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added']].forEach(([k, f]) => {
+    const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone', inviter_name: 'Mikkel M.' };
+    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account', invite: 'https://app.example.net/invite/4c8d2e' };
+    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added'], ['invite', 'invite']].forEach(([k, f]) => {
       fetch('emails/' + f + '.html').then(r => r.text()).then(t => {
-        const v = { ...sample, action_url: urls[k] };
+        const v = { ...sample, action_url: urls[k], ...(k === 'invite' ? { email: 'anna@example.net' } : {}) };
         this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
       });
     });
@@ -854,7 +900,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     return {
-      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added
+      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added, inviteDoc: this.state.invite
     };
   }
   applyView() {
