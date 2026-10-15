@@ -52,6 +52,15 @@ The separator in the Settings section nav uses `--line-3`, the nav divider's col
 
 Every `.sp-menu__item` label truncates on one line with an ellipsis (`min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap` on the label span). Before, only the record menu did. This matches production.
 
+### 7. Dividers render alike at any display scaling - system-wide
+
+`.sp-rule`, `.sp-rule--vertical`, `.sp-menu__sep` and `.sp-menu__sep--divider` are drawn as a 1px border, not a 1px-high filled box. Same colour (`--line-2`, `--line-3` for the Settings nav separator), same spacing.
+
+- Horizontal: `height: 0; border: 0; border-top: 1px solid var(--line-2);`
+- Vertical: `width: 0; height: 16px; border-left: 1px solid var(--line-2);`
+
+A 1px fill at 125% or 150% display scaling lands on fractional screen pixels, so two identical dividers in one card read as different weights. Borders snap to whole screen pixels. In the app, any divider drawn as a 1px-high background should be a 1px border.
+
 ## Files
 
 - `Settings and import.dc.html` - 11a Settings: Passkeys (rename state, notes), Statuses, Previous imports, section nav
