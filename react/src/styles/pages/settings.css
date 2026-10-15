@@ -3,27 +3,20 @@
 @layer base {
 
 	/* 208 from the content column's edge, as 11a draws it: the page's own inset is its left
-	   padding. It runs on into the room under the cards, so the menu in it can stay in view. */
+	   padding. The column is the window's height under the top bar and does not move, so its
+	   right edge is a divider that always reaches the bottom; the margins take it through the
+	   body's 16 above and below. */
 	.st-subnav {
 		width: 208px;
 		flex: none;
-		align-self: stretch;
-		margin-left: calc(-1 * var(--card-pad));
-		padding: 0 var(--card-pad);
-		border-right: 1px solid transparent;
-	}
-	/* the whole section menu, its label too, stays where it starts under the top bar (12 + field + 12 + rule + 16) */
-	.st-subnav__body { position: sticky; top: calc(var(--sp-12) + var(--control-h) + var(--sp-12) + 1px + var(--sp-16)); }
-	/* the hairline is the menu's right edge, drawn the height of the cards beside it, not the room under them */
-	.st-cards { position: relative; }
-	.st-subnav + .st-cards::before {
-		content: "";
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: calc(-1 * var(--sp-16) - 1px);
-		width: 1px;
-		background: var(--line-3);
+		box-sizing: border-box;
+		position: sticky;
+		top: calc(var(--sp-12) + var(--control-h) + var(--sp-12) + 1px);
+		height: calc(100dvh - var(--sp-12) - var(--control-h) - var(--sp-12) - 1px);
+		margin: calc(-1 * var(--sp-16)) 0 calc(-1 * var(--sp-16)) calc(-1 * var(--card-pad));
+		padding: var(--sp-16) var(--card-pad);
+		overflow-y: auto;
+		border-right: 1px solid var(--line-3);
 	}
 
 	/* a status's tone is picked by clicking the pill that shows it; the ring marks the chosen one */
