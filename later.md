@@ -24,3 +24,14 @@ is removed in the change that settles it.
 - **Why not now:** the app is safe as it is. The drawing is what is out of date, and that is
   Claude Design's to change: Returned and Cancelled marked "built in", and no delete button on
   Cancelled.
+
+## design/README.md now holds one handoff note instead of the design system's overview
+
+- **Where:** `design/README.md`.
+- **What the reader sees:** the file describes only the Needs a look and Drafts swap on Home. The
+  overview it held before (what each file in `design/` is, the state of the checks, the settled
+  rules for card heads, rows that open, and the copy conventions) is gone from the folder.
+- **What was found:** 15 October 2026, in the upload that answered the Home card order brief. The
+  upload replaced the whole file rather than adding a note beside it.
+- **Why not now:** `design/` is changed only through Claude Design. The old text is in git history
+  (the commit before "Add files via upload" on 15 October) if Claude Design wants it back.

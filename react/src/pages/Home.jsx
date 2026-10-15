@@ -209,8 +209,8 @@ function DesktopHome({ month, compared, categories, view, recent, rows, drafts, 
 			</div>
 			<div className="hm-split hm-split--start sp-gap-12">
 				<div className="sp-stack sp-gap-12">
-					<DraftsCard drafts={drafts} />
 					{lost ? null : <AlertsCard view={view} attention={attention} looks={looks} />}
+					<DraftsCard drafts={drafts} />
 					<RecentCard recent={recent} rows={rows} />
 				</div>
 				<div className="sp-stack sp-gap-12">
@@ -721,8 +721,8 @@ function PhoneHome({ month, compared, categories, view, recent, rows, drafts, at
 					</Hold>
 				)
 				: <PhoneMonth w={w} compared={compared} />}
-			<PhoneDrafts drafts={drafts} />
 			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
+			<PhoneDrafts drafts={drafts} />
 			<PhoneRecent recent={recent} rows={rows} />
 		</>
 	)
