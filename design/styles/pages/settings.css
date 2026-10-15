@@ -20,6 +20,10 @@
     flex-direction: column;
     gap: var(--sp-2);
     border-right: 1px solid var(--line-3);
+    /* the nav does not scroll with the pane: in the app it is the window's height
+       below the top bar, so the divider never moves and always reaches the bottom */
+    position: sticky;
+    top: 0;
   }
   .st-subnav__head { padding: 0 var(--sp-10) var(--sp-10); }
   /* the pane being edited, at the reading width a form wants */
