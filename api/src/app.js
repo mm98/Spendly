@@ -200,7 +200,10 @@ app.get('/api/version/check', async (req, res) => {
 		   calling it out of date would send someone pulling for an update that is not one. */
 		res.json({ current: mine !== null && mine === latest, published: mine !== null, commit, latestBuiltAt })
 	} catch (e) {
-		res.status(502).json({ error: `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}` })
+		// fetch's own message is only "fetch failed"; the reason is in its cause
+		const error = `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}${e.cause ? ` (${e.cause.message ?? e.cause})` : ''}`
+		console.error(error)
+		res.status(502).json({ error })
 	}
 })
 
