@@ -64,9 +64,10 @@ export function BuildCard() {
 	const update = () => {
 		setState('updating')
 		setWhy(null)
-		startUpdate()
-			.then(() => reloadOnNew(version.data.commit))
-			.catch(e => { setWhy(failureMessage(e, 'The update did not finish.')); setState('update-failed') })
+		const failed = fallback => e => { setWhy(failureMessage(e, fallback)); setState('update-failed') }
+		startUpdate().then(
+			() => reloadOnNew(version.data.commit).catch(failed('The update did not finish.')),
+			failed('The update could not be started.'))
 	}
 
 	const heading = <CardHeader name="This build" {...landing('build')} />
