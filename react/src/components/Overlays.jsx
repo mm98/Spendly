@@ -248,11 +248,12 @@ export function Anchor({ open, ref, children, ...rest }) {
 	const box = useRef(null)
 	const keys = useMenuButton(box, open)
 	useMenuPlace(box, !!open)
-	const bind = el => {
+	// stable, or each render empties box.current until after the menu sheet has read it in its own layout effect
+	const bind = useCallback(el => {
 		box.current = el
 		if (typeof ref === 'function') ref(el)
 		else if (ref) ref.current = el
-	}
+	}, [ref])
 	return (
 		<span className="sp-anchor" ref={bind} {...keys}
 			{...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false', 'data-menu-open': open ? 'true' : undefined })} {...rest}>
