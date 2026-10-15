@@ -2,7 +2,7 @@
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, look-alike vendors, an archived vendor, more categories than a page
    holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, a note and none, bookmarks with and
-   without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand.
+   without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand, one dated in an earlier year.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
    it fills first on a new account:
@@ -229,6 +229,8 @@ else if (source) step('copy kept as a draft', await call('POST', '/drafts', { fo
 	files: [],
 	origin: { copy: { id: source.id, vendor: source.vendor?.name ?? '', date: source.date, files: (source.attachments?.length ?? 0) > 0 } }
 } }))
+// last, so it is among the drafts Home shows
+await order('A draft from an earlier year', { vendor: 'Coopp', date: day(-600), status: 'Draft', items: [] })
 
 // custom statuses and saved views, one flagged
 step('status', await call('POST', '/statuses', { name: 'On hold', tone: 'progress' }))

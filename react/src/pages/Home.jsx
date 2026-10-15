@@ -22,7 +22,7 @@ import {
 	overBudget, putSummaryAway, scanThumbnailUrl, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
+import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, today } from '../api/format.js'
 import { CopyPicker } from './CopyPicker.jsx'
 import { alertsOf, looksIn, monthOf } from './needsLook.jsx'
 
@@ -95,8 +95,9 @@ const capital = text => text.charAt(0).toLocaleUpperCase() + text.slice(1)
 
 const dateOf = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d) }
 const dayNumbers = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: '2-digit', month: '2-digit' })
-/** "08/08" in the reader's own order, with the year once it is not this one. */
-const rowDate = iso => (iso.slice(0, 4) === today().slice(0, 4) ? dayNumbers().format(dateOf(iso)) : shortDate(iso))
+const dayNumbersShortYear = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: '2-digit', month: '2-digit', year: '2-digit' })
+/** "08/08" in the reader's own order, with a two-digit year ("08/08/24") once it is not this one. */
+const rowDate = iso => (iso.slice(0, 4) === today().slice(0, 4) ? dayNumbers() : dayNumbersShortYear()).format(dateOf(iso))
 
 /** The reader's own calendar day of a moment in epoch seconds. */
 const localDay = seconds => { const at = new Date(seconds * 1000); return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 10) }
