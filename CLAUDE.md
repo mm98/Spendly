@@ -325,6 +325,11 @@ into the right one. Playwright itself is not a project dependency; it's the glob
 `NODE_PATH=/opt/node22/lib/node_modules node script.mjs` or an explicit path import, not a bare
 `import { chromium } from 'playwright'`.
 
+**A behaviour claim is checked on the built app too, not only the dev server.** React's development
+mode runs effects twice on purpose, and that second run can hide a timing fault the user meets. Serve
+`npm run build` with `npx vite preview` (it proxies `/api` like the dev server) and run the same
+script against it.
+
 **State can lag the action that caused it** (a redirect, an async refetch, a resize-driven redraw). Wait
 for the value under test to actually change, never a fixed timeout or the first render after a click —
 a stale read looks like a plausible answer instead of failing.
