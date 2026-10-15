@@ -15,6 +15,7 @@ import { NavItem } from '../components/Shell.jsx'
 import { Skeleton } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
+import { ThemeTiles } from '../components/ThemeTiles.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
@@ -364,8 +365,8 @@ function AppearanceCard({ value, change, touch }) {
 	return (
 		<Card>
 			<CardHeader name="Appearance" {...landing('appearance')} />
-			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
-				<Segmented name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
+			<Field label="Theme">
+				<ThemeTiles name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
 			</Field>
 			<span className="sp-rule" />
 			<Field label="Row density" message="Compact fits more rows on screen.">

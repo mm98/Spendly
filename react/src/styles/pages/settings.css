@@ -22,6 +22,49 @@
 	/* a passkey row turns into its name field on Rename: at rest it is already the field's height, so the card does not move */
 	.st-pk-row { min-height: var(--control-h); }
 
+	.st-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-12); }
+	.st-trio > .st-theme { position: relative; }
+
+	/* a theme is chosen by clicking its preview, so each is a label over a radio.
+	   The well is the component; being selectable is what this page adds to it. */
+	.st-theme { cursor: pointer; }
+	.st-theme input { position: absolute; opacity: 0; pointer-events: none; }
+	/* the ring, not the border: .sp-well sets border-color unlayered, so a page rule
+	   can never win there - box-shadow is a property the component leaves alone */
+	.st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--green); }
+	.st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
+	.st-theme:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
+	.st-theme:has(input:checked) .st-theme__name { font-weight: 600; }
+
+	/* The theme preview: a drawing of the app at thumbnail size, not a component. The
+	   dark tile carries data-theme="dark", so its ground, border and lines resolve from
+	   the same token block the dark theme itself uses - no literals here. */
+	.st-theme__preview {
+		position: relative;
+		height: 46px;
+		border-radius: var(--r-tile);
+		border: 1px solid var(--line-3);
+		display: flex;
+		overflow: hidden;
+	}
+	.st-theme__preview--light { background: var(--bg); }
+	.st-theme__preview--dark { background: var(--bg); border-color: var(--line); }
+	/* follow the system: the two themes side by side in one tile */
+	.st-theme__preview--split { background: var(--bg); }
+	.st-theme__rail { width: 14px; background: var(--shell); }
+	/* the thumbnail is a drawing of the app at about a tenth of its size, so its
+	   insets are fractions of the drawing rather than steps on the spacing scale */
+	.st-theme__body { flex: 1; padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+	.st-theme__line { height: 6px; border-radius: 2px; }
+	.st-theme__line--light { background: var(--surface); }
+	.st-theme__line--dark { background: var(--surface); }
+	/* each half draws the same app the other two tiles draw, clipped down the middle,
+	   so the tile reads as one window changing theme rather than two colour blocks */
+	.st-theme__half { width: 50%; display: flex; overflow: hidden; }
+	.st-theme__half--light { background: var(--bg); }
+	.st-theme__half--dark { background: var(--bg); }
+	.st-theme__half--dark .st-theme__line--dark { background: var(--surface-3); }
+
 	/* a status's tone is picked by clicking the pill that shows it; the ring marks the chosen one */
 	.st-tone { display: inline-flex; cursor: pointer; border-radius: var(--r-pill); }
 	.st-tone input { position: absolute; opacity: 0; pointer-events: none; }
