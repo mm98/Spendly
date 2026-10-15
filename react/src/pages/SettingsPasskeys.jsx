@@ -4,7 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
-import { Skeleton } from '../components/Utilities.jsx'
+import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { failureMessage, getPasskeys, removePasskey, renamePasskey } from '../api/client.js'
 import { dayShortMonthYear, dot, isToday } from '../api/format.js'
 import { useApi } from '../api/useApi.js'
@@ -62,12 +62,11 @@ export function PasskeysCard() {
 					{renaming === p.id
 						? <Rename passkey={p} onDone={() => setRenaming(null)} />
 						: (
-							<div className="sp-row-flex sp-gap-12">
-								<div className="sp-stack sp-gap-6">
-									<span className="sp-strong sp-truncate">{p.name}</span>
+							<div className="sp-row-flex sp-gap-12 st-pk-row">
+								<Stacked>
+									<span className="sp-title sp-truncate">{p.name}</span>
 									<span className="sp-meta">Added {dayShortMonthYear(p.createdAt)}{dot}{used(p.lastUsedAt)}</span>
-								</div>
-								<span className="sp-grow" />
+								</Stacked>
 								<div className="sp-row-flex sp-gap-8 sp-flex-none">
 									<Button variant="outline" size="small" onClick={() => setRenaming(p.id)}>Rename</Button>
 									<Button variant="outline" size="small" onClick={() => setRemoving(p)}>Remove</Button>
@@ -98,12 +97,12 @@ function Rename({ passkey, onDone }) {
 	}
 	return (
 		<div className="sp-stack sp-gap-6">
-			<div className="sp-row-flex sp-gap-8">
+			<div className="sp-row-flex sp-gap-12 st-pk-row">
 				<TextField inputRef={field} value={name} maxLength={80} aria-label="Passkey name" onChange={v => { setName(v); setProblem(null) }}
 					onKeyDown={ev => { if (ev.key === 'Enter') save(); if (ev.key === 'Escape') onDone() }} />
 				<div className="sp-row-flex sp-gap-8 sp-flex-none">
-					<Button variant="outline" size="small" onClick={onDone}>Cancel</Button>
-					<Button size="small" disabled={empty || busy} onClick={save}>Save</Button>
+					<Button variant="outline" onClick={onDone}>Cancel</Button>
+					<Button disabled={empty || busy} onClick={save}>Save</Button>
 				</div>
 			</div>
 			{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}

@@ -108,7 +108,7 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 						{editing === status.key
 							? <StatusEditor status={status} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
 							: (
-								<ListItem variant={reorder.variant(status)}
+								<ListItem variant={reorder.variant(status)} editable
 									handle={touch ? undefined : <Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
 									data-status={status.key} {...reorder.row(status)}>
 									{touch
@@ -170,7 +170,7 @@ function StatusEditor({ status, onCancel, onSave }) {
 		if (!empty) onSave({ name: name.trim(), tone })
 	}
 	return (
-		<ListItem variant="outline" selected>
+		<ListItem variant="outline" selected editable>
 			<TextField inputRef={field} value={name} maxLength={40} aria-label="Status name" onChange={setName}
 				onKeyDown={ev => { if (ev.key === 'Enter') save(); if (ev.key === 'Escape') onCancel() }} />
 			<span className="sp-grow" />
@@ -183,8 +183,8 @@ function StatusEditor({ status, onCancel, onSave }) {
 				))}
 			</div>
 			<div className="sp-row-flex sp-gap-8 sp-flex-none">
-				<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
-				<Button size="small" disabled={empty} onClick={save}>Save</Button>
+				<Button variant="outline" onClick={onCancel}>Cancel</Button>
+				<Button disabled={empty} onClick={save}>Save</Button>
 			</div>
 		</ListItem>
 	)

@@ -283,7 +283,7 @@ function SectionNav({ current }) {
 				<div className="sp-nav-list">
 					{SECTIONS.map(s => (
 						<Fragment key={s.key}>
-							{s.key === TOOLS ? <span className="sp-rule" role="separator" /> : null}
+							{s.key === TOOLS ? <span className="sp-menu__sep sp-menu__sep--divider" role="separator" /> : null}
 							<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
 						</Fragment>
 					))}

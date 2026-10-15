@@ -32,6 +32,8 @@ export function ListItem({
 	selected,
 	// a row that opens on a click its list handles: the pointer and the hover fill of one that does (c15)
 	opens = false,
+	// a row that turns into a field (rename, edit): one height at rest and while editing (Settings 11a)
+	editable = false,
 	onClick,
 	to,
 	children,
@@ -45,7 +47,8 @@ export function ListItem({
 		'sp-list-item',
 		variant === 'sticky' && 'sp-list-item--card',
 		pick(VARIANT, variant, 'variant', 'ListItem'),
-		opens && 'sp-list-item--opens'
+		opens && 'sp-list-item--opens',
+		editable && 'sp-list-item--editable'
 	)
 	const attrs = {
 		...(color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'ListItem') }),

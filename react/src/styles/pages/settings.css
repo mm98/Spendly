@@ -19,6 +19,9 @@
 		border-right: 1px solid var(--line-3);
 	}
 
+	/* a passkey row turns into its name field on Rename: at rest it is already the field's height, so the card does not move */
+	.st-pk-row { min-height: var(--control-h); }
+
 	/* a status's tone is picked by clicking the pill that shows it; the ring marks the chosen one */
 	.st-tone { display: inline-flex; cursor: pointer; border-radius: var(--r-pill); }
 	.st-tone input { position: absolute; opacity: 0; pointer-events: none; }
