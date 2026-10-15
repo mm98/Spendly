@@ -2,7 +2,7 @@ import { cloneElement, useId } from 'react'
 import { pick, reject } from './variants.js'
 import { Choice, FieldGroup } from './Choice.jsx'
 
-const MESSAGE = { hint: null, warning: 'warning', danger: 'danger' }
+const MESSAGE = { hint: null, quiet: null, warning: 'warning', danger: 'danger' }
 const NOTE = { hint: null, success: 'success', warning: 'warning' }
 
 export function Field({
@@ -32,6 +32,8 @@ export function Field({
 	const messageId = message ? `${fieldId}-message` : undefined
 	const color = pick(MESSAGE, messageType, 'messageType', 'Field')
 	const isDanger = messageType === 'danger'
+	// quiet is the help under a drop-down on Settings (11a): the lighter second-line tone
+	const helpClass = messageType === 'quiet' ? 'sp-meta' : 'sp-field__help'
 
 	if (!children) {
 		console.error('<Field> needs a control as its child - a field with nothing in it is a label')
@@ -73,7 +75,7 @@ export function Field({
 				{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
 			</Choice>
 			{message
-				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
+				? <span id={messageId} className={helpClass} {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
 			{after}
 		</div>
@@ -85,7 +87,7 @@ export function Field({
 		<FieldGroup legend={label} aria-describedby={messageId}>
 			{children}
 			{message
-				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
+				? <span id={messageId} className={helpClass} {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
 			{after}
 		</FieldGroup>
@@ -112,7 +114,7 @@ export function Field({
 					: labelled}
 			{wrapped}
 			{message
-				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
+				? <span id={messageId} className={helpClass} {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
 			{after}
 		</div>
