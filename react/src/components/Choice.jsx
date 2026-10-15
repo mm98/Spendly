@@ -33,7 +33,7 @@ export function Switch({ ...rest }) {
 
 const CHOICE = { default: null, row: 'sp-choice--row', described: 'sp-choice--described' }
 
-export function Choice({ variant = 'default', control, children, description, ...rest }) {
+export function Choice({ variant = 'default', control, children, description, descriptionTone = 'meta', ...rest }) {
 	reject(rest, 'Choice')
 	if (description && variant !== 'described')
 		console.error('<Choice> a description needs variant="described"')
@@ -49,7 +49,7 @@ export function Choice({ variant = 'default', control, children, description, ..
 				? (
 					<span className="sp-choice__text">
 						<strong>{children}</strong>
-						<span className="sp-meta">{description}</span>
+						<span className={descriptionTone === 'help' ? 'sp-field__help' : 'sp-meta'}>{description}</span>
 					</span>
 				)
 				: children}
