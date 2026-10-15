@@ -9,7 +9,7 @@ import { Well } from '../components/Well.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Gauge, Stat } from '../components/Data.jsx'
-import { Spinner } from '../components/Utilities.jsx'
+import { Spinner, Stacked } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	checkImportDuplicates, failureMessage, getCurrentUser, getImports, getKnownVendorNames, getSettings, importOrders, startImport,
@@ -289,10 +289,10 @@ function History({ history, onReuse }) {
 					<div key={item.id} className="sp-stack sp-gap-12">
 						{i ? <span className="sp-rule" /> : null}
 						<div className="sp-row-flex sp-gap-12">
-							<div className="sp-stack sp-gap-6 sp-grow">
-								<span className="sp-strong sp-truncate">{item.fileName}</span>
+							<Stacked>
+								<span className="sp-title sp-truncate">{item.fileName}</span>
 								<span className="sp-meta">{facts.join(dot)}</span>
-							</div>
+							</Stacked>
 							{item.undoable ? <Button variant="text" size="small" disabled={busy === item.id} onClick={() => undo(item)}>Undo</Button> : null}
 							{item.mapping ? <Button variant="outline" size="small" onClick={() => onReuse(item)}>Reuse mapping</Button> : null}
 						</div>
@@ -601,10 +601,10 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 			{heading}
 			<div className="sp-row-flex sp-gap-12">
 				<Mark size="medium" round aria-label="Imported"><Icon name="check" /></Mark>
-				<div className="sp-stack sp-gap-6">
+				<Stacked>
 					<span className="sp-heading sp-truncate">{ordersWord(imported)} imported</span>
 					<span className="sp-subtitle">{facts.join(dot)}</span>
-				</div>
+				</Stacked>
 			</div>
 			{reasons}
 			<span className="sp-meta">Undo removes exactly what this import wrote, including the vendors it created, for 24 hours. After that the orders are ordinary orders.</span>
