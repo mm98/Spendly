@@ -12,7 +12,7 @@ import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { NavItem } from '../components/Shell.jsx'
-import { Skeleton } from '../components/Utilities.jsx'
+import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { ThemeTiles } from '../components/ThemeTiles.jsx'
@@ -535,10 +535,10 @@ function PhoneIndex({ user }) {
 					: <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={name}><>{initialsOf(name)}</></Mark>}>
 				{email
 					? (
-						<span className="sp-stack sp-gap-6 sp-grow">
+						<Stacked>
 							{user.name ? <span className="sp-title sp-truncate">{user.name}</span> : null}
 							<EmailLine email={email} tone="meta" />
-						</span>
+						</Stacked>
 					)
 					: <Skeleton shape="line" />}
 			</ListItem>
