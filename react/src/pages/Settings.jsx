@@ -373,7 +373,7 @@ function AppearanceCard({ value, change, touch }) {
 				<Segmented name="density" variant={touch ? 'default' : 'narrow'} options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
 			</Field>
 			<span className="sp-rule" />
-			<Field label="Compare this month with" message="What Home and the monthly summary measure this month against.">
+			<Field label="Compare this month with" message="What Home and the monthly summary measure this month against." messageType="quiet">
 				<Choose narrow={!touch} value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
 			</Field>
 		</Card>
@@ -390,11 +390,11 @@ function MoneyCard({ value, change, touch }) {
 		<Card>
 			<CardHeader name="Money, dates and times" {...landing('money')} />
 			<Pair touch={touch}>
-				<Field label="Currency" message="The currency all amounts are shown in. This renames your figures. It does not convert them.">
+				<Field label="Currency" message="The currency all amounts are shown in. This renames your figures. It does not convert them." messageType="quiet">
 					<Choose narrow={!touch} value={value('currency')} onChange={v => change('currency', v)}
 						options={CURRENCIES.map(c => ({ id: c.code, label: currencyLabel(c) }))} />
 				</Field>
-				<Field label="Date and time format" message="How dates, times and numbers are written. Times always show in your own clock.">
+				<Field label="Date and time format" message="How dates, times and numbers are written. Times always show in your own clock." messageType="quiet">
 					<Choose narrow={!touch} value={value('locale')} onChange={v => change('locale', v)}
 						options={LOCALES.map(l => ({ id: l.code, label: localeLabel(l) }))} />
 				</Field>
@@ -417,7 +417,7 @@ function DefaultsCard({ value, change, touch, reads }) {
 		<Card>
 			<CardHeader name="Defaults for a new order" {...landing('defaults')} />
 			<Pair touch={touch}>
-				<Field label="Kind" message="What the Kind field opens with on a new order.">
+				<Field label="Kind" message="What the Kind field opens with on a new order." messageType="quiet">
 					<Choose narrow={!touch} value={value('defaultKind')} onChange={v => change('defaultKind', v)}
 						options={spendKinds.map(k => ({ id: k, label: k }))} />
 				</Field>
@@ -489,31 +489,31 @@ function ListsCard({ value, change, touch }) {
 	return (
 		<Card>
 			<CardHeader name="Lists" {...landing('lists')} />
-			<Field label="Order views in the menu" message="How many order views the sidebar shows before the rest fold under More.">
+			<Field label="Order views in the menu" message="How many order views the sidebar shows before the rest fold under More." messageType="quiet">
 				<Choose value={value('orderViews')} onChange={v => change('orderViews', v)}
 					figure={<span className="sp-data sp-number">{value('orderViews')}</span>}
 					suffix={<span className="sp-data sp-ink-5">views</span>}
 					options={VIEWS_SHOWN.map(n => ({ id: n, label: `${n} views` }))} />
 			</Field>
 			<span className="sp-rule" />
-			<Field label="Rows per page" message="How many rows the order, vendor and category lists show before Load more.">
+			<Field label="Rows per page" message="How many rows the order, vendor and category lists show before Load more." messageType="quiet">
 				<Choose value={rows} onChange={v => change('pageSize', v)}
 					figure={<span className="sp-data sp-number">{rows}</span>}
 					suffix={<span className="sp-data sp-ink-5">rows</span>}
 					options={PAGE_SIZES.map(n => ({ id: n, label: `${n} rows` }))} />
 			</Field>
 			<span className="sp-rule" />
-			<Field label="Recent orders on Home" message="How many of your newest orders Home shows.">
+			<Field label="Recent orders on Home" message="How many of your newest orders Home shows." messageType="quiet">
 				<Choose value={recent} onChange={v => change('recentRows', v)}
 					figure={<span className="sp-data sp-number">{recent}</span>}
 					suffix={<span className="sp-data sp-ink-5">{recent === 1 ? 'order' : 'orders'}</span>}
 					options={RECENT_ROWS.map(n => ({ id: n, label: plural(n, 'order') }))} />
 			</Field>
 			<Pair touch={touch}>
-				<Field label="Sort orders by" message="The order All orders opens with.">
+				<Field label="Sort orders by" message="The order All orders opens with." messageType="quiet">
 					<Choose value={known(sorts, value('sort'))} onChange={v => change('sort', v)} options={sorts} />
 				</Field>
-				<Field label="Sort vendors and categories by" message="The order both lists open with.">
+				<Field label="Sort vendors and categories by" message="The order both lists open with." messageType="quiet">
 					<Choose value={known(listSorts, value('listSort'))} onChange={v => change('listSort', v)} options={listSorts} />
 				</Field>
 			</Pair>
