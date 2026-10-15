@@ -1,24 +1,19 @@
-# Spendly - changes since handoff_2026_10_14d_changes
+# Spendly - changes since handoff_2026_10_14e_changes
 
-Copy these files over handoff_2026_10_13_full with handoff_2026_10_13b_changes, handoff_2026_10_14_changes, handoff_2026_10_14b_changes, handoff_2026_10_14c_changes and handoff_2026_10_14d_changes applied. No stylesheet changes.
+Copy these files over handoff_2026_10_13_full with handoff_2026_10_13b_changes, handoff_2026_10_14_changes, handoff_2026_10_14b_changes, handoff_2026_10_14c_changes, handoff_2026_10_14d_changes and handoff_2026_10_14e_changes applied. No stylesheet changes.
 
-## 1. The fault
-- On the 30 days preset the window control's label read "16. aug. - 14. sep.". It needs about 125px; the label has 92px inside the fixed 190px `--window-w`, so it ran into the next arrow. It also repeated the dates on the resolved line.
+## 1. Categories this month on Home: a category with no limit
+- It is ranked by its spend like the others, in the top 4.
+- Its line shows the amount alone, "3.180", with no "/ limit".
+- Its bar is the untargeted gauge already used on Vendors and categories: `sp-gauge sp-gauge--untargeted` with `<meter value="0" aria-label="No limit set">`. An empty track, no fill, no marker.
+- The track stays so every row is the same height and the card keeps its resting height for the skeleton.
+- A limit of zero is a limit; any spend against it is over.
 
-## 2. The answer
-- The 30 days window's label is the words "30 days", in the present window and when stepped back.
-- The window's label names the window, never its dates: W34, August, Q3, 2026, 30 days. The dates stay on the resolved line beside it (for example 22/07 - 20/08/2026).
-- `--window-w` stays 190px for every preset. No label may need more room than "September".
+## 2. In the design
+- Home: the Textiles row is drawn with no limit, and a note on the case is added.
 
-## 3. In the app
-- Change the label the period control passes for the 30 days preset to "30 days". Nothing else changes.
-
-## 4. In the design
-- Components c14: a 30 days specimen above Week, and a note on the window label.
-
-## 5. Check (styles/check.js)
+## 3. Check (styles/check.js)
 - Clean: 0 findings across 26 pages.
 
 ## Files
-- Components.dc.html
-- styles/COMPONENT-STATUS.md
+- Home.dc.html
