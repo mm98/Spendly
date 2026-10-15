@@ -666,7 +666,7 @@ function CategoryLine({ category: c, early }) {
 				<CategoryMark category={c} size="small" />
 				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
 				<span className={warn ? 'sp-meta sp-meta--over' : 'sp-meta'}>
-					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : `${amount(c.monthSpend, 0)}${dot}no limit`}
+					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : amount(c.monthSpend, 0)}
 				</span>
 			</div>
 			{limited
