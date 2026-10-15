@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import http from 'node:http'
+import https from 'node:https'
 import { Worker } from 'node:worker_threads'
 import { db } from '../db.js'
 import { replaceWithDemo } from '../lib/demoFill.js'
@@ -76,23 +78,59 @@ router.post('/demo-data', (req, res) => {
 })
 
 /* Update and reload (11d): the updater beside this container (SPENDLY_UPDATER_URL, docker-compose.yml) swaps
-   it, stopping this process, so an updater still busy after a moment has taken the job. */
+   it, stopping this process. Asked with ?async=true it answers at once; one that ignores that holds its answer
+   until the swap, so silence after the request reached it means it has the job. A connection that never
+   opened is a failure, never a start. */
+const UPDATER_CONNECT_MS = 5000
 const UPDATER_ANSWER_MS = 3000
 
 export const updaterAvailable = () => /^https?:\/\//.test(process.env.SPENDLY_UPDATER_URL ?? '')
 
+/** Resolves to { status } (a number, or 'busy' once it holds its answer) or { error } when it can't be reached. */
+function askUpdater(url) {
+	const secure = url.protocol === 'https:'
+	const token = process.env.SPENDLY_UPDATER_TOKEN
+	return new Promise(settle => {
+		let timer = null
+		let settled = false
+		const end = outcome => {
+			if (settled) return
+			settled = true
+			clearTimeout(timer)
+			settle(outcome)
+		}
+		// watchtower's update API answers 405 to anything but POST; no agent, so every ask opens its own socket and 'connect' fires
+		const ask = (secure ? https : http).request(url, {
+			method: 'POST',
+			agent: false,
+			headers: token ? { Authorization: `Bearer ${token}` } : {}
+		}, answer => {
+			answer.resume()
+			end({ status: answer.statusCode })
+		})
+		timer = setTimeout(() => {
+			end({ error: `no connection after ${UPDATER_CONNECT_MS / 1000} seconds` })
+			ask.destroy()
+		}, UPDATER_CONNECT_MS)
+		ask.on('socket', socket => socket.once(secure ? 'secureConnect' : 'connect', () => {
+			clearTimeout(timer)
+			timer = setTimeout(() => end({ status: 'busy' }), UPDATER_ANSWER_MS)
+		}))
+		ask.on('error', e => end({ error: e.message }))
+		ask.end()
+	})
+}
+
 router.post('/version/update', async (req, res) => {
 	if (!updaterAvailable()) return res.status(409).json({ error: 'This copy of Spendly cannot install an update by itself.' })
-	// watchtower's update API answers 405 to anything but POST
-	const asked = fetch(process.env.SPENDLY_UPDATER_URL, {
-		method: 'POST',
-		headers: process.env.SPENDLY_UPDATER_TOKEN ? { Authorization: `Bearer ${process.env.SPENDLY_UPDATER_TOKEN}` } : {}
-	})
-	const answer = await Promise.race([asked.then(r => r, e => e), new Promise(done => setTimeout(() => done(null), UPDATER_ANSWER_MS))])
-	asked.catch(() => {})
-	if (answer instanceof Error || (answer && !answer.ok)) {
-		console.error('The updater refused or could not be reached:', answer instanceof Error ? answer.message : answer.status)
-		return res.status(502).json({ error: 'The update could not be started.' })
-	}
-	res.status(202).json({ started: true })
+	const url = new URL(process.env.SPENDLY_UPDATER_URL)
+	url.searchParams.set('async', 'true')
+	const answer = await askUpdater(url)
+	if (answer.status === 'busy' || (answer.status >= 200 && answer.status < 300)) return res.status(202).json({ started: true })
+	console.error(answer.error
+		? `The updater at ${url.host} could not be reached (${answer.error}). Check SPENDLY_UPDATER_URL.`
+		: `The updater at ${url.host} refused the update with status ${answer.status}.`
+			+ (answer.status === 401 ? ' SPENDLY_UPDATER_TOKEN must match WATCHTOWER_HTTP_API_TOKEN.' : '')
+			+ (answer.status === 429 ? ' Another update was already running.' : ''))
+	res.status(502).json({ error: 'The update could not be started.' })
 })

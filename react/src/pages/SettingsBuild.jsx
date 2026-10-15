@@ -15,7 +15,7 @@ const HOLD_MS = 2000
 const ANSWERS = ['current', 'behind', 'unpublished', 'failed', 'update-failed']
 // while the server restarts on the new version, it is asked this often which version runs, for this long
 const POLL_MS = 2000
-const UPDATE_LIMIT_MS = 5 * 60 * 1000
+const UPDATE_LIMIT_MS = 2 * 60 * 1000
 
 /** Waits for the server to come back on a version other than `commit`, then reloads the page on it. */
 async function reloadOnNew(commit) {
@@ -64,9 +64,10 @@ export function BuildCard() {
 	const update = () => {
 		setState('updating')
 		setWhy(null)
-		startUpdate()
-			.then(() => reloadOnNew(version.data.commit))
-			.catch(e => { setWhy(failureMessage(e, 'The update did not finish.')); setState('update-failed') })
+		const failed = fallback => e => { setWhy(failureMessage(e, fallback)); setState('update-failed') }
+		startUpdate().then(
+			() => reloadOnNew(version.data.commit).catch(failed('The update did not finish.')),
+			failed('The update could not be started.'))
 	}
 
 	const heading = <CardHeader name="This build" {...landing('build')} />
@@ -130,7 +131,7 @@ export function BuildCard() {
 				? (
 					<Well color="warning">
 						<span className="sp-title sp-ink-warning">Installing the newer version.</span>
-						<span className="sp-meta sp-ink-warning">Spendly restarts on it, and this page reloads by itself when it is back. This can take a few minutes.</span>
+						<span className="sp-meta sp-ink-warning">Spendly restarts on it, and this page reloads by itself when it is back. This can take up to two minutes.</span>
 					</Well>
 				)
 				: null}
