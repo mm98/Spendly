@@ -1,100 +1,58 @@
-# Handoff: Answers to the household questions
+# Handoff: Needs a look above Drafts on Home
 
 ## Overview
 
-This answers questions 1 to 3 at the end of `BRIEF.md` (the report "Households: what the app is missing"). It adds to the design update "Households, invites and the Settings regroup"; everything in that update still holds unless changed below.
+On Home, the Needs a look card now sits above the Drafts card, on desktop and on the phone. A warning about a limit or a missing delivery is seen before a draft that waits to be checked. This answers `BRIEF.md` in this folder.
 
-Question 4 (where to start) is a build decision and is not answered here.
+Nothing else changes. No card's markup, head, cap, link, spacing or style is touched. Only the order of two existing cards changes.
 
 ## About the design files
 
-The `.dc.html` files are design references built in HTML. They show the intended layout and behaviour; they are not production code. Recreate the changes in the existing React app (`react/`) and server (`api/`) using their existing components and patterns.
+The `.dc.html` files are design references built in HTML. They show the intended layout and behaviour; they are not production code. Recreate the change in the existing React app (`react/src/pages/Home.jsx`) using its existing components.
 
 ## Fidelity
 
-High fidelity. Every card and control is an existing library component, unchanged. No type, colour, spacing or component style changes.
+High fidelity. The cards are the existing library components, unchanged.
 
-## The answers
+## The change
 
-### 1. Budget, bookmarks and drafts are shared
+### Desktop Home, left column (`DesktopHome`)
 
-All three move to the household, like orders.
+Before: Drafts, Needs a look, Recent orders.
+After: **Needs a look, Drafts, Recent orders.**
 
-- Budget: years, accounts, groups, lines, bank links.
-- Bookmarks and their photos.
-- Drafts and scanned files.
+Reference: `Home.dc.html`, frame 10a.
 
-None of them has a Settings pane, so no screen changes. In the brief's data table, all three move from "The design does not say" to "Moves to the household". The existing-data migration treats them like orders: every record moves to the account's household of one.
+### Phone Home (`PhoneHome`)
 
-### 2. Lists is personal
+Before: This month, Drafts, Needs a look, Recent orders.
+After: **This month, Needs a look, Drafts, Recent orders.**
 
-The Lists card moves from Shared to You. All four of its settings are stored per user:
+Reference: `Mobile screens.dc.html`, frame 10a.
 
-- Order views in the menu
-- Rows per page
-- Sort orders by
-- Sort vendors and categories by
+## Behaviour
 
-The saved views themselves stay shared (household). Only how many of them the sidebar shows is personal.
+- Needs a look is absent when it has nothing to show, as before. Drafts then heads the left column on desktop, and sits directly under This month on the phone. No gap or placeholder is left where the card would be.
+- Drafts is absent when there are no drafts, as before. Recent orders then follows Needs a look directly.
+- With both absent, the column is Recent orders alone (phone: This month, Recent orders).
+- The order is fixed. It does not change with the number of alerts or drafts.
 
-In the settings split (personal set and shared set), the Lists values go in the personal set.
+## Implementation
 
-Position:
-
-- Desktop section nav and card column: the last item in **You**, after Needs a look. Shared is now People with access, Currency, Defaults, Statuses, Import, Demo data.
-- Below 900px the section picker follows the same groups.
-- Phone Settings list: the last row in **YOU**, after Limit alerts.
-
-The People with access card's intro line changes to: "Everyone here sees and adds to the same orders, vendors, categories and limits. Appearance, formats, alerts and lists stay your own."
-
-Reference: `Settings and import.dc.html` frame 11a; `Mobile screens.dc.html`, phone Settings.
-
-### 3. Demo data is for the owner only
-
-- New permission: **fill demo data**. Owner has it; member does not. Check the permission, not the role name, as with manage people. Member now has every permission except manage people and fill demo data.
-- For a member, Demo data is absent: no entry in the section nav, no pane, no row in the phone Settings list. Absent, not disabled.
-- The server refuses the fill for a user without the permission.
-- What a fill removes in a shared household: every order, vendor, category and bookmark of the household, for everyone.
-
-New state, 6 - Choosing, more than one person (frame 11c). Shown to the owner when the household has two or more members. It is state 2 with a different warning and confirm:
-
-- Warning title: "This replaces what is here now, for everyone"
-- Warning text: "Every order, vendor, category and bookmark in the household is removed first, for both of you: you and Anna M."
-- Buttons: "Cancel" and "Yes, fill it for everyone" (danger)
-
-Naming rules for the warning text:
-
-- Every member is named, by the name People with access shows. "you" is first, then the others.
-- With two members: "for both of you: you and Anna M."
-- With three or more: "for all N of you: you, Anna M. and Jonas K." (N written as a word up to ten).
-- A pending or expired invite is not named and not counted.
-
-In a household of one, state 2 is unchanged ("Every order, vendor and category you have added is removed first.").
-
-Filling, Done and Failed (states 3 to 5) are unchanged.
+Swap the two card elements in both `DesktopHome` and `PhoneHome`. Each card keeps its own render condition. No props, state, data fetching or styles change.
 
 ## Notes updated in the design
 
-Frame 11a, Notes for implementation:
+- Home 10a, Drafts note: "newest scan first, at most 3, under Needs a look. When Needs a look is absent, Drafts heads the column."
+- Mobile screens 10a: "Drafts sits under Needs a look, the order of the desktop Home (10a), and directly under This month when Needs a look is absent".
 
-- People with access: the household data list now names saved views, the budget, bookmarks, and drafts with their scanned files.
-- Owner and member: both can do everything except Fill with demo data, which only the owner has.
-- Build roles as permissions: member has all but manage people and fill demo data.
-- Shared and personal settings: Lists is in You.
-- New: "Lists is personal."
-- New: "The budget, bookmarks, and drafts with their scanned files are shared."
+## After the change
 
-Frame 11c: lede mentions state 6; new note "With more than one person, only the owner sees this pane."
-
-## Tests to add
-
-- A member gets no Demo data entry or pane, and the fill route refuses them.
-- One member's Lists settings do not change another member's.
-- Budget, bookmarks and drafts are visible to every member of the household and to no one outside it.
+Render the README shots `docs/home.png` and `docs/phone.png` again; both show Home.
 
 ## Files
 
-- `Settings and import.dc.html`: Settings, frames 11a (desktop) and 11c (Demo data states)
-- `Mobile screens.dc.html`: phone Settings list
-- `styles/`, `support.js`, `components.js`, `icons.js`: needed only to open the pages in a browser
-- `BRIEF.md`: the report these answers respond to
+- `Home.dc.html`: desktop Home, frame 10a
+- `Mobile screens.dc.html`: phone Home, frame 10a
+- `styles/`, `support.js`, `components.js`, `icons.js`: needed only to open the two pages in a browser
+- `BRIEF.md`: the original request

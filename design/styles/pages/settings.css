@@ -7,11 +7,6 @@
 
   .st-screen { width: 1180px; min-width: 1180px; }
   .st-main { background: var(--bg); }
-  /* the row under the top bar holds the section nav and the pane. It fills the
-     column when the pane is short and grows with the pane when it is long - never
-     shrinks to the window and lets the pane overflow it - so the divider on the
-     nav, which stretches to this row, always reaches the bottom, scrolled or not */
-  .st-body { flex: 1 0 auto; min-width: 0; }
 
   /* settings has a second navigation inside the content column: a list of panes */
   .st-subnav {
