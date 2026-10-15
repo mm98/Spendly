@@ -365,7 +365,7 @@ function AppearanceCard({ value, change, touch }) {
 	return (
 		<Card>
 			<CardHeader name="Appearance" {...landing('appearance')} />
-			<Field label="Theme">
+			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
 				<ThemeTiles name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
 			</Field>
 			<span className="sp-rule" />
