@@ -344,6 +344,13 @@
                   </span>
                 </div>
               </div>
+              <div class="sp-field">
+                <div class="sp-row-flex sp-gap-12">
+                  <input class="sp-switch" id="oc-stats" type="checkbox" role="switch" aria-describedby="oc-stats-help">
+                  <label class="sp-data" for="oc-stats">Leave out of statistics</label>
+                </div>
+                <span class="sp-field__help" id="oc-stats-help">For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
+              </div>
             </div>
             <div class="sp-card">
               <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
@@ -543,6 +550,13 @@
                     <span class="sp-field__unit">kr.</span>
                   </span>
                 </div>
+              </div>
+              <div class="sp-field">
+                <div class="sp-row-flex sp-gap-12">
+                  <input class="sp-switch" id="oc-stats2" type="checkbox" role="switch" aria-describedby="oc-stats2-help">
+                  <label class="sp-data" for="oc-stats2">Leave out of statistics</label>
+                </div>
+                <span class="sp-field__help" id="oc-stats2-help">For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
               </div>
             </div>
 
@@ -801,6 +815,7 @@
     <div class="doc-note"><b>A tick on every line, and the confidence tones,</b> belong to the unsaved state: a line can still be left out, and a value read badly is marked amber. Once the order is saved there is nothing to leave out, so the column and the tones go.</div>
     <div class="doc-note"><b>The bar at the top changes tone, not place:</b> amber with a count of values to look at while the order is a proposal, green with the file it came from once it is created.</div>
     <div class="doc-note"><b>The action pair is Discard / Create order, then Cancel / Save.</b> Same footer, same two slots.</div>
+    <div class="doc-note"><b>Leave out of statistics</b> closes Order details in both states, the same field as <a href="Order editing layouts.dc.html#1d">1d</a>, off by default. A new order typed by hand and an order proposed from a scan both carry it, so a one-off purchase is left out as it is entered rather than saved and then edited.</div>
     <div class="doc-note"><b>Attachments is the same card in both states,</b> beneath the lines, with the scanned file as its first attachment. Opening it is the viewer (<a href="Dark mode and image viewer.dc.html#12b">12b</a>), as on any order. The file is never shown beside the form.</div>
     <div class="doc-note">Building it twice would produce two screens in code that have to be kept identical by hand. It is one screen with an <b>unsaved</b> flag.</div>
     <span class="doc-notes__label">A scan is a draft until it is created or discarded</span>
