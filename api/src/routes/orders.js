@@ -9,6 +9,7 @@ import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, fillDraftGaps, normaliseUrl, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
+import { orderAmountScale } from '../lib/orderAmountScale.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
 import { keyOfType, resolveStatus, statusKeys, typeOfKey } from '../lib/statuses.js'
 import { processAttachment } from '../lib/images.js'
@@ -41,10 +42,10 @@ const selectItemExists = db.prepare('SELECT id FROM order_items WHERE id = ? AND
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM user_settings WHERE user_id = ?')
 const countAllOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const deleteOrderCategories = db.prepare('DELETE FROM order_categories WHERE order_id = ?')
-const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded)
-	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, @discount, @note, @reference, @refunded)`)
+const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded, exclude_from_stats)
+	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, @discount, @note, @reference, @refunded, @excludeFromStats)`)
 const updateOrderRow = db.prepare(`UPDATE orders SET vendor_id=@vendorId, date=@date, status=@status, kind=@kind,
-	shipping=@shipping, discount=@discount, note=@note, reference=@reference, refunded=@refunded WHERE id=@id AND user_id=@userId`)
+	shipping=@shipping, discount=@discount, note=@note, reference=@reference, refunded=@refunded, exclude_from_stats=@excludeFromStats WHERE id=@id AND user_id=@userId`)
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const deleteOrderStatuses = db.prepare('DELETE FROM order_status_history WHERE order_id = ?')
 const insertOrderStatus = db.prepare('INSERT INTO order_status_history (id, order_id, status, date) VALUES (?, ?, ?, ?)')
@@ -307,7 +308,6 @@ function orderFacets(userId, q) {
 	}
 }
 
-const selectHighestTotal = db.prepare('SELECT MAX(total) FROM orders WHERE user_id = ?').pluck()
 router.get('/', (req, res) => {
 	const q = req.query
 	const { whereSql, params, sortKey, filtered } = buildOrderFilter(req.user.id, q)
@@ -336,11 +336,11 @@ router.get('/', (req, res) => {
 	`).get(params).c : orderCount
 	const matched = matchedOrders + drafts.length
 	const wants = listOf(q.with)
-	// pageSize=0 asks for the counts alone: no row is read or decorated; with=highest adds the largest total, for the amount filter
+	// pageSize=0 asks for the counts alone: no row is read or decorated; with=amountScale adds the amount filter's scale
 	if (q.pageSize === '0') return res.json({
 		orders: [], matched, total,
 		...(wants.includes('facets') ? orderFacets(req.user.id, q) : {}),
-		...(wants.includes('highest') ? { highest: selectHighestTotal.get(req.user.id) ?? null } : {})
+		...(wants.includes('amountScale') ? { amountScale: orderAmountScale(req.user.id) } : {})
 	})
 
 	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
@@ -463,13 +463,13 @@ router.get('/often', (req, res) => {
 })
 
 /* The monthly limits an order counts against (8b): each category's limit and its month's spend
-   without this order, shared as statistics shares it, where drafts and cancelled orders spend nothing. */
+   without this order, shared as statistics shares it, where drafts, cancelled orders and orders left out of statistics spend nothing. */
 const selectCategoryLimit = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
 const selectCategoryMonthSpend = db.prepare(`
 	SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
-		AND ot.status_type NOT IN ('cancelled', 'draft')`).pluck()
+		AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0`).pluck()
 router.get('/limits', (req, res) => {
 	const day = String(req.query.date ?? '')
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'A date is needed, as YYYY-MM-DD.' })
@@ -522,7 +522,8 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 		status: draft.status || keyOfType(userId, 'delivered'), kind: draft.kind || 'Expense',
 		shipping: Number(draft.shipping) || 0, discount: Number(draft.discount) || 0,
 		note: draft.note || '', reference: draft.reference || '',
-		refunded: draft.refunded ? 1 : 0
+		refunded: draft.refunded ? 1 : 0,
+		excludeFromStats: draft.excludeFromStats ? 1 : 0
 	})
 	saveOrderStatuses(userId, id, draft)
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
@@ -590,7 +591,8 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 		status: draft.status || keyOfType(userId, 'delivered'), kind: draft.kind || 'Expense',
 		shipping: Number(draft.shipping) || 0, discount: Number(draft.discount) || 0,
 		note: draft.note || '', reference: draft.reference || '',
-		refunded: draft.refunded ? 1 : 0
+		refunded: draft.refunded ? 1 : 0,
+		excludeFromStats: draft.excludeFromStats ? 1 : 0
 	})
 	saveOrderStatuses(userId, id, draft)
 

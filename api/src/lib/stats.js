@@ -196,8 +196,10 @@ const FLOW_WHERE = {
 export const FLOWS = Object.keys(FLOW_WHERE)
 
 /** What narrows every query below: the lens (flow) and the drill path's vendor, category and
-    status. Under a category, an order counts its share of that category, as the split does. */
-function scopeOf({ flow = 'all', vendorId, categoryId, status } = {}) {
+    status. Under a category, an order counts its share of that category, as the split does.
+    An order left out of statistics counts only when `excluded` is 'include'; `leftOut` is the
+    same scope narrowed to those orders alone, for counting them. */
+function scopeOf({ flow = 'all', vendorId, categoryId, status, excluded } = {}) {
 	const lens = FLOW_WHERE[flow] === undefined ? 'all' : flow
 	let and = FLOW_WHERE[lens]
 	const params = {}
@@ -210,7 +212,11 @@ function scopeOf({ flow = 'all', vendorId, categoryId, status } = {}) {
 	if (status) { and += ' AND ot.status = @status'; params.status = status }
 	const signed = col => (lens === 'net' ? `(CASE WHEN ot.status_type = 'returned' THEN -ot.${col} ELSE ot.${col} END)` : `ot.${col}`)
 	const share = categoryId && categoryId !== 'none' ? ' * 1.0 / ot.category_count' : ''
-	return { and, params, signed, amount: col => `${signed(col)}${share}` }
+	return {
+		and: excluded === 'include' ? and : `${and} AND ot.exclude_from_stats = 0`,
+		leftOut: `${and} AND ot.exclude_from_stats = 1`,
+		params, signed, amount: col => `${signed(col)}${share}`
+	}
 }
 
 const statements = new Map()
@@ -224,7 +230,52 @@ function totalsOver(userId, from, to, scope) {
 		SELECT COUNT(*) AS orders, COALESCE(SUM(${scope.amount('total')}), 0) AS spent, COALESCE(SUM(${scope.amount('saved')}), 0) AS saved
 		FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
 	`).get({ userId, from, to, ...scope.params })
-	return { orders: r.orders, spent: r.spent, saved: r.saved, average: r.orders ? r.spent / r.orders : 0 }
+	return { orders: r.orders, spent: r.spent, saved: r.saved }
+}
+
+/** The median order of a window's `orders` orders: one very large order barely moves it, where it
+    would pull an average. A median has no SUM, so it is the middle one or two by amount. */
+function medianOver(userId, from, to, orders, scope) {
+	if (!orders) return 0
+	return prepared(`
+		SELECT AVG(amount) AS median FROM (
+			SELECT ${scope.amount('total')} AS amount FROM orders ot
+			WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+			ORDER BY amount LIMIT CAST(@take AS INTEGER) OFFSET CAST(@skip AS INTEGER))
+	`).get({ userId, from, to, take: 2 - (orders % 2), skip: Math.floor((orders - 1) / 2), ...scope.params }).median ?? 0
+}
+
+/* The first day of each step a chart draws, as a day index into the window: a day each, a week
+   from each Monday, a month from each first of the month. The window's first day always starts one. */
+const STEP_START = {
+	day: () => true,
+	week: at => new Date(at * 1000).getUTCDay() === 1,
+	month: at => new Date(at * 1000).getUTCDate() === 1
+}
+export const STEPS = Object.keys(STEP_START)
+
+/** The median order of each step of the window, in step order; a step with no order is 0. Each
+    step's orders are ranked by amount and counted, and its middle one or two are averaged. */
+function stepMediansOver(userId, from, to, step, scope) {
+	const starts = []
+	for (let d = from; d < to; d += DAY) if (d === from || STEP_START[step](d)) starts.push(d)
+	const found = prepared(`
+		SELECT bucket, AVG(amount) AS median FROM (
+			SELECT bucket, amount,
+				ROW_NUMBER() OVER (PARTITION BY bucket ORDER BY amount) AS rank, COUNT(*) OVER (PARTITION BY bucket) AS orders
+			FROM (SELECT (SELECT MAX(value) FROM json_each(@starts) WHERE value <= ot.date) AS bucket, ${scope.amount('total')} AS amount
+				FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and})
+		) WHERE rank IN ((orders + 1) / 2, (orders + 2) / 2)
+		GROUP BY bucket
+	`).all({ userId, from, to, starts: JSON.stringify(starts), ...scope.params })
+	const byStart = new Map(found.map(r => [r.bucket, r.median]))
+	return starts.map(at => byStart.get(at) ?? 0)
+}
+
+/** How many orders left out of statistics the window holds under the same narrowing. */
+function leftOutOver(userId, from, to, scope) {
+	return prepared(`SELECT COUNT(*) AS c FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.leftOut}`)
+		.get({ userId, from, to, ...scope.params }).c
 }
 
 /* category_count -- how many categories share this order's total -- is the stored,
@@ -280,10 +331,14 @@ function vendorSplitOver(userId, from, to, scope) {
 	`).all({ userId, from, to, ...scope.params }).map(r => ({ id: r.id, name: r.name, amount: r.spend, orders: r.orders }))
 }
 
-/** One vendor's spend in this year's window, counted as the year's statistics count it (5c). */
-export function vendorYearSpend(userId, vendorId, day = todayIso()) {
+/** One vendor's spend and median order in this year's window, counted as the year's statistics count them (5c). */
+export function vendorYear(userId, vendorId, day = todayIso()) {
 	const { bounds } = resolveWindow(userId, 'year', undefined, toEpoch(day))
-	return vendorSplitOver(userId, bounds.from, bounds.to, scopeOf({ vendorId }))[0]?.amount ?? 0
+	const scope = scopeOf({ vendorId })
+	return {
+		amount: vendorSplitOver(userId, bounds.from, bounds.to, scope)[0]?.amount ?? 0,
+		median: medianOver(userId, bounds.from, bounds.to, totalsOver(userId, bounds.from, bounds.to, scope).orders, scope)
+	}
 }
 
 /** The spend and order count of each of the last `count` calendar months, oldest first and ending with
@@ -424,8 +479,9 @@ function focusOf(bounds, from, to) {
 }
 
 /** Statistics for one window: the fields Home, Statistics, Categories and a vendor's page read.
-    `filter` is the drill path (vendorId, categoryId, status, from, to) and the lens (flow). */
-export function getStats(userId, range, windowId, { compare = 'previous', today: day = todayIso(), filter = {} } = {}) {
+    `filter` is the drill path (vendorId, categoryId, status, from, to), the lens (flow) and
+    whether left-out orders count (excluded); `step` adds each chart step's median order. */
+export function getStats(userId, range, windowId, { compare = 'previous', today: day = todayIso(), filter = {}, step } = {}) {
 	const today = toEpoch(day)
 	const { width, id, bounds } = resolveWindow(userId, range, windowId, today)
 	const scope = scopeOf(filter)
@@ -458,7 +514,8 @@ export function getStats(userId, range, windowId, { compare = 'previous', today:
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
 			slice: { from: fromEpoch(focus.from), to: fromEpoch(focus.to - DAY) },
 			axis: axisFor(bounds.from, bounds.to),
-			spent: now.spent, saved: now.saved, orders: now.orders, average: now.average,
+			spent: now.spent, saved: now.saved, orders: now.orders, median: medianOver(userId, focus.from, focus.to, now.orders, scope),
+			leftOut: leftOutOver(userId, focus.from, focus.to, scope),
 			pace: paceFor(focus.from, focus.to, today),
 			/* Which point on the chart is today, or null when the window is entirely in the past
 			   or entirely ahead. Day index, so a bucketed series maps it through its own cut. */
@@ -473,6 +530,7 @@ export function getStats(userId, range, windowId, { compare = 'previous', today:
 				previous: previousBounds ? cumulate(dailyRowsOver(userId, previousBounds.from, previousBounds.to, scope), 'spend') : null,
 				savedCumulative: cumulate(dailyRows, 'saved'),
 				ordersCumulative: cumulate(dailyRows, 'orders'),
+				...(STEPS.includes(step) ? { medians: stepMediansOver(userId, bounds.from, bounds.to, step, scope) } : {}),
 				categories: stacked.map(entry => ({ id: entry.id, name: entry.name })),
 				byCategory: categorySeriesOver(userId, bounds.from, bounds.to, stacked.map(entry => entry.id), scope)
 			}
@@ -492,6 +550,7 @@ export function filterOf(q) {
 		vendorId: q.vendorId || undefined,
 		categoryId: q.categoryId || undefined,
 		status: q.status || undefined,
+		excluded: q.excluded === 'include' ? 'include' : undefined,
 		from: day(q.from),
 		to: day(q.to)
 	}
@@ -539,7 +598,7 @@ const selectLimitedMonths = db.prepare(`
 	JOIN orders ot ON ot.id = oc.order_id
 	JOIN categories c ON c.id = oc.category_id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
-		AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND c.budget > 0
+		AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 AND c.budget > 0
 	GROUP BY oc.category_id, month
 `)
 const selectSummarySeen = db.prepare('SELECT month FROM user_monthly_summaries_seen WHERE user_id = ?')

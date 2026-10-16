@@ -16,7 +16,7 @@ import { Alert, useToast } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYearSpend,
+	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYear,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeVendor, putVendorImage, removeVendorImage, updateVendor, vendorImageUrl
 } from '../api/client.js'
 import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
@@ -451,7 +451,7 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 
 /** What the vendor has cost, beside the fields that describe it (5c). */
 function VendorSummary({ vendor, name, colour }) {
-	const spend = useApi(getVendorYearSpend, [vendor.id])
+	const spend = useApi(getVendorYear, [vendor.id])
 	const { keyOf } = useStatusTypes()
 	const returnedKey = keyOf('returned')
 	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: returnedKey, pageSize: 0 }], { enabled: !!returnedKey })

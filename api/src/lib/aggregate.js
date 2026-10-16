@@ -1,7 +1,7 @@
 import { db } from '../db.js'
 
-// a draft or a cancelled order is listed and counted, but its money is not spend
-const counted = (value, alias = '') => `CASE WHEN ${alias}status_type IN ('draft', 'cancelled') THEN 0 ELSE ${value} END`
+// a draft, a cancelled order or one left out of statistics is listed and counted, but its money is not spend
+const counted = (value, alias = '') => `CASE WHEN ${alias}status_type IN ('draft', 'cancelled') OR ${alias}exclude_from_stats = 1 THEN 0 ELSE ${value} END`
 
 /* Real aggregation: SUM/GROUP BY over the orders table's stored totals (see
    migrations/001_init.sql), not a per-order fetch-and-add-in-JS loop. */
@@ -49,7 +49,7 @@ const accountTotalQuery = db.prepare(
 	'SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?')
 // the uncounted orders are few, so they are summed apart and taken off, keeping the sum above index-only
 const uncountedTotalQuery = db.prepare(
-	"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND status_type IN ('draft', 'cancelled')")
+	"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND (status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1)")
 
 /* The one-vendor and one-category questions, asked of that entity's own rows -- not the
    whole-account rollups above with all but one entry thrown away. GET/PATCH /vendors/:id and
@@ -107,7 +107,7 @@ export function bookmarkCategoryCounts(userId) {
 const categoryYearSpendQuery = db.prepare(`
 	SELECT oc.category_id AS categoryId, SUM(ot.total * 1.0 / ot.category_count) AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0
 	GROUP BY oc.category_id
 `)
 
@@ -132,7 +132,7 @@ export function categoryMonthAverages(userId, today) {
 const categoryYearOrdersQuery = db.prepare(`
 	SELECT ot.date, ot.total * 1.0 / ot.category_count AS spend
 	FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id
-	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0
 `)
 
 /** What one category spent in each of the twelve whole months before the one `today` is in,

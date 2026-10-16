@@ -10,7 +10,7 @@ const ORDERS = `SELECT oc.category_id, COUNT(*) AS orders FROM order_categories 
 	WHERE ot.user_id = @userId`
 const MONTH = `SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft')`
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0`
 
 /* Ties go to the name as stored; `byName` is ordered by nameOrder, and `fav` puts favourites first. */
 const SORTS = {
@@ -34,11 +34,12 @@ const selectOrders = db.prepare(`SELECT oc.category_id, COUNT(*) AS orders
    sort them in a temp B-tree, as bookmarkCategoryCounts does in lib/aggregate.js. */
 const selectMonth = db.prepare(`SELECT oc.category_id, ot.total * 1.0 / ot.category_count AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft')
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0
 	AND oc.category_id IN (SELECT value FROM json_each(@ids))`)
 const selectYear = db.prepare(`SELECT oc.category_id, ot.total * 1.0 / ot.category_count AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
-	WHERE ot.user_id = @userId AND ot.date >= @yearFrom AND ot.date < @from AND oc.category_id IN (SELECT value FROM json_each(@ids))`)
+	WHERE ot.user_id = @userId AND ot.date >= @yearFrom AND ot.date < @from AND ot.exclude_from_stats = 0
+	AND oc.category_id IN (SELECT value FROM json_each(@ids))`)
 const selectBookmarks = db.prepare(`SELECT bc.category_id, 1 AS bookmarks
 	FROM bookmark_categories bc JOIN bookmarks b ON b.id = bc.bookmark_id
 	WHERE b.user_id = @userId AND bc.category_id IN (SELECT value FROM json_each(@ids))`)
