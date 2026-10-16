@@ -8,7 +8,7 @@ import { ORDER_STATUSES } from './constants.js'
    time, that every reader here shares. Nothing in this file recomputes subtotal/total/saved in
    JS. Every query below selects only the columns its caller actually reads, not `SELECT *`. */
 
-const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()}, revision FROM orders WHERE id = ? AND user_id = ?`)
+const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()}, revision, exclude_from_stats FROM orders WHERE id = ? AND user_id = ?`)
 const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note, url FROM order_items WHERE order_id = ? ORDER BY position')
 const selectAttachments = db.prepare(`
 	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail, sha256, pages, from_scan FROM order_attachments WHERE order_id = ?
@@ -76,6 +76,7 @@ export function decorateOrder(totals, { items, attachments, itemAttachments, cat
 		note: totals.note,
 		reference: totals.reference,
 		refunded: Boolean(totals.refunded),
+		excludeFromStats: Boolean(totals.exclude_from_stats),
 		items: items.map(i => mapItem(i, itemAttachments)),
 		attachments: attachments.map(mapAttachment),
 		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,

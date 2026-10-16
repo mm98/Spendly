@@ -122,6 +122,7 @@ function OrderView({ order, touch, onGone }) {
 			{order.validated ? <Sum value={shortDate(order.validated.date)}>Validated</Sum> : null}
 			<Sum value={<OrderCategories order={order} />}>Categories</Sum>
 			{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
+			{order.excludeFromStats ? <Sum value="Left out">Statistics</Sum> : null}
 			{order.note ? <Sum variant="stacked" value={<Well>{order.note.split('\n').map((line, i) => <Fragment key={i}>{i ? <br /> : null}{line}</Fragment>)}</Well>}>Note</Sum> : null}
 		</div>
 	)

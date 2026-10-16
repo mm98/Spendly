@@ -94,7 +94,7 @@ function Kept({ id }) {
 const fromBlank = blank => ({
 	vendor: blank.vendor ?? '', date: blank.date, status: blank.status, kind: blank.kind,
 	statusDates: { Delivered: blank.deliveredDate, Returned: blank.returnedDate }, categories: blank.categories ?? [],
-	shipping: null, discount: null, reference: '', note: '', refunded: false, lines: []
+	shipping: null, discount: null, reference: '', note: '', refunded: false, excludeFromStats: false, lines: []
 })
 
 /** An empty order, or one an Undo on its saved page sent back as `restored` (3a). */

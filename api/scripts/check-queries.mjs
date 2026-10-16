@@ -270,7 +270,7 @@ db.prepare(`INSERT INTO order_attachments (id, order_id, name, kind, meta, conte
    is a query this script cannot see, so a new one belongs in this list at the same time. */
 const REQUESTS = [
 	'/orders', '/orders?page=40', '/orders?sort=date-asc', '/orders?sort=amount-desc',
-	'/orders?pageSize=0', '/orders?pageSize=0&with=highest', '/orders?status=Draft&pageSize=0', `/orders?vendorId=${ids.vendor}&status=Returned&pageSize=0`,
+	'/orders?pageSize=0', '/orders?pageSize=0&with=amountScale', '/orders?status=Draft&pageSize=0', `/orders?vendorId=${ids.vendor}&status=Returned&pageSize=0`,
 	'/orders?pageSize=0&with=facets', '/bookmarks?pageSize=0',
 	'/orders?sort=amount-asc&page=20', '/orders?sort=discount-desc', '/orders?sort=discount-asc',
 	'/orders?sort=vendor-asc', '/orders?sort=vendor-asc&page=20',
@@ -289,7 +289,7 @@ const REQUESTS = [
 	'/orders/lines', '/orders/lines?status=Delivered&sort=amount-desc', '/orders/lines?sort=vendor-asc',
 	`/orders/lines?ids=${ids.order}&sort=date-desc`, '/orders/impact', '/orders/impact?status=Delivered&from=2026-01-01',
 	`/orders/impact?ids=${ids.order}`,
-	'/vendors', '/vendors/recent', `/vendors/${ids.vendor}`, `/vendors/${ids.vendor}/year-spend`,
+	'/vendors', '/vendors/recent', `/vendors/${ids.vendor}`, `/vendors/${ids.vendor}/year`,
 	`/vendors/${ids.vendor}/orders-carrying?categories=${encodeURIComponent(JSON.stringify(['Groceries']))}`,
 	'/vendors?pageSize=0', '/vendors?archived=all&pageSize=0', '/vendors?name=Netto&pageSize=0', '/vendors?name=Netto&pageSize=1&shape=brief',
 	'/vendors?like=Netto%20ApS&aka=Netto%20Aarhus&pageSize=1&shape=brief',
@@ -313,6 +313,7 @@ const REQUESTS = [
 	'/bookmarks/categories', '/bookmarks/categories?archived=yes',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
 	'/stats?range=all', '/stats?range=month&summary=1',
+	'/stats?range=month&flow=expenses&step=day', '/stats?range=quarter&flow=expenses&step=week', '/stats?range=year&flow=expenses&step=month&excluded=include',
 	'/stats?range=days30', '/stats?range=custom&windowId=2026-03-08~2026-04-19',
 	'/stats?range=year&flow=expenses', '/stats?range=year&flow=net', '/stats?range=year&flow=refunds',
 	`/stats?range=year&flow=expenses&vendorId=${ids.vendor}`, `/stats?range=year&flow=expenses&categoryId=${ids.category}`,

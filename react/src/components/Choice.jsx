@@ -28,7 +28,7 @@ export function Radio({ ...rest }) {
 /** A checkbox whose change applies at once, so the form has nothing to save. */
 export function Switch({ ...rest }) {
 	reject(rest, 'Switch')
-	return <input type="checkbox" className="sp-switch" {...rest} />
+	return <input type="checkbox" role="switch" className="sp-switch" {...rest} />
 }
 
 const CHOICE = { default: null, row: 'sp-choice--row', described: 'sp-choice--described' }

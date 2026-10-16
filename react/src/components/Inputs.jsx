@@ -145,23 +145,59 @@ export function SearchInput({ value, onChange, kbd, inputRef, ...rest }) {
 	)
 }
 
-export function RangeSlider({ value, onChange, min, max, step = 1, label, format, locale, ...rest }) {
+/** `stops` are values at evenly spaced points, so the track is spaced by them, not by value.
+    `open` makes the top end "and above": shown with a +, and a To typed past it is kept. */
+export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
 	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
 	const [typing, setTyping] = useState({})
 	// the boxes read text back in the grammar `format` writes it in, unless a locale is named
 	const grouping = !locale && format ? String(format(1000000)).replace(/[\d\s-]/g, '').charAt(0) : ''
-	const read = text => parseNumber(text, { locale: locale ?? (grouping === '.' ? 'da-DK' : grouping === ',' ? 'en-GB' : undefined) })
+	const read = text => parseNumber(String(text).replace(/\+\s*$/, ''), { locale: locale ?? (grouping === '.' ? 'da-DK' : grouping === ',' ? 'en-GB' : undefined) })
 	// two bounds, in order - a third would be read as nothing
 	if (!Array.isArray(value) || value.length !== 2)
 		console.error('<RangeSlider> value is two bounds, [low, high] - got ' + JSON.stringify(value))
 	const rail = useRef(null)
 	const [low, high] = value
-	const pct = n => ((n - min) / (max - min)) * 100
+	const spaced = Array.isArray(stops) && stops.length > 1
+	const least = spaced ? stops[0] : min
+	const most = spaced ? stops[stops.length - 1] : max
+	const last = spaced ? stops.length - 1 : 0
 
-	// a dragged or stepped bound lands on a step; a typed one is kept as typed, inside min and max
+	// where a value sits along the track, 0 to 1
+	const place = n => {
+		if (!spaced) return (n - least) / (most - least)
+		if (n <= least) return 0
+		if (n >= most) return 1
+		let i = 0
+		while (i + 1 < last && stops[i + 1] <= n) i++
+		const span = stops[i + 1] - stops[i]
+		return (i + (span > 0 ? (n - stops[i]) / span : 0)) / last
+	}
+	const pct = n => place(n) * 100
+	// the value at a point along the track: the nearest stop, or the value there
+	const valueAt = at => {
+		const along = Math.min(1, Math.max(0, at))
+		return spaced ? stops[Math.round(along * last)] : least + along * (most - least)
+	}
+	// `times` stops along from a value: a stop that repeats the value it leaves is passed over
+	const stepFrom = (n, by, times) => {
+		if (!spaced) return n + by * step * times
+		const exact = place(n) * last
+		let i = by > 0 ? Math.floor(exact + 1e-9) : Math.ceil(exact - 1e-9)
+		let at = n
+		for (let moved = 0; moved < times && i + by >= 0 && i + by <= last;) {
+			i += by
+			if (stops[i] !== at) { at = stops[i]; moved++ }
+		}
+		return at
+	}
+
+	// a dragged or stepped bound lands on a step; a typed one is kept as typed, inside min and max,
+	// or past the top end when it is open
 	const move = (which, n, snap = true) => {
-		const bounded = Math.min(max, Math.max(min, snap ? Math.round(n / step) * step : n))
+		const top = open && which === 'high' && !snap ? Infinity : most
+		const bounded = Math.min(top, Math.max(least, snap && !spaced ? Math.round(n / step) * step : n))
 		onChange?.(which === 'low' ? [Math.min(bounded, high), high] : [low, Math.max(bounded, low)])
 	}
 
@@ -173,7 +209,7 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 		if (!ev.currentTarget.hasPointerCapture(ev.pointerId)) return
 		const box = rail.current?.getBoundingClientRect()
 		if (!box || !box.width) return
-		move(which, min + ((ev.clientX - box.left) / box.width) * (max - min))
+		move(which, valueAt((ev.clientX - box.left) / box.width))
 	}
 
 	const commit = which => {
@@ -186,14 +222,19 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 
 	const stepKeys = (which, n) => ev => {
 		if (ev.key === 'Enter') return commit(which)
-		const by = ev.key === 'ArrowUp' ? step : ev.key === 'ArrowDown' ? -step : 0
+		const by = ev.key === 'ArrowUp' ? 1 : ev.key === 'ArrowDown' ? -1 : 0
 		if (!by) return
 		ev.preventDefault()
 		setTyping(t => ({ ...t, [which]: undefined }))
-		move(which, n + by * (ev.shiftKey ? 10 : 1))
+		move(which, stepFrom(n, by, ev.shiftKey ? 10 : 1))
+	}
+	// the open end reads as "and above"
+	const shown = (which, n) => {
+		const text = format ? format(n) : n
+		return open && which === 'high' && n === most ? `${text}+` : text
 	}
 	const bound = (which, n) => ({
-		value: typing[which] ?? (format ? format(n) : n),
+		value: typing[which] ?? shown(which, n),
 		onChange: text => setTyping(t => ({ ...t, [which]: text })),
 		onBlur: () => commit(which),
 		onKeyDown: stepKeys(which, n)
@@ -206,21 +247,20 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 			style={{ '--p': pct(n) }}
 			role="slider"
 			aria-label={`${label}, ${which === 'low' ? 'from' : 'to'}`}
-			aria-valuemin={which === 'low' ? min : low}
-			aria-valuemax={which === 'low' ? high : max}
+			aria-valuemin={which === 'low' ? least : low}
+			aria-valuemax={which === 'low' ? high : most}
 			aria-valuenow={n}
+			aria-valuetext={String(shown(which, n))}
 			onPointerDown={grab}
 			onPointerMove={drag(which)}
 			onKeyDown={ev => {
-				const by = ev.key === 'ArrowRight' || ev.key === 'ArrowUp' ? step
-					: ev.key === 'ArrowLeft' || ev.key === 'ArrowDown' ? -step
-					: ev.key === 'Home' ? min - n
-					: ev.key === 'End' ? max - n
+				const by = ev.key === 'ArrowRight' || ev.key === 'ArrowUp' ? 1
+					: ev.key === 'ArrowLeft' || ev.key === 'ArrowDown' ? -1
 					: 0
-				if (!by) return
+				const to = ev.key === 'Home' ? least : ev.key === 'End' ? most : by ? stepFrom(n, by, ev.shiftKey ? 10 : 1) : null
+				if (to === null) return
 				ev.preventDefault()
-				const jump = ev.shiftKey && Math.abs(by) === step ? 10 : 1
-				move(which, n + by * jump)
+				move(which, to)
 			}}
 		/>
 	)
@@ -235,8 +275,8 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 				onPointerDown={ev => {
 					if (ev.target !== ev.currentTarget) return
 					const box = ev.currentTarget.getBoundingClientRect()
-					const at = min + ((ev.clientX - box.left) / box.width) * (max - min)
-					move(Math.abs(at - low) <= Math.abs(at - high) ? 'low' : 'high', at)
+					const at = (ev.clientX - box.left) / box.width
+					move(Math.abs(at - place(low)) <= Math.abs(at - place(high)) ? 'low' : 'high', valueAt(at))
 				}}
 			>
 				<span className="sp-track__span" style={{ '--a': pct(low), '--b': pct(high) }} />

@@ -16,7 +16,7 @@ import { Alert, useToast } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYearSpend,
+	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYear,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeVendor, putVendorImage, removeVendorImage, updateVendor, vendorImageUrl
 } from '../api/client.js'
 import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
@@ -353,7 +353,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const rail = loading
 		? (
 			<>
-				<SummaryLoading label="Vendor summary" sums={[['Spend this year', '76'], ['Average order', '76'], ['Saved', '76'], ['Returned', '64']]}
+				<SummaryLoading label="Vendor summary" sums={[['Spend this year', '76'], ['Median order', '76'], ['Saved', '76'], ['Returned', '64']]}
 					action="See more in statistics" />
 				{!known || known.orders ? <RecentLoading /> : null}
 				<EndLoading label="End of its life" title={end.title} body={end.body}
@@ -451,11 +451,11 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 
 /** What the vendor has cost, beside the fields that describe it (5c). */
 function VendorSummary({ vendor, name, colour }) {
-	const spend = useApi(getVendorYearSpend, [vendor.id])
+	const year = useApi(getVendorYear, [vendor.id])
 	const { keyOf } = useStatusTypes()
 	const returnedKey = keyOf('returned')
 	const returned = useApi(getOrders, [{ vendorId: vendor.id, status: returnedKey, pageSize: 0 }], { enabled: !!returnedKey })
-	const thisYear = spend.data ? spend.data.amount : null
+	const thisYear = year.data ?? null
 	return (
 		<Card>
 			<CardHeader name="Vendor summary" />
@@ -467,8 +467,8 @@ function VendorSummary({ vendor, name, colour }) {
 				</Stacked>
 			</div>
 			<div className="sp-stack">
-				<Sum value={thisYear === null ? '' : currency(thisYear, 0)}>Spend this year</Sum>
-				<Sum value={currency(vendor.orders ? vendor.spend / vendor.orders : 0, 0)}>Average order</Sum>
+				<Sum value={thisYear === null ? '' : currency(thisYear.amount, 0)}>Spend this year</Sum>
+				<Sum value={thisYear === null ? '' : currency(thisYear.median, 0)}>Median order</Sum>
 				<Sum value={<span className={isSaving(vendor.saved, 0) ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>Saved</Sum>
 				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>Returned</Sum>
 			</div>

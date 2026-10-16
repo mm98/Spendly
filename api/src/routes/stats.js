@@ -1,11 +1,12 @@
 import { Router } from 'express'
-import { FLOWS, comparedMonth, filterOf, getStats, homeAttention, markSummarySeen, monthTotals, monthlySummary, sliceOrders } from '../lib/stats.js'
+import { FLOWS, STEPS, comparedMonth, filterOf, getStats, homeAttention, markSummarySeen, monthTotals, monthlySummary, sliceOrders } from '../lib/stats.js'
 
 export const router = Router()
 
 router.get('/', (req, res) => {
 	const compare = req.query.compare === 'year' ? 'year' : 'previous'
-	res.json(getStats(req.user.id, req.query.range, req.query.windowId, { compare, today: req.today, filter: filterOf(req.query) }))
+	const step = STEPS.includes(req.query.step) ? req.query.step : undefined
+	res.json(getStats(req.user.id, req.query.range, req.query.windowId, { compare, today: req.today, filter: filterOf(req.query), step }))
 })
 
 // each of the last `count` months' spend and orders, ending with this one (Home's months chart)

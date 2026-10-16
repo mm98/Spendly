@@ -439,6 +439,7 @@ const toApiDraft = draft => ({
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
 	discount: draft.discount ? parseAmount(draft.discount) : 0,
 	reference: draft.reference ?? '', note: draft.note ?? '', refunded: Boolean(draft.refunded),
+	excludeFromStats: Boolean(draft.excludeFromStats),
 	// the copy the form started from and the save's own key: a save over another tab's, or one sent twice, is told apart (6d)
 	...(draft.revision ? { revision: draft.revision } : {}),
 	...(draft.clientKey ? { clientKey: draft.clientKey } : {}),
@@ -678,9 +679,9 @@ export async function getOftenOrders(signal) {
 	return request('/api/orders/often', { signal })
 }
 
-/** What a vendor cost in this year's window, as Statistics counts it: `{ amount }`. */
-export async function getVendorYearSpend(vendorId, signal) {
-	return request(`/api/vendors/${encodeURIComponent(vendorId)}/year-spend`, { signal })
+/** What a vendor cost in this year's window and its median order, as Statistics counts them: `{ amount, median }`. */
+export async function getVendorYear(vendorId, signal) {
+	return request(`/api/vendors/${encodeURIComponent(vendorId)}/year`, { signal })
 }
 
 /** How many of a vendor's newest orders carry every one of these category names: `{ orders }`. */
@@ -919,7 +920,7 @@ export async function getStatsSlice(slice, signal) {
 
 /** This month's statistics as the Statistics page asks for them, word for word, so every reader of
     this month shares one answer. */
-export const thisMonthSlice = () => ({ range: 'month', windowId: today().slice(0, 7), flow: 'expenses' })
+export const thisMonthSlice = () => ({ range: 'month', windowId: today().slice(0, 7), flow: 'expenses', step: 'day' })
 
 /** Each of the last `count` months' spend and orders, oldest first: `{ months: [{ month, spend, orders }] }`. */
 export async function getStatsMonths(count, signal) {
@@ -1156,8 +1157,8 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getVendorYearSpend, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
-const vendorReads = [getVendorPage, getVendorYearSpend, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
+const orderReads = [getOrders, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const vendorReads = [getVendorPage, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
 const categoryReads = [getCategoryPage, getVendorOrdersCarrying, getRecentCategoryNames, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }

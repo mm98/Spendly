@@ -206,6 +206,7 @@ export function chartOf(view) {
 			spend: between(spend, start, end),
 			saved: between(saved, start, end),
 			orders: between(orders, start, end),
+			median: view.series.medians?.[i] ?? 0,
 			byCategory: view.series.byCategory.map(series => between(series, start, end)),
 			running,
 			// how much of a running column has passed, today included
