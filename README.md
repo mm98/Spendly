@@ -41,7 +41,8 @@ then `design/index.html`, the map of every page.
 - A typical order is the median, never the average, so one very large order barely moves it.
   Totals and breakdowns stay sums.
 - An order left out of statistics is still listed, searched, filtered and exported, but no spend
-  figure, chart, breakdown or limit counts it, on any page.
+  figure, chart, breakdown or limit counts it, on any page. A copy of it is a new purchase and
+  starts counted.
 - A filter over amounts is spaced by how many orders fall along it, not by kroner, and its top end
   reads as "and above".
 - A chart whose labels do not all fit labels its first and last bar and evenly spaced bars between,

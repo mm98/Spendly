@@ -432,7 +432,7 @@ function DefaultsCard({ value, change, touch, reads }) {
 						<span className="sp-rule" />
 						<div className="sp-stack">
 							<Choice variant="described" descriptionTone="help"
-								control={<Switch role="switch" checked={value('scanOverrides')} onChange={ev => change('scanOverrides', ev.target.checked)} />}
+								control={<Switch checked={value('scanOverrides')} onChange={ev => change('scanOverrides', ev.target.checked)} />}
 								description="When a scan shows what the paper is, such as an order confirmation or a return, the scan sets the status or the kind to match. Off means your defaults always apply.">
 								Let a scan override these
 							</Choice>
@@ -447,7 +447,7 @@ function DefaultsCard({ value, change, touch, reads }) {
 /* How loudly a category's limit speaks up (8b), in the app only. */
 function AlertsCard({ value, change }) {
 	const switchOf = (key, label, rest) => (
-		<Choice control={<Switch role="switch" checked={value(key)} onChange={ev => change(key, ev.target.checked)} {...rest} />}>{label}</Choice>
+		<Choice control={<Switch checked={value(key)} onChange={ev => change(key, ev.target.checked)} {...rest} />}>{label}</Choice>
 	)
 	return (
 		<Card footerLayout="stack" footer={[
@@ -471,7 +471,7 @@ function LooksCard({ value, change }) {
 			<FieldGroup aria-label="Rows Home can show">
 				{LOOKS.map(l => (
 					<Choice key={l.id} variant="described" descriptionTone="help" description={l.help}
-						control={<Switch role="switch" aria-label="On" checked={value(`look.${l.id}`)} onChange={ev => change(`look.${l.id}`, ev.target.checked)} />}>
+						control={<Switch aria-label="On" checked={value(`look.${l.id}`)} onChange={ev => change(`look.${l.id}`, ev.target.checked)} />}>
 						{l.label}
 					</Choice>
 				))}

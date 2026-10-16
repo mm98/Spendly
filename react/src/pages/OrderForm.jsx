@@ -1254,18 +1254,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
-			{creating
-				? null
-				: (
-					<div className="sp-field">
-						<div className="sp-row-flex sp-gap-12">
-							<Switch role="switch" id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={!!draft.excludeFromStats}
-								onChange={ev => set({ excludeFromStats: ev.target.checked })} />
-							<label className="sp-data" htmlFor={statsSwitch}>Leave out of statistics</label>
-						</div>
-						<span className="sp-field__help" id={`${statsSwitch}-help`}>For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
-					</div>
-				)}
+			<div className="sp-field">
+				<div className="sp-row-flex sp-gap-12">
+					<Switch id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={!!draft.excludeFromStats}
+						onChange={ev => set({ excludeFromStats: ev.target.checked })} />
+					<label className="sp-data" htmlFor={statsSwitch}>Leave out of statistics</label>
+				</div>
+				<span className="sp-field__help" id={`${statsSwitch}-help`}>For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
+			</div>
 		</>
 	)
 
