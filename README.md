@@ -38,6 +38,12 @@ then `design/index.html`, the map of every page.
   button's name from its icon.
 - A saving is always an amount (`Saved 1.320,00 kr.`), green above zero and grey at zero, never a
   percentage.
+- A typical order is the median, never the average, so one very large order barely moves it.
+  Totals and breakdowns stay sums.
+- An order left out of statistics is still listed, searched, filtered and exported, but no spend
+  figure, chart, breakdown or limit counts it, on any page.
+- A filter over amounts is spaced by how many orders fall along it, not by kroner, and its top end
+  reads as "and above".
 - A chart whose labels do not all fit labels its first and last bar and evenly spaced bars between,
   with at least 48 clear between two labels. A label is one line, centred under its bar.
 - Copy uses plain hyphens and straight quotes, no decorative emoji, and plain words a

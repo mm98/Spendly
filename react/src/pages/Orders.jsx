@@ -165,7 +165,7 @@ export default function OrderList() {
 	// the vendors and categories the filters name, for their crumbs
 	const vendors = usePicked('vendor', listOf(f.vendor))
 	const categories = usePicked('category', listOf(f.category))
-	const highest = useApi(getOrders, [{ pageSize: 0, with: 'highest' }])
+	const amountScale = useApi(getOrders, [{ pageSize: 0, with: 'amountScale' }])
 	const fromImport = useApi(getImport, [f.import], { enabled: !!f.import })
 	const user = useApi(getCurrentUser).data
 	const reads = user?.scanAiEnabled
@@ -313,7 +313,7 @@ export default function OrderList() {
 		clearAll()
 		rail?.querySelector('.sp-facets :is(button, input):not(:disabled)')?.focus()
 	}
-	const facetData = { highest: highest.data?.highest }
+	const facetData = { amountScale: amountScale.data?.amountScale }
 	const filtersCard = (
 		<Card>
 			<CardHeader name="Filters" actions={[{ label: 'Clear all', onClick: clearRail, held: !crumbs.length }]} />
@@ -865,7 +865,7 @@ function useFacetValues(kind, find, limit, picked) {
 
 /** The rail's groups (c12, 2b): several values each, with live counts; a value with nothing
     behind it stays, greyed. `bare` gives the groups alone, for the sheet (7b). */
-function OrderFacets({ bare = false, f, update, custom, setCustom, highest, matched, counts }) {
+function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, matched, counts }) {
 	const statuses = useStatuses()
 	const over = useOverLimitIds()
 	const size = useApi(getSettings).data?.pageSize ?? 10
@@ -990,7 +990,7 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, highest, matc
 				</Combobox>
 			</FieldGroup>
 
-			{highest ? <AmountFacet top={Math.max(1000, Math.ceil(highest / 1000) * 1000)} min={f.min} max={f.max} update={update} /> : null}
+			{amountScale?.stops || amountScale?.highest ? <AmountFacet scale={amountScale} min={f.min} max={f.max} update={update} /> : null}
 
 			<div className="sp-field-group">
 				<div className="sp-row-flex sp-gap-12">
@@ -1093,19 +1093,28 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 	)
 }
 
-/* A drag is many values; the list asks for the one it settles on. */
-function AmountFacet({ top, min, max, update }) {
-	const fromUrl = useMemo(() => [min ? Math.min(Number(min), top) : 0, max ? Math.min(Number(max), top) : top], [min, max, top])
+/* A drag is many values; the list asks for the one it settles on. The track is spaced by the
+   account's orders when it has enough of them (2b): its end is "and above", so a To at the end
+   is no bound at all, and a To typed past it is kept. */
+function AmountFacet({ scale, min, max, update }) {
+	const stops = scale.stops
+	const top = stops ? stops[stops.length - 1] : Math.max(1000, Math.ceil(scale.highest / 1000) * 1000)
+	const fromUrl = useMemo(() => [
+		min ? Math.min(Number(min), top) : 0,
+		max ? (stops ? Number(max) : Math.min(Number(max), top)) : top
+	], [min, max, top, stops])
 	const [range, setRange] = useState(fromUrl)
 	useEffect(() => setRange(fromUrl), [fromUrl])
 	useEffect(() => {
 		if (range[0] === fromUrl[0] && range[1] === fromUrl[1]) return
-		const timer = setTimeout(() => update({ min: range[0] > 0 ? range[0] : '', max: range[1] < top ? range[1] : '' }), 300)
+		const timer = setTimeout(() => update({ min: range[0] > 0 ? range[0] : '', max: range[1] !== top ? range[1] : '' }), 300)
 		return () => clearTimeout(timer)
 	}, [range, fromUrl, top, update])
+	const end = stops ? currency(top, 0).replace(amount(top, 0), `${amount(top, 0)}+`) : currency(top, 0)
 	return (
-		<FieldGroup facet legend="Amount" meta={`0 - ${currency(top, 0)}`}>
-			<RangeSlider value={range} min={0} max={top} step={100} label="Amount" format={n => amount(n, 0)} locale={NUMBER_LOCALE} onChange={setRange} />
+		<FieldGroup facet legend="Amount" meta={`0 - ${end}`}>
+			<RangeSlider value={range} min={0} max={top} step={100} stops={stops ?? undefined} open={!!stops} label="Amount"
+				format={n => amount(n, 0)} locale={NUMBER_LOCALE} onChange={setRange} />
 		</FieldGroup>
 	)
 }

@@ -137,6 +137,8 @@ export default function Statistics() {
 	const id = validId(range, asked) && !(range === 'days30' && asked > today()) ? asked : defaultId(range)
 	const compareOn = params.get('compare') !== 'off'
 	const flow = FLOWS.some(f => f.value === params.get('flow')) ? params.get('flow') : 'expenses'
+	// orders left out of statistics count again only while the address says so (4a)
+	const including = params.get('excluded') === 'include'
 	const [fromMs, toMs] = boundsOf(range, id)
 	const from = isoOf(fromMs)
 	const to = isoOf(toMs)
@@ -145,10 +147,17 @@ export default function Statistics() {
 	const comparing = compareOn && !touch && !drilled
 	const before = yearEarlier(range, id)
 
-	const base = { range, windowId: id, flow }
+	const base = { range, windowId: id, flow, ...(including ? { excluded: 'include' } : {}) }
 	const filter = filterOf(crumbs)
-	const stats = useCurrent(getStatsSlice, [{ ...base, ...filter }])
-	const past = useCurrent(getStatsSlice, [{ range, windowId: before, flow, ...filter }], { enabled: comparing })
+	// each step of the chart carries its own median order, so the request names the step the chart draws
+	const step = unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs)
+	const stats = useCurrent(getStatsSlice, [{ ...base, step, ...filter }])
+	// the window still running is compared with the same number of days of the earlier one
+	const [pastFrom, pastTo] = boundsOf(range, before)
+	const daysIn = Math.floor((todayUtc() - fromMs) / DAY_MS) + 1
+	const sameDays = todayUtc() >= fromMs && todayUtc() <= toMs ? Math.min(daysIn, Math.round((pastTo - pastFrom) / DAY_MS) + 1) : null
+	const pastLast = isoOf(pastFrom + ((sameDays ?? 1) - 1) * DAY_MS)
+	const past = useCurrent(getStatsSlice, [{ ...base, windowId: before, ...filter, ...(sameDays == null ? {} : { to: pastLast }) }], { enabled: comparing })
 	// inside a crumb every figure is held against the level above it (4b)
 	const parent = useCurrent(getStatsSlice, [{ ...base, ...filterOf(crumbs.slice(0, -1)) }], { enabled: drilled })
 	// the table's slice is stated as a share of its period's spend (4a): the time crumb, or the whole window
@@ -180,12 +189,13 @@ export default function Statistics() {
 
 	// the range is always in the address, since an address without one opens on the kept choice;
 	// everything else only where it differs from the page's own default
-	const write = ({ range: r = range, id: i = id, compare: c = compareOn, flow: f = flow, crumbs: cr = crumbs }) => setParams({
+	const write = ({ range: r = range, id: i = id, compare: c = compareOn, flow: f = flow, crumbs: cr = crumbs, including: inc = including }) => setParams({
 		range: r,
 		...(r !== 'custom' && i === defaultId(r) ? {} : { period: i }),
 		...(c ? {} : { compare: 'off' }),
 		...(f === 'expenses' ? {} : { flow: f }),
-		...(cr.length ? { crumbs: writeCrumbs(cr) } : {})
+		...(cr.length ? { crumbs: writeCrumbs(cr) } : {}),
+		...(inc ? { excluded: 'include' } : {})
 	})
 	// a period the reader chooses here is the one the order list opens on next (c14)
 	const show = (nextRange, nextId) => {
@@ -292,6 +302,13 @@ export default function Statistics() {
 					// a custom range has no stepper (4f): choosing the selected Custom again opens its dates
 					onClick={ev => { if (range === 'custom' && !draft && ev.target.matches('input[value="custom"]')) openCustom() }}
 					stepper={stepper}
+					extra={view?.leftOut
+						? (
+							<Choice control={<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />}>
+								Include {counted(view.leftOut, 'left-out order')}
+							</Choice>
+						)
+						: null}
 				>
 					<Selected>
 						{span => (
@@ -385,13 +402,8 @@ export default function Statistics() {
 	const selectedKey = time ? chart.columns.find(c => c.crumb?.value === time.value)?.key ?? null : null
 	const sliceName = time ? crumbLabel(time, labels) : name
 	const sliceInText = time ? crumbLabel(time, labels, true) : nameInText
-	// the window still running is compared with the same number of days of the earlier one
-	const pace = view.pace
-	const [pastFrom, pastTo] = boundsOf(range, before)
-	const sameDays = pace.running ? Math.min(pace.daysIn, Math.round((pastTo - pastFrom) / DAY_MS) + 1) : null
-	const pastLast = isoOf(pastFrom + ((sameDays ?? 1) - 1) * DAY_MS)
 	const wasName = nameOf(range, before)
-	const was = !comparing || !past.data ? null : sameDays == null ? past.data.window : sameDaysOf(past.data.window, sameDays)
+	const was = comparing && past.data ? past.data.window : null
 	const failedNotice = comparing && past.error
 		? (
 			<Alert color="danger" mark="!" title={`${wasName} did not load`} action={<Button variant="outline" size="small" onClick={retry}>Try again</Button>}>
@@ -511,13 +523,6 @@ function quickRanges(firstOrder) {
 	]
 }
 
-/** The earlier window cut to its first `days` days, from its running totals. */
-function sameDaysOf(window, days) {
-	const spent = window.series.current[days - 1] ?? 0
-	const orders = window.series.ordersCumulative[days - 1] ?? 0
-	return { spent, saved: window.series.savedCumulative[days - 1] ?? 0, orders, average: orders ? spent / orders : 0 }
-}
-
 /** The drill path (4b, 4c): only the last level carries a remove; an earlier one goes back to itself.
     Backspace removes the focused level and keeps the rest (c8, 4c); the focus takes its place. */
 function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) {
@@ -599,7 +604,7 @@ const buttonHold = key => (
 function busyParts({ unit, name, cardName, period, span, running, touch, comparing, categories, known, drilled, flow }) {
 	// the account's categories bound a breakdown's length before its window answers
 	return {
-		kpis: (drilled ? ['Spend', 'Orders', 'Average order', 'Saved'] : ['Total spend', 'Orders', 'Average order', 'Saved']).map(label => (
+		kpis: (drilled ? ['Spend', 'Orders', 'Median order', 'Saved'] : ['Total spend', 'Orders', 'Median order', 'Saved']).map(label => (
 			<Card key={label} aria-busy="true">
 				{touch ? null : <CardHeader name={label} />}<Stat bare label={touch ? label : undefined} figure={hold('104', '22')} />
 				{comparing ? <Skeleton shape="pill" /> : null}
@@ -664,14 +669,14 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 			))}
 			{spark(c => c.orders, n => amount(n, 0), `Orders in each ${chart.unit}`)}
 		</Card>,
-		<Card key="average">
-			{touch ? null : <CardHeader name={per('Average order')} />}<Stat bare label={touch ? per('Average order') : undefined} figure={figure(view.average)} />
+		<Card key="median">
+			{touch ? null : <CardHeader name={per('Median order')} />}<Stat bare label={touch ? per('Median order') : undefined} figure={figure(view.median)} />
 			{compared(then => (
-				<Change state={then.average && Math.round(view.average) !== Math.round(then.average) ? 'progress' : undefined} against={currency(then.average, 0)} by={by}>
-					{rise(view.average, then.average)}
+				<Change state={then.median && Math.round(view.median) !== Math.round(then.median) ? 'progress' : undefined} against={currency(then.median, 0)} by={by}>
+					{rise(view.median, then.median)}
 				</Change>
 			))}
-			{spark(c => (c.orders ? c.spend / c.orders : 0), money, `Average order in each ${chart.unit}`)}
+			{spark(c => c.median, money, `Median order in each ${chart.unit}`)}
 		</Card>,
 		<Card key="saved">
 			{touch ? null : <CardHeader name={per('Saved')} />}<Stat bare label={touch ? per('Saved') : undefined} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
@@ -689,9 +694,9 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 function DrilledKpis({ view, parent, above, versusAll, period, category, flow, touch }) {
 	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
 	const of = parent && parent.spent > 0 && view.spent >= 0 ? `${percent(share(view.spent, parent.spent), 0)} of ${above}` : null
-	const higher = parent && parent.average > 0 ? view.average - parent.average : null
-	const versus = higher == null || Math.round(view.average) === Math.round(parent.average)
-		? null : `${signed(higher, percent(Math.abs(share(higher, parent.average)), 0))} vs ${versusAll}`
+	const higher = parent && parent.median > 0 ? view.median - parent.median : null
+	const versus = higher == null || Math.round(view.median) === Math.round(parent.median)
+		? null : `${signed(higher, percent(Math.abs(share(higher, parent.median)), 0))} vs ${versusAll}`
 	// a category's limit, held once for each month of the stretch the figures cover, as the Limits card holds it
 	let limit = null
 	if (category?.budget > 0 && flow !== 'refunds') {
@@ -701,7 +706,7 @@ function DrilledKpis({ view, parent, above, versusAll, period, category, flow, t
 	return [
 		<Card key="spend">{touch ? null : <CardHeader name="Spend" />}<Stat bare label={touch ? 'Spend' : undefined} figure={figure(view.spent)} help={of} /></Card>,
 		<Card key="orders">{touch ? null : <CardHeader name="Orders" />}<Stat bare label={touch ? 'Orders' : undefined} figure={amount(view.orders, 0)} /></Card>,
-		<Card key="average">{touch ? null : <CardHeader name="Average order" />}<Stat bare label={touch ? 'Average order' : undefined} figure={figure(view.average)} help={versus} helpColor={higher > 0 ? 'warning' : 'default'} /></Card>,
+		<Card key="median">{touch ? null : <CardHeader name="Median order" />}<Stat bare label={touch ? 'Median order' : undefined} figure={figure(view.median)} help={versus} helpColor={higher > 0 ? 'warning' : 'default'} /></Card>,
 		limit
 			? <Card key="limit">{touch ? null : <CardHeader name="Against the limit" />}<Stat bare label={touch ? 'Against the limit' : undefined} figure={`${amount(limit.spent, 0)} / ${amount(limit.allowed, 0)}`} help={limit.help} helpColor={limit.over ? 'warning' : 'default'} /></Card>
 			: <Card key="saved">{touch ? null : <CardHeader name="Saved" />}<Stat bare label={touch ? 'Saved' : undefined} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} /></Card>

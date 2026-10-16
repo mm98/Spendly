@@ -439,6 +439,7 @@ const toApiDraft = draft => ({
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
 	discount: draft.discount ? parseAmount(draft.discount) : 0,
 	reference: draft.reference ?? '', note: draft.note ?? '', refunded: Boolean(draft.refunded),
+	excludeFromStats: Boolean(draft.excludeFromStats),
 	// the copy the form started from and the save's own key: a save over another tab's, or one sent twice, is told apart (6d)
 	...(draft.revision ? { revision: draft.revision } : {}),
 	...(draft.clientKey ? { clientKey: draft.clientKey } : {}),
@@ -919,7 +920,7 @@ export async function getStatsSlice(slice, signal) {
 
 /** This month's statistics as the Statistics page asks for them, word for word, so every reader of
     this month shares one answer. */
-export const thisMonthSlice = () => ({ range: 'month', windowId: today().slice(0, 7), flow: 'expenses' })
+export const thisMonthSlice = () => ({ range: 'month', windowId: today().slice(0, 7), flow: 'expenses', step: 'day' })
 
 /** Each of the last `count` months' spend and orders, oldest first: `{ months: [{ month, spend, orders }] }`. */
 export async function getStatsMonths(count, signal) {

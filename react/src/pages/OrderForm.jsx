@@ -1,5 +1,5 @@
 import { httpUrl } from '../api/rules.js'
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Card, CardBody, CardHeader, Panel, Toolbar } from '../components/Card.jsx'
@@ -13,7 +13,7 @@ import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Stepper } from '../components/Stepper.jsx'
 import { Combobox, ComboboxGroup, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
 import { DateField } from '../components/DatePickers.jsx'
-import { Check } from '../components/Choice.jsx'
+import { Check, Switch } from '../components/Choice.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { FILE_TYPES, PHOTO_TYPES, Slot, sniffedProblem } from '../components/FileDrop.jsx'
@@ -90,7 +90,7 @@ export function draftOf(order) {
 		statusDates: Object.fromEntries(order.statusHistory.map(s => [s.status, last(s.status)])),
 		categories: order.categories.map(c => c.name),
 		shipping: order.shipping || null, discount: order.discount || null,
-		reference: order.reference ?? '', note: order.note ?? '', refunded: order.refunded,
+		reference: order.reference ?? '', note: order.note ?? '', refunded: order.refunded, excludeFromStats: order.excludeFromStats,
 		lines: order.items.map(item => ({
 			key: item.id, id: item.id, title: item.title, quantity: item.quantity, price: item.price,
 			retail: item.retail ?? null, note: item.note ?? '', url: item.url ?? '',
@@ -105,7 +105,7 @@ export function apiDraft(d, lines, dated) {
 		vendor: d.vendor.trim(), date: d.date, status: d.status, kind: d.kind,
 		statusDates: Object.fromEntries(Object.entries(d.statusDates ?? {}).filter(([key, date]) => date && dated.has(key))),
 		categories: d.categories, shipping: d.shipping ? amount(d.shipping) : '', discount: d.discount ? amount(d.discount) : '',
-		reference: d.reference, note: d.note, refunded: d.refunded,
+		reference: d.reference, note: d.note, refunded: d.refunded, excludeFromStats: d.excludeFromStats,
 		items: lines.map(l => ({ ...(l.id ? { id: l.id } : {}), title: l.title.trim(), quantity: l.quantity, price: l.price, retail: l.retail, note: l.note, url: l.url ?? '' }))
 	}
 }
@@ -116,7 +116,7 @@ export function readSeed(answer) {
 		vendor: answer.vendor ?? '', date: answer.date, status: answer.status, kind: answer.kind,
 		statusDates: { Delivered: answer.deliveredDate, Returned: answer.returnedDate }, categories: [],
 		shipping: answer.shipping || null, discount: answer.discount || null,
-		reference: answer.reference ?? '', note: '', refunded: false,
+		reference: answer.reference ?? '', note: '', refunded: false, excludeFromStats: false,
 		lines: answer.lines.map(l => ({
 			key: l.id, title: l.title ?? '', quantity: l.quantity ?? 1, price: l.price ?? null,
 			retail: l.retail ?? null, note: '', uncertain: Boolean(l.uncertain), unclearPart: l.unclearPart ?? null, include: true
@@ -1184,6 +1184,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const vendorNote = !scan || !scan.vendor || draft.vendor !== asRead.vendor ? {}
 		: scan.unclear?.includes('vendor') ? lookAt('vendor')
 			: scan.vendorMatched ? { note: 'matched existing vendor', noteType: 'success' } : { note: 'new vendor, created on save' }
+	const statsSwitch = useId()
 	const fields = (
 		<>
 			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
@@ -1253,6 +1254,18 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
+			{creating
+				? null
+				: (
+					<div className="sp-field">
+						<div className="sp-row-flex sp-gap-12">
+							<Switch role="switch" id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={!!draft.excludeFromStats}
+								onChange={ev => set({ excludeFromStats: ev.target.checked })} />
+							<label className="sp-data" htmlFor={statsSwitch}>Leave out of statistics</label>
+						</div>
+						<span className="sp-field__help" id={`${statsSwitch}-help`}>For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
+					</div>
+				)}
 		</>
 	)
 
@@ -1285,8 +1298,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const early = [75, 90, 100].includes(loud.notifyEarly) ? loud.notifyEarly : 90
 	const dated = /^\d{4}-\d{2}-\d{2}$/.test(draft.date ?? '')
 	const limits = useApi(getOrderLimits, [draft.date, draft.categories, orderId ?? ''], { enabled: warns && dated && draft.categories.length > 0 })
-	// a draft or a cancelled order spends nothing, so it takes no category anywhere
-	const counts = !['draft', 'cancelled'].includes(useStatusTypes().typeOf(draft.status))
+	// a draft, a cancelled order or one left out of statistics spends nothing, so it takes no category anywhere
+	const counts = !['draft', 'cancelled'].includes(useStatusTypes().typeOf(draft.status)) && !draft.excludeFromStats
 	const share = draft.categories.length ? sums.total / draft.categories.length : 0
 	const flagged = warns && counts && dated && draft.categories.length && limits.data
 		? limits.data.limits
@@ -1659,7 +1672,7 @@ const detailsLine = d => [d.categories.join(', '), d.kind].filter(Boolean).join(
 const lineShape = l => JSON.stringify([l.title, Number(l.quantity), l.price, l.retail ?? null, String(l.url ?? '').trim()])
 const FIELD_WORDS = {
 	vendor: 'the vendor', date: 'the date', kind: 'the kind', categories: 'the categories', shipping: 'the shipping fee',
-	discount: 'the discount', reference: 'the reference', note: 'the note'
+	discount: 'the discount', reference: 'the reference', note: 'the note', excludeFromStats: 'whether it counts in statistics'
 }
 /** What another copy of the order changed, against the one this form opened on (6d). */
 function changedThere(was, now, statuses) {

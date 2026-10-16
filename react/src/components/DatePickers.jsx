@@ -586,8 +586,9 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
 }
 
 /* `at` is the day the presets resolve around (today when absent), `stepper` moves it, `onPresent`
-   steps back to the window holding today (c14); `actions` end the row (4a). */
-export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, actions, children, locale, ...rest }) {
+   steps back to the window holding today (c14); `extra` follows the comparison, as a second
+   switch (4a); `actions` end the row (4a). */
+export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this
 	// component derives, so it cannot be resolved until they exist
@@ -672,6 +673,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 			{against && picked
 				? <span className="sp-period__compare">{typeof picked === 'function' ? picked(shapeOf(value, dates)) : picked}</span>
 				: null}
+			{extra}
 			{/* stepped away from the present, the word becomes the one press back to it (c14) */}
 			{away
 				? (
