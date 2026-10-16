@@ -66,6 +66,10 @@
           <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
           <span class="sp-data">Compare with 2025</span>
         </label>
+        <label class="sp-row-flex sp-gap-8">
+          <input class="sp-switch" type="checkbox" role="switch">
+          <span class="sp-data">Include 1 left-out order</span>
+        </label>
       </div>
 
       <div class="sp-stats sp-stats--fold">
@@ -119,13 +123,13 @@
             </div>
           </div>
           <div class="sp-card">
-            <div class="sp-card__head"><span class="sp-section-label">Average order · by month</span></div>
+            <div class="sp-card__head"><span class="sp-section-label">Median order · by month</span></div>
             <span class="sp-stat__figure">1.961 kr.</span>
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-pill" data-state="progress">+3,6%</span>
               <span class="sp-meta">vs 1.893 kr.</span>
             </div>
-            <div class="sp-bars sp-bars--spark" role="img" aria-label="Average order by month in 2026">
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Median order by month in 2026">
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
@@ -727,13 +731,13 @@
             </div>
           </div>
           <div class="sp-card">
-            <div class="sp-card__head"><span class="sp-section-label">Average order · by month</span></div>
+            <div class="sp-card__head"><span class="sp-section-label">Median order · by month</span></div>
             <span class="sp-stat__figure">1.961 kr.</span>
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-pill" data-state="progress">+3,6%</span>
               <span class="sp-meta">vs 1.893 kr.</span>
             </div>
-            <div class="sp-bars sp-bars--spark" role="img" aria-label="Average order by month in 2026">
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Median order by month in 2026">
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
@@ -769,6 +773,8 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Median order, not average.</b> The order figure and its sparkline are the median of the orders in the set, so one very large order barely moves them. Total spend and the breakdowns are still sums. The comparison pill compares median with median.</div>
+    <div class="doc-note"><b>Include N left-out orders</b> appears only when the period holds at least one order marked Leave out of statistics (<a href="Order editing layouts.dc.html#1d">1d</a>); N is that count, singular for one. Off by default. Turning it on puts them back into every figure on the page for this visit; it is in the URL as <code>excluded=include</code> and is not remembered. The switch says nothing when the period has none, so it is absent rather than disabled.</div>
       <div class="doc-note"><b>Every card follows the period, and none is tied to a month.</b> By category, Top vendors and Limits cover the whole period, like the figures, the charts and the order list (here 2026 to date; <a href="#4g">4g</a> is the same page for one month). Limits are set per month, so for a longer period a category's limit is its monthly limit times the months in the period: 12 for a year, 3 for a quarter; a custom period counts each month by the share of its days it covers. The pace marker is how far through the period today is, by days (day 232 of 365 is 64%, drawn at the nearest step of 5). The card's name is Limits for every period, Month included.</div>
     <div class="doc-note"><b>The four stats fold to two by two below a 996px row</b> (<code>sp-stats--fold</code>): four of 240 and three gaps. The row is 998 in a 1280 shell, so it folds as soon as the shell is narrower. It is always four across or two, never three over one. On a phone every stats row is two by two.</div>
     <div class="doc-note"><b>The period bar wraps rather than squeezing.</b> The sizes keep their full width at every desktop width. When the row has no room for everything, the window, the resolved range and the compare switch move to a second line, in that order. The day count is hidden below 1100. Below 640 the bar is the single select.</div>
@@ -878,13 +884,13 @@
             </div>
           </div>
           <div class="sp-card">
-            <div class="sp-card__head"><span class="sp-section-label">Average order · by month</span></div>
+            <div class="sp-card__head"><span class="sp-section-label">Median order · by month</span></div>
             <span class="sp-stat__figure">1.961 kr.</span>
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-pill" data-state="progress">+3,6%</span>
               <span class="sp-meta">vs 1.893 kr.</span>
             </div>
-            <div class="sp-bars sp-bars--spark" role="img" aria-label="Average order by month in 2026">
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Median order by month in 2026">
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
@@ -1614,13 +1620,13 @@
             </div>
           </div>
           <div class="sp-card">
-            <div class="sp-card__head"><span class="sp-section-label">Average order · by month</span></div>
+            <div class="sp-card__head"><span class="sp-section-label">Median order · by month</span></div>
             <span class="sp-stat__figure">1.961 kr.</span>
             <div class="sp-row-flex sp-gap-8">
               <span class="sp-pill" data-state="progress">+3,6%</span>
               <span class="sp-meta">vs 1.893 kr.</span>
             </div>
-            <div class="sp-bars sp-bars--spark" role="img" aria-label="Average order by month in 2026">
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Median order by month in 2026">
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
               <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
@@ -1747,7 +1753,7 @@
           <span class="sp-stat__figure">38</span>
         </div>
         <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">Average order</span></div>
+          <div class="sp-card__head"><span class="sp-section-label">Median order</span></div>
           <span class="sp-stat__figure">3.745 kr.</span>
           <span class="sp-field__help" data-color="warning">+91% vs all vendors</span>
         </div>
@@ -1998,7 +2004,7 @@
           <span class="sp-stat__figure">19</span>
         </div>
         <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">Average order</span></div>
+          <div class="sp-card__head"><span class="sp-section-label">Median order</span></div>
           <span class="sp-stat__figure">3.284 kr.</span>
         </div>
         <div class="sp-card">
@@ -2630,7 +2636,7 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Values:</b> <code>expenses</code> (default) · <code>refunds</code> · <code>net</code>. In the URL as <code>flow=</code>, alongside <code>period</code> and <code>crumbs</code>, so a shared link carries it.</div>
     <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders that are Ordered or Delivered. <code>refunds</code>: orders that are Returned. <code>net</code>: both, a return counted against its spend. A returned order is never an expense.</div>
-    <div class="doc-note"><b>It filters, it does not change definitions.</b> Average order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
+    <div class="doc-note"><b>It filters, it does not change definitions.</b> Median order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
     <div class="doc-note"><b>Under <code>net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
     <div class="doc-note"><b>The menu sits in the top bar with Export, at its right end</b>, not in the period row. The period row holds the period alone, so its presets keep their width at every desktop width.</div>
     <div class="doc-note"><b>The choice survives crumb and period changes</b> and is not reset by them. It is a lens on the data, not part of the drill path, so it never appears as a crumb.</div>

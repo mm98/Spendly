@@ -536,6 +536,7 @@
     <div class="doc-note"><b>Watch out</b> - The rail must stay shorter than the item list. If it grows past it, the page scrolls for the rail's benefit and the original problem is back in a new form. Attachments are below the items for exactly this reason - anything new in the rail has to displace something, not extend it.</div>
     <div class="doc-note"><b>Watch out</b> - Reorder needs both the drag handle and the up/down buttons. Drag is unusable with a keyboard and awkward on touch inside a scrolling list; the buttons are the accessible path. Order persists as an explicit position field, never derived from a sort.</div>
     <div class="doc-note"><b>Adding a receipt</b> - A file added to Attachments asks whether to compare it with the order's lines (<a href="Order create.dc.html#3d">3d</a>).</div>
+    <div class="doc-note"><b>Leave out of statistics</b> - A per-order flag, off by default, stored as <code>excludeFromStats</code>. When on, the order is skipped by every figure, chart, breakdown and limit on Statistics and Home, including the Amount facet's percentile ends. It is still listed, searchable, filterable, exported and counted in the order list's own toolbar total. Status is unaffected: a Delivered order left out is still Delivered. The read view (<a href="#1a">1a</a>) adds a row <b>Statistics</b> reading <b>Left out</b> only when the flag is on; an included order has no such row.</div>
     <div class="doc-note"><b>Status</b> - A select, not a fixed set. Statuses are custom per user, set up in Settings: their names, how many there are and their order differ from one user to the next. The options are that user's statuses in their Settings order; the trigger shows the current one. Draft, Ordered, Delivered, Returned and Cancelled here are example data, and no status name is special in code. Same combobox as Vendor and Kind (<a href="Components.dc.html#c5">c5</a>).</div>
     <div class="doc-note"><b>Status date</b> - Each status is mapped to a date in Settings: either the order's Date, or a date of its own. A status mapped to the order's Date (Ordered in this example) shows nothing extra. A status with its own date shows a date field under Status, labelled with the status name. Date only, no time. Try it: change the status in 1d.</div>
     <div class="doc-note"><b>Changing the status</b> - Picking a status that has no date yet fills in today and says so under the field, so the common case costs nothing and a delivery that happened yesterday is one edit. Picking a status that already has a date (switching back to Delivered after trying Returned) restores the saved one, not today. Nothing is written until Save, like every other field here.</div>
@@ -742,6 +743,13 @@
                 <span class="sp-field__unit">kr.</span>
               </span>
             </div>
+          </div>
+          <div class="sp-field">
+            <div class="sp-row-flex sp-gap-12">
+              <input class="sp-switch" id="1d-stats" type="checkbox" role="switch" aria-describedby="1d-stats-help">
+              <label class="sp-data" for="1d-stats">Leave out of statistics</label>
+            </div>
+            <span class="sp-field__help" id="1d-stats-help">For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
           </div>
         </div>
 

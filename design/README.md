@@ -1,72 +1,44 @@
-# Handoff: Settings passkeys, row heights and stacked pairs
+# Handoff: one very large order no longer distorts filters and statistics
 
 ## Overview
 
-Fixes from a review of Settings, plus one system-wide fix it turned up. Nothing new is added; every change is a correction to something that already exists. The Settings section nav divider (static, does not scroll) was handed off separately and is included in `styles/pages/settings.css` again here.
+One unusual order (a car bought once in five years) stretched the Amount facet so every everyday order sat in its first few pixels, and pulled the average order up. Three changes fix this. Each one is a state or a rule on something that already exists; no new screen.
 
 ## About the design files
 
-The `.dc.html` files are design references built in HTML, not production code. Recreate the changes in the existing React app with its components. Open the pages in a browser from this folder; they load `support.js` and `styles/`.
+The `.dc.html` files are design references built in HTML, not production code. Recreate the changes in the existing React app with its components. Open the pages in a browser from this folder; they load `support.js` and `styles/`. No CSS changed in this handoff; `styles/` is included only so the pages open.
 
 ## Fidelity
 
-High fidelity. Every value is an existing token. `styles/components.css` is the source of truth for the classes named below.
+High fidelity. Every control is an existing component (`.sp-track`, `.sp-bounds`, `.sp-switch`, `.sp-field__help`). No token, size or colour changed.
 
 ## Changes
 
-### 1. A title with its second line is `.sp-stacked` (2px) - system-wide
+### 1. Amount facet uses a percentile scale (Order list, 2b)
 
-A name with one metadata line under it is one block, `.sp-stacked`, gap `--sp-2` (2px). 16 pairs were still built as `sp-stack sp-gap-6` (6px):
+- The track is spaced by order count, not by kroner. Each step covers the same share of the orders in the current set; the handle position is a percentile and the From and To fields show the amount at that percentile.
+- The right end is the 99th percentile of the set, rounded to a clean figure. While the To handle sits there, the meta and the To field append `+` (`0 - 25.000+ kr.`) and the upper bound is open, so the largest orders stay in the result.
+- Typing an amount above the end into To is accepted and parks the handle at the end.
+- A set of fewer than 20 orders uses a straight scale from 0 to its largest order, with no `+`.
+- Orders left out of statistics (change 2) still count in this facet, since it filters the list.
 
-- Settings: Passkeys (2), Previous imports (2), the import result
-- Components: file and record specimens (6)
-- Order create: Compare with receipt header
-- Order editing layouts: Edit order header (2)
-- Typography: two specimens
+### 2. Leave out of statistics, per order (Order editing layouts, 1d)
 
-In the app, any title-and-second-line stack that uses a 6px gap should use the `Stacked` component (2px). A card body (a heading over a sentence, a control, several lines) stays 6px.
+- New switch at the end of Order details: **Leave out of statistics**, with help text under it. Off by default. Stored as `excludeFromStats`.
+- When on, the order is skipped by every figure, chart, breakdown and limit on Statistics and Home, and by the Amount facet's percentile ends. It is still listed, searchable, filterable, exported and counted in the order list's toolbar total. Status is unaffected.
+- Read view (1a): a **Statistics** row reading **Left out** appears only when the flag is on. Not drawn; described in the 1d notes.
+- Statistics (4a): a second switch in the period row, **Include N left-out orders**, beside Compare with 2025. Shown only when the period holds at least one such order; absent otherwise. Off by default, in the URL as `excluded=include`, not remembered.
 
-### 2. Pair names are `.sp-title`, not `.sp-strong`
+### 3. Median order replaces average order
 
-On Settings, the Passkeys and Previous imports names were the weight utility, which inherited 16px with normal line height, so the pair looked loose even at 2px. They are now `.sp-title` (14px, 600). Second line stays `.sp-meta`.
-
-### 3. A button beside an input is the input's height
-
-A button on the same line as a text field is the default button, 42px (`--control-h`), never the 34px small button (`--btn-h-small`).
-
-- Status rename row (Settings, Statuses): Cancel and Save are default buttons.
-- Passkey rename: now drawn, on the 1Password row. The row becomes `[name field, grows] [Cancel] [Save]`, the same as renaming a status. Enter saves, Escape cancels.
-
-Small buttons remain right for actions in card headers and rows next to text (Rename, Remove, Add a passkey).
-
-### 4. Rename does not shift the layout
-
-- **Passkeys card:** each row is 42px (`min-height: var(--control-h)`) at rest and while renaming. At rest the name and date line centre in it; on Rename the field and buttons fill it. Lock the row's height, not its content: a row sized by its text grows 3px when the field appears. Settings only (`.st-pk-row`).
-- **Status rows:** `.sp-list-item--editable`, a variant used on Settings only. Fixed height `calc(var(--control-h) + var(--sp-8))` (50px), `padding-block: 0`, `box-sizing: border-box`, content centred. At rest and in edit mode the row is the same height; before, edit mode jumped from 49px to 67px.
-
-### 5. Settings section nav separator
-
-The separator in the Settings section nav uses `--line-3`, the nav divider's colour, via `.sp-menu__sep--divider`. Every other menu keeps `--line-2`. Settings only.
-
-### 6. Menu items truncate - system-wide
-
-Every `.sp-menu__item` label truncates on one line with an ellipsis (`min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap` on the label span). Before, only the record menu did. This matches production.
-
-### 7. Dividers render alike at any display scaling - system-wide
-
-`.sp-rule`, `.sp-rule--vertical`, `.sp-menu__sep` and `.sp-menu__sep--divider` are drawn as a 1px border, not a 1px-high filled box. Same colour (`--line-2`, `--line-3` for the Settings nav separator), same spacing.
-
-- Horizontal: `height: 0; border: 0; border-top: 1px solid var(--line-2);`
-- Vertical: `width: 0; height: 16px; border-left: 1px solid var(--line-2);`
-
-A 1px fill at 125% or 150% display scaling lands on fractional screen pixels, so two identical dividers in one card read as different weights. Borders snap to whole screen pixels. In the app, any divider drawn as a 1px-high background should be a 1px border.
+- The order figure and its sparkline on Statistics (4a, 4b, 4c, 4g) are the median of the set, labelled **Median order**. The comparison pill compares median with median.
+- The same label change on the vendor panel (Vendors and categories) and the summary specimen in Components.
+- Total spend and breakdowns remain sums.
 
 ## Files
 
-- `Settings and import.dc.html` - 11a Settings: Passkeys (rename state, notes), Statuses, Previous imports, section nav
-- `Components.dc.html`, `Order create.dc.html`, `Order editing layouts.dc.html`, `Typography.dc.html` - stacked pairs
-- `styles/components.css` - `.sp-menu__sep--divider`, `.sp-list-item--editable`, `.sp-menu__item > span` truncation
-- `styles/pages/settings.css` - `.st-pk-row`, `.st-subnav` sticky
-- `styles/COMPONENT-STATUS.md` - change log, 2026-10-15 entries
-- `styles/check.js` - three new assertions: a pair is `.sp-stacked`, a pair starts with `.sp-title`, a button beside an input matches its height
-- `support.js`, `icons.js` - needed to open the pages
+- `Order list.dc.html` - 2b Amount facet meta and notes
+- `Order editing layouts.dc.html` - 1d switch, help text and note
+- `Order statistics.dc.html` - Median order labels, Include switch in 4a, notes in 4a and 4e
+- `Vendors and categories.dc.html`, `Components.dc.html` - Median order label
+- `styles/`, `support.js`, `icons.js` - needed to open the pages
