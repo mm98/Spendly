@@ -3209,8 +3209,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-window__btn:disabled { color: var(--line-5); cursor: not-allowed; }
 .sp-window__btn:disabled:hover { background: none; }
 /* the window with a select between its arrows (the phone Statistics period): it takes the
-   row's width, and the select is borderless inside the window's own box */
-.sp-window--select { display: flex; width: 100%; flex: 1 1 0; min-width: 0; overflow: visible; }
+   full width, and the select is borderless inside the window's own box. No flex basis: in
+   a column (the Include switch under it) a basis of 0 collapsed its height. */
+.sp-window--select { display: flex; width: 100%; min-width: 0; overflow: visible; }
 .sp-window--select > .sp-combobox { flex: 1; min-width: 0; height: 100%; }
 .sp-window--select .sp-combobox__trigger { height: 100%; border: 0; border-radius: 0; background: none; }
 .sp-window--select > .sp-window__btn:first-child { border-radius: 9px 0 0 9px; }
