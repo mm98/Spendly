@@ -1,7 +1,8 @@
 # Changes
 
-## Fixed in this package (replaces design_handoff_settings_passkeys)
+Fixed from `design_handoff_statistics_period_height`:
 
-Dividers drawn as a 1px border instead of a 1px-high fill, so identical dividers render alike at 125% and 150% display scaling. Section 7 in README.md. Files updated: `styles/components.css`, `styles/COMPONENT-STATUS.md`.
+- Added `components.js`. The page loads it and the first package left it out, so the page did not render from the package.
+- Removed the page stylesheets the page does not load. `styles/pages/` now holds only `budget.css` and `mobile-screens.css`.
 
-Everything else is unchanged from design_handoff_settings_passkeys.
+The design change itself is unchanged. See README.md.
