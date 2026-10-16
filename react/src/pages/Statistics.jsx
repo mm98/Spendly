@@ -263,35 +263,38 @@ export default function Statistics() {
 	const shown = draft ? 'custom' : range
 	// on a phone the period is one select with its window beside the name, between the arrows (Mobile screens 7b)
 	const unitName = range === 'days30' ? '30 days' : range === 'custom' ? 'period' : range
+	const picker = (
+		<div className="sp-window sp-window--select">
+			<button type="button" className="sp-window__btn" aria-label={`Earlier ${unitName}`}
+				disabled={!older} onClick={older ? () => show(range, older) : undefined}>
+				<Icon name="chevron-left" size={15} />
+			</button>
+			<Combobox value={shown === 'days30' ? stepLabel(range, id) : `${PRESETS.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label="Period">
+				{PRESETS.map(p => (
+					<ComboboxOption key={p.value} selected={p.value === shown} onSelect={() => choose(p.value)}>{p.label}</ComboboxOption>
+				))}
+			</Combobox>
+			<button type="button" className="sp-window__btn" aria-label={`Later ${unitName}`}
+				disabled={!newer} onClick={newer ? () => show(range, newer) : undefined}>
+				<Icon name="chevron-right" size={15} />
+			</button>
+		</div>
+	)
 	const period = touch
 		? (
 			<>
 				<Controls>
-					<div className="sp-stack sp-gap-8 sp-grow">
-						<div className="sp-window sp-window--select">
-							<button type="button" className="sp-window__btn" aria-label={`Earlier ${unitName}`}
-								disabled={!older} onClick={older ? () => show(range, older) : undefined}>
-								<Icon name="chevron-left" size={15} />
-							</button>
-							<Combobox value={shown === 'days30' ? stepLabel(range, id) : `${PRESETS.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label="Period">
-								{PRESETS.map(p => (
-									<ComboboxOption key={p.value} selected={p.value === shown} onSelect={() => choose(p.value)}>{p.label}</ComboboxOption>
-								))}
-							</Combobox>
-							<button type="button" className="sp-window__btn" aria-label={`Later ${unitName}`}
-								disabled={!newer} onClick={newer ? () => show(range, newer) : undefined}>
-								<Icon name="chevron-right" size={15} />
-							</button>
-						</div>
-						{view?.leftOut
-							? (
+					{view?.leftOut
+						? (
+							<div className="sp-stack sp-gap-8 sp-grow">
+								{picker}
 								<label className="sp-row-flex sp-gap-8">
 									<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />
 									<span className="sp-data">Include {counted(view.leftOut, 'left-out order')}</span>
 								</label>
-							)
-							: null}
-					</div>
+							</div>
+						)
+						: picker}
 				</Controls>
 				{draft ? <RangeSheet onClose={() => setDraft(null)}>{rangePicker}</RangeSheet> : null}
 			</>

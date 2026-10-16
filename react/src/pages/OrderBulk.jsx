@@ -258,6 +258,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 	const [find, setFind] = useState('')
 	const [adding, setAdding] = useState([])
 	const categories = usePickList('category', find, {})
+	const more = moreText(categories.rows, categories.matched, 'categories')
 	const recent = useRecent('category')
 	const needle = find.trim().toLowerCase()
 	const shown = categories.rows ?? []
@@ -274,7 +275,7 @@ function AddCategory({ chosen, count, busy, onCancel, onApply }) {
 			</>}
 			search={<SearchInput value={find} onChange={setFind} placeholder="Find a category…" aria-label="Search categories" />}
 			summary={adding.length ? <><span className="sp-subtitle">Will add</span>{adding.map(n => <Pill key={n} color="success">{n}</Pill>)}</> : null}
-			note={moreText(categories.rows, categories.matched, 'categories')}
+			note={more ? <span className="sp-subtitle">{more}</span> : null}
 			actions={<>
 				<Button variant="outline" fullWidth onClick={onCancel}>Cancel</Button>
 				<Button fullWidth disabled={!adding.length || busy} onClick={() => onApply(adding)}>Apply</Button>
