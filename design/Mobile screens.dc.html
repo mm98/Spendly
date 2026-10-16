@@ -1050,6 +1050,7 @@
                 </div></div>
         <div class="ms-pane">
         <div class="ms-head">
+          <div class="sp-stack sp-gap-8">
           <div class="sp-window sp-window--select">
             <button type="button" class="sp-window__btn" aria-label="Earlier year"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
             <div class="sp-combobox">
@@ -1059,6 +1060,11 @@
                   </button>
                 </div>
             <button type="button" class="sp-window__btn" aria-label="Later year" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+          <label class="sp-row-flex sp-gap-8">
+            <input class="sp-switch" type="checkbox" role="switch">
+            <span class="sp-data">Include 1 left-out order</span>
+          </label>
           </div>
         </div>
         <div class="ms-scroll ms-scroll--pad">
@@ -1390,6 +1396,7 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>On a phone the Statistics period is one select</b>: 30 days, Week, Month, Quarter, Year, Custom, with the window it resolves to beside the name ("Year · 2026"). It is the same six presets as the desktop row (<a href="Order statistics.dc.html#4a">4a</a>).</div>
     <div class="doc-note"><b>Arrows either side of the select step the period</b> by its own length: the month before, the quarter before, the year before. Later is disabled on the period that holds today. On Custom both are disabled, since a range of its own has no next or previous (<a href="Order statistics.dc.html#4f">4f</a>). The control is <code>sp-window--select</code>, the window from 21a with the select in its middle.</div>
+    <div class="doc-note"><b>Include N left-out orders</b> sits under the period select, the same switch and rules as the desktop period row (<a href="Order statistics.dc.html#4a">4a</a>): shown only when the period holds a left-out order, off by default, not remembered.</div>
     <div class="doc-note"><b>The order list keeps its own search field on a phone</b>, above Filters and Sort. It filters the list; the top bar's search is the palette, which finds records but does not filter.</div>
     <div class="doc-note"><b>Applied filters wrap</b>, one chip each, followed by <b>Clear all</b> - the filter row of <a href="Components.dc.html#c12">c12</a>.</div>
     <div class="doc-note"><b>Reset</b> in the sheet's header is a text button (<code>sp-btn--text</code>, small), in the button's green, like Cancel in the search screen; it clears every filter and keeps the sheet open. <b>Show 39 more</b> expands that facet's list in place inside the sheet.</div>

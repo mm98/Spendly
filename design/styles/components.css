@@ -1385,11 +1385,12 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-menu__item:focus-visible { background: var(--hover); box-shadow: var(--ring); }
 .sp-menu__item:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
 .sp-menu__item:disabled:hover { background: none; }
+/* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every rule renders alike at 125% and 150% display scaling */
 .sp-menu hr {
-  height: 1px;
+  height: 0;
   border: 0;
+  border-top: 1px solid var(--line-2);
   margin: var(--sp-6) var(--sp-8);
-  background: var(--line-2);
 }
 
 /* ---------- picker - LOCKED c7 ---------- */
@@ -1902,13 +1903,14 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   color: var(--ink-5);
   padding: var(--sp-8) var(--sp-12) var(--sp-6);
 }
+/* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every rule renders alike at 125% and 150% display scaling */
 .sp-combobox__panel hr {
-  height: 1px;
+  height: 0;
   border: 0;
+  border-top: 1px solid var(--line-2);
   /* with the panel's 2 the rule sits 6 from the rows either side of it on desktop,
      4 on touch, so a group still reads as a group in the denser list */
   margin: var(--sp-4) 0;
-  background: var(--line-2);
 }
 .sp-combobox__option {
   display: flex;
@@ -2288,13 +2290,14 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
 }
 .sp-shell--collapsed .sp-sidebar:not(.sp-sidebar--peek) .sp-nav-item,
 .sp-sidebar--rail:not(.sp-sidebar--peek) .sp-nav-item { justify-content: center; width: 44px; padding: var(--sp-8) 0; }
+/* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every rule renders alike at 125% and 150% display scaling */
 .sp-sidebar__divider {
   width: 100%;
-  height: 1px;
+  height: 0;
   /* it separates two blocks, so it sits a block apart from each */
   margin: var(--sidebar-block-extra) 0;
   border: 0;
-  background: rgba(255, 255, 255, 0.09);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 /* The rail is produced from the expanded sidebar's own markup, so one sidebar serves
    both states: everything that is words goes, everything that is a target stays and
@@ -4055,7 +4058,8 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   background: var(--amber-3);
   color: var(--ink);
 }
-.sp-palette__rule { height: 1px; margin: var(--sp-6) 0; background: var(--line-2); }
+/* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every rule renders alike at 125% and 150% display scaling */
+.sp-palette__rule { height: 0; margin: var(--sp-6) 0; border-top: 1px solid var(--line-2); }
 .sp-palette__all {
   display: block;
   width: 100%;
@@ -4269,7 +4273,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   color: var(--ink-5);
 }
 .sp-divider::before,
-.sp-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.sp-divider::after { content: ""; flex: 1; height: 0; border-top: 1px solid var(--line); }
 
 /* ---------- alert, positive - c19 variant ----------
    The same row stating something that went right: a record created, a file kept. */
@@ -4495,8 +4499,9 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   flex-direction: column;
   justify-content: space-between;
 }
-.sp-plot__grid > span { height: 1px; background: var(--line-2); }
-.sp-plot__grid > span:last-child { background: var(--line); }
+/* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every rule renders alike at 125% and 150% display scaling */
+.sp-plot__grid > span { height: 0; border-top: 1px solid var(--line-2); }
+.sp-plot__grid > span:last-child { border-top-color: var(--line); }
 /* the limit is drawn across the plot, and names itself where it starts */
 .sp-plot__limit { position: absolute; left: 0; right: 0; z-index: 2; border-top: 2px dashed var(--amber); }
 .sp-plot__limit[data-at="34"] { top: 34px; }
