@@ -1093,9 +1093,8 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 	)
 }
 
-/* A drag is many values; the list asks for the one it settles on. The track is spaced by the
-   account's orders when it has enough of them (2b): its end is "and above", so a To at the end
-   is no bound at all, and a To typed past it is kept. */
+/* A drag is many values; the list asks for the one it settles on. A To at the open end (2b)
+   is no bound at all; one typed past it is kept. */
 function AmountFacet({ scale, min, max, update }) {
 	const stops = scale.stops
 	const top = stops ? stops[stops.length - 1] : Math.max(1000, Math.ceil(scale.highest / 1000) * 1000)

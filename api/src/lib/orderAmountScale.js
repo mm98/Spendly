@@ -1,11 +1,7 @@
 import { db } from '../db.js'
 
-/* The order list's Amount filter (2b) is spaced by order count, not by kroner: each step covers
-   the same share of the account's orders, so one very large order takes the last step instead
-   of pushing every everyday order into the first few. Orders left out of statistics are listed
-   and filtered like any other, but take no part in where the steps fall. */
-
-// a smaller set has too few orders for a step to stand for one percent of them
+/* The Amount filter (2b) is spaced by order count: each step is the same share of the orders.
+   Orders left out of statistics are filtered like any other but do not move the steps. */
 const FEWEST_FOR_PERCENTILES = 20
 
 // every total of the account, smallest first, read from the covering index alone
@@ -20,9 +16,8 @@ function clean(amount) {
 	return Math.ceil(amount / unit) * unit
 }
 
-/** The filter's scale: `stops` is the amount at each of its 100 positions, from 0 to the 99th
-    percentile rounded to a clean figure, whose end reads as "and above". A set of fewer than 20
-    orders has no stops and a straight scale up to `highest`, its largest order. */
+/** `stops`: the amount at each of 100 positions, 0 to the clean 99th percentile ("and above").
+    Fewer than 20 orders: no stops, a straight scale up to `highest`. */
 export function orderAmountScale(userId) {
 	const leftOut = selectLeftOutTotals.all(userId)
 	const totals = selectTotals.all(userId)

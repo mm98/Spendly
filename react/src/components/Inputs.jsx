@@ -145,10 +145,8 @@ export function SearchInput({ value, onChange, kbd, inputRef, ...rest }) {
 	)
 }
 
-/** Two bounds on one track. `stops`, when given, are the values at evenly spaced points along
-    it, from first to last, so the track is spaced by them rather than by value; a typed bound
-    between two stops sits between them. `open` makes the top end "and above": the To box reads
-    it with a +, and a To typed past it is kept with its handle at the end. */
+/** `stops` are values at evenly spaced points, so the track is spaced by them, not by value.
+    `open` makes the top end "and above": shown with a +, and a To typed past it is kept. */
 export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
 	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
