@@ -1,7 +1,8 @@
 import { useId, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardHeader } from '../components/Card.jsx'
+import { Card, CardBody, CardHeader, Toolbar } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField, TokensField } from '../components/Inputs.jsx'
 import { useStatusTypes } from '../app/statuses.js'
@@ -24,6 +25,7 @@ import { currency, dayShortMonth, dot, isSaving, plural } from '../api/format.js
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { CountryCombobox } from '../app/countries.jsx'
+import { countryName } from '../api/countries.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
 	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, MergeButton, MergeDialog, MergePicker, RecentLoading, RecentOrders, RecordPage, SWATCHES,
@@ -62,7 +64,10 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const toast = useToast()
 	const list = useListReturn('vendors')
 	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
-	const fromScan = useLocation().state?.fromScan ?? null
+	const { state } = useLocation()
+	const fromScan = state?.fromScan ?? null
+	// Invoice details starts folded, except from Add them in the invoice dialog (Invoice 24d)
+	const [detailsOpen, setDetailsOpen] = useState(Boolean(state?.invoiceDetails))
 	const h = loading ? hold : control => control
 	const statsSwitch = useId()
 	const editing = Boolean(vendor)
@@ -186,7 +191,12 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		if (nameError) { writing.current = false; return focusFirst(['vendor-name']) }
 		const numberError = numberProblem(values)
 		setErrors(e => ({ ...e, number: numberError }))
-		if (numberError) { writing.current = false; return focusFirst(['vendor-number']) }
+		if (numberError) {
+			writing.current = false
+			// a folded card's field cannot take focus
+			flushSync(() => setDetailsOpen(true))
+			return focusFirst(['vendor-number'])
+		}
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
@@ -304,8 +314,6 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 						</Alert>
 					)
 					: null}
-				<CompanyFields vendor={vendor} values={values} set={set} error={errors.number} hold={h} creating={!editing}
-					clearError={() => setErrors(e => ({ ...e, number: null }))} toast={toast} />
 				<Field id="vendor-image" label="Image"
 					message={image.problem?.help ?? (image.src ? 'Shown on this vendor\'s orders that have no item photo.'
 						: 'Shown on this vendor\'s orders that have no item photo. A logo, the shop, anything you know it by.')}
@@ -314,6 +322,9 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 						src={image.src} problem={image.problem?.banner} inspect={() => null} onFile={takeImage} onRemove={removeImage} />)}
 				</Field>
 			</Card>
+
+			<CompanyFields vendor={vendor} values={values} set={set} error={errors.number} hold={h} open={detailsOpen} onToggle={() => setDetailsOpen(o => !o)}
+				clearError={() => setErrors(e => ({ ...e, number: null }))} toast={toast} />
 
 			<Card>
 				<CardHeader name="Aliases" />
@@ -510,9 +521,19 @@ const numberProblem = values => (values.country === 'DK' && cvrOf(values.cvr) &&
 // a date in a sentence that ends with it: "checked 14 Oct.", and no second full stop where the locale writes one
 const ending = text => (text.endsWith('.') ? text : `${text}.`)
 
-/** Country, CVR (or VAT number) and Address (5b, 5c), in the CVR register's states (5m). With a CVR
-    number the address is the register's and is shown, not typed. */
-function CompanyFields({ vendor, values, set, error, hold, creating, clearError, toast }) {
+/** What the folded Invoice details card says is set (5m). */
+const detailsSummary = (values, offer) => {
+	if (offer) return 'A company match is waiting'
+	const denmark = values.country === 'DK'
+	const number = denmark ? cvrOf(values.cvr) : values.vatNumber.trim()
+	if (number) return `${countryName(values.country)}${dot}${denmark ? 'CVR' : 'VAT'} ${number}`
+	if (values.address.trim()) return `${countryName(values.country)}${dot}address only`
+	return 'Not added'
+}
+
+/** The Invoice details card (5b, 5c): Country, CVR (or VAT number) and Address in the CVR register's
+    states (5m). With a CVR number the address is the register's and is shown, not typed. */
+function CompanyFields({ vendor, values, set, error, hold, open, onToggle, clearError, toast }) {
 	const [dismissed, setDismissed] = useState(false)
 	const denmark = values.country === 'DK'
 	const number = cvrOf(values.cvr)
@@ -523,8 +544,7 @@ function CompanyFields({ vendor, values, set, error, hold, creating, clearError,
 	const matched = denmark && vendor?.match && vendor.match.cvr === number ? vendor.match : null
 	const offer = denmark && !number && vendor?.match && !dismissed ? vendor.match : null
 	const shown = saved?.found ? saved : matched ? { ...matched, found: true } : null
-	const numberHelp = error ?? (unknown ? `No company has CVR ${number} in the register. Check the number.`
-		: denmark && (creating || (isCvr(number) && number !== vendor?.cvr)) ? 'The address comes from the CVR register within a day of saving, and is kept up to date.' : undefined)
+	const numberHelp = error ?? (unknown ? `No company has CVR ${number} in the register. Check the number.` : undefined)
 
 	const notThisOne = () => {
 		setDismissed(true)
@@ -532,51 +552,63 @@ function CompanyFields({ vendor, values, set, error, hold, creating, clearError,
 	}
 
 	return (
-		<>
-			<Field id="vendor-country" label="Country">
-				{hold(<CountryCombobox value={values.country} onChange={v => { set('country', v); clearError() }} />)}
-			</Field>
-			<Field id="vendor-number" label={denmark ? 'CVR' : 'VAT number'} message={numberHelp}
-				messageType={error || unknown ? 'danger' : 'hint'}>
-				{hold(<TextField value={denmark ? values.cvr : values.vatNumber} inputMode={denmark ? 'numeric' : undefined} placeholder={denmark ? '8 digits' : undefined}
-					onChange={v => { set(denmark ? 'cvr' : 'vatNumber', v); clearError() }} />)}
-			</Field>
-			{offer
-				? (
-					<Well>
-						<span className="sp-title">Is this the company?</span>
-						<span className="sp-data">{offer.name}, CVR {offer.cvr}</span>
-						{offer.address.length ? <span className="sp-data sp-ink-2">{offer.address.join(', ')}</span> : null}
-						<div className="sp-row-flex sp-gap-8">
-							<Button variant="outline" size="small" onClick={notThisOne}>Not this one</Button>
-							<span className="sp-grow" />
-							<Button size="small" onClick={() => set('cvr', offer.cvr)}>Use it</Button>
-						</div>
-					</Well>
-				)
-				: null}
-			{denmark && isCvr(number) && !unknown
-				? (
-					<div className="sp-field">
-						<span className="sp-field__label" id="vendor-address-label">Address</span>
-						<Well variant="quiet" aria-labelledby="vendor-address-label">
-							{shown
-								? [shown.name, ...shown.address].map((line, i) => <span key={i} className="sp-data">{line}</span>)
-								: <span className="sp-data sp-ink-5">Not looked up yet</span>}
-						</Well>
-						<span className="sp-field__help">
-							{!shown ? 'Filled from the CVR register within a day.'
-								: shown.ceasedOn ? ending(`Ceased trading ${dayShortMonth(shown.ceasedOn)}`)
-									: ending(`From the CVR register, checked ${dayShortMonth(shown.checkedAt)}`)}
-						</span>
+		<Card variant="flush">
+			<Toolbar variant="toggle" expanded={open} onClick={onToggle} chevron={<Icon name="chevron-down" />}>
+				<span className="sp-stacked">
+					<span className="sp-title sp-truncate">Invoice details</span>
+					<span className="sp-meta sp-truncate">{detailsSummary(values, offer)}</span>
+				</span>
+			</Toolbar>
+			<CardBody>
+				<div className="sp-stack sp-gap-12">
+					<div className="sp-fields">
+						<Field id="vendor-country" label="Country">
+							{hold(<CountryCombobox value={values.country} onChange={v => { set('country', v); clearError() }} />)}
+						</Field>
+						<Field id="vendor-number" label={denmark ? 'CVR' : 'VAT number'} message={numberHelp}
+							messageType={error || unknown ? 'danger' : 'hint'}>
+							{hold(<TextField value={denmark ? values.cvr : values.vatNumber} inputMode={denmark ? 'numeric' : undefined} placeholder={denmark ? '8 digits' : undefined}
+								onChange={v => { set(denmark ? 'cvr' : 'vatNumber', v); clearError() }} />)}
+						</Field>
 					</div>
-				)
-				: (
-					<Field id="vendor-address" label="Address"
-						message={denmark && !unknown ? 'For a vendor without a CVR number. Printed on an invoice made from its orders.' : 'Printed on an invoice made from its orders.'}>
-						{hold(<TextField multiline rows={3} value={values.address} onChange={v => set('address', v)} />)}
-					</Field>
-				)}
-		</>
+					{offer
+						? (
+							<Well>
+								<span className="sp-title">Is this the company?</span>
+								<span className="sp-data">{offer.name}, CVR {offer.cvr}</span>
+								{offer.address.length ? <span className="sp-data sp-ink-2">{offer.address.join(', ')}</span> : null}
+								<div className="sp-row-flex sp-gap-8">
+									<Button variant="outline" size="small" onClick={notThisOne}>Not this one</Button>
+									<span className="sp-grow" />
+									<Button size="small" onClick={() => set('cvr', offer.cvr)}>Use it</Button>
+								</div>
+							</Well>
+						)
+						: null}
+					{denmark && isCvr(number) && !unknown
+						? (
+							<div className="sp-field">
+								<span className="sp-field__label" id="vendor-address-label">Address</span>
+								<Well variant="quiet" aria-labelledby="vendor-address-label">
+									{shown
+										? [shown.name, ...shown.address].map((line, i) => <span key={i} className="sp-data">{line}</span>)
+										: <span className="sp-data sp-ink-5">Not looked up yet</span>}
+								</Well>
+								<span className="sp-field__help">
+									{!shown ? 'Filled from the CVR register within a day.'
+										: shown.ceasedOn ? ending(`Ceased trading ${dayShortMonth(shown.ceasedOn)}`)
+											: ending(`From the CVR register, checked ${dayShortMonth(shown.checkedAt)}`)}
+								</span>
+							</div>
+						)
+						: (
+							<Field id="vendor-address" label="Address"
+								message={denmark ? 'Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.' : 'Printed on an invoice made from its orders.'}>
+								{hold(<TextField multiline rows={3} value={values.address} onChange={v => set('address', v)} />)}
+							</Field>
+						)}
+				</div>
+			</CardBody>
+		</Card>
 	)
 }
