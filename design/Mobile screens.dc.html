@@ -352,6 +352,25 @@
               <span class="sp-field__help">The name you will recognise in a list. Receipts can spell it differently.</span>
             </div>
             <div class="sp-field">
+              <span class="sp-field__label" id="ms-v-cty">Country</span>
+              <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ms-v-cty">
+                  <span class="sp-grow">Denmark</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="ms-v-cvr">CVR</label>
+              <input class="sp-input" id="ms-v-cvr" type="text" inputMode="numeric" placeholder="8 digits" aria-describedby="ms-v-cvr-help">
+              <span class="sp-field__help" id="ms-v-cvr-help">The address comes from the CVR register within a day of saving, and is kept up to date.</span>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="ms-v-addr">Address</label>
+              <textarea class="sp-textarea" id="ms-v-addr" rows="3"></textarea>
+              <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
+            </div>
+            <div class="sp-field">
               <label class="sp-field__label" for="ms-v-image">Image</label>
               <span class="sp-slot sp-slot--start">
                 <label class="sp-mark sp-mark--large sp-mark--empty" for="ms-v-image" data-tip="Add an image">

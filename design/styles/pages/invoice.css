@@ -1,0 +1,66 @@
+/* Page composition for Invoice.dc.html.
+   The invoice is a PDF, not app UI: an A4 page at 96dpi (794 x 1123), drawn here at
+   full size so its own measurements can be read off. Its sizes are print sizes and
+   are not on the app's spacing or type scale. Every app control on the page (the
+   dialog, fields, buttons) comes from components.css. In @layer base, so it can
+   never outrank a component rule. */
+
+@layer base {
+
+  .iv-row { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; }
+  .iv-shot { box-shadow: 0 1px 3px rgba(27,26,23,.12), 0 8px 28px rgba(27,26,23,.08); }
+
+  /* the page */
+  .iv-page {
+    width: 794px; height: 1123px; box-sizing: border-box; padding: 56px;
+    display: flex; flex-direction: column; gap: 28px;
+    background: #fff; color: #1b1a17; font-family: Poppins, system-ui, sans-serif;
+    font-variant-numeric: tabular-nums; overflow: hidden;
+  }
+  .iv-grow { flex: 1; }
+  .iv-head { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+  .iv-brand { display: flex; align-items: center; gap: 14px; }
+  .iv-mark { width: 48px; height: 48px; border-radius: 10px; background: #1d4d33; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
+  .iv-vendor { font-size: 22px; font-weight: 600; }
+  .iv-kicker { font-size: 12px; font-weight: 500; letter-spacing: .14em; color: #1d4d33; }
+
+  /* the three tiles: number, date, total */
+  .iv-tiles { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 12px; }
+  .iv-tile { background: #f7f6f2; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .iv-tile--total { background: #1d4d33; color: #fff; }
+  .iv-tile__label { font-size: 11px; color: #6b6a63; }
+  .iv-tile--total .iv-tile__label { color: #c6d6c9; }
+  .iv-tile__value { font-size: 15px; font-weight: 600; }
+  .iv-tile--total .iv-tile__value { font-size: 26px; line-height: 1.1; }
+
+  /* from and to */
+  .iv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px; line-height: 1.6; }
+  .iv-party { border: 1px solid #e3e1d9; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; }
+  .iv-label { color: #6b6a63; }
+  .iv-strong { font-weight: 600; }
+
+  /* the lines */
+  .iv-lines { display: flex; flex-direction: column; border: 1px solid #e3e1d9; border-radius: 10px; overflow: hidden; }
+  .iv-line { display: grid; grid-template-columns: 44px minmax(0,1fr) 56px 110px 110px; gap: 14px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e3e1d9; font-size: 13px; }
+  .iv-line:last-child { border-bottom: 0; }
+  .iv-line--head { padding-top: 10px; padding-bottom: 10px; font-size: 11px; color: #6b6a63; }
+  .iv-line--extra { background: #f7f6f2; }
+  .iv-photo { width: 44px; height: 44px; border-radius: 6px; background: repeating-linear-gradient(135deg, #dcdad2 0 6px, #e8e6de 6px 12px); }
+  .iv-name { font-weight: 500; }
+  .iv-num { text-align: right; }
+  .iv-soft { color: #57564f; }
+
+  /* note and totals */
+  .iv-foot { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 32px; align-items: start; font-size: 13px; }
+  .iv-note { color: #3d3c36; line-height: 1.6; display: flex; flex-direction: column; }
+  .iv-sums { display: flex; flex-direction: column; gap: 8px; }
+  .iv-sum { display: flex; justify-content: space-between; }
+  .iv-sum--total { font-weight: 600; padding-top: 8px; border-top: 1px solid #1b1a17; }
+  .iv-page-foot { display: flex; justify-content: space-between; font-size: 11px; color: #6b6a63; }
+  .iv-continued { font-size: 12px; color: #57564f; }
+
+  /* the page drawn at 40% inside the dialog's preview */
+  .iv-scaled { width: 318px; height: 450px; overflow: hidden; }
+  .iv-scaled > .iv-page { transform: scale(.4); transform-origin: 0 0; }
+
+}

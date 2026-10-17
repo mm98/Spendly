@@ -764,7 +764,10 @@
   /* ---- 6. the spacing scale ---------------------------------------------- */
 
   const SCALE = ['--sp-2','--sp-4','--sp-6','--sp-8','--sp-10','--sp-12','--sp-14','--sp-16','--card-pad','--shell-pad','--shell-item-pad','--shell-gap','--phone-gutter','--pill-pad-x','--field-pad-x','--sidebar-block-extra'];
-  for (const [name, css] of [['components.css', comp], ...Object.entries(pageCss)])
+  // A print document is not app UI: the invoice PDF (Invoice 24a) is an A4 page with
+  // print measurements, so its stylesheet is not held to the app's spacing scale.
+  const PRINT = ['invoice.css'];
+  for (const [name, css] of [['components.css', comp], ...Object.entries(pageCss)].filter(([n]) => !PRINT.some(p => n.endsWith(p))))
     for (const r of parse(css))
       for (const d of r.body.split(';')) {
         const [k, v] = d.split(':').map(x => (x || '').trim());

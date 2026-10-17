@@ -230,6 +230,25 @@
             <span class="sp-field__help">The name you will recognise in a list. Receipts can spell it differently.</span>
           </div>
           <div class="sp-field">
+            <span class="sp-field__label" id="vc-new-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-new-cty">
+                <span class="sp-grow">Denmark</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-new-cvr">CVR</label>
+            <input class="sp-input" id="vc-new-cvr" type="text" inputMode="numeric" placeholder="8 digits" aria-describedby="vc-new-cvr-help">
+            <span class="sp-field__help" id="vc-new-cvr-help">The address comes from the CVR register within a day of saving, and is kept up to date.</span>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-new-addr">Address</label>
+            <textarea class="sp-textarea" id="vc-new-addr" rows="3"></textarea>
+            <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
+          </div>
+          <div class="sp-field">
             <label class="sp-field__label" for="vc-image1">Image</label>
             <span class="sp-slot sp-slot--start">
               <label class="sp-mark sp-mark--large sp-mark--empty" for="vc-image1" data-tip="Add an image">
@@ -341,6 +360,7 @@
   <div class="doc-lede">The same page as <a href="#5b">5b</a> with the record loaded, at <code>/vendors/indbo/edit</code>. One card appears that create does not have: the end-of-life card. Aliases are on create too (<a href="#5b">5b</a>).</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Country, CVR and Address are optional</b> and used on an invoice made from the vendor's orders (<a href="Invoice.dc.html#24a">Invoice 24a</a>). With a CVR number the address belongs to the CVR register and is not a field; how it is kept current is <a href="#5m">5m</a>.</div>
     <div class="doc-note"><b>The rail counts every order from the vendor</b>, left out of statistics or not: it is the vendor's history. <b>See more in statistics</b> opens Statistics filtered to the vendor, where left-out orders follow the <a href="Order statistics.dc.html#4a">4a</a> rule.</div>
     <div class="doc-note"><b>Dirty tracking is per field</b> against the loaded values. Reverting a field by hand clears its flag; when none remain the save bar disappears. Whitespace-only edits do not count.</div>
     <div class="doc-note"><b>Leaving while dirty prompts</b>, including browser back and reload. Cancelling the prompt keeps the page and its state.</div>
@@ -364,6 +384,28 @@
           <div class="sp-field">
             <label class="sp-field__label" for="vc-f5">Name</label>
             <input class="sp-input" id="vc-f5" type="text">
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-edit-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-edit-cty">
+                <span class="sp-grow">Denmark</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-edit-cvr">CVR</label>
+            <input class="sp-input" id="vc-edit-cvr" type="text" inputMode="numeric" defaultValue="12345678">
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-edit-addr">Address</span>
+            <div class="sp-well sp-well--quiet" aria-labelledby="vc-edit-addr">
+              <span class="sp-data">Indbo Møbler A/S</span>
+              <span class="sp-data">Vesterbrogade 112</span>
+              <span class="sp-data">1620 København V</span>
+            </div>
+            <span class="sp-field__help">From the CVR register, checked 14 Oct.</span>
           </div>
           <div class="sp-field">
             <label class="sp-field__label" for="vc-image2">Image</label>
@@ -1837,6 +1879,186 @@
           </div>
         </div>
       </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="5m">5m</span>
+    <span class="doc-section__title">Company details from the CVR register</span>
+  </div>
+  <div class="doc-lede">A Danish vendor's CVR number links it to the CVR register, and a background job keeps its address current. Six states of the vendor's Country, CVR and Address fields, in <a href="#5b">5b</a> and <a href="#5c">5c</a>.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Nothing is looked up while the page is open.</b> A background job does every lookup. A newly saved CVR number is looked up within a day (state 1); after that every vendor with a CVR is checked once a week.</div>
+    <div class="doc-note"><b>The register always wins.</b> With a CVR number, Address is not a field: it shows what the register holds, with "From the CVR register, checked 14 Oct." (state 2). A change in the register replaces it silently at the next check. The register's company name (Indbo Møbler A/S) is stored beside the vendor's own Name and printed as the invoice's From; the vendor's Name never changes.</div>
+    <div class="doc-note"><b>Addresses are kept with the date they took effect.</b> An invoice uses the address the vendor had on the order date (<a href="Invoice.dc.html#24a">Invoice 24a</a>), so an old order's invoice does not change when the company moves.</div>
+    <div class="doc-note"><b>A Danish vendor without a CVR number is searched by name</b> in the same job (cvrapi.dk's name search). The single best match is offered on the vendor page as "Is this the company?" (state 3). <b>Use it</b> sets the CVR number and the address follows at once, from the result. <b>Not this one</b> closes it, and that name is not searched again until the vendor's Name changes. A vendor with no match shows nothing.</div>
+    <div class="doc-note"><b>A company that has ceased trading</b> keeps its last address, and the help line reads "Ceased trading 3 Mar 2026." (state 4). Nothing else changes: the vendor is not archived and its orders are untouched.</div>
+    <div class="doc-note"><b>A CVR number the register does not know</b> is marked on the field at the next visit, "No company has CVR 12345679 in the register. Check the number." (state 5). Address goes back to a typed field. The job tries again only when the number is changed.</div>
+    <div class="doc-note"><b>Lookups use cvrapi.dk's free tier: 50 a day</b>, called from the server with a user agent naming Spendly and a contact, as cvrapi.dk asks. The weekly check spreads its lookups over the week, at most 40 a day, so 10 stay free each day for the invoice dialog's live lookup (<a href="Invoice.dc.html#24c">Invoice 24c</a>) and for newly saved CVR numbers, which go first. When the limit answers, the job stops for the day and what is left waits for the next day. Nothing is shown to the user: a vendor waiting keeps state 1 or its last checked date. A result is used for every vendor with the same CVR number, so it is looked up once.</div>
+    <div class="doc-note"><b>Only Danish companies are in the CVR register.</b> Country defaults to Denmark. Any other country (state 6) replaces CVR with a typed <b>VAT number</b> and keeps Address typed; the job never looks it up, by number or by name. Country is printed on an invoice only when it is not Denmark.</div>
+  </div>
+  <div class="doc-specimens">
+    <div class="sp-stack sp-gap-8 doc-w400">
+      <span class="sp-section-label">1 - CVR SAVED, NOT LOOKED UP YET</span>
+      <div class="sp-card">
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m1-cty-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-m1-cty-cty">
+                <span class="sp-grow">Denmark</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m1">CVR</label>
+            <input class="sp-input" id="vc-m1" type="text" defaultValue="12345678">
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m1-addr">Address</span>
+            <div class="sp-well sp-well--quiet" aria-labelledby="vc-m1-addr">
+              <span class="sp-data sp-ink-5">Not looked up yet</span>
+            </div>
+            <span class="sp-field__help">Filled from the CVR register within a day.</span>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 doc-w400">
+      <span class="sp-section-label">2 - FROM THE REGISTER</span>
+      <div class="sp-card">
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m2-cty-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-m2-cty-cty">
+                <span class="sp-grow">Denmark</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m2">CVR</label>
+            <input class="sp-input" id="vc-m2" type="text" defaultValue="12345678">
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m2-addr">Address</span>
+            <div class="sp-well sp-well--quiet" aria-labelledby="vc-m2-addr">
+              <span class="sp-data">Indbo Møbler A/S</span>
+              <span class="sp-data">Vesterbrogade 112</span>
+              <span class="sp-data">1620 København V</span>
+            </div>
+            <span class="sp-field__help">From the CVR register, checked 14 Oct.</span>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 doc-w400">
+      <span class="sp-section-label">3 - NO CVR, A MATCH FOUND BY NAME</span>
+      <div class="sp-card">
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m3-cty-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-m3-cty-cty">
+                <span class="sp-grow">Denmark</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m3">CVR</label>
+            <input class="sp-input" id="vc-m3" type="text">
+          </div>
+          <div class="sp-well">
+            <span class="sp-title">Is this the company?</span>
+            <span class="sp-data">Bolia.com A/S, CVR 26037280</span>
+            <span class="sp-data sp-ink-2">Indiakaj 6, 2100 København Ø</span>
+            <div class="sp-row-flex sp-gap-8">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Not this one</button>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--small">Use it</button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m3-addr">Address</label>
+            <textarea class="sp-textarea" id="vc-m3-addr" rows="3"></textarea>
+            <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 doc-w400">
+      <span class="sp-section-label">4 - CEASED TRADING</span>
+      <div class="sp-card">
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m4-cty-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-m4-cty-cty">
+                <span class="sp-grow">Denmark</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m4">CVR</label>
+            <input class="sp-input" id="vc-m4" type="text" defaultValue="31415926">
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m4-addr">Address</span>
+            <div class="sp-well sp-well--quiet" aria-labelledby="vc-m4-addr">
+              <span class="sp-data">Møbelhuset ApS</span>
+              <span class="sp-data">Algade 21</span>
+              <span class="sp-data">4000 Roskilde</span>
+            </div>
+            <span class="sp-field__help">Ceased trading 3 Mar 2026.</span>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 doc-w400">
+      <span class="sp-section-label">5 - NOT IN THE REGISTER</span>
+      <div class="sp-card">
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m5-cty-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-m5-cty-cty">
+                <span class="sp-grow">Denmark</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m5">CVR</label>
+            <input class="sp-input" id="vc-m5" type="text" defaultValue="12345679" aria-invalid="true" aria-describedby="vc-m5-help">
+            <span class="sp-field__help" data-color="danger" id="vc-m5-help">No company has CVR 12345679 in the register. Check the number.</span>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m5-addr">Address</label>
+            <textarea class="sp-textarea" id="vc-m5-addr" rows="3"></textarea>
+            <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 doc-w400">
+      <span class="sp-section-label">6 - OUTSIDE DENMARK</span>
+      <div class="sp-card">
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-m6-cty-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-m6-cty-cty">
+                <span class="sp-grow">Sweden</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m6">VAT number</label>
+            <input class="sp-input" id="vc-m6" type="text" defaultValue="SE556677889901">
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-m6-addr">Address</label>
+            <textarea class="sp-textarea" id="vc-m6-addr" rows="3"></textarea>
+            <span class="sp-field__help">Printed on an invoice made from its orders.</span>
+          </div>
+      </div>
+    </div>
   </div>
 </section>
 

@@ -2681,6 +2681,18 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
    placed before them, and a spacer is only needed to separate that something */
 .sp-dialog__actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-8); }
 .sp-dialog::backdrop { background: rgba(27, 26, 23, 0.32); }
+/* c13 variant: a dialog that makes a file shows a preview of it beside its fields
+   (Invoice 24c). The fields column is the plain dialog's 420 less its padding; the
+   preview is an A4 page at 40%. Below 760 the preview goes and it is the plain dialog. */
+.sp-dialog--preview { width: 760px; }
+.sp-dialog__split { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--sp-16); align-items: start; }
+.sp-dialog__fields { display: flex; flex-direction: column; gap: var(--sp-12); min-width: 0; }
+.sp-dialog__preview { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; background: var(--surface-2); }
+@media (max-width: 760px) {
+  .sp-dialog--preview { width: 420px; }
+  .sp-dialog__split { grid-template-columns: minmax(0, 1fr); }
+  .sp-dialog__preview { display: none; }
+}
 
 /* a decorative chevron inside a field sits on the field's own padding, not in the button slot */
 .sp-field__chevron {
