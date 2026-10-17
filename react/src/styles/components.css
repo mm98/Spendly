@@ -3831,6 +3831,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 .sp-alert[data-color="danger"] .sp-alert__mark { background: #e6c9c4; color: #8a4a41; }
 .sp-alert[data-color="danger"] .sp-alert__title,
 .sp-alert[data-color="danger"] .sp-alert__note { color: var(--red-ink); }
+/* the alert that holds the fields that settle it (Invoice 24d): the body takes the
+   width so the fields can, and the mark sits on the title line rather than the middle */
+.sp-alert--field { align-items: flex-start; }
+.sp-alert--field > .sp-alert__body { flex: 1; }
 
 /* dark theme lifts an overlay instead of shadowing it (12a) */
 [data-theme="dark"] .sp-toast,

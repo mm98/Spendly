@@ -343,6 +343,12 @@ export async function dismissVendorCompanyMatch(id, signal) {
 	return request(`/api/vendors/${id}/company-match/dismiss`, { method: 'POST', signal })
 }
 
+/** A company in the CVR register by its number, looked up as it is typed:
+    `{ status: 'found' | 'none' | 'limit' | 'failed', company: { cvr, name, address, checkedAt, ceasedOn } }`. */
+export async function findCompany(cvr, signal) {
+	return request(`/api/companies/${encodeURIComponent(cvr)}`, { signal })
+}
+
 /* ---- invoices (Invoice 24c, 24d) ---- */
 
 /** The last recipient an invoice was made for, or null. */
@@ -350,19 +356,15 @@ export async function getInvoiceRecipient(signal) {
 	return request('/api/invoices/recipient', { signal })
 }
 
-/** A company in the CVR register by its number: `{ status: 'found' | 'none' | 'limit' | 'failed', company }`. */
-export async function findInvoiceCompany(cvr, signal) {
-	return request(`/api/invoices/company?${new URLSearchParams({ cvr })}`, { signal })
-}
-
-/** Who sends an order's invoice, and what its From box lacks: `{ vendorId, name, missing }`. */
+/** Who sends an order's invoice, and what its From box lacks: `{ vendorId, name, country, cvr, missing, unknownNumber }`. */
 export async function getInvoiceSender(orderId, signal) {
 	return request(`/api/invoices/orders/${orderId}/sender`, { signal })
 }
 
-/** The invoice's first page as a picture, for the dialog's preview. */
-export const invoicePreviewUrl = (orderId, recipient, locale) =>
-	`/api/invoices/orders/${orderId}/preview?${new URLSearchParams({ recipient: JSON.stringify(recipient), locale })}`
+/** The invoice's first page as a picture, for the dialog's preview. `vendor` is the vendor's details as
+    typed in the dialog, not saved yet: `{ cvr, vatNumber, address }`, each optional. */
+export const invoicePreviewUrl = (orderId, recipient, locale, vendor = {}) =>
+	`/api/invoices/orders/${orderId}/preview?${new URLSearchParams({ recipient: JSON.stringify(recipient), vendor: JSON.stringify(vendor), locale })}`
 
 /** The invoice as a PDF: `{ blob, fileName }`. The server keeps the recipient for the next invoice. */
 export async function makeInvoice(orderId, body, signal) {

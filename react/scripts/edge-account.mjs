@@ -133,11 +133,13 @@ await makeVendor('Alias shop', { aliases: ['A-Shop', 'Alias Store'] })
 // new orders from it start left out of statistics, so every order it has is left out
 await makeVendor('One-off car dealer', { defaultExcludeFromStats: true })
 // company details for an invoice's From box: a CVR number the register knows, one it does not, a company that
-// has ceased, one abroad with a VAT number, one with no address, and one the register finds by its name
+// has ceased, one abroad with a VAT number, one abroad with neither, one with no address, and one the register
+// finds by its name
 await makeVendor('Edge CVR shop', { cvr: '12345678' })
 await makeVendor('Edge unknown CVR shop', { cvr: '12345679' })
 await makeVendor('Edge ceased shop', { cvr: '31415926' })
 await makeVendor('Edge Swedish shop', { country: 'SE', vatNumber: 'SE556677889901', address: 'Storgatan 12\n114 51 Stockholm' })
+await makeVendor('Edge Swedish shop with nothing', { country: 'SE' })
 await makeVendor('Edge shop with no address')
 await makeVendor('Bolia')
 const archived = (await call('GET', '/vendors?name=Archived%20shop&pageSize=1')).data?.vendors?.[0]
@@ -195,6 +197,7 @@ await order('Many long lines', { vendor: 'Edge favourite shop', date: day(-10),
 await order('Invoice on two pages', { vendor: 'Edge CVR shop', date: day(-9), shipping: 49, discount: 120,
 	items: Array.from({ length: 14 }, (_, i) => ({ title: i % 3 ? `Line ${i + 1}` : `Line ${i + 1} with a name long enough to wrap onto a second line in the invoice`, quantity: i % 4 + 1, price: 35 + i * 12.5 })) })
 await order('Invoice from abroad', { vendor: 'Edge Swedish shop', date: day(-9) })
+await order('Invoice from abroad with nothing', { vendor: 'Edge Swedish shop with nothing', date: day(-9) })
 await order('Invoice with no address', { vendor: 'Edge shop with no address', date: day(-9) })
 await order('Invoice from a ceased company', { vendor: 'Edge ceased shop', date: day(-9) })
 await order('Invoice with an unknown CVR', { vendor: 'Edge unknown CVR shop', date: day(-9) })

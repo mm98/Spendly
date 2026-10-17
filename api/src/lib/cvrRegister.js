@@ -11,7 +11,7 @@ const USER_AGENT = ['Spendly', 'company addresses for invoices', CONTACT].filter
 const TIMEOUT_MS = 8000
 
 // The free tier answers 50 lookups a day. The background check stops at 40, so the rest stay for
-// the invoice dialog and newly saved numbers.
+// numbers as they are typed, and numbers saved that could not be looked up then.
 export const LOOKUPS_A_DAY = 50
 export const CHECK_LOOKUPS_A_DAY = 40
 export const RECHECK_DAYS = 7
@@ -132,15 +132,15 @@ export async function searchName(name, share = LOOKUPS_A_DAY) {
 
 const fresh = company => company && nowEpoch() - company.checkedEpoch < RECHECK_DAYS * 86400
 
-/** The invoice dialog's live lookup by CVR number; a number checked this week costs no lookup.
-    `{ status: 'found', company: { cvr, name, address } }`, `'none'`, `'limit'` or `'failed'`. */
+/** The lookup made as a CVR number is typed (24c, 24d, 5m); a number checked this week costs none.
+    `{ status: 'found', company: { cvr, name, address, checkedAt, ceasedOn } }`, `'none'`, `'limit'` or `'failed'`. */
 export async function findCompany(cvr) {
 	const stored = storedCompany(cvr)
-	if (fresh(stored)) return stored.found
-		? { status: 'found', company: { cvr: stored.cvr, name: stored.name, address: currentAddress(stored) } }
-		: { status: 'none' }
+	if (fresh(stored)) return stored.found ? { status: 'found', company: shownCompany(stored) } : { status: 'none' }
 	const answer = await lookUpNumber(cvr)
-	if (answer.status !== 'found') return answer
-	const { cvr: number, name, address } = answer.company
-	return { status: 'found', company: { cvr: number, name, address } }
+	return answer.status === 'found' ? { status: 'found', company: shownCompany(storedCompany(answer.company.cvr)) } : answer
 }
+
+const shownCompany = company => ({
+	cvr: company.cvr, name: company.name, address: currentAddress(company), checkedAt: company.checkedAt, ceasedOn: company.ceasedOn
+})
