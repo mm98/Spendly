@@ -1,4 +1,36 @@
-# Answers to "Brief: questions from building Make invoice and the CVR lookup"
+# Answers to "Brief: questions from building Make invoice and the CVR lookup" - fixed
+
+Replaces `design_handoff_invoice_cvr`. Fixed since that package: the recipient is one remembered view with a live CVR field (A), the borderless swap buttons are gone (B), and Add them no longer opens a new tab (C). Points 1-7 below are unchanged unless A says otherwise.
+
+## A. The recipient is one view: the vendor's fields, with a live CVR lookup
+
+**The problem** - 24c led with a CVR lookup, as if the recipient were always a company, and swapped between a lookup mode and a typed mode. The recipient is usually the user of the app, typed once and reused.
+
+**What changed** - One view, no modes. The fields are the vendor's own, in its order: Name, Country, CVR, Address, Att., all optional. CVR shows when Country is Denmark; outside Denmark it is VAT number, printed as typed and not looked up. Eight digits in CVR look the company up at once: Address becomes the register's name and address with "From the CVR register." under it, and Name is filled with the register name if it was empty; the PDF prints the register name, address and CVR. Clearing CVR turns Address back into a field. There is no search by name. The lookup's other states are the help line under CVR, with Address staying a field: "Looking up…"; "No company has CVR 87654321 in the register. Check the number."; "The company could not be looked up. Try again, or type the address."; "Company lookup is not available until tomorrow. Type the address instead." This replaces point 3's places.
+
+One recipient is remembered per account: the one on the last downloaded invoice, filled in and edited in place; Download PDF saves edits as the new remembered recipient. The first invoice opens with the fields empty. With every field empty, To prints the account's name and email, as they are in Settings when the PDF is made.
+
+**Where** - `Invoice.dc.html` 24c (two states of the one view: the remembered person, and a company found by CVR), 24d (Name, Country Sweden, VAT number), 24b (To shows the account's name and email). App: the invoice dialog and the PDF's To box.
+
+## B. No borderless buttons in the dialog
+
+**The problem** - "Look up a company" and "Type the address instead" were text buttons with no edge, so they read as loose text until hovered.
+
+**What changed** - With the one view in A there is nothing to swap, so both buttons are gone. The text button component (`sp-btn--text`) is unchanged and still used elsewhere (Components c6, the phone palette's Cancel and the filter sheet's Reset in Mobile screens). Please confirm whether those should become `sp-btn--outline`.
+
+**Where** - `Invoice.dc.html` 24c, 24d.
+
+## C. Add them opens in the same tab
+
+**The problem** - 24d said Add them opens the vendor's edit page in a new tab, unlike the rest of the app.
+
+**What changed** - Add them, and Check the number (point 4), close the dialog and open the vendor's edit page (5c) in the same tab. Back on the order, Make invoice opens the dialog again with what was saved.
+
+**Where** - `Invoice.dc.html` 24d notes.
+
+**What is still open** - Order editing layouts 1a says the vendor and category links on the order page "open in a new tab like any other". Please confirm they should also open in the same tab; 1a is not changed here.
+
+---
 
 PR https://github.com/mm98/Spendly/pull/485. The six points take the brief's recommended choice; one more fix, the item photo on the invoice, came from the built PDF. `later.md` on main is empty, so no entry is settled here.
 
@@ -62,7 +94,7 @@ PR https://github.com/mm98/Spendly/pull/485. The six points take the brief's rec
 
 - `README.md` - the design overview, unchanged.
 - `CHANGES.md` - this note.
-- `Invoice.dc.html` - points 1-7.
+- `Invoice.dc.html` - points 1-7 and A-C.
 - `Order editing layouts.dc.html` - Make invoice on the order page (1a).
 - `Duplicate and alerts.dc.html` - 8a note on where Make invoice lives.
 - `Icon legend.dc.html`, `icons.js` - where `file-invoice` is used.
