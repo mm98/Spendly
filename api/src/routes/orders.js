@@ -934,7 +934,8 @@ const insertImportedAttachment = (a, owner) => insertAttachment.run({
 
 const selectImport = db.prepare('SELECT id, undone_at FROM order_imports WHERE id = ? AND user_id = ?')
 const selectCategoryByName = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
-const tagOrder = db.prepare('UPDATE orders SET import_id = ? WHERE id = ?')
+// with the revision the import leaves it at, so a later edit shows as a higher one
+const tagOrder = db.prepare('UPDATE orders SET import_id = ?, import_revision = revision WHERE id = ?')
 const tagVendor = db.prepare('UPDATE vendors SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
 const tagCategory = db.prepare('UPDATE categories SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
 const countImport = db.prepare(`UPDATE order_imports SET orders = orders + @orders, lines = lines + @lines,

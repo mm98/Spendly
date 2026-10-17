@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Card, CardHeader } from '../components/Card.jsx'
-import { Button } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { FileDrop } from '../components/FileDrop.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -9,18 +9,21 @@ import { Well } from '../components/Well.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Gauge, Stat } from '../components/Data.jsx'
-import { Spinner, Stacked } from '../components/Utilities.jsx'
+import { Skeleton, Spinner, Stacked, useDismiss } from '../components/Utilities.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	checkImportDuplicates, failureMessage, getCurrentUser, getImports, getKnownVendorNames, getSettings, importOrders, startImport,
-	undoImport
+	checkImportDuplicates, failureMessage, getCurrentUser, getImportUndo, getImports, getKnownVendorNames, getSettings, importOrders,
+	setImportHidden, startImport, undoImport
 } from '../api/client.js'
 import { amount, amountRound, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
 import { buildOrders, download, guessMapping, readSheet, reuseMapping, skippedCsv, templateWorkbook } from '../api/orderImport.js'
 import { landing, useStepFocus } from './SettingsParts.jsx'
 import { ImportFooter, MapStep } from './SettingsImportMap.jsx'
 import { useStatuses } from '../app/statuses.js'
+import { useShellShape } from '../app/useMedia.js'
 import { ImportButton } from './BudgetImport.jsx'
+import { LeaveDialog } from './vendorsCategories.jsx'
 
 /* The server takes 50 MB per request and a receipt rides along as base64, so orders are sent
    in slices under this many bytes of JSON. */
@@ -108,14 +111,28 @@ const reason = error => {
 // what a row of the file is called in a sentence: its row in a spreadsheet, its place in a JSON list
 const where = (source, rows) => (source.kind === 'json' ? `Order ${rows[0]} in the file` : rows.length > 1 ? `Rows ${rows[0]} to ${rows.at(-1)}` : `Row ${rows[0]}`)
 
+/** The import's stage and the mapping waiting for the next file. Settings holds them, so moving
+    between its sections keeps an import, as it keeps every other unsaved change. */
+export function useImportState() {
+	const [stage, setStage] = useState({ name: 'rest' })
+	const [reuse, setReuse] = useState(null)
+	return { stage, setStage, reuse, setReuse }
+}
+
+/** The file of an import chosen and not yet written (stages 2 and 3), or null: until Import is
+    pressed it is unsaved, and leaving loses it. */
+export const importUnsaved = ({ stage }) => (stage.name === 'map' ? stage.file : stage.name === 'review' ? stage.source.file : null)
+
+/** What leaving an import before it is written loses (11b). */
+export const importLeaveBody = file => `${file} is not imported yet. Leaving discards the file and the column choices you made. No orders have been written.`
+
 /* Import, as 11b: pick a file, map a spreadsheet's columns, check what it holds, then write it,
    with the last few imports listed for their mapping and their undo. Nothing is written before Import is pressed. */
-export function ImportCard() {
+export function ImportCard({ state }) {
 	const history = useApi(getImports)
 	const settings = useApi(getSettings)
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
-	const [stage, setStage] = useState({ name: 'rest' })
-	const [reuse, setReuse] = useState(null)
+	const { stage, setStage, reuse, setReuse } = state
 	const { box, then } = useStepFocus(stage)
 
 	// a refused file mounts a fresh picker, which is what lets the same file be chosen again
@@ -264,19 +281,39 @@ function BudgetImport() {
 	)
 }
 
-/** Previous imports (11b): when, what each wrote, its mapping to reuse, and its undo for a day. */
+/** Previous imports (11b): when, what each wrote, its undo for a day, and its menu: the mapping to
+    reuse, and once the undo has gone, the way to remove the line from the list. */
 function History({ history, onReuse }) {
+	const toast = useToast()
+	// on a phone Undo takes a row of its own under the name, which keeps the whole width beside the menu
+	const touch = useShellShape() === 'touch'
 	const [busy, setBusy] = useState(null)
 	const [said, setSaid] = useState(null)
+	const [asking, setAsking] = useState(null)
 	const list = history.data ?? []
 	if (!list.length) return null
 	const undo = item => {
+		setAsking(null)
 		setBusy(item.id)
 		setSaid(null)
 		undoImport(item.id)
 			.then(out => setSaid(`${item.fileName}: ${ordersWord(out.orders)} removed.`))
 			.catch(e => setSaid(failureMessage(e, 'The import was not undone. Try again.')))
 			.finally(() => { setBusy(null); history.refresh() })
+	}
+	const hide = (item, hidden) => setImportHidden(item.id, hidden).then(() => history.refresh())
+	const remove = item => {
+		setBusy(item.id)
+		hide(item, true)
+			.then(() => toast({
+				message: `${item.fileName} removed from Previous imports`,
+				undo: {
+					label: 'Undo',
+					onClick: () => hide(item, false).catch(e => toast({ message: failureMessage(e, `${item.fileName} was not put back. Try again.`), color: 'danger' }))
+				}
+			}))
+			.catch(e => toast({ message: failureMessage(e, `${item.fileName} was not removed. Try again.`), color: 'danger' }))
+			.finally(() => setBusy(null))
 	}
 	return (
 		<Card>
@@ -285,22 +322,96 @@ function History({ history, onReuse }) {
 				const facts = [dayShortMonth(new Date(item.createdAt * 1000).toISOString().slice(0, 10)), ordersWord(item.orders)]
 				if (item.skipped) facts.push(`${amount(item.skipped, 0)} skipped`)
 				if (item.undone) facts.push('undone')
+				const undo = item.undoable
+					? <Button variant="outline" size={touch ? 'standard' : 'small'} fullWidth={touch} disabled={busy === item.id} onClick={() => setAsking(item)}>Undo</Button>
+					: null
 				return (
 					<div key={item.id} className="sp-stack sp-gap-12">
 						{i ? <span className="sp-rule" /> : null}
 						<div className="sp-row-flex sp-gap-12">
 							<Stacked>
 								<span className="sp-title sp-truncate">{item.fileName}</span>
-								<span className="sp-meta">{facts.join(dot)}</span>
+								<span className="sp-meta sp-truncate">{facts.join(dot)}</span>
 							</Stacked>
-							{item.undoable ? <Button variant="text" size="small" disabled={busy === item.id} onClick={() => undo(item)}>Undo</Button> : null}
-							{item.mapping ? <Button variant="outline" size="small" onClick={() => onReuse(item)}>Reuse mapping</Button> : null}
+							{touch ? null : undo}
+							<ImportMenu item={item} disabled={busy === item.id} onReuse={() => onReuse(item)} onRemove={() => remove(item)} />
 						</div>
+						{touch ? undo : null}
 					</div>
 				)
 			})}
 			{said ? <span className="sp-meta" role="status">{said}</span> : null}
+			{asking ? <UndoImport id={asking.id} onCancel={() => setAsking(null)} onConfirm={() => undo(asking)} /> : null}
 		</Card>
+	)
+}
+
+/** A line's menu in Previous imports (11b, c9): Reuse mapping, and Remove from this list once the
+    line has no Undo. A line with neither has no menu. */
+function ImportMenu({ item, disabled, onReuse, onRemove }) {
+	const [open, setOpen] = useState(false)
+	const anchor = useRef(null)
+	const close = useCallback(() => setOpen(false), [])
+	useDismiss(anchor, open, close)
+	if (!item.mapping && item.undoable) return null
+	return (
+		<Anchor ref={anchor} open={open}>
+			<IconButton icon="dots-vertical" disabled={disabled} aria-label={`Actions for ${item.fileName}`}
+				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
+			{open
+				? (
+					<Menu position="floating" aria-label={item.fileName}>
+						{item.mapping ? <MenuItem onClick={() => { close(); onReuse() }}>Reuse mapping</MenuItem> : null}
+						{item.undoable ? null : <MenuItem onClick={() => { close(); onRemove() }}>Remove from this list</MenuItem>}
+					</Menu>
+				)
+				: null}
+		</Anchor>
+	)
+}
+
+/** "Undo this import?" (11b), from stage 4 and from Previous imports: what the undo deletes, counted
+    as it stands now, so every number in it is true. Delete waits for the count. */
+function UndoImport({ id, onCancel, onConfirm }) {
+	const counts = useApi(getImportUndo, [id])
+	const c = counts.data
+	let body
+	if (c) {
+		const made = [[c.vendors, 'vendor'], [c.categories, 'category', 'categories']].filter(([n]) => n > 0).map(([n, noun, many]) => plural(n, noun, many))
+		const also = made.length ? `${c.orders ? ', and' : ''} the ${made.join(' and ')} it created that nothing else uses now` : ''
+		const what = c.orders ? `its ${ordersWord(c.orders)} and ${plural(c.lines, 'item line')}${also}` : also.replace(/^, and /, '')
+		const day = dayShortMonth(new Date(c.createdAt * 1000).toISOString().slice(0, 10))
+		body = (
+			<>
+				<DialogBody>{c.fileName}, imported {day}. {what ? `Undoing deletes ${what}.` : 'Its orders are already deleted.'}</DialogBody>
+				{c.changed
+					? <ListItem>{c.changed === 1 ? '1 of these orders was changed after the import. It is deleted too, with the changes.' : `${amount(c.changed, 0)} of these orders were changed after the import. They are deleted too, with the changes.`}</ListItem>
+					: null}
+			</>
+		)
+	} else if (counts.error)
+		body = (
+			<Alert color="danger" mark="!" title="What the undo deletes did not load"
+				action={<Button variant="outline" size="small" onClick={counts.refresh}>Try again</Button>}>
+				Nothing is deleted yet. Check your connection.
+			</Alert>
+		)
+	else
+		body = (
+			<div className="sp-stack sp-gap-6" aria-busy="true" aria-label="Counting what the undo deletes">
+				<Skeleton shape="line" />
+				<Skeleton shape="short" />
+			</div>
+		)
+	return (
+		<Dialog onCancel={onCancel}>
+			<DialogTitle>Undo this import?</DialogTitle>
+			{body}
+			<DialogActions>
+				<Button variant="outline" fullWidth onClick={onCancel}>Keep the orders</Button>
+				<Button color="danger" fullWidth disabled={!c?.undoable} onClick={onConfirm}>{c?.orders ? `Delete ${ordersWord(c.orders)}` : 'Undo this import'}</Button>
+			</DialogActions>
+		</Dialog>
 	)
 }
 
@@ -316,6 +427,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 	const [withDuplicates, setWithDuplicates] = useState(false)
 	const [drafts, setDrafts] = useState(true)
 	const [open, setOpen] = useState(null)
+	const [leaving, setLeaving] = useState(false)
 	useEffect(() => {
 		const ask = new AbortController()
 		checkImportDuplicates(source.orders.map(o => ({ vendor: o.draft?.vendor, date: o.draft?.date, total: totalOne(o.draft) })), ask.signal)
@@ -516,13 +628,14 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 				)
 				: null}
 			<ImportFooter>
-				<Button variant="outline" disabled={busy} onClick={restart}>Cancel</Button>
+				<Button variant="outline" disabled={busy} onClick={() => setLeaving(true)}>Cancel</Button>
 				<span className="st-push" />
 				{stage.back ? <Button variant="outline" disabled={busy} onClick={() => { then('heading'); setStage(stage.back) }}>Back to mapping</Button> : null}
 				{busy
 					? <Button disabled><Spinner />Importing…</Button>
 					: <Button disabled={!drafts$.length || duplicates === null} onClick={run}>Import {ordersWord(drafts$.length)}</Button>}
 			</ImportFooter>
+			{leaving ? <LeaveDialog body={importLeaveBody(source.file)} onStay={() => setLeaving(false)} onLeave={restart} /> : null}
 		</Card>
 	)
 }
@@ -531,6 +644,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 function DoneStep({ box, stage, setStage, restart, history }) {
 	const { imported, lines, failed, stopped, source, sent, fresh, importId } = stage
 	const [undoing, setUndoing] = useState(false)
+	const [asking, setAsking] = useState(false)
 	const [problem, setProblem] = useState(null)
 	useEffect(() => { history.refresh() }, [])
 	const record = history.data?.find(h => h.id === importId)
@@ -551,12 +665,14 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 		}
 	}
 	const undo = () => {
+		setAsking(false)
 		setUndoing(true)
 		setProblem(null)
 		undoImport(importId)
 			.then(out => setStage({ name: 'undone', removed: out.orders }))
 			.catch(e => { setUndoing(false); setProblem(failureMessage(e, 'The import was not undone. Try again.')) })
 	}
+	const asked = asking ? <UndoImport id={importId} onCancel={() => setAsking(false)} onConfirm={undo} /> : null
 
 	const reasons = skipped.length
 		? (
@@ -588,8 +704,9 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 				{again}
 				<span className="st-push" />
 				{downloadButton}
-				{stopped && importId && imported ? <Button variant="outline" disabled={undoing} onClick={undo}>Undo this import</Button> : null}
+				{stopped && importId && imported ? <Button variant="outline" disabled={undoing} onClick={() => setAsking(true)}>Undo this import</Button> : null}
 			</ImportFooter>
+			{asked}
 		</Card>
 	)
 
@@ -610,11 +727,12 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 			<span className="sp-meta">Undo removes exactly what this import wrote, including the vendors it created, for 24 hours. After that the orders are ordinary orders.</span>
 			{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}
 			<ImportFooter>
-				<Button variant="outline" disabled={undoing} onClick={undo}>{undoing ? 'Undoing…' : 'Undo this import'}</Button>
+				<Button variant="outline" disabled={undoing} onClick={() => setAsking(true)}>{undoing ? 'Undoing…' : 'Undo this import'}</Button>
 				<span className="st-push" />
 				{downloadButton}
 				<Button to={`/orders?import=${encodeURIComponent(importId)}`}>See the {ordersWord(imported)}</Button>
 			</ImportFooter>
+			{asked}
 		</Card>
 	)
 }

@@ -235,6 +235,8 @@ export function Combobox({
 	// the text being typed, which is not the value - null means the reader is not
 	// typing, so the field shows what is chosen instead
 	const [typed, setTyped] = useState(null)
+	// apart from the query: a page's own query of '' must still show the chosen value at rest
+	const [editing, setEditing] = useState(false)
 	const root = useRef(null)
 	// a page outside the shell (the first run) marks its own touch surface, as a date field reads it
 	const shellTouch = useContext(ShellTouch)
@@ -258,7 +260,7 @@ export function Combobox({
 
 	// closing drops the cursor: the next open starts from what is chosen, not from
 	// wherever the keyboard happened to be left
-	const close = () => { setOpen(false); setTyped(null); box.setActive(-1) }
+	const close = () => { setOpen(false); setTyped(null); setEditing(false); box.setActive(-1) }
 	const toggle = () => (isOpen ? close() : setOpen(true))
 	useDismiss(root, isOpen, close)
 
@@ -277,7 +279,7 @@ export function Combobox({
 			}
 			return step(by)
 		}
-		if (ev.key === 'Home' || ev.key === 'End') {
+		if ((ev.key === 'Home' || ev.key === 'End') && !searchable) {
 			if (!isOpen) return
 			ev.preventDefault()
 			return ev.key === 'Home' ? step(1, -1) : step(-1, options.length)
@@ -296,17 +298,19 @@ export function Combobox({
 	}
 
 	const activeId = isOpen ? box.activeId : undefined
-	// on touch the query is typed in the sheet, and the field under it keeps showing what is chosen
-	const shown = (!touch && query) || (typeof value === 'string' ? value : '')
+	// the reader's text while they edit, empty included, else what is chosen; on touch they type in the sheet
+	const shown = !touch && editing ? (query ?? '') : (typeof value === 'string' ? value : '')
 	const typeQuery = text => {
 		if (search === undefined) setTyped(text)
 		onSearch?.(text)
 	}
-	// Escape clears a query before it closes the panel: the reader's first press undoes their typing
+	// Escape ends the edit before it closes the panel: the reader's first press undoes their typing
 	const searchKeys = ev => {
-		if (ev.key === 'Escape' && query) {
+		if (ev.key === 'Escape' && (editing || query)) {
 			ev.stopPropagation()
+			setEditing(false)
 			typeQuery('')
+			setTyped(null)
 			return
 		}
 		onKeys(ev)
@@ -343,6 +347,7 @@ export function Combobox({
 							// on touch the typing happens in the sheet's own search
 							readOnly={touch}
 							onChange={ev => {
+								setEditing(true)
 								typeQuery(ev.target.value)
 								if (!isOpen) setOpen(true)
 							}}
@@ -350,7 +355,7 @@ export function Combobox({
 							onClick={() => { if (!isOpen) setOpen(true) }}
 							// the query is display state, not the value: leaving the field
 							// puts the chosen value back rather than stranding a half-typed one
-							onBlur={() => setTyped(null)}
+							onBlur={() => { setTyped(null); setEditing(false) }}
 							onKeyDown={searchKeys}
 						/>
 						<span className="sp-field__chevron"><Icon name="chevron-down" size={14} /></span>

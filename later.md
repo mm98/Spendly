@@ -4,89 +4,13 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## Settings: Returned and Cancelled are drawn as deletable, but stay built in
+## Budget: the "Start 2027?" drawing still spaces its parts 6 apart
 
-- **Where:** Settings > Statuses, against the drawing in Settings and import 11a.
-- **What the reader sees:** the drawing marks only Draft "built in" and gives Cancelled, with no
-  orders, a delete button. The app marks Draft, Ordered, Delivered, Returned and Cancelled "built
-  in", and none of them can be deleted.
-- **What was found:** 14 October 2026, reading the app and the server. The app knows Returned and
-  Cancelled by what they mean, not by their name, and that is lost when one is deleted. A status
-  added later with the same name does not bring it back. After a delete:
-  - a scanned return receipt is filed under the default status, usually Delivered, and counts as
-    spending;
-  - Fill with demo data still makes Returned orders, which then count as spending;
-  - an import matches the status by name, so a new "Cancelled" counts as spending and is not struck
-    out;
-  - an order that was once Returned keeps a history line for the deleted status.
-
-  Statistics and the vendor page already cope with a missing Returned.
-- **Why not now:** the app is safe as it is. The drawing is what is out of date, and that is
-  Claude Design's to change: Returned and Cancelled marked "built in", and no delete button on
-  Cancelled.
-
-## design/README.md now holds one handoff note instead of the design system's overview
-
-- **Where:** `design/README.md`.
-- **What the reader sees:** the file describes only the Needs a look and Drafts swap on Home. The
-  overview it held before (what each file in `design/` is, the state of the checks, the settled
-  rules for card heads, rows that open, and the copy conventions) is gone from the folder.
-- **What was found:** 15 October 2026, in the upload that answered the Home card order brief. The
-  upload replaced the whole file rather than adding a note beside it.
-- **Why not now:** `design/` is changed only through Claude Design. The old text is in git history
-  (the commit before "Add files via upload" on 15 October) if Claude Design wants it back.
-
-## Phone: two lines of text stand 6 pixels apart in many places, and the design says 2
-
-- **Where:** every phone screen with a title and a line under it that is not a list card: limit
-  alerts on Home and in the order form, notices, toasts, the scan choices ("Read it again"), and
-  the filter labels above their controls. Mobile screens (`design/styles/pages/mobile-screens.css`,
-  `.ms-device .sp-stack`).
-- **What the reader sees:** 6 pixels between the two lines. List cards (Vendors, Categories, the
-  account card) have 2.
-- **What was found:** 15 October 2026. The design's phone rule says every such pair on a phone is
-  2 pixels apart and carries no gap of its own. But the drawings give these pairs a 6-pixel gap,
-  and that gap wins over the phone rule, in the design and in the app alike. The rule would also
-  pull a label 2 pixels from its field. A question for Claude Design: which places get 2 on a
-  phone, and should the rule be scoped to them.
-
-## Account card: the name is a smaller text style than the drawing
-
-- **Where:** the account card at the top of More and of Settings, against Mobile screens.
-- **What the reader sees:** the name in a title or body text style. The drawing uses the heading
-  style.
-- **What was found:** 15 October 2026, while fixing the gap in the same card. Not changed there.
-
-## Import: leaving an import before it is written loses it without a warning
-
-- **Where:** Settings > Import, between choosing a file and pressing Import.
-- **What the reader sees:** after choosing a file and matching its columns, a click on another page
-  ends the import. Coming back, the import starts again at choosing a file. Nothing warns before.
-- **What was found:** 17 October 2026, reading the app, not tried in it. Settings warns before
-  leaving unsaved changes, but only for its own fields, not for an import in progress. The import
-  itself is not meant to be remembered: nothing is written before Import is pressed, and the app
-  does not keep the file.
-- **Why not now:** the warning is not drawn. A question for Claude Design.
-
-## Import: Undo in Previous imports deletes the orders at once, with no question
-
-- **Where:** Settings > Import > Previous imports, the Undo button beside Reuse mapping.
-- **What the reader sees:** one click removes every order the import wrote, with the vendors and
-  categories it created that nothing else uses. Orders changed since the import go too, with the
-  changes. Nothing asks first.
-- **What was found:** 17 October 2026, reading the app, not tried in it. The text after an import
-  says Undo removes exactly what the import wrote. The Undo in the list says nothing.
-- **Why not now:** a question before Undo is not drawn. A question for Claude Design.
-
-## Import: a line in Previous imports cannot be removed while its orders are kept
-
-- **Where:** Settings > Import > Previous imports.
-- **What the reader sees:** the only way to remove a line is Undo, which also removes its orders.
-  A line otherwise leaves the list only when newer imports push it out, since the list shows the
-  last few.
-- **What was found:** 17 October 2026, asked for by the user: a one-time import, whose mapping is
-  never needed again, stays in the list with nothing left to do there. Imported orders keep a link
-  to their import, which is how the order list shows the orders of one import. Two ways to do it:
-  hide the line and keep the link, or remove the line and make its orders ordinary orders.
-- **Why not now:** it is a new feature and the design does not draw it. The user chooses between
-  the two ways, then it goes to Claude Design.
+- **Where:** Budget 21a-21h, the "Start 2027?" dialog in `design/Budget.dc.html`.
+- **What the reader sees:** in the app, 12 pixels between the title, the text, the choice of
+  amounts, the note under it and the buttons, as every dialog now has. The drawing wraps all of
+  them in a stack 6 apart.
+- **What was found:** 17 October 2026, checking every dialog after the dialog spacing answer. That
+  answer names Budget among the dialogs that take 12, so the app follows it. The drawing was not
+  updated.
+- **Why not now:** a drawing in `design/`, changed only through Claude Design.

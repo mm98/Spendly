@@ -1062,6 +1062,15 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT COUNT(*) AS orders, COALESCE(SUM(item_count), 0) AS lines, COALESCE(SUM(revision > import_revision), 0) AS changed FROM orders WHERE user_id = ? AND import_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX idx_orders_import (import_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_import"
+			]
+		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spent, COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -1736,6 +1745,34 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT COUNT(*) FROM categories WHERE user_id = @userId AND import_id = @id AND NOT EXISTS (SELECT 1 FROM order_categories oc JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = categories.id AND o.import_id IS NOT @id) AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.category_id = categories.id)": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_import (import_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SCAN bc"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_import",
+				"idx_order_categories_cat",
+				"sqlite_autoindex_orders_1"
+			]
+		},
+		"SELECT COUNT(*) FROM vendors WHERE user_id = @userId AND import_id = @id AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.vendor_id = vendors.id AND o.import_id IS NOT @id)": {
+			"plan": [
+				"SEARCH vendors USING INDEX idx_vendors_import (import_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH o USING INDEX idx_orders_user_vendor (ANY(user_id) AND vendor_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_vendor",
+				"idx_vendors_import"
+			]
+		},
 		"SELECT COUNT(*) n FROM orders WHERE user_id = ? AND status = ?": {
 			"plan": [
 				"SEARCH orders USING COVERING INDEX idx_orders_user_status (user_id=? AND status=?)"
@@ -2089,15 +2126,6 @@
 				"idx_categories_user"
 			]
 		},
-		"SELECT id, created_at, undone_at FROM order_imports WHERE id = ? AND user_id = ?": {
-			"plan": [
-				"SEARCH order_imports USING INDEX sqlite_autoindex_order_imports_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_order_imports_1"
-			]
-		},
 		"SELECT id, date FROM order_status_history WHERE order_id = ? AND status = ?": {
 			"plan": [
 				"SEARCH order_status_history USING INDEX idx_order_status_history_order (order_id=?)"
@@ -2125,13 +2153,22 @@
 				"sqlite_autoindex_users_1"
 			]
 		},
-		"SELECT id, file_name, mapping, orders, lines, skipped, vendors, created_at, undone_at FROM order_imports WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?": {
+		"SELECT id, file_name, mapping, orders, lines, skipped, vendors, created_at, undone_at FROM order_imports WHERE user_id = ? AND hidden_at IS NULL ORDER BY created_at DESC, rowid DESC LIMIT ?": {
 			"plan": [
 				"SEARCH order_imports USING INDEX idx_order_imports_user_created (user_id=?)"
 			],
 			"findings": [],
 			"indexes": [
 				"idx_order_imports_user_created"
+			]
+		},
+		"SELECT id, file_name, orders, created_at, undone_at FROM order_imports WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH order_imports USING INDEX sqlite_autoindex_order_imports_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_order_imports_1"
 			]
 		},
 		"SELECT id, key, name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?": {
@@ -4642,7 +4679,7 @@
 			"columns": [
 				"import_id"
 			],
-			"readers": 0
+			"readers": 1
 		},
 		"idx_categories_user": {
 			"table": "categories",
@@ -4678,7 +4715,7 @@
 				"category_id",
 				"order_id"
 			],
-			"readers": 31
+			"readers": 32
 		},
 		"idx_order_drafts_user": {
 			"table": "order_drafts",
@@ -4723,7 +4760,7 @@
 			"columns": [
 				"import_id"
 			],
-			"readers": 2
+			"readers": 3
 		},
 		"idx_orders_user_date": {
 			"table": "orders",
@@ -4798,7 +4835,7 @@
 				"date",
 				"id"
 			],
-			"readers": 38
+			"readers": 39
 		},
 		"idx_uploads_user": {
 			"table": "uploads",
@@ -4874,7 +4911,7 @@
 			"columns": [
 				"import_id"
 			],
-			"readers": 0
+			"readers": 1
 		},
 		"idx_vendors_user_name": {
 			"table": "vendors",

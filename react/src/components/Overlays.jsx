@@ -317,10 +317,8 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 		<DialogParts.Provider value={register}>
 			<div className={touch ? 'sp-sheet' : 'sp-dialog'} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
 				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
-				<div className="sp-stack sp-gap-6">
-					{above}
-					{actions}
-				</div>
+				{above}
+				{actions}
 			</div>
 		</DialogParts.Provider>
 	)
