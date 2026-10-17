@@ -934,6 +934,7 @@ const insertImportedAttachment = (a, owner) => insertAttachment.run({
 
 const selectImport = db.prepare('SELECT id, undone_at FROM order_imports WHERE id = ? AND user_id = ?')
 const selectCategoryByName = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
+const selectVendorExcludesFromStats = db.prepare('SELECT default_exclude_from_stats FROM vendors WHERE id = ? AND user_id = ?').pluck()
 // with the revision the import leaves it at, so a later edit shows as a higher one
 const tagOrder = db.prepare('UPDATE orders SET import_id = ?, import_revision = revision WHERE id = ?')
 const tagVendor = db.prepare('UPDATE vendors SET import_id = ? WHERE user_id = ? AND lower(name) = lower(?) AND import_id IS NULL')
@@ -976,9 +977,12 @@ router.post('/import', requireConfirmed, async (req, res) => {
 
 			const id = newId('o')
 			db.transaction(() => {
-				const newVendor = importId && !findVendorIdByAnyName(req.user.id, draft.vendor)
+				const vendorId = findVendorIdByAnyName(req.user.id, draft.vendor)
+				const newVendor = importId && !vendorId
 				const newCategories = importId ? (draft.categories ?? []).filter(name => !selectCategoryByName.get(req.user.id, String(name).trim())) : []
-				const itemIds = insertOrderRows(req.user.id, id, draft)
+				// an order that does not say whether it counts takes its vendor's default (5l)
+				const excludeFromStats = draft.excludeFromStats ?? Boolean(vendorId && selectVendorExcludesFromStats.get(vendorId, req.user.id))
+				const itemIds = insertOrderRows(req.user.id, id, { ...draft, excludeFromStats })
 				if (importId) {
 					tagOrder.run(importId, id)
 					if (newVendor) { tagVendor.run(importId, req.user.id, String(draft.vendor).trim()); createdVendors++ }
