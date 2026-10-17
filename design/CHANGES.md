@@ -1,4 +1,8 @@
-# A vendor default for Leave out of statistics
+# A vendor default for Leave out of statistics, and the open later.md entry
+
+## Fixed from design_handoff_vendor_stats_default
+
+That package left out the one entry in the repo's `later.md` that is a drawing fix (Budget "Start 2027?" spacing). It is item 7 below. Everything else is unchanged.
 
 Brief: each order can be left out of statistics. Whether an order is left out usually depends on its vendor, so the vendor should carry the default.
 
@@ -46,6 +50,16 @@ All questions were answered in the design chat. Nothing is open.
 
 **Where** - Vendors and categories 5l.
 
+## 7. Budget: the "Start 2027?" drawing still spaces its parts 6 apart
+
+Settles the `later.md` entry of that name. Remove it from `later.md` in the change that takes this package.
+
+**The problem** - The app spaces the title, text, amount choice, note and buttons 12 apart, as every dialog does after the dialog spacing answer. The drawing wrapped them in a stack 6 apart.
+
+**What changed** - The extra stack is gone. The parts are direct children of `sp-dialog`, which spaces its own contents at 12, as the Settings and import dialogs are drawn. No component or style changed. The app already matches; nothing to build.
+
+**Where** - Budget 21e, the "Start 2027?" dialog. `Budget.dc.html`.
+
 ## Files
 
 - `README.md` - the design's overview, unchanged.
@@ -56,9 +70,10 @@ All questions were answered in the design chat. Nothing is open.
 - `Order statistics.dc.html` - 4a note on the empty state when every order is left out (item 5).
 - `Duplicate and alerts.dc.html` - 8a note that a copy keeps the source's value (item 4).
 - `Settings and import.dc.html` - 11b note that imported orders take the default (item 4).
+- `Budget.dc.html` - 21e dialog without the 6 stack (item 7).
 - `support.js`, `components.js`, `icons.js` - loaded by the pages.
 - `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles, unchanged.
-- `styles/pages/budget.css`, `mobile-screens.css`, `order-create.css`, `order-statistics.css`, `duplicate-and-alerts.css`, `settings.css` - linked by the pages above, unchanged.
+- `styles/pages/budget.css` (linked by Budget and Mobile screens), `mobile-screens.css`, `order-create.css`, `order-statistics.css`, `duplicate-and-alerts.css`, `settings.css` - linked by the pages above, unchanged.
 
 ## styles/check.js
 
