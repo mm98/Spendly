@@ -4108,6 +4108,23 @@
     </div>
 
     <div class="doc-specimen">
+      <span class="doc-specimen__label">With a field - sp-alert--field</span>
+      <div class="sp-card doc-w400">
+        <div class="sp-alert sp-alert--field">
+          <span class="sp-alert__mark" aria-hidden="true">!</span>
+          <span class="sp-alert__body">
+            <span class="sp-alert__title">Flying Tiger has no address or CVR number</span>
+            <span class="sp-alert__note">Type its CVR number and the address is filled in from the CVR register.</span>
+            <span class="sp-field">
+              <label class="sp-field__label" for="c19-cvr">Flying Tiger's CVR</label>
+              <input class="sp-input" id="c19-cvr" type="text" inputMode="numeric" placeholder="8 digits">
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
       <span class="doc-specimen__label">Touch - 375px</span>
       <div class="sp-phone sp-touch">
         <div class="sp-card">
@@ -4129,6 +4146,7 @@
     <div class="doc-notes__label">Fixed</div>
     <div class="doc-note">Attention is <code>--amber-tint</code> inside a <code>--amber</code> border at <code>--r-card</code>, 12px padding, both lines <code>--amber-ink-2</code>; the mark is <code>--mark-small</code>, round, <code>--amber-3</code> on <code>--amber-ink</code>. The problem variant swaps to the red pair. It is the same object in every place the fact is true - while saving, and wherever the category appears.</div>
     <div class="doc-notes__label">States</div>
+    <div class="doc-note"><b>With fields</b> (<code>sp-alert--field</code>): when the fact is settled by typing a value, its fields sit in the body under the note, full width, and the mark aligns to the title. They are the standard <code>sp-field</code>, with their own help and error lines. Used for the vendor's missing details in the invoice dialog (<a href="Invoice.dc.html#24d">Invoice 24d</a>), so they are filled in where they are needed. Once the values settle it, the alert goes.</div>
     <div class="doc-note">Attention, which reports a limit crossed · problem, which reports a failure. Neither disables the buttons beneath it: a limit is a fact about the month, not a validation rule, so the primary action still says what it does and still works.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note">None of its own. The alert is never the only place the fact appears - the same state renders as the over-limit chip wherever that category is shown, so dismissing it is unnecessary and there is nothing to dismiss.

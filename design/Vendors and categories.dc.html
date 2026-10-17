@@ -37,6 +37,8 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The overview has no panel.</b> A row opens the edit page (<a href="#5b">5b</a>, <a href="#5c">5c</a>), the same shape an order uses, so there is one form mechanism in the app rather than two - and one click to the thing the screen is for rather than a summary and then a click. The figures live in that page's rail, which is 360px and could never have held a sticky save bar anyway; the save bar spans the form.</div>
     <div class="doc-note"><b>The list does not show a vendor's Leave out of statistics default</b> (<a href="#5l">5l</a>), in rows or cards. It is read on the vendor's page.</div>
+    <div class="doc-note"><b>A vendor without an address says so in its grey line</b>, after the order count: "14 orders · No address". The address is what an invoice needs from the vendor (<a href="Invoice.dc.html#24d">24d</a>), so this is the one gap the list shows; a missing CVR number is not marked. A vendor with an address shows nothing extra. The same line is used wherever the vendor row or card appears, at every width (<a href="#5k">5k</a>).</div>
+    <div class="doc-note"><b>No address, the third choice in the Active / Archived control,</b> lists the active vendors without an address, with the same sort and search. The toolbar count follows it: "6 vendors". With none left, the list shows the empty state with "Every vendor has an address."</div>
     <div class="doc-note"><b>A row is a link.</b> Clicking one navigates to <code>/vendors/indbo/edit</code> - it middle-clicks and deep-links like any other, and there is no selected state to survive a reload because selecting is not a thing this screen does.</div>
   </div>
   <div class="doc-screen doc-frame">
@@ -58,6 +60,7 @@
               <div class="sp-segmented" role="radiogroup" aria-label="Which records">
                 <label class="sp-segmented__item" data-label="Active"><input type="radio" name="vc-seg1" defaultChecked="{{ true }}"><span class="sp-label">Active</span></label>
                 <label class="sp-segmented__item" data-label="Archived"><input type="radio" name="vc-seg1"><span class="sp-label">Archived</span></label>
+                <label class="sp-segmented__item" data-label="No address"><input type="radio" name="vc-seg1"><span class="sp-label">No address</span></label>
               </div>
               <div class="sp-combobox sp-combobox--sort">
                 <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
@@ -130,7 +133,7 @@
                 <span class="sp-mark sp-mark--medium">FL</span>
                 <span class="sp-stacked">
                   <span class="sp-title sp-truncate">Ferm Living</span>
-                  <span class="sp-meta sp-truncate">14 orders</span>
+                  <span class="sp-meta sp-truncate">14 orders · No address</span>
                 </span>
               </div></td>
               <td class="sp-col-date"><span class="sp-data">11/07/2026</span></td>
@@ -142,7 +145,7 @@
                 <span class="sp-mark sp-mark--medium">IN</span>
                 <span class="sp-stacked">
                   <span class="sp-title sp-truncate">Indbo Moebler A/S</span>
-                  <span class="sp-meta sp-truncate">2 orders · created by receipt scan</span>
+                  <span class="sp-meta sp-truncate">2 orders · created by receipt scan · No address</span>
                 </span>
               </div></td>
               <td class="sp-col-date"><span class="sp-data">12/06/2026</span></td>
@@ -269,7 +272,7 @@
             <div class="sp-field">
               <label class="sp-field__label" for="vc-new-addr">Address</label>
               <textarea class="sp-textarea" id="vc-new-addr" rows="3"></textarea>
-              <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.</span>
+              <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register, and is kept up to date.</span>
             </div>
           </div>
         </div>
@@ -1915,23 +1918,23 @@
     <span class="doc-badge" id="5m">5m</span>
     <span class="doc-section__title">Company details from the CVR register</span>
   </div>
-  <div class="doc-lede">A Danish vendor's CVR number links it to the CVR register, and a background job keeps its address current. Six states of the vendor's Country, CVR and Address fields, which live in the Invoice details card of <a href="#5b">5b</a> and <a href="#5c">5c</a>, drawn open.</div>
+  <div class="doc-lede">A Danish vendor's CVR number links it to the CVR register: it is looked up as soon as it is typed, and a background job keeps the address current. Six states of the vendor's Country, CVR and Address fields, which live in the Invoice details card of <a href="#5b">5b</a> and <a href="#5c">5c</a>, drawn open.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Nothing is looked up while the page is open.</b> A background job does every lookup. A newly saved CVR number is looked up within a day (state 1); after that every vendor with a CVR is checked once a week.</div>
-    <div class="doc-note"><b>Invoice details is its own card, below THE VENDOR, and always starts collapsed</b>, since these fields are only used on an invoice. It is the toggle card of the phone's Order details (<a href="Order editing layouts.dc.html#1c">1c</a>): the title, a summary line, the chevron. The summary says what is set: "Not added" with nothing set; otherwise the country and the number, "Denmark · CVR 12345678" or "Sweden · VAT SE556677889901", and "Denmark · address only" for a typed address without a number. A name match waiting to be confirmed (state 3) reads "A company match is waiting"; the suggestion itself stays inside the card. The card opens and closes on click and is not remembered; Add them in the invoice dialog (<a href="Invoice.dc.html#24d">Invoice 24d</a>) opens the vendor's edit page with it open.</div>
+    <div class="doc-note"><b>Eight digits in CVR look the company up at once</b>, as in the invoice dialog (<a href="Invoice.dc.html#24c">Invoice 24c</a>). While it runs the help line under CVR reads "Looking up…" (state 1); found, Address shows the register's address (state 2), saved with the vendor. No answer from the register: "The company could not be looked up. It is tried again tonight." The day's lookups used: "Company lookup is not available until tomorrow. The address is filled in then." In both cases the number is saved and the background job looks it up. After that every vendor with a CVR is checked once a week.</div>
+    <div class="doc-note"><b>Invoice details is its own card, below THE VENDOR, and always starts collapsed</b>, since these fields are only used on an invoice. It is the toggle card of the phone's Order details (<a href="Order editing layouts.dc.html#1c">1c</a>): the title, a summary line, the chevron. The summary says what is set: "Not added" with nothing set; otherwise the country and the number, "Denmark · CVR 12345678" or "Sweden · VAT SE556677889901", and "Denmark · address only" for a typed address without a number. A name match waiting to be confirmed (state 3) reads "A company match is waiting"; the suggestion itself stays inside the card. The card opens and closes on click and is not remembered;</div>
     <div class="doc-note"><b>Country and CVR share a line</b> (<code>sp-fields</code>), Country on the left, since together they say which register the number belongs to; outside Denmark the right half is VAT number. On touch the pair stacks, as <code>sp-fields</code> always does. The help or error line under CVR sits under its own half. The same pair is used in the invoice dialog (<a href="Invoice.dc.html#24c">Invoice 24c</a>).</div>
     <div class="doc-note"><b>The register always wins.</b> With a CVR number, Address is not a field: it shows what the register holds, with "From the CVR register, checked 14 Oct." (state 2). A change in the register replaces it silently at the next check. The register's company name (Indbo Møbler A/S) is stored beside the vendor's own Name and printed as the invoice's From; the vendor's Name never changes.</div>
     <div class="doc-note"><b>Addresses are kept with the date they took effect.</b> An invoice uses the address the vendor had on the order date (<a href="Invoice.dc.html#24a">Invoice 24a</a>), so an old order's invoice does not change when the company moves.</div>
     <div class="doc-note"><b>A Danish vendor without a CVR number is searched by name</b> in the same job (cvrapi.dk's name search). The single best match is offered on the vendor page as "Is this the company?" (state 3). <b>Use it</b> sets the CVR number and the address follows at once, from the result. <b>Not this one</b> closes it, and that name is not searched again until the vendor's Name changes. A vendor with no match shows nothing.</div>
     <div class="doc-note"><b>A company that has ceased trading</b> keeps its last address, and the help line reads "Ceased trading 3 Mar 2026." (state 4). Nothing else changes: the vendor is not archived and its orders are untouched.</div>
-    <div class="doc-note"><b>A CVR number the register does not know</b> is marked on the field at the next visit, "No company has CVR 12345679 in the register. Check the number." (state 5). Address goes back to a typed field. The job tries again only when the number is changed.</div>
-    <div class="doc-note"><b>Lookups use cvrapi.dk's free tier: 50 a day</b>, called from the server with a user agent naming Spendly and a contact, as cvrapi.dk asks. The weekly check spreads its lookups over the week, at most 40 a day, so 10 stay free each day for the invoice dialog's live lookup (<a href="Invoice.dc.html#24c">Invoice 24c</a>) and for newly saved CVR numbers, which go first. When the limit answers, the job stops for the day and what is left waits for the next day. Nothing is shown to the user: a vendor waiting keeps state 1 or its last checked date. A result is used for every vendor with the same CVR number, so it is looked up once.</div>
+    <div class="doc-note"><b>A CVR number the register does not know</b> is marked on the field at once, "No company has CVR 12345679 in the register. Check the number." (state 5). Address goes back to a typed field. The job tries again only when the number is changed.</div>
+    <div class="doc-note"><b>Lookups use cvrapi.dk's free tier: 50 a day</b>, called from the server with a user agent naming Spendly and a contact, as cvrapi.dk asks. The weekly check spreads its lookups over the week, at most 40 a day, so 10 stay free each day for the lookups made as a number is typed, on this page and in the invoice dialog (<a href="Invoice.dc.html#24c">Invoice 24c</a>, <a href="Invoice.dc.html#24d">24d</a>). Numbers that could not be looked up when typed go first in the job. When the limit answers, the job stops for the day and what is left waits for the next day. A vendor waiting for the job shows its last checked date, or "Filled in from the CVR register tonight." under Address when it has none yet. A result is used for every vendor with the same CVR number, so it is looked up once.</div>
     <div class="doc-note"><b>Only Danish companies are in the CVR register.</b> Country defaults to Denmark. Any other country (state 6) replaces CVR with a typed <b>VAT number</b> and keeps Address typed; the job never looks it up, by number or by name. Country is printed on an invoice only when it is not Denmark.</div>
   </div>
   <div class="doc-specimens">
     <div class="sp-stack sp-gap-8 doc-w400">
-      <span class="sp-section-label">1 - CVR SAVED, NOT LOOKED UP YET</span>
+      <span class="sp-section-label">1 - CVR TYPED, LOOKING UP</span>
       <div class="sp-card sp-card--flush">
         <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="true">
           <span class="sp-stacked">
@@ -1953,15 +1956,15 @@
           </div>
           <div class="sp-field">
             <label class="sp-field__label" for="vc-m1">CVR</label>
-            <input class="sp-input" id="vc-m1" type="text" defaultValue="12345678">
+            <input class="sp-input" id="vc-m1" type="text" defaultValue="12345678" aria-describedby="vc-m1-help">
+            <span class="sp-field__help" id="vc-m1-help">Looking up…</span>
           </div>
           </div>
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m1-addr">Address</span>
             <div class="sp-well sp-well--quiet" aria-labelledby="vc-m1-addr">
-              <span class="sp-data sp-ink-5">Not looked up yet</span>
+              <span class="sp-data sp-ink-5">From the CVR register</span>
             </div>
-            <span class="sp-field__help">Filled from the CVR register within a day.</span>
           </div>
         </div>
       </div>
@@ -2043,7 +2046,7 @@
           <div class="sp-field">
             <label class="sp-field__label" for="vc-m3-addr">Address</label>
             <textarea class="sp-textarea" id="vc-m3-addr" rows="3"></textarea>
-            <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.</span>
+            <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register, and is kept up to date.</span>
           </div>
         </div>
       </div>
@@ -2116,7 +2119,7 @@
           <div class="sp-field">
             <label class="sp-field__label" for="vc-m5-addr">Address</label>
             <textarea class="sp-textarea" id="vc-m5-addr" rows="3"></textarea>
-            <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.</span>
+            <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register, and is kept up to date.</span>
           </div>
         </div>
       </div>

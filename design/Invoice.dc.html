@@ -146,11 +146,11 @@
     <span class="doc-badge" id="24c">24c</span>
     <span class="doc-section__title">Make invoice - the dialog</span>
   </div>
-  <div class="doc-lede">Opened from Make invoice in the order row and card menus (<a href="Order list.dc.html#2b">2b</a>, <a href="Duplicate and alerts.dc.html#8a">8a</a>) and on the order page (<a href="Order editing layouts.dc.html#1a">1a</a>). One choice, the recipient, with the page beside it as it will download.</div>
+  <div class="doc-lede">Opened from Make invoice in the order row and card menus (<a href="Order list.dc.html#2b">2b</a>, <a href="Duplicate and alerts.dc.html#8a">8a</a>) and on the order page (<a href="Order editing layouts.dc.html#1a">1a</a>). One choice, the recipient: a name and an address, with the page beside it as it will download.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>One recipient is remembered, per account.</b> The recipient is usually the user, typed once. The dialog opens with the recipient of the last downloaded invoice filled in, and edits are made in place; Download PDF saves them as the new remembered recipient, so a second invoice is one click. The first invoice opens with the fields empty. Every field is optional: with all of them empty, To prints the account's name and email (<a href="#24b">24b</a>).</div>
-    <div class="doc-note"><b>One view, the vendor's fields.</b> Name, Country, CVR, Address, Att., in the order and with the behaviour of the vendor's own fields (<a href="Vendors and categories.dc.html#5m">5m</a>). Country and CVR share a line, as on the vendor page. CVR shows when Country is Denmark; outside Denmark it is VAT number, printed as typed and not looked up (<a href="#24d">24d</a>). Country is printed only when it is not Denmark. Att. is printed under the name.</div>
+    <div class="doc-note"><b>Name and Address, the rest on request.</b> The dialog asks for Name and Address only. Show company details, the text toggle under them (<code>sp-field-group__more</code>, as in the rail's Show 38 more), opens Country, CVR and Att. beneath it and reads Hide company details while open. It opens already open when the remembered recipient has a CVR or VAT number, an Att., or a country other than Denmark, so a company recipient is never hidden, and closed otherwise (first specimen). Closing it keeps what is in the fields. The fields have the order and behaviour of the vendor's own fields (<a href="Vendors and categories.dc.html#5m">5m</a>). Country and CVR share a line, as on the vendor page. CVR shows when Country is Denmark; outside Denmark it is VAT number, printed as typed and not looked up (<a href="#24d">24d</a>). Country is printed only when it is not Denmark. Att. is printed under the name.</div>
     <div class="doc-note"><b>Eight digits in CVR look the company up at once.</b> This lookup is live, unlike the vendor's, because the answer is needed now. Found, Address becomes the register's name and address with "From the CVR register." under it, and Name is filled with the register name when it was empty (second specimen). The invoice prints the register name, address and CVR number. Clearing CVR turns Address back into a field, holding what the register gave. There is no search by name: a person's name would only spend lookups.</div>
     <div class="doc-note"><b>The lookup's other states</b>, each as the help line under CVR, with Address staying a field: while it runs, "Looking up…"; no match, "No company has CVR 87654321 in the register. Check the number."; no answer from the register, "The company could not be looked up. Try again, or type the address."; the day's 50 free lookups used (<a href="Vendors and categories.dc.html#5m">5m</a>), "Company lookup is not available until tomorrow. Type the address instead." A remembered company needs no new lookup.</div>
     <div class="doc-note"><b>The preview is the PDF at 40%</b> and redraws as the fields change. Below 760 the preview goes and the dialog is the plain 420 dialog (<code>sp-dialog--preview</code>, <a href="Components.dc.html#c13">c13</a>). This is the dialog the phone gets, opened from the order page's Make invoice (<a href="Order editing layouts.dc.html#1a">1a</a>), since the phone's order list has no row menu.</div>
@@ -158,7 +158,7 @@
   </div>
   <div class="doc-specimens">
     <div class="doc-specimen">
-      <span class="doc-specimen__label">The remembered recipient, a person</span>
+      <span class="doc-specimen__label">The remembered recipient, a person: company details closed</span>
       <div class="sp-dialog sp-dialog--preview">
         <span class="sp-heading">Make an invoice</span>
         <div class="sp-dialog__split">
@@ -168,30 +168,11 @@
               <label class="sp-field__label" for="iv-c-name">Name</label>
               <input class="sp-input" id="iv-c-name" type="text" defaultValue="Mikkel Møller">
             </div>
-            <div class="sp-fields">
-            <div class="sp-field">
-              <span class="sp-field__label" id="iv-c-cty">Country</span>
-              <div class="sp-combobox">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="iv-c-cty">
-                  <span class="sp-grow">Denmark</span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            </div>
-            <div class="sp-field">
-              <label class="sp-field__label" for="iv-c-cvr">CVR</label>
-              <input class="sp-input" id="iv-c-cvr" type="text" inputMode="numeric" placeholder="8 digits" aria-describedby="iv-c-cvr-help">
-              <span class="sp-field__help" id="iv-c-cvr-help">For a company. Fills in its name and address from the CVR register.</span>
-            </div>
-            </div>
             <div class="sp-field">
               <label class="sp-field__label" for="iv-c-addr">Address</label>
               <textarea class="sp-textarea" id="iv-c-addr" rows="2" defaultValue="Nørregade 7, 3. th&#10;1165 København K"></textarea>
             </div>
-            <div class="sp-field">
-              <label class="sp-field__label" for="iv-c-att2">Att.</label>
-              <input class="sp-input" id="iv-c-att2" type="text">
-            </div>
+            <button type="button" class="sp-field-group__more" aria-expanded="false">Show company details</button>
           </div>
           <div class="sp-dialog__preview">
             <div class="iv-scaled">
@@ -232,7 +213,7 @@
       </div>
     </div>
     <div class="doc-specimen">
-      <span class="doc-specimen__label">A company, found by its CVR number</span>
+      <span class="doc-specimen__label">A company, found by its CVR number: company details open</span>
       <div class="sp-dialog sp-dialog--preview">
         <span class="sp-heading">Make an invoice</span>
         <div class="sp-dialog__split">
@@ -242,7 +223,17 @@
               <label class="sp-field__label" for="iv-c2-name">Name</label>
               <input class="sp-input" id="iv-c2-name" type="text" defaultValue="Lomwas ApS">
             </div>
-            <div class="sp-fields">
+            <div class="sp-field">
+              <span class="sp-field__label" id="iv-c2-addr">Address</span>
+              <div class="sp-well sp-well--quiet" aria-labelledby="iv-c2-addr">
+                <span class="sp-data">Lomwas ApS</span>
+                <span class="sp-data">Nørregade 7</span>
+                <span class="sp-data">1165 København K</span>
+              </div>
+              <span class="sp-field__help">From the CVR register.</span>
+            </div>
+            <button type="button" class="sp-field-group__more" aria-expanded="true" aria-controls="iv-c2-more">Hide company details</button>
+            <div class="sp-fields" id="iv-c2-more">
             <div class="sp-field">
               <span class="sp-field__label" id="iv-c2-cty">Country</span>
               <div class="sp-combobox">
@@ -256,15 +247,6 @@
               <label class="sp-field__label" for="iv-c2-cvr">CVR</label>
               <input class="sp-input" id="iv-c2-cvr" type="text" inputMode="numeric" defaultValue="87654321">
             </div>
-            </div>
-            <div class="sp-field">
-              <span class="sp-field__label" id="iv-c2-addr">Address</span>
-              <div class="sp-well sp-well--quiet" aria-labelledby="iv-c2-addr">
-                <span class="sp-data">Lomwas ApS</span>
-                <span class="sp-data">Nørregade 7</span>
-                <span class="sp-data">1165 København K</span>
-              </div>
-              <span class="sp-field__help">From the CVR register.</span>
             </div>
             <div class="sp-field">
               <label class="sp-field__label" for="iv-c-att">Att.</label>
@@ -317,33 +299,45 @@
     <span class="doc-badge" id="24d">24d</span>
     <span class="doc-section__title">Vendor without an address, recipient typed</span>
   </div>
-  <div class="doc-lede">The same dialog for a vendor with neither an address nor a CVR number, and a remembered recipient outside Denmark.</div>
+  <div class="doc-lede">The same dialog for a vendor with neither an address nor a CVR number, and a remembered recipient outside Denmark. The vendor's missing details are filled in here, without leaving the dialog.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>The invoice is made anyway,</b> with the vendor's Name alone in From. The alert says so above the fields; <b>Add them</b> closes the dialog and opens the vendor's edit page (<a href="Vendors and categories.dc.html#5c">5c</a>) in the same tab, as every link in the app does, with its Invoice details card open. Back on the order, Make invoice opens the dialog again with what was saved.</div>
-    <div class="doc-note"><b>The alert shows for a missing address or a missing CVR number,</b> naming what is missing. A vendor outside Denmark with an address and a VAT number has nothing missing.</div>
-    <div class="doc-note"><b>A CVR number the register does not know</b> is not printed. The alert reads "The CVR number of Flying Tiger is not in the register", with the link "Check the number", which closes the dialog and opens the vendor's edit page in the same tab, as Add them does.</div>
+    <div class="doc-note"><b>Everything is filled in here.</b> The dialog never sends the user to the vendor page; what the vendor is missing is asked for in the alert (<code>sp-alert--field</code>, <a href="Components.dc.html#c19">c19</a>) and saved to the vendor on Download PDF, as saving it on the vendor page would (<a href="Vendors and categories.dc.html#5m">5m</a>). Cancel saves nothing. Every field is optional: left empty, the invoice is made with the vendor's name alone in From.</div>
+    <div class="doc-note"><b>A Danish vendor is asked for its CVR number.</b> Eight digits look the company up at once, as the recipient's CVR does (<a href="#24c">24c</a>), with the same help lines while it runs, with no match, with no answer, and when the day's lookups are used. Found, the alert goes and a plain field takes its place, holding the number with the register's name and address as its help line, and the preview's From fills in (second specimen). Not found, or no lookup left, the alert stays and gains an Address field under the CVR field, so the address can be typed.</div>
+    <div class="doc-note"><b>A vendor outside Denmark</b> has no register to look in. Its alert reads "Nordlys AB has no address or VAT number", note "Add them and they are saved to Nordlys AB.", with two fields: "Nordlys AB's VAT number" and "Nordlys AB's address" (a 2-row textarea). With only one of them missing, the alert names it and holds that field alone.</div>
+    <div class="doc-note"><b>A saved CVR number the register does not know</b> is not printed. The alert reads "The CVR number of Flying Tiger is not in the register", note "Check the number, or type the address.", with the CVR field holding that number to correct and an Address field under it.</div>
     <div class="doc-note"><b>A company that has ceased trading</b> (<a href="Vendors and categories.dc.html#5m">5m</a>) gets no alert. The invoice prints its last address and CVR number, since an order placed while it traded is still a real invoice.</div>
-    <div class="doc-note"><b>The fields as in <a href="#24c">24c</a></b>, every one optional. With Country Sweden, CVR is VAT number, left empty here, and Country is printed because it is not Denmark.</div>
+    <div class="doc-note"><b>The fields as in <a href="#24c">24c</a></b>, every one optional. The company details open already, since the recipient is outside Denmark and has an Att. With Country Sweden, CVR is VAT number, left empty here, and Country is printed because it is not Denmark.</div>
   </div>
   <div class="doc-specimens">
-    <div class="sp-dialog sp-dialog--preview">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">The vendor's CVR number asked for in the alert</span>
+      <div class="sp-dialog sp-dialog--preview">
       <span class="sp-heading">Make an invoice</span>
       <div class="sp-dialog__split">
         <div class="sp-dialog__fields">
           <span class="sp-dialog__body">Flying Tiger, 21 September 2026, 245,00 kr.</span>
-          <div class="sp-alert">
+          <div class="sp-alert sp-alert--field">
             <span class="sp-alert__mark" aria-hidden="true">!</span>
             <span class="sp-alert__body">
               <span class="sp-alert__title">Flying Tiger has no address or CVR number</span>
-              <span class="sp-alert__note">The invoice shows its name only. <a href="Vendors and categories.dc.html#5c">Add them</a></span>
+              <span class="sp-alert__note">Type its CVR number and the address is filled in from the CVR register.</span>
+              <span class="sp-field">
+                <label class="sp-field__label" for="iv-d-vcvr">Flying Tiger's CVR</label>
+                <input class="sp-input" id="iv-d-vcvr" type="text" inputMode="numeric" placeholder="8 digits">
+              </span>
             </span>
           </div>
           <div class="sp-field">
             <label class="sp-field__label" for="iv-d-co">Name</label>
             <input class="sp-input" id="iv-d-co" type="text" defaultValue="Nordlys AB">
           </div>
-          <div class="sp-fields">
+          <div class="sp-field">
+            <label class="sp-field__label" for="iv-d-addr">Address</label>
+            <textarea class="sp-textarea" id="iv-d-addr" rows="2" defaultValue="Kungsgatan 12&#10;111 43 Stockholm"></textarea>
+          </div>
+          <button type="button" class="sp-field-group__more" aria-expanded="true" aria-controls="iv-d-more">Hide company details</button>
+          <div class="sp-fields" id="iv-d-more">
           <div class="sp-field">
             <span class="sp-field__label" id="iv-d-cty">Country</span>
             <div class="sp-combobox">
@@ -357,10 +351,6 @@
             <label class="sp-field__label" for="iv-d-vat">VAT number</label>
             <input class="sp-input" id="iv-d-vat" type="text">
           </div>
-          </div>
-          <div class="sp-field">
-            <label class="sp-field__label" for="iv-d-addr">Address</label>
-            <textarea class="sp-textarea" id="iv-d-addr" rows="2" defaultValue="Kungsgatan 12&#10;111 43 Stockholm"></textarea>
           </div>
           <div class="sp-field">
             <label class="sp-field__label" for="iv-d-att">Att.</label>
@@ -401,6 +391,84 @@
         <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
         <button type="button" class="sp-btn">Download PDF</button>
       </div>
+    </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Found: the alert goes, the field stays with what was found</span>
+      <div class="sp-dialog sp-dialog--preview">
+      <span class="sp-heading">Make an invoice</span>
+      <div class="sp-dialog__split">
+        <div class="sp-dialog__fields">
+          <span class="sp-dialog__body">Flying Tiger, 21 September 2026, 245,00 kr.</span>
+          <div class="sp-field">
+            <label class="sp-field__label" for="iv-d2-vcvr">Flying Tiger's CVR</label>
+            <input class="sp-input" id="iv-d2-vcvr" type="text" inputMode="numeric" defaultValue="29384756" aria-describedby="iv-d2-vcvr-help">
+            <span class="sp-field__help" id="iv-d2-vcvr-help">Flying Tiger A/S, Strøget 12, 1160 København K. Saved to Flying Tiger when you download.</span>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="iv-d2-co">Name</label>
+            <input class="sp-input" id="iv-d2-co" type="text" defaultValue="Nordlys AB">
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="iv-d2-addr">Address</label>
+            <textarea class="sp-textarea" id="iv-d2-addr" rows="2" defaultValue="Kungsgatan 12&#10;111 43 Stockholm"></textarea>
+          </div>
+          <button type="button" class="sp-field-group__more" aria-expanded="true" aria-controls="iv-d2-more">Hide company details</button>
+          <div class="sp-fields" id="iv-d2-more">
+          <div class="sp-field">
+            <span class="sp-field__label" id="iv-d2-cty">Country</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="iv-d2-cty">
+                <span class="sp-grow">Sweden</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="iv-d2-vat">VAT number</label>
+            <input class="sp-input" id="iv-d2-vat" type="text">
+          </div>
+          </div>
+          <div class="sp-field">
+            <label class="sp-field__label" for="iv-d2-att">Att.</label>
+            <input class="sp-input" id="iv-d2-att" type="text" defaultValue="Ekonomi">
+          </div>
+        </div>
+        <div class="sp-dialog__preview">
+          <div class="iv-scaled">
+            <div class="iv-page">
+              <div class="iv-head"><div class="iv-brand"><span class="iv-mark">FT</span><span class="iv-vendor">Flying Tiger</span></div><span class="iv-kicker">INVOICE</span></div>
+              <div class="iv-tiles">
+                <div class="iv-tile"><span class="iv-tile__label">Number</span><span class="iv-tile__value">Order 538</span></div>
+                <div class="iv-tile"><span class="iv-tile__label">Date</span><span class="iv-tile__value">21 September 2026</span></div>
+                <div class="iv-tile iv-tile--total"><span class="iv-tile__label">Total, VAT included</span><span class="iv-tile__value">245,00 kr.</span></div>
+              </div>
+              <div class="iv-parties">
+                <div class="iv-party"><span class="iv-label">From</span><span class="iv-strong">Flying Tiger A/S</span><span>Strøget 12, 1160 København K</span><span>CVR 29384756</span></div>
+                <div class="iv-party"><span class="iv-label">To</span><span class="iv-strong">Nordlys AB</span><span>Att. Ekonomi</span><span>Kungsgatan 12, 111 43 Stockholm</span><span>Sweden</span></div>
+              </div>
+              <div class="iv-lines">
+                <div class="iv-line iv-line--head"><span></span><span>Item</span><span class="iv-num">Qty</span><span class="iv-num">Unit price</span><span class="iv-num">Amount</span></div>
+                <div class="iv-line"><span class="iv-photo"></span><span class="iv-name">Notebook, A5 dotted</span><span class="iv-num iv-soft">5</span><span class="iv-num iv-soft">35,00 kr.</span><span class="iv-num iv-name">175,00 kr.</span></div>
+                <div class="iv-line"><span class="iv-photo"></span><span class="iv-name">Desk organiser</span><span class="iv-num iv-soft">1</span><span class="iv-num iv-soft">70,00 kr.</span><span class="iv-num iv-name">70,00 kr.</span></div>
+              </div>
+              <div class="iv-foot">
+                <div class="iv-note"></div>
+                <div class="iv-sums">
+                  <div class="iv-sum"><span class="iv-soft">Without VAT</span><span>196,00 kr.</span></div>
+                  <div class="iv-sum"><span class="iv-soft">VAT 25%</span><span>49,00 kr.</span></div>
+                  <div class="iv-sum iv-sum--total"><span>Total</span><span>245,00 kr.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sp-dialog__actions">
+        <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+        <button type="button" class="sp-btn">Download PDF</button>
+      </div>
+    </div>
     </div>
   </div>
 </section>
