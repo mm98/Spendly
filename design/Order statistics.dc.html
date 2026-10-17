@@ -296,21 +296,59 @@
 
         <div class="sp-panel">
           <div class="sp-card">
-            <div class="sp-card__head"><span class="sp-section-label">By category</span></div>
-            <div class="sp-row-flex sp-gap-16">
-              <div class="sp-donut" data-stops="29-49-62" role="img" aria-label="Share of 2026 spend by category">
-                <div class="sp-donut__hole">
-                  <span class="sp-donut__figure">486,3k</span>
-                  <span class="sp-meta">2026</span>
-                </div>
-              </div>
-              <div class="sp-shares sp-grow">
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="1"></span><span>Decor</span><span class="sp-grow"></span><span class="sp-shares__value">29%</span></button>
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span>Seating</span><span class="sp-grow"></span><span class="sp-shares__value">20%</span></button>
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="3"></span><span>Lighting</span><span class="sp-grow"></span><span class="sp-shares__value">13%</span></button>
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="4"></span><span>Other</span><span class="sp-grow"></span><span class="sp-shares__value">38%</span></button>
-              </div>
+            <div class="sp-card__head">
+              <span class="sp-section-label">By category</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta">2026 · top 4 of 34</span>
             </div>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Decor</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">168.940 kr.</span>
+                  <span class="sp-meta">71 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="100" min="0" max="100" aria-label="Decor"></meter>
+                  <span class="sp-gauge__fill" data-fill="100"></span>
+                </span>
+              </a>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Seating</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">121.380 kr.</span>
+                  <span class="sp-meta">48 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="70" min="0" max="100" aria-label="Seating"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                </span>
+              </a>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Lighting</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">74.620 kr.</span>
+                  <span class="sp-meta">39 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="45" min="0" max="100" aria-label="Lighting"></meter>
+                  <span class="sp-gauge__fill" data-fill="45"></span>
+                </span>
+              </a>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Textiles</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">52.110 kr.</span>
+                  <span class="sp-meta">46 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="30" min="0" max="100" aria-label="Textiles"></meter>
+                  <span class="sp-gauge__fill" data-fill="30"></span>
+                </span>
+              </a>
           </div>
 
           <div class="sp-card">
@@ -618,8 +656,6 @@
           <strong class="sp-data">7 orders in this slice</strong>
           <span class="sp-meta">· 24.310,00 kr.</span>
           <span class="sp-field__help" data-color="success">Saved 8.140,00 kr.</span>
-          <span class="sp-grow"></span>
-          <span class="sp-meta">39% of August spend</span>
         </div>
 
         <table class="sp-table">
@@ -776,6 +812,9 @@
     <div class="doc-note"><b>Median order, not average.</b> The order figure and its sparkline are the median of the orders in the set, so one very large order barely moves them. Total spend and the breakdowns are still sums. The comparison pill compares median with median.</div>
     <div class="doc-note"><b>Include N left-out orders</b> appears only when the period holds at least one order marked Leave out of statistics (<a href="Order editing layouts.dc.html#1d">1d</a>); N is that count, singular for one. Off by default. Turning it on puts them back into every figure on the page for this visit; it is in the URL as <code>excluded=include</code> and is not remembered. The switch says nothing when the period has none, so it is absent rather than disabled. On a phone it sits under the period select (<a href="Mobile screens.dc.html">Mobile screens, Statistics</a>), with the same rules. When every order in the set is left out (a vendor whose default leaves its orders out, <a href="Vendors and categories.dc.html#5l">5l</a>), the page is its empty state reading "All 12 orders here are left out of statistics", with the Include switch above it as the way to see them.</div>
       <div class="doc-note"><b>Every card follows the period, and none is tied to a month.</b> By category, Top vendors and Limits cover the whole period, like the figures, the charts and the order list (here 2026 to date; <a href="#4g">4g</a> is the same page for one month). Limits are set per month, so for a longer period a category's limit is its monthly limit times the months in the period: 12 for a year, 3 for a quarter; a custom period counts each month by the share of its days it covers. The pace marker is how far through the period today is, by days (day 232 of 365 is 64%, drawn at the nearest step of 5). The card's name is Limits for every period, Month included.</div>
+    <div class="doc-note"><b>An order counts its full total in every category it carries.</b> Categories overlap (Fastfood is a kind of Food), so a 194,50 kr. order in Fastfood and Food is 194,50 kr. in each, never 97,25 kr. Inside a category crumb, Spend, Median order, the limit, the charts and the head of "The N orders behind this" all use the orders' full totals, so the head's sum is the sum of the Total column: 841,22 kr. for the four orders in Fastfood, October. Category figures are therefore not parts of one whole and can add up to more than the period's spend. A vendor still counts once, since an order has one vendor. In the app this replaces the <code>/ ot.category_count</code> share in <code>api/src/lib/stats.js</code> and <code>api/src/lib/aggregate.js</code>.</div>
+    <div class="doc-note"><b>By category is the ranked row list, as Top vendors draws it</b> (4a, 4g, and inside a crumb 4b): each category's full amount and its order count, the bar scaled to the largest category in the list. It carries no percentage, no ring, no Other row and no total line, since the categories do not add up to the period's spend. Inside a category crumb the Spend figure has no share line, and the slice's order list head has no "% of" meta. A vendor's share of a period is kept ("29% of the year"), because a vendor counts once.</div>
+    <div class="doc-note"><b>Stacked counts each order once, under its first category</b>, the first one on the order as it is listed on the order page, so a bar's segments always add up to the bar. The segments are the top 3 categories of By category; an order whose first category is not one of them goes in Other, as does an order with none. This is the one place an order is not counted in full in every category: By category, Limits and a category crumb use the full amount, so a Stacked segment can be smaller than that category's row.</div>
     <div class="doc-note"><b>The four stats fold to two by two below a 996px row</b> (<code>sp-stats--fold</code>): four of 240 and three gaps. The row is 998 in a 1280 shell, so it folds as soon as the shell is narrower. It is always four across or two, never three over one. On a phone every stats row is two by two.</div>
     <div class="doc-note"><b>The period bar wraps rather than squeezing.</b> The sizes keep their full width at every desktop width. When the row has no room for everything, the window, the resolved range and the compare switch move to a second line, in that order. The day count is hidden below 1100. Below 640 the bar is the single select.</div>
     <div class="doc-note"><b>Edit on category</b> opens the categories list showing only the categories that have a limit, <code>/categories?flag=limited</code>, with the removable tag "Has a limit" (<a href="Vendors and categories.dc.html#5d">5d</a>). Each category's limit is set from there. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
@@ -1184,21 +1223,59 @@
 
         <div class="sp-panel">
           <div class="sp-card">
-            <div class="sp-card__head"><span class="sp-section-label">By category</span></div>
-            <div class="sp-row-flex sp-gap-16">
-              <div class="sp-donut" data-stops="39-67-88" role="img" aria-label="Share of August spend by category">
-                <div class="sp-donut__hole">
-                  <span class="sp-donut__figure">61,5k</span>
-                  <span class="sp-meta">August</span>
-                </div>
-              </div>
-              <div class="sp-shares sp-grow">
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="1"></span><span>Decor</span><span class="sp-grow"></span><span class="sp-shares__value">39%</span></button>
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span>Seating</span><span class="sp-grow"></span><span class="sp-shares__value">28%</span></button>
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="3"></span><span>Lighting</span><span class="sp-grow"></span><span class="sp-shares__value">21%</span></button>
-                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="4"></span><span>Other</span><span class="sp-grow"></span><span class="sp-shares__value">12%</span></button>
-              </div>
+            <div class="sp-card__head">
+              <span class="sp-section-label">By category</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta">August · top 4 of 9</span>
             </div>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Decor</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">28.460 kr.</span>
+                  <span class="sp-meta">14 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="100" min="0" max="100" aria-label="Decor"></meter>
+                  <span class="sp-gauge__fill" data-fill="100"></span>
+                </span>
+              </a>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Seating</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">19.850 kr.</span>
+                  <span class="sp-meta">6 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="70" min="0" max="100" aria-label="Seating"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                </span>
+              </a>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Lighting</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">14.120 kr.</span>
+                  <span class="sp-meta">9 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="50" min="0" max="100" aria-label="Lighting"></meter>
+                  <span class="sp-gauge__fill" data-fill="50"></span>
+                </span>
+              </a>
+              <a class="sp-stack sp-gap-6 sp-row-opens" href="#4b">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Textiles</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">8.930 kr.</span>
+                  <span class="sp-meta">11 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="30" min="0" max="100" aria-label="Textiles"></meter>
+                  <span class="sp-gauge__fill" data-fill="30"></span>
+                </span>
+              </a>
           </div>
 
           <div class="sp-card">
@@ -1507,8 +1584,6 @@
           <strong class="sp-data">7 orders in this slice</strong>
           <span class="sp-meta">· 24.310,00 kr.</span>
           <span class="sp-field__help" data-color="success">Saved 8.140,00 kr.</span>
-          <span class="sp-grow"></span>
-          <span class="sp-meta">39% of August spend</span>
         </div>
 
         <table class="sp-table">
@@ -1997,7 +2072,6 @@
         <div class="sp-card">
           <div class="sp-card__head"><span class="sp-section-label">Spend</span></div>
           <span class="sp-stat__figure">62.400 kr.</span>
-          <span class="sp-field__help">44% of this vendor</span>
         </div>
         <div class="sp-card">
           <div class="sp-card__head"><span class="sp-section-label">Orders</span></div>
