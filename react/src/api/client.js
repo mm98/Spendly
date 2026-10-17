@@ -43,6 +43,7 @@ export const failureMessage = (error, fallback) =>
 // the records a "not found" can name, by the address asked; the server's own text carries an id
 const THINGS = [
 	[/^\/api\/orders\/(?!import|draft|overview|often|limits|trash)[^/?]+/, 'order'],
+	[/^\/api\/invoices\/orders\/[^/?]+/, 'order'],
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
 	[/^\/api\/categories\/[^/?]+/, 'category'],
 	[/^\/api\/bookmarks\/(?!preview|categories)[^/?]+/, 'bookmark'],
@@ -335,6 +336,54 @@ export async function deleteVendor(id, signal) {
 	const out = await request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 	forgetRecent('vendor', id)
 	return out
+}
+
+/** Not this one (5m): the company the vendor's Name found is not offered again until the Name changes. */
+export async function dismissVendorCompanyMatch(id, signal) {
+	return request(`/api/vendors/${id}/company-match/dismiss`, { method: 'POST', signal })
+}
+
+/* ---- invoices (Invoice 24c, 24d) ---- */
+
+/** The last recipient an invoice was made for, or null. */
+export async function getInvoiceRecipient(signal) {
+	return request('/api/invoices/recipient', { signal })
+}
+
+/** A company in the CVR register by its number or name: `{ status: 'found' | 'none' | 'limit' | 'failed', company }`. */
+export async function findInvoiceCompany(query, signal) {
+	return request(`/api/invoices/company?${new URLSearchParams({ q: query })}`, { signal })
+}
+
+/** Who sends an order's invoice, and what its From box lacks: `{ vendorId, name, missing }`. */
+export async function getInvoiceSender(orderId, signal) {
+	return request(`/api/invoices/orders/${orderId}/sender`, { signal })
+}
+
+/** The invoice's first page as a picture, for the dialog's preview. */
+export const invoicePreviewUrl = (orderId, recipient, locale) =>
+	`/api/invoices/orders/${orderId}/preview?${new URLSearchParams({ recipient: JSON.stringify(recipient), locale })}`
+
+/** The invoice as a PDF: `{ blob, fileName }`. The server keeps the recipient for the next invoice. */
+export async function makeInvoice(orderId, body, signal) {
+	writeStarted()
+	let res
+	try {
+		res = await fetch(`/api/invoices/orders/${orderId}`, {
+			method: 'POST', signal, credentials: 'include',
+			headers: { [TODAY]: today(), 'Content-Type': 'application/json' },
+			body: JSON.stringify(body)
+		})
+	} finally {
+		writeSettled()
+	}
+	if (!res.ok) {
+		let data = null
+		try { data = await res.json() } catch { /* empty body */ }
+		throw refusal(`/api/invoices/orders/${orderId}`, 'POST', res.status, data)
+	}
+	const named = /filename\*=UTF-8''([^;]+)/.exec(res.headers.get('Content-Disposition') ?? '')
+	return { blob: await res.blob(), fileName: named ? decodeURIComponent(named[1]) : 'Invoice.pdf' }
 }
 
 /** Adds one other name a vendor is filed under, as a scanned receipt wrote it. Adding one it has is harmless. */

@@ -32,6 +32,7 @@ import { linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
 import { DeleteOrder } from './DeleteOrder.jsx'
 import { BulkActions, useStatusName } from './OrderBulk.jsx'
 import { OrderCard, RowMenu, orderName } from './OrderMenu.jsx'
+import { InvoiceDialog } from './InvoiceDialog.jsx'
 import { SheetViews, ViewsCard } from './OrderViews.jsx'
 import { useViews, viewLink } from '../app/views.jsx'
 
@@ -237,6 +238,7 @@ export default function OrderList() {
 	}
 
 	const [deleting, setDeleting] = useState(null)
+	const [invoicing, setInvoicing] = useState(null)
 	// once a deleted order has left the list, focus goes to the menu of the row that took its
 	// place, so it never falls back to the top of the page
 	const [refocus, setRefocus] = useState(null)
@@ -446,13 +448,13 @@ export default function OrderList() {
 		else if (view === 'cards')
 			body = (
 				<OrderGrid data={data} size={size} touch={touch} caption={caption} picked={current.ids} count={count} bulk={bulk} note={note}
-					onPick={pickRun} onPickAll={setPicked} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
+					onPick={pickRun} onPickAll={setPicked} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting} onInvoice={setInvoicing}
 					onCategory={id => update({ category: toggled(f.category, id, true) })} />
 			)
 		else
 			body = (
 				<OrderRows data={data} width={width} size={size} sort={sort} touch={touch} caption={caption} picked={current.ids} onPick={setPicked}
-					count={count} bulk={bulk} note={note} onLoadMore={loadMore} onDelete={setDeleting} />
+					count={count} bulk={bulk} note={note} onLoadMore={loadMore} onDelete={setDeleting} onInvoice={setInvoicing} />
 			)
 	}
 
@@ -483,6 +485,7 @@ export default function OrderList() {
 						onDeleted={() => { setDeleting(null); setRefocus({ id: deleting.id, at: data.orders.findIndex(o => o.id === deleting.id) }) }} />
 				)
 				: null}
+			{invoicing ? <InvoiceDialog order={invoicing} onClose={() => setInvoicing(null)} /> : null}
 		</div>
 	)
 
@@ -589,7 +592,7 @@ function useSettled(value, ms = 250) {
 
 /** The orders as rows (2b): the summary line, which the bulk bar takes over once a row is
     picked (2h), the table, and Load more. */
-function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, count, bulk, note, onLoadMore, onDelete }) {
+function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, count, bulk, note, onLoadMore, onDelete, onInvoice }) {
 	const { typeOf } = useStatusTypes()
 	const show = columnsFor(width)
 	return (
@@ -627,7 +630,7 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 					{show.categories ? <ListCell><CategoryChips categories={o.categories} date={o.date} /></ListCell> : null}
 					<ListCell><StatusPill status={o.status} /></ListCell>
 					<ListCell cell="amount"><OrderAmount order={o} /></ListCell>
-					<ListCell cell="menu"><RowMenu order={o} touch={touch} onDelete={onDelete} /></ListCell>
+					<ListCell cell="menu"><RowMenu order={o} touch={touch} onDelete={onDelete} onInvoice={onInvoice} /></ListCell>
 				</>
 			)}</ListRow>
 		</List>
@@ -761,7 +764,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 
 /** The Cards view (2c): the same orders, picked the same way, drawn as cards with their photos.
     The summary line or the bulk bar stands above the grid, each led by the box that picks the page, as rows have. */
-function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPick, onPickAll, onOpen, onLoadMore, onDelete, onCategory }) {
+function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPick, onPickAll, onOpen, onLoadMore, onDelete, onInvoice, onCategory }) {
 	const [menuFor, setMenuFor] = useState(null)
 	const page = data.orders.map(o => o.id)
 	const selectAll = {
@@ -781,7 +784,7 @@ function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPi
 		<Records head={head} footer={footer} onContextMenu={menuHere}>
 			{data.orders.map(o => (
 				<OrderCard key={o.id} order={o} touch={touch} picked={picked.includes(o.id)} onPick={shift => onPick(o.id, shift)}
-					menuOpen={menuFor === o.id} onMenu={setMenuFor} onOpen={onOpen} onDelete={onDelete} onCategory={onCategory} />
+					menuOpen={menuFor === o.id} onMenu={setMenuFor} onOpen={onOpen} onDelete={onDelete} onInvoice={onInvoice} onCategory={onCategory} />
 			))}
 		</Records>
 	)

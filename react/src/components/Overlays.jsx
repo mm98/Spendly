@@ -274,9 +274,12 @@ function useDialogPart(kind) {
 
 const isActions = c => c && typeof c === 'object' && c.type === DialogActions
 
+const DIALOG_VARIANT = { default: null, preview: 'sp-dialog--preview' }
+
 /** `onCancel` is what Escape and a press on the backdrop do: the dialog's own way out (c13). A page
-    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d). */
-export function Dialog({ children, scrim = true, onCancel, ...rest }) {
+    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d).
+    `preview` is a dialog that makes a file: its fields and a picture of the file side by side, in a DialogSplit. */
+export function Dialog({ variant = 'default', children, scrim = true, onCancel, ...rest }) {
 	reject(rest, 'Dialog')
 	const box = useRef(null)
 	const backdrop = useRef(null)
@@ -315,7 +318,7 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	const touch = useContext(ShellTouch)
 	const panel = (
 		<DialogParts.Provider value={register}>
-			<div className={touch ? 'sp-sheet' : 'sp-dialog'} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
+			<div className={touch ? 'sp-sheet' : join('sp-dialog', pick(DIALOG_VARIANT, variant, 'variant', 'Dialog'))} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
 				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
 				{above}
 				{actions}
@@ -347,6 +350,23 @@ export function DialogBody({ children, ...rest }) {
 	reject(rest, 'DialogBody')
 	const id = useDialogPart('body')
 	return <span className="sp-dialog__body" id={id} {...rest}>{children}</span>
+}
+
+/** A preview dialog's two columns: DialogFields, then DialogPreview, which goes below 760 (c13). */
+export function DialogSplit({ children, ...rest }) {
+	reject(rest, 'DialogSplit')
+	return <div className="sp-dialog__split" {...rest}>{children}</div>
+}
+
+export function DialogFields({ children, ...rest }) {
+	reject(rest, 'DialogFields')
+	return <div className="sp-dialog__fields" {...rest}>{children}</div>
+}
+
+/** A picture of the file the dialog makes, as it will be. Only seen, so it is hidden from a screen reader. */
+export function DialogPreview({ children, ...rest }) {
+	reject(rest, 'DialogPreview')
+	return <div className="sp-dialog__preview" aria-hidden="true" {...rest}>{children}</div>
 }
 
 /** The way out and the commit. It spaces and aligns its own buttons. */

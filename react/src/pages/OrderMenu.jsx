@@ -37,7 +37,7 @@ export function download(href) {
 
 /** One order's menu (2e), the same in a row and on a card (2c). A status or category applies at
     once and offers Undo. On touch the menu is a sheet, so a flyout opens in its place. */
-function OrderMenuItems({ order, touch, close, onDelete }) {
+function OrderMenuItems({ order, touch, close, onDelete, onInvoice }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const statuses = useStatuses()
@@ -162,6 +162,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 			<MenuItem icon="external-link" onClick={go(`/orders/${order.id}`)}>Open order</MenuItem>
 			<MenuItem icon="file" onClick={go(`/orders/new?duplicate=${order.id}`)}>Duplicate</MenuItem>
 			<MenuItem icon="download" disabled={!order.receipt} onClick={() => { close(); download(attachmentDownloadUrl(order.id, order.receipt)) }}>Download receipt</MenuItem>
+			<MenuItem icon="file-invoice" disabled={Boolean(order.draft) || !order.vendor} onClick={() => { close(); onInvoice(order) }}>Make invoice</MenuItem>
 			<MenuSeparator />
 			{touch
 				? <MenuItem icon="clock" onClick={() => setLevel('status')}><span>Set status</span><span className="sp-grow" /><ChevronRight /></MenuItem>
@@ -190,7 +191,7 @@ function ChevronRight() {
 }
 
 /** The row's own menu (2b, 2e). */
-export function RowMenu({ order, touch, onDelete }) {
+export function RowMenu({ order, touch, onDelete, onInvoice }) {
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
@@ -199,14 +200,14 @@ export function RowMenu({ order, touch, onDelete }) {
 		<Anchor ref={anchor} open={open} onClick={ev => ev.stopPropagation()}>
 			<IconButton icon="dots-vertical" aria-label={`Order menu, ${orderName(order)}`}
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
-			{open ? <OrderMenuItems order={order} touch={touch} close={close} onDelete={onDelete} /> : null}
+			{open ? <OrderMenuItems order={order} touch={touch} close={close} onDelete={onDelete} onInvoice={onInvoice} /> : null}
 		</Anchor>
 	)
 }
 
 /** One order as a card (2c): its first three line photos, then the row's facts; the card's menu
     is the row's menu, and its box picks it as a row's does. */
-export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
+export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onInvoice, onCategory }) {
 	const over = useOverLimitIds(order.date)
 	// a cancelled order did not happen: the card is struck and says so where the saving would stand (2b)
 	const cancelled = useStatusTypes().typeOf(order.status) === 'cancelled'
@@ -244,7 +245,7 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 				label: `Order menu, ${orderName(order)}`,
 				onToggle: () => onMenu(menuOpen ? null : order.id),
 				onClose: () => onMenu(null),
-				children: menuOpen ? <OrderMenuItems order={order} touch={touch} close={() => onMenu(null)} onDelete={onDelete} /> : null
+				children: menuOpen ? <OrderMenuItems order={order} touch={touch} close={() => onMenu(null)} onDelete={onDelete} onInvoice={onInvoice} /> : null
 			}}
 		/>
 	)
