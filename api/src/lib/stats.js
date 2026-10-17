@@ -196,8 +196,7 @@ const FLOW_WHERE = {
 export const FLOWS = Object.keys(FLOW_WHERE)
 
 /** What narrows every query below: the lens (flow) and the drill path's vendor, category and
-    status. Under a category, an order counts its share of that category, as the split does.
-    An order left out of statistics counts only when `excluded` is 'include'; `leftOut` is the
+    status. Under a category, an order counts its full total, as the split does. An order left out of statistics counts only when `excluded` is 'include'; `leftOut` is the
     same scope narrowed to those orders alone, for counting them. */
 function scopeOf({ flow = 'all', vendorId, categoryId, status, excluded } = {}) {
 	const lens = FLOW_WHERE[flow] === undefined ? 'all' : flow
@@ -211,11 +210,10 @@ function scopeOf({ flow = 'all', vendorId, categoryId, status, excluded } = {}) 
 	}
 	if (status) { and += ' AND ot.status = @status'; params.status = status }
 	const signed = col => (lens === 'net' ? `(CASE WHEN ot.status_type = 'returned' THEN -ot.${col} ELSE ot.${col} END)` : `ot.${col}`)
-	const share = categoryId && categoryId !== 'none' ? ' * 1.0 / ot.category_count' : ''
 	return {
 		and: excluded === 'include' ? and : `${and} AND ot.exclude_from_stats = 0`,
 		leftOut: `${and} AND ot.exclude_from_stats = 1`,
-		params, signed, amount: col => `${signed(col)}${share}`
+		params, signed
 	}
 }
 
@@ -227,7 +225,7 @@ const prepared = sql => {
 
 function totalsOver(userId, from, to, scope) {
 	const r = prepared(`
-		SELECT COUNT(*) AS orders, COALESCE(SUM(${scope.amount('total')}), 0) AS spent, COALESCE(SUM(${scope.amount('saved')}), 0) AS saved
+		SELECT COUNT(*) AS orders, COALESCE(SUM(${scope.signed('total')}), 0) AS spent, COALESCE(SUM(${scope.signed('saved')}), 0) AS saved
 		FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
 	`).get({ userId, from, to, ...scope.params })
 	return { orders: r.orders, spent: r.spent, saved: r.saved }
@@ -239,7 +237,7 @@ function medianOver(userId, from, to, orders, scope) {
 	if (!orders) return 0
 	return prepared(`
 		SELECT AVG(amount) AS median FROM (
-			SELECT ${scope.amount('total')} AS amount FROM orders ot
+			SELECT ${scope.signed('total')} AS amount FROM orders ot
 			WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
 			ORDER BY amount LIMIT CAST(@take AS INTEGER) OFFSET CAST(@skip AS INTEGER))
 	`).get({ userId, from, to, take: 2 - (orders % 2), skip: Math.floor((orders - 1) / 2), ...scope.params }).median ?? 0
@@ -263,7 +261,7 @@ function stepMediansOver(userId, from, to, step, scope) {
 		SELECT bucket, AVG(amount) AS median FROM (
 			SELECT bucket, amount,
 				ROW_NUMBER() OVER (PARTITION BY bucket ORDER BY amount) AS rank, COUNT(*) OVER (PARTITION BY bucket) AS orders
-			FROM (SELECT (SELECT MAX(value) FROM json_each(@starts) WHERE value <= ot.date) AS bucket, ${scope.amount('total')} AS amount
+			FROM (SELECT (SELECT MAX(value) FROM json_each(@starts) WHERE value <= ot.date) AS bucket, ${scope.signed('total')} AS amount
 				FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and})
 		) WHERE rank IN ((orders + 1) / 2, (orders + 2) / 2)
 		GROUP BY bucket
@@ -278,16 +276,11 @@ function leftOutOver(userId, from, to, scope) {
 		.get({ userId, from, to, ...scope.params }).c
 }
 
-/* category_count -- how many categories share this order's total -- is the stored,
-   trigger-maintained column on the order row, NOT a joined `GROUP BY order_id` over the
-   whole table: that grouped subquery has no user or date bound SQLite can push inside it, so
-   it counted every account's links to answer one window. On a 5.1M-order database that was
-   ~1.9s per stats read, for any account; the stored count is ~8ms, identical rows. Same fix
-   in lib/aggregate.js. */
+/* Categories overlap, so an order counts its full total in every category it carries, and the
+   rows can add up to more than the window's spend. */
 function selectSplit(scope) {
 	return prepared(`
-		SELECT c.id, c.name,
-			SUM(${scope.signed('total')} * 1.0 / ot.category_count) AS spend
+		SELECT c.id, c.name, SUM(${scope.signed('total')}) AS spend, COUNT(*) AS orders
 		FROM order_categories oc
 		JOIN orders ot ON ot.id = oc.order_id
 		JOIN categories c ON c.id = oc.category_id
@@ -297,33 +290,14 @@ function selectSplit(scope) {
 	`)
 }
 
-/** `trueTotal` is the window's real spend (every order, categorised or not) -- passed in
-    rather than summed from `rows` here, because an order with no category at all never joins
-    into `rows` to begin with. Sharing against the categorised sum instead of the true total is
-    exactly how a category read "50% of expenses" while a same-sized uncategorised order sat
-    beside it counting for nothing: the two numbers agreed with each other and disagreed with
-    the window. The remainder becomes its own "Without category" row rather than vanishing --
-    the ring and the list beside it are drawn from the one list, so nothing here can silently
-    add up to less than the total both claim to break down. */
-function splitOver(userId, from, to, trueTotal, scope) {
-	const rows = selectSplit(scope).all({ userId, from, to, ...scope.params })
-	const categorised = rows.reduce((s, r) => s + r.spend, 0)
-	const total = trueTotal ?? categorised
-	const split = rows.map(r => ({ id: r.id, name: r.name, amount: r.spend, share: total ? (r.spend / total) * 100 : 0 }))
-	const uncategorised = total - categorised
-	if (Math.abs(uncategorised) > 0.005) {
-		split.push({ id: null, name: 'Without category', amount: uncategorised,
-			share: total ? (uncategorised / total) * 100 : 0 })
-	}
-	return split.sort((a, b) => b.amount - a.amount)
+function splitOver(userId, from, to, scope) {
+	return selectSplit(scope).all({ userId, from, to, ...scope.params }).map(r => ({ id: r.id, name: r.name, amount: r.spend, orders: r.orders }))
 }
 
-/* A vendor belongs to exactly one order at a time (unlike a category), so this is a plain
-   GROUP BY with no division and no remainder row -- every order's total counts once, toward
-   its one vendor, and the rows already sum to the window's real spend. */
+/* An order has one vendor, so every order's total counts once and the rows sum to the window's spend. */
 function vendorSplitOver(userId, from, to, scope) {
 	return prepared(`
-		SELECT ot.vendor_id AS id, v.name, SUM(${scope.amount('total')}) AS spend, COUNT(*) AS orders
+		SELECT ot.vendor_id AS id, v.name, SUM(${scope.signed('total')}) AS spend, COUNT(*) AS orders
 		FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
 		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
 		GROUP BY ot.vendor_id
@@ -385,7 +359,7 @@ function monthsIn(from, to) {
     totals below are summed from. */
 function dailyRowsOver(userId, from, to, scope) {
 	const found = prepared(`
-		SELECT ot.date, SUM(${scope.amount('total')}) AS spend, SUM(${scope.amount('saved')}) AS saved, COUNT(*) AS orders
+		SELECT ot.date, SUM(${scope.signed('total')}) AS spend, SUM(${scope.signed('saved')}) AS saved, COUNT(*) AS orders
 		FROM orders ot
 		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
 		GROUP BY ot.date ORDER BY ot.date
@@ -399,15 +373,19 @@ function dailyRowsOver(userId, from, to, scope) {
 	return rows
 }
 
-/** Running totals per day for a few categories, so a chart's columns can be split by them. */
+/** Running totals per day for a few categories, to split a chart's columns. Each order counts
+    once, under its first category by name as the order page lists them, so parts fit the column. */
 function categorySeriesOver(userId, from, to, ids, scope) {
 	if (!ids.length) return []
+	// MIN(c.name) makes the bare category_id the one of the first name, without a sort per order
 	const found = prepared(`
-		SELECT ot.date, oc.category_id AS id, SUM(${scope.signed('total')} * 1.0 / ot.category_count) AS spend
-		FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id
-		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
-			AND oc.category_id IN (SELECT value FROM json_each(@ids))
-		GROUP BY ot.date, oc.category_id
+		SELECT date, id, SUM(spend) AS spend FROM (
+			SELECT ot.date, oc.category_id AS id, MIN(c.name), ${scope.signed('total')} AS spend
+			FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id JOIN categories c ON c.id = oc.category_id
+			WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
+			GROUP BY ot.id)
+		WHERE id IN (SELECT value FROM json_each(@ids))
+		GROUP BY date, id
 	`).all({ userId, from, to, ids: JSON.stringify(ids), ...scope.params })
 	return ids.map(id => {
 		const byDate = new Map(found.filter(r => r.id === id).map(r => [r.date, r.spend]))
@@ -504,10 +482,10 @@ export function getStats(userId, range, windowId, { compare = 'previous', today:
 
 	// One fetch for both cumulative series below -- the rows carry spend and saved together.
 	const dailyRows = dailyRowsOver(userId, bounds.from, bounds.to, scope)
-	const split = splitOver(userId, focus.from, focus.to, now.spent, scope)
+	const split = splitOver(userId, focus.from, focus.to, scope)
 	// the chart splits its columns by the window's own top three categories, not the crumb's
-	const chartSplit = narrowed ? splitOver(userId, bounds.from, bounds.to, null, scope) : split
-	const stacked = chartSplit.filter(entry => entry.id).slice(0, 3)
+	const chartSplit = narrowed ? splitOver(userId, bounds.from, bounds.to, scope) : split
+	const stacked = chartSplit.slice(0, 3)
 
 	return {
 		window: {
@@ -593,7 +571,7 @@ const selectLimited = db.prepare('SELECT id, budget FROM categories WHERE user_i
 // what each limited category came to in each month, as Home's figures count it: what was paid
 const selectLimitedMonths = db.prepare(`
 	SELECT oc.category_id AS id, strftime('%Y-%m', ot.date, 'unixepoch') AS month,
-		SUM(ot.total * 1.0 / ot.category_count) AS spend
+		SUM(ot.total) AS spend
 	FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	JOIN categories c ON c.id = oc.category_id

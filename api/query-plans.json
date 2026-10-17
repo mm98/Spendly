@@ -458,7 +458,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) ASC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) ASC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -477,7 +477,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -523,7 +523,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, c.favourite FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND c.budget > 0 AND COALESCE(m.spend, 0) > c.budget": {
+		"SELECT c.id, c.name, c.favourite FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND c.budget > 0 AND COALESCE(m.spend, 0) > c.budget": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -541,7 +541,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, c.favourite FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND c.budget > 0 AND COALESCE(m.spend, 0) > c.budget AND COALESCE(m.spend, 0) > 0": {
+		"SELECT c.id, c.name, c.favourite FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND c.budget > 0 AND COALESCE(m.spend, 0) > c.budget AND COALESCE(m.spend, 0) > 0": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -559,7 +559,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, c.favourite FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND COALESCE(m.spend, 0) > 0": {
+		"SELECT c.id, c.name, c.favourite FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId AND COALESCE(m.spend, 0) > 0": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -646,7 +646,7 @@
 				"idx_categories_user"
 			]
 		},
-		"SELECT c.id, c.name, SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.total ELSE ot.total END) * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.total ELSE ot.total END)) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -663,7 +663,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type = 'returned' AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type = 'returned' AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -680,7 +680,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -697,7 +697,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.category_count = 0 AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.category_count = 0 AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_uncategorised (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -714,7 +714,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -731,7 +731,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"LIST SUBQUERY 1",
@@ -752,7 +752,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.status = @status AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.status = @status AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -769,7 +769,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.vendor_id = @vendorId AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.vendor_id = @vendorId AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -786,7 +786,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id, c.name, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') GROUP BY c.id ORDER BY spend DESC": {
+		"SELECT c.id, c.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') GROUP BY c.id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -870,7 +870,7 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0": {
+		"SELECT COALESCE(SUM(ot.total), 0) FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)"
@@ -879,28 +879,6 @@
 			"indexes": [
 				"idx_order_categories_cat",
 				"idx_orders_user_date"
-			]
-		},
-		"SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?": {
-			"plan": [
-				"SEARCH orders USING INDEX idx_orders_user_total (user_id=?)"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_total"
-			],
-			"indexes": [
-				"idx_orders_user_total"
-			]
-		},
-		"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND (status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1)": {
-			"plan": [
-				"SEARCH orders USING INDEX idx_orders_user_status (user_id=?)"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_status"
-			],
-			"indexes": [
-				"idx_orders_user_status"
 			]
 		},
 		"SELECT colour FROM categories WHERE user_id = ?": {
@@ -1042,7 +1020,7 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT COUNT(*) AS orders, COALESCE(SUM(CASE WHEN ot.status_type IN ('draft', 'cancelled') OR ot.exclude_from_stats = 1 THEN 0 ELSE ot.total * 1.0 / ot.category_count END), 0) AS spend, COALESCE(SUM(CASE WHEN ot.status_type IN ('draft', 'cancelled') OR ot.exclude_from_stats = 1 THEN 0 ELSE ot.saved * 1.0 / ot.category_count END), 0) AS saved FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = ? AND ot.user_id = ?": {
+		"SELECT COUNT(*) AS orders, COALESCE(SUM(CASE WHEN ot.status_type IN ('draft', 'cancelled') OR ot.exclude_from_stats = 1 THEN 0 ELSE ot.total END), 0) AS spend, COALESCE(SUM(CASE WHEN ot.status_type IN ('draft', 'cancelled') OR ot.exclude_from_stats = 1 THEN 0 ELSE ot.saved END), 0) AS saved FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = ? AND ot.user_id = ?": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -1069,19 +1047,6 @@
 			"findings": [],
 			"indexes": [
 				"idx_orders_import"
-			]
-		},
-		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spent, COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"LIST SUBQUERY 1",
-				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
-				"CREATE BLOOM FILTER"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_date"
 			]
 		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total), 0) AS spent, COALESCE(SUM(ot.saved), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type = 'returned' AND ot.exclude_from_stats = 0": {
@@ -1135,6 +1100,19 @@
 			],
 			"findings": [],
 			"indexes": [
+				"idx_orders_user_date"
+			]
+		},
+		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total), 0) AS spent, COALESCE(SUM(ot.saved), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"LIST SUBQUERY 1",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
 				"idx_orders_user_date"
 			]
 		},
@@ -1941,6 +1919,144 @@
 			"indexes": [
 				"sqlite_autoindex_categories_1",
 				"sqlite_autoindex_vendor_default_categories_1"
+			]
+		},
+		"SELECT date, id, SUM(spend) AS spend FROM ( SELECT ot.date, oc.category_id AS id, MIN(c.name), (CASE WHEN ot.status_type = 'returned' THEN -ot.total ELSE ot.total END) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY ot.id) WHERE id IN (SELECT value FROM json_each(@ids)) GROUP BY date, id": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SCAN (subquery-1)",
+				"REUSE LIST SUBQUERY 2",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT date, id, SUM(spend) AS spend FROM ( SELECT ot.date, oc.category_id AS id, MIN(c.name), ot.total AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY ot.id) WHERE id IN (SELECT value FROM json_each(@ids)) GROUP BY date, id": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SCAN (subquery-1)",
+				"REUSE LIST SUBQUERY 2",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT date, id, SUM(spend) AS spend FROM ( SELECT ot.date, oc.category_id AS id, MIN(c.name), ot.total AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY ot.id) WHERE id IN (SELECT value FROM json_each(@ids)) GROUP BY date, id": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SCAN (subquery-1)",
+				"REUSE LIST SUBQUERY 2",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT date, id, SUM(spend) AS spend FROM ( SELECT ot.date, oc.category_id AS id, MIN(c.name), ot.total AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.status = @status AND ot.exclude_from_stats = 0 GROUP BY ot.id) WHERE id IN (SELECT value FROM json_each(@ids)) GROUP BY date, id": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SCAN (subquery-1)",
+				"REUSE LIST SUBQUERY 2",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_status",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT date, id, SUM(spend) AS spend FROM ( SELECT ot.date, oc.category_id AS id, MIN(c.name), ot.total AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.vendor_id = @vendorId AND ot.exclude_from_stats = 0 GROUP BY ot.id) WHERE id IN (SELECT value FROM json_each(@ids)) GROUP BY date, id": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SCAN (subquery-1)",
+				"REUSE LIST SUBQUERY 2",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT date, id, SUM(spend) AS spend FROM ( SELECT ot.date, oc.category_id AS id, MIN(c.name), ot.total AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') GROUP BY ot.id) WHERE id IN (SELECT value FROM json_each(@ids)) GROUP BY date, id": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER",
+				"SCAN (subquery-1)",
+				"REUSE LIST SUBQUERY 2",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1"
 			]
 		},
 		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows FROM user_settings WHERE user_id = ?": {
@@ -2787,7 +2903,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT oc.category_id AS id, strftime('%Y-%m', ot.date, 'unixepoch') AS month, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 AND c.budget > 0 GROUP BY oc.category_id, month": {
+		"SELECT oc.category_id AS id, strftime('%Y-%m', ot.date, 'unixepoch') AS month, SUM(ot.total) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 AND c.budget > 0 GROUP BY oc.category_id, month": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -2850,7 +2966,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT oc.category_id, ot.total * 1.0 / ot.category_count AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids))": {
+		"SELECT oc.category_id, ot.total AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids))": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
@@ -2863,7 +2979,7 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT oc.category_id, ot.total * 1.0 / ot.category_count AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @yearFrom AND ot.date < @from AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids))": {
+		"SELECT oc.category_id, ot.total AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @yearFrom AND ot.date < @from AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids))": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
@@ -2986,103 +3102,7 @@
 				"sqlite_autoindex_users_1"
 			]
 		},
-		"SELECT ot.date, oc.category_id AS id, SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.total ELSE ot.total END) * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
-				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"USE TEMP B-TREE FOR GROUP BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_date"
-			]
-		},
-		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
-				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"USE TEMP B-TREE FOR GROUP BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_date"
-			]
-		},
-		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
-				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"USE TEMP B-TREE FOR GROUP BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_date"
-			]
-		},
-		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
-				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"USE TEMP B-TREE FOR GROUP BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_date"
-			]
-		},
-		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.status = @status AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_status (user_id=? AND status=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
-				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"USE TEMP B-TREE FOR GROUP BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_status"
-			]
-		},
-		"SELECT ot.date, oc.category_id AS id, SUM(ot.total * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.vendor_id = @vendorId AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=? AND order_id=?)",
-				"LIST SUBQUERY 1",
-				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"USE TEMP B-TREE FOR GROUP BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_vendor"
-			]
-		},
-		"SELECT ot.date, ot.total * 1.0 / ot.category_count AS spend FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0": {
+		"SELECT ot.date, ot.total AS spend FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -3099,19 +3119,6 @@
 			],
 			"findings": [],
 			"indexes": [
-				"idx_orders_user_date"
-			]
-		},
-		"SELECT ot.date, SUM(ot.total * 1.0 / ot.category_count) AS spend, SUM(ot.saved * 1.0 / ot.category_count) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0 GROUP BY ot.date ORDER BY ot.date": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"LIST SUBQUERY 1",
-				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
-				"CREATE BLOOM FILTER"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_order_categories_cat",
 				"idx_orders_user_date"
 			]
 		},
@@ -3148,6 +3155,19 @@
 			],
 			"findings": [],
 			"indexes": [
+				"idx_orders_user_date"
+			]
+		},
+		"SELECT ot.date, SUM(ot.total) AS spend, SUM(ot.saved) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0 GROUP BY ot.date ORDER BY ot.date": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"LIST SUBQUERY 1",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
 				"idx_orders_user_date"
 			]
 		},
@@ -3873,25 +3893,6 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total * 1.0 / ot.category_count) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0 GROUP BY ot.vendor_id ORDER BY spend DESC": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
-				"LIST SUBQUERY 1",
-				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
-				"CREATE BLOOM FILTER",
-				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
-				"USE TEMP B-TREE FOR GROUP BY",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_order_categories_cat",
-				"idx_orders_user_date",
-				"sqlite_autoindex_vendors_1"
-			]
-		},
 		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type = 'returned' AND ot.exclude_from_stats = 0 GROUP BY ot.vendor_id ORDER BY spend DESC": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -3962,6 +3963,25 @@
 				"sorts in a temp B-tree"
 			],
 			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT ot.vendor_id AS id, v.name, SUM(ot.total) AS spend, COUNT(*) AS orders FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId) AND ot.exclude_from_stats = 0 GROUP BY ot.vendor_id ORDER BY spend DESC": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"LIST SUBQUERY 1",
+				"SEARCH order_categories USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_categories_cat",
 				"idx_orders_user_date",
 				"sqlite_autoindex_vendors_1"
 			]
@@ -4724,7 +4744,7 @@
 				"category_id",
 				"order_id"
 			],
-			"readers": 32
+			"readers": 26
 		},
 		"idx_order_drafts_user": {
 			"table": "order_drafts",
@@ -4814,7 +4834,7 @@
 				"date",
 				"id"
 			],
-			"readers": 44
+			"readers": 43
 		},
 		"idx_orders_user_total": {
 			"table": "orders",
@@ -4823,7 +4843,7 @@
 				"total",
 				"id"
 			],
-			"readers": 11
+			"readers": 10
 		},
 		"idx_orders_user_uncategorised": {
 			"table": "orders",

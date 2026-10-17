@@ -35,29 +35,12 @@ export function categoryOrderCounts(userId) {
 	return new Map(categoryOrderCountsQuery.all(userId).map(r => [r.categoryId, r.orders]))
 }
 
-/* The account's true all-time spend, for one category's share. Shared against the categorised
-   sum instead, a category's "of expenses" overstated itself the moment one order had no category.
-
-   INDEXED BY, because five user-prefixed indexes satisfy this WHERE equally and only one of
-   them carries the summed column: left to tie-break, the planner read the whole account
-   through idx_orders_user_discount with a table probe per row for `total` -- 32ms at 50,000
-   orders against 2.6ms index-only, same sum -- and which index wins a tie is an artefact of
-   schema order, not something a comment can hold in place. Naming it is deterministic in
-   every statistics state, and fails loudly if the index is ever renamed instead of quietly
-   reverting to the probe-per-row plan. */
-const accountTotalQuery = db.prepare(
-	'SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?')
-// the uncounted orders are few, so they are summed apart and taken off, keeping the sum above index-only
-const uncountedTotalQuery = db.prepare(
-	"SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ? AND (status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1)")
-
 /* The one-vendor and one-category questions, asked of that entity's own rows -- not the
    whole-account rollups above with all but one entry thrown away. GET/PATCH /vendors/:id and
    /categories/:id each called the batched map to render a single record: ~25ms grouping
-   50,000 orders by vendor to read one vendor, ~105ms joining 60,768 category links plus the
-   account total to read one category. Scoped to the entity, the same arithmetic runs over its
-   own indexed rows alone: ~2ms and ~5ms. The batched maps stay for the list pages, where
-   every entry is read. */
+   50,000 orders by vendor to read one vendor, ~105ms joining 60,768 category links to read one
+   category. Scoped to the entity, the same arithmetic runs over its own indexed rows alone:
+   ~2ms and ~5ms. The batched maps stay for the list pages, where every entry is read. */
 const vendorStatsForQuery = db.prepare(`
 	SELECT COUNT(*) AS orders, COALESCE(SUM(${counted('total')}), 0) AS spend, COALESCE(SUM(${counted('saved')}), 0) AS saved
 	FROM orders WHERE user_id = ? AND vendor_id = ?
@@ -73,17 +56,16 @@ export function vendorStatsFor(userId, vendorId) {
    plain JOIN let the planner start from the orders side and probe the links per order, which
    reads the whole account to answer one category. */
 const categoryStatsForQuery = db.prepare(`
-	SELECT COUNT(*) AS orders, COALESCE(SUM(${counted('ot.total * 1.0 / ot.category_count', 'ot.')}), 0) AS spend,
-		COALESCE(SUM(${counted('ot.saved * 1.0 / ot.category_count', 'ot.')}), 0) AS saved
+	SELECT COUNT(*) AS orders, COALESCE(SUM(${counted('ot.total', 'ot.')}), 0) AS spend,
+		COALESCE(SUM(${counted('ot.saved', 'ot.')}), 0) AS saved
 	FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = ? AND ot.user_id = ?
 `)
 
-/** One category's orders/spend/saved/share, for its own record. */
+/** One category's orders/spend/saved, for its own record. */
 export function categoryStatsFor(userId, categoryId) {
 	const r = categoryStatsForQuery.get(categoryId, userId)
-	const total = accountTotalQuery.get(userId).spend - uncountedTotalQuery.get(userId).spend
-	return { orders: r.orders, spend: r.spend, saved: r.saved, share: total ? (r.spend / total) * 100 : 0 }
+	return { orders: r.orders, spend: r.spend, saved: r.saved }
 }
 
 /* No GROUP BY: SQLite would sort in a temp B-tree to group it, for a row count bounded by
@@ -102,10 +84,10 @@ export function bookmarkCategoryCounts(userId) {
 	return counts
 }
 
-/* Each category's spend over the twelve whole months before this one, an order's total shared
-   among its categories as everywhere else (lib/stats.js). */
+/* Each category's spend over the twelve whole months before this one, an order's full total in
+   each of its categories as everywhere else (lib/stats.js). */
 const categoryYearSpendQuery = db.prepare(`
-	SELECT oc.category_id AS categoryId, SUM(ot.total * 1.0 / ot.category_count) AS spend
+	SELECT oc.category_id AS categoryId, SUM(ot.total) AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0
 	GROUP BY oc.category_id
@@ -127,10 +109,10 @@ export function categoryMonthAverages(userId, today) {
 	return new Map(categoryYearSpendQuery.all({ userId, from, to }).map(r => [r.categoryId, r.spend / 12]))
 }
 
-/* One category's orders over those twelve months, its share of each, driven from the category's
+/* One category's orders over those twelve months, driven from the category's
    own links as the order counts above are. */
 const categoryYearOrdersQuery = db.prepare(`
-	SELECT ot.date, ot.total * 1.0 / ot.category_count AS spend
+	SELECT ot.date, ot.total AS spend
 	FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0
 `)

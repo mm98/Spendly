@@ -6,7 +6,7 @@ import { Card, CardFooter, CardHeader, Panel } from '../components/Card.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
-import { Bars, ChartTip, Donut, Gauge, GaugeKey, Legend, LegendItem, Plot, ShareRow, Shares, Stat, Sum } from '../components/Data.jsx'
+import { Bars, ChartTip, Gauge, GaugeKey, Legend, LegendItem, Plot, Stat, Sum } from '../components/Data.jsx'
 import { PeriodPicker, PeriodWindow, RangePicker, RangeSheet, Selected } from '../components/DatePickers.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Caption, Controls, Crumb, Crumbs, Foot, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
@@ -160,9 +160,6 @@ export default function Statistics() {
 	const past = useCurrent(getStatsSlice, [{ ...base, windowId: before, ...filter, ...(sameDays == null ? {} : { to: pastLast }) }], { enabled: comparing })
 	// inside a crumb every figure is held against the level above it (4b)
 	const parent = useCurrent(getStatsSlice, [{ ...base, ...filterOf(crumbs.slice(0, -1)) }], { enabled: drilled })
-	// the table's slice is stated as a share of its period's spend (4a): the time crumb, or the whole window
-	const periodCrumbs = crumbs.some(c => !isTime(c)) ? crumbs.filter(isTime) : []
-	const whole = useCurrent(getStatsSlice, [{ ...base, ...filterOf(periodCrumbs) }], { enabled: drilled && !touch })
 	// every category with a limit, the records the crumbs name, and how many categories there are
 	const categories = useApi(getLimitedCategories)
 	const vendors = useCrumbRecords(getVendorPage, crumbs, 'vendor')?.vendors
@@ -457,19 +454,10 @@ export default function Statistics() {
 
 	// an order added while paging shifts the pages by one, so a row can arrive twice
 	const rows = [...new Map((loadedRows?.orders ?? []).map(order => [order.id, order])).values()]
-	// "39% of August spend": a week window and a time crumb go by their short names, a range of days by none
-	const periodTime = periodCrumbs[0]
-	const periodName = periodTime ? crumbLabel(periodTime, labels, true)
-		: range === 'week' ? `Week ${Number(id.slice(6))}`
-			: range === 'days30' || range === 'custom' ? null : nameInText
-	const wholeSpent = whole.data?.window.spent
-	const ofPeriod = drilled && wholeSpent > 0 && view.spent >= 0
-		? `${percent(share(view.spent, wholeSpent), 0)} of ${periodName ? `${periodName} spend` : 'the spend in this period'}`
-		: null
 	const table = touch
 		? <SliceCard view={view} link={ordersLink(view.slice, crumbs)} drilled={drilled} />
 		: (
-			<OrdersTable view={view} name={sliceInText} drilled={drilled} rows={rows} ofPeriod={ofPeriod}
+			<OrdersTable view={view} name={sliceInText} drilled={drilled} rows={rows}
 				matched={loadedRows?.matched} failed={read.error} onLoadMore={loadMore} onRetry={retry} />
 		)
 	const spendChart = (
@@ -494,6 +482,7 @@ export default function Statistics() {
 		return arrange({
 			shape, stacked, period, crumbsBar, drilled,
 			kpis: <DrilledKpis view={view} parent={parentView} above={above} versusAll={VERSUS[crumbs.at(-1).kind]} period={time ? sliceName : cardName}
+				shareOfAbove={crumbs.at(-1).kind !== 'category'}
 				category={category} flow={flow} touch={touch} />,
 			chart: spendChart,
 			side,
@@ -513,7 +502,7 @@ export default function Statistics() {
 		chart: spendChart,
 		byCategory: touch
 			? <CategoryRows key={`category ${range} ${id}`} view={view} known={known} name={cardName} onOpen={drillTo('category')} />
-			: <CategoryShares view={view} known={known} name={cardName} ring={flow !== 'net'} onOpen={drillTo('category')} />,
+			: <CategoryCard view={view} known={known} name={cardName} onOpen={drillTo('category')} />,
 		byStatus: <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />,
 		vendors: <VendorsCard key={`vendors ${range} ${id}`} view={view} name={cardName} touch={touch} onOpen={drillTo('vendor')} />,
 		saving: <SavingChart chart={chart} name={name} touch={touch} selected={selectedKey}
@@ -640,7 +629,7 @@ function busyParts({ unit, name, cardName, period, span, running, touch, compari
 		)),
 		chart: <SpendChart unit={unit} running={running} touch={touch} />,
 		side: <CategoryRows known={known} hint />,
-		byCategory: touch ? <CategoryRows known={known} name={cardName} /> : <CategoryShares known={known} name={cardName} ring={flow !== 'net'} />,
+		byCategory: touch ? <CategoryRows known={known} name={cardName} /> : <CategoryCard known={known} name={cardName} />,
 		byStatus: <StatusCard flow={flow} />,
 		vendors: <VendorsCard name={cardName} touch={touch} />,
 		saving: <SavingChart name={name} touch={touch} />,
@@ -717,10 +706,11 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 	]
 }
 
-/** Inside a crumb the figures are held against the level above, not an earlier window (4b, 4c). */
-function DrilledKpis({ view, parent, above, versusAll, period, category, flow, touch }) {
+/** Inside a crumb the figures are held against the level above, not an earlier window (4b, 4c).
+    Categories overlap, so a category's spend is no share of the level above (4b). */
+function DrilledKpis({ view, parent, above, versusAll, period, category, flow, touch, shareOfAbove }) {
 	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
-	const of = parent && parent.spent > 0 && view.spent >= 0 ? `${percent(share(view.spent, parent.spent), 0)} of ${above}` : null
+	const of = shareOfAbove && parent && parent.spent > 0 && view.spent >= 0 ? `${percent(share(view.spent, parent.spent), 0)} of ${above}` : null
 	const higher = parent && parent.median > 0 ? view.median - parent.median : null
 	const versus = higher == null || Math.round(view.median) === Math.round(parent.median)
 		? null : `${signed(higher, percent(Math.abs(share(higher, parent.median)), 0))} vs ${versusAll}`
@@ -871,63 +861,20 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 	)
 }
 
-// the ring's hole is 78 wide: from a hundred thousand the figure is in whole thousands, "486k", "1.359k"
-const ringFigure = n => (Math.abs(n) >= 100000 ? `${amount(Math.round(n / 1000), 0)}k` : compactAmount(n))
+const BY_CATEGORY_ROWS = 4
 
-/** The top three categories and one line for the rest, which opens nothing (4d), read from the ring
-    beside them (4a). Under net a share can be negative, which a ring cannot draw, so it is left out (4e). */
-function CategoryShares({ view, known, name, ring, onOpen }) {
-	// the ring names the period in its hole; without the ring the head names it
-	const head = <CardHeader name="By category" aside={ring ? undefined : name} />
-	if (!view) {
-		return (
-			<Card aria-busy="true">
-				{head}
-				<div className="sp-row-flex sp-gap-16">
-					{ring ? <Donut loading /> : null}
-					<div className="sp-grow">
-						<Shares aria-hidden="true">
-							{WIDTHS.slice(0, Math.min(4, Math.max(1, known ?? 4))).map((w, i) => (
-								<ShareRow key={w} series={i + 1} value={hold('18')} disabled>{hold(w)}</ShareRow>
-							))}
-						</Shares>
-					</div>
-				</div>
-			</Card>
-		)
-	}
-	const split = view.split
-	const rest = split.slice(3)
-	const folded = rest.length > 1
-	const shown = (folded ? split.slice(0, 3) : split).map((entry, i) => ({ ...entry, series: i + 1 }))
-	const lines = folded ? [...shown, { id: 'other', other: true, series: 4, share: rest.reduce((sum, entry) => sum + entry.share, 0) }] : shown
+/** The period's top categories, each at its full amount with its order count (4a). Categories
+    overlap, so the card has no line for the rest and no total. */
+function CategoryCard({ view, known, name, onOpen }) {
+	const entries = view?.split
+	const count = entries ? entries.length : known ?? BY_CATEGORY_ROWS
+	const aside = entries?.length ? `${name}${dot}${count > BY_CATEGORY_ROWS ? `top ${BY_CATEGORY_ROWS} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name
 	return (
-		<Card>
-			{head}
-			<div className="sp-row-flex sp-gap-16">
-				{ring
-					? (
-						<Donut shares={lines.map(entry => ({ value: entry.share, series: entry.series }))} figure={ringFigure(view.spent)}
-							label={name} aria-label={`Share of ${nameOf(view.range, view.id, true)} spend by category`} />
-					)
-					: null}
-				<div className="sp-grow">
-					<Shares>
-						{lines.map(entry => (entry.other
-							? (
-								<ShareRow key="other" series={4} value={`${Math.round(entry.share)}%`} aria-disabled="true">
-									Other {counted(rest.length, 'category', 'categories')}
-								</ShareRow>
-							)
-							: (
-								<ShareRow key={entry.id ?? 'none'} series={entry.series} value={`${Math.round(entry.share)}%`}
-									onClick={onOpen ? () => onOpen(entry.id ?? 'none') : undefined}>
-									{entry.name}
-								</ShareRow>
-							)))}
-					</Shares>
-				</div>
-			</div>
+		<Card aria-busy={entries ? undefined : 'true'}>
+			<CardHeader name="By category" aside={aside} />
+			{entries && !entries.length
+				? <span className="sp-meta">None of these orders has a category.</span>
+				: <Ranked entries={entries?.slice(0, BY_CATEGORY_ROWS)} rows={Math.min(Math.max(count, 1), BY_CATEGORY_ROWS)} noun="categories" onOpen={onOpen} counts />}
 		</Card>
 	)
 }
@@ -940,8 +887,9 @@ function Pick({ onPick, label, className, children }) {
 }
 
 /** A ranked list with a bar under each line: the top eight and one line for the rest, or the top
-    page of rows and one line for the rest (4d). With no entries yet, `rows` skeleton lines. */
-function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = false }) {
+    page of rows and one line for the rest (4d). Without `others` the rest has no line, as
+    categories overlap and their rest has no sum. With no entries yet, `rows` skeleton lines. */
+function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = false, others = true }) {
 	const shown = useShown()
 	if (!entries) {
 		return WIDTHS.slice(0, rows).map(w => (touch
@@ -965,8 +913,8 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 	const top = open ? shown : TOP
 	const rest = entries.slice(top)
 	const folded = rest.length > 1
-	const lines = folded
-		? [...entries.slice(0, top), {
+	const lines = folded && !others ? entries.slice(0, top)
+		: folded ? [...entries.slice(0, top), {
 			id: 'other', other: true, name: `Other ${amount(rest.length, 0)} ${noun}`,
 			amount: rest.reduce((sum, entry) => sum + entry.amount, 0), orders: rest.reduce((sum, entry) => sum + (entry.orders ?? 0), 0)
 		}]
@@ -1016,7 +964,7 @@ function CategoryRows({ view, known, name, onOpen, hint = false }) {
 	return (
 		<Card aria-busy={entries ? undefined : 'true'} footer={moreFooter(entries, count, 'categories', open, setOpen)}>
 			<CardHeader name="By category" aside={hint && onOpen ? 'click to narrow further' : name || undefined} />
-			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} onOpen={onOpen} />
+			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} onOpen={onOpen} others={false} />
 		</Card>
 	)
 }
@@ -1312,7 +1260,7 @@ function sliceHead(show) {
 	)
 }
 
-function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onLoadMore, onRetry }) {
+function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, onRetry }) {
 	const size = usePageSize() ?? 10
 	const column = useRef(null)
 	const show = columnsFor(useWidth(column))
@@ -1332,8 +1280,7 @@ function OrdersTable({ view, name, drilled, rows, ofPeriod, matched, failed, onL
 						: <strong className="sp-data">{counted(view.orders, 'order')} in this slice</strong>}
 					<span className="sp-meta">{dot}{currency(view.spent)}</span>
 					<Saving value={view.saved} variant="help" />
-					<span className="sp-grow" />
-					<span className="sp-meta">{drilled ? ofPeriod : 'newest first'}</span>
+					{drilled ? null : <><span className="sp-grow" /><span className="sp-meta">newest first</span></>}
 				</Caption>
 				{sliceHead(show)}
 				<ListRow>
