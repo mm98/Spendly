@@ -32,7 +32,7 @@
     <span class="doc-badge" id="1a">1a</span>
     <span class="doc-section__title">Order - read view</span>
   </div>
-  <div class="doc-lede">Same 2fr / 1fr skeleton as the edit screen, so switching between reading and editing moves nothing. Row actions and Add item drop away, fields become label and value rows, status becomes a row in Order details, and the rail ends with Duplicate, Edit order, Make invoice and Delete.</div>
+  <div class="doc-lede">Same 2fr / 1fr skeleton as the edit screen, so switching between reading and editing moves nothing. Row actions and Add item drop away, fields become label and value rows, status becomes a row in Order details, and the rail ends with Delete order and Edit order; Duplicate and Make invoice are icons in the Totals head.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Intent</b> - The read view exists so the common case - looking something up - costs nothing. It shares the edit screen's grid exactly, so entering edit changes controls, never positions. Build both from one layout component.</div>
@@ -43,7 +43,7 @@
     <div class="doc-note"><b>Note</b> - Shown only when the order has a note; an order without one has no Note row. The text sits in a full-width well (the bordered box inside a card, no ground) at regular weight, as the user typed it, line breaks kept.</div>
     <div class="doc-note"><b>Watch out</b> - Do not render inputs as disabled fields here. Values are text. A page full of greyed-out inputs reads as broken permissions, and it doubles the DOM for no gain.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px the rail moves above the item list, collapsed to a summary line (1d, <a href="Responsive reference.dc.html#18a">Responsive reference 18a</a>). Attachments stay a horizontal filmstrip on both - it is the one place sideways scroll is correct, because a receipt strip has no meaningful order.</div>
-    <div class="doc-note"><b>Make invoice</b> - Opens the invoice dialog over the order (<a href="Invoice.dc.html#24c">Invoice 24c</a>), the same dialog as the row and card menus. It sits under the Duplicate / Edit order pair, outline, small and full width like Delete order, and moves with the rail: below 900px it is in the rail above the items, which is how the phone reaches it. Below 760 the dialog has no preview.</div>
+    <div class="doc-note"><b>Duplicate and Make invoice</b> - Duplicate opens the copy as the row menu does (<a href="Duplicate and alerts.dc.html#8a">8a</a>). Make invoice opens the invoice dialog over the order (<a href="Invoice.dc.html#24c">Invoice 24c</a>), the same dialog as the row and card menus. Duplicate and Make invoice are rarely used, so they are outline icon buttons at the right of the Totals card head, in that order, with the head's own gap: <code>copy</code> (tip "Duplicate", label "Duplicate order") and <code>file-invoice</code> (tip and label "Make invoice"). The footer is the split pair Delete order and Edit order, Edit order the one primary on the right, Delete order outline in the danger colour. The Totals card moves with the rail: below 900px it is in the rail above the items, which is how the phone reaches it. Below 760 the dialog has no preview.</div>
     <div class="doc-note"><b>Easy to get wrong</b> - Edit, Duplicate, Make invoice and Delete belong in the page, never the top bar (global rule 1). The top shell is shared and locked.</div>
   </div>
 
@@ -154,7 +154,7 @@
         </div>
 
         <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
+          <div class="sp-card__head"><span class="sp-section-label">Totals</span><span class="sp-grow"></span><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Duplicate order" data-tip="Duplicate"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Make invoice" data-tip="Make invoice"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 7l1 0" /><path d="M9 13l6 0" /><path d="M13 17l2 0" /></svg></button></div>
           <div class="sp-stack">
           <div class="sp-sum"><span class="sp-ink-2">Items (4)</span><span class="sp-sum__value">3.980,00 kr.</span></div>
           <div class="sp-sum"><span class="sp-ink-2">Discount</span><span class="sp-sum__value">0,00 kr.</span></div>
@@ -163,11 +163,9 @@
           </div>
           <span class="sp-stat__delta">Saved 1.320,00 kr.</span>
           <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
-            <button type="button" class="sp-btn sp-btn--outline">Duplicate</button>
+            <button type="button" class="sp-btn sp-btn--outline" data-color="danger">Delete order</button>
             <button type="button" class="sp-btn">Edit order</button>
           </div>
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-btn--block">Make invoice</button>
-          <button type="button" class="sp-btn sp-btn--small sp-btn--block" data-color="danger">Delete order</button>
         </div>
       </div>
     </div>

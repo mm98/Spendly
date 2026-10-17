@@ -1,6 +1,14 @@
-# Answers to "Brief: questions from building Make invoice and the CVR lookup" - fixed
+# Answers to "Brief: questions from building Make invoice and the CVR lookup" - fixed 2
 
-Replaces `design_handoff_invoice_cvr`. Fixed since that package: the recipient is one remembered view with a live CVR field (A), the borderless swap buttons are gone (B), and Add them no longer opens a new tab (C). Points 1-7 below are unchanged unless A says otherwise.
+Replaces `design_handoff_invoice_cvr_fixed`. Fixed since that package: the order page's actions are regrouped, with Duplicate and Make invoice as icons (D). Before that, `design_handoff_invoice_cvr_fixed` replaced `design_handoff_invoice_cvr`. Fixed since that package: the recipient is one remembered view with a live CVR field (A), the borderless swap buttons are gone (B), and Add them no longer opens a new tab (C). Points 1-7 below are unchanged unless A says otherwise.
+
+## D. The order page's actions: Edit and Delete as the pair, the rare ones as icons
+
+**The problem** - 1a's rail mixed a Duplicate / Edit order pair with Make invoice and Delete order stacked below at full width, so the actions read as a mess of grouped and stacked buttons, and Make invoice and Duplicate, both rarely used, carried as much weight as Edit order.
+
+**What changed** - The Totals card's footer is the split pair Delete order and Edit order: Edit order the one primary on the right, Delete order outline in the danger colour. Duplicate and Make invoice are outline icon buttons (`sp-icon-btn sp-icon-btn--outline`) at the right of the Totals card head, in that order: `copy` with tip "Duplicate" and label "Duplicate order", `file-invoice` with tip and label "Make invoice". They do what the row menu items do. No component changed. This replaces point 5's placement of Make invoice; the Totals card still moves with the rail, so the phone reaches both.
+
+**Where** - `Order editing layouts.dc.html` 1a, the Totals card, the lede and the notes; `Icon legend.dc.html` 19a, where `copy` and `file-invoice` are used. App: the order read view's rail.
 
 ## A. The recipient is one view: the vendor's fields, with a live CVR lookup
 
@@ -95,7 +103,7 @@ PR https://github.com/mm98/Spendly/pull/485. The six points take the brief's rec
 - `README.md` - the design overview, unchanged.
 - `CHANGES.md` - this note.
 - `Invoice.dc.html` - points 1-7 and A-C.
-- `Order editing layouts.dc.html` - Make invoice on the order page (1a).
+- `Order editing layouts.dc.html` - the order page's actions (1a).
 - `Duplicate and alerts.dc.html` - 8a note on where Make invoice lives.
 - `Icon legend.dc.html`, `icons.js` - where `file-invoice` is used.
 - `support.js`, `components.js` - needed to open the pages.
