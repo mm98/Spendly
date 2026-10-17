@@ -119,6 +119,19 @@ export function cleanRecipient(raw) {
 	}
 }
 
+/** The vendor's details typed in the dialog's alert (24d), over its stored row: only the ones given.
+    A CVR number is taken for a Danish vendor only, and a VAT number for any other. */
+export function withTypedDetails(vendor, raw) {
+	const typed = {}
+	const cvr = String(raw?.cvr ?? '').replace(/\s+/g, '')
+	if (vendor.country === 'DK' && /^\d{8}$/.test(cvr)) typed.cvr = cvr
+	const vatNumber = String(raw?.vatNumber ?? '').trim().slice(0, 40)
+	if (vendor.country !== 'DK' && vatNumber) typed.vat_number = vatNumber
+	const address = String(raw?.address ?? '').trim().slice(0, 300)
+	if (address) typed.address = address
+	return { ...vendor, ...typed }
+}
+
 const isEmptyRecipient = r => !r || (!r.name && !r.cvr && !r.vatNumber && !r.address.length && !r.att)
 
 /** The To box (24b, 24c): a CVR number the register knows prints the register's name and address; one it
@@ -142,11 +155,12 @@ function recipientParty(userId, recipient) {
 }
 
 /** The invoice for one of the account's orders, written out (24a), with its photos and file name:
-    `{ invoice, photos, fileName }`, or null when the account has no such order. */
-export async function invoiceFor(userId, orderId, recipient, locale) {
+    `{ invoice, photos, fileName }`, or null when the account has no such order. `typed` is the vendor's
+    details as the dialog has them before they are saved. */
+export async function invoiceFor(userId, orderId, recipient, locale, typed = null) {
 	const order = selectOrder.get(orderId, userId)
 	if (!order) return null
-	const vendor = selectVendor.get(order.vendor_id, userId)
+	const vendor = withTypedDetails(selectVendor.get(order.vendor_id, userId), typed)
 	const day = fromEpoch(order.date)
 	const { money, count } = moneyIn(locale, selectCurrency.get(userId)?.currency)
 	const sender = senderOf(vendor, day)

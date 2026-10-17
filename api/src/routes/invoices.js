@@ -1,11 +1,10 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { fromEpoch } from '../lib/dates.js'
-import { findCompany, isCvrNumber } from '../lib/cvrRegister.js'
 import { cleanRecipient, drawInvoice, invoiceFor, senderOf } from '../lib/invoice.js'
 
-/* Make invoice (Invoice 24c, 24d): who the invoice is for, the company a CVR number finds, and the
-   PDF itself, or its first page as the dialog's preview. */
+/* Make invoice (Invoice 24c, 24d): who the invoice is for, who sends it, and the PDF itself, or its
+   first page as the dialog's preview. */
 
 export const router = Router()
 
@@ -29,32 +28,23 @@ router.get('/recipient', (req, res) => {
 	} : null)
 })
 
-// a company by CVR number, from the register: { status, company }
-router.get('/company', async (req, res, next) => {
-	try {
-		const cvr = String(req.query.cvr ?? '').replace(/\s+/g, '')
-		if (!isCvrNumber(cvr)) return res.status(400).json({ error: 'A CVR number has 8 digits.' })
-		const answer = await findCompany(cvr)
-		// a spent day or a failed lookup can change without a write, so Try again asks again
-		if (answer.status === 'limit' || answer.status === 'failed') res.set('Cache-Control', 'no-store')
-		res.json(answer)
-	} catch (e) { next(e) }
-})
-
 // who sends the invoice, and what its From box lacks (24d)
 router.get('/orders/:id/sender', (req, res) => {
 	const row = selectOrderVendor.get(req.params.id, req.user.id)
 	if (!row) return res.status(404).json({ error: 'No order ' + req.params.id })
 	const sender = senderOf(row, fromEpoch(row.date))
-	res.json({ vendorId: row.id, name: row.name, country: row.country, missing: sender.missing, unknownNumber: sender.unknownNumber })
+	res.json({
+		vendorId: row.id, name: row.name, country: row.country, cvr: row.cvr ?? '',
+		missing: sender.missing, unknownNumber: sender.unknownNumber
+	})
 })
 
 // the invoice's first page as a PNG, for the dialog's preview; a read, so it does not empty the account's read cache
 router.get('/orders/:id/preview', async (req, res, next) => {
 	try {
-		let raw = null
-		try { raw = JSON.parse(String(req.query.recipient ?? 'null')) } catch {}
-		const made = await invoiceFor(req.user.id, req.params.id, cleanRecipient(raw), String(req.query.locale ?? 'da-DK'))
+		const json = text => { try { return JSON.parse(String(text ?? 'null')) } catch { return null } }
+		const made = await invoiceFor(req.user.id, req.params.id, cleanRecipient(json(req.query.recipient)),
+			String(req.query.locale ?? 'da-DK'), json(req.query.vendor))
 		if (!made) return res.status(404).json({ error: 'No order ' + req.params.id })
 		const png = await drawInvoice(made, { preview: PREVIEW_WIDTH })
 		if (!png) return res.status(500).json({ error: 'The preview could not be drawn.' })

@@ -32,8 +32,16 @@ const SORTS = {
 
 export const LOOKALIKES = 'possible-duplicate'
 
+/* Whether the vendor's invoice has an address in From, as lib/invoice.js senderOf decides it: the
+   register's for a Danish company it knows, else the typed one. */
+const HAS_ADDRESS = `CASE WHEN v.country = 'DK' AND EXISTS (SELECT 1 FROM cvr_companies c WHERE c.cvr = v.cvr AND c.found = 1)
+	THEN EXISTS (SELECT 1 FROM cvr_company_addresses a WHERE a.cvr = v.cvr)
+	ELSE trim(COALESCE(v.address, ''), ' ' || char(9, 10, 13)) <> '' END`
+
 const selectRows = db.prepare(`SELECT id, name, colour, favourite, archived, origin, default_exclude_from_stats FROM vendors
 	WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))`)
+const selectAddressed = db.prepare(`SELECT v.id, ${HAS_ADDRESS} AS has_address FROM vendors v
+	WHERE v.user_id = @userId AND v.id IN (SELECT value FROM json_each(@ids))`)
 const selectStats = db.prepare(`${STATS} AND vendor_id IN (SELECT value FROM json_each(@ids)) GROUP BY vendor_id`)
 // a page's names are few, so groupNames orders them rather than a sort in SQL
 const selectAliases = db.prepare(`SELECT vendor_id, name FROM vendor_aliases
@@ -54,8 +62,9 @@ const groupNames = rows => {
 	return by
 }
 
-/** The page's rows, in `ids` order: what the list, the pickers and the filters read of a vendor. */
-function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = false } = {}) {
+/** The page's rows, in `ids` order: what the list, the pickers and the filters read of a vendor.
+    `address` adds whether the vendor's invoice would lack an address, which the vendor list shows. */
+function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = false, address = false } = {}) {
 	if (!ids.length) return []
 	const params = { userId, ids: JSON.stringify(ids) }
 	const byId = new Map(selectRows.all(params).map(v => [v.id, v]))
@@ -67,6 +76,7 @@ function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = fal
 	const stats = new Map(selectStats.all(params).map(s => [s.vendor_id, s]))
 	const aliases = groupNames(selectAliases.all(params))
 	const defaultsBy = defaults ? groupNames(selectDefaults.all(params)) : null
+	const addressed = address ? new Map(selectAddressed.all(params).map(r => [r.id, Boolean(r.has_address)])) : null
 	const keeps = duplicates ? [...new Set(ids.map(id => duplicates.get(id)).filter(Boolean))] : []
 	const keepNames = keeps.length ? new Map(selectNames.all({ userId, ids: JSON.stringify(keeps) }).map(v => [v.id, v.name])) : null
 	return ids.filter(id => byId.has(id)).map(id => {
@@ -78,6 +88,7 @@ function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = fal
 			createdByScan: v.origin === 'scan', aliases: aliases.get(id) ?? [],
 			orders: s.orders, spend: s.spend, saved: s.saved, lastOrder: s.last ? fromEpoch(s.last) : null,
 			...(duplicates ? { duplicateOf, duplicateName: duplicateOf ? keepNames.get(duplicateOf) ?? null : null } : {}),
+			...(address ? { noAddress: !addressed.get(id) } : {}),
 			...(defaults ? { defaultCategories: defaultsBy.get(id) ?? [], defaultExcludeFromStats: Boolean(v.default_exclude_from_stats) } : {})
 		}
 	})
@@ -92,21 +103,26 @@ function pageOfRanked(userId, q, ranked, options) {
 export function vendorPage(userId, q, languages = []) {
 	const except = q.except ? String(q.except) : null
 	const brief = q.shape === 'brief'
-	const duplicates = q.with === 'duplicates' || q.flag === LOOKALIKES
+	// with: the extra facts a reader asks of each row, comma separated
+	const withs = String(q.with ?? '').split(',')
+	const duplicates = withs.includes('duplicates') || q.flag === LOOKALIKES
 		? new Map(lookalikePairs(userId).map(p => [p.merge, p.keep])) : null
+	const address = withs.includes('address')
 
 	// the vendor a string files under, as receipts and orders are matched: one row or none
 	if (q.name !== undefined) {
 		const found = resolveVendor(userId, q.name, except)
-		return pageOfRanked(userId, q, found ? [found.id] : [], { duplicates, defaults: true, brief })
+		return pageOfRanked(userId, q, found ? [found.id] : [], { duplicates, defaults: true, brief, address })
 	}
 	if (q.like !== undefined)
-		return pageOfRanked(userId, q, vendorsLike(userId, { name: String(q.like), aliases: String(q.aka ?? '').split('\n').filter(Boolean), except }), { duplicates, brief })
+		return pageOfRanked(userId, q, vendorsLike(userId, { name: String(q.like), aliases: String(q.aka ?? '').split('\n').filter(Boolean), except }), { duplicates, brief, address })
 
 	const sort = SORTS[q.sort] ?? SORTS['name-asc']
 	const where = ['v.user_id = @userId']
 	const params = { userId }
 	if (q.archived !== 'all') where.push(q.archived === 'yes' ? 'v.archived = 1' : 'v.archived = 0')
+	// missing=address: the vendors whose invoice would have no address in From (5a)
+	if (q.missing === 'address') where.push(`NOT (${HAS_ADDRESS})`)
 	const ids = listOf(q.ids)
 	if (q.ids !== undefined) { where.push('v.id IN (SELECT value FROM json_each(@ids))'); params.ids = JSON.stringify(ids) }
 	if (except) { where.push('v.id <> @except'); params.except = except }
@@ -147,7 +163,7 @@ export function vendorPage(userId, q, languages = []) {
 			.get({ ...params, paired }).c
 		const { limit, offset } = pageOf(q, matched)
 		const page = db.prepare(`${sql} ORDER BY placed.at LIMIT @limit OFFSET @offset`).all({ ...params, limit, offset })
-		return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates, brief }), matched }
+		return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates, brief, address }), matched }
 	}
 
 	// the merge picker: the vendors this one looks like lead (5a)
@@ -160,14 +176,14 @@ export function vendorPage(userId, q, languages = []) {
 	if (sort.byName) {
 		const found = db.prepare(`SELECT v.id, v.name, v.favourite FROM vendors v WHERE ${where.join(' AND ')}`).all(params)
 		if (countsOnly(q)) return { vendors: [], matched: found.length }
-		return pageOfRanked(userId, q, byName(found, v => (alike.includes(v.id) ? 0 : 1)), { duplicates, brief })
+		return pageOfRanked(userId, q, byName(found, v => (alike.includes(v.id) ? 0 : 1)), { duplicates, brief, address })
 	}
 	const matched = db.prepare(`SELECT COUNT(*) c FROM vendors v WHERE ${where.join(' AND ')}`).get(params).c
 	const { limit, offset } = pageOf(q, matched)
 	sql = `SELECT v.id FROM vendors v ${sort.stats ? statsJoin : ''} WHERE ${where.join(' AND ')}
 		ORDER BY ${lead}${order} LIMIT @limit OFFSET @offset`
 	const page = db.prepare(sql).all({ ...params, limit, offset })
-	return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates, brief }), matched }
+	return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates, brief, address }), matched }
 }
 
 /** Which of these names a vendor of the account already files under: what an import would not create. */

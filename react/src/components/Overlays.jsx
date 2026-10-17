@@ -429,12 +429,13 @@ export function ToastUndo({ children, onClick, ...rest }) {
 const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
 
 /** `action` is one button at the row's far end, after a spacer (3a, 3b); `below` puts it under the
-    words instead, where a phone's row is too narrow to hold both. */
-export function Alert({ color = 'warning', mark, title, action, below = false, children, ...rest }) {
+    words instead, where a phone's row is too narrow to hold both. `fields` are the fields whose values
+    settle what the alert says, under its words (c19). */
+export function Alert({ color = 'warning', mark, title, action, below = false, fields, children, ...rest }) {
 	reject(rest, 'Alert')
 	return (
 		<div
-			className="sp-alert"
+			className={fields ? 'sp-alert sp-alert--field' : 'sp-alert'}
 			{...(color === 'warning' ? {} : { 'data-color': pick(ALERT_COLOR, color, 'color', 'Alert') })}
 			{...rest}
 		>
@@ -442,6 +443,7 @@ export function Alert({ color = 'warning', mark, title, action, below = false, c
 			<span className="sp-alert__body">
 				{title ? <span className="sp-alert__title">{title}</span> : null}
 				{children ? <span className="sp-alert__note">{children}</span> : null}
+				{fields}
 				{action && below ? <span className="sp-row-flex">{action}</span> : null}
 			</span>
 			{action && !below ? <><span className="sp-grow" />{action}</> : null}

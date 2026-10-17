@@ -25,6 +25,7 @@ import { currency, dayShortMonth, dot, isSaving, plural } from '../api/format.js
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { CountryCombobox } from '../app/countries.jsx'
+import { cvrOf, isCvr, useCompanyLookup } from '../app/companyLookup.js'
 import { countryName } from '../api/countries.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
@@ -66,8 +67,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
 	const { state } = useLocation()
 	const fromScan = state?.fromScan ?? null
-	// Invoice details starts folded, except from Add them in the invoice dialog (Invoice 24d)
-	const [detailsOpen, setDetailsOpen] = useState(Boolean(state?.invoiceDetails))
+	// Invoice details always starts folded (5m)
+	const [detailsOpen, setDetailsOpen] = useState(false)
 	const h = loading ? hold : control => control
 	const statsSwitch = useId()
 	const editing = Boolean(vendor)
@@ -512,9 +513,6 @@ function VendorSummary({ vendor, name, colour }) {
 	)
 }
 
-const cvrOf = text => String(text).replace(/\s+/g, '')
-const isCvr = text => /^\d{8}$/.test(cvrOf(text))
-
 /** Why the number under Country cannot be saved, or null: a CVR number has eight digits. */
 const numberProblem = values => (values.country === 'DK' && cvrOf(values.cvr) && !isCvr(values.cvr) ? 'A CVR number has 8 digits.' : null)
 
@@ -531,20 +529,30 @@ const detailsSummary = (values, offer) => {
 	return 'Not added'
 }
 
+// the help line under CVR while a typed number is looked up, or when it could not be (5m)
+const lookupSaid = {
+	looking: 'Looking up…',
+	failed: 'The company could not be looked up. It is tried again tonight.',
+	limit: 'Company lookup is not available until tomorrow. The address is filled in then.'
+}
+
 /** The Invoice details card (5b, 5c): Country, CVR (or VAT number) and Address in the CVR register's
-    states (5m). With a CVR number the address is the register's and is shown, not typed. */
+    states (5m). With a CVR number the address is the register's and is shown, not typed. A number is
+    looked up as it is typed; one that could not be is looked up by the background job once saved. */
 function CompanyFields({ vendor, values, set, error, hold, open, onToggle, clearError, toast }) {
 	const [dismissed, setDismissed] = useState(false)
+	const lookup = useCompanyLookup()
 	const denmark = values.country === 'DK'
 	const number = cvrOf(values.cvr)
-	// what the register said for the saved number; a number typed since has not been looked up
+	// what the register said for the saved number, and for a number typed since
 	const saved = denmark && vendor?.cvr && vendor.cvr === number ? vendor.register : undefined
-	const unknown = saved?.found === false
-	// Use it: the company found by name stands in until the vendor is saved and looked up
+	const typed = denmark && lookup.found?.cvr === number ? lookup.found : null
+	const unknown = denmark && (lookup.status === 'none' || (!typed && !lookup.status && saved?.found === false))
+	// Use it: the company found by name stands in until the vendor is saved
 	const matched = denmark && vendor?.match && vendor.match.cvr === number ? vendor.match : null
 	const offer = denmark && !number && vendor?.match && !dismissed ? vendor.match : null
-	const shown = saved?.found ? saved : matched ? { ...matched, found: true } : null
-	const numberHelp = error ?? (unknown ? `No company has CVR ${number} in the register. Check the number.` : undefined)
+	const shown = typed ?? (saved?.found ? saved : matched ? { ...matched, found: true } : null)
+	const numberHelp = error ?? (unknown ? `No company has CVR ${number} in the register. Check the number.` : denmark ? lookupSaid[lookup.status] : undefined)
 
 	const notThisOne = () => {
 		setDismissed(true)
@@ -568,7 +576,7 @@ function CompanyFields({ vendor, values, set, error, hold, open, onToggle, clear
 						<Field id="vendor-number" label={denmark ? 'CVR' : 'VAT number'} message={numberHelp}
 							messageType={error || unknown ? 'danger' : 'hint'}>
 							{hold(<TextField value={denmark ? values.cvr : values.vatNumber} inputMode={denmark ? 'numeric' : undefined} placeholder={denmark ? '8 digits' : undefined}
-								onChange={v => { set(denmark ? 'cvr' : 'vatNumber', v); clearError() }} />)}
+								onChange={v => { set(denmark ? 'cvr' : 'vatNumber', v); clearError(); if (denmark) lookup.type(v) }} />)}
 						</Field>
 					</div>
 					{offer
@@ -592,18 +600,20 @@ function CompanyFields({ vendor, values, set, error, hold, open, onToggle, clear
 								<Well variant="quiet" aria-labelledby="vendor-address-label">
 									{shown
 										? [shown.name, ...shown.address].map((line, i) => <span key={i} className="sp-data">{line}</span>)
-										: <span className="sp-data sp-ink-5">Not looked up yet</span>}
+										: <span className="sp-data sp-ink-5">From the CVR register</span>}
 								</Well>
-								<span className="sp-field__help">
-									{!shown ? 'Filled from the CVR register within a day.'
-										: shown.ceasedOn ? ending(`Ceased trading ${dayShortMonth(shown.ceasedOn)}`)
-											: ending(`From the CVR register, checked ${dayShortMonth(shown.checkedAt)}`)}
-								</span>
+								{lookup.status === 'looking' ? null : (
+									<span className="sp-field__help">
+										{!shown ? 'Filled in from the CVR register tonight.'
+											: shown.ceasedOn ? ending(`Ceased trading ${dayShortMonth(shown.ceasedOn)}`)
+												: ending(`From the CVR register, checked ${dayShortMonth(shown.checkedAt)}`)}
+									</span>
+								)}
 							</div>
 						)
 						: (
 							<Field id="vendor-address" label="Address"
-								message={denmark ? 'Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.' : 'Printed on an invoice made from its orders.'}>
+								message={denmark ? 'Printed on an invoice made from its orders. With a CVR number it comes from the CVR register, and is kept up to date.' : 'Printed on an invoice made from its orders.'}>
 								{hold(<TextField multiline rows={3} value={values.address} onChange={v => set('address', v)} />)}
 							</Field>
 						)}
