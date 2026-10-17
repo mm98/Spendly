@@ -16,15 +16,16 @@ import { VENDOR_IMAGE_MAX_MB, VendorImageRefusal, processVendorImage } from '../
 
 export const router = Router()
 
-const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead, archived, origin'
+const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats'
 const selectAll = db.prepare('SELECT id, name, colour, favourite, archived, origin FROM vendors WHERE user_id = ? ORDER BY name')
 const selectOne = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
-const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead, origin)
-	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead, @origin)`)
+const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead, origin, default_exclude_from_stats)
+	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead, @origin, @defaultExcludeFromStats)`)
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE vendor_id = ? AND user_id = ?')
 const deleteOne = db.prepare('DELETE FROM vendors WHERE id = ? AND user_id = ?')
-const update = db.prepare('UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead, archived=@archived WHERE id=@id AND user_id=@userId')
+const update = db.prepare(`UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead, archived=@archived,
+	default_exclude_from_stats=@defaultExcludeFromStats WHERE id=@id AND user_id=@userId`)
 
 /* Aliases: the other strings a vendor resolves from (see migrations/002 and
    lib/findOrCreate.js). Owned by the vendor row -- deleting the vendor cascades them. */
@@ -149,6 +150,7 @@ const withStats = (vendor, stats, aliases = [], defaultCategories = [], lastMatc
 		id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour,
 		favourite: Boolean(vendor.favourite), lead: vendor.lead ?? undefined, archived: Boolean(vendor.archived),
 		createdByScan: vendor.origin === 'scan', aliases, lastMatched, defaultCategories,
+		defaultExcludeFromStats: Boolean(vendor.default_exclude_from_stats),
 		orders: s.orders, spend: s.spend, saved: s.saved
 	}
 }
@@ -222,12 +224,13 @@ router.post('/', (req, res) => {
 		initials: look.initials ?? name.slice(0, 2).toUpperCase(),
 		colour: look.colour ?? colourFor(name),
 		favourite: look.favourite ? 1 : 0, lead: look.lead ?? null,
+		defaultExcludeFromStats: look.defaultExcludeFromStats ? 1 : 0,
 		// made on the way back from a scanned receipt (5b): it says so in the list (5a)
 		origin: look.origin === 'scan' ? 'scan' : null
 	}
 	saveVendor(() => insert.run(vendor), req.user.id, vendor.id, cleaned.aliases, defaults.names, cleaned.moves)
 	// Read back rather than echoed, so the answer holds the stored order (alphabetical).
-	res.status(201).json(withStats({ ...vendor, favourite: vendor.favourite }, new Map(),
+	res.status(201).json(withStats({ ...vendor, default_exclude_from_stats: vendor.defaultExcludeFromStats }, new Map(),
 		aliasesFor(req.user.id, vendor.id), defaultCategoriesFor(req.user.id, vendor.id)))
 })
 
@@ -303,7 +306,8 @@ router.patch('/:id', (req, res) => {
 		colour: patch.colour ?? vendor.colour,
 		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : vendor.favourite,
 		lead: patch.lead !== undefined ? patch.lead : vendor.lead,
-		archived: patch.archived != null ? (patch.archived ? 1 : 0) : vendor.archived
+		archived: patch.archived != null ? (patch.archived ? 1 : 0) : vendor.archived,
+		defaultExcludeFromStats: patch.defaultExcludeFromStats != null ? (patch.defaultExcludeFromStats ? 1 : 0) : vendor.default_exclude_from_stats
 	}
 	saveVendor(() => update.run({ ...next, id: vendor.id, userId: req.user.id }),
 		req.user.id, vendor.id, cleaned.aliases, defaults.names, cleaned.moves)
@@ -363,7 +367,8 @@ const mergeVendors = db.transaction((userId, source, target) => {
 	deleteOne.run(source.id, userId)
 	update.run({
 		id: target.id, userId, name: target.name, initials: target.initials, colour: target.colour,
-		favourite: target.favourite || source.favourite ? 1 : 0, lead: target.lead ?? source.lead, archived: target.archived
+		favourite: target.favourite || source.favourite ? 1 : 0, lead: target.lead ?? source.lead, archived: target.archived,
+		defaultExcludeFromStats: target.default_exclude_from_stats
 	})
 	writeAliases(userId, target.id, aliases)
 	writeDefaultCategories(userId, target.id, defaults.length ? defaults : sourceDefaults)

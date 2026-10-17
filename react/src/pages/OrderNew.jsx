@@ -106,7 +106,7 @@ function Blank({ vendor, restored, onDraft }) {
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} onDraft={onDraft} />
 }
 
-/* A copy carries the vendor, categories, kind, reference, note and priced lines with their photos; the
+/* A copy carries the vendor, categories, kind, reference, note, Leave out of statistics and priced lines with their photos; the
    date is today, the status the account's default (3b, 8b), and the order's own files stay behind. */
 function Copy({ id, onDraft }) {
 	const order = useApi(getOrder, [id])
@@ -119,7 +119,7 @@ function Copy({ id, onDraft }) {
 			...fromBlank(blank.data),
 			vendor: from.vendor?.name ?? '', kind: from.kind, categories: from.categories.map(c => c.name),
 			shipping: from.shipping || null, discount: from.discount || null,
-			reference: from.reference ?? '', note: from.note ?? '',
+			reference: from.reference ?? '', note: from.note ?? '', excludeFromStats: from.excludeFromStats,
 			lines: from.items.map((item, i) => {
 				const photo = item.attachments?.find(a => a.kind === 'image') ?? null
 				return {

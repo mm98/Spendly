@@ -471,6 +471,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		setOffer(kept.length && missing.length ? { vendor, names: missing } : null)
 		return kept.length ? kept : defaults
 	}
+	// a new order's switch follows its vendor's default until the reader sets it, and a copy keeps its source's (5l)
+	const follow = known => (origin.copy || draft.excludeFromStatsSetByHand ? {} : { excludeFromStats: Boolean(known?.defaultExcludeFromStats) })
 	// a new order's vendor fills empty categories with its defaults or offers them, and another vendor
 	// takes back only what the last one filled in; a saved order is never refilled (5l)
 	const pickVendor = async name => {
@@ -478,7 +480,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (name.trim() !== draft.vendor) set({ vendor: name.trim() })
 		const known = await resolveVendor(name)
 		const vendor = known?.name ?? name.trim()
-		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(known, vendor, draft.categories) } : {}) })
+		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(known, vendor, draft.categories), ...follow(known) } : {}) })
 	}
 	// a vendor just set up from this receipt comes back chosen (Vendors 5b)
 	const returned = here.state?.pickedVendor
@@ -492,10 +494,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (!draft.vendor) return
 		seeded.current = true
 		resolveVendor(draft.vendor).then(known => {
-			const categories = suggest(known, draft.vendor, draft.categories)
+			const filled = { categories: suggest(known, draft.vendor, draft.categories), ...follow(known) }
 			// filled in before the reader did anything, so it is where the form starts, not a change
-			setStart(s => ({ ...s, categories }))
-			set({ categories })
+			setStart(s => ({ ...s, ...filled }))
+			set(filled)
 		})
 	}, [])
 	// how many of the vendor's latest orders carry every category offered, newest first (5l)
@@ -1257,7 +1259,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			<div className="sp-field">
 				<div className="sp-row-flex sp-gap-12">
 					<Switch id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={!!draft.excludeFromStats}
-						onChange={ev => set({ excludeFromStats: ev.target.checked })} />
+						onChange={ev => set({ excludeFromStats: ev.target.checked, excludeFromStatsSetByHand: true })} />
 					<label className="sp-data" htmlFor={statsSwitch}>Leave out of statistics</label>
 				</div>
 				<span className="sp-field__help" id={`${statsSwitch}-help`}>For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>

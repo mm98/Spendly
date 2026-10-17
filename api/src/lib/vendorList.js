@@ -32,7 +32,7 @@ const SORTS = {
 
 export const LOOKALIKES = 'possible-duplicate'
 
-const selectRows = db.prepare(`SELECT id, name, colour, favourite, archived, origin FROM vendors
+const selectRows = db.prepare(`SELECT id, name, colour, favourite, archived, origin, default_exclude_from_stats FROM vendors
 	WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))`)
 const selectStats = db.prepare(`${STATS} AND vendor_id IN (SELECT value FROM json_each(@ids)) GROUP BY vendor_id`)
 // a page's names are few, so groupNames orders them rather than a sort in SQL
@@ -78,7 +78,7 @@ function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = fal
 			createdByScan: v.origin === 'scan', aliases: aliases.get(id) ?? [],
 			orders: s.orders, spend: s.spend, saved: s.saved, lastOrder: s.last ? fromEpoch(s.last) : null,
 			...(duplicates ? { duplicateOf, duplicateName: duplicateOf ? keepNames.get(duplicateOf) ?? null : null } : {}),
-			...(defaults ? { defaultCategories: defaultsBy.get(id) ?? [] } : {})
+			...(defaults ? { defaultCategories: defaultsBy.get(id) ?? [], defaultExcludeFromStats: Boolean(v.default_exclude_from_stats) } : {})
 		}
 	})
 }

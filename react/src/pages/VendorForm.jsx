@@ -1,11 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField, TokensField } from '../components/Inputs.jsx'
 import { useStatusTypes } from '../app/statuses.js'
-import { Check, Choice, Picker } from '../components/Choice.jsx'
+import { Check, Choice, Picker, Switch } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
@@ -51,7 +51,7 @@ export default function VendorForm() {
 }
 
 // the form while the vendor is on its way: an existing record's form, every value held by a skeleton
-const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], orders: 0 }
+const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], defaultExcludeFromStats: false, orders: 0 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
@@ -63,13 +63,15 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
 	const fromScan = useLocation().state?.fromScan ?? null
 	const h = loading ? hold : control => control
+	const statsSwitch = useId()
 	const editing = Boolean(vendor)
 	const start = useMemo(() => ({
 		name: vendor?.name ?? '',
 		aliases: vendor?.aliases ?? (fromScan?.name ? [fromScan.name] : []),
 		colour: vendor ? pickedColour(vendor.colour) : 'green-2',
 		favourite: Boolean(vendor?.favourite),
-		defaultCategories: vendor?.defaultCategories ?? []
+		defaultCategories: vendor?.defaultCategories ?? [],
+		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats)
 	}), [vendor])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
@@ -106,7 +108,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 
 	const changed = values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
 		|| values.colour !== start.colour || values.favourite !== start.favourite
-		|| !same(values.defaultCategories, start.defaultCategories) || Boolean(image.file) || image.drop
+		|| !same(values.defaultCategories, start.defaultCategories) || values.defaultExcludeFromStats !== start.defaultExcludeFromStats
+		|| Boolean(image.file) || image.drop
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
 	// back to the receipt, with the vendor just made chosen on it
@@ -180,7 +183,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		const look = {
 			// an alias the name already matches says nothing more, and the API refuses it
 			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
-			favourite: values.favourite, defaultCategories: values.defaultCategories,
+			favourite: values.favourite, defaultCategories: values.defaultCategories, defaultExcludeFromStats: values.defaultExcludeFromStats,
 			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {}),
 			...(fromScan && !editing ? { origin: 'scan' } : {})
 		}
@@ -332,6 +335,14 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					message="Suggested on a new order from this vendor. Not applied automatically.">
 					{h(<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder="none" />)}
 				</Field>
+				<div className="sp-field">
+					<div className="sp-row-flex sp-gap-12">
+						{h(<Switch id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={values.defaultExcludeFromStats}
+							onChange={ev => set('defaultExcludeFromStats', ev.target.checked)} />)}
+						<label className="sp-data" htmlFor={statsSwitch}>Leave out of statistics</label>
+					</div>
+					<span className="sp-field__help" id={`${statsSwitch}-help`}>For a vendor of one-off purchases, like a car dealer. A new order from this vendor starts with Leave out of statistics on, and you can still change it on the order.</span>
+				</div>
 			</Card>
 		</>
 	)

@@ -376,6 +376,20 @@ export default function Statistics() {
 		return arrange({ shape, stacked, period, crumbsBar, drilled, ...busyParts({ unit: unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs), name, cardName, period: nameInText, span, running, touch, comparing, categories, known, drilled, flow }) })
 	}
 
+	// every order in the set is left out: the Include switch above is the way to see them (4a)
+	if (!view.orders && view.leftOut && !including) {
+		return (
+			<>
+				{period}
+				{crumbsBar}
+				<Empty dashed>
+					<EmptyTitle>{view.leftOut === 1 ? 'The one order here is left out of statistics' : `All ${amount(view.leftOut, 0)} orders here are left out of statistics`}</EmptyTitle>
+					<EmptyBody>Turn on Include above to count {view.leftOut === 1 ? 'it' : 'them'}.</EmptyBody>
+				</Empty>
+			</>
+		)
+	}
+
 	if (!view.orders && !drilled) {
 		// with no window on either side there are no orders at all yet (6a)
 		if (!older && !newer && range !== 'custom') {

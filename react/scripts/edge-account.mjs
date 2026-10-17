@@ -1,6 +1,6 @@
 /* A test account with the cases real accounts have and the demo data does not: a limit nobody
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
-   waited past two weeks, a very large order and one left out of statistics, look-alike vendors, an archived vendor, more categories than a page
+   waited past two weeks, a very large order and one left out of statistics, a vendor whose orders are all left out, look-alike vendors, an archived vendor, more categories than a page
    holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, a note and none, bookmarks with and
    without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand, one dated in an earlier year, an import
    with an order changed after it, and an import undone.
@@ -130,6 +130,8 @@ await makeVendor('Archived shop')
 await makeVendor('Shop with no orders')
 await makeVendor('A vendor name so long that it has to be cut somewhere before it reaches the amounts at the end of a row')
 await makeVendor('Alias shop', { aliases: ['A-Shop', 'Alias Store'] })
+// new orders from it start left out of statistics, so every order it has is left out
+await makeVendor('One-off car dealer', { defaultExcludeFromStats: true })
 const archived = (await call('GET', '/vendors?name=Archived%20shop&pageSize=1')).data?.vendors?.[0]
 if (archived && !archived.archived) step('archive', await call('PATCH', `/vendors/${archived.id}`, { archived: true }))
 
@@ -171,6 +173,7 @@ await order('Refunded', { vendor: 'Coopp', date: day(-7), refunded: true })
 await order('A very large order', { vendor: 'Alias shop', date: day(-16), items: [{ title: 'Kitchen', quantity: 1, price: 120000 }] })
 await order('Left out of statistics', { vendor: 'Edge favourite shop', date: day(-5), excludeFromStats: true,
 	categories: ['No limit, spent'], items: [{ title: 'A car', quantity: 1, price: 285000 }] })
+await order('Bought from the car dealer', { vendor: 'One-off car dealer', date: day(-12), excludeFromStats: true, items: [{ title: 'A used car', quantity: 1, price: 140000 }] })
 // category suggestions: items that earlier orders filed under one category, and an order that has none yet
 await makeCategory('Suggest lighting')
 for (const [n, title] of [['1', 'Ceiling lamp LED 60W'], ['2', 'LED ceiling lamp white'], ['3', 'Ceiling lamp dimmable']])
@@ -311,6 +314,8 @@ if (changing) {
 	const full = (await call('GET', `/orders/${changing.id}`)).data
 	step('change an imported order', await call('PUT', `/orders/${changing.id}`, { ...full, note: 'Changed after the import', vendor: full.vendor?.name, categories: (full.categories ?? []).map(c => c.name) }))
 }
+// an imported order that does not say whether it counts takes its vendor's default
+await importFile('edge-dealer-import.csv', [imported('Imported from the car dealer', { vendor: 'One-off car dealer', items: [{ title: 'Winter tyres', quantity: 1, price: 6000 }] })])
 const undone = await importFile('edge-undone-import.csv', [imported('Imported and undone', { vendor: 'Coopp' })])
 if (undone) step('undo an import', await call('DELETE', `/imports/${undone.id}`))
 
