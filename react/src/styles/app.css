@@ -150,8 +150,6 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 	object-fit: cover;
 	border-radius: inherit;
 }
-/* the invoice preview is a picture of the page, sized as the design's page (24c) */
-.sp-dialog__preview > img { display: block; }
 /* laid over the mark rather than in its grid track, so it crops from the centre */
 .sp-mark--photo > img,
 .sp-mark--photo > .sp-mark__open > img { position: absolute; inset: 0; }

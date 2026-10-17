@@ -17,8 +17,6 @@ import { router as statsRouter } from './routes/stats.js'
 import { router as scanRouter } from './routes/scan.js'
 import { router as draftsRouter } from './routes/drafts.js'
 import { router as searchRouter } from './routes/search.js'
-import { router as invoicesRouter } from './routes/invoices.js'
-import { router as companiesRouter } from './routes/companies.js'
 import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
 import { requireAuth } from './lib/auth.js'
@@ -236,8 +234,6 @@ app.use('/api/stats', statsRouter)
 app.use('/api/scan', scanRouter)
 app.use('/api/drafts', draftsRouter)
 app.use('/api/search', searchRouter)
-app.use('/api/invoices', invoicesRouter)
-app.use('/api/companies', companiesRouter)
 
 /* Where a password manager looks for the page that changes a password (W3C "change-password URL").
    An unknown /.well-known address stays a 404: that is how the manager knows it can trust this one. */
