@@ -5,7 +5,7 @@ import { fromEpoch } from './dates.js'
 import { decompressBlob } from './blobCompression.js'
 import { CURRENCIES } from './constants.js'
 import { countryName } from './countries.js'
-import { addressOn, storedCompany } from './cvrRegister.js'
+import { addressOn, currentAddress, storedCompany } from './cvrRegister.js'
 
 /* An invoice made from a saved order (Invoice 24a, 24b): the order's facts gathered and written out
    as the page prints them, then drawn as a PDF on a worker thread. Nothing is stored. */
@@ -34,6 +34,7 @@ const EMPTY_PHOTO_SVG = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" wid
 	</g>
 </svg>`)
 const selectCurrency = db.prepare('SELECT currency FROM user_settings WHERE user_id = ?')
+const selectAccount = db.prepare('SELECT name, email FROM users WHERE id = ?')
 
 /** The sender (24a): the register's name and address on the order date, else the vendor's own. `missing`
     lists 'address', 'cvr' or 'vat'; `unknownNumber` means the register does not know its CVR number. */
@@ -101,19 +102,42 @@ const longDate = iso => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month
 
 const cents = n => Math.round(n * 100) / 100
 
-/** A recipient as the dialog sends it, cleaned: `{ name, address, country, cvr, att }`, or null without a name. */
+/** A recipient as the dialog sends it, cleaned: `{ name, country, cvr, vatNumber, address, att }`, every
+    field optional. A CVR number is kept for Denmark only, and a VAT number for anywhere else. */
 export function cleanRecipient(raw) {
 	const text = (value, most) => String(value ?? '').trim().slice(0, most)
-	const name = text(raw?.name, 200)
-	if (!name) return null
 	const country = /^[A-Z]{2}$/.test(String(raw?.country ?? '')) ? raw.country : 'DK'
 	const lines = Array.isArray(raw?.address) ? raw.address : String(raw?.address ?? '').split('\n')
+	const cvr = String(raw?.cvr ?? '').replace(/\s+/g, '')
 	return {
-		name,
-		address: lines.map(l => text(l, 200)).filter(Boolean).slice(0, 6),
+		name: text(raw?.name, 200) || null,
 		country,
-		cvr: /^\d{8}$/.test(String(raw?.cvr ?? '')) ? raw.cvr : null,
+		cvr: country === 'DK' && /^\d{8}$/.test(cvr) ? cvr : null,
+		vatNumber: country !== 'DK' ? text(raw?.vatNumber, 40) || null : null,
+		address: lines.map(l => text(l, 200)).filter(Boolean).slice(0, 6),
 		att: text(raw?.att, 200) || null
+	}
+}
+
+const isEmptyRecipient = r => !r || (!r.name && !r.cvr && !r.vatNumber && !r.address.length && !r.att)
+
+/** The To box (24b, 24c): a CVR number the register knows prints the register's name and address; one it
+    does not know is not printed. With every field empty, To is the account's name and email. */
+function recipientParty(userId, recipient) {
+	if (isEmptyRecipient(recipient)) {
+		const account = selectAccount.get(userId)
+		const name = String(account?.name ?? '').trim()
+		return { name: name || account?.email || '', att: null, address: name ? [account.email] : [], country: null, numberLine: null }
+	}
+	const company = recipient.cvr ? storedCompany(recipient.cvr) : null
+	const known = company?.found ? company : null
+	const number = recipient.country !== 'DK' ? recipient.vatNumber : company && !company.found ? null : recipient.cvr
+	return {
+		name: known?.name || recipient.name || '',
+		att: recipient.att,
+		address: known ? currentAddress(known) : recipient.address,
+		country: recipient.country !== 'DK' ? countryName(recipient.country) : null,
+		numberLine: number ? `${recipient.country !== 'DK' ? 'VAT number' : 'CVR'} ${number}` : null
 	}
 }
 
@@ -161,9 +185,8 @@ export async function invoiceFor(userId, orderId, recipient, locale) {
 		p.country,
 		p.numberLine
 	].filter(Boolean)
-	const to = recipient
-		? { name: recipient.name, lines: party({ att: recipient.att, address: recipient.address, country: recipient.country !== 'DK' ? countryName(recipient.country) : null, numberLine: recipient.cvr ? `CVR ${recipient.cvr}` : null }) }
-		: { name: '', lines: [] }
+	const toParty = recipientParty(userId, recipient)
+	const to = { name: toParty.name, lines: party(toParty) }
 
 	const invoice = {
 		vendor: { name: vendor.name, initials: initialsOf(vendor.name), colour: vendor.colour, ink: inkOn(vendor.colour) },

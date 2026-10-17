@@ -289,7 +289,8 @@ export function Dialog({ variant = 'default', children, scrim = true, onCancel, 
 		setParts(p => ({ ...p, [kind]: [...p[kind], id] }))
 		return () => setParts(p => ({ ...p, [kind]: p[kind].filter(x => x !== id) }))
 	}, [])
-	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)')
+	// a sheet taller than the screen opens at its heading, with focus still on its main button
+	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)', true)
 	const keys = ev => { if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() } }
 	// Escape with focus outside the box (on the page's body) still answers as cancel
 	const cancel = useRef(onCancel)

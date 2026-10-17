@@ -197,7 +197,7 @@ function parties() {
 	const LH = 12 * 1.6
 	const boxes = [['From', invoice.from], ['To', invoice.to]].map(([label, p]) => [
 		{ text: label, colour: LABEL, weight: 400 },
-		...wrap(p.name, 12, 600, inner).map(text => ({ text, weight: 600 })),
+		...(p.name ? wrap(p.name, 12, 600, inner) : []).map(text => ({ text, weight: 600 })),
 		...p.lines.flatMap(line => wrap(line, 12, 400, inner).map(text => ({ text, weight: 400 })))
 	])
 	const height = 2 + TILE_PAD_Y * 2 + Math.max(...boxes.map(b => b.length)) * LH

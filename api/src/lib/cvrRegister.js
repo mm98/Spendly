@@ -132,19 +132,15 @@ export async function searchName(name, share = LOOKUPS_A_DAY) {
 
 const fresh = company => company && nowEpoch() - company.checkedEpoch < RECHECK_DAYS * 86400
 
-/** The invoice dialog's live lookup by CVR number or name; a number checked this week costs no lookup.
+/** The invoice dialog's live lookup by CVR number; a number checked this week costs no lookup.
     `{ status: 'found', company: { cvr, name, address } }`, `'none'`, `'limit'` or `'failed'`. */
-export async function findCompany(query) {
-	const text = String(query ?? '').trim()
-	const digits = text.replace(/\s+/g, '')
-	if (isCvrNumber(digits)) {
-		const stored = storedCompany(digits)
-		if (fresh(stored)) return stored.found
-			? { status: 'found', company: { cvr: stored.cvr, name: stored.name, address: currentAddress(stored) } }
-			: { status: 'none' }
-	}
-	const answer = isCvrNumber(digits) ? await lookUpNumber(digits) : await searchName(text)
+export async function findCompany(cvr) {
+	const stored = storedCompany(cvr)
+	if (fresh(stored)) return stored.found
+		? { status: 'found', company: { cvr: stored.cvr, name: stored.name, address: currentAddress(stored) } }
+		: { status: 'none' }
+	const answer = await lookUpNumber(cvr)
 	if (answer.status !== 'found') return answer
-	const { cvr, name, address } = answer.company
-	return { status: 'found', company: { cvr, name, address } }
+	const { cvr: number, name, address } = answer.company
+	return { status: 'found', company: { cvr: number, name, address } }
 }
