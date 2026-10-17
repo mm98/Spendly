@@ -340,6 +340,181 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- grey text after an amount in a row is the row meta column ---- */
+
+{
+	// a className's possible classes: its strings, and those of a local helper it calls
+	const helpers = ast => {
+		const found = new Map()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) found.set(n.id.name, n.init) })
+		return found
+	}
+	const classesOf = (el, local) => {
+		const a = el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+		if (!a?.value) return ''
+		const out = stringsIn(a.value)
+		visit(a.value, n => { if (n.type === 'CallExpression' && local.has(n.callee.name)) out.push(...stringsIn(local.get(n.callee.name))) })
+		return out.join(' ')
+	}
+	// a row's parts in order, through fragments and both branches of a condition
+	const parts = c => {
+		if (!c) return []
+		if (c.type === 'JSXFragment') return c.children.flatMap(parts)
+		if (c.type === 'JSXExpressionContainer' || c.type === 'ParenthesizedExpression') return parts(c.expression)
+		if (c.type === 'ConditionalExpression') return [...parts(c.consequent), ...parts(c.alternate)]
+		if (c.type === 'LogicalExpression') return parts(c.right)
+		return c.type === 'JSXElement' ? [c] : []
+	}
+	for (const [p, ast] of parsed) {
+		const local = helpers(ast)
+		const text = read(p)
+		const lineOf = el => text.slice(0, el.start).split('\n').length
+		visit(ast, n => {
+			if (n.type !== 'JSXElement' || !/\bsp-row-flex\b/.test(classesOf(n, local))) return
+			const row = n.children.flatMap(parts)
+			row.forEach((el, i) => {
+				const next = row[i + 1]
+				if (!next || !/\bsp-amount\b/.test(classesOf(el, local))) return
+				const cls = classesOf(next, local)
+				if (/\bsp-meta\b/.test(cls) && !/\bsp-row-meta\b/.test(cls))
+					fail('grey text after an amount is a sp-row-meta column', `${rel(p)}:${lineOf(next)}`, `<${tagOf(next)} className="${cls}">`)
+			})
+		})
+	}
+}
+
+/* ---- every rule of design/styles/check.js has an answer here ----
+   A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
+   rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
+
+const COPY = 'held by the byte copy of tokens.css and components.css'
+const DESIGN = 'about the design\'s own pages, notes, start page or react_handoff, which the app does not ship'
+const NOT_CHECKED = 'applies to the app, not checked here yet'
+const DESIGN_RULES = {
+	'every page is checked': DESIGN,
+	'Back is labelled Back': NOT_CHECKED,
+	'Status and Kind are selects': NOT_CHECKED,
+	'the Go to menu matches the page': DESIGN,
+	'no shortcut badge in a list toolbar': NOT_CHECKED,
+	'balanced markup': DESIGN,
+	'no inline styles': 'no inline style in a page',
+	'unique ids': NOT_CHECKED,
+	'references resolve': NOT_CHECKED,
+	'classes resolve': 'classes resolve',
+	'tokens defined': 'tokens defined',
+	'a readout sits on the plot bars': NOT_CHECKED,
+	'an open list is not faded': COPY,
+	'every fade is a token': COPY,
+	'parts read a meaning, not the scale': COPY,
+	'fades are told apart': COPY,
+	'notes name the fade token': DESIGN,
+	'tooltips are not held in their container': NOT_CHECKED,
+	'no var() fallbacks': 'no var() fallbacks',
+	'bars share one shape': COPY,
+	'one rule per selector per scope': COPY,
+	'at-rules come after their base': COPY,
+	'no duplicate rules': COPY,
+	'the hand means a click': COPY,
+	'one name per role': COPY,
+	'the text red is --red-ink': COPY,
+	'a named token exists': DESIGN,
+	'every control is named': NOT_CHECKED,
+	'a group label is a span': NOT_CHECKED,
+	'a visible label is bound': NOT_CHECKED,
+	'one name per control': NOT_CHECKED,
+	'a field label binds its control': NOT_CHECKED,
+	'an action reads in sentence case': NOT_CHECKED,
+	'a colour is not a variant': NOT_CHECKED,
+	'a colour is one we define': 'variant values',
+	'a colour needs a component': NOT_CHECKED,
+	'the notes name a class that exists': DESIGN,
+	'one colour vocabulary': DESIGN,
+	'mockup mail is example.net': DESIGN,
+	'a required marker is an element': NOT_CHECKED,
+	'a well sits inside a surface': NOT_CHECKED,
+	'the row is one component': NOT_CHECKED,
+	'a size is a size, not a place': COPY,
+	'a screen uses the split body': NOT_CHECKED,
+	'a title with its second line is sp-stacked': NOT_CHECKED,
+	'a card body stack is gap 6': NOT_CHECKED,
+	'a card body does not truncate': NOT_CHECKED,
+	'a pair starts with sp-title': NOT_CHECKED,
+	'a button beside an input matches its height': NOT_CHECKED,
+	'the sidebar divider sits above Settings': NOT_CHECKED,
+	'the Views card keeps its rows in edit mode': NOT_CHECKED,
+	'a body is not nested in a body': NOT_CHECKED,
+	'a select-all box names its scope': NOT_CHECKED,
+	'a saving is never a percentage': 'a saving is an amount',
+	'a saving reads "Saved"': NOT_CHECKED,
+	'HEIC is not offered and never named': NOT_CHECKED,
+	'a saving never says "vs retail"': 'a saving is an amount',
+	'a saving is green': NOT_CHECKED,
+	'grey text after an amount is a sp-row-meta column': 'grey text after an amount is a sp-row-meta column',
+	'a zero saving is grey': NOT_CHECKED,
+	'a saving is an amount': 'a saving is an amount',
+	'a saving sits under its amount': NOT_CHECKED,
+	'no typographic tells': 'typographic tells',
+	'gaps are on the scale': 'spacing on the scale',
+	'a page stylesheet states only its own classes': 'page css styles no component',
+	'one component per root class': NOT_CHECKED,
+	'one word per object': NOT_CHECKED,
+	'no component is only an arrangement': NOT_CHECKED,
+	'no component is named for a device': NOT_CHECKED,
+	'a table aligns with its card': COPY,
+	'a stat row aligns to the top': NOT_CHECKED,
+	'a faded mark is a photo': NOT_CHECKED,
+	'a faded band photo is a photo': NOT_CHECKED,
+	'an order Categories field has the bulb': NOT_CHECKED,
+	'order details fields in one order': NOT_CHECKED,
+	'removed feature leaves no trace': NOT_CHECKED,
+	'what is left to check leads the file name': NOT_CHECKED,
+	'no head link rule is left': COPY,
+	'a card head is the list toolbar height': COPY,
+	'the small button height is a token': COPY,
+	'the small button height is written with --btn-h-small': COPY,
+	'the Showing bar is a card with a head': NOT_CHECKED,
+	'the Showing bar holds its path in the head line when it fits': NOT_CHECKED,
+	'a head button keeps its 34px box on touch': COPY,
+	'a part changes only through the design': NOT_CHECKED,
+	'a part takes no page rule': NOT_CHECKED,
+	'a row that opens something is drawn as one': NOT_CHECKED,
+	'every part of a head is centred': COPY,
+	'the start page lists each page\'s screens': DESIGN,
+	'the start page names only files that exist': DESIGN,
+	'the start page counts the screens': DESIGN,
+	'the docs name only classes that exist': DESIGN,
+	'the docs name only tokens that exist': DESIGN,
+	'a field on touch is 16px': COPY,
+	'a token field keeps its height': COPY,
+	'a loading shape fits its job': 'a loading shape fits its job',
+	'a chart label is centred under its bar': COPY,
+	'a legend is under its chart': 'a legend is under its chart',
+	'a card name is in a CardHeader': 'a card head is CardHeader',
+	'a CardHeader takes no other class': 'a card head is CardHeader',
+	'a CardHeader is only a card\'s first child': NOT_CHECKED,
+	'a CardHeader opens with the name': NOT_CHECKED,
+	'a CardHeader is a class, not a structure': COPY,
+	'a CardHeader is a component': DESIGN,
+	'a CardHeader is only a child of Card': DESIGN,
+	'a button beside a field label is xsmall': 'a button beside a field label is xsmall',
+	'a checkbox is the input': 'a checkbox is the input',
+	'an action is a link or a button': 'an action is a link or a button',
+	'an email on one line is .sp-email-line': 'an email on one line is .sp-email-line',
+	'a typed value in a sentence is .sp-break': 'a typed value in a sentence is .sp-break'
+}
+{
+	const designCheck = read(join(root, '../design/styles/check.js'))
+	const ruleNames = new Set([...designCheck.matchAll(/fail\('((?:[^'\\]|\\.)*)'/g)].map(m => m[1].replace(/\\'/g, '\'')))
+	const ours = new Set([...read(fileURLToPath(import.meta.url)).matchAll(/fail\('((?:[^'\\]|\\.)*)'/g)].map(m => m[1].replace(/\\'/g, '\'')))
+	for (const name of ruleNames) {
+		const held = DESIGN_RULES[name]
+		if (held === undefined) fail('every design rule has an answer here', 'scripts/check-design.mjs', `"${name}" is new in design/styles/check.js: port it, or place it in DESIGN_RULES`)
+		else if (![COPY, DESIGN, NOT_CHECKED].includes(held) && !ours.has(held)) fail('every design rule has an answer here', 'scripts/check-design.mjs', `"${name}" names "${held}", which is no rule here`)
+	}
+	for (const name of Object.keys(DESIGN_RULES))
+		if (!ruleNames.has(name)) fail('every design rule has an answer here', 'scripts/check-design.mjs', `"${name}" is no longer in design/styles/check.js: remove it from DESIGN_RULES`)
+}
+
 /* ---- report ---- */
 
 const byRule = {}
