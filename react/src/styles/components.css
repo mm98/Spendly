@@ -1771,12 +1771,6 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-list__toolbar > .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
 .sp-touch .sp-card > .sp-card__head:first-child > .sp-btn--small::before,
 .sp-touch .sp-list__toolbar > .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
-/* An icon button in a head keeps its drawn size on touch for the same reason, with the touch
-   height above and below it and half the head's gap at each side, so two side by side meet and
-   do not overlap. Placed from the padding box: 100% is the height inside the border, and the
-   side reaches 1px further for the border. */
-.sp-touch .sp-card > .sp-card__head:first-child > .sp-icon-btn { position: relative; }
-.sp-touch .sp-card > .sp-card__head:first-child > .sp-icon-btn::before { content: ""; position: absolute; inset: calc((100% - var(--control-h-touch)) / 2) calc(var(--sp-12) / -2 - 1px); }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
    without the card padding pushing the bar past the height every other bar holds */
 .sp-phone .sp-savebar { height: var(--phone-bar-h); padding-top: 0; padding-bottom: 0; }
@@ -5364,7 +5358,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 /* the way out of the phone's full-screen search: Cancel at the field's right (7b) */
 .sp-palette--screen .sp-palette__search > .sp-btn { flex: none; width: auto; }
 /* on touch every control listed in 18b and 19b takes the touch height visibly, not only a press area */
-.sp-touch .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field, .sp-card > .sp-card__head:first-child > *) { width: var(--control-h-touch); height: var(--control-h-touch); }
+.sp-touch .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field) { width: var(--control-h-touch); height: var(--control-h-touch); }
 .sp-touch .sp-window { height: var(--control-h-touch); }
 .sp-touch .sp-window__btn { width: var(--control-h-touch); }
 .sp-touch .sp-add-row { height: var(--control-h-touch); }
