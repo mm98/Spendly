@@ -24,7 +24,8 @@ import { Icon } from './Icon.jsx'
 
    The arrow keys walk the options in both modes, which is what `role="combobox"`
    promises: Down opens a closed panel and then moves, Up moves back, Home and End
-   jump to the ends, Enter picks, Escape closes. Focus stays on the trigger and the
+   jump to the ends where the trigger is a button, Enter picks, Escape closes. In a
+   searchable one Home and End are the text's, with or without Shift, as in any field. Focus stays on the trigger and the
    option being walked is named by `aria-activedescendant` - moving real focus into
    the panel would take the reader's cursor out of the field they are typing in.
    Disabled options are stepped over, since a stop the reader cannot use is a stop
@@ -32,7 +33,7 @@ import { Icon } from './Icon.jsx'
 
    The keyboard is the control's and not the element's, so both triggers take the
    same handler: the arrows open the panel and then move through the options, Home
-   and End go to its ends, Enter selects, and Escape closes - clearing a query first
+   and End go to its ends on a button trigger, Enter selects, and Escape closes - clearing a query first
    where there is one, since that is two intentions and not one.
 
    Space selects too, but only where the trigger is a button: in a searchable one the
@@ -99,6 +100,10 @@ export function Combobox({
 	// the text being typed, which is not the value - null means the reader is not
 	// typing, so the field shows what is chosen instead
 	const [typed, setTyped] = useState(null)
+	// whether the reader is editing the text: while they are, the field shows exactly
+	// what they typed, empty included. Kept apart from the query, since a controlled
+	// query of '' must still let the field show the chosen value at rest.
+	const [editing, setEditing] = useState(false)
 	const panel = useRef(null)
 	const isOpen = open ?? held
 	const panelId = useId()
@@ -121,8 +126,10 @@ export function Combobox({
 	const walk = nodes => Children.map(nodes, child => {
 		if (!child || typeof child !== 'object' || child.type !== ComboboxOption) return child
 		const index = options.length
-		options.push(child.props)
-		return cloneElement(child, { id: panelId + '-' + index, active: index === active })
+		// a pick ends the edit, so the field shows the new value and not the query
+		const onSelect = child.props.onSelect && (() => { setTyped(null); setEditing(false); child.props.onSelect() })
+		options.push({ ...child.props, onSelect })
+		return cloneElement(child, { id: panelId + '-' + index, active: index === active, onSelect })
 	})
 	const list = walk(children)
 
@@ -164,7 +171,9 @@ export function Combobox({
 			}
 			return step(by)
 		}
-		if (ev.key === 'Home' || ev.key === 'End') {
+		/* In a searchable one Home and End move the caret and Shift+Home selects to the
+		   start, as in any text field; only a button trigger takes them for the panel. */
+		if ((ev.key === 'Home' || ev.key === 'End') && !searchable) {
 			if (!isOpen) return
 			ev.preventDefault()
 			return ev.key === 'Home' ? step(1, -1) : step(-1, options.length)
@@ -201,10 +210,11 @@ export function Combobox({
 	}, [active, panelId])
 
 	const activeId = isOpen && active > -1 ? panelId + '-' + active : undefined
-	/* An empty query is not a query, so the field falls back to showing what is
-	   chosen - deleting the text puts the chosen value back rather than leaving the
-	   field blank with a value still set. */
-	const shown = query || (typeof value === 'string' ? value : '')
+	/* While the reader edits, the field is their text - deleting the last letter or a
+	   selection leaves it empty, as they asked. At rest it shows what is chosen; leaving
+	   the field or Escape puts the chosen value back. Falling back on an empty query
+	   while typing refilled the field on every delete, so it could never be emptied. */
+	const shown = editing ? (query ?? '') : (typeof value === 'string' ? value : '')
 	return (
 		<div
 			className={join('sp-combobox', pick(VARIANT, variant, 'variant', 'Combobox'))}
@@ -228,6 +238,7 @@ export function Combobox({
 							placeholder={placeholder}
 							value={shown}
 							onChange={ev => {
+								setEditing(true)
 								if (search === undefined) setTyped(ev.target.value)
 								onSearch?.(ev.target.value)
 								if (!isOpen) setOpen(true)
@@ -235,13 +246,14 @@ export function Combobox({
 							onFocus={() => { if (!isOpen) setOpen(true) }}
 							// the query is display state, not the value: leaving the field
 							// puts the chosen value back rather than stranding a half-typed one
-							onBlur={() => setTyped(null)}
+							onBlur={() => { setTyped(null); setEditing(false) }}
 							onKeyDown={ev => {
 								// Escape clears a query before it closes the panel: the reader's
 								// first press undoes their typing, which is what they meant
-								if (ev.key === 'Escape' && query) {
+								if (ev.key === 'Escape' && editing) {
 									ev.stopPropagation()
-									setTyped('')
+									setTyped(null)
+									setEditing(false)
 									onSearch?.('')
 									return
 								}

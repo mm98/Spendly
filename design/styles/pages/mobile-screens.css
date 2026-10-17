@@ -111,11 +111,13 @@
   /* how far a sheet may rise on these screens; its corners are the component's - its
      own at the top, the frame's at the bottom */
   .ms-sheet { max-height: 88%; }
-  /* A stacked pair on a phone - a title with its second line - is tighter than the
-     scale's smallest step, the same --sp-2 a row card already gives it. It is every
-     pair in every frame, so the pairs carry no gap class of their own and this is
-     the one rule that spaces them. A stack that needs a real gap still asks for it
-     with .sp-gap-8 or .sp-gap-12, which outrank this. */
+  /* A plain .sp-stack inside a phone frame - one with no gap class - sits at --sp-2:
+     the budget rows under their group, a stat figure over its line, the vendor
+     checklist in the filters. A title with its second line is not this rule's: it is
+     .sp-stacked, which is 2 on every screen. A stack that carries a gap class keeps
+     it, since the component rule outranks this layer: a label over its control
+     (filters, form fields) and the scan choices at 6, wider groups at 8 or 12.
+     Alerts and toasts space their own parts and are untouched by this. */
   .ms-device .sp-stack { gap: var(--sp-2); }
 
   /* a specimen column the width of the device it holds */

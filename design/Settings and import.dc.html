@@ -43,7 +43,8 @@
     <div class="doc-note"><b>Compare this month with</b> sits in Appearance and offers Last month (the default) and Same month last year. It sets what Home's month card (<a href="Home.dc.html#10a">10a</a>), the phone's Home and the monthly summary (<a href="Duplicate and alerts.dc.html#8b">8b</a>) measure against. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
     <div class="doc-note"><b>The profile photo is a FileDrop</b>: drop an image on the round mark, or use Upload a photo. With no photo the mark is the initials on <code>--green-3</code>, round, as in the sidebar.</div>
-    <div class="doc-note"><b>A status with orders on it cannot be deleted.</b> The delete control is absent on those rows, not disabled - reassigning the orders is what makes it appear. Every row has the pencil; a row with no orders also has the trash. Rename, reorder and delete all wait for the save bar, like every change on this page. Its tone is one of the four the pill component has, picked as the pill the list will draw.</div>
+    <div class="doc-note"><b>Draft, Ordered, Delivered, Returned and Cancelled are built in</b> and are never deleted, whatever their order count; Delivered is drawn mid-rename as Received. The app knows Returned and Cancelled by what they mean, not by their name: they are left out of spending, a scanned return receipt is filed under Returned, demo data and imports use them, and a cancelled order is struck out. A new status with the same name would not bring that back, so the row has no delete control. Each built-in row carries the "built in" pill; all but Draft keep the pencil, since a rename changes only the name.</div>
+    <div class="doc-note"><b>A status the reader added can be deleted once no orders use it.</b> The delete control is absent on a row with orders, not disabled - reassigning the orders is what makes it appear. Every row except Draft has the pencil; an added status with no orders also has the trash. Rename, reorder and delete all wait for the save bar, like every change on this page. Its tone is one of the four the pill component has, picked as the pill the list will draw.</div>
     <div class="doc-note"><b>Order views in the menu offers 2, 3, 4, 5, 6, 8, 10</b> - same numeric-combobox pattern as Rows per page (tabular figures, unit word beside the value, chevron right). Views beyond the chosen count collapse into the "N more in Orders" row in the sidebar. The list is always the first N; when the open view is one of the rest, that row is marked current and nothing else changes (<a href="Navigation shell.dc.html#9e">9e</a>).</div>
     <div class="doc-note"><b>The save bar is sticky to the bottom of the content column.</b> Each card saves on its own, so the bar names which one is dirty - and with a pane this long the dirty card is usually scrolled off screen by the time you want to save it. A bar that scrolls away leaves the only exit from an edit somewhere the user has to hunt for. It appears when something is dirty and is absent otherwise, matching the edit screen in 1d.</div>
     <div class="doc-note"><b>The section nav and its divider stay put; only the pane scrolls.</b> The nav column is exactly the height of the window below the top bar (<code>position: sticky; top: 0</code> inside the scroll area, with that height, or a fixed column beside it) and carries the 1px <code>--line-3</code> divider on its right edge. The divider always reaches the bottom of the window, whether the pane is shorter than the window or scrolled. A divider drawn on an element that scrolls with the pane, or one sized to the pane's content, scrolls away or ends partway down.</div>
@@ -416,6 +417,7 @@
               <span class="sp-pill" data-state="progress">Ordered</span>
               <span class="sp-grow"></span>
               <span class="sp-meta">18 orders</span>
+              <span class="sp-pill">built in</span>
               <span class="sp-mark sp-mark--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></span>
             </div>
             <div class="sp-list-item sp-list-item--outline sp-list-item--editable" aria-selected="true">
@@ -449,6 +451,7 @@
               <span class="sp-pill" data-color="danger">Returned</span>
               <span class="sp-grow"></span>
               <span class="sp-meta">2 orders</span>
+              <span class="sp-pill">built in</span>
               <span class="sp-mark sp-mark--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></span>
             </div>
             <div class="sp-list-item sp-list-item--editable">
@@ -456,8 +459,8 @@
               <span class="sp-pill sp-flex-none">Cancelled</span>
               <span class="sp-grow"></span>
               <span class="sp-meta">0 orders</span>
+              <span class="sp-pill">built in</span>
               <span class="sp-mark sp-mark--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg></span>
-              <span class="sp-mark sp-mark--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></span>
             </div>
           </div>
           <div class="sp-card__footer sp-card__footer--stack sp-card__footer--commits">
@@ -535,11 +538,22 @@
         <div class="sp-card__head"><span class="sp-section-label">PREVIOUS IMPORTS</span></div>
         <div class="sp-row-flex sp-gap-12">
           <div class="sp-stacked">
+            <span class="sp-title sp-truncate">webshop-orders.csv</span>
+            <span class="sp-meta sp-truncate">3 Oct · 41 orders · 3 skipped</span>
+          </div>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Undo</button>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reuse mapping</button>
+        </div>
+        <span class="sp-rule"></span>
+        <div class="sp-row-flex sp-gap-12">
+          <div class="sp-stacked">
             <span class="sp-title sp-truncate">orders_2025.csv</span>
             <span class="sp-meta">14 Jun · 82 orders · 3 skipped</span>
           </div>
           <span class="sp-grow"></span>
           <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reuse mapping</button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove orders_2025.csv from this list" data-tip="Remove from this list"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button>
         </div>
         <span class="sp-rule"></span>
         <div class="sp-row-flex sp-gap-12">
@@ -549,7 +563,18 @@
           </div>
           <span class="sp-grow"></span>
           <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reuse mapping</button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove sheets-export.json from this list" data-tip="Remove from this list"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button>
         </div>
+      </div>
+
+      <span class="sp-section-label">A LINE REMOVED FROM THE LIST</span>
+      <div class="sp-toast">
+        <span class="sp-toast__icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg>
+        </span>
+        <span class="sp-grow">orders_2025.csv removed from Previous imports</span>
+        <button type="button" class="sp-toast__undo">Undo</button>
+        <span class="sp-meta">6s</span>
       </div>
     </div>
 
@@ -975,12 +1000,36 @@
           <button type="button" class="sp-btn">See the 41 orders</button>
         </div>
       </div>
+
+      <span class="sp-section-label">UNDO, FROM STAGE 4 OR PREVIOUS IMPORTS</span>
+      <div class="sp-dialog">
+        <span class="sp-heading">Undo this import?</span>
+        <span class="sp-dialog__body">webshop-orders.csv, imported 3 Oct. Undoing deletes its 41 orders and 128 item lines, and the 3 vendors it created unless other orders use them now.</span>
+        <div class="sp-list-item">2 of these orders were changed after the import. They are deleted too, with the changes.</div>
+        <div class="sp-dialog__actions">
+          <button type="button" class="sp-btn sp-btn--outline sp-grow">Keep the orders</button>
+          <button type="button" class="sp-btn sp-grow" data-color="danger">Delete 41 orders</button>
+        </div>
+      </div>
+
+      <span class="sp-section-label">LEAVING BEFORE THE ORDERS ARE WRITTEN</span>
+      <div class="sp-dialog">
+        <span class="sp-heading">Leave without saving?</span>
+        <span class="sp-dialog__body">webshop-orders.csv is not imported yet. Leaving discards the file and the column choices you made. No orders have been written.</span>
+        <div class="sp-dialog__actions">
+          <button type="button" class="sp-btn sp-btn--outline sp-grow">Keep editing</button>
+          <button type="button" class="sp-btn sp-grow" data-color="danger">Leave</button>
+        </div>
+      </div>
     </div>
 
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>An import from the last 24 hours also offers Undo</b> in Previous imports, beside Reuse mapping, with the same effect as Undo this import; after an undo its facts end with "undone". The two drawn here are older, so they show Reuse mapping only.</div>
+    <div class="doc-note"><b>An import from the last 24 hours also offers Undo</b> in Previous imports, beside Reuse mapping, with the same effect as Undo this import; drawn on webshop-orders.csv. After an undo its facts end with "undone". The two older lines show Reuse mapping only.</div>
+    <div class="doc-note"><b>Undo asks first, from either place.</b> Undo this import (stage 4) and Undo in Previous imports both open "Undo this import?" (<a href="Components.dc.html#c13">c13</a>, <a href="States and confirmations.dc.html#6d">6d</a>); nothing is deleted at the click. The body names the file, the import date, the orders and item lines it wrote, and the vendors and categories it created that nothing else uses now; a part with a count of zero is left out. The line about changed orders appears only when at least one order was edited after the import, with that count. The button carries the order count. Both Undo buttons stay outline, as any button that opens a dialog.</div>
+    <div class="doc-note"><b>An import is unsaved changes from the moment a file is chosen until Import N orders is pressed.</b> Leaving in stages 2 or 3 - another page, the sidebar, Back, closing the tab - asks "Leave without saving?", the same dialog as an edited order or a dirty Settings card. Keep editing stays on the stage with every choice kept; Leave discards the file and the mapping, and the import starts again at stage 1. Cancel in stage 3 is the same as Leave and asks the same question. Stage 1 and stage 4 ask nothing: nothing is chosen yet, or it is already written. The mapping is saved for Reuse mapping only when an import is written.</div>
+    <div class="doc-note"><b>Remove from this list</b> is the small x at the end of a line older than 24 hours. It hides the line from Previous imports only: the orders stay as they are and keep their link to the import, so the order list's import chip (<a href="Order list.dc.html#2b">2b</a>) still filters to them, and a hidden import's chip still reads its file date. The toast offers Undo for its usual time. A line inside its 24 hours has no x: it can be removed once its Undo has gone, so a line never hides its own Undo and nothing waits in between. The server keeps a hidden flag on the import and leaves hidden imports out of the list; reading one import by id ignores the flag.</div>
     <div class="doc-note"><b>A faded row is drawn at full strength while its field list is open</b> (<code>.sp-muted:has([data-open="true"])</code>), and fades again when the list closes. A fade thins the list it holds and makes the row a layer of its own, which the rows after it draw over. The same holds for a cancelled order: its row (2b) and its card (2c) are at full strength while the order's menu is open. On a phone the list opens as a sheet, outside the row, so nothing changes there.</div>
     <div class="doc-note"><b>Replace file</b> goes back to stage 1, keeping the mapping when the new file has the same columns.</div>
     <div class="doc-note"><b>Reuse mapping</b> applies the mapping saved from the last import with these columns.</div>
