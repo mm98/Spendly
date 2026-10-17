@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import { Alert, Dialog, DialogActions, DialogBody, DialogFields, DialogPreview, DialogSplit, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
@@ -133,21 +134,23 @@ function InvoiceForm({ order, remembered, onClose }) {
 					<Field id="invoice-name" label="Name">
 						<TextField value={name} onChange={setName} />
 					</Field>
-					<Field id="invoice-country" label="Country">
-						<CountryCombobox value={country} onChange={v => { setCountry(v); setProblem(null) }} />
-					</Field>
-					{denmark
-						? (
-							<Field id="invoice-cvr" label="CVR" message={cvrHelp} messageType={problem ? 'danger' : 'hint'}>
-								<TextField value={cvr} inputMode="numeric" placeholder="8 digits" onChange={changeCvr}
-									onKeyDown={ev => { if (ev.key === 'Enter' && status === 'failed' && isCvr(cvr)) { ev.preventDefault(); lookUp(cvrOf(cvr)) } }} />
-							</Field>
-						)
-						: (
-							<Field id="invoice-vat" label="VAT number">
-								<TextField value={vatNumber} onChange={setVatNumber} />
-							</Field>
-						)}
+					<div className="sp-fields">
+						<Field id="invoice-country" label="Country">
+							<CountryCombobox value={country} onChange={v => { setCountry(v); setProblem(null) }} />
+						</Field>
+						{denmark
+							? (
+								<Field id="invoice-cvr" label="CVR" message={cvrHelp} messageType={problem ? 'danger' : 'hint'}>
+									<TextField value={cvr} inputMode="numeric" placeholder="8 digits" onChange={changeCvr}
+										onKeyDown={ev => { if (ev.key === 'Enter' && status === 'failed' && isCvr(cvr)) { ev.preventDefault(); lookUp(cvrOf(cvr)) } }} />
+								</Field>
+							)
+							: (
+								<Field id="invoice-vat" label="VAT number">
+									<TextField value={vatNumber} onChange={setVatNumber} />
+								</Field>
+							)}
+					</div>
 					{shown
 						? (
 							<div className="sp-field">
@@ -179,7 +182,8 @@ function InvoiceForm({ order, remembered, onClose }) {
 	)
 }
 
-/** What the vendor lacks for the From box (24d), with the way to add it on its page, in the same tab. A
+/** What the vendor lacks for the From box (24d), with the way to add it on its page, in the same tab, with
+    its Invoice details open. A
     CVR number the register does not know is not printed, so it is named as a number to check. */
 function MissingAlert({ sender, onLeave }) {
 	const abroad = sender.country !== 'DK'
@@ -196,7 +200,7 @@ function MissingAlert({ sender, onLeave }) {
 		: noAddress && noNumber ? 'Add them' : 'Add it'
 	return (
 		<Alert mark="!" title={title}>
-			The invoice shows {shows}. <a href={`#/vendors/${sender.vendorId}/edit`} onClick={onLeave}>{fix}</a>
+			The invoice shows {shows}. <Link to={`/vendors/${sender.vendorId}/edit`} state={{ invoiceDetails: true }} onClick={onLeave}>{fix}</Link>
 		</Alert>
 	)
 }
