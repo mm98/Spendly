@@ -303,8 +303,3 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	display: contents;
 	visibility: hidden;
 }
-
-/* An icon button in a card head keeps its desktop size on touch, so it sits in the 54px head as it
-   does on desktop. Asked of Claude Design; this goes when design/ has the rule. */
-.sp-touch .sp-card > .sp-card__head:first-child > .sp-icon-btn { width: 32px; height: 32px; }
-.sp-touch .sp-card > .sp-card__head:first-child > .sp-icon-btn--outline { width: 30px; height: 30px; }

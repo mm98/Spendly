@@ -939,7 +939,7 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 							<div className="sp-row-flex sp-gap-8">
 								<span className={entry.other ? 'sp-data sp-subtitle sp-grow sp-truncate' : 'sp-data sp-grow sp-truncate'}>{entry.name}</span>
 								<span className={ink(entry)}>{currency(entry.amount, 0)}</span>
-								{counts ? <span className="sp-meta">{counted(entry.orders, 'order')}</span> : null}
+								{counts ? <span className="sp-meta sp-row-meta">{counted(entry.orders, 'order')}</span> : null}
 							</div>
 							{gauge}
 						</>
@@ -1025,7 +1025,7 @@ function StatusCard({ view, flow = 'expenses', onOpen }) {
 								: (
 									<>
 										<span className="sp-amount">{amount(count, 0)}</span>
-										<span className="sp-meta">{Math.round(share(count, total))}%</span>
+										<span className="sp-meta sp-row-meta sp-row-meta--share">{Math.round(share(count, total))}%</span>
 									</>
 								)}
 						</div>
@@ -1200,7 +1200,7 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 				<div className="sp-row-flex sp-gap-8">
 					<span className="sp-data sp-grow sp-truncate">{row.name}</span>
 					<span className="sp-amount">{amount(row.spend, 0)}</span>
-					<span className="sp-meta sp-nowrap">/ {currency(row.allowed, 0)}</span>
+					<span className="sp-meta sp-row-meta sp-row-meta--limit">/ {currency(row.allowed, 0)}</span>
 				</div>
 				<Gauge
 					value={share(Math.min(row.spend, row.allowed), scale)}
