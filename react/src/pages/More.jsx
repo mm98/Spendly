@@ -57,7 +57,7 @@ function Account({ name, picture, email, chevron }) {
 					? <Mark size="large" fill="photo" round aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
 					: <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={name || email}><>{initialsOf(name || email.split('@')[0])}</></Mark>}>
 				<Stacked>
-					{name ? <span className="sp-data sp-truncate">{name}</span> : null}
+					{name ? <span className="sp-heading sp-truncate">{name}</span> : null}
 					<EmailLine email={email} tone="meta" />
 				</Stacked>
 			</ListItem>

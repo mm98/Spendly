@@ -541,7 +541,7 @@ function PhoneIndex({ user }) {
 				{email
 					? (
 						<Stacked>
-							{user.name ? <span className="sp-title sp-truncate">{user.name}</span> : null}
+							{user.name ? <span className="sp-heading sp-truncate">{user.name}</span> : null}
 							<EmailLine email={email} tone="meta" />
 						</Stacked>
 					)

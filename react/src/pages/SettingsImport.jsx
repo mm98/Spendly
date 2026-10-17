@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -9,8 +9,8 @@ import { Well } from '../components/Well.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Gauge, Stat } from '../components/Data.jsx'
-import { Skeleton, Spinner, Stacked } from '../components/Utilities.jsx'
-import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Skeleton, Spinner, Stacked, useDismiss } from '../components/Utilities.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	checkImportDuplicates, failureMessage, getCurrentUser, getImportUndo, getImports, getKnownVendorNames, getSettings, importOrders,
@@ -21,6 +21,7 @@ import { buildOrders, download, guessMapping, readSheet, reuseMapping, skippedCs
 import { landing, useStepFocus } from './SettingsParts.jsx'
 import { ImportFooter, MapStep } from './SettingsImportMap.jsx'
 import { useStatuses } from '../app/statuses.js'
+import { useShellShape } from '../app/useMedia.js'
 import { ImportButton } from './BudgetImport.jsx'
 import { LeaveDialog } from './vendorsCategories.jsx'
 
@@ -280,10 +281,12 @@ function BudgetImport() {
 	)
 }
 
-/** Previous imports (11b): when, what each wrote, its mapping to reuse, its undo for a day, and
-    once that has gone, the way to remove the line from the list. */
+/** Previous imports (11b): when, what each wrote, its undo for a day, and its menu: the mapping to
+    reuse, and once the undo has gone, the way to remove the line from the list. */
 function History({ history, onReuse }) {
 	const toast = useToast()
+	// on a phone Undo takes a row of its own under the name, which keeps the whole width beside the menu
+	const touch = useShellShape() === 'touch'
 	const [busy, setBusy] = useState(null)
 	const [said, setSaid] = useState(null)
 	const [asking, setAsking] = useState(null)
@@ -319,6 +322,9 @@ function History({ history, onReuse }) {
 				const facts = [dayShortMonth(new Date(item.createdAt * 1000).toISOString().slice(0, 10)), ordersWord(item.orders)]
 				if (item.skipped) facts.push(`${amount(item.skipped, 0)} skipped`)
 				if (item.undone) facts.push('undone')
+				const undo = item.undoable
+					? <Button variant="outline" size={touch ? 'standard' : 'small'} fullWidth={touch} disabled={busy === item.id} onClick={() => setAsking(item)}>Undo</Button>
+					: null
 				return (
 					<div key={item.id} className="sp-stack sp-gap-12">
 						{i ? <span className="sp-rule" /> : null}
@@ -327,18 +333,40 @@ function History({ history, onReuse }) {
 								<span className="sp-title sp-truncate">{item.fileName}</span>
 								<span className="sp-meta sp-truncate">{facts.join(dot)}</span>
 							</Stacked>
-							{item.undoable ? <Button variant="outline" size="small" disabled={busy === item.id} onClick={() => setAsking(item)}>Undo</Button> : null}
-							{item.mapping ? <Button variant="outline" size="small" onClick={() => onReuse(item)}>Reuse mapping</Button> : null}
-							{item.undoable
-								? null
-								: <IconButton icon="x" size="small" disabled={busy === item.id} aria-label={`Remove ${item.fileName} from this list`} data-tip="Remove from this list" onClick={() => remove(item)} />}
+							{touch ? null : undo}
+							<ImportMenu item={item} disabled={busy === item.id} onReuse={() => onReuse(item)} onRemove={() => remove(item)} />
 						</div>
+						{touch ? undo : null}
 					</div>
 				)
 			})}
 			{said ? <span className="sp-meta" role="status">{said}</span> : null}
 			{asking ? <UndoImport id={asking.id} onCancel={() => setAsking(null)} onConfirm={() => undo(asking)} /> : null}
 		</Card>
+	)
+}
+
+/** A line's menu in Previous imports (11b, c9): Reuse mapping, and Remove from this list once the
+    line has no Undo. A line with neither has no menu. */
+function ImportMenu({ item, disabled, onReuse, onRemove }) {
+	const [open, setOpen] = useState(false)
+	const anchor = useRef(null)
+	const close = useCallback(() => setOpen(false), [])
+	useDismiss(anchor, open, close)
+	if (!item.mapping && item.undoable) return null
+	return (
+		<Anchor ref={anchor} open={open}>
+			<IconButton icon="dots-vertical" disabled={disabled} aria-label={`Actions for ${item.fileName}`}
+				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
+			{open
+				? (
+					<Menu position="floating" aria-label={item.fileName}>
+						{item.mapping ? <MenuItem onClick={() => { close(); onReuse() }}>Reuse mapping</MenuItem> : null}
+						{item.undoable ? null : <MenuItem onClick={() => { close(); onRemove() }}>Remove from this list</MenuItem>}
+					</Menu>
+				)
+				: null}
+		</Anchor>
 	)
 }
 
