@@ -46,3 +46,16 @@ is removed in the change that settles it.
   11b draws Previous imports at desktop width only, and Mobile screens does not draw it. A question
   for Claude Design: how this line looks on a phone.
 - **Why not now:** no drawing covers it; `design/` is changed only through Claude Design.
+
+## Dialogs: the title and the text are 6 apart in the app, and 12 in the drawings
+
+- **Where:** every dialog with a title and text, for example "Leave without saving?" and "Undo this
+  import?".
+- **What the reader sees:** 6 pixels between the title, the text and a grey note under it. The
+  drawings (States and confirmations 6d, Settings and import 11b) show 12.
+- **What was found:** 17 October 2026, measuring the Undo dialog against 11b. The drawings put each
+  part straight in the dialog, 12 apart. The design's own React dialog
+  (`design/react_handoff/Overlays.jsx`) puts everything above the buttons in a stack 6 apart, and
+  the app copies that. The space above the buttons is 12 in both and in the app. A question for
+  Claude Design: which one is right.
+- **Why not now:** the two parts of `design/` disagree, and only Claude Design settles that.
