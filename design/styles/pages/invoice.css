@@ -46,6 +46,10 @@
   .iv-line--head { padding-top: 10px; padding-bottom: 10px; font-size: 11px; color: #6b6a63; }
   .iv-line--extra { background: #f7f6f2; }
   .iv-photo { width: 44px; height: 44px; border-radius: 6px; background: repeating-linear-gradient(135deg, #dcdad2 0 6px, #e8e6de 6px 12px); }
+  /* a line with no photo, vendor has an image: that image, faded as --fade-standin */
+  .iv-photo--faded { filter: opacity(var(--fade-standin)); }
+  /* a line with no photo: the app's empty mark (--line-3 dashed edge, --surface-2 ground, --ink-6 icon) at the PDF's photo size */
+  .iv-photo--none { box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px dashed #dedcd4; background: #f7f6f2; color: #b3b1a9; }
   .iv-name { font-weight: 500; }
   .iv-num { text-align: right; }
   .iv-soft { color: #57564f; }

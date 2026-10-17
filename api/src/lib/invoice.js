@@ -22,6 +22,17 @@ const selectLines = db.prepare(`SELECT oi.title, oi.quantity, oi.price,
 	(SELECT a.id FROM order_attachments a WHERE a.order_item_id = oi.id AND a.kind = 'image' AND a.thumbnail IS NOT NULL ORDER BY a.rowid LIMIT 1) AS photo_id
 	FROM order_items oi WHERE oi.order_id = ? ORDER BY oi.position`)
 const selectPhoto = db.prepare('SELECT thumbnail, thumbnail_is_compressed FROM order_attachments WHERE id = ?')
+const selectVendorImage = db.prepare('SELECT square_256 FROM vendor_images WHERE vendor_id = ? AND user_id = ?')
+// a line's photo cell is 44px; drawn from three times that, as the PDF is printed and zoomed
+const PHOTO_PX = 132
+// the empty photo box at PHOTO_PX: --surface-2 ground, 1px dashed --line-3 edge, the camera icon at 18px in --ink-6
+const EMPTY_PHOTO_SVG = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${PHOTO_PX}" height="${PHOTO_PX}" viewBox="0 0 44 44">
+	<rect x="0.5" y="0.5" width="43" height="43" rx="5.5" fill="#f7f6f2" stroke="#dedcd4" stroke-width="1" stroke-dasharray="3 3"/>
+	<g transform="translate(13 13) scale(0.75)" fill="none" stroke="#b3b1a9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/>
+		<path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/>
+	</g>
+</svg>`)
 const selectCurrency = db.prepare('SELECT currency FROM user_settings WHERE user_id = ?')
 
 /** The sender (24a): the register's name and address on the order date, else the vendor's own. `missing`
@@ -119,18 +130,27 @@ export async function invoiceFor(userId, orderId, recipient, locale) {
 
 	const rows = selectLines.all(order.id)
 	const photos = []
+	const square = async bytes => {
+		try {
+			photos.push(await sharp(bytes).resize(PHOTO_PX, PHOTO_PX, { fit: 'cover' }).png().toBuffer())
+			return photos.length - 1
+		} catch { return null }
+	}
+	// a line with no photo of its own: the vendor's image, faded, else the empty photo box (24a)
+	let standIn
+	const standInPhoto = async () => {
+		if (standIn) return standIn
+		const image = selectVendorImage.get(order.vendor_id, userId)?.square_256
+		const faded = image ? await square(image) : null
+		standIn = faded != null ? { photo: faded, faded: true } : { photo: await square(EMPTY_PHOTO_SVG), faded: false }
+		return standIn
+	}
 	const lines = []
 	for (const row of rows) {
-		let photo = null
-		if (row.photo_id) {
-			const stored = selectPhoto.get(row.photo_id)
-			try {
-				photos.push(await sharp(decompressBlob(stored.thumbnail, stored.thumbnail_is_compressed))
-					.resize(132, 132, { fit: 'cover' }).png().toBuffer())
-				photo = photos.length - 1
-			} catch {}
-		}
-		lines.push({ photo, name: row.title, qty: count(row.quantity), unit: money(row.price), amount: money(cents(row.price * row.quantity)) })
+		const stored = row.photo_id ? selectPhoto.get(row.photo_id) : null
+		const own = stored ? await square(decompressBlob(stored.thumbnail, stored.thumbnail_is_compressed)) : null
+		const { photo, faded } = own != null ? { photo: own, faded: false } : await standInPhoto()
+		lines.push({ photo, faded, name: row.title, qty: count(row.quantity), unit: money(row.price), amount: money(cents(row.price * row.quantity)) })
 	}
 
 	const total = cents(order.total)

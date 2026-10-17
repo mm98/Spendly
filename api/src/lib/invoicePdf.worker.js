@@ -29,6 +29,8 @@ const LABEL = '#6b6a63'
 const SOFT = '#57564f'
 const NOTE = '#3d3c36'
 const TOTAL_LABEL = '#c6d6c9'
+// a vendor's image standing in for a line's photo (--fade-standin)
+const FADE_STANDIN = 0.6
 
 // the lines' columns: photo, item, quantity, unit price, amount (.iv-line)
 const ROW_PAD_X = 16
@@ -137,9 +139,9 @@ function makePage(device) {
 		}
 		device.fillText(t, CTM, mupdf.ColorSpace.DeviceRGB, rgb(colour), 1)
 	}
-	const image = (index, x, y, w, h, r) => {
+	const image = (index, x, y, w, h, r, alpha = 1) => {
 		device.clipPath(roundRect(x, y, w, h, r), false, CTM)
-		device.fillImage(new mupdf.Image(photos[index]), [w * SCALE, 0, 0, h * SCALE, x * SCALE, y * SCALE], 1)
+		device.fillImage(new mupdf.Image(photos[index]), [w * SCALE, 0, 0, h * SCALE, x * SCALE, y * SCALE], alpha)
 		device.popClip()
 	}
 	const clip = path => device.clipPath(path, false, CTM)
@@ -226,7 +228,7 @@ function row(line, extra = false) {
 			const height = ROW_PAD_Y * 2 + content
 			if (extra) page.rect(PAD + 1, top, WIDTH - 2, height + (last ? 0 : 1), TILE)
 			const middle = top + ROW_PAD_Y + content / 2
-			if (!extra && line.photo != null) page.image(line.photo, COLS[0].x, middle - 22, 44, 44, 6)
+			if (!extra && line.photo != null) page.image(line.photo, COLS[0].x, middle - 22, 44, 44, 6, line.faded ? FADE_STANDIN : 1)
 			const textTop = middle - (names.length * lineHeight(13)) / 2
 			names.forEach((name, i) => page.text(name, { x: COLS[1].x, top: textTop + i * lineHeight(13), size: 13, weight: 500 }))
 			const one = middle - lineHeight(13) / 2
