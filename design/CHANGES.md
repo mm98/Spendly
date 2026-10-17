@@ -1,63 +1,76 @@
-# Invoice PDF from an order, and company details from the CVR register
+# Answers to "Brief: questions from building Make invoice and the CVR lookup"
 
-Brief: make a properly formatted, good-looking invoice PDF from the information saved on an order. While answering it: keep vendor company details current from the CVR register (cvrapi.dk), searchable by CVR number or company name, and handle vendors and recipients outside Denmark.
+PR https://github.com/mm98/Spendly/pull/485. The six points take the brief's recommended choice; one more fix, the item photo on the invoice, came from the built PDF. `later.md` on main is empty, so no entry is settled here.
 
-Every question was answered in the design chat; nothing is open. The repo's `later.md` had no entries when this was built.
+## 1. Page 1 of 24b drew a line that did not fit
 
-## 1. The invoice PDF
+**The problem** - 24b drew 9 lines on page 1; the 9th ran under the page foot. The app, correctly, moves it to page 2.
 
-**The problem** - An order could not be handed to an employer or accountant for repayment as a proper document.
+**What changed** - 24b now draws 8 lines on page 1 and 6 on page 2. The note says a line that does not fit above the foot goes whole to the next page, so the count follows the lines' heights (fewer when names wrap). The app's behaviour is right; no app change.
 
-**What changed** - An A4 PDF in English, made from a saved order. The vendor is the sender. Layout: the vendor's mark and Name, "INVOICE"; three tiles (Number, Date, Total with VAT, the total tile green); From and To boxes; the lines with photo, quantity, unit price and amount; Shipping and Discount rows when set; Note; Without VAT, VAT 25%, Total; a foot with the vendor's register name, CVR and page number. Prices on an order include VAT, so VAT is 20% of the total. Number is the order's Reference, or "Order 447" when it has none. Rows with nothing in them are left out. An order longer than a page continues on page 2 with the column heads repeated and "Continued, Order 512"; totals follow the last line; "Page 1 of 2". File name `Invoice SPENDLY-447 Indbo Møbler.pdf`. Downloaded, not kept on the order. The PDF is drawn by the app at these exact sizes, with Poppins embedded.
+**Where** - `Invoice.dc.html` 24b.
 
-**Where** - Invoice 24a (one page), 24b (two pages, no Reference, discount). `styles/pages/invoice.css` (`.iv-*`) holds the PDF's print measurements.
+## 2. The order number
 
-## 2. Make invoice, and the dialog
+**The problem** - "Order 538" in 24d is the only place an order number appears.
 
-**The problem** - There was no way to start an invoice, and no way to say who it is for.
+**What changed** - Kept on the invoice only. Every order has a number, counted per account from 1; the order page, the order list and search do not show it. No app change.
 
-**What changed** - "Make invoice" in the order row menu and the card menu, under Download receipt, with the Tabler `file-invoice` icon. It is not on the read view. It opens a dialog, "Make an invoice": the order in one line; Recipient, which takes a CVR number or a company name; the company found, from the CVR register; Att. (optional); a 40% live preview of the PDF beside the fields; Cancel / Download PDF. The last recipient is remembered per account. Eight digits look up at once; a name looks up on Enter. "Type the address instead" swaps in Company (required), Address, Country and Att. for a recipient outside Denmark or without a CVR; "Look up instead" swaps back. A vendor with no address or CVR still gets an invoice with its Name alone, and an amber alert names what is missing with "Add them", which opens the vendor's edit page in a new tab. Download PDF downloads and closes; no toast.
+**Where** - `Invoice.dc.html` 24b, the "Without a Reference" note.
 
-**Where** - Invoice 24c and 24d. Order list 2b and the card menu note (seven items); Duplicate and alerts 8a (menu and note); Dark mode and image viewer (the same menu); Actions inventory 16a (new row). `icons.js` `file-invoice`, registered in Icon legend 19a. New c13 variant `.sp-dialog--preview` with `.sp-dialog__split`, `.sp-dialog__fields`, `.sp-dialog__preview` in `styles/components.css`: 760 wide, a 320 preview, falling back to the plain 420 dialog below 760. Documented in Components c13 and `styles/COMPONENT-STATUS.md`. No existing component changed.
+## 3. A lookup that fails, and a lookup that is running
 
-## 3. Vendor Country, CVR and Address
+**The problem** - 24c did not cover these.
 
-**The problem** - The invoice's From box needs the vendor's address and CVR number, which a vendor did not have.
+**What changed** - The app's texts and places are now the design: while running, the help line under Recipient reads "Looking up…"; when the register does not answer it reads "The company could not be looked up. Try again, or type the address instead." When no lookups are left, the typed fields open and the message is the help line under Company. No app change.
 
-**What changed** - In THE VENDOR card, under Name: Country (default Denmark), CVR, Address. All optional. With a CVR number the address comes from the register and is shown, not edited ("From the CVR register, checked 14 Oct."). Without one, Address is typed. Outside Denmark, CVR becomes a typed VAT number and Address stays typed. Country is printed on an invoice only when it is not Denmark.
+**Where** - `Invoice.dc.html` 24c notes.
 
-**Where** - Vendors and categories 5b (create), 5c (edit, with its note), Mobile screens vendor create. The vendor model gets country, cvr, vat number, address, register name, and dated address history.
+## 4. A CVR number the register does not know
 
-## 4. Company details kept in sync with the CVR register
+**The problem** - 24d's alert covered a missing address or CVR number only.
 
-**What changed** - A background job, never a lookup while the vendor page is open. A newly saved CVR is looked up within a day, then every vendor with a CVR is checked weekly. The register always wins and changes are applied silently. The register's company name is stored beside the vendor's own Name (printed as From); Name never changes. Addresses are kept with the date they took effect, and an invoice uses the one valid on the order date. A Danish vendor without a CVR is searched by name; the best match is offered on the vendor page as "Is this the company?" with Not this one / Use it. Not this one is remembered until Name changes. A company that has ceased trading keeps its last address with "Ceased trading 3 Mar 2026."; nothing else changes. An unknown CVR is marked on the field and Address returns to typed. Vendors outside Denmark are never looked up.
+**What changed** - Kept as built: the number is not printed; the alert reads "The CVR number of X is not in the register", link "Check the number", opening the vendor's edit page like Add them. No app change.
 
-**Access** - cvrapi.dk's free tier, 50 lookups a day, called from the server with a user agent naming Spendly and a contact. The weekly job uses at most 40 a day; 10 stay free for the invoice dialog and newly saved CVR numbers, which go first. When the limit answers, the job stops until the next day, with nothing shown to the user. A result is reused for every vendor with that CVR. In the dialog, when the day's lookups are used, the help line reads "Company lookup is not available until tomorrow. Type the address instead." and the typed fields open.
+**Where** - `Invoice.dc.html` 24d notes.
 
-**Where** - Vendors and categories 5m (six states and notes). Invoice 24c (the dialog's lookup and the limit).
+## 5. Make invoice on the phone
 
-## 5. The checker
+**The problem** - The phone's order list has no row menu, so the phone had no Make invoice.
 
-**What changed** - `styles/check.js` no longer holds the invoice's print stylesheet to the app's spacing scale: the PDF is an A4 document, not app UI. Nothing else in the checks changed.
+**What changed** - Make invoice is now on the order page, in the rail under the Duplicate / Edit order pair: `sp-btn sp-btn--outline sp-btn--small sp-btn--block`, no icon, the same size as Delete order below it. It opens the same dialog as the menus. Below 900px it moves with the rail above the items, which is how the phone reaches it; below 760 the dialog has no preview (already in 24c). The note in 8a that said "not on the read view" is replaced.
 
-**Where** - `styles/check.js`, section 6 (`PRINT`). `checks.html` PAGES and `index.html` list the new Invoice page (24a-24d) and the 5m screen.
+**Where** - `Order editing layouts.dc.html` 1a (rail and notes); `Invoice.dc.html` 24c lede and the below-760 note; `Duplicate and alerts.dc.html` 8a note; `Icon legend.dc.html` 19a (where `file-invoice` is used). App: the order read view page in `react/src/pages/`.
+
+## 6. A company that has ceased trading
+
+**The problem** - 5m draws "Ceased trading", the dialog had nothing for it.
+
+**What changed** - Kept as built: no alert, the invoice prints the last address and CVR number. No app change.
+
+**Where** - `Invoice.dc.html` 24d notes.
+
+## 7. A line with no item photo printed an empty cell
+
+**The problem** - In the built PDF, lines without a photo left a blank 44px space, as the 24a note said.
+
+**What changed** - The invoice follows the order list's thumbnail rule: no item photo but a vendor image prints that image faded to `--fade-standin` (0.6); no image at all prints the empty photo box, a 1px dashed `--line-3` edge on `--surface-2` with the photo icon (18px) in `--ink-6`. Never a blank cell.
+
+**Where** - `Invoice.dc.html` 24a (Linen cushion cover: vendor image), 24b (Storage basket, Candle holder set: empty box), 24c preview. `styles/pages/invoice.css` `.iv-photo--faded`, `.iv-photo--none`. App: the invoice PDF renderer.
 
 ## Files
 
-- `README.md` - the design's overview, unchanged.
+- `README.md` - the design overview, unchanged.
 - `CHANGES.md` - this note.
-- `Invoice.dc.html` - new page: the PDF (24a, 24b) and the dialog (24c, 24d).
-- `Vendors and categories.dc.html` - vendor fields in 5b and 5c, the register states in 5m.
-- `Mobile screens.dc.html` - vendor fields on the phone.
-- `Order list.dc.html`, `Duplicate and alerts.dc.html`, `Dark mode and image viewer.dc.html` - Make invoice in the row and card menu.
-- `Actions inventory.dc.html` - the Make invoice row.
-- `Icon legend.dc.html`, `icons.js` - the `file-invoice` icon.
-- `Components.dc.html`, `styles/components.css`, `styles/COMPONENT-STATUS.md` - the `sp-dialog--preview` variant.
-- `styles/pages/invoice.css` - the PDF's layout.
-- `styles/check.js`, `checks.html`, `index.html` - the checker exception and the new page in the lists.
-- `support.js`, `components.js`, `styles/tokens.css`, `styles/doc.css` - loaded by the pages, unchanged.
-- `styles/pages/budget.css`, `mobile-screens.css`, `order-list.css`, `duplicate-and-alerts.css`, `dark-mode.css`, `icon-legend.css`, `actions-inventory.css` - linked by the pages above, unchanged.
+- `Invoice.dc.html` - points 1-7.
+- `Order editing layouts.dc.html` - Make invoice on the order page (1a).
+- `Duplicate and alerts.dc.html` - 8a note on where Make invoice lives.
+- `Icon legend.dc.html`, `icons.js` - where `file-invoice` is used.
+- `support.js`, `components.js` - needed to open the pages.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles, unchanged.
+- `styles/pages/invoice.css` - the two no-photo states.
+- `styles/pages/order-editing.css`, `styles/pages/duplicate-and-alerts.css`, `styles/pages/icon-legend.css` - loaded by those pages, unchanged.
 
-## styles/check.js
+## Check
 
-0 finding(s) across 27 pages.
+`styles/check.js`: 0 findings across 27 pages.
