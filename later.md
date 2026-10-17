@@ -56,3 +56,36 @@ is removed in the change that settles it.
 - **What the reader sees:** the name in a title or body text style. The drawing uses the heading
   style.
 - **What was found:** 15 October 2026, while fixing the gap in the same card. Not changed there.
+
+## Import: leaving an import before it is written loses it without a warning
+
+- **Where:** Settings > Import, between choosing a file and pressing Import.
+- **What the reader sees:** after choosing a file and matching its columns, a click on another page
+  ends the import. Coming back, the import starts again at choosing a file. Nothing warns before.
+- **What was found:** 17 October 2026, reading the app, not tried in it. Settings warns before
+  leaving unsaved changes, but only for its own fields, not for an import in progress. The import
+  itself is not meant to be remembered: nothing is written before Import is pressed, and the app
+  does not keep the file.
+- **Why not now:** the warning is not drawn. A question for Claude Design.
+
+## Import: Undo in Previous imports deletes the orders at once, with no question
+
+- **Where:** Settings > Import > Previous imports, the Undo button beside Reuse mapping.
+- **What the reader sees:** one click removes every order the import wrote, with the vendors and
+  categories it created that nothing else uses. Orders changed since the import go too, with the
+  changes. Nothing asks first.
+- **What was found:** 17 October 2026, reading the app, not tried in it. The text after an import
+  says Undo removes exactly what the import wrote. The Undo in the list says nothing.
+- **Why not now:** a question before Undo is not drawn. A question for Claude Design.
+
+## Import: a line in Previous imports cannot be removed while its orders are kept
+
+- **Where:** Settings > Import > Previous imports.
+- **What the reader sees:** the only way to remove a line is Undo, which also removes its orders.
+  A line otherwise leaves the list only when newer imports push it out, since the list shows the
+  last few.
+- **What was found:** 17 October 2026, asked for by the user. Imported orders keep a link to their
+  import, which is how the order list shows the orders of one import. Two ways to do it: hide the
+  line and keep the link, or remove the line and make its orders ordinary orders.
+- **Why not now:** it is a new feature and the design does not draw it. The user chooses between
+  the two ways, then it goes to Claude Design.
