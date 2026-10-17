@@ -116,7 +116,7 @@
      checklist in the filters. A title with its second line is not this rule's: it is
      .sp-stacked, which is 2 on every screen. A stack that carries a gap class keeps
      it, since the component rule outranks this layer: a label over its control
-     (filters, form fields) and the scan choices at 6, wider groups at 8 or 12.
+     (filters, form fields) at 6, wider groups at 8 or 12.
      Alerts and toasts space their own parts and are untouched by this. */
   .ms-device .sp-stack { gap: var(--sp-2); }
 

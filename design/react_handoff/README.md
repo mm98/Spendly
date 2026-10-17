@@ -232,7 +232,7 @@ same way. The message is whatever else it holds.
 rather than a `title` string and an `actions` array. The order on the page is the
 order in the call, the action row spaces its own buttons, and a button cannot be
 passed where a sentence goes. The dialog reads which child is the action row and
-stacks the rest above it, the same way `MenuItem` reads which of its children is a
+puts the rest above it, each part straight in `.sp-dialog` and 12 apart, as drawn, the same way `MenuItem` reads which of its children is a
 submenu. Plain words handed straight to the dialog are wrapped as the body, so the
 common case stays one sentence. A dialog with no `DialogActions` is reported.
 
