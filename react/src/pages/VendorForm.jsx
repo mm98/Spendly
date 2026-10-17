@@ -16,13 +16,14 @@ import { Alert, useToast } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYear,
+	createVendor, deleteVendor, dismissVendorCompanyMatch, failureMessage, getOrders, getVendor, getVendorPage, getVendorYear,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeVendor, putVendorImage, removeVendorImage, updateVendor, vendorImageUrl
 } from '../api/client.js'
 import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
-import { currency, dot, isSaving, plural } from '../api/format.js'
+import { currency, dayShortMonth, dot, isSaving, plural } from '../api/format.js'
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
+import { CountryCombobox } from '../app/countries.jsx'
 import { useListReturn } from '../app/listMemory.js'
 import {
 	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, MergeButton, MergeDialog, MergePicker, RecentLoading, RecentOrders, RecordPage, SWATCHES,
@@ -51,7 +52,7 @@ export default function VendorForm() {
 }
 
 // the form while the vendor is on its way: an existing record's form, every value held by a skeleton
-const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], defaultExcludeFromStats: false, orders: 0 }
+const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], defaultExcludeFromStats: false, orders: 0, country: 'DK' }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
@@ -71,7 +72,11 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		colour: vendor ? pickedColour(vendor.colour) : 'green-2',
 		favourite: Boolean(vendor?.favourite),
 		defaultCategories: vendor?.defaultCategories ?? [],
-		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats)
+		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats),
+		country: vendor?.country ?? 'DK',
+		cvr: vendor?.cvr ?? '',
+		vatNumber: vendor?.vatNumber ?? '',
+		address: vendor?.address ?? ''
 	}), [vendor])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
@@ -109,6 +114,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const changed = values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
 		|| values.colour !== start.colour || values.favourite !== start.favourite
 		|| !same(values.defaultCategories, start.defaultCategories) || values.defaultExcludeFromStats !== start.defaultExcludeFromStats
+		|| values.country !== start.country || values.cvr.trim() !== start.cvr.trim() || values.vatNumber.trim() !== start.vatNumber.trim() || values.address.trim() !== start.address.trim()
 		|| Boolean(image.file) || image.drop
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
@@ -178,12 +184,17 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		const nameError = await nameProblem(values.name)
 		setErrors(e => ({ ...e, name: nameError }))
 		if (nameError) { writing.current = false; return focusFirst(['vendor-name']) }
+		const numberError = numberProblem(values)
+		setErrors(e => ({ ...e, number: numberError }))
+		if (numberError) { writing.current = false; return focusFirst(['vendor-number']) }
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
 			// an alias the name already matches says nothing more, and the API refuses it
 			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
 			favourite: values.favourite, defaultCategories: values.defaultCategories, defaultExcludeFromStats: values.defaultExcludeFromStats,
+			country: values.country, cvr: cvrOf(values.cvr), vatNumber: values.vatNumber.trim(),
+			address: values.address,
 			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {}),
 			...(fromScan && !editing ? { origin: 'scan' } : {})
 		}
@@ -293,6 +304,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 						</Alert>
 					)
 					: null}
+				<CompanyFields vendor={vendor} values={values} set={set} error={errors.number} hold={h} creating={!editing}
+					clearError={() => setErrors(e => ({ ...e, number: null }))} toast={toast} />
 				<Field id="vendor-image" label="Image"
 					message={image.problem?.help ?? (image.src ? 'Shown on this vendor\'s orders that have no item photo.'
 						: 'Shown on this vendor\'s orders that have no item photo. A logo, the shop, anything you know it by.')}
@@ -485,5 +498,85 @@ function VendorSummary({ vendor, name, colour }) {
 			</div>
 			<Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>See more in statistics</Button>
 		</Card>
+	)
+}
+
+const cvrOf = text => String(text).replace(/\s+/g, '')
+const isCvr = text => /^\d{8}$/.test(cvrOf(text))
+
+/** Why the number under Country cannot be saved, or null: a CVR number has eight digits. */
+const numberProblem = values => (values.country === 'DK' && cvrOf(values.cvr) && !isCvr(values.cvr) ? 'A CVR number has 8 digits.' : null)
+
+// a date in a sentence that ends with it: "checked 14 Oct.", and no second full stop where the locale writes one
+const ending = text => (text.endsWith('.') ? text : `${text}.`)
+
+/** Country, CVR (or VAT number) and Address (5b, 5c), in the CVR register's states (5m). With a CVR
+    number the address is the register's and is shown, not typed. */
+function CompanyFields({ vendor, values, set, error, hold, creating, clearError, toast }) {
+	const [dismissed, setDismissed] = useState(false)
+	const denmark = values.country === 'DK'
+	const number = cvrOf(values.cvr)
+	// what the register said for the saved number; a number typed since has not been looked up
+	const saved = denmark && vendor?.cvr && vendor.cvr === number ? vendor.register : undefined
+	const unknown = saved?.found === false
+	// Use it: the company found by name stands in until the vendor is saved and looked up
+	const matched = denmark && vendor?.match && vendor.match.cvr === number ? vendor.match : null
+	const offer = denmark && !number && vendor?.match && !dismissed ? vendor.match : null
+	const shown = saved?.found ? saved : matched ? { ...matched, found: true } : null
+	const numberHelp = error ?? (unknown ? `No company has CVR ${number} in the register. Check the number.`
+		: denmark && (creating || (isCvr(number) && number !== vendor?.cvr)) ? 'The address comes from the CVR register within a day of saving, and is kept up to date.' : undefined)
+
+	const notThisOne = () => {
+		setDismissed(true)
+		dismissVendorCompanyMatch(vendor.id).catch(e => { setDismissed(false); toast({ message: failureMessage(e, 'That did not change. Try again.'), color: 'danger' }) })
+	}
+
+	return (
+		<>
+			<Field id="vendor-country" label="Country">
+				{hold(<CountryCombobox value={values.country} onChange={v => { set('country', v); clearError() }} />)}
+			</Field>
+			<Field id="vendor-number" label={denmark ? 'CVR' : 'VAT number'} message={numberHelp}
+				messageType={error || unknown ? 'danger' : 'hint'}>
+				{hold(<TextField value={denmark ? values.cvr : values.vatNumber} inputMode={denmark ? 'numeric' : undefined} placeholder={denmark ? '8 digits' : undefined}
+					onChange={v => { set(denmark ? 'cvr' : 'vatNumber', v); clearError() }} />)}
+			</Field>
+			{offer
+				? (
+					<Well>
+						<span className="sp-title">Is this the company?</span>
+						<span className="sp-data">{offer.name}, CVR {offer.cvr}</span>
+						{offer.address.length ? <span className="sp-data sp-ink-2">{offer.address.join(', ')}</span> : null}
+						<div className="sp-row-flex sp-gap-8">
+							<Button variant="outline" size="small" onClick={notThisOne}>Not this one</Button>
+							<span className="sp-grow" />
+							<Button size="small" onClick={() => set('cvr', offer.cvr)}>Use it</Button>
+						</div>
+					</Well>
+				)
+				: null}
+			{denmark && isCvr(number) && !unknown
+				? (
+					<div className="sp-field">
+						<span className="sp-field__label" id="vendor-address-label">Address</span>
+						<Well variant="quiet" aria-labelledby="vendor-address-label">
+							{shown
+								? [shown.name, ...shown.address].map((line, i) => <span key={i} className="sp-data">{line}</span>)
+								: <span className="sp-data sp-ink-5">Not looked up yet</span>}
+						</Well>
+						<span className="sp-field__help">
+							{!shown ? 'Filled from the CVR register within a day.'
+								: shown.ceasedOn ? ending(`Ceased trading ${dayShortMonth(shown.ceasedOn)}`)
+									: ending(`From the CVR register, checked ${dayShortMonth(shown.checkedAt)}`)}
+						</span>
+					</div>
+				)
+				: (
+					<Field id="vendor-address" label="Address"
+						message={denmark && !unknown ? 'For a vendor without a CVR number. Printed on an invoice made from its orders.' : 'Printed on an invoice made from its orders.'}>
+						{hold(<TextField multiline rows={3} value={values.address} onChange={v => set('address', v)} />)}
+					</Field>
+				)}
+		</>
 	)
 }

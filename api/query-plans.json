@@ -2383,7 +2383,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats FROM vendors WHERE id = ? AND user_id = ?": {
+		"SELECT id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats, country, cvr, vat_number, address, cvr_match, cvr_match_dismissed_name FROM vendors WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
 			],
@@ -2975,6 +2975,15 @@
 			],
 			"indexes": [
 				"idx_order_attachments_order"
+			]
+		},
+		"SELECT order_number_last FROM users WHERE id = ?": {
+			"plan": [
+				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_users_1"
 			]
 		},
 		"SELECT ot.date, oc.category_id AS id, SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.total ELSE ot.total END) * 1.0 / ot.category_count) AS spend FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 AND oc.category_id IN (SELECT value FROM json_each(@ids)) GROUP BY ot.date, oc.category_id": {
@@ -4905,6 +4914,13 @@
 				"vendor_id"
 			],
 			"readers": 3
+		},
+		"idx_vendors_cvr": {
+			"table": "vendors",
+			"columns": [
+				"cvr"
+			],
+			"readers": 0
 		},
 		"idx_vendors_import": {
 			"table": "vendors",

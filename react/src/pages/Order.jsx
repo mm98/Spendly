@@ -23,6 +23,7 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
 } from './OrderParts.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
+import { InvoiceDialog } from './InvoiceDialog.jsx'
 
 /* One order, read (1a): items and attachments in the wide column, details and totals in the
    rail, and the rail ends with what can be done to the order. */
@@ -50,6 +51,7 @@ function OrderView({ order, touch, onGone }) {
 	const list = useListReturn('orders')
 	const [viewing, setViewing] = useState(null)
 	const [asking, setAsking] = useState(false)
+	const [invoicing, setInvoicing] = useState(false)
 	const files = filesOf(order)
 	const open = key => setViewing(files.findIndex(f => f.key === key))
 	const column = useRef(null)
@@ -154,7 +156,12 @@ function OrderView({ order, touch, onGone }) {
 			]}
 			footerLayout="split"
 			footerCommits
-			after={<Button size="small" color="danger" fullWidth onClick={() => setAsking(true)}>Delete order</Button>}
+			after={(
+				<>
+					<Button variant="outline" size="small" fullWidth onClick={() => setInvoicing(true)}>Make invoice</Button>
+					<Button size="small" color="danger" fullWidth onClick={() => setAsking(true)}>Delete order</Button>
+				</>
+			)}
 		>
 			<CardHeader name="Totals" />
 			<div className="sp-stack">
@@ -169,7 +176,9 @@ function OrderView({ order, touch, onGone }) {
 
 	const dialog = asking
 		? <DeleteOrder order={order} onClose={() => setAsking(false)} onDeleted={() => { onGone(); navigate(list) }} />
-		: null
+		: invoicing
+			? <InvoiceDialog order={order} onClose={() => setInvoicing(false)} />
+			: null
 
 	const viewer = viewing != null && viewing > -1
 		? <Viewer items={files} at={viewing} onMove={setViewing} onClose={() => setViewing(null)} />

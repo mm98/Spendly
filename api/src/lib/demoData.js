@@ -98,8 +98,11 @@ const insertVendor = db.prepare(`INSERT INTO vendors (id, user_id, name, initial
 const insertCategory = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon_path, colour, budget, favourite)
 	VALUES (@id, @userId, @name, @icon, NULL, @colour, @budget, @favourite)`)
 const insertOrder = db.prepare(`INSERT INTO orders
-	(id, user_id, vendor_id, date, status, kind, shipping, note, reference, refunded)
-	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, '', @reference, 0)`)
+	(id, user_id, vendor_id, date, status, kind, shipping, note, reference, refunded, number)
+	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, '', @reference, 0, @number)`)
+// the order numbers the dropped orders_number_insert trigger would have given
+const selectLastNumber = db.prepare('SELECT order_number_last FROM users WHERE id = ?').pluck()
+const setLastNumber = db.prepare('UPDATE users SET order_number_last = ? WHERE id = ?')
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const insertOrderStatus = db.prepare('INSERT INTO order_status_history (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
@@ -181,12 +184,14 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 
 	const land = db.transaction(rows => {
 		for (const t of triggers) db.exec(`DROP TRIGGER ${t.name}`)
+		let number = selectLastNumber.get(userId)
 		for (const { order, statuses, categories, items } of rows) {
-			insertOrder.run(order)
+			insertOrder.run({ ...order, number: ++number })
 			for (const status of statuses) insertOrderStatus.run(...status)
 			for (const category of categories) insertOrderCategory.run(order.id, category)
 			for (const item of items) insertOrderItem.run(item)
 		}
+		setLastNumber.run(number, userId)
 		storeColumns.run(JSON.stringify(rows.map(r => r.order.id)))
 		for (const t of triggers) db.exec(t.sql)
 	})

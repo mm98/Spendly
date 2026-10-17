@@ -65,7 +65,8 @@ export function readCache(req, res, next) {
 
 	const send = res.json.bind(res)
 	res.json = body => {
-		if (res.statusCode === 200) {
+		// an answer its route marks no-store depends on something outside the account, such as a register's limit
+		if (res.statusCode === 200 && !/no-store/.test(res.get('Cache-Control') ?? '')) {
 			let urls = byUser.get(req.user.id)
 			if (!urls) {
 				byUser.set(req.user.id, urls = new Map())
