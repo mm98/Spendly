@@ -92,6 +92,9 @@ html:has(.sp-shell--touch) {
 html:has(.sp-shell--touch > .sp-fab) { scroll-padding-bottom: calc(var(--phone-bar-h) + var(--fab) + 2 * var(--sp-12) + env(safe-area-inset-bottom)); }
 /* a control on a pinned bar is always in view: focusing it never scrolls the page */
 html:has(:is(.sp-topbar, .sp-sidebar, .sp-tabbar, .sp-savebar, .sp-list-item--sticky) :focus) { scroll-padding: 0; }
+/* a heading or line that focus is only moved to, so a screen reader says where it landed, is no control and draws no ring */
+[data-section]:focus,
+.sp-subtitle[tabindex="-1"]:focus { outline: none; }
 /* a form's commit row stays over what scrolls under it, under a menu or panel opened above it */
 .sp-list-item--sticky { z-index: 2; }
 
