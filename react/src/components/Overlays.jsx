@@ -274,12 +274,9 @@ function useDialogPart(kind) {
 
 const isActions = c => c && typeof c === 'object' && c.type === DialogActions
 
-const DIALOG_VARIANT = { default: null, preview: 'sp-dialog--preview' }
-
 /** `onCancel` is what Escape and a press on the backdrop do: the dialog's own way out (c13). A page
-    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d).
-    `preview` is a dialog that makes a file: its fields and a picture of the file side by side, in a DialogSplit. */
-export function Dialog({ variant = 'default', children, scrim = true, onCancel, ...rest }) {
+    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d). */
+export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	reject(rest, 'Dialog')
 	const box = useRef(null)
 	const backdrop = useRef(null)
@@ -289,8 +286,7 @@ export function Dialog({ variant = 'default', children, scrim = true, onCancel, 
 		setParts(p => ({ ...p, [kind]: [...p[kind], id] }))
 		return () => setParts(p => ({ ...p, [kind]: p[kind].filter(x => x !== id) }))
 	}, [])
-	// a sheet taller than the screen opens at its heading, with focus still on its main button
-	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)', true)
+	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)')
 	const keys = ev => { if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() } }
 	// Escape with focus outside the box (on the page's body) still answers as cancel
 	const cancel = useRef(onCancel)
@@ -319,7 +315,7 @@ export function Dialog({ variant = 'default', children, scrim = true, onCancel, 
 	const touch = useContext(ShellTouch)
 	const panel = (
 		<DialogParts.Provider value={register}>
-			<div className={touch ? 'sp-sheet' : join('sp-dialog', pick(DIALOG_VARIANT, variant, 'variant', 'Dialog'))} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
+			<div className={touch ? 'sp-sheet' : 'sp-dialog'} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
 				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
 				{above}
 				{actions}
@@ -351,23 +347,6 @@ export function DialogBody({ children, ...rest }) {
 	reject(rest, 'DialogBody')
 	const id = useDialogPart('body')
 	return <span className="sp-dialog__body" id={id} {...rest}>{children}</span>
-}
-
-/** A preview dialog's two columns: DialogFields, then DialogPreview, which goes below 760 (c13). */
-export function DialogSplit({ children, ...rest }) {
-	reject(rest, 'DialogSplit')
-	return <div className="sp-dialog__split" {...rest}>{children}</div>
-}
-
-export function DialogFields({ children, ...rest }) {
-	reject(rest, 'DialogFields')
-	return <div className="sp-dialog__fields" {...rest}>{children}</div>
-}
-
-/** A picture of the file the dialog makes, as it will be. Only seen, so it is hidden from a screen reader. */
-export function DialogPreview({ children, ...rest }) {
-	reject(rest, 'DialogPreview')
-	return <div className="sp-dialog__preview" aria-hidden="true" {...rest}>{children}</div>
 }
 
 /** The way out and the commit. It spaces and aligns its own buttons. */
@@ -429,13 +408,12 @@ export function ToastUndo({ children, onClick, ...rest }) {
 const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
 
 /** `action` is one button at the row's far end, after a spacer (3a, 3b); `below` puts it under the
-    words instead, where a phone's row is too narrow to hold both. `fields` are the fields whose values
-    settle what the alert says, under its words (c19). */
-export function Alert({ color = 'warning', mark, title, action, below = false, fields, children, ...rest }) {
+    words instead, where a phone's row is too narrow to hold both. */
+export function Alert({ color = 'warning', mark, title, action, below = false, children, ...rest }) {
 	reject(rest, 'Alert')
 	return (
 		<div
-			className={fields ? 'sp-alert sp-alert--field' : 'sp-alert'}
+			className="sp-alert"
 			{...(color === 'warning' ? {} : { 'data-color': pick(ALERT_COLOR, color, 'color', 'Alert') })}
 			{...rest}
 		>
@@ -443,7 +421,6 @@ export function Alert({ color = 'warning', mark, title, action, below = false, f
 			<span className="sp-alert__body">
 				{title ? <span className="sp-alert__title">{title}</span> : null}
 				{children ? <span className="sp-alert__note">{children}</span> : null}
-				{fields}
 				{action && below ? <span className="sp-row-flex">{action}</span> : null}
 			</span>
 			{action && !below ? <><span className="sp-grow" />{action}</> : null}

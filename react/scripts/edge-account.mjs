@@ -132,16 +132,6 @@ await makeVendor('A vendor name so long that it has to be cut somewhere before i
 await makeVendor('Alias shop', { aliases: ['A-Shop', 'Alias Store'] })
 // new orders from it start left out of statistics, so every order it has is left out
 await makeVendor('One-off car dealer', { defaultExcludeFromStats: true })
-// company details for an invoice's From box: a CVR number the register knows, one it does not, a company that
-// has ceased, one abroad with a VAT number, one abroad with neither, one with no address, and one the register
-// finds by its name
-await makeVendor('Edge CVR shop', { cvr: '12345678' })
-await makeVendor('Edge unknown CVR shop', { cvr: '12345679' })
-await makeVendor('Edge ceased shop', { cvr: '31415926' })
-await makeVendor('Edge Swedish shop', { country: 'SE', vatNumber: 'SE556677889901', address: 'Storgatan 12\n114 51 Stockholm' })
-await makeVendor('Edge Swedish shop with nothing', { country: 'SE' })
-await makeVendor('Edge shop with no address')
-await makeVendor('Bolia')
 const archived = (await call('GET', '/vendors?name=Archived%20shop&pageSize=1')).data?.vendors?.[0]
 if (archived && !archived.archived) step('archive', await call('PATCH', `/vendors/${archived.id}`, { archived: true }))
 
@@ -193,14 +183,6 @@ await order('Saved against retail', { vendor: 'Alias shop', date: day(-8), shipp
 	items: [{ title: 'Retail price above price', quantity: 2, price: 400, retail: 600, url: 'https://example.dk/product?utm_source=news' }, { title: 'Second line', quantity: 1, price: 50, note: 'a note' }] })
 await order('Many long lines', { vendor: 'Edge favourite shop', date: day(-10),
 	items: Array.from({ length: 8 }, (_, i) => ({ title: `Line ${i + 1} with a title long enough that it has to be cut before the amount at the end of its row`, quantity: i + 1, price: 10 + i })) })
-// an invoice that needs a second page: many lines, shipping and a discount
-await order('Invoice on two pages', { vendor: 'Edge CVR shop', date: day(-9), shipping: 49, discount: 120,
-	items: Array.from({ length: 14 }, (_, i) => ({ title: i % 3 ? `Line ${i + 1}` : `Line ${i + 1} with a name long enough to wrap onto a second line in the invoice`, quantity: i % 4 + 1, price: 35 + i * 12.5 })) })
-await order('Invoice from abroad', { vendor: 'Edge Swedish shop', date: day(-9) })
-await order('Invoice from abroad with nothing', { vendor: 'Edge Swedish shop with nothing', date: day(-9) })
-await order('Invoice with no address', { vendor: 'Edge shop with no address', date: day(-9) })
-await order('Invoice from a ceased company', { vendor: 'Edge ceased shop', date: day(-9) })
-await order('Invoice with an unknown CVR', { vendor: 'Edge unknown CVR shop', date: day(-9) })
 await order('Future-dated', { vendor: 'Alias shop', date: day(12), status: 'Ordered' })
 await order('Last year', { vendor: 'Alias shop', date: day(-400) })
 const withReceipt = await order('With a receipt', { vendor: 'Alias shop', date: day(-11) })
@@ -214,10 +196,6 @@ if (withPdf) step('receipt PDF', await fileOn(withPdf.id, 'receipt.pdf', 'applic
 // a line with its own photo
 const photoOrder = await order('With a line photo', { vendor: 'Alias shop', date: day(-15), items: [{ title: 'A line with a photo', quantity: 1, price: 250 }] })
 if (photoOrder) step('line photo', await call('POST', `/orders/${photoOrder.id}/items/${photoOrder.items[0].id}/attachments`, undefined, upload('line.png', 'image/png', png(80, 80, [120, 160, 200]))))
-// an invoice line with its own photo beside one that the vendor's picture stands in for
-const photoKinds = await order('Invoice with every kind of photo', { vendor: 'Edge favourite shop', date: day(-9),
-	items: [{ title: 'A line with its own photo', quantity: 1, price: 250 }, { title: 'A line the vendor picture stands in for', quantity: 2, price: 120 }] })
-if (photoKinds) step('line photo', await call('POST', `/orders/${photoKinds.id}/items/${photoKinds.items[0].id}/attachments`, undefined, upload('line.png', 'image/png', png(80, 80, [200, 120, 90]))))
 // a vendor with a picture
 const pictured = (await call('GET', '/vendors?name=Edge%20favourite%20shop&pageSize=1')).data?.vendors?.[0]
 if (pictured && (await call('GET', `/vendors/${pictured.id}/image/square-256`)).status === 404) {

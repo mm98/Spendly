@@ -1,8 +1,7 @@
 import { useId, useMemo, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardBody, CardHeader, Toolbar } from '../components/Card.jsx'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField, TokensField } from '../components/Inputs.jsx'
 import { useStatusTypes } from '../app/statuses.js'
@@ -17,16 +16,13 @@ import { Alert, useToast } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, dismissVendorCompanyMatch, failureMessage, getOrders, getVendor, getVendorPage, getVendorYear,
+	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYear,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeVendor, putVendorImage, removeVendorImage, updateVendor, vendorImageUrl
 } from '../api/client.js'
 import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
-import { currency, dayShortMonth, dot, isSaving, plural } from '../api/format.js'
+import { currency, dot, isSaving, plural } from '../api/format.js'
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
-import { CountryCombobox } from '../app/countries.jsx'
-import { cvrOf, isCvr, useCompanyLookup } from '../app/companyLookup.js'
-import { countryName } from '../api/countries.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
 	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, MergeButton, MergeDialog, MergePicker, RecentLoading, RecentOrders, RecordPage, SWATCHES,
@@ -55,7 +51,7 @@ export default function VendorForm() {
 }
 
 // the form while the vendor is on its way: an existing record's form, every value held by a skeleton
-const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], defaultExcludeFromStats: false, orders: 0, country: 'DK' }
+const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], defaultExcludeFromStats: false, orders: 0 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
@@ -65,10 +61,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const toast = useToast()
 	const list = useListReturn('vendors')
 	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
-	const { state } = useLocation()
-	const fromScan = state?.fromScan ?? null
-	// Invoice details always starts folded (5m)
-	const [detailsOpen, setDetailsOpen] = useState(false)
+	const fromScan = useLocation().state?.fromScan ?? null
 	const h = loading ? hold : control => control
 	const statsSwitch = useId()
 	const editing = Boolean(vendor)
@@ -78,11 +71,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		colour: vendor ? pickedColour(vendor.colour) : 'green-2',
 		favourite: Boolean(vendor?.favourite),
 		defaultCategories: vendor?.defaultCategories ?? [],
-		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats),
-		country: vendor?.country ?? 'DK',
-		cvr: vendor?.cvr ?? '',
-		vatNumber: vendor?.vatNumber ?? '',
-		address: vendor?.address ?? ''
+		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats)
 	}), [vendor])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
@@ -120,7 +109,6 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const changed = values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
 		|| values.colour !== start.colour || values.favourite !== start.favourite
 		|| !same(values.defaultCategories, start.defaultCategories) || values.defaultExcludeFromStats !== start.defaultExcludeFromStats
-		|| values.country !== start.country || values.cvr.trim() !== start.cvr.trim() || values.vatNumber.trim() !== start.vatNumber.trim() || values.address.trim() !== start.address.trim()
 		|| Boolean(image.file) || image.drop
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
@@ -190,22 +178,12 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		const nameError = await nameProblem(values.name)
 		setErrors(e => ({ ...e, name: nameError }))
 		if (nameError) { writing.current = false; return focusFirst(['vendor-name']) }
-		const numberError = numberProblem(values)
-		setErrors(e => ({ ...e, number: numberError }))
-		if (numberError) {
-			writing.current = false
-			// a folded card's field cannot take focus
-			flushSync(() => setDetailsOpen(true))
-			return focusFirst(['vendor-number'])
-		}
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
 			// an alias the name already matches says nothing more, and the API refuses it
 			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
 			favourite: values.favourite, defaultCategories: values.defaultCategories, defaultExcludeFromStats: values.defaultExcludeFromStats,
-			country: values.country, cvr: cvrOf(values.cvr), vatNumber: values.vatNumber.trim(),
-			address: values.address,
 			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {}),
 			...(fromScan && !editing ? { origin: 'scan' } : {})
 		}
@@ -323,9 +301,6 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 						src={image.src} problem={image.problem?.banner} inspect={() => null} onFile={takeImage} onRemove={removeImage} />)}
 				</Field>
 			</Card>
-
-			<CompanyFields vendor={vendor} values={values} set={set} error={errors.number} hold={h} open={detailsOpen} onToggle={() => setDetailsOpen(o => !o)}
-				clearError={() => setErrors(e => ({ ...e, number: null }))} toast={toast} />
 
 			<Card>
 				<CardHeader name="Aliases" />
@@ -509,116 +484,6 @@ function VendorSummary({ vendor, name, colour }) {
 				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>Returned</Sum>
 			</div>
 			<Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>See more in statistics</Button>
-		</Card>
-	)
-}
-
-/** Why the number under Country cannot be saved, or null: a CVR number has eight digits. */
-const numberProblem = values => (values.country === 'DK' && cvrOf(values.cvr) && !isCvr(values.cvr) ? 'A CVR number has 8 digits.' : null)
-
-// a date in a sentence that ends with it: "checked 14 Oct.", and no second full stop where the locale writes one
-const ending = text => (text.endsWith('.') ? text : `${text}.`)
-
-/** What the folded Invoice details card says is set (5m). */
-const detailsSummary = (values, offer) => {
-	if (offer) return 'A company match is waiting'
-	const denmark = values.country === 'DK'
-	const number = denmark ? cvrOf(values.cvr) : values.vatNumber.trim()
-	if (number) return `${countryName(values.country)}${dot}${denmark ? 'CVR' : 'VAT'} ${number}`
-	if (values.address.trim()) return `${countryName(values.country)}${dot}address only`
-	return 'Not added'
-}
-
-// the help line under CVR while a typed number is looked up, or when it could not be (5m)
-const lookupSaid = {
-	looking: 'Looking up…',
-	failed: 'The company could not be looked up. It is tried again tonight.',
-	limit: 'Company lookup is not available until tomorrow. The address is filled in then.'
-}
-
-/** The Invoice details card (5b, 5c): Country, CVR (or VAT number) and Address in the CVR register's
-    states (5m). With a CVR number the address is the register's and is shown, not typed. A number is
-    looked up as it is typed; one that could not be is looked up by the background job once saved. */
-function CompanyFields({ vendor, values, set, error, hold, open, onToggle, clearError, toast }) {
-	const [dismissed, setDismissed] = useState(false)
-	const lookup = useCompanyLookup()
-	const denmark = values.country === 'DK'
-	const number = cvrOf(values.cvr)
-	// what the register said for the saved number, and for a number typed since
-	const saved = denmark && vendor?.cvr && vendor.cvr === number ? vendor.register : undefined
-	const typed = denmark && lookup.found?.cvr === number ? lookup.found : null
-	const unknown = denmark && (lookup.status === 'none' || (!typed && !lookup.status && saved?.found === false))
-	// Use it: the company found by name stands in until the vendor is saved
-	const matched = denmark && vendor?.match && vendor.match.cvr === number ? vendor.match : null
-	const offer = denmark && !number && vendor?.match && !dismissed ? vendor.match : null
-	const shown = typed ?? (saved?.found ? saved : matched ? { ...matched, found: true } : null)
-	const numberHelp = error ?? (unknown ? `No company has CVR ${number} in the register. Check the number.` : denmark ? lookupSaid[lookup.status] : undefined)
-
-	const notThisOne = () => {
-		setDismissed(true)
-		dismissVendorCompanyMatch(vendor.id).catch(e => { setDismissed(false); toast({ message: failureMessage(e, 'That did not change. Try again.'), color: 'danger' }) })
-	}
-
-	return (
-		<Card variant="flush">
-			<Toolbar variant="toggle" expanded={open} onClick={onToggle} chevron={<Icon name="chevron-down" />}>
-				<span className="sp-stacked">
-					<span className="sp-title sp-truncate">Invoice details</span>
-					<span className="sp-meta sp-truncate">{detailsSummary(values, offer)}</span>
-				</span>
-			</Toolbar>
-			<CardBody>
-				<div className="sp-stack sp-gap-12">
-					<div className="sp-fields">
-						<Field id="vendor-country" label="Country">
-							{hold(<CountryCombobox value={values.country} onChange={v => { set('country', v); clearError() }} />)}
-						</Field>
-						<Field id="vendor-number" label={denmark ? 'CVR' : 'VAT number'} message={numberHelp}
-							messageType={error || unknown ? 'danger' : 'hint'}>
-							{hold(<TextField value={denmark ? values.cvr : values.vatNumber} inputMode={denmark ? 'numeric' : undefined} placeholder={denmark ? '8 digits' : undefined}
-								onChange={v => { set(denmark ? 'cvr' : 'vatNumber', v); clearError(); if (denmark) lookup.type(v) }} />)}
-						</Field>
-					</div>
-					{offer
-						? (
-							<Well>
-								<span className="sp-title">Is this the company?</span>
-								<span className="sp-data">{offer.name}, CVR {offer.cvr}</span>
-								{offer.address.length ? <span className="sp-data sp-ink-2">{offer.address.join(', ')}</span> : null}
-								<div className="sp-row-flex sp-gap-8">
-									<Button variant="outline" size="small" onClick={notThisOne}>Not this one</Button>
-									<span className="sp-grow" />
-									<Button size="small" onClick={() => set('cvr', offer.cvr)}>Use it</Button>
-								</div>
-							</Well>
-						)
-						: null}
-					{denmark && isCvr(number) && !unknown
-						? (
-							<div className="sp-field">
-								<span className="sp-field__label" id="vendor-address-label">Address</span>
-								<Well variant="quiet" aria-labelledby="vendor-address-label">
-									{shown
-										? [shown.name, ...shown.address].map((line, i) => <span key={i} className="sp-data">{line}</span>)
-										: <span className="sp-data sp-ink-5">From the CVR register</span>}
-								</Well>
-								{lookup.status === 'looking' ? null : (
-									<span className="sp-field__help">
-										{!shown ? 'Filled in from the CVR register tonight.'
-											: shown.ceasedOn ? ending(`Ceased trading ${dayShortMonth(shown.ceasedOn)}`)
-												: ending(`From the CVR register, checked ${dayShortMonth(shown.checkedAt)}`)}
-									</span>
-								)}
-							</div>
-						)
-						: (
-							<Field id="vendor-address" label="Address"
-								message={denmark ? 'Printed on an invoice made from its orders. With a CVR number it comes from the CVR register, and is kept up to date.' : 'Printed on an invoice made from its orders.'}>
-								{hold(<TextField multiline rows={3} value={values.address} onChange={v => set('address', v)} />)}
-							</Field>
-						)}
-				</div>
-			</CardBody>
 		</Card>
 	)
 }

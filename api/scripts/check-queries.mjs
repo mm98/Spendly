@@ -301,7 +301,6 @@ const REQUESTS = [
 	// the paged vendor list: each sort, page 2, each filter, and the lookups the pickers and forms make
 	...['name-asc', 'name', 'spend-desc', 'spend-asc', 'orders-desc', 'saved-desc', 'saved-asc', 'use', 'recent'].map(sort => `/vendors?sort=${sort}&pageSize=10`),
 	'/vendors?pageSize=10&page=2', '/vendors?sort=spend-desc&pageSize=10&page=2', '/vendors?archived=yes&pageSize=10',
-	'/vendors?with=address&pageSize=10', '/vendors?missing=address&with=address&pageSize=10', '/vendors?missing=address&sort=spend-desc&with=address&pageSize=10',
 	'/vendors?archived=all&sort=spend-desc&pageSize=10', '/vendors?query=bil&pageSize=10', '/vendors?query=bil&sort=spend-desc&pageSize=10',
 	'/vendors?query=æg&pageSize=10', '/vendors?flag=possible-duplicate&pageSize=10', '/vendors?flag=possible-duplicate&sort=spend-desc&pageSize=10',
 	'/vendors?flag=possible-duplicate&query=bil&pageSize=10', `/vendors?ids=${ids.vendor},v-main-1&archived=all&with=duplicates&pageSize=2`,

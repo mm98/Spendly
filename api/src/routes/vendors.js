@@ -13,62 +13,19 @@ import { knownVendorNames, vendorPage } from '../lib/vendorList.js'
 import { ordersCarrying, recentVendorNames } from '../lib/latestOrders.js'
 import { vendorYear } from '../lib/stats.js'
 import { VENDOR_IMAGE_MAX_MB, VendorImageRefusal, processVendorImage } from '../lib/vendorImage.js'
-import { currentAddress, isCvrNumber, storedCompany } from '../lib/cvrRegister.js'
-import { isCountry } from '../lib/countries.js'
 
 export const router = Router()
 
-const VENDOR_COLUMNS = `id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats,
-	country, cvr, vat_number, address, cvr_match, cvr_match_dismissed_name`
+const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats'
 const selectAll = db.prepare('SELECT id, name, colour, favourite, archived, origin FROM vendors WHERE user_id = ? ORDER BY name')
 const selectOne = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
-const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead, origin, default_exclude_from_stats,
-	country, cvr, vat_number, address)
-	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead, @origin, @defaultExcludeFromStats,
-	@country, @cvr, @vatNumber, @address)`)
+const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead, origin, default_exclude_from_stats)
+	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead, @origin, @defaultExcludeFromStats)`)
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE vendor_id = ? AND user_id = ?')
 const deleteOne = db.prepare('DELETE FROM vendors WHERE id = ? AND user_id = ?')
 const update = db.prepare(`UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead, archived=@archived,
-	default_exclude_from_stats=@defaultExcludeFromStats, country=@country, cvr=@cvr, vat_number=@vatNumber, address=@address
-	WHERE id=@id AND user_id=@userId`)
-const dismissMatch = db.prepare('UPDATE vendors SET cvr_match_dismissed_name = name WHERE id = ? AND user_id = ?')
-
-/** The vendor's company details as submitted (5b, 5c), over the stored ones: `{ company }` or `{ error }`.
-    A Danish vendor keeps a CVR number and no VAT number; any other country the other way round. */
-function cleanCompany(raw, stored = {}) {
-	const pick = (key, column) => (raw[key] !== undefined ? String(raw[key] ?? '').trim() : stored[column] ?? '')
-	const country = (raw.country !== undefined ? String(raw.country ?? '') : stored.country ?? 'DK').toUpperCase()
-	if (!isCountry(country)) return { error: 'Pick a country from the list.' }
-	const cvr = pick('cvr', 'cvr').replace(/\s+/g, '')
-	const vatNumber = pick('vatNumber', 'vat_number')
-	const address = pick('address', 'address')
-	if (country === 'DK' && cvr && !isCvrNumber(cvr)) return { error: 'A CVR number has 8 digits.' }
-	if (vatNumber.length > 40) return { error: '40 characters at most for a VAT number.' }
-	if (address.length > 300) return { error: '300 characters at most for an address.' }
-	return {
-		company: {
-			country, cvr: country === 'DK' ? cvr || null : null, vatNumber: country === 'DK' ? null : vatNumber || null, address: address || null
-		}
-	}
-}
-
-/** What the CVR register holds for the vendor (5m): its company and address now, or null before the first
-    lookup; and, for a Danish vendor without a number, the company its Name found, until Not this one. */
-function registerOf(vendor) {
-	if (vendor.country !== 'DK') return { register: null, match: null }
-	if (vendor.cvr) {
-		const company = storedCompany(vendor.cvr)
-		return {
-			register: company && {
-				found: company.found, name: company.name, address: currentAddress(company), checkedAt: company.checkedAt, ceasedOn: company.ceasedOn
-			},
-			match: null
-		}
-	}
-	const offered = vendor.cvr_match && vendor.cvr_match_dismissed_name !== vendor.name ? storedCompany(vendor.cvr_match) : null
-	return { register: null, match: offered?.found ? { cvr: offered.cvr, name: offered.name, address: currentAddress(offered), checkedAt: offered.checkedAt } : null }
-}
+	default_exclude_from_stats=@defaultExcludeFromStats WHERE id=@id AND user_id=@userId`)
 
 /* Aliases: the other strings a vendor resolves from (see migrations/002 and
    lib/findOrCreate.js). Owned by the vendor row -- deleting the vendor cascades them. */
@@ -194,7 +151,6 @@ const withStats = (vendor, stats, aliases = [], defaultCategories = [], lastMatc
 		favourite: Boolean(vendor.favourite), lead: vendor.lead ?? undefined, archived: Boolean(vendor.archived),
 		createdByScan: vendor.origin === 'scan', aliases, lastMatched, defaultCategories,
 		defaultExcludeFromStats: Boolean(vendor.default_exclude_from_stats),
-		country: vendor.country ?? 'DK', cvr: vendor.cvr ?? null, vatNumber: vendor.vat_number ?? null, address: vendor.address ?? null,
 		orders: s.orders, spend: s.spend, saved: s.saved
 	}
 }
@@ -204,7 +160,6 @@ const selectImageHash = db.prepare('SELECT hash FROM vendor_images WHERE vendor_
 const fullRecord = (userId, vendor) => ({
 	...withStats(vendor, statsForOne(userId, vendor.id), aliasesFor(userId, vendor.id),
 		defaultCategoriesFor(userId, vendor.id), lastMatchedFor(userId, vendor.id)),
-	...registerOf(vendor),
 	image: selectImageHash.get(vendor.id, userId)?.hash ?? null
 })
 
@@ -263,11 +218,8 @@ router.post('/', (req, res) => {
 	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
 	const defaults = cleanDefaultCategories(look.defaultCategories ?? [])
 	if (defaults.error) return res.status(400).json({ error: defaults.error })
-	const details = cleanCompany(look)
-	if (details.error) return res.status(400).json({ error: details.error })
 
 	const vendor = {
-		...details.company,
 		id: newId('v'), userId: req.user.id, name,
 		initials: look.initials ?? name.slice(0, 2).toUpperCase(),
 		colour: look.colour ?? colourFor(name),
@@ -278,7 +230,8 @@ router.post('/', (req, res) => {
 	}
 	saveVendor(() => insert.run(vendor), req.user.id, vendor.id, cleaned.aliases, defaults.names, cleaned.moves)
 	// Read back rather than echoed, so the answer holds the stored order (alphabetical).
-	res.status(201).json(fullRecord(req.user.id, selectOne.get(vendor.id, req.user.id)))
+	res.status(201).json(withStats({ ...vendor, default_exclude_from_stats: vendor.defaultExcludeFromStats }, new Map(),
+		aliasesFor(req.user.id, vendor.id), defaultCategoriesFor(req.user.id, vendor.id)))
 })
 
 /* One vendor's stats, not vendorStats' whole-account rollup read for one entry -- the map
@@ -305,14 +258,6 @@ router.get('/:id', (req, res) => {
 	const vendor = selectOne.get(req.params.id, req.user.id)
 	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
 	res.json(fullRecord(req.user.id, vendor))
-})
-
-// Not this one (5m): the company the vendor's Name found is not offered again until the Name changes
-router.post('/:id/company-match/dismiss', (req, res) => {
-	const vendor = selectOne.get(req.params.id, req.user.id)
-	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
-	dismissMatch.run(vendor.id, req.user.id)
-	res.json(fullRecord(req.user.id, selectOne.get(vendor.id, req.user.id)))
 })
 
 router.patch('/:id', (req, res) => {
@@ -354,11 +299,8 @@ router.patch('/:id', (req, res) => {
 	const defaults = cleanDefaultCategories(patch.defaultCategories !== undefined
 		? patch.defaultCategories : defaultCategoriesFor(req.user.id, vendor.id))
 	if (defaults.error) return res.status(400).json({ error: defaults.error })
-	const details = cleanCompany(patch, vendor)
-	if (details.error) return res.status(400).json({ error: details.error })
 
 	const next = {
-		...details.company,
 		name: nextName,
 		initials: patch.initials ?? vendor.initials,
 		colour: patch.colour ?? vendor.colour,
@@ -408,8 +350,6 @@ const moveOrders = db.prepare('UPDATE orders SET vendor_id = ? WHERE vendor_id =
 
 const moveImage = db.prepare('UPDATE vendor_images SET vendor_id = ? WHERE vendor_id = ? AND user_id = ?')
 
-const companyColumns = vendor => ({ country: vendor.country, cvr: vendor.cvr, vatNumber: vendor.vat_number, address: vendor.address })
-
 const mergeVendors = db.transaction((userId, source, target) => {
 	const seen = new Set([vendorKey(target.name)])
 	const aliases = []
@@ -428,9 +368,7 @@ const mergeVendors = db.transaction((userId, source, target) => {
 	update.run({
 		id: target.id, userId, name: target.name, initials: target.initials, colour: target.colour,
 		favourite: target.favourite || source.favourite ? 1 : 0, lead: target.lead ?? source.lead, archived: target.archived,
-		defaultExcludeFromStats: target.default_exclude_from_stats,
-		// the target keeps its own company details; one without takes the source's
-		...companyColumns(target.cvr || target.vat_number || target.address ? target : source)
+		defaultExcludeFromStats: target.default_exclude_from_stats
 	})
 	writeAliases(userId, target.id, aliases)
 	writeDefaultCategories(userId, target.id, defaults.length ? defaults : sourceDefaults)

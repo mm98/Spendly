@@ -23,7 +23,6 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
 } from './OrderParts.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
-import { InvoiceDialog } from './InvoiceDialog.jsx'
 
 /* One order, read (1a): items and attachments in the wide column, details and totals in the
    rail, and the rail ends with what can be done to the order. */
@@ -51,7 +50,6 @@ function OrderView({ order, touch, onGone }) {
 	const list = useListReturn('orders')
 	const [viewing, setViewing] = useState(null)
 	const [asking, setAsking] = useState(false)
-	const [invoicing, setInvoicing] = useState(false)
 	const files = filesOf(order)
 	const open = key => setViewing(files.findIndex(f => f.key === key))
 	const column = useRef(null)
@@ -157,12 +155,9 @@ function OrderView({ order, touch, onGone }) {
 			footerLayout="split"
 			footerCommits
 		>
-			<CardHeader name="Totals" control={(
-				<>
-					<IconButton variant="outline" icon="copy" aria-label="Duplicate order" data-tip="Duplicate" to={`/orders/new?duplicate=${order.id}`} />
-					<IconButton variant="outline" icon="file-invoice" aria-label="Make invoice" data-tip="Make invoice" onClick={() => setInvoicing(true)} />
-				</>
-			)} />
+			<CardHeader name="Totals" control={
+				<IconButton variant="outline" icon="copy" aria-label="Duplicate order" data-tip="Duplicate" to={`/orders/new?duplicate=${order.id}`} />
+			} />
 			<div className="sp-stack">
 				<Sum value={money(order.subtotal)}>Items ({order.items.length})</Sum>
 				<Sum value={order.discount ? money(-order.discount) : money(0)}>Discount</Sum>
@@ -175,9 +170,7 @@ function OrderView({ order, touch, onGone }) {
 
 	const dialog = asking
 		? <DeleteOrder order={order} onClose={() => setAsking(false)} onDeleted={() => { onGone(); navigate(list) }} />
-		: invoicing
-			? <InvoiceDialog order={order} onClose={() => setInvoicing(false)} />
-			: null
+		: null
 
 	const viewer = viewing != null && viewing > -1
 		? <Viewer items={files} at={viewing} onMove={setViewing} onClose={() => setViewing(null)} />
