@@ -1,52 +1,46 @@
-# A simpler invoice, and vendors without an address
+# Remove Make invoice, the invoice PDF, and the vendor's company details
 
-## Fixed from design_handoff_invoice_simple_fixed
+Brief: remove the invoice and the vendor address and CVR work. It will not be used. The one change kept is the order page's actions: Delete order and Edit order as the footer pair, and Duplicate as an icon button.
 
-The invoice dialog sent the user away to the vendor's edit page to add a missing address or CVR number, and a vendor's CVR number was only looked up by the overnight job. Both are changed; see points 3 and 4.
+This replaces everything in `design_handoff_invoice`, `design_handoff_invoice_cvr` to `design_handoff_invoice_cvr_fixed_6`, and `design_handoff_invoice_simple` to `design_handoff_invoice_simple_fixed_2`, except point D of `design_handoff_invoice_cvr_fixed_6` as amended below.
 
-## Fixed from design_handoff_invoice_simple
+## 1. The invoice PDF and the Make invoice dialog are removed
 
-The Company details toggle was drawn as `sp-btn sp-btn--text`, which stretched to the full width of the dialog's field column with its label centred. It is now the existing text toggle `sp-field-group__more` (the rail's "Show 38 more"), which sits at the start under Address. It reads "Show company details" while closed and "Hide company details" while open, so it needs no chevron. Where: `Invoice.dc.html` 24c (both specimens and the first note) and 24d.
+**The problem** - The app makes an invoice PDF from an order (PR #485). It will never be used.
 
-Answers the brief: making an invoice asks too many questions on every order, and the vendor list should show which vendors are missing details.
+**What changed** - No invoice. Make invoice is gone from the order row menu and the card menu, which are back to six items: Open order, Duplicate, Download receipt, Set status, Add category, Delete. The dialog, its CVR lookup, the remembered recipient and the PDF go with it.
 
-## 1. Make invoice asks for a name and an address
-
-**The problem** - The Make invoice dialog asked for Name, Country, CVR, Address and Att. every time. Most invoices go to the user at their own address, so four of the five fields were noise.
-
-**What changed** - The dialog shows Name and Address only. A text toggle, Show company details, sits under them and opens Country, CVR (VAT number outside Denmark) and Att.; open, it reads Hide company details. It opens already open when the remembered recipient has a CVR or VAT number, an Att., or a country other than Denmark, and closed otherwise. Closing it keeps the values. CVR lookup, the remembered recipient and the PDF preview are unchanged; with CVR found, the register's address fills Address above the button.
-
-**Where** - `Invoice.dc.html` 24c (both specimens, first note) and 24d (dialog, last note). Uses the existing `sp-field-group__more`, no new styles. App: the Make invoice dialog component in `react/src/`.
+**Where** - `Invoice.dc.html` (24a-24d) deleted. Order list 2b and the card menu note; Duplicate and alerts 8a (menu and note); Dark mode and image viewer (the same menu); Actions inventory 16a (row removed); Icon legend 19a and `icons.js` (`file-invoice` removed). `index.html` and `checks.html` no longer list the page. App: the invoice dialog, the PDF renderer and the order menu items in `react/src/`, and the cvrapi.dk lookup and the recipient storage in `api/`.
 
 **What is still open** - Nothing.
 
-## 2. Vendors without an address are marked in the list
+## 2. Vendors have no Country, CVR or Address
 
-**The problem** - There was no way to see which vendors would give an invoice with only a name in From.
+**The problem** - The vendor form's Invoice details card (Country, CVR, Address), the CVR register sync and the vendor list's No address marking only served the invoice.
 
-**What changed** - A vendor without an address gets "No address" at the end of its grey line, after the order count: `14 orders · No address`. Only the address counts; a missing CVR number is not marked. A vendor with an address shows nothing extra. The Active / Archived control gains a third choice, No address, listing active vendors without an address; the toolbar count follows it, and the empty state reads "Every vendor has an address."
+**What changed** - The vendor form is THE VENDOR (Name, Image), then Aliases, as before. No Invoice details card, no CVR lookup, no background job, no register name or address history. The vendor list's grey line shows the order count only, and the Active / Archived control has its two choices again. The CVR alias chip in 5c ("CVR 12345678") is an alias, not this field, and stays.
 
-**Where** - `Vendors and categories.dc.html` 5a (segmented control, Ferm Living and Indbo Moebler A/S rows, two new notes). Uses existing `sp-meta` and `sp-segmented`. App: `react/src/pages/` vendors list.
-
-**What is still open** - The answers asked for both a quiet warning icon and text in the grey line. This draws the text only, since an icon inside the grey line would be a new component. Please confirm, or say if the icon should be added as well.
-
-## 3. The vendor's missing details are filled in inside the invoice dialog
-
-**The problem** - With a vendor missing its address or CVR number, the alert in the dialog offered Add them, which closed the dialog and opened the vendor's edit page. Nothing else in the app leaves a dialog that way, and a CVR number saved there waited for the overnight job.
-
-**What changed** - The dialog never leaves. For a Danish vendor the alert holds a field, "Flying Tiger's CVR". Eight digits look the company up at once, with the same help lines as the recipient's CVR. Found, the alert goes, a plain field keeps the number with the help line "Flying Tiger A/S, Strøget 12, 1160 København K. Saved to Flying Tiger when you download.", and the preview's From fills in. Not found, or no lookup left, the alert gains an Address field. A vendor outside Denmark gets "Nordlys AB's VAT number" and "Nordlys AB's address" in the alert. A saved CVR the register does not know: "Check the number, or type the address.", with both fields. Download PDF saves what was typed to the vendor; Cancel saves nothing. Every field is optional.
-
-**Where** - `Invoice.dc.html` 24d (two specimens: asked, found; notes rewritten). New variant `sp-alert--field` in `styles/components.css` beside `.sp-alert` (`align-items: flex-start`, body `flex: 1`); the locked alert rules are unchanged. Documented as a specimen and a States note in `Components.dc.html` c19. App: the Make invoice dialog and the vendor update endpoint in `react/src/`.
+**Where** - `Vendors and categories.dc.html` 5a (No address note, segment and two grey lines removed), 5b and 5c (Invoice details card and its note removed), 5m deleted. `Mobile screens.dc.html` 7a, the vendor form. App: the vendor form and list in `react/src/pages/`, the vendor model's country, cvr, vat number, address, register name and address history (drop the columns), and the CVR job in `api/`.
 
 **What is still open** - Nothing.
 
-## 4. The vendor page looks up a CVR number as it is typed
+## 3. The order page keeps Delete / Edit order and the Duplicate icon
 
-**The problem** - On the vendor page a new CVR number was looked up within a day by the background job, so the address was empty until the next day.
+**The problem** - The order page's Totals card carried Duplicate and Make invoice as icon buttons in its head.
 
-**What changed** - Eight digits look the company up at once, as in the invoice dialog. State 1 is now "CVR typed, looking up", with "Looking up…" under CVR. With no answer from the register: "The company could not be looked up. It is tried again tonight."; with the day's lookups used: "Company lookup is not available until tomorrow. The address is filled in then." In both cases the number is saved and the job looks it up, first in its queue. The weekly check, the name search and the 40-a-day cap are unchanged; the 10 left each day serve lookups typed on the vendor page and in the invoice dialog. A wrong number is marked at once. The Address help line drops "within a day of saving".
+**What changed** - The Make invoice icon is removed. The rest of point D stays: the footer is the split pair Delete order (outline, danger colour) and Edit order (primary, right); Duplicate is the one outline icon button at the right of the Totals head, `copy`, tip "Duplicate", label "Duplicate order".
 
-**Where** - `Vendors and categories.dc.html` 5m (lede, first and limits notes, state 1), the Address help line in 5b and 5m states 3 and 5; `Mobile screens.dc.html`, the vendor's Address help line. App: the vendor form and `api/` CVR lookup.
+**Where** - `Order editing layouts.dc.html` 1a (Totals head, lede, notes); `Mobile screens.dc.html` (the card head note). App: the order read view's rail.
+
+**What is still open** - Nothing.
+
+## 4. Two component variants removed
+
+**The problem** - Two variants existed only for the invoice.
+
+**What changed** - `sp-dialog--preview` with `sp-dialog__split`, `sp-dialog__fields`, `sp-dialog__preview` (c13), and `sp-alert--field` (c19) are removed. No other component changed.
+
+**Where** - `styles/components.css`; `Components.dc.html` c13 (Variants note) and c19 (specimen and States note); `styles/COMPONENT-STATUS.md` (the 2026-10-17 entry). `styles/pages/invoice.css` deleted. `styles/check.js` no longer exempts a print stylesheet from the spacing scale. App: the matching styles in `react/src/`.
 
 **What is still open** - Nothing.
 
@@ -56,17 +50,18 @@ The one entry ("51 of the design's checks are not held against the app") concern
 
 ## Files
 
-- `README.md` - the design overview, unchanged.
+- `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Invoice.dc.html` - points 1 and 3.
-- `Vendors and categories.dc.html` - points 2 and 4.
-- `Components.dc.html` - the `sp-alert--field` variant in c19.
-- `Mobile screens.dc.html` - the vendor Address help line.
-- `support.js`, `components.js`, `icons.js` - needed to open the pages.
-- `styles/tokens.css`, `styles/doc.css` - shared styles, unchanged.
-- `styles/components.css` - adds `sp-alert--field`.
-- `styles/pages/invoice.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - linked by the pages above, unchanged.
+- `Vendors and categories.dc.html` - point 2.
+- `Mobile screens.dc.html` - points 2 and 3.
+- `Order editing layouts.dc.html` - point 3.
+- `Order list.dc.html`, `Duplicate and alerts.dc.html`, `Dark mode and image viewer.dc.html`, `Actions inventory.dc.html` - point 1, Make invoice removed.
+- `Icon legend.dc.html`, `icons.js` - point 1, `file-invoice` removed.
+- `Components.dc.html`, `styles/components.css`, `styles/COMPONENT-STATUS.md` - point 4.
+- `styles/check.js`, `checks.html`, `index.html` - the Invoice page out of the checks and the start page.
+- `support.js`, `components.js`, `styles/tokens.css`, `styles/doc.css` - loaded by the pages, unchanged.
+- `styles/pages/budget.css`, `mobile-screens.css`, `order-editing.css`, `duplicate-and-alerts.css`, `dark-mode.css`, `order-list.css`, `icon-legend.css`, `actions-inventory.css` - linked by the pages above, unchanged.
 
 ## styles/check.js
 
-0 findings across 27 pages.
+0 findings across 26 pages.
