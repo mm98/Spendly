@@ -175,7 +175,11 @@ export function Anchor({ open, children, ...rest }) {
 }
 
 /**
- * A decision that interrupts. It spaces its own contents, so a use cannot forget to.
+ * A decision that interrupts. It spaces its own contents, so a use cannot forget to:
+ * every part - the title, the body, a note, the action row - sits straight in
+ * `.sp-dialog`, 12 apart, as the dialogs are drawn (Settings and import 11b, States
+ * and confirmations 6d). Nothing above the actions is wrapped in a stack of its own,
+ * so the title and the body are 12 apart, not 6.
  *
  * Its parts are written as children, the way the markup nests them: a title, what
  * the decision costs, and the actions. The dialog reads which of its children is the
@@ -202,7 +206,7 @@ export function Dialog({ children, scrim = true, ...rest }) {
 	if (!actions) console.error('<Dialog> has no <DialogActions>: a decision with no way out cannot be answered')
 	const panel = (
 		<div className="sp-dialog" role="dialog" aria-modal="true" {...rest}>
-			<div className="sp-stack sp-gap-6">{above}</div>
+			{above}
 			{actions}
 		</div>
 	)

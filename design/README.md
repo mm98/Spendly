@@ -81,5 +81,9 @@ Copy
 
 ## Known and open
 
+- At the 280px card width, three card heads do not fit on one line: Showing (two buttons), Spend by month (the switch), and Categories this month (meta and a button). Not decided.
+- Four groups of variants mix structure and colour: `Combobox`, `Menu`, `ListItem`, `TextField`. Not decided.
+- `Mark` has three fills that draw almost nothing: `plain`, `none`, `empty`. Not decided.
+- List behaviours not built: moving between rows with the keyboard, choosing a whole filter, and a long press on a touch screen. Not decided.
 - Partial returns: one order with a reduced total, or a separate negative record. Not decided.
 - Components, Selecting rows, says the checkbox has "44px hit padding". No rule in `styles/components.css` gives a checkbox a hit area.
