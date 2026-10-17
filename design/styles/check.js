@@ -743,6 +743,10 @@
       for (const q of m[1].matchAll(/>([^<]*%[^<]*)</g)) fail('a saving is never a percentage', p, `Saved card shows "${q[1].trim()}"`);
       if (/sp-stat__figure(?![^"]*sp-ink-success)/.test(m[1].split('</div>')[0])) fail('a saving is green', p, 'Saved figure is not sp-ink-success');
     }
+    // grey text after an amount in a row is the row meta column, so the amounts in a card line up
+    for (const m of s.matchAll(/<div class="sp-row-flex[^"]*">((?:(?!<\/div>)[\s\S])*?)<span class="sp-amount[^"]*">([^<]*)<\/span>\s*<span class="(sp-meta[^"]*)">([^<]*)</g)) {
+      if (!/\bsp-row-meta\b/.test(m[3])) fail('grey text after an amount is a sp-row-meta column', p, `"${m[2]}" then "${m[4]}"`);
+    }
     for (const m of s.matchAll(/<span ([^>]*)>\s*(Saved [\d.,]+ kr\.)/g)) {
       const zero = /Saved 0,00/.test(m[2]);
       const green = /data-color="success"|stat__delta|sp-ink-success/.test(m[1]);
