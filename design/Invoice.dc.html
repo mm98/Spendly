@@ -150,7 +150,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>One recipient is remembered, per account.</b> The recipient is usually the user, typed once. The dialog opens with the recipient of the last downloaded invoice filled in, and edits are made in place; Download PDF saves them as the new remembered recipient, so a second invoice is one click. The first invoice opens with the fields empty. Every field is optional: with all of them empty, To prints the account's name and email (<a href="#24b">24b</a>).</div>
-    <div class="doc-note"><b>One view, the vendor's fields.</b> Name, Country, CVR, Address, Att., in the order and with the behaviour of the vendor's own fields (<a href="Vendors and categories.dc.html#5m">5m</a>). CVR shows when Country is Denmark; outside Denmark it is VAT number, printed as typed and not looked up (<a href="#24d">24d</a>). Country is printed only when it is not Denmark. Att. is printed under the name.</div>
+    <div class="doc-note"><b>One view, the vendor's fields.</b> Name, Country, CVR, Address, Att., in the order and with the behaviour of the vendor's own fields (<a href="Vendors and categories.dc.html#5m">5m</a>). Country and CVR share a line, as on the vendor page. CVR shows when Country is Denmark; outside Denmark it is VAT number, printed as typed and not looked up (<a href="#24d">24d</a>). Country is printed only when it is not Denmark. Att. is printed under the name.</div>
     <div class="doc-note"><b>Eight digits in CVR look the company up at once.</b> This lookup is live, unlike the vendor's, because the answer is needed now. Found, Address becomes the register's name and address with "From the CVR register." under it, and Name is filled with the register name when it was empty (second specimen). The invoice prints the register name, address and CVR number. Clearing CVR turns Address back into a field, holding what the register gave. There is no search by name: a person's name would only spend lookups.</div>
     <div class="doc-note"><b>The lookup's other states</b>, each as the help line under CVR, with Address staying a field: while it runs, "Looking up…"; no match, "No company has CVR 87654321 in the register. Check the number."; no answer from the register, "The company could not be looked up. Try again, or type the address."; the day's 50 free lookups used (<a href="Vendors and categories.dc.html#5m">5m</a>), "Company lookup is not available until tomorrow. Type the address instead." A remembered company needs no new lookup.</div>
     <div class="doc-note"><b>The preview is the PDF at 40%</b> and redraws as the fields change. Below 760 the preview goes and the dialog is the plain 420 dialog (<code>sp-dialog--preview</code>, <a href="Components.dc.html#c13">c13</a>). This is the dialog the phone gets, opened from the order page's Make invoice (<a href="Order editing layouts.dc.html#1a">1a</a>), since the phone's order list has no row menu.</div>
@@ -168,6 +168,7 @@
               <label class="sp-field__label" for="iv-c-name">Name</label>
               <input class="sp-input" id="iv-c-name" type="text" defaultValue="Mikkel Møller">
             </div>
+            <div class="sp-fields">
             <div class="sp-field">
               <span class="sp-field__label" id="iv-c-cty">Country</span>
               <div class="sp-combobox">
@@ -181,6 +182,7 @@
               <label class="sp-field__label" for="iv-c-cvr">CVR</label>
               <input class="sp-input" id="iv-c-cvr" type="text" inputMode="numeric" placeholder="8 digits" aria-describedby="iv-c-cvr-help">
               <span class="sp-field__help" id="iv-c-cvr-help">For a company. Fills in its name and address from the CVR register.</span>
+            </div>
             </div>
             <div class="sp-field">
               <label class="sp-field__label" for="iv-c-addr">Address</label>
@@ -240,6 +242,7 @@
               <label class="sp-field__label" for="iv-c2-name">Name</label>
               <input class="sp-input" id="iv-c2-name" type="text" defaultValue="Lomwas ApS">
             </div>
+            <div class="sp-fields">
             <div class="sp-field">
               <span class="sp-field__label" id="iv-c2-cty">Country</span>
               <div class="sp-combobox">
@@ -252,6 +255,7 @@
             <div class="sp-field">
               <label class="sp-field__label" for="iv-c2-cvr">CVR</label>
               <input class="sp-input" id="iv-c2-cvr" type="text" inputMode="numeric" defaultValue="87654321">
+            </div>
             </div>
             <div class="sp-field">
               <span class="sp-field__label" id="iv-c2-addr">Address</span>
@@ -316,7 +320,7 @@
   <div class="doc-lede">The same dialog for a vendor with neither an address nor a CVR number, and a remembered recipient outside Denmark.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>The invoice is made anyway,</b> with the vendor's Name alone in From. The alert says so above the fields; <b>Add them</b> closes the dialog and opens the vendor's edit page (<a href="Vendors and categories.dc.html#5c">5c</a>) in the same tab, as every link in the app does. Back on the order, Make invoice opens the dialog again with what was saved.</div>
+    <div class="doc-note"><b>The invoice is made anyway,</b> with the vendor's Name alone in From. The alert says so above the fields; <b>Add them</b> closes the dialog and opens the vendor's edit page (<a href="Vendors and categories.dc.html#5c">5c</a>) in the same tab, as every link in the app does, with its Invoice details card open. Back on the order, Make invoice opens the dialog again with what was saved.</div>
     <div class="doc-note"><b>The alert shows for a missing address or a missing CVR number,</b> naming what is missing. A vendor outside Denmark with an address and a VAT number has nothing missing.</div>
     <div class="doc-note"><b>A CVR number the register does not know</b> is not printed. The alert reads "The CVR number of Flying Tiger is not in the register", with the link "Check the number", which closes the dialog and opens the vendor's edit page in the same tab, as Add them does.</div>
     <div class="doc-note"><b>A company that has ceased trading</b> (<a href="Vendors and categories.dc.html#5m">5m</a>) gets no alert. The invoice prints its last address and CVR number, since an order placed while it traded is still a real invoice.</div>
@@ -339,6 +343,7 @@
             <label class="sp-field__label" for="iv-d-co">Name</label>
             <input class="sp-input" id="iv-d-co" type="text" defaultValue="Nordlys AB">
           </div>
+          <div class="sp-fields">
           <div class="sp-field">
             <span class="sp-field__label" id="iv-d-cty">Country</span>
             <div class="sp-combobox">
@@ -351,6 +356,7 @@
           <div class="sp-field">
             <label class="sp-field__label" for="iv-d-vat">VAT number</label>
             <input class="sp-input" id="iv-d-vat" type="text">
+          </div>
           </div>
           <div class="sp-field">
             <label class="sp-field__label" for="iv-d-addr">Address</label>

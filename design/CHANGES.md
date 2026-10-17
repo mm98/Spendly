@@ -1,6 +1,30 @@
-# Answers to "Brief: questions from building Make invoice and the CVR lookup" - fixed 2
+# Answers to "Brief: questions from building Make invoice and the CVR lookup" - fixed 6
 
-Replaces `design_handoff_invoice_cvr_fixed`. Fixed since that package: the order page's actions are regrouped, with Duplicate and Make invoice as icons (D). Before that, `design_handoff_invoice_cvr_fixed` replaced `design_handoff_invoice_cvr`. Fixed since that package: the recipient is one remembered view with a live CVR field (A), the borderless swap buttons are gone (B), and Add them no longer opens a new tab (C). Points 1-7 below are unchanged unless A says otherwise.
+Replaces `design_handoff_invoice_cvr_fixed_5`. Fixed since that package: the Files list below named the wrong points for some files and listed two stylesheets apart from the rest; no page changed. Before that, `design_handoff_invoice_cvr_fixed_5` replaced `design_handoff_invoice_cvr_fixed_4`, fixing: Country, CVR and Address move into a collapsed Invoice details card (G). Before that, `design_handoff_invoice_cvr_fixed_4` replaced `design_handoff_invoice_cvr_fixed_3`, fixing: one help line for CVR and Address (F). Before that, `design_handoff_invoice_cvr_fixed_3` replaced `design_handoff_invoice_cvr_fixed_2`, fixing: Country and CVR share a line (E). Before that, `design_handoff_invoice_cvr_fixed_2` replaced `design_handoff_invoice_cvr_fixed`, fixing: the order page's actions are regrouped, with Duplicate and Make invoice as icons (D). Before that, `design_handoff_invoice_cvr_fixed` replaced `design_handoff_invoice_cvr`. Fixed since that package: the recipient is one remembered view with a live CVR field (A), the borderless swap buttons are gone (B), and Add them no longer opens a new tab (C). Points 1-7 below are unchanged unless A says otherwise.
+
+## G. Invoice details: a collapsed card on the vendor form
+
+**The problem** - Country, CVR and Address sat in THE VENDOR card at full weight, though they are only used on an invoice, which is rarely made.
+
+**What changed** - They move into their own card below THE VENDOR, "Invoice details", the existing toggle card (`sp-card sp-card--flush` with `sp-list__toolbar sp-list__toolbar--toggle` and `sp-card__chevron`, as the phone's Order details in Order editing layouts 1c), its body a 12px stack. It always starts collapsed and is not remembered. The summary line says what is set: "Not added"; "Denmark · CVR 12345678"; "Sweden · VAT SE556677889901"; "Denmark · address only". A name match waiting to be confirmed reads "A company match is waiting", and the "Is this the company?" suggestion stays inside the card. Add them in the invoice dialog opens the vendor's edit page with the card open. The fields inside, and the 5m states, are unchanged. No component changed.
+
+**Where** - `Vendors and categories.dc.html` 5b (new vendor, "Not added"), 5c (edit, "Denmark · CVR 12345678"), the six 5m states drawn open with their summaries, and a 5m note; `Mobile screens.dc.html` 7a (new vendor); `Invoice.dc.html` 24d, the Add them note. App: the vendor form.
+
+## F. One help line for CVR and Address on the vendor form
+
+**The problem** - With Country and CVR on one line, the CVR help ("The address comes from the CVR register within a day of saving, and is kept up to date.") wrapped in its half, and said the same thing as the help under Address.
+
+**What changed** - The CVR field has no help line. The help under Address now reads: "Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date." Same text in every vendor form that showed the old Address help. The CVR field's error lines (no match, unknown number) are unchanged.
+
+**Where** - `Vendors and categories.dc.html` 5b, 5c and the 5m states; `Mobile screens.dc.html` (the vendor form). App: the vendor form.
+
+## E. Country and CVR share a line
+
+**The problem** - Country and CVR were two full-width fields one under the other, though together they state one fact: which register the number belongs to.
+
+**What changed** - They sit side by side in `sp-fields` (the existing two-column field row, 12px gap), Country on the left; outside Denmark the right half is VAT number. A help or error line under CVR stays under its own half. On touch the pair stacks, as `sp-fields` always does, so the phone is unchanged. No component changed.
+
+**Where** - `Vendors and categories.dc.html` 5b, 5c and the 5m states (8 places, and a 5m note); `Invoice.dc.html` 24c (both states) and 24d; `Mobile screens.dc.html` (the vendor form, stacked). App: the vendor form and the invoice dialog.
 
 ## D. The order page's actions: Edit and Delete as the pair, the rare ones as icons
 
@@ -102,14 +126,16 @@ PR https://github.com/mm98/Spendly/pull/485. The six points take the brief's rec
 
 - `README.md` - the design overview, unchanged.
 - `CHANGES.md` - this note.
-- `Invoice.dc.html` - points 1-7 and A-C.
-- `Order editing layouts.dc.html` - the order page's actions (1a).
-- `Duplicate and alerts.dc.html` - 8a note on where Make invoice lives.
-- `Icon legend.dc.html`, `icons.js` - where `file-invoice` is used.
+- `Invoice.dc.html` - points 1 to 7, A (the recipient), B (no borderless buttons), C (same tab), E (Country and CVR on one line) and G (Add them opens Invoice details).
+- `Order editing layouts.dc.html` - point 5 and D, the order page's actions (1a).
+- `Vendors and categories.dc.html` - E, F and G: Country and CVR on one line, one help line, the Invoice details card (5b, 5c, 5m).
+- `Mobile screens.dc.html` - E, F and G on the phone's vendor form (7a).
+- `Duplicate and alerts.dc.html` - point 5, the 8a note on where Make invoice lives.
+- `Icon legend.dc.html`, `icons.js` - D, where `copy` and `file-invoice` are used (19a).
 - `support.js`, `components.js` - needed to open the pages.
 - `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles, unchanged.
-- `styles/pages/invoice.css` - the two no-photo states.
-- `styles/pages/order-editing.css`, `styles/pages/duplicate-and-alerts.css`, `styles/pages/icon-legend.css` - loaded by those pages, unchanged.
+- `styles/pages/invoice.css` - point 7, the two no-photo states.
+- `styles/pages/order-editing.css`, `styles/pages/duplicate-and-alerts.css`, `styles/pages/icon-legend.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - loaded by the pages above, unchanged.
 
 ## Check
 

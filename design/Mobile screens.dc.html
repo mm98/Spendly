@@ -352,25 +352,6 @@
               <span class="sp-field__help">The name you will recognise in a list. Receipts can spell it differently.</span>
             </div>
             <div class="sp-field">
-              <span class="sp-field__label" id="ms-v-cty">Country</span>
-              <div class="sp-combobox">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ms-v-cty">
-                  <span class="sp-grow">Denmark</span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            </div>
-            <div class="sp-field">
-              <label class="sp-field__label" for="ms-v-cvr">CVR</label>
-              <input class="sp-input" id="ms-v-cvr" type="text" inputMode="numeric" placeholder="8 digits" aria-describedby="ms-v-cvr-help">
-              <span class="sp-field__help" id="ms-v-cvr-help">The address comes from the CVR register within a day of saving, and is kept up to date.</span>
-            </div>
-            <div class="sp-field">
-              <label class="sp-field__label" for="ms-v-addr">Address</label>
-              <textarea class="sp-textarea" id="ms-v-addr" rows="3"></textarea>
-              <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
-            </div>
-            <div class="sp-field">
               <label class="sp-field__label" for="ms-v-image">Image</label>
               <span class="sp-slot sp-slot--start">
                 <label class="sp-mark sp-mark--large sp-mark--empty" for="ms-v-image" data-tip="Add an image">
@@ -380,6 +361,38 @@
                 <span class="sp-meta">Add</span>
               </span>
               <span class="sp-field__help">Shown on this vendor's orders that have no item photo. A logo, the shop, anything you know it by.</span>
+            </div>
+          </div>
+
+          <div class="sp-card sp-card--flush">
+            <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="false">
+              <span class="sp-stacked">
+                <span class="sp-title sp-truncate">Invoice details</span>
+                <span class="sp-meta">Not added</span>
+              </span>
+              <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+            </button>
+            <div class="sp-card__body sp-stack sp-gap-12">
+              <div class="sp-fields">
+              <div class="sp-field">
+                <span class="sp-field__label" id="ms-v-cty">Country</span>
+                <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="ms-v-cty">
+                    <span class="sp-grow">Denmark</span>
+                    <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="sp-field">
+                <label class="sp-field__label" for="ms-v-cvr">CVR</label>
+                <input class="sp-input" id="ms-v-cvr" type="text" inputMode="numeric" placeholder="8 digits">
+              </div>
+              </div>
+              <div class="sp-field">
+                <label class="sp-field__label" for="ms-v-addr">Address</label>
+                <textarea class="sp-textarea" id="ms-v-addr" rows="3"></textarea>
+                <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.</span>
+              </div>
             </div>
           </div>
           <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">ALIASES</span></div>

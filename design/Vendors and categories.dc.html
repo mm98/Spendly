@@ -230,25 +230,6 @@
             <span class="sp-field__help">The name you will recognise in a list. Receipts can spell it differently.</span>
           </div>
           <div class="sp-field">
-            <span class="sp-field__label" id="vc-new-cty">Country</span>
-            <div class="sp-combobox">
-              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-new-cty">
-                <span class="sp-grow">Denmark</span>
-                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-              </button>
-            </div>
-          </div>
-          <div class="sp-field">
-            <label class="sp-field__label" for="vc-new-cvr">CVR</label>
-            <input class="sp-input" id="vc-new-cvr" type="text" inputMode="numeric" placeholder="8 digits" aria-describedby="vc-new-cvr-help">
-            <span class="sp-field__help" id="vc-new-cvr-help">The address comes from the CVR register within a day of saving, and is kept up to date.</span>
-          </div>
-          <div class="sp-field">
-            <label class="sp-field__label" for="vc-new-addr">Address</label>
-            <textarea class="sp-textarea" id="vc-new-addr" rows="3"></textarea>
-            <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
-          </div>
-          <div class="sp-field">
             <label class="sp-field__label" for="vc-image1">Image</label>
             <span class="sp-slot sp-slot--start">
               <label class="sp-mark sp-mark--large sp-mark--empty" for="vc-image1" data-tip="Add an image">
@@ -258,6 +239,38 @@
               <span class="sp-meta">Add</span>
             </span>
             <span class="sp-field__help">Shown on this vendor's orders that have no item photo. A logo, the shop, anything you know it by.</span>
+          </div>
+        </div>
+
+        <div class="sp-card sp-card--flush">
+          <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="false">
+            <span class="sp-stacked">
+              <span class="sp-title sp-truncate">Invoice details</span>
+              <span class="sp-meta">Not added</span>
+            </span>
+            <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+          </button>
+          <div class="sp-card__body sp-stack sp-gap-12">
+            <div class="sp-fields">
+            <div class="sp-field">
+              <span class="sp-field__label" id="vc-new-cty">Country</span>
+              <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-new-cty">
+                  <span class="sp-grow">Denmark</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="vc-new-cvr">CVR</label>
+              <input class="sp-input" id="vc-new-cvr" type="text" inputMode="numeric" placeholder="8 digits">
+            </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="vc-new-addr">Address</label>
+              <textarea class="sp-textarea" id="vc-new-addr" rows="3"></textarea>
+              <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.</span>
+            </div>
           </div>
         </div>
 
@@ -386,28 +399,6 @@
             <input class="sp-input" id="vc-f5" type="text">
           </div>
           <div class="sp-field">
-            <span class="sp-field__label" id="vc-edit-cty">Country</span>
-            <div class="sp-combobox">
-              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-edit-cty">
-                <span class="sp-grow">Denmark</span>
-                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-              </button>
-            </div>
-          </div>
-          <div class="sp-field">
-            <label class="sp-field__label" for="vc-edit-cvr">CVR</label>
-            <input class="sp-input" id="vc-edit-cvr" type="text" inputMode="numeric" defaultValue="12345678">
-          </div>
-          <div class="sp-field">
-            <span class="sp-field__label" id="vc-edit-addr">Address</span>
-            <div class="sp-well sp-well--quiet" aria-labelledby="vc-edit-addr">
-              <span class="sp-data">Indbo Møbler A/S</span>
-              <span class="sp-data">Vesterbrogade 112</span>
-              <span class="sp-data">1620 København V</span>
-            </div>
-            <span class="sp-field__help">From the CVR register, checked 14 Oct.</span>
-          </div>
-          <div class="sp-field">
             <label class="sp-field__label" for="vc-image2">Image</label>
             <span class="sp-slot sp-slot--start">
               <label class="sp-mark sp-mark--large sp-mark--photo" for="vc-image2" data-tip="Replace the image">
@@ -416,6 +407,42 @@
               <button type="button" class="sp-slot__remove">Remove</button>
             </span>
             <span class="sp-field__help">Shown on this vendor's orders that have no item photo.</span>
+          </div>
+        </div>
+
+        <div class="sp-card sp-card--flush">
+          <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="false">
+            <span class="sp-stacked">
+              <span class="sp-title sp-truncate">Invoice details</span>
+              <span class="sp-meta">Denmark · CVR 12345678</span>
+            </span>
+            <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+          </button>
+          <div class="sp-card__body sp-stack sp-gap-12">
+            <div class="sp-fields">
+            <div class="sp-field">
+              <span class="sp-field__label" id="vc-edit-cty">Country</span>
+              <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-edit-cty">
+                  <span class="sp-grow">Denmark</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="vc-edit-cvr">CVR</label>
+              <input class="sp-input" id="vc-edit-cvr" type="text" inputMode="numeric" defaultValue="12345678">
+            </div>
+            </div>
+            <div class="sp-field">
+              <span class="sp-field__label" id="vc-edit-addr">Address</span>
+              <div class="sp-well sp-well--quiet" aria-labelledby="vc-edit-addr">
+                <span class="sp-data">Indbo Møbler A/S</span>
+                <span class="sp-data">Vesterbrogade 112</span>
+                <span class="sp-data">1620 København V</span>
+              </div>
+              <span class="sp-field__help">From the CVR register, checked 14 Oct.</span>
+            </div>
           </div>
         </div>
 
@@ -1887,10 +1914,12 @@
     <span class="doc-badge" id="5m">5m</span>
     <span class="doc-section__title">Company details from the CVR register</span>
   </div>
-  <div class="doc-lede">A Danish vendor's CVR number links it to the CVR register, and a background job keeps its address current. Six states of the vendor's Country, CVR and Address fields, in <a href="#5b">5b</a> and <a href="#5c">5c</a>.</div>
+  <div class="doc-lede">A Danish vendor's CVR number links it to the CVR register, and a background job keeps its address current. Six states of the vendor's Country, CVR and Address fields, which live in the Invoice details card of <a href="#5b">5b</a> and <a href="#5c">5c</a>, drawn open.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Nothing is looked up while the page is open.</b> A background job does every lookup. A newly saved CVR number is looked up within a day (state 1); after that every vendor with a CVR is checked once a week.</div>
+    <div class="doc-note"><b>Invoice details is its own card, below THE VENDOR, and always starts collapsed</b>, since these fields are only used on an invoice. It is the toggle card of the phone's Order details (<a href="Order editing layouts.dc.html#1c">1c</a>): the title, a summary line, the chevron. The summary says what is set: "Not added" with nothing set; otherwise the country and the number, "Denmark · CVR 12345678" or "Sweden · VAT SE556677889901", and "Denmark · address only" for a typed address without a number. A name match waiting to be confirmed (state 3) reads "A company match is waiting"; the suggestion itself stays inside the card. The card opens and closes on click and is not remembered; Add them in the invoice dialog (<a href="Invoice.dc.html#24d">Invoice 24d</a>) opens the vendor's edit page with it open.</div>
+    <div class="doc-note"><b>Country and CVR share a line</b> (<code>sp-fields</code>), Country on the left, since together they say which register the number belongs to; outside Denmark the right half is VAT number. On touch the pair stacks, as <code>sp-fields</code> always does. The help or error line under CVR sits under its own half. The same pair is used in the invoice dialog (<a href="Invoice.dc.html#24c">Invoice 24c</a>).</div>
     <div class="doc-note"><b>The register always wins.</b> With a CVR number, Address is not a field: it shows what the register holds, with "From the CVR register, checked 14 Oct." (state 2). A change in the register replaces it silently at the next check. The register's company name (Indbo Møbler A/S) is stored beside the vendor's own Name and printed as the invoice's From; the vendor's Name never changes.</div>
     <div class="doc-note"><b>Addresses are kept with the date they took effect.</b> An invoice uses the address the vendor had on the order date (<a href="Invoice.dc.html#24a">Invoice 24a</a>), so an old order's invoice does not change when the company moves.</div>
     <div class="doc-note"><b>A Danish vendor without a CVR number is searched by name</b> in the same job (cvrapi.dk's name search). The single best match is offered on the vendor page as "Is this the company?" (state 3). <b>Use it</b> sets the CVR number and the address follows at once, from the result. <b>Not this one</b> closes it, and that name is not searched again until the vendor's Name changes. A vendor with no match shows nothing.</div>
@@ -1902,7 +1931,16 @@
   <div class="doc-specimens">
     <div class="sp-stack sp-gap-8 doc-w400">
       <span class="sp-section-label">1 - CVR SAVED, NOT LOOKED UP YET</span>
-      <div class="sp-card">
+      <div class="sp-card sp-card--flush">
+        <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="true">
+          <span class="sp-stacked">
+            <span class="sp-title sp-truncate">Invoice details</span>
+            <span class="sp-meta">Denmark · CVR 12345678</span>
+          </span>
+          <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+        </button>
+        <div class="sp-card__body sp-stack sp-gap-12">
+          <div class="sp-fields">
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m1-cty-cty">Country</span>
             <div class="sp-combobox">
@@ -1916,6 +1954,7 @@
             <label class="sp-field__label" for="vc-m1">CVR</label>
             <input class="sp-input" id="vc-m1" type="text" defaultValue="12345678">
           </div>
+          </div>
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m1-addr">Address</span>
             <div class="sp-well sp-well--quiet" aria-labelledby="vc-m1-addr">
@@ -1923,11 +1962,21 @@
             </div>
             <span class="sp-field__help">Filled from the CVR register within a day.</span>
           </div>
+        </div>
       </div>
     </div>
     <div class="sp-stack sp-gap-8 doc-w400">
       <span class="sp-section-label">2 - FROM THE REGISTER</span>
-      <div class="sp-card">
+      <div class="sp-card sp-card--flush">
+        <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="true">
+          <span class="sp-stacked">
+            <span class="sp-title sp-truncate">Invoice details</span>
+            <span class="sp-meta">Denmark · CVR 12345678</span>
+          </span>
+          <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+        </button>
+        <div class="sp-card__body sp-stack sp-gap-12">
+          <div class="sp-fields">
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m2-cty-cty">Country</span>
             <div class="sp-combobox">
@@ -1941,6 +1990,7 @@
             <label class="sp-field__label" for="vc-m2">CVR</label>
             <input class="sp-input" id="vc-m2" type="text" defaultValue="12345678">
           </div>
+          </div>
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m2-addr">Address</span>
             <div class="sp-well sp-well--quiet" aria-labelledby="vc-m2-addr">
@@ -1950,11 +2000,21 @@
             </div>
             <span class="sp-field__help">From the CVR register, checked 14 Oct.</span>
           </div>
+        </div>
       </div>
     </div>
     <div class="sp-stack sp-gap-8 doc-w400">
       <span class="sp-section-label">3 - NO CVR, A MATCH FOUND BY NAME</span>
-      <div class="sp-card">
+      <div class="sp-card sp-card--flush">
+        <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="true">
+          <span class="sp-stacked">
+            <span class="sp-title sp-truncate">Invoice details</span>
+            <span class="sp-meta">A company match is waiting</span>
+          </span>
+          <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+        </button>
+        <div class="sp-card__body sp-stack sp-gap-12">
+          <div class="sp-fields">
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m3-cty-cty">Country</span>
             <div class="sp-combobox">
@@ -1967,6 +2027,7 @@
           <div class="sp-field">
             <label class="sp-field__label" for="vc-m3">CVR</label>
             <input class="sp-input" id="vc-m3" type="text">
+          </div>
           </div>
           <div class="sp-well">
             <span class="sp-title">Is this the company?</span>
@@ -1981,13 +2042,23 @@
           <div class="sp-field">
             <label class="sp-field__label" for="vc-m3-addr">Address</label>
             <textarea class="sp-textarea" id="vc-m3-addr" rows="3"></textarea>
-            <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
+            <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.</span>
           </div>
+        </div>
       </div>
     </div>
     <div class="sp-stack sp-gap-8 doc-w400">
       <span class="sp-section-label">4 - CEASED TRADING</span>
-      <div class="sp-card">
+      <div class="sp-card sp-card--flush">
+        <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="true">
+          <span class="sp-stacked">
+            <span class="sp-title sp-truncate">Invoice details</span>
+            <span class="sp-meta">Denmark · CVR 31415926</span>
+          </span>
+          <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+        </button>
+        <div class="sp-card__body sp-stack sp-gap-12">
+          <div class="sp-fields">
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m4-cty-cty">Country</span>
             <div class="sp-combobox">
@@ -2001,6 +2072,7 @@
             <label class="sp-field__label" for="vc-m4">CVR</label>
             <input class="sp-input" id="vc-m4" type="text" defaultValue="31415926">
           </div>
+          </div>
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m4-addr">Address</span>
             <div class="sp-well sp-well--quiet" aria-labelledby="vc-m4-addr">
@@ -2010,11 +2082,21 @@
             </div>
             <span class="sp-field__help">Ceased trading 3 Mar 2026.</span>
           </div>
+        </div>
       </div>
     </div>
     <div class="sp-stack sp-gap-8 doc-w400">
       <span class="sp-section-label">5 - NOT IN THE REGISTER</span>
-      <div class="sp-card">
+      <div class="sp-card sp-card--flush">
+        <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="true">
+          <span class="sp-stacked">
+            <span class="sp-title sp-truncate">Invoice details</span>
+            <span class="sp-meta">Denmark · CVR 12345679</span>
+          </span>
+          <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+        </button>
+        <div class="sp-card__body sp-stack sp-gap-12">
+          <div class="sp-fields">
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m5-cty-cty">Country</span>
             <div class="sp-combobox">
@@ -2029,16 +2111,27 @@
             <input class="sp-input" id="vc-m5" type="text" defaultValue="12345679" aria-invalid="true" aria-describedby="vc-m5-help">
             <span class="sp-field__help" data-color="danger" id="vc-m5-help">No company has CVR 12345679 in the register. Check the number.</span>
           </div>
+          </div>
           <div class="sp-field">
             <label class="sp-field__label" for="vc-m5-addr">Address</label>
             <textarea class="sp-textarea" id="vc-m5-addr" rows="3"></textarea>
-            <span class="sp-field__help">For a vendor without a CVR number. Printed on an invoice made from its orders.</span>
+            <span class="sp-field__help">Printed on an invoice made from its orders. With a CVR number it comes from the CVR register within a day of saving, and is kept up to date.</span>
           </div>
+        </div>
       </div>
     </div>
     <div class="sp-stack sp-gap-8 doc-w400">
       <span class="sp-section-label">6 - OUTSIDE DENMARK</span>
-      <div class="sp-card">
+      <div class="sp-card sp-card--flush">
+        <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="true">
+          <span class="sp-stacked">
+            <span class="sp-title sp-truncate">Invoice details</span>
+            <span class="sp-meta">Sweden · VAT SE556677889901</span>
+          </span>
+          <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+        </button>
+        <div class="sp-card__body sp-stack sp-gap-12">
+          <div class="sp-fields">
           <div class="sp-field">
             <span class="sp-field__label" id="vc-m6-cty-cty">Country</span>
             <div class="sp-combobox">
@@ -2052,11 +2145,13 @@
             <label class="sp-field__label" for="vc-m6">VAT number</label>
             <input class="sp-input" id="vc-m6" type="text" defaultValue="SE556677889901">
           </div>
+          </div>
           <div class="sp-field">
             <label class="sp-field__label" for="vc-m6-addr">Address</label>
             <textarea class="sp-textarea" id="vc-m6-addr" rows="3"></textarea>
             <span class="sp-field__help">Printed on an invoice made from its orders.</span>
           </div>
+        </div>
       </div>
     </div>
   </div>
