@@ -84,8 +84,9 @@ is removed in the change that settles it.
 - **What the reader sees:** the only way to remove a line is Undo, which also removes its orders.
   A line otherwise leaves the list only when newer imports push it out, since the list shows the
   last few.
-- **What was found:** 17 October 2026, asked for by the user. Imported orders keep a link to their
-  import, which is how the order list shows the orders of one import. Two ways to do it: hide the
-  line and keep the link, or remove the line and make its orders ordinary orders.
+- **What was found:** 17 October 2026, asked for by the user: a one-time import, whose mapping is
+  never needed again, stays in the list with nothing left to do there. Imported orders keep a link
+  to their import, which is how the order list shows the orders of one import. Two ways to do it:
+  hide the line and keep the link, or remove the line and make its orders ordinary orders.
 - **Why not now:** it is a new feature and the design does not draw it. The user chooses between
   the two ways, then it goes to Claude Design.
