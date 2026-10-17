@@ -211,6 +211,10 @@ if (withPdf) step('receipt PDF', await fileOn(withPdf.id, 'receipt.pdf', 'applic
 // a line with its own photo
 const photoOrder = await order('With a line photo', { vendor: 'Alias shop', date: day(-15), items: [{ title: 'A line with a photo', quantity: 1, price: 250 }] })
 if (photoOrder) step('line photo', await call('POST', `/orders/${photoOrder.id}/items/${photoOrder.items[0].id}/attachments`, undefined, upload('line.png', 'image/png', png(80, 80, [120, 160, 200]))))
+// an invoice line with its own photo beside one that the vendor's picture stands in for
+const photoKinds = await order('Invoice with every kind of photo', { vendor: 'Edge favourite shop', date: day(-9),
+	items: [{ title: 'A line with its own photo', quantity: 1, price: 250 }, { title: 'A line the vendor picture stands in for', quantity: 2, price: 120 }] })
+if (photoKinds) step('line photo', await call('POST', `/orders/${photoKinds.id}/items/${photoKinds.items[0].id}/attachments`, undefined, upload('line.png', 'image/png', png(80, 80, [200, 120, 90]))))
 // a vendor with a picture
 const pictured = (await call('GET', '/vendors?name=Edge%20favourite%20shop&pageSize=1')).data?.vendors?.[0]
 if (pictured && (await call('GET', `/vendors/${pictured.id}/image/square-256`)).status === 404) {
