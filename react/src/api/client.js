@@ -350,9 +350,9 @@ export async function getInvoiceRecipient(signal) {
 	return request('/api/invoices/recipient', { signal })
 }
 
-/** A company in the CVR register by its number or name: `{ status: 'found' | 'none' | 'limit' | 'failed', company }`. */
-export async function findInvoiceCompany(query, signal) {
-	return request(`/api/invoices/company?${new URLSearchParams({ q: query })}`, { signal })
+/** A company in the CVR register by its number: `{ status: 'found' | 'none' | 'limit' | 'failed', company }`. */
+export async function findInvoiceCompany(cvr, signal) {
+	return request(`/api/invoices/company?${new URLSearchParams({ cvr })}`, { signal })
 }
 
 /** Who sends an order's invoice, and what its From box lacks: `{ vendorId, name, missing }`. */

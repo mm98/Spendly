@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router'
 import { Card, CardBody, CardHeader, Panel, Toolbar } from '../components/Card.jsx'
-import { Button } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
 import { Sum } from '../components/Data.jsx'
@@ -151,19 +151,18 @@ function OrderView({ order, touch, onGone }) {
 	const totals = (
 		<Card
 			footer={[
-				<Button key="copy" variant="outline" to={`/orders/new?duplicate=${order.id}`}>Duplicate</Button>,
+				<Button key="delete" variant="outline" color="danger" onClick={() => setAsking(true)}>Delete order</Button>,
 				<Button key="edit" to={`/orders/${order.id}/edit`}>Edit order</Button>
 			]}
 			footerLayout="split"
 			footerCommits
-			after={(
-				<>
-					<Button variant="outline" size="small" fullWidth onClick={() => setInvoicing(true)}>Make invoice</Button>
-					<Button size="small" color="danger" fullWidth onClick={() => setAsking(true)}>Delete order</Button>
-				</>
-			)}
 		>
-			<CardHeader name="Totals" />
+			<CardHeader name="Totals" control={(
+				<>
+					<IconButton variant="outline" icon="copy" aria-label="Duplicate order" data-tip="Duplicate" to={`/orders/new?duplicate=${order.id}`} />
+					<IconButton variant="outline" icon="file-invoice" aria-label="Make invoice" data-tip="Make invoice" onClick={() => setInvoicing(true)} />
+				</>
+			)} />
 			<div className="sp-stack">
 				<Sum value={money(order.subtotal)}>Items ({order.items.length})</Sum>
 				<Sum value={order.discount ? money(-order.discount) : money(0)}>Discount</Sum>

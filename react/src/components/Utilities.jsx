@@ -160,14 +160,15 @@ const stopsIn = box => [...box.querySelectorAll(STOPS)].filter(el => {
 })
 
 /** Holds Tab inside a modal surface while `active`. Opening focuses `initial` (a selector), the box
-    or its first stop; closing returns focus to the opener, or to a closed menu's button. */
-export function useFocusTrap(ref, active = true, initial) {
+    or its first stop; closing returns focus to the opener, or to a closed menu's button. With `keepTop`
+    the box is not scrolled to what it focuses, so a box taller than the screen opens at its top. */
+export function useFocusTrap(ref, active = true, initial, keepTop = false) {
 	useEffect(() => {
 		const box = ref.current
 		if (!box || !active) return
 		const back = menuTrigger(document.activeElement) ?? document.activeElement
 		const first = (initial && box.querySelector(initial)) ?? (box.hasAttribute('tabindex') ? box : stopsIn(box)[0] ?? box)
-		first.focus()
+		first.focus({ preventScroll: keepTop })
 		const tab = ev => {
 			if (ev.key !== 'Tab') return
 			const at = document.activeElement
@@ -186,5 +187,5 @@ export function useFocusTrap(ref, active = true, initial) {
 			const to = back?.isConnected && back.checkVisibility?.() !== false ? back : menuTrigger(back)
 			to?.focus?.()
 		}
-	}, [ref, initial, active])
+	}, [ref, initial, active, keepTop])
 }

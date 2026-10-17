@@ -1,40 +1,40 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { fromEpoch } from '../lib/dates.js'
-import { findCompany } from '../lib/cvrRegister.js'
+import { findCompany, isCvrNumber } from '../lib/cvrRegister.js'
 import { cleanRecipient, drawInvoice, invoiceFor, senderOf } from '../lib/invoice.js'
 
-/* Make invoice (Invoice 24c, 24d): who the invoice is for, the company a CVR number or a name finds,
-   and the PDF itself, or its first page as the dialog's preview. */
+/* Make invoice (Invoice 24c, 24d): who the invoice is for, the company a CVR number finds, and the
+   PDF itself, or its first page as the dialog's preview. */
 
 export const router = Router()
 
 // the preview is the page at 40%, drawn at twice that for a sharp screen
 const PREVIEW_WIDTH = 636
 
-const selectRecipient = db.prepare('SELECT typed, lookup, cvr, name, address, country, att FROM user_invoice_recipients WHERE user_id = ?')
-const upsertRecipient = db.prepare(`INSERT INTO user_invoice_recipients (user_id, typed, lookup, cvr, name, address, country, att)
-	VALUES (@userId, @typed, @lookup, @cvr, @name, @address, @country, @att)
-	ON CONFLICT (user_id) DO UPDATE SET typed = excluded.typed, lookup = excluded.lookup, cvr = excluded.cvr, name = excluded.name,
-		address = excluded.address, country = excluded.country, att = excluded.att`)
+const selectRecipient = db.prepare('SELECT name, country, cvr, vat_number, address, att FROM user_invoice_recipients WHERE user_id = ?')
+const upsertRecipient = db.prepare(`INSERT INTO user_invoice_recipients (user_id, name, country, cvr, vat_number, address, att)
+	VALUES (@userId, @name, @country, @cvr, @vatNumber, @address, @att)
+	ON CONFLICT (user_id) DO UPDATE SET name = excluded.name, country = excluded.country, cvr = excluded.cvr,
+		vat_number = excluded.vat_number, address = excluded.address, att = excluded.att`)
 const selectOrderVendor = db.prepare(`SELECT o.date, v.id, v.name, v.country, v.cvr, v.vat_number, v.address
 	FROM orders o JOIN vendors v ON v.id = o.vendor_id WHERE o.id = ? AND o.user_id = ?`)
 
-// the last recipient an invoice was made for, so the dialog opens with it
+// the recipient of the last downloaded invoice, so the dialog opens with it; null before the first
 router.get('/recipient', (req, res) => {
 	const row = selectRecipient.get(req.user.id)
 	res.json(row ? {
-		typed: Boolean(row.typed), lookup: row.lookup ?? '', cvr: row.cvr, name: row.name,
-		address: row.address ? row.address.split('\n') : [], country: row.country, att: row.att ?? ''
+		name: row.name ?? '', country: row.country, cvr: row.cvr ?? '', vatNumber: row.vat_number ?? '',
+		address: row.address ? row.address.split('\n') : [], att: row.att ?? ''
 	} : null)
 })
 
-// a company by CVR number or name, from the register: { status, company }
+// a company by CVR number, from the register: { status, company }
 router.get('/company', async (req, res, next) => {
 	try {
-		const query = String(req.query.q ?? '').trim().slice(0, 200)
-		if (!query) return res.status(400).json({ error: 'Type a CVR number or a company name.' })
-		const answer = await findCompany(query)
+		const cvr = String(req.query.cvr ?? '').replace(/\s+/g, '')
+		if (!isCvrNumber(cvr)) return res.status(400).json({ error: 'A CVR number has 8 digits.' })
+		const answer = await findCompany(cvr)
 		// a spent day or a failed lookup can change without a write, so Try again asks again
 		if (answer.status === 'limit' || answer.status === 'failed') res.set('Cache-Control', 'no-store')
 		res.json(answer)
@@ -68,15 +68,13 @@ router.get('/orders/:id/preview', async (req, res, next) => {
 router.post('/orders/:id', async (req, res, next) => {
 	try {
 		const recipient = cleanRecipient(req.body?.recipient)
-		if (!recipient) return res.status(400).json({ error: 'Name the company the invoice is for.' })
 		const made = await invoiceFor(req.user.id, req.params.id, recipient, String(req.body?.locale ?? 'da-DK'))
 		if (!made) return res.status(404).json({ error: 'No order ' + req.params.id })
 		const pdf = await drawInvoice(made)
 		if (!pdf) return res.status(500).json({ error: 'The invoice could not be made. Try again.' })
-		const typed = Boolean(req.body?.typed)
 		upsertRecipient.run({
-			userId: req.user.id, typed: typed ? 1 : 0, lookup: typed ? null : String(req.body?.lookup ?? '').trim().slice(0, 200) || null,
-			cvr: recipient.cvr, name: recipient.name, address: recipient.address.join('\n') || null, country: recipient.country, att: recipient.att
+			userId: req.user.id, name: recipient.name, country: recipient.country, cvr: recipient.cvr, vatNumber: recipient.vatNumber,
+			address: recipient.address.join('\n') || null, att: recipient.att
 		})
 		res.set('Content-Type', 'application/pdf')
 		res.set('Content-Disposition', `attachment; filename="${made.fileName.replace(/[^\x20-\x7e]/g, '_')}"; filename*=UTF-8''${encodeURIComponent(made.fileName)}`)
