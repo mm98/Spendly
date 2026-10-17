@@ -463,10 +463,10 @@ router.get('/often', (req, res) => {
 })
 
 /* The monthly limits an order counts against (8b): each category's limit and its month's spend
-   without this order, shared as statistics shares it, where drafts, cancelled orders and orders left out of statistics spend nothing. */
+   without this order, counted as statistics counts it, where drafts, cancelled orders and orders left out of statistics spend nothing. */
 const selectCategoryLimit = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
 const selectCategoryMonthSpend = db.prepare(`
-	SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) FROM order_categories oc
+	SELECT COALESCE(SUM(ot.total), 0) FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
 		AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0`).pluck()

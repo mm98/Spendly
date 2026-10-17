@@ -8,7 +8,7 @@ import { countsOnly, listOf, nameOrder, pageOf } from './listPage.js'
 
 const ORDERS = `SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id
 	WHERE ot.user_id = @userId`
-const MONTH = `SELECT oc.category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend
+const MONTH = `SELECT oc.category_id, SUM(ot.total) AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0`
 
@@ -32,11 +32,11 @@ const selectOrders = db.prepare(`SELECT oc.category_id, COUNT(*) AS orders
 	WHERE oc.category_id IN (SELECT value FROM json_each(@ids)) AND ot.user_id = @userId GROUP BY oc.category_id`)
 /* A page's sums and counts are added up here from its own rows: no GROUP BY, so SQLite does not
    sort them in a temp B-tree, as bookmarkCategoryCounts does in lib/aggregate.js. */
-const selectMonth = db.prepare(`SELECT oc.category_id, ot.total * 1.0 / ot.category_count AS spend
+const selectMonth = db.prepare(`SELECT oc.category_id, ot.total AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0
 	AND oc.category_id IN (SELECT value FROM json_each(@ids))`)
-const selectYear = db.prepare(`SELECT oc.category_id, ot.total * 1.0 / ot.category_count AS spend
+const selectYear = db.prepare(`SELECT oc.category_id, ot.total AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
 	WHERE ot.user_id = @userId AND ot.date >= @yearFrom AND ot.date < @from AND ot.exclude_from_stats = 0
 	AND oc.category_id IN (SELECT value FROM json_each(@ids))`)

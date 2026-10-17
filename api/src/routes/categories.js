@@ -29,13 +29,13 @@ const countBookmarks = db.prepare('SELECT COUNT(*) c FROM bookmark_categories bc
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
-const ZERO_STATS = { orders: 0, spend: 0, share: 0, saved: 0 }
+const ZERO_STATS = { orders: 0, spend: 0, saved: 0 }
 
 // The single record, in full: its form and rail read it.
 const withStats = (category, stats = ZERO_STATS, bookmarks = 0, extra = {}) => ({
 	id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
 	colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
-	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, bookmarks,
+	spend: stats.spend, saved: stats.saved, orders: stats.orders, bookmarks,
 	monthAverage: extra.monthAverage ?? 0, monthSpends: extra.monthSpends ?? [], alone: extra.alone ?? 0
 })
 
