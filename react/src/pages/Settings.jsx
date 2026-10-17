@@ -25,7 +25,7 @@ import {
 	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
-import { ImportCard } from './SettingsImport.jsx'
+import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
@@ -135,8 +135,13 @@ export default function Settings() {
 		return out
 	})
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
-	// moving between panes keeps the draft, so only leaving Settings asks first, naming what is lost
-	const guard = useLeaveGuard(dirty.length > 0, { within: '/settings', names: dirty.map(s => s.label) })
+	const importing = useImportState()
+	const unimported = importUnsaved(importing)
+	const leaveBody = !unimported ? undefined
+		: !dirty.length ? importLeaveBody(unimported)
+		: `Your changes in ${dirty.map(s => s.label).join(' and in ')} are not saved, and ${unimported} is not imported yet. If you leave now, they are lost. No orders have been written.`
+	// moving between panes keeps the draft and the import, so only leaving Settings asks first, naming what is lost
+	const guard = useLeaveGuard(dirty.length > 0 || unimported != null, { within: '/settings', names: dirty.map(s => s.label), body: leaveBody })
 
 	const save = () => {
 		setSaving(true)
@@ -189,7 +194,7 @@ export default function Settings() {
 		alerts: <AlertsCard key="alerts" {...fields} />,
 		looks: <LooksCard key="looks" {...fields} />,
 		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
-		import: <ImportCard key="import" />,
+		import: <ImportCard key="import" state={importing} />,
 		demo: <DemoCard key="demo" />,
 		build: <BuildCard key="build" />
 	}

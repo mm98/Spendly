@@ -222,8 +222,13 @@ replaceYears(USER, [2024, 2025, 2026].map(fixtureBudget), fixtureAccounts)
 for (let i = 0; i < NEIGHBOURS; i++)
 	replaceYears(`u-neighbour${String(i).padStart(6, '0')}`, [fixtureBudget(2026)], fixtureAccounts)
 
-// one import on record, so the single-import read answers rather than 404s
+// one import on record, so the single-import read answers rather than 404s, with orders, a vendor and
+// a category it wrote, so what its undo deletes is counted over real rows
 db.prepare('INSERT INTO order_imports (id, user_id, file_name, created_at) VALUES (?, ?, ?, ?)').run('im-fixture', USER, 'fixture.csv', 1)
+db.prepare(`UPDATE orders SET import_id = 'im-fixture', import_revision = revision
+	WHERE id IN (SELECT id FROM orders WHERE user_id = ? ORDER BY id LIMIT 40)`).run(USER)
+for (const table of ['vendors', 'categories'])
+	db.prepare(`UPDATE ${table} SET import_id = 'im-fixture' WHERE id IN (SELECT id FROM ${table} WHERE user_id = ? ORDER BY id LIMIT 2)`).run(USER)
 // two drafts, so every list request plans its orders beside them, one to keep and one to create
 const draftVendor = db.prepare('SELECT name FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1').get(USER).name
 const draftForm = JSON.stringify({ values: { vendor: draftVendor, date: '2026-08-20', kind: 'Expense', categories: ['Groceries'], shipping: 0, discount: 0, reference: '', note: '' },
@@ -325,7 +330,7 @@ const REQUESTS = [
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/settings', '/imports', '/imports/im-fixture', '/statuses', '/views', '/account/passkeys',
+	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
@@ -367,6 +372,9 @@ for (const [method, path, body] of [
 	['PATCH', '/account/passkeys/pk-fixture', { name: 'Work laptop' }],
 	['DELETE', '/account/passkeys/pk-removed'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
+	// a line removed from Previous imports, and put back by its toast's Undo
+	['PATCH', '/imports/im-fixture', { hidden: true }],
+	['PATCH', '/imports/im-fixture', { hidden: false }],
 	['POST', '/categories/known', { names: ['Groceries', 'groceries', 'Nothing'] }],
 	['PATCH', `/budget/lines/${line.id}`, { month: 3, real: 123.45 }],
 	['PATCH', `/budget/lines/${line.id}`, { name: 'Renamed', accountId: other.id }],

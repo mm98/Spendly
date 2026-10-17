@@ -445,10 +445,26 @@ const mergeResult = (source, target, orders) => (
 /** What deleting a bookmark takes with it, and the way to keep it instead. */
 export const bookmarkDeleteNote = bookmark => `${bookmark.photoId ? 'The bookmark and its picture are' : 'The bookmark is'} removed. To keep it off the list without losing it, archive it instead.`
 
+/** "Leave without saving?", asked before what is not saved is lost (9c). `body` says what that is. */
+export function LeaveDialog({ body, onStay, onLeave }) {
+	return (
+		<Dialog onCancel={onStay}>
+			<DialogTitle>Leave without saving?</DialogTitle>
+			<DialogBody>{body}</DialogBody>
+			<DialogActions>
+				<Button variant="outline" onClick={onStay}>Keep editing</Button>
+				<span className="sp-grow" />
+				<Button color="danger" onClick={onLeave}>Leave</Button>
+			</DialogActions>
+		</Dialog>
+	)
+}
+
 /** Holds the page while the form has changes: in-app navigation asks first, a reload gets the
-    browser's question. `names` say where the changes are (9c); `release` lets a save leave. `ask(go)`
-    asks the same question before an action that leaves, and runs `go` only on Leave. */
-export function useLeaveGuard(dirty, { within, search = false, names = [], uploading = 0 } = {}) {
+    browser's question. `names` say where the changes are (9c), or `body` says it in full; `release`
+    lets a save leave. `ask(go)` asks the same question before an action that leaves, and runs `go`
+    only on Leave. */
+export function useLeaveGuard(dirty, { within, search = false, names = [], uploading = 0, body } = {}) {
 	const released = useRef(false)
 	const [asking, setAsking] = useState(null)
 	const live = useRef(dirty)
@@ -469,17 +485,8 @@ export function useLeaveGuard(dirty, { within, search = false, names = [], uploa
 		asking()
 	}
 	const prompt = blocker.state === 'blocked' || asking
-		? (
-			<Dialog onCancel={stay}>
-				<DialogTitle>Leave without saving?</DialogTitle>
-				<DialogBody>Your changes {names.length ? `in ${names.join(' and in ')}` : 'on this page'} are not saved.{uploading ? ` ${uploading === 1 ? '1 file is' : `${uploading} files are`} still uploading.` : ''} If you leave now, they are lost.</DialogBody>
-				<DialogActions>
-					<Button variant="outline" onClick={stay}>Keep editing</Button>
-					<span className="sp-grow" />
-					<Button color="danger" onClick={go}>Leave</Button>
-				</DialogActions>
-			</Dialog>
-		)
+		? <LeaveDialog onStay={stay} onLeave={go}
+			body={body ?? `Your changes ${names.length ? `in ${names.join(' and in ')}` : 'on this page'} are not saved.${uploading ? ` ${uploading === 1 ? '1 file is' : `${uploading} files are`} still uploading.` : ''} If you leave now, they are lost.`} />
 		: null
 	const ask = action => (live.current && !released.current ? setAsking(() => action) : action())
 	return { prompt, ask, release: () => { released.current = true } }

@@ -2,7 +2,8 @@
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, a very large order and one left out of statistics, look-alike vendors, an archived vendor, more categories than a page
    holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, a note and none, bookmarks with and
-   without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand, one dated in an earlier year.
+   without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand, one dated in an earlier year, an import
+   with an order changed after it, and an import undone.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
    it fills first on a new account:
@@ -286,6 +287,33 @@ const newest = new Set(crowded.slice(-10).map(n => `Crowd bookmark ${n}`))
 for (const b of (await listed(false)).filter(b => newest.has(b.name) && !b.photoId))
 	step('bookmark picture', await call('POST', `/bookmarks/${b.id}/photo`, undefined, upload('crowd.png', 'image/png', png(1600, 1200, [90, 140, 110]), 'file')))
 
+// imports: one that created a vendor and a category and has an order changed since, so Undo's
+// question names every part; and one undone, whose line can be removed from the list at once
+const importNames = new Set(((await call('GET', '/imports')).data ?? []).map(i => i.fileName))
+const importFile = async (fileName, drafts) => {
+	if (importNames.has(fileName)) { there(); return null }
+	const record = step(`import ${fileName}`, await call('POST', '/imports', { fileName, mapping: null, skipped: 0 }))
+	if (!record.data?.id) return null
+	const out = step(`import ${fileName} orders`, await call('POST', `/orders/import?importId=${record.data.id}`, { orders: drafts }))
+	return { id: record.data.id, orders: out.data?.orders ?? [] }
+}
+const imported = (what, draft) => ({
+	kind: 'Expense', status: 'Delivered', date: day(-2), deliveredDate: day(-2), shipping: 0, discount: 0, note: '', categories: [], refunded: false,
+	reference: `edge: ${what}`, items: [{ title: what, quantity: 1, price: 120 }], ...draft
+})
+const webshop = await importFile('edge-webshop-orders.csv', [
+	imported('Imported from a new shop', { vendor: 'Edge imported shop', categories: ['Edge imported category'] }),
+	imported('Imported and changed after', { vendor: 'Coopp', items: [{ title: 'Imported line', quantity: 2, price: 45 }, { title: 'Second line', quantity: 1, price: 30 }] }),
+	imported('Imported and left alone', { vendor: 'Coopp' })
+])
+const changing = webshop?.orders.find(o => o.reference === 'edge: Imported and changed after')
+if (changing) {
+	const full = (await call('GET', `/orders/${changing.id}`)).data
+	step('change an imported order', await call('PUT', `/orders/${changing.id}`, { ...full, note: 'Changed after the import', vendor: full.vendor?.name, categories: (full.categories ?? []).map(c => c.name) }))
+}
+const undone = await importFile('edge-undone-import.csv', [imported('Imported and undone', { vendor: 'Coopp' })])
+if (undone) step('undo an import', await call('DELETE', `/imports/${undone.id}`))
+
 console.log([...made].map(([k, n]) => `${n} ${k}`).join(', '))
 
 /* ---- nothing of this account reaches another one ---- */
@@ -304,6 +332,7 @@ for (const o of orders.filter(o => o.fileCount || o.photo)) {
 	for (const item of full?.items ?? []) for (const a of item.attachments ?? []) files.push(`/orders/${o.id}/items/${item.id}/attachments/${a.id}/file`)
 }
 const scans = drafts.map(d => d.draft.file?.key).filter(Boolean)
+const imports = (await call('GET', '/imports')).data ?? []
 const before = JSON.stringify({ orders: orders.length, drafts: drafts.map(d => d.id).sort(), vendors: vendors.length, categories: categories.length, bookmarks: bookmarks.length })
 
 const other = session()
@@ -313,7 +342,7 @@ if (r.status !== 201) r = await other('POST', '/auth/login', { email: otherEmail
 if (r.status >= 300) throw new Error(`sign in as the other account: ${r.status} ${JSON.stringify(r.data)}`)
 
 const leaks = []
-const ids = new Set([...orders, ...vendors, ...categories, ...bookmarks, ...views].map(x => x.id))
+const ids = new Set([...orders, ...vendors, ...categories, ...bookmarks, ...views, ...imports].map(x => x.id))
 // anything that answers with this account's own records is a leak, whatever its status
 const refused = async (method, path, body) => {
 	const got = await other(method, path, body)
@@ -328,10 +357,11 @@ for (const o of orders) await refused('GET', `/orders/${o.id}`)
 for (const d of drafts) await refused('GET', `/drafts/${d.id}`)
 for (const v of vendors) await refused('GET', `/vendors/${v.id}`)
 for (const c of categories) await refused('GET', `/categories/${c.id}`)
+for (const i of imports) for (const path of [`/imports/${i.id}`, `/imports/${i.id}/undo`]) await refused('GET', path)
 for (const b of bookmarks) await refused('GET', `/bookmarks/${b.id}`)
 for (const path of files) await refused('GET', path)
 for (const key of scans) for (const path of [`/scan/draft/${key}?draft=1`, `/scan/documents/${key}/file`, `/scan/documents/${key}/thumbnail`]) await refused('GET', path)
-for (const path of ['/orders?pageSize=100', '/orders?status=Draft&pageSize=100', '/drafts?limit=10', '/vendors?pageSize=100', '/categories', '/bookmarks?pageSize=100', '/views', '/search?query=edge', '/search?query=shop'])
+for (const path of ['/orders?pageSize=100', '/orders?status=Draft&pageSize=100', '/drafts?limit=10', '/vendors?pageSize=100', '/categories', '/bookmarks?pageSize=100', '/views', '/imports', '/search?query=edge', '/search?query=shop'])
 	await unseen(path)
 // changing or removing them is refused too, and the edge account's records are counted again after
 for (const d of drafts) {
@@ -345,6 +375,10 @@ for (const v of vendors.slice(0, 5)) await refused('PATCH', `/vendors/${v.id}`, 
 for (const c of categories.slice(0, 5)) await refused('PATCH', `/categories/${c.id}`, { favourite: 1 })
 for (const b of bookmarks.slice(0, 3)) await refused('PATCH', `/bookmarks/${b.id}`, { name: 'Taken' })
 for (const v of views.slice(0, 3)) await refused('PATCH', `/views/${v.id}`, { name: 'Taken' })
+for (const i of imports) {
+	await refused('PATCH', `/imports/${i.id}`, { hidden: true })
+	await refused('DELETE', `/imports/${i.id}`)
+}
 // the same bytes scanned by the other account know nothing of this one's reading, draft or orders
 for (const [name, bytes] of [['edge-scan-1.png', png(41, 60, [250, 249, 240])], ['receipt.png', png(60, 90, [235, 235, 225])]]) {
 	const got = await other('POST', '/scan/documents?scan=1', undefined, upload(name, 'image/png', bytes, 'file'))

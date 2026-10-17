@@ -855,6 +855,17 @@ export async function startImport(fileName, mapping, skipped = 0, signal) {
 	return request('/api/imports', { method: 'POST', body: { fileName, mapping, skipped }, signal })
 }
 
+/** What undoing an import deletes, counted now: { fileName, createdAt, undoable, orders, lines,
+    changed, vendors, categories }. `changed` is how many of its orders were edited after it. */
+export async function getImportUndo(id, signal) {
+	return request(`/api/imports/${encodeURIComponent(id)}/undo`, { signal })
+}
+
+/** Leaves an import out of Previous imports, or puts it back. Its orders do not change. */
+export async function setImportHidden(id, hidden, signal) {
+	return request(`/api/imports/${encodeURIComponent(id)}`, { method: 'PATCH', body: { hidden }, signal })
+}
+
 /** Removes what an import wrote, within a day of it. */
 export async function undoImport(id, signal) {
 	const out = await request(`/api/imports/${encodeURIComponent(id)}`, { method: 'DELETE', signal })

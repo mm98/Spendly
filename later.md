@@ -4,52 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## Settings: Returned and Cancelled are drawn as deletable, but stay built in
-
-- **Where:** Settings > Statuses, against the drawing in Settings and import 11a.
-- **What the reader sees:** the drawing marks only Draft "built in" and gives Cancelled, with no
-  orders, a delete button. The app marks Draft, Ordered, Delivered, Returned and Cancelled "built
-  in", and none of them can be deleted.
-- **What was found:** 14 October 2026, reading the app and the server. The app knows Returned and
-  Cancelled by what they mean, not by their name, and that is lost when one is deleted. A status
-  added later with the same name does not bring it back. After a delete:
-  - a scanned return receipt is filed under the default status, usually Delivered, and counts as
-    spending;
-  - Fill with demo data still makes Returned orders, which then count as spending;
-  - an import matches the status by name, so a new "Cancelled" counts as spending and is not struck
-    out;
-  - an order that was once Returned keeps a history line for the deleted status.
-
-  Statistics and the vendor page already cope with a missing Returned.
-- **Why not now:** the app is safe as it is. The drawing is what is out of date, and that is
-  Claude Design's to change: Returned and Cancelled marked "built in", and no delete button on
-  Cancelled.
-
-## design/README.md now holds one handoff note instead of the design system's overview
-
-- **Where:** `design/README.md`.
-- **What the reader sees:** the file describes only the Needs a look and Drafts swap on Home. The
-  overview it held before (what each file in `design/` is, the state of the checks, the settled
-  rules for card heads, rows that open, and the copy conventions) is gone from the folder.
-- **What was found:** 15 October 2026, in the upload that answered the Home card order brief. The
-  upload replaced the whole file rather than adding a note beside it.
-- **Why not now:** `design/` is changed only through Claude Design. The old text is in git history
-  (the commit before "Add files via upload" on 15 October) if Claude Design wants it back.
-
-## Phone: two lines of text stand 6 pixels apart in many places, and the design says 2
-
-- **Where:** every phone screen with a title and a line under it that is not a list card: limit
-  alerts on Home and in the order form, notices, toasts, the scan choices ("Read it again"), and
-  the filter labels above their controls. Mobile screens (`design/styles/pages/mobile-screens.css`,
-  `.ms-device .sp-stack`).
-- **What the reader sees:** 6 pixels between the two lines. List cards (Vendors, Categories, the
-  account card) have 2.
-- **What was found:** 15 October 2026. The design's phone rule says every such pair on a phone is
-  2 pixels apart and carries no gap of its own. But the drawings give these pairs a 6-pixel gap,
-  and that gap wins over the phone rule, in the design and in the app alike. The rule would also
-  pull a label 2 pixels from its field. A question for Claude Design: which places get 2 on a
-  phone, and should the rule be scoped to them.
-
 ## Account card: the name is a smaller text style than the drawing
 
 - **Where:** the account card at the top of More and of Settings, against Mobile screens.
@@ -57,36 +11,38 @@ is removed in the change that settles it.
   style.
 - **What was found:** 15 October 2026, while fixing the gap in the same card. Not changed there.
 
-## Import: leaving an import before it is written loses it without a warning
+## design/README.md: four open questions from the old overview are not in the new one
 
-- **Where:** Settings > Import, between choosing a file and pressing Import.
-- **What the reader sees:** after choosing a file and matching its columns, a click on another page
-  ends the import. Coming back, the import starts again at choosing a file. Nothing warns before.
-- **What was found:** 17 October 2026, reading the app, not tried in it. Settings warns before
-  leaving unsaved changes, but only for its own fields, not for an import in progress. The import
-  itself is not meant to be remembered: nothing is written before Import is pressed, and the app
-  does not keep the file.
-- **Why not now:** the warning is not drawn. A question for Claude Design.
+- **Where:** `design/README.md`, the section Known and open.
+- **What the reader sees:** nothing in the app. The design's list of open questions is shorter.
+- **What was found:** 17 October 2026, comparing the new overview with the last full one (commit
+  2eea677). Claude Design asked to confirm that nothing is missing. The settled rules from the old
+  text are all still written on the pages or in `styles/COMPONENT-STATUS.md`. These open questions
+  are not written anywhere in `design/` now:
+  - at the 280px card width, three card heads do not fit on one line: Showing, Spend by month and
+    Categories this month;
+  - four groups of variants mix structure and colour: `Combobox`, `Menu`, `ListItem`, `TextField`;
+  - `Mark` has three fills that draw almost nothing: `plain`, `none`, `empty`;
+  - the list behaviours that are not built: moving between rows with the keyboard, choosing a whole
+    filter, and a long press on a touch screen.
+- **Why not now:** `design/` is changed only through Claude Design.
 
-## Import: Undo in Previous imports deletes the orders at once, with no question
+## Mobile screens: a comment still says the scan choices are 6 apart
 
-- **Where:** Settings > Import > Previous imports, the Undo button beside Reuse mapping.
-- **What the reader sees:** one click removes every order the import wrote, with the vendors and
-  categories it created that nothing else uses. Orders changed since the import go too, with the
-  changes. Nothing asks first.
-- **What was found:** 17 October 2026, reading the app, not tried in it. The text after an import
-  says Undo removes exactly what the import wrote. The Undo in the list says nothing.
-- **Why not now:** a question before Undo is not drawn. A question for Claude Design.
+- **Where:** `design/styles/pages/mobile-screens.css`, the comment on `.ms-device .sp-stack`.
+- **What the reader sees:** nothing on screen. The comment says the scan choices keep a gap of 6.
+  The drawings in Mobile screens 7a and Order create 3a now draw them as a title and its second
+  line, 2 apart, and the app shows them that way.
+- **What was found:** 17 October 2026, in the upload that answered the import and statuses brief.
+- **Why not now:** a comment in `design/`, changed only through Claude Design.
 
-## Import: a line in Previous imports cannot be removed while its orders are kept
+## Previous imports on a phone: a file name is cut short beside Undo and Reuse mapping
 
-- **Where:** Settings > Import > Previous imports.
-- **What the reader sees:** the only way to remove a line is Undo, which also removes its orders.
-  A line otherwise leaves the list only when newer imports push it out, since the list shows the
-  last few.
-- **What was found:** 17 October 2026, asked for by the user: a one-time import, whose mapping is
-  never needed again, stays in the list with nothing left to do there. Imported orders keep a link
-  to their import, which is how the order list shows the orders of one import. Two ways to do it:
-  hide the line and keep the link, or remove the line and make its orders ordinary orders.
-- **Why not now:** it is a new feature and the design does not draw it. The user chooses between
-  the two ways, then it goes to Claude Design.
+- **Where:** Settings > Import > Previous imports, on a phone (iPhone 15 width).
+- **What the reader sees:** a line from the last 24 hours with saved column choices has Undo and
+  Reuse mapping beside its name. The name is cut to its first few letters ("webshop-…"). Nothing
+  runs off the screen.
+- **What was found:** 17 October 2026, while building the outline Undo of 11b. Settings and import
+  11b draws Previous imports at desktop width only, and Mobile screens does not draw it. A question
+  for Claude Design: how this line looks on a phone.
+- **Why not now:** no drawing covers it; `design/` is changed only through Claude Design.
