@@ -525,6 +525,8 @@
     <div class="doc-note"><b class="sp-ink">Order in the card:</b> the period, three tiles (Spent with the comparison, Saved, Orders), limits exceeded, Budget (monthly only), top 5 categories, the latest 5 orders, bookmarks added in the period, Needs a look, then Open Spendly. A section with nothing in it is left out, rule and all; the limits box is absent when no limit was passed.</div>
     <div class="doc-note"><b class="sp-ink">Budget shows costs only.</b> Last month's real costs against the expected costs, and the costs expected in the new month. Income and Left over never appear in the email, whatever Show income was last set to in Budget (<a href="Budget.dc.html#21a">21a</a>).</div>
     <div class="doc-note"><b class="sp-ink">A weekly email states limits for the calendar month so far</b>, since limits are monthly: "11.260,00 kr. of 10.000,00 kr. in October so far". A saving is an amount, green, under the order amount; a zero saving is grey.</div>
+    <div class="doc-note"><b class="sp-ink">Dates follow the account's language</b>, as everywhere in the app: in a Danish account the email reads "in Oktober so far" and "12. - 18. okt. 2026" while the sentences around them stay English. Only month and weekday names change; the numbers already follow the account's number format.</div>
+    <div class="doc-note"><b class="sp-ink">Stop these emails opens 8 to 10</b>, the answer card from 20b: Status emails stopped, Already stopped, or That link has expired after 60 days. A newer email's link works while an older one has expired.</div>
     <div class="doc-note"><b class="sp-ink">The tiles stack below 480px</b>, and the card keeps one column at every width. Stop these emails sets the setting to None without signing in, from a single-use link.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
   </div>
@@ -564,6 +566,54 @@
       <div class="sp-section-label">7 - STATUS, NOTHING SPENT</div>
       <iframe class="au-email" title="Status with nothing spent" srcDoc="{{ quietDoc }}"></iframe>
       <div class="sp-meta au-w600">Subject: Week 43 in Spendly: nothing spent. Sent in place of 5 or 6 when the period has no orders.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">8 - STOP THESE EMAILS</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--round"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Status emails stopped</div>
+            <div class="sp-data">You won't get the weekly or monthly status email at <b class="sp-ink sp-break">mikkel@example.net</b> any more. You can turn it back on in Settings.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Open Spendly</button>
+        </div>
+      </div>
+      <div class="sp-meta au-w400">The page the footer link opens. It sets Status email to None, with no sign-in. The confirmation answer card from 20b, unchanged.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">9 - ALREADY STOPPED</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--round"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Already stopped</div>
+            <div class="sp-data">Status emails to <b class="sp-ink sp-break">mikkel@example.net</b> are already off. You can turn them back on in Settings.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Open Spendly</button>
+        </div>
+      </div>
+      <div class="sp-meta au-w400">The same link opened again, or opened after the setting was already None. Mail clients prefetch links, so this is the usual second visit, never an error.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">10 - STOP LINK EXPIRED</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--round"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">That link has expired</div>
+            <div class="sp-data">Stop links last 60 days. You can turn status emails off in Settings.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Open Settings</button>
+        </div>
+      </div>
+      <div class="sp-meta au-w400">After 60 days. Open Settings goes to Account and profile (11a) through sign-in.</div>
     </div>
   </div>
 </section>

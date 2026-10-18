@@ -1147,6 +1147,26 @@
     }
   }
 
+  /* A list row that holds a control is a setting, not a choice: it carries
+     .sp-list-item--setting, or the checked-row tint (.sp-list-item:has(input:checked))
+     paints it green for good, since a Segmented always has one option checked. The
+     phone's Status email row did, and the two Each row is rows in 11b. A row with a
+     data-color states its own ground, which already outranks the tint. Swept on the markup. */
+  for (const f of pages) {
+    const t = src[f].replace(/<script[\s\S]*?<\/script>/g, '');
+    for (const m of t.matchAll(/class="sp-segmented\b/g)) {
+      let depth = 0;
+      const tags = [...t.slice(0, m.index).matchAll(/<(\/?)div\b([^>]*)>/g)].reverse();
+      for (const g of tags) {
+        if (g[1]) { depth++; continue; }
+        if (depth) { depth--; continue; }
+        const cls = (g[2].match(/class="([^"]*)"/) || [, ''])[1];
+        if (/\bsp-list-item\b/.test(cls)) { if (!/\bsp-list-item--setting\b/.test(cls) && !/data-color=/.test(g[2])) fail('a list row holding a control is .sp-list-item--setting', f, cls); break; }
+      }
+    }
+  }
+  if (!/\.sp-list-item--setting:has\(input:checked\)/.test(comp)) fail('a list row holding a control is .sp-list-item--setting', 'styles/components.css', 'the variant is missing');
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

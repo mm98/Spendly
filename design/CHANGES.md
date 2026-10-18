@@ -1,9 +1,18 @@
 # Weekly and monthly status email
 
+## Fixed from design_handoff_status_email_fixed
+
+Answers to Brief-status-email.md (main at 2cc46c8).
+
+- **Brief 1, the notes and the drawings disagreed.** The notes were right; the package carried stale copies of `Settings and import.dc.html`, `Mobile screens.dc.html` and `styles/components.css`. This package carries the current ones: Status email is its own card in 11a with `.sp-segmented--fill` and Send a test email, and the phone has the Send a test email row. Please rebuild 11a and the phone row from these files.
+- **Brief 2, the phone row was tinted green.** Not meant. A row that holds a setting now carries `.sp-list-item--setting`, which keeps the row's own ground when an input inside it is checked. The same fault was in the two "Each row is" rows in Settings and import 11b; they carry it too. `styles/check.js` now asserts it.
+- **Brief 3, the Stop these emails page.** Drawn as the app built it, in Auth and first run 20f, 8 to 10: "Status emails stopped", "Already stopped", "That link has expired" after 60 days, on the 20b answer card.
+- **Brief 4, month names.** They follow the account's language, as the app does now. Written into the 20f notes and `emails/README.md`.
+
 ## Fixed from design_handoff_status_email
 
-- Status email is now its own card in Account and profile, under the account card, rather than a field inside it.
-- The switch spans the card: a new variant, `.sp-segmented--fill`, documented in Components c5.
+- Status email is its own card in Account and profile, under the account card, rather than a field inside it.
+- The switch spans the card: `.sp-segmented--fill`, documented in Components c5.
 - A Send a test email button in the card's footer, and a Send a test email row under the inline switch on the phone.
 
 The brief: a status email the user can set to None, Weekly or Monthly, with a fast overview of stats, categories, orders, bookmarks and limits exceeded, plus the budget in the monthly one, without income.
@@ -68,14 +77,15 @@ Read on main before the task. Its one entry (51 design checks not held against t
 
 - `README.md` - the design's overview, unchanged
 - `CHANGES.md` - this note
-- `Auth and first run.dc.html` - 20f status email specimens and notes, 20d equal-height cards
-- `Settings and import.dc.html` - 11a Status email card, test button and notes
-- `Components.dc.html` - c5, the Fill variant of Segmented
+- `Auth and first run.dc.html` - 20f status email specimens, the stop page (8 to 10) and notes, 20d equal-height cards
+- `Settings and import.dc.html` - 11a Status email card, test button and notes; 11b Each row is rows carry `.sp-list-item--setting`
+- `Components.dc.html` - c5, the Fill variant of Segmented, and the note on a Segmented in a list row
 - `Mobile screens.dc.html` - Settings frame, Status email row and test row
 - `Duplicate and alerts.dc.html` - 8b note
 - `emails/` - the four auth emails (loaded by 20f), `status.*`, `status-quiet.*`, `status-sample.json`, `README.md`
 - `support.js`, `components.js`, `icons.js` - loaded by the pages
-- `styles/tokens.css`, `styles/components.css` (adds `.sp-stretch` and `.sp-segmented--fill`), `styles/doc.css`
+- `styles/check.js` - the design checks, with the new setting-row assertion
+- `styles/tokens.css`, `styles/components.css` (adds `.sp-stretch`, `.sp-segmented--fill` and `.sp-list-item--setting`), `styles/doc.css`
 - `styles/pages/auth-and-first-run.css`, `settings.css`, `budget.css`, `mobile-screens.css`, `duplicate-and-alerts.css` - linked by the pages above
 
 ## Check
