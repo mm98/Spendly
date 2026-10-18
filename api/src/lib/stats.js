@@ -654,3 +654,42 @@ export function homeAttention(userId, day = todayIso()) {
 		things: Object.fromEntries(Object.entries(COUNTS).filter(([id]) => looks[id]).map(([id, count]) => [id, count(userId, day)]))
 	}
 }
+
+const countDeliveredAndSaving = db.prepare(`
+	SELECT COALESCE(SUM(ot.status_type = 'delivered'), 0) AS delivered, COALESCE(SUM(ot.saved >= 0.005), 0) AS saving
+	FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${FLOW_WHERE.expenses} AND ot.exclude_from_stats = 0
+`)
+const selectLatestInPeriod = db.prepare(`
+	SELECT ot.date, ot.total, ot.saved, v.name AS vendor,
+		(SELECT MIN(c.name) FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id) AS category
+	FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${FLOW_WHERE.expenses} AND ot.exclude_from_stats = 0
+	ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC
+	LIMIT @limit
+`)
+
+/** One stretch of days [from, to) as the status email reads it (20f): what was spent and saved,
+    counted as Home counts it, the categories by amount and the latest orders. */
+export function periodSummary(userId, from, to, latest = 5) {
+	const scope = scopeOf({ flow: 'expenses' })
+	const params = { userId, from, to }
+	return {
+		...totalsOver(userId, from, to, scope),
+		...countDeliveredAndSaving.get(params),
+		split: splitOver(userId, from, to, scope),
+		latest: selectLatestInPeriod.all({ ...params, limit: latest })
+	}
+}
+
+const selectLimitedNamed = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND budget > 0 ORDER BY name')
+
+/** The categories whose monthly limit the days [from, to) of one month went past, with their spend. */
+export function limitsPassed(userId, from, to) {
+	const spendOf = new Map(selectLimitedMonths.all({ userId, from, to }).map(r => [r.id, r.spend]))
+	return selectLimitedNamed.all(userId)
+		.map(c => ({ id: c.id, name: c.name, budget: c.budget, spend: spendOf.get(c.id) ?? 0 }))
+		.filter(c => c.spend > c.budget)
+}
+
+/** How many vendors look like duplicates, orders are late and orders lack a receipt, for the rules switched on. */
+export const attentionCounts = (userId, day) => homeAttention(userId, day).things

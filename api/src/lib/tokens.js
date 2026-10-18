@@ -2,8 +2,9 @@ import { createHash, randomBytes } from 'node:crypto'
 import { db } from '../db.js'
 import { nowEpoch } from './dates.js'
 
-// a confirming link lasts a day; a reset link an hour, because it can change a password (20b, 20c)
-export const TOKEN_TTL = { confirm: 24 * 60 * 60, reset: 60 * 60 }
+// a confirming link lasts a day; a reset link an hour, because it can change a password (20b, 20c);
+// a status email's stop link as long as an old email is still likely to be opened
+export const TOKEN_TTL = { confirm: 24 * 60 * 60, reset: 60 * 60, 'status-stop': 60 * 24 * 60 * 60 }
 // how long a reader waits before the same link can be sent again
 export const RESEND_AFTER_SECONDS = 60
 

@@ -6,8 +6,12 @@ import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { ListItem } from '../components/ListItem.jsx'
+import { Segmented } from '../components/Segmented.jsx'
 import { Halves } from '../components/Well.jsx'
-import { changePassword, failureMessage } from '../api/client.js'
+import { Spinner } from '../components/Utilities.jsx'
+import { changePassword, failureMessage, getSettings, saveStatusEmail, sendTestStatusEmail } from '../api/client.js'
+import { invalidate, useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
 import { MIN_PASSWORD, PasswordHint } from './AuthParts.jsx'
 import { landing } from './SettingsParts.jsx'
@@ -49,6 +53,82 @@ function usePreview(file) {
 		return () => URL.revokeObjectURL(made)
 	}, [file])
 	return url
+}
+
+const STATUS_EMAILS = [{ value: 'none', label: 'None' }, { value: 'weekly', label: 'Weekly' }, { value: 'monthly', label: 'Monthly' }]
+
+/** The status email's setting, saved the moment it is chosen. */
+function useStatusEmail() {
+	const settings = useApi(getSettings)
+	const toast = useToast()
+	const [chosen, setChosen] = useState(null)
+	const value = chosen ?? settings.data?.statusEmail ?? 'none'
+	const choose = next => {
+		setChosen(next)
+		saveStatusEmail(next)
+			.then(() => invalidate(getSettings))
+			.catch(e => {
+				setChosen(null)
+				const message = failureMessage(e, 'Your status email was not changed. Try again.')
+				if (message) toast({ message, color: 'danger' })
+			})
+	}
+	return { ready: !!settings.data, value, choose }
+}
+
+/** Send a test email (11a): `sending` while it goes, then a toast either way. */
+function useStatusEmailTest() {
+	const toast = useToast()
+	const [sending, setSending] = useState(false)
+	const send = () => {
+		setSending(true)
+		sendTestStatusEmail()
+			.then(({ email }) => toast({ message: `Test sent to ${email}` }))
+			.catch(() => toast({ message: 'The test could not be sent. Try again.', color: 'danger' }))
+			.finally(() => setSending(false))
+	}
+	return { sending, send }
+}
+
+/** The Status email card (11a), under the account card on a desktop. Absent while this server cannot
+    send email, as nothing would arrive. */
+export function StatusEmailCard({ user }) {
+	const { ready, value, choose } = useStatusEmail()
+	const { sending, send } = useStatusEmailTest()
+	if (!user?.mail || !ready) return null
+	const button = sending
+		? <Button key="test" variant="outline" fullWidth disabled><Spinner />Sending…</Button>
+		: <Button key="test" variant="outline" fullWidth onClick={send}>Send a test email</Button>
+	return (
+		<Card footerCommits footer={button}>
+			<CardHeader name="Status email" id="status-email-label" />
+			<span className="sp-data">
+				What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b className="sp-ink sp-break">{user.email}</b>. Weekly arrives on Monday, Monthly on the 1st.
+			</span>
+			<Segmented name="status-email" variant="fill" options={STATUS_EMAILS} value={value} onChange={choose}
+				role="radiogroup" aria-labelledby="status-email-label" />
+		</Card>
+	)
+}
+
+/** The status email in the phone's Settings list (7a): the switch in its row, then Send a test email. */
+export function StatusEmailRows({ user }) {
+	const { ready, value, choose } = useStatusEmail()
+	const { sending, send } = useStatusEmailTest()
+	if (!user?.mail || !ready) return null
+	return (
+		<>
+			<ListItem variant="card" setting>
+				<span className="sp-field__label sp-grow" id="status-email-row-label">Status email</span>
+				<Segmented name="status-email-row" options={STATUS_EMAILS} value={value} onChange={choose}
+					role="radiogroup" aria-labelledby="status-email-row-label" />
+			</ListItem>
+			<ListItem variant="card" onClick={send} disabled={sending}>
+				<span className="sp-data sp-grow">{sending ? 'Sending…' : 'Send a test email'}</span>
+				{sending ? <Spinner /> : null}
+			</ListItem>
+		</>
+	)
 }
 
 /** The account's own card (11a): picture, name, the email it signs in with, and the password. The

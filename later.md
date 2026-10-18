@@ -11,3 +11,10 @@ Found 2026-10-17, in `react/scripts/check-design.mjs`. Of the 110 rules in `desi
 marked `NOT_CHECKED` in `DESIGN_RULES`. A fault one of them describes reaches the app unseen, as the
 amounts that did not line up in Statistics did. Each one ported is moved from `NOT_CHECKED` to the
 name of its rule here.
+
+## Demo data counts returned orders as spending
+
+Found 2026-10-18, in `api/src/lib/demoData.js`. "Fill with demo data" turns the orders triggers off
+while it writes, and `storeColumns` does not set `status_type` when they come back. Every demo order
+keeps the type `custom`, so Home, Statistics and the status email count returned orders as spent
+and show 0 delivered. Accounts with real orders are not affected.

@@ -4,7 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import {
-	askPasswordReset, confirmEmail, failureMessage, getCurrentUser, readResetLink, resendConfirmation, resetPassword
+	askPasswordReset, confirmEmail, failureMessage, getCurrentUser, readResetLink, resendConfirmation, resetPassword, stopStatusEmail
 } from '../api/client.js'
 import {
 	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, onward, useAuthOptions, useCountdown, useMail
@@ -20,6 +20,48 @@ const confirmed = new Map()
 const confirmOnce = token => {
 	if (!confirmed.has(token)) confirmed.set(token, confirmEmail(token))
 	return confirmed.get(token)
+}
+
+/* The stop link's answer, asked once per token, as the confirming link's is. */
+const stopped = new Map()
+const stopOnce = token => {
+	if (!stopped.has(token)) stopped.set(token, stopStatusEmail(token))
+	return stopped.get(token)
+}
+
+/** /email/stop/:token: Stop these emails, from a status email (20f). It sets the status email to None
+    without signing in, in the shape of the confirming link's answer. */
+export function StatusEmailStop() {
+	const { token } = useParams()
+	const navigate = useNavigate()
+	const [answer, setAnswer] = useState(null)
+	useEffect(() => {
+		stopOnce(token)
+			.then(setAnswer)
+			.catch(e => setAnswer({ state: 'failed', error: failureMessage(e, UNREACHABLE) }))
+	}, [token])
+	if (!answer) return null
+	const open = () => navigate('/', { replace: true })
+	const address = <b className="sp-ink sp-break">{answer.email}</b>
+	if (answer.state === 'stopped') return (
+		<AuthCard icon="check" title="Status emails stopped"
+			lead={<>You won't get the weekly or monthly status email at {address} any more. You can turn it back on in Settings.</>}
+			onSubmit={open} submit="Open Spendly" />
+	)
+	if (answer.state === 'used') return (
+		<AuthCard icon="check" title="Already stopped"
+			lead={<>Status emails to {address} are already off. You can turn them back on in Settings.</>}
+			onSubmit={open} submit="Open Spendly" />
+	)
+	if (answer.state === 'failed') return (
+		<AuthCard mark={false} title="That link could not be checked" alert={answer.error}
+			onSubmit={() => window.location.reload()} submit="Try again" />
+	)
+	return (
+		<AuthCard icon="clock" title="That link has expired"
+			lead="Stop links last 60 days. You can turn status emails off in Settings."
+			onSubmit={() => navigate('/settings/account', { replace: true })} submit="Open Settings" />
+	)
 }
 
 /** /confirm: the page that says a link was sent (20b 1 and 2). */

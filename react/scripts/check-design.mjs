@@ -383,6 +383,19 @@ for (const [p, ast] of parsed) {
 	}
 }
 
+/* ---- a list row holding a switch keeps its ground ---- */
+
+// without the setting variant the checked-row tint paints it green, as one option is always checked
+for (const [p, ast] of parsed) {
+	visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement' || tagOf(n) !== 'Segmented') return
+		const row = above.findLast(a => a.type === 'JSXElement' && tagOf(a) === 'ListItem')
+		if (!row) return
+		const has = name => row.openingElement.attributes.some(a => a.type === 'JSXAttribute' && a.name?.name === name)
+		if (!has('setting') && !has('color')) fail('a list row holding a control is .sp-list-item--setting', rel(p), '<ListItem> without setting')
+	})
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -500,7 +513,8 @@ const DESIGN_RULES = {
 	'a checkbox is the input': 'a checkbox is the input',
 	'an action is a link or a button': 'an action is a link or a button',
 	'an email on one line is .sp-email-line': 'an email on one line is .sp-email-line',
-	'a typed value in a sentence is .sp-break': 'a typed value in a sentence is .sp-break'
+	'a typed value in a sentence is .sp-break': 'a typed value in a sentence is .sp-break',
+	'a list row holding a control is .sp-list-item--setting': 'a list row holding a control is .sp-list-item--setting'
 }
 {
 	const designCheck = read(join(root, '../design/styles/check.js'))

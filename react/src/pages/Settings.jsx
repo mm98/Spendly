@@ -27,7 +27,7 @@ import {
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
-import { AccountCard } from './SettingsAccount.jsx'
+import { AccountCard, StatusEmailCard, StatusEmailRows } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, landing } from './SettingsParts.jsx'
@@ -185,7 +185,7 @@ export default function Settings() {
 	const cards = {
 		account: touch
 			? <AccountCard key="account" user={user.data} {...fields} />
-			: [<AccountCard key="account" user={user.data} {...fields} />, <PasskeysCard key="passkeys" />],
+			: [<AccountCard key="account" user={user.data} {...fields} />, <StatusEmailCard key="status-email" user={user.data} />, <PasskeysCard key="passkeys" />],
 		passkeys: <PasskeysCard key="passkeys" />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
@@ -555,6 +555,7 @@ function PhoneIndex({ user }) {
 						{passkeys === null ? null : <span className="sp-meta">{passkeys}</span>}
 					</ListItem>
 				)}
+			<StatusEmailRows user={user} />
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
 					<span className="sp-data sp-grow">{s.label}</span>

@@ -1,6 +1,6 @@
 import { join, pick, reject } from './variants.js'
 
-const VARIANT = { default: null, facet: 'sp-segmented--facet', narrow: 'sp-segmented--narrow' }
+const VARIANT = { default: null, facet: 'sp-segmented--facet', narrow: 'sp-segmented--narrow', fill: 'sp-segmented--fill' }
 
 /** `fixed` is a set that is ordered and never grows, like the twelve months (Budget 21a): it
     stays segments past four, where any other set becomes a Combobox. */

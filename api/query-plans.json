@@ -870,6 +870,15 @@
 				"idx_orders_user_date"
 			]
 		},
+		"SELECT COALESCE(SUM(ot.status_type = 'delivered'), 0) AS delivered, COALESCE(SUM(ot.saved >= 0.005), 0) AS saving FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_orders_user_date"
+			]
+		},
 		"SELECT COALESCE(SUM(ot.total), 0) FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -2059,7 +2068,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows FROM user_settings WHERE user_id = ?": {
+		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, status_email FROM user_settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH user_settings USING INDEX sqlite_autoindex_user_settings_1 (user_id=?)"
 			],
@@ -2417,6 +2426,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_vendors_2"
+			]
+		},
+		"SELECT id, name, budget FROM categories WHERE user_id = ? AND budget > 0 ORDER BY name": {
+			"plan": [
+				"SEARCH categories USING INDEX sqlite_autoindex_categories_2 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_categories_2"
 			]
 		},
 		"SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0": {
@@ -2845,6 +2863,16 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT name, url, price FROM bookmarks WHERE user_id = @userId AND archived = 0 AND created_at >= @from AND created_at < @to ORDER BY created_at DESC, rowid DESC LIMIT @limit": {
+			"plan": [
+				"SCAN bookmarks",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
 		"SELECT o.id FROM orders o WHERE o.user_id = ? AND o.vendor_id = ? ORDER BY o.date DESC, o.created_at DESC, o.rowid DESC LIMIT 50": {
 			"plan": [
 				"SEARCH o USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=?)",
@@ -3102,6 +3130,25 @@
 			"indexes": [
 				"idx_order_categories_cat",
 				"sqlite_autoindex_orders_1"
+			]
+		},
+		"SELECT ot.date, ot.total, ot.saved, v.name AS vendor, (SELECT MIN(c.name) FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE oc.order_id = ot.id) AS category FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 ORDER BY ot.date DESC, ot.created_at DESC, ot.rowid DESC LIMIT @limit": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1",
+				"sqlite_autoindex_vendors_1"
 			]
 		},
 		"SELECT ot.date, SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.total ELSE ot.total END)) AS spend, SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.saved ELSE ot.saved END)) AS saved, COUNT(*) AS orders FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY ot.date ORDER BY ot.date": {
@@ -4149,6 +4196,17 @@
 				"sqlite_autoindex_statuses_2"
 			]
 		},
+		"SELECT u.email, s.locale, s.currency, s.status_email, s.status_email_zone, s.status_email_locale, s.status_email_sent FROM users u JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?": {
+			"plan": [
+				"SEARCH u USING INDEX sqlite_autoindex_users_1 (id=?)",
+				"SEARCH s USING INDEX sqlite_autoindex_user_settings_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_settings_1",
+				"sqlite_autoindex_users_1"
+			]
+		},
 		"SELECT u.id, u.email, u.needs_setup, u.email_confirmed, s.expires_at, s.remember FROM user_sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
 			"plan": [
 				"SEARCH s USING INDEX sqlite_autoindex_user_sessions_1 (id=?)",
@@ -4789,7 +4847,7 @@
 				"date",
 				"id"
 			],
-			"readers": 72
+			"readers": 74
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
