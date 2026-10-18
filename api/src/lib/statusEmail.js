@@ -183,10 +183,11 @@ function needsOf(userId, day, write, link) {
 	return rows
 }
 
-/** The template and its values for one account's email about `period`, with `stopUrl` as its Stop these emails link. */
-export function statusEmailFor(userId, period, stopUrl) {
+/** The template and its values for one account's email about `period`, with `stopUrl` as its Stop these
+    emails link. `locale` is the asking browser's, which a test is written in before any choice stores one. */
+export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 	const account = selectAccount.get(userId)
-	const write = writerFor({ locale: usableLocale(account.locale, account.status_email_locale), currency: account.currency })
+	const write = writerFor({ locale: usableLocale(account.locale, account.status_email_locale, locale), currency: account.currency })
 	const link = publicLink
 	const weekly = period.frequency === 'weekly'
 	const zone = zoneOrServer(account.status_email_zone)
@@ -284,13 +285,15 @@ const stopFor = db.prepare("UPDATE user_settings SET status_email = 'none' WHERE
 
 const STOP_KIND = 'status-stop'
 
-/** Sends one account its email about `period`. */
-export async function sendStatusEmail(userId, period) {
+/** Sends one account its email about `period`; a test's subject starts "Test:". */
+export async function sendStatusEmail(userId, period, { test = false, locale } = {}) {
 	const { email } = selectAccount.get(userId)
 	const token = issueToken(userId, STOP_KIND, email)
-	const { template, values } = statusEmailFor(userId, period, publicLink(`/email/stop/${token}`))
+	const { template, values } = statusEmailFor(userId, period, publicLink(`/email/stop/${token}`), { locale })
+	const message = emailMessage(template, email, values)
 	await sendMail({
-		...emailMessage(template, email, values),
+		...message,
+		subject: test ? `Test: ${message.subject}` : message.subject,
 		headers: { 'List-Unsubscribe': `<${publicLink(`/auth/status-email/stop/${token}`, { api: true })}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
 	})
 }
@@ -305,15 +308,28 @@ export function chooseStatusEmail(userId, { frequency, zone, locale }) {
 	})
 }
 
-/** A stop link from a status email: 'stopped', 'used' when opened before, or 'expired'. */
+/** Send a test email (11a): the email for the period just ended, now, in the frequency chosen, the
+    weekly one on None. `zone` and `locale` are the asking browser's, used until a choice stores them. */
+export async function sendTestStatusEmail(userId, { zone, locale }) {
+	const account = selectAccount.get(userId)
+	const frequency = account.status_email === 'none' ? 'weekly' : account.status_email
+	const period = latestDuePeriod(frequency, localNow(zoneOrServer(account.status_email_zone ?? zone)))
+	await sendStatusEmail(userId, period, { test: true, locale })
+	return account.email
+}
+
+/** A stop link from a status email (20f, 8 to 10): `state` is 'stopped', 'used' when the link was opened
+    before or the setting is already None, or 'expired'; `email` is the address, while the link still works. */
 export function stopStatusEmail(token) {
 	const { state, row } = readToken(token, STOP_KIND)
-	if (state !== 'valid') return state
+	if (state === 'expired') return { state }
+	if (state === 'used') return { state, email: row.email }
 	useToken(token)
+	if (selectAccount.get(row.user_id).status_email === 'none') return { state: 'used', email: row.email }
 	stopFor.run(row.user_id)
 	// signed out, so no write of the account's own clears what it last read
 	forgetReads(row.user_id)
-	return 'stopped'
+	return { state: 'stopped', email: row.email }
 }
 
 /** Sends every email that has fallen due. Due means 08:00 on the day or later, until 08:00 the

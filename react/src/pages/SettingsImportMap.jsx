@@ -166,7 +166,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 				<span className="sp-grow" />
 				<Button variant="outline" size="small" onClick={onReplace}>Replace file</Button>
 			</div>
-			<ListItem>
+			<ListItem setting>
 				<div className="st-wrap">
 					<span className="sp-field__label" id="import-shape-label">Each row is</span>
 					<Segmented name="import-shape" options={SHAPES} value={shape} aria-labelledby="import-shape-label"

@@ -42,9 +42,15 @@ export function StatusEmailStop() {
 	}, [token])
 	if (!answer) return null
 	const open = () => navigate('/', { replace: true })
-	if (answer.state === 'stopped' || answer.state === 'used') return (
-		<AuthCard icon="check" title={answer.state === 'stopped' ? 'Status emails stopped' : 'Already stopped'}
-			lead="You will not get the weekly or monthly status email. You can choose it again in Settings, under Account and profile."
+	const address = <b className="sp-ink sp-break">{answer.email}</b>
+	if (answer.state === 'stopped') return (
+		<AuthCard icon="check" title="Status emails stopped"
+			lead={<>You won't get the weekly or monthly status email at {address} any more. You can turn it back on in Settings.</>}
+			onSubmit={open} submit="Open Spendly" />
+	)
+	if (answer.state === 'used') return (
+		<AuthCard icon="check" title="Already stopped"
+			lead={<>Status emails to {address} are already off. You can turn them back on in Settings.</>}
 			onSubmit={open} submit="Open Spendly" />
 	)
 	if (answer.state === 'failed') return (
@@ -53,7 +59,7 @@ export function StatusEmailStop() {
 	)
 	return (
 		<AuthCard icon="clock" title="That link has expired"
-			lead="To stop the status emails, open Settings and choose None under Account and profile."
+			lead="Stop links last 60 days. You can turn status emails off in Settings."
 			onSubmit={() => navigate('/settings/account', { replace: true })} submit="Open Settings" />
 	)
 }

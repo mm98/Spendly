@@ -204,8 +204,8 @@ router.post('/confirm', (req, res) => {
 
 /** Stop these emails, from a status email (20f): sets the setting to None without signing in. The
     page sends the token in the body; a mail program's own one-click stop sends it in the address. */
-router.post('/status-email/stop', (req, res) => res.json({ state: stopStatusEmail(String(req.body?.token ?? '')) }))
-router.post('/status-email/stop/:token', (req, res) => res.json({ state: stopStatusEmail(req.params.token) }))
+router.post('/status-email/stop', (req, res) => res.json(stopStatusEmail(String(req.body?.token ?? ''))))
+router.post('/status-email/stop/:token', (req, res) => res.json(stopStatusEmail(req.params.token)))
 
 /** Asks for a reset link. The answer is the same whether or not the address has an account. */
 router.post('/reset', (req, res) => {

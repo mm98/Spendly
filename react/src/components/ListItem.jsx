@@ -34,6 +34,8 @@ export function ListItem({
 	opens = false,
 	// a row that turns into a field (rename, edit): one height at rest and while editing (Settings 11a)
 	editable = false,
+	// a row that holds a setting keeps its ground when an option in it is checked (7a, 11b)
+	setting = false,
 	onClick,
 	to,
 	children,
@@ -48,7 +50,8 @@ export function ListItem({
 		variant === 'sticky' && 'sp-list-item--card',
 		pick(VARIANT, variant, 'variant', 'ListItem'),
 		opens && 'sp-list-item--opens',
-		editable && 'sp-list-item--editable'
+		editable && 'sp-list-item--editable',
+		setting && 'sp-list-item--setting'
 	)
 	const attrs = {
 		...(color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'ListItem') }),

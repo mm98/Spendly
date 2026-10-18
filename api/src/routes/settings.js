@@ -3,7 +3,8 @@ import { db } from '../db.js'
 import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, SPEND_KINDS } from '../lib/constants.js'
 import { statusKeys } from '../lib/statuses.js'
 import { looksOf, setLooks } from '../lib/looks.js'
-import { STATUS_EMAILS, chooseStatusEmail } from '../lib/statusEmail.js'
+import { mailAvailable } from '../lib/mail.js'
+import { STATUS_EMAILS, chooseStatusEmail, sendTestStatusEmail } from '../lib/statusEmail.js'
 
 export const router = Router()
 
@@ -70,6 +71,24 @@ router.put('/status-email', (req, res) => {
 	if (!STATUS_EMAILS.includes(frequency)) return res.status(400).json({ error: 'Choose None, Weekly or Monthly.' })
 	chooseStatusEmail(req.user.id, { frequency, zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') })
 	res.json({ ...toApi(selectSettings.get(req.user.id)), looks: looksOf(req.user.id) })
+})
+
+// one test a minute per account (11a)
+const TEST_EVERY_MS = 60 * 1000
+const lastTest = new Map()
+
+/** Send a test email (11a): answers the address it went to. */
+router.post('/status-email/test', async (req, res) => {
+	if (!mailAvailable()) return res.status(503).json({ error: 'This server cannot send email.' })
+	const wait = (lastTest.get(req.user.id) ?? 0) + TEST_EVERY_MS - Date.now()
+	if (wait > 0) return res.status(429).json({ error: 'The test could not be sent. Try again.', retryAfter: Math.ceil(wait / 1000) })
+	lastTest.set(req.user.id, Date.now())
+	try {
+		res.json({ email: await sendTestStatusEmail(req.user.id, { zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') }) })
+	} catch (e) {
+		console.error(`[mail] test status email: ${e.message}`)
+		res.status(502).json({ error: 'The test could not be sent. Try again.' })
+	}
 })
 
 router.patch('/', (req, res) => {

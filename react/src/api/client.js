@@ -910,15 +910,23 @@ export async function saveSettings(patch, signal) {
 	return request('/api/settings', { method: 'PATCH', body: patch, signal })
 }
 
+const browserPlace = () => ({
+	zone: new Intl.DateTimeFormat().resolvedOptions().timeZone,
+	locale: new Intl.NumberFormat().resolvedOptions().locale
+})
+
 /** Chooses the status email, 'none', 'weekly' or 'monthly' (11a), saved at once. This browser's time zone
     and locale go with it: the email is sent at 08:00 in that zone and written in that locale. */
 export async function saveStatusEmail(frequency, signal) {
-	const zone = new Intl.DateTimeFormat().resolvedOptions().timeZone
-	const locale = new Intl.NumberFormat().resolvedOptions().locale
-	return request('/api/settings/status-email', { method: 'PUT', body: { frequency, zone, locale }, signal })
+	return request('/api/settings/status-email', { method: 'PUT', body: { frequency, ...browserPlace() }, signal })
 }
 
-/** Stop these emails, from a status email's link (20f): { state: 'stopped' | 'used' | 'expired' }. */
+/** Send a test email (11a): the email for the period just ended, sent now. Answers { email }, the address. */
+export async function sendTestStatusEmail(signal) {
+	return request('/api/settings/status-email/test', { method: 'POST', body: browserPlace(), signal })
+}
+
+/** Stop these emails, from a status email's link (20f): { state: 'stopped' | 'used' | 'expired', email }. */
 export async function stopStatusEmail(token, signal) {
 	return request('/api/auth/status-email/stop', { method: 'POST', body: { token }, signal })
 }
