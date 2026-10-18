@@ -49,4 +49,6 @@ The status templates use Mustache sections: `{{#key}}...{{/key}}` repeats over a
 - quiet_heading, quiet_line (status-quiet only)
 - frequency_line, app_url, settings_url, unsubscribe_url (single use; sets the setting to None without signing in), categories_url, orders_url, bookmarks_url, budget_url
 
-Every value is HTML-escaped before it is merged. Amounts are written in the account's own number format. The tiles stack below 480px; the dark block maps to the dark tokens, as in the auth emails.
+Every value is HTML-escaped before it is merged. Amounts are written in the account's own number format, and month and weekday names in the account's language, as the app writes them ("in Oktober so far", "12. - 18. okt. 2026"); the sentences stay English.
+
+The unsubscribe link opens the answer page drawn in 20f, 8 to 10: Status emails stopped, Already stopped (a second visit), That link has expired (after 60 days). The tiles stack below 480px; the dark block maps to the dark tokens, as in the auth emails.

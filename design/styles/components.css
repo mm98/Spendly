@@ -1566,6 +1566,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-segmented__item { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* narrow: a switch that need not span its form column, at most --field-w (11a) */
 .sp-segmented--narrow { max-width: min(var(--field-w), 100%); }
+/* fill: the switch spans its column and its options share the width equally (11a, Status email) */
+.sp-segmented--fill { display: flex; align-self: stretch; width: 100%; }
+.sp-segmented--fill > .sp-segmented__item { flex: 1 1 0; }
 .sp-segmented__item input[type="radio"] {
   position: absolute;
   width: 1px;
@@ -4840,6 +4843,12 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 }
 button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-list-item--card[aria-selected="true"] { background: var(--green-tint); border-color: var(--green); }
+/* a row that holds a setting (a Segmented, a switch) keeps its ground: the checked-row
+   tint is for a row the tick selects, and a Segmented always has one option checked */
+.sp-list-item--setting:has(input:checked),
+.sp-list-item--setting:has(input:checked):hover { background: var(--surface-2); }
+.sp-list-item--card.sp-list-item--setting:has(input:checked),
+.sp-list-item--card.sp-list-item--setting:has(input:checked):hover { background: var(--surface); }
 /* the row's own text column and its lines: they exist wherever a row carries more
    than one line, so they are the row's parts and not the card's */
 .sp-stacked--fill { flex: 1; overflow: visible; }
