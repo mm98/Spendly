@@ -259,6 +259,7 @@
       </div>
       <div class="sp-meta au-w400">Register names the field, unlike sign in - there is no account to protect yet, and the useful next step is a link across.</div>
     </div>
+
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
@@ -511,7 +512,7 @@
     <span class="doc-badge" id="20f">20f</span>
     <span class="doc-section__title">The emails</span>
   </div>
-  <div class="doc-lede">Four messages, all transactional: the confirmation link from <a href="#20b">20b</a>, the reset link from <a href="#20c">20c</a>, and a notice whenever the password changes or a passkey is added. Each is the auth card carried into the inbox - the mark, a heading, one line, one button.</div>
+  <div class="doc-lede">Four transactional messages - the confirmation link from <a href="#20b">20b</a>, the reset link from <a href="#20c">20c</a>, and a notice whenever the password changes or a passkey is added - each the auth card carried into the inbox: the mark, a heading, one line, one button. Then the status email, weekly or monthly, chosen under the email address in Settings (<a href="Settings and import.dc.html#11a">11a</a>): the period's figures and lists in one card.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
@@ -520,6 +521,11 @@
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
     <div class="doc-note"><b class="sp-ink">Password changed is sent on every change</b> - from Settings and from the reset flow alike - to the account's address. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. It carries no link that undoes the change.</div>
     <div class="doc-note"><b class="sp-ink">Passkey added is sent each time one is added</b>, naming it as the device reported it. Its button opens Settings, Account, where the passkey can be removed. Removing one sends nothing, and resetting the password leaves passkeys as they are.</div>
+    <div class="doc-note"><b class="sp-ink">The status email is one template, emails/status</b>, for both Weekly and Monthly, and <b>emails/status-quiet</b> for a period with no orders. Weekly is sent Monday at 08:00 for Monday to Sunday just ended; Monthly on the 1st at 08:00 for the month just ended, both in the account's time zone. Nothing is sent while the setting is None, which is the default for every account. The sections are Mustache blocks; fields and rules are in <b>emails/README.md</b>, and the specimens merge <b>emails/status-sample.json</b>.</div>
+    <div class="doc-note"><b class="sp-ink">Order in the card:</b> the period, three tiles (Spent with the comparison, Saved, Orders), limits exceeded, Budget (monthly only), top 5 categories, the latest 5 orders, bookmarks added in the period, Needs a look, then Open Spendly. A section with nothing in it is left out, rule and all; the limits box is absent when no limit was passed.</div>
+    <div class="doc-note"><b class="sp-ink">Budget shows costs only.</b> Last month's real costs against the expected costs, and the costs expected in the new month. Income and Left over never appear in the email, whatever Show income was last set to in Budget (<a href="Budget.dc.html#21a">21a</a>).</div>
+    <div class="doc-note"><b class="sp-ink">A weekly email states limits for the calendar month so far</b>, since limits are monthly: "11.260,00 kr. of 10.000,00 kr. in October so far". A saving is an amount, green, under the order amount; a zero saving is grey.</div>
+    <div class="doc-note"><b class="sp-ink">The tiles stack below 480px</b>, and the card keeps one column at every width. Stop these emails sets the setting to None without signing in, from a single-use link.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
   </div>
 
@@ -543,6 +549,21 @@
       <div class="sp-section-label">4 - PASSKEY ADDED</div>
       <iframe class="au-email" title="A passkey was added" srcDoc="{{ addedDoc }}"></iframe>
       <div class="sp-meta au-w600">Subject: A passkey was added to your Spendly account. Sent when a passkey is added, on 20b or in Settings.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">5 - STATUS, MONTHLY</div>
+      <iframe class="au-email" title="Monthly status" srcDoc="{{ monthlyDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: September in Spendly: 61.480 kr. spent. Sent on the 1st when Status email is Monthly.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">6 - STATUS, WEEKLY</div>
+      <iframe class="au-email" title="Weekly status" srcDoc="{{ weeklyDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Week 42 in Spendly: 9.870 kr. spent. Sent on Monday when Status email is Weekly.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">7 - STATUS, NOTHING SPENT</div>
+      <iframe class="au-email" title="Status with nothing spent" srcDoc="{{ quietDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Week 43 in Spendly: nothing spent. Sent in place of 5 or 6 when the period has no orders.</div>
     </div>
   </div>
 </section>
@@ -803,7 +824,7 @@
           <button type="button" class="sp-btn">Capture a receipt</button>
           <button type="button" class="sp-btn sp-btn--outline">Enter one by hand</button>
         </div>
-        <div class="sp-row-flex sp-gap-14">
+        <div class="sp-row-flex sp-gap-14 sp-stretch">
           <div class="sp-well sp-grow">
             <span class="doc-specimen__label">THIS MONTH</span>
             <div class="sp-stat__figure sp-number sp-ink-5">0,00 kr.</div>
@@ -840,6 +861,19 @@ class Component extends DCLogic {
         this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
       });
     });
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const merge = (tpl, ctx) => tpl
+      .replace(/\{\{([#^])(\w+)\}\}([\s\S]*?)\{\{\/\2\}\}/g, (m, kind, key, inner) => {
+        const v = ctx[key];
+        if (kind === '^') return (!v || (Array.isArray(v) && !v.length)) ? merge(inner, ctx) : '';
+        if (Array.isArray(v)) return v.map(it => merge(inner, { ...ctx, ...it })).join('');
+        return v ? merge(inner, ctx) : '';
+      })
+      .replace(/\{\{(\w+)\}\}/g, (m, n) => ctx[n] == null ? '' : esc(ctx[n]));
+    Promise.all(['emails/status.html', 'emails/status-quiet.html', 'emails/status-sample.json'].map(u => fetch(u).then(r => r.text()))).then(([s, q, j]) => {
+      const d = JSON.parse(j);
+      this.setState({ monthly: merge(s, d.monthly), weekly: merge(s, d.weekly), quiet: merge(q, d.quiet) });
+    });
   }
   size(el) {
     const go = () => { const d = el.contentDocument; const h = d && d.documentElement ? d.documentElement.scrollHeight : 0; if (h > 0) el.style.height = h + 'px'; };
@@ -854,7 +888,8 @@ class Component extends DCLogic {
   }
   renderVals() {
     return {
-      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added
+      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added,
+      monthlyDoc: this.state.monthly, weeklyDoc: this.state.weekly, quietDoc: this.state.quiet
     };
   }
   applyView() {

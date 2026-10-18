@@ -1,0 +1,355 @@
+{
+ "monthly": {
+  "app_url": "https://app.example.net/",
+  "settings_url": "https://app.example.net/settings/account",
+  "unsubscribe_url": "https://app.example.net/email/stop/4c1d",
+  "categories_url": "https://app.example.net/categories",
+  "orders_url": "https://app.example.net/orders",
+  "bookmarks_url": "https://app.example.net/bookmarks",
+  "budget_url": "https://app.example.net/budget",
+  "subject": "September in Spendly: 61.480 kr. spent",
+  "preheader": "61.480 kr. spent, saved 24.310,00 kr., 2 limits exceeded.",
+  "your_label": "Your month",
+  "period": "September 2026",
+  "spent": "61.480 kr.",
+  "compare": "4.210 kr. less than August",
+  "saved_fig": "24.310 kr.",
+  "has_saving": true,
+  "saved_sub": "on 15 of 18 orders",
+  "count": "18",
+  "count_sub": "16 delivered",
+  "limits_any": true,
+  "limits_heading": "2 limits exceeded",
+  "limits": [
+   {
+    "name": "Decor",
+    "spent": "12.640,00 kr.",
+    "limit": "10.000,00 kr.",
+    "scope": "",
+    "over": "+26% over the limit",
+    "fill_pct": 79,
+    "first": true
+   },
+   {
+    "name": "Garden",
+    "spent": "4.360,00 kr.",
+    "limit": "4.000,00 kr.",
+    "scope": "",
+    "over": "+9% over the limit",
+    "fill_pct": 92,
+    "first": false
+   }
+  ],
+  "budget": true,
+  "last_label": "September costs",
+  "last_real": "7.612,40 kr.",
+  "last_expected": "7.946,98 kr.",
+  "difference": "334,58 kr. under",
+  "under": true,
+  "last_pct": 96,
+  "next_label": "Expected in October",
+  "next_expected": "7.946,98 kr.",
+  "next_rows": "8 rows",
+  "categories_any": true,
+  "categories": [
+   {
+    "name": "Decor",
+    "amount": "12.640,00 kr.",
+    "pct": 100,
+    "first": true
+   },
+   {
+    "name": "Electronics",
+    "amount": "11.900,00 kr.",
+    "pct": 94,
+    "first": false
+   },
+   {
+    "name": "Kitchen",
+    "amount": "8.230,00 kr.",
+    "pct": 65,
+    "first": false
+   },
+   {
+    "name": "Garden",
+    "amount": "4.360,00 kr.",
+    "pct": 34,
+    "first": false
+   },
+   {
+    "name": "Books",
+    "amount": "2.120,00 kr.",
+    "pct": 17,
+    "first": false
+   }
+  ],
+  "orders_any": true,
+  "orders_link": "All 18 orders",
+  "orders": [
+   {
+    "vendor": "Bolia",
+    "category": "Decor",
+    "date": "30 Sep",
+    "amount": "3.980,00 kr.",
+    "saving": "Saved 995,00 kr.",
+    "has_saving": true,
+    "first": true
+   },
+   {
+    "vendor": "Elgiganten",
+    "category": "Electronics",
+    "date": "27 Sep",
+    "amount": "7.240,00 kr.",
+    "saving": "Saved 2.170,00 kr.",
+    "has_saving": true,
+    "first": false
+   },
+   {
+    "vendor": "Plantorama",
+    "category": "Garden",
+    "date": "24 Sep",
+    "amount": "2.180,00 kr.",
+    "saving": "Saved 0,00 kr.",
+    "has_saving": false,
+    "first": false
+   },
+   {
+    "vendor": "Illums Bolighus",
+    "category": "Decor",
+    "date": "19 Sep",
+    "amount": "2.340,00 kr.",
+    "saving": "Saved 640,00 kr.",
+    "has_saving": true,
+    "first": false
+   },
+   {
+    "vendor": "Kop & Kande",
+    "category": "Kitchen",
+    "date": "15 Sep",
+    "amount": "1.490,00 kr.",
+    "saving": "Saved 595,00 kr.",
+    "has_saving": true,
+    "first": false
+   }
+  ],
+  "bookmarks_any": true,
+  "bookmarks_label": "Bookmarked in September",
+  "bookmarks": [
+   {
+    "name": "Muuto Fiber chair",
+    "vendor": "Ambientedirect",
+    "price": "2.399,00 kr.",
+    "first": true
+   },
+   {
+    "name": "Weber Spirit E-325",
+    "vendor": "Bauhaus",
+    "price": "6.499,00 kr.",
+    "first": false
+   },
+   {
+    "name": "Stelton EM77 jug",
+    "vendor": "Stelton",
+    "price": "649,00 kr.",
+    "first": false
+   }
+  ],
+  "needs_any": true,
+  "needs": [
+   {
+    "text": "2 drafts to finish",
+    "action": "Open drafts",
+    "url": "https://app.example.net/orders?status=Draft",
+    "first": true
+   },
+   {
+    "text": "1 order not delivered after 2 weeks",
+    "action": "See order",
+    "url": "https://app.example.net/orders?status=Ordered&to=2026-09-16",
+    "first": false
+   },
+   {
+    "text": "1 possible duplicate vendor",
+    "action": "Review",
+    "url": "https://app.example.net/vendors?flag=duplicates",
+    "first": false
+   }
+  ],
+  "frequency_line": "You get this on the 1st of every month because Status email is set to Monthly."
+ },
+ "weekly": {
+  "app_url": "https://app.example.net/",
+  "settings_url": "https://app.example.net/settings/account",
+  "unsubscribe_url": "https://app.example.net/email/stop/4c1d",
+  "categories_url": "https://app.example.net/categories",
+  "orders_url": "https://app.example.net/orders",
+  "bookmarks_url": "https://app.example.net/bookmarks",
+  "budget_url": "https://app.example.net/budget",
+  "subject": "Week 42 in Spendly: 9.870 kr. spent",
+  "preheader": "9.870 kr. spent, saved 2.640,00 kr., 1 limit exceeded.",
+  "your_label": "Your week",
+  "period": "Week 42, 12 - 18 Oct 2026",
+  "spent": "9.870 kr.",
+  "compare": "1.150 kr. more than week 41",
+  "saved_fig": "2.640 kr.",
+  "has_saving": true,
+  "saved_sub": "on 4 of 5 orders",
+  "count": "5",
+  "count_sub": "3 delivered",
+  "limits_any": true,
+  "limits_heading": "1 limit exceeded",
+  "limits": [
+   {
+    "name": "Decor",
+    "spent": "11.260,00 kr.",
+    "limit": "10.000,00 kr.",
+    "scope": " in October so far",
+    "over": "+13% over the limit",
+    "fill_pct": 89,
+    "first": true
+   }
+  ],
+  "budget": false,
+  "categories_any": true,
+  "categories": [
+   {
+    "name": "Decor",
+    "amount": "4.420,00 kr.",
+    "pct": 100,
+    "first": true
+   },
+   {
+    "name": "Electronics",
+    "amount": "2.990,00 kr.",
+    "pct": 68,
+    "first": false
+   },
+   {
+    "name": "Kitchen",
+    "amount": "1.380,00 kr.",
+    "pct": 31,
+    "first": false
+   },
+   {
+    "name": "Garden",
+    "amount": "720,00 kr.",
+    "pct": 16,
+    "first": false
+   },
+   {
+    "name": "Books",
+    "amount": "360,00 kr.",
+    "pct": 8,
+    "first": false
+   }
+  ],
+  "orders_any": true,
+  "orders_link": "All 5 orders",
+  "orders": [
+   {
+    "vendor": "Hay",
+    "category": "Decor",
+    "date": "17 Oct",
+    "amount": "2.480,00 kr.",
+    "saving": "Saved 620,00 kr.",
+    "has_saving": true,
+    "first": true
+   },
+   {
+    "vendor": "Power",
+    "category": "Electronics",
+    "date": "16 Oct",
+    "amount": "2.990,00 kr.",
+    "saving": "Saved 1.140,00 kr.",
+    "has_saving": true,
+    "first": false
+   },
+   {
+    "vendor": "Bolia",
+    "category": "Decor",
+    "date": "15 Oct",
+    "amount": "1.940,00 kr.",
+    "saving": "Saved 485,00 kr.",
+    "has_saving": true,
+    "first": false
+   },
+   {
+    "vendor": "Kop & Kande",
+    "category": "Kitchen",
+    "date": "14 Oct",
+    "amount": "1.380,00 kr.",
+    "saving": "Saved 395,00 kr.",
+    "has_saving": true,
+    "first": false
+   },
+   {
+    "vendor": "Plantorama",
+    "category": "Garden",
+    "date": "13 Oct",
+    "amount": "720,00 kr.",
+    "saving": "Saved 0,00 kr.",
+    "has_saving": false,
+    "first": false
+   }
+  ],
+  "bookmarks_any": true,
+  "bookmarks_label": "Bookmarked this week",
+  "bookmarks": [
+   {
+    "name": "Louis Poulsen Panthella",
+    "vendor": "Lampemesteren",
+    "price": "3.795,00 kr.",
+    "first": true
+   },
+   {
+    "name": "Fiskars knife set",
+    "vendor": "Kop & Kande",
+    "price": "899,00 kr.",
+    "first": false
+   }
+  ],
+  "needs_any": true,
+  "needs": [
+   {
+    "text": "1 draft to finish",
+    "action": "Open draft",
+    "url": "https://app.example.net/orders?status=Draft",
+    "first": true
+   },
+   {
+    "text": "1 order not delivered after 2 weeks",
+    "action": "See order",
+    "url": "https://app.example.net/orders?status=Ordered&to=2026-10-04",
+    "first": false
+   }
+  ],
+  "frequency_line": "You get this every Monday because Status email is set to Weekly."
+ },
+ "quiet": {
+  "app_url": "https://app.example.net/",
+  "settings_url": "https://app.example.net/settings/account",
+  "unsubscribe_url": "https://app.example.net/email/stop/4c1d",
+  "categories_url": "https://app.example.net/categories",
+  "orders_url": "https://app.example.net/orders",
+  "bookmarks_url": "https://app.example.net/bookmarks",
+  "budget_url": "https://app.example.net/budget",
+  "subject": "Week 43 in Spendly: nothing spent",
+  "preheader": "No orders in week 43.",
+  "your_label": "Your week",
+  "period": "Week 43, 19 - 25 Oct 2026",
+  "quiet_heading": "Nothing spent this week",
+  "quiet_line": "No orders were added between 19 and 25 October.",
+  "limits_any": false,
+  "budget": false,
+  "needs_any": true,
+  "needs": [
+   {
+    "text": "1 draft to finish",
+    "action": "Open draft",
+    "url": "https://app.example.net/orders?status=Draft",
+    "first": true
+   }
+  ],
+  "frequency_line": "You get this every Monday because Status email is set to Weekly."
+ }
+}
