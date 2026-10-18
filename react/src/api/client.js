@@ -910,6 +910,19 @@ export async function saveSettings(patch, signal) {
 	return request('/api/settings', { method: 'PATCH', body: patch, signal })
 }
 
+/** Chooses the status email, 'none', 'weekly' or 'monthly' (11a), saved at once. This browser's time zone
+    and locale go with it: the email is sent at 08:00 in that zone and written in that locale. */
+export async function saveStatusEmail(frequency, signal) {
+	const zone = new Intl.DateTimeFormat().resolvedOptions().timeZone
+	const locale = new Intl.NumberFormat().resolvedOptions().locale
+	return request('/api/settings/status-email', { method: 'PUT', body: { frequency, zone, locale }, signal })
+}
+
+/** Stop these emails, from a status email's link (20f): { state: 'stopped' | 'used' | 'expired' }. */
+export async function stopStatusEmail(token, signal) {
+	return request('/api/auth/status-email/stop', { method: 'POST', body: { token }, signal })
+}
+
 /** Replaces the ledger with `orders` demo orders over the last `months`; `onRows(done, total)` hears
     its progress. A timed-out wait does not stop the server, so a late fill has still happened. A failure
     after the old ledger was removed carries `landed` in its body: the orders it kept. */

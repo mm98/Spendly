@@ -258,9 +258,12 @@ if (!group) {
 }
 if (group) {
 	const lineNames = new Set((group.lines ?? []).map(l => l.name))
+	// expected every month, and real in the months already past: one row as expected, one over
+	const thisMonth = new Date().getMonth()
+	const monthsOf = (expected, real) => Array.from({ length: 12 }, (_, m) => ({ expected, real: m < thisMonth ? real : null }))
 	// the longest name a row takes, beside an amount being typed on a phone
-	const longest = { name: 'A budget row with the longest name a row can take, next to an amount being typed', months: Array(12).fill(400) }
-	for (const line of [{ name: 'Rent', months: Array(12).fill(7500) }, { name: 'Gym', months: Array(12).fill(null) }, longest])
+	const longest = { name: 'A budget row with the longest name a row can take, next to an amount being typed', months: monthsOf(400, 450) }
+	for (const line of [{ name: 'Rent', months: monthsOf(7500, 7500) }, { name: 'Gym', months: monthsOf(null, null) }, longest])
 		lineNames.has(line.name) ? there() : step('budget line', await call('POST', `/budget/groups/${group.id}/lines`, line))
 }
 

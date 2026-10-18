@@ -7,6 +7,7 @@ import { nowEpoch } from '../lib/dates.js'
 import { emailMessage } from '../lib/emails.js'
 import { inBackground, linkTo, mailAvailable, sendMail } from '../lib/mail.js'
 import { sendPasswordChanged } from '../lib/notices.js'
+import { stopStatusEmail } from '../lib/statusEmail.js'
 import { passkeySite } from '../lib/passkeys.js'
 import { issueToken, readToken, resendWait, settleToken, useToken } from '../lib/tokens.js'
 import { seedAccountDefaults } from '../seed.js'
@@ -200,6 +201,11 @@ router.post('/confirm', (req, res) => {
 	createSession(req, res, user.id)
 	res.json({ state: 'confirmed', email: row.email })
 })
+
+/** Stop these emails, from a status email (20f): sets the setting to None without signing in. The
+    page sends the token in the body; a mail program's own one-click stop sends it in the address. */
+router.post('/status-email/stop', (req, res) => res.json({ state: stopStatusEmail(String(req.body?.token ?? '')) }))
+router.post('/status-email/stop/:token', (req, res) => res.json({ state: stopStatusEmail(req.params.token) }))
 
 /** Asks for a reset link. The answer is the same whether or not the address has an account. */
 router.post('/reset', (req, res) => {

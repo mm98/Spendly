@@ -4860,6 +4860,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a row whose items are different heights aligns them to their tops, so the
    shorter column starts level with the taller one rather than floating in it */
 .sp-top { align-items: flex-start; }
+/* a row of cards side by side that stand the same height, the tallest setting it */
+.sp-stretch { align-items: stretch; }
 .sp-muted { opacity: var(--fade-inactive); }
 /* full strength while a list or a menu inside it is open (brief 37) */
 .sp-muted:has([data-open="true"]) { opacity: 1; }

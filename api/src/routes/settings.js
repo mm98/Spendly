@@ -3,12 +3,13 @@ import { db } from '../db.js'
 import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, SPEND_KINDS } from '../lib/constants.js'
 import { statusKeys } from '../lib/statuses.js'
 import { looksOf, setLooks } from '../lib/looks.js'
+import { STATUS_EMAILS, chooseStatusEmail } from '../lib/statusEmail.js'
 
 export const router = Router()
 
 const selectSettings = db.prepare(`
 	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density,
-		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows
+		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, status_email
 	FROM user_settings WHERE user_id = ?
 `)
 // show_scan_card and confirm_delete are NOT NULL without a default, so a first write fills them
@@ -32,7 +33,7 @@ const toApi = row => ({
 	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density,
 	notifyWhileSaving: Boolean(row.notify_while_saving), notifyMonthlySummary: Boolean(row.notify_monthly_summary),
 	notifyEarly: row.notify_early, scanOverrides: Boolean(row.scan_overrides), sidebar: row.sidebar, compareMonth: row.compare_month,
-	recentRows: row.recent_rows
+	recentRows: row.recent_rows, statusEmail: row.status_email
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -60,6 +61,15 @@ const onOff = (asked, fallback) => (typeof asked === 'boolean' ? asked : fallbac
 router.get('/', (req, res) => {
 	const row = selectSettings.get(req.user.id)
 	res.json(row ? { ...toApi(row), looks: looksOf(req.user.id) } : null)
+})
+
+/** The status email (20f), saved on its own the moment it is chosen. The browser's time zone and
+    locale come with it, since the email is written and sent with no browser to ask. */
+router.put('/status-email', (req, res) => {
+	const frequency = String(req.body?.frequency ?? '')
+	if (!STATUS_EMAILS.includes(frequency)) return res.status(400).json({ error: 'Choose None, Weekly or Monthly.' })
+	chooseStatusEmail(req.user.id, { frequency, zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') })
+	res.json({ ...toApi(selectSettings.get(req.user.id)), looks: looksOf(req.user.id) })
 })
 
 router.patch('/', (req, res) => {

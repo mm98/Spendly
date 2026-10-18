@@ -26,9 +26,16 @@ export function linkTo(req, hashPath) {
 	return `${origin.replace(/\/$/, '')}/#${hashPath}`
 }
 
-/** Resolves once the SMTP server has taken the message. `html` is optional; `text` is always sent beside it. */
-export async function sendMail({ to, subject, text, html }) {
-	if (smtp) return void await smtp.sendMail({ from, to, subject, text, html })
+/** Where a link in a message sent with no request behind it points: SPENDLY_PUBLIC_URL, else this
+    server on its own port, which serves only the log. `api` points at the server's own path, not a page. */
+export function publicLink(path, { api = false } = {}) {
+	const origin = (process.env.SPENDLY_PUBLIC_URL || `http://localhost:${process.env.PORT ?? 4000}`).replace(/\/$/, '')
+	return api ? `${origin}/api${path}` : `${origin}/#${path}`
+}
+
+/** Resolves once the SMTP server has taken the message. `html` and `headers` are optional; `text` is always sent beside it. */
+export async function sendMail({ to, subject, text, html, headers }) {
+	if (smtp) return void await smtp.sendMail({ from, to, subject, text, html, headers })
 	if (!mailAvailable()) throw new Error('This server cannot send email.')
 	console.log(`[mail] to ${to}: ${subject}\n${text}\n`)
 }

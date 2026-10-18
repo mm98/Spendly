@@ -1,0 +1,32 @@
+{{subject}}
+
+{{your_label}}: {{period}}
+
+Spent: {{spent}} ({{compare}})
+Saved: {{saved_fig}} ({{saved_sub}})
+Orders: {{count}} ({{count_sub}})
+
+{{#limits_any}}{{limits_heading}}
+{{#limits}}- {{name}}: {{spent}} of {{limit}}{{scope}}, {{over}}
+{{/limits}}
+{{/limits_any}}{{#budget}}Budget
+- {{last_label}}: {{last_real}} of {{last_expected}} expected, {{difference}}
+- {{next_label}}: {{next_expected}}, {{next_rows}}
+
+{{/budget}}{{#categories_any}}Top categories
+{{#categories}}- {{name}}: {{amount}}
+{{/categories}}
+{{/categories_any}}{{#orders_any}}Latest orders
+{{#orders}}- {{vendor}}, {{category}}, {{date}}: {{amount}}, {{saving}}
+{{/orders}}
+{{/orders_any}}{{#bookmarks_any}}{{bookmarks_label}}
+{{#bookmarks}}- {{name}}, {{vendor}}: {{price}}
+{{/bookmarks}}
+{{/bookmarks_any}}{{#needs_any}}Needs a look
+{{#needs}}- {{text}}: {{url}}
+{{/needs}}
+{{/needs_any}}Open Spendly: {{app_url}}
+
+{{frequency_line}}
+Change it in Settings: {{settings_url}}
+Stop these emails: {{unsubscribe_url}}

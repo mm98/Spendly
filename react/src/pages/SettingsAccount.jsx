@@ -6,8 +6,11 @@ import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { ListItem } from '../components/ListItem.jsx'
+import { Segmented } from '../components/Segmented.jsx'
 import { Halves } from '../components/Well.jsx'
-import { changePassword, failureMessage } from '../api/client.js'
+import { changePassword, failureMessage, getSettings, saveStatusEmail } from '../api/client.js'
+import { invalidate, useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
 import { MIN_PASSWORD, PasswordHint } from './AuthParts.jsx'
 import { landing } from './SettingsParts.jsx'
@@ -49,6 +52,40 @@ function usePreview(file) {
 		return () => URL.revokeObjectURL(made)
 	}, [file])
 	return url
+}
+
+const STATUS_EMAILS = [{ value: 'none', label: 'None' }, { value: 'weekly', label: 'Weekly' }, { value: 'monthly', label: 'Monthly' }]
+
+/** The status email (11a, 20f), saved the moment it is chosen: in the account card on a desktop, a row
+    in the phone's Settings list (7a). Absent while this server cannot send email, as nothing would arrive. */
+export function StatusEmailChoice({ user, row = false }) {
+	const settings = useApi(getSettings)
+	const toast = useToast()
+	const [chosen, setChosen] = useState(null)
+	if (!user?.mail || !settings.data) return null
+	const value = chosen ?? settings.data.statusEmail ?? 'none'
+	const choose = next => {
+		setChosen(next)
+		saveStatusEmail(next)
+			.then(() => invalidate(getSettings))
+			.catch(e => {
+				setChosen(null)
+				const message = failureMessage(e, 'Your status email was not changed. Try again.')
+				if (message) toast({ message, color: 'danger' })
+			})
+	}
+	const choice = props => <Segmented name={row ? 'status-email-row' : 'status-email'} options={STATUS_EMAILS} value={value} onChange={choose} {...props} />
+	if (row) return (
+		<ListItem variant="card">
+			<span className="sp-field__label sp-grow" id="status-email-row-label">Status email</span>
+			{choice({ role: 'radiogroup', 'aria-labelledby': 'status-email-row-label' })}
+		</ListItem>
+	)
+	return (
+		<Field label="Status email" message="What you spent and saved, limits passed, your latest orders and bookmarks. Weekly arrives on Monday, Monthly on the 1st.">
+			{choice()}
+		</Field>
+	)
 }
 
 /** The account's own card (11a): picture, name, the email it signs in with, and the password. The
@@ -117,6 +154,7 @@ export function AccountCard({ user, value, change, touch }) {
 				</div>
 			</div>
 			{touch ? fields : <Halves>{fields}</Halves>}
+			{touch ? null : <StatusEmailChoice user={user} />}
 			<CardFooter>
 				<span className="sp-data">
 					{user?.passwordChangedAt ? `Password last changed ${ago(user.passwordChangedAt)}.` : 'Your password has not been changed here.'}

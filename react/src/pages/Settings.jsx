@@ -27,7 +27,7 @@ import {
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
-import { AccountCard } from './SettingsAccount.jsx'
+import { AccountCard, StatusEmailChoice } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, landing } from './SettingsParts.jsx'
@@ -555,6 +555,7 @@ function PhoneIndex({ user }) {
 						{passkeys === null ? null : <span className="sp-meta">{passkeys}</span>}
 					</ListItem>
 				)}
+			<StatusEmailChoice user={user} row />
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
 					<span className="sp-data sp-grow">{s.label}</span>

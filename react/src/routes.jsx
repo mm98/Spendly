@@ -41,6 +41,7 @@ const ConfirmSent = page(() => import('./pages/AccountLinks.jsx').then(m => ({ d
 const ConfirmLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ConfirmLink })))
 const ResetAsk = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetAsk })))
 const ResetLink = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.ResetLink })))
+const StatusEmailStop = page(() => import('./pages/AccountLinks.jsx').then(m => ({ default: m.StatusEmailStop })))
 const Terms = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Terms })))
 const Privacy = page(() => import('./pages/Notices.jsx').then(m => ({ default: m.Privacy })))
 const Home = page(() => import('./pages/Home.jsx'))
@@ -72,6 +73,7 @@ export const routes = [
 	{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
 	{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
 	{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
+	{ path: 'email/stop/:token', element: <StatusEmailStop />, handle: { title: 'Stop status emails' } },
 	{ path: 'terms', element: <Terms />, handle: { title: 'Terms of use' } },
 	{ path: 'privacy', element: <Privacy />, handle: { title: 'Privacy notice' } },
 	{

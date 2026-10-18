@@ -1,0 +1,22 @@
+{{subject}}
+
+{{your_label}}: {{period}}
+
+{{quiet_heading}}
+{{quiet_line}}
+
+{{#limits_any}}{{limits_heading}}
+{{#limits}}- {{name}}: {{spent}} of {{limit}}{{scope}}, {{over}}
+{{/limits}}
+{{/limits_any}}{{#budget}}Budget
+- {{last_label}}: {{last_real}} of {{last_expected}} expected, {{difference}}
+- {{next_label}}: {{next_expected}}, {{next_rows}}
+
+{{/budget}}{{#needs_any}}Needs a look
+{{#needs}}- {{text}}: {{url}}
+{{/needs}}
+{{/needs_any}}Open Spendly: {{app_url}}
+
+{{frequency_line}}
+Change it in Settings: {{settings_url}}
+Stop these emails: {{unsubscribe_url}}

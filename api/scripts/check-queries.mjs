@@ -409,6 +409,7 @@ for (const [method, path, body] of [
 	['PUT', '/views/shown', { shown: 6 }],
 	// Home counts a rule only while it is on, and the receipt rule starts off
 	['PATCH', '/settings', { looks: { receipt: true } }],
+	['PUT', '/settings/status-email', { frequency: 'monthly', zone: 'Europe/Copenhagen', locale: 'da-DK' }],
 	['GET', '/stats/home'],
 	['GET', '/stats/months?count=8'],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
@@ -432,6 +433,12 @@ for (const [method, path, body] of [
 	}
 	await response.arrayBuffer()
 }
+
+// the status email is written on a timer, not for a request, so a month's and a week's are written here
+const { latestDuePeriod, statusEmailFor } = await import('../src/lib/statusEmail.js')
+const today = new Date()
+const local = { day: today.toISOString().slice(0, 10), hour: 9, weekday: (today.getUTCDay() + 6) % 7 }
+for (const frequency of ['monthly', 'weekly']) statusEmailFor(USER, latestDuePeriod(frequency, local), '')
 
 // a passkey sign-in reads its passkey before the device's answer is checked, so a made-up answer runs the read and is refused
 const { ticket } = await (await fetch(BASE + '/auth/passkey/start', { method: 'POST' })).json()
