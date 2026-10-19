@@ -92,7 +92,7 @@ export function DemoCard() {
 			]}>
 				{heading}
 				<ListItem color="success">
-					<span className="sp-row-flex sp-flex-none"><Icon name="check" /></span>
+					<Icon name="check" />
 					<span className="sp-subtitle sp-ink-accent">
 						{orders(made.orders)} created across {plural(made.vendors, 'vendor')} and {plural(made.categories, 'category', 'categories')}.
 					</span>

@@ -2692,12 +2692,14 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
 .sp-dialog__actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-8); }
 .sp-dialog::backdrop { background: rgba(27, 26, 23, 0.32); }
 
-/* a decorative chevron inside a field sits on the field's own padding, not in the button slot */
+/* a decorative chevron inside a field sits on the field's own padding, not in the button slot.
+   Centred on the field's real height, as the unit and the trail are, so it does not sit
+   high in a 48px touch field */
 .sp-field__chevron {
   position: absolute;
   right: var(--sp-12);
-  top: 0;
-  height: var(--control-h);
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   color: var(--ink-5);
@@ -4805,11 +4807,17 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
    same reasoning as .sp-list-item--top */
 .sp-list-item--top { align-items: flex-start; }
 /* a box in a top-aligned row centres on the title's first line, not on the row's top
-   edge: the title is 14px on Poppins' normal 1.5 line, so the line box is 21px and the
-   16px box sits half the difference down - the same correction the described choice
-   (c5) makes for its 13px label */
+   edge: the title is 14px on Poppins' normal leading, so the box takes the title's size
+   and 1lh is the title's line box (19.3px, not the 21px a 1.5 line assumed) */
 .sp-list-item--top > .sp-check,
-.sp-list-item--top > .sp-radio { margin-top: calc((var(--t-14) * 1.5 - var(--box)) / 2); }
+.sp-list-item--top > .sp-radio { font-family: inherit; font-size: var(--t-14); line-height: normal; margin-top: calc((1lh - var(--box)) / 2); }
+/* a 16px icon in a top-aligned row centres on the first line of the text beside it.
+   1lh is that line's box (Poppins' normal leading, 18px at 13px), so the icon sits half
+   the difference down; when the text opens with a title the icon takes the title's size,
+   so 1lh is the title's line */
+.sp-list-item--top > svg { flex: none; margin-top: calc((1lh - 16px) / 2); }
+.sp-list-item--top:has(> svg + .sp-stack > .sp-title:first-child) > svg { font-size: var(--t-14); }
+.sp-list-item--top:has(> svg + .sp-subtitle) > svg { font-size: var(--t-12); }
 /* a row whose content stacks rather than sitting in a line - c24 variant */
 .sp-list-item--stack { flex-direction: column; align-items: stretch; gap: var(--sp-4); }
 /* ---------- the row on a surface ground - c15 variant ----------
@@ -5158,6 +5166,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
    choice rather than a notice - c24 variants */
 .sp-list-item[data-color="success"] { background: var(--green-tint); color: var(--green); }
 .sp-list-item[data-color="danger"] { background: var(--red-tint-2); border: 1px solid var(--red); }
+/* the row keeps ink-2 for what it holds, but its icon states the problem with the text
+   beside it, so it takes the danger ink; the warning row's own ink already reaches it */
+.sp-list-item[data-color="danger"] > svg { color: var(--red-ink); }
 .sp-list-item--outline { background: none; border: 1px solid var(--line); }
 /* a row that turns into a field (rename, edit) keeps one height in both states: the field's height plus a 4px inset each side; the content centres, so nothing below it moves */
 .sp-list-item--editable { box-sizing: border-box; height: calc(var(--control-h) + var(--sp-8)); padding-block: 0; }

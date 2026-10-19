@@ -116,7 +116,7 @@ export function BuildCard() {
 				? <span className="sp-meta">Press the button below to check online for a newer version.</span>
 				: null}
 			{state === 'current'
-				? <ListItem color="success"><span className="sp-row-flex sp-flex-none"><Icon name="check" /></span>This is the newest version.</ListItem>
+				? <ListItem color="success"><Icon name="check" />This is the newest version.</ListItem>
 				: null}
 			{state === 'behind'
 				? (
