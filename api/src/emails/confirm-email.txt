@@ -2,7 +2,7 @@ Subject: Confirm your email for Spendly
 
 Confirm your email
 
-Hi {{name}}, open this link to confirm {{email}} and you're in.
+Hi {{name}}, open this link to confirm {{email}}. If you're not signed in on that device, sign in afterwards.
 
 Confirm my email:
 {{action_url}}

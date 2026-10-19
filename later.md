@@ -19,12 +19,6 @@ while it writes, and `storeColumns` does not set `status_type` when they come ba
 keeps the type `custom`, so Home, Statistics and the status email count returned orders as spent
 and show 0 delivered. Accounts with real orders are not affected.
 
-## A category cannot be marked as a favourite
-
-Found 2026-10-19, in `react/src/pages/CategoryForm.jsx`. Pickers list favourite categories first, and
-demo data makes three of them, but the category page has no control to mark one. Vendors have it.
-A person can never set or clear a favourite category.
-
 ## The order form promises an order number nobody sees
 
 Found 2026-10-19, in `react/src/pages/OrderForm.jsx`. A comment beside Reference says an order without

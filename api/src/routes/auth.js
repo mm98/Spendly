@@ -205,8 +205,8 @@ router.post('/confirm/resend', requireAuth, async (req, res) => {
 	res.json({ email: user.email, retryAfter: resendWait(user.id, 'confirm') })
 })
 
-/** Opening a confirming link confirms the address and signs this browser in. Opened twice, it
-    answers "already" rather than an error, since mail programs open links on their own. */
+/** Confirms the address and never signs in: whoever registered chose the password, not the address's owner.
+    Opened twice, it answers "already", since mail programs open links on their own. */
 router.post('/confirm', (req, res) => {
 	const token = String(req.body?.token ?? '')
 	const { state, row } = readToken(token, 'confirm')
@@ -218,7 +218,6 @@ router.post('/confirm', (req, res) => {
 		confirmEmail.run(user.id)
 		useToken(token)
 	})()
-	createSession(req, res, user.id)
 	res.json({ state: 'confirmed', email: row.email })
 })
 

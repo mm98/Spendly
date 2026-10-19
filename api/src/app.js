@@ -95,17 +95,19 @@ app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '
 // stamped with the request's arrival time the way an access log is. The JSON body rides along
 // (after the parser above, so req.body is already the parsed object, not the raw stream), and
 // the method is padded to the width of the longest one (OPTIONS, 7) so the URLs, statuses and
-// timings line up in columns. Password is the one field worth hiding -- both auth routes carry
-// it in plain text, and a debug log is still a log a terminal keeps scrollback of. Registered
-// only when on, rather than checked every request, so a normal run pays nothing.
+// timings line up in columns. Passwords and email-link codes are hidden, in the body and in the
+// address: a debug log is still a log a terminal keeps scrollback of. Registered only when on,
+// rather than checked every request, so a normal run pays nothing.
 if (process.argv.includes('--debug') || process.env.DEBUG) {
-	const REDACT_KEYS = ['password']
+	const REDACT_KEYS = ['password', 'current', 'token']
+	// a link's code sits in the address too: /api/auth/reset/<code>, /api/auth/status-email/stop/<code>
+	const redactedUrl = url => url.replace(/\/(reset|stop)\/[^/?#]+/, '/$1/***')
 	const redacted = body => JSON.stringify(body, (key, value) => REDACT_KEYS.includes(key) ? '***' : value)
 	app.use((req, res, next) => {
 		const arrived = new Date()
 		const body = req.is('application/json') && req.body && Object.keys(req.body).length ? ' ' + redacted(req.body) : ''
 		res.on('finish', () => {
-			console.log(`${arrived.toISOString()} ${req.method.padEnd(7)} ${req.originalUrl} ${res.statusCode} (${Date.now() - arrived}ms)${body}`)
+			console.log(`${arrived.toISOString()} ${req.method.padEnd(7)} ${redactedUrl(req.originalUrl)} ${res.statusCode} (${Date.now() - arrived}ms)${body}`)
 		})
 		next()
 	})

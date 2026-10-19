@@ -105,7 +105,7 @@ export function ConfirmSent() {
 		<AuthCard icon={again ? 'check' : 'mail'} gap={10} title={again ? 'Sent again' : 'Confirm your email'}
 			lead={again
 				? <>A new link is on its way to <b className="sp-ink sp-break">{address}</b>. The earlier one no longer works.</>
-				: <>We sent a link to <b className="sp-ink sp-break">{address}</b>. Open it and you're in. It expires in 24 hours.</>}
+				: <>We sent a link to <b className="sp-ink sp-break">{address}</b>. Open it to confirm your address, then sign in if asked. It expires in 24 hours.</>}
 			alert={alert} onSubmit={resend} submitVariant="outline" busy={busy} busyLabel="Sending…"
 			disabled={wait > 0} submitIcon={wait > 0 ? 'clock' : null}
 			submit={wait > 0 ? `Send again in ${clock(wait)}` : again ? 'Send again' : 'Send it again'}
@@ -129,7 +129,7 @@ export function ConfirmLink() {
 			.finally(() => getCurrentUser().then(setMe).catch(() => setMe(null)))
 	}, [token])
 	if (!answer || me === undefined || !options) return null
-	const next = me ? onward(me, '/') : '/signin'
+	const next = me ? onward(me, '/') : answer.email ? `/signin?email=${encodeURIComponent(answer.email)}` : '/signin'
 	const go = () => navigate(next, { replace: true })
 	// signed in here, so a passkey can be added on the spot; then first run, as Not now goes straight there (20b)
 	const offer = me && passkeysHere(options)

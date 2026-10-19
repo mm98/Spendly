@@ -153,7 +153,6 @@ export async function resetPassword(token, password, signal) {
 /** { state: 'confirmed' | 'already' | 'expired', email }; a confirmed link signs this browser in. */
 export async function confirmEmail(token, signal) {
 	const out = await request('/api/auth/confirm', { method: 'POST', body: { token }, signal })
-	signedOut = false
 	invalidate()
 	return out
 }

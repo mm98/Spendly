@@ -143,7 +143,7 @@ Everything that needs you, on one page.
 - **Vendors** - search, sort, favourites first, archive, and merge two into one. A vendor has a
   picture, a colour, other names it matches on receipts, default categories, and "Leave out of
   statistics" for one-off shops. **Possible duplicates** are found by name or VAT number.
-- **Categories** - an icon from a large library, a colour, and a **monthly limit**. Each row shows
+- **Categories** - favourites first, an icon from a large library, a colour, and a **monthly limit**. Each row shows
   this month against its limit. Spendly warns you when a limit you type would have been passed in
   most of the last 12 months.
 - **Category suggestions** come from a small language model that runs on your own server and

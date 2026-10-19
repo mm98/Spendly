@@ -401,7 +401,7 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId AND c.id <> @except ORDER BY COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId AND c.id <> @except ORDER BY c.favourite DESC, COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE o",
 				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)",
@@ -420,7 +420,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId AND contains_fold(c.name, @needle) ORDER BY COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId AND contains_fold(c.name, @needle) ORDER BY c.favourite DESC, COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE o",
 				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)",
@@ -439,7 +439,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId ORDER BY c.favourite DESC, COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE o",
 				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)",
@@ -458,7 +458,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) ASC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY c.favourite DESC, COALESCE(m.spend, 0) ASC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -477,7 +477,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY c.favourite DESC, COALESCE(m.spend, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -496,7 +496,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c WHERE c.user_id = @userId ORDER BY c.budget DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c WHERE c.user_id = @userId ORDER BY c.favourite DESC, c.budget DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
