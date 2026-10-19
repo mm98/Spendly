@@ -103,7 +103,7 @@ export function vendorPage(userId, q, languages = []) {
 	if (q.like !== undefined)
 		return pageOfRanked(userId, q, vendorsLike(userId, { name: String(q.like), aliases: String(q.aka ?? '').split('\n').filter(Boolean), except }), { duplicates, brief })
 
-	const sort = SORTS[q.sort] ?? SORTS['name-asc']
+	const sort = Object.hasOwn(SORTS, q.sort) ? SORTS[q.sort] : SORTS['name-asc']
 	const where = ['v.user_id = @userId']
 	const params = { userId }
 	if (q.archived !== 'all') where.push(q.archived === 'yes' ? 'v.archived = 1' : 'v.archived = 0')

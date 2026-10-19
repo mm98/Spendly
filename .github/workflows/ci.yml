@@ -16,6 +16,10 @@ on:
       - '.github/workflows/ci.yml'
       - '.github/workflows/docker.yml'
 
+# The checks only read the code, so the run's token can do nothing else.
+permissions:
+  contents: read
+
 jobs:
   # One job, not one per check: every job is billed as at least a whole minute, and each check
   # takes seconds. A check runs even when one before it failed, so one run names every failure.

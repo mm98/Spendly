@@ -2,7 +2,8 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { TextField } from '../components/Inputs.jsx'
+import { Field } from '../components/Field.jsx'
+import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { failureMessage, getPasskeys, removePasskey, renamePasskey } from '../api/client.js'
@@ -31,13 +32,12 @@ export function PasskeysCard() {
 	const add = () => {
 		setAdding(true)
 		setProblem(null)
-		addPasskeyHere()
-			.catch(e => {
-				if (closedPrompt(e)) return
-				setProblem(alreadyHere(e) ? 'This device already has a passkey for your account.'
-					: deviceFailed(e) ? 'The passkey could not be added. Try again.' : failureMessage(e, UNREACHABLE))
-			})
-			.finally(() => setAdding(false))
+	}
+	// the device's own refusal shows on the card; a wrong password stays in the dialog
+	const deviceRefused = e => {
+		setAdding(false)
+		if (closedPrompt(e)) return
+		setProblem(alreadyHere(e) ? 'This device already has a passkey for your account.' : 'The passkey could not be added. Try again.')
 	}
 	const rows = list.data?.passkeys
 	return (
@@ -76,7 +76,48 @@ export function PasskeysCard() {
 				</Fragment>
 			))}
 			{removing ? <Remove passkey={removing} onDone={() => setRemoving(null)} /> : null}
+			{adding ? <AddPasskey onDone={() => setAdding(false)} onDeviceRefused={deviceRefused} /> : null}
 		</Card>
+	)
+}
+
+/** Adding asks for the password first: a passkey keeps working after the password changes, so a
+    device that is only signed in must not be able to add one. */
+function AddPasskey({ onDone, onDeviceRefused }) {
+	const [password, setPassword] = useState('')
+	const [problem, setProblem] = useState(null)
+	const [busy, setBusy] = useState(false)
+	const add = () => {
+		if (!password) {
+			setProblem('Enter your password.')
+			return document.getElementById('passkey-password')?.focus()
+		}
+		setBusy(true)
+		addPasskeyHere(password)
+			.then(onDone)
+			.catch(e => {
+				if (closedPrompt(e) || alreadyHere(e) || deviceFailed(e)) return onDeviceRefused(e)
+				setBusy(false)
+				setProblem(e?.fields?.password ?? failureMessage(e, UNREACHABLE))
+				document.getElementById('passkey-password')?.focus()
+			})
+	}
+	return (
+		<Dialog onCancel={busy ? undefined : onDone}>
+			<DialogTitle>Add a passkey</DialogTitle>
+			<DialogBody>Enter your password first. Then this device asks you to confirm.</DialogBody>
+			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (!busy) add() }}>
+				<Field label="Password" id="passkey-password" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
+					<PasswordField autoComplete="current-password" autoFocus value={password}
+						onChange={v => { setPassword(v); setProblem(null) }} />
+				</Field>
+				<button type="submit" hidden />
+			</form>
+			<DialogActions>
+				<Button variant="outline" disabled={busy} onClick={onDone}>Cancel</Button>
+				<Button disabled={busy} onClick={add}>{busy ? 'Adding…' : 'Continue'}</Button>
+			</DialogActions>
+		</Dialog>
 	)
 }
 

@@ -210,7 +210,7 @@ export function AccountCard({ user, value, change, touch }) {
 }
 
 /** Change password (Actions inventory, Input types 14a): the current one, then the new one with its
-    meter. No second copy to type: the reveal does that job. Other sessions stay signed in. */
+    meter. No second copy to type: the reveal does that job. Every other session is signed out. */
 function PasswordDialog({ onClose, onSaved }) {
 	const [current, setCurrent] = useState('')
 	const [next, setNext] = useState('')
@@ -238,7 +238,7 @@ function PasswordDialog({ onClose, onSaved }) {
 	return (
 		<Dialog onCancel={busy ? undefined : onClose}>
 			<DialogTitle>Change password</DialogTitle>
-			<DialogBody>Other devices where you are signed in stay signed in.</DialogBody>
+			<DialogBody>Your other devices are signed out. This one stays signed in.</DialogBody>
 			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (!busy) save() }}>
 				<Field label="Current password" id="password-current" message={problems.current} messageType={problems.current ? 'danger' : 'hint'}>
 					<PasswordField autoComplete="current-password" autoFocus value={current}

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { MAX_RECORD_NAME, textProblem } from '../lib/validate.js'
 import multer from 'multer'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
@@ -204,6 +205,9 @@ router.post('/known', (req, res) => {
 	res.json({ known: knownVendorNames(req.user.id, [...new Set(names)]) })
 })
 
+const vendorProblem = v => textProblem(v.name, 'A name', MAX_RECORD_NAME) ?? textProblem(v.initials, 'Initials', 8)
+	?? textProblem(v.colour, 'A colour', 40) ?? textProblem(v.lead, 'A lead', 200)
+
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
 	if (!name) return res.status(400).json({ error: 'A vendor needs a name.' })
@@ -214,6 +218,8 @@ router.post('/', (req, res) => {
 		return res.status(409).json({ error: `Another vendor, ${nameAsAlias.name}, already matches "${name}". Pick a different name.` })
 
 	const look = req.body?.look ?? {}
+	const problem = vendorProblem({ name, ...look })
+	if (problem) return res.status(400).json({ error: problem })
 	const cleaned = cleanAliases(req.user.id, null, name, look.aliases ?? [], look.move)
 	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
 	const defaults = cleanDefaultCategories(look.defaultCategories ?? [])
@@ -293,6 +299,8 @@ router.patch('/:id', (req, res) => {
 		submitted = submitted.filter(a => a.toLowerCase() !== nextName.toLowerCase())
 		if (!submitted.some(a => a.toLowerCase() === vendor.name.toLowerCase())) submitted.push(vendor.name)
 	}
+	const problem = vendorProblem({ ...patch, name: nextName })
+	if (problem) return res.status(400).json({ error: problem })
 	const cleaned = cleanAliases(req.user.id, vendor.id, nextName, submitted, patch.move)
 	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
 	// Same rule as the aliases above: the submitted set replaces the stored one, absent it stands.
@@ -419,7 +427,7 @@ router.delete('/:id/image', (req, res) => {
 })
 
 router.get('/:id/image/:rendition', (req, res) => {
-	const select = selectRendition[req.params.rendition]
+	const select = Object.hasOwn(selectRendition, req.params.rendition) ? selectRendition[req.params.rendition] : null
 	const row = select?.get(req.params.id, req.user.id)
 	if (!row) return res.status(404).json({ error: 'No image.' })
 	res.set('Content-Type', 'image/webp')

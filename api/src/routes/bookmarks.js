@@ -119,7 +119,7 @@ const BOOKMARK_SORT_SQL = {
 /** The clauses one request asks for. `filtered` reports whether anything beyond the account's
     own scope was added, so an unfiltered read can reuse the count it already has. */
 function buildBookmarkFilter(userId, q) {
-	const sortKey = BOOKMARK_SORT_SQL[q.sort] ? q.sort : 'added-desc'
+	const sortKey = Object.hasOwn(BOOKMARK_SORT_SQL, q.sort) ? q.sort : 'added-desc'
 	const where = ['b.user_id = @userId']
 	const params = { userId }
 

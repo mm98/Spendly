@@ -42,7 +42,7 @@ export function vendorResolver(userId, except = null) {
 		}
 		return byKey
 	}
-	return name => {
+	const resolve = name => {
 		const clean = String(name ?? '').trim()
 		if (!clean) return undefined
 		const named = other(selectVendorIdByName.get(userId, clean))
@@ -57,13 +57,17 @@ export function vendorResolver(userId, except = null) {
 		const byAlias = keys.aliases.get(key)
 		return byAlias ? { id: byAlias.id, alias: byAlias.name } : undefined
 	}
+	// a vendor made after the keys were read, so a later name in the same request finds it
+	resolve.learn = row => {
+		const key = vendorKey(row.name)
+		if (keys && key && !keys.names.has(key)) keys.names.set(key, row)
+	}
+	return resolve
 }
 
 /** The vendor a string files under, as an id; an alias that finds it is marked as the last one that matched. */
 export function findVendorIdByAnyName(userId, name) {
-	const found = resolveVendor(userId, name)
-	if (found?.alias) markAliasMatched.run(userId, found.id, found.alias)
-	return found?.id
+	return vendorFinder(userId).find(name)
 }
 
 /** The vendor a receipt names, tried as 5h says: its VAT number, then its web address, then the
@@ -78,13 +82,29 @@ export function findVendorIdForReceipt(userId, { vendor, website, vatNumber }, f
 
 /** `orderId` is the order being saved, kept on a vendor it makes (migrations/190). */
 export function findOrCreateVendor(userId, name, orderId = null) {
-	const clean = String(name).trim()
-	const existing = findVendorIdByAnyName(userId, clean)
-	if (existing) return existing
-	const id = newId('v')
-	insertVendor.run({ id, userId, name: clean, initials: clean.slice(0, 2).toUpperCase(),
-		colour: colourFor(clean, VENDOR_PALETTE), orderId })
-	return id
+	return vendorFinder(userId).findOrCreate(name, orderId)
+}
+
+// findVendorIdByAnyName and findOrCreateVendor for many orders, reading the vendors once;
+// made again after a write that rolled back, since a vendor it learned may not exist
+export function vendorFinder(userId) {
+	const resolve = vendorResolver(userId)
+	const find = name => {
+		const found = resolve(name)
+		if (found?.alias) markAliasMatched.run(userId, found.id, found.alias)
+		return found?.id
+	}
+	const findOrCreate = (name, orderId = null) => {
+		const clean = String(name).trim()
+		const existing = find(clean)
+		if (existing) return existing
+		const id = newId('v')
+		insertVendor.run({ id, userId, name: clean, initials: clean.slice(0, 2).toUpperCase(),
+			colour: colourFor(clean, VENDOR_PALETTE), orderId })
+		resolve.learn({ id, name: clean })
+		return id
+	}
+	return { find, findOrCreate }
 }
 
 const selectCategoryIdByName = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')

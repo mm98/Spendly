@@ -28,7 +28,7 @@ export async function signInWithPasskey({ autofill = false, remember = () => tru
 }
 
 /** Adds a passkey to the signed-in account through the device's own prompt. */
-export async function addPasskeyHere() {
-	const options = await startAddingPasskey()
+export async function addPasskeyHere(password) {
+	const options = await startAddingPasskey(password)
 	return addPasskey(await startRegistration({ optionsJSON: options }))
 }

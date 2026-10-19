@@ -54,18 +54,3 @@ Found 2026-10-19, in `api/src/lib/stats.js` (`ORDER BY spend DESC`, no second ke
 that spent the same amount keep one order inside an account, but which comes first is decided by
 their ids. It makes the Statistics screenshot change between two renders on one day. A name as the
 second key would fix both.
-
-## Changing the password in Settings keeps other sign-ins open
-
-Found 2026-10-19, in `api/src/routes/profile.js`. A sign-in someone stole keeps working after the
-owner changes the password in Settings. `design/Actions inventory.dc.html` asks for exactly this
-("other sessions stay signed in"), so a change needs Claude Design first. Adding a passkey also
-needs no password, so a short visit to an open session can leave a passkey behind.
-
-## A large import of orders finds each vendor one name at a time
-
-Found 2026-10-19, in `api/src/routes/orders.js` (`POST /import`). Each order with a name not seen
-before reads every vendor of the account again. The import check worked the same way and took 67
-seconds for 20,000 new names against 1,000 vendors. The import check beside it reads them once
-(`vendorResolver` in `api/src/lib/findOrCreate.js`); the import cannot reuse that as it is, since
-it adds vendors as it goes.

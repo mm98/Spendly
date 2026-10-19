@@ -9,7 +9,7 @@ import { sendPasskeyAdded } from '../lib/notices.js'
 import { keepChallenge, newTicket, passkeyName, passkeySite, takeChallenge } from '../lib/passkeys.js'
 import { forgetReads } from '../lib/readCache.js'
 import { limitPerVisitor } from '../lib/rateLimit.js'
-import { MAX_NAME, cleanName } from './auth.js'
+import { MAX_NAME, checkPassword, cleanName, locked } from './auth.js'
 
 /* Passkeys (20a, 20b, Settings > Passkeys): signing in with one, before the auth gate, and the
    account's own list, behind it. A passkey sits beside the password, never instead of it. */
@@ -71,10 +71,14 @@ signInRouter.post('/finish', async (req, res) => {
 /** The account's passkeys, oldest first. */
 router.get('/', (req, res) => res.json({ passkeys: selectMine.all(req.user.id).map(shown) }))
 
-/** A prompt to add one. The device is told which passkeys it already holds for this account. */
+/** A prompt to add one, once the password is given: a passkey outlives a password change, so a
+    signed-in device alone is not enough. The device is told which passkeys it already holds. */
 router.post('/start', async (req, res) => {
 	const site = passkeySite()
 	if (!site) return notSetUp(res)
+	const { user: known, wait } = await checkPassword(req, req.user.email, String(req.body?.password ?? ''))
+	if (wait) return locked(res, wait)
+	if (!known) return res.status(400).json({ error: 'That is not your password.', fields: { password: 'That is not your password.' } })
 	const user = selectUser.get(req.user.id)
 	const options = await generateRegistrationOptions({
 		rpName: 'Spendly', rpID: site.rpID,

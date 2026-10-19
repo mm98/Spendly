@@ -111,7 +111,7 @@ export function categoryPage(userId, q, today, languages = []) {
 		return ranked(found && found.id !== except ? [found.id] : [])
 	}
 
-	const sort = SORTS[q.sort] ?? SORTS['name-asc']
+	const sort = Object.hasOwn(SORTS, q.sort) ? SORTS[q.sort] : SORTS['name-asc']
 	const where = ['c.user_id = @userId']
 	const params = { userId }
 	const over = q.flag === 'over-limit'

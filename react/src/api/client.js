@@ -213,8 +213,9 @@ export async function getPasskeys(signal) {
 	return request('/api/account/passkeys', { signal })
 }
 
-export async function startAddingPasskey(signal) {
-	return request('/api/account/passkeys/start', { method: 'POST', signal })
+/** The device's prompt to add one; the account's password is asked for first. */
+export async function startAddingPasskey(password, signal) {
+	return request('/api/account/passkeys/start', { method: 'POST', body: { password }, signal })
 }
 
 export async function addPasskey(response, signal) {
