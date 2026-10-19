@@ -1,7 +1,7 @@
 import { lookup } from 'node:dns'
 import http from 'node:http'
 import https from 'node:https'
-import { isIP } from 'node:net'
+import { BlockList, isIP } from 'node:net'
 
 /* The one place this server fetches an address a user typed, so every hop is refused unless it
    connects to a public address, and nothing reports a failure: every way it fails is "nothing found". */
@@ -14,30 +14,25 @@ const MAX_REDIRECTS = 3
 
 /** The address ranges a server must not be sent to. Everything not public is refused rather
     than a list of known-bad ones being blocked: a blocklist is a guess about what exists. */
+const NOT_PUBLIC = new BlockList()
+for (const [net, bits] of [
+	['0.0.0.0', 8], ['10.0.0.0', 8], ['127.0.0.0', 8],   // this host, private, loopback
+	['169.254.0.0', 16],                                   // link-local, and cloud metadata
+	['172.16.0.0', 12], ['192.168.0.0', 16],               // private
+	['100.64.0.0', 10],                                    // carrier-grade NAT
+	['198.18.0.0', 15],                                    // benchmarking
+	['224.0.0.0', 3]                                       // multicast and reserved
+]) NOT_PUBLIC.addSubnet(net, bits, 'ipv4')
+for (const [net, bits] of [
+	['::', 96],                                            // unspecified, loopback, IPv4-compatible
+	['64:ff9b::', 96], ['64:ff9b:1::', 48], ['2002::', 16], // IPv4 carried inside IPv6
+	['fc00::', 7], ['fe80::', 10], ['ff00::', 8]           // unique local, link-local, multicast
+]) NOT_PUBLIC.addSubnet(net, bits, 'ipv6')
+
+// checked by number, not by spelling: an IPv4 address inside IPv6 (::ffff:7f00:1) meets the IPv4 ranges
 function isPublicAddress(ip) {
 	const kind = isIP(ip)
-	if (kind === 4) {
-		const [a, b] = ip.split('.').map(Number)
-		if (a === 0 || a === 10 || a === 127) return false          // this host, private, loopback
-		if (a === 169 && b === 254) return false                     // link-local, and cloud metadata
-		if (a === 172 && b >= 16 && b <= 31) return false            // private
-		if (a === 192 && b === 168) return false                     // private
-		if (a === 100 && b >= 64 && b <= 127) return false           // carrier-grade NAT
-		if (a === 198 && (b === 18 || b === 19)) return false         // benchmarking
-		if (a >= 224) return false                                   // multicast and reserved
-		return true
-	}
-	if (kind === 6) {
-		const at = ip.toLowerCase()
-		if (at === '::1' || at === '::') return false
-		if (at.startsWith('fc') || at.startsWith('fd')) return false  // unique local
-		if (at.startsWith('fe8') || at.startsWith('fe9') || at.startsWith('fea') || at.startsWith('feb')) return false
-		// An IPv4 address wearing an IPv6 coat gets the IPv4 rules.
-		const mapped = at.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)
-		if (mapped) return isPublicAddress(mapped[1])
-		return true
-	}
-	return false
+	return kind !== 0 && !NOT_PUBLIC.check(ip, kind === 4 ? 'ipv4' : 'ipv6')
 }
 
 // the connection's own lookup, so the address checked is the one connected to; every answer must be public
