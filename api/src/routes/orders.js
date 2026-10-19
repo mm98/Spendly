@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import multer from 'multer'
+import { upload } from '../lib/upload.js'
 import { createHash } from 'crypto'
 import { db } from '../db.js'
 import { requireConfirmed } from '../lib/auth.js'
@@ -13,7 +13,7 @@ import { orderAmountScale } from '../lib/orderAmountScale.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
 import { keyOfType, resolveStatus, statusKeys, typeOfKey } from '../lib/statuses.js'
 import { processAttachment } from '../lib/images.js'
-import { assertImageOrPdf } from '../lib/fileType.js'
+import { assertImageOrPdf, fileDisposition } from '../lib/fileType.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { restoreOrder, trashOrder } from '../lib/orderTrash.js'
@@ -22,12 +22,6 @@ import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/tex
 import { discardDraft, draftCount, draftListRow, draftsAsOrders, takeDraft } from '../lib/orderDrafts.js'
 
 export const router = Router()
-// defParamCharset: busboy (multer's parser) decodes every multipart header as latin1 by
-// default, so a filename typed with a non-ASCII character crosses the wire as UTF-8 bytes and
-// comes back mojibake ("rengÃ¸ringsplaner.pdf" for "rengøringsplaner.pdf") -- browsers never
-// send the RFC 5987 encoding that would tell busboy otherwise. Declaring the charset here
-// decodes it correctly at the source, for every field this instance parses.
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const isStatus = (userId, status) => statusKeys(userId).includes(status)
 // a status written as its name or in any case is stored as the account's key for it
@@ -66,6 +60,9 @@ const insertAttachment = db.prepare(`INSERT INTO order_attachments
 /** The hash of a file's bytes as they arrived, before any resizing. */
 export const sourceHash = buffer => createHash('sha256').update(buffer).digest('hex')
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM order_attachments WHERE order_item_id = ?')
+// deleting an order reads all its files into memory to undo from, so a line holds a bounded number
+const MAX_ITEM_FILES = 20
+const tooManyItemFiles = () => Object.assign(new Error(`A line can hold at most ${MAX_ITEM_FILES} files.`), { status: 409 })
 const deleteAttachment = db.prepare('DELETE FROM order_attachments WHERE id = ? AND order_id = ?')
 const deleteItemAttachment = db.prepare('DELETE FROM order_attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM order_attachments WHERE id = ? AND order_id = ?')
@@ -793,13 +790,13 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 	const full = req.query.download === '1' ? selectAttachmentOriginal.get(req.params.attachmentId, req.params.id) : null
 	if (full?.original) {
 		res.set('Content-Type', full.original_content_type)
-		res.set('Content-Disposition', `attachment; filename="${full.name.replace(/"/g, '')}"`)
+		res.set('Content-Disposition', fileDisposition(full.name, full.original_content_type, { download: true }))
 		return res.send(decompressBlob(full.original, full.original_is_compressed))
 	}
 	const attachment = selectAttachment.get(req.params.attachmentId, req.params.id)
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
-	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
+	res.set('Content-Disposition', fileDisposition(attachment.name, attachment.content_type))
 	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
 })
 
@@ -846,7 +843,9 @@ router.post('/:id/items/:itemId/attachments', upload.array('files'), async (req,
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
 	const itemId = req.params.itemId
 	assertImageOrPdf(req.files ?? [])
-	const existingNames = new Set(selectExistingItemAttachmentNames.all(itemId).map(r => r.n))
+	const existing = selectExistingItemAttachmentNames.all(itemId)
+	if (existing.length + (req.files?.length ?? 0) > MAX_ITEM_FILES) throw tooManyItemFiles()
+	const existingNames = new Set(existing.map(r => r.n))
 	const { added, skipped } = await saveAttachments(req.files, { orderItemId: itemId }, existingNames)
 	res.status(201).json({ order: getDecoratedOrder(req.user.id, req.params.id), added, skipped })
 })
@@ -866,6 +865,7 @@ router.post('/:id/items/:itemId/attachments/copy', (req, res) => {
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
 	const { fromOrderId, attachmentId } = req.body ?? {}
 	if (typeof fromOrderId !== 'string' || typeof attachmentId !== 'string') return res.status(400).json({ error: 'Say which photo to copy.' })
+	if (selectExistingItemAttachmentNames.all(req.params.itemId).length >= MAX_ITEM_FILES) throw tooManyItemFiles()
 	const made = copyItemAttachment.run({ newId: newId('a'), itemId: req.params.itemId, attachmentId, fromOrderId, userId: req.user.id })
 	if (!made.changes) throw notFound(attachmentId)
 	res.status(201).json(getDecoratedOrder(req.user.id, req.params.id))
@@ -884,7 +884,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/file', (req, res) => {
 	const attachment = selectItemAttachment.get(req.params.attachmentId, req.params.itemId)
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
-	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
+	res.set('Content-Disposition', fileDisposition(attachment.name, attachment.content_type))
 	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
 })
 
@@ -917,6 +917,7 @@ async function processImportAttachments(list, keepOriginal) {
 	for (const a of list ?? []) {
 		if (!a?.data) continue
 		const buffer = Buffer.from(a.data, 'base64')
+		if (buffer.length > MAX_UPLOAD_MB * 1024 * 1024) throw new Error(`The file "${a.filename || 'attachment'}" is over ${MAX_UPLOAD_MB} MB.`)
 		const processed = await processAttachment(buffer, a.contentType || 'application/octet-stream', a.filename, { keepOriginal })
 		out.push({ name: a.filename || 'attachment', ...processed, sha256: sourceHash(buffer) })
 	}

@@ -1,8 +1,10 @@
-import { lookup } from 'node:dns/promises'
+import { lookup } from 'node:dns'
+import http from 'node:http'
+import https from 'node:https'
 import { isIP } from 'node:net'
 
-/* The one place this server fetches an address a user typed, so every hop is resolved and
-   refused unless public, and nothing reports a failure: every way it fails is "nothing found". */
+/* The one place this server fetches an address a user typed, so every hop is refused unless it
+   connects to a public address, and nothing reports a failure: every way it fails is "nothing found". */
 
 const TIMEOUT_MS = 6000
 // A title lives in <head>, which is at the top of the document -- anything past this cannot be
@@ -38,17 +40,35 @@ function isPublicAddress(ip) {
 	return false
 }
 
-/** Every address the name resolves to, not just the first: one public answer beside a private
-    one would be a way through. The name is resolved again by the fetch, which this cannot see. */
-async function hostIsPublic(hostname) {
-	if (isIP(hostname)) return isPublicAddress(hostname)
-	try {
-		const addresses = await lookup(hostname, { all: true, verbatim: true })
-		return addresses.length > 0 && addresses.every(a => isPublicAddress(a.address))
-	} catch {
-		return false
-	}
+// the connection's own lookup, so the address checked is the one connected to; every answer must be public
+function publicLookup(hostname, options, callback) {
+	lookup(hostname, { ...options, all: true, verbatim: true }, (error, addresses) => {
+		if (error) return callback(error)
+		if (!addresses.length || !addresses.every(a => isPublicAddress(a.address)))
+			return callback(Object.assign(new Error(`${hostname} is not a public address`), { code: 'ENOTFOUND' }))
+		if (options.all) return callback(null, addresses)
+		callback(null, addresses[0].address, addresses[0].family)
+	})
 }
+
+/** One GET, never following a redirect, or null when the address is not public or cannot be
+    reached. A literal address never goes through a lookup, so it is checked here. */
+function getPublic(at, accept) {
+	if (at.protocol !== 'http:' && at.protocol !== 'https:') return Promise.resolve(null)
+	const host = at.hostname.replace(/^\[|\]$/g, '')
+	if (isIP(host) && !isPublicAddress(host)) return Promise.resolve(null)
+	return new Promise(settle => {
+		const ask = (at.protocol === 'https:' ? https : http).get(at, {
+			lookup: publicLookup,
+			signal: AbortSignal.timeout(TIMEOUT_MS),
+			// Named honestly. A shop that would rather not be read this way can say so.
+			headers: { 'User-Agent': 'Spendly/1.0 (+bookmark link preview)', 'Accept': accept }
+		}, settle)
+		ask.on('error', () => settle(null))
+	})
+}
+
+const REDIRECTS = [301, 302, 303, 307, 308]
 
 /* Named references are case-sensitive in HTML (&Oslash; is not &oslash;), so this is looked up
    as written. Numeric ones are decoded arithmetically below and need no table. */
@@ -125,53 +145,41 @@ export async function fetchPagePreview(url) {
 	let at
 	try { at = new URL(url) } catch { return NOTHING }
 	for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-		if (at.protocol !== 'http:' && at.protocol !== 'https:') return NOTHING
-		if (!await hostIsPublic(at.hostname)) return NOTHING
+		// redirects are followed here, so every hop is checked too
+		const res = await getPublic(at, 'text/html,application/xhtml+xml')
+		if (!res) return NOTHING
 
-		let res
-		try {
-			res = await fetch(at, {
-				redirect: 'manual',            // followed here instead, so every hop is checked too
-				signal: AbortSignal.timeout(TIMEOUT_MS),
-				headers: {
-					// Named honestly. A shop that would rather not be read this way can say so.
-					'User-Agent': 'Spendly/1.0 (+bookmark link preview)',
-					'Accept': 'text/html,application/xhtml+xml'
-				}
-			})
-		} catch { return NOTHING }
-
-		if ([301, 302, 303, 307, 308].includes(res.status)) {
-			const location = res.headers.get('location')
+		if (REDIRECTS.includes(res.statusCode)) {
+			res.destroy()
+			const location = res.headers.location
 			if (!location) return NOTHING
 			try { at = new URL(location, at) } catch { return NOTHING }
 			continue
 		}
-		if (!res.ok) return NOTHING
-		if (!(res.headers.get('content-type') ?? '').includes('html')) return NOTHING
+		const contentType = res.headers['content-type'] ?? ''
+		if (res.statusCode < 200 || res.statusCode > 299 || !contentType.includes('html')) {
+			res.destroy()
+			return NOTHING
+		}
 
 		/* Read in chunks and stop at the cap rather than trusting content-length, which a page
 		   may not send and may not mean. The body is dropped the moment the title is out of it.
 		   Kept as bytes: the page's own charset is only known once its head has been read. */
-		const reader = res.body?.getReader()
-		if (!reader) return NOTHING
 		const chunks = []
 		let bytes = 0, seen = ''
 		try {
-			for (;;) {
-				const { done, value } = await reader.read()
-				if (done) break
+			for await (const value of res) {
 				bytes += value.byteLength
 				chunks.push(value)
-				seen += Buffer.from(value).toString('latin1')
+				seen += value.toString('latin1')
 				// Both answers live in <head>, so the read stops there rather than at </title>:
 				// og:image is often written after the title tag.
 				if (/<\/head>/i.test(seen) || bytes >= MAX_BYTES) break
 			}
-		} finally {
-			await reader.cancel().catch(() => {})
+		} catch { return NOTHING } finally {
+			res.destroy()
 		}
-		const html = decodeBody(Buffer.concat(chunks), res.headers.get('content-type') ?? '')
+		const html = decodeBody(Buffer.concat(chunks), contentType)
 		return { title: titleFrom(html), image: imageFrom(html, at) }
 	}
 	return NOTHING   // redirected past the cap
@@ -186,36 +194,26 @@ export async function fetchImage(url) {
 	let at
 	try { at = new URL(url) } catch { return null }
 	for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-		if (at.protocol !== 'http:' && at.protocol !== 'https:') return null
-		if (!await hostIsPublic(at.hostname)) return null
+		const res = await getPublic(at, 'image/*')
+		if (!res) return null
 
-		let res
-		try {
-			res = await fetch(at, {
-				redirect: 'manual',
-				signal: AbortSignal.timeout(TIMEOUT_MS),
-				headers: { 'User-Agent': 'Spendly/1.0 (+bookmark link preview)', 'Accept': 'image/*' }
-			})
-		} catch { return null }
-
-		if ([301, 302, 303, 307, 308].includes(res.status)) {
-			const location = res.headers.get('location')
+		if (REDIRECTS.includes(res.statusCode)) {
+			res.destroy()
+			const location = res.headers.location
 			if (!location) return null
 			try { at = new URL(location, at) } catch { return null }
 			continue
 		}
-		if (!res.ok) return null
-		const contentType = res.headers.get('content-type') ?? ''
-		if (!contentType.startsWith('image/')) return null
+		const contentType = res.headers['content-type'] ?? ''
+		if (res.statusCode < 200 || res.statusCode > 299 || !contentType.startsWith('image/')) {
+			res.destroy()
+			return null
+		}
 
-		const reader = res.body?.getReader()
-		if (!reader) return null
 		const chunks = []
 		let bytes = 0
 		try {
-			for (;;) {
-				const { done, value } = await reader.read()
-				if (done) break
+			for await (const value of res) {
 				bytes += value.byteLength
 				// Past the ceiling the answer is no picture, not a truncated one: half a JPEG
 				// is a file nothing can draw.
@@ -223,7 +221,7 @@ export async function fetchImage(url) {
 				chunks.push(value)
 			}
 		} catch { return null } finally {
-			await reader.cancel().catch(() => {})
+			res.destroy()
 		}
 		return { buffer: Buffer.concat(chunks), contentType: contentType.split(';')[0].trim() }
 	}

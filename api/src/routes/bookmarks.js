@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import multer from 'multer'
+import { upload } from '../lib/upload.js'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
@@ -9,14 +9,10 @@ import { processImage, processPicture, toLight } from '../lib/images.js'
 import { detectFileType } from '../lib/fileType.js'
 import { fetchImage, fetchPagePreview } from '../lib/pageTitle.js'
 import { decompressBlob } from '../lib/blobCompression.js'
-import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
+import { MAX_PAGE_SIZE } from '../lib/constants.js'
 import { MATCHERS, asciiNeedle, escapeLike } from '../lib/textSearch.js'
 
 export const router = Router()
-
-// Same parser settings and the same reason as the order attachments route: one upload, read
-// into memory, filenames decoded as UTF-8 rather than latin1.
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const notFound = id => Object.assign(new Error('No bookmark ' + id), { status: 404 })
 

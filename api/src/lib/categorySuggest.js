@@ -2,6 +2,7 @@ import { db } from '../db.js'
 import { categoryNamesOf, foldName } from './names.js'
 import { findCategoryByFold } from './findOrCreate.js'
 import { MODEL, getClient, isBillingRefusal } from './scanParse.js'
+import { paidReadWait } from './rateLimit.js'
 
 /* Category suggestions for an order's items: what the account's own orders back (lib/categoryModel.js),
    or what a model proposes when asked, which can also offer a new category. At most SHOWN. */
@@ -42,7 +43,7 @@ const SUGGEST_TOOL = {
 /** The categories a model proposes for these items: `{ suggestions }` or a `failure` ('billing' or 'failed'). */
 export async function fromModel(userId, { items, vendor, exclude }) {
 	const anthropic = getClient()
-	if (!anthropic) return { suggestions: [], failure: 'failed' }
+	if (!anthropic || paidReadWait(userId)) return { suggestions: [], failure: 'failed' }
 	const listed = listedNames(userId)
 	try {
 		const response = await anthropic.messages.create({

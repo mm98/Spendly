@@ -8,6 +8,7 @@ import { nowEpoch } from '../lib/dates.js'
 import { sendPasskeyAdded } from '../lib/notices.js'
 import { keepChallenge, newTicket, passkeyName, passkeySite, takeChallenge } from '../lib/passkeys.js'
 import { forgetReads } from '../lib/readCache.js'
+import { limitPerVisitor } from '../lib/rateLimit.js'
 import { MAX_NAME, cleanName } from './auth.js'
 
 /* Passkeys (20a, 20b, Settings > Passkeys): signing in with one, before the auth gate, and the
@@ -35,7 +36,8 @@ const notSetUp = res => res.status(409).json({ error: NOT_SET_UP })
 const userHandleOf = userId => Buffer.from(userId).toString('base64url')
 
 /** A sign-in prompt. No address is asked for first: a passkey names its own account. */
-signInRouter.post('/start', async (req, res) => {
+// asked each time the sign-in page opens, and the prompts it makes are held in memory
+signInRouter.post('/start', limitPerVisitor({ most: 60, perSeconds: 15 * 60 }), async (req, res) => {
 	const site = passkeySite()
 	if (!site) return notSetUp(res)
 	const options = await generateAuthenticationOptions({ rpID: site.rpID, userVerification: 'preferred' })

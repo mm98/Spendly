@@ -26,19 +26,37 @@ const markAliasMatched = db.prepare(`UPDATE vendor_aliases SET matched_at = unix
     finds "Indbo Møbler". Answers `{ id, alias }`, `alias` being the alias that found it, or
     undefined. `except` is a vendor left out, as its own form asks about the others. */
 export function resolveVendor(userId, name, except = null) {
-	const clean = String(name ?? '').trim()
-	if (!clean) return undefined
+	return vendorResolver(userId, except)(name)
+}
+
+/** resolveVendor for many names in one request: the account's vendor keys are worked out once,
+    the first time a name needs them, not once per name. */
+export function vendorResolver(userId, except = null) {
 	const other = row => (row && row.id !== except ? row : undefined)
-	const named = other(selectVendorIdByName.get(userId, clean))
-	if (named) return { id: named.id, alias: null }
-	const aliased = other(selectVendorIdByAlias.get(userId, clean))
-	if (aliased) return { id: aliased.id, alias: aliased.name }
-	const key = vendorKey(clean)
-	if (!key) return undefined
-	const byName = selectVendorNames.all(userId).find(v => v.id !== except && vendorKey(v.name) === key)
-	if (byName) return { id: byName.id, alias: null }
-	const byAlias = selectAliasNames.all(userId).find(a => a.id !== except && vendorKey(a.name) === key)
-	return byAlias ? { id: byAlias.id, alias: byAlias.name } : undefined
+	let keys = null
+	const keyed = rows => {
+		const byKey = new Map()
+		for (const row of rows) {
+			const key = row.id !== except && vendorKey(row.name)
+			if (key && !byKey.has(key)) byKey.set(key, row)
+		}
+		return byKey
+	}
+	return name => {
+		const clean = String(name ?? '').trim()
+		if (!clean) return undefined
+		const named = other(selectVendorIdByName.get(userId, clean))
+		if (named) return { id: named.id, alias: null }
+		const aliased = other(selectVendorIdByAlias.get(userId, clean))
+		if (aliased) return { id: aliased.id, alias: aliased.name }
+		const key = vendorKey(clean)
+		if (!key) return undefined
+		keys ??= { names: keyed(selectVendorNames.all(userId)), aliases: keyed(selectAliasNames.all(userId)) }
+		const byName = keys.names.get(key)
+		if (byName) return { id: byName.id, alias: null }
+		const byAlias = keys.aliases.get(key)
+		return byAlias ? { id: byAlias.id, alias: byAlias.name } : undefined
+	}
 }
 
 /** The vendor a string files under, as an id; an alias that finds it is marked as the last one that matched. */

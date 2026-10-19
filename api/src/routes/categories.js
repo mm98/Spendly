@@ -94,7 +94,8 @@ router.post('/suggestions', async (req, res) => {
 	const { items, vendor, exclude, model } = req.body ?? {}
 	if (!Array.isArray(items) || items.length > 100) return res.status(400).json({ error: 'Send the item names as a list of up to 100.' })
 	const asked = { items, exclude, vendor: String(vendor ?? '').trim().slice(0, 80) }
-	if (model) return res.json(await fromModel(req.user.id, asked))
+	// the model is paid for, so it waits for a confirmed email, as scanning does
+	if (model) return res.json(req.user.email_confirmed ? await fromModel(req.user.id, asked) : { suggestions: [], failure: 'failed' })
 	res.json({ suggestions: describe(req.user.id, await suggestFromHistory(req.user.id, asked)), failure: null })
 })
 

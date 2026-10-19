@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import multer from 'multer'
+import { upload } from '../lib/upload.js'
 import { createHash } from 'crypto'
 import { db } from '../db.js'
 import { requireConfirmed } from '../lib/auth.js'
@@ -13,15 +13,12 @@ import { inAccountCurrency } from '../lib/exchange.js'
 import { listedNames } from '../lib/categorySuggest.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { fromEpoch, nowEpoch } from '../lib/dates.js'
-import { assertImageOrPdf } from '../lib/fileType.js'
-import { MAX_UPLOAD_MB } from '../lib/constants.js'
+import { assertImageOrPdf, fileDisposition } from '../lib/fileType.js'
 import { UPLOAD_TTL_SECONDS, answerOf, discardDraft, draftOfUpload, draftRow, draftsAsOrders, heldBy, readings } from '../lib/orderDrafts.js'
 import { forgetReads } from '../lib/readCache.js'
+import { paidReadWait } from '../lib/rateLimit.js'
 
 export const router = Router()
-// See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
-// multipart filenames as latin1 unless told otherwise, and browsers never say otherwise.
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const insertUpload = db.prepare(`INSERT INTO uploads
 	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at, pages,
@@ -150,13 +147,13 @@ router.get('/documents/:key/file', (req, res) => {
 	const full = req.query.download === '1' ? selectUploadOriginal.get(req.params.key, req.user.id) : null
 	if (full?.original) {
 		res.set('Content-Type', full.original_content_type)
-		res.set('Content-Disposition', `attachment; filename="${full.name.replace(/"/g, '')}"`)
+		res.set('Content-Disposition', fileDisposition(full.name, full.original_content_type, { download: true }))
 		return res.send(decompressBlob(full.original, full.original_is_compressed))
 	}
 	const upload = selectUploadFile.get(req.params.key, req.user.id)
 	if (!upload || !upload.data) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
 	res.set('Content-Type', upload.content_type || 'application/octet-stream')
-	res.set('Content-Disposition', `inline; filename="${upload.name.replace(/"/g, '')}"`)
+	res.set('Content-Disposition', fileDisposition(upload.name, upload.content_type))
 	res.send(decompressBlob(upload.data, upload.data_is_compressed))
 })
 
@@ -248,7 +245,9 @@ function readOnce(userId, upload, today, onProgress, res) {
 		const listeners = new Set()
 		const original = upload.kind === 'image' ? selectUploadOriginal.get(upload.id, userId) : null
 		const toRead = { ...upload, original: original?.original, original_is_compressed: original?.original_is_compressed }
-		const promise = parseReceipt(toRead, today, progress => { for (const fn of listeners) fn(progress) }, listedNames(userId))
+		// past the account's paid reads for the day, the file stays and is not read, as when a read fails
+		const promise = (paidReadWait(userId) ? Promise.resolve({ read: null, failure: 'failed' })
+			: parseReceipt(toRead, today, progress => { for (const fn of listeners) fn(progress) }, listedNames(userId)))
 			// restated before it is kept, so a reload never asks for the rate again
 			.then(async result => result.read
 				? { ...result, read: await inAccountCurrency(result.read, selectAccountCurrency.get(userId)?.currency ?? 'DKK') }

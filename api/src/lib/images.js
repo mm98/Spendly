@@ -154,7 +154,7 @@ export async function processAttachment(buffer, mimetype, name, { keepOriginal =
 	   different answer for one file -- which they did, from the filename and the mimetype, both
 	   of which the caller writes. lib/fileType.js has the signatures and what it cost.
 
-	   `detected` also gives the stored content type its value -- the bytes' own type, not
+	   `detected` also gives the stored content type its value -- the bytes' own type, never
 	   whatever the caller claimed -- and it is served straight back as a Content-Type header. */
 	const detected = detectFileType(buffer)
 	const kind = detectKind(buffer, mimetype, name)
@@ -162,7 +162,7 @@ export async function processAttachment(buffer, mimetype, name, { keepOriginal =
 	const processed = kind === 'image' ? await processImage(buffer) ?? refuseUnreadable(name) : await (async () => {
 		const pdfThumb = await processPdfThumbnail(buffer)
 		return {
-			data: buffer, contentType: detected?.type ?? mimetype ?? null, size: buffer.length,
+			data: buffer, contentType: detected?.type ?? 'application/octet-stream', size: buffer.length,
 			thumbnail: pdfThumb?.thumbnail ?? null, thumbnailContentType: pdfThumb?.thumbnailContentType ?? null,
 			pages: pdfThumb?.pages ?? null
 		}

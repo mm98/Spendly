@@ -1,9 +1,8 @@
 import { Router } from 'express'
-import multer from 'multer'
+import { upload } from '../lib/upload.js'
 import sharp from 'sharp'
 import { db } from '../db.js'
 import { hashPassword, verifyPassword } from '../lib/auth.js'
-import { MAX_UPLOAD_MB } from '../lib/constants.js'
 import { nowEpoch } from '../lib/dates.js'
 import { detectFileType } from '../lib/fileType.js'
 import { toSquare } from '../lib/images.js'
@@ -12,8 +11,6 @@ import { MAX_NAME, MIN_PASSWORD, cleanName } from './auth.js'
 
 /* The account's own profile (Settings 11a): name, picture, password, and the first run's end. */
 export const router = Router()
-
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 // the smallest picture the card accepts
 const MIN_PICTURE = 128

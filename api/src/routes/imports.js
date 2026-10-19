@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { nowEpoch, toEpoch } from '../lib/dates.js'
-import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
+import { vendorResolver } from '../lib/findOrCreate.js'
 
 /* The imports an account has run (Settings 11b): the list under the file picker, the record an
    import's orders are tagged with, its undo and what the undo deletes, a line removed from the list,
@@ -115,9 +115,10 @@ const sameOrder = db.prepare(`SELECT 1 FROM orders WHERE user_id = ? AND date = 
 router.post('/check', (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders.slice(0, MAX_CHECK) : []
 	const vendorIds = new Map()
+	const resolve = vendorResolver(req.user.id)
 	const vendorOf = name => {
 		const key = String(name ?? '').trim().toLowerCase()
-		if (!vendorIds.has(key)) vendorIds.set(key, key ? findVendorIdByAnyName(req.user.id, key) ?? null : null)
+		if (!vendorIds.has(key)) vendorIds.set(key, key ? resolve(key)?.id ?? null : null)
 		return vendorIds.get(key)
 	}
 	const duplicates = []
