@@ -401,6 +401,16 @@ The phone shot needs the actual device descriptor, not a narrow viewport, since 
 media queries key off it. A change that moves a shot is regenerated in the same pass that verifies it,
 never before.
 
+**A shot draws text the way a real screen does.** No launch flag that changes how fonts are drawn
+(`--font-render-hinting` and the like): one that snaps letters to whole pixels makes bold text read as
+loosely spaced, and every shot then documents the harness instead of the app. Before shots are
+committed, put a crop of text from one beside the same text in the app on a real screen, and look at
+both.
+
+**Probe with the browser binary the script launches.** Playwright's plain `chromium.launch()` runs the
+headless shell, which obeys rendering flags that the full binary at `/opt/pw-browsers/chromium` ignores.
+A check run through `executablePath` says nothing about a script that leaves it out.
+
 Most shots show dates or this month's figures and go stale on their own, with no app change — render
 the *unchanged* source first to attribute any drift to the calendar, then re-render deliberately and
 say so. The script's header marks the dateless ones: the unchanged source should reproduce them byte

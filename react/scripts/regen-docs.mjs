@@ -55,8 +55,10 @@ const outdir = process.argv[2]
 const refdir = process.argv[3] ?? DOCS
 mkdirSync(outdir, { recursive: true })
 
-// hinted text, as the committed shots were drawn: headless defaults to none, which sets every word narrower
-const browser = await chromium.launch({ args: ['--font-render-hinting=full'] })
+/* No --font-render-hinting=full: it snaps every letter to a whole pixel, so bold text reads loosely
+   spaced next to the app on a real screen. The headless shell Playwright launches obeys the flag; a
+   full Chromium binary ignores it, so a probe through executablePath cannot show the difference. */
+const browser = await chromium.launch()
 
 async function freshAccount(ctx) {
 	// one fixed address: the sidebar's account mark is drawn from it, so a new one per run moves pixels
