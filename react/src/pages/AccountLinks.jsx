@@ -129,7 +129,7 @@ export function ConfirmLink() {
 			.finally(() => getCurrentUser().then(setMe).catch(() => setMe(null)))
 	}, [token])
 	if (!answer || me === undefined || !options) return null
-	const next = me ? onward(me, '/') : '/signin'
+	const next = me ? onward(me, '/') : answer.email ? `/signin?email=${encodeURIComponent(answer.email)}` : '/signin'
 	const go = () => navigate(next, { replace: true })
 	// signed in here, so a passkey can be added on the spot; then first run, as Not now goes straight there (20b)
 	const offer = me && passkeysHere(options)
