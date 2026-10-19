@@ -226,6 +226,9 @@ hide a broken selector as a slow run. Warm a cold dev server with one request ra
 Two things need no trigger: never claim what was not run ([Reporting](#reporting)), and read the file
 you're changing before changing it.
 
+**A check passes on its exit code, not on its last lines.** A failure printed early scrolls past a
+`tail`, and the summary below it can still read "all as blessed". Read `$?` after every check.
+
 **`git add` before running a diff-scoped check, or a new file is invisible to it.**
 `check-comments.mjs` and the other guards read `git diff`, which does not see an untracked file at
 all. A brand-new file therefore passes every local run and fails in CI, where it is committed.
