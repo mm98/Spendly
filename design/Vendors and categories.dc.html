@@ -844,6 +844,7 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Name is the only required field.</b> A default icon and the next unused colour are pre-selected, so a category created from a picker costs one field and one Enter.</div>
     <div class="doc-note"><b>The icon is picked, not derived.</b> This is the one asymmetry with a vendor: a vendor gets initials from its name, a category gets any icon from the Tabler outline library, picked in <a href="Components.dc.html#c7">c7</a>. Neither ever accepts an upload.</div>
+    <div class="doc-note"><b>Favourite works as it does on a vendor.</b> A favourite category is kept at the top of Categories and comes first in every category picker. Off by default; set or cleared here and on the edit page (<a href="#5f">5f</a>).</div>
     <div class="doc-note"><b>Created from a picker, it is selected on return.</b> The picker reopens with the new category chosen, so the order the user was filling in continues.</div>
     <div class="doc-note"><b>Duplicate names are rejected here, as for vendors.</b> Two categories with one name make every chart ambiguous. Case- and accent-insensitive.</div>
       <div class="doc-note"><b>The message is at the field, and there is no summary card.</b> One place per problem. A short form does not need a second surface repeating what is already marked, and a long one gets focus moved for it instead.</div>
@@ -914,6 +915,13 @@
             </div>
             <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
           </div>
+          <label class="sp-choice sp-choice--described">
+            <input class="sp-check" type="checkbox">
+            <span class="sp-choice__text">
+              <strong>Favourite</strong>
+              <span class="sp-field__help">Kept at the top of Categories, and leads the list in every category picker.</span>
+            </span>
+          </label>
             </div>
           </div>
         </div>
@@ -1045,6 +1053,13 @@
             </div>
             <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
           </div>
+          <label class="sp-choice sp-choice--described">
+            <input class="sp-check" type="checkbox" defaultChecked="{{ true }}">
+            <span class="sp-choice__text">
+              <strong>Favourite</strong>
+              <span class="sp-field__help">Kept at the top of Categories, and leads the list in every category picker.</span>
+            </span>
+          </label>
             </div>
           </div>
         </div>

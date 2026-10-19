@@ -162,9 +162,12 @@ process.env.SPENDLY_PUBLIC_URL = 'http://localhost'
 const { db } = await import('../src/db.js')
 const { seedAccountDefaults } = await import('../src/seed.js')
 const { populateDemoData } = await import('../src/lib/demoData.js')
+const { hashPassword } = await import('../src/lib/auth.js')
 
+// adding a passkey asks for the account's password, so this one account has a real one
+const PASSWORD = 'queries-check-password'
 db.prepare('INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)')
-	.run(USER, 'queries@check.local', '16384.8.1.00.00')
+	.run(USER, 'queries@check.local', await hashPassword(PASSWORD))
 db.prepare('INSERT INTO user_sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
 	.run(SESSION, USER, Math.floor(Date.now() / 1000) + 86400)
 db.transaction(() => seedAccountDefaults(db, USER))()
@@ -368,7 +371,7 @@ const spare = (await (await fetch(BASE + '/statuses', {
 	method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Spare', tone: 'neutral' })
 })).json()).find(s => s.name === 'Spare').key
 for (const [method, path, body] of [
-	['POST', '/account/passkeys/start'],
+	['POST', '/account/passkeys/start', { password: PASSWORD }],
 	['PATCH', '/account/passkeys/pk-fixture', { name: 'Work laptop' }],
 	['DELETE', '/account/passkeys/pk-removed'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],

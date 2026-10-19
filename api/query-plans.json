@@ -2278,6 +2278,15 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
+		"SELECT id, email, name FROM users WHERE id = ?": {
+			"plan": [
+				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_users_1"
+			]
+		},
 		"SELECT id, email, password_hash, needs_setup FROM users WHERE email = ?": {
 			"plan": [
 				"SEARCH users USING INDEX sqlite_autoindex_users_2 (email=?)"

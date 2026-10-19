@@ -273,7 +273,7 @@
     <span class="doc-badge" id="20b">20b</span>
     <span class="doc-section__title">Confirming the email address</span>
   </div>
-  <div class="doc-lede">Registration creates the account but leaves it unconfirmed. A link goes to the address, carrying a single-use token; following it confirms and signs in. Until then the account exists and can sign in, and an order can be typed by hand, but scanning and importing are held - a receipt filed against an address nobody can reach is a record with no owner.</div>
+  <div class="doc-lede">Registration creates the account but leaves it unconfirmed. A link goes to the address, carrying a single-use token; following it confirms the address and signs nobody in. Until then the account exists and can sign in, and an order can be typed by hand, but scanning and importing are held - a receipt filed against an address nobody can reach is a record with no owner.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
@@ -293,7 +293,7 @@
           <span class="sp-mark sp-mark--large sp-mark--round"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg></span>
           <div class="sp-stack sp-gap-6">
             <div class="sp-heading">Confirm your email</div>
-            <div class="sp-data">We sent a link to <b class="sp-ink sp-break">mikkel@example.net</b>. Open it and you're in. It expires in 24 hours.</div>
+            <div class="sp-data">We sent a link to <b class="sp-ink sp-break">mikkel@example.net</b>. Open it to confirm your address, then sign in if asked. It expires in 24 hours.</div>
           </div>
         </div>
         <div class="sp-stack sp-gap-10">
@@ -310,7 +310,7 @@
           <span class="sp-mark sp-mark--large sp-mark--round"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg></span>
           <div class="sp-stack sp-gap-6">
             <div class="sp-heading">Confirm your email</div>
-            <div class="sp-data">We sent a link to <b class="sp-ink sp-break">mikkel.mortensen.receipts@verylongcompany.example.net</b>. Open it and you're in. It expires in 24 hours.</div>
+            <div class="sp-data">We sent a link to <b class="sp-ink sp-break">mikkel.mortensen.receipts@verylongcompany.example.net</b>. Open it to confirm your address, then sign in if asked. It expires in 24 hours.</div>
           </div>
         </div>
         <div class="sp-stack sp-gap-10">
@@ -373,7 +373,24 @@
           <button type="button" class="sp-btn sp-btn--outline sp-btn--block sp-btn--small">Not now</button>
         </div>
       </div>
-      <div class="sp-meta au-w400">Opening the link signs the session in, so this never asks for the password again. Add a passkey opens the device's prompt and then first run (20d); Not now goes straight to first run, and the offer stays in Settings. On a device with no passkey support the buttons are one: Continue. A link opened a second time lands here too, reading "Already confirmed".</div>
+      <div class="sp-meta au-w400">Shown when the link opens in the browser that registered, which registering already signed in. Add a passkey opens the device's prompt and then first run (20d); Not now goes straight to first run, and the offer stays in Settings. On a device with no passkey support the buttons are one: Continue. A link opened a second time in this browser lands here too, reading "Already confirmed".</div>
+    </div>
+
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">4 - CONFIRMED, NOT SIGNED IN</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--round"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Email confirmed</div>
+            <div class="sp-data">Sign in to carry on.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+        </div>
+      </div>
+      <div class="sp-meta au-w400">Any other browser or device, such as the mail app on a phone. The link confirms the address and does not sign in: whoever registered chose the password, and that need not be the person who owns the address. Sign in opens sign in (20a). No passkey offer here; a passkey is added in Settings. A link opened a second time in such a browser reads "Already confirmed" with the same lead and button.</div>
     </div>
 
     <div class="sp-stack sp-gap-10">
