@@ -24,6 +24,10 @@ export function profileName(icc) {
 	} catch { /* a profile that cannot be read is not a standard one */ }
 	return null
 }
+
+// a standard profile is a few kilobytes; the cap stops a small packed chunk unpacking to gigabytes
+const MAX_PROFILE_BYTES = 1024 * 1024
+
 const standardProfile = icc => Boolean(icc?.length) && STANDARD_PROFILE.test(profileName(icc) ?? '')
 
 /* ---- JPEG: keep the segments that draw the picture, cut the rest, end at the first image ---- */
@@ -71,7 +75,7 @@ function cleanPng(buffer) {
 		else if (type === 'iCCP') {
 			const data = chunk.subarray(8, 8 + length)
 			const nameEnd = data.indexOf(0)
-			try { if (standardProfile(inflateSync(data.subarray(nameEnd + 2)))) kept.push(chunk) } catch { /* dropped */ }
+			try { if (standardProfile(inflateSync(data.subarray(nameEnd + 2), { maxOutputLength: MAX_PROFILE_BYTES }))) kept.push(chunk) } catch { /* dropped */ }
 		}
 		at += chunk.length
 		if (type === 'IEND') return Buffer.concat(kept)

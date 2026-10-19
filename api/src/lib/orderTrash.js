@@ -22,6 +22,17 @@ const categoryExists = db.prepare('SELECT 1 FROM categories WHERE id = ? AND use
 const restoreValidation = db.prepare('UPDATE orders SET validated_by = ? WHERE id = ?')
 
 const kept = new Map()
+// past this many bytes held in all, the oldest copies go, so deleting orders cannot fill the server's memory
+const MAX_KEPT_BYTES = 256 * 1024 * 1024
+let keptBytes = 0
+const bytesOf = rows => rows.files.reduce((sum, file) =>
+	sum + Object.values(file).reduce((n, value) => n + (Buffer.isBuffer(value) ? value.length : 0), 0), 0)
+const forget = id => {
+	const copy = kept.get(id)
+	if (!copy) return
+	keptBytes -= copy.bytes
+	kept.delete(id)
+}
 
 /** Deletes the order and keeps a copy to undo it from. Returns the copy's id, or null when there
     was no such order. */
@@ -37,8 +48,11 @@ export const trashOrder = db.transaction((userId, orderId) => {
 	}
 	deleteOrderRow.run(orderId, userId)
 	const id = newId('t')
-	kept.set(id, { userId, rows })
-	setTimeout(() => kept.delete(id), KEEP_MS).unref()
+	const bytes = bytesOf(rows)
+	kept.set(id, { userId, rows, bytes })
+	keptBytes += bytes
+	while (keptBytes > MAX_KEPT_BYTES && kept.size > 1) forget(kept.keys().next().value)
+	setTimeout(() => forget(id), KEEP_MS).unref()
 	return id
 })
 
@@ -52,7 +66,7 @@ export const restoreOrder = db.transaction((userId, trashId) => {
 	const copy = kept.get(trashId)
 	if (!copy || copy.userId !== userId) throw Object.assign(new Error('This order can no longer be brought back.'), { status: 404 })
 	const { rows } = copy
-	if (orderExists.get(rows.order.id)) { kept.delete(trashId); return rows.order.id }
+	if (orderExists.get(rows.order.id)) { forget(trashId); return rows.order.id }
 	if (!vendorExists.get(rows.order.vendor_id, userId))
 		throw Object.assign(new Error('The order could not be brought back: its vendor was deleted.'), { status: 409 })
 	// the file it names is put back below, so the validation follows it
@@ -62,6 +76,6 @@ export const restoreOrder = db.transaction((userId, trashId) => {
 	for (const status of rows.statuses) insertRow('order_status_history', status)
 	for (const file of rows.files) insertRow('order_attachments', file)
 	if (rows.order.validated_by) restoreValidation.run(rows.order.validated_by, rows.order.id)
-	kept.delete(trashId)
+	forget(trashId)
 	return rows.order.id
 })

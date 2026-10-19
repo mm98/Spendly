@@ -3,7 +3,6 @@ import http from 'node:http'
 import https from 'node:https'
 import { Worker } from 'node:worker_threads'
 import { db } from '../db.js'
-import { replaceWithDemo } from '../lib/demoFill.js'
 
 const FILL_WORKER = new URL('../lib/demoFill.worker.js', import.meta.url)
 
@@ -44,22 +43,21 @@ router.post('/demo-data', (req, res) => {
 	const months = Number.isFinite(askedMonths) && askedMonths > 0
 		? Math.min(288, Math.floor(askedMonths)) : undefined
 	const options = { seed, orders, months, today: req.today }
-	if (req.query.progress !== 'stream') {
-		const result = replaceWithDemo(req.user.id, options)
-		refreshStatistics()
-		return res.json({ ...result, seed })
-	}
 
-	/* ?progress=stream answers NDJSON: {done, total} lines from a worker, then the result or an
-	   {error}, which carries `landed` (the orders kept) once the wipe has committed. */
-	res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
-	res.flushHeaders()
+	/* Always a worker, so a fill never holds up other requests. ?progress=stream answers NDJSON
+	   {done, total} lines, then the result or an {error} with `landed`; without it, that last line alone. */
+	const streaming = req.query.progress === 'stream'
+	if (streaming) {
+		res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
+		res.flushHeaders()
+	}
 	const worker = new Worker(FILL_WORKER, { workerData: { userId: req.user.id, ...options } })
 	let ended = false, landed = null
 	const end = line => {
 		if (ended) return
 		ended = true
-		res.end(JSON.stringify(line) + '\n')
+		if (streaming) res.end(JSON.stringify(line) + '\n')
+		else res.status(line.error ? 500 : 200).json(line)
 	}
 	const failed = () => {
 		if (ended) return
@@ -69,7 +67,7 @@ router.post('/demo-data', (req, res) => {
 	}
 	worker.on('message', message => {
 		if ('landed' in message) landed = message.landed
-		else if ('done' in message) res.write(JSON.stringify(message) + '\n')
+		else if ('done' in message) { if (streaming) res.write(JSON.stringify(message) + '\n') }
 		else if (message.result) { refreshStatistics(); end({ ...message.result, seed }) }
 		else failed()
 	})
@@ -85,6 +83,16 @@ const UPDATER_CONNECT_MS = 5000
 const UPDATER_ANSWER_MS = 3000
 
 export const updaterAvailable = () => /^https?:\/\//.test(process.env.SPENDLY_UPDATER_URL ?? '')
+
+// ids are random, so the first account is found by when it was made
+const selectFirstUserId = db.prepare('SELECT id FROM users ORDER BY created_at, rowid LIMIT 1')
+
+/** The one account that may install an update: SPENDLY_OWNER_EMAIL's, or else the first account on this server. */
+export function ownsServer(user) {
+	if (!user) return false
+	const owner = process.env.SPENDLY_OWNER_EMAIL?.trim().toLowerCase()
+	return owner ? user.email === owner : user.id === selectFirstUserId.get()?.id
+}
 
 /** Resolves to { status } (a number, or 'busy' once it holds its answer) or { error } when it can't be reached. */
 function askUpdater(url) {
@@ -123,6 +131,7 @@ function askUpdater(url) {
 
 router.post('/version/update', async (req, res) => {
 	if (!updaterAvailable()) return res.status(409).json({ error: 'This copy of Spendly cannot install an update by itself.' })
+	if (!ownsServer(req.user)) return res.status(403).json({ error: 'Only the person who manages this Spendly can install an update.' })
 	const url = new URL(process.env.SPENDLY_UPDATER_URL)
 	url.searchParams.set('async', 'true')
 	const answer = await askUpdater(url)

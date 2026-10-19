@@ -70,3 +70,14 @@ export function assertImageOrPdf(files) {
 	const other = files.find(file => !detectFileType(file.buffer))
 	if (other) throw Object.assign(new Error(`The file "${other.originalname}" is not an image or a PDF. Nothing was added.`), { status: 415 })
 }
+
+// the types detectFileType names; a stored file of any other type is never shown on this site's own address
+const SHOWN_TYPES = new Set(['application/pdf', 'image/avif', 'image/bmp', 'image/gif', 'image/heic', 'image/heif', 'image/jpeg', 'image/png', 'image/tiff', 'image/webp'])
+
+/** The Content-Disposition for a stored file. The name goes twice: once in plain ASCII, once
+    encoded, because a header cannot carry a name like "kvittering €.pdf" as it is. */
+export function fileDisposition(name, contentType, { download = false } = {}) {
+	const shown = !download && SHOWN_TYPES.has(contentType)
+	const plain = String(name).replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '')
+	return `${shown ? 'inline' : 'attachment'}; filename="${plain}"; filename*=UTF-8''${encodeURIComponent(name).replace(/['()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase())}`
+}

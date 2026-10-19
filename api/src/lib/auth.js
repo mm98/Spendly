@@ -82,6 +82,13 @@ const selectSessionUser = db.prepare(`
 `)
 const renewSession = db.prepare('UPDATE user_sessions SET expires_at = ? WHERE id = ?')
 
+/** The signed-in user, or null, for a route open to everyone that answers differently for a user.
+    Does not renew the session: only requireAuth does that. */
+export function sessionUser(req) {
+	const token = sessionToken(req)
+	return token ? selectSessionUser.get(token, nowEpoch()) ?? null : null
+}
+
 /** Loads req.user from the session token — Authorization: Bearer or the session cookie — or
     responds 401. Every data route sits behind this: a route never trusts a userId from the
     request body or params, only from here.

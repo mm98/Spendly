@@ -3,7 +3,7 @@ import { db } from '../db.js'
 import { decorateOrderListRows } from '../lib/decorate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { keyOfType } from '../lib/statuses.js'
-import { discardDraft, draftListRow, draftRow, draftsAsOrders, keepForm, makeDraft } from '../lib/orderDrafts.js'
+import { discardDraft, draftCount, draftListRow, draftRow, draftsAsOrders, keepForm, makeDraft } from '../lib/orderDrafts.js'
 
 /* Orders not created yet (lib/orderDrafts.js): the form kept as it is edited, Discard, and Home's
    Drafts card, which counts the orders whose status is Draft as drafts too (10a). */
@@ -29,8 +29,13 @@ router.get('/', (req, res) => {
 	res.json({ drafts: rows, total: kept.length + countDraftOrders.get(req.user.id, status).c })
 })
 
-/** A draft made by hand, at the form's first change (3a): `{ id }`. */
+// every list of orders reads each draft, so an account keeps a bounded number of them
+const MAX_DRAFTS = 200
+
+/** A draft made by hand, at the form's first change (3a): `{ id }`. Past the limit the form is
+    simply not kept, as when the draft cannot be made. */
 router.post('/', (req, res) => {
+	if (draftCount(req.user.id) >= MAX_DRAFTS) return res.status(409).json({ error: `You have ${MAX_DRAFTS} unfinished orders. Finish or discard some first.` })
 	res.status(201).json({ id: makeDraft(req.user.id, req.body?.form) })
 })
 

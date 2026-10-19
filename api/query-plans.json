@@ -4930,10 +4930,11 @@
 			],
 			"readers": 3
 		},
-		"idx_user_login_failures_email_at": {
+		"idx_user_login_failures_email_ip_at": {
 			"table": "user_login_failures",
 			"columns": [
 				"email",
+				"ip_address",
 				"at"
 			],
 			"readers": 0

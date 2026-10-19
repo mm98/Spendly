@@ -9,7 +9,7 @@ import { router as ordersRouter } from './routes/orders.js'
 import { router as bookmarksRouter } from './routes/bookmarks.js'
 import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
-import { router as accountRouter, updaterAvailable } from './routes/account.js'
+import { router as accountRouter, ownsServer, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
 import { router as passkeysRouter, signInRouter as passkeySignInRouter } from './routes/passkeys.js'
 import { router as importsRouter } from './routes/imports.js'
@@ -19,10 +19,11 @@ import { router as draftsRouter } from './routes/drafts.js'
 import { router as searchRouter } from './routes/search.js'
 import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
-import { requireAuth } from './lib/auth.js'
+import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
 import { MAX_UPLOAD_MB } from './lib/constants.js'
+import { MAX_UPLOAD_FILES } from './lib/upload.js'
 import { fileSizeLabel } from './lib/copy.js'
 
 export const app = express()
@@ -47,6 +48,9 @@ const CSP = [
 ].join('; ')
 
 app.disable('x-powered-by')
+// req.ip trusts the forwarded address only from a proxy on this machine or a private network (caddy),
+// so a visitor cannot choose their own address
+app.set('trust proxy', 'loopback, linklocal, uniquelocal')
 app.use((req, res, next) => {
 	res.setHeader('Content-Security-Policy', CSP)
 	res.setHeader('Referrer-Policy', 'no-referrer')
@@ -62,6 +66,15 @@ app.use((req, res, next) => {
 	next()
 })
 
+// SameSite lets a page on a sibling address of the same domain through, so a change the browser
+// marks as from another site is refused; a script or mail program sends no such mark
+app.use('/api', (req, res, next) => {
+	if (req.method === 'GET' || req.method === 'HEAD') return next()
+	const from = req.headers['sec-fetch-site']
+	if (from && from !== 'same-origin' && from !== 'none') return res.status(403).json({ error: 'This request did not come from Spendly.' })
+	next()
+})
+
 // The bulk-import route carries base64-encoded receipt images, so it gets a raised body limit
 // of its own rather than opening every route to arbitrarily large request bodies. A single
 // picked-per-request parser (rather than mounting two express.json()s in sequence) keeps each
@@ -70,8 +83,12 @@ const smallJson = express.json()
 const importJson = express.json({ limit: '50mb' })
 // A budget file of many years outgrows the default 100 kB, though it carries no images.
 const budgetJson = express.json({ limit: '2mb' })
-app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '/api/imports/check' ? importJson
-	: req.path === '/api/budget/import' ? budgetJson : smallJson)(req, res, next))
+// a large body is read only for a signed-in user, so nobody else can make the server hold one
+const signedInThen = parser => (req, res, next) => requireAuth(req, res, () => parser(req, res, next))
+const importBody = signedInThen(importJson)
+const budgetBody = signedInThen(budgetJson)
+app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '/api/imports/check' ? importBody
+	: req.path === '/api/budget/import' ? budgetBody : smallJson)(req, res, next))
 
 // Debug request log, off unless asked for (node src/server.js --debug, or DEBUG=1) -- one line
 // per request, written when the response finishes so it can carry the status and timing, but
@@ -124,8 +141,8 @@ app.get('/api/version', (req, res) => res.json({
 	builtAt: process.env.SPENDLY_BUILD_TIME || null,
 	commit: process.env.SPENDLY_BUILD_SHA || null,
 	lighthouse: LIGHTHOUSE,
-	// whether Settings may offer "Update and reload": an updater to ask is set up (routes/account.js)
-	canUpdate: updaterAvailable()
+	// whether Settings may offer "Update and reload": an updater is set up and this user manages the server
+	canUpdate: updaterAvailable() && ownsServer(sessionUser(req))
 }))
 
 /* Whether the newest published image is this one, asked of GHCR itself rather than of the
@@ -356,6 +373,7 @@ if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST, {
    messages ("File too large", "request entity too large") are written for a programmer. */
 function parserRefusal(err) {
 	if (err.code === 'LIMIT_FILE_SIZE') return { status: 413, message: `A file is too large. Each file can be up to ${MAX_UPLOAD_MB} MB.` }
+	if (err.code === 'LIMIT_FILE_COUNT') return { status: 413, message: `That is too many files at once. Send at most ${MAX_UPLOAD_FILES}.` }
 	if (err.name === 'MulterError') return { status: 400, message: 'The files could not be read. Add them again.' }
 	if (err.type === 'entity.too.large') return { status: 413, message: `That is too much to send at once. The most is ${fileSizeLabel(err.limit)}.` }
 	if (err.type === 'entity.parse.failed') return { status: 400, message: 'What was sent could not be read.' }

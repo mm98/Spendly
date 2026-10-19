@@ -11,6 +11,7 @@ import { stopStatusEmail } from '../lib/statusEmail.js'
 import { passkeySite } from '../lib/passkeys.js'
 import { issueToken, readToken, resendWait, settleToken, useToken } from '../lib/tokens.js'
 import { seedAccountDefaults } from '../seed.js'
+import { limitPerVisitor } from '../lib/rateLimit.js'
 
 export const router = Router()
 
@@ -28,18 +29,19 @@ const insertUser = db.prepare(`INSERT INTO users (id, email, password_hash, need
 	VALUES (?, ?, ?, 1, ?, ?, unixepoch())`)
 
 /* Lock-out: this many wrong passwords for one address within the window pauses signing in to it
-   until LOCK_SECONDS after the last one. Keyed by address, whether or not it has an account. */
+   until LOCK_SECONDS after the last one. Keyed by address, whether or not it has an account, and
+   by the network address they came from, so a stranger's wrong guesses lock only the stranger. */
 const LOCK_AFTER = 5
 const LOCK_WINDOW_SECONDS = 15 * 60
 const LOCK_SECONDS = 5 * 60
-const recentFailures = db.prepare('SELECT COUNT(*) AS n, MAX(at) AS last FROM user_login_failures WHERE email = ? AND at > ?')
-const insertFailure = db.prepare('INSERT INTO user_login_failures (email, at) VALUES (?, ?)')
+const recentFailures = db.prepare('SELECT COUNT(*) AS n, MAX(at) AS last FROM user_login_failures WHERE email = ? AND ip_address = ? AND at > ?')
+const insertFailure = db.prepare('INSERT INTO user_login_failures (email, ip_address, at) VALUES (?, ?, ?)')
 const purgeFailures = db.prepare('DELETE FROM user_login_failures WHERE at <= ?')
 const clearFailures = db.prepare('DELETE FROM user_login_failures WHERE email = ?')
 
 /** Seconds until signing in to this address works again, 0 when it works now. */
-function lockedFor(email, now = nowEpoch()) {
-	const { n, last } = recentFailures.get(email, now - LOCK_WINDOW_SECONDS)
+function lockedFor(email, ip, now = nowEpoch()) {
+	const { n, last } = recentFailures.get(email, ip, now - LOCK_WINDOW_SECONDS)
 	return n >= LOCK_AFTER ? Math.max(0, last + LOCK_SECONDS - now) : 0
 }
 const locked = (res, wait) => res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
@@ -60,7 +62,12 @@ async function sendLink(req, user, kind, email) {
 	settleToken(user.id, kind, token, true)
 }
 
-router.post('/register', async (req, res) => {
+// per visitor, beside the lock-out per address: enough for a household, too few to try many accounts
+const signInLimit = limitPerVisitor({ most: 30, perSeconds: 15 * 60 })
+const registerLimit = limitPerVisitor({ most: 10, perSeconds: 60 * 60 })
+const resetLimit = limitPerVisitor({ most: 10, perSeconds: 60 * 60 })
+
+router.post('/register', registerLimit, async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
 	const password = String(req.body?.password ?? '')
 	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
@@ -100,19 +107,21 @@ router.post('/register', async (req, res) => {
 	res.status(201).json({ id, email, token, needsSetup: true, emailConfirmed: Boolean(confirmed) })
 })
 
-router.post('/login', async (req, res) => {
+router.post('/login', signInLimit, async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
 	const password = String(req.body?.password ?? '')
-	const wait = lockedFor(email)
+	const wait = lockedFor(email, req.ip)
 	if (wait) return locked(res, wait)
+	/* Counted as a failure before the password is checked and cleared once it is right, so many
+	   attempts sent at once are all counted, not only those that finish before the first fails. */
+	const now = nowEpoch()
+	db.transaction(() => {
+		purgeFailures.run(now - 24 * 60 * 60)
+		insertFailure.run(email, req.ip, now)
+	})()
 	const user = findUserByEmail.get(email)
 	if (!user || !(await verifyPassword(password, user.password_hash))) {
-		const now = nowEpoch()
-		db.transaction(() => {
-			purgeFailures.run(now - 24 * 60 * 60)
-			insertFailure.run(email, now)
-		})()
-		const after = lockedFor(email, now)
+		const after = lockedFor(email, req.ip, now)
 		return after ? locked(res, after) : res.status(401).json({ error: 'Wrong email or password.' })
 	}
 
@@ -168,6 +177,8 @@ const selectUser = db.prepare('SELECT id, name, email, email_confirmed FROM user
 const confirmEmail = db.prepare('UPDATE users SET email_confirmed = 1 WHERE id = ?')
 const setPassword = db.prepare('UPDATE users SET password_hash = ?, password_changed_at = unixepoch() WHERE id = ?')
 const endSessions = db.prepare('DELETE FROM user_sessions WHERE user_id = ?')
+// a reset proves only the email address, so a passkey someone else added must not outlive it
+const removePasskeys = db.prepare('DELETE FROM user_passkeys WHERE user_id = ?')
 const noMail = res => res.status(409).json({ error: 'This server cannot send email.' })
 const notSent = (res, e) => {
 	console.error(`[mail] could not send: ${e.message}`)
@@ -208,7 +219,7 @@ router.post('/status-email/stop', (req, res) => res.json(stopStatusEmail(String(
 router.post('/status-email/stop/:token', (req, res) => res.json(stopStatusEmail(req.params.token)))
 
 /** Asks for a reset link. The answer is the same whether or not the address has an account. */
-router.post('/reset', (req, res) => {
+router.post('/reset', resetLimit, (req, res) => {
 	if (!mailAvailable()) return noMail(res)
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
 	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
@@ -224,7 +235,7 @@ router.get('/reset/:token', (req, res) => {
 	res.json({ state, email: row?.email ?? null })
 })
 
-/** The new password from a reset link: every other session ends, and this browser is signed in. */
+/** The new password from a reset link: every other session and every passkey ends, and this browser is signed in. */
 router.post('/reset/:token', async (req, res) => {
 	const { state, row } = readToken(req.params.token, 'reset')
 	if (state !== 'valid') return res.status(410).json({ error: 'That link has expired.', state })
@@ -234,6 +245,7 @@ router.post('/reset/:token', async (req, res) => {
 	db.transaction(() => {
 		setPassword.run(hash, row.user_id)
 		endSessions.run(row.user_id)
+		removePasskeys.run(row.user_id)
 		useToken(req.params.token)
 	})()
 	clearFailures.run(row.email)
