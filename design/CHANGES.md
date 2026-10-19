@@ -1,58 +1,88 @@
-# The arrow in a search-and-pick field sits too high on a phone
+# The confirmation link no longer signs in
 
-Answers Brief-field-chevron-touch.md, and three alignment and ink faults found while reviewing Auth and first run 20a. later.md was read (main, 2026-10-19); its two entries are in the app and the API, not the drawings, so neither is settled here.
+Answers `Brief-confirm-link.md`. Also settles one `later.md` entry.
 
-## 1. The chevron in a search-and-pick field
+## 1. The lede of the confirmation section
 
-**The problem.** On a phone the down arrow at the right end of a search-and-pick field sat 3px above the field's middle. It was centred in a box always `--control-h` (42px) tall from the field's top, and the touch field is 48px.
+**The problem** - The lede said following the link "confirms and signs in". It no longer signs in.
 
-**What changed.** The arrow is centred on the field's real height, the same way as the clear button and the unit: `top: 50%; transform: translateY(-50%)`, and the fixed height is gone. Nothing changes on a computer. `.sp-field__kbd` keeps its rule, since it only shows on a computer.
+**What changed** - It now says following the link confirms the address and signs nobody in.
 
-**Where.** `styles/components.css`, `.sp-field__chevron`. It reaches Order create (Vendor), Bookmarks (category picker with search), Budget 21g (row picker), Vendors and categories (move to), Settings and import (category picker with search), Components c5, and every `Field` / `Input` / `Combobox` built with the chevron in `react_handoff/Field.jsx`, `Inputs.jsx` and `Combobox.jsx`. No JSX changes.
+**Where** - `Auth and first run.dc.html`, 20b, the section lede.
 
-**What is still open.** Nothing.
+**What is still open** - Nothing.
 
-## 2. The icon in a top-aligned message row sat high
+## 2. The note under "4 - CONFIRMED"
 
-**The problem.** In Auth and first run 20a, Wrong email or password and Locked out, the 16px icon sat 1 to 2px above the middle of the first line of text. The rows used the `sp-top` utility, which only sets `align-items: flex-start`, so the icon's top met the line's top while the line box is 18px (13px text) or 19.3px (14px title). The two rows in Typography 13a used `.sp-list-item--top`, which had no rule for an icon either.
+**The problem** - The note said "Opening the link signs the session in, so this never asks for the password again." That is no longer true.
 
-**What changed.** An icon in a top-aligned row centres on the first line of the text beside it: `margin-top: calc((1lh - 16px) / 2)`. The icon takes the size of that first line, 14px when the text opens with a `.sp-title` and 12px when it is a `.sp-subtitle`, so `1lh` is that line. Measured on all four rows, the icon's middle and the line's middle agree to 0.01px. The two Auth rows now use the row's own variant, `.sp-list-item--top`, not `sp-top`.
+**What changed** - The note now says this state is shown when the link opens in the browser that registered, which registering already signed in. The rest of the note is unchanged (Add a passkey, Not now, Continue on a device without passkeys). A second opening in this browser reads "Already confirmed".
 
-**Where.** `styles/components.css`, `.sp-list-item--top > svg` and the two `:has()` rules after it. Auth and first run 20a (both rows). Typography 13a (two note rows). In the app: any `ListItem` that is top-aligned and carries an icon, in `react_handoff/ListItem.jsx`.
+**Where** - `Auth and first run.dc.html`, 20b, "4 - CONFIRMED". App: `react/src/pages/AccountLinks.jsx`, `ConfirmLink`, signed-in branch.
 
-**What is still open.** Nothing.
+**What is still open** - Nothing.
 
-## 3. The icon in a danger row was near black
+## 3. Confirmed in a browser that is not signed in
 
-**The problem.** In Auth and first run 20a, Wrong email or password, the icon was `--ink-2` while the message beside it was the danger red. `.sp-list-item[data-color="danger"]` sets a red ground and border but no ink, so the icon kept the row's default.
+**The problem** - The app builds this state, but the design did not draw it.
 
-**What changed.** The icon in a danger row takes `--red-ink`, the same ink as `sp-ink-danger`. The row's own ink is unchanged, so other content in danger rows keeps its colour. The warning row already sets `--amber-ink-2`, which its icon takes; its title is `--amber-ink`. That pair was reviewed and is left as it is.
+**What changed** - New specimen "4 - CONFIRMED, NOT SIGNED IN" beside "4 - CONFIRMED", using the same card, mark and button. Heading "Email confirmed", lead "Sign in to carry on.", one primary button **Sign in**, which opens sign in (20a). It has no passkey offer, since a passkey is added in Settings. A link opened a second time in such a browser reads "Already confirmed", with the same lead and button.
 
-**Where.** `styles/components.css`, `.sp-list-item[data-color="danger"] > svg`. Auth and first run 20a.
+**Where** - `Auth and first run.dc.html`, 20b, "4 - CONFIRMED, NOT SIGNED IN". App: `react/src/pages/AccountLinks.jsx`, `ConfirmLink`, signed-out branch.
 
-**What is still open.** Nothing.
+**What is still open** - Whether Sign in fills in the confirmed address on the sign-in page is not drawn. Please confirm against what the app already does.
 
-## 4. The checkbox in a top-aligned row sat a fraction low
+## 4. The check-your-email page
 
-**The problem.** `.sp-list-item--top > .sp-check` and `> .sp-radio` were offset by `(14px * 1.5 - 16px) / 2`, which assumed a 21px title line. Poppins' normal line at 14px is 19.3px, so the box sat 0.17px below the title's middle.
+**The problem** - "Open it and you're in." holds only when the link is opened in the same browser.
 
-**What changed.** The box takes the title's font (Poppins, 14px, normal leading) and is offset by `(1lh - 16px) / 2`, so it follows the title's real line. The font is stated on the box because an input does not inherit the page font. Measured on Budget 21g and Order create 3d: 0.00px.
+**What changed** - Both specimens now read: "We sent a link to {email}. Open it to confirm your address, then sign in if asked. It expires in 24 hours."
 
-**Where.** `styles/components.css`, `.sp-list-item--top > .sp-check, .sp-list-item--top > .sp-radio`. Budget 21g, Order create 3d, Mobile screens. In the app: `react_handoff/ListItem.jsx` with a checkbox, top-aligned.
+**Where** - `Auth and first run.dc.html`, 20b, "1 - LINK SENT" and "LINK SENT, A LONG ADDRESS". App: `react/src/pages/AccountLinks.jsx`, the `/confirm` page.
 
-**What is still open.** Nothing.
+**What is still open** - Nothing.
+
+## 5. The confirmation email
+
+**The problem** - Line 5 said "open this link to confirm {{email}} and you're in." This is the same problem as point 4.
+
+**What changed** - It now reads: "Hi {{name}}, open this link to confirm {{email}}. If you're not signed in on that device, sign in afterwards." The HTML and text versions match.
+
+**Where** - `emails/confirm-email.html`, `emails/confirm-email.txt`. App: `api/src/emails/confirm-email.html` and `.txt`, which are held equal to the design's copies by the design check.
+
+**What is still open** - Nothing.
+
+## later.md: "A category cannot be marked as a favourite"
+
+**The problem** - Pickers list favourite categories first, and demo data makes three of them, but the category page had no control to set or clear one. Vendors have it.
+
+**What changed** - The category page has the same Favourite choice the vendor page uses (`sp-choice sp-choice--described` with `sp-check`), placed in the MARK card after Colour, as on the vendor page. Its help text reads "Kept at the top of Categories, and leads the list in every category picker." It is off on create and drawn on for Decor on edit. A note in 5e states the behaviour.
+
+**Where** - `Vendors and categories.dc.html` 5e (Categories - create) and 5f (Categories - edit). App: `react/src/pages/CategoryForm.jsx`. This settles the later.md entry "A category cannot be marked as a favourite". Please remove it.
+
+**What is still open** - Nothing.
+
+## later.md entries not settled in this pass
+
+You chose to leave these for later. The answers given so far are recorded here so they are not lost. Please confirm before building:
+
+- "The order form promises an order number nobody sees": show it in the order detail header and in order list rows. Not drawn yet.
+- "The privacy notice does not name the exchange-rate lookup": proposed sentence "A receipt in another currency sends its currency and date to frankfurter.dev to look up that day's exchange rate. Nothing else is sent." Not drawn yet.
+- "A saved view's warning colour has no control": your answer was "The design already describes it". Nothing was changed. Please confirm which page and screen holds it.
+- "Search finds categories and bookmarks but does not show them": not taken up.
+- "51 of the design's checks are not held against the app", "Demo data counts returned orders as spending", "Categories with equal spend sort by their generated ids": these are app-side, with no design change.
 
 ## Files
 
-- `README.md` - the design's overview, unchanged.
+- `README.md` - the design overview, unchanged.
 - `CHANGES.md` - this note.
-- `Auth and first run.dc.html` - the two message rows now use `.sp-list-item--top` (sections 2 and 3).
-- `support.js`, `components.js`, `icons.js` - what the page loads to open.
-- `styles/tokens.css`, `styles/doc.css` - loaded by the page, unchanged.
-- `styles/components.css` - the four rules above.
-- `styles/pages/auth-and-first-run.css` - loaded by the page, unchanged.
-- `styles/check.js` - new assertions: the chevron and unit are centred on the field; a top-aligned list row uses `.sp-list-item--top`; an icon in it has the first-line offset; a danger row's icon is `--red-ink`.
+- `Auth and first run.dc.html` - points 1 to 4.
+- `Vendors and categories.dc.html` - the favourite category control.
+- `emails/confirm-email.html`, `emails/confirm-email.txt` - point 5.
+- `support.js`, `components.js`, `icons.js` - loaded by the pages.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles the pages link.
+- `styles/pages/auth-and-first-run.css` - linked by Auth and first run.
 
 ## styles/check.js
 
-0 finding(s) across 26 pages
+0 finding(s) across 26 pages.
