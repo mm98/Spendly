@@ -11,7 +11,7 @@ import { stopStatusEmail } from '../lib/statusEmail.js'
 import { passkeySite } from '../lib/passkeys.js'
 import { issueToken, readToken, resendWait, settleToken, useToken } from '../lib/tokens.js'
 import { seedAccountDefaults } from '../seed.js'
-import { limitPerVisitor } from '../lib/rateLimit.js'
+import { limitPerVisitor, windowCounter } from '../lib/rateLimit.js'
 
 export const router = Router()
 
@@ -44,7 +44,27 @@ function lockedFor(email, ip, now = nowEpoch()) {
 	const { n, last } = recentFailures.get(email, ip, now - LOCK_WINDOW_SECONDS)
 	return n >= LOCK_AFTER ? Math.max(0, last + LOCK_SECONDS - now) : 0
 }
-const locked = (res, wait) => res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
+export const locked = (res, wait) => res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
+
+/** A password checked under the lock-out, wherever one is asked for: `{ user }` when it is right,
+    `{ wait }` in seconds while locked, `{}` when it is wrong. */
+export async function checkPassword(req, email, password) {
+	const wait = lockedFor(email, req.ip)
+	if (wait) return { wait }
+	// counted before the check and cleared once it is right, so attempts sent at once all count
+	const now = nowEpoch()
+	db.transaction(() => {
+		purgeFailures.run(now - 24 * 60 * 60)
+		insertFailure.run(email, req.ip, now)
+	})()
+	const user = findUserByEmail.get(email)
+	if (!user || !(await verifyPassword(password, user.password_hash))) {
+		const after = lockedFor(email, req.ip, now)
+		return after ? { wait: after } : {}
+	}
+	clearFailures.run(email)
+	return { user }
+}
 
 const LINK_EMAILS = { confirm: 'confirm-email', reset: 'reset-password' }
 
@@ -66,6 +86,8 @@ async function sendLink(req, user, kind, email) {
 const signInLimit = limitPerVisitor({ most: 30, perSeconds: 15 * 60 })
 const registerLimit = limitPerVisitor({ most: 10, perSeconds: 60 * 60 })
 const resetLimit = limitPerVisitor({ most: 10, perSeconds: 60 * 60 })
+// beside the minute between links: one address is never sent more than this many in a day
+const resetEmailWait = windowCounter({ most: 5, perSeconds: 24 * 60 * 60 })
 
 router.post('/register', registerLimit, async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
@@ -110,22 +132,9 @@ router.post('/register', registerLimit, async (req, res) => {
 router.post('/login', signInLimit, async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
 	const password = String(req.body?.password ?? '')
-	const wait = lockedFor(email, req.ip)
+	const { user, wait } = await checkPassword(req, email, password)
 	if (wait) return locked(res, wait)
-	/* Counted as a failure before the password is checked and cleared once it is right, so many
-	   attempts sent at once are all counted, not only those that finish before the first fails. */
-	const now = nowEpoch()
-	db.transaction(() => {
-		purgeFailures.run(now - 24 * 60 * 60)
-		insertFailure.run(email, req.ip, now)
-	})()
-	const user = findUserByEmail.get(email)
-	if (!user || !(await verifyPassword(password, user.password_hash))) {
-		const after = lockedFor(email, req.ip, now)
-		return after ? locked(res, after) : res.status(401).json({ error: 'Wrong email or password.' })
-	}
-
-	clearFailures.run(email)
+	if (!user) return res.status(401).json({ error: 'Wrong email or password.' })
 	const token = createSession(req, res, user.id, { remember: req.body?.remember !== false })
 	res.json({ id: user.id, email: user.email, token, needsSetup: Boolean(user.needs_setup) })
 })
@@ -225,7 +234,7 @@ router.post('/reset', resetLimit, (req, res) => {
 	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
 	const user = findUserByEmail.get(email)
 	// never awaited: how long the send takes, or whether it fails, must not tell which addresses have accounts
-	if (user && !resendWait(user.id, 'reset')) inBackground(sendLink(req, user, 'reset', email))
+	if (user && !resendWait(user.id, 'reset') && !resetEmailWait(user.id)) inBackground(sendLink(req, user, 'reset', email))
 	res.json({ email })
 })
 

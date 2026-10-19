@@ -112,8 +112,11 @@ have to. Putting screens together from its patterns is the build's job:
 - **Nothing the user can see or use is added unless `design/` draws it:** no control, setting,
   option or field, even one an existing component could draw. A part dropped into a drawn layout
   breaks the layout.
-- **Ask Claude Design** only for a real design question: a pattern that does not exist, two pages
-  that contradict each other, or a choice that changes what the user can do.
+- **Ask Claude Design** only for a real design question: a pattern that does not exist, or two pages
+  that contradict each other.
+- **Ask the user** for a choice about what the app does: who is signed out, what is kept or removed,
+  what a person may do. That is the user's decision, not a design question, even where `design/`
+  describes the current behaviour.
 - **The text in `design/` is general guidance, not a rule for every case.** It describes components and
   patterns, not each place or situation they are used in. Where a sentence does not clearly fit the case
   in front of you, do not apply it literally and do not guess: ask the user. A case a pattern already

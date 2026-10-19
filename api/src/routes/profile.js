@@ -2,12 +2,12 @@ import { Router } from 'express'
 import { upload } from '../lib/upload.js'
 import sharp from 'sharp'
 import { db } from '../db.js'
-import { hashPassword, verifyPassword } from '../lib/auth.js'
+import { endOtherSessions, hashPassword } from '../lib/auth.js'
 import { nowEpoch } from '../lib/dates.js'
 import { detectFileType } from '../lib/fileType.js'
 import { toSquare } from '../lib/images.js'
 import { sendPasswordChanged } from '../lib/notices.js'
-import { MAX_NAME, MIN_PASSWORD, cleanName } from './auth.js'
+import { MAX_NAME, MIN_PASSWORD, checkPassword, cleanName, locked } from './auth.js'
 
 /* The account's own profile (Settings 11a): name, picture, password, and the first run's end. */
 export const router = Router()
@@ -20,7 +20,6 @@ const selectPicture = db.prepare('SELECT data, content_type FROM user_pictures W
 const upsertPicture = db.prepare(`INSERT INTO user_pictures (user_id, data, content_type, updated_at) VALUES (?, ?, ?, ?)
 	ON CONFLICT (user_id) DO UPDATE SET data = excluded.data, content_type = excluded.content_type, updated_at = excluded.updated_at`)
 const deletePicture = db.prepare('DELETE FROM user_pictures WHERE user_id = ?')
-const selectHash = db.prepare('SELECT password_hash FROM users WHERE id = ?')
 const setPassword = db.prepare('UPDATE users SET password_hash = ?, password_changed_at = unixepoch() WHERE id = ?')
 const finishSetup = db.prepare('UPDATE users SET needs_setup = 0 WHERE id = ?')
 
@@ -59,16 +58,21 @@ router.delete('/picture', (req, res) => {
 	res.json({ picture: null })
 })
 
-/** Change password from Settings: the current one is asked for; other sessions stay signed in. */
+/** Change password from Settings: the current one is asked for, and every other session ends. */
 router.post('/password', async (req, res) => {
 	const current = String(req.body?.current ?? '')
 	const password = String(req.body?.password ?? '')
-	const { password_hash: hash } = selectHash.get(req.user.id)
-	if (!(await verifyPassword(current, hash)))
+	const { user, wait } = await checkPassword(req, req.user.email, current)
+	if (wait) return locked(res, wait)
+	if (!user)
 		return res.status(400).json({ error: 'That is not your current password.', fields: { current: 'That is not your current password.' } })
 	if (password.length < MIN_PASSWORD)
 		return res.status(400).json({ error: `Use at least ${MIN_PASSWORD} characters.`, fields: { password: `Use at least ${MIN_PASSWORD} characters.` } })
-	setPassword.run(await hashPassword(password), req.user.id)
+	const newHash = await hashPassword(password)
+	db.transaction(() => {
+		setPassword.run(newHash, req.user.id)
+		endOtherSessions(req, req.user.id)
+	})()
 	sendPasswordChanged(req, req.user.id)
 	res.json({ passwordChangedAt: nowEpoch() })
 })

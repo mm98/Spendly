@@ -203,11 +203,10 @@ async function builtAtOf(base, digest, token, signal) {
 	}
 }
 
-/* Above the auth gate beside /api/version for the same reason it is: whether the container
-   is current is a fact about the deployment. Nothing here takes caller input -- the image
-   name and commit are the server's own configuration -- and nothing is cached: a check is a
-   question about right now, asked by one button press at a time. */
-app.get('/api/version/check', async (req, res) => {
+/* Beside /api/version, but only for a signed-in user: each check sends requests to the registry, so
+   a stranger must not be able to make the server send them. Nothing here takes caller input, and
+   nothing is cached: a check is a question about right now, asked by one button press at a time. */
+app.get('/api/version/check', requireAuth, async (req, res) => {
 	const commit = process.env.SPENDLY_BUILD_SHA || null
 	if (!commit) return res.status(409).json({ error: 'No build stamp: this server is not running from the Docker image.' })
 	try {
@@ -220,7 +219,7 @@ app.get('/api/version/check', async (req, res) => {
 		// fetch's own message is only "fetch failed"; the reason is in its cause
 		const error = `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}${e.cause ? ` (${e.cause.message ?? e.cause})` : ''}`
 		console.error(error)
-		res.status(502).json({ error })
+		res.status(502).json({ error: 'Spendly could not check for a newer version. Try again later.' })
 	}
 })
 

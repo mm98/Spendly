@@ -7,7 +7,7 @@ import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, fillDraftGaps, normaliseUrl, validateOrderDraft } from '../lib/validate.js'
-import { findOrCreateVendor, findOrCreateCategory, findVendorIdByAnyName } from '../lib/findOrCreate.js'
+import { findOrCreateVendor, findOrCreateCategory, vendorFinder } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { orderAmountScale } from '../lib/orderAmountScale.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
@@ -113,7 +113,7 @@ const SORT_SQL = {
    `filtered` reports whether any clause beyond the account's own was added, so the route can
    reuse its unconditional COUNT instead of running the identical query twice. */
 function buildOrderFilter(userId, q, except = null) {
-	const sortKey = SORT_SQL[q.sort] ? q.sort : 'date-desc'
+	const sortKey = Object.hasOwn(SORT_SQL, q.sort) ? q.sort : 'date-desc'
 	const where = ['ot.user_id = @userId']
 	const params = { userId }
 
@@ -224,7 +224,7 @@ export function countMatching(userId, q) {
 /** The drafts a list request matches, by the rules buildOrderFilter writes for orders, in its sort. */
 function draftsMatching(userId, q, except = null) {
 	if (q.drafts === 'none' || q.importId) return []
-	const sortKey = SORT_SQL[q.sort] ? q.sort : 'date-desc'
+	const sortKey = Object.hasOwn(SORT_SQL, q.sort) ? q.sort : 'date-desc'
 	const vendorIds = listOf(q.vendorId), categoryIds = listOf(q.categoryId), ids = listOf(q.ids)
 	const statuses = listOf(q.status).filter(s => s !== 'Any')
 	const receipt = listOf(q.receipt).filter(r => r === 'attached' || r === 'missing')
@@ -510,8 +510,8 @@ function saveOrderStatuses(userId, orderId, draft) {
 
 /** Turns a validated draft into inserted rows. Shared by manual create, update (which first
     clears whatever it's replacing) and import. */
-const insertOrderRows = db.transaction((userId, id, draft) => {
-	const vendorId = findOrCreateVendor(userId, draft.vendor, id)
+const insertOrderRows = db.transaction((userId, id, draft, vendors = vendorFinder(userId)) => {
+	const vendorId = vendors.findOrCreate(draft.vendor, id)
 	const categoryIds = (draft.categories ?? []).map(name => findOrCreateCategory(userId, name))
 
 	insertOrder.run({
@@ -966,6 +966,7 @@ router.post('/import', requireConfirmed, async (req, res) => {
 
 	const imported = [], failed = []
 	let createdVendors = 0, lines = 0
+	let vendors = vendorFinder(req.user.id)
 	for (const [index, raw] of orders.entries()) {
 		const draft = raw && typeof raw === 'object' ? keyed(req.user.id, raw) : raw
 		try {
@@ -977,24 +978,30 @@ router.post('/import', requireConfirmed, async (req, res) => {
 			for (const item of draft.items) itemAttachments.push(await processImportAttachments(item.attachments, false))
 
 			const id = newId('o')
-			db.transaction(() => {
-				const vendorId = findVendorIdByAnyName(req.user.id, draft.vendor)
-				const newVendor = importId && !vendorId
-				const newCategories = importId ? (draft.categories ?? []).filter(name => !selectCategoryByName.get(req.user.id, String(name).trim())) : []
-				// an order that does not say whether it counts takes its vendor's default (5l)
-				const excludeFromStats = draft.excludeFromStats ?? Boolean(vendorId && selectVendorExcludesFromStats.get(vendorId, req.user.id))
-				const itemIds = insertOrderRows(req.user.id, id, { ...draft, excludeFromStats })
-				if (importId) {
-					tagOrder.run(importId, id)
-					if (newVendor) { tagVendor.run(importId, req.user.id, String(draft.vendor).trim()); createdVendors++ }
-					for (const name of newCategories) tagCategory.run(importId, req.user.id, String(name).trim())
-					lines += draft.items.length
-				}
-				for (const a of attachments) insertImportedAttachment(a, { orderId: id })
-				itemIds.forEach((itemId, position) => {
-					for (const a of itemAttachments[position]) insertImportedAttachment(a, { orderItemId: itemId })
-				})
-			})()
+			// a vendor made in a write that rolled back does not exist, so the finder starts again
+			try {
+				db.transaction(() => {
+					const vendorId = vendors.find(draft.vendor)
+					const newVendor = importId && !vendorId
+					const newCategories = importId ? (draft.categories ?? []).filter(name => !selectCategoryByName.get(req.user.id, String(name).trim())) : []
+					// an order that does not say whether it counts takes its vendor's default (5l)
+					const excludeFromStats = draft.excludeFromStats ?? Boolean(vendorId && selectVendorExcludesFromStats.get(vendorId, req.user.id))
+					const itemIds = insertOrderRows(req.user.id, id, { ...draft, excludeFromStats }, vendors)
+					if (importId) {
+						tagOrder.run(importId, id)
+						if (newVendor) { tagVendor.run(importId, req.user.id, String(draft.vendor).trim()); createdVendors++ }
+						for (const name of newCategories) tagCategory.run(importId, req.user.id, String(name).trim())
+						lines += draft.items.length
+					}
+					for (const a of attachments) insertImportedAttachment(a, { orderId: id })
+					itemIds.forEach((itemId, position) => {
+						for (const a of itemAttachments[position]) insertImportedAttachment(a, { orderItemId: itemId })
+					})
+				})()
+			} catch (e) {
+				vendors = vendorFinder(req.user.id)
+				throw e
+			}
 			imported.push(getDecoratedOrder(req.user.id, id))
 		} catch (e) {
 			failed.push({ index, error: e.message })

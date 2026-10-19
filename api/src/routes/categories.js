@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { MAX_RECORD_NAME, textProblem } from '../lib/validate.js'
 import { describe, fromModel, suggestFromHistory } from '../lib/categorySuggest.js'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
@@ -99,6 +100,9 @@ router.post('/suggestions', async (req, res) => {
 	res.json({ suggestions: describe(req.user.id, await suggestFromHistory(req.user.id, asked)), failure: null })
 })
 
+const categoryProblem = c => textProblem(c.name, 'A name', MAX_RECORD_NAME) ?? textProblem(c.icon, 'An icon', 60)
+	?? textProblem(c.iconPath, 'An icon drawing', 20000) ?? textProblem(c.colour, 'A colour', 40)
+
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
 	if (!name) return res.status(400).json({ error: 'A category needs a name.' })
@@ -106,6 +110,8 @@ router.post('/', (req, res) => {
 	if (taken) return res.status(409).json({ error: `You already have a category called ${taken.name}.` })
 
 	const look = req.body?.look ?? {}
+	const problem = categoryProblem({ name, ...look })
+	if (problem) return res.status(400).json({ error: problem })
 	const category = {
 		id: newId('c'), userId: req.user.id, name,
 		icon: look.icon ?? 'tag', iconPath: look.iconPath ?? null,
@@ -138,6 +144,8 @@ router.patch('/:id', (req, res) => {
 		const clash = findCategoryByFold(req.user.id, nextName)
 		if (clash && clash.id !== category.id) return res.status(409).json({ error: `You already have a category called ${clash.name}.` })
 	}
+	const problem = categoryProblem({ ...patch, name: nextName })
+	if (problem) return res.status(400).json({ error: problem })
 	const next = {
 		name: nextName,
 		icon: patch.icon ?? category.icon,

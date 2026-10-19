@@ -1020,6 +1020,15 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT COUNT(*) AS n, MAX(at) AS last FROM user_login_failures WHERE email = ? AND ip_address = ? AND at > ?": {
+			"plan": [
+				"SEARCH user_login_failures USING COVERING INDEX idx_user_login_failures_email_ip_at (email=? AND ip_address=? AND at>?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_user_login_failures_email_ip_at"
+			]
+		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.total ELSE ot.total END)), 0) AS spent, COALESCE(SUM((CASE WHEN ot.status_type = 'returned' THEN -ot.saved ELSE ot.saved END)), 0) AS saved FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)"
@@ -2269,13 +2278,13 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
-		"SELECT id, email, name FROM users WHERE id = ?": {
+		"SELECT id, email, password_hash, needs_setup FROM users WHERE email = ?": {
 			"plan": [
-				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
+				"SEARCH users USING INDEX sqlite_autoindex_users_2 (email=?)"
 			],
 			"findings": [],
 			"indexes": [
-				"sqlite_autoindex_users_1"
+				"sqlite_autoindex_users_2"
 			]
 		},
 		"SELECT id, file_name, mapping, orders, lines, skipped, vendors, created_at, undone_at FROM order_imports WHERE user_id = ? AND hidden_at IS NULL ORDER BY created_at DESC, rowid DESC LIMIT ?": {
@@ -4937,7 +4946,7 @@
 				"ip_address",
 				"at"
 			],
-			"readers": 0
+			"readers": 1
 		},
 		"idx_user_passkeys_user": {
 			"table": "user_passkeys",

@@ -16,23 +16,28 @@ const CHALLENGE_MS = 5 * 60 * 1000
 // a sign-in prompt needs no account, so the open ones are capped against a flood of them
 const MAX_OPEN = 1000
 const open = new Map()   // key -> { challenge, at }, oldest first
+// prompts to add a passkey, one per signed-in account, apart so a flood of sign-in prompts cannot push them out
+const adding = new Map()
+const storeOf = key => (key.startsWith('add:') ? adding : open)
 
 /** Keeps the challenge a prompt was opened with until its answer comes back. */
 export function keepChallenge(key, challenge) {
 	const now = Date.now()
-	for (const [k, kept] of open) {
+	const store = storeOf(key)
+	for (const [k, kept] of store) {
 		if (now - kept.at <= CHALLENGE_MS) break
-		open.delete(k)
+		store.delete(k)
 	}
-	open.delete(key)
-	open.set(key, { challenge, at: now })
+	store.delete(key)
+	store.set(key, { challenge, at: now })
 	while (open.size > MAX_OPEN) open.delete(open.keys().next().value)
 }
 
 /** The challenge kept under `key`, once: null when there is none or it has run out. */
 export function takeChallenge(key) {
-	const kept = open.get(key)
-	open.delete(key)
+	const store = storeOf(key)
+	const kept = store.get(key)
+	store.delete(key)
 	return kept && Date.now() - kept.at <= CHALLENGE_MS ? kept.challenge : null
 }
 

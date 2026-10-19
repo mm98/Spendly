@@ -68,6 +68,12 @@ function sessionToken(req) {
 }
 
 const deleteSession = db.prepare('DELETE FROM user_sessions WHERE id = ?')
+const deleteOtherSessions = db.prepare('DELETE FROM user_sessions WHERE user_id = ? AND id <> ?')
+
+/** Signs the user out everywhere but the session this request came with. */
+export function endOtherSessions(req, userId) {
+	deleteOtherSessions.run(userId, sessionToken(req) ?? '')
+}
 
 export function destroySession(req, res) {
 	const token = sessionToken(req)

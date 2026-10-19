@@ -10,8 +10,21 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
    other (import, scan review save). Returns a { field: message } map, empty if the draft is
    valid. `today` is the reader's date (req.today). */
 
+/** What is wrong with an optional text value, or null: it must be text of at most `max` characters. */
+export const textProblem = (value, label, max) =>
+	value == null ? null
+		: typeof value !== 'string' ? `${label} must be text.`
+			: value.length > max ? `${label} is ${max} characters at most.` : null
+
+// a name a row shows, cut when long; past this it is not a name
+export const MAX_RECORD_NAME = 200
+
 export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_STATUSES) {
 	const errors = {}
+	const note = textProblem(draft.note, 'A note', 10000)
+	if (note) errors.note = note
+	const reference = textProblem(draft.reference, 'A reference', 200)
+	if (reference) errors.reference = reference
 
 	const vendor = String(draft.vendor ?? '').trim()
 	if (!vendor) errors.vendor = 'Who did you buy from?'

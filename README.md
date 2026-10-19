@@ -191,7 +191,12 @@ Everything that needs you, on one page.
   signed in" lasts 30 days.
 - **Email confirmation** and **password reset** by email. You get an email when your password
   changes or a passkey is added.
-- **After 5 wrong passwords** in 15 minutes, signing in to that email pauses for 5 minutes.
+- **Changing the password** in Settings signs out every other device. A **password reset** signs
+  out every device and removes every passkey.
+- **Adding a passkey** asks for the password first.
+- **After 5 wrong passwords** in 15 minutes from one device, signing in to that email from that
+  device pauses for 5 minutes. Each device also has a limit on how often it can try to sign in,
+  register or ask for a reset email.
 - **If your session ends** while you work, you sign in again on top of the page, and nothing you
   typed is lost.
 - **Pictures are cleaned** of location and device details when they are uploaded.
