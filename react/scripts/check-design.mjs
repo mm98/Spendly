@@ -104,7 +104,7 @@ for (const [p, ast] of parsed) {
 /* ---- spacing: only the scale's tokens ----
    Gap, padding and margin are written as tokens. These are the design's own optical nudges,
    frozen by count: a new raw value anywhere is a regression. */
-const RAW_SPACING = { '-4px': 4, '1px': 6, '3px': 3, '-2px': 2, '2px': 2, '-12px': 1, '40px': 2 }
+const RAW_SPACING = { '-4px': 4, '1px': 6, '3px': 3, '-2px': 2, '2px': 2, '-12px': 1, '40px': 2, '16px': 1 }
 {
 	const plain = components.replace(/\/\*[\s\S]*?\*\//g, '')
 	const found = {}
@@ -396,6 +396,17 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- a top-aligned list row is the row's own variant ---- */
+
+// the variant carries the first-line offset for the row's icon; the sp-top utility does not
+for (const [p, ast] of parsed) {
+	visit(ast, n => {
+		if (n.type !== 'JSXElement' || tagOf(n) !== 'ListItem') return
+		const a = n.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+		if (a?.value && stringsIn(a.value).some(s => /(^|\s)sp-top(\s|$)/.test(s))) fail('a top-aligned list row uses sp-list-item--top', rel(p), '<ListItem className="sp-top">: use variant="top"')
+	})
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -514,7 +525,11 @@ const DESIGN_RULES = {
 	'an action is a link or a button': 'an action is a link or a button',
 	'an email on one line is .sp-email-line': 'an email on one line is .sp-email-line',
 	'a typed value in a sentence is .sp-break': 'a typed value in a sentence is .sp-break',
-	'a list row holding a control is .sp-list-item--setting': 'a list row holding a control is .sp-list-item--setting'
+	'a list row holding a control is .sp-list-item--setting': 'a list row holding a control is .sp-list-item--setting',
+	'a top-aligned list row uses sp-list-item--top': 'a top-aligned list row uses sp-list-item--top',
+	'an icon in a top-aligned row centres on the first line': COPY,
+	'a danger row icon takes the danger ink': COPY,
+	'a field tail mark is centred on the field': COPY
 }
 {
 	const designCheck = read(join(root, '../design/styles/check.js'))

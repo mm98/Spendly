@@ -202,7 +202,7 @@ export function ImportCard({ state }) {
 		<Card ref={box}>
 			<CardHeader name="Import" {...landing('import')} />
 			<ListItem color="success">
-				<span className="sp-row-flex sp-flex-none"><Icon name="check" /></span>
+				<Icon name="check" />
 				<span className="sp-subtitle sp-ink-accent">The import is undone. {ordersWord(stage.removed)} {stage.removed === 1 ? 'was' : 'were'} removed, with the vendors and categories it created.</span>
 			</ListItem>
 			<ImportFooter>
@@ -233,7 +233,7 @@ export function ImportCard({ state }) {
 				{reuse && !reuse.replacing
 					? (
 						<ListItem color="success">
-							<span className="sp-row-flex sp-flex-none"><Icon name="check" /></span>
+							<Icon name="check" />
 							<span className="sp-subtitle sp-ink-accent sp-grow">The next file is read with the mapping from {reuse.fileName}.</span>
 							<Button variant="text" size="small" onClick={() => setReuse(null)}>Don't</Button>
 						</ListItem>
@@ -254,7 +254,7 @@ export function ImportCard({ state }) {
 				<div className="sp-stack sp-gap-8">
 					<span className="sp-section-label">Or start from a template</span>
 					<ListItem variant="outline">
-						<span className="sp-row-flex sp-flex-none"><Icon name="file" /></span>
+						<Icon name="file" />
 						<span className="sp-data sp-grow sp-truncate">{TEMPLATE}</span>
 						<Button variant="outline" size="small" onClick={() => download(TEMPLATE, templateWorkbook(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}>Download</Button>
 					</ListItem>

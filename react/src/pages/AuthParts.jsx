@@ -92,7 +92,7 @@ export function AuthCard({
 				{alert
 					? (
 						<ListItem variant="top" color={alertColor} role="alert">
-							<span className="sp-row-flex sp-flex-none"><Icon name={alertIcon} /></span>
+							<Icon name={alertIcon} />
 							{warning
 								? (
 									<span className="sp-stack sp-gap-6">

@@ -79,7 +79,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 	const dateNote = dateColumnAt < 0 ? null : facts.dateFormat
 		? (
 			<ListItem color="warning">
-				<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
+				<Icon name="alert-circle" />
 				<span className="sp-subtitle sp-ink-warning sp-grow">
 					{facts.dateFormat === 'excel' ? 'Dates are read as Excel dates.' : <>Dates are read as <b className="sp-nowrap">{DATE_SHAPES[facts.dateFormat]}</b>.</>}
 					{facts.dateFormats.length === 1 ? ' Every date in the file matched that shape.' : facts.dateFormats.length > 1 ? ' The dates could be read another way too. Check that this is right.' : ''}
@@ -93,7 +93,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 		)
 		: (
 			<ListItem color="danger">
-				<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
+				<Icon name="alert-circle" />
 				<span className="sp-subtitle sp-ink-danger">These are not dates Spendly can read. Map another column as the order date.</span>
 			</ListItem>
 		)
@@ -101,7 +101,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 	const categoryNote = facts.unknown.length && facts.unresolved.length
 		? (
 			<ListItem color="warning">
-				<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
+				<Icon name="alert-circle" />
 				<span className="sp-subtitle sp-ink-warning sp-grow">
 					<b>{plural(facts.unresolved.length, 'value')}</b> in {categoryColumn} {facts.unresolved.length === 1 ? "doesn't" : "don't"} match a category yet. They are listed below and each needs a choice before the import can run.
 				</span>
@@ -192,7 +192,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 			{shape === 'order'
 				? (
 					<ListItem color="warning">
-						<span className="sp-row-flex sp-flex-none"><Icon name="alert-circle" /></span>
+						<Icon name="alert-circle" />
 						<span className="sp-subtitle sp-ink-warning">
 							Each order arrives with <b>one item line</b> carrying the description and the total, quantity 1. That keeps the totals correct and the order editable, but the detail is gone - an order imported this way can't be broken back into its items later. Switching back to "one item line" restores the mapping you had; it isn't lost.
 						</span>
