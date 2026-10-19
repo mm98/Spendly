@@ -4,7 +4,7 @@ import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
-import { Picker } from '../components/Choice.jsx'
+import { Check, Choice, Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Gauge, Stat, Sum } from '../components/Data.jsx'
@@ -47,7 +47,7 @@ export default function CategoryForm() {
 }
 
 // the form while the category is on its way: an existing record's form, every value held by a skeleton
-const LOADING = { id: null, name: '', icon: 'tag', colour: null, budget: 0, orders: 0, bookmarks: 0 }
+const LOADING = { id: null, name: '', icon: 'tag', colour: null, budget: 0, favourite: false, orders: 0, bookmarks: 0 }
 
 function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const navigate = useNavigate()
@@ -70,7 +70,8 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		// a saved name missing from Tabler is kept until the user picks again (c7)
 		icon: category?.icon || 'tag',
 		colour: category ? pickedColour(category.colour) : null,
-		budget: category?.budget > 0 ? category.budget : null
+		budget: category?.budget > 0 ? category.budget : null,
+		favourite: Boolean(category?.favourite)
 	}), [category, named])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
@@ -94,7 +95,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const holder = useApi(getCategoryPage, [{ name: typed, except: category?.id, pageSize: 1, shape: 'brief' }], { enabled: !editing && Boolean(typed) })
 
 	const changed = values.name.trim() !== start.name.trim() || values.icon !== start.icon
-		|| values.colour !== start.colour || values.budget !== start.budget
+		|| values.colour !== start.colour || values.budget !== start.budget || values.favourite !== start.favourite
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
 	// back to the page the picker was on, or to the order when this page was opened on its own
@@ -147,7 +148,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
-			name, icon: values.icon, colour: storedColour(colour), budget: values.budget ?? 0,
+			name, icon: values.icon, colour: storedColour(colour), budget: values.budget ?? 0, favourite: values.favourite,
 			...(values.icon !== start.icon ? { iconPath: null } : {})
 		}
 		const written = editing ? updateCategory(category.id, look) : createCategory(name, look)
@@ -237,6 +238,10 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 						{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 							value={colour} onChange={v => set('colour', v)} />)}
 					</Field>
+					<Choice variant="described" description="Kept at the top of Categories, and leads the list in every category picker."
+						control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
+						Favourite
+					</Choice>
 				</div>
 			</Card>
 

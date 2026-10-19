@@ -14,13 +14,13 @@ const MONTH = `SELECT oc.category_id, SUM(ot.total) AS spend
 
 /* Ties go to the name as stored; `byName` is ordered by nameOrder, and `fav` puts favourites first. */
 const SORTS = {
-	'name-asc': { byName: true },
+	'name-asc': { fav: true, byName: true },
 	// a picker's list: the favourites lead, then the rest by name
 	'favourites': { fav: true, byName: true },
-	'month-desc': { month: true, by: 'COALESCE(m.spend, 0) DESC, c.name' },
-	'month-asc': { month: true, by: 'COALESCE(m.spend, 0) ASC, c.name' },
-	'limit-desc': { by: 'c.budget DESC, c.name' },
-	'orders-desc': { orders: true, by: 'COALESCE(o.orders, 0) DESC, c.name' }
+	'month-desc': { fav: true, month: true, by: 'COALESCE(m.spend, 0) DESC, c.name' },
+	'month-asc': { fav: true, month: true, by: 'COALESCE(m.spend, 0) ASC, c.name' },
+	'limit-desc': { fav: true, by: 'c.budget DESC, c.name' },
+	'orders-desc': { fav: true, orders: true, by: 'COALESCE(o.orders, 0) DESC, c.name' }
 }
 
 const selectRows = db.prepare(`SELECT id, name, icon, colour, budget, favourite FROM categories
@@ -151,7 +151,7 @@ export function categoryPage(userId, q, today, languages = []) {
 	const counted = `categories c ${over || named ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}`
 	const matched = db.prepare(`SELECT COUNT(*) c FROM ${counted} WHERE ${where.join(' AND ')}`).get(params).c
 	const { limit, offset } = pageOf(q, matched)
-	const page = db.prepare(`SELECT c.id FROM ${from} WHERE ${where.join(' AND ')} ORDER BY ${sort.by} LIMIT @limit OFFSET @offset`)
+	const page = db.prepare(`SELECT c.id FROM ${from} WHERE ${where.join(' AND ')} ORDER BY ${sort.fav ? 'c.favourite DESC, ' : ''}${sort.by} LIMIT @limit OFFSET @offset`)
 		.all({ ...params, limit, offset })
 	return { categories: rowsFor(userId, page.map(r => r.id), extras, month, view), matched }
 }
