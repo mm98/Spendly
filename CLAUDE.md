@@ -82,11 +82,12 @@ name the code that draws it happens to have. A raw number is the same failure wi
 Three documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
 stated twice and obeyed once.
 
-- **`README.md` is the product** — what it does, every feature a user can use, how it is run, and the
-  design system's rules: what the UI must do, in general terms. No implementation detail (framework,
-  router, bundler): those are decisions downstream of it and they change. A change that adds, removes
-  or changes a feature updates its line in the same pull request.
-- **The app's own README is the app's own business** — its framework, build, chunking, measurements.
+- **`README.md` is the product** — what it does, every feature a user can use with a screenshot of
+  each major area, how it is run, the stack and how it is built in outline, and the design system's
+  rules: what the UI must do, in general terms. A change that adds, removes or changes a feature, a
+  server setting or a part of the stack updates its line in the same pull request.
+- **The app's own README is the app's own business** — the detail behind that outline: routes, shell,
+  data, build, chunking, measurements.
   Nothing in it is a rule about the product.
 - **This file holds rules about the work** — how to verify, what counts as done, what may be claimed.
   Nothing here describes the UI.
@@ -391,18 +392,19 @@ dispatch the event, assert it fired). Screenshots are for the reader; the number
 
 ## Screenshots in the README
 
-`docs/` shots are rendered from the running app, never hand-cropped or touched up: Chromium at
-1440x900 for the three desktop shots, an iPhone 15 descriptor for the phone shot, all at
-`deviceScaleFactor: 2`, via the same harness used for measuring. All four are the app's render.
+`docs/` shots are rendered from the running app by `react/scripts/regen-docs.mjs`, never hand-cropped
+or touched up: Chromium at 1440x900 for the desktop shots, an iPhone 15 descriptor for the phone shot,
+all at `deviceScaleFactor: 2`. The script's header lists every shot and the state it holds; a new shot
+is added there, never rendered by hand.
 
 The phone shot needs the actual device descriptor, not a narrow viewport, since `pointer: coarse`
-media queries key off it. A change that moves one of these four is regenerated in the same pass that
-verifies it, never before.
+media queries key off it. A change that moves a shot is regenerated in the same pass that verifies it,
+never before.
 
-Two of the four (`home.png`, `phone.png`) are dated content and go stale on their own, with no app
-change — render the *unchanged* source first to attribute any drift to the calendar, then re-render
-deliberately and say so. `all-orders.png` and `order-list.png` are dateless: the unchanged source
-should reproduce them byte for byte, and if it doesn't, the diff is the code.
+Most shots show dates or this month's figures and go stale on their own, with no app change — render
+the *unchanged* source first to attribute any drift to the calendar, then re-render deliberately and
+say so. The script's header marks the dateless ones: the unchanged source should reproduce them byte
+for byte, and if it doesn't, the diff is the code.
 
 `docs/` is only a baseline if your machine reproduces it — a different Chromium build can rasterize
 text differently and swamp a real diff in noise. Diff your own before/after renders (deterministic on

@@ -1,4 +1,4 @@
-/* Renders the four docs/ screenshots from the running app, and diffs each render
+/* Renders the docs/ screenshots from the running app, and diffs each render
    against a reference PNG in the same browser (a <canvas> decodes; no PNG library here).
 
    Needs the app up (npm run dev in react/, api/) and Playwright's chromium; a local
@@ -18,6 +18,19 @@
    - all-orders.png  1440x900 dSF2, /orders?vendor=<Bilka>&status=Delivered&from=2026-08-01&to=2026-08-31,
                      the facet rail beside the list, the palette open with 'bil' typed. 3 matching.
    - phone.png       iPhone 15 descriptor, dSF overridden to 2, Home. 786x1318.
+   One shot per area the README shows, 1440x900 dSF2, each in a fresh tab:
+   - order.png       the first of the three August Bilka deliveries, read view.
+   - new-order.png   /orders/new, the start page. Dateless.
+   - statistics.png  /statistics, this month.
+   - budget.png      /budget/<this year> after the BUDGET import below, income shown.
+   - vendors.png     /vendors.
+   - categories.png  /categories, this month against each limit.
+   - bookmarks.png   /bookmarks.
+   - settings.png    /settings/appearance. Dateless.
+   - dark.png        Home with the system set to dark.
+   Dateless shots reproduce byte for byte from unchanged source: all-orders, order-list, new-order,
+   settings. The rest show this month's figures or dates that move with the seed. statistics.png also
+   moves between two runs on one day: two categories with equal spend sort by their generated ids.
    Account: fresh, demo fill {seed: SEED, months: MONTHS, orders: 30} -- the dataset is a function of
    (seed, today), so the seed is re-picked on a render day to give the all-orders state its
    3 August Bilka Delivered matches, and the render refuses to shoot when it does not hold. */
@@ -85,6 +98,38 @@ async function settle(page) {
 async function shoot(page, file) {
 	await settle(page)
 	await page.screenshot({ path: join(outdir, file) })
+}
+
+// a page reached by its address, shot once the part that shows it has data is drawn
+async function area(page, route, ready, file, then) {
+	await page.goto(BASE + route, { timeout: 15000 })
+	await page.locator(ready).first().waitFor({ timeout: 5000 })
+	await then?.(page)
+	// a chart grows its bars in: settle() freezes movement at its start, so let a finite one end first
+	await page.evaluate(() => Promise.all(document.getAnimations()
+		.filter(a => a.effect?.getTiming().iterations !== Infinity)
+		.map(a => a.finished.catch(() => {}))))
+	await shoot(page, file)
+}
+
+/* The demo fill holds no budget, so the budget shot loads a small year through the same route the
+   spreadsheet import uses. One row per line: expected each month, and real for the months gone by. */
+const budgetRow = (name, account, monthly) => ({
+	name, account,
+	months: Array.from({ length: 12 }, (_, m) => ({ expected: monthly, real: m < new Date().getMonth() ? monthly : null }))
+})
+const BUDGET = {
+	accounts: ['Budget account', 'Main account'],
+	years: [{
+		year: new Date().getFullYear(),
+		groups: [
+			{ kind: 'income', name: 'Salary', lines: [budgetRow('Salary', 'Main account', 32000)] },
+			{ kind: 'expense', name: 'Housing', lines: [budgetRow('Rent', 'Budget account', 9800), budgetRow('Electricity', 'Budget account', 650), budgetRow('Water and heating', 'Budget account', 900)] },
+			{ kind: 'expense', name: 'Transport', lines: [budgetRow('Train pass', 'Main account', 1100), budgetRow('Bike repairs', 'Main account', 150)] },
+			{ kind: 'expense', name: 'Subscriptions', lines: [budgetRow('Phone', 'Budget account', 199), budgetRow('Internet', 'Budget account', 299), budgetRow('Streaming', 'Main account', 149)] },
+			{ kind: 'expense', name: 'Insurance', lines: [budgetRow('Home insurance', 'Budget account', 210), budgetRow('Accident insurance', 'Budget account', 95)] }
+		]
+	}]
 }
 
 /* Diff two PNGs inside the open page: canvas decodes both, getImageData compares. */
@@ -159,7 +204,38 @@ await shoot(page, 'all-orders.png')
 await diff(page, 'home.png')
 await diff(page, 'all-orders.png')
 await diff(page, 'order-list.png')
+
+// -- desktop: one shot per area the README shows, in a tab of their own so the palette above is not open --
+const tab = await desktop.newPage()
+tab.setDefaultTimeout(2000)
+tab.setDefaultNavigationTimeout(2000)
+const august = await (await desktop.request.get(
+	BASE + `/api/orders?vendorId=${bilka}&status=Delivered&from=2026-08-01&to=2026-08-31&pageSize=${MATCHES}`)).json()
+await area(tab, `/#/orders/${august.orders[0].id}`, '.sp-sum', 'order.png')
+await area(tab, '/#/orders/new', 'text=Empty order', 'new-order.png')
+await area(tab, '/#/statistics', '.sp-bars__col', 'statistics.png')
+const budget = await desktop.request.post(BASE + '/api/budget/import', { data: BUDGET })
+if (!budget.ok()) throw new Error('budget import ' + budget.status())
+await area(tab, `/#/budget/${BUDGET.years[0].year}`, 'text=Rent', 'budget.png', async p => {
+	await p.getByRole('button', { name: 'Show income' }).click()
+	await p.getByRole('button', { name: 'Hide income' }).waitFor()
+})
+await area(tab, '/#/vendors', '.sp-list-item, tbody tr', 'vendors.png')
+await area(tab, '/#/categories', '.sp-list-item, tbody tr', 'categories.png')
+await area(tab, '/#/bookmarks', '.sp-record', 'bookmarks.png')
+await area(tab, '/#/settings/appearance', 'form, .sp-card', 'settings.png')
 await desktop.close()
+
+// -- desktop, dark: Home --
+const darkCtx = await browser.newContext({ ...READER, colorScheme: 'dark', viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })
+await freshAccount(darkCtx)
+const dark = await darkCtx.newPage()
+dark.setDefaultTimeout(2000)
+dark.setDefaultNavigationTimeout(2000)
+await dark.goto(BASE + '/#/', { timeout: 15000 })
+await dark.waitForSelector('.sp-bars__col', { timeout: 5000 })
+await shoot(dark, 'dark.png')
+await darkCtx.close()
 
 // -- phone: home --
 const phoneCtx = await browser.newContext({ ...devices['iPhone 15'], ...READER, deviceScaleFactor: 2 })
