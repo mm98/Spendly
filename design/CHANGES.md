@@ -1,93 +1,58 @@
-# Weekly and monthly status email
+# The arrow in a search-and-pick field sits too high on a phone
 
-## Fixed from design_handoff_status_email_fixed
+Answers Brief-field-chevron-touch.md, and three alignment and ink faults found while reviewing Auth and first run 20a. later.md was read (main, 2026-10-19); its two entries are in the app and the API, not the drawings, so neither is settled here.
 
-Answers to Brief-status-email.md (main at 2cc46c8).
+## 1. The chevron in a search-and-pick field
 
-- **Brief 1, the notes and the drawings disagreed.** The notes were right; the package carried stale copies of `Settings and import.dc.html`, `Mobile screens.dc.html` and `styles/components.css`. This package carries the current ones: Status email is its own card in 11a with `.sp-segmented--fill` and Send a test email, and the phone has the Send a test email row. Please rebuild 11a and the phone row from these files.
-- **Brief 2, the phone row was tinted green.** Not meant. A row that holds a setting now carries `.sp-list-item--setting`, which keeps the row's own ground when an input inside it is checked. The same fault was in the two "Each row is" rows in Settings and import 11b; they carry it too. `styles/check.js` now asserts it.
-- **Brief 3, the Stop these emails page.** Drawn as the app built it, in Auth and first run 20f, 8 to 10: "Status emails stopped", "Already stopped", "That link has expired" after 60 days, on the 20b answer card.
-- **Brief 4, month names.** They follow the account's language, as the app does now. Written into the 20f notes and `emails/README.md`.
+**The problem.** On a phone the down arrow at the right end of a search-and-pick field sat 3px above the field's middle. It was centred in a box always `--control-h` (42px) tall from the field's top, and the touch field is 48px.
 
-## Fixed from design_handoff_status_email
+**What changed.** The arrow is centred on the field's real height, the same way as the clear button and the unit: `top: 50%; transform: translateY(-50%)`, and the fixed height is gone. Nothing changes on a computer. `.sp-field__kbd` keeps its rule, since it only shows on a computer.
 
-- Status email is its own card in Account and profile, under the account card, rather than a field inside it.
-- The switch spans the card: `.sp-segmented--fill`, documented in Components c5.
-- A Send a test email button in the card's footer, and a Send a test email row under the inline switch on the phone.
+**Where.** `styles/components.css`, `.sp-field__chevron`. It reaches Order create (Vendor), Bookmarks (category picker with search), Budget 21g (row picker), Vendors and categories (move to), Settings and import (category picker with search), Components c5, and every `Field` / `Input` / `Combobox` built with the chevron in `react_handoff/Field.jsx`, `Inputs.jsx` and `Combobox.jsx`. No JSX changes.
 
-The brief: a status email the user can set to None, Weekly or Monthly, with a fast overview of stats, categories, orders, bookmarks and limits exceeded, plus the budget in the monthly one, without income.
+**What is still open.** Nothing.
 
-## 1. The status email
+## 2. The icon in a top-aligned message row sat high
 
-**The problem.** Spendly sent only transactional emails. There was no way to get an overview of a period without opening the app, and 8b stated that alerts arrive in the app only.
+**The problem.** In Auth and first run 20a, Wrong email or password and Locked out, the 16px icon sat 1 to 2px above the middle of the first line of text. The rows used the `sp-top` utility, which only sets `align-items: flex-start`, so the icon's top met the line's top while the line box is 18px (13px text) or 19.3px (14px title). The two rows in Typography 13a used `.sp-list-item--top`, which had no rule for an icon either.
 
-**What changed.** One template for both frequencies, on the layout picked from five candidates (1a: tiles, then one card of lists). In order:
+**What changed.** An icon in a top-aligned row centres on the first line of the text beside it: `margin-top: calc((1lh - 16px) / 2)`. The icon takes the size of that first line, 14px when the text opens with a `.sp-title` and 12px when it is a `.sp-subtitle`, so `1lh` is that line. Measured on all four rows, the icon's middle and the line's middle agree to 0.01px. The two Auth rows now use the row's own variant, `.sp-list-item--top`, not `sp-top`.
 
-- the period ("Your month, September 2026" / "Your week, Week 42, 12 - 18 Oct 2026")
-- three tiles: Spent with the comparison by amount ("4.210 kr. less than August"), Saved (green, grey when 0), Orders
-- limits exceeded, in the amber attention box: "12.640,00 kr. of 10.000,00 kr.", "+26% over the limit", and a bar. In a weekly email the limit is the calendar month so far: "11.260,00 kr. of 10.000,00 kr. in October so far"
-- Budget, monthly only, costs only: last month's real costs against expected ("7.612,40 kr. of 7.946,98 kr. expected", "334,58 kr. under"), and the costs expected in the new month. Income and Left over are never sent
-- top 5 categories with amounts and bars
-- the latest 5 orders, each with its saving under the amount ("Saved 995,00 kr.", green; "Saved 0,00 kr.", grey)
-- bookmarks added in the period
-- Needs a look (drafts, orders not delivered after 2 weeks, possible duplicate vendors)
-- Open Spendly, then a footer naming the setting, with Change it in Settings and Stop these emails
+**Where.** `styles/components.css`, `.sp-list-item--top > svg` and the two `:has()` rules after it. Auth and first run 20a (both rows). Typography 13a (two note rows). In the app: any `ListItem` that is top-aligned and carries an icon, in `react_handoff/ListItem.jsx`.
 
-A section with nothing in it is left out. A period with no orders sends `status-quiet` instead: "Nothing spent this week", "No orders were added between 19 and 25 October.", any limits, the budget (monthly) and Needs a look.
+**What is still open.** Nothing.
 
-Weekly is sent Monday at 08:00 for Monday to Sunday just ended; Monthly on the 1st at 08:00 for the month just ended, both in the account's time zone.
+## 3. The icon in a danger row was near black
 
-**Where.** `emails/status.html`, `status.txt`, `status-quiet.html`, `status-quiet.txt`, `status-sample.json`; fields and rules in `emails/README.md`. Drawn as specimens 5, 6 and 7 in `Auth and first run.dc.html` 20f, with notes. Built like the auth emails: tables, inline styles, VML button and mark for Outlook, the dark block mapped to the dark tokens. The templates use Mustache sections; the 20f specimens merge the sample JSON with a minimal renderer in the page's logic.
+**The problem.** In Auth and first run 20a, Wrong email or password, the icon was `--ink-2` while the message beside it was the danger red. `.sp-list-item[data-color="danger"]` sets a red ground and border but no ink, so the icon kept the row's default.
 
-**Decided.** The tile figure is 24px, a size new to the emails (the auth emails top out at 15px). Both emails are sent at 08:00 in the account's time zone.
+**What changed.** The icon in a danger row takes `--red-ink`, the same ink as `sp-ink-danger`. The row's own ink is unchanged, so other content in danger rows keeps its colour. The warning row already sets `--amber-ink-2`, which its icon takes; its title is `--amber-ink`. That pair was reviewed and is left as it is.
 
-## 2. The setting
+**Where.** `styles/components.css`, `.sp-list-item[data-color="danger"] > svg`. Auth and first run 20a.
 
-**The problem.** There was no place to choose the email, and no way to see it without waiting for Monday or the 1st.
+**What is still open.** Nothing.
 
-**What changed.** A Status email card in Account and profile, directly under the account card. It reads "What you spent and saved, limits passed, your latest orders and bookmarks, sent to mikkel@example.net. Weekly arrives on Monday, Monthly on the 1st." Under it, None, Weekly and Monthly on a Segmented that spans the card, the options sharing the width. None is the default for every account; the drawing shows Weekly selected. It saves on change. Stop these emails in the email sets it to None without signing in, from a single-use link.
+## 4. The checkbox in a top-aligned row sat a fraction low
 
-Send a test email, a block outline button in the card's footer, sends the email for the period just ended to the account's address now, with the real figures, in the frequency selected (the weekly one on None). The subject starts "Test:". While sending it reads Sending... with the spinner, disabled; then a toast, "Test sent to mikkel@example.net", or the danger toast "The test could not be sent. Try again." The server allows one test a minute.
+**The problem.** `.sp-list-item--top > .sp-check` and `> .sp-radio` were offset by `(14px * 1.5 - 16px) / 2`, which assumed a 21px title line. Poppins' normal line at 14px is 19.3px, so the box sat 0.17px below the title's middle.
 
-On a phone the same Segmented sits inline in the Settings list after Passkeys, with a Send a test email row under it that behaves the same.
+**What changed.** The box takes the title's font (Poppins, 14px, normal leading) and is offset by `(1lh - 16px) / 2`, so it follows the title's real line. The font is stated on the box because an input does not inherit the page font. Measured on Budget 21g and Order create 3d: 0.00px.
 
-**Where.** `Settings and import.dc.html` 11a (card and notes); `Mobile screens.dc.html` (Settings frame, the two rows, and a note); `Components.dc.html` c5 (the Fill note); `styles/components.css`, `.sp-segmented--fill`. App: `react/src/pages/Settings*` account pane; a server job for the two schedules at 08:00 in the account's time zone; the test and unsubscribe routes.
+**Where.** `styles/components.css`, `.sp-list-item--top > .sp-check, .sp-list-item--top > .sp-radio`. Budget 21g, Order create 3d, Mobile screens. In the app: `react_handoff/ListItem.jsx` with a checkbox, top-aligned.
 
-## 3. The alerts note
-
-**The problem.** 8b said "There is no email", which this change makes untrue.
-
-**What changed.** The note now says there is no phone notification and no email per alert, and that a limit passed is also listed in the status email when one is chosen.
-
-**Where.** `Duplicate and alerts.dc.html` 8b, notes.
-
-## 4. First run cards stand the same height
-
-**The problem.** In 20d, the This month and Your categories cards beside each other were different heights.
-
-**What changed.** The row stretches its cards to the taller one. A new utility, `.sp-stretch { align-items: stretch; }`, beside `.sp-top`; no component rule changed.
-
-**Where.** `Auth and first run.dc.html` 20d; `styles/components.css`, `.sp-stretch`.
-
-## later.md
-
-Read on main before the task. Its one entry (51 design checks not held against the app) is app-side, not a design fix, so nothing here settles it.
+**What is still open.** Nothing.
 
 ## Files
 
-- `README.md` - the design's overview, unchanged
-- `CHANGES.md` - this note
-- `Auth and first run.dc.html` - 20f status email specimens, the stop page (8 to 10) and notes, 20d equal-height cards
-- `Settings and import.dc.html` - 11a Status email card, test button and notes; 11b Each row is rows carry `.sp-list-item--setting`
-- `Components.dc.html` - c5, the Fill variant of Segmented, and the note on a Segmented in a list row
-- `Mobile screens.dc.html` - Settings frame, Status email row and test row
-- `Duplicate and alerts.dc.html` - 8b note
-- `emails/` - the four auth emails (loaded by 20f), `status.*`, `status-quiet.*`, `status-sample.json`, `README.md`
-- `support.js`, `components.js`, `icons.js` - loaded by the pages
-- `styles/check.js` - the design checks, with the new setting-row assertion
-- `styles/tokens.css`, `styles/components.css` (adds `.sp-stretch`, `.sp-segmented--fill` and `.sp-list-item--setting`), `styles/doc.css`
-- `styles/pages/auth-and-first-run.css`, `settings.css`, `budget.css`, `mobile-screens.css`, `duplicate-and-alerts.css` - linked by the pages above
+- `README.md` - the design's overview, unchanged.
+- `CHANGES.md` - this note.
+- `Auth and first run.dc.html` - the two message rows now use `.sp-list-item--top` (sections 2 and 3).
+- `support.js`, `components.js`, `icons.js` - what the page loads to open.
+- `styles/tokens.css`, `styles/doc.css` - loaded by the page, unchanged.
+- `styles/components.css` - the four rules above.
+- `styles/pages/auth-and-first-run.css` - loaded by the page, unchanged.
+- `styles/check.js` - new assertions: the chevron and unit are centred on the field; a top-aligned list row uses `.sp-list-item--top`; an icon in it has the first-line offset; a danger row's icon is `--red-ink`.
 
-## Check
+## styles/check.js
 
-`styles/check.js`: 0 finding(s) across 26 pages.
+0 finding(s) across 26 pages

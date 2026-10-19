@@ -218,6 +218,24 @@
       if (!v || v.trim() !== w) fail('bars share one shape', 'components.css', `${sel} border-radius is ${v ? v.trim() : 'unset'}, want ${w}`);
     }
   }
+  /* a tail mark that is not a hit target is centred on the field's real height. The
+     chevron was centred in a --control-h box from the top, so in a 48px touch field it
+     sat 3px high (brief field-chevron-touch). The kbd hint shows on a computer only. */
+  /* a list row aligned to its first line is the row's own variant, which carries the
+     first-line offset for its icon; the sp-top utility left the icon 1-2px high
+     (Auth and first run, wrong password and locked out) */
+  for (const [f, s] of Object.entries(src))
+    for (const m of s.matchAll(/class="sp-list-item\b[^"]*\bsp-top\b[^"]*"/g))
+      fail('a top-aligned list row uses sp-list-item--top', f.replace('.dc.html', ''), m[0]);
+  if (!/\.sp-list-item--top > svg \{[^}]*margin-top:\s*calc\(\(1lh - 16px\) \/ 2\)/.test(comp))
+    fail('an icon in a top-aligned row centres on the first line', 'components.css', '.sp-list-item--top > svg has no first-line offset');
+  if (!/\.sp-list-item\[data-color="danger"\] > svg \{[^}]*color:\s*var\(--red-ink\)/.test(comp))
+    fail('a danger row icon takes the danger ink', 'components.css', '.sp-list-item[data-color="danger"] > svg is not --red-ink');
+  for (const sel of ['.sp-field__chevron', '.sp-field__unit']) {
+    const r = parse(comp).find(x => x.sel === sel && !scopeOf(comp, x.at));
+    if (!r || !/top\s*:\s*50%/.test(r.body) || !/translateY\(-50%\)/.test(r.body) || /height\s*:\s*var\(--control-h\)/.test(r.body))
+      fail('a field tail mark is centred on the field', 'components.css', `${sel} is not top: 50% with translateY(-50%)`);
+  }
   for (const [name, css] of [['components.css', comp], ['doc.css', doc], ...Object.entries(pageCss)]) {
     const rules = parse(css);
     // two rules for one selector at one scope, disagreeing on a property: the later
