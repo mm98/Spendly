@@ -9,7 +9,7 @@ import { router as ordersRouter } from './routes/orders.js'
 import { router as bookmarksRouter } from './routes/bookmarks.js'
 import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
-import { router as accountRouter, updaterAvailable } from './routes/account.js'
+import { router as accountRouter, ownsServer, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
 import { router as passkeysRouter, signInRouter as passkeySignInRouter } from './routes/passkeys.js'
 import { router as importsRouter } from './routes/imports.js'
@@ -19,7 +19,7 @@ import { router as draftsRouter } from './routes/drafts.js'
 import { router as searchRouter } from './routes/search.js'
 import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
-import { requireAuth } from './lib/auth.js'
+import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
 import { MAX_UPLOAD_MB } from './lib/constants.js'
@@ -124,8 +124,8 @@ app.get('/api/version', (req, res) => res.json({
 	builtAt: process.env.SPENDLY_BUILD_TIME || null,
 	commit: process.env.SPENDLY_BUILD_SHA || null,
 	lighthouse: LIGHTHOUSE,
-	// whether Settings may offer "Update and reload": an updater to ask is set up (routes/account.js)
-	canUpdate: updaterAvailable()
+	// whether Settings may offer "Update and reload": an updater is set up and this user manages the server
+	canUpdate: updaterAvailable() && ownsServer(sessionUser(req))
 }))
 
 /* Whether the newest published image is this one, asked of GHCR itself rather than of the

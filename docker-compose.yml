@@ -11,16 +11,14 @@ services:
     #   docker compose build --build-arg BUILD_TIME=$(date -u +%FT%TZ) --build-arg GIT_SHA=$(git rev-parse HEAD)
     container_name: spendly
     restart: unless-stopped
-    ports:
-      - "4000:4000"
+    # No ports: only caddy below is reached from outside, so every visit uses HTTPS.
     environment:
       SPENDLY_DB: /data/spendly.sqlite3
       # Without this the container's clock is UTC, so the nightly backup fires at UTC
       # 23:59:59 -- 1-2am local, depending on daylight saving -- not local midnight.
       TZ: "Europe/Copenhagen"
-      # Keeps HSTS off so a plain-http address (LAN by IP) stays reachable. The session
-      # cookie handles this by itself: Secure when the request came over HTTPS, plain when
-      # it didn't. Remove only when every client uses HTTPS.
+      # Keeps HSTS off. With HSTS on, a browser that does not trust caddy's certificate yet
+      # cannot open Spendly at all, not even after a warning. Remove when every device trusts it.
       SPENDLY_PLAIN_HTTP: "1"
       # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...
@@ -48,7 +46,10 @@ services:
       # Lets Settings > This build install a newer version with "Update and reload": the app asks
       # the watchtower service below to do it. The token must match WATCHTOWER_HTTP_API_TOKEN.
       SPENDLY_UPDATER_URL: "http://watchtower:8080/v1/update"
+      # Change it here and in WATCHTOWER_HTTP_API_TOKEN to the same long random text.
       SPENDLY_UPDATER_TOKEN: "change-this-demo-key"
+      # Only this account may use "Update and reload". Without it, the first account made on this server may.
+      # SPENDLY_OWNER_EMAIL: you@example.com
     volumes:
       # Absolute path -- a relative one breaks if this file moves. On QNAP: /share/Container/spendly:/data
       - /share/Container/spendly:/data
@@ -85,14 +86,13 @@ services:
     image: nickfedor/watchtower:1
     container_name: watchtower
     restart: unless-stopped
-    ports:
-      # HTTP API for on-demand updates, below.
-      - "8085:8080"
+    # No ports: spendly reaches the update API at http://watchtower:8080 inside Docker,
+    # so nobody else on the network can call it.
     environment:
       TZ: "Europe/Copenhagen"
       # Enables the update API.
       WATCHTOWER_HTTP_API_UPDATE: "true"
-      # API bearer token -- change before exposing port 8085 beyond the LAN.
+      # The same text as SPENDLY_UPDATER_TOKEN above.
       WATCHTOWER_HTTP_API_TOKEN: "change-this-demo-key"
       # Keeps the schedule below running alongside the API.
       WATCHTOWER_HTTP_API_PERIODIC_POLLS: "true"

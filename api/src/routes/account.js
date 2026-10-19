@@ -86,6 +86,16 @@ const UPDATER_ANSWER_MS = 3000
 
 export const updaterAvailable = () => /^https?:\/\//.test(process.env.SPENDLY_UPDATER_URL ?? '')
 
+// ids are random, so the first account is found by when it was made
+const selectFirstUserId = db.prepare('SELECT id FROM users ORDER BY created_at, rowid LIMIT 1')
+
+/** The one account that may install an update: SPENDLY_OWNER_EMAIL's, or else the first account on this server. */
+export function ownsServer(user) {
+	if (!user) return false
+	const owner = process.env.SPENDLY_OWNER_EMAIL?.trim().toLowerCase()
+	return owner ? user.email === owner : user.id === selectFirstUserId.get()?.id
+}
+
 /** Resolves to { status } (a number, or 'busy' once it holds its answer) or { error } when it can't be reached. */
 function askUpdater(url) {
 	const secure = url.protocol === 'https:'
@@ -123,6 +133,7 @@ function askUpdater(url) {
 
 router.post('/version/update', async (req, res) => {
 	if (!updaterAvailable()) return res.status(409).json({ error: 'This copy of Spendly cannot install an update by itself.' })
+	if (!ownsServer(req.user)) return res.status(403).json({ error: 'Only the person who manages this Spendly can install an update.' })
 	const url = new URL(process.env.SPENDLY_UPDATER_URL)
 	url.searchParams.set('async', 'true')
 	const answer = await askUpdater(url)

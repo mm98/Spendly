@@ -168,6 +168,8 @@ const selectUser = db.prepare('SELECT id, name, email, email_confirmed FROM user
 const confirmEmail = db.prepare('UPDATE users SET email_confirmed = 1 WHERE id = ?')
 const setPassword = db.prepare('UPDATE users SET password_hash = ?, password_changed_at = unixepoch() WHERE id = ?')
 const endSessions = db.prepare('DELETE FROM user_sessions WHERE user_id = ?')
+// a reset proves only the email address, so a passkey someone else added must not outlive it
+const removePasskeys = db.prepare('DELETE FROM user_passkeys WHERE user_id = ?')
 const noMail = res => res.status(409).json({ error: 'This server cannot send email.' })
 const notSent = (res, e) => {
 	console.error(`[mail] could not send: ${e.message}`)
@@ -224,7 +226,7 @@ router.get('/reset/:token', (req, res) => {
 	res.json({ state, email: row?.email ?? null })
 })
 
-/** The new password from a reset link: every other session ends, and this browser is signed in. */
+/** The new password from a reset link: every other session and every passkey ends, and this browser is signed in. */
 router.post('/reset/:token', async (req, res) => {
 	const { state, row } = readToken(req.params.token, 'reset')
 	if (state !== 'valid') return res.status(410).json({ error: 'That link has expired.', state })
@@ -234,6 +236,7 @@ router.post('/reset/:token', async (req, res) => {
 	db.transaction(() => {
 		setPassword.run(hash, row.user_id)
 		endSessions.run(row.user_id)
+		removePasskeys.run(row.user_id)
 		useToken(req.params.token)
 	})()
 	clearFailures.run(row.email)
