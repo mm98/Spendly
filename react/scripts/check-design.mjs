@@ -983,6 +983,328 @@ for (const [p, ast] of parsed) visit(ast, n => {
 	}
 }
 
+/* ---- where an element stands: up its own tree, then out through every place that draws it ---- */
+
+const texts = new Map()
+const at = (p, node) => `${rel(p)}:${(texts.get(p) ?? texts.set(p, read(p)).get(p)).slice(0, node.start).split('\n').length}`
+// a name's value, from the nearest function above that declares it
+const declaredIn = new Map()
+const valueOf = (name, above) => {
+	for (const scope of [...above].reverse()) {
+		if (!isFunction(scope) && scope.type !== 'Program') continue
+		if (!declaredIn.has(scope)) {
+			const names = new Map()
+			visit(scope.body, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && !names.has(n.id.name)) names.set(n.id.name, n.init) })
+			declaredIn.set(scope, names)
+		}
+		if (declaredIn.get(scope).has(name)) return declaredIn.get(scope).get(name)
+	}
+}
+// a className's classes, through a name it is held in
+const classesIn = (el, above) => {
+	const value = attrOf(el, 'className')?.value
+	if (!value) return []
+	const out = stringsIn(value)
+	visit(value, n => { if (n.type === 'Identifier') { const held = valueOf(n.name, above); if (held) out.push(...stringsIn(held)) } })
+	return out.join(' ').split(/\s+/).filter(Boolean)
+}
+const sourceOf = (p, from) => {
+	const base = resolve(dirname(p), from)
+	return [base, `${base}.jsx`, `${base}.js`].find(f => parsed.has(f))
+}
+const importedFrom = new Map([...parsed].map(([p, ast]) => {
+	const names = new Map()
+	visit(ast, n => {
+		if (n.type !== 'ImportDeclaration' || !n.source.value.startsWith('.')) return
+		const from = sourceOf(p, n.source.value)
+		if (from) for (const s of n.specifiers) if (s.type === 'ImportSpecifier') names.set(s.local.name, from)
+	})
+	return [p, names]
+}))
+const isFunction = n => ['FunctionDeclaration', 'ArrowFunctionExpression', 'FunctionExpression'].includes(n?.type)
+const definitionOf = (p, name) => {
+	let found = null
+	visit(parsed.get(p), n => {
+		if (found) return
+		if (n.type === 'FunctionDeclaration' && n.id?.name === name) found = n
+		if (n.type === 'VariableDeclarator' && n.id.name === name && isFunction(n.init)) found = n.init
+	})
+	return found
+}
+// each file's elements by tag and names by name, with what is above them
+const indexed = new Map()
+const indexOf = p => {
+	if (!indexed.has(p)) {
+		const index = new Map()
+		visit(parsed.get(p), (node, above) => {
+			const key = node.type === 'JSXElement' ? `<${tagOf(node)}` : node.type === 'Identifier' ? node.name : null
+			if (key) (index.get(key) ?? index.set(key, []).get(key)).push({ p, node, above })
+		})
+		indexed.set(p, index)
+	}
+	return indexed.get(p)
+}
+// a name read as a value, not declared, keyed or reached as a member
+const readsName = name => (n, above) => {
+	if (n.type !== 'Identifier' || n.name !== name) return false
+	const up = above.at(-1)
+	if (up?.type === 'VariableDeclarator' && up.id === n) return false
+	if (isFunction(up) && (up.id === n || up.params.includes(n))) return false
+	if (up?.type === 'MemberExpression' && up.property === n && !up.computed) return false
+	if (up?.type === 'Property' && up.key === n && !up.shorthand) return false
+	return !['ImportSpecifier', 'ExportSpecifier', 'ImportDefaultSpecifier'].includes(up?.type)
+}
+const readings = (p, name) => (indexOf(p).get(name) ?? []).filter(o => readsName(name)(o.node, o.above))
+const drawnAs = (p, name) => [...parsed.keys()].flatMap(q => (q === p || importedFrom.get(q).get(name) === p)
+	? indexOf(q).get(`<${name}`) ?? []
+	: [])
+
+// every place the element can end up is inside an element that `holds`; a page's own root is not
+const within = (p, above, holds, seen = new Set()) => {
+	if (above.some((a, i) => a.type === 'JSXElement' && holds(a, p, above.slice(0, i)))) return true
+	const top = above.findIndex(a => a.type === 'JSXElement' || a.type === 'JSXFragment')
+	const outside = top < 0 ? above : above.slice(0, top)
+	for (let i = outside.length - 1; i >= 0; i--) {
+		const a = outside[i]
+		if (a.type === 'Property') return false
+		const name = a.type === 'VariableDeclarator' && a.id.type === 'Identifier' ? a.id.name
+			: a.type === 'FunctionDeclaration' ? a.id?.name : null
+		if (!name) continue
+		const key = `${p}|${name}`
+		if (seen.has(key)) return true
+		seen.add(key)
+		const component = /^[A-Z]/.test(name) && (a.type === 'FunctionDeclaration' || isFunction(a.init))
+		// a component handed on as a value is drawn where this script cannot follow
+		if (component && readings(p, name).length) return true
+		const places = component ? drawnAs(p, name) : readings(p, name)
+		return places.length > 0 && places.every(o => within(o.p, o.above, holds, seen))
+	}
+	return false
+}
+
+// an element is one of `classes` when it carries one, or is a component that draws one
+const drawing = classes => {
+	const memo = new Map()
+	const draws = (el, p, above) => {
+		const name = tagOf(el)
+		if (!name) return false
+		if (/^[a-z]/.test(name)) return classesIn(el, above).some(c => classes.includes(c))
+		const home = importedFrom.get(p).get(name) ?? p
+		const key = `${home}|${name}`
+		if (!memo.has(key)) {
+			memo.set(key, false)
+			let found = false
+			visit(definitionOf(home, name), (n, inside) => { if (!found && n.type === 'JSXElement' && draws(n, home, [parsed.get(home), ...inside])) found = true })
+			memo.set(key, found)
+		}
+		return memo.get(key)
+	}
+	return draws
+}
+
+/* ---- a well sits inside a surface ---- */
+
+{
+	const surface = drawing(['sp-card', 'sp-list', 'sp-popover', 'sp-dialog', 'sp-sheet', 'sp-line-editor'])
+	for (const [p, ast] of parsed) {
+		if (p === join(src, 'components/Well.jsx')) continue
+		visit(ast, (n, above) => {
+			if (n.type !== 'JSXElement' || (tagOf(n) !== 'Well' && !classesIn(n, above).includes('sp-well'))) return
+			if (!within(p, above, surface)) fail('a well sits inside a surface', at(p, n), `<${tagOf(n)}> on the page ground is a card`)
+		})
+	}
+}
+
+/* ---- a screen uses the split body ---- */
+
+{
+	// a main column beside a rail; a symmetric grid is a pair of equals, not a screen
+	const rail = /grid-template-columns:[^;]*(?:2fr[^;]*1fr|1fr[^;]*(?:max-content|\d+px))/
+	const screens = new Set()
+	for (const css of [app, ...pages.map(([, css]) => css)])
+		for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.([a-z]{2}-[\w-]+)\s*\{([^{}]*)\}/g))
+			if (/display:\s*grid/.test(m[2]) && rail.test(m[2])) screens.add(m[1])
+	const content = drawing(['sp-card', 'sp-well', 'sp-list'])
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement') return
+		const cls = classesIn(n, above).find(c => screens.has(c))
+		if (cls && !within(p, above, content)) fail('a screen uses the split body', at(p, n),`.${cls} draws a two-column screen; use the split layout with a <Panel> rail`)
+	})
+}
+
+/* ---- a readout sits on the bars that place it ---- */
+
+{
+	const variants = {}
+	visit(parsed.get(charts), n => {
+		if (n.type === 'VariableDeclarator' && n.id.name === 'BARS')
+			for (const pr of n.init.properties) variants[pr.key.name ?? pr.key.value] = String(pr.value.value ?? '').split(/\s+/).filter(Boolean)
+	})
+	const css = components + app
+	const places = v => (variants[v] ?? []).some(c => new RegExp(`\\.${c} \\.sp-bars__tip \\{[^}]*position: absolute`).test(css))
+	// the names known true where the bars are drawn: `touch ? <Bars> : ...`, `touch && <Bars>`
+	const holding = (n, above) => above.flatMap((a, i) => {
+		const child = above[i + 1] ?? n
+		if (a.type === 'ConditionalExpression' && a.consequent === child && a.test.type === 'Identifier') return [a.test.name]
+		if (a.type === 'LogicalExpression' && a.operator === '&&' && a.right === child && a.left.type === 'Identifier') return [a.left.name]
+		return []
+	})
+	// a tip left out under one of those names: `touch || column.future ? undefined : <ChartTip>`
+	const leftOut = (value, known) => {
+		if (value.type !== 'ConditionalExpression' || !(value.consequent.type === 'Identifier' && value.consequent.name === 'undefined')) return false
+		const names = t => t.type === 'Identifier' ? [t.name] : t.type === 'LogicalExpression' && t.operator === '||' ? [...names(t.left), ...names(t.right)] : []
+		return names(value.test).some(name => known.includes(name))
+	}
+	for (const [p, ast] of parsed) {
+		const declared = new Map()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) declared.set(n.id.name, [...(declared.get(n.id.name) ?? []), n.init]) })
+		visit(ast, (n, above) => {
+			if (n.type !== 'JSXElement' || tagOf(n) !== 'Bars') return
+			const variant = attrOf(n, 'variant')
+			if (variant && variant.value?.type !== 'Literal') return
+			if (places(variant?.value.value ?? 'default')) return
+			const columns = attrOf(n, 'columns')?.value?.expression
+			if (!columns) return
+			const known = holding(n, above)
+			for (const from of columns.type === 'Identifier' ? declared.get(columns.name) ?? [] : [columns])
+				visit(from, m => {
+					if (m.type === 'Property' && (m.key.name ?? m.key.value) === 'tip' && !leftOut(m.value, known))
+						fail('a readout sits on the plot bars', rel(p), `<Bars variant="${variant?.value.value ?? 'default'}"> with a readout: no rule places one there`)
+				})
+		})
+	}
+}
+
+/* ---- a readout is never pinned inside its container ---- */
+
+for (const [p, ast] of parsed) {
+	if (stringsIn(ast).some(s => /\bdata-pin\b/.test(s))) fail('tooltips are not held in their container', rel(p), 'data-pin on a readout')
+	visit(ast, n => {
+		if ((n.type === 'JSXAttribute' && n.name?.name === 'data-pin')
+			|| (n.type === 'MemberExpression' && n.property.name === 'pin' && n.object.property?.name === 'dataset'))
+			fail('tooltips are not held in their container', rel(p), 'data-pin on a readout')
+	})
+}
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	if (/\[data-pin/.test(css)) fail('tooltips are not held in their container', rel(p), 'a [data-pin] rule')
+
+/* ---- a colour is a colour, on a component that reads one ---- */
+
+{
+	const COLOUR_WORD = /^(warning|danger|success|destructive|attention|problem|positive|error)$/
+	const IN_CLASS = /\bsp-[\w-]*?--[\w-]*(?:destructive|attention|problem|positive|error)[\w-]*/g
+	for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+		for (const m of css.matchAll(IN_CLASS)) fail('a colour is not a variant', rel(p), `.${m[0]} puts a colour in a class name; use [data-color]`)
+	for (const [p, ast] of parsed)
+		for (const s of stringsIn(ast)) for (const m of s.matchAll(IN_CLASS)) fail('a colour is not a variant', rel(p), `${m[0]}: use color=`)
+	for (const [component, props] of Object.entries(sets))
+		for (const v of props.variant ?? []) if (COLOUR_WORD.test(v)) fail('a colour is not a variant', component, `variant="${v}": a colour is color=`)
+
+	const reads = new Set([...(components + app).matchAll(/\.(sp-[\w-]+)\[data-color/g)].map(m => m[1]))
+	const paints = node => {
+		let found = false
+		visit(node, n => { if (n.type === 'Property' && (n.key.value ?? n.key.name) === 'data-color') found = true })
+		return found
+	}
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		const resolved = node => node?.type === 'Identifier' ? valueOf(node.name, above) : node
+		let classes
+		if (n.type === 'JSXElement' && /^[a-z]/.test(tagOf(n) ?? '')) {
+			if (!n.openingElement.attributes.some(a => (a.type === 'JSXAttribute' && a.name?.name === 'data-color')
+				|| (a.type === 'JSXSpreadAttribute' && paints(resolved(a.argument))))) return
+			classes = classesIn(n, above)
+		} else if (n.type === 'ObjectExpression' && n.properties.some(pr => pr.type === 'Property' && pr.key.value === 'data-color')) {
+			const name = n.properties.find(pr => pr.type === 'Property' && (pr.key.name ?? pr.key.value) === 'className')
+			if (!name) return
+			classes = stringsIn(resolved(name.value)).join(' ').split(/\s+/)
+		} else return
+		if (!classes.some(c => reads.has(c))) fail('a colour needs a component', at(p, n), `data-color on "${classes.join(' ')}", which no rule colours`)
+	})
+}
+
+/* ---- the row is one component ---- */
+
+// .sp-line was merged into .sp-list-item; .sp-line-editor is a form and keeps its name
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.sp-line(--|__|[\s:.[,{])/g))
+		fail('the row is one component', rel(p), `${m[0]} - the row is <ListItem>`)
+for (const [p, ast] of parsed)
+	for (const s of stringsIn(ast)) for (const m of s.matchAll(/(?<![\w-])\.?sp-line(?:--[\w-]*|__[\w-]*)?(?![\w-])/g))
+		fail('the row is one component', rel(p), `${m[0]} - the row is <ListItem>`)
+
+/* ---- a fade is a photo's ---- */
+
+for (const [p, ast] of parsed) visit(ast, (n, above) => {
+	if (n.type !== 'JSXElement') return
+	const fill = attrOf(n, 'fill')?.value
+	if (tagOf(n) === 'Mark' && attrOf(n, 'faded') && !(fill?.type === 'Literal' && fill.value === 'photo'))
+		fail('a faded mark is a photo', at(p, n), '<Mark faded> without fill="photo"')
+	// Mark draws the fade from its prop, held above
+	const classes = p === join(src, 'components/Mark.jsx') ? [] : classesIn(n, above)
+	if (classes.includes('sp-mark--faded') && !classes.includes('sp-mark--photo')) fail('a faded mark is a photo', at(p, n), classes.join(' '))
+	if (classes.includes('sp-record__photo--faded') && !classes.includes('sp-record__photo')) fail('a faded band photo is a photo', at(p, n), classes.join(' '))
+})
+
+/* ---- a part changes only through the design, and takes no page rule ---- */
+
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{};]+)\{([^{}]*)\}/g))
+		if (/\.sp-card(--[\w-]+)?\b/.test(m[1]) && /justify-content|align-content/.test(m[2])) fail('a part changes only through the design', rel(p), m[1].trim())
+// the page rules the design's own spread, narrow field and reading column replaced
+const RETIRED_PAGE_RULES = ['st-w280', 'oc-narrow']
+for (const [p, ast] of parsed) {
+	for (const s of stringsIn(ast)) {
+		const c = s.split(/\s+/)
+		if (c.some(x => /^sp-/.test(x)) && c.some(x => RETIRED_PAGE_RULES.includes(x))) fail('a part takes no page rule', rel(p), s.trim())
+	}
+	visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement') return
+		const c = classesIn(n, above)
+		if (c.some(x => /^sp-/.test(x)) && c.some(x => RETIRED_PAGE_RULES.includes(x))) fail('a part takes no page rule', at(p, n), c.join(' '))
+	})
+}
+
+/* ---- the Showing bar is a card with a head, its path in the head line ---- */
+
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	if (/sp-crumbs-bar/.test(css)) fail('the Showing bar is a card with a head', rel(p), 'sp-crumbs-bar is back')
+for (const [p, ast] of parsed) {
+	if (stringsIn(ast).some(s => /\bsp-crumbs-bar\b/.test(s))) fail('the Showing bar is a card with a head', rel(p), 'sp-crumbs-bar is back')
+	visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement' || tagOf(n) !== 'Crumbs') return
+		const card = above.findLast(a => a.type === 'JSXElement' || a.type === 'JSXFragment')
+		const headed = card?.type === 'JSXElement' && tagOf(card) === 'Card' && card.children.some(c => placed(c).some(el => tagOf(el) === 'CardHeader'))
+		if (!headed) fail('the Showing bar is a card with a head', rel(p), '<Crumbs> not in a <Card> with a <CardHeader>')
+		else if (attrOf(card, 'variant')?.value?.value !== 'path') fail('the Showing bar holds its path in the head line when it fits', rel(p), '<Card> holding <Crumbs> without variant="path"')
+	})
+}
+
+/* ---- a CardHeader is a card's first child, and opens with the name ---- */
+
+{
+	// the elements an element is placed straight into, through the names it is held in: { node, child }
+	const parentsOf = (p, node, above, seen = new Set()) => {
+		const i = above.findLastIndex(a => a.type === 'JSXElement' || a.type === 'JSXFragment')
+		if (i >= 0) return [{ parent: above[i], child: above[i + 1] ?? node }]
+		const held = above.findLast(a => (a.type === 'VariableDeclarator' && a.id.type === 'Identifier') || a.type === 'FunctionDeclaration')
+		const name = held?.id.name
+		// a component's root is placed as that component, never as the head itself
+		if (!name || /^[A-Z]/.test(name) || seen.has(name)) return [{ parent: null }]
+		seen.add(name)
+		return readings(p, name).flatMap(o => parentsOf(p, o.node, o.above, seen))
+	}
+	const opens = (card, child) => card.children.find(c => c.type === 'JSXElement' || (c.type === 'JSXExpressionContainer' && c.expression.type !== 'JSXEmptyExpression')) === child
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement' || tagOf(n) !== 'CardHeader') return
+		for (const { parent, child } of parentsOf(p, n, above)) {
+			if (parent?.type !== 'JSXElement' || tagOf(parent) !== 'Card') fail('a CardHeader is only a card\'s first child', at(p, n), '<CardHeader> outside a <Card>')
+			else if (!opens(parent, child)) fail('a CardHeader is only a card\'s first child', at(p, n), '<CardHeader> after other children of its <Card>')
+		}
+		const name = attrOf(n, 'name')?.value
+		if (!name || (name.type === 'Literal' && !String(name.value).trim())) fail('a CardHeader opens with the name', at(p, n), '<CardHeader> without a name')
+	})
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -1002,13 +1324,13 @@ const DESIGN_RULES = {
 	'references resolve': 'references resolve',
 	'classes resolve': 'classes resolve',
 	'tokens defined': 'tokens defined',
-	'a readout sits on the plot bars': NOT_CHECKED,
+	'a readout sits on the plot bars': 'a readout sits on the plot bars',
 	'an open list is not faded': COPY,
 	'every fade is a token': COPY,
 	'parts read a meaning, not the scale': COPY,
 	'fades are told apart': COPY,
 	'notes name the fade token': DESIGN,
-	'tooltips are not held in their container': NOT_CHECKED,
+	'tooltips are not held in their container': 'tooltips are not held in their container',
 	'no var() fallbacks': 'no var() fallbacks',
 	'bars share one shape': COPY,
 	'one rule per selector per scope': COPY,
@@ -1024,17 +1346,17 @@ const DESIGN_RULES = {
 	'one name per control': 'one name per control',
 	'a field label binds its control': 'a field label binds its control',
 	'an action reads in sentence case': 'an action reads in sentence case',
-	'a colour is not a variant': NOT_CHECKED,
+	'a colour is not a variant': 'a colour is not a variant',
 	'a colour is one we define': 'variant values',
-	'a colour needs a component': NOT_CHECKED,
+	'a colour needs a component': 'a colour needs a component',
 	'the notes name a class that exists': DESIGN,
 	'one colour vocabulary': DESIGN,
 	'mockup mail is example.net': DESIGN,
 	'a required marker is an element': 'a required marker is an element',
-	'a well sits inside a surface': NOT_CHECKED,
-	'the row is one component': NOT_CHECKED,
+	'a well sits inside a surface': 'a well sits inside a surface',
+	'the row is one component': 'the row is one component',
 	'a size is a size, not a place': COPY,
-	'a screen uses the split body': NOT_CHECKED,
+	'a screen uses the split body': 'a screen uses the split body',
 	'a title with its second line is sp-stacked': 'a title with its second line is sp-stacked',
 	'a card body stack is gap 6': 'a card body stack is gap 6',
 	'a card body does not truncate': 'a card body does not truncate',
@@ -1062,8 +1384,8 @@ const DESIGN_RULES = {
 	'no component is named for a device': 'no component is named for a device',
 	'a table aligns with its card': COPY,
 	'a stat row aligns to the top': 'a stat row aligns to the top',
-	'a faded mark is a photo': NOT_CHECKED,
-	'a faded band photo is a photo': NOT_CHECKED,
+	'a faded mark is a photo': 'a faded mark is a photo',
+	'a faded band photo is a photo': 'a faded band photo is a photo',
 	'an order Categories field has the bulb': 'an order Categories field has the bulb',
 	'order details fields in one order': 'order details fields in one order',
 	'removed feature leaves no trace': 'removed feature leaves no trace',
@@ -1072,11 +1394,11 @@ const DESIGN_RULES = {
 	'a card head is the list toolbar height': COPY,
 	'the small button height is a token': COPY,
 	'the small button height is written with --btn-h-small': COPY,
-	'the Showing bar is a card with a head': NOT_CHECKED,
-	'the Showing bar holds its path in the head line when it fits': NOT_CHECKED,
+	'the Showing bar is a card with a head': 'the Showing bar is a card with a head',
+	'the Showing bar holds its path in the head line when it fits': 'the Showing bar holds its path in the head line when it fits',
 	'a head button keeps its 34px box on touch': COPY,
-	'a part changes only through the design': NOT_CHECKED,
-	'a part takes no page rule': NOT_CHECKED,
+	'a part changes only through the design': 'a part changes only through the design',
+	'a part takes no page rule': 'a part takes no page rule',
 	'a row that opens something is drawn as one': 'a row that opens something is drawn as one',
 	'every part of a head is centred': COPY,
 	'the start page lists each page\'s screens': DESIGN,
@@ -1091,8 +1413,8 @@ const DESIGN_RULES = {
 	'a legend is under its chart': 'a legend is under its chart',
 	'a card name is in a CardHeader': 'a card head is CardHeader',
 	'a CardHeader takes no other class': 'a card head is CardHeader',
-	'a CardHeader is only a card\'s first child': NOT_CHECKED,
-	'a CardHeader opens with the name': NOT_CHECKED,
+	'a CardHeader is only a card\'s first child': 'a CardHeader is only a card\'s first child',
+	'a CardHeader opens with the name': 'a CardHeader opens with the name',
 	'a CardHeader is a class, not a structure': COPY,
 	'a CardHeader is a component': DESIGN,
 	'a CardHeader is only a child of Card': DESIGN,
