@@ -768,6 +768,220 @@ for (const p of [...checked, ...pageCss, join(src, 'styles/app.css')])
 	}
 }
 
+/* ---- a stack's lines, a pair's first line ---- */
+
+// every class string a className can take, one per branch
+const classStrings = el => { const a = attrOf(el, 'className'); return a?.value ? stringsIn(a.value).map(s => s.trim()) : [] }
+const hasClass = (el, c) => classStrings(el).some(s => s.split(/\s+/).includes(c))
+const firstClass = el => classStrings(el).map(s => s.split(/\s+/)[0])
+const attrLiteral = (el, name) => {
+	const v = attrOf(el, name)?.value
+	return v?.type === 'Literal' ? v.value : v?.type === 'JSXExpressionContainer' && v.expression.type === 'Literal' ? v.expression.value : undefined
+}
+const childElements = el => el.children.filter(c => !(c.type === 'JSXText' && !c.value.trim()))
+const ownText = el => el.children.filter(c => c.type === 'JSXText').map(c => c.value).join('').trim()
+const isTag = n => n.type === 'JSXElement' && n.openingElement.name.type === 'JSXIdentifier'
+const CONTROL_PARTS = ['Button', 'IconButton', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'TokensField', 'RangeSlider', 'Field', 'FieldGroup',
+	'Gauge', 'Segmented', 'Stepper', 'Switch', 'Check', 'Radio', 'Choice', 'Chip', 'Picker', 'Combobox', 'DateField', 'PeriodPicker', 'Bars', 'Donut', 'Plot',
+	'List', 'ListItem', 'Records', 'Shares', 'LineEditor', 'ThemeTiles', 'Well', 'Card', 'Cards', 'input', 'select', 'textarea', 'button']
+const CONTROL_CLASS = /^sp-(tokens|input|select|textarea|field|gauge|segmented|stepper|switch|check|radio|btn|chip|options|option|tone|swatch|meter|bars|donut|table|list|lines|cards|note-row|choice|well|card|field__help|combobox|period)(?![\w-])/
+const holdsControl = el => {
+	let found = false
+	visit(el.children, n => {
+		if (isTag(n) && (CONTROL_PARTS.includes(tagOf(n)) || classStrings(n).some(s => s.split(/\s+/).some(c => CONTROL_CLASS.test(c))))) found = true
+	})
+	return found
+}
+
+for (const [p, ast] of parsed) {
+	visit(ast, n => {
+		if (!isTag(n)) return
+		const kids = childElements(n)
+		// a line is one element in its place, whichever branch draws it
+		const lines = kids.map(c => placed(c)[0])
+		const known = lines.length && lines.every(Boolean)
+		const lineClass = el => (/^[a-z]/.test(tagOf(el)) ? firstClass(el)[0] ?? '' : '')
+		const cls = classStrings(n).join(' ').split(/\s+/)
+		if (cls.includes('sp-stack') && known && ['span', 'div'].includes(tagOf(lines[0])) && /^sp-(title|heading|strong|data)$/.test(lineClass(lines[0]))) {
+			// a second line that ends a sentence is a message; one whose words come from a value cannot be told, so it is left
+			const message = el => {
+				let valued = false
+				visit(el.children, m => { if (m.type === 'Identifier') valued = true })
+				return valued || /[.!?]$/.test(stringsIn(el.children).join('').trim())
+			}
+			const notAPair = lines.length !== 2 || !/^sp-(subtitle|meta)$/.test(lineClass(lines[1])) || message(lines[1])
+			const shown = `<${tagOf(n)} className="${cls.join(' ')}">`
+			if (!notAPair && !holdsControl(n)) fail('a title with its second line is sp-stacked', rel(p), `${shown} holds a pair: use sp-stacked`)
+			else {
+				if (/^sp-(title|heading)$/.test(lineClass(lines[0])) && !cls.includes('sp-gap-6')) fail('a card body stack is gap 6', rel(p), shown)
+				if (cls.includes('sp-truncate')) fail('a card body does not truncate', rel(p), `${shown} clips prose`)
+			}
+		}
+		const stacked = tagOf(n) === 'Stacked' || firstClass(n).includes('sp-stacked')
+		if (stacked && known && lines.length === 2 && lineClass(lines[0]) === 'sp-strong' && !childElements(lines[0]).some(c => placed(c).length)
+			&& /^sp-(subtitle|meta)$/.test(lineClass(lines[1])))
+			fail('a pair starts with sp-title', rel(p), 'sp-strong opens a pair')
+	})
+}
+
+/* ---- a button on an input's line is the input's height ---- */
+
+{
+	const INPUTS = ['TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField']
+	const APART_PARTS = ['Field', 'Card', 'Well', 'Dialog', 'Popover', 'Menu', 'Palette']
+	const APART_CLASS = /^sp-(field|card|well|dialog|popover|menu|palette)(?![\w-])/
+	for (const [p, ast] of parsed) visit(ast, n => {
+		if (!isTag(n) || (tagOf(n) !== 'ListItem' && !firstClass(n).some(c => c === 'sp-row-flex' || c === 'sp-list-item'))) return
+		let apart = false, input = false, small = false
+		visit(n.children, m => {
+			if (!isTag(m)) return
+			if (APART_PARTS.includes(tagOf(m)) || classStrings(m).some(s => s.split(/\s+/).some(c => APART_CLASS.test(c)))) apart = true
+			if ((INPUTS.includes(tagOf(m)) && !attrOf(m, 'multiline')) || (tagOf(m) === 'input' && hasClass(m, 'sp-input'))) input = true
+			if (tagOf(m) === 'Button' && ['small', 'xsmall'].includes(attrLiteral(m, 'size'))) small = true
+		})
+		if (!apart && input && small) fail('a button beside an input matches its height', rel(p), 'a small button on a line with an input: use the standard size')
+	})
+}
+
+/* ---- the sidebar's divider sits above Settings ---- */
+
+for (const [p, ast] of parsed) visit(ast, (n, above) => {
+	if (n.type !== 'JSXElement' || !above.some(a => isTag(a) && tagOf(a) === 'Sidebar') && !(isTag(n) && tagOf(n) === 'Sidebar')) return
+	const kids = childElements(n)
+	kids.forEach((c, i) => {
+		if (!placed(c).some(el => ownText(el) === 'Settings' && /\/settings$/.test(attrLiteral(el, 'to') ?? ''))) return
+		if (!placed(kids[i - 1]).some(el => tagOf(el) === 'SidebarDivider')) fail('the sidebar divider sits above Settings', rel(p), 'Settings does not follow a <SidebarDivider>')
+	})
+})
+
+/* ---- the Views card lists in the same rows at rest and in edit mode ---- */
+
+for (const [p, ast] of parsed) visit(ast, n => {
+	if (!isTag(n) || tagOf(n) !== 'Card') return
+	const kids = childElements(n).filter(c => c.type !== 'JSXExpressionContainer' || c.expression.type !== 'JSXEmptyExpression')
+	const at = kids.findIndex(c => placed(c).some(el => tagOf(el) === 'CardHeader' && attrLiteral(el, 'name') === 'Views'))
+	if (at < 0) return
+	const list = placed(kids[at + 1])
+	if (!list.length) fail('the Views card keeps its rows in edit mode', rel(p), 'the views are not one .sp-nav-list under the head')
+	for (const el of list) if (classStrings(el).join(' ') !== 'sp-nav-list')
+		fail('the Views card keeps its rows in edit mode', rel(p), `the views list in <${tagOf(el)} className="${classStrings(el).join(' | ')}">`)
+})
+
+/* ---- a page body is the shell's one ShellContent ---- */
+
+// every page renders inside the shell's ShellContent, so a second body adds the page's inset twice
+for (const [p, ast] of parsed) {
+	if (p === join(src, 'components/Shell.jsx')) continue
+	for (const s of stringsIn(ast)) if (/(^|\s)sp-shell__body(\s|$)/.test(s)) fail('a body is not nested in a body', rel(p), 'writes .sp-shell__body: the shell\'s <ShellContent> is the body')
+	visit(ast, (n, above) => {
+		if (!isTag(n) || tagOf(n) !== 'ShellContent') return
+		if (p.startsWith(pagesDir) || above.some(a => isTag(a) && tagOf(a) === 'ShellContent')) fail('a body is not nested in a body', rel(p), '<ShellContent> inside the shell\'s body')
+	})
+}
+
+/* ---- a row of stats with different line counts aligns to the top ---- */
+
+for (const [p, ast] of parsed) visit(ast, n => {
+	if (!isTag(n) || !firstClass(n).includes('sp-row-flex') || hasClass(n, 'sp-top')) return
+	const stats = childElements(n).flatMap(placed).filter(el => tagOf(el) === 'Stat' && !attrOf(el, 'bare'))
+	const lines = stats.map(el => ['label', 'figure', 'delta', 'meta', 'help'].filter(a => attrOf(el, a)).length)
+	if (new Set(lines).size > 1) fail('a stat row aligns to the top', rel(p), `stats of ${lines.join('/')} lines in a centred row`)
+})
+
+/* ---- a row that opens something is drawn as one ---- */
+
+{
+	// the app's own parts by name, so a card's rows are read through the parts that draw them
+	const drawers = new Map()
+	for (const [p, ast] of parsed) {
+		if (p.includes('/src/components/')) continue
+		visit(ast, n => {
+			if (n.type === 'FunctionDeclaration' && /^[A-Z]/.test(n.id?.name ?? '')) drawers.set(n.id.name, n)
+			if (n.type === 'VariableDeclarator' && /^[A-Z]/.test(n.id.name ?? '') && /Function/.test(n.init?.type ?? '')) drawers.set(n.id.name, n.init)
+		})
+	}
+	const valuesIn = new Map([...parsed].map(([p, ast]) => {
+		const found = new Map()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) found.set(n.id.name, n.init) })
+		return [p, found]
+	}))
+	const drawn = (node, p, fn, seen = new Set()) => visit(node, n => {
+		fn(n)
+		const name = isTag(n) ? tagOf(n) : n.type === 'JSXExpressionContainer' && n.expression.type === 'Identifier' ? n.expression.name : null
+		const next = isTag(n) ? drawers.get(name) : name && valuesIn.get(p).get(name)
+		if (next && !seen.has(name)) { seen.add(name); drawn(next, p, fn, seen) }
+	})
+	const OPENS = ['by status', 'top vendors', 'categories this month', 'drafts', 'recent orders']
+	const drawsOpens = el => /sp-row-opens/.test(JSON.stringify(drawers.get(tagOf(el)) ?? null))
+	const opens = el => (['a', 'button', 'Link'].includes(tagOf(el)) && hasClass(el, 'sp-row-opens')) || (/^[A-Z]/.test(tagOf(el)) && drawsOpens(el))
+	for (const [p, ast] of parsed) visit(ast, n => {
+		if (!isTag(n) || tagOf(n) !== 'Card') return
+		let named = false
+		drawn(n.children, p, m => { if (isTag(m) && tagOf(m) === 'CardHeader' && OPENS.includes(String(attrLiteral(m, 'name')).toLowerCase())) named = true })
+		if (!named) return
+		drawn(n.children, p, m => {
+			if (!isTag(m) || !classStrings(m).some(s => /^(sp-stack sp-gap-6|sp-row-flex sp-gap-12)(\s|$)/.test(s))) return
+			// a loading shape is no row yet
+			if (opens(m) || attrOf(m, 'aria-hidden')) return
+			let holds = false, loading = false
+			drawn(m.children, p, k => {
+				if (!isTag(k)) return
+				if (tagOf(k) === 'Gauge' || (tagOf(k) === 'Mark' && attrLiteral(k, 'size') === 'medium')) holds = true
+				if (tagOf(k) === 'Skeleton') loading = true
+			})
+			if (holds && !loading) fail('a row that opens something is drawn as one', rel(p), `<${tagOf(m)} className="${classStrings(m).join(' | ')}"> is a plain row: an <a>, <button> or Link with sp-row-opens`)
+		})
+	})
+}
+
+/* ---- a saving: "Saved", an amount, green unless zero, under its amount ---- */
+
+{
+	for (const p of [...checked, ...pageCss, join(root, 'index.html')])
+		if (/heic/i.test(read(p))) fail('HEIC is not offered and never named', rel(p), 'HEIC present')
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		const parent = above.at(-1)
+		const prop = above.findLast(a => a.type === 'JSXAttribute')?.name?.name ?? ''
+		const inMarkup = above.some(a => a.type === 'JSXExpressionContainer' || a.type === 'JSXAttribute')
+			&& !/^(key|className|id|to|href|src|type|role|htmlFor|value|variant|size|color|shape|data-.*|on[A-Z].*)$/.test(prop)
+		// only words that open a line: "3 saved" is a count, not a saving
+		const opensLine = n.type === 'JSXText' ? isTag(parent ?? {}) && childElements(parent)[0] === n
+			: n.type === 'TemplateElement' ? inMarkup && parent?.quasis?.[0] === n
+			: n.type === 'Literal' && typeof n.value === 'string' && inMarkup
+		const text = String(n.type === 'TemplateElement' ? n.value.cooked ?? '' : n.value).trim()
+		if (opensLine && /^saved\b/.test(text)) fail('a saving reads "Saved"', rel(p), `"${text.slice(0, 60)}"`)
+	})
+	// <Saving> is the one part that writes a saving; its looks are green when it saves and grey at zero
+	const home = join(src, 'app/saving.jsx')
+	let looks = null
+	if (parsed.has(home)) visit(parsed.get(home), n => { if (n.type === 'VariableDeclarator' && n.id.name === 'LOOK') looks = n.init })
+	if (!looks) fail('a saving is green', 'src/app/saving.jsx', 'no LOOK table to read a saving\'s colour from')
+	for (const variant of looks?.properties ?? []) for (const state of variant.value.properties ?? []) {
+		const green = stringsIn(state.value).some(s => /^(success|sp-stat__delta)$|\bsp-ink-success\b/.test(s))
+		if (state.key.name === 'on' && !green) fail('a saving is green', 'src/app/saving.jsx', `${variant.key.name} is not green when it saves`)
+		if (state.key.name === 'off' && green) fail('a zero saving is grey', 'src/app/saving.jsx', `${variant.key.name} is green at zero`)
+	}
+	for (const [p, ast] of parsed) {
+		if (p === home) continue
+		visit(ast, (n, above) => {
+			if (!isTag(n)) return
+			const kids = childElements(n)
+			if (kids[0]?.type === 'JSXText' && /^\s*Saved\s*$/.test(kids[0].value) && kids[1]?.type === 'JSXExpressionContainer')
+				fail('a saving is green', rel(p), '"Saved" and an amount written by hand: use <Saving>')
+			if (tagOf(n) === 'Saving' && above.some(a => isTag(a) && hasClass(a, 'sp-meta')))
+				fail('a saving sits under its amount', rel(p), 'a <Saving> inside a meta line')
+			if (tagOf(n) !== 'Stat') return
+			const card = above.findLast(a => isTag(a) && tagOf(a) === 'Card')
+			const head = card && childElements(card).flatMap(placed).find(el => tagOf(el) === 'CardHeader')
+			const names = [attrOf(n, 'label'), head && attrOf(head, 'name')].filter(a => a?.value).flatMap(a => stringsIn(a.value))
+			if (!names.includes('Saved')) return
+			const colours = attrOf(n, 'color')?.value ? stringsIn(attrOf(n, 'color').value) : ['default']
+			if (!colours.includes('success')) fail('a saving is green', rel(p), '<Stat> named Saved without color="success"')
+			else if (colours.every(c => c === 'success')) fail('a zero saving is grey', rel(p), '<Stat> named Saved is green at zero too')
+		})
+	}
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -820,24 +1034,24 @@ const DESIGN_RULES = {
 	'the row is one component': NOT_CHECKED,
 	'a size is a size, not a place': COPY,
 	'a screen uses the split body': NOT_CHECKED,
-	'a title with its second line is sp-stacked': NOT_CHECKED,
-	'a card body stack is gap 6': NOT_CHECKED,
-	'a card body does not truncate': NOT_CHECKED,
-	'a pair starts with sp-title': NOT_CHECKED,
-	'a button beside an input matches its height': NOT_CHECKED,
-	'the sidebar divider sits above Settings': NOT_CHECKED,
-	'the Views card keeps its rows in edit mode': NOT_CHECKED,
-	'a body is not nested in a body': NOT_CHECKED,
+	'a title with its second line is sp-stacked': 'a title with its second line is sp-stacked',
+	'a card body stack is gap 6': 'a card body stack is gap 6',
+	'a card body does not truncate': 'a card body does not truncate',
+	'a pair starts with sp-title': 'a pair starts with sp-title',
+	'a button beside an input matches its height': 'a button beside an input matches its height',
+	'the sidebar divider sits above Settings': 'the sidebar divider sits above Settings',
+	'the Views card keeps its rows in edit mode': 'the Views card keeps its rows in edit mode',
+	'a body is not nested in a body': 'a body is not nested in a body',
 	'a select-all box names its scope': 'a select-all box names its scope',
 	'a saving is never a percentage': 'a saving is an amount',
-	'a saving reads "Saved"': NOT_CHECKED,
-	'HEIC is not offered and never named': NOT_CHECKED,
+	'a saving reads "Saved"': 'a saving reads "Saved"',
+	'HEIC is not offered and never named': 'HEIC is not offered and never named',
 	'a saving never says "vs retail"': 'a saving is an amount',
-	'a saving is green': NOT_CHECKED,
+	'a saving is green': 'a saving is green',
 	'grey text after an amount is a sp-row-meta column': 'grey text after an amount is a sp-row-meta column',
-	'a zero saving is grey': NOT_CHECKED,
+	'a zero saving is grey': 'a zero saving is grey',
 	'a saving is an amount': 'a saving is an amount',
-	'a saving sits under its amount': NOT_CHECKED,
+	'a saving sits under its amount': 'a saving sits under its amount',
 	'no typographic tells': 'typographic tells',
 	'gaps are on the scale': 'spacing on the scale',
 	'a page stylesheet states only its own classes': 'page css styles no component',
@@ -846,7 +1060,7 @@ const DESIGN_RULES = {
 	'no component is only an arrangement': 'no component is only an arrangement',
 	'no component is named for a device': 'no component is named for a device',
 	'a table aligns with its card': COPY,
-	'a stat row aligns to the top': NOT_CHECKED,
+	'a stat row aligns to the top': 'a stat row aligns to the top',
 	'a faded mark is a photo': NOT_CHECKED,
 	'a faded band photo is a photo': NOT_CHECKED,
 	'an order Categories field has the bulb': 'an order Categories field has the bulb',
@@ -862,7 +1076,7 @@ const DESIGN_RULES = {
 	'a head button keeps its 34px box on touch': COPY,
 	'a part changes only through the design': NOT_CHECKED,
 	'a part takes no page rule': NOT_CHECKED,
-	'a row that opens something is drawn as one': NOT_CHECKED,
+	'a row that opens something is drawn as one': 'a row that opens something is drawn as one',
 	'every part of a head is centred': COPY,
 	'the start page lists each page\'s screens': DESIGN,
 	'the start page names only files that exist': DESIGN,
