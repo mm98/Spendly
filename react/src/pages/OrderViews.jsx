@@ -67,6 +67,12 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 			}))
 			.catch(e => fail(e, 'That was not saved. Try again.'))
 	}
+	const highlight = view => changeView(view.id, { attention: !view.attention })
+		.then(() => toast({
+			message: view.attention ? `The count of ${view.name} is no longer highlighted.` : `The count of ${view.name} is now highlighted.`,
+			undo: { label: 'Undo', onClick: () => changeView(view.id, { attention: view.attention }).catch(e => fail(e, 'That was not changed back. Try again.')) }
+		}))
+		.catch(e => fail(e, 'That was not saved. Try again.'))
 	// the dialog closing is the confirmation, so no toast follows it (6d)
 	const remove = view => deleteView(view.id)
 		.then(() => { setDeleting(null); if (active?.id === view.id) navigate(ALL_ORDERS) })
@@ -111,7 +117,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 								? (
 									<NavItem variant={reorder.variant(view, active?.id === view.id && edited ? 'edited' : 'light')} handle={<Icon name="grip-vertical" size={12} />}
 										handleLabel={`Reorder ${view.name}`} current={active?.id === view.id} {...reorder.row(view)}
-										trail={<span className="sp-cell-menu"><ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onDelete={() => setDeleting(view)} /></span>}>
+										trail={<span className="sp-cell-menu"><ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onHighlight={() => highlight(view)} onDelete={() => setDeleting(view)} /></span>}>
 										{view.name}
 									</NavItem>
 								)
@@ -177,7 +183,7 @@ function ViewName({ name = '', count, onSave, onCancel }) {
 }
 
 /* A saved view's own menu, in edit mode only (2g). */
-function ViewMenu({ view, onRename, onDefault, onDelete }) {
+function ViewMenu({ view, onRename, onDefault, onHighlight, onDelete }) {
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
@@ -191,6 +197,7 @@ function ViewMenu({ view, onRename, onDefault, onDelete }) {
 					<Menu position="floating" aria-label={view.name}>
 						<MenuItem icon="pencil" onClick={() => { close(); onRename() }}>Rename</MenuItem>
 						<MenuItem icon="star" onClick={() => { close(); onDefault() }}>{view.isDefault ? 'Stop opening with it' : 'Make default'}</MenuItem>
+						<MenuItem icon="alert-triangle" onClick={() => { close(); onHighlight() }}>{view.attention ? 'Stop highlighting count' : 'Highlight count'}</MenuItem>
 						<MenuSeparator />
 						<MenuItem icon="trash" danger onClick={() => { close(); onDelete() }}>Delete view</MenuItem>
 					</Menu>
