@@ -32,17 +32,6 @@ const searchVendors = perMatcher(match => `
 	WHERE v.user_id = @userId AND v.id IN (${vendorIdsMatching(match)})
 	ORDER BY v.name LIMIT @limit
 `)
-const searchCategories = perMatcher(match =>
-	`SELECT id, name FROM categories WHERE user_id = @userId AND ${match('name')} ORDER BY name LIMIT @limit`)
-/* The name only. A bookmark's address holds the shop's domain, which is the vendor's own name in
-   most rows, so matching it would answer "bilka" with the vendor and every bookmark bought there. */
-const searchBookmarks = perMatcher(match =>
-	`SELECT id, name, archived FROM bookmarks WHERE user_id = @userId AND ${match('name')}
-		ORDER BY name COLLATE NOCASE LIMIT @limit`)
-/* Whether the account has any uncategorised order at all -- the palette offers the
-   "Without category" filter only when there is something behind it, the same honesty rule
-   that keeps an action from opening a list with nothing in it. */
-const hasUncategorised = db.prepare('SELECT 1 AS present FROM orders WHERE user_id = ? AND category_count = 0 LIMIT 1')
 /* The same shape as the orders list's text filter (routes/orders.js): one LIKE over the
    trigger-maintained search_text column instead of a per-order scan of order_items, and the
    vendor name reached through its own dozen-row table. Worst case is the common case here: a
@@ -68,29 +57,20 @@ const countItems = perMatcher(match => `
 	)
 `)
 
-/** Cross-entity search for the command palette: vendors, categories, bookmarks and orders
-    (matched by vendor name, reference, note, or an item's title) that the query text appears in, each
-    scoped to the account's own rows via an indexed user_id lookup. */
+/** Cross-entity search for the command palette: vendors and orders (matched by vendor name,
+    reference, note, or an item's title) that the query text appears in, each scoped to the
+    account's own rows via an indexed user_id lookup. */
 router.get('/', (req, res) => {
 	const needle = String(req.query.query ?? '').trim().toLowerCase()
-	if (!needle) return res.json({ vendors: [], categories: [], bookmarks: [], orders: [] })
+	if (!needle) return res.json({ vendors: [], orders: [] })
 	const shape = asciiNeedle(needle) ? 'ascii' : 'fold'
 	const params = { userId: req.user.id, limit: MAX_PER_KIND,
 		needle: shape === 'ascii' ? `%${escapeLike(needle)}%` : needle }
 
 	const orderRows = searchOrders[shape].all(params)
-	const categories = searchCategories[shape].all(params)
-	/* "Without category" is findable by the name its rows carry everywhere else, not only by
-	   arriving on a link. The sentinel id is the filter the client already builds category
-	   results into; matched the same way a category's name is, offered only over orders that
-	   exist. */
-	if ('without category'.includes(needle) && hasUncategorised.get(req.user.id))
-		categories.push({ id: 'none', name: 'Without category' })
 	const vendors = searchVendors[shape].all(params)
 	res.json({
 		vendors,
-		categories,
-		bookmarks: searchBookmarks[shape].all(params),
 		orders: decorateOrderSearchRows(orderRows),
 		/* Under the limit the rows themselves are the whole answer, so the client counts them;
 		   at the limit the full count comes from here. */

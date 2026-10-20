@@ -241,8 +241,8 @@ export function OrderLoading({ region = false, form = false }) {
 					<div className="sp-fields">{fieldLoading('date')}{fieldLoading('kind')}</div>
 					{fieldLoading('status')}
 					{fieldLoading('categories')}
-					<div className="sp-fields">{fieldLoading('discount')}{fieldLoading('shipping')}</div>
 					<div className="sp-fields">{fieldLoading('reference')}{fieldLoading('note')}</div>
+					<div className="sp-fields">{fieldLoading('discount')}{fieldLoading('shipping')}</div>
 				</Card>
 				<Card aria-hidden="true" footer={[control('leave', true), control('save', true)]} footerLayout="split" footerCommits>
 					<div className="sp-stack">{sum('Total', 'total')}</div>

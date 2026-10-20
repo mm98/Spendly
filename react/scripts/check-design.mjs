@@ -407,6 +407,904 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- labels and names: every control named once, by the label drawn beside it ---- */
+
+{
+	const attr = (el, name) => el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === name)
+	const spreads = el => el.openingElement.attributes.some(a => a.type === 'JSXSpreadAttribute')
+	const literal = a => a?.value?.type === 'Literal' ? a.value.value : null
+	const classOf = el => stringsIn(attr(el, 'className')?.value ?? null).join(' ')
+	// an id as written: its literal parts, and each expression by its source, so `${x}-from` matches itself
+	const canon = (e, text) => {
+		if (!e) return null
+		if (e.type === 'JSXExpressionContainer' || e.type === 'ParenthesizedExpression') return canon(e.expression, text)
+		if (e.type === 'Literal') return typeof e.value === 'string' ? e.value : null
+		if (e.type === 'TemplateLiteral') return e.quasis.map((q, i) => (q.value.cooked ?? '') + (e.expressions[i] ? '${' + text.slice(e.expressions[i].start, e.expressions[i].end) + '}' : '')).join('')
+		if (e.type === 'BinaryExpression' && e.operator === '+') { const l = canon(e.left, text), r = canon(e.right, text); return l === null || r === null ? null : l + r }
+		if (e.type === 'Identifier' || e.type === 'MemberExpression') return '${' + text.slice(e.start, e.end) + '}'
+		return null
+	}
+	// the elements a parent places in order, through fragments, conditions and a list of them
+	const kids = list => list.flatMap(c => c.type === 'JSXFragment' ? kids(c.children)
+		: c.type === 'JSXExpressionContainer' && c.expression.type === 'ArrayExpression' ? kids(c.expression.elements)
+		: c.type === 'JSXElement' ? [c] : placed(c))
+	const siblingLists = ast => {
+		const out = []
+		visit(ast, n => {
+			if (n.type === 'JSXElement' || n.type === 'JSXFragment') out.push(kids(n.children))
+			if (n.type === 'ArrayExpression' && n.elements.some(e => e?.type === 'JSXElement')) out.push(kids(n.elements.filter(Boolean)))
+		})
+		return out
+	}
+
+	// what a component draws as its outer element, followed through the app's own components
+	const drawn = new Map()
+	for (const [, ast] of parsed) visit(ast, n => {
+		if (n.type !== 'FunctionDeclaration' || !/^[A-Z]/.test(n.id?.name ?? '')) return
+		visit(n.body, (r, above) => {
+			if (r.type !== 'ReturnStatement' || above.some(a => a !== n.body && /Function/.test(a.type))) return
+			for (const el of placed(r.argument)) if (!drawn.has(n.id.name)) drawn.set(n.id.name, el)
+		})
+	})
+	const libraryNames = new Set()
+	for (const p of library) visit(parsed.get(p), n => { if (n.type === 'FunctionDeclaration' && n.id) libraryNames.add(n.id.name) })
+	const outer = el => {
+		let at = el
+		for (let i = 0; i < 5 && !libraryNames.has(tagOf(at)) && drawn.has(tagOf(at)); i++) at = drawn.get(tagOf(at))
+		return at
+	}
+	const groups = new Set()
+	for (const p of library) for (const m of read(p).matchAll(/^(\w+)\.fieldRole = 'group'/gm)) groups.add(m[1])
+	const isGroup = el => groups.has(tagOf(el)) || ['group', 'radiogroup'].includes(literal(attr(el, 'role')))
+	// the library's controls a reader types or picks in; the sets (Segmented, Picker) name their own parts
+	const CONTROLS = ['TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'TokensField', 'Combobox', 'Stepper', 'Check', 'Radio', 'Switch']
+	const VALUE_CONTROLS = ['input', 'select', 'textarea', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'TokensField', 'Stepper']
+	const ACRONYMS = ['PDF', 'CSV', 'DKK', 'VAT', 'CVR', 'XLS', 'JSON', 'ID', 'OK', 'EAN', 'MOMS']
+	const REFS = ['htmlFor', 'aria-labelledby', 'aria-describedby', 'aria-controls']
+
+	const declared = new Set()
+	for (const [p, ast] of parsed) {
+		// two of one id are drawn together unless they sit in different returns or either side of a condition
+		const apart = new Map()
+		visit(ast, (n, above) => {
+			const id = n.type === 'JSXAttribute' && n.name?.name === 'id' ? literal(n) : null
+			if (typeof id !== 'string') return
+			declared.add(id)
+			const forks = new Map()
+			above.forEach((a, i) => {
+				if (a.type === 'ConditionalExpression') forks.set(`if${a.start}`, above[i + 1] === a.consequent ? 'then' : 'else')
+				if (a.type === 'ReturnStatement') forks.set(`return${above.findLast((f, j) => j < i && /Function/.test(f.type))?.start}`, a.start)
+			})
+			const earlier = apart.get(id) ?? []
+			if (earlier.some(e => ![...forks].some(([k, v]) => e.has(k) && e.get(k) !== v))) fail('unique ids', rel(p), `id "${id}" declared more than once`)
+			apart.set(id, [...earlier, forks])
+		})
+	}
+
+	for (const [p, ast] of parsed) {
+		const text = read(p)
+		const lineOf = node => `${rel(p)}:${text.slice(0, node.start).split('\n').length}`
+		const owned = new Set()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init?.type === 'CallExpression' && n.init.callee.name === 'useId') owned.add(n.id.name) })
+		const ids = new Set()
+		visit(ast, n => {
+			if (n.type === 'JSXAttribute' && n.name?.name === 'id' && n.value) ids.add(canon(n.value, text))
+			if (n.type === 'Property' && (n.key?.name ?? n.key?.value) === 'id') ids.add(canon(n.value, text))
+		})
+		const fieldControls = new Set()
+		visit(ast, n => { if (n.type === 'JSXElement' && tagOf(n) === 'Field') for (const c of kids(n.children)) fieldControls.add(c) })
+		const bound = new Set()
+		visit(ast, n => { if (n.type === 'JSXAttribute' && n.name?.name === 'htmlFor' && n.value) bound.add(canon(n.value, text)) })
+		// an id the caller hands in names the control from the caller's own Field
+		const handedIn = a => a?.value?.type === 'JSXExpressionContainer' && a.value.expression.type === 'Identifier' && !owned.has(a.value.expression.name)
+
+		// a reference names an id this file declares, or one written out somewhere in the app
+		visit(ast, n => {
+			const name = n.type === 'JSXAttribute' ? n.name?.name : n.type === 'Property' ? n.key?.name ?? n.key?.value : null
+			if (!REFS.includes(name) || !n.value) return
+			const value = n.value.type === 'JSXExpressionContainer' ? n.value.expression : n.value
+			for (const one of value.type === 'ConditionalExpression' ? [value.consequent, value.alternate] : [value]) {
+				const ref = canon(one, text)
+				if (ref === null) continue
+				const parts = [...ref.matchAll(/\$\{([^}]*)\}/g)].map(m => m[1])
+				// an id handed in by the caller is the caller's to declare
+				if (parts.some(x => !owned.has(x))) continue
+				for (const token of parts.length ? [ref] : ref.split(/\s+/).filter(Boolean))
+					if (!ids.has(token) && !declared.has(token)) fail('references resolve', lineOf(n), `${name}="${token}" points at no id`)
+			}
+		})
+
+		visit(ast, (n, above) => {
+			if (n.type !== 'JSXElement') return
+			const tag = tagOf(n)
+			const has = a => !!attr(n, a)
+
+			// a control is named by a Field, a wrapping label, a bound id or an aria attribute
+			if ((['input', 'select', 'textarea'].includes(tag) || (CONTROLS.includes(tag) && !library.includes(p)))
+				&& literal(attr(n, 'type')) !== 'hidden' && !has('hidden') && !spreads(n) && !has('aria-label') && !has('aria-labelledby') && !has('prefix')
+				&& !fieldControls.has(n) && !bound.has(canon(attr(n, 'id')?.value, text)) && !handedIn(attr(n, 'id'))
+				&& !above.some(a => a.type === 'JSXElement' && ['label', 'Choice', 'Field'].includes(tagOf(a)))
+				&& !above.some(a => a.type === 'JSXAttribute' && a.name?.name === 'control'))
+				fail('every control is named', lineOf(n), `<${tag}> has no name`)
+
+			if (tag === 'Field') {
+				const label = attr(n, 'label')
+				const words = label ? stringsIn(label.value).join('') : ''
+				for (const c of kids(n.children)) {
+					if (/^(Status|Kind)$/.test(words.trim()) && tagOf(outer(c)) !== 'Combobox')
+						fail('Status and Kind are selects', lineOf(c), `the ${words.trim()} field holds a <${tagOf(c)}>`)
+					if (tagOf(outer(c)) === 'Combobox' && (attr(outer(c), 'aria-label') || attr(c, 'aria-label')))
+						fail('one name per control', lineOf(c), `<Field label=${label ? text.slice(label.value.start, label.value.end) : ''}> holds a <${tagOf(c)}> with its own aria-label`)
+				}
+				if (/\*/.test(words)) fail('a required marker is an element', lineOf(n), `"${words}": use <Field required>`)
+			}
+			if (/\bsp-field__label\b/.test(classOf(n)) && kids(n.children).length === 0 && n.children.some(c => c.type === 'JSXText' && c.value.includes('*')))
+				fail('a required marker is an element', lineOf(n), 'an asterisk typed into a label: use .sp-field__required')
+
+			// a back control is the one beside the title it leaves, in a phone's top bar
+			if (tag === 'IconButton' && literal(attr(n, 'icon')) === 'chevron-left') {
+				const row = siblingLists(above.findLast(a => a.type === 'JSXElement' || a.type === 'JSXFragment') ?? {}).find(r => r.includes(n)) ?? []
+				const next = row[row.indexOf(n) + 1]
+				if (next && /\bsp-stack(ed)?\b/.test(classOf(next)) && literal(attr(n, 'aria-label')) !== 'Back')
+					fail('Back is labelled Back', lineOf(n), `back control labelled "${literal(attr(n, 'aria-label')) ?? '(not a word)'}"`)
+			}
+
+			// the shortcut badge is the top bar's search only
+			if ((tag === 'Controls' || /\bsp-controls\b/.test(classOf(n)))) visit(n.children, k => {
+				if (k.type === 'JSXElement' && (attr(k, 'kbd') || tagOf(k) === 'Kbd' || tagOf(k) === 'kbd'))
+					fail('no shortcut badge in a list toolbar', lineOf(k), 'toolbar search carries the badge')
+			})
+
+			const select = attr(n, 'aria-label')?.value
+			const said = select ? canon(select, text) : null
+			if (said && /^Select all/.test(said) && !/\d|\$\{[^}]*(total|count|length|size|amount|matched|\bn\b)[^}]*\}/i.test(said))
+				fail('a select-all box names its scope', lineOf(n), said)
+
+			if (['button', 'a', 'Button', 'MenuItem', 'Link', 'NavLink', 'FieldGroupMore'].includes(tag)) {
+				const words = []
+				visit(n.children, (k, up) => {
+					if (up.some(u => u.type === 'JSXElement' && ['Icon', 'svg', 'Mark', 'Kbd', 'kbd'].includes(tagOf(u)))) return
+					if (k.type === 'JSXText') words.push(k.value)
+					if (k.type === 'Literal' && typeof k.value === 'string' && !up.some(u => u.type === 'JSXAttribute')) words.push(k.value)
+				})
+				const label = words.join(' ').replace(/\s+/g, ' ').trim()
+				const letters = label.replace(/[^A-Za-zÆØÅæøå]/g, '')
+				if (letters.length >= 2 && letters === letters.toUpperCase() && !ACRONYMS.includes(label))
+					fail('an action reads in sentence case', lineOf(n), `<${tag}> label typed in capitals: "${label.slice(0, 40)}"`)
+			}
+		})
+
+		// a label drawn beside a group or a pick list names it through aria-labelledby, once
+		for (const row of siblingLists(ast)) row.forEach((el, i) => {
+			const next = row[i + 1]
+			if (!next || !/\bsp-field__label\b/.test(classOf(el))) return
+			const words = stringsIn(el.children).join('').trim().slice(0, 40)
+			const id = attr(el, 'id') ? canon(attr(el, 'id').value, text) : null
+			if (isGroup(next)) {
+				const by = attr(next, 'aria-labelledby') ? canon(attr(next, 'aria-labelledby').value, text) : null
+				if (tagOf(el) === 'label') fail('a group label is a span', lineOf(el), `"${words}" is a <label>, which cannot name a group`)
+				if (!id) fail('a visible label is bound', lineOf(el), `"${words}" names a group but carries no id`)
+				else if (by !== id) fail('a visible label is bound', lineOf(el), `"${words}" has id ${id} but its group names ${by || 'nothing'}`)
+				if (by && attr(next, 'aria-label')) fail('one name per control', lineOf(next), `"${words}" group carries both aria-label and aria-labelledby`)
+				return
+			}
+			if (tagOf(outer(next)) === 'Combobox') {
+				// the trigger reads the label whose id is its own id and -label, when it has no aria-label
+				const trigger = attr(next, 'id') ? canon(attr(next, 'id').value, text) : null
+				if (!id) fail('a visible label is bound', lineOf(el), `"${words}" labels a pick list but carries no id`)
+				else if (!trigger || id !== trigger + '-label') fail('a visible label is bound', lineOf(el), `"${words}" has id ${id}, which its pick list does not read`)
+				if (attr(next, 'aria-label')) fail('one name per control', lineOf(next), `"${words}" pick list carries its own aria-label too`)
+				return
+			}
+			let control = VALUE_CONTROLS.includes(tagOf(next)) || tagOf(outer(next)) !== tagOf(next) && VALUE_CONTROLS.includes(tagOf(outer(next)))
+			visit(next, k => { if (k.type === 'JSXElement' && VALUE_CONTROLS.includes(tagOf(k))) control = true })
+			if (control && tagOf(el) !== 'label') fail('a field label binds its control', lineOf(el), `"${words}" is a span, not a bound label`)
+		})
+	}
+
+	// an action's words are never set in capitals by a rule the app adds
+	for (const [name, css] of [['app.css', app], ...pages.map(([p, c]) => [rel(p), c])])
+		for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+			if (!/text-transform:\s*uppercase/.test(m[2])) continue
+			for (const part of m[1].split(',').map(x => x.trim()))
+				if (/btn|-link|-action|-tab\b|^a[\s.:[]|\sa[\s.:[]|\sa$/.test(part)) fail('an action reads in sentence case', name, `${part} uppercases an action`)
+		}
+}
+
+/* ---- the library's exports: one name per object, named for the object ---- */
+
+{
+	const unwrap = n => n?.type === 'ParenthesizedExpression' ? unwrap(n.expression) : n
+	const firstWord = v => {
+		v = unwrap(v)
+		if (v?.type === 'JSXExpressionContainer') return firstWord(v.expression)
+		if (v?.type === 'Literal' && typeof v.value === 'string') return v.value.trim().split(/\s+/)[0] || null
+		if (v?.type === 'TemplateLiteral') return (v.quasis[0].value.cooked ?? '').trim().split(/\s+/)[0] || null
+		if (v?.type === 'CallExpression' && v.callee.name === 'join') return firstWord(v.arguments[0])
+		return null
+	}
+	const exports = []
+	for (const p of library) visit(parsed.get(p), n => {
+		const fn = n.type === 'ExportNamedDeclaration' ? n.declaration : null
+		if (fn?.type !== 'FunctionDeclaration' || !/^[A-Z]/.test(fn.id.name)) return
+		// the return at function-body level is the component's own output, not an early branch
+		const own = unwrap(fn.body.body.findLast(st => st.type === 'ReturnStatement')?.argument)
+		const rootTag = own?.type === 'JSXElement' && own.openingElement.name.name
+		const classAttr = /^[a-z]/.test(rootTag || '') && own.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+		exports.push({ p, n: fn.id.name, fn, cls: classAttr ? firstWord(classAttr.value) : null })
+	})
+	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
+	// the design draws the card grid as a variant of .sp-list, and a token field that suggests inside .sp-combobox
+	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox' }
+	const roots = {}
+	for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n)
+	for (const [cls, names] of Object.entries(roots))
+		if (names.filter(n => REUSED[n] !== cls).length > 1) fail('one component per root class', 'src/components', `.${cls} is rendered by ${names.join(' and ')}`)
+
+	for (const [cls, names] of Object.entries(roots))
+		for (const n of names) {
+			if (REUSED[n] === cls) continue
+			const words = n.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase().split(' ')
+			if (!words.some(w => cls.includes(w.replace(/s$/, '')))) fail('one word per object', 'src/components', `${n} renders .${cls}`)
+		}
+
+	// only an arrangement: no classed element of its own, other components, and no decision
+	for (const e of exports) {
+		let own = false, decides = false
+		const kids = new Set()
+		visit(e.fn.body, n => {
+			if (n.type === 'JSXOpeningElement' && n.name.type === 'JSXIdentifier') {
+				if (/^[a-z]/.test(n.name.name)) own ||= n.attributes.some(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+				else if (n.name.name !== 'Icon') kids.add(n.name.name)
+			}
+			if (['ConditionalExpression', 'LogicalExpression', 'IfStatement', 'ChainExpression', 'SwitchStatement'].includes(n.type)) decides = true
+			if (n.type === 'CallExpression' && /^(use[A-Z]\w*|pick|join)$/.test(n.callee.name ?? '')) decides = true
+		})
+		if (!own && kids.size && !decides)
+			fail('no component is only an arrangement', rel(e.p), `${e.n} renders ${[...kids].join(' + ')} and nothing of its own`)
+	}
+
+	// `touch` is what the library switches on, never a screen size
+	for (const e of exports)
+		if (/phone|mobile|tablet|desktop|watch|ipad|android/i.test(e.n)) fail('no component is named for a device', rel(e.p), `${e.n} names a device`)
+	for (const p of library)
+		if (/phone|mobile|tablet|ipad|android/i.test(rel(p))) fail('no component is named for a device', rel(p), 'the file names a device')
+}
+
+/* ---- the order form: its Categories field and the order of its fields ---- */
+
+// a value a file names once and draws elsewhere: a const, or a local function's returned markup,
+// each found by its name in the innermost function that declares it
+const localsOf = ast => {
+	const found = new Map()
+	const add = (name, init, above) => {
+		const scope = above.findLast(a => /Function/.test(a.type)) ?? ast
+		if (!found.has(name)) found.set(name, [])
+		found.get(name).push({ init, from: scope.start, to: scope.end })
+	}
+	visit(ast, (n, above) => {
+		if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) add(n.id.name, n.init, above)
+		if (n.type === 'FunctionDeclaration' && n.id) add(n.id.name, n, above)
+	})
+	return (name, at) => (found.get(name) ?? []).filter(d => d.from <= at && at <= d.to).sort((a, b) => (a.to - a.from) - (b.to - b.from))[0]?.init
+}
+// visits a tree in drawing order, stepping into the locals it draws by name
+const walkDrawn = (node, local, fn, stack = new Set()) => visit(node, (n, above) => {
+	fn(n, above)
+	const via = above.at(-1)
+	const name = n.type === 'Identifier' && ['JSXExpressionContainer', 'ConditionalExpression', 'LogicalExpression', 'ArrayExpression'].includes(via?.type) ? n.name
+		: n.type === 'CallExpression' && n.callee.type === 'Identifier' ? n.callee.name : null
+	const init = name && !stack.has(name) && local(name, n.start)
+	if (!init || (n.type === 'Identifier' && /Function/.test(init.type))) return
+	walkDrawn(/Function/.test(init.type) ? init.body : init, local, fn, new Set([...stack, name]))
+})
+const attrOf = (el, name) => el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === name)
+const literalOf = a => a?.value?.type === 'Literal' ? a.value.value
+	: a?.value?.type === 'JSXExpressionContainer' && a.value.expression.type === 'Literal' ? a.value.expression.value : undefined
+
+{
+	const ORDER = ['Vendor', 'Date', 'Kind', 'Status', 'Categories', 'Reference', 'Note', 'Discount', 'Shipping fee']
+	for (const [p, ast] of parsed) {
+		const local = localsOf(ast)
+		visit(ast, n => {
+			if (n.type !== 'JSXElement') return
+			// a filter's Categories (Bookmarks) is not an order's field
+			if (tagOf(n) === 'Field' && literalOf(attrOf(n, 'label')) === 'Categories' && !/Bookmark/.test(rel(p))) {
+				let tokens = false, bulb = false
+				walkDrawn(n, local, m => {
+					if (m.type !== 'JSXElement') return
+					if (/Tokens(Field)?$/.test(tagOf(m))) tokens = true
+					if (literalOf(attrOf(m, 'aria-label')) === 'Suggest categories') bulb = true
+					if (m.type === 'JSXElement' && m.children.some(c => c.type === 'JSXText' && /Suggested from the items/.test(c.value))) bulb = true
+				})
+				if (tokens && !bulb) fail('an order Categories field has the bulb', rel(p), '<Field label="Categories"> with no Suggest categories trail')
+			}
+			if (tagOf(n) !== 'Card') return
+			let details = false
+			const got = []
+			walkDrawn(n, local, m => {
+				if (m.type === 'JSXText' && m.value.trim() === 'Order details') details = true
+				if (m.type !== 'JSXElement') return
+				if (tagOf(m) === 'CardHeader' && literalOf(attrOf(m, 'name')) === 'Order details') details = true
+				const label = tagOf(m) === 'Field' && literalOf(attrOf(m, 'label'))
+				if (ORDER.includes(label) && !got.includes(label)) got.push(label)
+			})
+			const want = ORDER.filter(x => got.includes(x))
+			if (details && got.join() !== want.join()) fail('order details fields in one order', rel(p), got.join(', '))
+		})
+	}
+}
+
+/* ---- a removed feature leaves no trace ---- */
+
+for (const p of [...checked, ...pageCss, join(src, 'styles/app.css')])
+	if (/\/letters\b|monthly letter|sp-letter/i.test(read(p))) fail('removed feature leaves no trace', rel(p), 'monthly letter')
+
+/* ---- what is left to check leads the file name ---- */
+
+{
+	// a file's name as the app holds it: file.name, draft.file?.name, fileName
+	const isFileName = n => {
+		n = n?.type === 'ChainExpression' ? n.expression : n
+		if (n?.type === 'Identifier') return /^file_?name$/i.test(n.name)
+		if (n?.type !== 'MemberExpression' || n.property.name !== 'name') return false
+		const of = n.object.type === 'ChainExpression' ? n.object.expression : n.object
+		return /file/i.test(of.type === 'Identifier' ? of.name : of.property?.name ?? '')
+	}
+	const said = n => !(n.type === 'JSXText' && !n.value.trim()) && !(n.type === 'TemplateElement' && !(n.value.cooked ?? '').trim())
+	for (const [p, ast] of parsed) {
+		const local = localsOf(ast)
+		visit(ast, n => {
+			if (n.type !== 'JSXElement') return
+			const cls = attrOf(n, 'className')
+			if (!cls?.value || !stringsIn(cls.value).some(s => /\bsp-meta\b/.test(s) && /\bsp-truncate\b/.test(s))) return
+			walkDrawn({ type: 'JSXFragment', children: n.children }, local, m => {
+				const parts = m.type === 'JSXFragment' || m.type === 'JSXElement' ? m.children.map(c => c.type === 'JSXExpressionContainer' ? c.expression : c)
+					: m.type === 'ArrayExpression' ? m.elements
+						: m.type === 'TemplateLiteral' ? [...m.quasis, ...m.expressions].sort((a, b) => a.start - b.start) : null
+				const at = parts?.findIndex(isFileName) ?? -1
+				if (at >= 0 && parts.slice(at + 1).some(said)) fail('what is left to check leads the file name', rel(p), 'a file name before what is left to check, in a one-line meta')
+			})
+		})
+	}
+}
+
+/* ---- a stack's lines, a pair's first line ---- */
+
+// every class string a className can take, one per branch
+const classStrings = el => { const a = attrOf(el, 'className'); return a?.value ? stringsIn(a.value).map(s => s.trim()) : [] }
+const hasClass = (el, c) => classStrings(el).some(s => s.split(/\s+/).includes(c))
+const firstClass = el => classStrings(el).map(s => s.split(/\s+/)[0])
+const attrLiteral = (el, name) => {
+	const v = attrOf(el, name)?.value
+	return v?.type === 'Literal' ? v.value : v?.type === 'JSXExpressionContainer' && v.expression.type === 'Literal' ? v.expression.value : undefined
+}
+const childElements = el => el.children.filter(c => !(c.type === 'JSXText' && !c.value.trim()))
+const ownText = el => el.children.filter(c => c.type === 'JSXText').map(c => c.value).join('').trim()
+const isTag = n => n.type === 'JSXElement' && n.openingElement.name.type === 'JSXIdentifier'
+const CONTROL_PARTS = ['Button', 'IconButton', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'TokensField', 'RangeSlider', 'Field', 'FieldGroup',
+	'Gauge', 'Segmented', 'Stepper', 'Switch', 'Check', 'Radio', 'Choice', 'Chip', 'Picker', 'Combobox', 'DateField', 'PeriodPicker', 'Bars', 'Donut', 'Plot',
+	'List', 'ListItem', 'Records', 'Shares', 'LineEditor', 'ThemeTiles', 'Well', 'Card', 'Cards', 'input', 'select', 'textarea', 'button']
+const CONTROL_CLASS = /^sp-(tokens|input|select|textarea|field|gauge|segmented|stepper|switch|check|radio|btn|chip|options|option|tone|swatch|meter|bars|donut|table|list|lines|cards|note-row|choice|well|card|field__help|combobox|period)(?![\w-])/
+const holdsControl = el => {
+	let found = false
+	visit(el.children, n => {
+		if (isTag(n) && (CONTROL_PARTS.includes(tagOf(n)) || classStrings(n).some(s => s.split(/\s+/).some(c => CONTROL_CLASS.test(c))))) found = true
+	})
+	return found
+}
+
+for (const [p, ast] of parsed) {
+	visit(ast, n => {
+		if (!isTag(n)) return
+		const kids = childElements(n)
+		// a line is one element in its place, whichever branch draws it
+		const lines = kids.map(c => placed(c)[0])
+		const known = lines.length && lines.every(Boolean)
+		const lineClass = el => (/^[a-z]/.test(tagOf(el)) ? firstClass(el)[0] ?? '' : '')
+		const cls = classStrings(n).join(' ').split(/\s+/)
+		if (cls.includes('sp-stack') && known && ['span', 'div'].includes(tagOf(lines[0])) && /^sp-(title|heading|strong|data)$/.test(lineClass(lines[0]))) {
+			// a second line that ends a sentence is a message; one whose words come from a value cannot be told, so it is left
+			const message = el => {
+				let valued = false
+				visit(el.children, m => { if (m.type === 'Identifier') valued = true })
+				return valued || /[.!?]$/.test(stringsIn(el.children).join('').trim())
+			}
+			const notAPair = lines.length !== 2 || !/^sp-(subtitle|meta)$/.test(lineClass(lines[1])) || message(lines[1])
+			const shown = `<${tagOf(n)} className="${cls.join(' ')}">`
+			if (!notAPair && !holdsControl(n)) fail('a title with its second line is sp-stacked', rel(p), `${shown} holds a pair: use sp-stacked`)
+			else {
+				if (/^sp-(title|heading)$/.test(lineClass(lines[0])) && !cls.includes('sp-gap-6')) fail('a card body stack is gap 6', rel(p), shown)
+				if (cls.includes('sp-truncate')) fail('a card body does not truncate', rel(p), `${shown} clips prose`)
+			}
+		}
+		const stacked = tagOf(n) === 'Stacked' || firstClass(n).includes('sp-stacked')
+		if (stacked && known && lines.length === 2 && lineClass(lines[0]) === 'sp-strong' && !childElements(lines[0]).some(c => placed(c).length)
+			&& /^sp-(subtitle|meta)$/.test(lineClass(lines[1])))
+			fail('a pair starts with sp-title', rel(p), 'sp-strong opens a pair')
+	})
+}
+
+/* ---- a button on an input's line is the input's height ---- */
+
+{
+	const INPUTS = ['TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField']
+	const APART_PARTS = ['Field', 'Card', 'Well', 'Dialog', 'Popover', 'Menu', 'Palette']
+	const APART_CLASS = /^sp-(field|card|well|dialog|popover|menu|palette)(?![\w-])/
+	for (const [p, ast] of parsed) visit(ast, n => {
+		if (!isTag(n) || (tagOf(n) !== 'ListItem' && !firstClass(n).some(c => c === 'sp-row-flex' || c === 'sp-list-item'))) return
+		let apart = false, input = false, small = false
+		visit(n.children, m => {
+			if (!isTag(m)) return
+			if (APART_PARTS.includes(tagOf(m)) || classStrings(m).some(s => s.split(/\s+/).some(c => APART_CLASS.test(c)))) apart = true
+			if ((INPUTS.includes(tagOf(m)) && !attrOf(m, 'multiline')) || (tagOf(m) === 'input' && hasClass(m, 'sp-input'))) input = true
+			if (tagOf(m) === 'Button' && ['small', 'xsmall'].includes(attrLiteral(m, 'size'))) small = true
+		})
+		if (!apart && input && small) fail('a button beside an input matches its height', rel(p), 'a small button on a line with an input: use the standard size')
+	})
+}
+
+/* ---- the sidebar's divider sits above Settings ---- */
+
+for (const [p, ast] of parsed) visit(ast, (n, above) => {
+	if (n.type !== 'JSXElement' || !above.some(a => isTag(a) && tagOf(a) === 'Sidebar') && !(isTag(n) && tagOf(n) === 'Sidebar')) return
+	const kids = childElements(n)
+	kids.forEach((c, i) => {
+		if (!placed(c).some(el => ownText(el) === 'Settings' && /\/settings$/.test(attrLiteral(el, 'to') ?? ''))) return
+		if (!placed(kids[i - 1]).some(el => tagOf(el) === 'SidebarDivider')) fail('the sidebar divider sits above Settings', rel(p), 'Settings does not follow a <SidebarDivider>')
+	})
+})
+
+/* ---- the Views card lists in the same rows at rest and in edit mode ---- */
+
+for (const [p, ast] of parsed) visit(ast, n => {
+	if (!isTag(n) || tagOf(n) !== 'Card') return
+	const kids = childElements(n).filter(c => c.type !== 'JSXExpressionContainer' || c.expression.type !== 'JSXEmptyExpression')
+	const at = kids.findIndex(c => placed(c).some(el => tagOf(el) === 'CardHeader' && attrLiteral(el, 'name') === 'Views'))
+	if (at < 0) return
+	const list = placed(kids[at + 1])
+	if (!list.length) fail('the Views card keeps its rows in edit mode', rel(p), 'the views are not one .sp-nav-list under the head')
+	for (const el of list) if (classStrings(el).join(' ') !== 'sp-nav-list')
+		fail('the Views card keeps its rows in edit mode', rel(p), `the views list in <${tagOf(el)} className="${classStrings(el).join(' | ')}">`)
+})
+
+/* ---- a page body is the shell's one ShellContent ---- */
+
+// every page renders inside the shell's ShellContent, so a second body adds the page's inset twice
+for (const [p, ast] of parsed) {
+	if (p === join(src, 'components/Shell.jsx')) continue
+	for (const s of stringsIn(ast)) if (/(^|\s)sp-shell__body(\s|$)/.test(s)) fail('a body is not nested in a body', rel(p), 'writes .sp-shell__body: the shell\'s <ShellContent> is the body')
+	visit(ast, (n, above) => {
+		if (!isTag(n) || tagOf(n) !== 'ShellContent') return
+		if (p.startsWith(pagesDir) || above.some(a => isTag(a) && tagOf(a) === 'ShellContent')) fail('a body is not nested in a body', rel(p), '<ShellContent> inside the shell\'s body')
+	})
+}
+
+/* ---- a row of stats with different line counts aligns to the top ---- */
+
+for (const [p, ast] of parsed) visit(ast, n => {
+	if (!isTag(n) || !firstClass(n).includes('sp-row-flex') || hasClass(n, 'sp-top')) return
+	const stats = childElements(n).flatMap(placed).filter(el => tagOf(el) === 'Stat' && !attrOf(el, 'bare'))
+	const lines = stats.map(el => ['label', 'figure', 'delta', 'meta', 'help'].filter(a => attrOf(el, a)).length)
+	if (new Set(lines).size > 1) fail('a stat row aligns to the top', rel(p), `stats of ${lines.join('/')} lines in a centred row`)
+})
+
+/* ---- a row that opens something is drawn as one ---- */
+
+{
+	// the app's own parts by name, so a card's rows are read through the parts that draw them
+	const drawers = new Map()
+	for (const [p, ast] of parsed) {
+		if (p.includes('/src/components/')) continue
+		visit(ast, n => {
+			if (n.type === 'FunctionDeclaration' && /^[A-Z]/.test(n.id?.name ?? '')) drawers.set(n.id.name, n)
+			if (n.type === 'VariableDeclarator' && /^[A-Z]/.test(n.id.name ?? '') && /Function/.test(n.init?.type ?? '')) drawers.set(n.id.name, n.init)
+		})
+	}
+	const valuesIn = new Map([...parsed].map(([p, ast]) => {
+		const found = new Map()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) found.set(n.id.name, n.init) })
+		return [p, found]
+	}))
+	const drawn = (node, p, fn, seen = new Set()) => visit(node, n => {
+		fn(n)
+		const name = isTag(n) ? tagOf(n) : n.type === 'JSXExpressionContainer' && n.expression.type === 'Identifier' ? n.expression.name : null
+		const next = isTag(n) ? drawers.get(name) : name && valuesIn.get(p).get(name)
+		if (next && !seen.has(name)) { seen.add(name); drawn(next, p, fn, seen) }
+	})
+	const OPENS = ['by status', 'top vendors', 'categories this month', 'drafts', 'recent orders']
+	const drawsOpens = el => /sp-row-opens/.test(JSON.stringify(drawers.get(tagOf(el)) ?? null))
+	const opens = el => (['a', 'button', 'Link'].includes(tagOf(el)) && hasClass(el, 'sp-row-opens')) || (/^[A-Z]/.test(tagOf(el)) && drawsOpens(el))
+	for (const [p, ast] of parsed) visit(ast, n => {
+		if (!isTag(n) || tagOf(n) !== 'Card') return
+		let named = false
+		drawn(n.children, p, m => { if (isTag(m) && tagOf(m) === 'CardHeader' && OPENS.includes(String(attrLiteral(m, 'name')).toLowerCase())) named = true })
+		if (!named) return
+		drawn(n.children, p, m => {
+			if (!isTag(m) || !classStrings(m).some(s => /^(sp-stack sp-gap-6|sp-row-flex sp-gap-12)(\s|$)/.test(s))) return
+			// a loading shape is no row yet
+			if (opens(m) || attrOf(m, 'aria-hidden')) return
+			let holds = false, loading = false
+			drawn(m.children, p, k => {
+				if (!isTag(k)) return
+				if (tagOf(k) === 'Gauge' || (tagOf(k) === 'Mark' && attrLiteral(k, 'size') === 'medium')) holds = true
+				if (tagOf(k) === 'Skeleton') loading = true
+			})
+			if (holds && !loading) fail('a row that opens something is drawn as one', rel(p), `<${tagOf(m)} className="${classStrings(m).join(' | ')}"> is a plain row: an <a>, <button> or Link with sp-row-opens`)
+		})
+	})
+}
+
+/* ---- a saving: "Saved", an amount, green unless zero, under its amount ---- */
+
+{
+	for (const p of [...checked, ...pageCss, join(root, 'index.html')])
+		if (/heic/i.test(read(p))) fail('HEIC is not offered and never named', rel(p), 'HEIC present')
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		const parent = above.at(-1)
+		const prop = above.findLast(a => a.type === 'JSXAttribute')?.name?.name ?? ''
+		const inMarkup = above.some(a => a.type === 'JSXExpressionContainer' || a.type === 'JSXAttribute')
+			&& !/^(key|className|id|to|href|src|type|role|htmlFor|value|variant|size|color|shape|data-.*|on[A-Z].*)$/.test(prop)
+		// only words that open a line: "3 saved" is a count, not a saving
+		const opensLine = n.type === 'JSXText' ? isTag(parent ?? {}) && childElements(parent)[0] === n
+			: n.type === 'TemplateElement' ? inMarkup && parent?.quasis?.[0] === n
+			: n.type === 'Literal' && typeof n.value === 'string' && inMarkup
+		const text = String(n.type === 'TemplateElement' ? n.value.cooked ?? '' : n.value).trim()
+		if (opensLine && /^saved\b/.test(text)) fail('a saving reads "Saved"', rel(p), `"${text.slice(0, 60)}"`)
+	})
+	// <Saving> is the one part that writes a saving; its looks are green when it saves and grey at zero
+	const home = join(src, 'app/saving.jsx')
+	let looks = null
+	if (parsed.has(home)) visit(parsed.get(home), n => { if (n.type === 'VariableDeclarator' && n.id.name === 'LOOK') looks = n.init })
+	if (!looks) fail('a saving is green', 'src/app/saving.jsx', 'no LOOK table to read a saving\'s colour from')
+	for (const variant of looks?.properties ?? []) for (const state of variant.value.properties ?? []) {
+		const green = stringsIn(state.value).some(s => /^(success|sp-stat__delta)$|\bsp-ink-success\b/.test(s))
+		if (state.key.name === 'on' && !green) fail('a saving is green', 'src/app/saving.jsx', `${variant.key.name} is not green when it saves`)
+		if (state.key.name === 'off' && green) fail('a zero saving is grey', 'src/app/saving.jsx', `${variant.key.name} is green at zero`)
+	}
+	for (const [p, ast] of parsed) {
+		if (p === home) continue
+		visit(ast, (n, above) => {
+			if (!isTag(n)) return
+			const kids = childElements(n)
+			if (kids[0]?.type === 'JSXText' && /^\s*Saved\s*$/.test(kids[0].value) && kids[1]?.type === 'JSXExpressionContainer')
+				fail('a saving is green', rel(p), '"Saved" and an amount written by hand: use <Saving>')
+			if (tagOf(n) === 'Saving' && above.some(a => isTag(a) && hasClass(a, 'sp-meta')))
+				fail('a saving sits under its amount', rel(p), 'a <Saving> inside a meta line')
+			if (tagOf(n) !== 'Stat') return
+			const card = above.findLast(a => isTag(a) && tagOf(a) === 'Card')
+			const head = card && childElements(card).flatMap(placed).find(el => tagOf(el) === 'CardHeader')
+			const names = [attrOf(n, 'label'), head && attrOf(head, 'name')].filter(a => a?.value).flatMap(a => stringsIn(a.value))
+			if (!names.includes('Saved')) return
+			const colours = attrOf(n, 'color')?.value ? stringsIn(attrOf(n, 'color').value) : ['default']
+			if (!colours.includes('success')) fail('a saving is green', rel(p), '<Stat> named Saved without color="success"')
+			else if (colours.every(c => c === 'success')) fail('a zero saving is grey', rel(p), '<Stat> named Saved is green at zero too')
+		})
+	}
+}
+
+/* ---- where an element stands: up its own tree, then out through every place that draws it ---- */
+
+const texts = new Map()
+const at = (p, node) => `${rel(p)}:${(texts.get(p) ?? texts.set(p, read(p)).get(p)).slice(0, node.start).split('\n').length}`
+// a name's value, from the nearest function above that declares it
+const declaredIn = new Map()
+const valueOf = (name, above) => {
+	for (const scope of [...above].reverse()) {
+		if (!isFunction(scope) && scope.type !== 'Program') continue
+		if (!declaredIn.has(scope)) {
+			const names = new Map()
+			visit(scope.body, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && !names.has(n.id.name)) names.set(n.id.name, n.init) })
+			declaredIn.set(scope, names)
+		}
+		if (declaredIn.get(scope).has(name)) return declaredIn.get(scope).get(name)
+	}
+}
+// a className's classes, through a name it is held in
+const classesIn = (el, above) => {
+	const value = attrOf(el, 'className')?.value
+	if (!value) return []
+	const out = stringsIn(value)
+	visit(value, n => { if (n.type === 'Identifier') { const held = valueOf(n.name, above); if (held) out.push(...stringsIn(held)) } })
+	return out.join(' ').split(/\s+/).filter(Boolean)
+}
+const sourceOf = (p, from) => {
+	const base = resolve(dirname(p), from)
+	return [base, `${base}.jsx`, `${base}.js`].find(f => parsed.has(f))
+}
+const importedFrom = new Map([...parsed].map(([p, ast]) => {
+	const names = new Map()
+	visit(ast, n => {
+		if (n.type !== 'ImportDeclaration' || !n.source.value.startsWith('.')) return
+		const from = sourceOf(p, n.source.value)
+		if (from) for (const s of n.specifiers) if (s.type === 'ImportSpecifier') names.set(s.local.name, from)
+	})
+	return [p, names]
+}))
+const isFunction = n => ['FunctionDeclaration', 'ArrowFunctionExpression', 'FunctionExpression'].includes(n?.type)
+const definitionOf = (p, name) => {
+	let found = null
+	visit(parsed.get(p), n => {
+		if (found) return
+		if (n.type === 'FunctionDeclaration' && n.id?.name === name) found = n
+		if (n.type === 'VariableDeclarator' && n.id.name === name && isFunction(n.init)) found = n.init
+	})
+	return found
+}
+// each file's elements by tag and names by name, with what is above them
+const indexed = new Map()
+const indexOf = p => {
+	if (!indexed.has(p)) {
+		const index = new Map()
+		visit(parsed.get(p), (node, above) => {
+			const key = node.type === 'JSXElement' ? `<${tagOf(node)}` : node.type === 'Identifier' ? node.name : null
+			if (key) (index.get(key) ?? index.set(key, []).get(key)).push({ p, node, above })
+		})
+		indexed.set(p, index)
+	}
+	return indexed.get(p)
+}
+// a name read as a value, not declared, keyed or reached as a member
+const readsName = name => (n, above) => {
+	if (n.type !== 'Identifier' || n.name !== name) return false
+	const up = above.at(-1)
+	if (up?.type === 'VariableDeclarator' && up.id === n) return false
+	if (isFunction(up) && (up.id === n || up.params.includes(n))) return false
+	if (up?.type === 'MemberExpression' && up.property === n && !up.computed) return false
+	if (up?.type === 'Property' && up.key === n && !up.shorthand) return false
+	return !['ImportSpecifier', 'ExportSpecifier', 'ImportDefaultSpecifier'].includes(up?.type)
+}
+const readings = (p, name) => (indexOf(p).get(name) ?? []).filter(o => readsName(name)(o.node, o.above))
+const drawnAs = (p, name) => [...parsed.keys()].flatMap(q => (q === p || importedFrom.get(q).get(name) === p)
+	? indexOf(q).get(`<${name}`) ?? []
+	: [])
+
+// every place the element can end up is inside an element that `holds`; a page's own root is not
+const within = (p, above, holds, seen = new Set()) => {
+	if (above.some((a, i) => a.type === 'JSXElement' && holds(a, p, above.slice(0, i)))) return true
+	const top = above.findIndex(a => a.type === 'JSXElement' || a.type === 'JSXFragment')
+	const outside = top < 0 ? above : above.slice(0, top)
+	for (let i = outside.length - 1; i >= 0; i--) {
+		const a = outside[i]
+		if (a.type === 'Property') return false
+		const name = a.type === 'VariableDeclarator' && a.id.type === 'Identifier' ? a.id.name
+			: a.type === 'FunctionDeclaration' ? a.id?.name : null
+		if (!name) continue
+		const key = `${p}|${name}`
+		if (seen.has(key)) return true
+		seen.add(key)
+		const component = /^[A-Z]/.test(name) && (a.type === 'FunctionDeclaration' || isFunction(a.init))
+		// a component handed on as a value is drawn where this script cannot follow
+		if (component && readings(p, name).length) return true
+		const places = component ? drawnAs(p, name) : readings(p, name)
+		return places.length > 0 && places.every(o => within(o.p, o.above, holds, seen))
+	}
+	return false
+}
+
+// an element is one of `classes` when it carries one, or is a component that draws one
+const drawing = classes => {
+	const memo = new Map()
+	const draws = (el, p, above) => {
+		const name = tagOf(el)
+		if (!name) return false
+		if (/^[a-z]/.test(name)) return classesIn(el, above).some(c => classes.includes(c))
+		const home = importedFrom.get(p).get(name) ?? p
+		const key = `${home}|${name}`
+		if (!memo.has(key)) {
+			memo.set(key, false)
+			let found = false
+			visit(definitionOf(home, name), (n, inside) => { if (!found && n.type === 'JSXElement' && draws(n, home, [parsed.get(home), ...inside])) found = true })
+			memo.set(key, found)
+		}
+		return memo.get(key)
+	}
+	return draws
+}
+
+/* ---- a well sits inside a surface ---- */
+
+{
+	const surface = drawing(['sp-card', 'sp-list', 'sp-popover', 'sp-dialog', 'sp-sheet', 'sp-line-editor'])
+	for (const [p, ast] of parsed) {
+		if (p === join(src, 'components/Well.jsx')) continue
+		visit(ast, (n, above) => {
+			if (n.type !== 'JSXElement' || (tagOf(n) !== 'Well' && !classesIn(n, above).includes('sp-well'))) return
+			if (!within(p, above, surface)) fail('a well sits inside a surface', at(p, n), `<${tagOf(n)}> on the page ground is a card`)
+		})
+	}
+}
+
+/* ---- a screen uses the split body ---- */
+
+{
+	// a main column beside a rail; a symmetric grid is a pair of equals, not a screen
+	const rail = /grid-template-columns:[^;]*(?:2fr[^;]*1fr|1fr[^;]*(?:max-content|\d+px))/
+	const screens = new Set()
+	for (const css of [app, ...pages.map(([, css]) => css)])
+		for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.([a-z]{2}-[\w-]+)\s*\{([^{}]*)\}/g))
+			if (/display:\s*grid/.test(m[2]) && rail.test(m[2])) screens.add(m[1])
+	const content = drawing(['sp-card', 'sp-well', 'sp-list'])
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement') return
+		const cls = classesIn(n, above).find(c => screens.has(c))
+		if (cls && !within(p, above, content)) fail('a screen uses the split body', at(p, n),`.${cls} draws a two-column screen; use the split layout with a <Panel> rail`)
+	})
+}
+
+/* ---- a readout sits on the bars that place it ---- */
+
+{
+	const variants = {}
+	visit(parsed.get(charts), n => {
+		if (n.type === 'VariableDeclarator' && n.id.name === 'BARS')
+			for (const pr of n.init.properties) variants[pr.key.name ?? pr.key.value] = String(pr.value.value ?? '').split(/\s+/).filter(Boolean)
+	})
+	const css = components + app
+	const places = v => (variants[v] ?? []).some(c => new RegExp(`\\.${c} \\.sp-bars__tip \\{[^}]*position: absolute`).test(css))
+	// the names known true where the bars are drawn: `touch ? <Bars> : ...`, `touch && <Bars>`
+	const holding = (n, above) => above.flatMap((a, i) => {
+		const child = above[i + 1] ?? n
+		if (a.type === 'ConditionalExpression' && a.consequent === child && a.test.type === 'Identifier') return [a.test.name]
+		if (a.type === 'LogicalExpression' && a.operator === '&&' && a.right === child && a.left.type === 'Identifier') return [a.left.name]
+		return []
+	})
+	// a tip left out under one of those names: `touch || column.future ? undefined : <ChartTip>`
+	const leftOut = (value, known) => {
+		if (value.type !== 'ConditionalExpression' || !(value.consequent.type === 'Identifier' && value.consequent.name === 'undefined')) return false
+		const names = t => t.type === 'Identifier' ? [t.name] : t.type === 'LogicalExpression' && t.operator === '||' ? [...names(t.left), ...names(t.right)] : []
+		return names(value.test).some(name => known.includes(name))
+	}
+	for (const [p, ast] of parsed) {
+		const declared = new Map()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) declared.set(n.id.name, [...(declared.get(n.id.name) ?? []), n.init]) })
+		visit(ast, (n, above) => {
+			if (n.type !== 'JSXElement' || tagOf(n) !== 'Bars') return
+			const variant = attrOf(n, 'variant')
+			if (variant && variant.value?.type !== 'Literal') return
+			if (places(variant?.value.value ?? 'default')) return
+			const columns = attrOf(n, 'columns')?.value?.expression
+			if (!columns) return
+			const known = holding(n, above)
+			for (const from of columns.type === 'Identifier' ? declared.get(columns.name) ?? [] : [columns])
+				visit(from, m => {
+					if (m.type === 'Property' && (m.key.name ?? m.key.value) === 'tip' && !leftOut(m.value, known))
+						fail('a readout sits on the plot bars', rel(p), `<Bars variant="${variant?.value.value ?? 'default'}"> with a readout: no rule places one there`)
+				})
+		})
+	}
+}
+
+/* ---- a readout is never pinned inside its container ---- */
+
+for (const [p, ast] of parsed) {
+	if (stringsIn(ast).some(s => /\bdata-pin\b/.test(s))) fail('tooltips are not held in their container', rel(p), 'data-pin on a readout')
+	visit(ast, n => {
+		if ((n.type === 'JSXAttribute' && n.name?.name === 'data-pin')
+			|| (n.type === 'MemberExpression' && n.property.name === 'pin' && n.object.property?.name === 'dataset'))
+			fail('tooltips are not held in their container', rel(p), 'data-pin on a readout')
+	})
+}
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	if (/\[data-pin/.test(css)) fail('tooltips are not held in their container', rel(p), 'a [data-pin] rule')
+
+/* ---- a colour is a colour, on a component that reads one ---- */
+
+{
+	const COLOUR_WORD = /^(warning|danger|success|destructive|attention|problem|positive|error)$/
+	const IN_CLASS = /\bsp-[\w-]*?--[\w-]*(?:destructive|attention|problem|positive|error)[\w-]*/g
+	for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+		for (const m of css.matchAll(IN_CLASS)) fail('a colour is not a variant', rel(p), `.${m[0]} puts a colour in a class name; use [data-color]`)
+	for (const [p, ast] of parsed)
+		for (const s of stringsIn(ast)) for (const m of s.matchAll(IN_CLASS)) fail('a colour is not a variant', rel(p), `${m[0]}: use color=`)
+	for (const [component, props] of Object.entries(sets))
+		for (const v of props.variant ?? []) if (COLOUR_WORD.test(v)) fail('a colour is not a variant', component, `variant="${v}": a colour is color=`)
+
+	const reads = new Set([...(components + app).matchAll(/\.(sp-[\w-]+)\[data-color/g)].map(m => m[1]))
+	const paints = node => {
+		let found = false
+		visit(node, n => { if (n.type === 'Property' && (n.key.value ?? n.key.name) === 'data-color') found = true })
+		return found
+	}
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		const resolved = node => node?.type === 'Identifier' ? valueOf(node.name, above) : node
+		let classes
+		if (n.type === 'JSXElement' && /^[a-z]/.test(tagOf(n) ?? '')) {
+			if (!n.openingElement.attributes.some(a => (a.type === 'JSXAttribute' && a.name?.name === 'data-color')
+				|| (a.type === 'JSXSpreadAttribute' && paints(resolved(a.argument))))) return
+			classes = classesIn(n, above)
+		} else if (n.type === 'ObjectExpression' && n.properties.some(pr => pr.type === 'Property' && pr.key.value === 'data-color')) {
+			const name = n.properties.find(pr => pr.type === 'Property' && (pr.key.name ?? pr.key.value) === 'className')
+			if (!name) return
+			classes = stringsIn(resolved(name.value)).join(' ').split(/\s+/)
+		} else return
+		if (!classes.some(c => reads.has(c))) fail('a colour needs a component', at(p, n), `data-color on "${classes.join(' ')}", which no rule colours`)
+	})
+}
+
+/* ---- the row is one component ---- */
+
+// .sp-line was merged into .sp-list-item; .sp-line-editor is a form and keeps its name
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.sp-line(--|__|[\s:.[,{])/g))
+		fail('the row is one component', rel(p), `${m[0]} - the row is <ListItem>`)
+for (const [p, ast] of parsed)
+	for (const s of stringsIn(ast)) for (const m of s.matchAll(/(?<![\w-])\.?sp-line(?:--[\w-]*|__[\w-]*)?(?![\w-])/g))
+		fail('the row is one component', rel(p), `${m[0]} - the row is <ListItem>`)
+
+/* ---- a fade is a photo's ---- */
+
+for (const [p, ast] of parsed) visit(ast, (n, above) => {
+	if (n.type !== 'JSXElement') return
+	const fill = attrOf(n, 'fill')?.value
+	if (tagOf(n) === 'Mark' && attrOf(n, 'faded') && !(fill?.type === 'Literal' && fill.value === 'photo'))
+		fail('a faded mark is a photo', at(p, n), '<Mark faded> without fill="photo"')
+	// Mark draws the fade from its prop, held above
+	const classes = p === join(src, 'components/Mark.jsx') ? [] : classesIn(n, above)
+	if (classes.includes('sp-mark--faded') && !classes.includes('sp-mark--photo')) fail('a faded mark is a photo', at(p, n), classes.join(' '))
+	if (classes.includes('sp-record__photo--faded') && !classes.includes('sp-record__photo')) fail('a faded band photo is a photo', at(p, n), classes.join(' '))
+})
+
+/* ---- a part changes only through the design, and takes no page rule ---- */
+
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{};]+)\{([^{}]*)\}/g))
+		if (/\.sp-card(--[\w-]+)?\b/.test(m[1]) && /justify-content|align-content/.test(m[2])) fail('a part changes only through the design', rel(p), m[1].trim())
+// the page rules the design's own spread, narrow field and reading column replaced
+const RETIRED_PAGE_RULES = ['st-w280', 'oc-narrow']
+for (const [p, ast] of parsed) {
+	for (const s of stringsIn(ast)) {
+		const c = s.split(/\s+/)
+		if (c.some(x => /^sp-/.test(x)) && c.some(x => RETIRED_PAGE_RULES.includes(x))) fail('a part takes no page rule', rel(p), s.trim())
+	}
+	visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement') return
+		const c = classesIn(n, above)
+		if (c.some(x => /^sp-/.test(x)) && c.some(x => RETIRED_PAGE_RULES.includes(x))) fail('a part takes no page rule', at(p, n), c.join(' '))
+	})
+}
+
+/* ---- the Showing bar is a card with a head, its path in the head line ---- */
+
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	if (/sp-crumbs-bar/.test(css)) fail('the Showing bar is a card with a head', rel(p), 'sp-crumbs-bar is back')
+for (const [p, ast] of parsed) {
+	if (stringsIn(ast).some(s => /\bsp-crumbs-bar\b/.test(s))) fail('the Showing bar is a card with a head', rel(p), 'sp-crumbs-bar is back')
+	visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement' || tagOf(n) !== 'Crumbs') return
+		const card = above.findLast(a => a.type === 'JSXElement' || a.type === 'JSXFragment')
+		const headed = card?.type === 'JSXElement' && tagOf(card) === 'Card' && card.children.some(c => placed(c).some(el => tagOf(el) === 'CardHeader'))
+		if (!headed) fail('the Showing bar is a card with a head', rel(p), '<Crumbs> not in a <Card> with a <CardHeader>')
+		else if (attrOf(card, 'variant')?.value?.value !== 'path') fail('the Showing bar holds its path in the head line when it fits', rel(p), '<Card> holding <Crumbs> without variant="path"')
+	})
+}
+
+/* ---- a CardHeader is a card's first child, and opens with the name ---- */
+
+{
+	// the elements an element is placed straight into, through the names it is held in: { node, child }
+	const parentsOf = (p, node, above, seen = new Set()) => {
+		const i = above.findLastIndex(a => a.type === 'JSXElement' || a.type === 'JSXFragment')
+		if (i >= 0) return [{ parent: above[i], child: above[i + 1] ?? node }]
+		const held = above.findLast(a => (a.type === 'VariableDeclarator' && a.id.type === 'Identifier') || a.type === 'FunctionDeclaration')
+		const name = held?.id.name
+		// a component's root is placed as that component, never as the head itself
+		if (!name || /^[A-Z]/.test(name) || seen.has(name)) return [{ parent: null }]
+		seen.add(name)
+		return readings(p, name).flatMap(o => parentsOf(p, o.node, o.above, seen))
+	}
+	const opens = (card, child) => card.children.find(c => c.type === 'JSXElement' || (c.type === 'JSXExpressionContainer' && c.expression.type !== 'JSXEmptyExpression')) === child
+	for (const [p, ast] of parsed) visit(ast, (n, above) => {
+		if (n.type !== 'JSXElement' || tagOf(n) !== 'CardHeader') return
+		for (const { parent, child } of parentsOf(p, n, above)) {
+			if (parent?.type !== 'JSXElement' || tagOf(parent) !== 'Card') fail('a CardHeader is only a card\'s first child', at(p, n), '<CardHeader> outside a <Card>')
+			else if (!opens(parent, child)) fail('a CardHeader is only a card\'s first child', at(p, n), '<CardHeader> after other children of its <Card>')
+		}
+		const name = attrOf(n, 'name')?.value
+		if (!name || (name.type === 'Literal' && !String(name.value).trim())) fail('a CardHeader opens with the name', at(p, n), '<CardHeader> without a name')
+	})
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -416,23 +1314,23 @@ const DESIGN = 'about the design\'s own pages, notes, start page or react_handof
 const NOT_CHECKED = 'applies to the app, not checked here yet'
 const DESIGN_RULES = {
 	'every page is checked': DESIGN,
-	'Back is labelled Back': NOT_CHECKED,
-	'Status and Kind are selects': NOT_CHECKED,
+	'Back is labelled Back': 'Back is labelled Back',
+	'Status and Kind are selects': 'Status and Kind are selects',
 	'the Go to menu matches the page': DESIGN,
-	'no shortcut badge in a list toolbar': NOT_CHECKED,
+	'no shortcut badge in a list toolbar': 'no shortcut badge in a list toolbar',
 	'balanced markup': DESIGN,
 	'no inline styles': 'no inline style in a page',
-	'unique ids': NOT_CHECKED,
-	'references resolve': NOT_CHECKED,
+	'unique ids': 'unique ids',
+	'references resolve': 'references resolve',
 	'classes resolve': 'classes resolve',
 	'tokens defined': 'tokens defined',
-	'a readout sits on the plot bars': NOT_CHECKED,
+	'a readout sits on the plot bars': 'a readout sits on the plot bars',
 	'an open list is not faded': COPY,
 	'every fade is a token': COPY,
 	'parts read a meaning, not the scale': COPY,
 	'fades are told apart': COPY,
 	'notes name the fade token': DESIGN,
-	'tooltips are not held in their container': NOT_CHECKED,
+	'tooltips are not held in their container': 'tooltips are not held in their container',
 	'no var() fallbacks': 'no var() fallbacks',
 	'bars share one shape': COPY,
 	'one rule per selector per scope': COPY,
@@ -442,66 +1340,66 @@ const DESIGN_RULES = {
 	'one name per role': COPY,
 	'the text red is --red-ink': COPY,
 	'a named token exists': DESIGN,
-	'every control is named': NOT_CHECKED,
-	'a group label is a span': NOT_CHECKED,
-	'a visible label is bound': NOT_CHECKED,
-	'one name per control': NOT_CHECKED,
-	'a field label binds its control': NOT_CHECKED,
-	'an action reads in sentence case': NOT_CHECKED,
-	'a colour is not a variant': NOT_CHECKED,
+	'every control is named': 'every control is named',
+	'a group label is a span': 'a group label is a span',
+	'a visible label is bound': 'a visible label is bound',
+	'one name per control': 'one name per control',
+	'a field label binds its control': 'a field label binds its control',
+	'an action reads in sentence case': 'an action reads in sentence case',
+	'a colour is not a variant': 'a colour is not a variant',
 	'a colour is one we define': 'variant values',
-	'a colour needs a component': NOT_CHECKED,
+	'a colour needs a component': 'a colour needs a component',
 	'the notes name a class that exists': DESIGN,
 	'one colour vocabulary': DESIGN,
 	'mockup mail is example.net': DESIGN,
-	'a required marker is an element': NOT_CHECKED,
-	'a well sits inside a surface': NOT_CHECKED,
-	'the row is one component': NOT_CHECKED,
+	'a required marker is an element': 'a required marker is an element',
+	'a well sits inside a surface': 'a well sits inside a surface',
+	'the row is one component': 'the row is one component',
 	'a size is a size, not a place': COPY,
-	'a screen uses the split body': NOT_CHECKED,
-	'a title with its second line is sp-stacked': NOT_CHECKED,
-	'a card body stack is gap 6': NOT_CHECKED,
-	'a card body does not truncate': NOT_CHECKED,
-	'a pair starts with sp-title': NOT_CHECKED,
-	'a button beside an input matches its height': NOT_CHECKED,
-	'the sidebar divider sits above Settings': NOT_CHECKED,
-	'the Views card keeps its rows in edit mode': NOT_CHECKED,
-	'a body is not nested in a body': NOT_CHECKED,
-	'a select-all box names its scope': NOT_CHECKED,
+	'a screen uses the split body': 'a screen uses the split body',
+	'a title with its second line is sp-stacked': 'a title with its second line is sp-stacked',
+	'a card body stack is gap 6': 'a card body stack is gap 6',
+	'a card body does not truncate': 'a card body does not truncate',
+	'a pair starts with sp-title': 'a pair starts with sp-title',
+	'a button beside an input matches its height': 'a button beside an input matches its height',
+	'the sidebar divider sits above Settings': 'the sidebar divider sits above Settings',
+	'the Views card keeps its rows in edit mode': 'the Views card keeps its rows in edit mode',
+	'a body is not nested in a body': 'a body is not nested in a body',
+	'a select-all box names its scope': 'a select-all box names its scope',
 	'a saving is never a percentage': 'a saving is an amount',
-	'a saving reads "Saved"': NOT_CHECKED,
-	'HEIC is not offered and never named': NOT_CHECKED,
+	'a saving reads "Saved"': 'a saving reads "Saved"',
+	'HEIC is not offered and never named': 'HEIC is not offered and never named',
 	'a saving never says "vs retail"': 'a saving is an amount',
-	'a saving is green': NOT_CHECKED,
+	'a saving is green': 'a saving is green',
 	'grey text after an amount is a sp-row-meta column': 'grey text after an amount is a sp-row-meta column',
-	'a zero saving is grey': NOT_CHECKED,
+	'a zero saving is grey': 'a zero saving is grey',
 	'a saving is an amount': 'a saving is an amount',
-	'a saving sits under its amount': NOT_CHECKED,
+	'a saving sits under its amount': 'a saving sits under its amount',
 	'no typographic tells': 'typographic tells',
 	'gaps are on the scale': 'spacing on the scale',
 	'a page stylesheet states only its own classes': 'page css styles no component',
-	'one component per root class': NOT_CHECKED,
-	'one word per object': NOT_CHECKED,
-	'no component is only an arrangement': NOT_CHECKED,
-	'no component is named for a device': NOT_CHECKED,
+	'one component per root class': 'one component per root class',
+	'one word per object': 'one word per object',
+	'no component is only an arrangement': 'no component is only an arrangement',
+	'no component is named for a device': 'no component is named for a device',
 	'a table aligns with its card': COPY,
-	'a stat row aligns to the top': NOT_CHECKED,
-	'a faded mark is a photo': NOT_CHECKED,
-	'a faded band photo is a photo': NOT_CHECKED,
-	'an order Categories field has the bulb': NOT_CHECKED,
-	'order details fields in one order': NOT_CHECKED,
-	'removed feature leaves no trace': NOT_CHECKED,
-	'what is left to check leads the file name': NOT_CHECKED,
+	'a stat row aligns to the top': 'a stat row aligns to the top',
+	'a faded mark is a photo': 'a faded mark is a photo',
+	'a faded band photo is a photo': 'a faded band photo is a photo',
+	'an order Categories field has the bulb': 'an order Categories field has the bulb',
+	'order details fields in one order': 'order details fields in one order',
+	'removed feature leaves no trace': 'removed feature leaves no trace',
+	'what is left to check leads the file name': 'what is left to check leads the file name',
 	'no head link rule is left': COPY,
 	'a card head is the list toolbar height': COPY,
 	'the small button height is a token': COPY,
 	'the small button height is written with --btn-h-small': COPY,
-	'the Showing bar is a card with a head': NOT_CHECKED,
-	'the Showing bar holds its path in the head line when it fits': NOT_CHECKED,
+	'the Showing bar is a card with a head': 'the Showing bar is a card with a head',
+	'the Showing bar holds its path in the head line when it fits': 'the Showing bar holds its path in the head line when it fits',
 	'a head button keeps its 34px box on touch': COPY,
-	'a part changes only through the design': NOT_CHECKED,
-	'a part takes no page rule': NOT_CHECKED,
-	'a row that opens something is drawn as one': NOT_CHECKED,
+	'a part changes only through the design': 'a part changes only through the design',
+	'a part takes no page rule': 'a part takes no page rule',
+	'a row that opens something is drawn as one': 'a row that opens something is drawn as one',
 	'every part of a head is centred': COPY,
 	'the start page lists each page\'s screens': DESIGN,
 	'the start page names only files that exist': DESIGN,
@@ -515,8 +1413,8 @@ const DESIGN_RULES = {
 	'a legend is under its chart': 'a legend is under its chart',
 	'a card name is in a CardHeader': 'a card head is CardHeader',
 	'a CardHeader takes no other class': 'a card head is CardHeader',
-	'a CardHeader is only a card\'s first child': NOT_CHECKED,
-	'a CardHeader opens with the name': NOT_CHECKED,
+	'a CardHeader is only a card\'s first child': 'a CardHeader is only a card\'s first child',
+	'a CardHeader opens with the name': 'a CardHeader opens with the name',
 	'a CardHeader is a class, not a structure': COPY,
 	'a CardHeader is a component': DESIGN,
 	'a CardHeader is only a child of Card': DESIGN,

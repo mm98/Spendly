@@ -500,8 +500,8 @@ function DraftFile({ file }) {
 		: <Mark size="medium" fill="none" aria-hidden="true" aria-label={file.name}><span>{file.kind === 'pdf' ? 'PDF' : 'IMG'}</span></Mark>
 }
 
-/** What is left on a draft, first so a long file name is the part cut: a scan's file after it, a copy's source day. */
-const draftLine = d => [d.draft.left, d.draft.file?.name, d.draft.copiedFrom ? `Copied from ${rowDate(d.draft.copiedFrom)}` : null].filter(Boolean).join(dot)
+/** What is left on a draft, then a copy's source day, then a scan's file name: a long name is the part cut. */
+const draftLine = d => [d.draft.left, d.draft.copiedFrom ? `Copied from ${rowDate(d.draft.copiedFrom)}` : null, d.draft.file?.name].filter(Boolean).join(dot)
 
 /** A draft's picture and words: a scan's file, else the order row's picture; an order with status Draft as an order row shows it. */
 function DraftHead({ order }) {

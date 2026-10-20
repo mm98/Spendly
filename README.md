@@ -47,7 +47,7 @@ Everything that needs you, on one page.
   each active one shows as a tag you can remove.
 - **Sort** by date, total or vendor, and show orders as **rows or cards with photos**.
 - **Saved views** keep a search, filters, sort and layout. Save, rename, reorder, set a default
-  view, and see them in the sidebar with live counts.
+  view, highlight a view's count, and see them in the sidebar with live counts.
 - **Work on many at once** - set a status, add a category, export or delete, with undo for status
   and category changes.
 - **Export** what you see as a spreadsheet file (CSV, ready for a Danish spreadsheet).

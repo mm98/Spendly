@@ -1205,7 +1205,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				</Field>
 			</div>
 			<Field label="Status">
-				<Combobox value={statuses.find(s => s.key === draft.status)?.name ?? draft.status} aria-label="Status">
+				<Combobox value={statuses.find(s => s.key === draft.status)?.name ?? draft.status}>
 					{statuses.map(s => (
 						<ComboboxOption key={s.key} dot={DOT[s.tone]} selected={s.key === draft.status} onSelect={() => setStatus(s.key)}>{s.name}</ComboboxOption>
 					))}
@@ -1241,7 +1241,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				: null}
 			<div className="sp-fields">
 				<Field label="Reference">
-					{/* an order saved without one is given the next order number */}
 					<TextField value={draft.reference} onChange={reference => set({ reference })} />
 				</Field>
 				<Field label="Note">
@@ -1893,7 +1892,7 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 					setQuery('')
 				}
 			}}
-			onSearch={setQuery} noun="vendors" aria-label="Vendor" {...rest}>
+			onSearch={setQuery} noun="vendors" {...rest}>
 			{groups.map(([name, xs], i) => (
 				<Fragment key={name}>
 					{i ? <ComboboxSeparator /> : null}
@@ -1925,7 +1924,7 @@ function NewVendorFromScan({ onSetUp }) {
 
 function KindPicker({ value, onPick, ...rest }) {
 	return (
-		<Combobox value={value} aria-label="Kind" {...rest}>
+		<Combobox value={value} {...rest}>
 			{spendKinds.map(kind => (
 				<ComboboxOption key={kind} selected={kind === value} onSelect={() => onPick(kind)}>{kind}</ComboboxOption>
 			))}
