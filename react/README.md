@@ -86,10 +86,12 @@ URL. Each route's `handle` carries the browser tab's title, the sidebar row it b
 body layout (`default`, `split` or `rail`) and whether the phone shows the New order button.
 Pages draw no heading and no back button: the shell names the page.
 
-A link in an email carries no `#`, as a mail program or its link checker can drop everything after
-one. It points at `/open/<route>` instead (`/open/categories`, `/open/reset/<code>`), and the server
-answers with a redirect to `/#/<route>`, the query kept. The dev server and `vite preview` pass
-`/open` on to the API, so the links work locally too.
+**Every link into the app from outside it is `/open/<route>`**: an email, a notice, anything sent
+or shared that opens a page. It carries no `#`, as a mail program or its link checker can drop
+everything after one. The server answers `/open/categories` with a redirect to `/#/categories`, the
+query kept. Build such a link with `linkTo` or `publicLink` in `api/src/lib/mail.js`, never by hand
+and never another way. The dev server and `vite preview` pass `/open` on to the API, so the links
+work locally too.
 
 ## The shell
 
