@@ -43,12 +43,15 @@ export function Field({
 	// the binding is the field's job, so the control is handed it rather than asked
 	// for it: an id, the message it is described by, and the colour that message implies
 	const role = (children.type && children.type.fieldRole) || 'value'
+	// only a control that builds names from the label is handed it, and only as plain text
+	const wantsLabel = children.type && children.type.fieldLabel && typeof label === 'string'
 	const control = cloneElement(children, {
 		id: fieldId,
 		'aria-describedby': messageId,
 		...(isDanger ? { 'aria-invalid': 'true' } : {}),
 		...(color && !isDanger ? { 'data-color': color } : {}),
 		...(required ? { required: true } : {}),
+		...(wantsLabel ? { fieldLabel: label } : {}),
 		// the padding a slot reserves is the field's knowledge, not the control's
 		lead: lead ? true : undefined,
 		trail: trail || kbd ? true : undefined,

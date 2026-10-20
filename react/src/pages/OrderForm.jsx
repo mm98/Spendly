@@ -1829,7 +1829,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 			<div className="sp-line-editor__grid">
 				<Field label="Quantity" {...problem(errors.quantity)}>
 					{/* the smallest quantity the server keeps: more than 0, two decimals */}
-					<Stepper value={Number(v.quantity) || 0} min={0.01} step={1} decimals={2} locale={NUMBER_LOCALE} aria-label="Quantity" onChange={quantity => set({ quantity })} />
+					<Stepper value={Number(v.quantity) || 0} min={0.01} step={1} decimals={2} locale={NUMBER_LOCALE} onChange={quantity => set({ quantity })} />
 				</Field>
 				<Field label="Unit price" unit={currencySymbol()} {...problem(errors.price)}>
 					<NumberField value={v.price} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={price => set({ price })} />
