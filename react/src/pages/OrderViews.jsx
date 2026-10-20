@@ -13,7 +13,7 @@ import { useReorder } from '../components/Reorder.js'
 import { useDismiss } from '../components/Utilities.jsx'
 import { addView, changeView, deleteView, failureMessage, orderViewsAs } from '../api/client.js'
 import { amount } from '../api/format.js'
-import { ALL_ORDERS, ViewMark, canonical, useViews, viewLink } from '../app/views.jsx'
+import { ALL_ORDERS, ViewMark, canonical, useViews, viewCountColor, viewLink } from '../app/views.jsx'
 
 /** Which view the list is showing (2g, 9e): the one it was opened from, else one whose address it
     matches; and whether the filters have moved since that view was saved. */
@@ -123,7 +123,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 								)
 								: (
 									<NavItem variant={active?.id === view.id && edited ? 'edited' : 'light'} to={viewLink(view)} mark={<ViewMark query={view.query} />}
-										current={active?.id === view.id} count={count(view.count)} countColor={view.attention ? 'warning' : undefined}
+										current={active?.id === view.id} count={count(view.count)} countColor={viewCountColor(view)}
 										title={active?.id === view.id && edited ? 'Changed since it was saved' : undefined}
 										>{view.name}</NavItem>
 								)}
@@ -224,7 +224,7 @@ export function SheetViews({ params, onOpen }) {
 				<NavItem variant="light" icon="receipt" to={ALL_ORDERS} onClick={onOpen} current={!active && !now} count={amount(answer.all, 0)}>All orders</NavItem>
 				{answer.views.map(view => (
 					<NavItem key={view.id} variant="light" to={viewLink(view)} onClick={onOpen} mark={<ViewMark query={view.query} />} current={active?.id === view.id}
-						count={amount(view.count, 0)} countColor={view.attention ? 'warning' : undefined}>{view.name}</NavItem>
+						count={amount(view.count, 0)} countColor={viewCountColor(view)}>{view.name}</NavItem>
 				))}
 			</div>
 		</FieldGroup>
