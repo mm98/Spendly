@@ -216,6 +216,12 @@ the component says to use a Combobox.
 
 `Stepper` - an uncontrolled stepper cannot disable its buttons at the bounds, since
 it cannot see its own value; passing `min` or `max` without `value` is reported.
+Inside a `Field` with a text label it takes its name from the label: the label names
+the value input, and the two buttons read "One step fewer Quantity" and "One step
+more Quantity" from the same text, so the page writes `<Field label="Quantity">
+<Stepper /></Field>` with no `aria-label`. Outside a Field, or under a label that is
+not plain text, it takes `aria-label`, and a stepper with neither is reported.
+`Stepper.fieldLabel` is what asks `Field` for the text; no other control sets it.
 
 `FileDrop` - a label around a real file input: the click, the keyboard and the
 platform picker all work with no script, and on a phone that picker offers the

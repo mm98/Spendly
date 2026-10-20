@@ -97,12 +97,20 @@ export function Field({
 	   value takes a label bound by id; a box takes a label wrapping it; a set of
 	   inputs takes a legend, since a label can only point at one control. */
 	const role = (children.type && children.type.fieldRole) || 'value'
+	/* A control that builds names from the label - the Stepper's two buttons - says so
+	   with `fieldLabel` on the component, as it says its role. Only that control is
+	   handed the text: the others pass unknown props on to their element, where a
+	   label prop would be an attribute nobody asked for. Only plain text is handed,
+	   since a button name cannot hold markup; with any other label the control keeps
+	   its own aria-label. */
+	const wantsLabel = children.type && children.type.fieldLabel && typeof label === 'string'
 	const control = cloneElement(children, {
 		id: fieldId,
 		'aria-describedby': messageId,
 		...(isDanger ? { 'aria-invalid': 'true' } : {}),
 		...(color && !isDanger ? { 'data-color': color } : {}),
 		...(required ? { required: true } : {}),
+		...(wantsLabel ? { fieldLabel: label } : {}),
 		// the padding a slot reserves is the field's knowledge, not the control's
 		lead: lead ? true : undefined,
 		trail: trail || kbd ? true : undefined,

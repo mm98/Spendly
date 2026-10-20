@@ -32,9 +32,13 @@ import { formatNumber, parseNumber, round } from './format.js'
  * @param {number} [props.max] Native.
  * @param {number} [props.step] Native. Also what the buttons step by. Default 1.
  * @param {string} [props.locale] Defaults to the browser's.
- * @param {string} props['aria-label'] What is being counted - the field shows a
- *   number, which names nothing. The two buttons say "one step fewer" and "one step
- *   more" of it.
+ * @param {string} [props.fieldLabel] Handed by Field, never written by a caller: the
+ *   field's label text. Inside a Field it is what is being counted, and the label is
+ *   the value input's one name, so the page writes the word once.
+ * @param {string} [props['aria-label']] What is being counted, for a stepper outside
+ *   a Field (or in one whose label is not plain text) - the field shows a number,
+ *   which names nothing. The two buttons say "one step fewer" and "one step more" of
+ *   it, from whichever of the two names it has.
  *
  * The two glyphs are the component's own, not a caller's: a stepper steps by one, so
  * its buttons are the register's minus and plus. They used to be required props, and
@@ -53,9 +57,15 @@ export function Stepper({
 	locale,
 	// the field's label points at the value, not at the group around it
 	id,
+	fieldLabel,
 	...rest
 }) {
 	reject(rest, 'Stepper')
+	/* One name, from one place. Inside a Field the label names the value input
+	   through its id, so a second aria-label there would be the same word typed twice,
+	   and the first to go stale when the label is renamed. */
+	const name = fieldLabel ?? rest['aria-label']
+	if (!name) console.error('<Stepper> needs a name: put it in a Field with a text label, or pass aria-label')
 	const [held, setHeld] = useState(defaultValue)
 	const [typing, setTyping] = useState(null)
 	const controlled = value !== undefined
@@ -85,7 +95,7 @@ export function Stepper({
 			<button
 				type="button"
 				className="sp-stepper__btn"
-				aria-label={`One step fewer ${rest['aria-label']}`}
+				aria-label={`One step fewer ${name}`}
 				disabled={min !== undefined && current <= min}
 				onClick={() => { setTyping(null); set(current - step) }}
 			>
@@ -102,7 +112,7 @@ export function Stepper({
 				size={4}
 				id={id}
 				className="sp-stepper__value"
-				aria-label={rest['aria-label']}
+				aria-label={fieldLabel ? undefined : rest['aria-label']}
 				role={fractional ? 'spinbutton' : undefined}
 				aria-valuenow={fractional ? current : undefined}
 				aria-valuemin={fractional ? min : undefined}
@@ -131,7 +141,7 @@ export function Stepper({
 			<button
 				type="button"
 				className="sp-stepper__btn"
-				aria-label={`One step more ${rest['aria-label']}`}
+				aria-label={`One step more ${name}`}
 				disabled={max !== undefined && current >= max}
 				onClick={() => { setTyping(null); set(current + step) }}
 			>
@@ -140,3 +150,6 @@ export function Stepper({
 		</div>
 	)
 }
+
+// Field hands this control its label text, since the buttons are named from it
+Stepper.fieldLabel = true

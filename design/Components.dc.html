@@ -1393,7 +1393,7 @@
     <div class="doc-notes__label">Uses</div>
     <div class="doc-note"><a href="#c3">c3</a> for the stepper's value, which is a real number field. Each is that component unchanged - same markup, same dimensions, same states; this one adds no variant of it.</div>
     <div class="doc-notes__label">Slots</div>
-    <div class="doc-note">Stepper: label, minus, value, plus. FileDrop: instruction, accepted kinds, and one row per file already attached.</div>
+    <div class="doc-note">Stepper: label, minus, value, plus. In a field, the field's label is its name, and the minus and plus buttons are named from it: "One step fewer Quantity", "One step more Quantity". Outside a field it carries its own name. FileDrop: instruction, accepted kinds, and one row per file already attached.</div>
     <div class="doc-notes__label">Fixed</div>
     <div class="doc-note">Stepper is one bordered control at radius <code>--r-field</code>: 34px buttons the full height of the control, divided from the value by a 1px <code>--line</code> rule, 40px wide on touch where the control is <code>--control-h-touch</code>, and the value is a real <code>type="number"</code> so it stays typable. FileDrop is a <code>&lt;label&gt;</code> wrapping a visually hidden <code>type="file"</code>, so the whole area is the control and the file dialog needs no script. The FAB beside it is not part of this pattern: it is a 56px circle on <code>--green</code> that opens New order, and it wraps nothing. A phone reaches the camera through the receipt zone in <b>3a</b>, which is a FileDrop like the one here.</div>
     <div class="doc-notes__label">States</div>
