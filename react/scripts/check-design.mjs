@@ -611,6 +611,163 @@ for (const [p, ast] of parsed) {
 		}
 }
 
+/* ---- the library's exports: one name per object, named for the object ---- */
+
+{
+	const unwrap = n => n?.type === 'ParenthesizedExpression' ? unwrap(n.expression) : n
+	const firstWord = v => {
+		v = unwrap(v)
+		if (v?.type === 'JSXExpressionContainer') return firstWord(v.expression)
+		if (v?.type === 'Literal' && typeof v.value === 'string') return v.value.trim().split(/\s+/)[0] || null
+		if (v?.type === 'TemplateLiteral') return (v.quasis[0].value.cooked ?? '').trim().split(/\s+/)[0] || null
+		if (v?.type === 'CallExpression' && v.callee.name === 'join') return firstWord(v.arguments[0])
+		return null
+	}
+	const exports = []
+	for (const p of library) visit(parsed.get(p), n => {
+		const fn = n.type === 'ExportNamedDeclaration' ? n.declaration : null
+		if (fn?.type !== 'FunctionDeclaration' || !/^[A-Z]/.test(fn.id.name)) return
+		// the return at function-body level is the component's own output, not an early branch
+		const own = unwrap(fn.body.body.findLast(st => st.type === 'ReturnStatement')?.argument)
+		const rootTag = own?.type === 'JSXElement' && own.openingElement.name.name
+		const classAttr = /^[a-z]/.test(rootTag || '') && own.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+		exports.push({ p, n: fn.id.name, fn, cls: classAttr ? firstWord(classAttr.value) : null })
+	})
+	const roots = {}
+	for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n)
+	for (const [cls, names] of Object.entries(roots))
+		if (names.length > 1) fail('one component per root class', 'src/components', `.${cls} is rendered by ${names.join(' and ')}`)
+
+	// a slot that takes a shared primitive for its look is reuse, not a second word for it
+	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options' }
+	for (const [cls, names] of Object.entries(roots))
+		for (const n of names) {
+			if (REUSED[n] === cls) continue
+			const words = n.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase().split(' ')
+			if (!words.some(w => cls.includes(w.replace(/s$/, '')))) fail('one word per object', 'src/components', `${n} renders .${cls}`)
+		}
+
+	// only an arrangement: no classed element of its own, other components, and no decision
+	for (const e of exports) {
+		let own = false, decides = false
+		const kids = new Set()
+		visit(e.fn.body, n => {
+			if (n.type === 'JSXOpeningElement' && n.name.type === 'JSXIdentifier') {
+				if (/^[a-z]/.test(n.name.name)) own ||= n.attributes.some(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
+				else if (n.name.name !== 'Icon') kids.add(n.name.name)
+			}
+			if (['ConditionalExpression', 'LogicalExpression', 'IfStatement', 'ChainExpression', 'SwitchStatement'].includes(n.type)) decides = true
+			if (n.type === 'CallExpression' && /^(use[A-Z]\w*|pick|join)$/.test(n.callee.name ?? '')) decides = true
+		})
+		if (!own && kids.size && !decides)
+			fail('no component is only an arrangement', rel(e.p), `${e.n} renders ${[...kids].join(' + ')} and nothing of its own`)
+	}
+
+	// `touch` is what the library switches on, never a screen size
+	for (const e of exports)
+		if (/phone|mobile|tablet|desktop|watch|ipad|android/i.test(e.n)) fail('no component is named for a device', rel(e.p), `${e.n} names a device`)
+	for (const p of library)
+		if (/phone|mobile|tablet|ipad|android/i.test(rel(p))) fail('no component is named for a device', rel(p), 'the file names a device')
+}
+
+/* ---- the order form: its Categories field and the order of its fields ---- */
+
+// a value a file names once and draws elsewhere: a const, or a local function's returned markup,
+// each found by its name in the innermost function that declares it
+const localsOf = ast => {
+	const found = new Map()
+	const add = (name, init, above) => {
+		const scope = above.findLast(a => /Function/.test(a.type)) ?? ast
+		if (!found.has(name)) found.set(name, [])
+		found.get(name).push({ init, from: scope.start, to: scope.end })
+	}
+	visit(ast, (n, above) => {
+		if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init) add(n.id.name, n.init, above)
+		if (n.type === 'FunctionDeclaration' && n.id) add(n.id.name, n, above)
+	})
+	return (name, at) => (found.get(name) ?? []).filter(d => d.from <= at && at <= d.to).sort((a, b) => (a.to - a.from) - (b.to - b.from))[0]?.init
+}
+// visits a tree in drawing order, stepping into the locals it draws by name
+const walkDrawn = (node, local, fn, stack = new Set()) => visit(node, (n, above) => {
+	fn(n, above)
+	const via = above.at(-1)
+	const name = n.type === 'Identifier' && ['JSXExpressionContainer', 'ConditionalExpression', 'LogicalExpression', 'ArrayExpression'].includes(via?.type) ? n.name
+		: n.type === 'CallExpression' && n.callee.type === 'Identifier' ? n.callee.name : null
+	const init = name && !stack.has(name) && local(name, n.start)
+	if (!init || (n.type === 'Identifier' && /Function/.test(init.type))) return
+	walkDrawn(/Function/.test(init.type) ? init.body : init, local, fn, new Set([...stack, name]))
+})
+const attrOf = (el, name) => el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === name)
+const literalOf = a => a?.value?.type === 'Literal' ? a.value.value
+	: a?.value?.type === 'JSXExpressionContainer' && a.value.expression.type === 'Literal' ? a.value.expression.value : undefined
+
+{
+	const ORDER = ['Vendor', 'Date', 'Kind', 'Status', 'Categories', 'Reference', 'Note', 'Discount', 'Shipping fee']
+	for (const [p, ast] of parsed) {
+		const local = localsOf(ast)
+		visit(ast, n => {
+			if (n.type !== 'JSXElement') return
+			// a filter's Categories (Bookmarks) is not an order's field
+			if (tagOf(n) === 'Field' && literalOf(attrOf(n, 'label')) === 'Categories' && !/Bookmark/.test(rel(p))) {
+				let tokens = false, bulb = false
+				walkDrawn(n, local, m => {
+					if (m.type !== 'JSXElement') return
+					if (/Tokens(Field)?$/.test(tagOf(m))) tokens = true
+					if (literalOf(attrOf(m, 'aria-label')) === 'Suggest categories') bulb = true
+					if (m.type === 'JSXElement' && m.children.some(c => c.type === 'JSXText' && /Suggested from the items/.test(c.value))) bulb = true
+				})
+				if (tokens && !bulb) fail('an order Categories field has the bulb', rel(p), '<Field label="Categories"> with no Suggest categories trail')
+			}
+			if (tagOf(n) !== 'Card') return
+			let details = false
+			const got = []
+			walkDrawn(n, local, m => {
+				if (m.type === 'JSXText' && m.value.trim() === 'Order details') details = true
+				if (m.type !== 'JSXElement') return
+				if (tagOf(m) === 'CardHeader' && literalOf(attrOf(m, 'name')) === 'Order details') details = true
+				const label = tagOf(m) === 'Field' && literalOf(attrOf(m, 'label'))
+				if (ORDER.includes(label) && !got.includes(label)) got.push(label)
+			})
+			const want = ORDER.filter(x => got.includes(x))
+			if (details && got.join() !== want.join()) fail('order details fields in one order', rel(p), got.join(', '))
+		})
+	}
+}
+
+/* ---- a removed feature leaves no trace ---- */
+
+for (const p of [...checked, ...pageCss, join(src, 'styles/app.css')])
+	if (/\/letters\b|monthly letter|sp-letter/i.test(read(p))) fail('removed feature leaves no trace', rel(p), 'monthly letter')
+
+/* ---- what is left to check leads the file name ---- */
+
+{
+	// a file's name as the app holds it: file.name, draft.file?.name, fileName
+	const isFileName = n => {
+		n = n?.type === 'ChainExpression' ? n.expression : n
+		if (n?.type === 'Identifier') return /^file_?name$/i.test(n.name)
+		if (n?.type !== 'MemberExpression' || n.property.name !== 'name') return false
+		const of = n.object.type === 'ChainExpression' ? n.object.expression : n.object
+		return /file/i.test(of.type === 'Identifier' ? of.name : of.property?.name ?? '')
+	}
+	const said = n => !(n.type === 'JSXText' && !n.value.trim()) && !(n.type === 'TemplateElement' && !(n.value.cooked ?? '').trim())
+	for (const [p, ast] of parsed) {
+		const local = localsOf(ast)
+		visit(ast, n => {
+			if (n.type !== 'JSXElement') return
+			const cls = attrOf(n, 'className')
+			if (!cls?.value || !stringsIn(cls.value).some(s => /\bsp-meta\b/.test(s) && /\bsp-truncate\b/.test(s))) return
+			walkDrawn({ type: 'JSXFragment', children: n.children }, local, m => {
+				const parts = m.type === 'JSXFragment' || m.type === 'JSXElement' ? m.children.map(c => c.type === 'JSXExpressionContainer' ? c.expression : c)
+					: m.type === 'ArrayExpression' ? m.elements
+						: m.type === 'TemplateLiteral' ? [...m.quasis, ...m.expressions].sort((a, b) => a.start - b.start) : null
+				const at = parts?.findIndex(isFileName) ?? -1
+				if (at >= 0 && parts.slice(at + 1).some(said)) fail('what is left to check leads the file name', rel(p), 'a file name before what is left to check, in a one-line meta')
+			})
+		})
+	}
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -684,18 +841,18 @@ const DESIGN_RULES = {
 	'no typographic tells': 'typographic tells',
 	'gaps are on the scale': 'spacing on the scale',
 	'a page stylesheet states only its own classes': 'page css styles no component',
-	'one component per root class': NOT_CHECKED,
-	'one word per object': NOT_CHECKED,
-	'no component is only an arrangement': NOT_CHECKED,
-	'no component is named for a device': NOT_CHECKED,
+	'one component per root class': 'one component per root class',
+	'one word per object': 'one word per object',
+	'no component is only an arrangement': 'no component is only an arrangement',
+	'no component is named for a device': 'no component is named for a device',
 	'a table aligns with its card': COPY,
 	'a stat row aligns to the top': NOT_CHECKED,
 	'a faded mark is a photo': NOT_CHECKED,
 	'a faded band photo is a photo': NOT_CHECKED,
-	'an order Categories field has the bulb': NOT_CHECKED,
-	'order details fields in one order': NOT_CHECKED,
-	'removed feature leaves no trace': NOT_CHECKED,
-	'what is left to check leads the file name': NOT_CHECKED,
+	'an order Categories field has the bulb': 'an order Categories field has the bulb',
+	'order details fields in one order': 'order details fields in one order',
+	'removed feature leaves no trace': 'removed feature leaves no trace',
+	'what is left to check leads the file name': 'what is left to check leads the file name',
 	'no head link rule is left': COPY,
 	'a card head is the list toolbar height': COPY,
 	'the small button height is a token': COPY,
