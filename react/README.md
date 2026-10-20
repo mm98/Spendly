@@ -86,6 +86,11 @@ URL. Each route's `handle` carries the browser tab's title, the sidebar row it b
 body layout (`default`, `split` or `rail`) and whether the phone shows the New order button.
 Pages draw no heading and no back button: the shell names the page.
 
+A link in an email carries no `#`, as a mail program or its link checker can drop everything after
+one. It points at `/open/<route>` instead (`/open/categories`, `/open/reset/<code>`), and the server
+answers with a redirect to `/#/<route>`, the query kept. The dev server and `vite preview` pass
+`/open` on to the API, so the links work locally too.
+
 ## The shell
 
 Three shapes, chosen by window width in `app/useMedia.js`:
