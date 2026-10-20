@@ -1,30 +1,40 @@
-# Brief: A number box in a field takes its name from the field's label
+# A saved view's count can be highlighted
 
-Answers `Brief-stepper-name.md`. `later.md` has no entries, so nothing else is settled in this pass.
+## Fixed from `design_handoff_view_highlight`
 
-## 1. The Stepper takes its name from the Field's label
+A highlighted view whose count is 0 showed the 0 in the warning ink, a warning about nothing. The warning ink now applies only while the count is above 0; at 0 the count is plain, as Needs a look hides a row with nothing in it and a saving of 0 stays grey. The flag stays on the view, so the ink returns when an order lands in it. Drawn as notes in Order list 2g and Navigation shell 9e. App: `react/src/app/views.jsx` sets `countColor="warning"` only when `view.attention` is on and `view.count > 0`. Highlight count is still offered in the menu at any count. No style changed.
 
-**The problem** - Inside a Field, the Stepper's value input was named twice: by the field's label through its id, and by its own `aria-label`. The page had to type the word twice because the Stepper builds its two button names from `aria-label` and the Field handed over only an id. Renaming the label would leave the hidden name saying the old word.
+Settles the `later.md` entry "A saved view's warning colour has no control". The reader asked in review that the control be in the view's three-dots menu, named "Highlight count".
 
-**What changed** - A control that needs the label's text says so with a flag on the component, `Stepper.fieldLabel = true`, the same way it states `fieldRole`. Field hands such a control its label as `fieldLabel`, only when the label is plain text. The Stepper then names its buttons from it ("One step fewer Quantity", "One step more Quantity") and puts no `aria-label` on the value input, so the label is its one name. The page writes `<Field label="Quantity"><Stepper ... /></Field>` with no `aria-label`.
+## later.md: "A saved view's warning colour has no control"
 
-A Stepper outside a Field, or in a Field whose label is not plain text, keeps `aria-label` as now. A Stepper with neither name is reported in the console.
+**The problem** - The server can show a view's count in amber (`attention` on the view, read in `react/src/app/views.jsx` as `countColor="warning"`), but nothing in the app turns it on. The design described the flag in Navigation shell 9e as "set when it is saved", yet the save step and the per-row menu in Order list 2g had no control for it. 9e also named `--amber-2` for the dark sidebar, while `styles/components.css` uses `--shell-warning`.
 
-This differs from the brief in one point. The brief proposed handing the label to every control a Field holds. Most controls pass props they do not know on to their element, so each of them would render a `fieldLabel` attribute and React would warn. Only controls that set the flag receive it, and today that is the Stepper alone. Decided in review (decide for me).
+**What changed** - The per-row menu of a saved view, in edit mode, gets **Highlight count** with the alert-triangle icon, after Make default and before the rule above Delete view. On a view that is highlighted the item reads **Stop highlighting count** in its place, the same swap Make default makes with "Stop opening with it". Choosing it sets or clears `attention` on the view. A new view starts with it off, so the save step is unchanged. The flag is never derived from the count. While it is on and the count is above 0, the count takes the warning ink in the rail and the sidebar: `--shell-warning` on the dark sidebar, `--amber-ink` on the rail's white card, as `.sp-nav-item__count[data-color="warning"]` already draws it. The 9e note now names `--shell-warning` and points to 2g. No style changed.
 
-**Where** - `react_handoff/Stepper.jsx` (`fieldLabel` prop, the `name` it builds, the value input's `aria-label`, `Stepper.fieldLabel`); `react_handoff/Field.jsx` (`wantsLabel`, and `fieldLabel` in the props handed to the control); `react_handoff/README.md`, the Stepper paragraph; `Components.dc.html` c4, the Stepper note. App: `react/src/components/Stepper.jsx`, `react/src/components/Field.jsx`, and the line's Quantity in `react/src/pages/OrderForm.jsx`, which drops its `aria-label`.
+**Where** - `Order list.dc.html` 2g, state 4 (EDITING: RENAME, DELETE, REORDER), the open menu on Hay this month, and a new implementation note before "Deleting confirms". `Navigation shell.dc.html` 9e, the note "A view can carry an attention flag". App: the view menu in `react/src/app/views.jsx`, and the update route in `api/src/routes/views.js`. This settles the later.md entry "A saved view's warning colour has no control". Please remove it.
 
-**What is still open** - The drawn steppers name their buttons "Decrease" and "Increase" (Components c4 and c15, Order editing layouts 1b and 1c, Responsive reference, Dark mode and image viewer, States and confirmations), while the component says "One step fewer" and "One step more" of the label. Asked in review: the drawings stay as they are for now. The component's names are the ones the app uses. Nothing to build.
+**What is still open** - Nothing.
+
+## later.md entries not settled in this pass
+
+Left for later, as in the previous package (`design_handoff_confirm_link`):
+
+- "The order form promises an order number nobody sees": show it in the order detail header and in order list rows. Not drawn yet.
+- "The privacy notice does not name the exchange-rate lookup": not drawn yet.
+- "Search finds categories and bookmarks but does not show them": not taken up.
+- "51 of the design's checks are not held against the app", "Demo data counts returned orders as spending", "Categories with equal spend sort by their generated ids": app-side, with no design change.
 
 ## Files
 
 - `README.md` - the design overview, unchanged.
 - `CHANGES.md` - this note.
-- `Components.dc.html` - the Stepper note (c4).
-- `react_handoff/Stepper.jsx`, `react_handoff/Field.jsx` - the change.
-- `react_handoff/README.md` - the Stepper paragraph.
-- `support.js`, `components.js`, `icons.js` - loaded by the page.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles the page links.
+- `Order list.dc.html` - the Highlight count menu item and its note, with the zero rule (2g).
+- `Navigation shell.dc.html` - the corrected 9e note, with the zero rule.
+- `support.js`, `components.js` - loaded by the pages.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles the pages link.
+- `styles/pages/order-list.css` - linked by Order list.
+- `styles/pages/navigation-shell.css` - linked by Navigation shell.
 
 ## styles/check.js
 
