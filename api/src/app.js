@@ -100,8 +100,8 @@ app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '
 // rather than checked every request, so a normal run pays nothing.
 if (process.argv.includes('--debug') || process.env.DEBUG) {
 	const REDACT_KEYS = ['password', 'current', 'token']
-	// a link's code sits in the address too: /api/auth/reset/<code>, /api/auth/status-email/stop/<code>
-	const redactedUrl = url => url.replace(/\/(reset|stop)\/[^/?#]+/, '/$1/***')
+	// a link's code sits in the address too: /api/auth/reset/<code>, /open/confirm/<code>, /api/auth/status-email/stop/<code>
+	const redactedUrl = url => url.replace(/\/(reset|confirm|stop)\/[^/?#]+/, '/$1/***')
 	const redacted = body => JSON.stringify(body, (key, value) => REDACT_KEYS.includes(key) ? '***' : value)
 	app.use((req, res, next) => {
 		const arrived = new Date()
@@ -252,6 +252,10 @@ app.use('/api/stats', statsRouter)
 app.use('/api/scan', scanRouter)
 app.use('/api/drafts', draftsRouter)
 app.use('/api/search', searchRouter)
+
+/* An email's link to a page: /open/categories opens /#/categories. A link in an email carries no '#',
+   as a mail program or its link checker can drop everything after one. */
+app.use('/open', (req, res, next) => (req.method === 'GET' ? res.redirect(302, '/#' + req.url) : next()))
 
 /* Where a password manager looks for the page that changes a password (W3C "change-password URL").
    An unknown /.well-known address stays a 404: that is how the manager knows it can trust this one. */
