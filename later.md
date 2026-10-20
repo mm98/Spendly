@@ -4,14 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## 51 of the design's checks are not held against the app
-
-Found 2026-10-17, in `react/scripts/check-design.mjs`. Of the 110 rules in `design/styles/check.js`,
-51 apply to the app's own source but are only checked on the design's pages. They are the entries
-marked `NOT_CHECKED` in `DESIGN_RULES`. A fault one of them describes reaches the app unseen, as the
-amounts that did not line up in Statistics did. Each one ported is moved from `NOT_CHECKED` to the
-name of its rule here.
-
 ## A saved view's warning colour has no control
 
 Found 2026-10-19, in `api/src/routes/views.js`. The server can show a view's count in amber, but
