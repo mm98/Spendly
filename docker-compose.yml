@@ -11,14 +11,17 @@ services:
     #   docker compose build --build-arg BUILD_TIME=$(date -u +%FT%TZ) --build-arg GIT_SHA=$(git rev-parse HEAD)
     container_name: spendly
     restart: unless-stopped
-    # No ports: only caddy below is reached from outside, so every visit uses HTTPS.
+    ports:
+      # Plain http on the home network, for a device that does not trust caddy's certificate
+      # (an iPhone home-screen app). Delete this ports block to allow HTTPS only.
+      - "4000:4000"
     environment:
       SPENDLY_DB: /data/spendly.sqlite3
       # Without this the container's clock is UTC, so the nightly backup fires at UTC
       # 23:59:59 -- 1-2am local, depending on daylight saving -- not local midnight.
       TZ: "Europe/Copenhagen"
-      # Keeps HSTS off. With HSTS on, a browser that does not trust caddy's certificate yet
-      # cannot open Spendly at all, not even after a warning. Remove when every device trusts it.
+      # Keeps HSTS off, so the plain http address on port 4000 keeps working. Remove together
+      # with the port above when every device trusts caddy's certificate.
       SPENDLY_PLAIN_HTTP: "1"
       # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...

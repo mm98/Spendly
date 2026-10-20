@@ -207,8 +207,9 @@ Everything that needs you, on one page.
 
 Spendly is one container. [`docker-compose.yml`](docker-compose.yml) runs it on a home server with
 HTTPS in front ([Caddy](https://caddyserver.com/)) and automatic updates when a new version is
-published ([Watchtower](https://github.com/nicholas-fedor/watchtower)). Every setting in it has a
-note that says what it does.
+published ([Watchtower](https://github.com/nicholas-fedor/watchtower)). It also answers plain http
+on port 4000 on the home network, for a device that does not trust the certificate. Every setting
+in it has a note that says what it does.
 
 ```bash
 docker compose up -d
