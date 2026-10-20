@@ -16,9 +16,13 @@ export function Stepper({
 	locale,
 	// the field's label points at the value, not at the group around it
 	id,
+	// handed by Field, never written by a caller: the label names the value, and the buttons are named from it
+	fieldLabel,
 	...rest
 }) {
 	reject(rest, 'Stepper')
+	const name = fieldLabel ?? rest['aria-label']
+	if (!name) console.error('<Stepper> needs a name: put it in a Field with a text label, or pass aria-label')
 	// what Field hands the control belongs on the value, the element that takes focus
 	const { 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
 	const input = useRef(null)
@@ -59,7 +63,7 @@ export function Stepper({
 			<button
 				type="button"
 				className="sp-stepper__btn"
-				aria-label={`One step fewer ${rest['aria-label']}`}
+				aria-label={`One step fewer ${name}`}
 				disabled={noFewer}
 				onClick={() => {
 					setTyping(null)
@@ -80,7 +84,7 @@ export function Stepper({
 				aria-describedby={describedBy}
 				aria-invalid={invalid}
 				required={required}
-				aria-label={rest['aria-label']}
+				aria-label={fieldLabel ? undefined : rest['aria-label']}
 				role={fractional ? 'spinbutton' : undefined}
 				aria-valuenow={fractional ? current : undefined}
 				aria-valuemin={fractional ? min : undefined}
@@ -109,7 +113,7 @@ export function Stepper({
 			<button
 				type="button"
 				className="sp-stepper__btn"
-				aria-label={`One step more ${rest['aria-label']}`}
+				aria-label={`One step more ${name}`}
 				disabled={noMore}
 				onClick={() => {
 					setTyping(null)
@@ -122,3 +126,6 @@ export function Stepper({
 		</div>
 	)
 }
+
+// Field hands this control its label text, since the buttons are named from it
+Stepper.fieldLabel = true

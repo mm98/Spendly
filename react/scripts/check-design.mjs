@@ -533,7 +533,9 @@ for (const [p, ast] of parsed) {
 				for (const c of kids(n.children)) {
 					if (/^(Status|Kind)$/.test(words.trim()) && tagOf(outer(c)) !== 'Combobox')
 						fail('Status and Kind are selects', lineOf(c), `the ${words.trim()} field holds a <${tagOf(c)}>`)
-					if (tagOf(outer(c)) === 'Combobox' && (attr(outer(c), 'aria-label') || attr(c, 'aria-label')))
+					// a Stepper is named by a text label only, and keeps aria-label under any other
+					const named = tagOf(outer(c)) === 'Combobox' || (tagOf(outer(c)) === 'Stepper' && label?.value?.type === 'Literal')
+					if (named && (attr(outer(c), 'aria-label') || attr(c, 'aria-label')))
 						fail('one name per control', lineOf(c), `<Field label=${label ? text.slice(label.value.start, label.value.end) : ''}> holds a <${tagOf(c)}> with its own aria-label`)
 				}
 				if (/\*/.test(words)) fail('a required marker is an element', lineOf(n), `"${words}": use <Field required>`)

@@ -25,6 +25,9 @@ export const ALL_ORDERS = '/orders?saved=all'
 
 export const useViews = () => useApi(getViews)
 
+/** A highlighted view's count takes the warning ink only while there is something in it (2g, 9e). */
+export const viewCountColor = view => (view.attention && view.count > 0 ? 'warning' : undefined)
+
 const GROUPS = { status: 'status', vendor: 'vendor', category: 'category', min: 'amount', max: 'amount', receipt: 'other', files: 'other', discounted: 'other', kind: 'other' }
 const ICON = { status: 'clock', vendor: 'building-store', amount: 'wallet' }
 
@@ -55,7 +58,7 @@ export function SidebarViews({ rail, savedId }) {
 		<>
 			{shown.map(view => (
 				<NavItem key={view.id} to={viewLink(view)} mark={<ViewMark query={view.query} />} current={savedId === view.id}
-					count={countBadge(view.count)} countColor={view.attention ? 'warning' : undefined}
+					count={countBadge(view.count)} countColor={viewCountColor(view)}
 					aria-label={`${view.name}, ${countBadge(view.count)}`}>{view.name}</NavItem>
 			))}
 			{more > 0 ? <NavItem mark={<span className="sp-nav-item__icon" />} sub={`${more} more in Orders`} current={openPast} /> : null}
