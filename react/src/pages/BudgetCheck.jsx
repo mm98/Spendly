@@ -305,7 +305,7 @@ function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled })
 	return (
 		<Field label={label} id={id}>
 			<Combobox searchable search={query} onSearch={setQuery} noun="rows" open={open} onOpenChange={setOpen}
-				placeholder={kind === 'income' ? 'Type or pick from your income' : 'Type or pick from your costs'} aria-label={label}
+				placeholder={kind === 'income' ? 'Type or pick from your income' : 'Type or pick from your costs'}
 				onKeyDown={ev => { if (ev.key === 'Escape' && !open && onClose) { ev.preventDefault(); onClose() } }}>
 				{/* one flat list, so the arrow keys reach every option */}
 				{groups.length ? groups.flatMap((g, gi) => [

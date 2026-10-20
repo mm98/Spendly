@@ -407,6 +407,210 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- labels and names: every control named once, by the label drawn beside it ---- */
+
+{
+	const attr = (el, name) => el.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === name)
+	const spreads = el => el.openingElement.attributes.some(a => a.type === 'JSXSpreadAttribute')
+	const literal = a => a?.value?.type === 'Literal' ? a.value.value : null
+	const classOf = el => stringsIn(attr(el, 'className')?.value ?? null).join(' ')
+	// an id as written: its literal parts, and each expression by its source, so `${x}-from` matches itself
+	const canon = (e, text) => {
+		if (!e) return null
+		if (e.type === 'JSXExpressionContainer' || e.type === 'ParenthesizedExpression') return canon(e.expression, text)
+		if (e.type === 'Literal') return typeof e.value === 'string' ? e.value : null
+		if (e.type === 'TemplateLiteral') return e.quasis.map((q, i) => (q.value.cooked ?? '') + (e.expressions[i] ? '${' + text.slice(e.expressions[i].start, e.expressions[i].end) + '}' : '')).join('')
+		if (e.type === 'BinaryExpression' && e.operator === '+') { const l = canon(e.left, text), r = canon(e.right, text); return l === null || r === null ? null : l + r }
+		if (e.type === 'Identifier' || e.type === 'MemberExpression') return '${' + text.slice(e.start, e.end) + '}'
+		return null
+	}
+	// the elements a parent places in order, through fragments, conditions and a list of them
+	const kids = list => list.flatMap(c => c.type === 'JSXFragment' ? kids(c.children)
+		: c.type === 'JSXExpressionContainer' && c.expression.type === 'ArrayExpression' ? kids(c.expression.elements)
+		: c.type === 'JSXElement' ? [c] : placed(c))
+	const siblingLists = ast => {
+		const out = []
+		visit(ast, n => {
+			if (n.type === 'JSXElement' || n.type === 'JSXFragment') out.push(kids(n.children))
+			if (n.type === 'ArrayExpression' && n.elements.some(e => e?.type === 'JSXElement')) out.push(kids(n.elements.filter(Boolean)))
+		})
+		return out
+	}
+
+	// what a component draws as its outer element, followed through the app's own components
+	const drawn = new Map()
+	for (const [, ast] of parsed) visit(ast, n => {
+		if (n.type !== 'FunctionDeclaration' || !/^[A-Z]/.test(n.id?.name ?? '')) return
+		visit(n.body, (r, above) => {
+			if (r.type !== 'ReturnStatement' || above.some(a => a !== n.body && /Function/.test(a.type))) return
+			for (const el of placed(r.argument)) if (!drawn.has(n.id.name)) drawn.set(n.id.name, el)
+		})
+	})
+	const libraryNames = new Set()
+	for (const p of library) visit(parsed.get(p), n => { if (n.type === 'FunctionDeclaration' && n.id) libraryNames.add(n.id.name) })
+	const outer = el => {
+		let at = el
+		for (let i = 0; i < 5 && !libraryNames.has(tagOf(at)) && drawn.has(tagOf(at)); i++) at = drawn.get(tagOf(at))
+		return at
+	}
+	const groups = new Set()
+	for (const p of library) for (const m of read(p).matchAll(/^(\w+)\.fieldRole = 'group'/gm)) groups.add(m[1])
+	const isGroup = el => groups.has(tagOf(el)) || ['group', 'radiogroup'].includes(literal(attr(el, 'role')))
+	// the library's controls a reader types or picks in; the sets (Segmented, Picker) name their own parts
+	const CONTROLS = ['TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'TokensField', 'Combobox', 'Stepper', 'Check', 'Radio', 'Switch']
+	const VALUE_CONTROLS = ['input', 'select', 'textarea', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'TokensField', 'Stepper']
+	const ACRONYMS = ['PDF', 'CSV', 'DKK', 'VAT', 'CVR', 'XLS', 'JSON', 'ID', 'OK', 'EAN', 'MOMS']
+	const REFS = ['htmlFor', 'aria-labelledby', 'aria-describedby', 'aria-controls']
+
+	const declared = new Set()
+	for (const [p, ast] of parsed) {
+		// two of one id are drawn together unless they sit in different returns or either side of a condition
+		const apart = new Map()
+		visit(ast, (n, above) => {
+			const id = n.type === 'JSXAttribute' && n.name?.name === 'id' ? literal(n) : null
+			if (typeof id !== 'string') return
+			declared.add(id)
+			const forks = new Map()
+			above.forEach((a, i) => {
+				if (a.type === 'ConditionalExpression') forks.set(`if${a.start}`, above[i + 1] === a.consequent ? 'then' : 'else')
+				if (a.type === 'ReturnStatement') forks.set(`return${above.findLast((f, j) => j < i && /Function/.test(f.type))?.start}`, a.start)
+			})
+			const earlier = apart.get(id) ?? []
+			if (earlier.some(e => ![...forks].some(([k, v]) => e.has(k) && e.get(k) !== v))) fail('unique ids', rel(p), `id "${id}" declared more than once`)
+			apart.set(id, [...earlier, forks])
+		})
+	}
+
+	for (const [p, ast] of parsed) {
+		const text = read(p)
+		const lineOf = node => `${rel(p)}:${text.slice(0, node.start).split('\n').length}`
+		const owned = new Set()
+		visit(ast, n => { if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier' && n.init?.type === 'CallExpression' && n.init.callee.name === 'useId') owned.add(n.id.name) })
+		const ids = new Set()
+		visit(ast, n => {
+			if (n.type === 'JSXAttribute' && n.name?.name === 'id' && n.value) ids.add(canon(n.value, text))
+			if (n.type === 'Property' && (n.key?.name ?? n.key?.value) === 'id') ids.add(canon(n.value, text))
+		})
+		const fieldControls = new Set()
+		visit(ast, n => { if (n.type === 'JSXElement' && tagOf(n) === 'Field') for (const c of kids(n.children)) fieldControls.add(c) })
+		const bound = new Set()
+		visit(ast, n => { if (n.type === 'JSXAttribute' && n.name?.name === 'htmlFor' && n.value) bound.add(canon(n.value, text)) })
+		// an id the caller hands in names the control from the caller's own Field
+		const handedIn = a => a?.value?.type === 'JSXExpressionContainer' && a.value.expression.type === 'Identifier' && !owned.has(a.value.expression.name)
+
+		// a reference names an id this file declares, or one written out somewhere in the app
+		visit(ast, n => {
+			const name = n.type === 'JSXAttribute' ? n.name?.name : n.type === 'Property' ? n.key?.name ?? n.key?.value : null
+			if (!REFS.includes(name) || !n.value) return
+			const value = n.value.type === 'JSXExpressionContainer' ? n.value.expression : n.value
+			for (const one of value.type === 'ConditionalExpression' ? [value.consequent, value.alternate] : [value]) {
+				const ref = canon(one, text)
+				if (ref === null) continue
+				const parts = [...ref.matchAll(/\$\{([^}]*)\}/g)].map(m => m[1])
+				// an id handed in by the caller is the caller's to declare
+				if (parts.some(x => !owned.has(x))) continue
+				for (const token of parts.length ? [ref] : ref.split(/\s+/).filter(Boolean))
+					if (!ids.has(token) && !declared.has(token)) fail('references resolve', lineOf(n), `${name}="${token}" points at no id`)
+			}
+		})
+
+		visit(ast, (n, above) => {
+			if (n.type !== 'JSXElement') return
+			const tag = tagOf(n)
+			const has = a => !!attr(n, a)
+
+			// a control is named by a Field, a wrapping label, a bound id or an aria attribute
+			if ((['input', 'select', 'textarea'].includes(tag) || (CONTROLS.includes(tag) && !library.includes(p)))
+				&& literal(attr(n, 'type')) !== 'hidden' && !has('hidden') && !spreads(n) && !has('aria-label') && !has('aria-labelledby') && !has('prefix')
+				&& !fieldControls.has(n) && !bound.has(canon(attr(n, 'id')?.value, text)) && !handedIn(attr(n, 'id'))
+				&& !above.some(a => a.type === 'JSXElement' && ['label', 'Choice', 'Field'].includes(tagOf(a)))
+				&& !above.some(a => a.type === 'JSXAttribute' && a.name?.name === 'control'))
+				fail('every control is named', lineOf(n), `<${tag}> has no name`)
+
+			if (tag === 'Field') {
+				const label = attr(n, 'label')
+				const words = label ? stringsIn(label.value).join('') : ''
+				for (const c of kids(n.children)) {
+					if (/^(Status|Kind)$/.test(words.trim()) && tagOf(outer(c)) !== 'Combobox')
+						fail('Status and Kind are selects', lineOf(c), `the ${words.trim()} field holds a <${tagOf(c)}>`)
+					if (tagOf(outer(c)) === 'Combobox' && (attr(outer(c), 'aria-label') || attr(c, 'aria-label')))
+						fail('one name per control', lineOf(c), `<Field label=${label ? text.slice(label.value.start, label.value.end) : ''}> holds a <${tagOf(c)}> with its own aria-label`)
+				}
+				if (/\*/.test(words)) fail('a required marker is an element', lineOf(n), `"${words}": use <Field required>`)
+			}
+			if (/\bsp-field__label\b/.test(classOf(n)) && kids(n.children).length === 0 && n.children.some(c => c.type === 'JSXText' && c.value.includes('*')))
+				fail('a required marker is an element', lineOf(n), 'an asterisk typed into a label: use .sp-field__required')
+
+			// a back control is the one beside the title it leaves, in a phone's top bar
+			if (tag === 'IconButton' && literal(attr(n, 'icon')) === 'chevron-left') {
+				const row = siblingLists(above.findLast(a => a.type === 'JSXElement' || a.type === 'JSXFragment') ?? {}).find(r => r.includes(n)) ?? []
+				const next = row[row.indexOf(n) + 1]
+				if (next && /\bsp-stack(ed)?\b/.test(classOf(next)) && literal(attr(n, 'aria-label')) !== 'Back')
+					fail('Back is labelled Back', lineOf(n), `back control labelled "${literal(attr(n, 'aria-label')) ?? '(not a word)'}"`)
+			}
+
+			// the shortcut badge is the top bar's search only
+			if ((tag === 'Controls' || /\bsp-controls\b/.test(classOf(n)))) visit(n.children, k => {
+				if (k.type === 'JSXElement' && (attr(k, 'kbd') || tagOf(k) === 'Kbd' || tagOf(k) === 'kbd'))
+					fail('no shortcut badge in a list toolbar', lineOf(k), 'toolbar search carries the badge')
+			})
+
+			const select = attr(n, 'aria-label')?.value
+			const said = select ? canon(select, text) : null
+			if (said && /^Select all/.test(said) && !/\d|\$\{[^}]*(total|count|length|size|amount|matched|\bn\b)[^}]*\}/i.test(said))
+				fail('a select-all box names its scope', lineOf(n), said)
+
+			if (['button', 'a', 'Button', 'MenuItem', 'Link', 'NavLink', 'FieldGroupMore'].includes(tag)) {
+				const words = []
+				visit(n.children, (k, up) => {
+					if (up.some(u => u.type === 'JSXElement' && ['Icon', 'svg', 'Mark', 'Kbd', 'kbd'].includes(tagOf(u)))) return
+					if (k.type === 'JSXText') words.push(k.value)
+					if (k.type === 'Literal' && typeof k.value === 'string' && !up.some(u => u.type === 'JSXAttribute')) words.push(k.value)
+				})
+				const label = words.join(' ').replace(/\s+/g, ' ').trim()
+				const letters = label.replace(/[^A-Za-zÆØÅæøå]/g, '')
+				if (letters.length >= 2 && letters === letters.toUpperCase() && !ACRONYMS.includes(label))
+					fail('an action reads in sentence case', lineOf(n), `<${tag}> label typed in capitals: "${label.slice(0, 40)}"`)
+			}
+		})
+
+		// a label drawn beside a group or a pick list names it through aria-labelledby, once
+		for (const row of siblingLists(ast)) row.forEach((el, i) => {
+			const next = row[i + 1]
+			if (!next || !/\bsp-field__label\b/.test(classOf(el))) return
+			const words = stringsIn(el.children).join('').trim().slice(0, 40)
+			const id = attr(el, 'id') ? canon(attr(el, 'id').value, text) : null
+			if (isGroup(next)) {
+				const by = attr(next, 'aria-labelledby') ? canon(attr(next, 'aria-labelledby').value, text) : null
+				if (tagOf(el) === 'label') fail('a group label is a span', lineOf(el), `"${words}" is a <label>, which cannot name a group`)
+				if (!id) fail('a visible label is bound', lineOf(el), `"${words}" names a group but carries no id`)
+				else if (by !== id) fail('a visible label is bound', lineOf(el), `"${words}" has id ${id} but its group names ${by || 'nothing'}`)
+				if (by && attr(next, 'aria-label')) fail('one name per control', lineOf(next), `"${words}" group carries both aria-label and aria-labelledby`)
+				return
+			}
+			if (tagOf(outer(next)) === 'Combobox') {
+				// the trigger reads the label whose id is its own id and -label, when it has no aria-label
+				const trigger = attr(next, 'id') ? canon(attr(next, 'id').value, text) : null
+				if (!id) fail('a visible label is bound', lineOf(el), `"${words}" labels a pick list but carries no id`)
+				else if (!trigger || id !== trigger + '-label') fail('a visible label is bound', lineOf(el), `"${words}" has id ${id}, which its pick list does not read`)
+				if (attr(next, 'aria-label')) fail('one name per control', lineOf(next), `"${words}" pick list carries its own aria-label too`)
+				return
+			}
+			let control = VALUE_CONTROLS.includes(tagOf(next)) || tagOf(outer(next)) !== tagOf(next) && VALUE_CONTROLS.includes(tagOf(outer(next)))
+			visit(next, k => { if (k.type === 'JSXElement' && VALUE_CONTROLS.includes(tagOf(k))) control = true })
+			if (control && tagOf(el) !== 'label') fail('a field label binds its control', lineOf(el), `"${words}" is a span, not a bound label`)
+		})
+	}
+
+	// an action's words are never set in capitals by a rule the app adds
+	for (const [name, css] of [['app.css', app], ...pages.map(([p, c]) => [rel(p), c])])
+		for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+			if (!/text-transform:\s*uppercase/.test(m[2])) continue
+			for (const part of m[1].split(',').map(x => x.trim()))
+				if (/btn|-link|-action|-tab\b|^a[\s.:[]|\sa[\s.:[]|\sa$/.test(part)) fail('an action reads in sentence case', name, `${part} uppercases an action`)
+		}
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -416,14 +620,14 @@ const DESIGN = 'about the design\'s own pages, notes, start page or react_handof
 const NOT_CHECKED = 'applies to the app, not checked here yet'
 const DESIGN_RULES = {
 	'every page is checked': DESIGN,
-	'Back is labelled Back': NOT_CHECKED,
-	'Status and Kind are selects': NOT_CHECKED,
+	'Back is labelled Back': 'Back is labelled Back',
+	'Status and Kind are selects': 'Status and Kind are selects',
 	'the Go to menu matches the page': DESIGN,
-	'no shortcut badge in a list toolbar': NOT_CHECKED,
+	'no shortcut badge in a list toolbar': 'no shortcut badge in a list toolbar',
 	'balanced markup': DESIGN,
 	'no inline styles': 'no inline style in a page',
-	'unique ids': NOT_CHECKED,
-	'references resolve': NOT_CHECKED,
+	'unique ids': 'unique ids',
+	'references resolve': 'references resolve',
 	'classes resolve': 'classes resolve',
 	'tokens defined': 'tokens defined',
 	'a readout sits on the plot bars': NOT_CHECKED,
@@ -442,19 +646,19 @@ const DESIGN_RULES = {
 	'one name per role': COPY,
 	'the text red is --red-ink': COPY,
 	'a named token exists': DESIGN,
-	'every control is named': NOT_CHECKED,
-	'a group label is a span': NOT_CHECKED,
-	'a visible label is bound': NOT_CHECKED,
-	'one name per control': NOT_CHECKED,
-	'a field label binds its control': NOT_CHECKED,
-	'an action reads in sentence case': NOT_CHECKED,
+	'every control is named': 'every control is named',
+	'a group label is a span': 'a group label is a span',
+	'a visible label is bound': 'a visible label is bound',
+	'one name per control': 'one name per control',
+	'a field label binds its control': 'a field label binds its control',
+	'an action reads in sentence case': 'an action reads in sentence case',
 	'a colour is not a variant': NOT_CHECKED,
 	'a colour is one we define': 'variant values',
 	'a colour needs a component': NOT_CHECKED,
 	'the notes name a class that exists': DESIGN,
 	'one colour vocabulary': DESIGN,
 	'mockup mail is example.net': DESIGN,
-	'a required marker is an element': NOT_CHECKED,
+	'a required marker is an element': 'a required marker is an element',
 	'a well sits inside a surface': NOT_CHECKED,
 	'the row is one component': NOT_CHECKED,
 	'a size is a size, not a place': COPY,
@@ -467,7 +671,7 @@ const DESIGN_RULES = {
 	'the sidebar divider sits above Settings': NOT_CHECKED,
 	'the Views card keeps its rows in edit mode': NOT_CHECKED,
 	'a body is not nested in a body': NOT_CHECKED,
-	'a select-all box names its scope': NOT_CHECKED,
+	'a select-all box names its scope': 'a select-all box names its scope',
 	'a saving is never a percentage': 'a saving is an amount',
 	'a saving reads "Saved"': NOT_CHECKED,
 	'HEIC is not offered and never named': NOT_CHECKED,
