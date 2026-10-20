@@ -286,7 +286,7 @@ function selectSplit(scope) {
 		JOIN categories c ON c.id = oc.category_id
 		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
 		GROUP BY c.id
-		ORDER BY spend DESC
+		ORDER BY spend DESC, c.name COLLATE NOCASE, c.id
 	`)
 }
 
@@ -301,7 +301,7 @@ function vendorSplitOver(userId, from, to, scope) {
 		FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
 		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and}
 		GROUP BY ot.vendor_id
-		ORDER BY spend DESC
+		ORDER BY spend DESC, v.name COLLATE NOCASE, v.id
 	`).all({ userId, from, to, ...scope.params }).map(r => ({ id: r.id, name: r.name, amount: r.spend, orders: r.orders }))
 }
 

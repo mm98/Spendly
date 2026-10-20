@@ -119,7 +119,9 @@ const storeColumns = db.prepare(`UPDATE orders SET
 			FROM order_items WHERE order_id = orders.id),
 		search_text = note || char(10) ||
 			COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = orders.id), ''),
-		category_count = (SELECT COUNT(*) FROM order_categories oc WHERE oc.order_id = orders.id)
+		category_count = (SELECT COUNT(*) FROM order_categories oc WHERE oc.order_id = orders.id),
+		status_type = COALESCE(
+			(SELECT s.type FROM statuses s WHERE s.user_id = orders.user_id AND s.key = orders.status), 'custom')
 	WHERE id IN (SELECT value FROM json_each(?))`)
 
 /** Populates one account with `months` months of orders ending today. Deterministic for a
@@ -143,7 +145,7 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
 
 	/* Every trigger the fill would fire per row is off while a batch is written -- the
-	   item-totals set, the orders search_text pair, the order_categories count pair -- and
+	   item-totals set, the orders search_text and status_type pairs, the order_categories count pair -- and
 	   one UPDATE rebuilds the batch's stored columns before they come back. A statement that
 	   fires a trigger keeps a statement journal sized by what the transaction has already
 	   changed, so per-row triggers make a big fill quadratic. DDL is transactional in SQLite,

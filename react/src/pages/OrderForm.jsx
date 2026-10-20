@@ -1241,7 +1241,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				: null}
 			<div className="sp-fields">
 				<Field label="Reference">
-					{/* an order saved without one is given the next order number */}
 					<TextField value={draft.reference} onChange={reference => set({ reference })} />
 				</Field>
 				<Field label="Note">
