@@ -21,16 +21,16 @@ export const mailAvailable = () => Boolean(smtp) || process.env.SPENDLY_MAIL_LOG
 
 /** Where a link in a message points: SPENDLY_PUBLIC_URL. A request's own Host header is the sender's
     to choose, so it serves only the log, where nothing leaves the server. */
-export function linkTo(req, hashPath) {
+export function linkTo(req, path) {
 	const origin = process.env.SPENDLY_PUBLIC_URL || `${req.protocol}://${req.headers.host}`
-	return `${origin.replace(/\/$/, '')}/#${hashPath}`
+	return `${origin.replace(/\/$/, '')}/open${path}`
 }
 
 /** Where a link in a message sent with no request behind it points: SPENDLY_PUBLIC_URL, else this
     server on its own port, which serves only the log. `api` points at the server's own path, not a page. */
 export function publicLink(path, { api = false } = {}) {
 	const origin = (process.env.SPENDLY_PUBLIC_URL || `http://localhost:${process.env.PORT ?? 4000}`).replace(/\/$/, '')
-	return api ? `${origin}/api${path}` : `${origin}/#${path}`
+	return api ? `${origin}/api${path}` : `${origin}/open${path}`
 }
 
 /** Resolves once the SMTP server has taken the message. `html` and `headers` are optional; `text` is always sent beside it. */
