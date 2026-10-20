@@ -633,13 +633,14 @@ for (const [p, ast] of parsed) {
 		const classAttr = /^[a-z]/.test(rootTag || '') && own.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
 		exports.push({ p, n: fn.id.name, fn, cls: classAttr ? firstWord(classAttr.value) : null })
 	})
+	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
+	// the design draws the card grid as a variant of .sp-list, and a token field that suggests inside .sp-combobox
+	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox' }
 	const roots = {}
 	for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n)
 	for (const [cls, names] of Object.entries(roots))
-		if (names.length > 1) fail('one component per root class', 'src/components', `.${cls} is rendered by ${names.join(' and ')}`)
+		if (names.filter(n => REUSED[n] !== cls).length > 1) fail('one component per root class', 'src/components', `.${cls} is rendered by ${names.join(' and ')}`)
 
-	// a slot that takes a shared primitive for its look is reuse, not a second word for it
-	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options' }
 	for (const [cls, names] of Object.entries(roots))
 		for (const n of names) {
 			if (REUSED[n] === cls) continue
