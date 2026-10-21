@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20261002d">
+<link rel="stylesheet" href="styles/components.css?v=v20261021a">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
 <style>
@@ -4562,6 +4562,36 @@
       </div>
     </div>
 
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Asking · .sp-palette--ask, a question answered</span>
+      <div class="sp-palette sp-palette--ask" role="dialog" aria-label="Ask about your money">
+        <div class="sp-palette__search">
+          <button type="button" class="sp-icon-btn" aria-label="Back to search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <textarea class="sp-palette__term" rows="1" placeholder="Ask a follow-up" aria-label="Ask about your money"></textarea>
+          <button type="button" class="sp-btn sp-btn--small" disabled="{{ true }}">Send</button>
+        </div>
+        <div class="sp-palette__body">
+          <div class="sp-palette__thread">
+            <div class="sp-palette__question">How much did I spend on food in August?</div>
+            <div class="sp-record__head"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-palette__reply"><p>You spent <span class="sp-amount">4.212,50 kr.</span> on <a href="Vendors and categories.dc.html">Food</a> in August, over 23 orders. Most of it went to three vendors:</p>
+              <div class="sp-palette__figures"><table class="sp-table sp-table--compact sp-table--static">
+                <thead><tr><th class="sp-col-title">Vendor</th><th class="sp-col-number">Orders</th><th class="sp-col-amount">Amount</th></tr></thead>
+                <tbody>
+                  <tr><td><a href="Vendors and categories.dc.html">Netto</a></td><td class="sp-col-number">9</td><td class="sp-col-amount"><span class="sp-amount">1.684,20 kr.</span></td></tr>
+                  <tr><td><a href="Vendors and categories.dc.html">Lidl</a></td><td class="sp-col-number">8</td><td class="sp-col-amount"><span class="sp-amount">1.426,30 kr.</span></td></tr>
+                  <tr><td><a href="Vendors and categories.dc.html">Irma</a></td><td class="sp-col-number">6</td><td class="sp-col-amount"><span class="sp-amount">1.102,00 kr.</span></td></tr>
+                </tbody>
+              </table></div></div></div>
+            <div class="sp-palette__question">And in September?</div>
+            <div class="sp-record__head"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-palette__working"><span class="sp-spinner" aria-hidden="true"></span><span>Reading your orders</span></div></div>
+          </div>
+        </div>
+        <div class="sp-palette__foot">
+          <span>↵ send</span><span>⇧↵ new line</span><span>esc close</span><span class="sp-grow"></span><span class="sp-meta--over">2 questions left today</span><button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">New conversation</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div class="doc-notes">
@@ -4573,6 +4603,8 @@
     <div class="doc-note">A 520px surface at radius 14 with a lifted shadow, its query line divided by a <code>--line-2</code> rule and its foot on <code>--surface-2</code>. Rows are <code>--sp-8</code> by <code>--sp-16</code> at <code>--t-14</code>; group labels are <code>--t-10</code> at <code>--ls-label</code>. The matched run inside a name is marked in <code>--amber-3</code>, never bolded, so the name's own weight still reads. An action's shortcut sits at the right as a key cap, 18px tall so it sits inside the line rather than stretching it - every row is the same height whatever it carries. The body scrolls at 420px; the query line and the foot do not.</div>
     <div class="doc-notes__label">States</div>
     <div class="doc-note">On touch its rows take <code>--control-h-touch</code>, in the phone's full-screen search (<a href="Mobile screens.dc.html#7b">Mobile screens 7b</a>). As a floating panel the palette is the shell's desktop surface, opened from the top bar's search field or by ⌘K, and a phone has neither. On a phone the same ground is covered by the search field in the header and the tab bar, so this section shows no phone. Empty query, which offers what was open and the actions rather than nothing · typing, where results are grouped by kind with a count per group and a total in the query line · one row always current, marked <code>aria-selected</code> on <code>--hover</code>, which moves with the arrows and with the pointer alike · no matches, which states what was searched and offers the actions instead. Order of groups is fixed - orders, vendors, items - so the same query always lands in the same place.</div>
+    <div class="doc-notes__label">Asking - variant</div>
+    <div class="doc-note"><code>.sp-palette--ask</code> holds a conversation in the same surface (<a href="Navigation shell.dc.html#9d">Navigation shell 9d</a> for every state). The query line becomes a <code>textarea.sp-palette__term</code>, one line growing to four, led by Back to search and ended by Send (Stop while an answer comes), both small controls aligned to the last line. The body holds <code>.sp-palette__thread</code>: each question is <code>.sp-palette__question</code>, right-aligned on <code>--surface-2</code> at <code>--r-field</code>, at most 80% wide; each answer is the record head row (<code>.sp-record__head</code>, <a href="#c1">c1</a>), the Spendly mark (<a href="#c2">c2</a>, small, solid) beside <code>.sp-palette__reply</code> at <code>--t-14</code> on <code>--ink-2</code>. A reply holds paragraphs, a short list, links to records, <code>.sp-amount</code> for every amount, and a compact static table (<a href="#c1">c1</a>) framed in <code>.sp-palette__figures</code>. While it comes the reply is <code>.sp-palette__working</code>, the spinner (<a href="#c13">c13</a>) and one line; a failed one is <code>.sp-palette__failed</code> in <code>--red-ink</code> with Try again. The day's limit is the amber alert (<a href="#c19">c19</a>) at the end of the thread. The foot keeps its keys and adds New conversation, with the remaining count before it near the limit.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>⌘K</b> - opens it from anywhere, over the page, and closes it if it is already open. <b>Type</b> - filters as it goes, and the actions stay reachable by name, so a command and a record are found the same way. <b>↑ ↓</b> - move through every row including across groups, skipping the group labels. <b>↵</b> - opens the current row, or runs it if it is an action. <b>⌘↵</b> - opens a record in a new tab, leaving the palette where it was. <b>A one-letter shortcut</b> - runs that action directly, but only while the query is empty, so typing a name never fires one. <b>Esc</b> - closes without acting and returns focus to whatever had it. It never navigates on its own: a result is opened, not previewed. The whole surface is a <code>role="dialog"</code> holding a <code>role="listbox"</code>; it takes focus on open, holds it while open, and the query line reports the result count as it changes, so a screen reader hears how many without leaving the field.</div>
   </div>
