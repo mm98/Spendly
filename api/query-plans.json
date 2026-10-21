@@ -2475,6 +2475,15 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT id, name, created_at, last_used_at FROM user_mcp_tokens WHERE user_id = ? ORDER BY created_at": {
+			"plan": [
+				"SEARCH user_mcp_tokens USING INDEX idx_user_mcp_tokens_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_user_mcp_tokens_user"
+			]
+		},
 		"SELECT id, name, favourite FROM vendors WHERE user_id = ? AND archived = 0": {
 			"plan": [
 				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)"
@@ -2960,7 +2969,6 @@
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"LIST SUBQUERY 1",
 				"SCAN json_each VIRTUAL TABLE INDEX 1:",
-				"BLOOM FILTER ON ot (id=?)",
 				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)"
 			],
 			"findings": [],
@@ -4173,6 +4181,17 @@
 				"idx_order_status_history_order"
 			]
 		},
+		"SELECT t.id AS token_id, t.last_used_at, u.id, u.email, u.needs_setup, u.email_confirmed FROM user_mcp_tokens t JOIN users u ON u.id = t.user_id WHERE t.token_hash = ?": {
+			"plan": [
+				"SEARCH t USING INDEX sqlite_autoindex_user_mcp_tokens_2 (token_hash=?)",
+				"SEARCH u USING INDEX sqlite_autoindex_users_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_mcp_tokens_2",
+				"sqlite_autoindex_users_1"
+			]
+		},
 		"SELECT total FROM orders WHERE user_id = ? AND exclude_from_stats = 1": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_excluded (user_id=?)"
@@ -4944,6 +4963,14 @@
 				"email",
 				"ip_address",
 				"at"
+			],
+			"readers": 1
+		},
+		"idx_user_mcp_tokens_user": {
+			"table": "user_mcp_tokens",
+			"columns": [
+				"user_id",
+				"created_at"
 			],
 			"readers": 1
 		},

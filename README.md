@@ -203,6 +203,19 @@ Everything that needs you, on one page.
 - **Nightly backup** - just before midnight the server keeps a copy of the database, and keeps
   the newest five.
 
+### Reading Spendly from an assistant
+
+- **An assistant program** such as Claude Desktop or Claude Code can read your account through
+  the address `/mcp` on your Spendly server.
+- **It only reads.** It can find orders and open one, list categories and shops with what was
+  spent, read a year's budget, read statistics for a period and the months behind it, and use the
+  same search as the app. It cannot change or delete anything.
+- **Each token belongs to one account.** The assistant sends it as `Authorization: Bearer
+  <token>`, or as the end of the address, `/mcp/<token>`, for a program that takes only an
+  address. The token is shown one time, when it is made. Removing it stops it at once.
+- **Making and removing tokens** is done through the server for now (`/api/account/mcp-tokens`).
+  The section in Settings waits for its design.
+
 ## Running it
 
 Spendly is one container. [`docker-compose.yml`](docker-compose.yml) runs it on a home server with
@@ -249,6 +262,7 @@ printed amounts.
 | Category suggestions | A small language model, run on the server with [Transformers.js](https://huggingface.co/docs/transformers.js) |
 | PDFs and pictures | [MuPDF](https://mupdf.com) and [sharp](https://sharp.pixelplumbing.com) |
 | Passkeys | [SimpleWebAuthn](https://simplewebauthn.dev) |
+| Assistants | The [Model Context Protocol](https://modelcontextprotocol.io), over HTTP |
 | Email | [Nodemailer](https://nodemailer.com) |
 | Shipping | [Docker](https://www.docker.com), built and published by GitHub Actions |
 | Design | A design system of its own, in [`design/`](design/), made with Claude Design |
