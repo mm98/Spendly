@@ -80,7 +80,8 @@ html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display
 .sp-shell--touch:has(.sp-savebar) { padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom)); }
 /* the search fills a phone (7b) */
 .sp-shell--touch:has(.sp-palette--screen) { padding-bottom: 0; }
-.sp-shell--touch .sp-shell__page:has(> .sp-palette--screen) { height: 100dvh; }
+/* flex: none, or the column's flex basis wins over the height and the bars scroll away */
+.sp-shell--touch .sp-shell__page:has(> .sp-palette--screen) { flex: none; height: 100dvh; }
 
 /* focus the keyboard moves stops 12 clear of the bars pinned over the page */
 html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }

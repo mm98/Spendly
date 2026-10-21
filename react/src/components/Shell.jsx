@@ -398,10 +398,12 @@ export function PaletteAsk({ screen = false, value, onChange, onBack, onSend, on
 				</div>
 				<div className="sp-palette__body" id={body} {...(listbox ? { role: 'listbox', 'aria-label': 'Example questions' } : { role: 'log', 'aria-label': 'Conversation' })}>{children}</div>
 				<div className="sp-palette__foot">
-					{!screen ? keys?.map(key => <span key={key}>{key}</span>) : null}
+					{/* a phone has no keys, so its count leads the foot (7b) */}
+					{screen ? null : keys?.map(key => <span key={key}>{key}</span>)}
+					{screen && left ? <span className="sp-meta--over">{left}</span> : null}
 					<span className="sp-grow" />
-					{left ? <span className="sp-meta--over">{left}</span> : null}
-					<Button variant="text" size="xsmall" onClick={onClear}>New conversation</Button>
+					{!screen && left ? <span className="sp-meta--over">{left}</span> : null}
+					<Button variant="text" size={screen ? 'standard' : 'xsmall'} onClick={onClear}>New conversation</Button>
 				</div>
 			</div>
 		</PaletteScreen.Provider>
