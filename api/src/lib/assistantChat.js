@@ -29,14 +29,22 @@ export const removeQuestion = (userId, id) => { deleteSaved.run(id, userId) }
 
 /* ---- the conversation by email (emails/README.md, "Ask Spendly conversation") ---- */
 
-// the answer format lib/assistant.js asks for: [text](order:ID) links and {{number}} amounts
-const INLINE = /\[([^\]\n]+)\]\((order|vendor|category):([\w-]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
-const RECORD = { order: id => `/orders/${id}`, vendor: id => `/vendors/${id}/edit`, category: id => `/categories/${id}/edit` }
+// the answer format lib/assistant.js asks for: [text](order:ID) and [text](orders:FILTERS) links and {{number}} amounts
+const INLINE = /\[([^\]\n]+)\]\((orders?|vendor|category):([^)\s]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
+// where a link in an answer opens: an order itself, or the order list filtered to what the answer is about
+const FILTERS = { vendor: /^[\w-]+(?:,[\w-]+)*$/, category: /^[\w-]+(?:,[\w-]+)*$/, status: /^[^&=]+$/, from: /^\d{4}-\d{2}-\d{2}$/, to: /^\d{4}-\d{2}-\d{2}$/ }
+function linkTarget(kind, value) {
+	if (kind === 'order') return /^[\w-]+$/.test(value) ? `/orders/${value}` : null
+	const asked = kind === 'orders' ? new URLSearchParams(value) : new URLSearchParams({ [kind]: value })
+	// a filter the list cannot apply would open more orders than the text names, so such a link shows as text
+	const usable = asked.size && [...asked].every(([key, v]) => FILTERS[key]?.test(v) && asked.getAll(key).length === 1)
+	return usable ? `/orders?${asked}` : null
+}
 const AMOUNT = /\{\{(-?\d+(?:\.\d+)?)\}\}/g
 const AMOUNT_ONLY = /^\{\{-?\d+(?:\.\d+)?\}\}$/
 const NUMBER_ONLY = /^-?[\d.,\s]+$/
 // a link's text, so a column of linked amounts still sits on the right
-const LINK_ONLY = /^\[([^\]\n]+)\]\((?:order|vendor|category):[\w-]+\)$/
+const LINK_ONLY = /^\[([^\]\n]+)\]\((?:orders?|vendor|category):[^)\s]+\)$/
 const linkText = cell => cell.match(LINK_ONLY)?.[1] ?? cell
 
 // a no-break space: Outlook ignores nowrap and would put the currency on the next line
@@ -48,7 +56,10 @@ function runsOf(text, write) {
 	for (const m of text.matchAll(INLINE)) {
 		if (m.index > at) runs.push({ text: text.slice(at, m.index) })
 		if (m[4] !== undefined) runs.push({ text: amountText(m[4], write), amount: true })
-		else runs.push({ text: m[1].replace(AMOUNT, (_, n) => amountText(n, write)), url: publicLink(RECORD[m[2]](encodeURIComponent(m[3]))) })
+		else {
+			const text = m[1].replace(AMOUNT, (_, n) => amountText(n, write)), to = linkTarget(m[2], m[3])
+			runs.push(to ? { text, url: publicLink(to) } : { text })
+		}
 		at = m.index + m[0].length
 	}
 	if (at < text.length) runs.push({ text: text.slice(at) })

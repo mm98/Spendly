@@ -30,7 +30,8 @@ Write only this simple format:
 - Paragraphs, separated by one empty line.
 - A short list: lines that start with "- ".
 - A small table: lines that start and end with "|", the first line naming the columns. No line of dashes under it.
-- A link to a record: [text](order:ID), [text](vendor:ID) or [text](category:ID), with the id from the tools.
+- A link to one order: [text](order:ID), with the id from the tools.
+- A link to the orders an answer is about: [text](orders:FILTERS). FILTERS joins any of vendor=ID, category=ID, status=NAME, from=YYYY-MM-DD and to=YYYY-MM-DD with "&", for example [Food in August](orders:category=ID&from=2026-08-01&to=2026-08-31). Several ids are joined with ",". Give the period whenever the answer is about one. Use this link for a shop or a category, too.
 - Every amount as {{number}}, a plain number with a dot for decimals, for example {{4212.50}}. The app adds the currency.
 Nothing else: no bold, no headings, no other links.`
 
