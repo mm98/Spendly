@@ -614,7 +614,7 @@ export async function getBudgetYear(year, signal) {
 	return request(`/api/budget/${year}`, { signal })
 }
 
-/** How many budget rows have an amount in one month, paid or not: the sidebar's Budget count. */
+/** How many budget cost rows have an amount in one month, paid or not: the sidebar's Budget count. */
 export async function getBudgetDue(year, month, signal) {
 	return (await request(`/api/budget/due?${new URLSearchParams({ year, month })}`, { signal })).due
 }

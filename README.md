@@ -130,7 +130,8 @@ Everything that needs you, on one page.
 - **Months or the whole year** - one month in front with what is left over and how much of the
   income is used, or the whole year as a sheet.
 - **Start next year** as a copy of this one, or **import** a year from Excel.
-- **The sidebar counts this month's payments** - every row with an amount this month, paid or not.
+- **The sidebar counts this month's payments** - every cost row with an amount this month, paid or
+  not.
 - **Check a bank statement** - load your bank's CSV file and Spendly matches each payment against
   the budget, then saves the real amounts. The file is read in your browser and never sent
   anywhere. It works with any bank's export.

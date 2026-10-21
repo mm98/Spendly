@@ -1025,13 +1025,13 @@
 				"idx_orders_user_vendor"
 			]
 		},
-		"SELECT count(*) AS due FROM budget_line_amounts WHERE month = ? AND line_id IN (SELECT id FROM budget_lines WHERE user_id = ? AND group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id = (SELECT id FROM budget_years WHERE user_id = ? AND year = ?)))": {
+		"SELECT count(*) AS due FROM budget_line_amounts WHERE month = ? AND line_id IN (SELECT id FROM budget_lines WHERE user_id = ? AND group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND kind = 'expense' AND year_id = (SELECT id FROM budget_years WHERE user_id = ? AND year = ?)))": {
 			"plan": [
 				"SEARCH budget_line_amounts USING PRIMARY KEY (line_id=? AND month=?)",
 				"LIST SUBQUERY 3",
 				"SCAN budget_lines",
 				"LIST SUBQUERY 2",
-				"SEARCH budget_groups USING AUTOMATIC PARTIAL COVERING INDEX (user_id=? AND year_id=?)",
+				"SEARCH budget_groups USING AUTOMATIC PARTIAL COVERING INDEX (user_id=? AND kind=? AND year_id=?)",
 				"SCALAR SUBQUERY 1",
 				"SEARCH budget_years USING INDEX sqlite_autoindex_budget_years_2 (user_id=? AND year=?)",
 				"CREATE BLOOM FILTER"
