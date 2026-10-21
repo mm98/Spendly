@@ -425,7 +425,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId AND contains_fold(c.name, @needle) ORDER BY c.favourite DESC, COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId AND contains_fold(c.name, @needle) ORDER BY COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE o",
 				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)",
@@ -444,7 +444,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId ORDER BY c.favourite DESC, COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = @userId GROUP BY oc.category_id) o ON o.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(o.orders, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE o",
 				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)",
@@ -463,7 +463,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY c.favourite DESC, COALESCE(m.spend, 0) ASC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) ASC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -482,7 +482,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY c.favourite DESC, COALESCE(m.spend, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c LEFT JOIN (SELECT oc.category_id, SUM(ot.total) AS spend FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY oc.category_id) m ON m.category_id = c.id WHERE c.user_id = @userId ORDER BY COALESCE(m.spend, 0) DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE m",
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
@@ -501,7 +501,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT c.id FROM categories c WHERE c.user_id = @userId ORDER BY c.favourite DESC, c.budget DESC, c.name LIMIT @limit OFFSET @offset": {
+		"SELECT c.id FROM categories c WHERE c.user_id = @userId ORDER BY c.budget DESC, c.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
@@ -4260,7 +4260,7 @@
 				"sqlite_autoindex_order_drafts_1"
 			]
 		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 AND v.id <> @except AND v.id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ORDER BY v.id NOT IN (SELECT value FROM json_each(@alike)), s.last IS NULL, s.last DESC, v.name LIMIT @limit OFFSET @offset": {
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 AND v.id <> @except AND v.id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ORDER BY v.id NOT IN (SELECT value FROM json_each(@alike)), v.favourite DESC, s.last IS NULL, s.last DESC, v.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE s",
 				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
@@ -4288,7 +4288,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 AND v.id <> @except ORDER BY v.id NOT IN (SELECT value FROM json_each(@alike)), s.last IS NULL, s.last DESC, v.name LIMIT @limit OFFSET @offset": {
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 AND v.id <> @except ORDER BY v.id NOT IN (SELECT value FROM json_each(@alike)), v.favourite DESC, s.last IS NULL, s.last DESC, v.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE s",
 				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
@@ -4308,7 +4308,7 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 AND v.id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ORDER BY v.favourite DESC, COALESCE(s.spend, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 AND v.id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ORDER BY COALESCE(s.spend, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE s",
 				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
@@ -4350,6 +4350,74 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY COALESCE(s.saved, 0) ASC, v.name LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"MATERIALIZE s",
+				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
+				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
+				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_vendor",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor",
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY COALESCE(s.saved, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"MATERIALIZE s",
+				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
+				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
+				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_vendor",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor",
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY COALESCE(s.spend, 0) ASC, v.name LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"MATERIALIZE s",
+				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
+				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
+				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_vendor",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor",
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY COALESCE(s.spend, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"MATERIALIZE s",
+				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
+				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
+				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_vendor",
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor",
+				"idx_vendors_user_name"
+			]
+		},
 		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY s.last IS NULL, s.last DESC, v.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE s",
@@ -4367,92 +4435,7 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY v.favourite DESC, COALESCE(s.orders, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"MATERIALIZE s",
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
-				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
-				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_vendor",
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_vendor",
-				"idx_vendors_user_name"
-			]
-		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY v.favourite DESC, COALESCE(s.saved, 0) ASC, v.name LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"MATERIALIZE s",
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
-				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
-				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_vendor",
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_vendor",
-				"idx_vendors_user_name"
-			]
-		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY v.favourite DESC, COALESCE(s.saved, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"MATERIALIZE s",
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
-				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
-				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_vendor",
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_vendor",
-				"idx_vendors_user_name"
-			]
-		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY v.favourite DESC, COALESCE(s.spend, 0) ASC, v.name LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"MATERIALIZE s",
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
-				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
-				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_vendor",
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_vendor",
-				"idx_vendors_user_name"
-			]
-		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY v.favourite DESC, COALESCE(s.spend, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"MATERIALIZE s",
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
-				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
-				"SEARCH s USING AUTOMATIC COVERING INDEX (vendor_id=?) LEFT-JOIN",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_vendor",
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_vendor",
-				"idx_vendors_user_name"
-			]
-		},
-		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId ORDER BY v.favourite DESC, COALESCE(s.spend, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
+		"SELECT v.id FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId ORDER BY COALESCE(s.spend, 0) DESC, v.name LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"MATERIALIZE s",
 				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=?)",
@@ -4740,7 +4723,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"WITH ranked AS (SELECT v.id, ROW_NUMBER() OVER (ORDER BY v.favourite DESC, COALESCE(s.spend, 0) DESC, v.name) AS r FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0), pairs AS ( SELECT json_extract(value, '$[0]') AS merge, json_extract(value, '$[1]') AS keep FROM json_each(@pairs) ), slots AS ( SELECT k.id, k.r AS g, 0 AS i FROM ranked k WHERE k.id IN (SELECT keep FROM pairs) UNION ALL SELECT m.id, k.r, m.r FROM pairs p JOIN ranked m ON m.id = p.merge JOIN ranked k ON k.id = p.keep ), placed AS (SELECT id, MIN(g * 1000000000 + i) AS at FROM slots GROUP BY id) SELECT v.id FROM placed JOIN vendors v ON v.id = placed.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY placed.at LIMIT @limit OFFSET @offset": {
+		"WITH ranked AS (SELECT v.id, ROW_NUMBER() OVER (ORDER BY COALESCE(s.spend, 0) DESC, v.name) AS r FROM vendors v LEFT JOIN (SELECT vendor_id, COUNT(*) AS orders, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE total END) AS spend, SUM(CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE saved END) AS saved, MAX(date) AS last FROM orders WHERE user_id = @userId GROUP BY vendor_id) s ON s.vendor_id = v.id WHERE v.user_id = @userId AND v.archived = 0), pairs AS ( SELECT json_extract(value, '$[0]') AS merge, json_extract(value, '$[1]') AS keep FROM json_each(@pairs) ), slots AS ( SELECT k.id, k.r AS g, 0 AS i FROM ranked k WHERE k.id IN (SELECT keep FROM pairs) UNION ALL SELECT m.id, k.r, m.r FROM pairs p JOIN ranked m ON m.id = p.merge JOIN ranked k ON k.id = p.keep ), placed AS (SELECT id, MIN(g * 1000000000 + i) AS at FROM slots GROUP BY id) SELECT v.id FROM placed JOIN vendors v ON v.id = placed.id WHERE v.user_id = @userId AND v.archived = 0 ORDER BY placed.at LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"CO-ROUTINE placed",
 				"CO-ROUTINE slots",
@@ -4941,7 +4924,7 @@
 				"date",
 				"id"
 			],
-			"readers": 39
+			"readers": 38
 		},
 		"idx_uploads_user": {
 			"table": "uploads",
@@ -5034,7 +5017,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 43
+			"readers": 42
 		}
 	}
 }

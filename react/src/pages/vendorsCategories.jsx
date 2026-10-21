@@ -370,7 +370,7 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 	const [picked, setPicked] = useState(initial)
 	const [query, setQuery] = useState('')
 	const vendor = kind === 'vendor'
-	const options = usePickList(kind, query, vendor ? { except: source.id, archived: 'all', sort: 'name-asc' } : { except: source.id })
+	const options = usePickList(kind, query, vendor ? { except: source.id, archived: 'all' } : { except: source.id })
 	const recent = useRecent(kind).filter(n => n !== source.name)
 	const shown = options.rows ?? []
 	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)

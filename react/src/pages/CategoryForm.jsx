@@ -238,7 +238,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 						{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 							value={colour} onChange={v => set('colour', v)} />)}
 					</Field>
-					<Choice variant="described" description="Kept at the top of Categories, and leads the list in every category picker."
+					<Choice variant="described" description="Leads the list in every category picker."
 						control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
 						Favourite
 					</Choice>

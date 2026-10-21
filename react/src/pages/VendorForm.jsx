@@ -323,7 +323,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 						value={values.colour} onChange={v => set('colour', v)} />)}
 				</Field>
-				<Choice variant="described" description="Kept at the top of Vendors, and leads the list on a new order."
+				<Choice variant="described" description="Leads the list wherever you pick a vendor."
 					control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
 					Favourite
 				</Choice>
