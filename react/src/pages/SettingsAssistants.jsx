@@ -95,7 +95,8 @@ export function AssistantsCard({ state, touch }) {
 					</div>
 				</Fragment>
 			))}
-			{removing ? <Remove token={removing} onDone={() => setRemoving(null)} /> : null}
+			{removing ? <Remove token={removing} onDone={() => setRemoving(null)}
+				onRemoved={() => { setRemoving(null); if (made?.id === removing.id) setMade(null) }} /> : null}
 		</Card>
 	)
 }
@@ -192,14 +193,14 @@ function MadeToken({ token, touch }) {
 }
 
 /** Remove asks first (11e): the program using the token stops at once, and there is no undo. */
-function Remove({ token, onDone }) {
+function Remove({ token, onDone, onRemoved }) {
 	const toast = useToast()
 	const [busy, setBusy] = useState(false)
 	const [problem, setProblem] = useState(null)
 	const remove = () => {
 		setBusy(true)
 		removeMcpToken(token.id)
-			.then(() => { onDone(); toast({ message: 'Token removed.' }) })
+			.then(() => { onRemoved(); toast({ message: 'Token removed.' }) })
 			.catch(e => { setBusy(false); setProblem(failureMessage(e, UNREACHABLE)) })
 	}
 	return (
