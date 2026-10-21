@@ -82,17 +82,12 @@ html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display
 .sp-shell--touch:has(.sp-palette--screen) { padding-bottom: 0; }
 .sp-shell--touch .sp-shell__page:has(> .sp-palette--screen) { height: 100dvh; }
 
-/* a body that fills the column (Ask Spendly 24a) holds the window's height, so its own part scrolls */
+/* a body that fills the column (Ask 24a) holds the window's height, so its own part scrolls */
 .sp-shell--viewport .sp-shell__page:has(> .sp-shell__body--fill) { height: 100dvh; }
 .sp-shell--touch:has(.sp-shell__body--fill) { height: 100dvh; }
 /* on a phone the dock runs edge to edge above the tab bar, and the thread keeps the phone gutter (7a) */
 .sp-shell--touch .sp-shell__body--fill { padding: 0; }
 .sp-shell--touch .sp-shell__body--fill :is(.sp-chat__scroll, .sp-chat__start) { padding: 0 var(--phone-gutter); }
-/* a table in an answer wider than its bubble scrolls sideways in its frame, so no column is hidden */
-.sp-chat__figures { overflow-x: auto; }
-/* a fixed cap, so the saved question's own width is the cut one and the row can centre it;
-   a percentage cap leaves the uncut width in the row's sizing */
-.sp-chat__pick > .sp-btn { max-width: 320px; }
 
 /* focus the keyboard moves stops 12 clear of the bars pinned over the page */
 html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }

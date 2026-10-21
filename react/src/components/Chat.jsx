@@ -1,11 +1,10 @@
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
-import { Combobox, ComboboxOption } from './Combobox.jsx'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Spinner } from './Utilities.jsx'
 
-/* ---------- chat (c34, Ask Spendly 24a) ---------- */
+/* ---------- chat (c34, Ask 24a) ---------- */
 
 // the sidebar brand's mark: what speaks for Spendly beside each answer and over the empty page
 export const SpendlyMark = ({ size = 'small' }) => <Mark size={size} fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
@@ -94,32 +93,20 @@ export function ChatPick({ question, disabled = false, onSend, onRemove, ...rest
 	)
 }
 
-/** The saved questions in a conversation, on a desktop: the action select at the left of the
-    controls bar. Choosing one sends it; the trigger always reads Saved questions. */
-export function ChatSavedMenu({ questions, disabled = false, onSend, ...rest }) {
-	reject(rest, 'ChatSavedMenu')
-	return (
-		<div className="sp-chat__saved-menu">
-			<Combobox prefix="Saved questions" value="" aria-label="Saved questions" disabled={disabled}>
-				{questions.map(q => <ComboboxOption key={q} truncate title={q} onSelect={() => onSend(q)}>{q}</ComboboxOption>)}
-			</Combobox>
-		</div>
-	)
-}
-
-/** Under the thread: the field and Send, or Stop while `working`. `bar` pins it above a
+/** Under the thread: the field and Send, or Stop while `working`, then `end`. `bar` pins it above a
     phone's tab bar, where the hint has no keys and shows only `left`. */
-export function ChatDock({ bar = false, value, onChange, onSend, onStop, working = false, disabled = false, fieldRef, placeholder, left, ...rest }) {
+export function ChatDock({ bar = false, value, onChange, onSend, onStop, working = false, disabled = false, fieldRef, placeholder, left, end, ...rest }) {
 	reject(rest, 'ChatDock')
 	const size = bar ? 'small' : 'standard'
 	return (
 		<div className={join('sp-chat__dock', bar && 'sp-chat__dock--bar')}>
 			<div className="sp-chat__composer">
 				<textarea ref={fieldRef} className="sp-textarea sp-chat__field" rows={1} value={value} disabled={disabled}
-					onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label="Ask Spendly" {...rest} />
+					onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label="Ask" {...rest} />
 				{working
 					? <Button variant="outline" size={size} onClick={onStop}>Stop</Button>
 					: <Button size={size} disabled={disabled || !value.trim()} onClick={onSend}>Send</Button>}
+				{end}
 			</div>
 			{bar && !left
 				? null

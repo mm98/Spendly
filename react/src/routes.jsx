@@ -120,7 +120,7 @@ export const routes = [
 				{ path: 'budget/check', element: <BudgetCheck />, handle: { title: 'Check a bank statement', navKey: 'budget' } },
 				{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget', remember: true } },
 
-				{ path: 'ask', element: <Ask />, handle: { title: 'Ask Spendly', navKey: 'ask', layout: 'fill' } },
+				{ path: 'ask', element: <Ask />, handle: { title: 'Ask', navKey: 'ask', layout: 'fill' } },
 				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings' } },
 				{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
 				{ path: 'more/views', element: <SavedViews />, handle: { title: 'Saved views', navKey: 'more' } },

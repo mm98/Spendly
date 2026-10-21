@@ -4,7 +4,7 @@ import { newId } from './ids.js'
 import { publicLink, sendMail } from './mail.js'
 import { usableLocale, writerFor } from './statusEmail.js'
 
-/* What Ask Spendly keeps beside the conversation (24b, 24c): the reader's saved questions, and the
+/* What Ask keeps beside the conversation (24b, 24c): the reader's saved questions, and the
    conversation sent to the reader's own address. The conversation itself is never stored. */
 
 export const SAVED_MOST = 8
@@ -27,7 +27,7 @@ export const saveQuestion = db.transaction((userId, question) => {
 
 export const removeQuestion = (userId, id) => { deleteSaved.run(id, userId) }
 
-/* ---- the conversation by email (emails/README.md, "Ask Spendly conversation") ---- */
+/* ---- the conversation by email (emails/README.md, "Ask conversation") ---- */
 
 // the answer format lib/assistant.js asks for: [text](order:ID) and [text](orders:FILTERS) links and {{number}} amounts
 const INLINE = /\[([^\]\n]+)\]\((orders?|vendor|category):([^)\s]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
@@ -132,7 +132,7 @@ export async function emailConversation(userId, { turns, day, locale }) {
 	const date = write.date(day)
 	const questions = turns.filter(t => t.role === 'user').map(t => t.text)
 	await sendMail(emailMessage('ask-chat', account.email, {
-		subject: `Your Ask Spendly conversation, ${date}`,
+		subject: `Your Spendly conversation, ${date}`,
 		preheader: questions.slice(0, 2).join(' '),
 		date,
 		currency_name: currencyName(currency),

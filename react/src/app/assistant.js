@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { askAssistant } from '../api/client.js'
 
-/* Ask Spendly's conversation (24a), kept for the visit: an answer still coming when the page is left
+/* Ask's conversation (24a), kept for the visit: an answer still coming when the page is left
    lands in it. A turn is { id, question, answer, state }: working, answered, failed or stopped. */
 
 let owner = null

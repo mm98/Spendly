@@ -6,7 +6,7 @@ import { SAVED_MOST, emailConversation, removeQuestion, saveQuestion, savedQuest
 import { mailAvailable } from '../lib/mail.js'
 import { ownsServer } from './account.js'
 
-/* Ask Spendly (lib/assistant.js): whether it is there with the questions left today, one question
+/* Ask (lib/assistant.js): whether it is there with the questions left today, one question
    answered, the saved questions, and the conversation by email. The day is the reader's own. */
 export const router = Router()
 

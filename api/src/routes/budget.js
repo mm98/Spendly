@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import {
-	addAccount, addGroup, addLine, createYear, deleteAccount, deleteGroup, deleteLine, deleteYear, forgetLink,
+	addAccount, addGroup, addLine, countDue, createYear, deleteAccount, deleteGroup, deleteLine, deleteYear, forgetLink,
 	listAccountsInUse, listLinks, listYears, readYear, replaceYears, saveLink, updateAccount, updateGroup, updateLine
 } from '../lib/budget.js'
 import {
@@ -90,6 +90,9 @@ router.post('/', (req, res) => {
 	createYear(req.user.id, year, { from, amounts })
 	res.status(201).json(sheet(req, year))
 })
+
+// before /:year, which would read "due" as a year
+router.get('/due', (req, res) => res.json({ due: countDue(req.user.id, budgetYear(req.query.year), budgetMonth(req.query.month)) }))
 
 router.get('/:year', (req, res) => {
 	const year = budgetYear(req.params.year)

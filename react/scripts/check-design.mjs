@@ -65,7 +65,7 @@ for (const name of ['tokens.css', 'components.css'])
 
 // the server sends the design's emails as they are, so its copies match file for file
 // except a fix the build made, each one written in later.md and removed here once design/ carries it
-const EMAIL_FIXES = ['ask-chat.html']
+const EMAIL_FIXES = []
 const emailsOf = dir => readdirSync(dir).filter(n => /\.(html|txt)$/.test(n)).sort()
 const designEmails = join(root, '../design/emails'), apiEmails = join(root, '../api/src/emails')
 for (const name of new Set([...emailsOf(designEmails), ...emailsOf(apiEmails)]))
@@ -848,16 +848,23 @@ for (const [p, ast] of parsed) {
 	})
 }
 
-/* ---- the sidebar's foot: the divider, then Ask Spendly, then Settings ---- */
+/* ---- the sidebar's foot: the divider, then Ask, then Settings ---- */
 
 for (const [p, ast] of parsed) visit(ast, (n, above) => {
 	if (n.type !== 'JSXElement' || !above.some(a => isTag(a) && tagOf(a) === 'Sidebar') && !(isTag(n) && tagOf(n) === 'Sidebar')) return
 	const kids = childElements(n)
 	kids.forEach((c, i) => {
 		if (!placed(c).some(el => ownText(el) === 'Settings' && /\/settings$/.test(attrLiteral(el, 'to') ?? ''))) return
-		if (!placed(kids[i - 1]).some(el => ownText(el) === 'Ask Spendly')) fail('the sidebar foot is the divider, Ask Spendly, Settings', rel(p), 'Settings does not follow Ask Spendly')
-		else if (!placed(kids[i - 2]).some(el => tagOf(el) === 'SidebarDivider')) fail('the sidebar foot is the divider, Ask Spendly, Settings', rel(p), 'Ask Spendly does not follow a <SidebarDivider>')
+		if (!placed(kids[i - 1]).some(el => ownText(el) === 'Ask')) fail('the sidebar foot is the divider, Ask, Settings', rel(p), 'Settings does not follow Ask')
+		else if (!placed(kids[i - 2]).some(el => tagOf(el) === 'SidebarDivider')) fail('the sidebar foot is the divider, Ask, Settings', rel(p), 'Ask does not follow a <SidebarDivider>')
 	})
+})
+
+/* ---- the theme is set in Settings only: no sidebar row, on the wide sidebar or the rail, is Dark mode ---- */
+
+for (const [p, ast] of parsed) visit(ast, n => {
+	if (!isTag(n) || tagOf(n) !== 'NavItem') return
+	if (ownText(n) === 'Dark mode' || attrLiteral(n, 'aria-label') === 'Dark mode') fail('the theme is set in Settings only', rel(p), 'a Dark mode row in the sidebar')
 })
 
 /* ---- a saved question keeps its text in .sp-truncate, so the 320px cap can cut it ---- */
@@ -1336,6 +1343,12 @@ const DESIGN_RULES = {
 	'the chat placeholder is one line': COPY,
 	'a saved question is cut at the column': COPY,
 	'figures in an answer are never cut': COPY,
+	'an answer is one text size': COPY,
+	'a conversation is the body size': COPY,
+	'a wide answer table scrolls in its frame': COPY,
+	'the tab bar fits the screen': COPY,
+	'the theme is set in Settings only': 'the theme is set in Settings only',
+	'nothing but search in the top bar': NOT_CHECKED,
 	'no saved row above the field': 'classes resolve',
 	'a saved question is capped': 'a saved question is capped',
 	'Status and Kind are selects': 'Status and Kind are selects',
@@ -1385,7 +1398,7 @@ const DESIGN_RULES = {
 	'a card body does not truncate': 'a card body does not truncate',
 	'a pair starts with sp-title': 'a pair starts with sp-title',
 	'a button beside an input matches its height': 'a button beside an input matches its height',
-	'the sidebar foot is the divider, Ask Spendly, Settings': 'the sidebar foot is the divider, Ask Spendly, Settings',
+	'the sidebar foot is the divider, Ask, Settings': 'the sidebar foot is the divider, Ask, Settings',
 	'the Views card keeps its rows in edit mode': 'the Views card keeps its rows in edit mode',
 	'a body is not nested in a body': 'a body is not nested in a body',
 	'a select-all box names its scope': 'a select-all box names its scope',

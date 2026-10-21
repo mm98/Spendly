@@ -2468,7 +2468,9 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
 .sp-tabbar {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  /* minmax(0, 1fr): a bare 1fr is never narrower than its item's label, so on a 393px
+     phone the bar ended 3px past the screen */
+  grid-auto-columns: minmax(0, 1fr);
   background: var(--surface);
   border-top: 1px solid var(--line);
   /* every bar pinned to the bottom of a phone screen is at least this tall, so the
@@ -5491,7 +5493,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch :is(.sp-input, .sp-textarea, .sp-tokens__add, .sp-palette__term)::placeholder { font-size: var(--t-16); }
 
 /* ---------- chat - DRAFT c34 ----------
-   A conversation about the reader's money (Ask Spendly 24a): the questions and the
+   A conversation about the reader's money (Ask 24a): the questions and the
    answers in order across the content column, and the field that asks the next one
    pinned under them. A message is a mark and its text; the reader's own turn it round. */
 .sp-chat { display: flex; flex-direction: column; flex: 1; min-height: 0; }
@@ -5499,7 +5501,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__thread { display: flex; flex-direction: column; gap: var(--sp-16); width: 100%; margin: 0 auto; padding: var(--sp-16) 0; }
 /* a message never spans the column: at most three quarters of it, Spendly's at the
    left and the reader's at the right */
-.sp-chat__msg { display: flex; align-items: flex-start; gap: var(--sp-10); max-width: 75%; font-size: var(--t-14); line-height: var(--lh); }
+.sp-chat__msg { display: flex; align-items: flex-start; gap: var(--sp-10); max-width: 75%; font-size: var(--t-13); line-height: var(--lh); }
 .sp-chat__msg--mine { align-self: flex-end; }
 /* the mark sits outside its bubble, on the centre of the bubble's first line */
 .sp-chat__msg > .sp-mark { margin-top: calc(var(--sp-12) + 1px + (var(--t-14) * var(--lh) - var(--mark-small)) / 2); }
@@ -5513,7 +5515,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
   border: 1px solid var(--green-tint);
   border-radius: var(--r-field);
   background: var(--green-tint);
-  font-size: var(--t-14);
+  font-size: var(--t-13);
   line-height: var(--lh);
   color: var(--ink);
   text-wrap: pretty;
@@ -5527,7 +5529,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
   border: 1px solid var(--line);
   border-radius: var(--r-field);
   background: var(--surface);
-  font-size: var(--t-14);
+  font-size: var(--t-13);
   line-height: var(--lh);
   color: var(--ink-2);
   text-wrap: pretty;
@@ -5537,13 +5539,20 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__reply a { font-weight: 600; }
 .sp-chat__reply > .sp-btn { align-self: flex-start; }
 /* a small table of amounts inside an answer: the compact static table, framed as a block */
-.sp-chat__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; background: var(--surface); }
+/* no column is cut, so a column is at least its longest word wide; a table with more
+   columns than the bubble holds scrolls sideways inside its frame rather than hiding the last */
+.sp-chat__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow-x: auto; background: var(--surface); }
 /* in an answer the number and amount columns are as wide as their content, on one line,
    and every text column shares the rest and wraps when longer, so no column is cut and
    any column order fits a phone's bubble */
 .sp-chat__figures .sp-table { table-layout: auto; }
 .sp-chat__figures .sp-table .sp-col-number,
 .sp-chat__figures .sp-table .sp-col-amount { width: 1%; padding-left: var(--sp-12); white-space: nowrap; }
+/* in an answer a cell reads at the answer's own size, the page's body size, so a row is
+   one size and the table one size with the sentence above it; the head keeps its label size.
+   An amount in an answer, in a sentence or a cell, takes that size too, keeping its weight */
+.sp-chat__figures .sp-table td { font-size: var(--t-13); }
+.sp-chat__reply .sp-amount { font-size: inherit; }
 /* on touch an answer holding figures takes the full column */
 .sp-touch .sp-chat__msg:has(.sp-chat__figures) { max-width: 100%; }
 .sp-chat__working { display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-12) var(--card-pad); border: 1px solid var(--line); border-radius: var(--r-field); background: var(--surface); font-size: var(--t-13); color: var(--ink-5); }
@@ -5561,7 +5570,9 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 /* a saved question on the empty page: its button, which sends it, and its remove button.
    One line, at most 320px and never wider than the column; the text is .sp-truncate */
 .sp-chat__pick { display: inline-flex; align-items: center; gap: var(--sp-4); max-width: 100%; min-width: 0; }
-.sp-chat__pick > .sp-btn { min-width: 0; max-width: min(320px, 100%); }
+/* a fixed cap: with min(320px, 100%) the row sized the question by its uncut text and set it
+   at the row's left; at 320px it is centred, and still shrinks to a narrower column */
+.sp-chat__pick > .sp-btn { min-width: 0; max-width: 320px; }
 .sp-chat__pick > .sp-btn > .sp-truncate { flex: 0 1 auto; }
 .sp-chat__pick > .sp-icon-btn { flex: none; }
 /* the saved questions in a conversation, on a desktop: the action select in the controls
@@ -5587,10 +5598,19 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 }
 .sp-touch .sp-textarea.sp-chat__field { padding-top: calc((var(--control-h-touch) - 2px - 1lh) / 2); padding-bottom: calc((var(--control-h-touch) - 2px - 1lh) / 2); }
 .sp-chat__composer > .sp-btn { flex: none; width: auto; }
+/* Email this chat and Clear beside Send: square at the field's height, so the row is one height */
+.sp-chat__composer > .sp-icon-btn { flex: none; width: var(--control-h); height: var(--control-h); }
+.sp-touch .sp-chat__composer > .sp-icon-btn { width: var(--control-h-touch); height: var(--control-h-touch); }
 /* an empty field is one line: its placeholder is cut with ... rather than wrapping
    the field to two lines on a phone; typing wraps as before */
 .sp-textarea.sp-chat__field:placeholder-shown { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-textarea.sp-chat__field::placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the placeholder is a step smaller than the field's text, so on its own line height it
+   sat in a shorter line box at the top of the field and read 1-2px high; it takes the
+   field's line height so it is centred in the one-line field. On touch it is the field's
+   size already. */
+.sp-textarea.sp-chat__field::placeholder { line-height: calc(var(--t-14) * var(--lh)); }
+.sp-touch .sp-textarea.sp-chat__field::placeholder { line-height: calc(var(--t-16) * var(--lh)); }
 .sp-chat__hint { display: flex; align-items: center; gap: var(--sp-12); width: 100%; margin: var(--sp-6) auto 0; font-size: var(--t-11); color: var(--ink-5); }
 /* a page body that is one region filling the column, as the chat is */
 .sp-shell__body--fill { flex: 1; min-height: 0; }

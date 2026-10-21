@@ -1,6 +1,6 @@
 {{subject}}
 
-Ask Spendly: your conversation, {{date}}
+Ask: your conversation, {{date}}
 Answered from your Spendly data as it was then. Amounts in {{currency_name}}.
 
 {{#messages}}{{#mine}}You: {{question}}
@@ -9,7 +9,7 @@ Answered from your Spendly data as it was then. Amounts in {{currency_name}}.
 {{/p}}{{#list}}{{#items}}- {{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}
 {{/items}}{{/list}}{{#table}}{{#rows}}- {{#cells}}{{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}{{^last}}, {{/last}}{{/cells}}
 {{/rows}}{{/table}}{{/blocks}}
-{{/mine}}{{/messages}}Ask Spendly something else: {{ask_url}}
+{{/mine}}{{/messages}}Ask something else: {{ask_url}}
 
-You sent this to yourself from Ask Spendly, to {{email}}.
+You sent this to yourself from Ask, to {{email}}.
 It is sent only when you press Email this chat.

@@ -4,20 +4,18 @@ import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
-import { Switch } from '../components/Choice.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { ScreenBarSlot } from './screenBar.jsx'
 import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getAssistant, getBookmarks, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
+import { getAssistant, getBookmarks, getBudgetDue, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SessionDialog, SignedOutBanner } from './SessionDialog.jsx'
 import { SavedLater } from './SavedLater.jsx'
 import { countBadge } from '../api/format.js'
 import { MAC, useMedia, useShellShape } from './useMedia.js'
-import { setTheme, useTheme } from './theme.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
 import { ALL_ORDERS, SidebarViews } from './views.jsx'
 import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
@@ -224,19 +222,17 @@ function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 				{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
 				<Counted to={ALL_ORDERS} icon="receipt" rail={rail} current={navKey === 'orders' && !making && !onView()} useCount={useOrdersCount}>All orders</Counted>
 				<SidebarViews rail={rail} savedId={navKey === 'orders' ? onView() : null} />
-				{rail ? null : <SidebarGroup>Budget</SidebarGroup>}
-				<Row to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
 				{rail ? null : <SidebarGroup>Library</SidebarGroup>}
 				<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
 				<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
 				<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
+				<Counted to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'} useCount={useBudgetDueCount}>Budget</Counted>
 				<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
 			</NavScroll>
 			{/* only while the server has an assistant set up (24a); on a short window it moves to the account menu with Settings (9g) */}
 			<SidebarDivider />
-			{short || !asks ? null : <Row to="/ask" icon="message-circle" rail={rail} current={navKey === 'ask'}>Ask Spendly</Row>}
+			{short || !asks ? null : <Row to="/ask" icon="message-circle" rail={rail} current={navKey === 'ask'}>Ask</Row>}
 			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}
-			{short ? null : <DarkMode rail={rail} />}
 			<Account rail={rail} short={short} asks={asks} onShortcuts={showKeys} />
 			<SidebarGrip expanded={!rail} onClick={fold.toggle} />
 		</Sidebar>
@@ -361,26 +357,16 @@ const useOrdersCount = () => useApi(getOrders, [{ pageSize: 0 }]).data?.total
 const useVendorsCount = () => useApi(getVendorPage, [{ pageSize: 0 }]).data?.matched
 const useCategoriesCount = () => useApi(getCategoryPage, [{ pageSize: 0 }]).data?.matched
 const useBookmarksCount = () => useApi(getBookmarks, [{ pageSize: 0 }]).data?.matched
-
-/* A switch beside its label on the wide sidebar; on the rail a tile of its own, which keeps it
-   in the keyboard's reach once the label and the switch are gone (9b). */
-function DarkMode({ rail }) {
-	const theme = useTheme()
-	const toggle = () => setTheme(theme === 'dark' ? 'light' : 'dark')
-	if (rail) return <NavItem icon="moon" tip="Dark mode" aria-label="Dark mode" aria-pressed={theme === 'dark'} onClick={toggle}>Dark mode</NavItem>
-	return (
-		<NavItem icon="moon"
-			control={<Switch checked={theme === 'dark'} onChange={ev => setTheme(ev.target.checked ? 'dark' : 'light')} aria-label="Dark mode" />}>
-			Dark mode
-		</NavItem>
-	)
+// payments due this month, paid or not; none due shows no count, not a zero (9a)
+const useBudgetDueCount = () => {
+	const now = new Date()
+	return useApi(getBudgetDue, [now.getFullYear(), now.getMonth() + 1]).data || null
 }
 
 /** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
     ends on the sign-in page, once the reader has been let go. */
 export function AccountMenu({ name, email, position, short = false, asks = false, onShortcuts, onClose }) {
 	const navigate = useNavigate()
-	const theme = useTheme()
 	return (
 		<Menu position={position} aria-label="Account">
 			<li className="ns-menu-head" role="presentation">
@@ -394,13 +380,8 @@ export function AccountMenu({ name, email, position, short = false, asks = false
 				</MenuItem>
 				: null}
 			{/* on a short window the sidebar's bottom zone lives here, in its sidebar order (9c, 9g) */}
-			{short && asks ? <MenuItem icon="message-circle" onClick={() => { onClose(); navigate('/ask') }}>Ask Spendly</MenuItem> : null}
+			{short && asks ? <MenuItem icon="message-circle" onClick={() => { onClose(); navigate('/ask') }}>Ask</MenuItem> : null}
 			{short ? <MenuItem icon="settings" onClick={() => { onClose(); navigate('/settings') }}>Settings</MenuItem> : null}
-			{short
-				? <MenuItem icon={theme === 'dark' ? 'sun' : 'moon'} onClick={() => { onClose(); setTheme(theme === 'dark' ? 'light' : 'dark') }}>
-					{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-				</MenuItem>
-				: null}
 			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
 		</Menu>
 	)
