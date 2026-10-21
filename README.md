@@ -105,7 +105,7 @@ Everything that needs you, on one page.
   orders, vendors and items, offers "New order for ..." and "See ... in Statistics", lists what you
   opened last, and runs actions like scan, import or dark mode.
 - **Keyboard shortcuts** - S scans, N starts a new order, G then O, T, V, C, A or S goes to Orders,
-  Statistics, Vendors, Categories, Ask Spendly or Settings, and ? shows them all.
+  Statistics, Vendors, Categories, Ask or Settings, and ? shows them all.
 - **Paste a picture anywhere** and it goes where the page takes one.
 
 ### Statistics
@@ -130,6 +130,7 @@ Everything that needs you, on one page.
 - **Months or the whole year** - one month in front with what is left over and how much of the
   income is used, or the whole year as a sheet.
 - **Start next year** as a copy of this one, or **import** a year from Excel.
+- **The sidebar counts this month's payments** - every row with an amount this month, paid or not.
 - **Check a bank statement** - load your bank's CSV file and Spendly matches each payment against
   the budget, then saves the real amounts. The file is read in your browser and never sent
   anywhere. It works with any bank's export.
@@ -180,7 +181,7 @@ Everything that needs you, on one page.
 
 <img src="docs/phone.png" alt="Home on a phone" width="393">
 
-- **Dark mode** everywhere, switched from the sidebar, search or Settings.
+- **Dark mode** everywhere, switched from search or Settings.
 - **On a phone** - a tab bar for Home, Orders, Statistics and More, sheets from the bottom for
   filters and choices, full-screen pictures, and touch-sized controls. Add Spendly to the home
   screen and it opens like an app.
@@ -206,7 +207,7 @@ Everything that needs you, on one page.
 
 ### AI assistants
 
-- **Ask Spendly** is a page for questions about your money, in the sidebar above Settings (on a
+- **Ask** is a page for questions about your money, in the sidebar above Settings (on a
   phone, under More). Type a question, or press one of your saved questions. Spendly answers with amounts,
   short lists, small tables and links. A link to an order opens that order. A link to a vendor, a
   category or a group of orders opens the order list with those filters, and with the period the
@@ -214,11 +215,11 @@ Everything that needs you, on one page.
   question uses the earlier ones. The conversation stays while the app is open. **Stop** ends an
   answer that is coming, and a failed answer can be tried again.
 - **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
-  Saved questions show under the empty page, each with an x that removes it. In a conversation on a
-  desktop, **Saved questions** at the top of the page lists them. Up to 8 per account, kept on the
+  Saved questions show under the empty page, each with an x that removes it. Up to 8 per account, kept on the
   server. Every account starts with three example questions saved, and they can be removed too.
 - **Clear** empties the conversation, and its message offers Undo. **Email this chat** sends the
-  conversation to your own address, at most once a minute.
+  conversation to your own address, at most once a minute. On a computer both are buttons beside
+  Send; on a phone they are in the menu at the top.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
 - **Each account has 25 questions a day** (`SPENDLY_ASSISTANT_QUESTIONS_PER_DAY`), counted on the
@@ -261,12 +262,12 @@ folder and you have backed up Spendly.
 
 | Setting | Turns on | Without it |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Reading receipts, the light-bulb button that suggests categories (it can propose a new one), and Ask Spendly | The receipt is attached and you type the details yourself. There is no Ask Spendly page. |
-| `SPENDLY_ASSISTANT_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask Spendly off | 25. |
-| `SPENDLY_SMTP_*` and `SPENDLY_PUBLIC_URL` | Email confirmation, password reset, the status email, Email this chat on Ask Spendly | New accounts are confirmed at once, and email features are hidden. |
+| `ANTHROPIC_API_KEY` | Reading receipts, the light-bulb button that suggests categories (it can propose a new one), and Ask | The receipt is attached and you type the details yourself. There is no Ask page. |
+| `SPENDLY_ASSISTANT_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask off | 25. |
+| `SPENDLY_SMTP_*` and `SPENDLY_PUBLIC_URL` | Email confirmation, password reset, the status email, Email this chat on Ask | New accounts are confirmed at once, and email features are hidden. |
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
 | `SPENDLY_UPDATER_URL` and `SPENDLY_UPDATER_TOKEN` | "Update and reload" in Settings, for the person who manages the server | Settings can only check for a newer version. |
-| `SPENDLY_OWNER_EMAIL` | Which account manages the server, may install updates and asks Ask Spendly without a daily limit | The first account made on the server. |
+| `SPENDLY_OWNER_EMAIL` | Which account manages the server, may install updates and uses Ask without a daily limit | The first account made on the server. |
 | `SPENDLY_SECURITY_CONTACT` | A `security.txt` page with where to report a security problem | No such page. |
 | `SPENDLY_TERMS_URL` and `SPENDLY_PRIVACY_URL` | Your own terms and privacy notice | The built-in pages are used. |
 | `SPENDLY_PDF_READING` | How a PDF is sent to be read: `text` (default), `pictures` or `document` | Text. |

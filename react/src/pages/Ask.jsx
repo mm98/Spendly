@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
-import { Chat, ChatDock, ChatExamples, ChatMessage, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatSavedMenu, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
-import { Controls } from '../components/List.jsx'
+import { Chat, ChatDock, ChatExamples, ChatMessage, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
+import { IconButton } from '../components/Button.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Alert, Anchor, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Spinner, useDismiss } from '../components/Utilities.jsx'
@@ -14,9 +13,9 @@ import { AnswerText } from '../app/assistantAnswer.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
-/** Ask Spendly (24a): a conversation about the reader's own money, the questions they saved, and
-    Clear and Email this chat. The saved questions are on the empty page, and on a desktop also in
-    the controls bar; on a phone Clear and Email sit in the top bar's menu (Mobile screens 7a). */
+/** Ask (24a): a conversation about the reader's own money, the questions they saved, and
+    Clear and Email this chat. The saved questions are on the empty page only. On a desktop Clear and
+    Email sit beside Send; on a phone they sit in the top bar's menu (Mobile screens 7a). */
 export default function Ask() {
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
@@ -96,22 +95,18 @@ export default function Ask() {
 	let emailLabel = 'Email this chat'
 	if (sending) emailLabel = 'Sending'
 	else if (emailed) emailLabel = 'Emailed'
+	let emailIcon = 'mail'
+	if (sending) emailIcon = <Spinner />
+	else if (emailed) emailIcon = 'check'
 
 	const mine = account ? <AccountMark name={account.name} email={account.email} picture={account.picture} /> : null
 
 	return (
 		<>
 			{touch
-				? <ScreenBar place title="Ask Spendly" onBack={() => navigate('/more')}
+				? <ScreenBar place title="Ask" onBack={() => navigate('/more')}
 					end={<ConversationMenu mails={mails} emailLabel={emailLabel} canEmail={canEmail} canClear={canClear} onEmail={email} onClear={clear} />} />
-				: (
-					<Controls>
-						{turns.length && saved.length ? <ChatSavedMenu questions={saved.map(s => s.question)} disabled={noneLeft} onSend={send} /> : null}
-						<span className="sp-grow" />
-						{mails ? <Button variant="outline" disabled={!canEmail} onClick={email}>{sending ? <><Spinner />{emailLabel}</> : emailLabel}</Button> : null}
-						<Button variant="outline" disabled={!canClear} onClick={clear}>Clear</Button>
-					</Controls>
-				)}
+				: null}
 			<Chat>
 				{turns.length
 					? (
@@ -169,6 +164,12 @@ export default function Ask() {
 					fieldRef={field}
 					placeholder={noneLeft ? 'No questions left today' : touch && turns.length ? 'Ask a follow-up' : 'Ask about your orders, vendors and budget'}
 					left={left > 0 && left <= 3 ? `${plural(left, 'question')} left today` : null}
+					end={touch
+						? null
+						: <>
+							<IconButton icon="trash" variant="outline" aria-label="Clear" data-tip="Clear" disabled={!canClear} onClick={clear} />
+							{mails ? <IconButton icon={emailIcon} variant="outline" aria-label={emailLabel} data-tip={emailLabel} disabled={!canEmail} onClick={email} /> : null}
+						</>}
 				/>
 			</Chat>
 		</>

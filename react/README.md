@@ -72,7 +72,7 @@ a wishlist.
 | `/vendors`, `/categories`, `/bookmarks` | The three libraries, each with `/new` and `/:id/edit` |
 | `/budget`, `/budget/:year` | The yearly budget |
 | `/budget/check` | Check a bank statement against the budget |
-| `/ask` | Ask Spendly: questions about the account, while the server has an assistant set up |
+| `/ask` | Ask: questions about the account, while the server has an assistant set up |
 | `/settings`, `/settings/:section` | Settings, import, demo data, this build |
 | `/more` | The phone's list of what the tab bar does not hold |
 | `/more/views` | Saved order views |

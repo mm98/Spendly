@@ -28,6 +28,9 @@ const selectSiblingGroups = db.prepare(
 	'SELECT id, position FROM budget_groups WHERE user_id = ? AND year_id = ? AND kind = ?')
 const selectSiblingLines = db.prepare('SELECT id, position FROM budget_lines WHERE user_id = ? AND group_id = ?')
 const selectAmount = db.prepare('SELECT expected, real FROM budget_line_amounts WHERE line_id = ? AND month = ?')
+const countMonthAmounts = db.prepare(`SELECT count(*) AS due FROM budget_line_amounts WHERE month = ? AND line_id IN
+	(SELECT id FROM budget_lines WHERE user_id = ? AND group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id =
+	(SELECT id FROM budget_years WHERE user_id = ? AND year = ?)))`)
 
 const insertYear = db.prepare('INSERT INTO budget_years (id, user_id, year) VALUES (?, ?, ?)')
 const insertGroup = db.prepare(`INSERT INTO budget_groups (id, user_id, year_id, kind, name, position)
@@ -61,6 +64,9 @@ const byPosition = (a, b) => a.position - b.position
 const kindOrder = kind => (kind === 'income' ? 0 : 1)
 
 export const listYears = userId => selectYears.all(userId).map(r => r.year)
+
+/** How many rows have an amount in one month, paid or not: the payments due then. */
+export const countDue = (userId, year, month) => countMonthAmounts.get(month, userId, userId, userId, year).due
 
 /** The account list, in its own order: the one list every year's rows pick from. */
 export const listAccounts = userId => selectAccounts.all(userId).sort(byPosition)

@@ -18,7 +18,7 @@ const ROWS = [
 	{ to: '/bookmarks', label: 'Bookmarks' },
 	{ to: '/more/views', label: 'Saved views' },
 	// only while the server has an assistant set up (7a)
-	{ to: '/ask', label: 'Ask Spendly', asks: true },
+	{ to: '/ask', label: 'Ask', asks: true },
 	{ to: '/settings', label: 'Settings' }
 ]
 

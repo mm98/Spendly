@@ -180,7 +180,7 @@ const GO = [
 	['Categories', 'category', '/categories'],
 	['Bookmarks', 'heart', '/bookmarks'],
 	['Statistics', 'chart-bar', '/statistics'],
-	['Ask Spendly', 'message-circle', '/ask'],
+	['Ask', 'message-circle', '/ask'],
 	['Settings', 'settings', '/settings']
 ]
 
@@ -191,7 +191,7 @@ const actionsFor = (theme, onShortcuts, overLimit, drafts, scan, asks) => [
 		: { key: 'scan', icon: 'camera', name: 'Scan a receipt', meta: 'Available once your email is confirmed', off: true, first: true, action: true },
 	{ key: 'new', icon: 'plus', name: 'New order', kbd: 'N', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
-	// Ask Spendly only while the server has an assistant set up (9d)
+	// Ask only while the server has an assistant set up (9d)
 	...GO.filter(([, , to]) => asks || to !== '/ask').map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
 	{ key: 'add-vendor', icon: 'building-store', name: 'Add a vendor', to: '/vendors/new' },
 	{ key: 'add-category', icon: 'category', name: 'Add a category', to: '/categories/new' },

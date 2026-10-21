@@ -251,7 +251,7 @@ export async function removeMcpToken(id, signal) {
 	invalidate(getMcpTokens)
 }
 
-/* ---- Ask Spendly (24a): whether it is there, the questions left today, one question answered ---- */
+/* ---- Ask (24a): whether it is there, the questions left today, one question answered ---- */
 export async function getAssistant(signal) {
 	return request('/api/assistant', { signal })
 }
@@ -612,6 +612,11 @@ export async function getBudgetYears(signal) {
 
 export async function getBudgetYear(year, signal) {
 	return request(`/api/budget/${year}`, { signal })
+}
+
+/** How many budget rows have an amount in one month, paid or not: the sidebar's Budget count. */
+export async function getBudgetDue(year, month, signal) {
+	return (await request(`/api/budget/due?${new URLSearchParams({ year, month })}`, { signal })).due
 }
 
 async function budgetWrite(path, method, body, signal) {
@@ -1273,7 +1278,7 @@ export function invalidateCategoryData() {
 	drop(categoryReads, orderReads, vendorReads, bookmarkReads)
 }
 
-/** The budget changed: only the budget page and the bank check read it. */
+/** The budget changed: the budget page, the bank check and the sidebar's count read it. */
 function invalidateBudgetData() {
-	drop(getBudgetYears, getBudgetYear, getBudgetAccounts, getBankLinks)
+	drop(getBudgetYears, getBudgetYear, getBudgetDue, getBudgetAccounts, getBankLinks)
 }

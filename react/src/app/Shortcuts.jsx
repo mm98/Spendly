@@ -6,13 +6,13 @@ import { MAC } from './useMedia.js'
 
 const MOD = MAC ? '⌘' : 'Ctrl'
 
-// "G then a letter" opens a section, in the sidebar's order (9d); Ask Spendly only while it is set up
+// "G then a letter" opens a section, in the sidebar's order (9d); Ask only while it is set up
 const GO_KEYS = [
 	['o', 'orders', '/orders', 'Orders'],
 	['t', 'statistics', '/statistics', 'Statistics'],
 	['v', 'vendors', '/vendors', 'Vendors'],
 	['c', 'categories', '/categories', 'Categories'],
-	['a', 'ask', '/ask', 'Ask Spendly'],
+	['a', 'ask', '/ask', 'Ask'],
 	['s', 'settings', '/settings', 'Settings']
 ]
 const goKeys = asks => GO_KEYS.filter(([, key]) => asks || key !== 'ask')

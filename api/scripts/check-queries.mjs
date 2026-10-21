@@ -349,7 +349,7 @@ const REQUESTS = [
 	`/bookmarks/${ids.bookmark}`,
 	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys', '/account/mcp-tokens', '/assistant', '/assistant/questions',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
-	'/budget', '/budget/2026', '/budget/accounts', '/budget/links',
+	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
 	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture', '/drafts/od-fixture'
 ]
