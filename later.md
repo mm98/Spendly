@@ -58,3 +58,10 @@ is removed in the change that settles it.
 - **What the reader sees:** on a phone, a table with more columns than the bubble holds scrolls sideways inside its frame. Before, the last column was hidden.
 - **What was found:** no column of an answer's table is cut, so each column is at least as wide as its longest word. A four-column table (Type, Lamp, Price, Order) needs 380px; an iPhone 15's bubble has 291px. `.sp-chat__figures` had `overflow: hidden`, so the Order column was hidden. Found 21 Oct 2026.
 - **To take into `design/`:** the rule above, in `components.css` beside the other `.sp-chat__figures` rules. Then it is removed from `app.css` and this entry goes.
+
+## For Claude Design: a saved question's cap is a fixed 320px
+
+- **Where:** `react/src/styles/app.css`, `.sp-chat__pick > .sp-btn { max-width: 320px; }`. Ask Spendly's empty page (24b states 1 and 6).
+- **What the reader sees:** a long saved question sits in the middle under the empty state. Before, it sat at the left.
+- **What was found:** with `max-width: min(320px, 100%)` on the button, the row sizes the saved question by its uncut text, so the question takes the whole row and its button sits at the row's left edge. A fixed 320px cap lets the row size it at 320px and centre it; the question and its remove button still shrink to fit a narrower column (checked from 320px to 393px wide). Found 21 Oct 2026.
+- **To take into `design/`:** the rule above in place of the `min(320px, 100%)` cap in `components.css`. Then it is removed from `app.css` and this entry goes.
