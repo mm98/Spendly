@@ -53,11 +53,11 @@ Every value is HTML-escaped before it is merged. Amounts are written in the acco
 
 The unsubscribe link opens the answer page drawn in 20f, 8 to 10: Status emails stopped, Already stopped (a second visit), That link has expired (after 60 days). The tiles stack below 480px; the dark block maps to the dark tokens, as in the auth emails.
 
-## Ask Spendly conversation
+## Ask conversation
 
 | File | Subject | Sent when |
 |---|---|---|
-| ask-chat | {{subject}}, e.g. "Your Ask Spendly conversation, 21 Oct 2026" | Email this chat is pressed on Ask Spendly (24c). Only to the account's own address, never another. At most one per account per minute: the server refuses a second within the minute, and the page shows the problem toast. |
+| ask-chat | {{subject}}, e.g. "Your Spendly conversation, 21 Oct 2026" | Email this chat is pressed on Ask (24c). Only to the account's own address, never another. At most one per account per minute: the server refuses a second within the minute, and the page shows the problem toast. |
 
 The conversation as it stood when the button was pressed, in order. Each message is the reader's question (right, on the green tint, with their initials) or Spendly's answer (left, with the S mark, on white). `ask-chat-sample.json` holds the specimen's values and its keys are the full field list.
 

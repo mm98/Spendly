@@ -51,11 +51,26 @@
   if (!/\.sp-chat__figures \.sp-table \{[^}]*table-layout: auto/.test(comp))
     fail('figures in an answer fit a phone', 'components.css', '.sp-chat__figures .sp-table is not table-layout: auto');
 
+  /* A desktop top bar holds the search field and nothing else; a page's own controls sit
+     in its controls bar. Caught: Ask's Saved questions, Email this chat and Clear
+     were moved up into the top bar. */
+  if (/\.sp-topbar\s*>\s*\.sp-(btn|combobox|segmented)/.test(comp))
+    fail('nothing but search in the top bar', 'components.css', 'a rule lays out page controls in .sp-topbar');
+  for (const f of pages) for (const m of src[f].matchAll(/<div class="sp-topbar">((?:(?!sp-topbar)[\s\S]){0,1500}?)<\/div>\s*<div class="sp-shell__body/g))
+    if (/sp-btn|sp-combobox/.test(m[1])) fail('nothing but search in the top bar', f.replace('.dc.html',''), 'the desktop top bar carries page controls');
+
   /* The saved questions' list on the empty page takes the column's width. Caught: centred in
      .sp-chat__start it took its widest content, so a long question was 880px in a 566px
      column and an iPhone 15 scrolled sideways by 521px. */
   if (!/\.sp-chat__examples \{[^}]*(align-self: stretch|width: 100%)/.test(comp))
     fail('a saved question is cut at the column', 'components.css', '.sp-chat__examples has no column width');
+
+  /* An answer is one size, the page's body size: its text, its table cells and its amounts.
+     Caught: compact 12px names and counts beside 14px amounts in one row, under 14px text. */
+  if (!/\.sp-chat__figures \.sp-table td \{[^}]*font-size: var\(--t-13\)/.test(comp) || !/\.sp-chat__reply \.sp-amount \{[^}]*font-size: inherit/.test(comp))
+    fail('an answer is one text size', 'components.css', '.sp-chat__figures cells or amounts are not the answer size');
+  for (const m of comp.matchAll(/(\.sp-chat__(?:msg|question|reply))\s*\{([^}]*)\}/g))
+    if (/font-size: var\(--t-14\)/.test(m[2])) fail('a conversation is the body size', 'components.css', m[1] + ' is --t-14, not the body --t-13');
 
   /* No column of an answer's figures table is cut; text wraps. Caught: a cut on
      :first-child turned a short first column (Type: "Pendel", "Væglampe") into "P..."
@@ -72,15 +87,21 @@
   /* A saved question holds its text in .sp-truncate, under the 320px cap. Caught: a
      question kept as typed (up to 2000 characters) made one button wider than the
      column and scrolled the whole page sideways. */
-  if (!/\.sp-chat__pick > \.sp-btn \{[^}]*max-width: min\(320px, 100%\)/.test(comp))
-    fail('a saved question is capped', 'components.css', 'no max-width on .sp-chat__pick > .sp-btn');
+  if (!/\.sp-chat__pick > \.sp-btn \{[^}]*max-width: 320px/.test(comp))
+    fail('a saved question is capped', 'components.css', 'no fixed 320px cap on .sp-chat__pick > .sp-btn');
+  /* An answer's figures frame scrolls sideways rather than hiding a column (later.md, 21 Oct). */
+  if (!/\.sp-chat__figures \{[^}]*overflow-x: auto/.test(comp))
+    fail('a wide answer table scrolls in its frame', 'components.css', '.sp-chat__figures does not scroll sideways');
+  /* The tab bar's columns may shrink below a label, so the bar never passes the screen. */
+  if (!/\.sp-tabbar \{[^}]*grid-auto-columns: minmax\(0, 1fr\)/.test(comp))
+    fail('the tab bar fits the screen', 'components.css', '.sp-tabbar columns are not minmax(0, 1fr)');
   for (const f of pages) {
     for (const m of src[f].matchAll(/<span class="sp-chat__pick"><button type="button" class="sp-btn[^"]*"[^>]*>([\s\S]*?)<\/button>/g))
       if (!/^<span class="sp-truncate">/.test(m[1])) fail('a saved question is capped', f, 'saved question without .sp-truncate: ' + m[1].slice(0, 40));
     for (const m of src[f].matchAll(/<div class="sp-combobox sp-chat__saved-menu"[\s\S]*?<\/ul>/g))
       for (const o of m[0].matchAll(/<button type="button" class="sp-combobox__option"[^>]*>([\s\S]*?)<\/button>/g))
         if (!/^<span class="sp-truncate">/.test(o[1])) fail('a saved question is capped', f, 'Saved questions option without .sp-truncate');
-    /* Saved questions never sit above a conversation (Ask Spendly 24b 8): the row above
+    /* Saved questions never sit above a conversation (Ask 24b 8): the row above
        the field was retired for the select in the controls bar. */
     if (/class="sp-chat__saved"/.test(src[f])) fail('no saved row above the field', f, '.sp-chat__saved is retired');
   }
@@ -761,17 +782,20 @@
         fail('a button beside an input matches its height', p, 'small button in a row with an sp-input');
     }
 
-    // the sidebar's foot is the divider, then Ask Spendly, Settings, Dark mode and the
-    // account (9a, 24a), in the rail too: the divider sits directly above Ask Spendly, and
-    // Ask Spendly directly above Settings - never anything between them, and never
-    // Settings without Ask Spendly above it
+    // the sidebar's foot is the divider, then Ask, Settings and the account (9a, 24a);
+    // the theme is set in Settings only, so no Dark mode row sits in the sidebar or the rail, in the rail too: the divider sits directly above Ask, and
+    // Ask directly above Settings - never anything between them, and never
+    // Settings without Ask above it
     for (const m of s.matchAll(/(<[^>]*>)\s*<a class="sp-nav-item"(?:(?!<\/a>)[\s\S])*?(?:<span>Settings<\/span>|aria-label="Settings")/g)) {
       const before = s.slice(0, m.index + m[1].length);
       const ask = before.lastIndexOf('<a class="sp-nav-item"');
       const askA = before.slice(ask);
-      if (!/^<\/a>$/.test(m[1]) || !/Ask Spendly/.test(askA)) { fail('the sidebar foot is the divider, Ask Spendly, Settings', p, 'Settings follows ' + m[1].slice(0, 40)); continue; }
-      if (!/<hr class="sp-sidebar__divider">\s*$/.test(s.slice(0, m.index + m[1].length - askA.length))) fail('the sidebar foot is the divider, Ask Spendly, Settings', p, 'Ask Spendly does not follow the divider');
+      if (!/^<\/a>$/.test(m[1]) || !/Ask Spendly/.test(askA)) { fail('the sidebar foot is the divider, Ask, Settings', p, 'Settings follows ' + m[1].slice(0, 40)); continue; }
+      if (!/<hr class="sp-sidebar__divider">\s*$/.test(s.slice(0, m.index + m[1].length - askA.length))) fail('the sidebar foot is the divider, Ask, Settings', p, 'Ask does not follow the divider');
     }
+
+    if (/<(?:label|a) class="sp-nav-item"[^>]*>(?:(?!<\/(?:label|a)>)[\s\S])*?(?:aria-label="Dark mode"|<span>Dark mode<\/span>)/.test(s))
+      fail('the theme is set in Settings only', p, 'a Dark mode row in the sidebar');
 
     // the Views card in edit mode is the at-rest list with two slots swapped (Order list 2g):
     // a different list component there changes the row height and shifts the rail
