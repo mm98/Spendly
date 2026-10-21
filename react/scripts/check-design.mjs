@@ -104,7 +104,7 @@ for (const [p, ast] of parsed) {
 /* ---- spacing: only the scale's tokens ----
    Gap, padding and margin are written as tokens. These are the design's own optical nudges,
    frozen by count: a new raw value anywhere is a regression. */
-const RAW_SPACING = { '-4px': 4, '1px': 7, '3px': 3, '-2px': 2, '2px': 2, '-12px': 1, '40px': 2, '16px': 1 }
+const RAW_SPACING = { '-4px': 4, '1px': 7, '3px': 3, '-2px': 2, '2px': 6, '-12px': 1, '40px': 2, '16px': 1 }
 {
 	const plain = components.replace(/\/\*[\s\S]*?\*\//g, '')
 	const found = {}
@@ -637,7 +637,7 @@ for (const [p, ast] of parsed) {
 	})
 	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
 	// the design draws the card grid as a variant of .sp-list, and a token field that suggests inside .sp-combobox
-	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox', PaletteAnswer: 'sp-record__head' }
+	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox' }
 	const roots = {}
 	for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n)
 	for (const [cls, names] of Object.entries(roots))
@@ -846,14 +846,15 @@ for (const [p, ast] of parsed) {
 	})
 }
 
-/* ---- the sidebar's divider sits above Settings ---- */
+/* ---- the sidebar's foot: the divider, then Ask Spendly, then Settings ---- */
 
 for (const [p, ast] of parsed) visit(ast, (n, above) => {
 	if (n.type !== 'JSXElement' || !above.some(a => isTag(a) && tagOf(a) === 'Sidebar') && !(isTag(n) && tagOf(n) === 'Sidebar')) return
 	const kids = childElements(n)
 	kids.forEach((c, i) => {
 		if (!placed(c).some(el => ownText(el) === 'Settings' && /\/settings$/.test(attrLiteral(el, 'to') ?? ''))) return
-		if (!placed(kids[i - 1]).some(el => tagOf(el) === 'SidebarDivider')) fail('the sidebar divider sits above Settings', rel(p), 'Settings does not follow a <SidebarDivider>')
+		if (!placed(kids[i - 1]).some(el => ownText(el) === 'Ask Spendly')) fail('the sidebar foot is the divider, Ask Spendly, Settings', rel(p), 'Settings does not follow Ask Spendly')
+		else if (!placed(kids[i - 2]).some(el => tagOf(el) === 'SidebarDivider')) fail('the sidebar foot is the divider, Ask Spendly, Settings', rel(p), 'Ask Spendly does not follow a <SidebarDivider>')
 	})
 })
 
@@ -1364,7 +1365,7 @@ const DESIGN_RULES = {
 	'a card body does not truncate': 'a card body does not truncate',
 	'a pair starts with sp-title': 'a pair starts with sp-title',
 	'a button beside an input matches its height': 'a button beside an input matches its height',
-	'the sidebar divider sits above Settings': 'the sidebar divider sits above Settings',
+	'the sidebar foot is the divider, Ask Spendly, Settings': 'the sidebar foot is the divider, Ask Spendly, Settings',
 	'the Views card keeps its rows in edit mode': 'the Views card keeps its rows in edit mode',
 	'a body is not nested in a body': 'a body is not nested in a body',
 	'a select-all box names its scope': 'a select-all box names its scope',

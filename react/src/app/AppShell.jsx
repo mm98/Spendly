@@ -10,7 +10,7 @@ import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { ScreenBarSlot } from './screenBar.jsx'
 import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getBookmarks, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
+import { getAssistant, getBookmarks, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SessionDialog, SignedOutBanner } from './SessionDialog.jsx'
@@ -37,11 +37,12 @@ const TABS = [
 	{ to: '/more', key: 'more', icon: 'user', label: 'More' }
 ]
 // below 640 the rest of the sidebar lives under More (9h)
-const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'settings', 'more']
+const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'ask', 'settings', 'more']
 
 export function AppShell() {
 	const [screenSlot, setScreenSlot] = useState(null)
-	const [screenOn, setScreenOn] = useState(false)
+	// null, or the screen in the top bar: a 'task' hides the tab bar, a 'place' keeps it
+	const [screenOn, setScreenOn] = useState(null)
 	const screenBar = useMemo(() => ({ slot: screenSlot, setOn: setScreenOn }), [screenSlot])
 	const shape = useShellShape()
 	const touch = shape === 'touch'
@@ -148,11 +149,12 @@ export function AppShell() {
 		: null
 	const scan = useScanPicker()
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
+	const asks = !!useApi(getAssistant).data?.ready
 	useShortcutKeys({
-		enabled: !touch && !palette && !keysShown, onSheet: showKeys, onGo: (key, to) => { navigate(go(key, to)); searchOn(key) },
+		enabled: !touch && !palette && !keysShown, asks, onSheet: showKeys, onGo: (key, to) => { navigate(go(key, to)); searchOn(key) },
 		onScan: held ? null : scan.open, onNew: () => navigate('/orders/new')
 	})
-	const keySheet = keysShown ? <ShortcutSheet onClose={() => setKeysShown(false)} /> : null
+	const keySheet = keysShown ? <ShortcutSheet asks={asks} onClose={() => setKeysShown(false)} /> : null
 	// a picture pasted anywhere goes to the place on screen that takes one (17a)
 	useEffect(() => {
 		window.addEventListener('paste', pasteAnywhere)
@@ -176,14 +178,14 @@ export function AppShell() {
 		<ScreenBarSlot.Provider value={screenBar}>
 		<Toaster notice={update}>
 			<Shell touch={touch} viewport={!touch} collapsed={fold.collapsed} cover={touch ? overlay : undefined}>
-				{touch ? null : sidebar({ navKey, fold, short, go, showKeys, making: pathname === '/orders/new' })}
+				{touch ? null : sidebar({ navKey, fold, short, go, asks, showKeys, making: pathname === '/orders/new' })}
 				<TopBar touch={touch}>
 					{touch && screenOn ? null : search}
 					{touch ? <div className="sp-topbar__screen" ref={setScreenSlot} /> : null}
 				</TopBar>
 				{content}
 				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
-				{touch && !screenOn
+				{touch && screenOn !== 'task'
 					? (
 						<TabBar aria-label="Sections">
 							{TABS.map(t => (
@@ -207,7 +209,7 @@ const onView = () => { const id = new URLSearchParams(window.location.hash.split
 
 /* An element rather than a component: the shell places its children by type (9b, 9h). The brand
    and the bottom zone stay put; only the destinations between them scroll (9g). */
-function sidebar({ navKey, fold, short, go, showKeys, making }) {
+function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 	const { rail } = fold
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
@@ -230,7 +232,9 @@ function sidebar({ navKey, fold, short, go, showKeys, making }) {
 				<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
 				<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
 			</NavScroll>
+			{/* only while the server has an assistant set up (24a); a short window drops it with Settings (9g) */}
 			<SidebarDivider />
+			{short || !asks ? null : <Row to="/ask" icon="message-circle" rail={rail} current={navKey === 'ask'}>Ask Spendly</Row>}
 			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}
 			{short ? null : <DarkMode rail={rail} />}
 			<Account rail={rail} short={short} onShortcuts={showKeys} />

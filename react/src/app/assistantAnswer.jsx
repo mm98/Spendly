@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { PaletteFigures } from '../components/Shell.jsx'
+import { ChatFigures } from '../components/Chat.jsx'
 import { currency } from '../api/format.js'
 
 /* An answer from the assistant, in the small format lib/assistant.js asks for: paragraphs, "- "
@@ -41,14 +41,14 @@ function table(lines, key, onOpen) {
 	const [head, ...rows] = lines.map(cellsOf).filter(r => !r.every(c => /^:?-+:?$/.test(c)))
 	const classes = head.map((_, i) => columnClass(rows, i))
 	return (
-		<PaletteFigures key={key}>
+		<ChatFigures key={key}>
 			<table className="sp-table sp-table--compact sp-table--static">
 				<thead><tr>{head.map((c, i) => <th key={i} className={classes[i]}>{inline(c, onOpen)}</th>)}</tr></thead>
 				<tbody>
 					{rows.map((r, ri) => <tr key={ri}>{head.map((_, i) => <td key={i} className={classes[i]}>{inline(r[i] ?? '', onOpen)}</td>)}</tr>)}
 				</tbody>
 			</table>
-		</PaletteFigures>
+		</ChatFigures>
 	)
 }
 

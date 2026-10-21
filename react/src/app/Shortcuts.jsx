@@ -6,23 +6,25 @@ import { MAC } from './useMedia.js'
 
 const MOD = MAC ? '⌘' : 'Ctrl'
 
-// "G then a letter" opens a section, in the sidebar's order (9d)
-export const GO_KEYS = [
+// "G then a letter" opens a section, in the sidebar's order (9d); Ask Spendly only while it is set up
+const GO_KEYS = [
 	['o', 'orders', '/orders', 'Orders'],
 	['t', 'statistics', '/statistics', 'Statistics'],
 	['v', 'vendors', '/vendors', 'Vendors'],
 	['c', 'categories', '/categories', 'Categories'],
+	['a', 'ask', '/ask', 'Ask Spendly'],
 	['s', 'settings', '/settings', 'Settings']
 ]
+const goKeys = asks => GO_KEYS.filter(([, key]) => asks || key !== 'ask')
 const CHORD_MS = 1500
 
 /* Only keys the app really answers to. Each row is one sentence and the keys that do it. */
-const GROUPS = [
+const groupsFor = asks => [
 	['Anywhere', [
 		['Open or close search', [[MOD, 'K']]],
 		['Scan a receipt', [['S']]],
 		['New order', [['N']]],
-		...GO_KEYS.map(([key, , , name]) => [`Go to ${name}`, [['G'], [key.toUpperCase()]], 'then']),
+		...goKeys(asks).map(([key, , , name]) => [`Go to ${name}`, [['G'], [key.toUpperCase()]], 'then']),
 		['Show this list', [['?']]],
 		['Close a window or a menu', [['Esc']]],
 		['Undo, when a message offers it', [[MOD, 'Z']]]
@@ -41,12 +43,12 @@ const GROUPS = [
 ]
 
 /** The list of keyboard shortcuts, opened with ? or from the account menu (9c). */
-export function ShortcutSheet({ onClose }) {
+export function ShortcutSheet({ asks = false, onClose }) {
 	return (
 		<Dialog onCancel={onClose}>
 			<DialogTitle>Keyboard shortcuts</DialogTitle>
 			<div className="ns-keys-list sp-scrolls">
-				{GROUPS.map(([label, rows]) => (
+				{groupsFor(asks).map(([label, rows]) => (
 					<div key={label} className="ns-keys">
 						<span className="sp-section-label">{label}</span>
 						{rows.map(([what, keys, joiner]) => (
@@ -76,10 +78,10 @@ const typing = el => !!el?.closest?.('input, textarea, select, [contenteditable=
 
 /** ? opens the list, S scans, N starts an order and G then a letter opens a section - never while
     the reader types. Without `onScan`, S does nothing. */
-export function useShortcutKeys({ enabled, onSheet, onGo, onScan, onNew }) {
+export function useShortcutKeys({ enabled, asks = false, onSheet, onGo, onScan, onNew }) {
 	const chord = useRef(0)
 	const calls = useRef(null)
-	calls.current = { onSheet, onGo, onScan, onNew }
+	calls.current = { asks, onSheet, onGo, onScan, onNew }
 	useEffect(() => {
 		if (!enabled) return
 		const key = ev => {
@@ -87,7 +89,7 @@ export function useShortcutKeys({ enabled, onSheet, onGo, onScan, onNew }) {
 			const k = ev.key.toLowerCase()
 			if (chord.current > Date.now()) {
 				chord.current = 0
-				const go = GO_KEYS.find(([letter]) => letter === k)
+				const go = goKeys(calls.current.asks).find(([letter]) => letter === k)
 				if (go) { ev.preventDefault(); calls.current.onGo(go[1], go[2]) }
 				return
 			}
