@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261021p">
+<link rel="stylesheet" href="styles/components.css?v=v20261021r">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
 <style>
@@ -4939,7 +4939,7 @@
     <span class="sp-grow"></span>
     <span class="sp-meta">.sp-chat</span>
   </div>
-  <div class="doc-lede">A conversation about the reader's money, from Ask Spendly 24a: messages as bubbles, Spendly's at the left and the reader's at the right, and the dock with the saved questions and the field pinned under them.</div>
+  <div class="doc-lede">A conversation about the reader's money, from Ask Spendly 24a: messages as bubbles, Spendly's at the left and the reader's at the right, and the dock with the field pinned under them.</div>
   <div class="doc-specimens">
     <div class="doc-specimen">
       <span class="doc-specimen__label">A question, an answer, one coming, and the dock</span>
@@ -4952,10 +4952,6 @@
             <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__working"><span class="sp-spinner" aria-hidden="true"></span><span>Reading your orders</span></div></div>
           </div>
           <div class="sp-chat__dock">
-            <div class="sp-chat__saved">
-              <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button>
-              <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Edit</button>
-            </div>
             <div class="sp-chat__composer">
               <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask Spendly"></textarea>
               <button type="button" class="sp-btn sp-btn--outline">Stop</button>
@@ -4968,13 +4964,13 @@
   </div>
   <div class="doc-notes">
     <div class="doc-notes__label">Uses</div>
-    <div class="doc-note"><a href="#c2">c2</a> for both marks (the Spendly "S", solid; the reader's account mark, round), <a href="#c6">c6</a> for Send, Stop, Try again and the saved questions (small outline buttons, and static chips while editing), <a href="#c3">c3</a>'s textarea for the field, the compact static table for figures, <a href="#c13">c13</a>'s spinner and empty state, and <a href="#c19">c19</a>'s alert when no questions are left. Each unchanged.</div>
+    <div class="doc-note"><a href="#c2">c2</a> for both marks (the Spendly "S", solid; the reader's account mark, round), <a href="#c6">c6</a> for Send, Stop, Try again and the saved questions on the empty page (small outline buttons, each with its small remove icon button), <a href="#c3">c3</a>'s action select for Saved questions in a conversation's controls bar on a desktop, <a href="#c3">c3</a>'s textarea for the field, the compact static table for figures, <a href="#c13">c13</a>'s spinner and empty state, and <a href="#c19">c19</a>'s alert when no questions are left. Each unchanged.</div>
     <div class="doc-notes__label">Fixed</div>
-    <div class="doc-note">A message (<code>.sp-chat__msg</code>) is at most 75% of the column; on touch, an answer holding figures takes the full column: the mark outside, on the first line's centre, and the bubble at <code>--sp-12</code> by <code>--card-pad</code>, radius <code>--r-field</code>. The reader's bubble (<code>.sp-chat__question</code>) is on <code>--green-tint</code> at the right; Spendly's (<code>.sp-chat__reply</code>, and <code>.sp-chat__working</code> while it comes) is on <code>--surface</code> with the <code>--line</code> border at the left, its parts <code>--sp-12</code> apart. Messages are <code>--sp-16</code> apart. Text is <code>--t-14</code> at <code>--lh</code>; every amount is <code>.sp-amount</code>; a figures table sits in <code>.sp-chat__figures</code>, its number and amount columns as wide as their content and <code>--sp-12</code> apart, the name taking the rest and cut with ... when longer. A saved question is one line, at most 320px and never wider than the row, cut with ... beyond that, as a button and as a chip. The field is one control high and grows to six lines; the hint line under it is <code>--t-11</code>.</div>
+    <div class="doc-note">A message (<code>.sp-chat__msg</code>) is at most 75% of the column; on touch, an answer holding figures takes the full column: the mark outside, on the first line's centre, and the bubble at <code>--sp-12</code> by <code>--card-pad</code>, radius <code>--r-field</code>. The reader's bubble (<code>.sp-chat__question</code>) is on <code>--green-tint</code> at the right; Spendly's (<code>.sp-chat__reply</code>, and <code>.sp-chat__working</code> while it comes) is on <code>--surface</code> with the <code>--line</code> border at the left, its parts <code>--sp-12</code> apart. Messages are <code>--sp-16</code> apart. Text is <code>--t-14</code> at <code>--lh</code>; every amount is <code>.sp-amount</code>; a figures table sits in <code>.sp-chat__figures</code>, its number and amount columns as wide as their content and <code>--sp-12</code> apart, the name taking the rest and cut with ... when longer. A saved question is one line, at most 320px and never wider than the column, cut with ... beyond that, on the empty page and in the select's 320px panel alike; its remove button is always in view. The field is one control high and grows to six lines; empty, it stays one line and its placeholder is cut with ...; the hint line under it is <code>--t-11</code>.</div>
     <div class="doc-notes__label">States</div>
-    <div class="doc-note">Empty (the empty state with the examples, or the saved row when anything is saved) · an answer coming (spinner bubble, Stop in Send's place) · answered · failed (<code>.sp-chat__failed</code> in <code>--red-ink</code>, Try again) · near the limit (the count in the hint) · none left (the alert, the field disabled) · a question saved (<code>.sp-chat__save[aria-pressed="true"]</code>, the bookmark filled green) · editing the saved row. On a phone the dock is <code>.sp-chat__dock--bar</code>, on the surface above the tab bar, and its saved row scrolls sideways.</div>
+    <div class="doc-note">Empty (the empty state with the saved questions under it, or with one line on saving when none is left) · an answer coming (spinner bubble, Stop in Send's place) · answered · failed (<code>.sp-chat__failed</code> in <code>--red-ink</code>, Try again) · near the limit (the count in the hint) · none left (the alert, the field disabled) · a question saved (<code>.sp-chat__save[aria-pressed="true"]</code>, the bookmark filled green). On a phone the dock is <code>.sp-chat__dock--bar</code>, on the surface above the tab bar.</div>
     <div class="doc-notes__label">Actions</div>
-    <div class="doc-note"><b>Enter</b> sends, <b>Shift Enter</b> makes a new line. <b>Stop</b> ends an answer coming. A saved question or an example sends at once. The bookmark saves or unsaves its question. The thread is a <code>role="log"</code> with <code>aria-live="polite"</code>, so an answer is read out when it arrives.</div>
+    <div class="doc-note"><b>Enter</b> sends, <b>Shift Enter</b> makes a new line. <b>Stop</b> ends an answer coming. A saved question sends at once, from the empty page or the Saved questions select; its remove button removes it at once. The bookmark saves or unsaves its question. The thread is a <code>role="log"</code> with <code>aria-live="polite"</code>, so an answer is read out when it arrives.</div>
   </div>
 </section>
 

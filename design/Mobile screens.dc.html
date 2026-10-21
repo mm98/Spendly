@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261021p">
+<link rel="stylesheet" href="styles/components.css?v=v20261021r">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/budget.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/mobile-screens.css?v=v20260917b">
@@ -38,7 +38,7 @@
   <div class="doc-lede">One frame per page, at the width <code>.sp-phone</code> sets - 375, the narrowest phone that matters, labelled with the desktop section it corresponds to. This is the lookup: if a screen is not here, it uses the shell from <b>9h</b> and the rules in <b>15b</b> and <b>18a</b> without further changes.</div>
   <div class="doc-notes">
     <div class="doc-notes__label">NOTES FOR IMPLEMENTATION</div>
-    <div class="doc-note"><b class="sp-ink">Ask Spendly</b> is a row in More, above Settings, opening its page (<a href="Ask Spendly.dc.html#24a">Ask Spendly 24a</a>): the touch top bar with Back, the title and a menu holding Email this chat and Clear; the conversation; and the dock pinned above the tab bar (<code>.sp-chat__dock--bar</code>) with the saved questions in one sideways-scrolling line, the field and Send (Stop while an answer comes). The frame is drawn inside <code>.sp-touch</code>, so its controls show at the touch height. The row and the page are absent when the server has no assistant set up.</div>
+    <div class="doc-note"><b class="sp-ink">Ask Spendly</b> is a row in More, above Settings, opening its page (<a href="Ask Spendly.dc.html#24a">Ask Spendly 24a</a>): the touch top bar with Back, the title and a menu holding Email this chat and Clear; the conversation; and the dock pinned above the tab bar (<code>.sp-chat__dock--bar</code>) with the field and Send (Stop while an answer comes). The frame is drawn inside <code>.sp-touch</code>, so its controls show at the touch height. The row and the page are absent when the server has no assistant set up.</div>
     <div class="doc-note"><b class="sp-ink">The shell is identical on every screen.</b> Search-only top bar, four-destination tab bar, the New order FAB on Home and the order list. On the places, the top bar is search only and never gains a title or a hamburger. A screen one level down - a record's page, create and edit, the scan review - swaps it for Back and a title, as the order and vendor frames show (Navigation shell, top bar note).</div>
     <div class="doc-note"><b class="sp-ink">The floating action is New order, not the camera</b> - it opens step 1 of <b>3a</b>: the receipt zone, an empty order, a copy of an order. It is the only floating action in the app, and the receipt zone leads because the phone is the camera. It does not open the camera directly.</div>
     <div class="doc-note"><b class="sp-ink">It is on Home and Orders, and nowhere else.</b> An order is what it creates, so it appears only where orders are the subject. Vendors and Categories create their own records from the <b>+</b> in their list head; Statistics and Settings create nothing; and any screen carrying a save bar, a sheet, a dialog or the image viewer hides it while that is open. The full rule is in <b>9h</b>.</div>
@@ -527,12 +527,6 @@
           </div>
         </div>
         <div class="sp-chat__dock sp-chat__dock--bar">
-          <div class="sp-chat__saved">
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button>
-            <button type="button" class="sp-btn sp-btn--text sp-btn--small">Edit</button>
-          </div>
           <div class="sp-chat__composer">
             <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask Spendly"></textarea>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Stop</button>

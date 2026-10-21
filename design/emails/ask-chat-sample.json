@@ -20,7 +20,7 @@
        "text": "You spent "
       },
       {
-       "text": "4.212,50 kr.",
+       "text": "4.212,50 kr.",
        "amount": true
       },
       {
@@ -76,7 +76,7 @@
          "last": true,
          "runs": [
           {
-           "text": "1.684,20 kr.",
+           "text": "1.684,20 kr.",
            "amount": true
           }
          ]
@@ -107,7 +107,7 @@
          "last": true,
          "runs": [
           {
-           "text": "1.426,30 kr.",
+           "text": "1.426,30 kr.",
            "amount": true
           }
          ]
@@ -138,7 +138,7 @@
          "last": true,
          "runs": [
           {
-           "text": "1.102,00 kr.",
+           "text": "1.102,00 kr.",
            "amount": true
           }
          ]
@@ -163,7 +163,7 @@
        "text": "In September you spent "
       },
       {
-       "text": "3.640,00 kr.",
+       "text": "3.640,00 kr.",
        "amount": true
       },
       {
@@ -177,7 +177,7 @@
        "text": ", "
       },
       {
-       "text": "572,50 kr.",
+       "text": "572,50 kr.",
        "amount": true
       },
       {
@@ -191,7 +191,7 @@
        "text": ", "
       },
       {
-       "text": "412,80 kr.",
+       "text": "412,80 kr.",
        "amount": true
       }
      ]

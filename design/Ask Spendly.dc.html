@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261021p">
+<link rel="stylesheet" href="styles/components.css?v=v20261021r">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/ask-spendly.css?v=v20261021a">
 <script src="./components.js?v=v20260917b"></script>
@@ -33,14 +33,14 @@
     <span class="doc-badge" id="24a">24a</span>
     <span class="doc-section__title">Ask Spendly - a conversation</span>
   </div>
-  <div class="doc-lede">A page for asking about your own money in plain words, opened from its sidebar row above Settings. Answers are read from the reader's orders, vendors, categories, budget and statistics; nothing can be changed from here. One conversation, kept for the visit, across the full content column, with the question field pinned under it and the reader's saved questions above the field. Clear and Email this chat sit in the page's controls bar.</div>
+  <div class="doc-lede">A page for asking about your own money in plain words, opened from its sidebar row above Settings. Answers are read from the reader's orders, vendors, categories, budget and statistics; nothing can be changed from here. One conversation, kept for the visit, across the full content column, with the question field pinned under it Clear, Email this chat and the reader's saved questions sit in the page's controls bar.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Route and entry.</b> <code>/ask</code>. The sidebar row <b>Ask Spendly</b> (<code>message-circle</code>) sits below the divider, directly above Settings, on every sidebar (<a href="Navigation shell.dc.html#9a">9a</a>); on the rail it is the icon with the tooltip. <b>G then A</b> goes here, listed in the shortcuts sheet and as a Go to destination in the palette. The palette has no ask state: a question is only asked here. On a phone it is a row in More, above Settings (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>). On a window under 560px tall, where Settings moves into the account menu, Ask Spendly moves with it, as the row directly above Settings (<a href="Navigation shell.dc.html#9c">9c</a>, <a href="Navigation shell.dc.html#9g">9g</a>). When the server has no assistant set up, the row, the shortcut and the route are absent.</div>
     <div class="doc-note"><b>The conversation takes the full content column</b>, the same width as the controls bar above it, as every page's content does. The thread scrolls in <code>.sp-chat__scroll</code>; the dock under it never scrolls. Opening the page, and every new message, scrolls to the latest one.</div>
     <div class="doc-note"><b>A message is a mark and a bubble</b> (<code>.sp-chat__msg</code>), the mark outside the bubble on its first line. The reader's question is <code>--mine</code>: their own account mark, the one the sidebar's account row shows (initials on its swatch, or the profile photo as <code>sp-mark--photo</code>), at the right, with the question in a <code>--green-tint</code> bubble beside it. Spendly's answer is at the left with the Spendly mark, the sidebar brand's solid "S", in a bubble on <code>--surface</code> with the <code>--line</code> border; a table sits inside it. While an answer comes, its bubble holds the spinner. A message is at most 75% of the column wide, so the two sides read apart. On touch, an answer that holds a table takes the full column instead (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>), so a phone has room for its three columns.</div>
     <div class="doc-note"><b>Answers</b> are text, a short list, or a small table in <code>.sp-chat__figures</code> (the compact static table, framed). In an answer the table sizes its number and amount columns to their content and gives the rest to the name, which is cut with ... when it is longer; the name is the link to its record, which shows it in full. Every amount is <code>.sp-amount</code> (the Money component), in a sentence as in a cell. A named order, vendor or category is a link to its record; it opens in the same tab, and Back returns to the conversation as it was.</div>
-    <div class="doc-note"><b>The field</b> is a textarea one control high, growing to six lines and then scrolling. Enter sends, Shift Enter makes a new line, Send is disabled while the field is empty. It takes focus when the page opens on a desktop; on a phone it does not, so the keyboard does not cover the conversation. The placeholder reads "Ask about your orders, vendors and budget"; on a phone it reads "Ask a follow-up" once something is asked (<a href="Mobile screens.dc.html#7a">7a</a>). Follow-ups are sent with the earlier questions and answers of this conversation.</div>
+    <div class="doc-note"><b>The field</b> is a textarea one control high, growing to six lines and then scrolling. Enter sends, Shift Enter makes a new line, Send is disabled while the field is empty. It takes focus when the page opens on a desktop; on a phone it does not, so the keyboard does not cover the conversation. The placeholder reads "Ask about your orders, vendors and budget"; on a phone it reads "Ask a follow-up" once something is asked (<a href="Mobile screens.dc.html#7a">7a</a>). An empty field is one line: a placeholder longer than the field is cut with ... rather than wrapping it to two lines. Follow-ups are sent with the earlier questions and answers of this conversation.</div>
     <div class="doc-note"><b>Kept for the visit.</b> Leaving the page and coming back in the same visit shows the conversation as it was. A reload or signing out ends it; nothing is stored on the server.</div>
   </div>
   <div class="doc-screen sp-shell">
@@ -85,6 +85,20 @@
         </div>
       <div class="sp-shell__body sp-shell__body--fill">
             <div class="sp-controls">
+              <div class="sp-combobox sp-chat__saved-menu">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Saved questions">
+                  <span class="sp-combobox__chevron">Saved questions</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+                <ul class="sp-combobox__panel" role="listbox" aria-label="Saved questions">
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button></li>
+                </ul>
+              </div>
               <span class="sp-grow"></span>
               <button type="button" class="sp-btn sp-btn--outline">Email this chat</button>
               <button type="button" class="sp-btn sp-btn--outline">Clear</button>
@@ -107,12 +121,6 @@
                 </div>
               </div>
               <div class="sp-chat__dock">
-              <div class="sp-chat__saved">
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button>
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button>
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button>
-                <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Edit</button>
-              </div>
               <div class="sp-chat__composer">
                 <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
@@ -148,9 +156,9 @@
                   <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
                 </div>
                 <div class="sp-chat__examples">
-                  <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I spend on food in August?</button>
-                  <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Which shop did I use most this year?</button>
-                  <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Am I over budget on transport?</button>
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on food in August?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Which shop did I use most this year?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Am I over budget on transport?"><span class="sp-truncate">Am I over budget on transport?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Am I over budget on transport?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
                 </div>
               </div>
               <div class="sp-chat__dock">
@@ -167,6 +175,20 @@
       <span class="doc-specimen__label">2 - The answer coming</span>
       <div class="as-frame">
             <div class="sp-controls">
+              <div class="sp-combobox sp-chat__saved-menu">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Saved questions">
+                  <span class="sp-combobox__chevron">Saved questions</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+                <ul class="sp-combobox__panel" role="listbox" aria-label="Saved questions">
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button></li>
+                </ul>
+              </div>
               <span class="sp-grow"></span>
               <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Email this chat</button>
               <button type="button" class="sp-btn sp-btn--outline">Clear</button>
@@ -192,6 +214,20 @@
       <span class="doc-specimen__label">3 - Near the day's limit</span>
       <div class="as-frame">
             <div class="sp-controls">
+              <div class="sp-combobox sp-chat__saved-menu">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Saved questions" disabled="{{ true }}">
+                  <span class="sp-combobox__chevron">Saved questions</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+                <ul class="sp-combobox__panel" role="listbox" aria-label="Saved questions">
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button></li>
+                </ul>
+              </div>
               <span class="sp-grow"></span>
               <button type="button" class="sp-btn sp-btn--outline">Email this chat</button>
               <button type="button" class="sp-btn sp-btn--outline">Clear</button>
@@ -218,6 +254,20 @@
       <span class="doc-specimen__label">4 - No questions left today</span>
       <div class="as-frame">
             <div class="sp-controls">
+              <div class="sp-combobox sp-chat__saved-menu">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Saved questions" disabled="{{ true }}">
+                  <span class="sp-combobox__chevron">Saved questions</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+                <ul class="sp-combobox__panel" role="listbox" aria-label="Saved questions">
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button></li>
+                </ul>
+              </div>
               <span class="sp-grow"></span>
               <button type="button" class="sp-btn sp-btn--outline">Email this chat</button>
               <button type="button" class="sp-btn sp-btn--outline">Clear</button>
@@ -251,6 +301,20 @@
       <span class="doc-specimen__label">5 - An answer that failed</span>
       <div class="as-frame">
             <div class="sp-controls">
+              <div class="sp-combobox sp-chat__saved-menu">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Saved questions">
+                  <span class="sp-combobox__chevron">Saved questions</span>
+                  <span class="sp-grow"></span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+                <ul class="sp-combobox__panel" role="listbox" aria-label="Saved questions">
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button></li>
+                  <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button></li>
+                </ul>
+              </div>
               <span class="sp-grow"></span>
               <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Email this chat</button>
               <button type="button" class="sp-btn sp-btn--outline">Clear</button>
@@ -288,15 +352,15 @@
                   <span class="sp-empty__title">Ask about your money</span>
                   <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
                 </div>
+                <div class="sp-chat__examples">
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on food in August?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Which shop did I use most this year?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I save this month?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Am I over budget this month?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                  <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                </div>
               </div>
               <div class="sp-chat__dock">
-              <div class="sp-chat__saved">
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button>
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button>
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button>
-                <button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button>
-                <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Edit</button>
-              </div>
               <div class="sp-chat__composer">
                 <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
@@ -307,7 +371,7 @@
       </div>
     </div>
     <div class="doc-specimen">
-      <span class="doc-specimen__label">7 - Editing the saved questions</span>
+      <span class="doc-specimen__label">7 - Nothing saved</span>
       <div class="as-frame">
             <div class="sp-controls">
               <span class="sp-grow"></span>
@@ -321,15 +385,9 @@
                   <span class="sp-empty__title">Ask about your money</span>
                   <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
                 </div>
+                <span class="sp-meta">Save a question with the bookmark beside it, and it shows here.</span>
               </div>
               <div class="sp-chat__dock">
-              <div class="sp-chat__saved">
-                <span class="sp-chip sp-chip--static" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I save this month?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
-                <span class="sp-chip sp-chip--static" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on food in August?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
-                <span class="sp-chip sp-chip--static" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Am I over budget this month?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
-                <span class="sp-chip sp-chip--static" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
-                <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Done</button>
-              </div>
               <div class="sp-chat__composer">
                 <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
@@ -339,17 +397,42 @@
             </div>
       </div>
     </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">8 - A saved question in a conversation</span>
+      <div class="doc-h300">
+        <div class="sp-controls as-bar">
+          <div class="sp-combobox sp-chat__saved-menu" data-open="true">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" aria-label="Saved questions">
+              <span class="sp-combobox__chevron">Saved questions</span>
+              <span class="sp-grow"></span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+            </button>
+            <ul class="sp-combobox__panel" role="listbox" aria-label="Saved questions">
+              <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option" title="Which shop did I use most this year?"><span class="sp-truncate">Which shop did I use most this year?</span></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option" title="How much did I save this month?"><span class="sp-truncate">How much did I save this month?</span></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option" title="Am I over budget this month?"><span class="sp-truncate">Am I over budget this month?</span></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option" title="How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?"><span class="sp-truncate">How much did I spend on furniture and things for the flat since we moved in March, and how much of it went over the budget?</span></button></li>
+            </ul>
+          </div>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline">Email this chat</button>
+          <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>1 - Nothing asked yet, nothing saved</b> is the empty state (<a href="Components.dc.html#c13">c13</a>) with the three example questions under it as small outline buttons; choosing one sends it. Email this chat and Clear are disabled.</div>
+    <div class="doc-note"><b>1 - Nothing asked yet</b> is the empty state (<a href="Components.dc.html#c13">c13</a>) with the reader's saved questions under it. A new account starts with three: "How much did I spend on food in August?", "Which shop did I use most this year?" and "Am I over budget on transport?". They are saved questions like any other, so they count toward the 8 and can be removed. Accounts that exist already get them once, skipping any wording already saved and only as many as fit under 8. Choosing one sends it. Email this chat and Clear are disabled.</div>
     <div class="doc-note"><b>2 - While an answer comes</b> the question shows at once, the answer's place shows the spinner and "Reading your orders", and Send becomes <b>Stop</b> in its place. Stop ends the request and leaves the question in the thread. The field stays typable; Enter does nothing until the answer is in or stopped. Email this chat is disabled until the answer is in.</div>
     <div class="doc-note"><b>3 - The day's limit shows only near its end.</b> With 3 or fewer left, the hint line states the count in <code>sp-meta--over</code> at its right. On a phone the hint line has no keys: it shows only this count, at the right under the field, and is absent otherwise.</div>
     <div class="doc-note"><b>4 - None left:</b> the amber alert closes the thread and states when asking opens again, from the server's reset time; the field is disabled with the placeholder "No questions left today". The conversation can still be read, emailed and cleared.</div>
     <div class="doc-note"><b>5 - A failed answer</b> stays where it would have been, in <code>--red-ink</code>, with Try again, which sends the same question again in place. A failed answer does not count against the limit. A conversation whose last answer failed cannot be emailed until it is answered or cleared.</div>
     <div class="doc-note"><b>6 - Saved questions.</b> Each question the reader sends carries a small bookmark button beside its bubble (<code>.sp-chat__save</code>, <code>aria-pressed</code>); pressing it saves the question as it was typed, and the bookmark fills in green. Pressing it again removes it. Saved questions are kept on the server for the account, across visits and devices, at most 8, newest last. At 8 the bookmark on an unsaved question is disabled, with the tooltip "8 saved. Remove one to save another." Saving the same wording twice is not possible: the bookmark on a question already saved shows it as saved.</div>
-    <div class="doc-note"><b>The saved row</b> (<code>.sp-chat__saved</code>) sits above the field whenever something is saved, on the empty page and in a conversation alike: one small outline button per saved question, the same button the examples use, and Edit. Choosing one sends it at once, as an example does. Once anything is saved, the empty page shows no examples: the saved row takes their place. A saved question is one line, at most 320px wide and never wider than the row; a longer one is cut with ... and shows the whole question as its tooltip. It is kept as typed, so a cut one still sends in full. On a phone the row is one line that scrolls sideways, each question under the same cap.</div>
-    <div class="doc-note"><b>7 - Edit</b> turns the saved questions into removable chips (<a href="Components.dc.html#c6">c6</a>, the static chip with its remove button) and Edit into Done. Removing one takes effect at once, with no undo and no confirm: it is one line the reader can save again from any question. There is no reorder and no rename; the wording is the question. Done, Esc, or sending a question ends editing. A long question is cut in its chip as in the row, its remove button always in view.</div>
+    <div class="doc-note"><b>On the empty page</b> the saved questions sit under the empty state (<code>.sp-chat__examples</code>), oldest first: each is a small outline button that sends it at once, with its small remove button beside it (<code>.sp-chat__pick</code>). Removing one takes effect at once, with no undo and no confirm, and a removed example does not come back: it is one line the reader can save again from any question. There is no Edit, no reorder and no rename; the wording is the question. A saved question is one line, at most 320px wide and never wider than the column; a longer one is cut with ... and shows the whole question as its tooltip. It is kept as typed, so a cut one still sends in full. A phone shows the same list, the same way.</div>
+    <div class="doc-note"><b>7 - Nothing saved:</b> once every saved question is removed, the empty state stands alone with one line under it in <code>sp-meta</code>: "Save a question with the bookmark beside it, and it shows here."</div>
+    <div class="doc-note"><b>8 - In a conversation</b> nothing sits above the field. On a desktop the saved questions are a select at the left of the controls bar, <b>Saved questions</b> (<a href="Components.dc.html#c3">c3</a>, the action select, as Set status in the bulk bar), its panel 320px wide, each question cut with ... as on the empty page. Choosing one sends it at once and closes the panel; the trigger always reads "Saved questions". Removing is done on the empty page only. With nothing saved the select is absent; while an answer comes it stays usable and sends nothing, as Enter does; with no questions left today it is disabled. A phone has no select: there the saved questions are on the empty page only, and Clear returns to it.</div>
   </div>
 </section>
 

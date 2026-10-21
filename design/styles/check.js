@@ -51,18 +51,25 @@
   if (!/\.sp-chat__figures \.sp-table \{[^}]*table-layout: auto/.test(comp))
     fail('figures in an answer fit a phone', 'components.css', '.sp-chat__figures .sp-table is not table-layout: auto');
 
-  /* A saved question holds its text in .sp-truncate, under the row's cap. Caught: a
+  /* The chat field's placeholder stays on one line. Caught: on a phone "Ask about your
+     orders, vendors and budget" wrapped and the empty field opened two lines high. */
+  if (!/\.sp-textarea\.sp-chat__field:placeholder-shown \{[^}]*white-space: nowrap/.test(comp))
+    fail('the chat placeholder is one line', 'components.css', 'no nowrap on the empty chat field');
+
+  /* A saved question holds its text in .sp-truncate, under the 320px cap. Caught: a
      question kept as typed (up to 2000 characters) made one button wider than the
      column and scrolled the whole page sideways. */
-  if (!/\.sp-chat__saved > \.sp-btn--outline,\s*\.sp-chat__saved > \.sp-chip \{ max-width:/.test(comp))
-    fail('a saved question is capped', 'components.css', 'no max-width on the saved row\'s buttons and chips');
+  if (!/\.sp-chat__pick > \.sp-btn \{[^}]*max-width: min\(320px, 100%\)/.test(comp))
+    fail('a saved question is capped', 'components.css', 'no max-width on .sp-chat__pick > .sp-btn');
   for (const f of pages) {
-    for (const m of src[f].matchAll(/<div class="sp-chat__saved">([\s\S]*?)<\/div>/g)) {
-      for (const b of m[1].matchAll(/<button type="button" class="sp-btn sp-btn--outline[^"]*"[^>]*>([\s\S]*?)<\/button>/g))
-        if (!/^<span class="sp-truncate">/.test(b[1])) fail('a saved question is capped', f, 'saved question without .sp-truncate: ' + b[1].slice(0, 40));
-      for (const c of m[1].matchAll(/<span class="sp-chip sp-chip--static"[^>]*>([^<]*)/g))
-        if (c[1].trim()) fail('a saved question is capped', f, 'saved chip text outside .sp-truncate: ' + c[1].slice(0, 40));
-    }
+    for (const m of src[f].matchAll(/<span class="sp-chat__pick"><button type="button" class="sp-btn[^"]*"[^>]*>([\s\S]*?)<\/button>/g))
+      if (!/^<span class="sp-truncate">/.test(m[1])) fail('a saved question is capped', f, 'saved question without .sp-truncate: ' + m[1].slice(0, 40));
+    for (const m of src[f].matchAll(/<div class="sp-combobox sp-chat__saved-menu"[\s\S]*?<\/ul>/g))
+      for (const o of m[0].matchAll(/<button type="button" class="sp-combobox__option"[^>]*>([\s\S]*?)<\/button>/g))
+        if (!/^<span class="sp-truncate">/.test(o[1])) fail('a saved question is capped', f, 'Saved questions option without .sp-truncate');
+    /* Saved questions never sit above a conversation (Ask Spendly 24b 8): the row above
+       the field was retired for the select in the controls bar. */
+    if (/class="sp-chat__saved"/.test(src[f])) fail('no saved row above the field', f, '.sp-chat__saved is retired');
   }
 
   /* A back control in a phone top bar is labelled Back. Caught: three in Mobile
