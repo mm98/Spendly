@@ -80,8 +80,14 @@ html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display
 .sp-shell--touch:has(.sp-savebar) { padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom)); }
 /* the search fills a phone (7b) */
 .sp-shell--touch:has(.sp-palette--screen) { padding-bottom: 0; }
-/* flex: none, or the column's flex basis wins over the height and the bars scroll away */
-.sp-shell--touch .sp-shell__page:has(> .sp-palette--screen) { flex: none; height: 100dvh; }
+.sp-shell--touch .sp-shell__page:has(> .sp-palette--screen) { height: 100dvh; }
+
+/* a body that fills the column (Ask Spendly 24a) holds the window's height, so its own part scrolls */
+.sp-shell--viewport .sp-shell__page:has(> .sp-shell__body--fill) { height: 100dvh; }
+.sp-shell--touch:has(.sp-shell__body--fill) { height: 100dvh; }
+/* on a phone the dock runs edge to edge above the tab bar, and the thread keeps the phone gutter (7a) */
+.sp-shell--touch .sp-shell__body--fill { padding: 0; }
+.sp-shell--touch .sp-shell__body--fill :is(.sp-chat__scroll, .sp-chat__start) { padding: 0 var(--phone-gutter); }
 
 /* focus the keyboard moves stops 12 clear of the bars pinned over the page */
 html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }
@@ -212,38 +218,6 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 .sp-touch .sp-viewer__stage { grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
 .sp-touch .sp-viewer__stage > img { max-height: 100%; }
 
-/* a facet group collapses from its heading (c12, 16a "Facets as expandable sections") */
-.sp-field-group__fold {
-	display: flex;
-	flex: 1;
-	align-items: center;
-	gap: var(--sp-8);
-	min-width: 0;
-	padding: 0;
-	border: 0;
-	border-radius: var(--r-marker);
-	background: none;
-	color: inherit;
-	font: inherit;
-	text-align: left;
-	cursor: pointer;
-	outline: none;
-}
-.sp-field-group__fold:focus-visible { box-shadow: var(--ring); }
-.sp-field-group__fold[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
-/* its values scroll within the group at 240px (16a); the inset is room for a value's focus ring */
-.sp-field-group__values {
-	display: flex;
-	flex-direction: column;
-	gap: var(--sp-6);
-	max-height: 240px;
-	overflow-y: auto;
-	margin: calc(var(--sp-4) * -1);
-	padding: var(--sp-4);
-}
-
-/* a facet group's count and action sit at the heading's right edge (c12) */
-.sp-field-group__head { width: 100%; }
 /* a facet chip truncates rather than wraps, its count kept whole (c6, c12) */
 .sp-chip--facet > span { grid-template-columns: minmax(0, 1fr); }
 .sp-chip--facet > span > span { overflow: hidden; text-overflow: ellipsis; }

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { askAssistant } from '../api/client.js'
 
-/* The palette's conversation (9d), kept for the visit: an answer still coming when the palette closes
+/* Ask Spendly's conversation (24a), kept for the visit: an answer still coming when the page is left
    lands in it. A turn is { id, question, answer, state }: working, answered, failed or stopped. */
 
 let owner = null
@@ -31,11 +31,13 @@ export function useConversation(user) {
 	return owner === user ? now : []
 }
 
+const pairsOf = list => list.filter(t => t.state === 'answered').flatMap(t => [{ role: 'user', text: t.question }, { role: 'assistant', text: t.answer }])
+
 // what the server is sent: every answered turn before the one asked, then its question
-function sentFor(turn) {
-	const before = turns.slice(0, turns.indexOf(turn)).filter(t => t.state === 'answered')
-	return [...before.flatMap(t => [{ role: 'user', text: t.question }, { role: 'assistant', text: t.answer }]), { role: 'user', text: turn.question }]
-}
+const sentFor = turn => [...pairsOf(turns.slice(0, turns.indexOf(turn))), { role: 'user', text: turn.question }]
+
+/** The answered questions and answers of `list`, as the conversation email takes them. */
+export const answeredTurns = list => pairsOf(list)
 
 function send(turn) {
 	const controller = new AbortController()
@@ -67,8 +69,22 @@ export function askAgain(id) {
 /** Ends the answer that is coming; its question stays. */
 export const stopAsking = () => asking?.abort()
 
-/** Ends the conversation. */
-export function endConversation() {
+/** Empties the conversation and answers what it held, for Undo; an answer coming is ended. */
+export function clearConversation() {
 	asking?.abort()
+	const held = turns.map(t => (t.state === 'working' ? { ...t, state: 'stopped' } : t))
 	set([])
+	return held
 }
+
+/** Puts back what `clearConversation` answered, unless a question has been asked since. */
+export function restoreConversation(held) {
+	if (turns.length) return
+	set(held)
+}
+
+let emailed = null
+
+/** Marks `list` as sent by email; it reads as sent until the conversation changes. */
+export const noteEmailed = list => { emailed = list }
+export const wasEmailed = list => list.length > 0 && emailed === list

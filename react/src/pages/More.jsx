@@ -6,7 +6,7 @@ import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Anchor } from '../components/Overlays.jsx'
 import { Stacked, useDismiss } from '../components/Utilities.jsx'
-import { getCurrentUser } from '../api/client.js'
+import { getAssistant, getCurrentUser } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { useShellShape } from '../app/useMedia.js'
 import { AccountMenu } from '../app/AppShell.jsx'
@@ -17,6 +17,8 @@ const ROWS = [
 	{ to: '/categories', label: 'Categories' },
 	{ to: '/bookmarks', label: 'Bookmarks' },
 	{ to: '/more/views', label: 'Saved views' },
+	// only while the server has an assistant set up (7a)
+	{ to: '/ask', label: 'Ask Spendly', asks: true },
 	{ to: '/settings', label: 'Settings' }
 ]
 
@@ -28,12 +30,13 @@ export default function More() {
 	const email = user.data?.email
 	const name = user.data?.name || null
 	const picture = user.data?.picture || null
+	const asks = !!useApi(getAssistant).data?.ready
 	const chevron = <Icon name="chevron-right" size={14} />
 	if (!touch) return <Navigate to="/settings" replace />
 	return (
 		<>
 			{email ? <Account name={name} picture={picture} email={email} chevron={chevron} /> : null}
-			{ROWS.map(row => (
+			{ROWS.filter(row => asks || !row.asks).map(row => (
 				<ListItem key={row.to} variant="card" chevron={chevron} to={row.to}>
 					<span className="sp-data sp-grow">{row.label}</span>
 				</ListItem>

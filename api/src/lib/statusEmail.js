@@ -77,7 +77,8 @@ const weekNumberOf = monday => Number(weekIdOf(monday).slice(6))
 
 /* ---- the account's own way of writing numbers and dates ---- */
 
-function writerFor({ locale, currency }) {
+/** How the account writes amounts, counts and dates in an email, in `locale`. */
+export function writerFor({ locale, currency }) {
 	const symbol = CURRENCIES.find(c => c.code === currency) ?? CURRENCIES[0]
 	const numbers = new Map()
 	const figure = (n, decimals) => {
@@ -106,6 +107,8 @@ function writerFor({ locale, currency }) {
 		// "30 Sep", with the year once it is not the year the email is about
 		dayMonth: (day, year) => shortMonths(format({ day: 'numeric', month: 'short', ...(day.startsWith(year) ? {} : { year: 'numeric' }) })
 			.formatToParts(dateOf(day))).join(''),
+		// "21 Oct 2026"
+		date: day => shortMonths(format({ day: 'numeric', month: 'short', year: 'numeric' }).formatToParts(dateOf(day))).join(''),
 		// "12 - 18 Oct 2026"
 		days: (from, last) => shortMonths(range({ day: 'numeric', month: 'short', year: 'numeric' }, from, last, ' - ')).join(''),
 		// "19 and 25 October"
@@ -124,7 +127,8 @@ const selectBookmarksAdded = db.prepare(`SELECT name, url, price FROM bookmarks
 	ORDER BY created_at DESC, rowid DESC LIMIT @limit`)
 const countDraftOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = ?')
 
-const usableLocale = (...asked) => asked.find(l => {
+/** The first of `asked` this server can write numbers in, else en-GB; 'auto' is never usable. */
+export const usableLocale = (...asked) => asked.find(l => {
 	try { return l && l !== 'auto' && Intl.NumberFormat.supportedLocalesOf(l).length > 0 } catch { return false }
 }) ?? 'en-GB'
 

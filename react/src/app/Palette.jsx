@@ -2,8 +2,7 @@ import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { useStatusTypes } from './statuses.js'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
-import { Palette as Surface, PaletteAll, PaletteAnswer, PaletteAsk, PaletteGroup, PaletteQuestion, PaletteRow, PaletteRule, PaletteThread, Scrim } from '../components/Shell.jsx'
-import { Alert } from '../components/Overlays.jsx'
+import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
 import { getAssistant, getCurrentUser, getOrder, getOrders, getOverLimitCategories, getStatsSlice, getVendor, getVendorPage, searchRecords, thisMonthSlice } from '../api/client.js'
 import { forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
 import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
@@ -12,8 +11,6 @@ import { setTheme, useTheme } from './theme.js'
 import { forgetRecent, noteRecent, readRecent } from './recent.js'
 import { useScanPicker } from './scanPicker.jsx'
 import { vendorName } from './orderRow.jsx'
-import { ask, askAgain, endConversation, stopAsking, useConversation } from './assistant.js'
-import { AnswerText } from './assistantAnswer.jsx'
 
 export { forgetRecent }
 
@@ -183,6 +180,7 @@ const GO = [
 	['Categories', 'category', '/categories'],
 	['Bookmarks', 'heart', '/bookmarks'],
 	['Statistics', 'chart-bar', '/statistics'],
+	['Ask Spendly', 'message-circle', '/ask'],
 	['Settings', 'settings', '/settings']
 ]
 
@@ -192,10 +190,9 @@ const actionsFor = (theme, onShortcuts, overLimit, drafts, scan, asks) => [
 		? { key: 'scan', icon: 'camera', name: 'Scan a receipt', kbd: 'S', run: scan, first: true, action: true }
 		: { key: 'scan', icon: 'camera', name: 'Scan a receipt', meta: 'Available once your email is confirmed', off: true, first: true, action: true },
 	{ key: 'new', icon: 'plus', name: 'New order', kbd: 'N', to: '/orders/new', first: true, action: true },
-	// listed only while the assistant is set up and the day has questions left (9d)
-	...(asks ? [{ key: 'ask', brand: true, name: 'Ask about your money', ask: '', first: true }] : []),
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
-	...GO.map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
+	// Ask Spendly only while the server has an assistant set up (9d)
+	...GO.filter(([, , to]) => asks || to !== '/ask').map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
 	{ key: 'add-vendor', icon: 'building-store', name: 'Add a vendor', to: '/vendors/new' },
 	{ key: 'add-category', icon: 'category', name: 'Add a category', to: '/categories/new' },
 	theme === 'dark'
@@ -222,15 +219,7 @@ function useHasDrafts() {
 
 const countLabel = (name, count) => (count == null ? name : name + dot + count)
 
-// with text typed, Ask is always the last group: one row that sends the text as the first question (9d)
-function groupsFor(text, found, recent, actions, asks) {
-	const groups = searchGroups(text, found, recent, actions)
-	const needle = text.trim()
-	if (!asks || !needle) return groups
-	return [...groups, { key: 'ask', label: 'Ask', entries: [{ key: 'ask-text', brand: true, plain: true, name: <>Ask about your money: <b>{needle}</b></>, ask: needle }] }]
-}
-
-function searchGroups(text, found, recent, actions) {
+function groupsFor(text, found, recent, actions) {
 	const needle = text.trim()
 	const lower = needle.toLowerCase()
 	const defaults = actions.filter(a => a.first)
@@ -247,7 +236,7 @@ function searchGroups(text, found, recent, actions) {
 	const offered = [...(found?.vendorActions ?? []), ...named]
 	const actionGroup = offered.length ? [{ key: 'actions', label: 'Actions', entries: offered }] : []
 	// until the first answer arrives the list keeps what it held, so it never blanks (9d)
-	if (!found) return named.length ? actionGroup : searchGroups('', null, recent, actions)
+	if (!found) return named.length ? actionGroup : groupsFor('', null, recent, actions)
 
 	const all = to => ({ key: 'all-' + to, all: true, to })
 	// every group ends in something to act on, never a heading alone (c24)
@@ -291,110 +280,6 @@ function resultCount(found) {
 	return sum ? plural(sum, 'result') : null
 }
 
-// focus stays in the palette: its fields, its buttons and the links in an answer
-function trapTab(ev) {
-	const stops = [...ev.currentTarget.querySelectorAll('input, textarea:not(:disabled), button:not([tabindex="-1"]):not(:disabled), a[href]')]
-	const at = stops.indexOf(document.activeElement)
-	ev.preventDefault()
-	stops[(at + (ev.shiftKey ? -1 : 1) + stops.length) % stops.length]?.focus()
-}
-
-const EXAMPLES = ['How much did I spend on food in August?', 'Which shop did I use most this year?', 'Am I over budget on transport?']
-
-/** The palette asking (9d): the conversation, the question field, and the day's limit near its end. */
-function Asking({ touch, user, turns, assistant, onBack, onOpen, onCancel }) {
-	const [text, setText] = useState('')
-	const [cursor, setCursor] = useState(0)
-	const field = useRef(null)
-	const thread = useId()
-	const ids = useId()
-	const working = turns.some(t => t.state === 'working')
-	const noneLeft = !!assistant?.ready && assistant.left === 0
-	const examples = !turns.length && !noneLeft
-
-	useEffect(() => { field.current?.focus() }, [])
-	// Send and Stop swap in one place: focus that went with the one that left comes back to the field
-	useEffect(() => {
-		if (document.activeElement === document.body) field.current?.focus()
-	}, [working])
-	// the latest question at the top, with its answer under it
-	const latest = turns.at(-1)
-	useEffect(() => {
-		document.getElementById(thread)?.querySelectorAll('.sp-palette__question').item(turns.length - 1)?.scrollIntoView({ block: 'start' })
-	}, [thread, turns.length, latest?.state])
-
-	const send = question => {
-		if (working || noneLeft || !question.trim()) return
-		ask(user, question)
-		setText('')
-		field.current?.focus()
-	}
-	const keys = ev => {
-		if (ev.key === 'Enter' && !ev.shiftKey && ev.target === field.current) {
-			ev.preventDefault()
-			if (text.trim()) send(text)
-			else if (examples) send(EXAMPLES[cursor])
-		} else if (examples && !text && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
-			ev.preventDefault()
-			setCursor(c => (c + (ev.key === 'ArrowDown' ? 1 : -1) + EXAMPLES.length) % EXAMPLES.length)
-		} else if (ev.key === 'Escape' || (ev.key.toLowerCase() === 'k' && (ev.metaKey || ev.ctrlKey))) {
-			ev.preventDefault()
-			ev.stopPropagation()
-			onCancel()
-		} else if (ev.key === 'Tab') trapTab(ev)
-	}
-
-	const left = assistant?.left
-	return (
-		<PaletteAsk
-			screen={touch}
-			value={text}
-			onChange={setText}
-			onBack={onBack}
-			onSend={() => send(text)}
-			onStop={stopAsking}
-			onClear={() => { endConversation(); setText(''); field.current?.focus() }}
-			working={working}
-			disabled={noneLeft}
-			inputRef={field}
-			placeholder={noneLeft ? 'No questions left today' : turns.length ? 'Ask a follow-up' : 'Ask about your orders, vendors and budget'}
-			keys={['↵ send', '⇧↵ new line', 'esc close']}
-			left={left > 0 && left <= 3 ? `${plural(left, 'question')} left today` : null}
-			listbox={examples}
-			activeId={examples ? `${ids}-${cursor}` : undefined}
-			onKeyDown={keys}
-		>
-			{examples
-				? (
-					<>
-						<PaletteGroup>Try asking</PaletteGroup>
-						{EXAMPLES.map((q, i) => (
-							<PaletteRow key={q} id={`${ids}-${i}`} plain selected={i === cursor}
-								onMouseMove={() => setCursor(i)} onClick={() => send(q)}>{q}</PaletteRow>
-						))}
-					</>
-				)
-				: (
-					<PaletteThread id={thread}>
-						{turns.map(t => (
-							<Fragment key={t.id}>
-								<PaletteQuestion>{t.question}</PaletteQuestion>
-								{t.state === 'stopped' ? null : (
-									<PaletteAnswer state={t.state} onRetry={() => askAgain(t.id)}>
-										{t.state === 'answered' ? <AnswerText text={t.answer} onOpen={onOpen} /> : null}
-									</PaletteAnswer>
-								)}
-							</Fragment>
-						))}
-						{noneLeft
-							? <Alert mark="!" title="No questions left today">You can ask again tomorrow from 00:00. Search works as usual.</Alert>
-							: null}
-					</PaletteThread>
-				)}
-		</PaletteAsk>
-	)
-}
-
 /** The command palette (9d, c24): over the page on a desktop, the whole screen on a phone (7b),
     where a result replaces the search's step in the history. `onClose` closes it without acting. */
 export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
@@ -403,16 +288,10 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const [text, setText] = useState(query)
 	const input = useRef(null)
 	// what had focus, given back when the palette is cancelled
-	const before = useRef(document.activeElement)
+	const back = useRef(document.activeElement)
 	// a recent record opens on an answer from after this, never on one the cache kept from before
 	const [opened] = useState(() => Date.now())
 	const ids = useId()
-	const user = useApi(getCurrentUser).data?.id
-	const conversation = useConversation(user)
-	const assistant = useApi(getAssistant).data
-	const asks = !!assistant?.ready && assistant.left > 0
-	// reopened while a conversation exists, it opens at the latest answer; text typed in the top bar searches (9d)
-	const [asking, setAsking] = useState(() => conversation.length > 0 && !query)
 
 	const needle = text.trim()
 	const found = useSearch(needle, touch)
@@ -421,7 +300,8 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const drafts = useHasDrafts()
 	const scan = useScanPicker()
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
-	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts, held ? null : scan.open, asks), asks)
+	const asks = !!useApi(getAssistant).data?.ready
+	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts, held ? null : scan.open, asks))
 	const flat = groups.flatMap(g => g.entries)
 
 	// the current row goes back to the first whenever the rows change
@@ -443,15 +323,10 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	// the reader stays on this page: focus goes back to where it was
 	const cancel = () => {
 		onClose()
-		if (!touch) before.current?.focus?.()
+		if (!touch) back.current?.focus?.()
 	}
 	const run = (entry, newTab) => {
 		if (entry.off) return
-		if (entry.ask !== undefined) {
-			if (entry.ask) ask(user, entry.ask)
-			setAsking(true)
-			return
-		}
 		if (entry.run) { entry.run(); cancel(); return }
 		if (entry.read) forgetOlder(...entry.read, opened)
 		if (newTab) {
@@ -475,7 +350,13 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 			ev.preventDefault()
 			ev.stopPropagation()
 			cancel()
-		} else if (ev.key === 'Tab') trapTab(ev)
+		} else if (ev.key === 'Tab') {
+			// focus stays in the palette: the field, and on a phone its clear control
+			const stops = [...ev.currentTarget.querySelectorAll('input, button:not([tabindex="-1"])')]
+			const at = stops.indexOf(document.activeElement)
+			ev.preventDefault()
+			stops[(at + (ev.shiftKey ? -1 : 1) + stops.length) % stops.length]?.focus()
+		}
 	}
 
 	let i = -1
@@ -493,7 +374,7 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 				}
 				if (e.all) return <PaletteAll key={e.key} {...events}>{e.name}</PaletteAll>
 				return (
-					<PaletteRow key={e.key} icon={e.icon} thumb={e.thumb} brand={e.brand} plain={e.plain} action={e.action} match={e.match} meta={e.meta}
+					<PaletteRow key={e.key} icon={e.icon} thumb={e.thumb} plain={e.plain} action={e.action} match={e.match} meta={e.meta}
 						value={e.value} note={e.open && at === index ? 'Open' : undefined} kbd={e.kbd} disabled={e.off} aria-disabled={e.off ? 'true' : undefined} {...events}>
 						{e.name}
 					</PaletteRow>
@@ -508,17 +389,7 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 		if (!next) requestAnimationFrame(() => input.current?.focus())
 	}
 
-	// a record named in an answer opens the way a result does
-	const open = to => run({ to })
-	const back = () => {
-		setAsking(false)
-		setText('')
-		requestAnimationFrame(() => input.current?.focus())
-	}
-
-	const surface = asking
-		? <Asking touch={touch} user={user} turns={conversation} assistant={assistant} onBack={back} onOpen={open} onCancel={cancel} />
-		: (
+	const surface = (
 		<Surface
 			screen={touch}
 			value={text}
@@ -535,7 +406,7 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 		>
 			{body}
 		</Surface>
-		)
+	)
 	if (touch) return surface
 	return createPortal(
 		<Scrim dialog onMouseDown={ev => { if (ev.target === ev.currentTarget) cancel() }}>{surface}</Scrim>,

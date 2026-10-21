@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 
-/* The account and status emails (20f): byte copies of design/emails, which design:check holds equal.
+/* The account, status and conversation emails (20f): byte copies of design/emails, which design:check holds equal.
    Each .txt opens with its subject line, "Subject: ..." or the status email's {{subject}}. */
 
 const dir = new URL('../emails/', import.meta.url)
@@ -12,7 +12,7 @@ function load(name) {
 	return { subject: head[1], text: txt.slice(head[0].length), html: readFileSync(new URL(`${name}.html`, dir), 'utf8') }
 }
 
-const TEMPLATES = Object.fromEntries(['confirm-email', 'reset-password', 'password-changed', 'passkey-added', 'status', 'status-quiet']
+const TEMPLATES = Object.fromEntries(['confirm-email', 'reset-password', 'password-changed', 'passkey-added', 'status', 'status-quiet', 'ask-chat']
 	.map(n => [n, load(n)]))
 
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])

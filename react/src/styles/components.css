@@ -2549,12 +2549,47 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
 .sp-field-group__head {
   display: flex;
   align-items: center;
+  /* a legend shrinks to its text unless told otherwise, which left the count (Vendor,
+     42 total) beside the label instead of at the right edge the spacer gives it */
+  width: 100%;
   gap: var(--sp-8);
   font-size: var(--t-12);
   font-weight: 600;
   color: var(--ink-2);
 }
 .sp-field-group__count { font-size: var(--t-11); color: var(--ink-5); font-variant-numeric: tabular-nums; }
+/* ---------- facet group, folding - c12 variant ----------
+   A facet group folds from its head: the whole head is one button, the label, the count
+   or the range at the right, and the chevron, pointing down open and right folded. A
+   folded group shows its head only. Which groups are folded is kept for the next visit. */
+.sp-field-group__fold {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--sp-8);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-marker);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+.sp-field-group__fold:focus-visible { box-shadow: var(--ring); }
+.sp-field-group__fold[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
+/* a long facet's values scroll inside the group at 240px; the inset is room for a value's focus ring */
+.sp-field-group__values {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  max-height: 240px;
+  overflow-y: auto;
+  margin: calc(var(--sp-4) * -1);
+  padding: var(--sp-4);
+}
 .sp-filters {
   display: flex;
   align-items: center;
@@ -4100,65 +4135,6 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 }
 .sp-palette__thumb { width: 22px; height: 22px; border-radius: var(--r-tile); background: var(--line); flex: none; }
 
-/* ---------- command palette, asking - c24 variant ----------
-   The same surface holding a conversation about the reader's money: the query line
-   takes the question and grows to four lines, the body holds the questions and the
-   answers in order, the foot carries the send keys and the day's limit. */
-.sp-palette--ask .sp-palette__search { align-items: flex-end; }
-textarea.sp-palette__term {
-  resize: none;
-  padding: var(--sp-4) 0;
-  line-height: var(--lh);
-  field-sizing: content;
-  max-height: calc(var(--t-15) * var(--lh) * 4 + var(--sp-8));
-  overflow-y: auto;
-}
-.sp-palette__term:disabled { cursor: not-allowed; }
-.sp-palette__thread { display: flex; flex-direction: column; gap: var(--sp-16); padding: var(--sp-6) var(--sp-16); }
-.sp-palette__question {
-  align-self: flex-end;
-  max-width: 80%;
-  padding: var(--sp-8) var(--sp-12);
-  border-radius: var(--r-field);
-  background: var(--surface-2);
-  font-size: var(--t-14);
-  color: var(--ink);
-  text-wrap: pretty;
-}
-.sp-palette__reply {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-8);
-  flex: 1;
-  min-width: 0;
-  font-size: var(--t-14);
-  line-height: var(--lh);
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-.sp-palette__reply p { margin: 0; }
-.sp-palette__reply ul { margin: 0; padding-left: var(--sp-16); }
-.sp-palette__reply a { font-weight: 600; }
-.sp-palette__reply > .sp-btn { align-self: flex-start; }
-/* a small table of amounts inside an answer: the compact table, framed as a block */
-.sp-palette__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; }
-.sp-palette__working { display: flex; align-items: center; gap: var(--sp-8); min-height: var(--mark-small); font-size: var(--t-13); color: var(--ink-5); }
-.sp-palette__failed { color: var(--red-ink); }
-/* on a phone the query line is the top bar: at one line it is the bar's height with the
-   touch controls centred in it, and it grows downward as the question does */
-.sp-palette--screen.sp-palette--ask .sp-palette__search {
-  height: auto;
-  min-height: var(--phone-bar-h);
-  /* less the 1px rule under it, so one line is the 68px the search row is */
-  padding-block: calc((var(--phone-bar-h) - var(--control-h-touch) - 1px) / 2);
-}
-/* 1lh, not the desktop size: on touch the field takes the touch font size */
-.sp-palette--screen.sp-palette--ask textarea.sp-palette__term { padding: calc((var(--control-h-touch) - 1lh) / 2) 0; }
-/* the foot is the bar the phone pins at the bottom: the bar's height, its text on the
-   body's --sp-16 inset so it lines up with the thread above it, and its
-   one button is the text button at the touch height, as Cancel is in the query line */
-.sp-palette--screen .sp-palette__foot { min-height: var(--phone-bar-h); }
-.sp-palette--screen .sp-palette__foot > .sp-btn { flex: none; width: auto; }
 
 /* the same palette filling a phone: no card edges, and the body takes the height
    the frame has rather than its own maximum */
@@ -5513,3 +5489,103 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    the palette's term and a cell input out. Last in the file so it is not outranked. */
 .sp-touch :is(.sp-input, .sp-input.sp-input--cell, .sp-textarea, .sp-tokens__add, .sp-palette__term, .sp-stepper__value),
 .sp-touch :is(.sp-input, .sp-textarea, .sp-tokens__add, .sp-palette__term)::placeholder { font-size: var(--t-16); }
+
+/* ---------- chat - DRAFT c34 ----------
+   A conversation about the reader's money (Ask Spendly 24a): the questions and the
+   answers in order across the content column, and the field that asks the next one
+   pinned under them. A message is a mark and its text; the reader's own turn it round. */
+.sp-chat { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.sp-chat__scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.sp-chat__thread { display: flex; flex-direction: column; gap: var(--sp-16); width: 100%; margin: 0 auto; padding: var(--sp-16) 0; }
+/* a message never spans the column: at most three quarters of it, Spendly's at the
+   left and the reader's at the right */
+.sp-chat__msg { display: flex; align-items: flex-start; gap: var(--sp-10); max-width: 75%; font-size: var(--t-14); line-height: var(--lh); }
+.sp-chat__msg--mine { align-self: flex-end; }
+/* the mark sits outside its bubble, on the centre of the bubble's first line */
+.sp-chat__msg > .sp-mark { margin-top: calc(var(--sp-12) + 1px + (var(--t-14) * var(--lh) - var(--mark-small)) / 2); }
+.sp-chat__msg--mine { flex-direction: row-reverse; }
+.sp-chat__thread > .sp-alert { align-self: stretch; }
+/* every message is a bubble: the reader's on the green tint, Spendly's on the surface,
+   both at a card's inset (12 by --card-pad) and, inside an answer, a card's 12 gap */
+.sp-chat__question {
+  min-width: 0;
+  padding: var(--sp-12) var(--card-pad);
+  border: 1px solid var(--green-tint);
+  border-radius: var(--r-field);
+  background: var(--green-tint);
+  font-size: var(--t-14);
+  line-height: var(--lh);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.sp-chat__reply {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+  min-width: 0;
+  padding: var(--sp-12) var(--card-pad);
+  border: 1px solid var(--line);
+  border-radius: var(--r-field);
+  background: var(--surface);
+  font-size: var(--t-14);
+  line-height: var(--lh);
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.sp-chat__reply p { margin: 0; }
+.sp-chat__reply ul { margin: 0; padding-left: var(--sp-16); }
+.sp-chat__reply a { font-weight: 600; }
+.sp-chat__reply > .sp-btn { align-self: flex-start; }
+/* a small table of amounts inside an answer: the compact static table, framed as a block */
+.sp-chat__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; background: var(--surface); }
+/* in an answer the number and amount columns are as wide as their content and the name
+   takes the rest, cut with ... when longer, so three columns fit a phone's bubble */
+.sp-chat__figures .sp-table { table-layout: auto; }
+.sp-chat__figures .sp-table .sp-col-number,
+.sp-chat__figures .sp-table .sp-col-amount { width: 1%; padding-left: var(--sp-12); white-space: nowrap; }
+.sp-chat__figures .sp-table th:first-child,
+.sp-chat__figures .sp-table td:first-child { max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* on touch an answer holding figures takes the full column */
+.sp-touch .sp-chat__msg:has(.sp-chat__figures) { max-width: 100%; }
+.sp-chat__working { display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-12) var(--card-pad); border: 1px solid var(--line); border-radius: var(--r-field); background: var(--surface); font-size: var(--t-13); color: var(--ink-5); }
+.sp-chat__failed { color: var(--red-ink); }
+/* the empty conversation: the empty state, and the example questions under it */
+.sp-chat__start { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-16); flex: 1; }
+.sp-chat__examples { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); }
+/* saving a question the reader asked: the small icon button beside the bubble, the
+   bookmark filled once it is saved */
+.sp-chat__save { align-self: center; }
+.sp-chat__save[aria-pressed="true"] { color: var(--green); }
+.sp-chat__save[aria-pressed="true"] svg { fill: currentColor; }
+/* the saved questions, above the field: one wrapping row on desktop, one scrolling
+   line on a phone so the dock keeps its height */
+.sp-chat__saved { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); width: 100%; margin: 0 auto var(--sp-8); }
+.sp-chat__dock--bar .sp-chat__saved { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.sp-chat__saved > * { flex: none; }
+/* a saved question is one line, at most 320px and never wider than the row; its text is
+   .sp-truncate, so a longer one is cut with ... - the button and the editing chip alike */
+.sp-chat__saved > .sp-btn--outline,
+.sp-chat__saved > .sp-chip { max-width: min(320px, 100%); }
+.sp-chat__saved > .sp-btn--outline > .sp-truncate { flex: 0 1 auto; }
+.sp-chat__saved > .sp-chip > .sp-icon-btn { flex: none; }
+.sp-chat__dock { padding-top: var(--sp-12); }
+/* on a phone the dock is a bar pinned above the tab bar, on the bar's surface and gutter */
+.sp-chat__dock--bar { padding: var(--sp-12) var(--phone-gutter); border-top: 1px solid var(--line); background: var(--surface); }
+.sp-chat__composer { display: flex; align-items: flex-end; gap: var(--sp-8); width: 100%; margin: 0 auto; }
+/* the textarea, one control high at one line and growing to six; 1lh so the touch
+   font size keeps it at the touch height */
+.sp-textarea.sp-chat__field {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  field-sizing: content;
+  padding-top: calc((var(--control-h) - 2px - 1lh) / 2);
+  padding-bottom: calc((var(--control-h) - 2px - 1lh) / 2);
+  max-height: calc(6lh + var(--control-h) - 1lh);
+  overflow-y: auto;
+}
+.sp-touch .sp-textarea.sp-chat__field { padding-top: calc((var(--control-h-touch) - 2px - 1lh) / 2); padding-bottom: calc((var(--control-h-touch) - 2px - 1lh) / 2); }
+.sp-chat__composer > .sp-btn { flex: none; width: auto; }
+.sp-chat__hint { display: flex; align-items: center; gap: var(--sp-12); width: 100%; margin: var(--sp-6) auto 0; font-size: var(--t-11); color: var(--ink-5); }
+/* a page body that is one region filling the column, as the chat is */
+.sp-shell__body--fill { flex: 1; min-height: 0; }

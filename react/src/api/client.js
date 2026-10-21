@@ -251,7 +251,7 @@ export async function removeMcpToken(id, signal) {
 	invalidate(getMcpTokens)
 }
 
-/* ---- the assistant in the palette (9d): whether it is there, the questions left today, one question answered ---- */
+/* ---- Ask Spendly (24a): whether it is there, the questions left today, one question answered ---- */
 export async function getAssistant(signal) {
 	return request('/api/assistant', { signal })
 }
@@ -263,6 +263,32 @@ export async function askAssistant(turns, signal) {
 	} finally {
 		invalidate(getAssistant)
 	}
+}
+
+/** The saved questions, oldest first: { questions: [{ id, question }], most }. */
+export async function getSavedQuestions(signal) {
+	return request('/api/assistant/questions', { signal })
+}
+
+export async function saveQuestion(question, signal) {
+	try {
+		return await request('/api/assistant/questions', { method: 'POST', body: { question }, signal })
+	} finally {
+		invalidate(getSavedQuestions)
+	}
+}
+
+export async function removeSavedQuestion(id, signal) {
+	try {
+		return await request(`/api/assistant/questions/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+	} finally {
+		invalidate(getSavedQuestions)
+	}
+}
+
+/** Sends the answered conversation to the account's own address (24c). Answers { email }. */
+export async function emailConversation(turns, signal) {
+	return request('/api/assistant/email', { method: 'POST', body: { turns, locale: browserPlace().locale }, signal })
 }
 
 /* The page still on screen is leaving: its readers are not asked again, since every answer

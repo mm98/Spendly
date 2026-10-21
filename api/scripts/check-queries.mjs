@@ -260,6 +260,11 @@ const mcpHash = token => crypto.createHash('sha256').update(token).digest('hex')
 insertMcpToken.run('mcp-fixture', USER, mcpHash(MCP_TOKEN), 'Claude')
 insertMcpToken.run('mcp-removed', USER, mcpHash(`${MCP_TOKEN}_removed`), 'Old laptop')
 for (let i = 0; i < NEIGHBOURS; i++) insertMcpToken.run(`mcp-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, mcpHash(`${MCP_TOKEN}_n${i}`), 'Claude')
+// saved questions on Ask Spendly: two on the account and one next door each
+const insertQuestion = db.prepare('INSERT INTO user_assistant_questions (id, user_id, question) VALUES (?, ?, ?)')
+insertQuestion.run('aq-fixture', USER, 'How much did I spend on food in August?')
+insertQuestion.run('aq-removed', USER, 'Am I over budget this month?')
+for (let i = 0; i < NEIGHBOURS; i++) insertQuestion.run(`aq-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Which shop did I use most this year?')
 
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
@@ -342,7 +347,7 @@ const REQUESTS = [
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys', '/account/mcp-tokens',
+	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys', '/account/mcp-tokens', '/assistant', '/assistant/questions',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
@@ -385,6 +390,8 @@ for (const [method, path, body] of [
 	['DELETE', '/account/passkeys/pk-removed'],
 	['POST', '/account/mcp-tokens', { name: 'Claude Desktop' }],
 	['DELETE', '/account/mcp-tokens/mcp-removed'],
+	['POST', '/assistant/questions', { question: 'How much did I save this month?' }],
+	['DELETE', '/assistant/questions/aq-removed'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
 	// a line removed from Previous imports, and put back by its toast's Undo
 	['PATCH', '/imports/im-fixture', { hidden: true }],
