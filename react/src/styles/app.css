@@ -88,6 +88,11 @@ html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display
 /* on a phone the dock runs edge to edge above the tab bar, and the thread keeps the phone gutter (7a) */
 .sp-shell--touch .sp-shell__body--fill { padding: 0; }
 .sp-shell--touch .sp-shell__body--fill :is(.sp-chat__scroll, .sp-chat__start) { padding: 0 var(--phone-gutter); }
+/* the confirm banner keeps the gutter every other phone page gives it, or it runs past the screen */
+.sp-shell--touch .sp-shell__body--fill > .au-banner { padding: var(--phone-gutter) var(--phone-gutter) 0; }
+/* the last control sits at the page's right edge, so its tip lines up with its right side: centred, the
+   hidden tip reaches past the window and the whole page scrolls */
+.sp-chat__composer > [data-tip]:last-child::after { left: auto; right: 0; transform: none; }
 
 /* focus the keyboard moves stops 12 clear of the bars pinned over the page */
 html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }

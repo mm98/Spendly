@@ -98,6 +98,20 @@ jobs:
         working-directory: api
         run: npm run queries:check
 
+      # No page scrolls sideways, and Ask does not scroll as a whole, on a phone and at desktop sizes
+      # up to 4K. Against the build the image ships, with the confirm banner showing, in the runner's
+      # own Chrome; --no-save keeps the browser driver out of the app's packages.
+      - name: Install the browser driver
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm i --no-save playwright-core
+      - name: Page scroll
+        if: ${{ !cancelled() }}
+        run: |
+          SPENDLY_DB="$RUNNER_TEMP/page-scroll.sqlite3" SPENDLY_MAIL_LOG=1 PORT=4000 node api/src/server.js &
+          for i in $(seq 1 60); do curl -sf localhost:4000/api/health >/dev/null && break; sleep 0.5; done
+          CHROME_PATH="$(command -v google-chrome)" node react/scripts/check-page-scroll.mjs http://localhost:4000/
+
   # Lighthouse against the built bundle served by the API process -- the deployed shape, not
   # the dev server, which serves unminified modules one file per import and scores something
   # nobody ships. Accessibility and best practices hold a floor (rule checks, same answer on

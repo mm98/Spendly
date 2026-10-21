@@ -45,3 +45,17 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## For Claude Design: the last control in the chat field opens its tip to the left
+
+- **Where:** `react/src/styles/app.css`, `.sp-chat__composer > [data-tip]:last-child::after { left: auto; right: 0; transform: none; }`. Ask Spendly (24a), the email button beside Send.
+- **What the reader sees:** the tip of the email button lines up with the button's right side. Before, the whole page scrolled 7px sideways at every desktop size.
+- **What was found:** a tip is centred over its control and only hidden, so it still takes room. The email button sits at the right edge, and its centred tip reached 7px past the window. Found 21 Oct 2026.
+- **To take into `design/`:** a tip on a control at the right edge lines up with the control's right side, in `components.css` beside the tooltip rules. Then it is removed from `app.css` and this entry goes.
+
+## For Claude Design: the confirm banner keeps the phone gutter on Ask
+
+- **Where:** `react/src/styles/app.css`, `.sp-shell--touch .sp-shell__body--fill > .au-banner { padding: var(--phone-gutter) var(--phone-gutter) 0; }`. Ask on a phone (7a) while the email is not confirmed.
+- **What the reader sees:** the banner sits 16px from the screen's edges, as on every other phone page. Before, it ran 3px past the screen, and the page scrolled sideways and down.
+- **What was found:** Ask's body has no padding on a phone, so the banner had no gutter. Found 21 Oct 2026.
+- **To take into `design/`:** the banner's gutter on a full-height page. Then it is removed from `app.css` and this entry goes.
