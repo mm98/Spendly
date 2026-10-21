@@ -149,7 +149,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		const taken = await owner(alias)
 		if (taken && vendorKey(taken.name) === vendorKey(alias)) return { message: `Another vendor is called ${taken.name}. Pick a different one.` }
 		if (taken) return { message: `${taken.name} already matches "${alias}". Move it here, or pick a different one.`, offer: { alias, holder: taken } }
-		if (vendorKey(alias) === vendorKey(values.name)) return { message: 'That is already the vendor\'s name. Add the other names it uses.' }
+		if (vendorKey(alias) === vendorKey(values.name)) return { message: `"${alias}" already matches ${values.name.trim()}. Capitals, punctuation and endings like Inc or ApS do not count.` }
 		return null
 	}
 	// several names arrive at once from a pasted list: each is checked, and the first refused one is shown
@@ -218,7 +218,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				const about = !e?.status || e.status >= 500 ? null
 					: message.startsWith(`You already have a vendor called ${name}.`) || message.endsWith('Pick a different name.')
 						|| /needs a name/.test(message) ? 'name'
-						: /alias|vendor called|already matches/.test(message) ? 'aliases' : null
+						: /alias|vendor called|already matches|already find/.test(message) ? 'aliases' : null
 				if (!about) return toast({ message, color: 'danger' })
 				setErrors(err => ({ ...err, [about]: message }))
 				focusFirst([about === 'name' ? 'vendor-name' : 'vendor-aliases'])
@@ -310,7 +310,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<Field id="vendor-aliases" label="Also matches"
 					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
 						? 'Other names this vendor uses on receipts. The name the scan read is already here - keep it so the next receipt files itself.'
-						: 'Other names this vendor uses on receipts. A receipt with one of these is filed here.')}
+						: 'Other names this vendor uses on receipts. Capitals, punctuation and endings like Inc or ApS do not count.')}
 					messageType={errors.aliases ? 'danger' : 'hint'}
 					after={offer
 						? (
