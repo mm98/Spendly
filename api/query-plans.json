@@ -2261,6 +2261,16 @@
 				"sqlite_autoindex_user_saved_views_1"
 			]
 		},
+		"SELECT id FROM users ORDER BY created_at, rowid LIMIT 1": {
+			"plan": [
+				"SCAN users",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
 		"SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)": {
 			"plan": [
 				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)"

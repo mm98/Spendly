@@ -4,6 +4,7 @@ import { isBillingRefusal } from '../lib/scanParse.js'
 import { sessionToken } from '../lib/auth.js'
 import { SAVED_MOST, emailConversation, removeQuestion, saveQuestion, savedQuestions } from '../lib/assistantChat.js'
 import { mailAvailable } from '../lib/mail.js'
+import { ownsServer } from './account.js'
 
 /* Ask Spendly (lib/assistant.js): whether it is there with the questions left today, one question
    answered, the saved questions, and the conversation by email. The day is the reader's own. */
@@ -12,7 +13,10 @@ export const router = Router()
 // one question at a time per account, so questions sent together cannot pass the day's limit
 const asking = new Set()
 
-router.get('/', (req, res) => res.json(assistantState(req.user.id, req.today)))
+// the server's owner asks without a daily limit
+const stateOf = req => assistantState(req.user.id, req.today, { unlimited: ownsServer(req.user) })
+
+router.get('/', (req, res) => res.json(stateOf(req)))
 
 // the conversation so far, oldest first, ending with the question; null when it is not that shape
 function turnsOf(body) {
@@ -24,9 +28,9 @@ function turnsOf(body) {
 }
 
 router.post('/ask', async (req, res) => {
-	const state = assistantState(req.user.id, req.today)
+	const state = stateOf(req)
 	if (!state.ready) return res.status(404).json({ error: 'The assistant is not set up on this server.' })
-	if (!state.left) return res.status(429).json({ error: 'No questions left today.', left: 0 })
+	if (state.left === 0) return res.status(429).json({ error: 'No questions left today.', left: 0 })
 	const turns = turnsOf(req.body)
 	if (!turns) return res.status(400).json({ error: `Ask a question of at most ${TEXT_MOST} characters.` })
 
@@ -47,7 +51,7 @@ router.post('/ask', async (req, res) => {
 		})
 		if (!answer) return res.status(502).json({ error: 'Spendly could not answer that just now.' })
 		noteAnswered(req.user.id, req.today)
-		res.json({ answer, left: state.left - 1 })
+		res.json({ answer, left: state.left === null ? null : state.left - 1 })
 	} catch (error) {
 		if (stop.signal.aborted) return
 		// the log is the one place a bad key, a timeout or a refused account is told apart
