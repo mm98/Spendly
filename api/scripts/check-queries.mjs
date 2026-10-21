@@ -52,8 +52,7 @@ import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from 'no
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createRequire } from 'node:module'
-import { createHash } from 'node:crypto'
+import { createRequire, syncBuiltinESMExports } from 'node:module'
 import Database from 'better-sqlite3'
 
 /* Deterministic ids, patched in before lib/ids.js is imported. Not cosmetic: ids are TEXT
@@ -75,6 +74,8 @@ crypto.randomBytes = size => {
 	for (let i = size - 1; i >= 0; i--) { buffer[i] = Number(n & 0xffn); n >>= 8n }
 	return buffer
 }
+// an `import { randomBytes } from 'node:crypto'` made before this line still sees the patch
+syncBuiltinESMExports()
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const BASELINE = path.join(__dirname, '..', 'query-plans.json')
@@ -255,7 +256,7 @@ for (let i = 0; i < NEIGHBOURS; i++) insertPasskey.run(`pk-n${i}`, `u-neighbour$
 // assistant tokens: two on the account and one next door each, as the passkeys above
 const MCP_TOKEN = 'spendly_mcp_check'
 const insertMcpToken = db.prepare('INSERT INTO user_mcp_tokens (id, user_id, token_hash, name) VALUES (?, ?, ?, ?)')
-const mcpHash = token => createHash('sha256').update(token).digest('hex')
+const mcpHash = token => crypto.createHash('sha256').update(token).digest('hex')
 insertMcpToken.run('mcp-fixture', USER, mcpHash(MCP_TOKEN), 'Claude')
 insertMcpToken.run('mcp-removed', USER, mcpHash(`${MCP_TOKEN}_removed`), 'Old laptop')
 for (let i = 0; i < NEIGHBOURS; i++) insertMcpToken.run(`mcp-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, mcpHash(`${MCP_TOKEN}_n${i}`), 'Claude')
