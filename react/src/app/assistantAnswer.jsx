@@ -3,15 +3,24 @@ import { ChatFigures } from '../components/Chat.jsx'
 import { currency } from '../api/format.js'
 
 /* An answer from the assistant, in the small format lib/assistant.js asks for: paragraphs, "- "
-   lists, "|" tables, [text](order:ID) links and {{number}} amounts. Anything else shows as text. */
+   lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links and {{number}} amounts.
+   Anything else shows as text. */
 
-const RECORD = { order: id => `/orders/${id}`, vendor: id => `/vendors/${id}/edit`, category: id => `/categories/${id}/edit` }
-const INLINE = /\[([^\]\n]+)\]\((order|vendor|category):([\w-]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
+const INLINE = /\[([^\]\n]+)\]\((orders?|vendor|category):([^)\s]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
+// where a link in an answer opens: an order itself, or the order list filtered to what the answer is about
+const FILTERS = { vendor: /^[\w-]+(?:,[\w-]+)*$/, category: /^[\w-]+(?:,[\w-]+)*$/, status: /^[^&=]+$/, from: /^\d{4}-\d{2}-\d{2}$/, to: /^\d{4}-\d{2}-\d{2}$/ }
+function linkTarget(kind, value) {
+	if (kind === 'order') return /^[\w-]+$/.test(value) ? `/orders/${value}` : null
+	const asked = kind === 'orders' ? new URLSearchParams(value) : new URLSearchParams({ [kind]: value })
+	// a filter the list cannot apply would open more orders than the text names, so such a link shows as text
+	const usable = asked.size && [...asked].every(([key, v]) => FILTERS[key]?.test(v) && asked.getAll(key).length === 1)
+	return usable ? `/orders?${asked}` : null
+}
 const AMOUNT = /\{\{(-?\d+(?:\.\d+)?)\}\}/g
 const AMOUNT_ONLY = /^\{\{-?\d+(?:\.\d+)?\}\}$/
 const NUMBER_ONLY = /^-?[\d.,\s]+$/
 // a link's text, so a column of linked amounts still lines up as amounts
-const LINK_ONLY = /^\[([^\]\n]+)\]\((?:order|vendor|category):[\w-]+\)$/
+const LINK_ONLY = /^\[([^\]\n]+)\]\((?:orders?|vendor|category):[^)\s]+\)$/
 const linkText = cell => cell.match(LINK_ONLY)?.[1] ?? cell
 
 function inline(text, onOpen) {
@@ -21,9 +30,9 @@ function inline(text, onOpen) {
 		if (m.index > at) parts.push(text.slice(at, m.index))
 		if (m[4] !== undefined) parts.push(<span key={m.index} className="sp-amount">{currency(Number(m[4]))}</span>)
 		else {
-			const to = RECORD[m[2]](encodeURIComponent(m[3]))
+			const to = linkTarget(m[2], m[3])
 			const label = m[1].replace(AMOUNT, (_, n) => currency(Number(n)))
-			parts.push(<a key={m.index} href={'#' + to} onClick={ev => { ev.preventDefault(); onOpen(to) }}>{label}</a>)
+			parts.push(to ? <a key={m.index} href={'#' + to} onClick={ev => { ev.preventDefault(); onOpen(to) }}>{label}</a> : <Fragment key={m.index}>{label}</Fragment>)
 		}
 		at = m.index + m[0].length
 	}

@@ -208,7 +208,9 @@ Everything that needs you, on one page.
 
 - **Ask Spendly** is a page for questions about your money, in the sidebar above Settings (on a
   phone, under More). Type a question, or press one of your saved questions. Spendly answers with amounts,
-  short lists, small tables and links to the orders, vendors and categories it names. A follow-up
+  short lists, small tables and links. A link to an order opens that order. A link to a vendor, a
+  category or a group of orders opens the order list with those filters, and with the period the
+  answer is about. A follow-up
   question uses the earlier ones. The conversation stays while the app is open. **Stop** ends an
   answer that is coming, and a failed answer can be tried again.
 - **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
