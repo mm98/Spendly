@@ -1,70 +1,52 @@
-# Assistant tokens: a Settings section for MCP access
+# Favourites lead only in pick lists
 
-## Fixed from design_handoff_assistant_tokens_fixed
+Answers `Brief-favourites-only-in-pickers.md`: favourites come first only in the lists you pick from. The Vendors and Categories pages ignore favourites in every sort, and sort by name is plain A to Z.
 
-- **The card is in the Settings screen, 11a.** 11a draws every pane's card in one column. The AI assistants card, at rest with two tokens, now sits there after Statuses, like the other panes. The second Settings screen that 11e opened with is gone; 11e holds the states again, with state 4 at the pane's width.
+## 1. The Categories page keeps its chosen sort
 
-## Fixed from design_handoff_assistant_tokens
+**The problem** - The note on the category form said a favourite category is kept at the top of Categories. The 5d drawing showed "Sort: Name A - Z" with the rows in the order Decor, Seating, Lighting, Textiles, Storage, which is not A to Z.
 
-- **Read-only fields.** Token, Address and Address with the token in it are now read-only inputs with bound labels. Before, the long address ran past the field and the card, and the values sat above the copy button's centre.
-- **Set up in labels.** "Claude Desktop" is now "Claude", meaning the web and the desktop app, which share the Connectors setting. All four labels now fit at the pane's width. On a phone the new token shows without Set up in: the token and both addresses are there to copy, and the programs it sets up run on a computer.
+**What changed** - The 5d rows now read Decor, Lighting, Seating, Storage, Textiles. The 5e note now reads: "A favourite category comes first in every category picker, and only there: the Categories page keeps its chosen sort, and Name A - Z is plain A to Z."
 
-Answers `Brief-assistant-tokens.md` ("a Settings section for assistant tokens").
+**Where** - `Vendors and categories.dc.html` 5d (Categories list) and the 5e note "Favourite works as it does on a vendor." App: the Categories page, all sorts.
 
-## 1. Where the section goes
+**What is still open** - Nothing.
 
-- **The problem:** Settings had nowhere to make, see or remove the tokens an assistant program reads `/mcp` with.
-- **What changed:** a pane of its own, **AI assistants**, in the Settings nav after Statuses and before the divider. Settings now has twelve panes. On a phone it is its own page, opened from an "AI assistants" row in Settings that shows the token count, placed after Statuses.
-- **Where:** `Settings and import.dc.html` 11a (nav item, lede, note) and 11e (the pane, every state); `Mobile screens.dc.html` 7a (the Settings row and the AI assistants phone page). App: `react/src/pages/Settings.jsx` (section list), a new pane beside `react/src/pages/SettingsPasskeys.jsx`, and the phone layout of Settings.
-- **What is still open:** nothing.
+## 2. The Favourite help text no longer promises a place on the page
 
-## 2. The list, the empty state, making a token
+**The problem** - The Favourite choice on the vendor and category forms said "Kept at the top of Vendors" and "Kept at the top of Categories".
 
-- **The problem:** the brief asks for a named list with made and last-used dates, an empty state, and a required name of at most 80 characters, at most 20 tokens.
-- **What changed:** one card in the Passkeys family: head "AI ASSISTANTS" with New token, the line "Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.", then one row per token at the passkey row's 42px (`.st-pk-row`): the name over "Made 14 Oct 2026 · last used today" or "Made 2 Sep 2026 · never used", and Remove. Newest first.
-  - Empty: the card with only its line and New token.
-  - New token opens a naming row at the top (name field, Cancel, Create), the passkey rename row's shape. Enter creates, Escape cancels, the field stops at 80 characters. Create with no name shows "Give the token a name." under it. New token is disabled while the naming row or a new token is open.
-  - At 20: New token disabled, and the line "20 of 20 tokens. Remove one to make another."
-  - No rename, as the server offers none.
-- **Where:** `Settings and import.dc.html` 11e, states 1, 2, 3, 5, 6.
-- **What is still open:** nothing.
+**What changed** - Vendor forms: "Leads the list wherever you pick a vendor." Category forms: "Leads the list in every category picker."
 
-## 3. The one-time token
+**Where** - `Vendors and categories.dc.html` 5b, 5c, 5e, 5f, 5h. `Mobile screens.dc.html`, the phone vendor edit screen. App: the vendor and category forms.
 
-- **The problem:** a long token must be copied once without mistakes, with both address forms.
-- **What changed:** shown in the card, where the naming row was, until Done. It holds: the token's name; a warning well "Copy the token now. It won't be shown again." / "If you lose it, remove it and make a new one."; three read-only inputs with a copy button each (a long value is cut at the field's edge; the button copies all of it): Token, Address (`https://<server>/mcp`, help "Send the token with it, as the header Authorization: Bearer and the token."), Address with the token in it (`https://<server>/mcp/<token>`, help "For a program that takes only an address."). Then **Set up in**, the fill Segmented with Claude (web and desktop app), Claude Code, Cursor, ChatGPT (Claude Code first), each showing one line and its setup text with the token filled in, copyable. Copy swaps the icon for a check for 2 seconds and shows the toast "Copied." Done, or leaving the pane, ends the showing; the card returns to the list with the new row on top. `<server>` is the address this Spendly is opened on.
-- **Where:** `Settings and import.dc.html` 11e, state 4 and "Set up in - the other three". New component variant `.sp-well--snippet` in `styles/components.css` (unlayered, beside `.sp-well`), drawn in `Components.dc.html` c26: keeps line breaks, breaks long words, holds the field's copy button (`.sp-field__trail`) top right. The text is the product face at `.sp-data`, no code font.
-- **What is still open:** the client steps (menu names in Claude and ChatGPT, the `claude mcp add` flags, the Cursor file path) are written from current documentation; please confirm them against each client before shipping.
+**What is still open** - Nothing.
 
-## 4. Remove
+## 3. The picker rule names the pages it does not reach
 
-- **The problem:** removing stops the program at once and cannot be undone.
-- **What changed:** Remove opens the confirm dialog: "Remove Claude on my laptop?", "An assistant using this token stops reading Spendly at once. This can't be undone.", Keep the token / Remove token (danger). After it the row is gone and the toast says "Token removed."
-- **Where:** `Settings and import.dc.html` 11e, state 7.
-- **What is still open:** nothing.
+**The problem** - The Combobox note in Components listed what is not a picker, but did not name the Vendors and Categories pages.
 
-## 5. Checker
+**What changed** - Added: "The Vendors and Categories pages are not pickers either: every sort there ignores favourites, and sort by name is plain A to Z." The pickers themselves are unchanged and still lead with Favourites, Recent, then the rest.
 
-- **The problem:** `styles/check.js` read the command-line flags in a setup snippet (`--transport`, `--header`) as cited CSS tokens.
-- **What changed:** text inside `.sp-well--snippet` is skipped by the "a named token exists" assertion, since it is copy the user pastes.
-- **Where:** `styles/check.js`.
-- **What is still open:** nothing.
+**Where** - `Components.dc.html` c5, the note "Favourites first, wherever a vendor or a category is picked." App: the Vendors page and the Categories page.
+
+**What is still open** - Nothing. The Vendors page drawings (5a, phone) are sorted by spend and already ignore favourites; they did not change.
 
 ## later.md
 
-Not touched in this pass: "A deleted record should not be removed for good at once" stays deferred, as chosen.
+Read on main before this task. Its one entry, "A deleted record should not be removed for good at once", is still deferred: its open questions (how long a copy is kept, which kinds, bulk delete, where "Recently deleted" lives) are unanswered. Not settled here.
 
 ## Files
 
-- `Settings and import.dc.html` - 11a nav, notes and the AI assistants card; new 11e with every state.
-- `Mobile screens.dc.html` - 7a Settings row and the AI assistants phone page.
-- `Components.dc.html` - c26 snippet well specimen and note.
-- `index.html` - 11e listed, screen count 99.
 - `README.md` - the design's overview, unchanged.
-- `styles/components.css` - `.sp-well--snippet`.
-- `styles/check.js` - snippet exemption.
-- `styles/tokens.css`, `styles/doc.css`, `styles/pages/settings.css`, `styles/pages/mobile-screens.css`, `styles/pages/budget.css`, `support.js`, `components.js`, `icons.js` - loaded by the pages above, unchanged.
+- `CHANGES.md` - this note.
+- `Vendors and categories.dc.html` - points 1 and 2.
+- `Mobile screens.dc.html` - point 2.
+- `Components.dc.html` - point 3.
+- `support.js`, `components.js`, `icons.js` - loaded by the pages.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - loaded by every page.
+- `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - linked by `Mobile screens.dc.html`.
 
 ## styles/check.js
 
-0 findings across 26 pages.
+0 finding(s) across 26 pages.
