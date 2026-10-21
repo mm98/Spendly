@@ -45,6 +45,26 @@
     }
   }
 
+  /* An answer's figures table sizes its number and amount columns to their content.
+     Caught: on a phone (393 wide) the fixed 152px and 90px columns took the whole
+     bubble, the name column had no width, and amounts were cut at the right edge. */
+  if (!/\.sp-chat__figures \.sp-table \{[^}]*table-layout: auto/.test(comp))
+    fail('figures in an answer fit a phone', 'components.css', '.sp-chat__figures .sp-table is not table-layout: auto');
+
+  /* A saved question holds its text in .sp-truncate, under the row's cap. Caught: a
+     question kept as typed (up to 2000 characters) made one button wider than the
+     column and scrolled the whole page sideways. */
+  if (!/\.sp-chat__saved > \.sp-btn--outline,\s*\.sp-chat__saved > \.sp-chip \{ max-width:/.test(comp))
+    fail('a saved question is capped', 'components.css', 'no max-width on the saved row\'s buttons and chips');
+  for (const f of pages) {
+    for (const m of src[f].matchAll(/<div class="sp-chat__saved">([\s\S]*?)<\/div>/g)) {
+      for (const b of m[1].matchAll(/<button type="button" class="sp-btn sp-btn--outline[^"]*"[^>]*>([\s\S]*?)<\/button>/g))
+        if (!/^<span class="sp-truncate">/.test(b[1])) fail('a saved question is capped', f, 'saved question without .sp-truncate: ' + b[1].slice(0, 40));
+      for (const c of m[1].matchAll(/<span class="sp-chip sp-chip--static"[^>]*>([^<]*)/g))
+        if (c[1].trim()) fail('a saved question is capped', f, 'saved chip text outside .sp-truncate: ' + c[1].slice(0, 40));
+    }
+  }
+
   /* A back control in a phone top bar is labelled Back. Caught: three in Mobile
      screens labelled "Action", read aloud as a generic action. */
   for (const f of pages) {
