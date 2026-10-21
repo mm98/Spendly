@@ -5538,20 +5538,21 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__reply > .sp-btn { align-self: flex-start; }
 /* a small table of amounts inside an answer: the compact static table, framed as a block */
 .sp-chat__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; background: var(--surface); }
-/* in an answer the number and amount columns are as wide as their content and the name
-   takes the rest, cut with ... when longer, so three columns fit a phone's bubble */
+/* in an answer the number and amount columns are as wide as their content, on one line,
+   and every text column shares the rest and wraps when longer, so no column is cut and
+   any column order fits a phone's bubble */
 .sp-chat__figures .sp-table { table-layout: auto; }
 .sp-chat__figures .sp-table .sp-col-number,
 .sp-chat__figures .sp-table .sp-col-amount { width: 1%; padding-left: var(--sp-12); white-space: nowrap; }
-.sp-chat__figures .sp-table th:first-child,
-.sp-chat__figures .sp-table td:first-child { max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* on touch an answer holding figures takes the full column */
 .sp-touch .sp-chat__msg:has(.sp-chat__figures) { max-width: 100%; }
 .sp-chat__working { display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-12) var(--card-pad); border: 1px solid var(--line); border-radius: var(--r-field); background: var(--surface); font-size: var(--t-13); color: var(--ink-5); }
 .sp-chat__failed { color: var(--red-ink); }
 /* the empty conversation: the empty state, and the example questions under it */
 .sp-chat__start { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-16); flex: 1; }
-.sp-chat__examples { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); }
+/* the list takes the column's width (its items still centred), so a saved question's cap
+   at 100% refers to the column and not to the list's own widest content */
+.sp-chat__examples { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); align-self: stretch; }
 /* saving a question the reader asked: the small icon button beside the bubble, the
    bookmark filled once it is saved */
 .sp-chat__save { align-self: center; }

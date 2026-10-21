@@ -1332,6 +1332,8 @@ const DESIGN_RULES = {
 	'Back is labelled Back': 'Back is labelled Back',
 	'figures in an answer fit a phone': COPY,
 	'the chat placeholder is one line': COPY,
+	'a saved question is cut at the column': COPY,
+	'figures in an answer are never cut': COPY,
 	'no saved row above the field': 'classes resolve',
 	'a saved question is capped': 'a saved question is capped',
 	'Status and Kind are selects': 'Status and Kind are selects',
