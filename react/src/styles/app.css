@@ -90,6 +90,9 @@ html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display
 .sp-shell--touch .sp-shell__body--fill :is(.sp-chat__scroll, .sp-chat__start) { padding: 0 var(--phone-gutter); }
 /* a table in an answer wider than its bubble scrolls sideways in its frame, so no column is hidden */
 .sp-chat__figures { overflow-x: auto; }
+/* a fixed cap, so the saved question's own width is the cut one and the row can centre it;
+   a percentage cap leaves the uncut width in the row's sizing */
+.sp-chat__pick > .sp-btn { max-width: 320px; }
 
 /* focus the keyboard moves stops 12 clear of the bars pinned over the page */
 html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }
