@@ -32,17 +32,23 @@ export const removeQuestion = (userId, id) => { deleteSaved.run(id, userId) }
 // the answer format lib/assistant.js asks for: [text](order:ID) links and {{number}} amounts
 const INLINE = /\[([^\]\n]+)\]\((order|vendor|category):([\w-]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
 const RECORD = { order: id => `/orders/${id}`, vendor: id => `/vendors/${id}/edit`, category: id => `/categories/${id}/edit` }
+const AMOUNT = /\{\{(-?\d+(?:\.\d+)?)\}\}/g
 const AMOUNT_ONLY = /^\{\{-?\d+(?:\.\d+)?\}\}$/
 const NUMBER_ONLY = /^-?[\d.,\s]+$/
+// a link's text, so a column of linked amounts still sits on the right
+const LINK_ONLY = /^\[([^\]\n]+)\]\((?:order|vendor|category):[\w-]+\)$/
+const linkText = cell => cell.match(LINK_ONLY)?.[1] ?? cell
+
+// a no-break space: Outlook ignores nowrap and would put the currency on the next line
+const amountText = (n, write) => write.money(Number(n)).replace(/ /g, '\u00a0')
 
 function runsOf(text, write) {
 	const runs = []
 	let at = 0
 	for (const m of text.matchAll(INLINE)) {
 		if (m.index > at) runs.push({ text: text.slice(at, m.index) })
-		// a no-break space: Outlook ignores nowrap and would put the currency on the next line
-		if (m[4] !== undefined) runs.push({ text: write.money(Number(m[4])).replace(/ /g, '\u00a0'), amount: true })
-		else runs.push({ text: m[1], url: publicLink(RECORD[m[2]](encodeURIComponent(m[3]))) })
+		if (m[4] !== undefined) runs.push({ text: amountText(m[4], write), amount: true })
+		else runs.push({ text: m[1].replace(AMOUNT, (_, n) => amountText(n, write)), url: publicLink(RECORD[m[2]](encodeURIComponent(m[3]))) })
 		at = m.index + m[0].length
 	}
 	if (at < text.length) runs.push({ text: text.slice(at) })
@@ -54,7 +60,7 @@ const cellsOf = line => line.trim().replace(/^\||\|$/g, '').split('|').map(c => 
 // a column of amounts or counts sits on the right, as the app's table draws it
 function alignOf(rows, i) {
 	if (i === 0) return 'left'
-	const cells = rows.map(r => r[i] ?? '').filter(Boolean)
+	const cells = rows.map(r => linkText(r[i] ?? '')).filter(Boolean)
 	return cells.length && cells.every(c => AMOUNT_ONLY.test(c) || NUMBER_ONLY.test(c)) ? 'right' : 'left'
 }
 

@@ -7,8 +7,12 @@ import { currency } from '../api/format.js'
 
 const RECORD = { order: id => `/orders/${id}`, vendor: id => `/vendors/${id}/edit`, category: id => `/categories/${id}/edit` }
 const INLINE = /\[([^\]\n]+)\]\((order|vendor|category):([\w-]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
+const AMOUNT = /\{\{(-?\d+(?:\.\d+)?)\}\}/g
 const AMOUNT_ONLY = /^\{\{-?\d+(?:\.\d+)?\}\}$/
 const NUMBER_ONLY = /^-?[\d.,\s]+$/
+// a link's text, so a column of linked amounts still lines up as amounts
+const LINK_ONLY = /^\[([^\]\n]+)\]\((?:order|vendor|category):[\w-]+\)$/
+const linkText = cell => cell.match(LINK_ONLY)?.[1] ?? cell
 
 function inline(text, onOpen) {
 	const parts = []
@@ -18,7 +22,8 @@ function inline(text, onOpen) {
 		if (m[4] !== undefined) parts.push(<span key={m.index} className="sp-amount">{currency(Number(m[4]))}</span>)
 		else {
 			const to = RECORD[m[2]](encodeURIComponent(m[3]))
-			parts.push(<a key={m.index} href={'#' + to} onClick={ev => { ev.preventDefault(); onOpen(to) }}>{m[1]}</a>)
+			const label = m[1].replace(AMOUNT, (_, n) => currency(Number(n)))
+			parts.push(<a key={m.index} href={'#' + to} onClick={ev => { ev.preventDefault(); onOpen(to) }}>{label}</a>)
 		}
 		at = m.index + m[0].length
 	}
@@ -32,7 +37,7 @@ const cellsOf = line => line.trim().replace(/^\||\|$/g, '').split('|').map(c => 
 function columnClass(rows, i) {
 	// the first column names the row, so it is never lined up as a figure
 	if (i === 0) return undefined
-	const cells = rows.map(r => r[i] ?? '').filter(Boolean)
+	const cells = rows.map(r => linkText(r[i] ?? '')).filter(Boolean)
 	if (cells.length && cells.every(c => AMOUNT_ONLY.test(c))) return 'sp-col-amount'
 	if (cells.length && cells.every(c => NUMBER_ONLY.test(c))) return 'sp-col-number'
 	return undefined
