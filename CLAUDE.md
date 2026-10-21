@@ -219,6 +219,13 @@ plainly what has and hasn't been checked — "not rendered yet" is a complete re
 claim — an oversized instrument (a full harness for a three-line change) costs more than the standard
 it's supposedly enforcing.
 
+**Check the pages the change reaches, not the app.** One desktop pass and one phone pass of those
+pages. Light and dark both only when the change touches colour.
+
+**One session serves every check.** Servers start once, an account is made and filled once, and each
+check reuses both. A run that signs in or fills data again per check costs minutes and trips the
+server's sign-in limit.
+
 **Two seconds is the Playwright timeout.** `page.setDefaultTimeout(2000)` and
 `setDefaultNavigationTimeout(2000)` — nothing in this app renders slower, and the 30s defaults just
 hide a broken selector as a slow run. Warm a cold dev server with one request rather than raising it.
@@ -252,9 +259,13 @@ paged or searched on the server, and is tested with more rows than the demo data
   against the account's limit. Where a check needs a scan's reading, write the reading by hand and
   store it on the upload in a scratch database; say in the report that the reading was not real.
   If a key turns up anywhere, never print it: say only where it is.
-- **A rendered account with real records is one flow.** No seed script, no shortcut route: register
-  at `#/register`, open Settings' "Demo data" section, click "Fill with demo data", then confirm ("Yes,
-  fill it"). Seeds two favourite vendors and three favourite categories every time.
+- **The session is `react/scripts/session.mjs`.** `node scripts/session.mjs` starts the API on a
+  scratch database and the dev server, unless they already answer, and leaves them running. It
+  registers and fills its account once and keeps the sign-in in a file under
+  `SPENDLY_SESSION_DIR` (default `/tmp/spendly-session`); delete that folder for a fresh start. A
+  check imports `openSession()` from it and gets a desktop and a phone context already signed in.
+  The demo fill seeds two favourite vendors and three favourite categories every time. A change to
+  registering or to the demo fill itself is still driven through those pages.
 - **A change is tried on the edge-case account, not on the demo data alone.** The demo data is
   tidy and hides cases real accounts have. `react/scripts/edge-account.mjs` adds them to an
   account, at least one case for every kind of record, and is safe to run again. A case found
@@ -309,7 +320,7 @@ guessing a cause from an opaque `Download failure` message.
 Render the app, screenshot at desktop and 390px, and say what was measured rather than that it looks
 right.
 
-**Render the app.** `npm run dev` in `react/`, drive `http://localhost:5173/` by clicking real routes.
+**Render the app.** Through the session above; drive `http://localhost:5173/` by clicking real routes.
 
 **The router is a hash router — every URL needs the `#`.** A bare `/orders/all` serves index.html
 with an empty hash and silently renders Home; the address is `BASE + '/#/orders/all?...'`, and the
@@ -317,7 +328,7 @@ query string lives inside the hash (`location.hash.split('?')[1]`, not `location
 page title on arrival to catch this in one line. The API (`npm run dev` in `api/`) has to be running
 too, or every page renders its error state.
 
-**The exact commands, so they stop being re-derived each session:**
+**The exact commands the session runs**, for starting a server by hand:
 
 ```bash
 # api/ -- PORT 4000 is not a suggestion: react/vite.config.js's dev proxy hard-codes
@@ -405,7 +416,8 @@ is added there, never rendered by hand.
 
 The phone shot needs the actual device descriptor, not a narrow viewport, since `pointer: coarse`
 media queries key off it. A change that moves a shot is regenerated in the same pass that verifies it,
-never before.
+never before, and only that shot: `--only=settings.png,phone.png` renders just the ones named. The
+script uses the session, so it fills its account once a run.
 
 **A shot draws text the way a real screen does.** No launch flag that changes how fonts are drawn
 (`--font-render-hinting` and the like): one that snaps letters to whole pixels makes bold text read as
