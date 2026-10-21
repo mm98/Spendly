@@ -65,3 +65,10 @@ is removed in the change that settles it.
 - **What the reader sees:** a long saved question sits in the middle under the empty state. Before, it sat at the left.
 - **What was found:** with `max-width: min(320px, 100%)` on the button, the row sizes the saved question by its uncut text, so the question takes the whole row and its button sits at the row's left edge. A fixed 320px cap lets the row size it at 320px and centre it; the question and its remove button still shrink to fit a narrower column (checked from 320px to 393px wide). Found 21 Oct 2026.
 - **To take into `design/`:** the rule above in place of the `min(320px, 100%)` cap in `components.css`. Then it is removed from `app.css` and this entry goes.
+
+## For Claude Design: the conversation email is almost full width
+
+- **Where:** `api/src/emails/ask-chat.html`, which differs from `design/emails/ask-chat.html` on purpose. `react/scripts/check-design.mjs` lets it differ through `EMAIL_FIXES`.
+- **What the reader sees:** the emailed conversation fills the window up to 1200px, with 24px around the card and 32px inside it. On a phone it is 8px around and 20px by 16px inside. Before, it was 600px wide with 20px inside.
+- **What was found:** on a phone, the answer bubble kept a quarter of the row empty beside it, so a three-column table stuck out of its bubble by 34px. The empty quarter is now hidden below 480px. Outlook for Windows ignores a maximum width, so there the email is a fixed 800px, and its button shape is 734px. Found 21 Oct 2026.
+- **To take into `design/`:** the outer cell's 24px side padding; `.sp-wrap` at 100% with `max-width: 1200px`; the Outlook-only 800px table around it and the 734px button; the card cell's `.sp-pad` (32px, 20px 16px below 632px); `.sp-gap` on the two quarter-width cells, hidden below 480px. Then `api/src/emails/ask-chat.html` is a copy again, `ask-chat.html` leaves `EMAIL_FIXES`, and this entry goes.

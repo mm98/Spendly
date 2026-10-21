@@ -64,10 +64,12 @@ for (const name of ['tokens.css', 'components.css'])
 		fail('copies of the design', `src/styles/${name}`, `differs from design/styles/${name}: copy it over, and put anything the app adds in app.css`)
 
 // the server sends the design's emails as they are, so its copies match file for file
+// except a fix the build made, each one written in later.md and removed here once design/ carries it
+const EMAIL_FIXES = ['ask-chat.html']
 const emailsOf = dir => readdirSync(dir).filter(n => /\.(html|txt)$/.test(n)).sort()
 const designEmails = join(root, '../design/emails'), apiEmails = join(root, '../api/src/emails')
 for (const name of new Set([...emailsOf(designEmails), ...emailsOf(apiEmails)]))
-	if ((() => { try { return read(join(designEmails, name)) !== read(join(apiEmails, name)) } catch { return true } })())
+	if (!EMAIL_FIXES.includes(name) && (() => { try { return read(join(designEmails, name)) !== read(join(apiEmails, name)) } catch { return true } })())
 		fail('copies of the design', `api/src/emails/${name}`, `differs from design/emails/${name}: copy design/emails over api/src/emails`)
 
 /* ---- classes resolve, tokens are defined ---- */
