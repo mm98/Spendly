@@ -145,24 +145,27 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 
 	/* A name another vendor already matches would file receipts in two places, so it is
 	   stopped where it is typed: another vendor's alias can be moved here, its name cannot. */
+	const refusal = async alias => {
+		const taken = await owner(alias)
+		if (taken && vendorKey(taken.name) === vendorKey(alias)) return { message: `Another vendor is called ${taken.name}. Pick a different one.` }
+		if (taken) return { message: `${taken.name} already matches "${alias}". Move it here, or pick a different one.`, offer: { alias, holder: taken } }
+		if (vendorKey(alias) === vendorKey(values.name)) return { message: 'That is already the vendor\'s name. Add the other names it uses.' }
+		return null
+	}
+	// several names arrive at once from a pasted list: each is checked, and the first refused one is shown
 	const changeAliases = async next => {
-		const added = next.find(a => !values.aliases.includes(a))
 		setOffer(null)
-		if (added) {
-			const taken = await owner(added)
-			if (taken && vendorKey(taken.name) === vendorKey(added)) return setErrors(e => ({
-				...e, aliases: `Another vendor is called ${taken.name}. Pick a different one.`
-			}))
-			if (taken) {
-				setOffer({ alias: added, holder: taken })
-				return setErrors(e => ({ ...e, aliases: `${taken.name} already matches "${added}". Move it here, or pick a different one.` }))
-			}
-			if (vendorKey(added) === vendorKey(values.name))
-				return setErrors(e => ({ ...e, aliases: 'That is already the vendor\'s name. Add the other names it uses.' }))
+		const kept = []
+		let refused = null
+		for (const alias of next) {
+			const why = values.aliases.includes(alias) ? null : await refusal(alias)
+			if (why) refused ??= why
+			else kept.push(alias)
 		}
-		setErrors(e => ({ ...e, aliases: null }))
-		setMoves(m => m.filter(a => next.includes(a)))
-		set('aliases', next)
+		setErrors(e => ({ ...e, aliases: refused?.message ?? null }))
+		if (refused?.offer) setOffer(refused.offer)
+		setMoves(m => m.filter(a => kept.includes(a)))
+		set('aliases', kept)
 	}
 	const moveHere = () => {
 		setMoves(m => [...m, offer.alias])

@@ -72,3 +72,10 @@ is removed in the change that settles it.
 - **What the reader sees:** the emailed conversation fills the window up to 1200px, with 24px around the card and 32px inside it. On a phone it is 8px around and 20px by 16px inside. Before, it was 600px wide with 20px inside.
 - **What was found:** on a phone, the answer bubble kept a quarter of the row empty beside it, so a three-column table stuck out of its bubble by 34px. The empty quarter is now hidden below 480px. Outlook for Windows ignores a maximum width, so there the email is a fixed 800px, and its button shape is 734px. Found 21 Oct 2026.
 - **To take into `design/`:** the outer cell's 24px side padding; `.sp-wrap` at 100% with `max-width: 1200px`; the Outlook-only 800px table around it and the 734px button; the card cell's `.sp-pad` (32px, 20px 16px below 632px); `.sp-gap` on the two quarter-width cells, hidden below 480px. Then `api/src/emails/ask-chat.html` is a copy again, `ask-chat.html` leaves `EMAIL_FIXES`, and this entry goes.
+
+## For Claude Design: a comma no longer ends a value in a token field
+
+- **Where:** `react/src/components/Inputs.jsx`, `TokensField`. Used by a vendor's "Also matches" and by the category field on orders and vendors. `design/Components.dc.html` says "Enter or comma" commits a value.
+- **What the reader sees:** a comma is typed into the value, so "Nabu Casa, Inc" is one name. Only Enter adds the value. A pasted list with one name on each line adds one value for each line.
+- **What was found:** vendor and category names can hold a comma, and the comma split one name in two. Found 21 Oct 2026.
+- **To take into `design/`:** TokenField's "Enter or comma" becomes "Enter", and a pasted list adds one value per line. Then this entry goes.
