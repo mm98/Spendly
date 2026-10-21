@@ -221,7 +221,8 @@ Everything that needs you, on one page.
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
 - **Each account has 25 questions a day** (`SPENDLY_ASSISTANT_QUESTIONS_PER_DAY`), counted on the
   person's own calendar day. The count shows when 3 or fewer are left. A failed or stopped answer is
-  not counted. One question is answered at a time.
+  not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
+  daily limit and sees no count.
 - **An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can read your account
   through the address `/mcp` on your Spendly server.
 - **It only reads.** It can find orders and open one, list categories and shops with what was
@@ -263,7 +264,7 @@ folder and you have backed up Spendly.
 | `SPENDLY_SMTP_*` and `SPENDLY_PUBLIC_URL` | Email confirmation, password reset, the status email, Email this chat on Ask Spendly | New accounts are confirmed at once, and email features are hidden. |
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
 | `SPENDLY_UPDATER_URL` and `SPENDLY_UPDATER_TOKEN` | "Update and reload" in Settings, for the person who manages the server | Settings can only check for a newer version. |
-| `SPENDLY_OWNER_EMAIL` | Which account manages the server and may install updates | The first account made on the server. |
+| `SPENDLY_OWNER_EMAIL` | Which account manages the server, may install updates and asks Ask Spendly without a daily limit | The first account made on the server. |
 | `SPENDLY_SECURITY_CONTACT` | A `security.txt` page with where to report a security problem | No such page. |
 | `SPENDLY_TERMS_URL` and `SPENDLY_PRIVACY_URL` | Your own terms and privacy notice | The built-in pages are used. |
 | `SPENDLY_PDF_READING` | How a PDF is sent to be read: `text` (default), `pictures` or `document` | Text. |

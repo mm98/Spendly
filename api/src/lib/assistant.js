@@ -40,9 +40,11 @@ const countAnswered = db.prepare(`INSERT INTO user_assistant_days (user_id, day,
 
 export const assistantReady = () => PER_DAY > 0 && !!getClient()
 
-/** What the reader is told about the assistant on `day`: whether it is there, and the questions left. */
-export function assistantState(userId, day) {
+/** What the reader is told about the assistant on `day`: whether it is there, and the questions left.
+    An `unlimited` reader (the server's owner) has no daily limit: perDay and left are null. */
+export function assistantState(userId, day, { unlimited = false } = {}) {
 	if (!assistantReady()) return { ready: false }
+	if (unlimited) return { ready: true, perDay: null, left: null }
 	const answered = selectAnswered.get(userId, day)?.answered_count ?? 0
 	return { ready: true, perDay: PER_DAY, left: Math.max(0, PER_DAY - answered) }
 }
