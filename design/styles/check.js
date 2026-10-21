@@ -371,6 +371,9 @@
       const prose = s
         .replace(/<script[\s\S]*?<\/script>/g, ' ')
         .replace(/<style[\s\S]*?<\/style>/g, ' ')
+        // a snippet well is setup text the user copies as written, so a command-line
+        // flag in it (--header) is product copy, not a token citation
+        .replace(/<div class="sp-well sp-well--snippet">[\s\S]*?<\/div>/g, ' ')
         .replace(/<[^>]*>/g, ' ');
       const said = new Set();
       for (const m of prose.matchAll(/(--[a-z][\w-]*)(\*?)/g)) {
