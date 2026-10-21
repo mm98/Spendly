@@ -51,6 +51,19 @@
   if (!/\.sp-chat__figures \.sp-table \{[^}]*table-layout: auto/.test(comp))
     fail('figures in an answer fit a phone', 'components.css', '.sp-chat__figures .sp-table is not table-layout: auto');
 
+  /* The saved questions' list on the empty page takes the column's width. Caught: centred in
+     .sp-chat__start it took its widest content, so a long question was 880px in a 566px
+     column and an iPhone 15 scrolled sideways by 521px. */
+  if (!/\.sp-chat__examples \{[^}]*(align-self: stretch|width: 100%)/.test(comp))
+    fail('a saved question is cut at the column', 'components.css', '.sp-chat__examples has no column width');
+
+  /* No column of an answer's figures table is cut; text wraps. Caught: a cut on
+     :first-child turned a short first column (Type: "Pendel", "Væglampe") into "P..."
+     while the longer text columns beside it were never cut. */
+  for (const m of comp.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]*\.sp-chat__figures[^{}]*)\{([^}]*)\}/g))
+    if (/text-overflow|max-width:\s*0|overflow:\s*hidden/.test(m[2]) && /\b(td|th)\b|sp-col-/.test(m[1]))
+      fail('figures in an answer are never cut', 'components.css', m[1].trim() + ' cuts a column');
+
   /* The chat field's placeholder stays on one line. Caught: on a phone "Ask about your
      orders, vendors and budget" wrapped and the empty field opened two lines high. */
   if (!/\.sp-textarea\.sp-chat__field:placeholder-shown \{[^}]*white-space: nowrap/.test(comp))
