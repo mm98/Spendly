@@ -322,12 +322,13 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 	}
 	const listbox = useListbox(children, { panelId, onPick: () => type('') })
 	const { options, active } = listbox
-	const add = () => {
-		const next = typed.trim()
-		if (!next) return
-		if (!value.includes(next)) onChange?.([...value, next])
+	// a name can hold a comma ("Nabu Casa, Inc"), so only Enter or a new line ends a value
+	const addAll = texts => {
+		const next = [...new Set(texts.map(t => t.trim()).filter(t => t && !value.includes(t)))]
+		if (next.length) onChange?.([...value, ...next])
 		type('')
 	}
+	const add = () => addAll([typed])
 	const shown = suggests && open && options.length > 0
 	const holder = useRef(null)
 	const input = useRef(null)
@@ -387,10 +388,16 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 					}
 					if (ev.key === 'Enter' && shown && active > -1) { ev.preventDefault(); options[active].pick(); return }
 					if (ev.key === 'Escape' && shown) { ev.stopPropagation(); setOpen(false); return }
-					if (ev.key === 'Enter' || ev.key === ',') { ev.preventDefault(); add() }
+					if (ev.key === 'Enter') { ev.preventDefault(); add() }
 					// backspace in an empty field removes the last value, which is what
 					// every token field does and what a reader will try first
 					if (ev.key === 'Backspace' && !typed && value.length) onChange?.(value.slice(0, -1))
+				}}
+				onPaste={ev => {
+					const lines = ev.clipboardData.getData('text').split(/\r?\n/)
+					if (lines.length < 2) return
+					ev.preventDefault()
+					addAll([typed + lines[0], ...lines.slice(1)])
 				}}
 				onBlur={() => { add(); setOpen(false) }}
 			/>
