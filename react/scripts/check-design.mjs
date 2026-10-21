@@ -858,6 +858,17 @@ for (const [p, ast] of parsed) visit(ast, (n, above) => {
 	})
 })
 
+/* ---- a saved question keeps its text in .sp-truncate, so the row's cap can cut it ---- */
+
+for (const [p, ast] of parsed) visit(ast, n => {
+	if (!isTag(n) || tagOf(n) !== 'ChatSaved') return
+	visit(n.children, m => {
+		if (!isTag(m) || tagOf(m) !== 'Button' || attrLiteral(m, 'variant') !== 'outline') return
+		const first = childElements(m)[0]
+		if (!first || !isTag(first) || !hasClass(first, 'sp-truncate')) fail('a saved question is capped', rel(p), 'a saved question without .sp-truncate')
+	})
+})
+
 /* ---- the Views card lists in the same rows at rest and in edit mode ---- */
 
 for (const [p, ast] of parsed) visit(ast, n => {
@@ -1318,6 +1329,8 @@ const NOT_CHECKED = 'applies to the app, not checked here yet'
 const DESIGN_RULES = {
 	'every page is checked': DESIGN,
 	'Back is labelled Back': 'Back is labelled Back',
+	'figures in an answer fit a phone': COPY,
+	'a saved question is capped': 'a saved question is capped',
 	'Status and Kind are selects': 'Status and Kind are selects',
 	'the Go to menu matches the page': DESIGN,
 	'no shortcut badge in a list toolbar': 'no shortcut badge in a list toolbar',

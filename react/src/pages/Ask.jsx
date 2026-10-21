@@ -111,8 +111,8 @@ export default function Ask() {
 		? (
 			<ChatSaved>
 				{saved.map(s => (editing
-					? <Chip key={s.id} trail={<IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={`Remove ${s.question}`} onClick={() => toggleSaved(s.question)} />}>{s.question}</Chip>
-					: <Button key={s.id} variant="outline" size="small" disabled={working || noneLeft} onClick={() => send(s.question)}>{s.question}</Button>
+					? <Chip key={s.id} title={s.question} trail={<IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={`Remove ${s.question}`} onClick={() => toggleSaved(s.question)} />}>{s.question}</Chip>
+					: <Button key={s.id} variant="outline" size="small" disabled={working || noneLeft} title={s.question} onClick={() => send(s.question)}><span className="sp-truncate">{s.question}</span></Button>
 				))}
 				<Button variant="text" size="xsmall" onClick={() => setEditing(!editing)}>{editing ? 'Done' : 'Edit'}</Button>
 			</ChatSaved>

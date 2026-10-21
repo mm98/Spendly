@@ -232,12 +232,12 @@ function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 				<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
 				<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
 			</NavScroll>
-			{/* only while the server has an assistant set up (24a); a short window drops it with Settings (9g) */}
+			{/* only while the server has an assistant set up (24a); on a short window it moves to the account menu with Settings (9g) */}
 			<SidebarDivider />
 			{short || !asks ? null : <Row to="/ask" icon="message-circle" rail={rail} current={navKey === 'ask'}>Ask Spendly</Row>}
 			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}
 			{short ? null : <DarkMode rail={rail} />}
-			<Account rail={rail} short={short} onShortcuts={showKeys} />
+			<Account rail={rail} short={short} asks={asks} onShortcuts={showKeys} />
 			<SidebarGrip expanded={!rail} onClick={fold.toggle} />
 		</Sidebar>
 	)
@@ -378,7 +378,7 @@ function DarkMode({ rail }) {
 
 /** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
     ends on the sign-in page, once the reader has been let go. */
-export function AccountMenu({ name, email, position, short = false, onShortcuts, onClose }) {
+export function AccountMenu({ name, email, position, short = false, asks = false, onShortcuts, onClose }) {
 	const navigate = useNavigate()
 	const theme = useTheme()
 	return (
@@ -388,16 +388,17 @@ export function AccountMenu({ name, email, position, short = false, onShortcuts,
 				<EmailLine email={email} tone="meta" />
 			</li>
 			<MenuItem icon="user" onClick={() => { onClose(); navigate('/settings/account') }}>Account and profile</MenuItem>
-			{/* on a short window the sidebar has no room for these two, so they live here (9g) */}
+			{onShortcuts
+				? <MenuItem icon="keyboard" onClick={() => { onClose(); onShortcuts() }}>
+					<span className="sp-truncate">Shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
+				</MenuItem>
+				: null}
+			{/* on a short window the sidebar's bottom zone lives here, in its sidebar order (9c, 9g) */}
+			{short && asks ? <MenuItem icon="message-circle" onClick={() => { onClose(); navigate('/ask') }}>Ask Spendly</MenuItem> : null}
 			{short ? <MenuItem icon="settings" onClick={() => { onClose(); navigate('/settings') }}>Settings</MenuItem> : null}
 			{short
 				? <MenuItem icon={theme === 'dark' ? 'sun' : 'moon'} onClick={() => { onClose(); setTheme(theme === 'dark' ? 'light' : 'dark') }}>
 					{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-				</MenuItem>
-				: null}
-			{onShortcuts
-				? <MenuItem icon="keyboard" onClick={() => { onClose(); onShortcuts() }}>
-					<span className="sp-truncate">Shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
 				</MenuItem>
 				: null}
 			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
@@ -405,7 +406,7 @@ export function AccountMenu({ name, email, position, short = false, onShortcuts,
 	)
 }
 
-function Account({ rail, short, onShortcuts }) {
+function Account({ rail, short, asks, onShortcuts }) {
 	const user = useApi(getCurrentUser)
 	const [open, setOpen] = useState(false)
 	const close = useCallback(() => setOpen(false), [])
@@ -416,6 +417,6 @@ function Account({ rail, short, onShortcuts }) {
 	if (!email) return null
 	return (
 		<SidebarAccount name={name} picture={picture} email={email} expanded={open} tip={rail ? name || email : undefined} aria-label={name ? `${name}, ${email}` : email}
-			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu name={name} email={email} short={short} onShortcuts={onShortcuts} onClose={close} />} />
+			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu name={name} email={email} short={short} asks={asks} onShortcuts={onShortcuts} onClose={close} />} />
 	)
 }
