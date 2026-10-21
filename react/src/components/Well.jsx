@@ -1,6 +1,6 @@
 import { join, pick, reject } from './variants.js'
 
-const VARIANT = { default: null, quiet: 'sp-well--quiet' }
+const VARIANT = { default: null, quiet: 'sp-well--quiet', snippet: 'sp-well--snippet' }
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }
 
 export function Well({ variant = 'default', color = 'default', children, ...rest }) {

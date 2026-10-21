@@ -21,7 +21,7 @@ const MCP_READ_ROUTES = [
 const hashOf = token => createHash('sha256').update(String(token)).digest('hex')
 
 const insertToken = db.prepare('INSERT INTO user_mcp_tokens (id, user_id, token_hash, name, created_at) VALUES (?, ?, ?, ?, ?)')
-const selectMine = db.prepare('SELECT id, name, created_at, last_used_at FROM user_mcp_tokens WHERE user_id = ? ORDER BY created_at')
+const selectMine = db.prepare('SELECT id, name, created_at, last_used_at FROM user_mcp_tokens WHERE user_id = ? ORDER BY created_at DESC, rowid DESC')
 const deleteToken = db.prepare('DELETE FROM user_mcp_tokens WHERE id = ? AND user_id = ?')
 const selectTokenUser = db.prepare(`SELECT t.id AS token_id, t.last_used_at, u.id, u.email, u.needs_setup, u.email_confirmed
 	FROM user_mcp_tokens t JOIN users u ON u.id = t.user_id WHERE t.token_hash = ?`)

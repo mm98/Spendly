@@ -4942,6 +4942,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   gap: var(--sp-8);
 }
 .sp-well[data-color="danger"] { background: var(--red-tint); border-color: var(--red); color: var(--red-ink); }
+/* text the user copies as written, such as an assistant's setup: its line breaks kept,
+   long words broken anywhere, and the copy button in the top right corner, where a
+   field keeps its trailing control - c26 variant */
+.sp-well--snippet { position: relative; padding-right: calc(var(--sp-6) + var(--field-trail) + var(--sp-8)); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* the marker, drawn inline so a line of text can name what it means */
 .sp-gauge__key { display: inline-block; width: 2px; height: 12px; background: var(--amber); flex: none; }

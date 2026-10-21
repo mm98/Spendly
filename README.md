@@ -168,6 +168,7 @@ Everything that needs you, on one page.
 - **Defaults** for a new order, **lists** (page size, sort, how many saved views and recent
   orders), **limit alerts**, and which **Needs a look** rules show on Home.
 - **Statuses** - add, rename, colour and reorder your own.
+- **AI assistants** - make and remove the tokens an assistant program reads your account with. See [AI assistants](#ai-assistants).
 - **Import** orders from CSV, XLSX or JSON: map the columns, review totals and possible
   duplicates, download skipped rows, and undo an import for 24 hours. A template is included.
 - **Demo data** - fill an account with realistic orders to try Spendly out.
@@ -203,18 +204,20 @@ Everything that needs you, on one page.
 - **Nightly backup** - just before midnight the server keeps a copy of the database, and keeps
   the newest five.
 
-### Reading Spendly from an assistant
+### AI assistants
 
-- **An assistant program** such as Claude Desktop or Claude Code can read your account through
-  the address `/mcp` on your Spendly server.
+- **An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can read your account
+  through the address `/mcp` on your Spendly server.
 - **It only reads.** It can find orders and open one, list categories and shops with what was
   spent, read a year's budget, read statistics for a period and the months behind it, and use the
   same search as the app. It cannot change or delete anything.
+- **Tokens are made in Settings, AI assistants.** Give a token a name, and Spendly shows it one
+  time, with the address to paste. On a computer it also shows the setup text for Claude, Claude
+  Code, Cursor and ChatGPT, with the token filled in. Each value has a copy button.
 - **Each token belongs to one account.** The assistant sends it as `Authorization: Bearer
   <token>`, or as the end of the address, `/mcp/<token>`, for a program that takes only an
-  address. The token is shown one time, when it is made. Removing it stops it at once.
-- **Making and removing tokens** is done through the server for now (`/api/account/mcp-tokens`).
-  The section in Settings waits for its design.
+  address. The list shows when each token was made and last used. An account can have 20.
+- **Removing a token** asks first, and stops it at once.
 
 ## Running it
 

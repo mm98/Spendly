@@ -64,7 +64,7 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
 	if (action) return (
 		<Trailed trail={
 			<button type="button" className="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label={action.label}
-				aria-expanded={action.expanded ? 'true' : 'false'} onClick={action.onClick}>
+				{...('expanded' in action ? { 'aria-expanded': action.expanded ? 'true' : 'false' } : {})} onClick={action.onClick}>
 				<Icon name={action.icon} size={15} />
 			</button>
 		}>

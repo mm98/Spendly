@@ -3,7 +3,7 @@
    waited past two weeks, a very large order and one left out of statistics, a vendor whose orders are all left out, look-alike vendors, an archived vendor, more categories than a page
    holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, a note and none, bookmarks with and
    without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand, one dated in an earlier year, an import
-   with an order changed after it, and an import undone.
+   with an order changed after it, an import undone, and as many assistant tokens as an account may have.
 
    Needs the API up (npm run dev in api/, PORT 4000). Run it after the app's own demo data, which
    it fills first on a new account:
@@ -267,6 +267,20 @@ if (group) {
 		lineNames.has(line.name) ? there() : step('budget line', await call('POST', `/budget/groups/${group.id}/lines`, line))
 }
 
+// assistant tokens up to the most an account may have: one used, one with the longest name a row takes
+const tokenNames = new Set(((await call('GET', '/account/mcp-tokens')).data?.tokens ?? []).map(t => t.name))
+const tokens = [
+	'Claude on my laptop',
+	'A token with the longest name that a row can take, so the row cuts it short here',
+	...Array.from({ length: 18 }, (_, i) => `Assistant ${String(i + 1).padStart(2, '0')}`)
+]
+for (const name of tokens) {
+	if (tokenNames.has(name)) { there(); continue }
+	const madeToken = step('assistant token', await call('POST', '/account/mcp-tokens', { name }))
+	if (name === tokens[0] && madeToken.data?.token)
+		await fetch(`${BASE}/api/stats/months?count=1`, { headers: { Authorization: `Bearer ${madeToken.data.token}` } })
+}
+
 // more records than any card can draw: each with a limit and spend this month, a vendor each, so lists past a hundred rows are met
 const crowded = Array.from({ length: 120 }, (_, i) => String(i + 1).padStart(3, '0'))
 const crowd = new Set(((await call('GET', '/categories?pageSize=100&query=Crowd')).data?.matched ?? 0) >= 100 ? crowded : [])
@@ -383,6 +397,7 @@ for (const v of vendors.slice(0, 5)) await refused('PATCH', `/vendors/${v.id}`, 
 for (const c of categories.slice(0, 5)) await refused('PATCH', `/categories/${c.id}`, { favourite: 1 })
 for (const b of bookmarks.slice(0, 3)) await refused('PATCH', `/bookmarks/${b.id}`, { name: 'Taken' })
 for (const v of views.slice(0, 3)) await refused('PATCH', `/views/${v.id}`, { name: 'Taken' })
+for (const t of ((await call('GET', '/account/mcp-tokens')).data?.tokens ?? []).slice(0, 3)) await refused('DELETE', `/account/mcp-tokens/${t.id}`)
 for (const i of imports) {
 	await refused('PATCH', `/imports/${i.id}`, { hidden: true })
 	await refused('DELETE', `/imports/${i.id}`)

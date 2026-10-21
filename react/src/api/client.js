@@ -234,6 +234,23 @@ export async function removePasskey(id, signal) {
 	invalidate(getPasskeys)
 }
 
+/* ---- assistant tokens (Settings > AI assistants, 11e): an assistant reads the account at /mcp with one ---- */
+export async function getMcpTokens(signal) {
+	return request('/api/account/mcp-tokens', { signal })
+}
+
+/** The answer carries the token itself, the one time it is ever sent. */
+export async function createMcpToken(name, signal) {
+	const out = await request('/api/account/mcp-tokens', { method: 'POST', body: { name }, signal })
+	invalidate(getMcpTokens)
+	return out
+}
+
+export async function removeMcpToken(id, signal) {
+	await request(`/api/account/mcp-tokens/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+	invalidate(getMcpTokens)
+}
+
 /* The page still on screen is leaving: its readers are not asked again, since every answer
    now would be a refusal. */
 export async function logout(signal) {
