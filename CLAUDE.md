@@ -245,6 +245,13 @@ all. A brand-new file therefore passes every local run and fails in CI, where it
 Stage first, and pass CI's own base (`CHECK_BASE_SHA=<merge base>`) so the local run is the run CI
 does.
 
+### No page scrolls as a whole by accident
+
+`npm run scroll:check` (in `react/`) opens every page on a phone and at desktop sizes up to 4K and
+fails when a page scrolls sideways, or when a full-height page like Ask scrolls at all. It runs in CI
+on every merge and in the pass before a pull request. A new route is added to its page list, or the
+check fails and names it.
+
 ### Never assume or guess. Always validate first.
 
 A threshold, or a claim that something fits or is safe, is a claim about the full range it applies

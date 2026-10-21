@@ -12,7 +12,8 @@
 		"postbuild": "node scripts/precompress.mjs",
 		"preview": "vite preview",
 		"icons:sync": "node scripts/sync-icons.mjs",
-		"icons:check": "node scripts/sync-icons.mjs --check"
+		"icons:check": "node scripts/sync-icons.mjs --check",
+		"scroll:check": "node scripts/check-page-scroll.mjs"
 	},
 	"dependencies": {
 		"@simplewebauthn/browser": "^14.0.0",
