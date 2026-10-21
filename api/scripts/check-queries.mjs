@@ -260,11 +260,11 @@ const mcpHash = token => crypto.createHash('sha256').update(token).digest('hex')
 insertMcpToken.run('mcp-fixture', USER, mcpHash(MCP_TOKEN), 'Claude')
 insertMcpToken.run('mcp-removed', USER, mcpHash(`${MCP_TOKEN}_removed`), 'Old laptop')
 for (let i = 0; i < NEIGHBOURS; i++) insertMcpToken.run(`mcp-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, mcpHash(`${MCP_TOKEN}_n${i}`), 'Claude')
-// saved questions on Ask Spendly: two on the account and one next door each
+// saved questions on Ask Spendly: two on the account and one next door each, beside the three every account starts with
 const insertQuestion = db.prepare('INSERT INTO user_assistant_questions (id, user_id, question) VALUES (?, ?, ?)')
-insertQuestion.run('aq-fixture', USER, 'How much did I spend on food in August?')
+insertQuestion.run('aq-fixture', USER, 'How much did I save this month?')
 insertQuestion.run('aq-removed', USER, 'Am I over budget this month?')
-for (let i = 0; i < NEIGHBOURS; i++) insertQuestion.run(`aq-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Which shop did I use most this year?')
+for (let i = 0; i < NEIGHBOURS; i++) insertQuestion.run(`aq-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Where did I spend the most last month?')
 
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.

@@ -40,7 +40,8 @@ function runsOf(text, write) {
 	let at = 0
 	for (const m of text.matchAll(INLINE)) {
 		if (m.index > at) runs.push({ text: text.slice(at, m.index) })
-		if (m[4] !== undefined) runs.push({ text: write.money(Number(m[4])), amount: true })
+		// a no-break space: Outlook ignores nowrap and would put the currency on the next line
+		if (m[4] !== undefined) runs.push({ text: write.money(Number(m[4])).replace(/ /g, '\u00a0'), amount: true })
 		else runs.push({ text: m[1], url: publicLink(RECORD[m[2]](encodeURIComponent(m[3]))) })
 		at = m.index + m[0].length
 	}

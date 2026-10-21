@@ -1,5 +1,6 @@
 import { join, pick, reject } from './variants.js'
-import { Button } from './Button.jsx'
+import { Button, IconButton } from './Button.jsx'
+import { Combobox, ComboboxOption } from './Combobox.jsx'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Spinner } from './Utilities.jsx'
@@ -81,20 +82,38 @@ export function ChatFigures({ children, ...rest }) {
 	return <div className="sp-chat__figures" {...rest}>{children}</div>
 }
 
-/** The saved questions above the field, and Edit or Done after them. */
-export function ChatSaved({ children, ...rest }) {
-	reject(rest, 'ChatSaved')
-	return <div className="sp-chat__saved" {...rest}>{children}</div>
+/** A saved question on the empty page: pressing it sends it, and the x beside it removes it. One
+    line, cut with ... past 320px, the whole question in its tooltip. */
+export function ChatPick({ question, disabled = false, onSend, onRemove, ...rest }) {
+	reject(rest, 'ChatPick')
+	return (
+		<span className="sp-chat__pick">
+			<Button variant="outline" size="small" disabled={disabled} title={question} onClick={onSend}><span className="sp-truncate">{question}</span></Button>
+			<IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={`Remove ${question}`} onClick={onRemove} />
+		</span>
+	)
 }
 
-/** Under the thread: `saved`, the field and Send, or Stop while `working`. `bar` pins it above a
+/** The saved questions in a conversation, on a desktop: the action select at the left of the
+    controls bar. Choosing one sends it; the trigger always reads Saved questions. */
+export function ChatSavedMenu({ questions, disabled = false, onSend, ...rest }) {
+	reject(rest, 'ChatSavedMenu')
+	return (
+		<div className="sp-chat__saved-menu">
+			<Combobox prefix="Saved questions" value="" aria-label="Saved questions" disabled={disabled}>
+				{questions.map(q => <ComboboxOption key={q} truncate title={q} onSelect={() => onSend(q)}>{q}</ComboboxOption>)}
+			</Combobox>
+		</div>
+	)
+}
+
+/** Under the thread: the field and Send, or Stop while `working`. `bar` pins it above a
     phone's tab bar, where the hint has no keys and shows only `left`. */
-export function ChatDock({ bar = false, saved, value, onChange, onSend, onStop, working = false, disabled = false, fieldRef, placeholder, left, ...rest }) {
+export function ChatDock({ bar = false, value, onChange, onSend, onStop, working = false, disabled = false, fieldRef, placeholder, left, ...rest }) {
 	reject(rest, 'ChatDock')
 	const size = bar ? 'small' : 'standard'
 	return (
 		<div className={join('sp-chat__dock', bar && 'sp-chat__dock--bar')}>
-			{saved}
 			<div className="sp-chat__composer">
 				<textarea ref={fieldRef} className="sp-textarea sp-chat__field" rows={1} value={value} disabled={disabled}
 					onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label="Ask Spendly" {...rest} />

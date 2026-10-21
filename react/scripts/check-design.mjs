@@ -858,15 +858,16 @@ for (const [p, ast] of parsed) visit(ast, (n, above) => {
 	})
 })
 
-/* ---- a saved question keeps its text in .sp-truncate, so the row's cap can cut it ---- */
+/* ---- a saved question keeps its text in .sp-truncate, so the 320px cap can cut it ---- */
 
-for (const [p, ast] of parsed) visit(ast, n => {
-	if (!isTag(n) || tagOf(n) !== 'ChatSaved') return
-	visit(n.children, m => {
-		if (!isTag(m) || tagOf(m) !== 'Button' || attrLiteral(m, 'variant') !== 'outline') return
-		const first = childElements(m)[0]
+for (const [p, ast] of parsed) visit(ast, (n, above) => {
+	const owner = above.findLast(a => a.type === 'FunctionDeclaration')?.id?.name
+	if (!isTag(n)) return
+	if (owner === 'ChatPick' && tagOf(n) === 'Button') {
+		const first = childElements(n)[0]
 		if (!first || !isTag(first) || !hasClass(first, 'sp-truncate')) fail('a saved question is capped', rel(p), 'a saved question without .sp-truncate')
-	})
+	}
+	if (owner === 'ChatSavedMenu' && tagOf(n) === 'ComboboxOption' && !attrOf(n, 'truncate')) fail('a saved question is capped', rel(p), 'a Saved questions option without truncate')
 })
 
 /* ---- the Views card lists in the same rows at rest and in edit mode ---- */
@@ -1330,6 +1331,10 @@ const DESIGN_RULES = {
 	'every page is checked': DESIGN,
 	'Back is labelled Back': 'Back is labelled Back',
 	'figures in an answer fit a phone': COPY,
+	'the chat placeholder is one line': COPY,
+	'a saved question is cut at the column': COPY,
+	'figures in an answer are never cut': COPY,
+	'no saved row above the field': 'classes resolve',
 	'a saved question is capped': 'a saved question is capped',
 	'Status and Kind are selects': 'Status and Kind are selects',
 	'the Go to menu matches the page': DESIGN,

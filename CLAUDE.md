@@ -113,7 +113,7 @@ have to. Putting screens together from its patterns is the build's job:
   option or field, even one an existing component could draw. A part dropped into a drawn layout
   breaks the layout.
 - **Ask Claude Design** only for a real design question: a pattern that does not exist, or two pages
-  that contradict each other.
+  that contradict each other. Ask the user before a brief goes out; a brief costs them a round trip.
 - **Ask the user** for a choice about what the app does: who is signed out, what is kept or removed,
   what a person may do. That is the user's decision, not a design question, even where `design/`
   describes the current behaviour.
@@ -129,8 +129,11 @@ have to. Putting screens together from its patterns is the build's job:
 - **A brief names every place the change reaches.** Before a note goes to Claude Design, find every
   use of the part it changes in `react/src`, check what the change would do to each, and name them
   in the note. When the answer comes back, check all of them in one pass.
-- A design fault (a rule that breaks in practice, such as a clipped outline) goes in that same brief.
-  Only Claude Design fixes it; the app carries no workaround of its own.
+- **A design fault is the build's to fix.** A rule that breaks in practice (a clipped outline, a
+  column that does not fit, an overflow) is fixed in `app.css` with the smallest change that keeps
+  the drawn look, listed once in the pull request so the user can overrule it, and written in
+  `later.md` with the rule it adds, so Claude Design can take it into `design/`. It is not a brief.
+  The change that brings the rule into `design/` removes it from `app.css` and its `later.md` entry.
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
   file found there is deleted in the same pull request that builds its answers.
 

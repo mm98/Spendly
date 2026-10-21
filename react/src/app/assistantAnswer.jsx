@@ -30,7 +30,8 @@ const cellsOf = line => line.trim().replace(/^\||\|$/g, '').split('|').map(c => 
 
 // a column of amounts or counts lines up on the right, as the compact table draws them (c1)
 function columnClass(rows, i) {
-	if (i === 0) return 'sp-col-title'
+	// the first column names the row, so it is never lined up as a figure
+	if (i === 0) return undefined
 	const cells = rows.map(r => r[i] ?? '').filter(Boolean)
 	if (cells.length && cells.every(c => AMOUNT_ONLY.test(c))) return 'sp-col-amount'
 	if (cells.length && cells.every(c => NUMBER_ONLY.test(c))) return 'sp-col-number'

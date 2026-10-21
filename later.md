@@ -45,3 +45,16 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## The phone's tab bar is 3px wider than the screen
+
+- **Where:** the tab bar on a phone (`.sp-tabbar--band`, drawn by `react/src/components/Shell.jsx`), seen on Ask Spendly.
+- **What the reader sees:** the page can be moved sideways by 3px, and on Ask Spendly a 6px gap shows between the question field's bar and the tab bar.
+- **What was found:** on an iPhone 15 profile in Chromium, the tab bar and its last item end at 396px on a 393px screen. Main shows the same, so it predates the Ask Spendly changes. Found 21 Oct 2026.
+
+## For Claude Design: a wide table in an answer scrolls sideways
+
+- **Where:** `react/src/styles/app.css`, `.sp-chat__figures { overflow-x: auto; }`. Ask Spendly answers (24a, Components c34, Mobile screens 7a).
+- **What the reader sees:** on a phone, a table with more columns than the bubble holds scrolls sideways inside its frame. Before, the last column was hidden.
+- **What was found:** no column of an answer's table is cut, so each column is at least as wide as its longest word. A four-column table (Type, Lamp, Price, Order) needs 380px; an iPhone 15's bubble has 291px. `.sp-chat__figures` had `overflow: hidden`, so the Order column was hidden. Found 21 Oct 2026.
+- **To take into `design/`:** the rule above, in `components.css` beside the other `.sp-chat__figures` rules. Then it is removed from `app.css` and this entry goes.

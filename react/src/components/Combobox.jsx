@@ -225,6 +225,7 @@ export function Combobox({
 	trail,
 	unit,
 	autoFocus = false,
+	disabled = false,
 	...rest
 }) {
 	reject(rest, 'Combobox')
@@ -378,6 +379,7 @@ export function Combobox({
 						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'}${leadId ? ' ' + leadId : ''} ${triggerId}-value`}
 						{...told}
 						autoFocus={autoFocus}
+						disabled={disabled}
 						onClick={toggle}
 						onKeyDown={onKeys}
 					>
@@ -405,8 +407,9 @@ export function Combobox({
 	)
 }
 
-/** `create` marks the row that makes the typed value (c5), left out of the count a narrowed list reads out. */
-export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, create = false, children, ...rest }) {
+/** `create` marks the row that makes the typed value (c5), left out of the count a narrowed list reads out.
+    `truncate` keeps a long option on one line, cut with ..., as a saved question is (24b 8). */
+export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, create = false, truncate = false, children, ...rest }) {
 	reject(rest, 'ComboboxOption')
 	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
 	return (
@@ -425,7 +428,7 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
 			>
 				{dot ? <span className="sp-combobox__dot" data-dot={dot} /> : null}
 				{mark}
-				<span className="sp-grow">{children}</span>
+				<span className={truncate ? 'sp-truncate' : 'sp-grow'}>{children}</span>
 				{meta ? <span className="sp-combobox__meta">{meta}</span> : null}
 				{selected ? <span className="sp-combobox__check"><Icon name="check" size={13} /></span> : null}
 			</button>

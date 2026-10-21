@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
-import { Chat, ChatDock, ChatExamples, ChatMessage, ChatQuestion, ChatReply, ChatSave, ChatSaved, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
+import { Chat, ChatDock, ChatExamples, ChatMessage, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatSavedMenu, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Chip } from '../components/Chip.jsx'
-import { Icon } from '../components/Icon.jsx'
 import { Controls } from '../components/List.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Alert, Anchor, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
@@ -16,10 +14,9 @@ import { AnswerText } from '../app/assistantAnswer.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
-const EXAMPLES = ['How much did I spend on food in August?', 'Which shop did I use most this year?', 'Am I over budget on transport?']
-
 /** Ask Spendly (24a): a conversation about the reader's own money, the questions they saved, and
-    Clear and Email this chat. On a phone the two sit in the top bar's menu (Mobile screens 7a). */
+    Clear and Email this chat. The saved questions are on the empty page, and on a desktop also in
+    the controls bar; on a phone Clear and Email sit in the top bar's menu (Mobile screens 7a). */
 export default function Ask() {
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
@@ -29,7 +26,6 @@ export default function Ask() {
 	const turns = useConversation(account?.id)
 	const savedList = useApi(getSavedQuestions, [], { enabled: !!assistant?.ready }).data
 	const [text, setText] = useState('')
-	const [editing, setEditing] = useState(false)
 	const [sending, setSending] = useState(false)
 	const field = useRef(null)
 	const scroller = useRef(null)
@@ -50,19 +46,17 @@ export default function Ask() {
 	useEffect(() => { if (!touch) field.current?.focus() }, [touch])
 	// Send and Stop swap in one place: focus that went with the one that left comes back to the field
 	useEffect(() => { if (document.activeElement === document.body) field.current?.focus() }, [working])
-	// opening the page, and every new message, shows the latest one; so does the dock growing under it
+	// opening the page, and every new message, shows the latest one
 	const latest = turns.at(-1)
-	const hasSaved = saved.length > 0
 	useLayoutEffect(() => {
 		const box = scroller.current
 		if (box) box.scrollTop = box.scrollHeight
-	}, [turns.length, latest?.state, noneLeft, hasSaved])
+	}, [turns.length, latest?.state, noneLeft])
 
 	const send = useCallback(question => {
 		if (working || noneLeft || !question.trim() || !account) return
 		ask(account.id, question)
 		setText('')
-		setEditing(false)
 	}, [working, noneLeft, account])
 
 	if (assistant && !assistant.ready) return <Navigate to="/" replace />
@@ -71,7 +65,7 @@ export default function Ask() {
 		if (ev.key === 'Enter' && !ev.shiftKey) {
 			ev.preventDefault()
 			send(text)
-		} else if (ev.key === 'Escape' && editing) setEditing(false)
+		}
 	}
 
 	const problem = (e, fallback) => toast({ message: failureMessage(e, fallback), color: 'danger' })
@@ -83,7 +77,6 @@ export default function Ask() {
 
 	const clear = () => {
 		const held = clearConversation()
-		setEditing(false)
 		toast({ message: 'Conversation cleared', undo: { label: 'Undo', onClick: () => restoreConversation(held) } })
 		field.current?.focus()
 	}
@@ -105,19 +98,6 @@ export default function Ask() {
 	else if (emailed) emailLabel = 'Emailed'
 
 	const mine = account ? <AccountMark name={account.name} email={account.email} picture={account.picture} /> : null
-	const examples = !turns.length && !saved.length && !noneLeft
-
-	const savedRow = saved.length
-		? (
-			<ChatSaved>
-				{saved.map(s => (editing
-					? <Chip key={s.id} title={s.question} trail={<IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={`Remove ${s.question}`} onClick={() => toggleSaved(s.question)} />}>{s.question}</Chip>
-					: <Button key={s.id} variant="outline" size="small" disabled={working || noneLeft} title={s.question} onClick={() => send(s.question)}><span className="sp-truncate">{s.question}</span></Button>
-				))}
-				<Button variant="text" size="xsmall" onClick={() => setEditing(!editing)}>{editing ? 'Done' : 'Edit'}</Button>
-			</ChatSaved>
-		)
-		: null
 
 	return (
 		<>
@@ -126,6 +106,7 @@ export default function Ask() {
 					end={<ConversationMenu mails={mails} emailLabel={emailLabel} canEmail={canEmail} canClear={canClear} onEmail={email} onClear={clear} />} />
 				: (
 					<Controls>
+						{turns.length && saved.length ? <ChatSavedMenu questions={saved.map(s => s.question)} disabled={noneLeft} onSend={send} /> : null}
 						<span className="sp-grow" />
 						{mails ? <Button variant="outline" disabled={!canEmail} onClick={email}>{sending ? <><Spinner />{emailLabel}</> : emailLabel}</Button> : null}
 						<Button variant="outline" disabled={!canClear} onClick={clear}>Clear</Button>
@@ -167,18 +148,17 @@ export default function Ask() {
 								<EmptyTitle>Ask about your money</EmptyTitle>
 								<EmptyBody>Answers come from your orders, vendors, categories and budget. Asking never changes anything.</EmptyBody>
 							</Empty>
-							{examples
+							{saved.length
 								? (
 									<ChatExamples>
-										{EXAMPLES.map(q => <Button key={q} variant="outline" size="small" onClick={() => send(q)}>{q}</Button>)}
+										{saved.map(s => <ChatPick key={s.id} question={s.question} disabled={noneLeft} onSend={() => send(s.question)} onRemove={() => toggleSaved(s.question)} />)}
 									</ChatExamples>
 								)
-								: null}
+								: savedList ? <span className="sp-meta">Save a question with the bookmark beside it, and it shows here.</span> : null}
 						</ChatStart>
 					)}
 				<ChatDock
 					bar={touch}
-					saved={savedRow}
 					value={text}
 					onChange={setText}
 					onKeyDown={keys}
