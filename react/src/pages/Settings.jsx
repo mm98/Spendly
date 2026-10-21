@@ -28,6 +28,7 @@ import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './Se
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard, StatusEmailCard, StatusEmailRows } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
+import { AssistantsCard, useAssistantTokenCount, useAssistantsState } from './SettingsAssistants.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, ThemeTiles, landing } from './SettingsParts.jsx'
 import { LOOKS } from './needsLook.jsx'
@@ -46,6 +47,7 @@ const SECTIONS = [
 	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
 	{ key: 'looks', label: 'Needs a look', keys: LOOKS.map(l => `look.${l.id}`) },
 	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
+	{ key: 'assistants', label: 'AI assistants' },
 	{ key: 'import', label: 'Import' },
 	{ key: 'demo', label: 'Demo data' },
 	{ key: 'build', label: 'This build' }
@@ -135,6 +137,7 @@ export default function Settings() {
 	})
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
 	const importing = useImportState()
+	const assistants = useAssistantsState()
 	const unimported = importUnsaved(importing)
 	const leaveBody = !unimported ? undefined
 		: !dirty.length ? importLeaveBody(unimported)
@@ -193,6 +196,7 @@ export default function Settings() {
 		alerts: <AlertsCard key="alerts" {...fields} />,
 		looks: <LooksCard key="looks" {...fields} />,
 		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
+		assistants: <AssistantsCard key="assistants" state={assistants} touch={touch} />,
 		import: <ImportCard key="import" state={importing} />,
 		demo: <DemoCard key="demo" />,
 		build: <BuildCard key="build" />
@@ -529,6 +533,8 @@ function ListsCard({ value, change, touch }) {
 function PhoneIndex({ user }) {
 	const chevron = <Icon name="chevron-right" />
 	const passkeys = usePasskeyCount()
+	// a pane's row can carry a count beside its name, as AI assistants does (7a)
+	const counts = { assistants: useAssistantTokenCount() }
 	const email = user?.email
 	const name = user?.name || email?.split('@')[0]
 	return (
@@ -558,6 +564,7 @@ function PhoneIndex({ user }) {
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
 					<span className="sp-data sp-grow">{s.label}</span>
+					{counts[s.key] == null ? null : <span className="sp-meta">{counts[s.key]}</span>}
 				</ListItem>
 			))}
 		</>

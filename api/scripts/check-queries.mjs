@@ -53,6 +53,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
+import { createHash } from 'node:crypto'
 import Database from 'better-sqlite3'
 
 /* Deterministic ids, patched in before lib/ids.js is imported. Not cosmetic: ids are TEXT
@@ -251,6 +252,13 @@ for (let i = 0; i < NEIGHBOURS; i++) {
 const insertPasskey = db.prepare("INSERT INTO user_passkeys (id, user_id, public_key, transports, name) VALUES (?, ?, x'00', '[]', ?)")
 for (const id of ['pk-fixture', 'pk-removed']) insertPasskey.run(id, USER, 'iPhone')
 for (let i = 0; i < NEIGHBOURS; i++) insertPasskey.run(`pk-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Mac')
+// assistant tokens: two on the account and one next door each, as the passkeys above
+const MCP_TOKEN = 'spendly_mcp_check'
+const insertMcpToken = db.prepare('INSERT INTO user_mcp_tokens (id, user_id, token_hash, name) VALUES (?, ?, ?, ?)')
+const mcpHash = token => createHash('sha256').update(token).digest('hex')
+insertMcpToken.run('mcp-fixture', USER, mcpHash(MCP_TOKEN), 'Claude')
+insertMcpToken.run('mcp-removed', USER, mcpHash(`${MCP_TOKEN}_removed`), 'Old laptop')
+for (let i = 0; i < NEIGHBOURS; i++) insertMcpToken.run(`mcp-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, mcpHash(`${MCP_TOKEN}_n${i}`), 'Claude')
 
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
@@ -333,7 +341,7 @@ const REQUESTS = [
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys',
+	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys', '/account/mcp-tokens',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
@@ -374,6 +382,8 @@ for (const [method, path, body] of [
 	['POST', '/account/passkeys/start', { password: PASSWORD }],
 	['PATCH', '/account/passkeys/pk-fixture', { name: 'Work laptop' }],
 	['DELETE', '/account/passkeys/pk-removed'],
+	['POST', '/account/mcp-tokens', { name: 'Claude Desktop' }],
+	['DELETE', '/account/mcp-tokens/mcp-removed'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
 	// a line removed from Previous imports, and put back by its toast's Undo
 	['PATCH', '/imports/im-fixture', { hidden: true }],
@@ -450,6 +460,13 @@ const refused = await fetch(BASE + '/auth/passkey/finish', {
 })
 if (refused.status !== 401) { console.error(`  POST /auth/passkey/finish answered ${refused.status}, not 401`); process.exitCode = 1 }
 await refused.arrayBuffer()
+
+// an assistant's tool call: /mcp reads the token, then asks a read route with it
+const called = await (await fetch(BASE.replace(/\/api$/, '/mcp'), {
+	method: 'POST', headers: { Authorization: `Bearer ${MCP_TOKEN}`, 'Content-Type': 'application/json' },
+	body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'get_monthly_totals', arguments: { months: 3 } } })
+})).json()
+if (!called.result || called.result.isError) { console.error(`  the /mcp tool call failed: ${JSON.stringify(called)}`); process.exitCode = 1 }
 
 // a scan, which only a file reaches: it becomes a draft, the same bytes again point to it, and each goes
 const sharp = (await import('sharp')).default

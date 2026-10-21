@@ -32,14 +32,14 @@ export default defineConfig({
 		port: 5173,
 		// Same-origin from the browser's point of view, so the session cookie the API sets is a
 		// first-party cookie rather than a cross-site one a browser might refuse.
-		proxy: { '/api': api, '/.well-known': api, '/open': api }
+		proxy: { '/api': api, '/.well-known': api, '/open': api, '/mcp': api }
 	},
 	// `vite preview` serves the production build but does not inherit `server.proxy` -- it
 	// reads its own `preview.proxy`, so without this a built app has no way to reach the API
 	// locally and every fetch('/api/...') 404s against the preview server itself.
 	preview: {
 		port: 4173,
-		proxy: { '/api': api, '/.well-known': api, '/open': api }
+		proxy: { '/api': api, '/.well-known': api, '/open': api, '/mcp': api }
 	},
 	build: {
 		/* No maps: a stack trace off this bundle names `index-<hash>.js:1:24817`, and the source

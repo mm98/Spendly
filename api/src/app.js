@@ -19,6 +19,8 @@ import { router as draftsRouter } from './routes/drafts.js'
 import { router as searchRouter } from './routes/search.js'
 import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
+import { router as mcpRouter } from './routes/mcp.js'
+import { router as mcpTokensRouter } from './routes/mcpTokens.js'
 import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
@@ -100,8 +102,8 @@ app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '
 // rather than checked every request, so a normal run pays nothing.
 if (process.argv.includes('--debug') || process.env.DEBUG) {
 	const REDACT_KEYS = ['password', 'current', 'token']
-	// a link's code sits in the address too: /api/auth/reset/<code>, /open/confirm/<code>, /api/auth/status-email/stop/<code>
-	const redactedUrl = url => url.replace(/\/(reset|confirm|stop)\/[^/?#]+/, '/$1/***')
+	// a link's code sits in the address too: /api/auth/reset/<code>, /open/confirm/<code>, /api/auth/status-email/stop/<code>, /mcp/<token>
+	const redactedUrl = url => url.replace(/\/(reset|confirm|stop|mcp)\/[^/?#]+/, '/$1/***')
 	const redacted = body => JSON.stringify(body, (key, value) => REDACT_KEYS.includes(key) ? '***' : value)
 	app.use((req, res, next) => {
 		const arrived = new Date()
@@ -225,6 +227,9 @@ app.get('/api/version/check', requireAuth, async (req, res) => {
 	}
 })
 
+// outside /api: it has its own token, read in routes/mcp.js, and answers in its own protocol's shape
+app.use('/mcp', mcpRouter)
+
 app.use('/api/auth', authRouter)
 app.use('/api/auth/passkey', passkeySignInRouter)
 
@@ -242,6 +247,7 @@ app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/account/passkeys', passkeysRouter)
+app.use('/api/account/mcp-tokens', mcpTokensRouter)
 app.use('/api/account', profileRouter)
 app.use('/api/imports', importsRouter)
 app.use('/api/statuses', statusesRouter)
