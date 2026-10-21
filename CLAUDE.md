@@ -247,10 +247,11 @@ does.
 
 ### No page scrolls as a whole by accident
 
-`npm run scroll:check` (in `react/`) opens every page on a phone and at desktop sizes up to 4K and
-fails when a page scrolls sideways, or when a full-height page like Ask scrolls at all. It runs in
-the pass before a pull request that changes what a page draws, never in CI. A new route is added to
-its page list, or the check fails and names it.
+`npm run scroll:check -- --pages=/ask,/orders` (in `react/`) opens the pages named on a phone and at
+desktop sizes up to 4K, and fails when a page scrolls sideways, or when a full-height page like Ask
+scrolls at all. Run it on the pages the change reaches, before anything is pushed to GitHub, never in
+CI. A change to something every page shares (the shell, a shared component) names every page by
+leaving `--pages` out. A new route is added to its page list, or the check fails and names it.
 
 ### Never assume or guess. Always validate first.
 

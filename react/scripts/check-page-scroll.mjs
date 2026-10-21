@@ -1,7 +1,8 @@
 /* No page scrolls sideways, and the full-height pages (Ask) do not scroll at all: only their own
-   scroll areas do. Every page of the app at every size below, against a running app.
+   scroll areas do. The pages named, or every page of the app, at every size below, against a running app.
 
-   node scripts/check-page-scroll.mjs [origin]     origin defaults to http://localhost:5173
+   node scripts/check-page-scroll.mjs [origin] [--pages=/ask,/orders]
+   origin defaults to http://localhost:5173; a page is named as its address after the #
 
    It registers a throwaway account and fills it with demo data, so it runs against a scratch
    database. CHROME_PATH names the browser; without it the installed Chromium is used.
@@ -10,7 +11,8 @@
 import { readFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 
-const ORIGIN = new URL(process.argv[2] ?? 'http://localhost:5173/').origin
+const ORIGIN = new URL(process.argv.slice(2).find(a => !a.startsWith('--')) ?? 'http://localhost:5173/').origin
+const ASKED = process.argv.find(a => a.startsWith('--pages='))?.slice(8).split(',').filter(Boolean)
 const pw = await import('playwright-core').catch(() => import('playwright')).catch(() =>
 	import(`file://${execSync('npm root -g').toString().trim()}/playwright/index.mjs`))
 const { chromium, devices } = pw.default ?? pw
@@ -55,7 +57,10 @@ const ids = { order: await firstId('order'), vendor: await firstId('vendor'), ca
 const storageState = await setup.storageState()
 await setup.close()
 
-const paths = Object.values(PAGES).flat().map(p => p.replace(/:(\w+)/g, (_, kind) => ids[kind]))
+const every = Object.values(PAGES).flat()
+const unknown = ASKED?.filter(p => !every.includes(p)) ?? []
+if (unknown.length) throw new Error(`no such page in PAGES: ${unknown.join(', ')}`)
+const paths = (ASKED ?? every).map(p => p.replace(/:(\w+)/g, (_, kind) => ids[kind]))
 let failed = 0
 for (const [size, device] of SIZES) {
 	const ctx = await browser.newContext({ ...device, ...READER, storageState })
