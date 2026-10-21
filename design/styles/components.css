@@ -5538,6 +5538,15 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__reply > .sp-btn { align-self: flex-start; }
 /* a small table of amounts inside an answer: the compact static table, framed as a block */
 .sp-chat__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; background: var(--surface); }
+/* in an answer the number and amount columns are as wide as their content and the name
+   takes the rest, cut with ... when longer, so three columns fit a phone's bubble */
+.sp-chat__figures .sp-table { table-layout: auto; }
+.sp-chat__figures .sp-table .sp-col-number,
+.sp-chat__figures .sp-table .sp-col-amount { width: 1%; padding-left: var(--sp-12); white-space: nowrap; }
+.sp-chat__figures .sp-table th:first-child,
+.sp-chat__figures .sp-table td:first-child { max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* on touch an answer holding figures takes the full column */
+.sp-touch .sp-chat__msg:has(.sp-chat__figures) { max-width: 100%; }
 .sp-chat__working { display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-12) var(--card-pad); border: 1px solid var(--line); border-radius: var(--r-field); background: var(--surface); font-size: var(--t-13); color: var(--ink-5); }
 .sp-chat__failed { color: var(--red-ink); }
 /* the empty conversation: the empty state, and the example questions under it */
@@ -5553,6 +5562,12 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__saved { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); width: 100%; margin: 0 auto var(--sp-8); }
 .sp-chat__dock--bar .sp-chat__saved { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 .sp-chat__saved > * { flex: none; }
+/* a saved question is one line, at most 320px and never wider than the row; its text is
+   .sp-truncate, so a longer one is cut with ... - the button and the editing chip alike */
+.sp-chat__saved > .sp-btn--outline,
+.sp-chat__saved > .sp-chip { max-width: min(320px, 100%); }
+.sp-chat__saved > .sp-btn--outline > .sp-truncate { flex: 0 1 auto; }
+.sp-chat__saved > .sp-chip > .sp-icon-btn { flex: none; }
 .sp-chat__dock { padding-top: var(--sp-12); }
 /* on a phone the dock is a bar pinned above the tab bar, on the bar's surface and gutter */
 .sp-chat__dock--bar { padding: var(--sp-12) var(--phone-gutter); border-top: 1px solid var(--line); background: var(--surface); }
