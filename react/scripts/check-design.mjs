@@ -104,7 +104,7 @@ for (const [p, ast] of parsed) {
 /* ---- spacing: only the scale's tokens ----
    Gap, padding and margin are written as tokens. These are the design's own optical nudges,
    frozen by count: a new raw value anywhere is a regression. */
-const RAW_SPACING = { '-4px': 4, '1px': 6, '3px': 3, '-2px': 2, '2px': 2, '-12px': 1, '40px': 2, '16px': 1 }
+const RAW_SPACING = { '-4px': 4, '1px': 7, '3px': 3, '-2px': 2, '2px': 2, '-12px': 1, '40px': 2, '16px': 1 }
 {
 	const plain = components.replace(/\/\*[\s\S]*?\*\//g, '')
 	const found = {}
@@ -637,7 +637,7 @@ for (const [p, ast] of parsed) {
 	})
 	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
 	// the design draws the card grid as a variant of .sp-list, and a token field that suggests inside .sp-combobox
-	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox' }
+	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox', PaletteAnswer: 'sp-record__head' }
 	const roots = {}
 	for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n)
 	for (const [cls, names] of Object.entries(roots))

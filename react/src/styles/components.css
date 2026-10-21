@@ -4100,6 +4100,66 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 }
 .sp-palette__thumb { width: 22px; height: 22px; border-radius: var(--r-tile); background: var(--line); flex: none; }
 
+/* ---------- command palette, asking - c24 variant ----------
+   The same surface holding a conversation about the reader's money: the query line
+   takes the question and grows to four lines, the body holds the questions and the
+   answers in order, the foot carries the send keys and the day's limit. */
+.sp-palette--ask .sp-palette__search { align-items: flex-end; }
+textarea.sp-palette__term {
+  resize: none;
+  padding: var(--sp-4) 0;
+  line-height: var(--lh);
+  field-sizing: content;
+  max-height: calc(var(--t-15) * var(--lh) * 4 + var(--sp-8));
+  overflow-y: auto;
+}
+.sp-palette__term:disabled { cursor: not-allowed; }
+.sp-palette__thread { display: flex; flex-direction: column; gap: var(--sp-16); padding: var(--sp-6) var(--sp-16); }
+.sp-palette__question {
+  align-self: flex-end;
+  max-width: 80%;
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--r-field);
+  background: var(--surface-2);
+  font-size: var(--t-14);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.sp-palette__reply {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh);
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.sp-palette__reply p { margin: 0; }
+.sp-palette__reply ul { margin: 0; padding-left: var(--sp-16); }
+.sp-palette__reply a { font-weight: 600; }
+.sp-palette__reply > .sp-btn { align-self: flex-start; }
+/* a small table of amounts inside an answer: the compact table, framed as a block */
+.sp-palette__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; }
+.sp-palette__working { display: flex; align-items: center; gap: var(--sp-8); min-height: var(--mark-small); font-size: var(--t-13); color: var(--ink-5); }
+.sp-palette__failed { color: var(--red-ink); }
+/* on a phone the query line is the top bar: at one line it is the bar's height with the
+   touch controls centred in it, and it grows downward as the question does */
+.sp-palette--screen.sp-palette--ask .sp-palette__search {
+  height: auto;
+  min-height: var(--phone-bar-h);
+  /* less the 1px rule under it, so one line is the 68px the search row is */
+  padding-block: calc((var(--phone-bar-h) - var(--control-h-touch) - 1px) / 2);
+}
+/* 1lh, not the desktop size: on touch the field takes the touch font size */
+.sp-palette--screen.sp-palette--ask textarea.sp-palette__term { padding: calc((var(--control-h-touch) - 1lh) / 2) 0; }
+/* the foot is the bar the phone pins at the bottom: the bar's height, its text on the
+   body's --sp-16 inset so it lines up with the thread above it, and its
+   one button is the text button at the touch height, as Cancel is in the query line */
+.sp-palette--screen .sp-palette__foot { min-height: var(--phone-bar-h); }
+.sp-palette--screen .sp-palette__foot > .sp-btn { flex: none; width: auto; }
+
 /* the same palette filling a phone: no card edges, and the body takes the height
    the frame has rather than its own maximum */
 .sp-palette--screen {
