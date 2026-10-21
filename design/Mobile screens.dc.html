@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20261021g">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261021m">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/budget.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/mobile-screens.css?v=v20260917b">
@@ -38,6 +38,7 @@
   <div class="doc-lede">One frame per page, at the width <code>.sp-phone</code> sets - 375, the narrowest phone that matters, labelled with the desktop section it corresponds to. This is the lookup: if a screen is not here, it uses the shell from <b>9h</b> and the rules in <b>15b</b> and <b>18a</b> without further changes.</div>
   <div class="doc-notes">
     <div class="doc-notes__label">NOTES FOR IMPLEMENTATION</div>
+    <div class="doc-note"><b class="sp-ink">Ask Spendly</b> is a row in More, above Settings, opening its page (<a href="Ask Spendly.dc.html#24a">Ask Spendly 24a</a>): the touch top bar with Back, the title and a menu holding Email this chat and Clear; the conversation; and the dock pinned above the tab bar (<code>.sp-chat__dock--bar</code>) with the saved questions in one sideways-scrolling line, the field and Send (Stop while an answer comes). The frame is drawn inside <code>.sp-touch</code>, so its controls show at the touch height. The row and the page are absent when the server has no assistant set up.</div>
     <div class="doc-note"><b class="sp-ink">The shell is identical on every screen.</b> Search-only top bar, four-destination tab bar, the New order FAB on Home and the order list. On the places, the top bar is search only and never gains a title or a hamburger. A screen one level down - a record's page, create and edit, the scan review - swaps it for Back and a title, as the order and vendor frames show (Navigation shell, top bar note).</div>
     <div class="doc-note"><b class="sp-ink">The floating action is New order, not the camera</b> - it opens step 1 of <b>3a</b>: the receipt zone, an empty order, a copy of an order. It is the only floating action in the app, and the receipt zone leads because the phone is the camera. It does not open the camera directly.</div>
     <div class="doc-note"><b class="sp-ink">It is on Home and Orders, and nowhere else.</b> An order is what it creates, so it appears only where orders are the subject. Vendors and Categories create their own records from the <b>+</b> in their list head; Statistics and Settings create nothing; and any screen carrying a save bar, a sheet, a dialog or the image viewer hides it while that is open. The full rule is in <b>9h</b>.</div>
@@ -302,6 +303,7 @@
           <div class="sp-list-item sp-list-item--card"><span class="sp-data sp-grow">Categories</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6" /></svg></span></div>
           <div class="sp-list-item sp-list-item--card"><span class="sp-data sp-grow">Bookmarks</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6" /></svg></span></div>
           <div class="sp-list-item sp-list-item--card"><span class="sp-data sp-grow">Saved views</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6" /></svg></span></div>
+          <div class="sp-list-item sp-list-item--card"><span class="sp-data sp-grow">Ask Spendly</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6" /></svg></span></div>
           <div class="sp-list-item sp-list-item--card"><span class="sp-data sp-grow">Settings</span><span class="sp-list-item__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6" /></svg></span></div>
         </div>
         </div>
@@ -498,6 +500,41 @@
               <span class="sp-grow"></span>
               <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
             </div>
+          </div>
+        </div></div>
+          <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta">Orders</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta">Statistics</span>
+              </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span class="sp-meta sp-strong">More</span>
+              </button></div>
+        </div>
+      </div>
+    <div class="sp-stack sp-gap-12 ms-w375">
+        <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">ASK SPENDLY</span><span class="sp-meta sp-ink-5">24a</span></div>
+        <div class="sp-phone sp-touch ms-device">
+          <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div>
+          <div class="ms-pane"><div class="sp-topbar sp-topbar--touch">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <div class="sp-stacked sp-grow"><span class="sp-heading sp-truncate">Ask Spendly</span></div>
+          <button type="button" class="sp-icon-btn" aria-label="Conversation menu" aria-haspopup="menu"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+        </div>
+        <div class="ms-scroll">
+          <div class="sp-chat__thread">
+            <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">How much did I spend on food in August?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Saved question" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+            <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p>You spent <span class="sp-amount">4.212,50 kr.</span> on <a href="Vendors and categories.dc.html">Food</a> in August, over 23 orders. Most of it went to <a href="Vendors and categories.dc.html">Netto</a>, <span class="sp-amount">1.684,20 kr.</span></p></div></div>
+            <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">And in September?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+            <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__working"><span class="sp-spinner" aria-hidden="true"></span><span>Reading your orders</span></div></div>
+          </div>
+        </div>
+        <div class="sp-chat__dock sp-chat__dock--bar">
+          <div class="sp-chat__saved">
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I save this month?</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I spend on food in August?</button>
+            <button type="button" class="sp-btn sp-btn--text sp-btn--small">Edit</button>
+          </div>
+          <div class="sp-chat__composer">
+            <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask Spendly"></textarea>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Stop</button>
           </div>
         </div></div>
           <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
@@ -856,42 +893,6 @@
               <span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span>
               <span class="sp-palette__name sp-palette__name--plain">New order</span>
             </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sp-stack sp-gap-12">
-      <span class="sp-section-label">SEARCH · ASKING ABOUT YOUR MONEY</span>
-      <div class="sp-phone sp-touch ms-device ms-device--tall">
-        <div class="ms-status">
-          <span>9:41</span>
-          <span class="sp-ink-5">▮▮▮</span>
-        </div>
-        <div class="sp-palette sp-palette--screen sp-palette--ask" role="dialog" aria-label="Ask about your money">
-          <div class="sp-palette__search">
-            <button type="button" class="sp-icon-btn" aria-label="Back to search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
-            <textarea class="sp-palette__term" rows="1" placeholder="Ask a follow-up" aria-label="Ask about your money"></textarea>
-            <button type="button" class="sp-btn sp-btn--small" disabled="{{ true }}">Send</button>
-          </div>
-          <div class="sp-palette__body">
-            <div class="sp-palette__thread">
-              <div class="sp-palette__question">How much did I spend on food in August?</div>
-              <div class="sp-record__head"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-palette__reply"><p>You spent <span class="sp-amount">4.212,50 kr.</span> on <a href="Vendors and categories.dc.html">Food</a> in August, over 23 orders. Most of it went to three vendors:</p>
-                <div class="sp-palette__figures"><table class="sp-table sp-table--compact sp-table--static">
-                  <thead><tr><th class="sp-col-title">Vendor</th><th class="sp-col-number">Orders</th><th class="sp-col-amount">Amount</th></tr></thead>
-                  <tbody>
-                    <tr><td><a href="Vendors and categories.dc.html">Netto</a></td><td class="sp-col-number">9</td><td class="sp-col-amount"><span class="sp-amount">1.684,20 kr.</span></td></tr>
-                    <tr><td><a href="Vendors and categories.dc.html">Lidl</a></td><td class="sp-col-number">8</td><td class="sp-col-amount"><span class="sp-amount">1.426,30 kr.</span></td></tr>
-                    <tr><td><a href="Vendors and categories.dc.html">Irma</a></td><td class="sp-col-number">6</td><td class="sp-col-amount"><span class="sp-amount">1.102,00 kr.</span></td></tr>
-                  </tbody>
-                </table></div></div></div>
-              <div class="sp-palette__question">And in September?</div>
-              <div class="sp-record__head"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-palette__working"><span class="sp-spinner" aria-hidden="true"></span><span>Reading your orders</span></div></div>
-            </div>
-          </div>
-          <div class="sp-palette__foot">
-            <span class="sp-meta--over">2 questions left today</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--text">New conversation</button>
           </div>
         </div>
       </div>
@@ -1485,7 +1486,6 @@
     <div class="doc-note"><b>Reset</b> in the sheet's header is a text button (<code>sp-btn--text</code>, small), in the button's green, like Cancel in the search screen; it clears every filter and keeps the sheet open. <b>Show 39 more</b> expands that facet's list in place inside the sheet.</div>
     <div class="doc-note"><b>Show 18 orders</b> applies the filters and closes the sheet. The label is the live result count; with no results it reads "No orders match" and is disabled.</div>
     <div class="doc-note"><b>Cancel closes the full-screen search</b> and returns to the screen it was opened from, as it was. It is the only way out: the tab bar is absent while the search is open (9h). The clear button inside the field empties the query and keeps the search open.</div>
-    <div class="doc-note"><b>Asking on a phone</b> is the same full-screen palette in its ask state (<a href="Navigation shell.dc.html#9d">Navigation shell 9d</a>): Back to search where the search field was, the question field growing to four lines, Send at the right, and Send becomes Stop while an answer comes. The markup is the desktop ask bar's unchanged (<code>sp-icon-btn</code>, <code>sp-btn sp-btn--small</code>); the touch rules make both 48px, as every phone control is, and this phone is drawn inside <code>.sp-touch</code> to show it. The ask bar is not a small-button exception like a card head. At one line the query line is the top bar's 68px with the 48px controls centred in it; it grows downward with the question. There is no keyboard line, so the foot holds only the day's count when it shows and New conversation. The foot is a pinned bottom bar: the phone bar's 68px, its count on the palette's 16px inset so it lines up with the thread, and New conversation is the text button at the touch height (48px), as Cancel is in search, not the desktop foot's xsmall button. Back returns to the search, keeping the conversation; Cancel there closes it as before.</div>
   </div>
 </section>
 

@@ -1,0 +1,27 @@
+/* Page composition for Ask Spendly.dc.html.
+   Layout scaffolding only: the frames the states in 24b are drawn in, and the width
+   of the bars and toasts shown on their own in 24c. Everything else is a component
+   class from components.css.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  /* the content column of 24a at a specimen's width: the page ground, the body's inset,
+     and a fixed height so the dock sits at the bottom as it does in the page */
+  .as-frame {
+    width: 600px;
+    height: 600px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+    padding: var(--sp-16);
+    background: var(--bg);
+    border: 1px solid var(--line-3);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .as-bar { width: 600px; }
+  .as-toast { width: 400px; }
+
+}

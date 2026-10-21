@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20261021g">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261021o">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
 <style>
@@ -2733,14 +2733,17 @@
       <div class="sp-card doc-w400">
       <div class="sp-facets">
         <fieldset class="sp-field-group">
-          <legend class="sp-field-group__head">Values, counted</legend>
+          <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">Values, counted<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
           <label class="sp-choice"><input class="sp-check" type="checkbox" defaultChecked="{{ true }}">Value<span class="sp-grow"></span><span class="sp-field-group__count">27</span></label>
           <label class="sp-choice"><input class="sp-check" type="checkbox">Value<span class="sp-grow"></span><span class="sp-field-group__count">21</span></label>
           <label class="sp-choice"><input class="sp-check" type="checkbox" disabled="{{ true }}">Value<span class="sp-grow"></span><span class="sp-field-group__count">0</span></label>
           <button type="button" class="sp-field-group__more">Show 38 more</button>
         </fieldset>
         <fieldset class="sp-field-group">
-          <legend class="sp-field-group__head">Values, as chips</legend>
+          <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="false">Folded<span class="sp-grow"></span><span class="sp-field-group__count">12 total</span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
+        </fieldset>
+        <fieldset class="sp-field-group">
+          <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">Values, as chips<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
           <div class="sp-filters">
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" defaultChecked="{{ true }}"><span data-label="Value">Value</span><span data-label="64">64</span></label>
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox"><span data-label="Value">Value</span><span data-label="41">41</span></label>
@@ -2748,7 +2751,7 @@
           </div>
         </fieldset>
         <fieldset class="sp-field-group">
-          <legend class="sp-field-group__head">Date</legend>
+          <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">Date<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
           <div class="sp-filters">
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="radio" name="c12-date"><span data-label="This week">This week</span></label>
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="radio" name="c12-date" defaultChecked="{{ true }}"><span data-label="This month">This month</span></label>
@@ -2802,7 +2805,7 @@
           </div>
                   </fieldset>
         <fieldset class="sp-field-group">
-          <legend class="sp-field-group__head">One of three</legend>
+          <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">One of three<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
           <div class="sp-segmented sp-segmented--facet">
             <label class="sp-segmented__item" data-label="All"><input type="radio" name="c12-kind" defaultChecked="{{ true }}"><span class="sp-label">All</span></label>
             <label class="sp-segmented__item" data-label="Option"><input type="radio" name="c12-kind"><span class="sp-label">Option</span></label>
@@ -2937,6 +2940,7 @@
     <div class="doc-note">A facet group is a <code>&lt;fieldset&gt;</code> with its name as the <code>&lt;legend&gt;</code> at <code>--t-12</code>/600, so the counts read as part of the group. Counts are <code>--t-12</code> <code>--ink-5</code>, right-aligned. A facet chip is the same Chip with a count, its checkbox visually hidden inside the label but still focusable, so the chip is operable by keyboard; checked, the chip itself fills <code>--green</code> and carries no box or tick of its own. Each label reserves its selected width, so ticking one shifts nothing. The three-up segmented sits on a filled <code>--green-tint-2</code> track at <code>--r-card</code>, its segments equal columns at <code>--t-12</code>. A range facet always carries the two bound fields it mirrors, and toggles put the switch before its label. Facets fill the width they are given; the rail itself is <code>.sp-rail</code> at 232, set by the page rather than by the component. The bulk bar is not a permanent toolbar: it replaces the list's summary line, in the same place and at the same height, filled <code>--green-tint</code>, and reverts the moment the selection empties.</div>
     <div class="doc-notes__label">States</div>
     <div class="doc-note">A facet value with a count of zero is <code>disabled</code> rather than hidden, so the vocabulary stays stable. Applied filters appear as chips above the list, in the order they were applied. Selection clears on any filter, search or sort change, and survives Load more.</div>
+    <div class="doc-note"><b>A facet group folds from its head.</b> The head is one button (<code>.sp-field-group__fold</code>, <code>aria-expanded</code>) holding the label, the count or the range at the right, and the chevron (<code>.sp-card__chevron</code>), which points down while open and turns to the right when folded. A folded group shows its head only, count included; nothing else is added to it, even when values inside are picked. A range facet, whose fields name themselves, has the same head in a <code>div.sp-field-group__head</code>. A long list of values scrolls inside the group at 240px (<code>.sp-field-group__values</code>). Which groups are folded is kept for the next visit, by group name. The switches under the groups do not fold.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>Tick a facet value</b> - filters at once, no Apply. <b>Choose the date preset Custom</b> - opens the From / To pair inside the group, below the presets, so the list stays visible; the range filters as soon as both dates are valid, and an invalid one holds the last valid result rather than emptying the list. <b>Remove a chip</b> - drops that filter. <b>Clear all</b> - drops every filter but keeps the sort. <b>Set status in the bulk bar</b> - applies to the whole selection and reports how many changed. <b>Clear selection</b> - restores the summary line. <b>Touch:</b> the facet rail is a sheet opened by a Filters button carrying the applied count, committed by Apply rather than filtering live; <b>Custom</b> in that sheet opens the range sheet from <a href="#c14">c14</a> (one date range sheet for the whole app, not two native date fields), whose own Apply sets From and To and returns to the filter sheet, where the filter sheet's Apply runs the filter with everything else; applied chips stay above the list; and a selection replaces the screen header with the same bar, its actions as icon buttons. Keyboard: a facet value toggles with Space, its group collapses with Enter on the heading, and Escape closes any panel without dropping what was already applied. Facet counts recompute against every other facet, so a value that would return nothing is disabled rather than hidden - the count stays visible, so the user can see why. Applied chips are removable in any order, and clearing the last one restores the unfiltered list. Each facet group is a fieldset with its legend, so a value is read with the facet it belongs to, and an applied chip states the facet and the value it removes. Filters survive going into a record and back, and are what the URL carries, so a filtered list can be shared as seen.</div>
   </div>
@@ -4562,36 +4566,6 @@
       </div>
     </div>
 
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">Asking · .sp-palette--ask, a question answered</span>
-      <div class="sp-palette sp-palette--ask" role="dialog" aria-label="Ask about your money">
-        <div class="sp-palette__search">
-          <button type="button" class="sp-icon-btn" aria-label="Back to search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
-          <textarea class="sp-palette__term" rows="1" placeholder="Ask a follow-up" aria-label="Ask about your money"></textarea>
-          <button type="button" class="sp-btn sp-btn--small" disabled="{{ true }}">Send</button>
-        </div>
-        <div class="sp-palette__body">
-          <div class="sp-palette__thread">
-            <div class="sp-palette__question">How much did I spend on food in August?</div>
-            <div class="sp-record__head"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-palette__reply"><p>You spent <span class="sp-amount">4.212,50 kr.</span> on <a href="Vendors and categories.dc.html">Food</a> in August, over 23 orders. Most of it went to three vendors:</p>
-              <div class="sp-palette__figures"><table class="sp-table sp-table--compact sp-table--static">
-                <thead><tr><th class="sp-col-title">Vendor</th><th class="sp-col-number">Orders</th><th class="sp-col-amount">Amount</th></tr></thead>
-                <tbody>
-                  <tr><td><a href="Vendors and categories.dc.html">Netto</a></td><td class="sp-col-number">9</td><td class="sp-col-amount"><span class="sp-amount">1.684,20 kr.</span></td></tr>
-                  <tr><td><a href="Vendors and categories.dc.html">Lidl</a></td><td class="sp-col-number">8</td><td class="sp-col-amount"><span class="sp-amount">1.426,30 kr.</span></td></tr>
-                  <tr><td><a href="Vendors and categories.dc.html">Irma</a></td><td class="sp-col-number">6</td><td class="sp-col-amount"><span class="sp-amount">1.102,00 kr.</span></td></tr>
-                </tbody>
-              </table></div></div></div>
-            <div class="sp-palette__question">And in September?</div>
-            <div class="sp-record__head"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-palette__working"><span class="sp-spinner" aria-hidden="true"></span><span>Reading your orders</span></div></div>
-          </div>
-        </div>
-        <div class="sp-palette__foot">
-          <span>↵ send</span><span>⇧↵ new line</span><span>esc close</span><span class="sp-grow"></span><span class="sp-meta--over">2 questions left today</span><button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">New conversation</button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <div class="doc-notes">
@@ -4603,8 +4577,6 @@
     <div class="doc-note">A 520px surface at radius 14 with a lifted shadow, its query line divided by a <code>--line-2</code> rule and its foot on <code>--surface-2</code>. Rows are <code>--sp-8</code> by <code>--sp-16</code> at <code>--t-14</code>; group labels are <code>--t-10</code> at <code>--ls-label</code>. The matched run inside a name is marked in <code>--amber-3</code>, never bolded, so the name's own weight still reads. An action's shortcut sits at the right as a key cap, 18px tall so it sits inside the line rather than stretching it - every row is the same height whatever it carries. The body scrolls at 420px; the query line and the foot do not.</div>
     <div class="doc-notes__label">States</div>
     <div class="doc-note">On touch its rows take <code>--control-h-touch</code>, in the phone's full-screen search (<a href="Mobile screens.dc.html#7b">Mobile screens 7b</a>). As a floating panel the palette is the shell's desktop surface, opened from the top bar's search field or by ⌘K, and a phone has neither. On a phone the same ground is covered by the search field in the header and the tab bar, so this section shows no phone. Empty query, which offers what was open and the actions rather than nothing · typing, where results are grouped by kind with a count per group and a total in the query line · one row always current, marked <code>aria-selected</code> on <code>--hover</code>, which moves with the arrows and with the pointer alike · no matches, which states what was searched and offers the actions instead. Order of groups is fixed - orders, vendors, items - so the same query always lands in the same place.</div>
-    <div class="doc-notes__label">Asking - variant</div>
-    <div class="doc-note"><code>.sp-palette--ask</code> holds a conversation in the same surface (<a href="Navigation shell.dc.html#9d">Navigation shell 9d</a> for every state). The query line becomes a <code>textarea.sp-palette__term</code>, one line growing to four, led by Back to search and ended by Send (Stop while an answer comes), both small controls aligned to the last line. The body holds <code>.sp-palette__thread</code>: each question is <code>.sp-palette__question</code>, right-aligned on <code>--surface-2</code> at <code>--r-field</code>, at most 80% wide; each answer is the record head row (<code>.sp-record__head</code>, <a href="#c1">c1</a>), the Spendly mark (<a href="#c2">c2</a>, small, solid) beside <code>.sp-palette__reply</code> at <code>--t-14</code> on <code>--ink-2</code>. A reply holds paragraphs, a short list, links to records, <code>.sp-amount</code> for every amount, and a compact static table (<a href="#c1">c1</a>) framed in <code>.sp-palette__figures</code>. While it comes the reply is <code>.sp-palette__working</code>, the spinner (<a href="#c13">c13</a>) and one line; a failed one is <code>.sp-palette__failed</code> in <code>--red-ink</code> with Try again. The day's limit is the amber alert (<a href="#c19">c19</a>) at the end of the thread. The foot keeps its keys and adds New conversation, with the remaining count before it near the limit.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>⌘K</b> - opens it from anywhere, over the page, and closes it if it is already open. <b>Type</b> - filters as it goes, and the actions stay reachable by name, so a command and a record are found the same way. <b>↑ ↓</b> - move through every row including across groups, skipping the group labels. <b>↵</b> - opens the current row, or runs it if it is an action. <b>⌘↵</b> - opens a record in a new tab, leaving the palette where it was. <b>A one-letter shortcut</b> - runs that action directly, but only while the query is empty, so typing a name never fires one. <b>Esc</b> - closes without acting and returns focus to whatever had it. It never navigates on its own: a result is opened, not previewed. The whole surface is a <code>role="dialog"</code> holding a <code>role="listbox"</code>; it takes focus on open, holds it while open, and the query line reports the result count as it changes, so a screen reader hears how many without leaving the field.</div>
   </div>
@@ -4957,6 +4929,52 @@
     <div class="doc-note"><code>sp-list-head</code> is the heading over a set of list rows when the set carries a total. It is inset by the row's 12px padding and 1px border, so its label starts on the rows' first column and its total ends on their amounts; the rows sit 8px under it, the set's own gap.</div>
     <div class="doc-notes__label">Copy</div>
     <div class="doc-note">Add, then what is added, then where: Add a row to Housing, Add a group to costs, Add an account. A set with nothing in it yet reads Add the first account.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="c34">c34</span>
+    <span class="doc-section__title">Chat</span>
+    <span class="sp-grow"></span>
+    <span class="sp-meta">.sp-chat</span>
+  </div>
+  <div class="doc-lede">A conversation about the reader's money, from Ask Spendly 24a: messages as bubbles, Spendly's at the left and the reader's at the right, and the dock with the saved questions and the field pinned under them.</div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">A question, an answer, one coming, and the dock</span>
+      <div class="doc-w560">
+        <div class="sp-chat">
+          <div class="sp-chat__thread">
+            <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">Which shop did I use most this year?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Saved question" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+            <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p><a href="Vendors and categories.dc.html">Netto</a>, with 41 orders and <span class="sp-amount">14.880,00 kr.</span> this year. After it come:</p><ul><li><a href="Vendors and categories.dc.html">Lidl</a>, 33 orders</li><li><a href="Vendors and categories.dc.html">Indbo Møbler</a>, 12 orders</li></ul></div></div>
+            <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">And last year?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+            <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__working"><span class="sp-spinner" aria-hidden="true"></span><span>Reading your orders</span></div></div>
+          </div>
+          <div class="sp-chat__dock">
+            <div class="sp-chat__saved">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I save this month?</button>
+              <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Edit</button>
+            </div>
+            <div class="sp-chat__composer">
+              <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask Spendly"></textarea>
+              <button type="button" class="sp-btn sp-btn--outline">Stop</button>
+            </div>
+            <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span><span class="sp-meta--over">2 questions left today</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <div class="doc-notes__label">Uses</div>
+    <div class="doc-note"><a href="#c2">c2</a> for both marks (the Spendly "S", solid; the reader's account mark, round), <a href="#c6">c6</a> for Send, Stop, Try again and the saved questions (small outline buttons, and static chips while editing), <a href="#c3">c3</a>'s textarea for the field, the compact static table for figures, <a href="#c13">c13</a>'s spinner and empty state, and <a href="#c19">c19</a>'s alert when no questions are left. Each unchanged.</div>
+    <div class="doc-notes__label">Fixed</div>
+    <div class="doc-note">A message (<code>.sp-chat__msg</code>) is at most 75% of the column: the mark outside, on the first line's centre, and the bubble at <code>--sp-12</code> by <code>--card-pad</code>, radius <code>--r-field</code>. The reader's bubble (<code>.sp-chat__question</code>) is on <code>--green-tint</code> at the right; Spendly's (<code>.sp-chat__reply</code>, and <code>.sp-chat__working</code> while it comes) is on <code>--surface</code> with the <code>--line</code> border at the left, its parts <code>--sp-12</code> apart. Messages are <code>--sp-16</code> apart. Text is <code>--t-14</code> at <code>--lh</code>; every amount is <code>.sp-amount</code>; a figures table sits in <code>.sp-chat__figures</code>. The field is one control high and grows to six lines; the hint line under it is <code>--t-11</code>.</div>
+    <div class="doc-notes__label">States</div>
+    <div class="doc-note">Empty (the empty state with the examples, or the saved row when anything is saved) · an answer coming (spinner bubble, Stop in Send's place) · answered · failed (<code>.sp-chat__failed</code> in <code>--red-ink</code>, Try again) · near the limit (the count in the hint) · none left (the alert, the field disabled) · a question saved (<code>.sp-chat__save[aria-pressed="true"]</code>, the bookmark filled green) · editing the saved row. On a phone the dock is <code>.sp-chat__dock--bar</code>, on the surface above the tab bar, and its saved row scrolls sideways.</div>
+    <div class="doc-notes__label">Actions</div>
+    <div class="doc-note"><b>Enter</b> sends, <b>Shift Enter</b> makes a new line. <b>Stop</b> ends an answer coming. A saved question or an example sends at once. The bookmark saves or unsaves its question. The thread is a <code>role="log"</code> with <code>aria-live="polite"</code>, so an answer is read out when it arrives.</div>
   </div>
 </section>
 

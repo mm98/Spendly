@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261021o">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/order-list.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
@@ -320,7 +320,7 @@
 
           <div class="sp-facets">
             <fieldset class="sp-field-group">
-              <legend class="sp-field-group__head">Date</legend>
+              <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">Date<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
               <div class="sp-filters">
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="radio" name="2b-date"><span data-label="This week">This week</span></label>
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="radio" name="2b-date"><span data-label="This month">This month</span></label>
@@ -331,33 +331,32 @@
             </fieldset>
 
             <fieldset class="sp-field-group">
-              <legend class="sp-field-group__head">Status</legend>
-          <label class="sp-choice"><input class="sp-check" type="checkbox" defaultChecked="{{ true }}">Delivered<span class="sp-grow"></span><span class="sp-field-group__count">176</span></label>
-          <label class="sp-choice"><input class="sp-check" type="checkbox">Ordered<span class="sp-grow"></span><span class="sp-field-group__count">54</span></label>
-          <label class="sp-choice"><input class="sp-check" type="checkbox">Returned<span class="sp-grow"></span><span class="sp-field-group__count">18</span></label>
+              <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="false">Status<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
             </fieldset>
 
             <fieldset class="sp-field-group">
-              <legend class="sp-field-group__head">Receipt</legend>
+              <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">Receipt<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
           <label class="sp-choice"><input class="sp-check" type="checkbox">Attached<span class="sp-grow"></span><span class="sp-field-group__count">236</span></label>
           <label class="sp-choice"><input class="sp-check" type="checkbox">Missing<span class="sp-grow"></span><span class="sp-field-group__count">12</span></label>
             </fieldset>
 
             <fieldset class="sp-field-group">
-              <legend class="sp-field-group__head">Vendor<span class="sp-grow"></span><span class="sp-field-group__count">42 total</span></legend>
+              <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">Vendor<span class="sp-grow"></span><span class="sp-field-group__count">42 total</span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
               <div class="sp-picker__search">
                 <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
                 <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Find a vendor…" aria-label="Find a vendor">
               </div>
+          <div class="sp-field-group__values">
           <label class="sp-choice"><input class="sp-check" type="checkbox" defaultChecked="{{ true }}">Indbo Møbler<span class="sp-grow"></span><span class="sp-field-group__count">38</span></label>
           <label class="sp-choice"><input class="sp-check" type="checkbox">Hay<span class="sp-grow"></span><span class="sp-field-group__count">27</span></label>
           <label class="sp-choice"><input class="sp-check" type="checkbox">Muuto<span class="sp-grow"></span><span class="sp-field-group__count">21</span></label>
           <label class="sp-choice"><input class="sp-check" type="checkbox">Ferm Living<span class="sp-grow"></span><span class="sp-field-group__count">14</span></label>
+              </div>
               <button type="button" class="sp-field-group__more">Show 38 more</button>
             </fieldset>
 
             <fieldset class="sp-field-group">
-              <legend class="sp-field-group__head">Categories</legend>
+              <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true">Categories<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
               <div class="sp-filters">
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox" defaultChecked="{{ true }}"><span data-label="Decor">Decor</span><span data-label="64">64</span></label>
             <label class="sp-chip sp-chip--facet sp-chip--pill"><input type="checkbox"><span data-label="Seating">Seating</span><span data-label="41">41</span></label>
@@ -368,21 +367,12 @@
             </fieldset>
 
             <fieldset class="sp-field-group">
-              <legend class="sp-field-group__head">Kind</legend>
-              <div class="sp-combobox">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Kind">
-                  <span class="sp-grow">All kinds</span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
+              <legend class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="false">Kind<span class="sp-grow"></span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></legend>
             </fieldset>
 
             <div class="sp-field-group">
+              <div class="sp-field-group__head"><button type="button" class="sp-field-group__fold" aria-expanded="true"><span id="ol-rng1">Amount</span><span class="sp-grow"></span><span class="sp-meta">0 - 25.000+ kr.</span><span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span></button></div>
               <div class="sp-field">
-                <div class="sp-row-flex">
-                  <span  class="sp-field__label sp-grow" id="ol-rng1">Amount</span>
-                  <span class="sp-meta">0 - 25.000+ kr.</span>
-                </div>
                 <div class="sp-track" data-step="100" role="group" aria-labelledby="ol-rng1">
                   <span class="sp-track__span" data-span="12-66"></span>
                   <button type="button" class="sp-track__handle" data-at="12" role="slider" aria-label="From" aria-valuemin="0" aria-valuemax="25000" aria-valuenow="3000"></button>
@@ -769,6 +759,7 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Every facet group folds from its head</b> (<a href="Components.dc.html#c12">c12</a>): Status and Kind are drawn folded, the rest open. Pressing the head folds or opens it; a folded group shows only its head, the count or the range kept at the right. Folded groups are remembered for the next visit. The Vendor values scroll inside the group past 240px.</div>
     <div class="doc-note"><b>Arriving from an import</b> (<a href="Settings and import.dc.html#11b">11b</a>, See the orders) the list is filtered to that import, shown as one chip in the filter row: <b>From import 3 Oct 2026</b>, with its x to clear it, like any filter chip (c12). It is not a saved view and is gone once cleared. The date is the import's own, kept with the import, so it reads the same however old the import is; only when the date cannot be had does it read <b>From an import</b>.</div>
     <div class="doc-note"><b>The Amount track is spaced by order count, not by kroner.</b> Each step along it covers the same share of the orders in the current set, so the handle position is a percentile and the fields show the amount at that percentile. One very large order then takes the last sliver of the track instead of pushing every everyday order into the first few pixels.</div>
     <div class="doc-note"><b>The track ends at the 99th percentile, read as "and above".</b> The right end is the amount 99% of the set falls under, rounded to a clean figure (25.000), and the meta and the To field append <b>+</b> while the handle sits there: <b>0 - 25.000+ kr.</b> At the end the To bound is open, so the largest orders stay in the result. Typing a figure above the end in the To field is accepted and parks the handle at the end. Typing exactly the end figure is the same as dragging the handle there: the bound is open and reads <b>0 - 25.000+ kr.</b> A set of fewer than 20 orders uses a straight scale from 0 to its largest order, with no <b>+</b>.</div>

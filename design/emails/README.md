@@ -52,3 +52,18 @@ The status templates use Mustache sections: `{{#key}}...{{/key}}` repeats over a
 Every value is HTML-escaped before it is merged. Amounts are written in the account's own number format, and month and weekday names in the account's language, as the app writes them ("in Oktober so far", "12. - 18. okt. 2026"); the sentences stay English.
 
 The unsubscribe link opens the answer page drawn in 20f, 8 to 10: Status emails stopped, Already stopped (a second visit), That link has expired (after 60 days). The tiles stack below 480px; the dark block maps to the dark tokens, as in the auth emails.
+
+## Ask Spendly conversation
+
+| File | Subject | Sent when |
+|---|---|---|
+| ask-chat | {{subject}}, e.g. "Your Ask Spendly conversation, 21 Oct 2026" | Email this chat is pressed on Ask Spendly (24c). Only to the account's own address, never another. At most one per account per minute: the server refuses a second within the minute, and the page shows the problem toast. |
+
+The conversation as it stood when the button was pressed, in order. Each message is the reader's question (right, on the green tint, with their initials) or Spendly's answer (left, with the S mark, on white). `ask-chat-sample.json` holds the specimen's values and its keys are the full field list.
+
+- Header: subject, preheader (the first two questions), date, currency_name (the account currency's name, "Danish kroner"), email, initials, ask_url
+- messages[]: mine (true for a question), question (mine only), blocks[] (answers only)
+- blocks[]: one of p (runs[]), list (items[]: runs[]), table (head[]: label, align; rows[]: cells[]: runs[], align, last)
+- runs[]: text, and either url (a link to the record, absolute, into the app) or amount (true for an amount, set in bold and never broken)
+
+Every text value is HTML-escaped before it is merged; a link is only ever a run with a url the server built from the record's own route, so an answer can never put markup or an outside link in the email. Amounts are written in the account's own number format, as in the app. Each table cell's `last` is true on its row's last cell, for the text version's commas.

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask Spendly</title>
+<script src="support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">24</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261021m">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/ask-spendly.css?v=v20261021a">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first" data-screen-label="24a Ask Spendly - a conversation">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="24a">24a</span>
+    <span class="doc-section__title">Ask Spendly - a conversation</span>
+  </div>
+  <div class="doc-lede">A page for asking about your own money in plain words, opened from its sidebar row above Settings. Answers are read from the reader's orders, vendors, categories, budget and statistics; nothing can be changed from here. One conversation, kept for the visit, across the full content column, with the question field pinned under it and the reader's saved questions above the field. Clear and Email this chat sit in the page's controls bar.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Route and entry.</b> <code>/ask</code>. The sidebar row <b>Ask Spendly</b> (<code>message-circle</code>) sits below the divider, directly above Settings, on every sidebar (<a href="Navigation shell.dc.html#9a">9a</a>); on the rail it is the icon with the tooltip. <b>G then A</b> goes here, listed in the shortcuts sheet and as a Go to destination in the palette. The palette has no ask state: a question is only asked here. On a phone it is a row in More, above Settings (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>). When the server has no assistant set up, the row, the shortcut and the route are absent.</div>
+    <div class="doc-note"><b>The conversation takes the full content column</b>, the same width as the controls bar above it, as every page's content does. The thread scrolls in <code>.sp-chat__scroll</code>; the dock under it never scrolls. Opening the page, and every new message, scrolls to the latest one.</div>
+    <div class="doc-note"><b>A message is a mark and a bubble</b> (<code>.sp-chat__msg</code>), the mark outside the bubble on its first line. The reader's question is <code>--mine</code>: their own account mark, the one the sidebar's account row shows (initials on its swatch, or the profile photo as <code>sp-mark--photo</code>), at the right, with the question in a <code>--green-tint</code> bubble beside it. Spendly's answer is at the left with the Spendly mark, the sidebar brand's solid "S", in a bubble on <code>--surface</code> with the <code>--line</code> border; a table sits inside it. While an answer comes, its bubble holds the spinner. A message is at most 75% of the column wide, whatever it holds, a table included, so the two sides always read apart.</div>
+    <div class="doc-note"><b>Answers</b> are text, a short list, or a small table in <code>.sp-chat__figures</code> (the compact static table, framed). Every amount is <code>.sp-amount</code> (the Money component), in a sentence as in a cell. A named order, vendor or category is a link to its record; it opens in the same tab, and Back returns to the conversation as it was.</div>
+    <div class="doc-note"><b>The field</b> is a textarea one control high, growing to six lines and then scrolling. Enter sends, Shift Enter makes a new line, Send is disabled while the field is empty. It takes focus when the page opens. Follow-ups are sent with the earlier questions and answers of this conversation.</div>
+    <div class="doc-note"><b>Kept for the visit.</b> Leaving the page and coming back in the same visit shows the conversation as it was. A reload or signing out ends it; nothing is stored on the server.</div>
+  </div>
+  <div class="doc-screen sp-shell">
+    <nav class="sp-sidebar" aria-label="Sections">
+      <div class="sp-sidebar__brand"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><span>Spendly</span></div>
+      <a class="sp-nav-item" href="#11a" ><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Home</span></a>
+      <a class="sp-nav-item sp-nav-item--action" href="#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Scan receipt</span></a>
+      <a class="sp-nav-item" href="#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span><span>New order</span></a>
+      <div class="sp-sidebar__group">Orders</div>
+      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
+      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
+      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count">12</span></a>
+      <div class="sp-sidebar__group">Budget</div>
+      <a class="sp-nav-item" href="Budget.dc.html#21a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>This year</span></a>
+      <div class="sp-sidebar__group">Library</div>
+      <a class="sp-nav-item" href="#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Vendors</span><span class="sp-nav-item__count">42</span></a>
+      <a class="sp-nav-item" href="#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6l0 -6" /><path d="M14 4h6v6h-6l0 -6" /><path d="M4 14h6v6h-6l0 -6" /><path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></span><span>Categories</span><span class="sp-nav-item__count">9</span></a>
+      <a class="sp-nav-item" href="Bookmarks.dc.html#22a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></span><span>Bookmarks</span><span class="sp-nav-item__count">23</span></a>
+      <a class="sp-nav-item" href="#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg></span><span>Statistics</span></a>
+      <span class="sp-grow"></span>
+      <hr class="sp-sidebar__divider">
+      <a class="sp-nav-item" href="Ask Spendly.dc.html#24a" aria-current="page"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask Spendly</span></a>
+      <a class="sp-nav-item" href="#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
+      <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
+      <a class="sp-nav-item" href="#11a">
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-stack sp-grow">
+          <span class="sp-truncate">Mikkel M.</span>
+          <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
+        </span>
+        <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+      </a>
+      </nav>
+    <div class="sp-shell__page">
+      <div class="sp-topbar">
+          <div class="sp-picker__search doc-w420">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders, vendors, items">
+            <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+          </div>
+          <span class="sp-grow"></span>
+        </div>
+      <div class="sp-shell__body sp-shell__body--fill">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__scroll">
+                <div class="sp-chat__thread">
+                  <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">How much did I spend on food in August?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Saved question" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+                  <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p>You spent <span class="sp-amount">4.212,50 kr.</span> on <a href="Vendors and categories.dc.html">Food</a> in August, over 23 orders. Most of it went to three vendors:</p>
+                <div class="sp-chat__figures"><table class="sp-table sp-table--compact sp-table--static">
+                  <thead><tr><th class="sp-col-title">Vendor</th><th class="sp-col-number">Orders</th><th class="sp-col-amount">Amount</th></tr></thead>
+                  <tbody>
+                    <tr><td><a href="Vendors and categories.dc.html">Netto</a></td><td class="sp-col-number">9</td><td class="sp-col-amount"><span class="sp-amount">1.684,20 kr.</span></td></tr>
+                    <tr><td><a href="Vendors and categories.dc.html">Lidl</a></td><td class="sp-col-number">8</td><td class="sp-col-amount"><span class="sp-amount">1.426,30 kr.</span></td></tr>
+                    <tr><td><a href="Vendors and categories.dc.html">Irma</a></td><td class="sp-col-number">6</td><td class="sp-col-amount"><span class="sp-amount">1.102,00 kr.</span></td></tr>
+                  </tbody>
+                </table></div></div></div>
+                  <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">And in September?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+                  <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p>In September you spent <span class="sp-amount">3.640,00 kr.</span> on <a href="Vendors and categories.dc.html">Food</a>, <span class="sp-amount">572,50 kr.</span> less than in August. The largest was <a href="Order create.dc.html">your order at Netto on 11 Sep</a>, <span class="sp-amount">412,80 kr.</span></p></div></div>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__saved">
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I save this month?</button>
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I spend on food in August?</button>
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Am I over budget this month?</button>
+                <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Edit</button>
+              </div>
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
+                <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section" data-screen-label="24b Ask Spendly - states">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="24b">24b</span>
+    <span class="doc-section__title">The conversation's states</span>
+  </div>
+  <div class="doc-lede">The content column of 24a in each state, at a narrower width. The shell around it is unchanged.</div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">1 - Nothing asked yet</span>
+      <div class="as-frame">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__start">
+                <div class="sp-empty">
+                  <span class="sp-mark sp-mark--large sp-mark--solid" aria-hidden="true">S</span>
+                  <span class="sp-empty__title">Ask about your money</span>
+                  <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
+                </div>
+                <div class="sp-chat__examples">
+                  <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I spend on food in August?</button>
+                  <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Which shop did I use most this year?</button>
+                  <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Am I over budget on transport?</button>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
+                <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">2 - The answer coming</span>
+      <div class="as-frame">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__scroll">
+                <div class="sp-chat__thread">
+                  <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">How much did I spend on food in August?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Saved question" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+                  <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__working"><span class="sp-spinner" aria-hidden="true"></span><span>Reading your orders</span></div></div>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
+                <button type="button" class="sp-btn sp-btn--outline">Stop</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">3 - Near the day's limit</span>
+      <div class="as-frame">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__scroll">
+                <div class="sp-chat__thread">
+                  <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">Which shop did I use most this year?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+                  <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p><a href="Vendors and categories.dc.html">Netto</a>, with 41 orders this year. After it come:</p>
+                <ul><li><a href="Vendors and categories.dc.html">Lidl</a>, 33 orders</li><li><a href="Vendors and categories.dc.html">Indbo Møbler</a>, 12 orders</li></ul></div></div>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
+                <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span><span class="sp-meta--over">2 questions left today</span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">4 - No questions left today</span>
+      <div class="as-frame">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__scroll">
+                <div class="sp-chat__thread">
+                  <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">Which shop did I use most this year?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+                  <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p><a href="Vendors and categories.dc.html">Netto</a>, with 41 orders this year. After it come:</p>
+                <ul><li><a href="Vendors and categories.dc.html">Lidl</a>, 33 orders</li><li><a href="Vendors and categories.dc.html">Indbo Møbler</a>, 12 orders</li></ul></div></div>
+                  <div class="sp-alert">
+                    <span class="sp-alert__mark" aria-hidden="true">!</span>
+                    <div class="sp-alert__body">
+                      <span class="sp-alert__title">No questions left today</span>
+                      <span class="sp-alert__note">You can ask again tomorrow from 00:00. This conversation stays until you leave.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="No questions left today" aria-label="Ask Spendly" disabled="{{ true }}"></textarea>
+                <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">5 - An answer that failed</span>
+      <div class="as-frame">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__scroll">
+                <div class="sp-chat__thread">
+                  <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">Am I over budget on transport?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+                  <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p class="sp-chat__failed">Spendly could not answer that just now.</p>
+                <button type="button" class="sp-btn sp-btn--small sp-btn--outline">Try again</button></div></div>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
+                <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span><span class="sp-meta--over">2 questions left today</span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">6 - Opened with saved questions</span>
+      <div class="as-frame">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__start">
+                <div class="sp-empty">
+                  <span class="sp-mark sp-mark--large sp-mark--solid" aria-hidden="true">S</span>
+                  <span class="sp-empty__title">Ask about your money</span>
+                  <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__saved">
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I save this month?</button>
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">How much did I spend on food in August?</button>
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Am I over budget this month?</button>
+                <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Edit</button>
+              </div>
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
+                <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">7 - Editing the saved questions</span>
+      <div class="as-frame">
+            <div class="sp-controls">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Email this chat</button>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Clear</button>
+            </div>
+            <div class="sp-chat">
+              <div class="sp-chat__start">
+                <div class="sp-empty">
+                  <span class="sp-mark sp-mark--large sp-mark--solid" aria-hidden="true">S</span>
+                  <span class="sp-empty__title">Ask about your money</span>
+                  <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
+                </div>
+              </div>
+              <div class="sp-chat__dock">
+              <div class="sp-chat__saved">
+                <span class="sp-chip sp-chip--static">How much did I save this month?<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I save this month?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                <span class="sp-chip sp-chip--static">How much did I spend on food in August?<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on food in August?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                <span class="sp-chip sp-chip--static">Am I over budget this month?<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Am I over budget this month?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
+                <button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">Done</button>
+              </div>
+              <div class="sp-chat__composer">
+                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask Spendly"></textarea>
+                <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+              </div>
+              <div class="sp-chat__hint"><span>Enter sends, Shift Enter makes a new line</span><span class="sp-grow"></span></div>
+            </div>
+            </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>1 - Nothing asked yet, nothing saved</b> is the empty state (<a href="Components.dc.html#c13">c13</a>) with the three example questions under it as small outline buttons; choosing one sends it. Email this chat and Clear are disabled.</div>
+    <div class="doc-note"><b>2 - While an answer comes</b> the question shows at once, the answer's place shows the spinner and "Reading your orders", and Send becomes <b>Stop</b> in its place. Stop ends the request and leaves the question in the thread. The field stays typable; Enter does nothing until the answer is in or stopped. Email this chat is disabled until the answer is in.</div>
+    <div class="doc-note"><b>3 - The day's limit shows only near its end.</b> With 3 or fewer left, the hint line states the count in <code>sp-meta--over</code> at its right.</div>
+    <div class="doc-note"><b>4 - None left:</b> the amber alert closes the thread and states when asking opens again, from the server's reset time; the field is disabled with the placeholder "No questions left today". The conversation can still be read, emailed and cleared.</div>
+    <div class="doc-note"><b>5 - A failed answer</b> stays where it would have been, in <code>--red-ink</code>, with Try again, which sends the same question again in place. A failed answer does not count against the limit. A conversation whose last answer failed cannot be emailed until it is answered or cleared.</div>
+    <div class="doc-note"><b>6 - Saved questions.</b> Each question the reader sends carries a small bookmark button beside its bubble (<code>.sp-chat__save</code>, <code>aria-pressed</code>); pressing it saves the question as it was typed, and the bookmark fills in green. Pressing it again removes it. Saved questions are kept on the server for the account, across visits and devices, at most 8, newest last. At 8 the bookmark on an unsaved question is disabled, with the tooltip "8 saved. Remove one to save another." Saving the same wording twice is not possible: the bookmark on a question already saved shows it as saved.</div>
+    <div class="doc-note"><b>The saved row</b> (<code>.sp-chat__saved</code>) sits above the field whenever something is saved, on the empty page and in a conversation alike: one small outline button per saved question, the same button the examples use, and Edit. Choosing one sends it at once, as an example does. Once anything is saved, the empty page shows no examples: the saved row takes their place. On a phone the row is one line that scrolls sideways.</div>
+    <div class="doc-note"><b>7 - Edit</b> turns the saved questions into removable chips (<a href="Components.dc.html#c6">c6</a>, the static chip with its remove button) and Edit into Done. Removing one takes effect at once, with no undo and no confirm: it is one line the reader can save again from any question. There is no reorder and no rename; the wording is the question. Done, Esc, or sending a question ends editing.</div>
+  </div>
+</section>
+
+<section class="doc-section" data-screen-label="24c Ask Spendly - Clear and Email this chat">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="24c">24c</span>
+    <span class="doc-section__title">Clear, and Email this chat</span>
+  </div>
+  <div class="doc-lede">Both act at once, with no dialog. Clear can be undone from its toast; the email goes only to the account's own address, and is drawn in <a href="Auth and first run.dc.html#20f">20f</a>.</div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Email this chat - sending</span>
+      <div class="sp-controls as-bar">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}"><span class="sp-spinner" aria-hidden="true"></span>Sending</button>
+              <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+            </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Email this chat - sent, until the next answer</span>
+      <div class="sp-controls as-bar">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline" disabled="{{ true }}">Emailed</button>
+              <button type="button" class="sp-btn sp-btn--outline">Clear</button>
+            </div>
+    </div>
+  </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Sent</span>
+      <div class="sp-toast as-toast">
+        <span class="sp-toast__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></span>
+        <span>Sent to <b class="sp-break">mikkel@example.net</b></span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Refused - sent too recently</span>
+      <div class="sp-toast as-toast">
+        <span class="sp-toast__icon" data-color="danger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg></span>
+        <span>Wait a minute before emailing this chat again.</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Cleared, with the way back</span>
+      <div class="sp-toast as-toast">
+        <span class="sp-toast__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></span>
+        <span>Conversation cleared</span>
+        <button type="button" class="sp-toast__undo">Undo</button>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Clear</b> empties the conversation at once and returns the page to state 1, with the toast "Conversation cleared" and Undo for the toast's usual time (<a href="Components.dc.html#c18">c18</a>). Undo puts every message back as it was. It is disabled while nothing has been asked, and while an answer is coming. A cleared conversation is not sent anywhere.</div>
+    <div class="doc-note"><b>Email this chat</b> sends the whole conversation to the account's own address, with one press and no dialog, and the toast names the address. It is disabled while nothing has been answered, while an answer is coming, and when the last answer failed.</div>
+    <div class="doc-note"><b>It cannot be pressed again and again.</b> While the send is in flight the button is disabled and reads "Sending" with the spinner. Once sent it reads <b>Emailed</b> and stays disabled until the conversation changes: a new answer, Clear, or Undo. The server also takes at most one conversation email per account per minute; a send it refuses shows the problem toast "Wait a minute before emailing this chat again." and the button returns to Email this chat.</div>
+    <div class="doc-note"><b>On a phone</b> both sit in the top bar's menu (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>), with the same states: Email this chat is disabled while sending and reads Emailed after.</div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

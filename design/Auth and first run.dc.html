@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261021m">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
@@ -632,6 +632,11 @@
       </div>
       <div class="sp-meta au-w400">After 60 days. Open Settings goes to Account and profile (11a) through sign-in.</div>
     </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">11 - ASK SPENDLY, A CONVERSATION</div>
+      <iframe class="au-email" title="An Ask Spendly conversation" srcDoc="{{ chatDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Your Ask Spendly conversation, 21 Oct 2026. Sent only to the account's own address, when Email this chat is pressed on Ask Spendly (24c).</div>
+    </div>
   </div>
 </section>
 
@@ -941,6 +946,9 @@ class Component extends DCLogic {
       const d = JSON.parse(j);
       this.setState({ monthly: merge(s, d.monthly), weekly: merge(s, d.weekly), quiet: merge(q, d.quiet) });
     });
+    Promise.all(['emails/ask-chat.html', 'emails/ask-chat-sample.json'].map(u => fetch(u).then(r => r.text()))).then(([s, j]) => {
+      this.setState({ chat: merge(s, JSON.parse(j)) });
+    });
   }
   size(el) {
     const go = () => { const d = el.contentDocument; const h = d && d.documentElement ? d.documentElement.scrollHeight : 0; if (h > 0) el.style.height = h + 'px'; };
@@ -956,7 +964,7 @@ class Component extends DCLogic {
   renderVals() {
     return {
       confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added,
-      monthlyDoc: this.state.monthly, weeklyDoc: this.state.weekly, quietDoc: this.state.quiet
+      monthlyDoc: this.state.monthly, weeklyDoc: this.state.weekly, quietDoc: this.state.quiet, chatDoc: this.state.chat
     };
   }
   applyView() {

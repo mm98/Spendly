@@ -721,10 +721,16 @@
         fail('a button beside an input matches its height', p, 'small button in a row with an sp-input');
     }
 
-    // the sidebar's foot is the divider, then Settings, Dark mode and the account (9a),
-    // in the rail too: the divider sits above Settings, never between Settings and Dark mode
+    // the sidebar's foot is the divider, then Ask Spendly, Settings, Dark mode and the
+    // account (9a, 24a), in the rail too: the divider sits directly above Ask Spendly, and
+    // Ask Spendly directly above Settings - never anything between them, and never
+    // Settings without Ask Spendly above it
     for (const m of s.matchAll(/(<[^>]*>)\s*<a class="sp-nav-item"(?:(?!<\/a>)[\s\S])*?(?:<span>Settings<\/span>|aria-label="Settings")/g)) {
-      if (!/^<hr class="sp-sidebar__divider"/.test(m[1])) fail('the sidebar divider sits above Settings', p, 'Settings follows ' + m[1].slice(0, 40));
+      const before = s.slice(0, m.index + m[1].length);
+      const ask = before.lastIndexOf('<a class="sp-nav-item"');
+      const askA = before.slice(ask);
+      if (!/^<\/a>$/.test(m[1]) || !/Ask Spendly/.test(askA)) { fail('the sidebar foot is the divider, Ask Spendly, Settings', p, 'Settings follows ' + m[1].slice(0, 40)); continue; }
+      if (!/<hr class="sp-sidebar__divider">\s*$/.test(s.slice(0, m.index + m[1].length - askA.length))) fail('the sidebar foot is the divider, Ask Spendly, Settings', p, 'Ask Spendly does not follow the divider');
     }
 
     // the Views card in edit mode is the at-rest list with two slots swapped (Order list 2g):
