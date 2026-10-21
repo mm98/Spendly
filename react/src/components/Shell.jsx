@@ -7,8 +7,8 @@ import { Icon } from './Icon.jsx'
 import { Mark, initialsOf } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
 import { SearchInput } from './Inputs.jsx'
-import { Kbd } from './Utilities.jsx'
-import { Button } from './Button.jsx'
+import { Kbd, Spinner } from './Utilities.jsx'
+import { Button, IconButton } from './Button.jsx'
 
 /** Whether the page sits in the touch shell: what a part that changes its form on touch reads. */
 export const ShellTouch = createContext(false)
@@ -352,12 +352,13 @@ function marked(text, match) {
 
 /** One record or one action, led by `icon` or `thumb` (a picture's address, or true for the empty box).
     `match` is marked in the name; an amount (`value`), a `note` or `kbd` end it, and a phone drops them (7b). */
-export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, note, kbd, selected = false, children, ...rest }) {
+export function PaletteRow({ icon, thumb = false, brand = false, plain = false, action = false, match, meta, value, note, kbd, selected = false, children, ...rest }) {
 	reject(rest, 'PaletteRow')
 	const screen = useContext(PaletteScreen)
 	const trail = !screen && (value != null || note || kbd)
 	let lead = null
 	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true" />
+	else if (brand) lead = <SpendlyMark />
 	else if (icon) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
 	return (
 		<button type="button" className="sp-palette__row" role="option" aria-selected={selected ? 'true' : 'false'} tabIndex={-1} {...rest}>
@@ -371,6 +372,80 @@ export function PaletteRow({ icon, thumb = false, plain = false, action = false,
 			{trail && kbd ? <Kbd>{kbd}</Kbd> : null}
 		</button>
 	)
+}
+
+/* ---------- command palette, asking (9d, c24 variant) ---------- */
+
+// the sidebar brand's mark: what speaks for Spendly in a row that asks and beside each answer
+const SpendlyMark = () => <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
+
+/** The palette holding a conversation: Back, the question field, Send or Stop while `working`, and the
+    foot with `keys` (none on a phone), `left` and New conversation. `listbox` while it holds examples. */
+export function PaletteAsk({ screen = false, value, onChange, onBack, onSend, onStop, onClear, working = false, disabled = false, inputRef, placeholder, keys, left, listbox = false, activeId, children, ...rest }) {
+	reject(rest, 'PaletteAsk')
+	const body = useId()
+	return (
+		<PaletteScreen.Provider value={screen}>
+			<div className={join('sp-palette', screen && 'sp-palette--screen', 'sp-palette--ask')} role="dialog" aria-modal="true" aria-label="Ask about your money" {...rest}>
+				<div className="sp-palette__search">
+					<IconButton icon={<Icon name="chevron-left" size={screen ? 18 : 16} />} aria-label="Back to search" onClick={onBack} />
+					<textarea ref={inputRef} className="sp-palette__term" rows={1} value={value} disabled={disabled}
+						onChange={ev => onChange?.(ev.target.value)} placeholder={placeholder} aria-label="Ask about your money"
+						aria-controls={body} {...(listbox && activeId ? { 'aria-activedescendant': activeId } : {})} />
+					{working
+						? <Button variant="outline" size="small" onClick={onStop}>Stop</Button>
+						: <Button size="small" disabled={disabled || !value.trim()} onClick={onSend}>Send</Button>}
+				</div>
+				<div className="sp-palette__body" id={body} {...(listbox ? { role: 'listbox', 'aria-label': 'Example questions' } : { role: 'log', 'aria-label': 'Conversation' })}>{children}</div>
+				<div className="sp-palette__foot">
+					{!screen ? keys?.map(key => <span key={key}>{key}</span>) : null}
+					<span className="sp-grow" />
+					{left ? <span className="sp-meta--over">{left}</span> : null}
+					<Button variant="text" size="xsmall" onClick={onClear}>New conversation</Button>
+				</div>
+			</div>
+		</PaletteScreen.Provider>
+	)
+}
+
+/** The questions and answers of one conversation, oldest first. */
+export function PaletteThread({ children, ...rest }) {
+	reject(rest, 'PaletteThread')
+	return <div className="sp-palette__thread" {...rest}>{children}</div>
+}
+
+/** One question, as the reader asked it. */
+export function PaletteQuestion({ children, ...rest }) {
+	reject(rest, 'PaletteQuestion')
+	return <div className="sp-palette__question" {...rest}>{children}</div>
+}
+
+const ANSWER_STATE = { answered: true, working: true, failed: true }
+
+/** One answer beside the Spendly mark: `working` while it comes, `failed` with Try again, or the reply. */
+export function PaletteAnswer({ state = 'answered', onRetry, children, ...rest }) {
+	reject(rest, 'PaletteAnswer')
+	pick(ANSWER_STATE, state, 'state', 'PaletteAnswer')
+	return (
+		<div className="sp-record__head" {...rest}>
+			<SpendlyMark />
+			{state === 'working'
+				? <div className="sp-palette__working"><Spinner /><span>Reading your orders</span></div>
+				: (
+					<div className="sp-palette__reply">
+						{state === 'failed'
+							? <><p className="sp-palette__failed">Spendly could not answer that just now.</p><Button variant="outline" size="small" onClick={onRetry}>Try again</Button></>
+							: children}
+					</div>
+				)}
+		</div>
+	)
+}
+
+/** A small table of figures inside an answer, framed as a block. */
+export function PaletteFigures({ children, ...rest }) {
+	reject(rest, 'PaletteFigures')
+	return <div className="sp-palette__figures" {...rest}>{children}</div>
 }
 
 /** The way from a group to the rest of its records, in their own list. */

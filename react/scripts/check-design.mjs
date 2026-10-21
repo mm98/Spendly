@@ -637,7 +637,7 @@ for (const [p, ast] of parsed) {
 	})
 	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
 	// the design draws the card grid as a variant of .sp-list, and a token field that suggests inside .sp-combobox
-	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox' }
+	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox', PaletteAnswer: 'sp-record__head' }
 	const roots = {}
 	for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n)
 	for (const [cls, names] of Object.entries(roots))

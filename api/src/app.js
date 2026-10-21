@@ -21,6 +21,7 @@ import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
 import { router as mcpRouter } from './routes/mcp.js'
 import { router as mcpTokensRouter } from './routes/mcpTokens.js'
+import { router as assistantRouter } from './routes/assistant.js'
 import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
@@ -258,6 +259,7 @@ app.use('/api/stats', statsRouter)
 app.use('/api/scan', scanRouter)
 app.use('/api/drafts', draftsRouter)
 app.use('/api/search', searchRouter)
+app.use('/api/assistant', assistantRouter)
 
 /* An email's link to a page: /open/categories opens /#/categories. A link in an email carries no '#',
    as a mail program or its link checker can drop everything after one. */

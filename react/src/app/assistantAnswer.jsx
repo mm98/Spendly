@@ -1,0 +1,79 @@
+import { Fragment } from 'react'
+import { PaletteFigures } from '../components/Shell.jsx'
+import { currency } from '../api/format.js'
+
+/* An answer from the assistant, in the small format lib/assistant.js asks for: paragraphs, "- "
+   lists, "|" tables, [text](order:ID) links and {{number}} amounts. Anything else shows as text. */
+
+const RECORD = { order: id => `/orders/${id}`, vendor: id => `/vendors/${id}/edit`, category: id => `/categories/${id}/edit` }
+const INLINE = /\[([^\]\n]+)\]\((order|vendor|category):([\w-]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
+const AMOUNT_ONLY = /^\{\{-?\d+(?:\.\d+)?\}\}$/
+const NUMBER_ONLY = /^-?[\d.,\s]+$/
+
+function inline(text, onOpen) {
+	const parts = []
+	let at = 0
+	for (const m of text.matchAll(INLINE)) {
+		if (m.index > at) parts.push(text.slice(at, m.index))
+		if (m[4] !== undefined) parts.push(<span key={m.index} className="sp-amount">{currency(Number(m[4]))}</span>)
+		else {
+			const to = RECORD[m[2]](encodeURIComponent(m[3]))
+			parts.push(<a key={m.index} href={'#' + to} onClick={ev => { ev.preventDefault(); onOpen(to) }}>{m[1]}</a>)
+		}
+		at = m.index + m[0].length
+	}
+	if (at < text.length) parts.push(text.slice(at))
+	return parts
+}
+
+const cellsOf = line => line.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim())
+
+// a column of amounts or counts lines up on the right, as the compact table draws them (c1)
+function columnClass(rows, i) {
+	if (i === 0) return 'sp-col-title'
+	const cells = rows.map(r => r[i] ?? '').filter(Boolean)
+	if (cells.length && cells.every(c => AMOUNT_ONLY.test(c))) return 'sp-col-amount'
+	if (cells.length && cells.every(c => NUMBER_ONLY.test(c))) return 'sp-col-number'
+	return undefined
+}
+
+function table(lines, key, onOpen) {
+	const [head, ...rows] = lines.map(cellsOf).filter(r => !r.every(c => /^:?-+:?$/.test(c)))
+	const classes = head.map((_, i) => columnClass(rows, i))
+	return (
+		<PaletteFigures key={key}>
+			<table className="sp-table sp-table--compact sp-table--static">
+				<thead><tr>{head.map((c, i) => <th key={i} className={classes[i]}>{inline(c, onOpen)}</th>)}</tr></thead>
+				<tbody>
+					{rows.map((r, ri) => <tr key={ri}>{head.map((_, i) => <td key={i} className={classes[i]}>{inline(r[i] ?? '', onOpen)}</td>)}</tr>)}
+				</tbody>
+			</table>
+		</PaletteFigures>
+	)
+}
+
+/** The answer's blocks, each link opening its record through `onOpen(to)`. */
+export function AnswerText({ text, onOpen }) {
+	const blocks = []
+	for (const [bi, chunk] of text.split(/\n\s*\n/).entries()) {
+		const lines = chunk.split('\n').map(l => l.trimEnd()).filter(l => l.trim())
+		// a chunk can hold a sentence, then its list or its table, one after the other
+		let run = []
+		let kind = null
+		const flush = () => {
+			if (!run.length) return
+			const key = `${bi}-${blocks.length}`
+			if (kind === 'list') blocks.push(<ul key={key}>{run.map((l, i) => <li key={i}>{inline(l.replace(/^\s*[-*]\s+/, ''), onOpen)}</li>)}</ul>)
+			else if (kind === 'table') blocks.push(table(run, key, onOpen))
+			else blocks.push(<p key={key}>{run.map((l, i) => <Fragment key={i}>{i ? <br /> : null}{inline(l, onOpen)}</Fragment>)}</p>)
+			run = []
+		}
+		for (const line of lines) {
+			const next = /^\s*\|.*\|\s*$/.test(line) ? 'table' : /^\s*[-*]\s+/.test(line) ? 'list' : 'text'
+			if (next !== kind) { flush(); kind = next }
+			run.push(line)
+		}
+		flush()
+	}
+	return blocks
+}

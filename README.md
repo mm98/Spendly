@@ -103,7 +103,8 @@ Everything that needs you, on one page.
 
 - **One search for everything** - press Ctrl K (⌘ K on a Mac) or just start typing. It finds
   orders, vendors and items, offers "New order for ..." and "See ... in Statistics", lists what you
-  opened last, and runs actions like scan, import or dark mode.
+  opened last, runs actions like scan, import or dark mode, and asks about your money (see
+  [AI assistants](#ai-assistants)).
 - **Keyboard shortcuts** - S scans, N starts a new order, G then O, T, V, C or S goes to Orders,
   Statistics, Vendors, Categories or Settings, and ? shows them all.
 - **Paste a picture anywhere** and it goes where the page takes one.
@@ -206,6 +207,17 @@ Everything that needs you, on one page.
 
 ### AI assistants
 
+- **Ask about your money** in the search. Type a question and choose **Ask about your money**, or
+  choose it with nothing typed and pick one of three examples. Spendly answers in the same window,
+  with amounts, short lists, small tables and links to the orders, vendors and categories it names.
+  A follow-up question uses the earlier ones. The conversation stays while the app is open; **New
+  conversation** starts again. **Stop** ends an answer that is coming, and a failed answer can be
+  tried again.
+- **It reads like the assistant programs below**, with the same tools, as the person signed in. It
+  cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
+- **Each account has 25 questions a day** (`SPENDLY_ASSISTANT_QUESTIONS_PER_DAY`), counted on the
+  person's own calendar day. The count shows when 3 or fewer are left. A failed or stopped answer is
+  not counted. One question is answered at a time.
 - **An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can read your account
   through the address `/mcp` on your Spendly server.
 - **It only reads.** It can find orders and open one, list categories and shops with what was
@@ -242,7 +254,8 @@ folder and you have backed up Spendly.
 
 | Setting | Turns on | Without it |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Reading receipts, and the light-bulb button that suggests categories (it can propose a new one) | The receipt is attached and you type the details yourself. |
+| `ANTHROPIC_API_KEY` | Reading receipts, the light-bulb button that suggests categories (it can propose a new one), and Ask about your money | The receipt is attached and you type the details yourself. The search has no Ask. |
+| `SPENDLY_ASSISTANT_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask about your money off | 25. |
 | `SPENDLY_SMTP_*` and `SPENDLY_PUBLIC_URL` | Email confirmation, password reset, the status email | New accounts are confirmed at once, and email features are hidden. |
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
 | `SPENDLY_UPDATER_URL` and `SPENDLY_UPDATER_TOKEN` | "Update and reload" in Settings, for the person who manages the server | Settings can only check for a newer version. |

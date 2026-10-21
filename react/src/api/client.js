@@ -251,6 +251,20 @@ export async function removeMcpToken(id, signal) {
 	invalidate(getMcpTokens)
 }
 
+/* ---- the assistant in the palette (9d): whether it is there, the questions left today, one question answered ---- */
+export async function getAssistant(signal) {
+	return request('/api/assistant', { signal })
+}
+
+/** `turns` is the conversation so far, oldest first, ending with the question: { role, text }. */
+export async function askAssistant(turns, signal) {
+	try {
+		return await request('/api/assistant/ask', { method: 'POST', body: { turns }, signal })
+	} finally {
+		invalidate(getAssistant)
+	}
+}
+
 /* The page still on screen is leaving: its readers are not asked again, since every answer
    now would be a refusal. */
 export async function logout(signal) {

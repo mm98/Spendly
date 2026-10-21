@@ -62,7 +62,7 @@ export function createSession(req, res, userId, { remember = true } = {}) {
 /** The one place a session token is read from a request: an explicit Authorization header
     wins, the browser's cookie is the default. Both carry the same server-side session id, so
     everything below them -- lookup, expiry, logout -- is identical for either. */
-function sessionToken(req) {
+export function sessionToken(req) {
 	const bearer = req.headers.authorization
 	if (bearer?.startsWith('Bearer ')) return bearer.slice(7).trim()
 	return readCookie(req, SESSION_COOKIE)
