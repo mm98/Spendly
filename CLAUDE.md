@@ -248,9 +248,9 @@ does.
 ### No page scrolls as a whole by accident
 
 `npm run scroll:check` (in `react/`) opens every page on a phone and at desktop sizes up to 4K and
-fails when a page scrolls sideways, or when a full-height page like Ask scrolls at all. It runs in CI
-on every merge and in the pass before a pull request. A new route is added to its page list, or the
-check fails and names it.
+fails when a page scrolls sideways, or when a full-height page like Ask scrolls at all. It runs in
+the pass before a pull request that changes what a page draws, never in CI. A new route is added to
+its page list, or the check fails and names it.
 
 ### Never assume or guess. Always validate first.
 
