@@ -32,7 +32,7 @@
     <span class="doc-badge" id="11a">11a</span>
     <span class="doc-section__title">Settings</span>
   </div>
-  <div class="doc-lede">Eleven panes, one per thing that changes how the rest of the app behaves. A second navigation inside the page lists them, and the pane itself is one column of cards at a reading width - not the list-and-rail split the record screens use, because nothing here is being looked up against anything. Nothing saves by itself: each card has its own save, and only the card you touched goes dirty.</div>
+  <div class="doc-lede">Twelve panes, one per thing that changes how the rest of the app behaves. A second navigation inside the page lists them, and the pane itself is one column of cards at a reading width - not the list-and-rail split the record screens use, because nothing here is being looked up against anything. Nothing saves by itself: each card has its own save, and only the card you touched goes dirty.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>A very long status name ends in an ellipsis in this list</b> (<code>.sp-pill--truncate</code>), so its row keeps its height; the full name is in the edit field. This is the one place a pill truncates.</div>
@@ -42,6 +42,7 @@
     <div class="doc-note"><b>Send a test email</b> sends the email for the period just ended to the account's address, now, with the account's real figures, in the frequency selected; on None it sends the weekly one. The subject starts "Test:". While it sends the button reads Sending... with the spinner and is disabled, as Check for updates does (<a href="#11d">11d</a>); then a toast says "Test sent to mikkel@example.net". On failure the toast is the danger toast: "The test could not be sent. Try again." The button is not rate-limited in the drawing; the server allows one test a minute.</div>
     <div class="doc-note"><b>Limit alerts</b> is its own pane, between Lists and Statuses: the in-app switches and "Tell me early, at" (<a href="Duplicate and alerts.dc.html#8b">8b</a>).</div>
     <div class="doc-note"><b>Needs a look</b> is its own pane, after Limit alerts: one switch per row Home's Needs a look card can show (<a href="Home.dc.html#10a">10a</a>), in the order Home ranks them. Off removes that row from Home and from the phone's Home; the cap of three applies to what is left, and with every switch off the card is absent. Orders without a receipt is off by default, since most orders have none. It saves with the card's own save, like every card here.</div>
+    <div class="doc-note"><b>AI assistants</b> is its own pane, after Statuses: the tokens an assistant program reads this account with. Its card is drawn here at rest with two tokens; every other state is in <a href="#11e">11e</a>.</div>
     <div class="doc-note"><b>Compare this month with</b> sits in Appearance and offers Last month (the default) and Same month last year. It sets what Home's month card (<a href="Home.dc.html#10a">10a</a>), the phone's Home and the monthly summary (<a href="Duplicate and alerts.dc.html#8b">8b</a>) measure against. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
     <div class="doc-note"><b>The profile photo is a FileDrop</b>: drop an image on the round mark, or use Upload a photo. With no photo the mark is the initials on <code>--green-3</code>, round, as in the sidebar.</div>
@@ -107,6 +108,7 @@
         <button type="button" class="sp-menu__item"><span>Limit alerts</span></button>
         <button type="button" class="sp-menu__item"><span>Needs a look</span></button>
         <button type="button" class="sp-menu__item"><span>Statuses</span></button>
+        <button type="button" class="sp-menu__item"><span>AI assistants</span></button>
         <div class="sp-menu__sep sp-menu__sep--divider"></div>
         <button type="button" class="sp-menu__item"><span>Import</span></button>
         <button type="button" class="sp-menu__item"><span>Demo data</span></button>
@@ -488,6 +490,28 @@
         
 
         
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">AI ASSISTANTS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>New token</button></div>
+          <span class="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
+          <div class="sp-row-flex sp-gap-12 st-pk-row">
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">Claude on my laptop</span>
+              <span class="sp-meta">Made 14 Oct 2026 · last used today</span>
+            </div>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+          </div>
+          <span class="sp-rule"></span>
+          <div class="sp-row-flex sp-gap-12 st-pk-row">
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">Cursor at work</span>
+              <span class="sp-meta">Made 2 Sep 2026 · never used</span>
+            </div>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+          </div>
+        </div>
 
         <div class="sp-card">
           <div class="sp-card__head"><span class="sp-section-label">DEMO DATA</span></div>
@@ -1285,6 +1309,258 @@
             <div class="doc-note"><b>Amber informs, it does not block.</b> An available update is a fact, not a warning: nothing about the app stops working, and the user may keep the version they have.</div>
           </div>
         </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="11e">11e</span>
+    <span class="doc-section__title">AI assistants - every state</span>
+  </div>
+  <div class="doc-lede">The AI assistants pane, the one after Statuses in the Settings nav. One card: the tokens this account has made, a way to make one, and the one time a new token is shown.</div>
+  <div class="sp-stack sp-gap-12">
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">1 - NO TOKENS YET</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">AI ASSISTANTS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>New token</button></div>
+            <span class="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">2 - NAMING A NEW TOKEN</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">AI ASSISTANTS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>New token</button></div>
+            <span class="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
+            <div class="sp-field">
+              <div class="sp-row-flex sp-gap-12 st-pk-row">
+                <input class="sp-input sp-grow" id="st-ai-n1" type="text" maxLength="80" placeholder="Claude on my laptop" aria-label="Token name">
+                <div class="sp-row-flex sp-gap-8 sp-flex-none">
+                  <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+                  <button type="button" class="sp-btn">Create</button>
+                </div>
+              </div>
+            </div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Claude on my laptop</span>
+                <span class="sp-meta">Made 14 Oct 2026 · last used today</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Cursor at work</span>
+                <span class="sp-meta">Made 2 Sep 2026 · never used</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">3 - CREATE WITH NO NAME</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">AI ASSISTANTS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>New token</button></div>
+            <span class="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
+            <div class="sp-field">
+              <div class="sp-row-flex sp-gap-12 st-pk-row">
+                <input class="sp-input sp-grow" id="st-ai-n2" type="text" maxLength="80" placeholder="Claude on my laptop" aria-label="Token name" aria-invalid="true" aria-describedby="st-ai-n2-help">
+                <div class="sp-row-flex sp-gap-8 sp-flex-none">
+                  <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+                  <button type="button" class="sp-btn">Create</button>
+                </div>
+              </div>
+              <span class="sp-field__help" data-color="danger" id="st-ai-n2-help">Give the token a name.</span>
+            </div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Claude on my laptop</span>
+                <span class="sp-meta">Made 14 Oct 2026 · last used today</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Cursor at work</span>
+                <span class="sp-meta">Made 2 Sep 2026 · never used</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">5 - TOKENS</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">AI ASSISTANTS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>New token</button></div>
+            <span class="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Claude on my laptop</span>
+                <span class="sp-meta">Made 14 Oct 2026 · last used today</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Cursor at work</span>
+                <span class="sp-meta">Made 2 Sep 2026 · never used</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">6 - AT 20 TOKENS</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">AI ASSISTANTS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>New token</button></div>
+            <span class="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
+            <span class="sp-meta">20 of 20 tokens. Remove one to make another.</span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Claude on my laptop</span>
+                <span class="sp-meta">Made 14 Oct 2026 · last used today</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Cursor at work</span>
+                <span class="sp-meta">Made 2 Sep 2026 · never used</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">7 - REMOVE</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Remove Claude on my laptop?</span>
+            <span class="sp-dialog__body">An assistant using this token stops reading Spendly at once. This can't be undone.</span>
+            <div class="sp-dialog__actions">
+              <button type="button" class="sp-btn sp-btn--outline sp-grow">Keep the token</button>
+              <button type="button" class="sp-btn sp-grow" data-color="danger">Remove token</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">SET UP IN - THE OTHER THREE</span>
+          <div class="sp-card">
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-field__label">Claude</span>
+              <span class="sp-meta">In Claude, on the web or the desktop app, open Settings, Connectors, Add custom connector, and paste this address:</span>
+              <div class="sp-well sp-well--snippet"><span class="sp-data">https://spendly.example.net/mcp/spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN</span><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the setup for Claude"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button></div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-field__label">Cursor</span>
+              <span class="sp-meta">Add this to ~/.cursor/mcp.json:</span>
+              <div class="sp-well sp-well--snippet"><span class="sp-data">{
+  "mcpServers": {
+    "spendly": {
+      "url": "https://spendly.example.net/mcp",
+      "headers": { "Authorization": "Bearer spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN" }
+    }
+  }
+}</span><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the setup for Cursor"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button></div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-field__label">ChatGPT</span>
+              <span class="sp-meta">In ChatGPT, open Settings, Connectors, Create, and paste this address:</span>
+              <div class="sp-well sp-well--snippet"><span class="sp-data">https://spendly.example.net/mcp/spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN</span><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the setup for ChatGPT"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button></div>
+            </div>
+          </div>
+        </div>
+    </div>
+        <div class="sp-stack sp-gap-8 st-w560">
+          <span class="sp-section-label">4 - JUST MADE, SHOWN ONCE</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">AI ASSISTANTS</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>New token</button></div>
+            <span class="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
+            <span class="sp-title">Claude on my laptop</span>
+              <div class="sp-well" data-color="warning">
+                <span class="sp-title sp-ink-warning">Copy the token now. It won't be shown again.</span>
+                <span class="sp-meta sp-ink-warning">If you lose it, remove it and make a new one.</span>
+              </div>
+              <div class="sp-field">
+              <label class="sp-field__label" id="st-ai-r-t-label" for="st-ai-r-t">Token</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input sp-input--readonly sp-input--trail" id="st-ai-r-t" type="text" readOnly="{{ true }}" defaultValue="spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN">
+                <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the token"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
+              </span>
+            </div>
+              <div class="sp-field">
+              <label class="sp-field__label" id="st-ai-r-a-label" for="st-ai-r-a">Address</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input sp-input--readonly sp-input--trail" id="st-ai-r-a" type="text" readOnly="{{ true }}" defaultValue="https://spendly.example.net/mcp" aria-describedby="st-ai-r-a-help">
+                <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the address"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
+              </span>
+              <span class="sp-field__help" id="st-ai-r-a-help">Send the token with it, as the header Authorization: Bearer and the token.</span>
+            </div>
+              <div class="sp-field">
+              <label class="sp-field__label" id="st-ai-r-u-label" for="st-ai-r-u">Address with the token in it</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input sp-input--readonly sp-input--trail" id="st-ai-r-u" type="text" readOnly="{{ true }}" defaultValue="https://spendly.example.net/mcp/spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN" aria-describedby="st-ai-r-u-help">
+                <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the address with the token in it"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
+              </span>
+              <span class="sp-field__help" id="st-ai-r-u-help">For a program that takes only an address.</span>
+            </div>
+              <span class="sp-field__label" id="st-ai-r-seg-label">Set up in</span>
+              <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-labelledby="st-ai-r-seg-label">
+                <label class="sp-segmented__item" data-label="Claude"><input type="radio" name="st-ai-r-seg"><span class="sp-label">Claude</span></label>
+                <label class="sp-segmented__item" data-label="Claude Code"><input type="radio" name="st-ai-r-seg" defaultChecked="{{ true }}"><span class="sp-label">Claude Code</span></label>
+                <label class="sp-segmented__item" data-label="Cursor"><input type="radio" name="st-ai-r-seg"><span class="sp-label">Cursor</span></label>
+                <label class="sp-segmented__item" data-label="ChatGPT"><input type="radio" name="st-ai-r-seg"><span class="sp-label">ChatGPT</span></label>
+              </div>
+              <span class="sp-meta">Run this in a terminal:</span>
+              <div class="sp-well sp-well--snippet"><span class="sp-data">claude mcp add --transport http spendly https://spendly.example.net/mcp --header "Authorization: Bearer spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN"</span><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the setup for Claude Code"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button></div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Claude on my laptop</span>
+                <span class="sp-meta">Made 14 Oct 2026 · last used today</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+            <span class="sp-rule"></span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">Cursor at work</span>
+                <span class="sp-meta">Made 2 Sep 2026 · never used</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Remove</button>
+            </div>
+            <div class="sp-card__footer sp-card__footer--commits">
+              <button type="button" class="sp-btn sp-btn--block">Done</button>
+            </div>
+          </div>
+        </div>
+    <div class="doc-notes">
+      <span class="doc-notes__label">Notes for implementation</span>
+      <div class="doc-note"><b>One card, the Passkeys family.</b> The head, the line and the rows are the Passkeys card's (<a href="#11a">11a</a>): a row is the passkey row at rest (<code>.st-pk-row</code>, 42px), name over its date line, Remove on the right. The date line reads "Made 14 Oct 2026 · last used today", or "never used" in place of the last use. Newest first. There is no rename.</div>
+      <div class="doc-note"><b>No tokens yet</b> is the card with its line and New token, as Passkeys is with none.</div>
+      <div class="doc-note"><b>New token</b> opens the naming row at the top of the list, the passkey rename row's shape: the name field, Cancel and Create. The field takes focus; Enter creates and Escape cancels. The name is required, at most 80 characters (the field stops there). Create with an empty name keeps the row open and shows "Give the token a name." under it (state 3). While the naming row or the new token is open, New token is disabled.</div>
+      <div class="doc-note"><b>The new token is shown once, in the card</b>, where the naming row was, and stays until Done. It holds the token and both forms of the address: <code>https://&lt;server&gt;/mcp</code> with the token sent as <code>Authorization: Bearer &lt;token&gt;</code>, and <code>https://&lt;server&gt;/mcp/&lt;token&gt;</code> for a program that takes only an address. &lt;server&gt; is the address this Spendly is opened on. Each value is a read-only field with its copy button; a long value is cut at the field's edge and the button copies all of it. Copying swaps the button's icon for a check for 2 seconds and shows the toast "Copied."</div>
+      <div class="doc-note"><b>Set up in</b> is the Segmented in its fill variant (<a href="Components.dc.html#c5">c5</a>): Claude (the web and desktop app), Claude Code, Cursor, ChatGPT, Claude Code first. Each choice shows its one line and its setup text with the token filled in, in the snippet well (<code>.sp-well--snippet</code>, <a href="Components.dc.html#c26">c26</a>), which keeps the text's line breaks and copies as written. The other three are drawn beside state 7. State 4 is drawn at the pane's width, where the four labels fit.</div>
+      <div class="doc-note"><b>Done, or leaving the pane, ends the one showing.</b> The card returns to state 5 with the new row at the top. Leaving the pane or reloading while it is open loses the token for good; the warning says so and there is no second chance, so there is no leave-confirm either.</div>
+      <div class="doc-note"><b>At 20 tokens</b> New token is disabled and the line "20 of 20 tokens. Remove one to make another." sits under the card's line. The drawing shows two of the twenty rows.</div>
+      <div class="doc-note"><b>Remove asks first</b> with the confirm dialog (state 7), since the program using the token stops at once. There is no undo. After it, the row is gone and the toast says "Token removed."</div>
+      <div class="doc-note"><b>On a phone</b> the pane is its own page, opened from the AI assistants row in Settings, which shows the count (<a href="Mobile screens.dc.html#7a">7a</a>). The card's contents are the same, at the phone's width, except that the new token shows without Set up in: the four labels do not fit a phone, and the programs it sets up run on a computer. The token and both addresses are there to copy. Remove asks with the same dialog.</div>
+    </div>
+  </div>
 </section>
 
 </div>

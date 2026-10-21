@@ -1,41 +1,70 @@
-# A saved view's count can be highlighted
+# Assistant tokens: a Settings section for MCP access
 
-## Fixed from `design_handoff_view_highlight`
+## Fixed from design_handoff_assistant_tokens_fixed
 
-A highlighted view whose count is 0 showed the 0 in the warning ink, a warning about nothing. The warning ink now applies only while the count is above 0; at 0 the count is plain, as Needs a look hides a row with nothing in it and a saving of 0 stays grey. The flag stays on the view, so the ink returns when an order lands in it. Drawn as notes in Order list 2g and Navigation shell 9e. App: `react/src/app/views.jsx` sets `countColor="warning"` only when `view.attention` is on and `view.count > 0`. Highlight count is still offered in the menu at any count. No style changed.
+- **The card is in the Settings screen, 11a.** 11a draws every pane's card in one column. The AI assistants card, at rest with two tokens, now sits there after Statuses, like the other panes. The second Settings screen that 11e opened with is gone; 11e holds the states again, with state 4 at the pane's width.
 
-Settles the `later.md` entry "A saved view's warning colour has no control". The reader asked in review that the control be in the view's three-dots menu, named "Highlight count".
+## Fixed from design_handoff_assistant_tokens
 
-## later.md: "A saved view's warning colour has no control"
+- **Read-only fields.** Token, Address and Address with the token in it are now read-only inputs with bound labels. Before, the long address ran past the field and the card, and the values sat above the copy button's centre.
+- **Set up in labels.** "Claude Desktop" is now "Claude", meaning the web and the desktop app, which share the Connectors setting. All four labels now fit at the pane's width. On a phone the new token shows without Set up in: the token and both addresses are there to copy, and the programs it sets up run on a computer.
 
-**The problem** - The server can show a view's count in amber (`attention` on the view, read in `react/src/app/views.jsx` as `countColor="warning"`), but nothing in the app turns it on. The design described the flag in Navigation shell 9e as "set when it is saved", yet the save step and the per-row menu in Order list 2g had no control for it. 9e also named `--amber-2` for the dark sidebar, while `styles/components.css` uses `--shell-warning`.
+Answers `Brief-assistant-tokens.md` ("a Settings section for assistant tokens").
 
-**What changed** - The per-row menu of a saved view, in edit mode, gets **Highlight count** with the alert-triangle icon, after Make default and before the rule above Delete view. On a view that is highlighted the item reads **Stop highlighting count** in its place, the same swap Make default makes with "Stop opening with it". Choosing it sets or clears `attention` on the view. A new view starts with it off, so the save step is unchanged. The flag is never derived from the count. While it is on and the count is above 0, the count takes the warning ink in the rail and the sidebar: `--shell-warning` on the dark sidebar, `--amber-ink` on the rail's white card, as `.sp-nav-item__count[data-color="warning"]` already draws it. The 9e note now names `--shell-warning` and points to 2g. No style changed.
+## 1. Where the section goes
 
-**Where** - `Order list.dc.html` 2g, state 4 (EDITING: RENAME, DELETE, REORDER), the open menu on Hay this month, and a new implementation note before "Deleting confirms". `Navigation shell.dc.html` 9e, the note "A view can carry an attention flag". App: the view menu in `react/src/app/views.jsx`, and the update route in `api/src/routes/views.js`. This settles the later.md entry "A saved view's warning colour has no control". Please remove it.
+- **The problem:** Settings had nowhere to make, see or remove the tokens an assistant program reads `/mcp` with.
+- **What changed:** a pane of its own, **AI assistants**, in the Settings nav after Statuses and before the divider. Settings now has twelve panes. On a phone it is its own page, opened from an "AI assistants" row in Settings that shows the token count, placed after Statuses.
+- **Where:** `Settings and import.dc.html` 11a (nav item, lede, note) and 11e (the pane, every state); `Mobile screens.dc.html` 7a (the Settings row and the AI assistants phone page). App: `react/src/pages/Settings.jsx` (section list), a new pane beside `react/src/pages/SettingsPasskeys.jsx`, and the phone layout of Settings.
+- **What is still open:** nothing.
 
-**What is still open** - Nothing.
+## 2. The list, the empty state, making a token
 
-## later.md entries not settled in this pass
+- **The problem:** the brief asks for a named list with made and last-used dates, an empty state, and a required name of at most 80 characters, at most 20 tokens.
+- **What changed:** one card in the Passkeys family: head "AI ASSISTANTS" with New token, the line "Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.", then one row per token at the passkey row's 42px (`.st-pk-row`): the name over "Made 14 Oct 2026 · last used today" or "Made 2 Sep 2026 · never used", and Remove. Newest first.
+  - Empty: the card with only its line and New token.
+  - New token opens a naming row at the top (name field, Cancel, Create), the passkey rename row's shape. Enter creates, Escape cancels, the field stops at 80 characters. Create with no name shows "Give the token a name." under it. New token is disabled while the naming row or a new token is open.
+  - At 20: New token disabled, and the line "20 of 20 tokens. Remove one to make another."
+  - No rename, as the server offers none.
+- **Where:** `Settings and import.dc.html` 11e, states 1, 2, 3, 5, 6.
+- **What is still open:** nothing.
 
-Left for later, as in the previous package (`design_handoff_confirm_link`):
+## 3. The one-time token
 
-- "The order form promises an order number nobody sees": show it in the order detail header and in order list rows. Not drawn yet.
-- "The privacy notice does not name the exchange-rate lookup": not drawn yet.
-- "Search finds categories and bookmarks but does not show them": not taken up.
-- "51 of the design's checks are not held against the app", "Demo data counts returned orders as spending", "Categories with equal spend sort by their generated ids": app-side, with no design change.
+- **The problem:** a long token must be copied once without mistakes, with both address forms.
+- **What changed:** shown in the card, where the naming row was, until Done. It holds: the token's name; a warning well "Copy the token now. It won't be shown again." / "If you lose it, remove it and make a new one."; three read-only inputs with a copy button each (a long value is cut at the field's edge; the button copies all of it): Token, Address (`https://<server>/mcp`, help "Send the token with it, as the header Authorization: Bearer and the token."), Address with the token in it (`https://<server>/mcp/<token>`, help "For a program that takes only an address."). Then **Set up in**, the fill Segmented with Claude (web and desktop app), Claude Code, Cursor, ChatGPT (Claude Code first), each showing one line and its setup text with the token filled in, copyable. Copy swaps the icon for a check for 2 seconds and shows the toast "Copied." Done, or leaving the pane, ends the showing; the card returns to the list with the new row on top. `<server>` is the address this Spendly is opened on.
+- **Where:** `Settings and import.dc.html` 11e, state 4 and "Set up in - the other three". New component variant `.sp-well--snippet` in `styles/components.css` (unlayered, beside `.sp-well`), drawn in `Components.dc.html` c26: keeps line breaks, breaks long words, holds the field's copy button (`.sp-field__trail`) top right. The text is the product face at `.sp-data`, no code font.
+- **What is still open:** the client steps (menu names in Claude and ChatGPT, the `claude mcp add` flags, the Cursor file path) are written from current documentation; please confirm them against each client before shipping.
+
+## 4. Remove
+
+- **The problem:** removing stops the program at once and cannot be undone.
+- **What changed:** Remove opens the confirm dialog: "Remove Claude on my laptop?", "An assistant using this token stops reading Spendly at once. This can't be undone.", Keep the token / Remove token (danger). After it the row is gone and the toast says "Token removed."
+- **Where:** `Settings and import.dc.html` 11e, state 7.
+- **What is still open:** nothing.
+
+## 5. Checker
+
+- **The problem:** `styles/check.js` read the command-line flags in a setup snippet (`--transport`, `--header`) as cited CSS tokens.
+- **What changed:** text inside `.sp-well--snippet` is skipped by the "a named token exists" assertion, since it is copy the user pastes.
+- **Where:** `styles/check.js`.
+- **What is still open:** nothing.
+
+## later.md
+
+Not touched in this pass: "A deleted record should not be removed for good at once" stays deferred, as chosen.
 
 ## Files
 
-- `README.md` - the design overview, unchanged.
-- `CHANGES.md` - this note.
-- `Order list.dc.html` - the Highlight count menu item and its note, with the zero rule (2g).
-- `Navigation shell.dc.html` - the corrected 9e note, with the zero rule.
-- `support.js`, `components.js` - loaded by the pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles the pages link.
-- `styles/pages/order-list.css` - linked by Order list.
-- `styles/pages/navigation-shell.css` - linked by Navigation shell.
+- `Settings and import.dc.html` - 11a nav, notes and the AI assistants card; new 11e with every state.
+- `Mobile screens.dc.html` - 7a Settings row and the AI assistants phone page.
+- `Components.dc.html` - c26 snippet well specimen and note.
+- `index.html` - 11e listed, screen count 99.
+- `README.md` - the design's overview, unchanged.
+- `styles/components.css` - `.sp-well--snippet`.
+- `styles/check.js` - snippet exemption.
+- `styles/tokens.css`, `styles/doc.css`, `styles/pages/settings.css`, `styles/pages/mobile-screens.css`, `styles/pages/budget.css`, `support.js`, `components.js`, `icons.js` - loaded by the pages above, unchanged.
 
 ## styles/check.js
 
-0 finding(s) across 26 pages.
+0 findings across 26 pages.

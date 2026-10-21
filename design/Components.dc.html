@@ -4686,11 +4686,19 @@
         </div>
       </div>
     </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">.sp-well sp-well--snippet</span>
+      <div class="sp-card doc-w400">
+        <span class="sp-meta">Run this in a terminal:</span>
+        <div class="sp-well sp-well--snippet"><span class="sp-data">claude mcp add --transport http spendly https://spendly.example.net/mcp</span><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the setup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button></div>
+      </div>
+    </div>
   </div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">Fixed</span>
     <div class="doc-note"><code>--card-pad</code>, <code>--sp-8</code> gap, <code>--r-tile</code>, and a <code>1px --line</code> border. The destructive variant takes <code>--red-tint</code>, <code>--red</code> and <code>--red-ink</code> - the same three the <a href="#c3">invalid field</a> uses, so a problem reads the same wherever it appears.</div>
+    <div class="doc-note">The snippet variant holds text the user copies as written (<a href="Settings and import.dc.html#11e">11e</a>): it keeps the text's line breaks, breaks a long word anywhere, and carries the field's copy button (<code>.sp-field__trail</code>) in its top right corner, with room kept for it. The text is the product's face at <code>.sp-data</code>, not a code font.</div>
     <span class="doc-notes__label">Easy to get wrong</span>
     <div class="doc-note">It is not a card. A well inside a well, or a well used as a page's own container, gives the user two edges to read where one would do.</div>
   </div>
