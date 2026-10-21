@@ -4144,6 +4144,21 @@ textarea.sp-palette__term {
 .sp-palette__figures { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; }
 .sp-palette__working { display: flex; align-items: center; gap: var(--sp-8); min-height: var(--mark-small); font-size: var(--t-13); color: var(--ink-5); }
 .sp-palette__failed { color: var(--red-ink); }
+/* on a phone the query line is the top bar: at one line it is the bar's height with the
+   touch controls centred in it, and it grows downward as the question does */
+.sp-palette--screen.sp-palette--ask .sp-palette__search {
+  height: auto;
+  min-height: var(--phone-bar-h);
+  /* less the 1px rule under it, so one line is the 68px the search row is */
+  padding-block: calc((var(--phone-bar-h) - var(--control-h-touch) - 1px) / 2);
+}
+/* 1lh, not the desktop size: on touch the field takes the touch font size */
+.sp-palette--screen.sp-palette--ask textarea.sp-palette__term { padding: calc((var(--control-h-touch) - 1lh) / 2) 0; }
+/* the foot is the bar the phone pins at the bottom: the bar's height, its text on the
+   body's --sp-16 inset so it lines up with the thread above it, and its
+   one button is the text button at the touch height, as Cancel is in the query line */
+.sp-palette--screen .sp-palette__foot { min-height: var(--phone-bar-h); }
+.sp-palette--screen .sp-palette__foot > .sp-btn { flex: none; width: auto; }
 
 /* the same palette filling a phone: no card edges, and the body takes the height
    the frame has rather than its own maximum */
