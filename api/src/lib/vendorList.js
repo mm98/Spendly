@@ -13,17 +13,17 @@ const counted = value => `CASE WHEN status_type IN ('draft', 'cancelled') OR exc
 const STATS = `SELECT vendor_id, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved, MAX(date) AS last
 	FROM orders WHERE user_id = @userId`
 
-/* `stats` sorts read the account's grouped orders once; `fav` puts favourites first; `byName` is
-   ordered by nameOrder. Ties go to the name as stored. */
+/* `stats` sorts read the account's grouped orders once; `byName` is ordered by nameOrder. Ties go
+   to the name as stored. */
 const SORTS = {
-	'name-asc': { fav: true, byName: true },
+	'name-asc': { byName: true },
 	// a picker's plain alphabetical list
 	'name': { byName: true },
-	'spend-desc': { fav: true, stats: true, by: 'COALESCE(s.spend, 0) DESC, v.name' },
-	'spend-asc': { fav: true, stats: true, by: 'COALESCE(s.spend, 0) ASC, v.name' },
-	'orders-desc': { fav: true, stats: true, by: 'COALESCE(s.orders, 0) DESC, v.name' },
-	'saved-desc': { fav: true, stats: true, by: 'COALESCE(s.saved, 0) DESC, v.name' },
-	'saved-asc': { fav: true, stats: true, by: 'COALESCE(s.saved, 0) ASC, v.name' },
+	'spend-desc': { stats: true, by: 'COALESCE(s.spend, 0) DESC, v.name' },
+	'spend-asc': { stats: true, by: 'COALESCE(s.spend, 0) ASC, v.name' },
+	'orders-desc': { stats: true, by: 'COALESCE(s.orders, 0) DESC, v.name' },
+	'saved-desc': { stats: true, by: 'COALESCE(s.saved, 0) DESC, v.name' },
+	'saved-asc': { stats: true, by: 'COALESCE(s.saved, 0) ASC, v.name' },
 	// the order list's filter rail: most used first
 	'use': { stats: true, by: 'COALESCE(s.orders, 0) DESC, v.name' },
 	// the merge picker: the most recently used first
@@ -104,6 +104,8 @@ export function vendorPage(userId, q, languages = []) {
 		return pageOfRanked(userId, q, vendorsLike(userId, { name: String(q.like), aliases: String(q.aka ?? '').split('\n').filter(Boolean), except }), { duplicates, brief })
 
 	const sort = Object.hasOwn(SORTS, q.sort) ? SORTS[q.sort] : SORTS['name-asc']
+	// a picker's list: the favourites lead whatever the sort; the Vendors page keeps the sort alone
+	const fav = q.favourites === 'first'
 	const where = ['v.user_id = @userId']
 	const params = { userId }
 	if (q.archived !== 'all') where.push(q.archived === 'yes' ? 'v.archived = 1' : 'v.archived = 0')
@@ -118,11 +120,11 @@ export function vendorPage(userId, q, languages = []) {
 	}
 
 	const statsJoin = `LEFT JOIN (${STATS} GROUP BY vendor_id) s ON s.vendor_id = v.id`
-	const order = `${sort.fav ? 'v.favourite DESC, ' : ''}${sort.by}`
+	const order = `${fav ? 'v.favourite DESC, ' : ''}${sort.by}`
 	// the name order is the reader's alphabet, so the ranking it pages by is made here
 	const byName = (rows, lead = () => 0) => {
 		const compare = nameOrder(languages)
-		return rows.sort((a, b) => lead(a) - lead(b) || (sort.fav ? b.favourite - a.favourite : 0) || compare(a.name, b.name)).map(r => r.id)
+		return rows.sort((a, b) => lead(a) - lead(b) || (fav ? b.favourite - a.favourite : 0) || compare(a.name, b.name)).map(r => r.id)
 	}
 	const rankedSql = sort.byName
 		? `SELECT json_extract(value, '$[0]') AS id, json_extract(value, '$[1]') AS r FROM json_each(@ranks)`

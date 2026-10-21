@@ -9,8 +9,8 @@ import { amount } from '../api/format.js'
 export function usePickList(kind, find, request) {
 	const size = useApi(getSettings).data?.pageSize ?? 10
 	const read = kind === 'vendor' ? getVendorPage : getCategoryPage
-	// a category list leads with the favourites, as a vendor list does
-	const base = { ...request, pageSize: size, ...(kind === 'category' && !request.sort ? { sort: 'favourites' } : {}) }
+	// a picker's first page leads with the favourites, so its Favourites group holds every one
+	const base = { ...request, favourites: 'first', pageSize: size }
 	const needle = find.trim()
 	const all = useApi(read, [base])
 	const found = useApi(read, [{ ...base, query: needle }], { enabled: Boolean(needle) })

@@ -1870,7 +1870,7 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 		document.addEventListener('keydown', escape, true)
 		return () => document.removeEventListener('keydown', escape, true)
 	}, [open])
-	const page = usePickList('vendor', typed, { sort: 'name-asc' })
+	const page = usePickList('vendor', typed, {})
 	const found = (page.rows ?? []).map(v => ({ v, hit: vendorTextMatch(v, typed) }))
 	const favourites = found.filter(x => x.v.favourite)
 	// a recent vendor past the page is still offered by its name
