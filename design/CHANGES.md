@@ -1,5 +1,12 @@
 # Ask Spendly: a page for asking about your money, and folding facets in the design
 
+## Fixed from design_handoff_ask_spendly
+
+- **The problem:** in the Ask Spendly phone (Mobile screens 7a), the conversation had no side gutter: the S mark sat on the frame's left edge and the reader's mark on its right. The thread was in a bare `.ms-scroll`, which pads only as a direct child of the device.
+- **What changed:** the thread sits in `ms-scroll ms-scroll--pad`, as every other 7a phone does, so the marks clear the frame by the phone gutter, as the dock under them does. Short bubbles ("And in September?", "Reading your orders") were checked and are on one line.
+- **Where:** `Mobile screens.dc.html` 7a, "ASK SPENDLY". No stylesheet change. App: the phone layout of `/ask` pads its thread by `--phone-gutter`, as other phone pages do.
+- **What is still open:** nothing.
+
 Answers `Brief-assistant-chat.md` ("an assistant chat inside Spendly") and the review that followed it, in which the chat moved out of the command palette onto its own page. It replaces `design_handoff_assistant_chat_fixed`: nothing in that package is to be built. It also brings the facet groups' folding into the design (Order list 2b, c12), which production already does.
 
 ## 1. Where Ask Spendly opens from
