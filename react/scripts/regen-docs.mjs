@@ -1,11 +1,12 @@
 /* Renders the docs/ screenshots from the running app, and diffs each render
    against a reference PNG in the same browser (a <canvas> decodes; no PNG library here).
 
-   Needs the app up (npm run dev in react/, api/) and Playwright's chromium; a local
-   playwright install is used if present, the global one otherwise.
+   Starts the API and the app through scripts/session.mjs when they are not running, signs in
+   once, fills the account once, and shares that sign-in between the desktop, dark and phone tabs.
 
    Usage: node regen-docs.mjs <outdir>          render into outdir and diff against docs/
           node regen-docs.mjs <outdir> <refdir> render into outdir and diff against refdir
+          --only=settings.png,phone.png         render only these shots
 
    Render into a scratch dir first: the two dated shots differ from the committed ones by
    the whole dataset on any later day, so run once against docs/ to attribute that number
@@ -31,18 +32,13 @@
    Dateless shots reproduce byte for byte from unchanged source: all-orders, order-list, new-order,
    settings. The rest show this month's figures or dates that move with the seed. statistics.png also
    moves between two runs on one day: two categories with equal spend sort by their generated ids.
-   Account: fresh, demo fill {seed: SEED, months: MONTHS, orders: 30} -- the dataset is a function of
+   Account: docs@example.com, filled once a run {seed: SEED, months: MONTHS, orders: 30} -- the dataset is a function of
    (seed, today), so the seed is re-picked on a render day to give the all-orders state its
    3 August Bilka Delivered matches, and the render refuses to shoot when it does not hold. */
 import { readFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { execSync } from 'node:child_process'
+import { BASE, READER, chromium, devices, ensureServers, signedIn } from './session.mjs'
 
-const pw = await import('playwright').catch(() =>
-	import(`file://${execSync('npm root -g').toString().trim()}/playwright/index.mjs`))
-const { chromium, devices } = pw
-
-const BASE = 'http://localhost:5173'
 /* The demo fill is a function of (seed, today), so a later render day picks its own seed: the
    one that puts three August Bilka deliveries in the account, which is the all-orders shot's
    state. Nothing else in the three shots depends on which seed it is. */
@@ -51,22 +47,24 @@ const SEED = 132
 const MONTHS = Math.max(2, (new Date().getFullYear() - 2026) * 12 + new Date().getMonth() - 7 + 1)
 const MATCHES = 3
 const DOCS = new URL('../../docs', import.meta.url).pathname
-const outdir = process.argv[2]
-const refdir = process.argv[3] ?? DOCS
+const args = process.argv.slice(2)
+const [outdir, refdir = DOCS] = args.filter(a => !a.startsWith('--'))
+const only = args.find(a => a.startsWith('--only='))?.slice(7).split(',')
+const wanted = file => !only || only.includes(file)
 mkdirSync(outdir, { recursive: true })
 
 /* No --font-render-hinting=full: it snaps every letter to a whole pixel, so bold text reads loosely
    spaced next to the app on a real screen. The headless shell Playwright launches obeys the flag; a
    full Chromium binary ignores it, so a probe through executablePath cannot show the difference. */
+await ensureServers()
 const browser = await chromium.launch()
 
-async function freshAccount(ctx) {
-	// one fixed address: the sidebar's account mark is drawn from it, so a new one per run moves pixels
-	const email = 'docs@example.com'
-	let r = await ctx.request.post(BASE + '/api/auth/register', { data: { email, password: 'docs-pass-12345' } })
-	if (r.status() !== 201) r = await ctx.request.post(BASE + '/api/auth/login', { data: { email, password: 'docs-pass-12345' } })
-	if (!r.ok()) throw new Error('sign in ' + r.status())
-	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: SEED, months: MONTHS, orders: 30 } })
+// one fixed address: the sidebar's account mark is drawn from it, so a new one per run moves pixels
+const storageState = await signedIn(browser, { email: 'docs@example.com', password: 'docs-pass-12345' })
+
+// filled once a run, since the data is a function of the day
+async function fillAccount(ctx) {
+	const r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: SEED, months: MONTHS, orders: 30 } })
 	if (!r.ok()) throw new Error('demo-data ' + r.status())
 	console.log('demo-data:', await r.text())
 	/* The list filters on `vendorId`. The page's own address spells the same filter `vendor`,
@@ -98,12 +96,14 @@ async function settle(page) {
 }
 
 async function shoot(page, file) {
+	if (!wanted(file)) return
 	await settle(page)
 	await page.screenshot({ path: join(outdir, file) })
 }
 
 // a page reached by its address, shot once the part that shows it has data is drawn
 async function area(page, route, ready, file, then) {
+	if (!wanted(file)) return
 	await page.goto(BASE + route, { timeout: 15000 })
 	await page.locator(ready).first().waitFor({ timeout: 5000 })
 	await then?.(page)
@@ -136,6 +136,7 @@ const BUDGET = {
 
 /* Diff two PNGs inside the open page: canvas decodes both, getImageData compares. */
 async function diff(page, file) {
+	if (!wanted(file)) return
 	const a = readFileSync(join(outdir, file)).toString('base64')
 	let b
 	try { b = readFileSync(join(refdir, file)).toString('base64') } catch { return console.log(`${file}: no reference`) }
@@ -160,17 +161,9 @@ async function diff(page, file) {
 	console.log(`${file}:`, r.sizeMismatch ? 'SIZE MISMATCH ' + r.sizeMismatch : `${r.differing} differing of ${r.of}`)
 }
 
-/* Every date and time in the app is rendered by the reader's own locale and zone now, so a
-   context that names neither documents whichever machine ran it: the same source renders
-   "18 July" here and "July 18" on a box whose ICU default is en-US, with nothing in the
-   diff to say which one moved. These two lines are what keep the committed shots a fact
-   about the app. en-GB and Copenhagen because that is what the shots already hold -- the
-   product's own home, and the day-first English the copy is written in. */
-const READER = { locale: 'en-GB', timezoneId: 'Europe/Copenhagen' }
-
 // -- desktop: home + all-orders --
-const desktop = await browser.newContext({ ...READER, viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })
-await freshAccount(desktop)
+const desktop = await browser.newContext({ ...READER, viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, storageState })
+await fillAccount(desktop)
 const page = await desktop.newPage()
 page.setDefaultTimeout(2000)
 page.setDefaultNavigationTimeout(2000)
@@ -229,27 +222,29 @@ await area(tab, '/#/settings/appearance', 'form, .sp-card', 'settings.png')
 await desktop.close()
 
 // -- desktop, dark: Home --
-const darkCtx = await browser.newContext({ ...READER, colorScheme: 'dark', viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })
-await freshAccount(darkCtx)
-const dark = await darkCtx.newPage()
-dark.setDefaultTimeout(2000)
-dark.setDefaultNavigationTimeout(2000)
-await dark.goto(BASE + '/#/', { timeout: 15000 })
-await dark.waitForSelector('.sp-bars__col', { timeout: 5000 })
-await shoot(dark, 'dark.png')
-await darkCtx.close()
+if (wanted('dark.png')) {
+	const darkCtx = await browser.newContext({ ...READER, colorScheme: 'dark', viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, storageState })
+	const dark = await darkCtx.newPage()
+	dark.setDefaultTimeout(2000)
+	dark.setDefaultNavigationTimeout(2000)
+	await dark.goto(BASE + '/#/', { timeout: 15000 })
+	await dark.waitForSelector('.sp-bars__col', { timeout: 5000 })
+	await shoot(dark, 'dark.png')
+	await darkCtx.close()
+}
 
 // -- phone: home --
-const phoneCtx = await browser.newContext({ ...devices['iPhone 15'], ...READER, deviceScaleFactor: 2 })
-await freshAccount(phoneCtx)
-const phone = await phoneCtx.newPage()
-phone.setDefaultTimeout(2000)
-phone.setDefaultNavigationTimeout(2000)
-await phone.goto(BASE + '/#/', { timeout: 15000 })
-await phone.waitForSelector('.sp-gauge', { timeout: 5000 })
-await settle(phone)
-await phone.screenshot({ path: join(outdir, 'phone.png') })
-await diff(phone, 'phone.png')
-await phoneCtx.close()
+if (wanted('phone.png')) {
+	const phoneCtx = await browser.newContext({ ...devices['iPhone 15'], ...READER, deviceScaleFactor: 2, storageState })
+	const phone = await phoneCtx.newPage()
+	phone.setDefaultTimeout(2000)
+	phone.setDefaultNavigationTimeout(2000)
+	await phone.goto(BASE + '/#/', { timeout: 15000 })
+	await phone.waitForSelector('.sp-gauge', { timeout: 5000 })
+	await settle(phone)
+	await phone.screenshot({ path: join(outdir, 'phone.png') })
+	await diff(phone, 'phone.png')
+	await phoneCtx.close()
+}
 
 await browser.close()

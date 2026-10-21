@@ -312,6 +312,9 @@ cd react && npm install && npm run dev
 
 Open http://localhost:5173, create an account, and fill it from Settings, Demo data.
 
+To test a change, `node scripts/session.mjs` in `react/` starts both on a scratch database and keeps
+one filled test account signed in, so every check and screenshot after it starts at once.
+
 The screenshots on this page are made by `react/scripts/regen-docs.mjs` from the running app.
 
 ## The design system
