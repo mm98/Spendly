@@ -207,12 +207,14 @@ Everything that needs you, on one page.
 ### AI assistants
 
 - **Ask Spendly** is a page for questions about your money, in the sidebar above Settings (on a
-  phone, under More). Type a question, or pick one of three examples. Spendly answers with amounts,
+  phone, under More). Type a question, or press one of your saved questions. Spendly answers with amounts,
   short lists, small tables and links to the orders, vendors and categories it names. A follow-up
   question uses the earlier ones. The conversation stays while the app is open. **Stop** ends an
   answer that is coming, and a failed answer can be tried again.
 - **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
-  Up to 8 saved questions per account, kept on the server. **Edit** removes them.
+  Saved questions show under the empty page, each with an x that removes it. In a conversation on a
+  desktop, **Saved questions** at the top of the page lists them. Up to 8 per account, kept on the
+  server. Every account starts with three example questions saved, and they can be removed too.
 - **Clear** empties the conversation, and its message offers Undo. **Email this chat** sends the
   conversation to your own address, at most once a minute.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It

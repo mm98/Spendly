@@ -45,3 +45,9 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## The phone's tab bar is 3px wider than the screen
+
+- **Where:** the tab bar on a phone (`.sp-tabbar--band`, drawn by `react/src/components/Shell.jsx`), seen on Ask Spendly.
+- **What the reader sees:** the page can be moved sideways by 3px, and on Ask Spendly a 6px gap shows between the question field's bar and the tab bar.
+- **What was found:** on an iPhone 15 profile in Chromium, the tab bar and its last item end at 396px on a 393px screen. Main shows the same, so it predates the Ask Spendly changes. Found 21 Oct 2026.

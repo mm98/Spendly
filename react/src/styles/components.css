@@ -5557,17 +5557,17 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__save { align-self: center; }
 .sp-chat__save[aria-pressed="true"] { color: var(--green); }
 .sp-chat__save[aria-pressed="true"] svg { fill: currentColor; }
-/* the saved questions, above the field: one wrapping row on desktop, one scrolling
-   line on a phone so the dock keeps its height */
-.sp-chat__saved { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-8); width: 100%; margin: 0 auto var(--sp-8); }
-.sp-chat__dock--bar .sp-chat__saved { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-.sp-chat__saved > * { flex: none; }
-/* a saved question is one line, at most 320px and never wider than the row; its text is
-   .sp-truncate, so a longer one is cut with ... - the button and the editing chip alike */
-.sp-chat__saved > .sp-btn--outline,
-.sp-chat__saved > .sp-chip { max-width: min(320px, 100%); }
-.sp-chat__saved > .sp-btn--outline > .sp-truncate { flex: 0 1 auto; }
-.sp-chat__saved > .sp-chip > .sp-icon-btn { flex: none; }
+/* a saved question on the empty page: its button, which sends it, and its remove button.
+   One line, at most 320px and never wider than the column; the text is .sp-truncate */
+.sp-chat__pick { display: inline-flex; align-items: center; gap: var(--sp-4); max-width: 100%; min-width: 0; }
+.sp-chat__pick > .sp-btn { min-width: 0; max-width: min(320px, 100%); }
+.sp-chat__pick > .sp-btn > .sp-truncate { flex: 0 1 auto; }
+.sp-chat__pick > .sp-icon-btn { flex: none; }
+/* the saved questions in a conversation, on a desktop: the action select in the controls
+   bar, its panel wide enough for a question, each one cut as on the empty page */
+.sp-chat__saved-menu .sp-combobox__panel { right: auto; width: 320px; }
+.sp-chat__saved-menu .sp-combobox__option > .sp-truncate { flex: 0 1 auto; }
+.sp-touch .sp-chat__saved-menu { display: none; }
 .sp-chat__dock { padding-top: var(--sp-12); }
 /* on a phone the dock is a bar pinned above the tab bar, on the bar's surface and gutter */
 .sp-chat__dock--bar { padding: var(--sp-12) var(--phone-gutter); border-top: 1px solid var(--line); background: var(--surface); }
@@ -5586,6 +5586,10 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 }
 .sp-touch .sp-textarea.sp-chat__field { padding-top: calc((var(--control-h-touch) - 2px - 1lh) / 2); padding-bottom: calc((var(--control-h-touch) - 2px - 1lh) / 2); }
 .sp-chat__composer > .sp-btn { flex: none; width: auto; }
+/* an empty field is one line: its placeholder is cut with ... rather than wrapping
+   the field to two lines on a phone; typing wraps as before */
+.sp-textarea.sp-chat__field:placeholder-shown { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-textarea.sp-chat__field::placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-chat__hint { display: flex; align-items: center; gap: var(--sp-12); width: 100%; margin: var(--sp-6) auto 0; font-size: var(--t-11); color: var(--ink-5); }
 /* a page body that is one region filling the column, as the chat is */
 .sp-shell__body--fill { flex: 1; min-height: 0; }

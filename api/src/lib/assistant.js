@@ -29,7 +29,7 @@ Answer in the language of the question, in short plain sentences, for a reader w
 Write only this simple format:
 - Paragraphs, separated by one empty line.
 - A short list: lines that start with "- ".
-- A small table: lines that start and end with "|", the first line naming the columns. No line of dashes under it.
+- A small table: lines that start and end with "|", the first line naming the columns. No line of dashes under it. The first column names what each row is about, such as the product, order, shop or month.
 - A link to a record: [text](order:ID), [text](vendor:ID) or [text](category:ID), with the id from the tools.
 - Every amount as {{number}}, a plain number with a dot for decimals, for example {{4212.50}}. The app adds the currency.
 Nothing else: no bold, no headings, no other links.`
