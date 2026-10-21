@@ -131,7 +131,9 @@ have to. Putting screens together from its patterns is the build's job:
   in the note. When the answer comes back, check all of them in one pass.
 - **A design fault is the build's to fix.** A rule that breaks in practice (a clipped outline, a
   column that does not fit, an overflow) is fixed in `app.css` with the smallest change that keeps
-  the drawn look, and listed once in the pull request so the user can overrule it. It is not a brief.
+  the drawn look, listed once in the pull request so the user can overrule it, and written in
+  `later.md` with the rule it adds, so Claude Design can take it into `design/`. It is not a brief.
+  The change that brings the rule into `design/` removes it from `app.css` and its `later.md` entry.
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
   file found there is deleted in the same pull request that builds its answers.
 
