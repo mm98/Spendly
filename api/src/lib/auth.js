@@ -4,7 +4,7 @@ import { db } from '../db.js'
 import { newSessionId } from './ids.js'
 import { nowEpoch } from './dates.js'
 import { readCookie, setCookie, clearCookie, SESSION_COOKIE } from './cookies.js'
-import { mcpMayRead, mcpTokenUser } from './mcpTokens.js'
+import { mcpMayRead, mcpReadWait, mcpTokenUser } from './mcpTokens.js'
 
 const scryptAsync = promisify(scrypt)
 
@@ -112,6 +112,8 @@ export function requireAuth(req, res, next) {
 		// an assistant's token opens only the read routes /mcp asks for what its tools answer
 		const reader = mcpMayRead(req) ? mcpTokenUser(token) : null
 		if (!reader) return res.status(401).json({ error: 'Not signed in.' })
+		const wait = mcpReadWait(token)
+		if (wait) return res.status(429).set('Retry-After', String(wait)).json({ error: `Too many requests with this token. Try again in ${wait} seconds.`, retryAfter: wait })
 		req.user = reader
 		return next()
 	}

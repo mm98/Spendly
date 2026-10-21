@@ -218,6 +218,8 @@ Everything that needs you, on one page.
   <token>`, or as the end of the address, `/mcp/<token>`, for a program that takes only an
   address. The list shows when each token was made and last used. An account can have 20.
 - **Removing a token** asks first, and stops it at once.
+- **A token can read 60 times a minute.** Past that, the assistant is told how many seconds to
+  wait. One request to `/mcp` can carry at most 20 questions.
 
 ## Running it
 

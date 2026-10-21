@@ -12,6 +12,9 @@ const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05']
 const SERVER_INFO = { name: 'spendly', title: 'Spendly', version: '1.0.0' }
 const INSTRUCTIONS = 'Spendly keeps one person\'s orders, shops, categories and budget. These tools only read; nothing can be changed through them. Amounts are in the account\'s own currency, and dates are YYYY-MM-DD.'
 
+// a batch is answered in one go, so its size bounds the work one request can ask for
+const BATCH_MOST = 20
+
 const PARSE_ERROR = -32700, INVALID_REQUEST = -32600, METHOD_NOT_FOUND = -32601, INVALID_PARAMS = -32602, INTERNAL_ERROR = -32603
 
 const tokenOf = req => {
@@ -76,6 +79,7 @@ function sameOrigin(req, res, next) {
 const handle = async (req, res) => {
 	if (req.body === undefined || req.body === null || typeof req.body !== 'object') return res.status(400).json(refuse(null, PARSE_ERROR, 'The body is not JSON.'))
 	const batch = Array.isArray(req.body)
+	if (batch && req.body.length > BATCH_MOST) return res.status(400).json(refuse(null, INVALID_REQUEST, `Send at most ${BATCH_MOST} requests at once.`))
 	// the port this request arrived on is this server's, behind a proxy or not
 	const self = `http://127.0.0.1:${req.socket.localPort}`
 	const answers = (await Promise.all((batch ? req.body : [req.body]).map(m => answer(m, req.mcpToken, self)))).filter(Boolean)

@@ -2,11 +2,15 @@ import { createHash, randomBytes } from 'node:crypto'
 import { db } from '../db.js'
 import { newId } from './ids.js'
 import { nowEpoch } from './dates.js'
+import { windowCounter } from './rateLimit.js'
 
 // the prefix tells a token from a session id before any lookup, and lets a secret scanner find one
 export const MCP_TOKEN_PREFIX = 'spendly_mcp_'
 // last_used_at is a day-level fact for the reader, so a busy token does not write on every call
 const TOUCH_AFTER_SECONDS = 60 * 60
+
+/** Every read with a token counts, through /mcp or straight at a route: seconds to wait, or 0. */
+export const mcpReadWait = windowCounter({ most: 60, perSeconds: 60 })
 
 /* The routes the /mcp tools read through, and the only ones a token opens. Each answers from what is
    stored: a GET that writes, reads a file with Claude or fetches another site is never listed here. */
