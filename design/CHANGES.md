@@ -1,5 +1,14 @@
 # Assistant chat: asking about your money in the command palette
 
+## Fixed from design_handoff_assistant_chat
+
+Also answers `Brief-ask-buttons-on-touch.md` ("Send and Back in the phone's ask bar are larger than drawn").
+
+- **The problem:** Mobile screens 7b drew the phone's ask bar with Send at 34px and Back at 32 x 32. The phone frame was not inside `.sp-touch`, so the drawing did not show the touch rules the app applies: in the app both are 48px. The foot's New conversation was the desktop xsmall button, 34px on touch, under the 44px minimum, and the foot was shorter than the phone's other bars. Its count sat at the 12px phone gutter, 4px left of the thread above it.
+- **What changed:** the touch rules are right; the ask bar is not a small-button exception like a card head. Send and Back keep the desktop markup (`sp-btn sp-btn--small`, `sp-icon-btn`) and take 48px on touch, and the 7b phone is now drawn inside `.sp-touch` (`sp-phone sp-touch`). At one line the query line is the phone bar's 68px, rule included, with the 48px controls centred in it, and it grows downward as the question does. The foot is a 68px pinned bar. New conversation is the text button at the touch height (48px), as Cancel is in search, and the count sits on the palette's 16px inset, in line with the thread.
+- **Where:** `Mobile screens.dc.html` 7b, "SEARCH · ASKING ABOUT YOUR MONEY" and its note. `styles/components.css`: `.sp-palette--screen.sp-palette--ask .sp-palette__search`, `.sp-palette--screen.sp-palette--ask textarea.sp-palette__term` (padding from `1lh`, since touch sets the field to 16px), `.sp-palette--screen .sp-palette__foot`, `.sp-palette--screen .sp-palette__foot > .sp-btn`. App: `react/src/components/Shell.jsx` `PaletteAsk`: no change to Send, Stop or Back; on the phone, New conversation is `Button variant text` with no size, and the foot takes the phone bar height. Desktop is unchanged.
+- **What is still open:** nothing.
+
 Answers `Brief-assistant-chat.md` ("an assistant chat inside Spendly"). The chat is a state of the existing command palette, not a new panel or window.
 
 ## 1. Where the chat opens from
@@ -12,7 +21,7 @@ Answers `Brief-assistant-chat.md` ("an assistant chat inside Spendly"). The chat
 ## 2. The shape of the chat
 
 - **The problem:** the brief asked whether the chat is a side panel or a window over the page.
-- **What changed:** the same palette, with the new variant `.sp-palette--ask`. It has the same 520px panel, scrim and 60vh cap; the body scrolls, and the query line and the foot stay put. The query line becomes a textarea, one line growing to four, then scrolling. It is led by a Back to search button and ended by Send (disabled while empty). Enter sends, Shift Enter makes a new line, Esc closes. The foot reads "↵ send · ⇧↵ new line · esc close" and ends with **New conversation**. On a phone it is the full-screen palette (`.sp-palette--screen.sp-palette--ask`) with no keyboard line in the foot.
+- **What changed:** the same palette, with the new variant `.sp-palette--ask`. It has the same 520px panel, scrim and 60vh cap; the body scrolls, and the query line and the foot stay put. The query line becomes a textarea, one line growing to four, then scrolling. It is led by a Back to search button and ended by Send (disabled while empty). Enter sends, Shift Enter makes a new line, Esc closes. The foot reads "↵ send · ⇧↵ new line · esc close" and ends with **New conversation**. On a phone it is the full-screen palette (`.sp-palette--screen.sp-palette--ask`), drawn inside `.sp-touch`, with no keyboard line in the foot.
 - **Where:** `Navigation shell.dc.html` 9d, the second row of specimens. `Mobile screens.dc.html` 7b, "SEARCH · ASKING ABOUT YOUR MONEY" and its note. `Components.dc.html` c24, the specimen "Asking" and the note "Asking - variant". `styles/components.css`: `.sp-palette--ask`, `textarea.sp-palette__term`, `.sp-palette__term:disabled`, `.sp-palette__thread`, `.sp-palette__question`, `.sp-palette__reply`, `.sp-palette__figures`, `.sp-palette__working`, `.sp-palette__failed`, unlayered, beside `.sp-palette`. App: `react/src/app/Palette.jsx`; the overlay itself is unchanged.
 - **What is still open:** nothing.
 

@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20261021a">
+<link rel="stylesheet" href="styles/components.css?v=v20261021g">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/budget.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/mobile-screens.css?v=v20260917b">
@@ -863,7 +863,7 @@
 
     <div class="sp-stack sp-gap-12">
       <span class="sp-section-label">SEARCH · ASKING ABOUT YOUR MONEY</span>
-      <div class="sp-phone ms-device ms-device--tall">
+      <div class="sp-phone sp-touch ms-device ms-device--tall">
         <div class="ms-status">
           <span>9:41</span>
           <span class="sp-ink-5">▮▮▮</span>
@@ -891,7 +891,7 @@
             </div>
           </div>
           <div class="sp-palette__foot">
-            <span class="sp-meta--over">2 questions left today</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--text sp-btn--xsmall">New conversation</button>
+            <span class="sp-meta--over">2 questions left today</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--text">New conversation</button>
           </div>
         </div>
       </div>
@@ -1485,7 +1485,7 @@
     <div class="doc-note"><b>Reset</b> in the sheet's header is a text button (<code>sp-btn--text</code>, small), in the button's green, like Cancel in the search screen; it clears every filter and keeps the sheet open. <b>Show 39 more</b> expands that facet's list in place inside the sheet.</div>
     <div class="doc-note"><b>Show 18 orders</b> applies the filters and closes the sheet. The label is the live result count; with no results it reads "No orders match" and is disabled.</div>
     <div class="doc-note"><b>Cancel closes the full-screen search</b> and returns to the screen it was opened from, as it was. It is the only way out: the tab bar is absent while the search is open (9h). The clear button inside the field empties the query and keeps the search open.</div>
-    <div class="doc-note"><b>Asking on a phone</b> is the same full-screen palette in its ask state (<a href="Navigation shell.dc.html#9d">Navigation shell 9d</a>): Back to search where the search field was, the question field growing to four lines, Send at the right, and Send becomes Stop while an answer comes. There is no keyboard line, so the foot holds only the day's count when it shows and New conversation. Back returns to the search, keeping the conversation; Cancel there closes it as before.</div>
+    <div class="doc-note"><b>Asking on a phone</b> is the same full-screen palette in its ask state (<a href="Navigation shell.dc.html#9d">Navigation shell 9d</a>): Back to search where the search field was, the question field growing to four lines, Send at the right, and Send becomes Stop while an answer comes. The markup is the desktop ask bar's unchanged (<code>sp-icon-btn</code>, <code>sp-btn sp-btn--small</code>); the touch rules make both 48px, as every phone control is, and this phone is drawn inside <code>.sp-touch</code> to show it. The ask bar is not a small-button exception like a card head. At one line the query line is the top bar's 68px with the 48px controls centred in it; it grows downward with the question. There is no keyboard line, so the foot holds only the day's count when it shows and New conversation. The foot is a pinned bottom bar: the phone bar's 68px, its count on the palette's 16px inset so it lines up with the thread, and New conversation is the text button at the touch height (48px), as Cancel is in search, not the desktop foot's xsmall button. Back returns to the search, keeping the conversation; Cancel there closes it as before.</div>
   </div>
 </section>
 
