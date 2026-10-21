@@ -59,3 +59,10 @@ is removed in the change that settles it.
 - **What the reader sees:** the banner sits 16px from the screen's edges, as on every other phone page. Before, it ran 3px past the screen, and the page scrolled sideways and down.
 - **What was found:** Ask's body has no padding on a phone, so the banner had no gutter. Found 21 Oct 2026.
 - **To take into `design/`:** the banner's gutter on a full-height page. Then it is removed from `app.css` and this entry goes.
+
+## For Claude Design: the vendor's alias hint names the matching rule
+
+- **Where:** `react/src/pages/VendorForm.jsx`, the hint under "Also matches". `design/Vendors and categories.dc.html` draws "Other names this vendor uses on receipts. A receipt with one of these is filed here."
+- **What the reader sees:** "Other names this vendor uses on receipts. Capitals, punctuation and endings like Inc or ApS do not count." An alias the name already matches is refused with: "Nabu Casa, Inc." already matches Nabu Casa, then the same rule.
+- **What was found:** the old refusal said "That is already the vendor's name" for a spelling that differed, so the reader could not see why. Found 21 Oct 2026.
+- **To take into `design/`:** the hint and the refusal above, in the Vendors and categories drawings. Then this entry goes.

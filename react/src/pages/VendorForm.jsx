@@ -149,7 +149,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		const taken = await owner(alias)
 		if (taken && vendorKey(taken.name) === vendorKey(alias)) return { message: `Another vendor is called ${taken.name}. Pick a different one.` }
 		if (taken) return { message: `${taken.name} already matches "${alias}". Move it here, or pick a different one.`, offer: { alias, holder: taken } }
-		if (vendorKey(alias) === vendorKey(values.name)) return { message: `Receipts that say "${alias}" already find ${values.name.trim()}. When Spendly matches names, it ignores capital letters, punctuation and endings like Inc, ApS and A/S.` }
+		if (vendorKey(alias) === vendorKey(values.name)) return { message: `"${alias}" already matches ${values.name.trim()}. Capitals, punctuation and endings like Inc or ApS do not count.` }
 		return null
 	}
 	// several names arrive at once from a pasted list: each is checked, and the first refused one is shown
@@ -310,7 +310,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<Field id="vendor-aliases" label="Also matches"
 					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
 						? 'Other names this vendor uses on receipts. The name the scan read is already here - keep it so the next receipt files itself.'
-						: 'Other names this vendor uses on receipts. A receipt with one of these is filed here.')}
+						: 'Other names this vendor uses on receipts. Capitals, punctuation and endings like Inc or ApS do not count.')}
 					messageType={errors.aliases ? 'danger' : 'hint'}
 					after={offer
 						? (
