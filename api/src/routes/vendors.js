@@ -112,7 +112,7 @@ function cleanAliases(userId, vendorId, vendorName, raw, move = []) {
 		if (name.length > 80) return { status: 400, error: '80 characters at most for an alias.' }
 		const key = vendorKey(name)
 		if (key === vendorKey(vendorName))
-			return { status: 400, error: `An alias must differ from the vendor's own name.` }
+			return { status: 400, error: `Receipts that say "${name}" already find ${vendorName}. When Spendly matches names, it ignores capital letters, punctuation and endings like Inc, ApS and A/S.` }
 		if (seen.has(key)) continue
 		seen.add(key)
 		const holder = holderOf(userId, vendorId, name)
