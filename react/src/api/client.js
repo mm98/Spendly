@@ -256,12 +256,78 @@ export async function getAssistant(signal) {
 	return request('/api/assistant', { signal })
 }
 
-/** `turns` is the conversation so far, oldest first, ending with the question: { role, text }. */
-export async function askAssistant(turns, signal) {
+/** `turns` is the conversation so far, oldest first, ending with the question. `onStep` hears each file or
+    chart being made ({ working }); the last line is { answer, files, charts, left } or the refusal. */
+export async function askAssistant(turns, signal, onStep) {
+	const path = '/api/assistant/ask'
+	writeStarted()
 	try {
-		return await request('/api/assistant/ask', { method: 'POST', body: { turns }, signal })
+		const res = await fetch(path, {
+			method: 'POST', signal, credentials: 'include',
+			headers: { [TODAY]: today(), 'Content-Type': 'application/json' },
+			body: JSON.stringify({ turns, ...browserPlace() })
+		})
+		noteServerBuild(res.headers.get('Build'))
+		if (!res.ok) {
+			let data = null
+			try { data = await res.json() } catch { /* empty body */ }
+			throw refusal(path, 'POST', res.status, data)
+		}
+		const reader = res.body.getReader()
+		const decoder = new TextDecoder()
+		let held = ''
+		let last = null
+		const take = line => {
+			if (!line.trim()) return
+			const data = JSON.parse(line)
+			if (data.working) onStep?.(data)
+			else last = data
+		}
+		for (;;) {
+			const { value, done } = await reader.read()
+			if (done) break
+			held += decoder.decode(value, { stream: true })
+			for (let at = held.indexOf('\n'); at >= 0; at = held.indexOf('\n')) {
+				take(held.slice(0, at))
+				held = held.slice(at + 1)
+			}
+		}
+		take(held)
+		if (!last) throw new NoAnswer(502)
+		if (last.error) throw refusal(path, 'POST', last.status ?? 502, last)
+		return last
 	} finally {
+		writeSettled()
 		invalidate(getAssistant)
+		invalidate(getAssistantFiles)
+	}
+}
+
+/* ---- Files (24e): what Ask made, kept for 30 days ---- */
+
+/** One page of the kept files, newest first: { files, matched, pages, page, keptDays }. */
+export async function getAssistantFiles(params, signal) {
+	return request(`/api/assistant/files${qs(params)}`, { signal })
+}
+
+/** What each file named by `ids` is now, by id: ready, or gone because it was deleted or its days ran out. */
+export async function getAssistantFileStates(ids, signal) {
+	return request(`/api/assistant/files/states${qs({ ids: ids.join(',') })}`, { signal })
+}
+
+export async function deleteAssistantFile(id, signal) {
+	try {
+		return await request(`/api/assistant/files/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+	} finally {
+		invalidate(getAssistantFiles)
+	}
+}
+
+export async function restoreAssistantFile(id, signal) {
+	try {
+		return await request(`/api/assistant/files/${encodeURIComponent(id)}/restore`, { method: 'POST', signal })
+	} finally {
+		invalidate(getAssistantFiles)
 	}
 }
 

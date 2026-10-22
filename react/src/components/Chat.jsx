@@ -61,11 +61,11 @@ export function ChatSave({ saved = false, disabled = false, tip, onClick, ...res
 
 const REPLY_STATE = { answered: true, working: true, failed: true }
 
-/** Spendly's answer: `working` while it comes, `failed` with Try again, or the reply. */
-export function ChatReply({ state = 'answered', onRetry, children, ...rest }) {
+/** Spendly's answer: `working` while it comes, saying `doing`, `failed` with Try again, or the reply. */
+export function ChatReply({ state = 'answered', doing = 'Reading your orders', onRetry, children, ...rest }) {
 	reject(rest, 'ChatReply')
 	pick(REPLY_STATE, state, 'state', 'ChatReply')
-	if (state === 'working') return <div className="sp-chat__working" {...rest}><Spinner /><span>Reading your orders</span></div>
+	if (state === 'working') return <div className="sp-chat__working" {...rest}><Spinner /><span>{doing}</span></div>
 	return (
 		<div className="sp-chat__reply" {...rest}>
 			{state === 'failed'
@@ -79,6 +79,70 @@ export function ChatReply({ state = 'answered', onRetry, children, ...rest }) {
 export function ChatFigures({ children, ...rest }) {
 	reject(rest, 'ChatFigures')
 	return <div className="sp-chat__figures" {...rest}>{children}</div>
+}
+
+/* ---------- what an answer holds besides its words (Ask 24d) ---------- */
+
+const FILE_TYPE = { xlsx: 'Excel', docx: 'Word', pdf: 'PDF', csv: 'CSV' }
+const FILE_STATE = { ready: null, making: null, failed: null, gone: 'gone' }
+const FILE_GONE = { deleted: 'Deleted', expired: 'Removed after 30 days' }
+
+/** The frame one answer's files share, a row per file, a rule between rows. Also the list on Files (24e). */
+export function ChatFiles({ children, ...rest }) {
+	reject(rest, 'ChatFiles')
+	return <div className="sp-chat__files" {...rest}>{children}</div>
+}
+
+/** One file: the mark, the question as its title, its type and size, and what can be done with it.
+    `keptUntil` and `onDelete` are the Files page's; a file that could not be made never reads as ready. */
+export function ChatFile({ title, type, size, state = 'ready', reason, gone, keptUntil, href, onDelete, ...rest }) {
+	reject(rest, 'ChatFile')
+	pick(FILE_STATE, state, 'state', 'ChatFile')
+	const kind = pick(FILE_TYPE, type, 'type', 'ChatFile')
+	if (state === 'failed' && !reason) console.error('<ChatFile> a file that could not be made says why')
+	if (state === 'gone' && !(gone in FILE_GONE)) console.error(`<ChatFile> gone="${gone}" is not one of: ${Object.keys(FILE_GONE).join(' | ')}`)
+	if (state === 'ready' && !href) console.error('<ChatFile> a ready file needs its href')
+	// the day is never broken across two lines on a phone's narrow row
+	let meta = <>{join(kind, size && `· ${size}`)}{keptUntil ? <> · Kept until <span className="sp-nowrap">{keptUntil}</span></> : null}</>
+	if (state === 'failed') meta = `Could not be made: ${reason}`
+	else if (state === 'making') meta = `${kind} · Being made`
+	else if (state === 'gone') meta = `${kind} · ${FILE_GONE[gone]}`
+	return (
+		<div className="sp-chat__file" data-state={FILE_STATE[state] || undefined} {...rest}>
+			<Mark size="medium" fill="none" aria-hidden="true" aria-label={kind}><Icon name="file-text" /></Mark>
+			<span className="sp-stacked">
+				<span className="sp-chat__file-name sp-truncate" title={title}>{title}</span>
+				<span className={join('sp-meta', state === 'failed' && 'sp-chat__failed')}>{meta}</span>
+			</span>
+			{state === 'ready' ? <IconButton variant="outline" icon="download" href={href} aria-label={`Download ${title}`} data-tip="Download" /> : null}
+			{state === 'ready' && onDelete ? <IconButton variant="outline" icon="trash" onClick={onDelete} aria-label={`Delete ${title}`} data-tip="Delete" /> : null}
+			{state === 'making' ? <IconButton variant="outline" icon={<Spinner />} disabled aria-label="Being made" /> : null}
+		</div>
+	)
+}
+
+/** A chart in an answer: the figure frame a table uses, the chart's `name` and its period or total,
+    then the chart, or the line `failed` says why it could not be made in its place. */
+export function ChatChart({ name, meta, failed, children, ...rest }) {
+	reject(rest, 'ChatChart')
+	if (failed && children) console.error('<ChatChart> a chart that could not be made draws nothing')
+	return (
+		<ChatFigures {...rest}>
+			<div className="sp-chat__chart">
+				<div className="sp-chat__chart-name">
+					<span className="sp-section-label">{name}</span>
+					{meta ? <span className="sp-meta">{meta}</span> : null}
+				</div>
+				{failed ? <p className="sp-chat__failed">{failed}</p> : children}
+			</div>
+		</ChatFigures>
+	)
+}
+
+/** The Donut beside its Shares where the bubble has room, above them where not. */
+export function ChatShares({ children, ...rest }) {
+	reject(rest, 'ChatShares')
+	return <div className="sp-chat__shares" {...rest}>{children}</div>
 }
 
 /** A saved question on the empty page: pressing it sends it, and the x beside it removes it. One

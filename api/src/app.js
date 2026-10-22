@@ -21,7 +21,7 @@ import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
 import { router as mcpRouter } from './routes/mcp.js'
 import { router as mcpTokensRouter } from './routes/mcpTokens.js'
-import { router as assistantRouter } from './routes/assistant.js'
+import { router as assistantRouter, downloadFile } from './routes/assistant.js'
 import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
@@ -233,6 +233,9 @@ app.use('/mcp', mcpRouter)
 
 app.use('/api/auth', authRouter)
 app.use('/api/auth/passkey', passkeySignInRouter)
+
+// a file Ask made is downloaded by following a link, so a signed-out tab is sent to sign-in rather than refused
+app.get('/api/assistant/files/:id/download', downloadFile)
 
 /* One auth gate for every data route, rather than requireAuth repeated per mount: the session
    lookup runs once per request this way, and readCache (which needs req.user) sits behind it

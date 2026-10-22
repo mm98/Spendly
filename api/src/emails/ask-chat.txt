@@ -8,7 +8,10 @@ Answered from your Spendly data as it was then. Amounts in {{currency_name}}.
 {{#blocks}}{{#p}}{{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}
 {{/p}}{{#list}}{{#items}}- {{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}
 {{/items}}{{/list}}{{#table}}{{#rows}}- {{#cells}}{{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}{{^last}}, {{/last}}{{/cells}}
-{{/rows}}{{/table}}{{/blocks}}
+{{/rows}}{{/table}}{{#files}}{{#items}}- {{title}}{{#failed}}: could not be made, {{reason}}{{/failed}}{{^failed}} ({{kind}}, {{size}}){{/failed}}
+{{/items}}{{#ready}}Download {{#many}}them{{/many}}{{^many}}it{{/many}} from Files in Ask until {{kept_until}}: {{files_url}}
+{{/ready}}{{/files}}{{#chart}}Chart: {{title}}, {{meta}}. {{values}}
+{{/chart}}{{/blocks}}
 {{/mine}}{{/messages}}Ask something else: {{ask_url}}
 
 You sent this to yourself from Ask, to {{email}}.

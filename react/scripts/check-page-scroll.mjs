@@ -29,7 +29,7 @@ const PAGES = {
 	'': '/', 'orders': '/orders', 'new': ['/orders/new', '/vendors/new', '/categories/new', '/bookmarks/new'],
 	':id': '/orders/:order', ':id/edit': ['/orders/:order/edit', '/vendors/:vendor/edit', '/categories/:category/edit', '/bookmarks/:bookmark/edit'],
 	':id/compare': '/orders/:order/compare', 'statistics': '/statistics', 'vendors': '/vendors', 'categories': '/categories',
-	'bookmarks': '/bookmarks', 'budget/check': '/budget/check', 'budget/:year?': '/budget', 'ask': '/ask',
+	'bookmarks': '/bookmarks', 'budget/check': '/budget/check', 'budget/:year?': '/budget', 'ask': '/ask', 'ask/files': '/ask/files',
 	'settings/:section?': ['/settings', ...[...readFileSync(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
 		.matchAll(/^\t\{ key: '(\w+)', label:/gm)].map(m => `/settings/${m[1]}`)],
 	'more': '/more', 'more/views': '/more/views', '*': '/no-such-page'

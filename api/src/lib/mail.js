@@ -33,11 +33,13 @@ export function publicLink(path, { api = false } = {}) {
 	return api ? `${origin}/api${path}` : `${origin}/open${path}`
 }
 
-/** Resolves once the SMTP server has taken the message. `html` and `headers` are optional; `text` is always sent beside it. */
-export async function sendMail({ to, subject, text, html, headers }) {
-	if (smtp) return void await smtp.sendMail({ from, to, subject, text, html, headers })
+/** Resolves once the SMTP server has taken the message. `html`, `headers` and `attachments` are optional; `text`
+    is always sent beside it. An attachment with a `cid` is a picture the html shows inline. */
+export async function sendMail({ to, subject, text, html, headers, attachments }) {
+	if (smtp) return void await smtp.sendMail({ from, to, subject, text, html, headers, attachments })
 	if (!mailAvailable()) throw new Error('This server cannot send email.')
-	console.log(`[mail] to ${to}: ${subject}\n${text}\n`)
+	const attached = attachments?.length ? `\n[attached: ${attachments.map(a => `${a.filename} (${a.content.length} bytes)`).join(', ')}]` : ''
+	console.log(`[mail] to ${to}: ${subject}\n${text}${attached}\n`)
 }
 
 /** Sends without holding up the answer; a failure goes to the log. */

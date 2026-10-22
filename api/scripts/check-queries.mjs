@@ -265,6 +265,16 @@ const insertQuestion = db.prepare('INSERT INTO user_assistant_questions (id, use
 insertQuestion.run('aq-fixture', USER, 'How much did I save this month?')
 insertQuestion.run('aq-removed', USER, 'Am I over budget this month?')
 for (let i = 0; i < NEIGHBOURS; i++) insertQuestion.run(`aq-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Where did I spend the most last month?')
+// files and charts Ask made: two files and a chart on the account, and one of each next door
+const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, title, type, asked_at, size, stored_name, kept_until, expires_at)
+	VALUES (?, ?, 'Make a spreadsheet of my orders this month', 'xlsx', '2026-10-22T14-05', 4, 'not-on-disk', '2026-11-21', unixepoch() + 2592000)`)
+const insertChart = db.prepare(`INSERT INTO user_assistant_charts (id, user_id, chart, expires_at) VALUES (?, ?, '{"kind":"bars"}', unixepoch() + 2592000)`)
+for (const id of ['af-fixture', 'af-removed']) insertFile.run(id, USER)
+insertChart.run('ac-fixture', USER)
+for (let i = 0; i < NEIGHBOURS; i++) {
+	insertFile.run(`af-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`)
+	insertChart.run(`ac-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`)
+}
 
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
@@ -348,6 +358,7 @@ const REQUESTS = [
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
 	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys', '/account/mcp-tokens', '/assistant', '/assistant/questions',
+	'/assistant/files', '/assistant/files?pageSize=0', '/assistant/files/states?ids=af-fixture,af-gone', '/assistant/files/af-fixture/download',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
@@ -392,6 +403,8 @@ for (const [method, path, body] of [
 	['DELETE', '/account/mcp-tokens/mcp-removed'],
 	['POST', '/assistant/questions', { question: 'How much did I save this month?' }],
 	['DELETE', '/assistant/questions/aq-removed'],
+	['DELETE', '/assistant/files/af-removed'],
+	['POST', '/assistant/files/af-removed/restore'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
 	// a line removed from Previous imports, and put back by its toast's Undo
 	['PATCH', '/imports/im-fixture', { hidden: true }],
@@ -460,6 +473,16 @@ const { latestDuePeriod, statusEmailFor } = await import('../src/lib/statusEmail
 const today = new Date()
 const local = { day: today.toISOString().slice(0, 10), hour: 9, weekday: (today.getUTCDay() + 6) % 7 }
 for (const frequency of ['monthly', 'weekly']) statusEmailFor(USER, latestDuePeriod(frequency, local), '')
+
+// a file and a chart Ask makes while it answers, the day's count of files, and the sweep that removes them after 30 days
+const { fileWriter, makeFile, sweepFiles } = await import('../src/lib/assistantFiles.js')
+const { makeChart, chartsById, sweepCharts } = await import('../src/lib/assistantCharts.js')
+makeFile({ userId: USER, day: local.day, unlimited: false, title: 'Make a spreadsheet', askedAt: '2026-10-22T14-05', type: 'csv',
+	doc: { title: 'Orders', sections: [{ table: { columns: [{ name: 'Shop', kind: 'text' }], rows: [['Netto']] } }] }, write: fileWriter(USER, 'da-DK') })
+makeChart(USER, { kind: 'bars', name: 'Spending', columns: [{ tick: 'Aug', values: [10] }] })
+chartsById(USER, ['ac-fixture'])
+sweepFiles()
+sweepCharts()
 
 // a passkey sign-in reads its passkey before the device's answer is checked, so a made-up answer runs the read and is refused
 const { ticket } = await (await fetch(BASE + '/auth/passkey/start', { method: 'POST' })).json()

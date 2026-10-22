@@ -8,14 +8,18 @@ import { Empty, EmptyBody, EmptyTitle, Spinner, useDismiss } from '../components
 import { emailConversation, failureMessage, getAssistant, getCurrentUser, getSavedQuestions, removeSavedQuestion, saveQuestion } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
-import { answeredTurns, ask, askAgain, clearConversation, noteEmailed, restoreConversation, stopAsking, useConversation, wasEmailed } from '../app/assistant.js'
+import { answeredTurns, ask, askAgain, clearConversation, noteEmailed, refreshFiles, restoreConversation, stopAsking, useConversation, wasEmailed } from '../app/assistant.js'
 import { AnswerText } from '../app/assistantAnswer.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
+// what the waiting bubble says while a file or a chart is made (24d)
+const FILE_WORDS = { xlsx: 'spreadsheet', docx: 'document', pdf: 'PDF', csv: 'CSV' }
+const doingOf = step => (step?.working === 'chart' ? 'Drawing your chart' : step?.working === 'file' ? `Making your ${FILE_WORDS[step.type] ?? 'file'}` : undefined)
+
 /** Ask (24a): a conversation about the reader's own money, the questions they saved, and
-    Clear and Email this chat. The saved questions are on the empty page only. On a desktop Clear and
-    Email sit beside Send; on a phone they sit in the top bar's menu (Mobile screens 7a). */
+    Clear, Email this chat and Files. The saved questions are on the empty page only. On a desktop the
+    three sit beside Send; on a phone they sit in the top bar's menu (Mobile screens 7a). */
 export default function Ask() {
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
@@ -41,6 +45,13 @@ export default function Ask() {
 	// a server that cannot send email hides its email features (README, server settings)
 	const mails = !!account?.mail
 
+	// a file deleted on Files, or past its days, reads as gone when the conversation shows again
+	useEffect(() => {
+		refreshFiles()
+		const back = () => { if (document.visibilityState === 'visible') refreshFiles() }
+		document.addEventListener('visibilitychange', back)
+		return () => document.removeEventListener('visibilitychange', back)
+	}, [])
 	// the field takes focus as the page opens; a phone would raise its keyboard over the conversation
 	useEffect(() => { if (!touch) field.current?.focus() }, [touch])
 	// Send and Stop swap in one place: focus that went with the one that left comes back to the field
@@ -105,7 +116,7 @@ export default function Ask() {
 		<>
 			{touch
 				? <ScreenBar place title="Ask" onBack={() => navigate('/more')}
-					end={<ConversationMenu mails={mails} emailLabel={emailLabel} canEmail={canEmail} canClear={canClear} onEmail={email} onClear={clear} />} />
+					end={<ConversationMenu mails={mails} emailLabel={emailLabel} canEmail={canEmail} canClear={canClear} onEmail={email} onClear={clear} onFiles={() => navigate('/ask/files')} />} />
 				: null}
 			<Chat>
 				{turns.length
@@ -124,8 +135,8 @@ export default function Ask() {
 										? null
 										: (
 											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />}>
-												<ChatReply state={t.state} onRetry={() => askAgain(t.id)}>
-													{t.state === 'answered' ? <AnswerText text={t.answer} onOpen={to => navigate(to)} /> : null}
+												<ChatReply state={t.state} doing={doingOf(t.doing)} onRetry={() => askAgain(t.id)}>
+													{t.state === 'answered' ? <AnswerText text={t.answer} files={t.files} charts={t.charts} onOpen={to => navigate(to)} /> : null}
 												</ChatReply>
 											</ChatMessage>
 										)
@@ -169,6 +180,7 @@ export default function Ask() {
 						: <>
 							<IconButton icon="trash" variant="outline" aria-label="Clear" data-tip="Clear" disabled={!canClear} onClick={clear} />
 							{mails ? <IconButton icon={emailIcon} variant="outline" aria-label={emailLabel} data-tip={emailLabel} disabled={!canEmail} onClick={email} /> : null}
+							<IconButton icon="paperclip" variant="outline" aria-label="Files" data-tip="Files" to="/ask/files" />
 						</>}
 				/>
 			</Chat>
@@ -182,8 +194,8 @@ function AccountMark({ name, email, picture }) {
 	return <Mark size="small" fill="solid" swatch="green-3" round aria-hidden="true" aria-label={name || email}><>{initialsOf(name || email.split('@')[0])}</></Mark>
 }
 
-/* The phone's top bar menu (Mobile screens 7a): Email this chat and Clear, in the same states as the buttons. */
-function ConversationMenu({ mails, emailLabel, canEmail, canClear, onEmail, onClear }) {
+/* The phone's top bar menu (Mobile screens 7a): Email this chat, Clear and Files, in the same states as the buttons. */
+function ConversationMenu({ mails, emailLabel, canEmail, canClear, onEmail, onClear, onFiles }) {
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
@@ -196,6 +208,7 @@ function ConversationMenu({ mails, emailLabel, canEmail, canClear, onEmail, onCl
 					<Menu position="floating" aria-label="Conversation">
 						{mails ? <MenuItem disabled={!canEmail} onClick={() => { close(); onEmail() }}>{emailLabel}</MenuItem> : null}
 						<MenuItem disabled={!canClear} onClick={() => { close(); onClear() }}>Clear</MenuItem>
+						<MenuItem onClick={() => { close(); onFiles() }}>Files</MenuItem>
 					</Menu>
 				)
 				: null}
