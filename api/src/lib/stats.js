@@ -1,6 +1,6 @@
 import { db } from '../db.js'
 import { fromEpoch, toEpoch, todayIso } from './dates.js'
-import { MAX_PAGE_SIZE } from './constants.js'
+import { MAX_PAGE_SIZE, MONEY_BACK_KINDS } from './constants.js'
 import { decorateOrderListRows } from './decorate.js'
 import { orderTotalsSelectList } from './orderColumns.js'
 import { lookalikePairs, vendorsIn } from './vendorLookalikes.js'
@@ -186,11 +186,12 @@ function comparisonWindowId(userId, range, id, compare, today) {
 	return windowIdAt(range, yearAgo)
 }
 
-/* The statuses that are money out, money back, or neither: a draft or a cancelled order moved no money. */
+/* Money back is a returned order or an order of a money-back kind; a draft or a cancelled order moved no money. */
+const MONEY_BACK = `(ot.status_type = 'returned' OR ot.kind IN (${MONEY_BACK_KINDS.map(k => `'${k}'`).join(', ')}))`
 const FLOW_WHERE = {
 	all: " AND ot.status_type NOT IN ('cancelled', 'draft')",
-	expenses: " AND ot.status_type NOT IN ('returned', 'cancelled', 'draft')",
-	refunds: " AND ot.status_type = 'returned'",
+	expenses: ` AND ot.status_type NOT IN ('cancelled', 'draft') AND NOT ${MONEY_BACK}`,
+	refunds: ` AND ot.status_type NOT IN ('cancelled', 'draft') AND ${MONEY_BACK}`,
 	net: " AND ot.status_type NOT IN ('cancelled', 'draft')"
 }
 export const FLOWS = Object.keys(FLOW_WHERE)
@@ -209,7 +210,7 @@ function scopeOf({ flow = 'all', vendorId, categoryId, status, excluded } = {}) 
 		params.categoryId = categoryId
 	}
 	if (status) { and += ' AND ot.status = @status'; params.status = status }
-	const signed = col => (lens === 'net' ? `(CASE WHEN ot.status_type = 'returned' THEN -ot.${col} ELSE ot.${col} END)` : `ot.${col}`)
+	const signed = col => (lens === 'net' ? `(CASE WHEN ${MONEY_BACK} THEN -ot.${col} ELSE ot.${col} END)` : `ot.${col}`)
 	return {
 		and: excluded === 'include' ? and : `${and} AND ot.exclude_from_stats = 0`,
 		leftOut: `${and} AND ot.exclude_from_stats = 1`,
@@ -576,7 +577,7 @@ const selectLimitedMonths = db.prepare(`
 	JOIN orders ot ON ot.id = oc.order_id
 	JOIN categories c ON c.id = oc.category_id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
-		AND ot.status_type NOT IN ('returned', 'cancelled', 'draft') AND ot.exclude_from_stats = 0 AND c.budget > 0
+		${FLOW_WHERE.expenses} AND ot.exclude_from_stats = 0 AND c.budget > 0
 	GROUP BY oc.category_id, month
 `)
 const selectSummarySeen = db.prepare('SELECT month FROM user_monthly_summaries_seen WHERE user_id = ?')

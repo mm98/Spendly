@@ -45,3 +45,16 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## Vendor and category totals count money back as money paid
+
+- **Where:** a vendor's spend (`api/src/lib/aggregate.js`, `api/src/lib/vendorList.js`), a
+  category's month and year spend (`api/src/lib/categoryList.js`), the limit check on the edit
+  screen (`GET /api/orders/limits`) and the order list's total.
+- **What the reader sees:** a returned order, and an order of the kind Sold, add to these totals
+  as if they were paid. Statistics, Home's month figure and the status email count them as money
+  back.
+- **Found:** 2026-10-22, while making Sold count as money back in statistics.
+- **For Claude Design:** Statistics' "Refunds only" reads "Returned and sold orders." and its
+  empty state "No returned or sold orders in …", where `design/` says "Returned orders.": Sold
+  counts there too.

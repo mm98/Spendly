@@ -115,6 +115,7 @@ Everything that needs you, on one page.
 - **Periods** - 30 days, week, month, quarter, year or your own dates, with shortcuts for this
   month, last month, year to date and all time.
 - **Count** expenses only, refunds only, or net of refunds, and compare with the same period a year earlier.
+  A returned order and an order of the kind Sold are money back; every other order is money paid.
 - **Figures** - total spend, orders, median order and saved, each with its change.
 - **Charts and breakdowns** - spend over time, stacked by category; by category, status and vendor;
   spend against saving; and how each limit is doing.
