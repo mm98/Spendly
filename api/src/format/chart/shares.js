@@ -78,4 +78,4 @@ function words(chart, money) {
 	return chart.shares.map(s => `${s.name} ${money(s.amount)} (${Math.round(s.amount / total * 100)}%)`).join(', ')
 }
 
-export const shares = { kind: 'shares', use: 'of a whole (for example the biggest categories)', properties, shape, picture, words }
+export const shares = { kind: 'shares', name: 'Donut chart', use: 'of a whole (for example the biggest categories)', properties, shape, picture, words }

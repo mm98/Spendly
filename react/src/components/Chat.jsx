@@ -162,26 +162,51 @@ export function ChatShares({ children, ...rest }) {
 
 /** A saved question on the empty page: pressing it sends it, and the x beside it removes it. One
     line, cut with ... past 320px, the whole question in its tooltip. */
-export function ChatPick({ question, disabled = false, onSend, onRemove, ...rest }) {
+export function ChatPick({ question, disabled = false, onChoose, onRemove, ...rest }) {
 	reject(rest, 'ChatPick')
 	return (
 		<span className="sp-chat__pick">
-			<Button variant="outline" size="small" disabled={disabled} title={question} onClick={onSend}><span className="sp-truncate">{question}</span></Button>
-			<IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={`Remove ${question}`} onClick={onRemove} />
+			<Button variant="outline" size="small" disabled={disabled} title={question} onClick={onChoose}><span className="sp-truncate">{question}</span></Button>
+			{onRemove ? <IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={`Remove ${question}`} onClick={onRemove} /> : null}
 		</span>
 	)
 }
 
-/** Under the thread: the field and Send, or Stop while `working`, then `end`. `bar` pins it above a
-    phone's tab bar, where the hint has no keys and shows only `left`. */
-export function ChatDock({ bar = false, value, onChange, onSend, onStop, working = false, disabled = false, fieldRef, placeholder, left, end, ...rest }) {
+/** What Ask can do (24c): a part for each kind of thing Ask makes, as the server lists them: its name, its
+    formats on one line and one example question, or `off`, why it makes nothing here. */
+export function ChatHelp({ makes, disabled = false, onChoose, ...rest }) {
+	reject(rest, 'ChatHelp')
+	return (
+		<div className="sp-chat__help">
+			{makes.map(m => (
+				<div key={m.name} className="sp-chat__help-part">
+					<span className="sp-section-label">{m.name}</span>
+					{m.off
+						? <span className="sp-dialog__body">{m.off}</span>
+						: <>
+							<span className="sp-chat__formats">{m.formats.join(', ')}</span>
+							<ChatPick question={m.example} disabled={disabled} onChoose={() => onChoose(m.example)} />
+						</>}
+				</div>
+			))}
+		</div>
+	)
+}
+
+/** Under the thread: the field with What Ask can do at its edge (`onHelp`, never disabled), and Send, or Stop
+    while `working`, then `end`. `bar` pins it above a phone's tab bar, where the hint has no keys and shows only `left`. */
+export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp, working = false, disabled = false, fieldRef, placeholder, left, end, ...rest }) {
 	reject(rest, 'ChatDock')
 	const size = bar ? 'small' : 'standard'
 	return (
 		<div className={join('sp-chat__dock', bar && 'sp-chat__dock--bar')}>
 			<div className="sp-chat__composer">
-				<textarea ref={fieldRef} className="sp-textarea sp-chat__field" rows={1} value={value} disabled={disabled}
-					onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label="Ask" {...rest} />
+				<span className="sp-field__wrap sp-chat__wrap">
+					<textarea ref={fieldRef} className="sp-textarea sp-chat__field" rows={1} value={value} disabled={disabled}
+						onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label="Ask" {...rest} />
+					<button type="button" className="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog"
+						data-tip="What Ask can do" onClick={onHelp}><Icon name="help-circle" size={15} /></button>
+				</span>
 				{working
 					? <Button variant="outline" size={size} onClick={onStop}>Stop</Button>
 					: <Button size={size} disabled={disabled || !value.trim()} onClick={onSend}>Send</Button>}

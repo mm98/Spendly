@@ -2,8 +2,16 @@ import { fileMaker } from './file/index.js'
 import { chartMaker } from './chart/index.js'
 
 /* What Ask makes while it answers, one maker each, in the order Claude is offered their tools. A maker is
-   { place, tool, doing, make, byIds, emailBlocks, attachments, sweep } (README: "What Ask makes"). */
+   { place, name, formats, example, note?, off?, tool, doing, make, byIds, emailBlocks, attachments, sweep }
+   (README: "What Ask makes"). */
 export const MAKERS = [fileMaker, chartMaker]
+
+/** What Ask can make, for the reader (Ask 24c): each maker with its formats' names and one example question.
+    `off` says why a maker makes nothing on this server, and then it carries no note. */
+export const askMakes = ({ unlimited = false } = {}) => MAKERS.map(m => {
+	const off = m.off?.(unlimited) ?? null
+	return { name: m.name, formats: m.formats(), example: m.example, note: off ? null : m.note ?? null, off }
+}).filter(m => m.formats.length)
 
 export const makerOfPlace = place => MAKERS.find(m => m.place === place) ?? null
 export const makerOfTool = name => MAKERS.find(m => m.tool.name === name) ?? null

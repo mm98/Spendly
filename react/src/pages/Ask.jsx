@@ -11,6 +11,7 @@ import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
 import { ask, askAgain, lastChat, newChat, noteEmailed, refreshFiles, showChat, showDraft, stopAsking, useChat, wasEmailed } from '../app/ask.js'
 import { AnswerText } from '../app/askAnswer.jsx'
+import { useAskHelp } from '../app/askHelp.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
@@ -89,6 +90,8 @@ export default function Ask() {
 		if (answer) answer.scrollIntoView({ block: 'start' })
 		else box.scrollTop = box.scrollHeight
 	}, [turns.length, latest?.state, noneLeft, fileTurn])
+
+	const { onHelp, help } = useAskHelp({ makes: askStatus?.makes, disabled: noneLeft, touch, field, setText })
 
 	const send = useCallback(question => {
 		if (working || noneLeft || !question.trim() || !account) return
@@ -183,12 +186,12 @@ export default function Ask() {
 							<Empty>
 								<SpendlyMark size="large" />
 								<EmptyTitle>Ask about your money</EmptyTitle>
-								<EmptyBody>Answers come from your orders, vendors, categories and budget. Asking never changes anything.</EmptyBody>
+								<EmptyBody>Answers come from your orders, vendors, categories, budget and statistics, and can be a file or a chart. Asking never changes anything.</EmptyBody>
 							</Empty>
 							{saved.length
 								? (
 									<ChatExamples>
-										{saved.map(s => <ChatPick key={s.id} question={s.question} disabled={noneLeft} onSend={() => send(s.question)} onRemove={() => toggleSaved(s.question)} />)}
+										{saved.map(s => <ChatPick key={s.id} question={s.question} disabled={noneLeft} onChoose={() => send(s.question)} onRemove={() => toggleSaved(s.question)} />)}
 									</ChatExamples>
 								)
 								: savedList ? <span className="sp-meta">Save a question with the bookmark beside it, and it shows here.</span> : null}
@@ -201,6 +204,7 @@ export default function Ask() {
 					onKeyDown={keys}
 					onSend={() => send(text)}
 					onStop={stopAsking}
+					onHelp={onHelp}
 					working={working}
 					disabled={noneLeft || !!opening}
 					fieldRef={field}
@@ -211,6 +215,7 @@ export default function Ask() {
 						: <ChatMore><Menu position="floating" aria-label="Conversation">{items}</Menu></ChatMore>}
 				/>
 			</Chat>
+			{help}
 		</>
 	)
 }
