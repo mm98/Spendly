@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261022b">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
@@ -103,6 +103,15 @@
 	<span class="doc-specimen__label">at the attachment size: an image that opens, one that can be removed, a file with no thumbnail, one that failed, one uploading, and the way to add</span>
 	<div class="sp-card"><div class="sp-row-flex sp-gap-12 sp-wrap sp-top">{{ attachments }}</div></div>
 	{{ attachmentsCode }}
+</section>
+
+<section class="doc-section">
+	<div class="doc-section__head"><span class="doc-section__title">Chat.jsx - files and a chart in an answer</span></div>
+	<div class="doc-note"><b>A file row is one component in two places</b>: in an answer (Ask 24d) with Download, and on Files (24e) with Download and Delete. Its second line is derived from the state, so a failed file cannot look ready. The title is the question only; the time goes into the downloaded file's name. A chart is the library's Bars in <code>ChatChart</code>, its columns spans with a label and a readout, since nothing in an answer drills in.</div>
+	<span class="doc-specimen__label">ready, being made, could not be made, gone, and on Files</span>
+	<div class="sp-card"><div class="doc-w560">{{ chatFiles }}</div></div>
+	<span class="doc-specimen__label">Bars in an answer, the readout open on a tapped column</span>
+	<div class="sp-card"><div class="doc-w560">{{ chatChart }}</div></div>
 </section>
 
 <section class="doc-section">
@@ -442,7 +451,7 @@ const FILES = ['variants.js', 'format.js',
 	// DatePickers before Inputs: DateField reaches for the Calendar, and a file
 	// evaluated after its callers leaves them with no binding at all
 	'DatePickers.jsx', 'Inputs.jsx', 'Utilities.jsx',
-	'Shell.jsx', 'Touch.jsx', 'Overlays.jsx', 'List.jsx', 'Data.jsx', 'LineEditor.jsx'];
+	'Shell.jsx', 'Touch.jsx', 'Overlays.jsx', 'List.jsx', 'Data.jsx', 'LineEditor.jsx', 'Chat.jsx'];
 
 /* The harness. It evaluates the real component files so this page cannot drift from
    them: no copy of a component lives here.
@@ -604,6 +613,7 @@ class Component extends DCLogic {
 		const m = this.state.mods;
 		if (this.state.error) return { status: 'The harness could not load: ' + this.state.error };
 		if (!m) return { status: 'Loading the component files.' };
+		const { ChatFiles, ChatFile, ChatChart, ChatShares } = this.state.byFile['Chat.jsx'] || {};
 		const { Button, IconButton, Mark, Chip, Pill, Field, Icon,
 			Card, CardHeader, Cards, CardBody, Well, ListItem, Insertion, ListItemRemove,
 			Stacked, Line, Combobox, ComboboxOption, ComboboxGroup, ComboboxEmpty,
@@ -1643,6 +1653,17 @@ class Component extends DCLogic {
 				e(Sum, { value: '340,00 kr.' }, 'Shipping'),
 				e(Sum, { variant: 'total', value: '3.980,00 kr.' }, 'Total')),
 
+			chatFiles: ChatFiles ? e(ChatFiles, null,
+				e(ChatFile, { key: 'a', title: 'Make a spreadsheet of my orders at Bilka this year', type: 'xlsx', size: '18 KB', href: '#' }),
+				e(ChatFile, { key: 'b', title: 'A summary of September as a document', type: 'docx', state: 'making' }),
+				e(ChatFile, { key: 'c', title: 'Make a spreadsheet of every order I have', type: 'xlsx', state: 'failed', reason: 'too many orders for one file. Ask for one year at a time.' }),
+				e(ChatFile, { key: 'd', title: 'Make a PDF of my budget for August', type: 'pdf', state: 'gone', gone: 'expired' }),
+				e(ChatFile, { key: 'f', title: 'Make a CSV of my orders at Bauhaus', type: 'csv', size: '6 KB', keptUntil: '2026-11-21', href: '#', onDelete: () => this.setState({ lastAction: 'Deleted a file' }) })) : null,
+			chatChart: ChatChart ? e(ChatChart, { name: 'Spending per month', meta: 'Apr - Sep 2026' },
+				e(Bars, { open: 'aug', columns: [['apr', 'Apr', 50, '5.010,00'], ['may', 'May', 65, '6.240,00'], ['jun', 'Jun', 70, '6.880,00'], ['jul', 'Jul', 60, '5.660,00'], ['aug', 'Aug', 100, '9.840,00'], ['sep', 'Sep', 80, '8.080,00']].map(([key, tick, height, amt]) => ({
+					key, tick, height, label: tick + ' 2026, ' + amt + ' kr.',
+					readout: e('span', { className: 'sp-tip sp-tip--panel' }, e('span', { className: 'sp-tip__head' }, e('span', null, tick + ' 2026'), e('span', null, amt + ' kr.')))
+				})) })) : null,
 			attachments: (() => {
 				const remove = id => this.setState(s => ({ files: s.files.filter(f => f.id !== id) }));
 				const add = () => this.setState(s => ({

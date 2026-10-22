@@ -61,14 +61,19 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
  * nothing must not invite a click.
  *
  * @param {object} props
- * @param {Array<{key: string, height: number, from?: string, to?: string, tick?: React.ReactNode, muted?: boolean, segments?: Array<{key: string, share: number}>, pair?: number[]}>} props.columns
+ * @param {Array<{key: string, height: number, from?: string, to?: string, tick?: React.ReactNode, muted?: boolean, segments?: Array<{key: string, share: number}>, pair?: number[], label?: string, readout?: React.ReactNode}>} props.columns
  *   `height` and `share` are percentages. `segments` splits a column by category;
  *   `pair` is two bars read against each other rather than stacked. `from` and `to`
  *   are the first and last day the column counts, as ISO dates - a step is a period,
  *   and the reader who clicks August wants August's orders, not the string "aug".
+ *   `label` names a column that cannot be clicked, for a screen reader: "August 2026,
+ *   9.840,00 kr., 31 orders". `readout` is the chart tooltip that column shows on
+ *   hover, focus or a tap - in an answer (Ask 24d), where no column drills in.
  * @param {'default'|'plot'|'spark'} [props.variant] `plot` takes the plot frame's
  *   height; `spark` is the chart at a stat's size.
  * @param {string} [props.selected] The key of the column the reader drilled into.
+ * @param {string} [props.open] The key of the column a finger tapped, whose readout
+ *   stays open until a tap elsewhere.
  * @param {(key: string, from: string, to: string) => void} [props.onSelect] The
  *   column's key and the period it covers, in order - reported together the way
  *   `RangePicker` reports a range, since a step the reader can drill into is a range.
@@ -76,7 +81,7 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
  *
  * Takes no `className` and no `style`.
  */
-export function Bars({ columns = [], variant = 'default', selected, onSelect, ...rest }) {
+export function Bars({ columns = [], variant = 'default', selected, open, onSelect, ...rest }) {
 	reject(rest, 'Bars')
 	for (const c of columns) {
 		if (!!c.from !== !!c.to) console.error(`<Bars> column "${c.key}" has ${c.from ? 'from' : 'to'} without the other: a period is the pair`)
@@ -107,7 +112,12 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, ..
 						{column.tick ? <span className="sp-bars__tick">{column.tick}</span> : null}
 					</>
 				)
-				if (!onSelect) return <span className="sp-bars__col" key={column.key}>{body}</span>
+				if (!onSelect) return (
+					<span className="sp-bars__col" tabIndex={column.readout ? 0 : undefined} aria-label={column.label} data-open={open === column.key ? 'true' : undefined} key={column.key}>
+						{body}
+						{column.readout || null}
+					</span>
+				)
 				return (
 					<button
 						type="button"

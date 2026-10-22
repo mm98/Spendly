@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261022b">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
 <style>
@@ -388,7 +388,7 @@
               <span class="sp-chip sp-chip--static">CVR 12345678<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove CVR 12345678"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
               <input class="sp-tokens__add" id="vc-tok2" type="text" placeholder="Add…" aria-label="Add a value">
             </div>
-            <span class="sp-field__help">Other names this vendor uses on receipts. A receipt with one of these is filed here.</span>
+            <span class="sp-field__help">Other names this vendor uses on receipts. Capitals, punctuation and endings like Inc or ApS do not count.</span>
 <div class="sp-field">
             <span  class="sp-field__label" id="vc-grp4">Colour</span>
             <div class="sp-options" role="group" aria-labelledby="vc-grp4">
@@ -1163,6 +1163,20 @@
   </div>
   <div class="doc-specimens">
       <div class="sp-stack sp-gap-8 doc-w440">
+        <span class="sp-section-label">THE FIELD - A SPELLING THE NAME ALREADY MATCHES</span>
+        <div class="sp-card">
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-tok-alias">Also matches</label>
+            <div class="sp-tokens">
+              <span class="sp-chip sp-chip--static">nabucasa.com<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove nabucasa.com"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
+              <input class="sp-tokens__add" id="vc-tok-alias" type="text" defaultValue="Nabu Casa, Inc." aria-invalid="true" aria-describedby="vc-tok-alias-msg">
+            </div>
+            <span class="sp-field__help" data-color="danger" id="vc-tok-alias-msg">"Nabu Casa, Inc." already matches Nabu Casa. Capitals, punctuation and endings like Inc or ApS do not count.</span>
+          </div>
+        </div>
+        <div class="doc-note">Vendor <b>Nabu Casa</b>. An alias the name already matches is refused as it is added, and the typed text stays in the field to be corrected. The refusal names the typed alias and the vendor, then repeats the matching rule from the hint.</div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w440">
         <span class="sp-section-label">THE FIELD</span>
         <div class="sp-card">
 <div class="sp-field">
@@ -1174,7 +1188,7 @@
               <span class="sp-chip sp-chip--static">CVR 12345678<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove CVR 12345678"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span>
               <input class="sp-tokens__add" id="vc-tok3" type="text" placeholder="Add…" aria-label="Add a value">
             </div>
-            <span class="sp-field__help">Other names this vendor uses on receipts. A receipt with one of these is filed here.</span>
+            <span class="sp-field__help">Other names this vendor uses on receipts. Capitals, punctuation and endings like Inc or ApS do not count.</span>
 <div class="sp-field">
             <span  class="sp-field__label" id="vc-grp1">Colour</span>
             <div class="sp-options" role="group" aria-labelledby="vc-grp1">

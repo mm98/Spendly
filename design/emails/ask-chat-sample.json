@@ -245,6 +245,89 @@
      ]
     }
    ]
+  },
+  {
+   "mine": true,
+   "question": "Make a spreadsheet of my orders at Bilka this year"
+  },
+  {
+   "mine": false,
+   "blocks": [
+    {
+     "p": true,
+     "runs": [
+      {
+       "text": "Here are your 38 orders at "
+      },
+      {
+       "text": "Bilka",
+       "url": "https://app.example.net/vendors/bilka"
+      },
+      {
+       "text": " this year, "
+      },
+      {
+       "text": "6.412,90 kr.",
+       "amount": true
+      },
+      {
+       "text": " in all."
+      }
+     ]
+    },
+    {
+     "files": true,
+     "ready": true,
+     "many": false,
+     "files_url": "https://app.example.net/ask/files",
+     "kept_until": "2026-11-21",
+     "items": [
+      {
+       "first": true,
+       "title": "Make a spreadsheet of my orders at Bilka this year",
+       "kind": "Excel",
+       "size": "18 KB"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mine": true,
+   "question": "Show my spending per month for the last year"
+  },
+  {
+   "mine": false,
+   "blocks": [
+    {
+     "p": true,
+     "runs": [
+      {
+       "text": "Your spending peaked in August, at "
+      },
+      {
+       "text": "9.840,00 kr.",
+       "amount": true
+      },
+      {
+       "text": " The 12 months come to "
+      },
+      {
+       "text": "74.310,00 kr.",
+       "amount": true
+      }
+     ]
+    },
+    {
+     "chart": true,
+     "title": "Spending per month",
+     "meta": "Oct 2025 - Sep 2026",
+     "src": "emails/ask-chart-sample.png",
+     "width": 520,
+     "alt": "Spending per month, Oct 2025 - Sep 2026: Oct 5.120 kr., Nov 5.840 kr., Dec 7.910 kr., Jan 4.380 kr., Feb 4.020 kr., Mar 5.330 kr., Apr 5.010 kr., May 6.240 kr., Jun 6.880 kr., Jul 5.660 kr., Aug 9.840 kr., Sep 8.080 kr.",
+     "values": "Oct 5.120 kr., Nov 5.840 kr., Dec 7.910 kr., Jan 4.380 kr., Feb 4.020 kr., Mar 5.330 kr., Apr 5.010 kr., May 6.240 kr., Jun 6.880 kr., Jul 5.660 kr., Aug 9.840 kr., Sep 8.080 kr."
+    }
+   ]
   }
  ],
  "currency_name": "Danish kroner"

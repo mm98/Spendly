@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022a">
+<link rel="stylesheet" href="styles/components.css?v=v20261022b">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
@@ -636,6 +636,8 @@
       <div class="sp-section-label">11 - ASK, A CONVERSATION</div>
       <iframe class="au-email" title="A conversation from Ask" srcDoc="{{ chatDoc }}"></iframe>
       <div class="sp-meta au-w600">Subject: Your Spendly conversation, 21 Oct 2026. Sent only to the account's own address, when Email this chat is pressed on Ask (24c).</div>
+      <div class="doc-note au-w600"><b class="sp-ink">A file in the emailed chat</b> is its title, type and size in the answer's frame, never a link, since the download needs a sign-in. One line under the frame says where to get it: "Download it from Files in Ask until 2026-11-21.", with Files in Ask linked to <b>/ask/files</b> (<a href="Ask Spendly.dc.html#24e">24e</a>). A file that could not be made reads "Could not be made:" and its reason.</div>
+      <div class="doc-note au-w600"><b class="sp-ink">A chart in the emailed chat</b> is an image of it, under its name and period, attached to the message inline so it shows without a sign-in. Its alt text is the name and every value, for a client that blocks images, and the text version lists the values. Outlook for Windows takes the image at its width attribute. Fields in <b>emails/README.md</b>.</div>
     </div>
   </div>
 </section>
@@ -705,6 +707,7 @@
       <div class="sp-stack sp-gap-8 au-w420">
         <div class="doc-note">The normal app. Confirmation pending is a <b>banner at the top of the content column</b>, inside the shell - never a modal, because the rest of the app still works.</div>
         <div class="doc-note"><b class="sp-ink">Which screens:</b> everything else in the set, plus the unconfirmed state. The banner scrolls with the content rather than sticking - it is a reminder, not a warning.</div>
+        <div class="doc-note"><b class="sp-ink">On a page that fills the column</b>, such as Ask on a phone, whose body has no padding, the banner keeps the phone gutter itself: <code>--phone-gutter</code> from the screen's edges and above the content (<a href="Mobile screens.dc.html#7a">7a</a>).</div>
       </div>
     </div>
 

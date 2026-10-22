@@ -1,9 +1,10 @@
 # React components from the library
 
-24 files, grouped by what a component belongs to:
+25 files, grouped by what a component belongs to:
 
     Button.jsx        Button, IconButton
     Card.jsx          Card, CardHeader, Cards, CardBody, Toolbar, ListFooter
+    Chat.jsx          ChatFiles, ChatFile, ChatChart, ChatShares
     Chip.jsx          Chip
     Choice.jsx        Check, Radio, Switch, Choice, FieldGroup, Picker
     Combobox.jsx      Combobox, ComboboxOption, ComboboxGroup, ComboboxEmpty
@@ -366,6 +367,22 @@ row that only states something stays a div.
 
 `Icon` is imported from `./Icon.jsx`. The library's icons are Tabler outline, which
 is what that component already reads.
+
+`ChatFile` - one row for a file, in an answer and on Files alike. Its second line is
+derived from `state` rather than passed, so a file that could not be made cannot read
+as ready: `ready` shows the type and size, `making` the type and Being made with the
+spinner in Download's place, `failed` the reason in the red ink, `gone` Deleted or
+Removed after 30 days. The title is the question only; the time it was asked is in the
+downloaded file's name, which the server sets. `onDelete` adds Delete, on Files only.
+
+`ChatChart` - the frame and the name an answer's chart sits under. The chart is the
+library's own `Bars`, or the app's Donut and Shares inside `ChatShares`; there is no
+smaller chart.
+
+`Bars` - a column that cannot be clicked may carry `label` and `readout`: the name a
+screen reader reads, and the chart tooltip it shows on hover, focus or a tap. `open`
+is the column a finger tapped. In an answer no column drills in, so this is how its
+amounts are read.
 
 `Bars` - a column may carry `from` and `to`, the first and last day it counts, and
 `onSelect` reports `(key, from, to)`. One end without the other is reported: a period
