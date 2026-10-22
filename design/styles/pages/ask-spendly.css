@@ -35,6 +35,8 @@
   /* the Files page's content at a specimen's width: 24e */
   .as-page { width: 600px; flex: none; }
   .as-bar { width: 600px; }
+  /* room above the bar for its menu, drawn open in 24c */
+  .as-bar--menu { padding-top: 200px; }
   .as-toast { width: 400px; }
 
 }

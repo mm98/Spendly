@@ -3801,6 +3801,15 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 /* a tip on the last control in the chat field lines up with the control's right side:
    centred, the tip of the control at the row's right edge reached past the window */
 .sp-chat__composer > [data-tip]:last-child::after { left: auto; right: 0; transform: none; }
+/* the conversation menu beside Send (Ask 24c) */
+.sp-chat__more { position: relative; flex: none; display: flex; }
+.sp-chat__more > .sp-icon-btn { width: var(--control-h); height: var(--control-h); }
+.sp-touch .sp-chat__more > .sp-icon-btn { width: var(--control-h-touch); height: var(--control-h-touch); }
+.sp-chat__more > [data-tip]::after { left: auto; right: 0; transform: none; }
+.sp-chat__more > .sp-menu--floating { right: 0; }
+/* a chat's heading on Chats (Ask 24f) is the link that opens it */
+a.sp-chat__file-name { text-decoration: none; }
+a.sp-chat__file-name:hover { color: var(--green); text-decoration: underline; }
 
 .sp-tip {
   display: inline-block;
@@ -5588,6 +5597,9 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 /* a column's readout hangs above its bar, centred; the first and last line up with their
    edge. Shown on hover, on keyboard focus, and on the column a finger tapped */
 .sp-chat__chart .sp-bars__col { position: relative; }
+/* the tick sits in the column's padding, so a bar's height is a share of the space above the ticks */
+.sp-chat__chart .sp-bars__col { padding-bottom: calc(var(--t-11) * var(--lh) + var(--sp-8)); }
+.sp-chat__chart .sp-bars__tick { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
 .sp-chat__chart .sp-bars__col > .sp-tip--panel { display: none; position: absolute; bottom: calc(100% + var(--sp-6)); left: 50%; transform: translateX(-50%); z-index: 3; }
 .sp-chat__chart .sp-bars__col:first-child > .sp-tip--panel { left: 0; transform: none; }
 .sp-chat__chart .sp-bars__col:last-child > .sp-tip--panel { left: auto; right: 0; transform: none; }
@@ -5598,10 +5610,12 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__shares { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-16); }
 .sp-chat__shares > .sp-donut { flex: none; }
 .sp-chat__shares > .sp-shares { flex: 1 1 200px; min-width: 0; }
+/* a share row in an answer is a link to its category, and keeps the row's own look: not the answer's bold, underlined link */
+.sp-chat__reply a.sp-shares__row { font-weight: inherit; text-decoration: none; }
 /* an answer holding a chart or files takes the full column on touch, as one holding a table does */
 .sp-touch .sp-chat__msg:has(.sp-chat__files) { max-width: 100%; }
 /* the empty conversation: the empty state, and the example questions under it */
-.sp-chat__start { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-16); flex: 1; }
+.sp-chat__start { display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: var(--sp-16); flex: 1; min-height: 0; overflow-y: auto; }
 /* the list takes the column's width (its items still centred), so a saved question's cap
    at 100% refers to the column and not to the list's own widest content */
 .sp-chat__examples { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); align-self: stretch; }

@@ -1,334 +1,339 @@
 {
- "subject": "Your Spendly conversation, 21 Oct 2026",
- "preheader": "How much did I spend on food in August? And in September?",
- "date": "21 Oct 2026",
- "email": "mikkel@example.net",
- "initials": "MM",
- "ask_url": "https://app.example.net/ask",
- "messages": [
-  {
-   "mine": true,
-   "question": "How much did I spend on food in August?"
-  },
-  {
-   "mine": false,
-   "blocks": [
+  "subject": "Your Spendly conversation, 21 Oct 2026",
+  "preheader": "How much did I spend on food in August? And in September?",
+  "date": "21 Oct 2026",
+  "email": "mikkel@example.net",
+  "initials": "MM",
+  "messages": [
     {
-     "p": true,
-     "runs": [
-      {
-       "text": "You spent "
-      },
-      {
-       "text": "4.212,50 kr.",
-       "amount": true
-      },
-      {
-       "text": " on "
-      },
-      {
-       "text": "Food",
-       "url": "https://app.example.net/categories/food"
-      },
-      {
-       "text": " in August, over 23 orders. Most of it went to three vendors:"
-      }
-     ]
+      "mine": true,
+      "question": "How much did I spend on food in August?"
     },
     {
-     "table": true,
-     "head": [
-      {
-       "label": "Vendor",
-       "align": "left"
-      },
-      {
-       "label": "Orders",
-       "align": "right"
-      },
-      {
-       "label": "Amount",
-       "align": "right"
-      }
-     ],
-     "rows": [
-      {
-       "cells": [
+      "mine": false,
+      "blocks": [
         {
-         "align": "left",
-         "runs": [
-          {
-           "text": "Netto",
-           "url": "https://app.example.net/vendors/netto"
-          }
-         ]
+          "p": true,
+          "runs": [
+            {
+              "text": "You spent "
+            },
+            {
+              "text": "4.212,50 kr.",
+              "amount": true
+            },
+            {
+              "text": " on "
+            },
+            {
+              "text": "Food",
+              "url": "https://app.example.net/categories/food"
+            },
+            {
+              "text": " in August, over 23 orders. Most of it went to three vendors:"
+            }
+          ]
         },
         {
-         "align": "right",
-         "runs": [
-          {
-           "text": "9"
-          }
-         ]
-        },
-        {
-         "align": "right",
-         "last": true,
-         "runs": [
-          {
-           "text": "1.684,20 kr.",
-           "amount": true
-          }
-         ]
+          "table": true,
+          "head": [
+            {
+              "label": "Vendor",
+              "align": "left"
+            },
+            {
+              "label": "Orders",
+              "align": "right"
+            },
+            {
+              "label": "Amount",
+              "align": "right"
+            }
+          ],
+          "rows": [
+            {
+              "cells": [
+                {
+                  "align": "left",
+                  "runs": [
+                    {
+                      "text": "Netto",
+                      "url": "https://app.example.net/vendors/netto"
+                    }
+                  ]
+                },
+                {
+                  "align": "right",
+                  "runs": [
+                    {
+                      "text": "9"
+                    }
+                  ]
+                },
+                {
+                  "align": "right",
+                  "last": true,
+                  "runs": [
+                    {
+                      "text": "1.684,20 kr.",
+                      "amount": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "align": "left",
+                  "runs": [
+                    {
+                      "text": "Lidl",
+                      "url": "https://app.example.net/vendors/lidl"
+                    }
+                  ]
+                },
+                {
+                  "align": "right",
+                  "runs": [
+                    {
+                      "text": "8"
+                    }
+                  ]
+                },
+                {
+                  "align": "right",
+                  "last": true,
+                  "runs": [
+                    {
+                      "text": "1.426,30 kr.",
+                      "amount": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "align": "left",
+                  "runs": [
+                    {
+                      "text": "Irma",
+                      "url": "https://app.example.net/vendors/irma"
+                    }
+                  ]
+                },
+                {
+                  "align": "right",
+                  "runs": [
+                    {
+                      "text": "6"
+                    }
+                  ]
+                },
+                {
+                  "align": "right",
+                  "last": true,
+                  "runs": [
+                    {
+                      "text": "1.102,00 kr.",
+                      "amount": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
-       ]
-      },
-      {
-       "cells": [
-        {
-         "align": "left",
-         "runs": [
-          {
-           "text": "Lidl",
-           "url": "https://app.example.net/vendors/lidl"
-          }
-         ]
-        },
-        {
-         "align": "right",
-         "runs": [
-          {
-           "text": "8"
-          }
-         ]
-        },
-        {
-         "align": "right",
-         "last": true,
-         "runs": [
-          {
-           "text": "1.426,30 kr.",
-           "amount": true
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "cells": [
-        {
-         "align": "left",
-         "runs": [
-          {
-           "text": "Irma",
-           "url": "https://app.example.net/vendors/irma"
-          }
-         ]
-        },
-        {
-         "align": "right",
-         "runs": [
-          {
-           "text": "6"
-          }
-         ]
-        },
-        {
-         "align": "right",
-         "last": true,
-         "runs": [
-          {
-           "text": "1.102,00 kr.",
-           "amount": true
-          }
-         ]
-        }
-       ]
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "mine": true,
-   "question": "And in September?"
-  },
-  {
-   "mine": false,
-   "blocks": [
-    {
-     "p": true,
-     "runs": [
-      {
-       "text": "In September you spent "
-      },
-      {
-       "text": "3.640,00 kr.",
-       "amount": true
-      },
-      {
-       "text": " on "
-      },
-      {
-       "text": "Food",
-       "url": "https://app.example.net/categories/food"
-      },
-      {
-       "text": ", "
-      },
-      {
-       "text": "572,50 kr.",
-       "amount": true
-      },
-      {
-       "text": " less than in August. The largest was "
-      },
-      {
-       "text": "your order at Netto on 11 Sep",
-       "url": "https://app.example.net/orders/SPENDLY-468"
-      },
-      {
-       "text": ", "
-      },
-      {
-       "text": "412,80 kr.",
-       "amount": true
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "mine": true,
-   "question": "Which shop did I use most this year?"
-  },
-  {
-   "mine": false,
-   "blocks": [
-    {
-     "p": true,
-     "runs": [
-      {
-       "text": "Netto",
-       "url": "https://app.example.net/vendors/netto"
-      },
-      {
-       "text": ", with 41 orders this year. After it come:"
-      }
-     ]
+      ]
     },
     {
-     "list": true,
-     "items": [
-      {
-       "runs": [
-        {
-         "text": "Lidl",
-         "url": "https://app.example.net/vendors/lidl"
-        },
-        {
-         "text": ", 33 orders"
-        }
-       ]
-      },
-      {
-       "runs": [
-        {
-         "text": "Indbo Møbler",
-         "url": "https://app.example.net/vendors/indbo-mobler"
-        },
-        {
-         "text": ", 12 orders"
-        }
-       ]
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "mine": true,
-   "question": "Make a spreadsheet of my orders at Bilka this year"
-  },
-  {
-   "mine": false,
-   "blocks": [
-    {
-     "p": true,
-     "runs": [
-      {
-       "text": "Here are your 38 orders at "
-      },
-      {
-       "text": "Bilka",
-       "url": "https://app.example.net/vendors/bilka"
-      },
-      {
-       "text": " this year, "
-      },
-      {
-       "text": "6.412,90 kr.",
-       "amount": true
-      },
-      {
-       "text": " in all."
-      }
-     ]
+      "mine": true,
+      "question": "And in September?"
     },
     {
-     "files": true,
-     "ready": true,
-     "many": false,
-     "files_url": "https://app.example.net/ask/files",
-     "kept_until": "2026-11-21",
-     "items": [
-      {
-       "first": true,
-       "title": "Make a spreadsheet of my orders at Bilka this year",
-       "kind": "Excel",
-       "size": "18 KB"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "mine": true,
-   "question": "Show my spending per month for the last year"
-  },
-  {
-   "mine": false,
-   "blocks": [
-    {
-     "p": true,
-     "runs": [
-      {
-       "text": "Your spending peaked in August, at "
-      },
-      {
-       "text": "9.840,00 kr.",
-       "amount": true
-      },
-      {
-       "text": " The 12 months come to "
-      },
-      {
-       "text": "74.310,00 kr.",
-       "amount": true
-      }
-     ]
+      "mine": false,
+      "blocks": [
+        {
+          "p": true,
+          "runs": [
+            {
+              "text": "In September you spent "
+            },
+            {
+              "text": "3.640,00 kr.",
+              "amount": true
+            },
+            {
+              "text": " on "
+            },
+            {
+              "text": "Food",
+              "url": "https://app.example.net/categories/food"
+            },
+            {
+              "text": ", "
+            },
+            {
+              "text": "572,50 kr.",
+              "amount": true
+            },
+            {
+              "text": " less than in August. The largest was "
+            },
+            {
+              "text": "your order at Netto on 11 Sep",
+              "url": "https://app.example.net/orders/SPENDLY-468"
+            },
+            {
+              "text": ", "
+            },
+            {
+              "text": "412,80 kr.",
+              "amount": true
+            }
+          ]
+        }
+      ]
     },
     {
-     "chart": true,
-     "title": "Spending per month",
-     "meta": "Oct 2025 - Sep 2026",
-     "src": "emails/ask-chart-sample.png",
-     "width": 520,
-     "alt": "Spending per month, Oct 2025 - Sep 2026: Oct 5.120 kr., Nov 5.840 kr., Dec 7.910 kr., Jan 4.380 kr., Feb 4.020 kr., Mar 5.330 kr., Apr 5.010 kr., May 6.240 kr., Jun 6.880 kr., Jul 5.660 kr., Aug 9.840 kr., Sep 8.080 kr.",
-     "values": "Oct 5.120 kr., Nov 5.840 kr., Dec 7.910 kr., Jan 4.380 kr., Feb 4.020 kr., Mar 5.330 kr., Apr 5.010 kr., May 6.240 kr., Jun 6.880 kr., Jul 5.660 kr., Aug 9.840 kr., Sep 8.080 kr."
+      "mine": true,
+      "question": "Which shop did I use most this year?"
+    },
+    {
+      "mine": false,
+      "blocks": [
+        {
+          "p": true,
+          "runs": [
+            {
+              "text": "Netto",
+              "url": "https://app.example.net/vendors/netto"
+            },
+            {
+              "text": ", with 41 orders this year. After it come:"
+            }
+          ]
+        },
+        {
+          "list": true,
+          "items": [
+            {
+              "runs": [
+                {
+                  "text": "Lidl",
+                  "url": "https://app.example.net/vendors/lidl"
+                },
+                {
+                  "text": ", 33 orders"
+                }
+              ]
+            },
+            {
+              "runs": [
+                {
+                  "text": "Indbo Møbler",
+                  "url": "https://app.example.net/vendors/indbo-mobler"
+                },
+                {
+                  "text": ", 12 orders"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mine": true,
+      "question": "Make a spreadsheet of my orders at Bilka this year"
+    },
+    {
+      "mine": false,
+      "blocks": [
+        {
+          "p": true,
+          "runs": [
+            {
+              "text": "Here are your 38 orders at "
+            },
+            {
+              "text": "Bilka",
+              "url": "https://app.example.net/vendors/bilka"
+            },
+            {
+              "text": " this year, "
+            },
+            {
+              "text": "6.412,90 kr.",
+              "amount": true
+            },
+            {
+              "text": " in all."
+            }
+          ]
+        },
+        {
+          "files": true,
+          "files_url": "https://app.example.net/ask/files",
+          "kept_until": "2026-11-21",
+          "items": [
+            {
+              "first": true,
+              "title": "Make a spreadsheet of my orders at Bilka this year",
+              "kind": "Excel",
+              "size": "18 KB",
+              "attached": true
+            },
+            {
+              "title": "Make a spreadsheet of my orders at Bilka this year",
+              "kind": "PDF",
+              "size": "18,4 MB",
+              "attached": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mine": true,
+      "question": "Show my spending per month for the last year"
+    },
+    {
+      "mine": false,
+      "blocks": [
+        {
+          "p": true,
+          "runs": [
+            {
+              "text": "Your spending peaked in August, at "
+            },
+            {
+              "text": "9.840,00 kr.",
+              "amount": true
+            },
+            {
+              "text": " The 12 months come to "
+            },
+            {
+              "text": "74.310,00 kr.",
+              "amount": true
+            }
+          ]
+        },
+        {
+          "chart": true,
+          "title": "Spending per month",
+          "meta": "Oct 2025 - Sep 2026",
+          "src": "emails/ask-chart-sample.png",
+          "width": 520,
+          "alt": "Spending per month, Oct 2025 - Sep 2026: Oct 5.120 kr., Nov 5.840 kr., Dec 7.910 kr., Jan 4.380 kr., Feb 4.020 kr., Mar 5.330 kr., Apr 5.010 kr., May 6.240 kr., Jun 6.880 kr., Jul 5.660 kr., Aug 9.840 kr., Sep 8.080 kr.",
+          "values": "Oct 5.120 kr., Nov 5.840 kr., Dec 7.910 kr., Jan 4.380 kr., Feb 4.020 kr., Mar 5.330 kr., Apr 5.010 kr., May 6.240 kr., Jun 6.880 kr., Jul 5.660 kr., Aug 9.840 kr., Sep 8.080 kr."
+        }
+      ]
     }
-   ]
-  }
- ],
- "currency_name": "Danish kroner"
+  ],
+  "currency_name": "Danish kroner",
+  "chat_url": "https://app.example.net/ask/c_8f2k1"
 }
