@@ -12,19 +12,26 @@ import { Spinner, useDismiss } from './Utilities.jsx'
 // the sidebar brand's mark: what speaks for Spendly beside each answer and over the empty page
 export const SpendlyMark = ({ size = 'small' }) => <Mark size={size} fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 
-/** The conversation and the dock under it, filling the content column. */
-export function Chat({ children, ...rest }) {
+/** The conversation and the dock under it, filling the content column. `spaced` is the inner one on
+    Chats and Files (24e, 24f), holding the controls bar 12 above the list. */
+export function Chat({ spaced = false, children, ...rest }) {
 	reject(rest, 'Chat')
-	return <div className="sp-chat" {...rest}>{children}</div>
+	return <div className={join('sp-chat', spaced && 'sp-gap-12')} {...rest}>{children}</div>
+}
+
+/** The part above the dock that scrolls: the thread, or the list on Chats and Files. */
+export function ChatScroll({ scrollRef, children, ...rest }) {
+	reject(rest, 'ChatScroll')
+	return <div className="sp-chat__scroll" ref={scrollRef} {...rest}>{children}</div>
 }
 
 /** The messages, oldest first, in the part that scrolls; an answer is read out when it arrives. */
 export function ChatThread({ scrollRef, children, ...rest }) {
 	reject(rest, 'ChatThread')
 	return (
-		<div className="sp-chat__scroll" ref={scrollRef}>
+		<ChatScroll scrollRef={scrollRef}>
 			<div className="sp-chat__thread" role="log" aria-live="polite" aria-label="Conversation" {...rest}>{children}</div>
-		</div>
+		</ChatScroll>
 	)
 }
 
@@ -195,14 +202,15 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, working
 }
 
 /** The conversation menu beside Send (24c): the button, and `children`, the Menu it opens upward. A
-    choice in the menu closes it. */
-export function ChatMore({ children, ...rest }) {
+    choice in the menu closes it. On Chats and Files it is `back`, the link back to the chat. */
+export function ChatMore({ back, children, ...rest }) {
 	reject(rest, 'ChatMore')
 	const [open, setOpen] = useState(false)
 	const box = useRef(null)
 	const keys = useMenuButton(box, open)
 	useMenuPlace(box, open)
 	useDismiss(box, open, () => setOpen(false))
+	if (back) return <div className="sp-chat__more" {...rest}><IconButton icon="chevron-left" variant="outline" to={back} aria-label="Back to chat" data-tip="Back to chat" /></div>
 	return (
 		<div className="sp-chat__more" ref={box} data-open={open ? 'true' : 'false'} data-menu-open={open ? 'true' : undefined} {...keys}
 			onClick={ev => { if (ev.target.closest('.sp-menu__item:not(:disabled)')) setOpen(false) }} {...rest}>
@@ -211,3 +219,4 @@ export function ChatMore({ children, ...rest }) {
 		</div>
 	)
 }
+

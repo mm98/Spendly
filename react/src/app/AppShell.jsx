@@ -120,8 +120,11 @@ export function AppShell() {
 	const [later, setLater] = useState(false)
 	useEffect(() => onSessionEnded(() => setEnded(true)), [])
 
-	// below 1280 the facet rail leaves and the list takes the column (18b)
-	const body = layout === 'rail' && shape !== 'wide' ? 'default' : layout
+	// below 1280 the facet rail leaves and the list takes the column (18b); the pages that keep Ask's chat
+	// bar fill the column like Ask, and on a phone are plain pages (24e, 24f, 7a)
+	let body = layout
+	if (layout === 'rail' && shape !== 'wide') body = 'default'
+	else if (layout === 'dock') body = touch ? 'default' : 'fill'
 	const content = (
 		<ShellContent layout={body}>
 			{later && !ended ? <SignedOutBanner onSignIn={() => setEnded(true)} /> : <ConfirmBanner />}

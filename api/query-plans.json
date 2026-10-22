@@ -1694,7 +1694,16 @@
 				"idx_orders_user_vendor"
 			]
 		},
-		"SELECT COUNT(*) c FROM user_assistant_files WHERE user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?": {
+		"SELECT COUNT(*) c FROM user_assistant_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX user_assistant_files_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_files_user"
+			]
+		},
+		"SELECT COUNT(*) c FROM user_assistant_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now AND (title LIKE @like ESCAPE '\\' OR download_name LIKE @like ESCAPE '\\')": {
 			"plan": [
 				"SEARCH user_assistant_files USING INDEX user_assistant_files_user (user_id=?)"
 			],
@@ -2398,6 +2407,15 @@
 			"findings": [],
 			"indexes": [
 				"idx_categories_user"
+			]
+		},
+		"SELECT id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now AND (title LIKE @like ESCAPE '\\' OR download_name LIKE @like ESCAPE '\\') ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX user_assistant_files_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_files_user"
 			]
 		},
 		"SELECT id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
@@ -5233,7 +5251,7 @@
 				"user_id",
 				"created_at"
 			],
-			"readers": 2
+			"readers": 4
 		},
 		"idx_user_login_failures_email_ip_at": {
 			"table": "user_login_failures",

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { ChatFile, ChatFiles, ChatStart } from '../components/Chat.jsx'
-import { Button } from '../components/Button.jsx'
 import { Failed } from '../components/Failed.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { SearchInput } from '../components/Inputs.jsx'
 import { Controls, ListMore } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useToast } from '../components/Overlays.jsx'
@@ -11,13 +11,14 @@ import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.
 import { deleteAssistantFile, failureMessage, getAssistantFiles, restoreAssistantFile } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
+import { AskListFrame } from '../app/askListFrame.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
 const STEP = 25
 
-/** Files (24e): every file Ask made in the last 30 days, newest first, to open its chat at the answer
-    that made it, download again or delete.
+/** Files (24e): every file Ask made in the last 30 days, newest first, to search, open its chat at the
+    answer that made it, download again or delete.
     `?download=ID` starts that file's download, as signing in from a download link comes back here. */
 export default function AskFiles() {
 	const touch = useShellShape() === 'touch'
@@ -25,7 +26,8 @@ export default function AskFiles() {
 	const toast = useToast()
 	const [params, setParams] = useSearchParams()
 	const [pages, setPages] = useState(1)
-	const list = useApi(getAssistantFiles, [{ pageSize: STEP * pages }])
+	const [query, setQuery] = useState('')
+	const list = useApi(getAssistantFiles, [{ q: touch ? '' : query.trim(), pageSize: STEP * pages }])
 
 	const asked = params.get('download')
 	useEffect(() => {
@@ -43,16 +45,19 @@ export default function AskFiles() {
 	}
 
 	const data = list.data
-	let body
-	if (list.error && !data) body = <Failed what="Your files" error={list.error} onRetry={list.refresh} />
+	const searching = !!query.trim()
+	let empty = null
+	let body = null
+	if (list.error && !data) empty = <Failed what="Your files" error={list.error} onRetry={list.refresh} />
 	else if (!data) body = <ChatFiles aria-busy="true"><div className="sp-chat__file"><Skeleton shape="line" /></div></ChatFiles>
 	else if (!data.files.length) {
-		body = (
+		empty = (
 			<ChatStart>
 				<Empty>
 					<Mark size="large" fill="none" aria-hidden="true" aria-label="Files"><Icon name="paperclip" /></Mark>
-					<EmptyTitle>No files yet</EmptyTitle>
-					<EmptyBody>Ask Spendly for a spreadsheet or a document, and it is kept here for {data.keptDays} days.</EmptyBody>
+					{searching
+						? <><EmptyTitle>No files found</EmptyTitle><EmptyBody>Try another word, or clear the search.</EmptyBody></>
+						: <><EmptyTitle>No files yet</EmptyTitle><EmptyBody>Ask Spendly for a spreadsheet or a document, and it is kept here for {data.keptDays} days.</EmptyBody></>}
 				</Empty>
 			</ChatStart>
 		)
@@ -68,19 +73,16 @@ export default function AskFiles() {
 		)
 	}
 
-	const count = data?.matched ? `${plural(data.matched, 'file')}, ${data.matched === 1 ? '' : 'each '}kept for ${data.keptDays} days` : null
-	return (
-		<>
-			{touch
-				? <ScreenBar title="Files" onBack={() => navigate('/ask')} />
-				: (
-					<Controls>
-						<Button variant="outline" to="/ask">Back to Ask</Button>
-						<span className="sp-grow" />
-						{count ? <span className="sp-meta">{count}</span> : null}
-					</Controls>
-				)}
-			{body}
-		</>
-	)
+	if (touch) return <><ScreenBar title="Files" onBack={() => navigate('/ask')} />{empty ?? body}</>
+	let count = null
+	if (data?.total) count = searching ? `${data.matched} of ${plural(data.total, 'file')}` : plural(data.total, 'file')
+	const controls = data?.total
+		? (
+			<Controls>
+				<SearchInput value={query} onChange={q => { setQuery(q); setPages(1) }} placeholder="Search files" aria-label="Search files" />
+				<span className="sp-meta">{count}</span>
+			</Controls>
+		)
+		: null
+	return <AskListFrame controls={controls} empty={empty}>{body}</AskListFrame>
 }

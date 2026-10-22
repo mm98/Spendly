@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ChatFile, ChatFiles, ChatStart } from '../components/Chat.jsx'
-import { Button } from '../components/Button.jsx'
 import { Failed } from '../components/Failed.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
@@ -13,6 +12,7 @@ import { deleteChat, failureMessage, getChats, restoreChat } from '../api/client
 import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
 import { forgetChat } from '../app/assistant.js'
+import { AskListFrame } from '../app/askListFrame.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
@@ -45,11 +45,12 @@ export default function AskChats() {
 	const data = list.data
 	const searching = !!query.trim()
 	const mark = <Mark size="large" fill="none" aria-hidden="true" aria-label="Chats"><Icon name="message-circle" /></Mark>
-	let body
-	if (list.error && !data) body = <Failed what="Your chats" error={list.error} onRetry={list.refresh} />
+	let empty = null
+	let body = null
+	if (list.error && !data) empty = <Failed what="Your chats" error={list.error} onRetry={list.refresh} />
 	else if (!data) body = <ChatFiles aria-busy="true"><Skeleton shape="line" /></ChatFiles>
 	else if (!data.chats.length) {
-		body = (
+		empty = (
 			<ChatStart>
 				<Empty>
 					{mark}
@@ -75,21 +76,10 @@ export default function AskChats() {
 		)
 	}
 
-	const search = <SearchInput value={query} onChange={q => { setQuery(q); setPages(1) }} placeholder="Search chats" aria-label="Search chats" />
+	const search = data?.total ? <SearchInput value={query} onChange={q => { setQuery(q); setPages(1) }} placeholder="Search chats" aria-label="Search chats" /> : null
+	if (touch) return <><ScreenBar title="Chats" onBack={() => navigate('/ask')} />{search}{empty ?? body}</>
 	let count = null
 	if (data?.total) count = searching ? `${data.matched} of ${plural(data.total, 'chat')}` : plural(data.total, 'chat')
-	return (
-		<>
-			{touch
-				? <><ScreenBar title="Chats" onBack={() => navigate('/ask')} />{data?.total ? search : null}</>
-				: (
-					<Controls>
-						<Button variant="outline" to="/ask">Back to Ask</Button>
-						{data?.total ? search : <span className="sp-grow" />}
-						{count ? <span className="sp-meta">{count}</span> : null}
-					</Controls>
-				)}
-			{body}
-		</>
-	)
+	const controls = search ? <Controls>{search}<span className="sp-meta">{count}</span></Controls> : null
+	return <AskListFrame controls={controls} empty={empty}>{body}</AskListFrame>
 }

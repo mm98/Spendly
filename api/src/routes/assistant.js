@@ -125,7 +125,11 @@ router.post('/chats/:id/restore', (req, res) => {
 
 /* ---- the files Ask made (24e) ---- */
 
-router.get('/files', (req, res) => res.json(keptFiles(req.user.id, { page: Number(req.query.page) || 1, pageSize: req.query.pageSize === undefined ? 25 : Number(req.query.pageSize) })))
+router.get('/files', (req, res) => res.json(keptFiles(req.user.id, {
+	q: typeof req.query.q === 'string' ? req.query.q : '',
+	page: Number(req.query.page) || 1,
+	pageSize: req.query.pageSize === undefined ? 25 : Number(req.query.pageSize)
+})))
 
 // what each file an answer names is now: ready, deleted, or removed after its days
 router.get('/files/states', (req, res) => {

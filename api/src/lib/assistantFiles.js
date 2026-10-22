@@ -5,6 +5,7 @@ import { fileSizeLabel } from './copy.js'
 import { DOCUMENT_TYPES } from './documentFiles.js'
 import { usableLocale, writerFor } from './statusEmail.js'
 import { readStoredFile, removeStoredFile, storeFile } from './storage.js'
+import { escapeLike } from './textSearch.js'
 
 /* The files Ask Spendly makes from the reader's own data (Ask 24d, 24e): kept 30 days for the signed-in
    owner only, listed on Files, and a limited number a day. The bytes are on disk (lib/storage.js), not in the database. */
@@ -39,9 +40,15 @@ const selectAccount = db.prepare('SELECT s.locale, s.currency FROM users u LEFT 
 // the + keeps SQLite on the id key: each id is one row, where the account's index walks every file it has
 const selectStates = db.prepare(`SELECT f.id, f.chat_id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at
 	FROM json_each(?) j CROSS JOIN user_assistant_files f ON f.id = j.value WHERE +f.user_id = ?`)
-const selectKept = db.prepare(`SELECT id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files
-	WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
-const countKept = db.prepare('SELECT COUNT(*) c FROM user_assistant_files WHERE user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?')
+const KEPT = 'user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now'
+// a search matches the name the row shows or the name the file downloads as
+const MATCHES = "(title LIKE @like ESCAPE '\\' OR download_name LIKE @like ESCAPE '\\')"
+const KEPT_FIELDS = 'id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason'
+const selectKept = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_assistant_files WHERE ${KEPT} ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
+const selectMatching = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_assistant_files WHERE ${KEPT} AND ${MATCHES}
+	ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
+const countKept = db.prepare(`SELECT COUNT(*) c FROM user_assistant_files WHERE ${KEPT}`)
+const countMatching = db.prepare(`SELECT COUNT(*) c FROM user_assistant_files WHERE ${KEPT} AND ${MATCHES}`)
 const selectDownload = db.prepare(`SELECT title, download_name, type, asked_at, stored_name FROM user_assistant_files
 	WHERE id = ? AND user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?`)
 // the files of a chat go and come back with it, all at the moment the chat was deleted
@@ -88,15 +95,19 @@ export function fileStates(userId, ids) {
 	return Object.fromEntries(ids.map(id => [id, found.get(id) ?? { id, state: 'gone', gone: 'expired' }]))
 }
 
-/** The files still kept, newest first, one page at a time. */
-export function keptFiles(userId, { page = 1, pageSize = 25 } = {}) {
+/** The files still kept, newest first, one page at a time; `q` keeps those whose name holds it. */
+export function keptFiles(userId, { q = '', page = 1, pageSize = 25 } = {}) {
 	const now = nowEpoch()
-	const matched = countKept.get(userId, now).c
+	const query = String(q).trim().slice(0, 200)
+	const like = `%${escapeLike(query)}%`
+	const total = countKept.get({ userId, now }).c
+	const matched = query ? countMatching.get({ userId, now, like }).c : total
 	const size = Math.max(0, Math.min(100, Math.floor(pageSize)))
 	const pages = Math.max(1, Math.ceil(matched / (size || 1)))
 	const at = Math.min(Math.max(1, Math.floor(page) || 1), pages)
-	const files = size ? selectKept.all({ userId, now, limit: size, offset: (at - 1) * size }).map(r => fileMeta(r, now)) : []
-	return { files, matched, pages, page: at, keptDays: FILE_KEPT_DAYS }
+	const params = { userId, now, like, limit: size, offset: (at - 1) * size }
+	const files = size ? (query ? selectMatching : selectKept).all(params).map(r => fileMeta(r, now)) : []
+	return { files, matched, total, pages, page: at, keptDays: FILE_KEPT_DAYS }
 }
 
 /** A kept file's bytes and the name it downloads as: its heading, then when it was asked. */

@@ -55,6 +55,3 @@ is removed in the change that settles it.
   as if they were paid. Statistics, Home's month figure and the status email count them as money
   back.
 - **Found:** 2026-10-22, while making Sold count as money back in statistics.
-- **For Claude Design:** Statistics' "Refunds only" reads "Returned and sold orders." and its
-  empty state "No returned or sold orders in …", where `design/` says "Returned orders.": Sold
-  counts there too.

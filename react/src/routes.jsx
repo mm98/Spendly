@@ -123,8 +123,8 @@ export const routes = [
 				{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget', remember: true } },
 
 				{ path: 'ask', element: <Ask />, handle: { title: 'Ask', navKey: 'ask', layout: 'fill' } },
-				{ path: 'ask/files', element: <AskFiles />, handle: { title: 'Files', navKey: 'ask' } },
-				{ path: 'ask/chats', element: <AskChats />, handle: { title: 'Chats', navKey: 'ask' } },
+				{ path: 'ask/files', element: <AskFiles />, handle: { title: 'Files', navKey: 'ask', layout: 'dock' } },
+				{ path: 'ask/chats', element: <AskChats />, handle: { title: 'Chats', navKey: 'ask', layout: 'dock' } },
 				{ path: 'ask/:chatId', element: <Ask />, handle: { title: 'Ask', navKey: 'ask', layout: 'fill' } },
 				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings' } },
 				{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
