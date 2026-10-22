@@ -240,7 +240,7 @@ Everything that needs you, on one page.
   its top, then the day and time it was asked: "Orders in October 2026 (2026-10-22 14.05.33).xlsx". After
   30 days a file is removed. Only you, signed in, can download your files. A download link in a tab that
   is signed out asks you to sign in first.
-- **Each account can make 10 files a day** (`SPENDLY_ASSISTANT_FILES_PER_DAY`). A file that cannot be
+- **Each account can make 10 files a day** (`SPENDLY_ASK_FILES_PER_DAY`). A file that cannot be
   made, because there are too many orders or the day's files are used, says why in the answer. The
   server's owner has no daily limit.
 - **The menu beside Send** holds Chats, Files, Email this chat and New chat. On a phone it is the
@@ -250,7 +250,7 @@ Everything that needs you, on one page.
   is named with a link to Files. The button at the end opens the chat again.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
-- **Each account has 25 questions a day** (`SPENDLY_ASSISTANT_QUESTIONS_PER_DAY`), counted on the
+- **Each account has 25 questions a day** (`SPENDLY_ASK_QUESTIONS_PER_DAY`), counted on the
   person's own calendar day. The count shows when 3 or fewer are left. A failed or stopped answer is
   not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
   daily limit and sees no count.
@@ -292,9 +292,9 @@ folder and you have backed up Spendly. The files Ask makes are in a second folde
 | Setting | Turns on | Without it |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Reading receipts, the light-bulb button that suggests categories (it can propose a new one), and Ask | The receipt is attached and you type the details yourself. There is no Ask page. |
-| `SPENDLY_ASSISTANT_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask off | 25. |
+| `SPENDLY_ASK_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask off | 25. |
 | `SPENDLY_STORAGE` | Where the files Ask makes are kept, outside the database (`/storage` in the container) | A `storage` folder beside the database. |
-| `SPENDLY_ASSISTANT_FILES_PER_DAY` | How many files Ask can make for each account a day (default 10); `0` makes none | 10. |
+| `SPENDLY_ASK_FILES_PER_DAY` | How many files Ask can make for each account a day (default 10); `0` makes none | 10. |
 | `SPENDLY_SMTP_*` and `SPENDLY_PUBLIC_URL` | Email confirmation, password reset, the status email, Email this chat on Ask | New accounts are confirmed at once, and email features are hidden. |
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
 | `SPENDLY_UPDATER_URL` and `SPENDLY_UPDATER_TOKEN` | "Update and reload" in Settings, for the person who manages the server | Settings can only check for a newer version. |

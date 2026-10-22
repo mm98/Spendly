@@ -13,8 +13,8 @@ export const ASK_MODEL = 'claude-opus-5-5'
 // a chat's heading is a few words, so the smallest model writes it
 const HEADING_MODEL = 'claude-haiku-5-5'
 
-// SPENDLY_ASSISTANT_QUESTIONS_PER_DAY, set in docker-compose.yml; 0 turns Ask off
-const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASSISTANT_QUESTIONS_PER_DAY ?? 25)) || 0)
+// SPENDLY_ASK_QUESTIONS_PER_DAY, set in docker-compose.yml; 0 turns Ask off
+const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASK_QUESTIONS_PER_DAY ?? 25)) || 0)
 
 // a question that needs more rounds of reading than this is answered as failed, so one question has a bounded cost
 const ROUNDS_MOST = 8

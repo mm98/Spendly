@@ -33,12 +33,12 @@ services:
       # the whole file and costs the most. Text and pictures read the first 5 pages only. A scanned
       # PDF, or one whose words come out broken or too few, is always sent as pictures.
       # SPENDLY_PDF_READING: text
-      # Optional: how many questions each account can ask "Ask about your money" in the search, each
-      # day. Every question is paid on the key above. 0 turns it off.
-      # SPENDLY_ASSISTANT_QUESTIONS_PER_DAY: 25
+      # Optional: how many questions each account can ask on Ask each day. Every question is paid
+      # on the key above. 0 turns Ask off.
+      # SPENDLY_ASK_QUESTIONS_PER_DAY: 25
       # Optional: how many files (spreadsheets, documents, PDF and CSV) Ask can make for each account
       # each day. The owner has no limit. 0 makes none.
-      # SPENDLY_ASSISTANT_FILES_PER_DAY: 10
+      # SPENDLY_ASK_FILES_PER_DAY: 10
       # Sends the emails that confirm an address and reset a forgotten password, and shows
       # "Forgot it?" on the sign-in page. Email stays off until the password below is set.
       # For Gmail: turn on 2-Step Verification for the Google account, make an app password at

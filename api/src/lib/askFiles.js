@@ -13,8 +13,8 @@ import { escapeLike } from './textSearch.js'
 const FOLDER = 'ask-files'
 
 export const FILE_KEPT_DAYS = 30
-// SPENDLY_ASSISTANT_FILES_PER_DAY, set in docker-compose.yml; 0 lets no account make files
-const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASSISTANT_FILES_PER_DAY ?? 10)) || 0)
+// SPENDLY_ASK_FILES_PER_DAY, set in docker-compose.yml; 0 lets no account make files
+const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASK_FILES_PER_DAY ?? 10)) || 0)
 // the most orders one file holds, and the most rows of any other table in it
 export const FILE_ROWS_MOST = 5000
 // a deleted file's bytes stay this long, for Undo on the toast
