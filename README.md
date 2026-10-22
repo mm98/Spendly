@@ -232,7 +232,8 @@ Everything that needs you, on one page.
   server's owner has no daily limit.
 - **Clear** empties the conversation, and its message offers Undo. **Email this chat** sends the
   conversation to your own address, at most once a minute. The email shows each chart as a picture,
-  and names each file with a link to Files. On a computer Clear, Email this chat and Files are buttons
+  and names each file with a link to Files. The files that are still kept are attached, up to 15 MB in
+  all; a file past that is only named. On a computer Clear, Email this chat and Files are buttons
   beside Send; on a phone they are in the menu at the top.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.

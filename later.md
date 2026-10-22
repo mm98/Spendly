@@ -66,3 +66,10 @@ is removed in the change that settles it.
 - **What the reader sees:** a file downloads as "Orders in October 2026 (2026-10-22 14.05.33).xlsx", the heading at the top of the file, then the time. The row on Files and in the answer still shows the question.
 - **What was found:** the user asked for a proper file name instead of the question. Decided 22 Oct 2026.
 - **To take into `design/`:** the sentence names the heading at the top of the file, not the question, and the example follows. Then this entry goes.
+
+## For Claude Design: the emailed conversation attaches its files
+
+- **Where:** `design/emails/ask-chat.html` and `.txt`, the files block. Built in `api/src/lib/assistantChat.js`, `emailConversation`.
+- **What the reader sees:** the files an answer made are attached to the email, up to 15 MB in all. The files block still says "Download them from Files in Ask until ...".
+- **What was found:** the user asked for the files as attachments. Decided 22 Oct 2026. The email's text does not say yet that the files are attached.
+- **To take into `design/`:** the files block can say the files are attached, and name a file that was too big to attach. Then this entry goes.
