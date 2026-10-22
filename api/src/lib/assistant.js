@@ -34,7 +34,7 @@ const MAKING_TOOLS = [
 			type: 'object',
 			properties: {
 				type: text('The kind of file.', { enum: FILE_TYPES }),
-				title: text('The heading at the top of the file, in the language of the question, for example "Orders in October 2026".'),
+				title: text('The heading at the top of the file, and the name it downloads as, in the language of the question, for example "Orders in October 2026". Short, and never the question itself.'),
 				orders: {
 					type: 'object',
 					description: 'List these orders in the file as a table: date, shop, categories, status, reference, lines, saved and total. Every filter is optional.',

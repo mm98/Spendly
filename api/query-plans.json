@@ -4305,7 +4305,7 @@
 				"sqlite_autoindex_users_1"
 			]
 		},
-		"SELECT title, type, asked_at, stored_name FROM user_assistant_files WHERE id = ? AND user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?": {
+		"SELECT title, download_name, type, asked_at, stored_name FROM user_assistant_files WHERE id = ? AND user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?": {
 			"plan": [
 				"SEARCH user_assistant_files USING INDEX sqlite_autoindex_user_assistant_files_1 (id=?)"
 			],

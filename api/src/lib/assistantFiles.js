@@ -30,8 +30,8 @@ export const FILE_REFUSALS = {
 
 const KINDS = { xlsx: 'Excel', docx: 'Word', pdf: 'PDF', csv: 'CSV' }
 
-const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, title, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
-	VALUES (@id, @userId, @title, @type, @askedAt, @size, @storedName, @failedReason, @keptUntil, @expiresAt)`)
+const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, title, download_name, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
+	VALUES (@id, @userId, @title, @downloadName, @type, @askedAt, @size, @storedName, @failedReason, @keptUntil, @expiresAt)`)
 const selectMade = db.prepare('SELECT made_files_count FROM user_assistant_days WHERE user_id = ? AND day = ?')
 const countMade = db.prepare(`INSERT INTO user_assistant_days (user_id, day, made_files_count) VALUES (?, ?, 1)
 	ON CONFLICT (user_id, day) DO UPDATE SET made_files_count = made_files_count + 1`)
@@ -42,7 +42,7 @@ const selectStates = db.prepare(`SELECT f.id, f.title, f.type, f.size, f.failed_
 const selectKept = db.prepare(`SELECT id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files
 	WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
 const countKept = db.prepare('SELECT COUNT(*) c FROM user_assistant_files WHERE user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?')
-const selectDownload = db.prepare(`SELECT title, type, asked_at, stored_name FROM user_assistant_files
+const selectDownload = db.prepare(`SELECT title, download_name, type, asked_at, stored_name FROM user_assistant_files
 	WHERE id = ? AND user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?`)
 const markDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND stored_name IS NOT NULL')
 const unmarkDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL AND stored_name IS NOT NULL')
@@ -96,13 +96,13 @@ export function keptFiles(userId, { page = 1, pageSize = 25 } = {}) {
 	return { files, matched, pages, page: at, keptDays: FILE_KEPT_DAYS }
 }
 
-/** A kept file's bytes and the name it downloads as: the question, then when it was asked. */
+/** A kept file's bytes and the name it downloads as: its heading, then when it was asked. */
 export function fileDownload(userId, id) {
 	const row = selectDownload.get(id, userId, nowEpoch())
 	const content = row && readStoredFile(userId, FOLDER, row.stored_name)
 	if (!content) return null
 	// a name every system can save: no path or reserved characters, and short enough for any disk
-	const title = row.title.replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150).trim() || 'Spendly'
+	const title = (row.download_name || row.title).replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150).trim() || 'Spendly'
 	return { name: `${title} (${row.asked_at}).${row.type}`, mime: DOCUMENT_TYPES[row.type].mime, content }
 }
 
@@ -116,7 +116,7 @@ export const fileAllowed = (userId, day, unlimited) => unlimited || (selectMade.
     be made. Answers the reader's row for it either way. */
 export function makeFile({ userId, day, unlimited, title, askedAt, type, doc, write, refusal }) {
 	const now = nowEpoch()
-	const row = { id: newId('af'), userId, title, type, askedAt, size: 0, storedName: null, failedReason: refusal ?? null,
+	const row = { id: newId('af'), userId, title, downloadName: doc?.title || null, type, askedAt, size: 0, storedName: null, failedReason: refusal ?? null,
 		keptUntil: fromEpoch(toEpoch(day) + FILE_KEPT_DAYS * DAY), expiresAt: now + FILE_KEPT_DAYS * DAY }
 	if (!row.failedReason && !fileAllowed(userId, day, unlimited)) row.failedReason = FILE_REFUSALS.usedUp
 	if (!row.failedReason) {

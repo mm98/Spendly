@@ -59,3 +59,10 @@ is removed in the change that settles it.
 - **What the reader sees:** the box to type a question stays above the tab bar, and the saved questions scroll when there is no room.
 - **What was found:** on a phone with the confirm banner showing, the empty page did not shrink, so it pushed the box to type in 7px under the tab bar and the whole page scrolled. Found 22 Oct 2026.
 - **To take into `design/`:** `.sp-chat__start` gets `min-height: 0; overflow-y: auto; justify-content: safe center`. Then it is removed from `app.css` and this entry goes.
+
+## For Claude Design: a downloaded file is named after its heading, not the question
+
+- **Where:** `design/Ask Spendly.dc.html`, Files (24e), "The downloaded file is named the question, then the time it was asked". Built in `api/src/lib/assistantFiles.js`, `fileDownload`.
+- **What the reader sees:** a file downloads as "Orders in October 2026 (2026-10-22T14-05).xlsx", the heading at the top of the file, then the time. The row on Files and in the answer still shows the question.
+- **What was found:** the user asked for a proper file name instead of the question. Decided 22 Oct 2026.
+- **To take into `design/`:** the sentence names the heading at the top of the file, not the question, and the example follows. Then this entry goes.
