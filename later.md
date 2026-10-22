@@ -55,3 +55,10 @@ is removed in the change that settles it.
   as if they were paid. Statistics, Home's month figure and the status email count them as money
   back.
 - **Found:** 2026-10-22, while making Sold count as money back in statistics.
+
+## For Claude Design: a tip in the first row of Chats and Files opens under its control
+
+- **Where:** `react/src/styles/app.css`, `.sp-chat__scroll > .sp-chat__files > .sp-chat__file:first-child [data-tip]::after`. Ask Spendly (24e, 24f), the first row's Open chat, Download and Delete.
+- **What the reader sees:** the tip of a button in the first row shows in full, under the button.
+- **What was found:** the list scrolls in its own box, and the box cuts off anything above its top edge. The tip of a first-row button opened above the button, so its top half was hidden. Found 22 Oct 2026.
+- **To take into `design/`:** in a list that scrolls in its own box, a tip in the first row opens under its control. Then it is removed from `app.css` and this entry goes.
