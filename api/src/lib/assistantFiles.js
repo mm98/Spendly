@@ -57,16 +57,16 @@ export function fileWriter(userId, browserLocale) {
 	return writerFor({ locale: usableLocale(account.locale, browserLocale), currency: account.currency ?? 'DKK' })
 }
 
-/** The moment `at` as the reader's clock reads it in `zone`, the colon a hyphen: 2026-10-22T14-05. */
+/** The moment `at` as the reader's clock reads it in `zone`, the colons dots: 2026-10-22T14.05.33. */
 export function askedAtIn(zone, at = new Date()) {
 	let parts
 	try {
-		parts = new Intl.DateTimeFormat('en-GB', { timeZone: zone || undefined, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(at)
+		parts = new Intl.DateTimeFormat('en-GB', { timeZone: zone || undefined, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(at)
 	} catch {
-		parts = new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(at)
+		parts = new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(at)
 	}
 	const p = Object.fromEntries(parts.map(x => [x.type, x.value]))
-	return `${p.year}-${p.month}-${p.day}T${p.hour}-${p.minute}`
+	return `${p.year}-${p.month}-${p.day}T${p.hour}.${p.minute}.${p.second}`
 }
 
 /** What the reader's row shows about one file (ChatFile in react/src/components/Chat.jsx). */
@@ -103,7 +103,9 @@ export function fileDownload(userId, id) {
 	if (!content) return null
 	// a name every system can save: no path or reserved characters, and short enough for any disk
 	const title = (row.download_name || row.title).replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150).trim() || 'Spendly'
-	return { name: `${title} (${row.asked_at}).${row.type}`, mime: DOCUMENT_TYPES[row.type].mime, content }
+	// a file made before seconds were kept has 14-05 for the time
+	const askedAt = row.asked_at.replace(/T(\d\d)-(\d\d)$/, 'T$1.$2')
+	return { name: `${title} (${askedAt}).${row.type}`, mime: DOCUMENT_TYPES[row.type].mime, content }
 }
 
 export const deleteFile = (userId, id) => markDeleted.run(nowEpoch(), id, userId).changes > 0
