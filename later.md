@@ -45,4 +45,3 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
-
