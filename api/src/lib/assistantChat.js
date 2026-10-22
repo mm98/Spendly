@@ -1,6 +1,6 @@
 import { db } from '../db.js'
 import { chartsById } from './assistantCharts.js'
-import { fileStates } from './assistantFiles.js'
+import { fileDownload, fileStates } from './assistantFiles.js'
 import { CHART_PICTURE_WIDTH, chartPicture } from './chartPicture.js'
 import { emailMessage } from './emails.js'
 import { newId } from './ids.js'
@@ -169,6 +169,9 @@ const currencyName = code => {
 	try { return new Intl.NumberFormat('en', { style: 'currency', currency: code, currencyDisplay: 'name' }).formatToParts(2).find(p => p.type === 'currency').value } catch { return code }
 }
 
+// the most the attachments of one emailed conversation hold, so it stays under a mail server's 25 MB once encoded
+const ATTACHED_BYTES_MOST = 15 * 1024 * 1024
+
 const selectAccount = db.prepare('SELECT u.email, u.name, s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 
 /** Sends the conversation `turns` ({ role, text }, a question then its answer) to the reader's own
@@ -201,6 +204,14 @@ export async function emailConversation(userId, { turns, day, locale }) {
 		ask_url: publicLink('/ask'),
 		messages: turns.map(t => (t.role === 'user' ? { mine: true, question: t.text } : { mine: false, blocks: answerBlocks(t.text, write, outputs) }))
 	})
+	// the files still kept go with it, in the order the answers name them, while they fit beside the charts
+	let room = ATTACHED_BYTES_MOST - attachments.reduce((sum, a) => sum + a.content.length, 0)
+	for (const id of new Set(places.filter(p => p.kind === 'file').map(p => p.id))) {
+		const file = outputs.files[id]?.state === 'ready' && fileDownload(userId, id)
+		if (!file || file.content.length > room) continue
+		attachments.push({ filename: file.name, content: file.content, contentType: file.mime })
+		room -= file.content.length
+	}
 	await sendMail({ ...message, attachments })
 	return account.email
 }
