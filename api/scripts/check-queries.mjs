@@ -265,14 +265,21 @@ const insertQuestion = db.prepare('INSERT INTO user_assistant_questions (id, use
 insertQuestion.run('aq-fixture', USER, 'How much did I save this month?')
 insertQuestion.run('aq-removed', USER, 'Am I over budget this month?')
 for (let i = 0; i < NEIGHBOURS; i++) insertQuestion.run(`aq-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, 'Where did I spend the most last month?')
+// chats kept on Ask: two on the account with their turns, and one next door each
+const insertChat = db.prepare(`INSERT INTO user_assistant_chats (id, user_id, heading, first_question, question_count, asked_at, kept_until, expires_at)
+	VALUES (?, ?, 'Orders at Bilka in 2026', 'Make a spreadsheet of my orders at Bilka', 2, unixepoch(), '2026-11-21', unixepoch() + 2592000)`)
+const insertTurn = db.prepare("INSERT INTO user_assistant_chat_turns (chat_id, question, answer, state) VALUES (?, 'Make a spreadsheet of my orders at Bilka', 'Here it is.', 'answered')")
+for (const id of ['ch-fixture', 'ch-removed']) { insertChat.run(id, USER); insertTurn.run(id); insertTurn.run(id) }
+for (let i = 0; i < NEIGHBOURS; i++) { insertChat.run(`ch-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`); insertTurn.run(`ch-n${i}`) }
 // files and charts Ask made: two files and a chart on the account, and one of each next door
-const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, title, type, asked_at, size, stored_name, kept_until, expires_at)
-	VALUES (?, ?, 'Make a spreadsheet of my orders this month', 'xlsx', '2026-10-22T14-05', 4, 'not-on-disk', '2026-11-21', unixepoch() + 2592000)`)
+const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, chat_id, title, type, asked_at, size, stored_name, kept_until, expires_at)
+	VALUES (?, ?, ?, 'Make a spreadsheet of my orders this month', 'xlsx', '2026-10-22T14-05', 4, 'not-on-disk', '2026-11-21', unixepoch() + 2592000)`)
 const insertChart = db.prepare(`INSERT INTO user_assistant_charts (id, user_id, chart, expires_at) VALUES (?, ?, '{"kind":"bars"}', unixepoch() + 2592000)`)
-for (const id of ['af-fixture', 'af-removed']) insertFile.run(id, USER)
+insertFile.run('af-fixture', USER, 'ch-fixture')
+insertFile.run('af-removed', USER, 'ch-removed')
 insertChart.run('ac-fixture', USER)
 for (let i = 0; i < NEIGHBOURS; i++) {
-	insertFile.run(`af-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`)
+	insertFile.run(`af-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`, `ch-n${i}`)
 	insertChart.run(`ac-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`)
 }
 
@@ -358,6 +365,7 @@ const REQUESTS = [
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
 	'/settings', '/imports', '/imports/im-fixture', '/imports/im-fixture/undo', '/statuses', '/views', '/account/passkeys', '/account/mcp-tokens', '/assistant', '/assistant/questions',
+	'/assistant/chats', '/assistant/chats?q=bilka', '/assistant/chats?pageSize=0', '/assistant/chats/ch-fixture',
 	'/assistant/files', '/assistant/files?pageSize=0', '/assistant/files/states?ids=af-fixture,af-gone', '/assistant/files/af-fixture/download',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links',
@@ -403,6 +411,8 @@ for (const [method, path, body] of [
 	['DELETE', '/account/mcp-tokens/mcp-removed'],
 	['POST', '/assistant/questions', { question: 'How much did I save this month?' }],
 	['DELETE', '/assistant/questions/aq-removed'],
+	['DELETE', '/assistant/chats/ch-removed'],
+	['POST', '/assistant/chats/ch-removed/restore'],
 	['DELETE', '/assistant/files/af-removed'],
 	['POST', '/assistant/files/af-removed/restore'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
@@ -481,6 +491,15 @@ makeFile({ userId: USER, day: local.day, unlimited: false, title: 'Make a spread
 	doc: { title: 'Orders', sections: [{ table: { columns: [{ name: 'Shop', kind: 'text' }], rows: [['Netto']] } }] }, write: fileWriter(USER, 'da-DK') })
 makeChart(USER, { kind: 'bars', name: 'Spending', columns: [{ tick: 'Aug', values: [10] }] })
 chartsById(USER, ['ac-fixture'])
+// a question asked in a new chat and in a kept one, asked again after it failed, ended, and the chat named
+const { answeredTurnsOf, endTurn, nameChat, restartFailedTurn, startTurn, sweepChats } = await import('../src/lib/assistantChats.js')
+const started = startTurn({ userId: USER, chatId: null, question: 'Which shop did I use most?', day: local.day, pairsMost: 9 })
+const followed = startTurn({ userId: USER, chatId: 'ch-fixture', question: 'And last year?', day: local.day, pairsMost: 9 })
+endTurn(followed.turnId, 'failed')
+endTurn(restartFailedTurn({ userId: USER, chatId: 'ch-fixture', turnId: followed.turnId, day: local.day, pairsMost: 9 }).turnId, 'answered', 'Netto.')
+nameChat(started.chatId, 'Most used shop')
+answeredTurnsOf(USER, 'ch-fixture')
+sweepChats()
 sweepFiles()
 sweepCharts()
 

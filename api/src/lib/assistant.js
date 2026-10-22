@@ -3,12 +3,15 @@ import { getClient } from './scanParse.js'
 import { MCP_TOOLS, callTool } from './mcpTools.js'
 import { FILE_REFUSALS, FILE_ROWS_MOST, FILE_TYPES, askedAtIn, fileWriter, makeFile, sweepFiles } from './assistantFiles.js'
 import { CHART_COLUMNS_MOST, CHART_SERIES_MOST, makeChart, sweepCharts } from './assistantCharts.js'
+import { HEADING_MOST, nameChat, sweepChats } from './assistantChats.js'
 
 /* The assistant in the app: a question about the reader's own money, answered by Claude with the
    same read-only tools /mcp offers, run as the signed-in reader over this server's own port, and two
    of its own: a file made from the reader's data, and a chart of it. */
 
 export const ASSISTANT_MODEL = 'claude-opus-5-5'
+// a chat's heading is a few words, so the smallest model writes it
+const HEADING_MODEL = 'claude-haiku-5-5'
 
 // SPENDLY_ASSISTANT_QUESTIONS_PER_DAY, set in docker-compose.yml; 0 turns the assistant off
 const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASSISTANT_QUESTIONS_PER_DAY ?? 25)) || 0)
@@ -205,7 +208,7 @@ async function makeFileFor(input, making) {
 		else refusal = FILE_REFUSALS.tooMany
 	}
 	const file = makeFile({
-		userId: making.userId, day: making.today, unlimited: making.unlimited, title: making.question, askedAt: making.askedAt, type,
+		userId: making.userId, chatId: making.chatId, day: making.today, unlimited: making.unlimited, title: making.question, askedAt: making.askedAt, type,
 		doc: { title: String(input?.title || making.question).slice(0, 200), sections }, write: making.write, refusal
 	})
 	making.files[file.id] = file
@@ -215,7 +218,7 @@ async function makeFileFor(input, making) {
 
 function makeChartFor(input, making) {
 	making.onWorking?.({ working: 'chart' })
-	const chart = makeChart(making.userId, input)
+	const chart = makeChart(making.userId, input, making.chatId)
 	making.charts[chart.id] = chart
 	const said = chart.failed ? ` It could not be drawn. ${chart.failed}` : ''
 	return `The chart is {{chart:${chart.id}}}. Write this place mark on a line of its own in the answer.${said}`
@@ -229,20 +232,20 @@ function withPlaces(answer, files, charts) {
 	return missing.length ? `${answer}\n\n${missing.join('\n')}` : answer
 }
 
-/** Removes files and charts past their 30 days, every minute. */
+/** Removes chats, files and charts past their 30 days, every minute. */
 export function scheduleAssistantSweep() {
-	const sweep = () => { sweepFiles(); sweepCharts() }
+	const sweep = () => { sweepChats(); sweepFiles(); sweepCharts() }
 	sweep()
 	setInterval(sweep, 60 * 1000).unref()
 }
 
 /** The answer to the last of `turns` ({ role, text }, oldest first) as { answer, files, charts }, or null.
     Tools read with the session `token`; a file or chart being made is told to `onWorking`. */
-export async function answerQuestion({ turns, token, self, today, signal, userId, unlimited = false, zone, locale, onWorking }) {
+export async function answerQuestion({ turns, token, self, today, signal, userId, chatId = null, unlimited = false, zone, locale, onWorking }) {
 	const anthropic = getClient()
 	const messages = turns.map(t => ({ role: t.role, content: t.text }))
 	const making = {
-		token, self, signal, userId, today, unlimited, onWorking, files: {}, charts: {},
+		token, self, signal, userId, chatId, today, unlimited, onWorking, files: {}, charts: {},
 		question: turns.at(-1).text, askedAt: askedAtIn(zone), write: fileWriter(userId, locale)
 	}
 	for (let round = 0; round < ROUNDS_MOST; round++) {
@@ -281,4 +284,20 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 		messages.push({ role: 'user', content: results })
 	}
 	return null
+}
+
+/** Writes the heading of the chat `chatId` from its first question and answer, a few words naming what
+    was asked. It is not a question of the day's; a heading that cannot be written leaves the question. */
+export async function writeChatHeading(chatId, question, answer) {
+	try {
+		const response = await getClient().messages.create({
+			model: HEADING_MODEL,
+			max_tokens: 40,
+			system: `Write a heading for this conversation about the reader's own money: a few words naming what was asked, in the language of the question, at most ${HEADING_MOST} characters, for example "Orders at Bilka in 2026". Answer with the heading only.`,
+			messages: [{ role: 'user', content: `Question: ${question}\n\nAnswer: ${answer.slice(0, 4000)}` }]
+		}, { timeout: REQUEST_TIMEOUT_MS })
+		nameChat(chatId, textOf(response.content))
+	} catch (error) {
+		console.error('Chat heading failed:', error.message)
+	}
 }

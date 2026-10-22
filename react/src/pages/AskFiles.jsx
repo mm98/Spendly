@@ -16,7 +16,8 @@ import { useShellShape } from '../app/useMedia.js'
 
 const STEP = 25
 
-/** Files (24e): every file Ask made in the last 30 days, newest first, to download again or delete.
+/** Files (24e): every file Ask made in the last 30 days, newest first, to open its chat at the answer
+    that made it, download again or delete.
     `?download=ID` starts that file's download, as signing in from a download link comes back here. */
 export default function AskFiles() {
 	const touch = useShellShape() === 'touch'
@@ -60,7 +61,7 @@ export default function AskFiles() {
 		body = (
 			<>
 				<ChatFiles>
-					{data.files.map(f => <ChatFile key={f.id} title={f.title} type={f.type} size={f.size} keptUntil={f.keptUntil} href={f.href} onDelete={() => remove(f)} />)}
+					{data.files.map(f => <ChatFile key={f.id} title={f.title} type={f.type} size={f.size} keptUntil={f.keptUntil} href={f.href} chatTo={f.chatId ? `/ask/${f.chatId}?file=${f.id}` : undefined} onDelete={() => remove(f)} />)}
 				</ChatFiles>
 				<ListMore loose shown={data.files.length} total={data.matched} pageSize={STEP} onMore={() => setPages(pages + 1)} />
 			</>

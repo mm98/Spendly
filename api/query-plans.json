@@ -523,6 +523,33 @@
 				"sqlite_autoindex_user_assistant_charts_1"
 			]
 		},
+		"SELECT c.id, c.heading, c.first_question, c.question_count, c.kept_until, (SELECT COUNT(*) FROM user_assistant_files f WHERE f.chat_id = c.id AND f.stored_name IS NOT NULL AND f.deleted_at IS NULL AND f.expires_at > @now) AS file_count FROM user_assistant_chats c WHERE c.user_id = @userId AND c.deleted_at IS NULL AND c.expires_at > @now AND (c.heading LIKE @like ESCAPE '\\' OR c.first_question LIKE @like ESCAPE '\\' OR EXISTS (SELECT 1 FROM user_assistant_chat_turns t WHERE t.chat_id = c.id AND (t.question LIKE @like ESCAPE '\\' OR t.answer LIKE @like ESCAPE '\\'))) ORDER BY c.asked_at DESC, c.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH c USING INDEX user_assistant_chats_user (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 2",
+				"SEARCH t USING INDEX user_assistant_chat_turns_chat (chat_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH f USING INDEX user_assistant_files_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_chat_turns_chat",
+				"user_assistant_chats_user",
+				"user_assistant_files_chat"
+			]
+		},
+		"SELECT c.id, c.heading, c.first_question, c.question_count, c.kept_until, (SELECT COUNT(*) FROM user_assistant_files f WHERE f.chat_id = c.id AND f.stored_name IS NOT NULL AND f.deleted_at IS NULL AND f.expires_at > @now) AS file_count FROM user_assistant_chats c WHERE c.user_id = @userId AND c.deleted_at IS NULL AND c.expires_at > @now ORDER BY c.asked_at DESC, c.rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH c USING INDEX user_assistant_chats_user (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH f USING INDEX user_assistant_files_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_chats_user",
+				"user_assistant_files_chat"
+			]
+		},
 		"SELECT c.id, c.name, c.colour, c.icon FROM categories c JOIN order_categories oc ON oc.category_id = c.id WHERE oc.order_id = ? ORDER BY c.name": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -1818,6 +1845,27 @@
 				"idx_orders_user_status"
 			]
 		},
+		"SELECT COUNT(*) n FROM user_assistant_chats c WHERE c.user_id = @userId AND c.deleted_at IS NULL AND c.expires_at > @now": {
+			"plan": [
+				"SEARCH c USING INDEX user_assistant_chats_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_chats_user"
+			]
+		},
+		"SELECT COUNT(*) n FROM user_assistant_chats c WHERE c.user_id = @userId AND c.deleted_at IS NULL AND c.expires_at > @now AND (c.heading LIKE @like ESCAPE '\\' OR c.first_question LIKE @like ESCAPE '\\' OR EXISTS (SELECT 1 FROM user_assistant_chat_turns t WHERE t.chat_id = c.id AND (t.question LIKE @like ESCAPE '\\' OR t.answer LIKE @like ESCAPE '\\')))": {
+			"plan": [
+				"SEARCH c USING INDEX user_assistant_chats_user (user_id=?)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH t USING INDEX user_assistant_chat_turns_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_chat_turns_chat",
+				"user_assistant_chats_user"
+			]
+		},
 		"SELECT COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)), 0) attached FROM orders ot WHERE ot.user_id = @userId": {
 			"plan": [
 				"SEARCH ot USING COVERING INDEX idx_orders_user_status (user_id=?)",
@@ -2176,6 +2224,15 @@
 				"sqlite_autoindex_user_settings_1"
 			]
 		},
+		"SELECT deleted_at FROM user_assistant_chats WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL": {
+			"plan": [
+				"SEARCH user_assistant_chats USING INDEX sqlite_autoindex_user_assistant_chats_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_assistant_chats_1"
+			]
+		},
 		"SELECT expected, real FROM budget_line_amounts WHERE line_id = ? AND month = ?": {
 			"plan": [
 				"SEARCH budget_line_amounts USING PRIMARY KEY (line_id=? AND month=?)"
@@ -2183,7 +2240,7 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT f.id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at FROM json_each(?) j CROSS JOIN user_assistant_files f ON f.id = j.value WHERE +f.user_id = ?": {
+		"SELECT f.id, f.chat_id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at FROM json_each(?) j CROSS JOIN user_assistant_files f ON f.id = j.value WHERE +f.user_id = ?": {
 			"plan": [
 				"SCAN j VIRTUAL TABLE INDEX 1:",
 				"SEARCH f USING INDEX sqlite_autoindex_user_assistant_files_1 (id=?)"
@@ -2343,6 +2400,15 @@
 				"idx_categories_user"
 			]
 		},
+		"SELECT id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX user_assistant_files_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_files_user"
+			]
+		},
 		"SELECT id, date FROM order_status_history WHERE order_id = ? AND status = ?": {
 			"plan": [
 				"SEARCH order_status_history USING INDEX idx_order_status_history_order (order_id=?)"
@@ -2395,6 +2461,15 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_order_imports_1"
+			]
+		},
+		"SELECT id, heading, first_question FROM user_assistant_chats WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND expires_at > ?": {
+			"plan": [
+				"SEARCH user_assistant_chats USING INDEX sqlite_autoindex_user_assistant_chats_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_assistant_chats_1"
 			]
 		},
 		"SELECT id, key, name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?": {
@@ -2680,6 +2755,22 @@
 				"sqlite_autoindex_user_assistant_questions_2"
 			]
 		},
+		"SELECT id, question, answer, state FROM user_assistant_chat_turns WHERE chat_id = ? ORDER BY id": {
+			"plan": [
+				"SEARCH user_assistant_chat_turns USING INDEX user_assistant_chat_turns_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_chat_turns_chat"
+			]
+		},
+		"SELECT id, question, state FROM user_assistant_chat_turns WHERE id = ? AND chat_id = ?": {
+			"plan": [
+				"SEARCH user_assistant_chat_turns USING INTEGER PRIMARY KEY (rowid=?)"
+			],
+			"findings": [],
+			"indexes": []
+		},
 		"SELECT id, title, quantity, price, retail, note, url FROM order_items WHERE order_id = ? ORDER BY position": {
 			"plan": [
 				"SEARCH order_items USING INDEX idx_order_items_order (order_id=?)",
@@ -2691,15 +2782,6 @@
 			],
 			"indexes": [
 				"idx_order_items_order"
-			]
-		},
-		"SELECT id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"SEARCH user_assistant_files USING INDEX user_assistant_files_user (user_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"user_assistant_files_user"
 			]
 		},
 		"SELECT id, user_id, name, size, kind, content_type, data, data_is_compressed, (thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM uploads WHERE id = ? AND user_id = ?": {
@@ -2854,6 +2936,15 @@
 			"findings": [],
 			"indexes": [
 				"idx_orders_user_date"
+			]
+		},
+		"SELECT MIN(id) id FROM user_assistant_chat_turns WHERE chat_id = ?": {
+			"plan": [
+				"SEARCH user_assistant_chat_turns USING COVERING INDEX user_assistant_chat_turns_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_chat_turns_chat"
 			]
 		},
 		"SELECT MIN(position) p FROM user_saved_views WHERE user_id = ?": {
@@ -4231,6 +4322,15 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT question, answer FROM user_assistant_chat_turns WHERE chat_id = ? AND id < ? AND state = 'answered' ORDER BY id DESC LIMIT ?": {
+			"plan": [
+				"SEARCH user_assistant_chat_turns USING INDEX user_assistant_chat_turns_chat (chat_id=? AND id<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_chat_turns_chat"
+			]
+		},
 		"SELECT revision, client_key FROM orders WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
@@ -5062,12 +5162,56 @@
 			],
 			"readers": 3
 		},
+		"user_assistant_charts_chat": {
+			"table": "user_assistant_charts",
+			"columns": [
+				"chat_id"
+			],
+			"readers": 0
+		},
 		"user_assistant_charts_expiry": {
 			"table": "user_assistant_charts",
 			"columns": [
 				"expires_at"
 			],
 			"readers": 0
+		},
+		"user_assistant_chat_turns_chat": {
+			"table": "user_assistant_chat_turns",
+			"columns": [
+				"chat_id",
+				"id"
+			],
+			"readers": 5
+		},
+		"user_assistant_chats_deleted": {
+			"table": "user_assistant_chats",
+			"columns": [
+				"deleted_at"
+			],
+			"readers": 0
+		},
+		"user_assistant_chats_expiry": {
+			"table": "user_assistant_chats",
+			"columns": [
+				"expires_at"
+			],
+			"readers": 0
+		},
+		"user_assistant_chats_user": {
+			"table": "user_assistant_chats",
+			"columns": [
+				"user_id",
+				"asked_at"
+			],
+			"readers": 4
+		},
+		"user_assistant_files_chat": {
+			"table": "user_assistant_files",
+			"columns": [
+				"chat_id"
+			],
+			"readers": 2
 		},
 		"user_assistant_files_deleted": {
 			"table": "user_assistant_files",

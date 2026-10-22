@@ -4,7 +4,7 @@ import { nowEpoch } from './dates.js'
 import { FILE_KEPT_DAYS } from './assistantFiles.js'
 
 /* The charts Ask Spendly draws in an answer (Ask 24d): bars over up to 12 steps, or the shares of a
-   whole. Kept as long as a file, so the emailed conversation can draw one again as a picture. */
+   whole. Kept as long as the chat that drew it, so the chat and its email can draw it again. */
 
 export const CHART_COLUMNS_MOST = 12
 export const CHART_SERIES_MOST = 2
@@ -20,7 +20,7 @@ export const CHART_REFUSALS = {
 	empty: 'This chart could not be made: there are no numbers to draw for this.'
 }
 
-const insertChart = db.prepare('INSERT INTO user_assistant_charts (id, user_id, chart, expires_at) VALUES (?, ?, ?, ?)')
+const insertChart = db.prepare('INSERT INTO user_assistant_charts (id, user_id, chat_id, chart, expires_at) VALUES (?, ?, ?, ?, ?)')
 const selectCharts = db.prepare('SELECT c.id, c.chart FROM json_each(?) j CROSS JOIN user_assistant_charts c ON c.id = j.value WHERE c.user_id = ?')
 const dropExpired = db.prepare('DELETE FROM user_assistant_charts WHERE expires_at <= ?')
 
@@ -60,9 +60,9 @@ function chartOf(asked) {
 }
 
 /** Keeps the chart `asked` for, or why it could not be drawn, and answers it with its id. */
-export function makeChart(userId, asked) {
+export function makeChart(userId, asked, chatId = null) {
 	const chart = { id: newId('ac'), ...chartOf(asked) }
-	insertChart.run(chart.id, userId, JSON.stringify(chart), nowEpoch() + FILE_KEPT_DAYS * DAY)
+	insertChart.run(chart.id, userId, chatId, JSON.stringify(chart), nowEpoch() + FILE_KEPT_DAYS * DAY)
 	return chart
 }
 

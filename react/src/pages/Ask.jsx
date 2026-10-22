@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router'
-import { Chat, ChatDock, ChatExamples, ChatMessage, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Chat, ChatDock, ChatExamples, ChatMessage, ChatMore, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
 import { IconButton } from '../components/Button.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
-import { Alert, Anchor, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
-import { Empty, EmptyBody, EmptyTitle, Spinner, useDismiss } from '../components/Utilities.jsx'
+import { Alert, Anchor, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Failed } from '../components/Failed.jsx'
+import { Empty, EmptyBody, EmptyTitle, Skeleton, Spinner, useDismiss } from '../components/Utilities.jsx'
 import { emailConversation, failureMessage, getAssistant, getCurrentUser, getSavedQuestions, removeSavedQuestion, saveQuestion } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
-import { answeredTurns, ask, askAgain, clearConversation, noteEmailed, refreshFiles, restoreConversation, stopAsking, useConversation, wasEmailed } from '../app/assistant.js'
+import { ask, askAgain, lastChat, newChat, noteEmailed, refreshFiles, showChat, showDraft, stopAsking, useChat, wasEmailed } from '../app/assistant.js'
 import { AnswerText } from '../app/assistantAnswer.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
@@ -17,16 +18,22 @@ import { useShellShape } from '../app/useMedia.js'
 const FILE_WORDS = { xlsx: 'spreadsheet', docx: 'document', pdf: 'PDF', csv: 'CSV' }
 const doingOf = step => (step?.working === 'chart' ? 'Drawing your chart' : step?.working === 'file' ? `Making your ${FILE_WORDS[step.type] ?? 'file'}` : undefined)
 
-/** Ask (24a): a conversation about the reader's own money, the questions they saved, and
-    Clear, Email this chat and Files. The saved questions are on the empty page only. On a desktop the
-    three sit beside Send; on a phone they sit in the top bar's menu (Mobile screens 7a). */
+// the address of a deleted or expired chat opens the empty page with this (24f)
+const GONE = 'That chat is no longer kept.'
+
+/** Ask (24a): a chat at /ask/:chatId, the saved questions, and the conversation menu (24c), on a phone the top
+    bar's (7a). /ask shows the chat open last in this visit, or the empty page; `?file=ID` opens the answer that made it. */
 export default function Ask() {
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
 	const toast = useToast()
+	const { chatId } = useParams()
+	const [params] = useSearchParams()
+	const fileId = params.get('file')
 	const assistant = useApi(getAssistant).data
 	const account = useApi(getCurrentUser).data
-	const turns = useConversation(account?.id)
+	const chat = useChat(account?.id)
+	const turns = chat.turns
 	const savedList = useApi(getSavedQuestions, [], { enabled: !!assistant?.ready }).data
 	const [text, setText] = useState('')
 	const [sending, setSending] = useState(false)
@@ -41,9 +48,29 @@ export default function Ask() {
 	const emailed = wasEmailed(turns)
 	const lastFailed = turns.at(-1)?.state === 'failed'
 	const canEmail = turns.some(t => t.state === 'answered') && !working && !lastFailed && !sending && !emailed
-	const canClear = turns.length > 0 && !working
+	const canStartNew = turns.length > 0 && !working
 	// a server that cannot send email hides its email features (README, server settings)
 	const mails = !!account?.mail
+
+	// the address names the chat; /ask shows the one open last in this visit, or the draft
+	const shownId = chat.id
+	useEffect(() => {
+		if (!account) return
+		if (chatId) showChat(chatId)
+		else if (lastChat()) navigate(`/ask/${lastChat()}`, { replace: true })
+		else showDraft()
+	}, [chatId, account, navigate])
+	// a first question gets its chat's address as soon as the server names it
+	useEffect(() => {
+		if (!chatId && shownId) navigate(`/ask/${shownId}`, { replace: true })
+	}, [chatId, shownId, navigate])
+	const gone = chat.status === 'gone'
+	useEffect(() => {
+		if (!gone) return
+		toast({ message: GONE, color: 'danger' })
+		newChat()
+		navigate('/ask', { replace: true })
+	}, [gone, toast, navigate])
 
 	// a file deleted on Files, or past its days, reads as gone when the conversation shows again
 	useEffect(() => {
@@ -51,21 +78,25 @@ export default function Ask() {
 		const back = () => { if (document.visibilityState === 'visible') refreshFiles() }
 		document.addEventListener('visibilitychange', back)
 		return () => document.removeEventListener('visibilitychange', back)
-	}, [])
+	}, [chat.status])
 	// the field takes focus as the page opens; a phone would raise its keyboard over the conversation
 	useEffect(() => { if (!touch) field.current?.focus() }, [touch])
 	// Send and Stop swap in one place: focus that went with the one that left comes back to the field
 	useEffect(() => { if (document.activeElement === document.body) field.current?.focus() }, [working])
-	// opening the page, and every new message, shows the latest one
+	// opening the page, and every new message, shows the latest one; Open chat on Files shows the answer that made the file
 	const latest = turns.at(-1)
+	const fileTurn = fileId ? turns.find(t => t.files?.[fileId])?.id : undefined
 	useLayoutEffect(() => {
 		const box = scroller.current
-		if (box) box.scrollTop = box.scrollHeight
-	}, [turns.length, latest?.state, noneLeft])
+		if (!box) return
+		const answer = fileTurn === undefined ? null : box.querySelector(`[data-turn="${fileTurn}"]`)
+		if (answer) answer.scrollIntoView({ block: 'start' })
+		else box.scrollTop = box.scrollHeight
+	}, [turns.length, latest?.state, noneLeft, fileTurn])
 
 	const send = useCallback(question => {
 		if (working || noneLeft || !question.trim() || !account) return
-		ask(account.id, question)
+		ask(question)
 		setText('')
 	}, [working, noneLeft, account])
 
@@ -85,16 +116,16 @@ export default function Ask() {
 		done.catch(e => problem(e, kept ? 'The question was not removed. Try again.' : 'The question was not saved. Try again.'))
 	}
 
-	const clear = () => {
-		const held = clearConversation()
-		toast({ message: 'Conversation cleared', undo: { label: 'Undo', onClick: () => restoreConversation(held) } })
+	const startNew = () => {
+		newChat()
+		navigate('/ask')
 		field.current?.focus()
 	}
 	const email = () => {
 		if (!canEmail) return
 		const sent = turns
 		setSending(true)
-		emailConversation(answeredTurns(sent)).then(
+		emailConversation(chat.id).then(
 			out => {
 				noteEmailed(sent)
 				toast({ message: <>Sent to <b className="sp-break">{out.email}</b></> })
@@ -111,15 +142,19 @@ export default function Ask() {
 	else if (emailed) emailIcon = 'check'
 
 	const mine = account ? <AccountMark name={account.name} email={account.email} picture={account.picture} /> : null
+	const items = <ConversationItems mails={mails} emailLabel={emailLabel} emailIcon={emailIcon} canEmail={canEmail} canStartNew={canStartNew} onEmail={email} onNew={startNew} />
+	let opening = null
+	if (chat.status === 'loading' || gone) opening = <ChatThread aria-busy="true"><Skeleton shape="line" /></ChatThread>
+	else if (chat.status === 'failed') opening = <ChatStart><Failed what="This chat" error={chat.error} onRetry={() => showChat(chat.id)} /></ChatStart>
 
 	return (
 		<>
 			{touch
 				? <ScreenBar place title="Ask" onBack={() => navigate('/more')}
-					end={<ConversationMenu mails={mails} emailLabel={emailLabel} canEmail={canEmail} canClear={canClear} onEmail={email} onClear={clear} onFiles={() => navigate('/ask/files')} />} />
+					end={<ConversationMenu>{items}</ConversationMenu>} />
 				: null}
 			<Chat>
-				{turns.length
+				{opening ?? (turns.length
 					? (
 						<ChatThread scrollRef={scroller}>
 							{turns.map(t => {
@@ -134,7 +169,7 @@ export default function Ask() {
 									t.state === 'stopped'
 										? null
 										: (
-											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />}>
+											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />} data-turn={t.id}>
 												<ChatReply state={t.state} doing={doingOf(t.doing)} onRetry={() => askAgain(t.id)}>
 													{t.state === 'answered' ? <AnswerText text={t.answer} files={t.files} charts={t.charts} onOpen={to => navigate(to)} /> : null}
 												</ChatReply>
@@ -143,7 +178,7 @@ export default function Ask() {
 								]
 							})}
 							{noneLeft
-								? <Alert mark="!" title="No questions left today">You can ask again tomorrow from 00:00. This conversation stays until you leave.</Alert>
+								? <Alert mark="!" title="No questions left today">You can ask again tomorrow from 00:00. This chat stays on Chats.</Alert>
 								: null}
 						</ChatThread>
 					)
@@ -162,7 +197,7 @@ export default function Ask() {
 								)
 								: savedList ? <span className="sp-meta">Save a question with the bookmark beside it, and it shows here.</span> : null}
 						</ChatStart>
-					)}
+					))}
 				<ChatDock
 					bar={touch}
 					value={text}
@@ -171,17 +206,13 @@ export default function Ask() {
 					onSend={() => send(text)}
 					onStop={stopAsking}
 					working={working}
-					disabled={noneLeft}
+					disabled={noneLeft || !!opening}
 					fieldRef={field}
 					placeholder={noneLeft ? 'No questions left today' : touch && turns.length ? 'Ask a follow-up' : 'Ask about your orders, vendors and budget'}
 					left={left > 0 && left <= 3 ? `${plural(left, 'question')} left today` : null}
 					end={touch
 						? null
-						: <>
-							<IconButton icon="trash" variant="outline" aria-label="Clear" data-tip="Clear" disabled={!canClear} onClick={clear} />
-							{mails ? <IconButton icon={emailIcon} variant="outline" aria-label={emailLabel} data-tip={emailLabel} disabled={!canEmail} onClick={email} /> : null}
-							<IconButton icon="paperclip" variant="outline" aria-label="Files" data-tip="Files" to="/ask/files" />
-						</>}
+						: <ChatMore><Menu position="floating" aria-label="Conversation">{items}</Menu></ChatMore>}
 				/>
 			</Chat>
 		</>
@@ -194,24 +225,27 @@ function AccountMark({ name, email, picture }) {
 	return <Mark size="small" fill="solid" swatch="green-3" round aria-hidden="true" aria-label={name || email}><>{initialsOf(name || email.split('@')[0])}</></Mark>
 }
 
-/* The phone's top bar menu (Mobile screens 7a): Email this chat, Clear and Files, in the same states as the buttons. */
-function ConversationMenu({ mails, emailLabel, canEmail, canClear, onEmail, onClear, onFiles }) {
+/* The conversation menu's items (24c): Chats and Files, Email this chat in the state of its send, and New chat. */
+function ConversationItems({ mails, emailLabel, emailIcon, canEmail, canStartNew, onEmail, onNew }) {
+	return <>
+		<MenuItem icon="message-circle" to="/ask/chats">Chats</MenuItem>
+		<MenuItem icon="paperclip" to="/ask/files">Files</MenuItem>
+		{mails ? <MenuItem icon={emailIcon} disabled={!canEmail} onClick={onEmail}>{emailLabel}</MenuItem> : null}
+		<MenuSeparator />
+		<MenuItem icon="plus" disabled={!canStartNew} onClick={onNew}>New chat</MenuItem>
+	</>
+}
+
+/* The phone's top bar menu (Mobile screens 7a): the same items as the menu beside Send. */
+function ConversationMenu({ children }) {
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
 	useDismiss(anchor, open, close)
 	return (
-		<Anchor ref={anchor} open={open}>
+		<Anchor ref={anchor} open={open} onClick={ev => { if (ev.target.closest('.sp-menu__item:not(:disabled)')) close() }}>
 			<IconButton icon="dots-vertical" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
-			{open
-				? (
-					<Menu position="floating" aria-label="Conversation">
-						{mails ? <MenuItem disabled={!canEmail} onClick={() => { close(); onEmail() }}>{emailLabel}</MenuItem> : null}
-						<MenuItem disabled={!canClear} onClick={() => { close(); onClear() }}>Clear</MenuItem>
-						<MenuItem onClick={() => { close(); onFiles() }}>Files</MenuItem>
-					</Menu>
-				)
-				: null}
+			{open ? <Menu position="floating" aria-label="Conversation">{children}</Menu> : null}
 		</Anchor>
 	)
 }

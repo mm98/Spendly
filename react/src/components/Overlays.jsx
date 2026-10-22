@@ -180,7 +180,7 @@ export function MenuItem({ icon, to, onClick, disabled = false, danger = false, 
 	}
 	const body = <>
 		{dot ? <span className="sp-combobox__dot" data-dot={dot} /> : null}
-		{icon ? <Icon name={icon} size={15} /> : null}
+		{typeof icon === 'string' ? <Icon name={icon} size={15} /> : icon ?? null}
 		{label}
 		{selected ? <><span className="sp-grow" /><span className="sp-combobox__check"><Icon name="check" size={13} /></span></> : null}
 	</>
