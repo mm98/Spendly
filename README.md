@@ -222,6 +222,8 @@ Everything that needs you, on one page.
 - **Chats** is a page that lists the kept chats, the latest first, with a search over the headings,
   questions and answers. A heading opens its chat. Delete removes the chat and the files it made, and
   offers Undo.
+- **Chats and Files keep the chat bar** at the bottom on a computer. Back to chat beside Send returns
+  to the chat open last, and a question typed there goes to that chat, or starts one.
 - **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
   Saved questions show under the empty page, each with an x that removes it. Up to 8 per account, kept on the
   server. Every account starts with three example questions saved, and they can be removed too.
@@ -229,8 +231,9 @@ Everything that needs you, on one page.
   answer holds it with a Download button. Spendly makes it from your own orders and numbers. Ask for
   numbers over time or the shares of a whole, and the answer draws them as bars or a ring. Hover or tap
   a bar to read its amount. A share of a category or vendor opens its orders.
-- **Files** is a page that lists every file Ask made in the last 30 days, newest first. Each can open
-  the chat that made it, be downloaded again or be deleted, and a delete offers Undo. A downloaded file is named after the heading at
+- **Files** is a page that lists every file Ask made in the last 30 days, newest first, with a search
+  over the file names. Each can open the chat that made it, be downloaded again or be deleted, and a
+  delete offers Undo. A downloaded file is named after the heading at
   its top, then the day and time it was asked: "Orders in October 2026 (2026-10-22 14.05.33).xlsx". After
   30 days a file is removed. Only you, signed in, can download your files. A download link in a tab that
   is signed out asks you to sign in first.

@@ -2,6 +2,7 @@ import { db } from '../db.js'
 import { newId } from './ids.js'
 import { fromEpoch, nowEpoch, toEpoch } from './dates.js'
 import { FILE_KEPT_DAYS, deleteFilesOfChat, restoreFilesOfChat } from './assistantFiles.js'
+import { escapeLike } from './textSearch.js'
 
 /* The chats on Ask (24a, 24f): every one kept for the account for 30 days after its last question,
    listed on Chats, opened again at /ask/:chatId, and deleted with the files its answers made. */
@@ -115,7 +116,7 @@ const chatRow = r => ({ id: r.id, heading: r.heading ?? r.first_question, questi
 export function keptChats(userId, { q = '', page = 1, pageSize = 25 } = {}) {
 	const now = nowEpoch()
 	const query = String(q).trim().slice(0, 200)
-	const like = `%${query.replace(/[\\%_]/g, m => `\\${m}`)}%`
+	const like = `%${escapeLike(query)}%`
 	const total = countKept.get({ userId, now }).n
 	const matched = query ? countMatching.get({ userId, now, like }).n : total
 	const size = Math.max(0, Math.min(100, Math.floor(pageSize)))

@@ -140,7 +140,11 @@ function send(body, key) {
 			// a stopped question keeps its place without an answer, and so does one the day's limit refused
 			patch(run.chatId, run.key, { state: controller.signal.aborted || error.status === 429 ? 'stopped' : 'failed', doing: null })
 		}
-	).finally(() => { if (asking === run) asking = null })
+	).finally(() => {
+		if (asking !== run) return
+		asking = null
+		emit()
+	})
 }
 
 /** Asks `question` in the chat on screen, or starts a chat with it, unless an answer is still coming. */
@@ -151,6 +155,19 @@ export function ask(question) {
 	edit(shownId, turns => [...turns, turn])
 	send({ chatId: shownId, question: turn.question }, key)
 }
+
+/** Asks `question` from Chats or Files (24c): in the chat open last in this visit, or in a new chat when
+    none was. Answers the address that shows it. */
+export function askInLastChat(question) {
+	if (asking || !question.trim()) return null
+	shownId = lastId
+	if (!lastId) draft = []
+	ask(question)
+	return lastId ? `/ask/${lastId}` : '/ask'
+}
+
+/** Whether an answer is coming, in any chat. */
+export const useAsking = () => useSyncExternalStore(subscribe, () => !!asking)
 
 /** Asks a failed turn's question again, in its own place. */
 export function askAgain(id) {
