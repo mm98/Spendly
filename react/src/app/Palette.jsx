@@ -3,7 +3,7 @@ import { useStatusTypes } from './statuses.js'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
-import { getAssistant, getCurrentUser, getOrder, getOrders, getOverLimitCategories, getStatsSlice, getVendor, getVendorPage, searchRecords, thisMonthSlice } from '../api/client.js'
+import { getAsk, getCurrentUser, getOrder, getOrders, getOverLimitCategories, getStatsSlice, getVendor, getVendorPage, searchRecords, thisMonthSlice } from '../api/client.js'
 import { forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
 import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
 import { MAC } from './useMedia.js'
@@ -191,7 +191,7 @@ const actionsFor = (theme, onShortcuts, overLimit, drafts, scan, asks) => [
 		: { key: 'scan', icon: 'camera', name: 'Scan a receipt', meta: 'Available once your email is confirmed', off: true, first: true, action: true },
 	{ key: 'new', icon: 'plus', name: 'New order', kbd: 'N', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
-	// Ask only while the server has an assistant set up (9d)
+	// Ask only while the server has it set up (9d)
 	...GO.filter(([, , to]) => asks || to !== '/ask').map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
 	{ key: 'add-vendor', icon: 'building-store', name: 'Add a vendor', to: '/vendors/new' },
 	{ key: 'add-category', icon: 'category', name: 'Add a category', to: '/categories/new' },
@@ -300,7 +300,7 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 	const drafts = useHasDrafts()
 	const scan = useScanPicker()
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
-	const asks = !!useApi(getAssistant).data?.ready
+	const asks = !!useApi(getAsk).data?.ready
 	const groups = groupsFor(text, found, recent, actionsFor(theme, touch ? null : onShortcuts, overLimit, drafts, held ? null : scan.open, asks))
 	const flat = groups.flatMap(g => g.entries)
 

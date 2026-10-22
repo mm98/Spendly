@@ -6,11 +6,11 @@ import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Alert, Anchor, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Failed } from '../components/Failed.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Spinner, useDismiss } from '../components/Utilities.jsx'
-import { emailConversation, failureMessage, getAssistant, getCurrentUser, getSavedQuestions, removeSavedQuestion, saveQuestion } from '../api/client.js'
+import { emailConversation, failureMessage, getAsk, getCurrentUser, getSavedQuestions, removeSavedQuestion, saveQuestion } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
-import { ask, askAgain, lastChat, newChat, noteEmailed, refreshFiles, showChat, showDraft, stopAsking, useChat, wasEmailed } from '../app/assistant.js'
-import { AnswerText } from '../app/assistantAnswer.jsx'
+import { ask, askAgain, lastChat, newChat, noteEmailed, refreshFiles, showChat, showDraft, stopAsking, useChat, wasEmailed } from '../app/ask.js'
+import { AnswerText } from '../app/askAnswer.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
@@ -26,19 +26,19 @@ export default function Ask() {
 	const { chatId } = useParams()
 	const [params] = useSearchParams()
 	const fileId = params.get('file')
-	const assistant = useApi(getAssistant).data
+	const askStatus = useApi(getAsk).data
 	const account = useApi(getCurrentUser).data
 	const chat = useChat(account?.id)
 	const turns = chat.turns
-	const savedList = useApi(getSavedQuestions, [], { enabled: !!assistant?.ready }).data
+	const savedList = useApi(getSavedQuestions, [], { enabled: !!askStatus?.ready }).data
 	const [text, setText] = useState('')
 	const [sending, setSending] = useState(false)
 	const field = useRef(null)
 	const scroller = useRef(null)
 
 	const working = turns.some(t => t.state === 'working')
-	const noneLeft = !!assistant?.ready && assistant.left === 0
-	const left = assistant?.left
+	const noneLeft = !!askStatus?.ready && askStatus.left === 0
+	const left = askStatus?.left
 	const saved = savedList?.questions ?? []
 	const savedMost = savedList?.most ?? 0
 	const emailed = wasEmailed(turns)
@@ -96,7 +96,7 @@ export default function Ask() {
 		setText('')
 	}, [working, noneLeft, account])
 
-	if (assistant && !assistant.ready) return <Navigate to="/" replace />
+	if (askStatus && !askStatus.ready) return <Navigate to="/" replace />
 
 	const keys = ev => {
 		if (ev.key === 'Enter' && !ev.shiftKey) {

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { askAssistant, getAssistantFileStates, getChat } from '../api/client.js'
+import { askQuestion, getAskFileStates, getChat } from '../api/client.js'
 
 /* The chats opened in this visit (24a, 24f), so an answer still coming when the page is left lands in its chat.
    A turn is { id, question, answer, made, state, doing }; `made` holds what the answer made by maker and id
@@ -117,7 +117,7 @@ function send(body, key) {
 	const controller = new AbortController()
 	const run = { controller, chatId: body.chatId, key }
 	asking = run
-	askAssistant(body, controller.signal, step => {
+	askQuestion(body, controller.signal, step => {
 		if (!step.chat) return patch(run.chatId, run.key, { doing: step })
 		// the server names the chat and the turn: a draft becomes the chat it now is
 		if (!run.chatId) {
@@ -188,7 +188,7 @@ export function refreshFiles() {
 	const filesOf = t => t.made?.file ?? {}
 	const ids = turns.flatMap(t => Object.keys(filesOf(t)))
 	if (!ids.length) return
-	getAssistantFileStates(ids).then(out => {
+	getAskFileStates(ids).then(out => {
 		const changed = turns.some(t => Object.keys(filesOf(t)).some(id => out.files[id] && out.files[id].state !== filesOf(t)[id].state))
 		if (changed) edit(chatId, list => list.map(t => (t.made?.file ? { ...t, made: { ...t.made, file: Object.fromEntries(Object.entries(t.made.file).map(([id, f]) => [id, out.files[id] ? { ...f, ...out.files[id] } : f])) } } : t)))
 	}, () => { /* the rows keep what they showed */ })

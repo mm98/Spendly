@@ -1,4 +1,4 @@
-import { FILE_REFUSALS, FILE_ROWS_MOST, fileDownload, fileStates, makeFile, sweepFiles } from '../../lib/assistantFiles.js'
+import { FILE_REFUSALS, FILE_ROWS_MOST, fileDownload, fileStates, makeFile, sweepFiles } from '../../lib/askFiles.js'
 import { publicLink } from '../../lib/mail.js'
 import { day, text } from '../schema.js'
 import { COLUMN_KINDS } from './document.js'

@@ -1,7 +1,7 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
 import { nowEpoch } from './dates.js'
-import { FILE_KEPT_DAYS } from './assistantFiles.js'
+import { FILE_KEPT_DAYS } from './askFiles.js'
 import { CHART_KINDS, chartKind } from '../format/chart/kinds.js'
 import { textOf } from '../format/chart/fields.js'
 
@@ -10,9 +10,9 @@ import { textOf } from '../format/chart/fields.js'
 
 const DAY = 86400
 
-const insertChart = db.prepare('INSERT INTO user_assistant_charts (id, user_id, chat_id, chart, expires_at) VALUES (?, ?, ?, ?, ?)')
-const selectCharts = db.prepare('SELECT c.id, c.chart FROM json_each(?) j CROSS JOIN user_assistant_charts c ON c.id = j.value WHERE c.user_id = ?')
-const dropExpired = db.prepare('DELETE FROM user_assistant_charts WHERE expires_at <= ?')
+const insertChart = db.prepare('INSERT INTO user_ask_charts (id, user_id, chat_id, chart, expires_at) VALUES (?, ?, ?, ?, ?)')
+const selectCharts = db.prepare('SELECT c.id, c.chart FROM json_each(?) j CROSS JOIN user_ask_charts c ON c.id = j.value WHERE c.user_id = ?')
+const dropExpired = db.prepare('DELETE FROM user_ask_charts WHERE expires_at <= ?')
 
 /** `asked` as the chart it can be drawn as: what the model sent, trimmed to what the app draws. */
 function chartOf(asked) {

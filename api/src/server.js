@@ -1,6 +1,6 @@
 import './db.js'
 import { app } from './app.js'
-import { scheduleAssistantSweep } from './lib/assistant.js'
+import { scheduleAskSweep } from './lib/ask.js'
 import { scheduleDailyBackups } from './lib/backup.js'
 import { checkMail } from './lib/mail.js'
 import { scheduleStatusEmails } from './lib/statusEmail.js'
@@ -10,4 +10,4 @@ app.listen(PORT, () => console.log(`Spendly API listening on :${PORT}`))
 scheduleDailyBackups()
 checkMail()
 scheduleStatusEmails()
-scheduleAssistantSweep()
+scheduleAskSweep()

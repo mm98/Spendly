@@ -252,14 +252,14 @@ export async function removeMcpToken(id, signal) {
 }
 
 /* ---- Ask (24a): whether it is there, the questions left today, one question answered ---- */
-export async function getAssistant(signal) {
-	return request('/api/assistant', { signal })
+export async function getAsk(signal) {
+	return request('/api/ask', { signal })
 }
 
 /** Asks `question` in the chat `chatId` (a new chat when null), or the failed turn `retry` again. `onStep` hears
     { chat, turn }, then each { doing }; the last line is { answer, made, left } or the refusal. */
-export async function askAssistant({ chatId = null, question = '', retry = null }, signal, onStep) {
-	const path = '/api/assistant/ask'
+export async function askQuestion({ chatId = null, question = '', retry = null }, signal, onStep) {
+	const path = '/api/ask'
 	writeStarted()
 	try {
 		const res = await fetch(path, {
@@ -298,8 +298,8 @@ export async function askAssistant({ chatId = null, question = '', retry = null 
 		return last
 	} finally {
 		writeSettled()
-		invalidate(getAssistant)
-		invalidate(getAssistantFiles)
+		invalidate(getAsk)
+		invalidate(getAskFiles)
 		invalidate(getChats)
 	}
 }
@@ -308,71 +308,71 @@ export async function askAssistant({ chatId = null, question = '', retry = null 
 
 /** One page of the kept chats, latest asked first: { chats, matched, total, pages, page, keptDays }. */
 export async function getChats(params, signal) {
-	return request(`/api/assistant/chats${qs(params)}`, { signal })
+	return request(`/api/ask/chats${qs(params)}`, { signal })
 }
 
 /** A chat as Ask shows it again: { id, heading, turns }, each turn with its files and charts. */
 export async function getChat(id, signal) {
-	return request(`/api/assistant/chats/${encodeURIComponent(id)}`, { signal })
+	return request(`/api/ask/chats/${encodeURIComponent(id)}`, { signal })
 }
 
 /** Deletes the chat and the files its answers made. Answers { files }, how many files went with it. */
 export async function deleteChat(id, signal) {
 	try {
-		return await request(`/api/assistant/chats/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+		return await request(`/api/ask/chats/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
 	} finally {
 		invalidate(getChats)
-		invalidate(getAssistantFiles)
+		invalidate(getAskFiles)
 	}
 }
 
 export async function restoreChat(id, signal) {
 	try {
-		return await request(`/api/assistant/chats/${encodeURIComponent(id)}/restore`, { method: 'POST', signal })
+		return await request(`/api/ask/chats/${encodeURIComponent(id)}/restore`, { method: 'POST', signal })
 	} finally {
 		invalidate(getChats)
-		invalidate(getAssistantFiles)
+		invalidate(getAskFiles)
 	}
 }
 
 /* ---- Files (24e): what Ask made, kept for 30 days ---- */
 
 /** One page of the kept files, newest first: { files, matched, pages, page, keptDays }. */
-export async function getAssistantFiles(params, signal) {
-	return request(`/api/assistant/files${qs(params)}`, { signal })
+export async function getAskFiles(params, signal) {
+	return request(`/api/ask/files${qs(params)}`, { signal })
 }
 
 /** What each file named by `ids` is now, by id: ready, or gone because it was deleted or its days ran out. */
-export async function getAssistantFileStates(ids, signal) {
-	return request(`/api/assistant/files/states${qs({ ids: ids.join(',') })}`, { signal })
+export async function getAskFileStates(ids, signal) {
+	return request(`/api/ask/files/states${qs({ ids: ids.join(',') })}`, { signal })
 }
 
-export async function deleteAssistantFile(id, signal) {
+export async function deleteAskFile(id, signal) {
 	try {
-		return await request(`/api/assistant/files/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+		return await request(`/api/ask/files/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
 	} finally {
-		invalidate(getAssistantFiles)
+		invalidate(getAskFiles)
 		invalidate(getChats)
 	}
 }
 
-export async function restoreAssistantFile(id, signal) {
+export async function restoreAskFile(id, signal) {
 	try {
-		return await request(`/api/assistant/files/${encodeURIComponent(id)}/restore`, { method: 'POST', signal })
+		return await request(`/api/ask/files/${encodeURIComponent(id)}/restore`, { method: 'POST', signal })
 	} finally {
-		invalidate(getAssistantFiles)
+		invalidate(getAskFiles)
 		invalidate(getChats)
 	}
 }
 
 /** The saved questions, oldest first: { questions: [{ id, question }], most }. */
 export async function getSavedQuestions(signal) {
-	return request('/api/assistant/questions', { signal })
+	return request('/api/ask/questions', { signal })
 }
 
 export async function saveQuestion(question, signal) {
 	try {
-		return await request('/api/assistant/questions', { method: 'POST', body: { question }, signal })
+		return await request('/api/ask/questions', { method: 'POST', body: { question }, signal })
 	} finally {
 		invalidate(getSavedQuestions)
 	}
@@ -380,7 +380,7 @@ export async function saveQuestion(question, signal) {
 
 export async function removeSavedQuestion(id, signal) {
 	try {
-		return await request(`/api/assistant/questions/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+		return await request(`/api/ask/questions/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
 	} finally {
 		invalidate(getSavedQuestions)
 	}
@@ -388,7 +388,7 @@ export async function removeSavedQuestion(id, signal) {
 
 /** Sends the chat's answered questions to the account's own address (24c). Answers { email }. */
 export async function emailConversation(chatId, signal) {
-	return request('/api/assistant/email', { method: 'POST', body: { chatId, locale: browserPlace().locale }, signal })
+	return request('/api/ask/email', { method: 'POST', body: { chatId, locale: browserPlace().locale }, signal })
 }
 
 /* The page still on screen is leaving: its readers are not asked again, since every answer

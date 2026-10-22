@@ -72,7 +72,7 @@ a wishlist.
 | `/vendors`, `/categories`, `/bookmarks` | The three libraries, each with `/new` and `/:id/edit` |
 | `/budget`, `/budget/:year` | The yearly budget |
 | `/budget/check` | Check a bank statement against the budget |
-| `/ask` | Ask: questions about the account, while the server has an assistant set up; shows the chat open last in this visit, or the empty page |
+| `/ask` | Ask: questions about the account, while the server has it set up; shows the chat open last in this visit, or the empty page |
 | `/ask/:chatId` | Ask with a kept chat open; `?file=ID` opens it at the answer that made that file |
 | `/ask/chats` | Chats: the chats kept for 30 days after their last question, to open, search or delete |
 | `/ask/files` | Files: what Ask made in the last 30 days, to download again or delete; `?download=ID` starts that download after sign-in |

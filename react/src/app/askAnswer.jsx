@@ -3,7 +3,7 @@ import { ChatChart, ChatFigures, ChatFile, ChatFiles, ChatShares } from '../comp
 import { Bars, ChartTip, Donut, Legend, LegendItem, ShareRow, Shares } from '../components/Data.jsx'
 import { amount, currency, plural } from '../api/format.js'
 
-/* An answer from the assistant, in the small format lib/assistant.js asks for: paragraphs, "- "
+/* An answer from Ask, in the small format lib/ask.js asks for: paragraphs, "- "
    lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and a place
    mark such as {{file:ID}} on a line of its own where something a maker made belongs (PLACES, below).
    Anything else shows as text. */

@@ -8,7 +8,7 @@ import { Controls, ListMore } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
-import { deleteAssistantFile, failureMessage, getAssistantFiles, restoreAssistantFile } from '../api/client.js'
+import { deleteAskFile, failureMessage, getAskFiles, restoreAskFile } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
 import { AskListFrame } from '../app/askListFrame.jsx'
@@ -27,19 +27,19 @@ export default function AskFiles() {
 	const [params, setParams] = useSearchParams()
 	const [pages, setPages] = useState(1)
 	const [query, setQuery] = useState('')
-	const list = useApi(getAssistantFiles, [{ q: touch ? '' : query.trim(), pageSize: STEP * pages }])
+	const list = useApi(getAskFiles, [{ q: touch ? '' : query.trim(), pageSize: STEP * pages }])
 
 	const asked = params.get('download')
 	useEffect(() => {
 		if (!asked) return
 		setParams({}, { replace: true })
-		window.location.assign(`/api/assistant/files/${encodeURIComponent(asked)}/download`)
+		window.location.assign(`/api/ask/files/${encodeURIComponent(asked)}/download`)
 	}, [asked, setParams])
 
 	const problem = (e, fallback) => toast({ message: failureMessage(e, fallback), color: 'danger' })
 	const remove = file => {
-		deleteAssistantFile(file.id).then(
-			() => toast({ message: 'File deleted', undo: { label: 'Undo', onClick: () => restoreAssistantFile(file.id).catch(e => problem(e, 'The file could not be brought back.')) } }),
+		deleteAskFile(file.id).then(
+			() => toast({ message: 'File deleted', undo: { label: 'Undo', onClick: () => restoreAskFile(file.id).catch(e => problem(e, 'The file could not be brought back.')) } }),
 			e => problem(e, 'The file was not deleted. Try again.')
 		)
 	}

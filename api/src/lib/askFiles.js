@@ -28,35 +28,35 @@ export const FILE_REFUSALS = {
 	failed: 'something went wrong while it was made. Ask again.'
 }
 
-const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, chat_id, title, download_name, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
+const insertFile = db.prepare(`INSERT INTO user_ask_files (id, user_id, chat_id, title, download_name, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
 	VALUES (@id, @userId, @chatId, @title, @downloadName, @type, @askedAt, @size, @storedName, @failedReason, @keptUntil, @expiresAt)`)
-const selectMade = db.prepare('SELECT made_files_count FROM user_assistant_days WHERE user_id = ? AND day = ?')
-const countMade = db.prepare(`INSERT INTO user_assistant_days (user_id, day, made_files_count) VALUES (?, ?, 1)
+const selectMade = db.prepare('SELECT made_files_count FROM user_ask_days WHERE user_id = ? AND day = ?')
+const countMade = db.prepare(`INSERT INTO user_ask_days (user_id, day, made_files_count) VALUES (?, ?, 1)
 	ON CONFLICT (user_id, day) DO UPDATE SET made_files_count = made_files_count + 1`)
 const selectAccount = db.prepare('SELECT s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 // the + keeps SQLite on the id key: each id is one row, where the account's index walks every file it has
 const selectStates = db.prepare(`SELECT f.id, f.chat_id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at
-	FROM json_each(?) j CROSS JOIN user_assistant_files f ON f.id = j.value WHERE +f.user_id = ?`)
+	FROM json_each(?) j CROSS JOIN user_ask_files f ON f.id = j.value WHERE +f.user_id = ?`)
 const KEPT = 'user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now'
 // a search matches the name the row shows or the name the file downloads as
 const MATCHES = "(title LIKE @like ESCAPE '\\' OR download_name LIKE @like ESCAPE '\\')"
 const KEPT_FIELDS = 'id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason'
-const selectKept = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_assistant_files WHERE ${KEPT} ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
-const selectMatching = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_assistant_files WHERE ${KEPT} AND ${MATCHES}
+const selectKept = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_ask_files WHERE ${KEPT} ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
+const selectMatching = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_ask_files WHERE ${KEPT} AND ${MATCHES}
 	ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
-const countKept = db.prepare(`SELECT COUNT(*) c FROM user_assistant_files WHERE ${KEPT}`)
-const countMatching = db.prepare(`SELECT COUNT(*) c FROM user_assistant_files WHERE ${KEPT} AND ${MATCHES}`)
-const selectDownload = db.prepare(`SELECT title, download_name, type, asked_at, stored_name FROM user_assistant_files
+const countKept = db.prepare(`SELECT COUNT(*) c FROM user_ask_files WHERE ${KEPT}`)
+const countMatching = db.prepare(`SELECT COUNT(*) c FROM user_ask_files WHERE ${KEPT} AND ${MATCHES}`)
+const selectDownload = db.prepare(`SELECT title, download_name, type, asked_at, stored_name FROM user_ask_files
 	WHERE id = ? AND user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?`)
 // the files of a chat go and come back with it, all at the moment the chat was deleted
-const markChatDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = ? WHERE chat_id = ? AND user_id = ? AND deleted_at IS NULL AND stored_name IS NOT NULL')
-const unmarkChatDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = NULL WHERE chat_id = ? AND user_id = ? AND deleted_at = ? AND stored_name IS NOT NULL')
-const markDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND stored_name IS NOT NULL')
-const unmarkDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL AND stored_name IS NOT NULL')
-const selectExpired = db.prepare('SELECT id, user_id, stored_name FROM user_assistant_files WHERE expires_at <= ?')
-const dropFile = db.prepare('DELETE FROM user_assistant_files WHERE id = ?')
-const selectDeletedStored = db.prepare('SELECT id, user_id, stored_name FROM user_assistant_files WHERE deleted_at IS NOT NULL AND deleted_at <= ? AND stored_name IS NOT NULL')
-const forgetStored = db.prepare('UPDATE user_assistant_files SET stored_name = NULL WHERE id = ?')
+const markChatDeleted = db.prepare('UPDATE user_ask_files SET deleted_at = ? WHERE chat_id = ? AND user_id = ? AND deleted_at IS NULL AND stored_name IS NOT NULL')
+const unmarkChatDeleted = db.prepare('UPDATE user_ask_files SET deleted_at = NULL WHERE chat_id = ? AND user_id = ? AND deleted_at = ? AND stored_name IS NOT NULL')
+const markDeleted = db.prepare('UPDATE user_ask_files SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND stored_name IS NOT NULL')
+const unmarkDeleted = db.prepare('UPDATE user_ask_files SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL AND stored_name IS NOT NULL')
+const selectExpired = db.prepare('SELECT id, user_id, stored_name FROM user_ask_files WHERE expires_at <= ?')
+const dropFile = db.prepare('DELETE FROM user_ask_files WHERE id = ?')
+const selectDeletedStored = db.prepare('SELECT id, user_id, stored_name FROM user_ask_files WHERE deleted_at IS NOT NULL AND deleted_at <= ? AND stored_name IS NOT NULL')
+const forgetStored = db.prepare('UPDATE user_ask_files SET stored_name = NULL WHERE id = ?')
 
 /** The account's own way of writing an amount and a date, for a file's cells. */
 export function fileWriter(userId, browserLocale) {
@@ -82,7 +82,7 @@ export function fileMeta(row, now = nowEpoch()) {
 	if (row.failed_reason) return { ...base, state: 'failed', reason: row.failed_reason }
 	if (row.deleted_at) return { ...base, state: 'gone', gone: 'deleted' }
 	if (row.expires_at <= now) return { ...base, state: 'gone', gone: 'expired' }
-	return { ...base, state: 'ready', size: fileSizeLabel(row.size), keptUntil: row.kept_until, href: `/api/assistant/files/${row.id}/download` }
+	return { ...base, state: 'ready', size: fileSizeLabel(row.size), keptUntil: row.kept_until, href: `/api/ask/files/${row.id}/download` }
 }
 
 /** The files named by `ids`, by id; a file the sweep removed reads as expired. */
@@ -143,7 +143,7 @@ export function makeFile({ userId, chatId = null, day, unlimited, title, askedAt
 			row.size = content.length
 			row.storedName = storeFile(userId, FOLDER, content)
 		} catch (error) {
-			console.error('Assistant file failed:', error.message)
+			console.error('Ask file failed:', error.message)
 			row.failedReason = FILE_REFUSALS.failed
 		}
 	}

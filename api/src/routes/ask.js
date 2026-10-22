@@ -1,15 +1,15 @@
 import { Router } from 'express'
-import { TEXT_MOST, TURNS_MOST, answerQuestion, assistantState, noteAnswered, writeChatHeading } from '../lib/assistant.js'
+import { TEXT_MOST, TURNS_MOST, answerQuestion, askState, noteAnswered, writeChatHeading } from '../lib/ask.js'
 import { isBillingRefusal } from '../lib/scanParse.js'
 import { sessionToken, sessionUser } from '../lib/auth.js'
-import { SAVED_MOST, emailConversation, removeQuestion, saveQuestion, savedQuestions } from '../lib/assistantChat.js'
-import { answeredTurnsOf, chatOf, deleteChat, endTurn, keptChats, restartFailedTurn, restoreChat, startTurn } from '../lib/assistantChats.js'
-import { deleteFile, fileDownload, fileStates, keptFiles, restoreFile } from '../lib/assistantFiles.js'
+import { SAVED_MOST, emailConversation, removeQuestion, saveQuestion, savedQuestions } from '../lib/askChat.js'
+import { answeredTurnsOf, chatOf, deleteChat, endTurn, keptChats, restartFailedTurn, restoreChat, startTurn } from '../lib/askChats.js'
+import { deleteFile, fileDownload, fileStates, keptFiles, restoreFile } from '../lib/askFiles.js'
 import { madeIn, madeOf, placesIn } from '../format/index.js'
 import { mailAvailable } from '../lib/mail.js'
 import { ownsServer } from './account.js'
 
-/* Ask (lib/assistant.js): whether it is there with the questions left today, one question
+/* Ask (lib/ask.js): whether it is there with the questions left today, one question
    answered, the chats kept (Chats, 24f), the saved questions, the files it made (Files, 24e), and a
    chat by email.
    The day is the reader's own. */
@@ -19,7 +19,7 @@ export const router = Router()
 const asking = new Set()
 
 // the server's owner asks without a daily limit
-const stateOf = req => assistantState(req.user.id, req.today, { unlimited: ownsServer(req.user) })
+const stateOf = req => askState(req.user.id, req.today, { unlimited: ownsServer(req.user) })
 
 router.get('/', (req, res) => res.json(stateOf(req)))
 
@@ -30,9 +30,9 @@ const idOf = value => (typeof value === 'string' && /^[\w-]{1,64}$/.test(value) 
 
 /* One question answered, in the chat `chatId` or a new one, or a failed question asked again in its
    place (`retry`, its turn's id). The first line names the chat and the turn. */
-router.post('/ask', async (req, res) => {
+router.post('/', async (req, res) => {
 	const state = stateOf(req)
-	if (!state.ready) return res.status(404).json({ error: 'The assistant is not set up on this server.' })
+	if (!state.ready) return res.status(404).json({ error: 'Ask is not set up on this server.' })
 	if (state.left === 0) return res.status(429).json({ error: 'No questions left today.', left: 0 })
 	const chatId = idOf(req.body?.chatId)
 	const retry = Number.isInteger(req.body?.retry) ? req.body.retry : null
@@ -82,7 +82,7 @@ router.post('/ask', async (req, res) => {
 		endTurn(turn.turnId, stop.signal.aborted ? 'stopped' : 'failed')
 		if (stop.signal.aborted) return
 		// the log is the one place a bad key, a timeout or a refused account is told apart
-		console.error('Assistant answer failed:', isBillingRefusal(error) ? 'billing' : error.message)
+		console.error('Ask answer failed:', isBillingRefusal(error) ? 'billing' : error.message)
 		res.end(JSON.stringify({ error: 'Spendly could not answer that just now.', status: 502 }) + '\n')
 	}
 })
