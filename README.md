@@ -213,8 +213,14 @@ Everything that needs you, on one page.
   short lists, small tables and links. A link to an order opens that order. A link to a vendor, a
   category or a group of orders opens the order list with those filters, and with the period the
   answer is about. A follow-up
-  question uses the earlier ones. The conversation stays while the app is open. **Stop** ends an
-  answer that is coming, and a failed answer can be tried again.
+  question uses the earlier ones. **Stop** ends an answer that is coming, and a failed answer can be
+  tried again.
+- **Every chat is kept** for 30 days after its last question, with its own address, so a reload or a
+  bookmark opens it again and it can be continued. Spendly writes a short heading for it after the
+  first answer; this does not count toward the day's questions.
+- **Chats** is a page that lists the kept chats, the latest first, with a search over the headings,
+  questions and answers. A heading opens its chat. Delete removes the chat and the files it made, and
+  offers Undo.
 - **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
   Saved questions show under the empty page, each with an x that removes it. Up to 8 per account, kept on the
   server. Every account starts with three example questions saved, and they can be removed too.
@@ -222,19 +228,19 @@ Everything that needs you, on one page.
   answer holds it with a Download button. Spendly makes it from your own orders and numbers. Ask for
   numbers over time or the shares of a whole, and the answer draws them as bars or a ring. Hover or tap
   a bar to read its amount. A share of a category or vendor opens its orders.
-- **Files** is a page that lists every file Ask made in the last 30 days, newest first. Each can be
-  downloaded again or deleted, and a delete offers Undo. A downloaded file is named after the heading at
+- **Files** is a page that lists every file Ask made in the last 30 days, newest first. Each can open
+  the chat that made it, be downloaded again or be deleted, and a delete offers Undo. A downloaded file is named after the heading at
   its top, then the day and time it was asked: "Orders in October 2026 (2026-10-22 14.05.33).xlsx". After
   30 days a file is removed. Only you, signed in, can download your files. A download link in a tab that
   is signed out asks you to sign in first.
 - **Each account can make 10 files a day** (`SPENDLY_ASSISTANT_FILES_PER_DAY`). A file that cannot be
   made, because there are too many orders or the day's files are used, says why in the answer. The
   server's owner has no daily limit.
-- **Clear** empties the conversation, and its message offers Undo. **Email this chat** sends the
-  conversation to your own address, at most once a minute. The email shows each chart as a picture,
-  and names each file with a link to Files. The files that are still kept are attached, up to 15 MB in
-  all; a file past that is only named. On a computer Clear, Email this chat and Files are buttons
-  beside Send; on a phone they are in the menu at the top.
+- **The menu beside Send** holds Chats, Files, Email this chat and New chat. On a phone it is the
+  menu at the top. New chat opens the empty page; the chat that was open stays on Chats.
+- **Email this chat** sends the chat to your own address, at most once a minute. The email shows each
+  chart as a picture and attaches the files that are still kept, up to 15 MB in all. A file past that
+  is named with a link to Files. The button at the end opens the chat again.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
 - **Each account has 25 questions a day** (`SPENDLY_ASSISTANT_QUESTIONS_PER_DAY`), counted on the

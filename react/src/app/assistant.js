@@ -1,102 +1,182 @@
 import { useSyncExternalStore } from 'react'
-import { askAssistant, getAssistantFileStates } from '../api/client.js'
+import { askAssistant, getAssistantFileStates, getChat } from '../api/client.js'
 
-/* Ask's conversation (24a), kept for the visit: an answer still coming when the page is left
-   lands in it. A turn is { id, question, answer, files, charts, state, doing }: working, answered,
-   failed or stopped; `doing` is the file or chart being made while it works. */
+/* The chats opened in this visit (24a, 24f), so an answer still coming when the page is left lands in its chat.
+   A turn is { id, question, answer, files, charts, state, doing }; `doing` is the file or chart being made.
+   A chat the server has not named yet is the draft, shown at /ask. */
 
 let owner = null
-let turns = []
+// by id: { id, status, turns, error }, status loading, ready, gone or failed
+let chats = new Map()
+let draft = []
+let shownId = null
+let lastId = null
 let asking = null
-let nextId = 1
+let nextKey = -1
 const listeners = new Set()
 
-const set = next => {
-	turns = next
+const EMPTY = { id: null, status: 'ready', turns: [] }
+let view = EMPTY
+
+function emit() {
+	const chat = shownId ? chats.get(shownId) : null
+	view = chat ? { id: shownId, status: chat.status, turns: chat.turns, error: chat.error } : { ...EMPTY, turns: draft }
 	listeners.forEach(fn => fn())
 }
 const subscribe = fn => {
 	listeners.add(fn)
 	return () => listeners.delete(fn)
 }
-const update = (id, patch) => set(turns.map(t => (t.id === id ? { ...t, ...patch } : t)))
 
-/** The conversation of `user`; one another account left in this browser is ended, never shown. */
-export function useConversation(user) {
-	const now = useSyncExternalStore(subscribe, () => turns)
-	if (owner !== user && turns.length) {
-		asking?.abort()
+function reset() {
+	asking?.controller.abort()
+	asking = null
+	chats = new Map()
+	draft = []
+	shownId = null
+	lastId = null
+	view = EMPTY
+}
+
+/** The chat on screen for `user`: { id, status, turns }. One another account left in this browser is ended, never shown. */
+export function useChat(user) {
+	const now = useSyncExternalStore(subscribe, () => view)
+	if (owner !== user) {
+		if (owner !== null) reset()
 		owner = user
-		turns = []
 	}
-	return owner === user ? now : []
+	return now
 }
 
-const pairsOf = list => list.filter(t => t.state === 'answered').flatMap(t => [{ role: 'user', text: t.question }, { role: 'assistant', text: t.answer }])
+// the turns of the chat `chatId`, or of the draft when it is null, changed by `change`
+function edit(chatId, change) {
+	if (!chatId) draft = change(draft)
+	else {
+		const chat = chats.get(chatId)
+		if (!chat) return
+		chats.set(chatId, { ...chat, turns: change(chat.turns) })
+	}
+	emit()
+}
+const patch = (chatId, id, values) => edit(chatId, turns => turns.map(t => (t.id === id ? { ...t, ...values } : t)))
 
-// what the server is sent: every answered turn before the one asked, then its question
-const sentFor = turn => [...pairsOf(turns.slice(0, turns.indexOf(turn))), { role: 'user', text: turn.question }]
+/** Shows the chat `id`, as it is on the server, unless an answer in it is still coming. */
+export function showChat(id) {
+	shownId = id
+	lastId = id
+	const held = chats.get(id)
+	if (!held) chats.set(id, { id, status: 'loading', turns: [] })
+	emit()
+	if (asking?.chatId === id) return
+	getChat(id).then(
+		chat => {
+			if (asking?.chatId === id) return
+			chats.set(id, { id, status: 'ready', turns: chat.turns })
+			emit()
+		},
+		error => {
+			if (asking?.chatId === id) return
+			chats.set(id, error.status === 404 ? { id, status: 'gone', turns: [] } : { ...(held ?? { id, turns: [] }), status: held?.status === 'ready' ? 'ready' : 'failed', error })
+			emit()
+		}
+	)
+}
 
-/** The answered questions and answers of `list`, as the conversation email takes them. */
-export const answeredTurns = list => pairsOf(list)
+/** Shows the draft: the empty page, or a first question the server has not named a chat for yet. */
+export function showDraft() {
+	shownId = null
+	emit()
+}
 
-function send(turn) {
+/** Leaves the chat on screen for the empty page; the chat stays on Chats. */
+export function newChat() {
+	if (asking && !asking.chatId) return
+	draft = []
+	shownId = null
+	lastId = null
+	emit()
+}
+
+/** The chat open last in this visit, which /ask shows. */
+export const lastChat = () => lastId
+
+/** Forgets a chat deleted on Chats; when it is on screen, Ask shows the empty page. */
+export function forgetChat(id) {
+	if (asking?.chatId === id) asking.controller.abort()
+	chats.delete(id)
+	if (lastId === id) lastId = null
+	if (shownId === id) {
+		shownId = null
+		draft = []
+	}
+	emit()
+}
+
+function send(body, key) {
 	const controller = new AbortController()
-	asking = controller
-	askAssistant(sentFor(turn), controller.signal, step => update(turn.id, { doing: step })).then(
-		out => update(turn.id, { state: 'answered', answer: out.answer, files: out.files ?? {}, charts: out.charts ?? {}, doing: null }),
-		// a stopped question keeps its place without an answer, and so does one the day's limit refused
-		error => update(turn.id, { state: controller.signal.aborted || error.status === 429 ? 'stopped' : 'failed' })
-	).finally(() => { if (asking === controller) asking = null })
+	const run = { controller, chatId: body.chatId, key }
+	asking = run
+	askAssistant(body, controller.signal, step => {
+		if (!step.chat) return patch(run.chatId, run.key, { doing: step })
+		// the server names the chat and the turn: a draft becomes the chat it now is
+		if (!run.chatId) {
+			chats.set(step.chat, { id: step.chat, status: 'ready', turns: draft })
+			draft = []
+			run.chatId = step.chat
+			if (shownId === null) {
+				shownId = step.chat
+				lastId = step.chat
+			}
+		}
+		patch(run.chatId, run.key, { id: step.turn })
+		run.key = step.turn
+	}).then(
+		out => patch(run.chatId, run.key, { state: 'answered', answer: out.answer, files: out.files ?? {}, charts: out.charts ?? {}, doing: null }),
+		error => {
+			if (error.status === 404 && error.body?.gone) {
+				chats.set(run.chatId, { id: run.chatId, status: 'gone', turns: [] })
+				return emit()
+			}
+			// a stopped question keeps its place without an answer, and so does one the day's limit refused
+			patch(run.chatId, run.key, { state: controller.signal.aborted || error.status === 429 ? 'stopped' : 'failed', doing: null })
+		}
+	).finally(() => { if (asking === run) asking = null })
 }
 
-/** Asks `question` as the next turn, unless an answer is still coming. */
-export function ask(user, question) {
+/** Asks `question` in the chat on screen, or starts a chat with it, unless an answer is still coming. */
+export function ask(question) {
 	if (asking || !question.trim()) return
-	if (owner !== user) turns = []
-	owner = user
-	const turn = { id: nextId++, question: question.trim(), state: 'working' }
-	set([...turns, turn])
-	send(turns.at(-1))
+	const key = nextKey--
+	const turn = { id: key, question: question.trim(), state: 'working' }
+	edit(shownId, turns => [...turns, turn])
+	send({ chatId: shownId, question: turn.question }, key)
 }
 
 /** Asks a failed turn's question again, in its own place. */
 export function askAgain(id) {
-	if (asking) return
-	update(id, { state: 'working', doing: null })
-	send(turns.find(t => t.id === id))
+	if (asking || !shownId) return
+	patch(shownId, id, { state: 'working', doing: null })
+	send({ chatId: shownId, retry: id }, id)
 }
 
 /** Ends the answer that is coming; its question stays. */
-export const stopAsking = () => asking?.abort()
+export const stopAsking = () => asking?.controller.abort()
 
-/** Empties the conversation and answers what it held, for Undo; an answer coming is ended. */
-export function clearConversation() {
-	asking?.abort()
-	const held = turns.map(t => (t.state === 'working' ? { ...t, state: 'stopped' } : t))
-	set([])
-	return held
-}
-
-/** Puts back what `clearConversation` answered, unless a question has been asked since. */
-export function restoreConversation(held) {
-	if (turns.length) return
-	set(held)
-}
-
-/** Asks the server what each file in the conversation is now, so one deleted on Files, or past its
+/** Asks the server what each file in the chat on screen is now, so one deleted on Files, or past its
     days, reads as gone here too. */
 export function refreshFiles() {
+	const chatId = shownId
+	const turns = view.turns
 	const ids = turns.flatMap(t => Object.keys(t.files ?? {}))
 	if (!ids.length) return
 	getAssistantFileStates(ids).then(out => {
 		const changed = turns.some(t => Object.keys(t.files ?? {}).some(id => out.files[id] && out.files[id].state !== t.files[id].state))
-		if (changed) set(turns.map(t => (t.files ? { ...t, files: Object.fromEntries(Object.entries(t.files).map(([id, f]) => [id, out.files[id] ? { ...f, ...out.files[id] } : f])) } : t)))
+		if (changed) edit(chatId, list => list.map(t => (t.files ? { ...t, files: Object.fromEntries(Object.entries(t.files).map(([id, f]) => [id, out.files[id] ? { ...f, ...out.files[id] } : f])) } : t)))
 	}, () => { /* the rows keep what they showed */ })
 }
 
 let emailed = null
 
-/** Marks `list` as sent by email; it reads as sent until the conversation changes. */
-export const noteEmailed = list => { emailed = list }
-export const wasEmailed = list => list.length > 0 && emailed === list
+/** Marks `turns` as sent by email; they read as sent until the chat changes. */
+export const noteEmailed = turns => { emailed = turns }
+export const wasEmailed = turns => turns.length > 0 && emailed === turns

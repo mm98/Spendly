@@ -91,15 +91,6 @@ html:has(body > .sp-scrim) .sp-shell--touch > :is(.sp-tabbar, .sp-fab) { display
 /* the design's gutter for the confirm banner on a page that fills the column, given to the box the app's banner sits in */
 .sp-shell--touch .sp-shell__body--fill > .au-banner { padding: var(--phone-gutter) var(--phone-gutter) 0; }
 
-/* the empty page scrolls in its own box when it is taller than the room left, as under the confirm banner on
-   a phone, so the dock stays in view; safe keeps its top in reach */
-.sp-chat__start { min-height: 0; overflow-y: auto; justify-content: safe center; }
-
-/* an answer's bars measure their height against the space above the ticks, so the tallest bars are not
-   squeezed to one height: the tick sits in the column's padding instead of taking a share of its 140 */
-.sp-chat__chart .sp-bars__col { padding-bottom: calc(var(--t-11) * var(--lh) + var(--sp-8)); }
-.sp-chat__chart .sp-bars__tick { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
-
 /* focus the keyboard moves stops 12 clear of the bars pinned over the page */
 html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }
 html:has(.sp-shell--viewport .sp-list-item--sticky) { scroll-padding-bottom: calc(var(--commit-bar-h) + var(--sp-12)); }

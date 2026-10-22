@@ -92,20 +92,17 @@ function tableOf(lines, write) {
 const PLACE = /^\s*\{\{(file|chart):([\w-]{1,64})\}\}\s*$/
 export const placesIn = text => [...text.matchAll(/\{\{(file|chart):([\w-]{1,64})\}\}/g)].map(m => ({ kind: m[1], id: m[2] }))
 
-// the files one answer made together, named and sized, never linked: the download needs a sign-in (emails/README.md)
+// the files one answer made together, named and sized, never linked: each says whether it is attached,
+// and one that is not points to Files, where the download asks for a sign-in (emails/README.md)
 function filesBlock(ids, outputs) {
 	const files = ids.map(id => outputs.files[id]).filter(f => f && f.state !== 'gone')
 	if (!files.length) return null
-	const ready = files.filter(f => f.state === 'ready')
 	return {
 		files: true,
 		items: files.map((f, i) => (f.state === 'failed'
 			? { title: f.title, first: i === 0, failed: true, reason: f.reason }
-			: { title: f.title, kind: f.kind, size: f.size, first: i === 0 })),
-		ready: ready.length > 0,
-		many: ready.length > 1,
-		files_url: publicLink('/ask/files'),
-		kept_until: ready.map(f => f.keptUntil).sort()[0] ?? null
+			: { title: f.title, kind: f.kind, size: f.size, first: i === 0, attached: !!outputs.attached?.has(f.id), kept_until: f.keptUntil })),
+		files_url: publicLink('/ask/files')
 	}
 }
 
@@ -130,8 +127,9 @@ function chartBlock(id, outputs, write) {
 }
 
 /** An answer as the email's blocks: paragraphs, lists, tables, files and charts, as the app draws them.
-    `outputs` holds the answer's files and charts by id, and `picture(chart)` names a chart's attached picture. */
-export function answerBlocks(text, write, outputs = { files: {}, charts: {}, picture: () => '' }) {
+    `outputs` holds the answer's files and charts by id, the ids of the files attached, and `picture(chart)`,
+    which names a chart's attached picture. */
+export function answerBlocks(text, write, outputs = { files: {}, charts: {}, attached: new Set(), picture: () => '' }) {
 	const blocks = []
 	for (const chunk of text.split(/\n\s*\n/)) {
 		const lines = chunk.split('\n').map(l => l.trimEnd()).filter(l => l.trim())
@@ -174,9 +172,9 @@ const ATTACHED_BYTES_MOST = 15 * 1024 * 1024
 
 const selectAccount = db.prepare('SELECT u.email, u.name, s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 
-/** Sends the conversation `turns` ({ role, text }, a question then its answer) to the reader's own
-    address on `day`, written in `locale` when the account leaves it to the browser. Answers the address. */
-export async function emailConversation(userId, { turns, day, locale }) {
+/** Sends the chat `chatId`, its answered `turns` ({ role, text }, a question then its answer), to the
+    reader's own address on `day`, written in `locale` when the account leaves it to the browser. Answers the address. */
+export async function emailConversation(userId, { chatId, turns, day, locale }) {
 	const account = selectAccount.get(userId)
 	const currency = account.currency ?? 'DKK'
 	const write = writerFor({ locale: usableLocale(account.locale, locale), currency })
@@ -184,16 +182,21 @@ export async function emailConversation(userId, { turns, day, locale }) {
 	const questions = turns.filter(t => t.role === 'user').map(t => t.text)
 	// the files and charts the answers name, as they are now; a chart is attached as a picture, so no address leads to it
 	const places = turns.filter(t => t.role === 'assistant').flatMap(t => placesIn(t.text))
-	const attachments = []
-	const outputs = {
-		files: fileStates(userId, places.filter(p => p.kind === 'file').map(p => p.id)),
-		charts: chartsById(userId, places.filter(p => p.kind === 'chart').map(p => p.id)),
-		picture: chart => {
-			const cid = `${chart.id}@spendly`
-			attachments.push({ filename: `${chart.name}.png`, content: chartPicture(chart, write), contentType: 'image/png', cid })
-			return `cid:${cid}`
-		}
+	const files = fileStates(userId, places.filter(p => p.kind === 'file').map(p => p.id))
+	const charts = chartsById(userId, places.filter(p => p.kind === 'chart').map(p => p.id))
+	const attachments = Object.values(charts).filter(c => !c.failed)
+		.map(chart => ({ filename: `${chart.name}.png`, content: chartPicture(chart, write), contentType: 'image/png', cid: `${chart.id}@spendly` }))
+	// the files still kept go with it, in the order the answers name them, while they fit beside the charts
+	const attached = new Set()
+	let room = ATTACHED_BYTES_MOST - attachments.reduce((sum, a) => sum + a.content.length, 0)
+	for (const id of new Set(places.filter(p => p.kind === 'file').map(p => p.id))) {
+		const file = files[id]?.state === 'ready' && fileDownload(userId, id)
+		if (!file || file.content.length > room) continue
+		attachments.push({ filename: file.name, content: file.content, contentType: file.mime })
+		attached.add(id)
+		room -= file.content.length
 	}
+	const outputs = { files, charts, attached, picture: chart => `cid:${chart.id}@spendly` }
 	const message = emailMessage('ask-chat', account.email, {
 		subject: `Your Spendly conversation, ${date}`,
 		preheader: questions.slice(0, 2).join(' '),
@@ -201,17 +204,9 @@ export async function emailConversation(userId, { turns, day, locale }) {
 		currency_name: currencyName(currency),
 		email: account.email,
 		initials: initialsOf(account.name || account.email.split('@')[0]),
-		ask_url: publicLink('/ask'),
+		chat_url: publicLink(`/ask/${chatId}`),
 		messages: turns.map(t => (t.role === 'user' ? { mine: true, question: t.text } : { mine: false, blocks: answerBlocks(t.text, write, outputs) }))
 	})
-	// the files still kept go with it, in the order the answers name them, while they fit beside the charts
-	let room = ATTACHED_BYTES_MOST - attachments.reduce((sum, a) => sum + a.content.length, 0)
-	for (const id of new Set(places.filter(p => p.kind === 'file').map(p => p.id))) {
-		const file = outputs.files[id]?.state === 'ready' && fileDownload(userId, id)
-		if (!file || file.content.length > room) continue
-		attachments.push({ filename: file.name, content: file.content, contentType: file.mime })
-		room -= file.content.length
-	}
 	await sendMail({ ...message, attachments })
 	return account.email
 }

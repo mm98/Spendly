@@ -1,8 +1,11 @@
+import { useRef, useState } from 'react'
+import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
-import { Spinner } from './Utilities.jsx'
+import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
+import { Spinner, useDismiss } from './Utilities.jsx'
 
 /* ---------- chat (c34, Ask 24a) ---------- */
 
@@ -94,27 +97,33 @@ export function ChatFiles({ children, ...rest }) {
 }
 
 /** One file: the mark, the question as its title, its type and size, and what can be done with it.
-    `keptUntil` and `onDelete` are the Files page's; a file that could not be made never reads as ready. */
-export function ChatFile({ title, type, size, state = 'ready', reason, gone, keptUntil, href, onDelete, ...rest }) {
+    `keptUntil`, `chatTo` (Open chat) and `onDelete` are the Files page's; a file that could not be made
+    never reads as ready. A kept chat on Chats is the same row: its `icon`, the title linked `to` it, and
+    its own `meta` line in place of a file's. */
+export function ChatFile({ title, type, size, state = 'ready', reason, gone, keptUntil, href, to, icon = 'file-text', meta: line, chatTo, onDelete, ...rest }) {
 	reject(rest, 'ChatFile')
 	pick(FILE_STATE, state, 'state', 'ChatFile')
-	const kind = pick(FILE_TYPE, type, 'type', 'ChatFile')
+	const kind = line ? null : pick(FILE_TYPE, type, 'type', 'ChatFile')
 	if (state === 'failed' && !reason) console.error('<ChatFile> a file that could not be made says why')
 	if (state === 'gone' && !(gone in FILE_GONE)) console.error(`<ChatFile> gone="${gone}" is not one of: ${Object.keys(FILE_GONE).join(' | ')}`)
-	if (state === 'ready' && !href) console.error('<ChatFile> a ready file needs its href')
+	if (state === 'ready' && !href && !to) console.error('<ChatFile> a ready file needs its href')
 	// the day is never broken across two lines on a phone's narrow row
-	let meta = <>{join(kind, size && `· ${size}`)}{keptUntil ? <> · Kept until <span className="sp-nowrap">{keptUntil}</span></> : null}</>
+	const kept = keptUntil ? <> · Kept until <span className="sp-nowrap">{keptUntil}</span></> : null
+	let meta = <>{line ?? join(kind, size && `· ${size}`)}{kept}</>
 	if (state === 'failed') meta = `Could not be made: ${reason}`
 	else if (state === 'making') meta = `${kind} · Being made`
 	else if (state === 'gone') meta = `${kind} · ${FILE_GONE[gone]}`
 	return (
 		<div className="sp-chat__file" data-state={FILE_STATE[state] || undefined} {...rest}>
-			<Mark size="medium" fill="none" aria-hidden="true" aria-label={kind}><Icon name="file-text" /></Mark>
+			<Mark size="medium" fill="none" aria-hidden="true" aria-label={kind ?? title}><Icon name={icon} /></Mark>
 			<span className="sp-stacked">
-				<span className="sp-chat__file-name sp-truncate" title={title}>{title}</span>
+				{to
+					? <Link className="sp-chat__file-name sp-truncate" to={to} title={title}>{title}</Link>
+					: <span className="sp-chat__file-name sp-truncate" title={title}>{title}</span>}
 				<span className={join('sp-meta', state === 'failed' && 'sp-chat__failed')}>{meta}</span>
 			</span>
-			{state === 'ready' ? <IconButton variant="outline" icon="download" href={href} aria-label={`Download ${title}`} data-tip="Download" /> : null}
+			{state === 'ready' && chatTo ? <IconButton variant="outline" icon="message-circle" to={chatTo} aria-label={`Open the chat of ${title}`} data-tip="Open chat" /> : null}
+			{state === 'ready' && href ? <IconButton variant="outline" icon="download" href={href} aria-label={`Download ${title}`} data-tip="Download" /> : null}
 			{state === 'ready' && onDelete ? <IconButton variant="outline" icon="trash" onClick={onDelete} aria-label={`Delete ${title}`} data-tip="Delete" /> : null}
 			{state === 'making' ? <IconButton variant="outline" icon={<Spinner />} disabled aria-label="Being made" /> : null}
 		</div>
@@ -181,6 +190,24 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, working
 						{left ? <span className="sp-meta--over">{left}</span> : null}
 					</div>
 				)}
+		</div>
+	)
+}
+
+/** The conversation menu beside Send (24c): the button, and `children`, the Menu it opens upward. A
+    choice in the menu closes it. */
+export function ChatMore({ children, ...rest }) {
+	reject(rest, 'ChatMore')
+	const [open, setOpen] = useState(false)
+	const box = useRef(null)
+	const keys = useMenuButton(box, open)
+	useMenuPlace(box, open)
+	useDismiss(box, open, () => setOpen(false))
+	return (
+		<div className="sp-chat__more" ref={box} data-open={open ? 'true' : 'false'} data-menu-open={open ? 'true' : undefined} {...keys}
+			onClick={ev => { if (ev.target.closest('.sp-menu__item:not(:disabled)')) setOpen(false) }} {...rest}>
+			<IconButton icon="dots-vertical" variant="outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} data-tip="More" onClick={() => setOpen(!open)} />
+			<MenuHostOf open={open} box={box}>{open ? children : null}</MenuHostOf>
 		</div>
 	)
 }

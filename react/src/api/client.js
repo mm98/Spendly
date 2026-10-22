@@ -256,16 +256,16 @@ export async function getAssistant(signal) {
 	return request('/api/assistant', { signal })
 }
 
-/** `turns` is the conversation so far, oldest first, ending with the question. `onStep` hears each file or
-    chart being made ({ working }); the last line is { answer, files, charts, left } or the refusal. */
-export async function askAssistant(turns, signal, onStep) {
+/** Asks `question` in the chat `chatId` (a new chat when null), or the failed turn `retry` again. `onStep` hears
+    { chat, turn }, then each { working }; the last line is { answer, files, charts, left } or the refusal. */
+export async function askAssistant({ chatId = null, question = '', retry = null }, signal, onStep) {
 	const path = '/api/assistant/ask'
 	writeStarted()
 	try {
 		const res = await fetch(path, {
 			method: 'POST', signal, credentials: 'include',
 			headers: { [TODAY]: today(), 'Content-Type': 'application/json' },
-			body: JSON.stringify({ turns, ...browserPlace() })
+			body: JSON.stringify({ chatId, question, retry, ...browserPlace() })
 		})
 		noteServerBuild(res.headers.get('Build'))
 		if (!res.ok) {
@@ -280,7 +280,7 @@ export async function askAssistant(turns, signal, onStep) {
 		const take = line => {
 			if (!line.trim()) return
 			const data = JSON.parse(line)
-			if (data.working) onStep?.(data)
+			if (data.working || data.chat) onStep?.(data)
 			else last = data
 		}
 		for (;;) {
@@ -299,6 +299,38 @@ export async function askAssistant(turns, signal, onStep) {
 	} finally {
 		writeSettled()
 		invalidate(getAssistant)
+		invalidate(getAssistantFiles)
+		invalidate(getChats)
+	}
+}
+
+/* ---- Chats (24f): the chats kept for 30 days after their last question ---- */
+
+/** One page of the kept chats, latest asked first: { chats, matched, total, pages, page, keptDays }. */
+export async function getChats(params, signal) {
+	return request(`/api/assistant/chats${qs(params)}`, { signal })
+}
+
+/** A chat as Ask shows it again: { id, heading, turns }, each turn with its files and charts. */
+export async function getChat(id, signal) {
+	return request(`/api/assistant/chats/${encodeURIComponent(id)}`, { signal })
+}
+
+/** Deletes the chat and the files its answers made. Answers { files }, how many files went with it. */
+export async function deleteChat(id, signal) {
+	try {
+		return await request(`/api/assistant/chats/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
+	} finally {
+		invalidate(getChats)
+		invalidate(getAssistantFiles)
+	}
+}
+
+export async function restoreChat(id, signal) {
+	try {
+		return await request(`/api/assistant/chats/${encodeURIComponent(id)}/restore`, { method: 'POST', signal })
+	} finally {
+		invalidate(getChats)
 		invalidate(getAssistantFiles)
 	}
 }
@@ -320,6 +352,7 @@ export async function deleteAssistantFile(id, signal) {
 		return await request(`/api/assistant/files/${encodeURIComponent(id)}`, { method: 'DELETE', signal })
 	} finally {
 		invalidate(getAssistantFiles)
+		invalidate(getChats)
 	}
 }
 
@@ -328,6 +361,7 @@ export async function restoreAssistantFile(id, signal) {
 		return await request(`/api/assistant/files/${encodeURIComponent(id)}/restore`, { method: 'POST', signal })
 	} finally {
 		invalidate(getAssistantFiles)
+		invalidate(getChats)
 	}
 }
 
@@ -352,9 +386,9 @@ export async function removeSavedQuestion(id, signal) {
 	}
 }
 
-/** Sends the answered conversation to the account's own address (24c). Answers { email }. */
-export async function emailConversation(turns, signal) {
-	return request('/api/assistant/email', { method: 'POST', body: { turns, locale: browserPlace().locale }, signal })
+/** Sends the chat's answered questions to the account's own address (24c). Answers { email }. */
+export async function emailConversation(chatId, signal) {
+	return request('/api/assistant/email', { method: 'POST', body: { chatId, locale: browserPlace().locale }, signal })
 }
 
 /* The page still on screen is leaving: its readers are not asked again, since every answer

@@ -30,20 +30,23 @@ export const FILE_REFUSALS = {
 
 const KINDS = { xlsx: 'Excel', docx: 'Word', pdf: 'PDF', csv: 'CSV' }
 
-const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, title, download_name, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
-	VALUES (@id, @userId, @title, @downloadName, @type, @askedAt, @size, @storedName, @failedReason, @keptUntil, @expiresAt)`)
+const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, chat_id, title, download_name, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
+	VALUES (@id, @userId, @chatId, @title, @downloadName, @type, @askedAt, @size, @storedName, @failedReason, @keptUntil, @expiresAt)`)
 const selectMade = db.prepare('SELECT made_files_count FROM user_assistant_days WHERE user_id = ? AND day = ?')
 const countMade = db.prepare(`INSERT INTO user_assistant_days (user_id, day, made_files_count) VALUES (?, ?, 1)
 	ON CONFLICT (user_id, day) DO UPDATE SET made_files_count = made_files_count + 1`)
 const selectAccount = db.prepare('SELECT s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 // the + keeps SQLite on the id key: each id is one row, where the account's index walks every file it has
-const selectStates = db.prepare(`SELECT f.id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at
+const selectStates = db.prepare(`SELECT f.id, f.chat_id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at
 	FROM json_each(?) j CROSS JOIN user_assistant_files f ON f.id = j.value WHERE +f.user_id = ?`)
-const selectKept = db.prepare(`SELECT id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files
+const selectKept = db.prepare(`SELECT id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files
 	WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
 const countKept = db.prepare('SELECT COUNT(*) c FROM user_assistant_files WHERE user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?')
 const selectDownload = db.prepare(`SELECT title, download_name, type, asked_at, stored_name FROM user_assistant_files
 	WHERE id = ? AND user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?`)
+// the files of a chat go and come back with it, all at the moment the chat was deleted
+const markChatDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = ? WHERE chat_id = ? AND user_id = ? AND deleted_at IS NULL AND stored_name IS NOT NULL')
+const unmarkChatDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = NULL WHERE chat_id = ? AND user_id = ? AND deleted_at = ? AND stored_name IS NOT NULL')
 const markDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND stored_name IS NOT NULL')
 const unmarkDeleted = db.prepare('UPDATE user_assistant_files SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL AND stored_name IS NOT NULL')
 const selectExpired = db.prepare('SELECT id, user_id, stored_name FROM user_assistant_files WHERE expires_at <= ?')
@@ -71,7 +74,7 @@ export function askedAtIn(zone, at = new Date()) {
 
 /** What the reader's row shows about one file (ChatFile in react/src/components/Chat.jsx). */
 export function fileMeta(row, now = nowEpoch()) {
-	const base = { id: row.id, title: row.title, type: row.type, kind: KINDS[row.type] }
+	const base = { id: row.id, title: row.title, type: row.type, kind: KINDS[row.type], chatId: row.chat_id ?? null }
 	if (row.failed_reason) return { ...base, state: 'failed', reason: row.failed_reason }
 	if (row.deleted_at) return { ...base, state: 'gone', gone: 'deleted' }
 	if (row.expires_at <= now) return { ...base, state: 'gone', gone: 'expired' }
@@ -111,14 +114,18 @@ export function fileDownload(userId, id) {
 export const deleteFile = (userId, id) => markDeleted.run(nowEpoch(), id, userId).changes > 0
 export const restoreFile = (userId, id) => unmarkDeleted.run(id, userId).changes > 0
 
+/** Deletes the kept files of a chat at `at`, the moment the chat was deleted; answers how many went. */
+export const deleteFilesOfChat = (userId, chatId, at) => markChatDeleted.run(at, chatId, userId).changes
+export const restoreFilesOfChat = (userId, chatId, at) => { unmarkChatDeleted.run(chatId, userId, at) }
+
 /** Whether the reader may make another file on `day`; the server's owner has no limit. */
 export const fileAllowed = (userId, day, unlimited) => unlimited || (selectMade.get(userId, day)?.made_files_count ?? 0) < PER_DAY
 
 /** Makes one file of `doc` (lib/documentFiles.js) for the question `title`, or keeps why it could not
     be made. Answers the reader's row for it either way. */
-export function makeFile({ userId, day, unlimited, title, askedAt, type, doc, write, refusal }) {
+export function makeFile({ userId, chatId = null, day, unlimited, title, askedAt, type, doc, write, refusal }) {
 	const now = nowEpoch()
-	const row = { id: newId('af'), userId, title, downloadName: doc?.title || null, type, askedAt, size: 0, storedName: null, failedReason: refusal ?? null,
+	const row = { id: newId('af'), userId, chatId, title, downloadName: doc?.title || null, type, askedAt, size: 0, storedName: null, failedReason: refusal ?? null,
 		keptUntil: fromEpoch(toEpoch(day) + FILE_KEPT_DAYS * DAY), expiresAt: now + FILE_KEPT_DAYS * DAY }
 	if (!row.failedReason && !fileAllowed(userId, day, unlimited)) row.failedReason = FILE_REFUSALS.usedUp
 	if (!row.failedReason) {
@@ -140,7 +147,7 @@ export function makeFile({ userId, day, unlimited, title, askedAt, type, doc, wr
 		if (row.storedName) removeStoredFile(userId, FOLDER, row.storedName)
 		throw error
 	}
-	return fileMeta({ id: row.id, title, type, size: row.size, failed_reason: row.failedReason, kept_until: row.keptUntil, expires_at: row.expiresAt, deleted_at: null }, now)
+	return fileMeta({ id: row.id, chat_id: chatId, title, type, size: row.size, failed_reason: row.failedReason, kept_until: row.keptUntil, expires_at: row.expiresAt, deleted_at: null }, now)
 }
 
 /** Removes files past their 30 days, and the bytes of deleted files once Undo is over. */
