@@ -1,7 +1,5 @@
 import { db } from '../db.js'
-import { chartsById } from './assistantCharts.js'
-import { fileDownload, fileStates } from './assistantFiles.js'
-import { CHART_PICTURE_WIDTH, chartPicture } from './chartPicture.js'
+import { MAKERS, PLACE_LINE, madeIn, makerOfPlace, placesIn } from '../format/index.js'
 import { emailMessage } from './emails.js'
 import { newId } from './ids.js'
 import { publicLink, sendMail } from './mail.js'
@@ -88,48 +86,10 @@ function tableOf(lines, write) {
 	}
 }
 
-// a line that is only the place of a file or a chart the answer made
-const PLACE = /^\s*\{\{(file|chart):([\w-]{1,64})\}\}\s*$/
-export const placesIn = text => [...text.matchAll(/\{\{(file|chart):([\w-]{1,64})\}\}/g)].map(m => ({ kind: m[1], id: m[2] }))
-
-// the files one answer made together, named and sized, never linked: each says whether it is attached,
-// and one that is not points to Files, where the download asks for a sign-in (emails/README.md)
-function filesBlock(ids, outputs) {
-	const files = ids.map(id => outputs.files[id]).filter(f => f && f.state !== 'gone')
-	if (!files.length) return null
-	return {
-		files: true,
-		items: files.map((f, i) => (f.state === 'failed'
-			? { title: f.title, first: i === 0, failed: true, reason: f.reason }
-			: { title: f.title, kind: f.kind, size: f.size, first: i === 0, attached: !!outputs.attached?.has(f.id), kept_until: f.keptUntil })),
-		files_url: publicLink('/ask/files')
-	}
-}
-
-// what a chart shows, in words: its alt text, and the text version's line
-function chartValues(chart, write) {
-	if (chart.kind === 'shares') {
-		const total = chart.shares.reduce((sum, s) => sum + s.amount, 0) || 1
-		return chart.shares.map(s => `${s.name} ${amountText(s.amount, write)} (${Math.round(s.amount / total * 100)}%)`).join(', ')
-	}
-	const keyed = chart.series.length > 1
-	return chart.columns.map(c => (keyed
-		? `${c.label}: ${chart.series.map((s, i) => `${s.name} ${amountText(c.values[i], write)}`).join(', ')}`
-		: `${c.label} ${amountText(c.values[0], write)}`)).join(', ')
-}
-
-function chartBlock(id, outputs, write) {
-	const chart = outputs.charts[id]
-	if (!chart) return null
-	if (chart.failed) return { p: true, runs: [{ text: `${chart.name}: ${chart.failed}` }] }
-	const values = chartValues(chart, write)
-	return { chart: true, title: chart.name, meta: chart.meta ?? '', src: outputs.picture(chart), width: CHART_PICTURE_WIDTH, alt: `${chart.name}: ${values}`, values }
-}
-
-/** An answer as the email's blocks: paragraphs, lists, tables, files and charts, as the app draws them.
-    `outputs` holds the answer's files and charts by id, the ids of the files attached, and `picture(chart)`,
-    which names a chart's attached picture. */
-export function answerBlocks(text, write, outputs = { files: {}, charts: {}, attached: new Set(), picture: () => '' }) {
+/** An answer as the email's blocks: paragraphs, lists, tables, and what its makers made, as the app draws them.
+    `made` holds what was made, by maker and id, and `attached` the ids of what goes with the email. */
+export function answerBlocks(text, write, { made, attached }) {
+	const email = { attached, write, money: n => amountText(n, write) }
 	const blocks = []
 	for (const chunk of text.split(/\n\s*\n/)) {
 		const lines = chunk.split('\n').map(l => l.trimEnd()).filter(l => l.trim())
@@ -139,13 +99,12 @@ export function answerBlocks(text, write, outputs = { files: {}, charts: {}, att
 			if (!run.length) return
 			if (kind === 'list') blocks.push({ list: true, items: run.map(l => ({ runs: runsOf(l.replace(/^\s*[-*]\s+/, ''), write) })) })
 			else if (kind === 'table') blocks.push(tableOf(run, write))
-			else if (kind === 'file') blocks.push(filesBlock(run.map(l => l.match(PLACE)[2]), outputs))
-			else if (kind === 'chart') blocks.push(...run.map(l => chartBlock(l.match(PLACE)[2], outputs, write)))
+			else if (makerOfPlace(kind)) blocks.push(...makerOfPlace(kind).emailBlocks(run.map(l => l.match(PLACE_LINE)[2]), made[kind], email))
 			else blocks.push({ p: true, runs: runsOf(run.join(' '), write) })
 			run = []
 		}
 		for (const line of lines) {
-			const place = line.match(PLACE)?.[1]
+			const place = line.match(PLACE_LINE)?.[1]
 			const next = place ?? (/^\s*\|.*\|\s*$/.test(line) ? 'table' : /^\s*[-*]\s+/.test(line) ? 'list' : 'text')
 			if (next !== kind) { flush(); kind = next }
 			run.push(line)
@@ -180,23 +139,21 @@ export async function emailConversation(userId, { chatId, turns, day, locale }) 
 	const write = writerFor({ locale: usableLocale(account.locale, locale), currency })
 	const date = write.date(day)
 	const questions = turns.filter(t => t.role === 'user').map(t => t.text)
-	// the files and charts the answers name, as they are now; a chart is attached as a picture, so no address leads to it
+	// what the answers name, as it is now: the pictures the email shows in place all go with it, then the
+	// rest in the order the answers name it, while it fits
 	const places = turns.filter(t => t.role === 'assistant').flatMap(t => placesIn(t.text))
-	const files = fileStates(userId, places.filter(p => p.kind === 'file').map(p => p.id))
-	const charts = chartsById(userId, places.filter(p => p.kind === 'chart').map(p => p.id))
-	const attachments = Object.values(charts).filter(c => !c.failed)
-		.map(chart => ({ filename: `${chart.name}.png`, content: chartPicture(chart, write), contentType: 'image/png', cid: `${chart.id}@spendly` }))
-	// the files still kept go with it, in the order the answers name them, while they fit beside the charts
+	const made = madeIn(userId, places)
+	const offered = MAKERS.flatMap(m => m.attachments(userId, [...new Set(places.filter(p => p.place === m.place).map(p => p.id))], made[m.place], write))
+	const attachments = offered.filter(a => a.inline)
 	const attached = new Set()
 	let room = ATTACHED_BYTES_MOST - attachments.reduce((sum, a) => sum + a.content.length, 0)
-	for (const id of new Set(places.filter(p => p.kind === 'file').map(p => p.id))) {
-		const file = files[id]?.state === 'ready' && fileDownload(userId, id)
-		if (!file || file.content.length > room) continue
-		attachments.push({ filename: file.name, content: file.content, contentType: file.mime })
-		attached.add(id)
-		room -= file.content.length
+	for (const a of offered.filter(a => !a.inline)) {
+		if (a.content.length > room) continue
+		attachments.push(a)
+		attached.add(a.id)
+		room -= a.content.length
 	}
-	const outputs = { files, charts, attached, picture: chart => `cid:${chart.id}@spendly` }
+	const outputs = { made, attached }
 	const message = emailMessage('ask-chat', account.email, {
 		subject: `Your Spendly conversation, ${date}`,
 		preheader: questions.slice(0, 2).join(' '),
@@ -207,6 +164,6 @@ export async function emailConversation(userId, { chatId, turns, day, locale }) 
 		chat_url: publicLink(`/ask/${chatId}`),
 		messages: turns.map(t => (t.role === 'user' ? { mine: true, question: t.text } : { mine: false, blocks: answerBlocks(t.text, write, outputs) }))
 	})
-	await sendMail({ ...message, attachments })
+	await sendMail({ ...message, attachments: attachments.map(({ id, inline, ...a }) => a) })
 	return account.email
 }

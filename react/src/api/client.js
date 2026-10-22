@@ -257,7 +257,7 @@ export async function getAssistant(signal) {
 }
 
 /** Asks `question` in the chat `chatId` (a new chat when null), or the failed turn `retry` again. `onStep` hears
-    { chat, turn }, then each { working }; the last line is { answer, files, charts, left } or the refusal. */
+    { chat, turn }, then each { doing }; the last line is { answer, made, left } or the refusal. */
 export async function askAssistant({ chatId = null, question = '', retry = null }, signal, onStep) {
 	const path = '/api/assistant/ask'
 	writeStarted()
@@ -280,7 +280,7 @@ export async function askAssistant({ chatId = null, question = '', retry = null 
 		const take = line => {
 			if (!line.trim()) return
 			const data = JSON.parse(line)
-			if (data.working || data.chat) onStep?.(data)
+			if (data.doing || data.chat) onStep?.(data)
 			else last = data
 		}
 		for (;;) {

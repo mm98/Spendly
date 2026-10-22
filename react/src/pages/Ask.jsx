@@ -14,10 +14,6 @@ import { AnswerText } from '../app/assistantAnswer.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
 
-// what the waiting bubble says while a file or a chart is made (24d)
-const FILE_WORDS = { xlsx: 'spreadsheet', docx: 'document', pdf: 'PDF', csv: 'CSV' }
-const doingOf = step => (step?.working === 'chart' ? 'Drawing your chart' : step?.working === 'file' ? `Making your ${FILE_WORDS[step.type] ?? 'file'}` : undefined)
-
 // the address of a deleted or expired chat opens the empty page with this (24f)
 const GONE = 'That chat is no longer kept.'
 
@@ -85,7 +81,7 @@ export default function Ask() {
 	useEffect(() => { if (document.activeElement === document.body) field.current?.focus() }, [working])
 	// opening the page, and every new message, shows the latest one; Open chat on Files shows the answer that made the file
 	const latest = turns.at(-1)
-	const fileTurn = fileId ? turns.find(t => t.files?.[fileId])?.id : undefined
+	const fileTurn = fileId ? turns.find(t => t.made?.file?.[fileId])?.id : undefined
 	useLayoutEffect(() => {
 		const box = scroller.current
 		if (!box) return
@@ -170,8 +166,8 @@ export default function Ask() {
 										? null
 										: (
 											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />} data-turn={t.id}>
-												<ChatReply state={t.state} doing={doingOf(t.doing)} onRetry={() => askAgain(t.id)}>
-													{t.state === 'answered' ? <AnswerText text={t.answer} files={t.files} charts={t.charts} onOpen={to => navigate(to)} /> : null}
+												<ChatReply state={t.state} doing={t.doing?.doing} onRetry={() => askAgain(t.id)}>
+													{t.state === 'answered' ? <AnswerText text={t.answer} made={t.made} onOpen={to => navigate(to)} /> : null}
 												</ChatReply>
 											</ChatMessage>
 										)

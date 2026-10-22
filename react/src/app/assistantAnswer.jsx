@@ -4,8 +4,8 @@ import { Bars, ChartTip, Donut, Legend, LegendItem, ShareRow, Shares } from '../
 import { amount, currency, plural } from '../api/format.js'
 
 /* An answer from the assistant, in the small format lib/assistant.js asks for: paragraphs, "- "
-   lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and
-   {{file:ID}} and {{chart:ID}} on a line of their own where a file or a chart it made belongs.
+   lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and a place
+   mark such as {{file:ID}} on a line of its own where something a maker made belongs (PLACES, below).
    Anything else shows as text. */
 
 const INLINE = /\[([^\]\n]+)\]\((orders?|vendor|category):([^)\s]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
@@ -69,8 +69,6 @@ function table(lines, key, onOpen) {
 	)
 }
 
-// a line that is only the place of a file or a chart the answer made
-const PLACE = /^\s*\{\{(file|chart):([\w-]{1,64})\}\}\s*$/
 
 // the second series is the muted bar, as a pair draws it, on the key that matches it (Ask 24d)
 const SERIES_KEYS = [1, 4]
@@ -87,8 +85,32 @@ function shareLink(share, chart) {
 	return `/orders?${asked}`
 }
 
-/** A chart the answer made: the library's Bars or the Donut and its Shares, at their own sizes. */
-export function AnswerChart({ chart, onOpen }) {
+// shares of a whole: the Donut and its Shares
+function SharesChart({ chart, onOpen }) {
+	const total = chart.shares.reduce((sum, s) => sum + s.amount, 0) || 1
+	const shares = chart.shares.map((s, i) => ({ ...s, series: i + 1, share: Math.round(s.amount / total * 100) }))
+	return (
+		<ChatChart name={chart.name} meta={chart.meta}>
+			<ChatShares>
+				<Donut shares={shares.map(s => ({ series: s.series, value: s.amount / total * 100 }))} aria-label={shares.map(s => `${s.name} ${s.share}%`).join(', ')} />
+				<Shares>
+					{shares.map(s => {
+						const to = shareLink(s, chart)
+						return (
+							<ShareRow key={s.name} series={s.series} amount={currency(s.amount)} value={`${s.share}%`}
+								href={to ? '#' + to : undefined} onClick={to ? ev => { ev.preventDefault(); onOpen(to) } : undefined}>
+								{s.name}
+							</ShareRow>
+						)
+					})}
+				</Shares>
+			</ChatShares>
+		</ChatChart>
+	)
+}
+
+// bars over time, a column's readout on hover or tap
+function BarsChart({ chart }) {
 	const [open, setOpen] = useState(null)
 	const box = useRef(null)
 	// a tap shows a column's readout until a tap elsewhere
@@ -98,29 +120,6 @@ export function AnswerChart({ chart, onOpen }) {
 		document.addEventListener('pointerdown', away)
 		return () => document.removeEventListener('pointerdown', away)
 	}, [open])
-	if (chart.failed) return <ChatChart name={chart.name} meta={chart.meta} failed={chart.failed} />
-	if (chart.kind === 'shares') {
-		const total = chart.shares.reduce((sum, s) => sum + s.amount, 0) || 1
-		const shares = chart.shares.map((s, i) => ({ ...s, series: i + 1, share: Math.round(s.amount / total * 100) }))
-		return (
-			<ChatChart name={chart.name} meta={chart.meta}>
-				<ChatShares>
-					<Donut shares={shares.map(s => ({ series: s.series, value: s.amount / total * 100 }))} aria-label={shares.map(s => `${s.name} ${s.share}%`).join(', ')} />
-					<Shares>
-						{shares.map(s => {
-							const to = shareLink(s, chart)
-							return (
-								<ShareRow key={s.name} series={s.series} amount={currency(s.amount)} value={`${s.share}%`}
-									href={to ? '#' + to : undefined} onClick={to ? ev => { ev.preventDefault(); onOpen(to) } : undefined}>
-									{s.name}
-								</ShareRow>
-							)
-						})}
-					</Shares>
-				</ChatShares>
-			</ChatChart>
-		)
-	}
 	const keyed = chart.series.length > 1
 	const top = Math.max(0, ...chart.columns.flatMap(c => c.values)) || 1
 	const height = v => Math.max(0, v) / top * 100
@@ -150,19 +149,35 @@ export function AnswerChart({ chart, onOpen }) {
 	)
 }
 
-function filesBlock(ids, files, key) {
-	const shown = ids.map(id => files?.[id]).filter(Boolean)
-	if (!shown.length) return null
-	return (
-		<ChatFiles key={key}>
-			{shown.map(f => <ChatFile key={f.id} title={f.title} type={f.type} size={f.size} state={f.state} reason={f.reason} gone={f.gone} href={f.href} />)}
-		</ChatFiles>
-	)
+// a chart kind of api/src/format/chart, as the app draws it
+const CHART_DRAWINGS = { bars: BarsChart, shares: SharesChart }
+
+/** A chart the answer made, drawn by its kind at its own size. */
+export function AnswerChart({ chart, onOpen }) {
+	if (chart.failed) return <ChatChart name={chart.name} meta={chart.meta} failed={chart.failed} />
+	const Drawing = CHART_DRAWINGS[chart.kind]
+	return Drawing ? <Drawing chart={chart} onOpen={onOpen} /> : null
 }
 
-/** The answer's blocks, each link opening its record through `onOpen(to)`; `files` and `charts` are
-    what it made, by id. */
-export function AnswerText({ text, files, charts, onOpen }) {
+/* What a maker of api/src/format made, as the app draws a run of its place marks: the ids in the order the
+   answer names them, and the maker's own items by id. */
+const PLACES = {
+	file: (ids, files, { key }) => {
+		const shown = ids.map(id => files?.[id]).filter(Boolean)
+		if (!shown.length) return []
+		return [
+			<ChatFiles key={key}>
+				{shown.map(f => <ChatFile key={f.id} title={f.title} kind={f.kind} size={f.size} state={f.state} reason={f.reason} gone={f.gone} href={f.href} />)}
+			</ChatFiles>
+		]
+	},
+	chart: (ids, charts, { key, onOpen }) => ids.map(id => charts?.[id]).map((chart, i) => (chart ? <AnswerChart key={`${key}-${i}`} chart={chart} onOpen={onOpen} /> : null))
+}
+const PLACE = new RegExp(`^\\s*\\{\\{(${Object.keys(PLACES).join('|')}):([\\w-]{1,64})\\}\\}\\s*$`)
+
+/** The answer's blocks, each link opening its record through `onOpen(to)`; `made` holds what it made, by
+    maker and id. */
+export function AnswerText({ text, made, onOpen }) {
 	const blocks = []
 	for (const [bi, chunk] of text.split(/\n\s*\n/).entries()) {
 		const lines = chunk.split('\n').map(l => l.trimEnd()).filter(l => l.trim())
@@ -174,13 +189,7 @@ export function AnswerText({ text, files, charts, onOpen }) {
 			const key = `${bi}-${blocks.length}`
 			if (kind === 'list') blocks.push(<ul key={key}>{run.map((l, i) => <li key={i}>{inline(l.replace(/^\s*[-*]\s+/, ''), onOpen)}</li>)}</ul>)
 			else if (kind === 'table') blocks.push(table(run, key, onOpen))
-			else if (kind === 'file') blocks.push(filesBlock(run.map(l => l.match(PLACE)[2]), files, key))
-			else if (kind === 'chart') {
-				for (const [i, l] of run.entries()) {
-					const chart = charts?.[l.match(PLACE)[2]]
-					if (chart) blocks.push(<AnswerChart key={`${key}-${i}`} chart={chart} onOpen={onOpen} />)
-				}
-			}
+			else if (PLACES[kind]) blocks.push(...PLACES[kind](run.map(l => l.match(PLACE)[2]), made?.[kind], { key, onOpen }))
 			else blocks.push(<p key={key}>{run.map((l, i) => <Fragment key={i}>{i ? <br /> : null}{inline(l, onOpen)}</Fragment>)}</p>)
 			run = []
 		}

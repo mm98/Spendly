@@ -93,7 +93,6 @@ export function ChatFigures({ children, ...rest }) {
 
 /* ---------- what an answer holds besides its words (Ask 24d) ---------- */
 
-const FILE_TYPE = { xlsx: 'Excel', docx: 'Word', pdf: 'PDF', csv: 'CSV' }
 const FILE_STATE = { ready: null, making: null, failed: null, gone: 'gone' }
 const FILE_GONE = { deleted: 'Deleted', expired: 'Removed after 30 days' }
 
@@ -103,14 +102,14 @@ export function ChatFiles({ children, ...rest }) {
 	return <div className="sp-chat__files" {...rest}>{children}</div>
 }
 
-/** One file: the mark, the question as its title, its type and size, and what can be done with it.
+/** One file: the mark, the question as its title, its `kind` (the format's name, Excel) and size, and what can be done with it.
     `keptUntil`, `chatTo` (Open chat) and `onDelete` are the Files page's; a file that could not be made
     never reads as ready. A kept chat on Chats is the same row: its `icon`, the title linked `to` it, and
     its own `meta` line in place of a file's. */
-export function ChatFile({ title, type, size, state = 'ready', reason, gone, keptUntil, href, to, icon = 'file-text', meta: line, chatTo, onDelete, ...rest }) {
+export function ChatFile({ title, kind, size, state = 'ready', reason, gone, keptUntil, href, to, icon = 'file-text', meta: line, chatTo, onDelete, ...rest }) {
 	reject(rest, 'ChatFile')
 	pick(FILE_STATE, state, 'state', 'ChatFile')
-	const kind = line ? null : pick(FILE_TYPE, type, 'type', 'ChatFile')
+	if (!line && !kind) console.error('<ChatFile> a file names its kind')
 	if (state === 'failed' && !reason) console.error('<ChatFile> a file that could not be made says why')
 	if (state === 'gone' && !(gone in FILE_GONE)) console.error(`<ChatFile> gone="${gone}" is not one of: ${Object.keys(FILE_GONE).join(' | ')}`)
 	if (state === 'ready' && !href && !to) console.error('<ChatFile> a ready file needs its href')
