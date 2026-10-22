@@ -69,7 +69,7 @@ export const lines = {
 ```
 
 The app draws a chart by its kind: add the drawing to `CHART_DRAWINGS` in
-`react/src/app/assistantAnswer.jsx`. A new drawing is a design question first: it is built from
+`react/src/app/askAnswer.jsx`. A new drawing is a design question first: it is built from
 what `design/` draws.
 
 ## A maker
@@ -91,9 +91,9 @@ export const mapMaker = {
 
 - `making` holds the reader, the chat, the day, the question and its time, `write`, and the session
   to read the API with.
-- What a maker keeps, and for how long, is its own: files are in `user_assistant_files` with their
-  bytes on disk, charts in `user_assistant_charts`.
+- What a maker keeps, and for how long, is its own: files are in `user_ask_files` with their
+  bytes on disk, charts in `user_ask_charts`.
 - An attachment that is `inline` is a picture the email shows in place, and always goes with it.
   The rest go in the order the answers name them, while they fit.
-- The app draws a maker's place marks from `PLACES` in `react/src/app/assistantAnswer.jsx`, and an
+- The app draws a maker's place marks from `PLACES` in `react/src/app/askAnswer.jsx`, and an
   email block from `api/src/emails/ask-chat.html`. Both are design questions first.

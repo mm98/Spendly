@@ -1,20 +1,20 @@
 import { db } from '../db.js'
 import { getClient } from './scanParse.js'
 import { MCP_TOOLS, callTool } from './mcpTools.js'
-import { askedAtIn, fileWriter } from './assistantFiles.js'
+import { askedAtIn, fileWriter } from './askFiles.js'
 import { MAKERS, makerOfTool, nothingMade } from '../format/index.js'
-import { HEADING_MOST, nameChat, sweepChats } from './assistantChats.js'
+import { HEADING_MOST, nameChat, sweepChats } from './askChats.js'
 
-/* The assistant in the app: a question about the reader's own money, answered by Claude with the
+/* Ask: a question about the reader's own money, answered by Claude with the
    same read-only tools /mcp offers, run as the signed-in reader over this server's own port, and the
    tools of the makers in format/, which make a file or a chart from the reader's data. */
 
-export const ASSISTANT_MODEL = 'claude-opus-5-5'
+export const ASK_MODEL = 'claude-opus-5-5'
 // a chat's heading is a few words, so the smallest model writes it
 const HEADING_MODEL = 'claude-haiku-5-5'
 
-// SPENDLY_ASSISTANT_QUESTIONS_PER_DAY, set in docker-compose.yml; 0 turns the assistant off
-const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASSISTANT_QUESTIONS_PER_DAY ?? 25)) || 0)
+// SPENDLY_ASK_QUESTIONS_PER_DAY, set in docker-compose.yml; 0 turns Ask off
+const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASK_QUESTIONS_PER_DAY ?? 25)) || 0)
 
 // a question that needs more rounds of reading than this is answered as failed, so one question has a bounded cost
 const ROUNDS_MOST = 8
@@ -45,16 +45,16 @@ Nothing else: no bold, no headings, no other links.
 
 Make a file only when the reader asks for one, and a chart when the numbers read better drawn. Never write a link to a file. You cannot make pictures or photos, only charts.`
 
-const selectAnswered = db.prepare('SELECT answered_count FROM user_assistant_days WHERE user_id = ? AND day = ?')
-const countAnswered = db.prepare(`INSERT INTO user_assistant_days (user_id, day, answered_count) VALUES (?, ?, 1)
+const selectAnswered = db.prepare('SELECT answered_count FROM user_ask_days WHERE user_id = ? AND day = ?')
+const countAnswered = db.prepare(`INSERT INTO user_ask_days (user_id, day, answered_count) VALUES (?, ?, 1)
 	ON CONFLICT (user_id, day) DO UPDATE SET answered_count = answered_count + 1`)
 
-export const assistantReady = () => PER_DAY > 0 && !!getClient()
+export const askReady = () => PER_DAY > 0 && !!getClient()
 
-/** What the reader is told about the assistant on `day`: whether it is there, and the questions left.
+/** What the reader is told about Ask on `day`: whether it is there, and the questions left.
     An `unlimited` reader (the server's owner) has no daily limit: perDay and left are null. */
-export function assistantState(userId, day, { unlimited = false } = {}) {
-	if (!assistantReady()) return { ready: false }
+export function askState(userId, day, { unlimited = false } = {}) {
+	if (!askReady()) return { ready: false }
 	if (unlimited) return { ready: true, perDay: null, left: null }
 	const answered = selectAnswered.get(userId, day)?.answered_count ?? 0
 	return { ready: true, perDay: PER_DAY, left: Math.max(0, PER_DAY - answered) }
@@ -72,7 +72,7 @@ function withPlaces(answer, made) {
 }
 
 /** Removes chats, files and charts past their 30 days, every minute. */
-export function scheduleAssistantSweep() {
+export function scheduleAskSweep() {
 	const sweep = () => { sweepChats(); for (const m of MAKERS) m.sweep() }
 	sweep()
 	setInterval(sweep, 60 * 1000).unref()
@@ -89,7 +89,7 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 	}
 	for (let round = 0; round < ROUNDS_MOST; round++) {
 		const response = await anthropic.beta.messages.create({
-			model: ASSISTANT_MODEL,
+			model: ASK_MODEL,
 			max_tokens: 16000,
 			betas: ['server-side-fallback-2026-07-01'],
 			fallbacks: 'default',

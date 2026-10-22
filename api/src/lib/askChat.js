@@ -10,9 +10,9 @@ import { usableLocale, writerFor } from './statusEmail.js'
 
 export const SAVED_MOST = 8
 
-const selectSaved = db.prepare('SELECT id, question FROM user_assistant_questions WHERE user_id = ? ORDER BY created_at, rowid')
-const insertSaved = db.prepare('INSERT OR IGNORE INTO user_assistant_questions (id, user_id, question) VALUES (?, ?, ?)')
-const deleteSaved = db.prepare('DELETE FROM user_assistant_questions WHERE id = ? AND user_id = ?')
+const selectSaved = db.prepare('SELECT id, question FROM user_ask_questions WHERE user_id = ? ORDER BY created_at, rowid')
+const insertSaved = db.prepare('INSERT OR IGNORE INTO user_ask_questions (id, user_id, question) VALUES (?, ?, ?)')
+const deleteSaved = db.prepare('DELETE FROM user_ask_questions WHERE id = ? AND user_id = ?')
 
 /** The reader's saved questions, oldest first. */
 export const savedQuestions = userId => selectSaved.all(userId)
@@ -30,7 +30,7 @@ export const removeQuestion = (userId, id) => { deleteSaved.run(id, userId) }
 
 /* ---- the conversation by email (emails/README.md, "Ask conversation") ---- */
 
-// the answer format lib/assistant.js asks for: [text](order:ID) and [text](orders:FILTERS) links and {{number}} amounts
+// the answer format lib/ask.js asks for: [text](order:ID) and [text](orders:FILTERS) links and {{number}} amounts
 const INLINE = /\[([^\]\n]+)\]\((orders?|vendor|category):([^)\s]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
 // where a link in an answer opens: an order itself, or the order list filtered to what the answer is about
 const FILTERS = { vendor: /^[\w-]+(?:,[\w-]+)*$/, category: /^[\w-]+(?:,[\w-]+)*$/, status: /^[^&=]+$/, from: /^\d{4}-\d{2}-\d{2}$/, to: /^\d{4}-\d{2}-\d{2}$/ }

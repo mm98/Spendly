@@ -1,4 +1,4 @@
-import { chartsById, makeChart, sweepCharts } from '../../lib/assistantCharts.js'
+import { chartsById, makeChart, sweepCharts } from '../../lib/askCharts.js'
 import { text } from '../schema.js'
 import { CHART_PICTURE_WIDTH } from './drawing.js'
 import { CHART_KINDS, chartKind } from './kinds.js'

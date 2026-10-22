@@ -6,7 +6,7 @@ import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Anchor } from '../components/Overlays.jsx'
 import { Stacked, useDismiss } from '../components/Utilities.jsx'
-import { getAssistant, getCurrentUser } from '../api/client.js'
+import { getAsk, getCurrentUser } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { useShellShape } from '../app/useMedia.js'
 import { AccountMenu } from '../app/AppShell.jsx'
@@ -17,7 +17,7 @@ const ROWS = [
 	{ to: '/categories', label: 'Categories' },
 	{ to: '/bookmarks', label: 'Bookmarks' },
 	{ to: '/more/views', label: 'Saved views' },
-	// only while the server has an assistant set up (7a)
+	// only while the server has Ask set up (7a)
 	{ to: '/ask', label: 'Ask', asks: true },
 	{ to: '/settings', label: 'Settings' }
 ]
@@ -30,7 +30,7 @@ export default function More() {
 	const email = user.data?.email
 	const name = user.data?.name || null
 	const picture = user.data?.picture || null
-	const asks = !!useApi(getAssistant).data?.ready
+	const asks = !!useApi(getAsk).data?.ready
 	const chevron = <Icon name="chevron-right" size={14} />
 	if (!touch) return <Navigate to="/settings" replace />
 	return (

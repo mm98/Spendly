@@ -9,7 +9,7 @@ import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { ScreenBarSlot } from './screenBar.jsx'
 import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getAssistant, getBookmarks, getBudgetDue, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
+import { getAsk, getBookmarks, getBudgetDue, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SessionDialog, SignedOutBanner } from './SessionDialog.jsx'
@@ -150,7 +150,7 @@ export function AppShell() {
 		: null
 	const scan = useScanPicker()
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
-	const asks = !!useApi(getAssistant).data?.ready
+	const asks = !!useApi(getAsk).data?.ready
 	useShortcutKeys({
 		enabled: !touch && !palette && !keysShown, asks, onSheet: showKeys, onGo: (key, to) => { navigate(go(key, to)); searchOn(key) },
 		onScan: held ? null : scan.open, onNew: () => navigate('/orders/new')
@@ -232,7 +232,7 @@ function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 				<Counted to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'} useCount={useBudgetDueCount}>Budget</Counted>
 				<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
 			</NavScroll>
-			{/* only while the server has an assistant set up (24a); on a short window it moves to the account menu with Settings (9g) */}
+			{/* only while the server has Ask set up (24a); on a short window it moves to the account menu with Settings (9g) */}
 			<SidebarDivider />
 			{short || !asks ? null : <Row to="/ask" icon="message-circle" rail={rail} current={navKey === 'ask'}>Ask</Row>}
 			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}

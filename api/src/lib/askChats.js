@@ -1,7 +1,7 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
 import { fromEpoch, nowEpoch, toEpoch } from './dates.js'
-import { FILE_KEPT_DAYS, deleteFilesOfChat, restoreFilesOfChat } from './assistantFiles.js'
+import { FILE_KEPT_DAYS, deleteFilesOfChat, restoreFilesOfChat } from './askFiles.js'
 import { escapeLike } from './textSearch.js'
 
 /* The chats on Ask (24a, 24f): every one kept for the account for 30 days after its last question,
@@ -13,38 +13,38 @@ const UNDO_SECONDS = 60
 const DAY = 86400
 export const HEADING_MOST = 80
 
-const insertChat = db.prepare(`INSERT INTO user_assistant_chats (id, user_id, first_question, asked_at, kept_until, expires_at)
+const insertChat = db.prepare(`INSERT INTO user_ask_chats (id, user_id, first_question, asked_at, kept_until, expires_at)
 	VALUES (?, ?, ?, ?, ?, ?)`)
-const selectOpen = db.prepare('SELECT id, heading, first_question FROM user_assistant_chats WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND expires_at > ?')
-const touchChat = db.prepare('UPDATE user_assistant_chats SET question_count = question_count + @count, asked_at = @now, kept_until = @keptUntil, expires_at = @expiresAt WHERE id = @id')
+const selectOpen = db.prepare('SELECT id, heading, first_question FROM user_ask_chats WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND expires_at > ?')
+const touchChat = db.prepare('UPDATE user_ask_chats SET question_count = question_count + @count, asked_at = @now, kept_until = @keptUntil, expires_at = @expiresAt WHERE id = @id')
 // a chart is kept as long as the chat that drew it
-const touchCharts = db.prepare('UPDATE user_assistant_charts SET expires_at = ? WHERE chat_id = ?')
-const insertTurn = db.prepare("INSERT INTO user_assistant_chat_turns (chat_id, question, state) VALUES (?, ?, 'working')")
-const selectTurn = db.prepare('SELECT id, question, state FROM user_assistant_chat_turns WHERE id = ? AND chat_id = ?')
-const restartTurn = db.prepare("UPDATE user_assistant_chat_turns SET state = 'working', answer = NULL WHERE id = ?")
-const finishTurn = db.prepare('UPDATE user_assistant_chat_turns SET state = ?, answer = ? WHERE id = ?')
-const selectTurns = db.prepare('SELECT id, question, answer, state FROM user_assistant_chat_turns WHERE chat_id = ? ORDER BY id')
-const selectFirstTurn = db.prepare('SELECT MIN(id) id FROM user_assistant_chat_turns WHERE chat_id = ?')
-const selectAnsweredBefore = db.prepare(`SELECT question, answer FROM user_assistant_chat_turns
+const touchCharts = db.prepare('UPDATE user_ask_charts SET expires_at = ? WHERE chat_id = ?')
+const insertTurn = db.prepare("INSERT INTO user_ask_chat_turns (chat_id, question, state) VALUES (?, ?, 'working')")
+const selectTurn = db.prepare('SELECT id, question, state FROM user_ask_chat_turns WHERE id = ? AND chat_id = ?')
+const restartTurn = db.prepare("UPDATE user_ask_chat_turns SET state = 'working', answer = NULL WHERE id = ?")
+const finishTurn = db.prepare('UPDATE user_ask_chat_turns SET state = ?, answer = ? WHERE id = ?')
+const selectTurns = db.prepare('SELECT id, question, answer, state FROM user_ask_chat_turns WHERE chat_id = ? ORDER BY id')
+const selectFirstTurn = db.prepare('SELECT MIN(id) id FROM user_ask_chat_turns WHERE chat_id = ?')
+const selectAnsweredBefore = db.prepare(`SELECT question, answer FROM user_ask_chat_turns
 	WHERE chat_id = ? AND id < ? AND state = 'answered' ORDER BY id DESC LIMIT ?`)
-const writeHeading = db.prepare('UPDATE user_assistant_chats SET heading = ? WHERE id = ? AND heading IS NULL')
-const markDeleted = db.prepare('UPDATE user_assistant_chats SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND expires_at > ?')
-const selectDeleted = db.prepare('SELECT deleted_at FROM user_assistant_chats WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL')
-const unmarkDeleted = db.prepare('UPDATE user_assistant_chats SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL')
-const dropExpired = db.prepare('DELETE FROM user_assistant_chats WHERE expires_at <= ?')
-const dropDeleted = db.prepare('DELETE FROM user_assistant_chats WHERE deleted_at IS NOT NULL AND deleted_at <= ?')
+const writeHeading = db.prepare('UPDATE user_ask_chats SET heading = ? WHERE id = ? AND heading IS NULL')
+const markDeleted = db.prepare('UPDATE user_ask_chats SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND expires_at > ?')
+const selectDeleted = db.prepare('SELECT deleted_at FROM user_ask_chats WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL')
+const unmarkDeleted = db.prepare('UPDATE user_ask_chats SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL')
+const dropExpired = db.prepare('DELETE FROM user_ask_chats WHERE expires_at <= ?')
+const dropDeleted = db.prepare('DELETE FROM user_ask_chats WHERE deleted_at IS NOT NULL AND deleted_at <= ?')
 
 // a row on Chats: the files its answers made that are still kept, counted from the files' own chat index
 const LIST_FIELDS = `c.id, c.heading, c.first_question, c.question_count, c.kept_until,
-	(SELECT COUNT(*) FROM user_assistant_files f WHERE f.chat_id = c.id AND f.stored_name IS NOT NULL AND f.deleted_at IS NULL AND f.expires_at > @now) AS file_count`
+	(SELECT COUNT(*) FROM user_ask_files f WHERE f.chat_id = c.id AND f.stored_name IS NOT NULL AND f.deleted_at IS NULL AND f.expires_at > @now) AS file_count`
 const KEPT = 'c.user_id = @userId AND c.deleted_at IS NULL AND c.expires_at > @now'
 // a match is in the heading, the first question, or any question or answer of the chat
-const MATCHES = `(c.heading LIKE @like ESCAPE '\\' OR c.first_question LIKE @like ESCAPE '\\' OR EXISTS (SELECT 1 FROM user_assistant_chat_turns t
+const MATCHES = `(c.heading LIKE @like ESCAPE '\\' OR c.first_question LIKE @like ESCAPE '\\' OR EXISTS (SELECT 1 FROM user_ask_chat_turns t
 	WHERE t.chat_id = c.id AND (t.question LIKE @like ESCAPE '\\' OR t.answer LIKE @like ESCAPE '\\')))`
-const countKept = db.prepare(`SELECT COUNT(*) n FROM user_assistant_chats c WHERE ${KEPT}`)
-const countMatching = db.prepare(`SELECT COUNT(*) n FROM user_assistant_chats c WHERE ${KEPT} AND ${MATCHES}`)
-const selectKept = db.prepare(`SELECT ${LIST_FIELDS} FROM user_assistant_chats c WHERE ${KEPT} ORDER BY c.asked_at DESC, c.rowid DESC LIMIT @limit OFFSET @offset`)
-const selectMatching = db.prepare(`SELECT ${LIST_FIELDS} FROM user_assistant_chats c WHERE ${KEPT} AND ${MATCHES}
+const countKept = db.prepare(`SELECT COUNT(*) n FROM user_ask_chats c WHERE ${KEPT}`)
+const countMatching = db.prepare(`SELECT COUNT(*) n FROM user_ask_chats c WHERE ${KEPT} AND ${MATCHES}`)
+const selectKept = db.prepare(`SELECT ${LIST_FIELDS} FROM user_ask_chats c WHERE ${KEPT} ORDER BY c.asked_at DESC, c.rowid DESC LIMIT @limit OFFSET @offset`)
+const selectMatching = db.prepare(`SELECT ${LIST_FIELDS} FROM user_ask_chats c WHERE ${KEPT} AND ${MATCHES}
 	ORDER BY c.asked_at DESC, c.rowid DESC LIMIT @limit OFFSET @offset`)
 
 const keptFrom = (day, now) => ({ keptUntil: fromEpoch(toEpoch(day) + CHAT_KEPT_DAYS * DAY), expiresAt: now + CHAT_KEPT_DAYS * DAY })

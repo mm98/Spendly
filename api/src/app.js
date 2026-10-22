@@ -21,7 +21,7 @@ import { router as statusesRouter } from './routes/statuses.js'
 import { router as viewsRouter } from './routes/views.js'
 import { router as mcpRouter } from './routes/mcp.js'
 import { router as mcpTokensRouter } from './routes/mcpTokens.js'
-import { router as assistantRouter, downloadFile } from './routes/assistant.js'
+import { router as askRouter, downloadFile } from './routes/ask.js'
 import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
@@ -235,7 +235,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/auth/passkey', passkeySignInRouter)
 
 // a file Ask made is downloaded by following a link, so a signed-out tab is sent to sign-in rather than refused
-app.get('/api/assistant/files/:id/download', downloadFile)
+app.get('/api/ask/files/:id/download', downloadFile)
 
 /* One auth gate for every data route, rather than requireAuth repeated per mount: the session
    lookup runs once per request this way, and readCache (which needs req.user) sits behind it
@@ -262,7 +262,7 @@ app.use('/api/stats', statsRouter)
 app.use('/api/scan', scanRouter)
 app.use('/api/drafts', draftsRouter)
 app.use('/api/search', searchRouter)
-app.use('/api/assistant', assistantRouter)
+app.use('/api/ask', askRouter)
 
 /* An email's link to a page: /open/categories opens /#/categories. A link in an email carries no '#',
    as a mail program or its link checker can drop everything after one. */

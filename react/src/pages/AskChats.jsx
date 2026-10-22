@@ -11,7 +11,7 @@ import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.
 import { deleteChat, failureMessage, getChats, restoreChat } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
-import { forgetChat } from '../app/assistant.js'
+import { forgetChat } from '../app/ask.js'
 import { AskListFrame } from '../app/askListFrame.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
