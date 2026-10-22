@@ -1,12 +1,14 @@
 import * as mupdf from 'mupdf'
-import { FIGURES, paragraphsOf, plain } from './document.js'
+import { FIGURES, PAGE_ORIENTATION, paragraphsOf, plain } from './document.js'
 
-const PAGE = { width: 595, height: 842, margin: 48 }
+// A4 in points
+const A4 = { short: 595, long: 842 }
+const MARGIN = 48
 const INK = [0.13, 0.13, 0.13]
 const RULE = [0.85, 0.85, 0.85]
 
 /** A page writer over mupdf: text that wraps, rules, and a new page when the space runs out. */
-function pdfPen() {
+function pdfPen(page) {
 	const buffer = new mupdf.Buffer()
 	const writer = new mupdf.DocumentWriter(buffer, 'pdf', 'compress')
 	const fonts = { regular: new mupdf.Font('Helvetica'), bold: new mupdf.Font('Helvetica-Bold') }
@@ -25,10 +27,10 @@ function pdfPen() {
 	}
 	const newPage = () => {
 		if (device) writer.endPage()
-		device = writer.beginPage([0, 0, PAGE.width, PAGE.height])
-		y = PAGE.margin
+		device = writer.beginPage([0, 0, page.width, page.height])
+		y = page.margin
 	}
-	const room = height => { if (!device || y + height > PAGE.height - PAGE.margin) newPage() }
+	const room = height => { if (!device || y + height > page.height - page.margin) newPage() }
 	const draw = (text, x, baseline, size, bold, color = INK) => {
 		const line = new mupdf.Text()
 		line.showString(bold ? fonts.bold : fonts.regular, mupdf.Matrix.concat(mupdf.Matrix.scale(size, -size), mupdf.Matrix.translate(x, baseline)), text)
@@ -56,7 +58,7 @@ function pdfPen() {
 		return lines
 	}
 	return {
-		widthOf, wrap, room, draw,
+		page, widthOf, wrap, room, draw,
 		get y() { return y },
 		set y(at) { y = at },
 		rule(x0, x1, at) {
@@ -67,9 +69,9 @@ function pdfPen() {
 		paragraph(text, { size = 10.5, bold = false, before = 0, after = 6, indent = 0 } = {}) {
 			const lead = size * 1.35
 			y += before
-			for (const line of wrap(text, PAGE.width - 2 * PAGE.margin - indent, size, bold)) {
+			for (const line of wrap(text, page.width - 2 * page.margin - indent, size, bold)) {
 				room(lead)
-				draw(line, PAGE.margin + indent, y + size, size, bold)
+				draw(line, page.margin + indent, y + size, size, bold)
 				y += lead
 			}
 			y += after
@@ -84,10 +86,11 @@ function pdfPen() {
 }
 
 function pdfTable(pen, { columns, rows }, write) {
+	const { page } = pen
 	const size = 9
 	const lead = size * 1.3
 	const pad = 4
-	const width = PAGE.width - 2 * PAGE.margin
+	const width = page.width - 2 * page.margin
 	const texts = rows.map(r => columns.map((c, i) => plain(r[i], c.kind, write)))
 	// a figure column takes its widest cell; text columns share what is left by their longest cell
 	const natural = columns.map((c, i) => Math.max(pen.widthOf(c.name, size, true), ...texts.slice(0, 500).map(t => pen.widthOf(t[i], size, false))) + 2 * pad)
@@ -101,7 +104,7 @@ function pdfTable(pen, { columns, rows }, write) {
 	let widths = columns.map((_, i) => fixed[i] || least[i] + (wantSum ? Math.min(wants[i], spare * wants[i] / wantSum) : 0))
 	const total = widths.reduce((a, b) => a + b, 0)
 	if (total > width) widths = widths.map(w => w * width / total)
-	const xs = widths.reduce((at, w, i) => [...at, at[i] + w], [PAGE.margin])
+	const xs = widths.reduce((at, w, i) => [...at, at[i] + w], [page.margin])
 	const drawRow = (cells, bold) => {
 		const wrapped = cells.map((t, i) => pen.wrap(t, widths[i] - 2 * pad, size, bold))
 		const height = Math.max(1, ...wrapped.map(l => l.length)) * lead + 2 * pad
@@ -112,7 +115,7 @@ function pdfTable(pen, { columns, rows }, write) {
 				pen.draw(line, x, pen.y + pad + size + n * lead, size, bold)
 			}))
 			pen.y += height
-			pen.rule(PAGE.margin, PAGE.margin + width, pen.y)
+			pen.rule(page.margin, page.margin + width, pen.y)
 		} }
 	}
 	const head = () => drawRow(columns.map(c => c.name), true)
@@ -130,8 +133,9 @@ function pdfTable(pen, { columns, rows }, write) {
 	pen.y += 12
 }
 
-function build(doc, write) {
-	const pen = pdfPen()
+function build(doc, write, { orientation }) {
+	const wide = orientation === 'landscape'
+	const pen = pdfPen({ width: wide ? A4.long : A4.short, height: wide ? A4.short : A4.long, margin: MARGIN })
 	pen.paragraph(doc.title, { size: 18, bold: true, after: 10 })
 	for (const s of doc.sections) {
 		if (s.heading) pen.paragraph(s.heading, { size: 13, bold: true, before: 8, after: 4 })
@@ -147,4 +151,4 @@ function build(doc, write) {
 }
 
 // A4 in Helvetica, which mupdf carries itself, so no font has to be installed
-export const pdf = { type: 'pdf', name: 'PDF', word: 'PDF', mime: 'application/pdf', build }
+export const pdf = { type: 'pdf', name: 'PDF', word: 'PDF', mime: 'application/pdf', options: { orientation: PAGE_ORIENTATION }, build }

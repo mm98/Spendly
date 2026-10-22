@@ -127,6 +127,8 @@ export const deleteFilesOfChat = (userId, chatId, at) => markChatDeleted.run(at,
 export const restoreFilesOfChat = (userId, chatId, at) => { unmarkChatDeleted.run(chatId, userId, at) }
 
 /** Whether the reader may make another file on `day`; the server's owner has no limit. */
+// a server set to make no files says so on What Ask can do; the owner makes them anyway
+export const makesFiles = unlimited => unlimited || PER_DAY > 0
 export const fileAllowed = (userId, day, unlimited) => unlimited || (selectMade.get(userId, day)?.made_files_count ?? 0) < PER_DAY
 
 /** Makes one file of `doc` (format/file/document.js) in the format `type` for the question `title`, or keeps

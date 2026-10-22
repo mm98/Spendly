@@ -5,7 +5,7 @@ import { sessionToken, sessionUser } from '../lib/auth.js'
 import { SAVED_MOST, emailConversation, removeQuestion, saveQuestion, savedQuestions } from '../lib/askChat.js'
 import { answeredTurnsOf, chatOf, deleteChat, endTurn, keptChats, restartFailedTurn, restoreChat, startTurn } from '../lib/askChats.js'
 import { deleteFile, fileDownload, fileStates, keptFiles, restoreFile } from '../lib/askFiles.js'
-import { madeIn, madeOf, placesIn } from '../format/index.js'
+import { askMakes, madeIn, madeOf, placesIn } from '../format/index.js'
 import { mailAvailable } from '../lib/mail.js'
 import { ownsServer } from './account.js'
 
@@ -21,7 +21,10 @@ const asking = new Set()
 // the server's owner asks without a daily limit
 const stateOf = req => askState(req.user.id, req.today, { unlimited: ownsServer(req.user) })
 
-router.get('/', (req, res) => res.json(stateOf(req)))
+router.get('/', (req, res) => {
+	const state = stateOf(req)
+	res.json(state.ready ? { ...state, makes: askMakes({ unlimited: ownsServer(req.user) }) } : state)
+})
 
 // the earlier questions and answers a question is sent with, in pairs, beside the question itself
 const PAIRS_MOST = Math.floor((TURNS_MOST - 1) / 2)

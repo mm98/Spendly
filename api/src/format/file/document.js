@@ -5,6 +5,14 @@ export const COLUMN_KINDS = ['text', 'amount', 'number', 'date']
 // the kinds a table lines up on the right
 export const FIGURES = new Set(['amount', 'number'])
 
+// the option every format with pages offers (README: "What Ask makes")
+export const PAGE_ORIENTATION = {
+	type: 'string',
+	enum: ['portrait', 'landscape'],
+	description: 'Which way the page lies: portrait is tall, landscape is wide. Landscape when the reader asks for it, or when a table has many columns.',
+	default: 'portrait'
+}
+
 export const xml = value => String(value ?? '')
 	// characters XML 1.0 cannot hold at all, which a pasted note can carry
 	.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f￾￿]/g, '')

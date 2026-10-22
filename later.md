@@ -46,9 +46,12 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## For Claude Design: a file's row shows the format's name it is given
+## For Claude Design: What Ask can do keeps Close in a short window
 
-- **Where:** `react/src/components/Chat.jsx`, `ChatFile`. The handoff's `design/react_handoff/Chat.jsx` has the same component.
-- **What the reader sees:** no change. A file's row reads "Excel · 4 KB", as drawn.
-- **What was found:** the handoff's `ChatFile` takes a `type` and keeps its own list of the four formats' names, so a new format on the server would also need a change in the design. The app's `ChatFile` takes the name as `kind`, sent by the server. Found 22 Oct 2026.
-- **To take into `design/`:** `ChatFile` takes `kind`, the format's name, in place of `type` and its list. Then this entry goes.
+- **Where:** `react/src/styles/app.css`, the rule under "What Ask can do scrolls its parts". Ask 24c.
+- **What the reader sees:** in a window lower than the dialog, the list scrolls and the heading and
+  Close stay, as 24c says.
+- **What was found:** `.sp-chat__help` scrolls, but `.sp-dialog` has no height limit, so the dialog
+  grew past the window and the whole page under it scrolled instead. Found 22 Oct 2026.
+- **To take into `design/`:** a dialog that holds `.sp-chat__help` is at most the window's height less
+  the scrim's padding. Then the app's rule and this entry go.
