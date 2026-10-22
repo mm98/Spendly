@@ -53,7 +53,8 @@ export const txt = {
   `description` for Claude and a `default`.
 - A format with pages offers `PAGE_ORIENTATION` from `document.js` as its `orientation`, so every
   such format turns its page the same way.
-- The app needs nothing: it shows the `name` and the `word` the server sends.
+- The app needs nothing: it shows the `name` and the `word` the server sends, and What Ask can do
+  lists the `name`.
 
 ## A chart kind
 
@@ -62,6 +63,7 @@ One file in `chart/`, one line in `kinds.js`, and a drawing in the app.
 ```js
 export const lines = {
 	kind: 'lines',
+	name: 'Line chart',                   // what What Ask can do calls it
 	use: 'over time, as a line',          // told to Claude after "lines"
 	properties: { points: { ... } },     // the tool's input fields this kind reads, each "With lines: ..."
 	shape(asked, chart) { ... },         // the fields kept, or { failed } with the line the frame shows
@@ -81,6 +83,11 @@ A new folder with an `index.js`, and one line in `index.js` here.
 ```js
 export const mapMaker = {
 	place: 'map',                         // the place mark in an answer: {{map:ID}}
+	name: 'Maps',                         // its part on What Ask can do (Ask 24c)
+	formats: () => ['Street map'],        // its formats' names there, read each time
+	example: 'Show where I shop on a map',
+	note: 'Maps are kept for 30 days',    // optional, the footnote under the list
+	off: unlimited => null,               // optional, why this server makes none for the reader
 	tool: { name, description, input_schema },
 	doing: input => 'Drawing your map',   // what Ask says while it makes one
 	make: async (input, making) => ({ item, said }),   // item has an id; said is the tool's answer to Claude

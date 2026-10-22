@@ -126,6 +126,9 @@ body:not(.sp-touch) > .sp-scrim--dialog:has(> .sp-sheet) { place-items: stretch 
 body:not(.sp-touch) > .sp-scrim--dialog > .sp-sheet { width: 320px; max-width: 100%; max-height: none; margin-top: 0; border-radius: 0; }
 /* Mobile screens .ms-sheet: on a phone a sheet rises at most this far, so the page stays in view */
 body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
+/* What Ask can do scrolls its parts in a short window, its heading and Close kept (24c): the dialog
+   is held to the scrim's height, less the scrim's padding */
+.sp-scrim--dialog > .sp-dialog:has(> .sp-chat__help) { max-height: calc(100dvh - 2 * var(--sp-16)); }
 /* a sheet's buttons go full width, stacked, the commit on top (Layout rules, 18b); it is written last */
 .sp-sheet .sp-dialog__actions { flex-direction: column-reverse; align-items: stretch; }
 .sp-sheet .sp-dialog__actions > .sp-btn { flex: none; }

@@ -82,4 +82,4 @@ function words(chart, money) {
 		: `${c.label} ${money(c.values[0])}`)).join(', ')
 }
 
-export const bars = { kind: 'bars', use: `over time (at most ${CHART_COLUMNS_MOST} steps, for example months)`, properties, shape, picture, words }
+export const bars = { kind: 'bars', name: 'Bar chart', use: `over time (at most ${CHART_COLUMNS_MOST} steps, for example months)`, properties, shape, picture, words }

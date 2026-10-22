@@ -1,4 +1,4 @@
-import { FILE_REFUSALS, FILE_ROWS_MOST, fileDownload, fileStates, makeFile, sweepFiles } from '../../lib/askFiles.js'
+import { FILE_KEPT_DAYS, FILE_REFUSALS, FILE_ROWS_MOST, fileDownload, fileStates, makeFile, makesFiles, sweepFiles } from '../../lib/askFiles.js'
 import { publicLink } from '../../lib/mail.js'
 import { day, text } from '../schema.js'
 import { COLUMN_KINDS } from './document.js'
@@ -157,6 +157,11 @@ function attachments(userId, ids, files) {
 
 export const fileMaker = {
 	place: 'file',
+	name: 'Files',
+	formats: () => FILE_FORMATS.map(f => f.name),
+	example: 'Make an Excel file of my orders in October',
+	note: `Files are kept for ${FILE_KEPT_DAYS} days`,
+	off: unlimited => (makesFiles(unlimited) ? null : 'Ask cannot make files on this Spendly.'),
 	tool,
 	doing: input => `Making your ${formatOf(input?.type).word}`,
 	make,

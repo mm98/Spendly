@@ -227,6 +227,10 @@ Everything that needs you, on one page.
   offers Undo.
 - **Chats and Files keep the chat bar** at the bottom on a computer. Back to chat beside Send returns
   to the chat open last, and a question typed there goes to that chat, or starts one.
+- **What Ask can do** is a button at the right edge of the chat field, everywhere the field is. It lists
+  what Ask can make: the file formats and the kinds of chart, each with an example question. Press an
+  example to put it in the field, change it if you like, and send it. The list comes from the server,
+  so a new format shows up there by itself.
 - **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
   Saved questions show under the empty page, each with an x that removes it. Up to 8 per account, kept on the
   server. Every account starts with three example questions saved, and they can be removed too.

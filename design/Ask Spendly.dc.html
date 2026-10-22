@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022c">
+<link rel="stylesheet" href="styles/components.css?v=v20261022d">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/ask-spendly.css?v=v20261022b">
 <script src="./components.js?v=v20260917b"></script>
@@ -101,7 +101,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -128,7 +128,7 @@
                 <div class="sp-empty">
                   <span class="sp-mark sp-mark--large sp-mark--solid" aria-hidden="true">S</span>
                   <span class="sp-empty__title">Ask about your money</span>
-                  <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
+                  <span class="sp-empty__body">Answers come from your orders, vendors, categories, budget and statistics, and can be a file or a chart. Asking never changes anything.</span>
                 </div>
                 <div class="sp-chat__examples">
                   <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on food in August?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
@@ -138,7 +138,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -159,7 +159,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn sp-btn--outline">Stop</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -181,7 +181,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -210,7 +210,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="No questions left today" aria-label="Ask" disabled="{{ true }}"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="No questions left today" aria-label="Ask" disabled="{{ true }}"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -232,7 +232,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -249,7 +249,7 @@
                 <div class="sp-empty">
                   <span class="sp-mark sp-mark--large sp-mark--solid" aria-hidden="true">S</span>
                   <span class="sp-empty__title">Ask about your money</span>
-                  <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
+                  <span class="sp-empty__body">Answers come from your orders, vendors, categories, budget and statistics, and can be a file or a chart. Asking never changes anything.</span>
                 </div>
                 <div class="sp-chat__examples">
                   <span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="How much did I spend on food in August?"><span class="sp-truncate">How much did I spend on food in August?</span></button><button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove How much did I spend on food in August?"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg></button></span>
@@ -261,7 +261,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -278,13 +278,13 @@
                 <div class="sp-empty">
                   <span class="sp-mark sp-mark--large sp-mark--solid" aria-hidden="true">S</span>
                   <span class="sp-empty__title">Ask about your money</span>
-                  <span class="sp-empty__body">Answers come from your orders, vendors, categories and budget. Asking never changes anything.</span>
+                  <span class="sp-empty__body">Answers come from your orders, vendors, categories, budget and statistics, and can be a file or a chart. Asking never changes anything.</span>
                 </div>
                 <span class="sp-meta">Save a question with the bookmark beside it, and it shows here.</span>
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -296,7 +296,7 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>1 - Nothing asked yet</b> is the empty state (<a href="Components.dc.html#c13">c13</a>) with the reader's saved questions under it. A new account starts with three: "How much did I spend on food in August?", "Which shop did I use most this year?" and "Make a spreadsheet of my orders this month", the last one showing that an answer can be a file (<a href="#24d">24d</a>). They are saved questions like any other, so they count toward the 8 and can be removed. Accounts that exist already get them once, skipping any wording already saved and only as many as fit under 8. Choosing one sends it. In the conversation menu, Email this chat and New chat are disabled (<a href="#24c">24c</a>).</div>
+    <div class="doc-note"><b>1 - Nothing asked yet</b> is the empty state (<a href="Components.dc.html#c13">c13</a>) with the reader's saved questions under it. Its line says that an answer can be a file or a chart; the full list is behind the button in the field (<a href="#24c">24c</a>). A new account starts with three: "How much did I spend on food in August?", "Which shop did I use most this year?" and "Make a spreadsheet of my orders this month", the last one showing that an answer can be a file (<a href="#24d">24d</a>). They are saved questions like any other, so they count toward the 8 and can be removed. Accounts that exist already get them once, skipping any wording already saved and only as many as fit under 8. Choosing one sends it. In the conversation menu, Email this chat and New chat are disabled (<a href="#24c">24c</a>).</div>
     <div class="doc-note"><b>2 - While an answer comes</b> the question shows at once, the answer's place shows the spinner and "Reading your orders", and Send becomes <b>Stop</b> in its place. Stop ends the request and leaves the question in the thread. The field stays typable; Enter does nothing until the answer is in or stopped. Email this chat is disabled until the answer is in.</div>
     <div class="doc-note"><b>3 - The day's limit shows only near its end.</b> With 3 or fewer left, the hint line states the count in <code>sp-meta--over</code> at its right. On a phone the hint line has no keys: it shows only this count, at the right under the field, and is absent otherwise.</div>
     <div class="doc-note"><b>4 - None left:</b> the amber alert closes the thread and states when asking opens again, from the server's reset time; the field is disabled with the placeholder "No questions left today". The chat can still be read and emailed, and New chat still opens the empty page.</div>
@@ -313,12 +313,12 @@
     <span class="doc-badge" id="24c">24c</span>
     <span class="doc-section__title">The conversation menu</span>
   </div>
-  <div class="doc-lede">One button beside Send holds Chats, Files, Email this chat and New chat. Chats opens <a href="#24f">24f</a>, Files opens <a href="#24e">24e</a>; the email goes only to the account's own address, and is drawn in <a href="Auth and first run.dc.html#20f">20f</a>.</div>
+  <div class="doc-lede">One button beside Send holds Chats, Files, Email this chat and New chat. The button in the field opens What Ask can do. Chats opens <a href="#24f">24f</a>, Files opens <a href="#24e">24e</a>; the email goes only to the account's own address, and is drawn in <a href="Auth and first run.dc.html#20f">20f</a>.</div>
   <div class="doc-specimens">
     <div class="doc-specimen">
       <span class="doc-specimen__label">Open</span>
       <div class="sp-chat__composer as-bar as-bar--menu">
-        <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+        <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
         <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
         <div class="sp-chat__more" data-open="true"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="true" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button><menu class="sp-menu sp-menu--floating" data-place="up"><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg><span>Chats</span></button></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg><span>Files</span></button></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg><span>Email this chat</span></button></li><li><hr class="sp-menu__sep"></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>New chat</span></button></li></menu></div>
       </div>
@@ -326,7 +326,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Nothing asked yet</span>
       <div class="sp-chat__composer as-bar as-bar--menu">
-        <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+        <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
         <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
         <div class="sp-chat__more" data-open="true"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="true" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button><menu class="sp-menu sp-menu--floating" data-place="up"><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg><span>Chats</span></button></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg><span>Files</span></button></li><li><button type="button" class="sp-menu__item" disabled="{{ true }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg><span>Email this chat</span></button></li><li><hr class="sp-menu__sep"></li><li><button type="button" class="sp-menu__item" disabled="{{ true }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>New chat</span></button></li></menu></div>
       </div>
@@ -334,7 +334,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Email this chat - sending</span>
       <div class="sp-chat__composer as-bar as-bar--menu">
-        <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+        <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
         <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
         <div class="sp-chat__more" data-open="true"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="true" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button><menu class="sp-menu sp-menu--floating" data-place="up"><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg><span>Chats</span></button></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg><span>Files</span></button></li><li><button type="button" class="sp-menu__item" disabled="{{ true }}"><span class="sp-spinner" aria-hidden="true"></span><span>Sending</span></button></li><li><hr class="sp-menu__sep"></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>New chat</span></button></li></menu></div>
       </div>
@@ -342,7 +342,7 @@
     <div class="doc-specimen">
       <span class="doc-specimen__label">Email this chat - sent, until the next answer</span>
       <div class="sp-chat__composer as-bar as-bar--menu">
-        <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+        <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
         <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
         <div class="sp-chat__more" data-open="true"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="true" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button><menu class="sp-menu sp-menu--floating" data-place="up"><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg><span>Chats</span></button></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg><span>Files</span></button></li><li><button type="button" class="sp-menu__item" disabled="{{ true }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg><span>Emailed</span></button></li><li><hr class="sp-menu__sep"></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><span>New chat</span></button></li></menu></div>
       </div>
@@ -364,6 +364,50 @@
       </div>
     </div>
   </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">What Ask can do - the button in the field</span>
+      <div class="sp-chat__composer as-bar">
+        <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
+        <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
+      </div>
+    </div>
+  </div>
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">What Ask can do - open</span>
+      <div class="sp-dialog" role="dialog" aria-modal="true" aria-labelledby="as-help-1">
+        <span class="sp-heading" id="as-help-1">What Ask can do</span>
+        <div class="sp-chat__help">
+          <div class="sp-chat__help-part"><span class="sp-section-label">Files</span><span class="sp-chat__formats">Excel, CSV, Word, PDF</span><span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Make an Excel file of my orders in October"><span class="sp-truncate">Make an Excel file of my orders in October</span></button></span></div>
+          <div class="sp-chat__help-part"><span class="sp-section-label">Charts</span><span class="sp-chat__formats">Bar chart, Donut chart</span><span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Show my spending per month as a chart"><span class="sp-truncate">Show my spending per month as a chart</span></button></span></div>
+        </div>
+        <div class="sp-dialog__actions"><span class="sp-note">Files are kept for 30 days</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Close</button></div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">No questions left today</span>
+      <div class="sp-dialog" role="dialog" aria-modal="true" aria-labelledby="as-help-2">
+        <span class="sp-heading" id="as-help-2">What Ask can do</span>
+        <div class="sp-chat__help">
+          <div class="sp-chat__help-part"><span class="sp-section-label">Files</span><span class="sp-chat__formats">Excel, CSV, Word, PDF</span><span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Make an Excel file of my orders in October" disabled="{{ true }}"><span class="sp-truncate">Make an Excel file of my orders in October</span></button></span></div>
+          <div class="sp-chat__help-part"><span class="sp-section-label">Charts</span><span class="sp-chat__formats">Bar chart, Donut chart</span><span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Show my spending per month as a chart" disabled="{{ true }}"><span class="sp-truncate">Show my spending per month as a chart</span></button></span></div>
+        </div>
+        <div class="sp-dialog__actions"><span class="sp-note">Files are kept for 30 days</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Close</button></div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">This server makes no files</span>
+      <div class="sp-dialog" role="dialog" aria-modal="true" aria-labelledby="as-help-3">
+        <span class="sp-heading" id="as-help-3">What Ask can do</span>
+        <div class="sp-chat__help">
+          <div class="sp-chat__help-part"><span class="sp-section-label">Files</span><span class="sp-dialog__body">Ask cannot make files on this Spendly.</span></div>
+          <div class="sp-chat__help-part"><span class="sp-section-label">Charts</span><span class="sp-chat__formats">Bar chart, Donut chart</span><span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Show my spending per month as a chart"><span class="sp-truncate">Show my spending per month as a chart</span></button></span></div>
+        </div>
+        <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Close</button></div>
+      </div>
+    </div>
+  </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>One button sits to the right of Send</b>, <code>--sp-8</code> from it as Send is from the field: the outline icon button at the field's height (<code>.sp-chat__more</code>, <code>dots-vertical</code>), with the tooltip "More" lined up with its right side and the label "Conversation menu". It is never disabled. It opens the Menu (<a href="Components.dc.html#c9">c9</a>) upward, 6 clear of the button, its right side on the button's right side, and it closes on a choice, Escape or a click outside; the arrow keys move through it. Clear is gone: New chat takes its place.</div>
@@ -372,6 +416,12 @@
     <div class="doc-note"><b>Email this chat</b> sends the whole conversation to the account's own address, with one press and no dialog; the menu closes and the toast names the address. It is disabled while nothing has been answered, while an answer is coming, and when the last answer failed. When the server cannot send email it is absent, as every email feature is.</div>
     <div class="doc-note"><b>It cannot be pressed again and again.</b> While the send is in flight the item reads "Sending", disabled, with the spinner in place of its icon. Once sent it reads <b>Emailed</b> with the check, and stays disabled until the conversation changes: a new answer or another chat. The server also takes at most one conversation email per account per minute; a send it refuses shows the problem toast "Wait a minute before emailing this chat again." and the item returns to Email this chat.</div>
     <div class="doc-note"><b>On Chats and Files the button is Back to chat.</b> Both pages keep the chat bar at the bottom, and in the menu's place, at the same size, sits the outline icon link with <code>chevron-left</code>, tooltip and label "Back to chat". It opens the chat open last in this visit, or Ask's empty page when none was (<a href="#24b">24b</a> 1). So the way back is where the reader pressed to leave, and the page has no Back at its top. A question asked on Chats or Files goes to that same chat and opens it there; with none open this visit it starts a new chat.</div>
+    <div class="doc-note"><b>What Ask can do.</b> The chat field holds one icon button at its right edge (<code>.sp-chat__wrap</code> around the field, the trail button <code>.sp-field__trail</code> with <code>circle-help</code>), tooltip and label "What Ask can do". It sits on the field's last line, level with Send, as the field grows. It is the field's own part, so it is wherever the field is: the empty page, a conversation, Chats and Files (<a href="#24e">24e</a>, <a href="#24f">24f</a>) and the phone (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>). It is never disabled, also when the field is. No key is bound to it: "?" stays the keyboard shortcuts everywhere, and typing "?" in the field types it.</div>
+    <div class="doc-note"><b>It opens the Dialog</b> (<a href="Components.dc.html#c13">c13</a>) over the page, with the heading "What Ask can do", the parts in <code>.sp-chat__help</code>, and in the actions row the footnote "Files are kept for 30 days" (<code>sp-note</code>) at the left and Close at the right. The footnote is absent when the server makes no files. Escape, Close and a click on the scrim close it, and focus returns to the button. A dialog taller than the window scrolls its parts; the heading and Close stay. On a phone the same parts open in the bottom sheet (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>), with the footnote over Close, which is a block button under them.</div>
+    <div class="doc-note"><b>Two parts: Files, then Charts.</b> Each is <code>.sp-chat__help-part</code>: the section label, its formats on one line, comma separated (<code>.sp-chat__formats</code>), wrapping when long, and one example question. Nothing else is in the help: what Ask reads stays on the empty page, and the limits stay under the field.</div>
+    <div class="doc-note"><b>Files and Charts are filled from the server's list</b> of what Ask makes, sent with <code>GET /api/assistant</code>: one part per kind, in the server's order, the kind's name as the label, its formats in one line, joined with ", " in the server's order and with the names the server gives them. A new kind is a new part and a new format one more name in the line, with no change to the design. Each kind carries one example question. A kind with no formats is not shown.</div>
+    <div class="doc-note"><b>An example question</b> is a saved question's button without its remove button (<code>.sp-chat__pick</code>), so it is one line, at most 320px, cut with ... and with the whole question as its tooltip. Pressing it closes the dialog and puts the question in the field with the cursor at its end, replacing what was typed; it is not sent, so the reader can change "October" before sending. Saved questions on the empty page still send at once (<a href="#24b">24b</a> 6).</div>
+    <div class="doc-note"><b>The help states no limits</b>: the questions left show under the field (<a href="#24b">24b</a> 3, 4), as before. With no questions left the example buttons are disabled, since the field is. When the server makes no files, the Files part stays with the line "Ask cannot make files on this Spendly." and no list or example.</div>
     <div class="doc-note"><b>On a phone</b> the top bar's menu holds the same four items in the same order, with the same states (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>).</div>
   </div>
 </section>
@@ -433,7 +483,7 @@
               </div>
               <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
@@ -555,7 +605,7 @@
           </div>
             <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><a class="sp-icon-btn sp-icon-btn--outline" href="#24a" aria-label="Back to chat" data-tip="Back to chat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></a></div>
               </div>
@@ -643,7 +693,7 @@
           </div>
             <div class="sp-chat__dock">
               <div class="sp-chat__composer">
-                <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea>
+                <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask about your orders, vendors and budget" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><a class="sp-icon-btn sp-icon-btn--outline" href="#24a" aria-label="Back to chat" data-tip="Back to chat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></a></div>
               </div>

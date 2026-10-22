@@ -48,6 +48,9 @@ function attachments(userId, ids, charts, write) {
 
 export const chartMaker = {
 	place: 'chart',
+	name: 'Charts',
+	formats: () => CHART_KINDS.map(k => k.name),
+	example: 'Show my spending per month as a chart',
 	tool,
 	doing: () => 'Drawing your chart',
 	make,

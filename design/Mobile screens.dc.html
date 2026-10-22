@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022c">
+<link rel="stylesheet" href="styles/components.css?v=v20261022d">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/budget.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/mobile-screens.css?v=v20260917b">
@@ -39,6 +39,7 @@
   <div class="doc-notes">
     <div class="doc-notes__label">NOTES FOR IMPLEMENTATION</div>
     <div class="doc-note"><b class="sp-ink">Ask</b> is a row in More, above Settings, opening its page (<a href="Ask Spendly.dc.html#24a">Ask 24a</a>): the touch top bar with Back, the title and a menu holding Chats, Files, Email this chat and New chat, in that order (<a href="Ask Spendly.dc.html#24c">Ask 24c</a>); the conversation; and the dock pinned above the tab bar (<code>.sp-chat__dock--bar</code>) with the field and Send (Stop while an answer comes). The frame is drawn inside <code>.sp-touch</code>, so its controls show at the touch height. The row and the page are absent when the server has no assistant set up.</div>
+    <div class="doc-note"><b class="sp-ink">What Ask can do</b> is the same button at the field's right edge, opening the same parts in the bottom sheet, with the footnote "Files are kept for 30 days" over Close, a block button under them; a tap on the scrim or a drag down also closes it (<a href="Ask Spendly.dc.html#24c">Ask 24c</a>). An example question closes the sheet and puts the question in the field, not sent; the keyboard does not open until the reader taps the field.</div>
     <div class="doc-note"><b class="sp-ink">An answer with a file or a chart</b> takes the full column, as one with a table does (<a href="Ask Spendly.dc.html#24d">Ask 24d</a>). Twelve bars fit the bubble with no sideways scroll; every second tick is left empty where two would touch, and a tap on a bar opens its readout, a tap elsewhere closes it. <b class="sp-ink">Chats</b> (<a href="Ask Spendly.dc.html#24f">24f</a>) and <b class="sp-ink">Files</b> (<a href="Ask Spendly.dc.html#24e">24e</a>) open from the menu as their own pages with Back: the same rows and buttons at the touch height, the search above the chats. On a file row the title takes two lines beside Open chat, Download and Delete.</div>
     <div class="doc-note"><b class="sp-ink">The confirm banner on Ask</b> keeps the phone gutter: Ask's body has no padding on a phone, so the banner (the warning row, <a href="Auth and first run.dc.html#20e">20e</a>) sits <code>--phone-gutter</code> from the screen's edges and above the thread, as on every other phone page.</div>
     <div class="doc-note"><b class="sp-ink">The shell is identical on every screen.</b> Search-only top bar, four-destination tab bar, the New order FAB on Home and the order list. On the places, the top bar is search only and never gains a title or a hamburger. A screen one level down - a record's page, create and edit, the scan review - swaps it for Back and a title, as the order and vendor frames show (Navigation shell, top bar note).</div>
@@ -530,7 +531,7 @@
         </div>
         <div class="sp-chat__dock sp-chat__dock--bar">
           <div class="sp-chat__composer">
-            <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask"></textarea>
+            <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Stop</button>
           </div>
         </div></div>
@@ -539,6 +540,49 @@
               </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta">Statistics</span>
               </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span class="sp-meta sp-strong">More</span>
               </button></div>
+        </div>
+      </div>
+    <div class="sp-stack sp-gap-12 ms-w375">
+        <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">ASK - WHAT ASK CAN DO</span><span class="sp-meta sp-ink-5">24c</span></div>
+        <div class="sp-phone sp-touch ms-device ms-device--bottom">
+          <div class="ms-layer">
+          <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div>
+          <div class="ms-pane"><div class="sp-topbar sp-topbar--touch">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <div class="sp-stacked sp-grow"><span class="sp-heading sp-truncate">Ask</span></div>
+          <button type="button" class="sp-icon-btn" aria-label="Conversation menu" aria-haspopup="menu"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+        </div>
+        <div class="ms-scroll ms-scroll--pad">
+          <div class="sp-chat__thread">
+            <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">How much did I spend on food in August?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Saved question" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+            <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p>You spent <span class="sp-amount">4.212,50 kr.</span> on <a href="Vendors and categories.dc.html">Food</a> in August, over 23 orders. Most of it went to three vendors:</p><div class="sp-chat__figures"><table class="sp-table sp-table--compact sp-table--static"><thead><tr><th class="sp-col-title">Vendor</th><th class="sp-col-number">Orders</th><th class="sp-col-amount">Amount</th></tr></thead><tbody><tr><td><a href="Vendors and categories.dc.html">Netto</a></td><td class="sp-col-number">9</td><td class="sp-col-amount"><span class="sp-amount">1.684,20 kr.</span></td></tr><tr><td><a href="Vendors and categories.dc.html">Lidl</a></td><td class="sp-col-number">8</td><td class="sp-col-amount"><span class="sp-amount">1.426,30 kr.</span></td></tr><tr><td><a href="Vendors and categories.dc.html">Irma</a></td><td class="sp-col-number">6</td><td class="sp-col-amount"><span class="sp-amount">1.102,00 kr.</span></td></tr></tbody></table></div></div></div>
+            <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">And in September?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div>
+            <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p>In September you spent <span class="sp-amount">3.640,00 kr.</span> on <a href="Vendors and categories.dc.html">Food</a>.</p></div></div>
+          </div>
+        </div>
+        <div class="sp-chat__dock sp-chat__dock--bar">
+          <div class="sp-chat__composer">
+            <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
+            <button type="button" class="sp-btn sp-btn--small" disabled="{{ true }}">Send</button>
+          </div>
+        </div></div>
+          <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta">Orders</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta">Statistics</span>
+              </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span class="sp-meta sp-strong">More</span>
+              </button></div>
+          </div>
+          <div class="sp-scrim"></div>
+          <div class="sp-sheet ms-sheet" role="dialog" aria-modal="true" aria-labelledby="ms-help">
+            <div class="sp-sheet__handle"></div>
+            <span class="sp-heading" id="ms-help">What Ask can do</span>
+            <div class="sp-chat__help">
+          <div class="sp-chat__help-part"><span class="sp-section-label">Files</span><span class="sp-chat__formats">Excel, CSV, Word, PDF</span><span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Make an Excel file of my orders in October"><span class="sp-truncate">Make an Excel file of my orders in October</span></button></span></div>
+          <div class="sp-chat__help-part"><span class="sp-section-label">Charts</span><span class="sp-chat__formats">Bar chart, Donut chart</span><span class="sp-chat__pick"><button type="button" class="sp-btn sp-btn--outline sp-btn--small" title="Show my spending per month as a chart"><span class="sp-truncate">Show my spending per month as a chart</span></button></span></div>
+        </div>
+            <span class="sp-note">Files are kept for 30 days</span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Close</button>
+          </div>
         </div>
       </div>
     <div class="sp-stack sp-gap-12 ms-w375">
@@ -560,7 +604,7 @@
         </div>
         <div class="sp-chat__dock sp-chat__dock--bar">
           <div class="sp-chat__composer">
-            <textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask"></textarea>
+            <span class="sp-field__wrap sp-chat__wrap"><textarea class="sp-textarea sp-chat__field" rows="1" placeholder="Ask a follow-up" aria-label="Ask"></textarea><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog" data-tip="What Ask can do"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /></svg></button></span>
             <button type="button" class="sp-btn sp-btn--small" disabled="{{ true }}">Send</button>
           </div>
         </div></div>
