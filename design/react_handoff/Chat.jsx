@@ -12,7 +12,6 @@ import { Icon } from './Icon.jsx'
    or the app's Donut with its Shares, at their own sizes: ChatChart is only the frame
    and the name above it. */
 
-const TYPE = { xlsx: 'Excel', docx: 'Word', pdf: 'PDF', csv: 'CSV' }
 const STATE = { ready: null, making: null, failed: null, gone: 'gone' }
 const GONE = { deleted: 'Deleted', expired: 'Removed after 30 days' }
 
@@ -24,14 +23,15 @@ export function ChatFiles({ children, ...rest }) {
 }
 
 /**
- * One file: the document mark, the title, its type and size, and what can be done
+ * One file: the document mark, the title, its format and size, and what can be done
  * with it.
  *
  * @param {object} props
  * @param {string} props.title The question as it was sent, and nothing else. The
  *   time it was asked goes only into the downloaded file's name, which the server
  *   sets: "{question} (2026-10-22T14-05).xlsx".
- * @param {'xlsx'|'docx'|'pdf'|'csv'} props.type
+ * @param {string} props.kind The format's name as the server sends it: "Excel", "CSV".
+ *   The row keeps no list of formats, so a format added on the server needs no change here.
  * @param {string} [props.size] Already formatted: "18 KB", "1.2 MB".
  * @param {'ready'|'making'|'failed'|'gone'} [props.state]
  * @param {string} [props.reason] Why it could not be made, one line. `failed` only.
@@ -42,10 +42,10 @@ export function ChatFiles({ children, ...rest }) {
  *
  * Takes no `className` and no `style`.
  */
-export function ChatFile({ title, type, size, state = 'ready', reason, gone, keptUntil, href, onDelete, ...rest }) {
+export function ChatFile({ title, kind, size, state = 'ready', reason, gone, keptUntil, href, onDelete, ...rest }) {
 	reject(rest, 'ChatFile')
 	pick(STATE, state, 'state', 'ChatFile')
-	const kind = pick(TYPE, type, 'type', 'ChatFile')
+	if (!kind) console.error('<ChatFile> needs kind, the format\'s name')
 	if (state === 'failed' && !reason) console.error('<ChatFile> a file that could not be made says why')
 	if (state === 'gone' && !(gone in GONE)) console.error(`<ChatFile> gone="${gone}" is not one of: ${Object.keys(GONE).join(' | ')}`)
 	if (state === 'ready' && !href) console.error('<ChatFile> a ready file needs its href')
