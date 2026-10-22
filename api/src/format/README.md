@@ -51,6 +51,8 @@ export const txt = {
   the declared type or one of its values, else its default.
 - An option is `type` `string`, `number` or `boolean`, or a list of values in `enum`, with a
   `description` for Claude and a `default`.
+- A format with pages offers `PAGE_ORIENTATION` from `document.js` as its `orientation`, so every
+  such format turns its page the same way.
 - The app needs nothing: it shows the `name` and the `word` the server sends, and What Ask can do
   lists the `name`.
 

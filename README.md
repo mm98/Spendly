@@ -235,7 +235,8 @@ Everything that needs you, on one page.
   Saved questions show under the empty page, each with an x that removes it. Up to 8 per account, kept on the
   server. Every account starts with three example questions saved, and they can be removed too.
 - **Files and charts in answers.** Ask for a spreadsheet, a document, a PDF or a CSV file, and the
-  answer holds it with a Download button. Spendly makes it from your own orders and numbers. Ask for
+  answer holds it with a Download button. Spendly makes it from your own orders and numbers. A PDF or
+  a document is tall, or wide when you ask for it or a table has many columns. Ask for
   numbers over time or the shares of a whole, and the answer draws them as bars or a ring. Hover or tap
   a bar to read its amount. A share of a category or vendor opens its orders.
 - **Files** is a page that lists every file Ask made in the last 30 days, newest first, with a search
