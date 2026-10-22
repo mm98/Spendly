@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
+<link rel="stylesheet" href="styles/components.css?v=v20261022b">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/order-statistics.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
@@ -2709,7 +2709,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Values:</b> <code>expenses</code> (default) · <code>refunds</code> · <code>net</code>. In the URL as <code>flow=</code>, alongside <code>period</code> and <code>crumbs</code>, so a shared link carries it.</div>
-    <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders that are Ordered or Delivered. <code>refunds</code>: orders that are Returned. <code>net</code>: both, a return counted against its spend. A returned order is never an expense.</div>
+    <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders that are Ordered or Delivered. <code>refunds</code>: orders that are Returned or Sold, both money back. With none in the period the page shows the empty state "No returned or sold orders in" and the period. <code>net</code>: both, a return counted against its spend. A returned order is never an expense.</div>
     <div class="doc-note"><b>It filters, it does not change definitions.</b> Median order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
     <div class="doc-note"><b>Under <code>net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
     <div class="doc-note"><b>The menu sits in the top bar with Export, at its right end</b>, not in the period row. The period row holds the period alone, so its presets keep their width at every desktop width.</div>
@@ -2740,7 +2740,7 @@
                 <li role="option"><button type="button" class="sp-combobox__option">
                   <span class="sp-stack sp-grow">
                     <span class="sp-data">Refunds only</span>
-                    <span class="sp-meta">Returned orders.</span>
+                    <span class="sp-meta">Returned and sold orders.</span>
                   </span>
                 </button></li>
                 <li role="option"><button type="button" class="sp-combobox__option">

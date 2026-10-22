@@ -1,3 +1,55 @@
+# Fixed from design_handoff_ask_chats_fixed: the gap above the list on Chats and Files
+
+This package replaces `design_handoff_ask_chats_fixed`. Only `Ask Spendly.dc.html` differs from it. Below the line is that package's CHANGES.md, which still applies.
+
+## The controls bar sat flush on the list
+
+**The problem** - On Chats and Files (Ask Spendly 24e, 24f) the controls bar touched the list. It had moved out of `.sp-shell__body`, whose 12px gap spaced them, into `.sp-chat`, which has none.
+
+**What changed** - The controls bar and the list sit in an inner `.sp-chat` with `sp-gap-12`, the established 12px, and the dock follows it at its own 12px. No CSS rule changed.
+
+**Where** - Ask Spendly 24e and 24f: `.sp-chat` > `.sp-chat.sp-gap-12` (`.sp-controls`, `.sp-chat__scroll`), then `.sp-chat__dock`.
+
+**What is still open** - Nothing.
+
+---
+
+# Fixed from design_handoff_ask_chats: the way back from Chats and Files
+
+This package replaces `design_handoff_ask_chats`. `Ask Spendly.dc.html` and `Order statistics.dc.html` differ from it. Below the line is that package's CHANGES.md, which still applies.
+
+## The way back sits where the reader left
+
+**The problem** - Chats and Files are opened from the three-dot menu beside Send, at the bottom right. On those pages the chat bar was gone and the way back, Back to Ask, sat at the top left of the controls bar, so the pointer crossed the whole page to return.
+
+**What changed** - Chats and Files keep Ask's chat bar at the bottom. In the three-dot menu's place, at the same size, sits a back button: the outline icon link with `chevron-left`, tooltip and label "Back to chat". It opens the chat open last in this visit, or Ask's empty page when none was. Back to Ask is gone from the controls bar. A question typed on Chats or Files goes to that same chat and opens it there; with no chat open this visit it starts a new chat. The three-dot menu on Ask is unchanged.
+
+**Where** - Ask Spendly 24c (new note "On Chats and Files the button is Back to chat"), 24e and 24f (the screen: `.sp-shell__body--fill` > `.sp-chat` > `.sp-controls`, `.sp-chat__scroll` holding the list, `.sp-chat__dock`; the route notes; the Searching specimen on 24f). The back button is a state of `.sp-chat__more`, holding an `a.sp-icon-btn--outline` in place of the menu button; no CSS changed. App: `react/src/pages/Ask*`.
+
+**What is still open** - On a phone, Chats and Files still open as their own page with the top bar's Back (Mobile screens 7a), without the chat bar. Please confirm that stays.
+
+## Files can be searched, like Chats
+
+**The problem** - With Back to Ask gone, Files' controls bar held only "5 files, each kept for 30 days", which every row already says with "Kept until".
+
+**What changed** - Files' controls bar holds "Search files" and the count, as Chats does: "5 files", or "1 of 5 files" while searching. Search filters by file name as the reader types, keeping the order. Nothing found is the empty state "No files found" with "Try another word, or clear the search." The app's top bar is unchanged and still searches orders, vendors and items.
+
+**Where** - Ask Spendly 24e (the controls bar, the list note, a new Search note, a new "Nothing found" specimen). App: `react/src/pages/Ask*`.
+
+**What is still open** - Nothing.
+
+## Refunds only counts Sold orders (later.md: "Vendor and category totals count money back as money paid")
+
+**The problem** - The app's Statistics counts an order of the kind Sold as money back under "Refunds only", but the design still described the lens as "Returned orders.".
+
+**What changed** - The lens option reads "Returned and sold orders.", and the note on what each value selects names Returned or Sold, with the empty state "No returned or sold orders in" and the period, as the app has it. This settles only the "For Claude Design" part of that entry; the totals fault in vendors, categories, the limit check and the order list stays in `later.md` for Claude Code.
+
+**Where** - Order statistics, the lens menu specimen and its note "What each value selects". App: no change, it already reads this way.
+
+**What is still open** - Nothing.
+
+---
+
 # Brief: chats are kept and can be opened again, and one menu beside Send
 
 Answers the ask that a chat be stored and reopened later, as Ask's files already are, and the follow-up that the buttons beside Send were too many. Settles the four design entries in the repo's `later.md`.
@@ -101,7 +153,8 @@ Answers the ask that a chat be stored and reopened later, as Ask's files already
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Ask Spendly.dc.html` - 24a to 24e changed, 24f new.
+- `Ask Spendly.dc.html` - 24a to 24e changed, 24f new; in this package also 24c, 24e and 24f for the way back and Files search.
+- `Order statistics.dc.html`, `styles/pages/order-statistics.css` - the Refunds only lens, in this package only.
 - `Mobile screens.dc.html` - 7a: the Ask note, Open chat on Files, the new Chats frame.
 - `Auth and first run.dc.html` - 20f: the email's notes, and the drawn email.
 - `index.html` - lists 24f, 105 screens.
