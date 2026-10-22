@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022b">
+<link rel="stylesheet" href="styles/components.css?v=v20261022c">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
 <style>
@@ -4059,6 +4059,8 @@
     <div class="doc-note">Toast: an icon, one sentence saying what happened, and Undo when it can be reversed. Tooltip: one short line. On an icon-only control it repeats the accessible name rather than adding to it.</div>
     <div class="doc-notes__label">Fixed</div>
     <div class="doc-note">Toast is <code>--ink</code> at radius 11 with <code>--sp-12</code> by <code>--sp-16</code> padding, <code>--t-13</code> in <code>--surface</code>; the icon is <code>--green-4</code>, or <code>--red</code> for a problem; Undo is <code>--t-12</code>/600. One at a time, bottom-centre, six seconds. The compact variant is for a toast inside a surface rather than over the page. A tooltip shares the ground at <code>--r-tile</code> and <code>--t-11</code>, one line, never wrapped.</div>
+    <div class="doc-notes__label">Placement</div>
+    <div class="doc-note">A tooltip is placed against the window and anchored to its control, so no box limits it: it shows in full over a list that scrolls or a card that clips, as on the first row of Chats and Files (Ask 24e, 24f). It sits above the control, centred, <code>--sp-6</code> clear. It moves only when it would leave the window: first to the side along the top, then under the control. On the last control of the chat field and on the conversation menu it starts aligned to the control's right side. Where the browser has no anchor positioning, the tip stays drawn above the control inside its box.</div>
     <div class="doc-notes__label">States</div>
     <div class="doc-note">Done, which carries Undo · a problem, which carries none because nothing changed · compact. Toasts never stack: a second replaces the first and restarts the timer, and hovering holds it.</div>
     <div class="doc-notes__label">Actions</div>
