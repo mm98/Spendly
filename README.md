@@ -149,6 +149,9 @@ Everything that needs you, on one page.
 - **Categories** - an icon from a large library, a colour, and a **monthly limit**. Each row shows
   this month against its limit. Spendly warns you when a limit you type would have been passed in
   most of the last 12 months.
+- **Spend** for a vendor or a category is money paid, as in Statistics' "Expenses only". A returned
+  order and an order of the kind Sold are listed and counted as orders, but add nothing to it. The
+  same holds for the total over the order list.
 - **Category suggestions** come from a small language model that runs on your own server and
   learns from your own orders.
 

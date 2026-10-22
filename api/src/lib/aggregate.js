@@ -1,7 +1,9 @@
 import { db } from '../db.js'
+import { moneyPaid } from './moneyPaid.js'
 
-// a draft, a cancelled order or one left out of statistics is listed and counted, but its money is not spend
-const counted = (value, alias = '') => `CASE WHEN ${alias}status_type IN ('draft', 'cancelled') OR ${alias}exclude_from_stats = 1 THEN 0 ELSE ${value} END`
+/** A column's amount where the order is money paid and counted in statistics, else 0: every order is
+    listed and counted, but only those orders' money is spend. */
+export const counted = (value, alias = '') => `CASE WHEN ${moneyPaid(alias)} AND ${alias}exclude_from_stats = 0 THEN ${value} ELSE 0 END`
 
 /* Real aggregation: SUM/GROUP BY over the orders table's stored totals (see
    migrations/001_init.sql), not a per-order fetch-and-add-in-JS loop. */
@@ -89,7 +91,7 @@ export function bookmarkCategoryCounts(userId) {
 const categoryYearSpendQuery = db.prepare(`
 	SELECT oc.category_id AS categoryId, SUM(ot.total) AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
-	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ${moneyPaid('ot.')} AND ot.exclude_from_stats = 0
 	GROUP BY oc.category_id
 `)
 
@@ -114,7 +116,8 @@ export function categoryMonthAverages(userId, today) {
 const categoryYearOrdersQuery = db.prepare(`
 	SELECT ot.date, ot.total AS spend
 	FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id
-	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.exclude_from_stats = 0
+	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+		AND ${moneyPaid('ot.')} AND ot.exclude_from_stats = 0
 `)
 
 /** What one category spent in each of the twelve whole months before the one `today` is in,

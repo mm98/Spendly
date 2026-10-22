@@ -46,16 +46,6 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## Vendor and category totals count money back as money paid
-
-- **Where:** a vendor's spend (`api/src/lib/aggregate.js`, `api/src/lib/vendorList.js`), a
-  category's month and year spend (`api/src/lib/categoryList.js`), the limit check on the edit
-  screen (`GET /api/orders/limits`) and the order list's total.
-- **What the reader sees:** a returned order, and an order of the kind Sold, add to these totals
-  as if they were paid. Statistics, Home's month figure and the status email count them as money
-  back.
-- **Found:** 2026-10-22, while making Sold count as money back in statistics.
-
 ## For Claude Design: a tip shows over any box, and moves only at the window's edge
 
 - **Where:** `react/src/styles/app.css`, the `@supports (anchor-name: …)` block on `[data-tip]`. Every tip (c18).
