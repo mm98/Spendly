@@ -71,8 +71,10 @@ function useTickStep(box, columns, skip) {
 
 /** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
     `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `future` is a step still to come;
-    A `card` variant is the plot at a card's height (10a); `days` is one bar per day (4g). */
-export function Bars({ columns = [], variant = 'default', days = false, selected, onSelect, loading = false, ref, ...rest }) {
+    A `card` variant is the plot at a card's height (10a); `days` is one bar per day (4g). A column that opens
+    nothing may carry `readout`, its chart tooltip, and `label`, its name for a screen reader; `open` is the
+    column a finger tapped, whose readout stays until a tap elsewhere (Ask 24d). */
+export function Bars({ columns = [], variant = 'default', days = false, selected, open, onSelect, loading = false, ref, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)
 	const tipId = useId()
@@ -153,6 +155,13 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 						...(tip ? { 'aria-describedby': tipId } : {})
 					}
 					: {}
+				// a column that opens nothing still shows its readout on hover, focus or a tap (Ask 24d); `open` is the tapped one
+				if (!onSelect && column.readout) return (
+					<span className="sp-bars__col" tabIndex={0} aria-label={column.label} data-open={open === column.key ? 'true' : undefined} key={column.key}>
+						{body}
+						{column.readout}
+					</span>
+				)
 				if (!onSelect || column.inert) {
 					// an inert column among buttons is read by its label, as a picture is
 					const read = column.inert && column.label ? { role: 'img', 'aria-label': column.label } : {}
@@ -189,7 +198,8 @@ export function ChartTip({ title, value, rows = [], note, ...rest }) {
 			<span className="sp-tip__head"><span className="sp-truncate">{title}</span><span className="sp-nowrap">{value}</span></span>
 			{rows.map(row => (
 				<span className="sp-tip__row" key={row.key}>
-					<span className="sp-legend__key" data-key={pick(SERIES, row.series, 'series', 'ChartTip')} />
+					{/* a row with no series, such as an order count, has no key */}
+					{row.series === undefined ? null : <span className="sp-legend__key" data-key={pick(SERIES, row.series, 'series', 'ChartTip')} />}
 					<span className="sp-truncate">{row.name}</span>
 					<span>{row.value}</span>
 				</span>
@@ -234,17 +244,23 @@ export function Shares({ children, ...rest }) {
 	return <div className="sp-shares" {...rest}>{children}</div>
 }
 
-/** One share: its series key, what it is, and its value. A share is a filter, so it is a button. */
-export function ShareRow({ series = 1, value, onClick, children, ...rest }) {
+/** One share: its series key, what it is, its `amount` when shown, and its value. A share is a filter, so it
+    is a button; in an answer it opens its orders, so it is a link to `href` (Ask 24d). */
+export function ShareRow({ series = 1, value, amount, href, onClick, children, ...rest }) {
 	reject(rest, 'ShareRow')
-	return (
-		<button type="button" className="sp-shares__row" onClick={onClick} {...rest}>
+	const body = (
+		<>
 			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'ShareRow')} />
 			<span className="sp-truncate">{children}</span>
 			<span className="sp-grow" />
+			{amount === undefined ? null : <span className="sp-amount">{amount}</span>}
 			<span className="sp-shares__value">{value}</span>
-		</button>
+		</>
 	)
+	if (href) return <a className="sp-shares__row" href={href} onClick={onClick} {...rest}>{body}</a>
+	// a share that opens nothing does not invite a click
+	if (!onClick) return <div className="sp-shares__row" {...rest}>{body}</div>
+	return <button type="button" className="sp-shares__row" onClick={onClick} {...rest}>{body}</button>
 }
 
 /** What each series of a chart is (c14). Drawn only when a chart has more than one. */

@@ -61,6 +61,7 @@ const Budget = page(() => import('./pages/Budget.jsx'))
 const BudgetCheck = page(() => import('./pages/BudgetCheck.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
 const Ask = page(() => import('./pages/Ask.jsx'))
+const AskFiles = page(() => import('./pages/AskFiles.jsx'))
 const More = page(() => import('./pages/More.jsx'))
 const SavedViews = page(() => import('./pages/OrderViews.jsx'))
 
@@ -121,6 +122,7 @@ export const routes = [
 				{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget', remember: true } },
 
 				{ path: 'ask', element: <Ask />, handle: { title: 'Ask', navKey: 'ask', layout: 'fill' } },
+				{ path: 'ask/files', element: <AskFiles />, handle: { title: 'Files', navKey: 'ask' } },
 				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings' } },
 				{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
 				{ path: 'more/views', element: <SavedViews />, handle: { title: 'Saved views', navKey: 'more' } },

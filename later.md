@@ -46,23 +46,16 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## For Claude Design: the last control in the chat field opens its tip to the left
+## For Claude Design: the bars in an answer measure their height above the ticks
 
-- **Where:** `react/src/styles/app.css`, `.sp-chat__composer > [data-tip]:last-child::after { left: auto; right: 0; transform: none; }`. Ask Spendly (24a), the email button beside Send.
-- **What the reader sees:** the tip of the email button lines up with the button's right side. Before, the whole page scrolled 7px sideways at every desktop size.
-- **What was found:** a tip is centred over its control and only hidden, so it still takes room. The email button sits at the right edge, and its centred tip reached 7px past the window. Found 21 Oct 2026.
-- **To take into `design/`:** a tip on a control at the right edge lines up with the control's right side, in `components.css` beside the tooltip rules. Then it is removed from `app.css` and this entry goes.
+- **Where:** `react/src/styles/app.css`, `.sp-chat__chart .sp-bars__col` and `.sp-chat__chart .sp-bars__tick`. Ask Spendly (24d), a bar chart in an answer.
+- **What the reader sees:** each bar is as tall as its amount says, and the tallest bar reaches the top.
+- **What was found:** a bar's height is a share of its whole column, and the tick under it takes part of that column. So every bar above about four fifths was cut to the same height, and August and September looked equal. Found 22 Oct 2026.
+- **To take into `design/`:** in an answer's chart the tick sits in the column's padding, so a bar's height is a share of the space above the ticks. Then it is removed from `app.css` and this entry goes.
 
-## For Claude Design: the confirm banner keeps the phone gutter on Ask
+## For Claude Design: Ask's empty page scrolls in its own box
 
-- **Where:** `react/src/styles/app.css`, `.sp-shell--touch .sp-shell__body--fill > .au-banner { padding: var(--phone-gutter) var(--phone-gutter) 0; }`. Ask on a phone (7a) while the email is not confirmed.
-- **What the reader sees:** the banner sits 16px from the screen's edges, as on every other phone page. Before, it ran 3px past the screen, and the page scrolled sideways and down.
-- **What was found:** Ask's body has no padding on a phone, so the banner had no gutter. Found 21 Oct 2026.
-- **To take into `design/`:** the banner's gutter on a full-height page. Then it is removed from `app.css` and this entry goes.
-
-## For Claude Design: the vendor's alias hint names the matching rule
-
-- **Where:** `react/src/pages/VendorForm.jsx`, the hint under "Also matches". `design/Vendors and categories.dc.html` draws "Other names this vendor uses on receipts. A receipt with one of these is filed here."
-- **What the reader sees:** "Other names this vendor uses on receipts. Capitals, punctuation and endings like Inc or ApS do not count." An alias the name already matches is refused with: "Nabu Casa, Inc." already matches Nabu Casa, then the same rule.
-- **What was found:** the old refusal said "That is already the vendor's name" for a spelling that differed, so the reader could not see why. Found 21 Oct 2026.
-- **To take into `design/`:** the hint and the refusal above, in the Vendors and categories drawings. Then this entry goes.
+- **Where:** `react/src/styles/app.css`, `.sp-chat__start`. Ask Spendly (24a), the empty page with the saved questions.
+- **What the reader sees:** the box to type a question stays above the tab bar, and the saved questions scroll when there is no room.
+- **What was found:** on a phone with the confirm banner showing, the empty page did not shrink, so it pushed the box to type in 7px under the tab bar and the whole page scrolled. Found 22 Oct 2026.
+- **To take into `design/`:** `.sp-chat__start` gets `min-height: 0; overflow-y: auto; justify-content: safe center`. Then it is removed from `app.css` and this entry goes.

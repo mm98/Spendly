@@ -1,4 +1,7 @@
 import { db } from '../db.js'
+import { chartsById } from './assistantCharts.js'
+import { fileStates } from './assistantFiles.js'
+import { CHART_PICTURE_WIDTH, chartPicture } from './chartPicture.js'
 import { emailMessage } from './emails.js'
 import { newId } from './ids.js'
 import { publicLink, sendMail } from './mail.js'
@@ -85,8 +88,50 @@ function tableOf(lines, write) {
 	}
 }
 
-/** An answer as the email's blocks: paragraphs, lists and tables, as the app draws them. */
-export function answerBlocks(text, write) {
+// a line that is only the place of a file or a chart the answer made
+const PLACE = /^\s*\{\{(file|chart):([\w-]{1,64})\}\}\s*$/
+export const placesIn = text => [...text.matchAll(/\{\{(file|chart):([\w-]{1,64})\}\}/g)].map(m => ({ kind: m[1], id: m[2] }))
+
+// the files one answer made together, named and sized, never linked: the download needs a sign-in (emails/README.md)
+function filesBlock(ids, outputs) {
+	const files = ids.map(id => outputs.files[id]).filter(f => f && f.state !== 'gone')
+	if (!files.length) return null
+	const ready = files.filter(f => f.state === 'ready')
+	return {
+		files: true,
+		items: files.map((f, i) => (f.state === 'failed'
+			? { title: f.title, first: i === 0, failed: true, reason: f.reason }
+			: { title: f.title, kind: f.kind, size: f.size, first: i === 0 })),
+		ready: ready.length > 0,
+		many: ready.length > 1,
+		files_url: publicLink('/ask/files'),
+		kept_until: ready.map(f => f.keptUntil).sort()[0] ?? null
+	}
+}
+
+// what a chart shows, in words: its alt text, and the text version's line
+function chartValues(chart, write) {
+	if (chart.kind === 'shares') {
+		const total = chart.shares.reduce((sum, s) => sum + s.amount, 0) || 1
+		return chart.shares.map(s => `${s.name} ${amountText(s.amount, write)} (${Math.round(s.amount / total * 100)}%)`).join(', ')
+	}
+	const keyed = chart.series.length > 1
+	return chart.columns.map(c => (keyed
+		? `${c.label}: ${chart.series.map((s, i) => `${s.name} ${amountText(c.values[i], write)}`).join(', ')}`
+		: `${c.label} ${amountText(c.values[0], write)}`)).join(', ')
+}
+
+function chartBlock(id, outputs, write) {
+	const chart = outputs.charts[id]
+	if (!chart) return null
+	if (chart.failed) return { p: true, runs: [{ text: `${chart.name}: ${chart.failed}` }] }
+	const values = chartValues(chart, write)
+	return { chart: true, title: chart.name, meta: chart.meta ?? '', src: outputs.picture(chart), width: CHART_PICTURE_WIDTH, alt: `${chart.name}: ${values}`, values }
+}
+
+/** An answer as the email's blocks: paragraphs, lists, tables, files and charts, as the app draws them.
+    `outputs` holds the answer's files and charts by id, and `picture(chart)` names a chart's attached picture. */
+export function answerBlocks(text, write, outputs = { files: {}, charts: {}, picture: () => '' }) {
 	const blocks = []
 	for (const chunk of text.split(/\n\s*\n/)) {
 		const lines = chunk.split('\n').map(l => l.trimEnd()).filter(l => l.trim())
@@ -96,17 +141,20 @@ export function answerBlocks(text, write) {
 			if (!run.length) return
 			if (kind === 'list') blocks.push({ list: true, items: run.map(l => ({ runs: runsOf(l.replace(/^\s*[-*]\s+/, ''), write) })) })
 			else if (kind === 'table') blocks.push(tableOf(run, write))
+			else if (kind === 'file') blocks.push(filesBlock(run.map(l => l.match(PLACE)[2]), outputs))
+			else if (kind === 'chart') blocks.push(...run.map(l => chartBlock(l.match(PLACE)[2], outputs, write)))
 			else blocks.push({ p: true, runs: runsOf(run.join(' '), write) })
 			run = []
 		}
 		for (const line of lines) {
-			const next = /^\s*\|.*\|\s*$/.test(line) ? 'table' : /^\s*[-*]\s+/.test(line) ? 'list' : 'text'
+			const place = line.match(PLACE)?.[1]
+			const next = place ?? (/^\s*\|.*\|\s*$/.test(line) ? 'table' : /^\s*[-*]\s+/.test(line) ? 'list' : 'text')
 			if (next !== kind) { flush(); kind = next }
 			run.push(line)
 		}
 		flush()
 	}
-	return blocks
+	return blocks.filter(Boolean)
 }
 
 const initialsOf = name => {
@@ -131,7 +179,19 @@ export async function emailConversation(userId, { turns, day, locale }) {
 	const write = writerFor({ locale: usableLocale(account.locale, locale), currency })
 	const date = write.date(day)
 	const questions = turns.filter(t => t.role === 'user').map(t => t.text)
-	await sendMail(emailMessage('ask-chat', account.email, {
+	// the files and charts the answers name, as they are now; a chart is attached as a picture, so no address leads to it
+	const places = turns.filter(t => t.role === 'assistant').flatMap(t => placesIn(t.text))
+	const attachments = []
+	const outputs = {
+		files: fileStates(userId, places.filter(p => p.kind === 'file').map(p => p.id)),
+		charts: chartsById(userId, places.filter(p => p.kind === 'chart').map(p => p.id)),
+		picture: chart => {
+			const cid = `${chart.id}@spendly`
+			attachments.push({ filename: `${chart.name}.png`, content: chartPicture(chart, write), contentType: 'image/png', cid })
+			return `cid:${cid}`
+		}
+	}
+	const message = emailMessage('ask-chat', account.email, {
 		subject: `Your Spendly conversation, ${date}`,
 		preheader: questions.slice(0, 2).join(' '),
 		date,
@@ -139,7 +199,8 @@ export async function emailConversation(userId, { turns, day, locale }) {
 		email: account.email,
 		initials: initialsOf(account.name || account.email.split('@')[0]),
 		ask_url: publicLink('/ask'),
-		messages: turns.map(t => (t.role === 'user' ? { mine: true, question: t.text } : { mine: false, blocks: answerBlocks(t.text, write) }))
-	}))
+		messages: turns.map(t => (t.role === 'user' ? { mine: true, question: t.text } : { mine: false, blocks: answerBlocks(t.text, write, outputs) }))
+	})
+	await sendMail({ ...message, attachments })
 	return account.email
 }

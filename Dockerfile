@@ -4,7 +4,8 @@
 #
 # All persistent state -- orders, accounts, uploaded receipts -- lives in the one SQLite
 # file at $SPENDLY_DB. Mount a volume over /data (docker-compose.yml does) or the data
-# dies with the container.
+# dies with the container. The files Ask makes live in $SPENDLY_STORAGE, outside the
+# database and its backup; without a volume over /storage they go with the container.
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
@@ -49,6 +50,7 @@ COPY --from=model /app/models models
 ENV SPENDLY_MODEL_DIR=/app/models
 COPY --from=build /app/react/dist react/dist
 ENV SPENDLY_DB=/data/spendly.sqlite3
+ENV SPENDLY_STORAGE=/storage
 # The build stamp /api/version answers with, so the UI can say which image is running and a
 # reader can compare it against the newest commit. Passed in as args -- .git is dockerignored,
 # so the image cannot ask git itself -- and declared last, so a changing timestamp re-runs

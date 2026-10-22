@@ -73,6 +73,7 @@ a wishlist.
 | `/budget`, `/budget/:year` | The yearly budget |
 | `/budget/check` | Check a bank statement against the budget |
 | `/ask` | Ask: questions about the account, while the server has an assistant set up |
+| `/ask/files` | Files: what Ask made in the last 30 days, to download again or delete; `?download=ID` starts that download after sign-in |
 | `/settings`, `/settings/:section` | Settings, import, demo data, this build |
 | `/more` | The phone's list of what the tab bar does not hold |
 | `/more/views` | Saved order views |

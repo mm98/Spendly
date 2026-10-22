@@ -1,5 +1,6 @@
 # Spendly for a home server (written for QNAP Container Station, works anywhere Docker does).
-# The bind mount is the database: back that folder up and you have backed the app up.
+# The /data bind mount is the database: back that folder up and you have backed the app up.
+# The /storage bind mount holds the files Ask makes. They are kept for 30 days and need no backup.
 
 services:
   spendly:
@@ -17,6 +18,8 @@ services:
       - "4000:4000"
     environment:
       SPENDLY_DB: /data/spendly.sqlite3
+      # Files kept outside the database, one folder for each account. Not part of the backup.
+      SPENDLY_STORAGE: /storage
       # Without this the container's clock is UTC, so the nightly backup fires at UTC
       # 23:59:59 -- 1-2am local, depending on daylight saving -- not local midnight.
       TZ: "Europe/Copenhagen"
@@ -33,6 +36,9 @@ services:
       # Optional: how many questions each account can ask "Ask about your money" in the search, each
       # day. Every question is paid on the key above. 0 turns it off.
       # SPENDLY_ASSISTANT_QUESTIONS_PER_DAY: 25
+      # Optional: how many files (spreadsheets, documents, PDF and CSV) Ask can make for each account
+      # each day. The owner has no limit. 0 makes none.
+      # SPENDLY_ASSISTANT_FILES_PER_DAY: 10
       # Sends the emails that confirm an address and reset a forgotten password, and shows
       # "Forgot it?" on the sign-in page. Email stays off until the password below is set.
       # For Gmail: turn on 2-Step Verification for the Google account, make an app password at
@@ -59,6 +65,8 @@ services:
     volumes:
       # Absolute path -- a relative one breaks if this file moves. On QNAP: /share/Container/spendly:/data
       - /share/Container/spendly:/data
+      # The files Ask makes. On QNAP: /share/Container/spendly-storage:/storage
+      - /share/Container/spendly-storage:/storage
 
   # HTTPS in front of the app: browsers only use HTTP/2 and HTTP/3 over HTTPS, so this one
   # service turns both on. Caddy signs the certificate itself, which works with no internet

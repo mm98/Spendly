@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from 'react'
-import { askAssistant } from '../api/client.js'
+import { askAssistant, getAssistantFileStates } from '../api/client.js'
 
 /* Ask's conversation (24a), kept for the visit: an answer still coming when the page is left
-   lands in it. A turn is { id, question, answer, state }: working, answered, failed or stopped. */
+   lands in it. A turn is { id, question, answer, files, charts, state, doing }: working, answered,
+   failed or stopped; `doing` is the file or chart being made while it works. */
 
 let owner = null
 let turns = []
@@ -42,8 +43,8 @@ export const answeredTurns = list => pairsOf(list)
 function send(turn) {
 	const controller = new AbortController()
 	asking = controller
-	askAssistant(sentFor(turn), controller.signal).then(
-		out => update(turn.id, { state: 'answered', answer: out.answer }),
+	askAssistant(sentFor(turn), controller.signal, step => update(turn.id, { doing: step })).then(
+		out => update(turn.id, { state: 'answered', answer: out.answer, files: out.files ?? {}, charts: out.charts ?? {}, doing: null }),
 		// a stopped question keeps its place without an answer, and so does one the day's limit refused
 		error => update(turn.id, { state: controller.signal.aborted || error.status === 429 ? 'stopped' : 'failed' })
 	).finally(() => { if (asking === controller) asking = null })
@@ -62,7 +63,7 @@ export function ask(user, question) {
 /** Asks a failed turn's question again, in its own place. */
 export function askAgain(id) {
 	if (asking) return
-	update(id, { state: 'working' })
+	update(id, { state: 'working', doing: null })
 	send(turns.find(t => t.id === id))
 }
 
@@ -81,6 +82,17 @@ export function clearConversation() {
 export function restoreConversation(held) {
 	if (turns.length) return
 	set(held)
+}
+
+/** Asks the server what each file in the conversation is now, so one deleted on Files, or past its
+    days, reads as gone here too. */
+export function refreshFiles() {
+	const ids = turns.flatMap(t => Object.keys(t.files ?? {}))
+	if (!ids.length) return
+	getAssistantFileStates(ids).then(out => {
+		const changed = turns.some(t => Object.keys(t.files ?? {}).some(id => out.files[id] && out.files[id].state !== t.files[id].state))
+		if (changed) set(turns.map(t => (t.files ? { ...t, files: Object.fromEntries(Object.entries(t.files).map(([id, f]) => [id, out.files[id] ? { ...f, ...out.files[id] } : f])) } : t)))
+	}, () => { /* the rows keep what they showed */ })
 }
 
 let emailed = null

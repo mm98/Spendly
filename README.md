@@ -218,9 +218,21 @@ Everything that needs you, on one page.
 - **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
   Saved questions show under the empty page, each with an x that removes it. Up to 8 per account, kept on the
   server. Every account starts with three example questions saved, and they can be removed too.
+- **Files and charts in answers.** Ask for a spreadsheet, a document, a PDF or a CSV file, and the
+  answer holds it with a Download button. Spendly makes it from your own orders and numbers. Ask for
+  numbers over time or the shares of a whole, and the answer draws them as bars or a ring. Hover or tap
+  a bar to read its amount. A share of a category or vendor opens its orders.
+- **Files** is a page that lists every file Ask made in the last 30 days, newest first. Each can be
+  downloaded again or deleted, and a delete offers Undo. After 30 days a file is removed. Only you,
+  signed in, can download your files. A download link in a tab that is signed out asks you to sign in
+  first.
+- **Each account can make 10 files a day** (`SPENDLY_ASSISTANT_FILES_PER_DAY`). A file that cannot be
+  made, because there are too many orders or the day's files are used, says why in the answer. The
+  server's owner has no daily limit.
 - **Clear** empties the conversation, and its message offers Undo. **Email this chat** sends the
-  conversation to your own address, at most once a minute. On a computer both are buttons beside
-  Send; on a phone they are in the menu at the top.
+  conversation to your own address, at most once a minute. The email shows each chart as a picture,
+  and names each file with a link to Files. On a computer Clear, Email this chat and Files are buttons
+  beside Send; on a phone they are in the menu at the top.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
 - **Each account has 25 questions a day** (`SPENDLY_ASSISTANT_QUESTIONS_PER_DAY`), counted on the
@@ -257,7 +269,8 @@ docker compose up -d
 Then open the address you set, and create the first account.
 
 **Your data is one folder.** The database lives in the folder mounted at `/data`. Back up that
-folder and you have backed up Spendly.
+folder and you have backed up Spendly. The files Ask makes are in a second folder, mounted at
+`/storage`, with one folder for each account. They are kept for 30 days, so that folder needs no backup.
 
 **Some features need a setting on the server.** Everything else works without them.
 
@@ -265,6 +278,8 @@ folder and you have backed up Spendly.
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Reading receipts, the light-bulb button that suggests categories (it can propose a new one), and Ask | The receipt is attached and you type the details yourself. There is no Ask page. |
 | `SPENDLY_ASSISTANT_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask off | 25. |
+| `SPENDLY_STORAGE` | Where the files Ask makes are kept, outside the database (`/storage` in the container) | A `storage` folder beside the database. |
+| `SPENDLY_ASSISTANT_FILES_PER_DAY` | How many files Ask can make for each account a day (default 10); `0` makes none | 10. |
 | `SPENDLY_SMTP_*` and `SPENDLY_PUBLIC_URL` | Email confirmation, password reset, the status email, Email this chat on Ask | New accounts are confirmed at once, and email features are hidden. |
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
 | `SPENDLY_UPDATER_URL` and `SPENDLY_UPDATER_TOKEN` | "Update and reload" in Settings, for the person who manages the server | Settings can only check for a newer version. |

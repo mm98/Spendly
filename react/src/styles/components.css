@@ -3798,6 +3798,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   border: 1px solid var(--line);
   color: var(--ink);
 }
+/* a tip on the last control in the chat field lines up with the control's right side:
+   centred, the tip of the control at the row's right edge reached past the window */
+.sp-chat__composer > [data-tip]:last-child::after { left: auto; right: 0; transform: none; }
 
 .sp-tip {
   display: inline-block;
@@ -5557,6 +5560,46 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-chat__msg:has(.sp-chat__figures) { max-width: 100%; }
 .sp-chat__working { display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-12) var(--card-pad); border: 1px solid var(--line); border-radius: var(--r-field); background: var(--surface); font-size: var(--t-13); color: var(--ink-5); }
 .sp-chat__failed { color: var(--red-ink); }
+/* a file in an answer, and the same row on the Files page (24e): one frame, a row per
+   file, a rule between rows. The row is the type's document mark, the title and its
+   type and size, then the actions. A row being made shows the spinner in Download's
+   place, as Email this chat does while it sends. */
+.sp-chat__files { display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--line); border-radius: var(--r-tile); background: var(--surface); font-size: var(--t-13); }
+.sp-chat__file { display: flex; align-items: center; gap: var(--sp-12); min-width: 0; padding: var(--sp-12); }
+.sp-chat__file + .sp-chat__file { border-top: 1px solid var(--line); }
+.sp-chat__file > .sp-stacked { flex: 1; min-width: 0; }
+.sp-chat__file > .sp-mark,
+.sp-chat__file > .sp-icon-btn { flex: none; }
+.sp-chat__file-name { font-weight: 600; color: var(--ink); }
+/* on touch the row has less room beside its touch-size buttons, so the title takes two lines before it is cut */
+.sp-touch .sp-chat__file-name { display: -webkit-box; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* a file that is gone keeps its row, its title and its mark; only the actions go */
+.sp-chat__file[data-state="gone"] .sp-chat__file-name { color: var(--ink-4); }
+/* a chart in an answer: the figure frame with the Bars or the Donut and its shares inside,
+   at their own sizes, under the chart's name and total. The frame does not scroll: a
+   chart always fits its bubble, and its readout may hang over the frame's edge. */
+.sp-chat__figures:has(> .sp-chat__chart) { overflow: visible; }
+/* an answer holding a chart takes its full three quarters, so the bars have room; on touch, the full column */
+.sp-chat__msg:has(.sp-chat__chart) { width: 100%; }
+.sp-chat__msg:has(.sp-chat__chart) > .sp-chat__reply { flex: 1; min-width: 0; }
+.sp-chat__chart { display: flex; flex-direction: column; gap: var(--sp-12); padding: var(--sp-12); }
+.sp-chat__chart-name { display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0; }
+.sp-chat__chart-name > .sp-section-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a column's readout hangs above its bar, centred; the first and last line up with their
+   edge. Shown on hover, on keyboard focus, and on the column a finger tapped */
+.sp-chat__chart .sp-bars__col { position: relative; }
+.sp-chat__chart .sp-bars__col > .sp-tip--panel { display: none; position: absolute; bottom: calc(100% + var(--sp-6)); left: 50%; transform: translateX(-50%); z-index: 3; }
+.sp-chat__chart .sp-bars__col:first-child > .sp-tip--panel { left: 0; transform: none; }
+.sp-chat__chart .sp-bars__col:last-child > .sp-tip--panel { left: auto; right: 0; transform: none; }
+.sp-chat__chart .sp-bars__col:hover > .sp-tip--panel,
+.sp-chat__chart .sp-bars__col:focus-visible > .sp-tip--panel,
+.sp-chat__chart .sp-bars__col[data-open] > .sp-tip--panel { display: flex; }
+/* the donut beside its shares where there is room, above them where there is not */
+.sp-chat__shares { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-16); }
+.sp-chat__shares > .sp-donut { flex: none; }
+.sp-chat__shares > .sp-shares { flex: 1 1 200px; min-width: 0; }
+/* an answer holding a chart or files takes the full column on touch, as one holding a table does */
+.sp-touch .sp-chat__msg:has(.sp-chat__files) { max-width: 100%; }
 /* the empty conversation: the empty state, and the example questions under it */
 .sp-chat__start { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-16); flex: 1; }
 /* the list takes the column's width (its items still centred), so a saved question's cap
@@ -5614,3 +5657,6 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__hint { display: flex; align-items: center; gap: var(--sp-12); width: 100%; margin: var(--sp-6) auto 0; font-size: var(--t-11); color: var(--ink-5); }
 /* a page body that is one region filling the column, as the chat is */
 .sp-shell__body--fill { flex: 1; min-height: 0; }
+/* the confirm banner on a page that fills the column keeps the phone gutter: such a body
+   has no padding on touch, so the banner takes the gutter itself, at the sides and above */
+.sp-touch .sp-shell__body--fill > .sp-list-item[data-color="warning"] { width: auto; margin: var(--phone-gutter) var(--phone-gutter) 0; }

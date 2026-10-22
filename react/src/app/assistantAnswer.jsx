@@ -1,9 +1,11 @@
-import { Fragment } from 'react'
-import { ChatFigures } from '../components/Chat.jsx'
-import { currency } from '../api/format.js'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { ChatChart, ChatFigures, ChatFile, ChatFiles, ChatShares } from '../components/Chat.jsx'
+import { Bars, ChartTip, Donut, Legend, LegendItem, ShareRow, Shares } from '../components/Data.jsx'
+import { amount, currency, plural } from '../api/format.js'
 
 /* An answer from the assistant, in the small format lib/assistant.js asks for: paragraphs, "- "
-   lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links and {{number}} amounts.
+   lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and
+   {{file:ID}} and {{chart:ID}} on a line of their own where a file or a chart it made belongs.
    Anything else shows as text. */
 
 const INLINE = /\[([^\]\n]+)\]\((orders?|vendor|category):([^)\s]+)\)|\{\{(-?\d+(?:\.\d+)?)\}\}/g
@@ -67,8 +69,100 @@ function table(lines, key, onOpen) {
 	)
 }
 
-/** The answer's blocks, each link opening its record through `onOpen(to)`. */
-export function AnswerText({ text, onOpen }) {
+// a line that is only the place of a file or a chart the answer made
+const PLACE = /^\s*\{\{(file|chart):([\w-]{1,64})\}\}\s*$/
+
+// the second series is the muted bar, as a pair draws it, on the key that matches it (Ask 24d)
+const SERIES_KEYS = [1, 4]
+
+function shareLink(share, chart) {
+	if (share.other === 'categories') return '/categories'
+	if (share.other === 'vendors') return '/vendors'
+	const asked = new URLSearchParams()
+	if (share.categoryId) asked.set('category', share.categoryId)
+	else if (share.vendorId) asked.set('vendor', share.vendorId)
+	else return null
+	if (chart.from) asked.set('from', chart.from)
+	if (chart.to) asked.set('to', chart.to)
+	return `/orders?${asked}`
+}
+
+/** A chart the answer made: the library's Bars or the Donut and its Shares, at their own sizes. */
+export function AnswerChart({ chart, onOpen }) {
+	const [open, setOpen] = useState(null)
+	const box = useRef(null)
+	// a tap shows a column's readout until a tap elsewhere
+	useEffect(() => {
+		if (open === null) return
+		const away = ev => { if (!ev.target.closest?.('.sp-bars__col') || !box.current?.contains(ev.target)) setOpen(null) }
+		document.addEventListener('pointerdown', away)
+		return () => document.removeEventListener('pointerdown', away)
+	}, [open])
+	if (chart.failed) return <ChatChart name={chart.name} meta={chart.meta} failed={chart.failed} />
+	if (chart.kind === 'shares') {
+		const total = chart.shares.reduce((sum, s) => sum + s.amount, 0) || 1
+		const shares = chart.shares.map((s, i) => ({ ...s, series: i + 1, share: Math.round(s.amount / total * 100) }))
+		return (
+			<ChatChart name={chart.name} meta={chart.meta}>
+				<ChatShares>
+					<Donut shares={shares.map(s => ({ series: s.series, value: s.amount / total * 100 }))} aria-label={shares.map(s => `${s.name} ${s.share}%`).join(', ')} />
+					<Shares>
+						{shares.map(s => {
+							const to = shareLink(s, chart)
+							return (
+								<ShareRow key={s.name} series={s.series} amount={currency(s.amount)} value={`${s.share}%`}
+									href={to ? '#' + to : undefined} onClick={to ? ev => { ev.preventDefault(); onOpen(to) } : undefined}>
+									{s.name}
+								</ShareRow>
+							)
+						})}
+					</Shares>
+				</ChatShares>
+			</ChatChart>
+		)
+	}
+	const keyed = chart.series.length > 1
+	const top = Math.max(0, ...chart.columns.flatMap(c => c.values)) || 1
+	const height = v => Math.max(0, v) / top * 100
+	const columns = chart.columns.map((c, i) => {
+		const orders = c.orders === undefined ? '' : `, ${plural(c.orders, 'order')}`
+		return {
+			key: String(i),
+			tick: c.tick,
+			...(keyed ? { pair: c.values.map(height) } : { height: height(c.values[0]) }),
+			label: keyed ? `${c.label}, ${chart.series.map((s, n) => `${s.name} ${currency(c.values[n])}`).join('; ')}` : `${c.label}, ${currency(c.values[0])}${orders}`,
+			readout: keyed
+				? <ChartTip title={c.label} rows={chart.series.map((s, n) => ({ key: String(n), series: SERIES_KEYS[n], name: s.name, value: currency(c.values[n]) }))} />
+				: <ChartTip title={c.label} value={currency(c.values[0])} rows={c.orders === undefined ? [] : [{ key: 'orders', name: 'Orders', value: amount(c.orders, 0) }]} />
+		}
+	})
+	const tap = ev => {
+		const col = ev.target.closest?.('.sp-bars__col')
+		if (col) setOpen([...col.parentElement.children].indexOf(col).toString())
+	}
+	return (
+		<ChatChart name={chart.name} meta={chart.meta}>
+			<Bars columns={columns} open={open ?? undefined} ref={box} onClick={tap} />
+			{keyed
+				? <Legend>{chart.series.map((s, n) => <LegendItem key={n} series={SERIES_KEYS[n]}>{s.name}</LegendItem>)}</Legend>
+				: null}
+		</ChatChart>
+	)
+}
+
+function filesBlock(ids, files, key) {
+	const shown = ids.map(id => files?.[id]).filter(Boolean)
+	if (!shown.length) return null
+	return (
+		<ChatFiles key={key}>
+			{shown.map(f => <ChatFile key={f.id} title={f.title} type={f.type} size={f.size} state={f.state} reason={f.reason} gone={f.gone} href={f.href} />)}
+		</ChatFiles>
+	)
+}
+
+/** The answer's blocks, each link opening its record through `onOpen(to)`; `files` and `charts` are
+    what it made, by id. */
+export function AnswerText({ text, files, charts, onOpen }) {
 	const blocks = []
 	for (const [bi, chunk] of text.split(/\n\s*\n/).entries()) {
 		const lines = chunk.split('\n').map(l => l.trimEnd()).filter(l => l.trim())
@@ -80,15 +174,22 @@ export function AnswerText({ text, onOpen }) {
 			const key = `${bi}-${blocks.length}`
 			if (kind === 'list') blocks.push(<ul key={key}>{run.map((l, i) => <li key={i}>{inline(l.replace(/^\s*[-*]\s+/, ''), onOpen)}</li>)}</ul>)
 			else if (kind === 'table') blocks.push(table(run, key, onOpen))
+			else if (kind === 'file') blocks.push(filesBlock(run.map(l => l.match(PLACE)[2]), files, key))
+			else if (kind === 'chart') {
+				for (const [i, l] of run.entries()) {
+					const chart = charts?.[l.match(PLACE)[2]]
+					if (chart) blocks.push(<AnswerChart key={`${key}-${i}`} chart={chart} onOpen={onOpen} />)
+				}
+			}
 			else blocks.push(<p key={key}>{run.map((l, i) => <Fragment key={i}>{i ? <br /> : null}{inline(l, onOpen)}</Fragment>)}</p>)
 			run = []
 		}
 		for (const line of lines) {
-			const next = /^\s*\|.*\|\s*$/.test(line) ? 'table' : /^\s*[-*]\s+/.test(line) ? 'list' : 'text'
+			const next = line.match(PLACE)?.[1] ?? (/^\s*\|.*\|\s*$/.test(line) ? 'table' : /^\s*[-*]\s+/.test(line) ? 'list' : 'text')
 			if (next !== kind) { flush(); kind = next }
 			run.push(line)
 		}
 		flush()
 	}
-	return blocks
+	return blocks.filter(Boolean)
 }

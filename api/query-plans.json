@@ -513,6 +513,16 @@
 				"idx_categories_user"
 			]
 		},
+		"SELECT c.id, c.chart FROM json_each(?) j CROSS JOIN user_assistant_charts c ON c.id = j.value WHERE c.user_id = ?": {
+			"plan": [
+				"SCAN j VIRTUAL TABLE INDEX 1:",
+				"SEARCH c USING INDEX sqlite_autoindex_user_assistant_charts_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_assistant_charts_1"
+			]
+		},
 		"SELECT c.id, c.name, c.colour, c.icon FROM categories c JOIN order_categories oc ON oc.category_id = c.id WHERE oc.order_id = ? ORDER BY c.name": {
 			"plan": [
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -1657,6 +1667,15 @@
 				"idx_orders_user_vendor"
 			]
 		},
+		"SELECT COUNT(*) c FROM user_assistant_files WHERE user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX user_assistant_files_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_files_user"
+			]
+		},
 		"SELECT COUNT(*) c FROM vendors v WHERE v.user_id = @userId": {
 			"plan": [
 				"SEARCH v USING COVERING INDEX idx_vendors_user_name (user_id=?)"
@@ -2164,6 +2183,16 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT f.id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at FROM json_each(?) j CROSS JOIN user_assistant_files f ON f.id = j.value WHERE +f.user_id = ?": {
+			"plan": [
+				"SCAN j VIRTUAL TABLE INDEX 1:",
+				"SEARCH f USING INDEX sqlite_autoindex_user_assistant_files_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_assistant_files_1"
+			]
+		},
 		"SELECT g.id, g.kind, g.year_id, y.year FROM budget_groups g JOIN budget_years y ON y.id = g.year_id WHERE g.id = ? AND g.user_id = ?": {
 			"plan": [
 				"SEARCH g USING INDEX sqlite_autoindex_budget_groups_1 (id=?)",
@@ -2664,6 +2693,15 @@
 				"idx_order_items_order"
 			]
 		},
+		"SELECT id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_assistant_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX user_assistant_files_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_files_user"
+			]
+		},
 		"SELECT id, user_id, name, size, kind, content_type, data, data_is_compressed, (thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM uploads WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH uploads USING INDEX sqlite_autoindex_uploads_1 (id=?)"
@@ -2671,6 +2709,24 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_uploads_1"
+			]
+		},
+		"SELECT id, user_id, stored_name FROM user_assistant_files WHERE deleted_at IS NOT NULL AND deleted_at <= ? AND stored_name IS NOT NULL": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX user_assistant_files_deleted (deleted_at>? AND deleted_at<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_files_deleted"
+			]
+		},
+		"SELECT id, user_id, stored_name FROM user_assistant_files WHERE expires_at <= ?": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX user_assistant_files_expiry (expires_at<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_assistant_files_expiry"
 			]
 		},
 		"SELECT id, vendor_id FROM orders WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))": {
@@ -2780,6 +2836,13 @@
 				"SEARCH budget_groups USING AUTOMATIC PARTIAL COVERING INDEX (user_id=? AND year_id=?)",
 				"CREATE BLOOM FILTER",
 				"SEARCH a USING PRIMARY KEY (line_id=?) LEFT-JOIN"
+			],
+			"findings": [],
+			"indexes": []
+		},
+		"SELECT made_files_count FROM user_assistant_days WHERE user_id = ? AND day = ?": {
+			"plan": [
+				"SEARCH user_assistant_days USING PRIMARY KEY (user_id=? AND day=?)"
 			],
 			"findings": [],
 			"indexes": []
@@ -4184,6 +4247,17 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?": {
+			"plan": [
+				"SEARCH u USING COVERING INDEX sqlite_autoindex_users_1 (id=?)",
+				"SEARCH s USING INDEX sqlite_autoindex_user_settings_1 (user_id=?) LEFT-JOIN"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_settings_1",
+				"sqlite_autoindex_users_1"
+			]
+		},
 		"SELECT saved_views_shown AS shown FROM users WHERE id = ?": {
 			"plan": [
 				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
@@ -4229,6 +4303,15 @@
 			"indexes": [
 				"sqlite_autoindex_user_mcp_tokens_2",
 				"sqlite_autoindex_users_1"
+			]
+		},
+		"SELECT title, type, asked_at, stored_name FROM user_assistant_files WHERE id = ? AND user_id = ? AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > ?": {
+			"plan": [
+				"SEARCH user_assistant_files USING INDEX sqlite_autoindex_user_assistant_files_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_assistant_files_1"
 			]
 		},
 		"SELECT total FROM orders WHERE user_id = ? AND exclude_from_stats = 1": {
@@ -4978,6 +5061,35 @@
 				"sha256"
 			],
 			"readers": 3
+		},
+		"user_assistant_charts_expiry": {
+			"table": "user_assistant_charts",
+			"columns": [
+				"expires_at"
+			],
+			"readers": 0
+		},
+		"user_assistant_files_deleted": {
+			"table": "user_assistant_files",
+			"columns": [
+				"deleted_at"
+			],
+			"readers": 1
+		},
+		"user_assistant_files_expiry": {
+			"table": "user_assistant_files",
+			"columns": [
+				"expires_at"
+			],
+			"readers": 1
+		},
+		"user_assistant_files_user": {
+			"table": "user_assistant_files",
+			"columns": [
+				"user_id",
+				"created_at"
+			],
+			"readers": 2
 		},
 		"idx_user_login_failures_email_ip_at": {
 			"table": "user_login_failures",
