@@ -1,4 +1,5 @@
 import { db } from '../db.js'
+import { counted } from './aggregate.js'
 import { fromEpoch } from './dates.js'
 import { resolveVendor } from './findOrCreate.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from './textSearch.js'
@@ -9,7 +10,6 @@ import { lookalikePairs, vendorsAlikeTo, vendorsLike } from './vendorLookalikes.
 /* A page of the account's vendors (GET /api/vendors with page, pageSize, ids, name or like): the
    filter, the order and the page boundary are the server's, so no reader holds the whole list. */
 
-const counted = value => `CASE WHEN status_type IN ('draft', 'cancelled') OR exclude_from_stats = 1 THEN 0 ELSE ${value} END`
 const STATS = `SELECT vendor_id, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved, MAX(date) AS last
 	FROM orders WHERE user_id = @userId`
 

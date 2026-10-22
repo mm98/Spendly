@@ -55,7 +55,7 @@ export const MCP_TOOLS = [
 	},
 	{
 		name: 'list_categories',
-		description: 'The account\'s categories with their monthly limit, how many orders each has, the spend in one month and the monthly average over the last twelve months.',
+		description: 'The account\'s categories with their monthly limit, how many orders each has, the spend in one month and the monthly average over the last twelve months. Spend is money paid: returned and sold orders are left out of it.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -69,7 +69,7 @@ export const MCP_TOOLS = [
 	},
 	{
 		name: 'list_vendors',
-		description: 'The shops the account buys from, with how many orders each has, the total spent and saved, and the date of the last order.',
+		description: 'The shops the account buys from, with how many orders each has, the total spent and saved, and the date of the last order. Spent is money paid: returned and sold orders are counted as orders but left out of it.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -108,7 +108,7 @@ export const MCP_TOOLS = [
 				period: text('Which period of that length: 2026-W07 for a week, 2026-03 for a month, 2026-Q1 for a quarter, 2026 for a year. The current one when left out.'),
 				from: day('The first day, with range "custom".'),
 				to: day('The last day, with range "custom".'),
-				flow: text('Which money to count. "expenses" leaves returned orders out, "refunds" counts only those.', { enum: ['all', 'expenses', 'refunds', 'net'] }),
+				flow: text('Which money to count. Money back is a returned order or an order of the kind Sold. "expenses" leaves money back out, "refunds" counts only money back.', { enum: ['all', 'expenses', 'refunds', 'net'] }),
 				vendorId: text('Only this shop.'),
 				categoryId: text('Only this category.'),
 				compare: text('What the period is compared with: the period before, or the same period a year earlier.', { enum: ['previous', 'year'] })

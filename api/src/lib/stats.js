@@ -1,7 +1,8 @@
 import { db } from '../db.js'
 import { fromEpoch, toEpoch, todayIso } from './dates.js'
-import { MAX_PAGE_SIZE, MONEY_BACK_KINDS } from './constants.js'
+import { MAX_PAGE_SIZE } from './constants.js'
 import { decorateOrderListRows } from './decorate.js'
+import { moneyBack, moneyPaid } from './moneyPaid.js'
 import { orderTotalsSelectList } from './orderColumns.js'
 import { lookalikePairs, vendorsIn } from './vendorLookalikes.js'
 import { looksOf } from './looks.js'
@@ -186,11 +187,11 @@ function comparisonWindowId(userId, range, id, compare, today) {
 	return windowIdAt(range, yearAgo)
 }
 
-/* Money back is a returned order or an order of a money-back kind; a draft or a cancelled order moved no money. */
-const MONEY_BACK = `(ot.status_type = 'returned' OR ot.kind IN (${MONEY_BACK_KINDS.map(k => `'${k}'`).join(', ')}))`
+// a draft or a cancelled order moved no money
+const MONEY_BACK = moneyBack('ot.')
 const FLOW_WHERE = {
 	all: " AND ot.status_type NOT IN ('cancelled', 'draft')",
-	expenses: ` AND ot.status_type NOT IN ('cancelled', 'draft') AND NOT ${MONEY_BACK}`,
+	expenses: ` AND ${moneyPaid('ot.')}`,
 	refunds: ` AND ot.status_type NOT IN ('cancelled', 'draft') AND ${MONEY_BACK}`,
 	net: " AND ot.status_type NOT IN ('cancelled', 'draft')"
 }

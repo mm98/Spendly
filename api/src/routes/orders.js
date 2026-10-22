@@ -10,7 +10,8 @@ import { assertValidOrderDraft, fillDraftGaps, normaliseUrl, validateOrderDraft 
 import { findOrCreateVendor, findOrCreateCategory, vendorFinder } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { orderAmountScale } from '../lib/orderAmountScale.js'
-import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
+import { MAX_PAGE_SIZE, MAX_UPLOAD_MB, MONEY_BACK_KINDS } from '../lib/constants.js'
+import { moneyBack, moneyPaid } from '../lib/moneyPaid.js'
 import { keyOfType, resolveStatus, statusKeys, typeOfKey } from '../lib/statuses.js'
 import { processAttachment } from '../lib/images.js'
 import { assertImageOrPdf, fileDisposition } from '../lib/fileType.js'
@@ -273,7 +274,10 @@ const sortOfRow = r => ({ draft: false, id: r.id, date: r.date, created: r.sort_
 const listOf = v => [...new Set([].concat(v ?? []).flatMap(x => String(x).split(',')).map(x => x.trim()).filter(Boolean))]
 
 /* with=facets: each facet's counts under every other filter (what ticking a value would add), and
-   the matched set's sum and saving without cancelled orders, which never count toward spend. */
+   the matched set's sum and saving without cancelled orders and money back, which never count toward spend. */
+// a draft is listed with what it will come to, so only a cancelled order and money back count nothing
+const LISTED_SPEND = value => `CASE WHEN ot.status_type = 'cancelled' OR ${moneyBack('ot.')} THEN 0 ELSE ${value} END`
+
 function orderFacets(userId, q) {
 	const counts = (except, select, group, join = '') => {
 		const { whereSql, params } = buildOrderFilter(userId, q, except)
@@ -281,20 +285,20 @@ function orderFacets(userId, q) {
 	}
 	const byKey = (rows, key) => Object.fromEntries(rows.map(r => [r[key], r.n]))
 	const [receipt] = counts('receipt', 'COUNT(*) n, COALESCE(SUM(EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)), 0) attached')
-	const [sum] = counts(null, `COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE ot.total END), 0) total,
-		COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved`)
+	const [sum] = counts(null, `COALESCE(SUM(${LISTED_SPEND('ot.total')}), 0) total,
+		COALESCE(SUM(${LISTED_SPEND('MAX(ot.saved, 0)')}), 0) saved`)
 	// the drafts each facet would match too, counted as their orders are
 	const add = (counted, rows, keysOf) => {
 		for (const d of rows) for (const key of keysOf(d)) counted[key] = (counted[key] ?? 0) + 1
 		return counted
 	}
-	const drafts = draftsMatching(userId, q)
+	const draftsPaid = draftsMatching(userId, q).filter(d => !MONEY_BACK_KINDS.includes(d.kind))
 	const draftsWith = draftsMatching(userId, q, 'receipt')
 	const attached = draftsWith.filter(d => d.fileCount > 0).length
 	return {
 		summary: {
-			total: sum.total + drafts.reduce((s, d) => s + d.sort.total, 0),
-			saved: sum.saved + drafts.reduce((s, d) => s + Math.max(d.sort.saved, 0), 0)
+			total: sum.total + draftsPaid.reduce((s, d) => s + d.sort.total, 0),
+			saved: sum.saved + draftsPaid.reduce((s, d) => s + Math.max(d.sort.saved, 0), 0)
 		},
 		facets: {
 			status: add(byKey(counts('status', 'ot.status, COUNT(*) n', 'ot.status'), 'status'), draftsMatching(userId, q, 'status'), d => [d.status]),
@@ -414,21 +418,21 @@ router.get('/lines', (req, res) => {
 	res.json({ lines: lines.map(line => ({ ...line, date: fromEpoch(line.date) })) })
 })
 
-/* What deleting the orders a request names takes with it (6d): how many, their sum (a cancelled one
-   never counts), how many carry a file, and this month's part of it beside the month's total. */
-const selectMonthSpend = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status_type = 'cancelled' THEN 0 ELSE total END), 0)
-	FROM orders WHERE user_id = ? AND date >= ? AND date < ?`).pluck()
+/* What deleting the orders a request names takes with it (6d): how many, their sum as the order list
+   adds it, how many carry a file, and this month's part of it beside the month's spend as Home counts it. */
+const selectMonthSpend = db.prepare(`SELECT COALESCE(SUM(total), 0)
+	FROM orders WHERE user_id = ? AND date >= ? AND date < ? AND ${moneyPaid()} AND exclude_from_stats = 0`).pluck()
 router.get('/impact', (req, res) => {
 	const { whereSql, params } = buildOrderFilter(req.user.id, req.query)
 	const [year, month] = req.today.split('-').map(Number)
 	const monthFrom = Date.UTC(year, month - 1, 1) / 1000, monthTo = Date.UTC(year, month, 1) / 1000
-	const counted = "CASE WHEN ot.status_type = 'cancelled' THEN 0 ELSE ot.total END"
 	const row = db.prepare(`
-		SELECT COUNT(*) orders, COALESCE(SUM(${counted}), 0) total,
+		SELECT COUNT(*) orders, COALESCE(SUM(${LISTED_SPEND('ot.total')}), 0) total,
 			COALESCE(SUM(EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_id = ot.id)
 				OR EXISTS (SELECT 1 FROM order_items oi JOIN order_attachments a ON a.order_item_id = oi.id WHERE oi.order_id = ot.id)), 0) withFiles,
 			COALESCE(SUM(ot.date >= @monthFrom AND ot.date < @monthTo), 0) monthOrders,
-			COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo THEN ${counted} ELSE 0 END), 0) monthTotal
+			COALESCE(SUM(CASE WHEN ot.date >= @monthFrom AND ot.date < @monthTo AND ${moneyPaid('ot.')} AND ot.exclude_from_stats = 0
+				THEN ot.total ELSE 0 END), 0) monthTotal
 		FROM orders ot WHERE ${whereSql}
 	`).get({ ...params, monthFrom, monthTo })
 	res.json({
@@ -460,13 +464,13 @@ router.get('/often', (req, res) => {
 })
 
 /* The monthly limits an order counts against (8b): each category's limit and its month's spend
-   without this order, counted as statistics counts it, where drafts, cancelled orders and orders left out of statistics spend nothing. */
+   without this order, counted as statistics counts it, where drafts, cancelled orders, money back and orders left out of statistics spend nothing. */
 const selectCategoryLimit = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
 const selectCategoryMonthSpend = db.prepare(`
 	SELECT COALESCE(SUM(ot.total), 0) FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
-		AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0`).pluck()
+		AND ${moneyPaid('ot.')} AND ot.exclude_from_stats = 0`).pluck()
 router.get('/limits', (req, res) => {
 	const day = String(req.query.date ?? '')
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'A date is needed, as YYYY-MM-DD.' })
