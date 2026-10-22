@@ -1,7 +1,7 @@
 /* A test account with the cases real accounts have and the demo data does not: a limit nobody
    has spent, a limit passed, a limit nearly reached, a favourite never used, an order that
    waited past two weeks, a very large order and one left out of statistics, a vendor whose orders are all left out, look-alike vendors, an archived vendor, more categories than a page
-   holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a receipt and none, a note and none, bookmarks with and
+   holds, names too long for a row, icons drawn with filled shapes, an account name and an address too long for a line, every status, a sold order, a receipt and none, a note and none, bookmarks with and
    without a category and more than a page of them, more drafts than Home shows, one with no vendor and no prices, drafts made by hand, one dated in an earlier year, an import
    with an order changed after it, an import undone, and as many assistant tokens as an account may have.
 
@@ -169,6 +169,9 @@ await order('A draft', { vendor: 'Coopp', date: day(-1), status: 'Draft', items:
 await order('Cancelled', { vendor: 'Coopp', date: day(-6), status: 'Cancelled' })
 await order('Returned', { vendor: 'Coopp', date: day(-9), status: 'Returned', deliveredDate: day(-8), returnedDate: day(-5) })
 await order('Refunded', { vendor: 'Coopp', date: day(-7), refunded: true })
+// money back by its kind, not its status: a sale in a category, and one returned too
+await order('Sold', { vendor: 'Coopp', date: day(-4), kind: 'Sold', categories: ['No limit, spent'], items: [{ title: 'Sold on', quantity: 1, price: 75 }] })
+await order('Sold and returned', { vendor: 'Coopp', date: day(-6), kind: 'Sold', status: 'Returned', deliveredDate: day(-6), returnedDate: day(-3) })
 // one very large order that counts and one left out of statistics: the amount filter's end and the medians
 await order('A very large order', { vendor: 'Alias shop', date: day(-16), items: [{ title: 'Kitchen', quantity: 1, price: 120000 }] })
 await order('Left out of statistics', { vendor: 'Edge favourite shop', date: day(-5), excludeFromStats: true,

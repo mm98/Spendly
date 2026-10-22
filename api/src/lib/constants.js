@@ -2,6 +2,8 @@
    lists the server never reads (sort labels, range chips) live in the client alone -- copies
    of them sat here once, imported by nothing, which is how a dead copy starts to drift. */
 export const SPEND_KINDS = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
+// the kinds whose total came to the account, counted as a returned order is
+export const MONEY_BACK_KINDS = ['Sold']
 export const ORDER_STATUSES = ['Ordered', 'Delivered', 'Returned']
 
 /* The currencies an account can keep its ledger in (migrations/003_currency.sql). The code

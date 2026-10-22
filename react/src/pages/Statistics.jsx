@@ -44,7 +44,7 @@ const PRESETS = [
 /* The lens (4e): which orders the page adds up. In the address as flow=, and never a crumb. */
 const FLOWS = [
 	{ value: 'expenses', label: 'Expenses only', help: 'What you paid.' },
-	{ value: 'refunds', label: 'Refunds only', help: 'Returned orders.' },
+	{ value: 'refunds', label: 'Refunds only', help: 'Returned and sold orders.' },
 	{ value: 'net', label: 'Net of refunds', help: 'What you paid, less what came back.' }
 ]
 
@@ -413,7 +413,7 @@ export default function Statistics() {
 			<>
 				{period}
 				<Empty dashed>
-					<EmptyTitle>{flow === 'refunds' ? `No returned orders in ${nameInText}` : `No orders in ${nameInText}`}</EmptyTitle>
+					<EmptyTitle>{flow === 'refunds' ? `No returned or sold orders in ${nameInText}` : `No orders in ${nameInText}`}</EmptyTitle>
 					<EmptyBody>Choose another period above, or add an order.</EmptyBody>
 					<Button variant="outline" to="/orders/new">New order</Button>
 				</Empty>
@@ -999,7 +999,7 @@ function VendorsCard({ view, name, touch, onOpen }) {
 	)
 }
 
-// the status types each lens can hold: an expense is never a returned order, a refund always is
+// the status types each lens shows first: an expense is never a returned order; a refund is one, or a sold order of any status
 const LENS_TYPES = { expenses: ['delivered', 'ordered'], refunds: ['returned'], net: ['delivered', 'ordered', 'returned'] }
 
 function StatusCard({ view, flow = 'expenses', onOpen }) {
