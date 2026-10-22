@@ -63,6 +63,6 @@ is removed in the change that settles it.
 ## For Claude Design: a downloaded file is named after its heading, not the question
 
 - **Where:** `design/Ask Spendly.dc.html`, Files (24e), "The downloaded file is named the question, then the time it was asked". Built in `api/src/lib/assistantFiles.js`, `fileDownload`.
-- **What the reader sees:** a file downloads as "Orders in October 2026 (2026-10-22T14-05).xlsx", the heading at the top of the file, then the time. The row on Files and in the answer still shows the question.
+- **What the reader sees:** a file downloads as "Orders in October 2026 (2026-10-22T14.05.33).xlsx", the heading at the top of the file, then the time. The row on Files and in the answer still shows the question.
 - **What was found:** the user asked for a proper file name instead of the question. Decided 22 Oct 2026.
 - **To take into `design/`:** the sentence names the heading at the top of the file, not the question, and the example follows. Then this entry goes.

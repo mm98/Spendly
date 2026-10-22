@@ -224,7 +224,7 @@ Everything that needs you, on one page.
   a bar to read its amount. A share of a category or vendor opens its orders.
 - **Files** is a page that lists every file Ask made in the last 30 days, newest first. Each can be
   downloaded again or deleted, and a delete offers Undo. A downloaded file is named after the heading at
-  its top, then the day and time it was asked: "Orders in October 2026 (2026-10-22T14-05).xlsx". After
+  its top, then the day and time it was asked: "Orders in October 2026 (2026-10-22T14.05.33).xlsx". After
   30 days a file is removed. Only you, signed in, can download your files. A download link in a tab that
   is signed out asks you to sign in first.
 - **Each account can make 10 files a day** (`SPENDLY_ASSISTANT_FILES_PER_DAY`). A file that cannot be
