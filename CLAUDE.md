@@ -144,6 +144,11 @@ store it by what it is, and keep the first case's specifics at its edge, so the 
 thing as it is instead of a second version of it. A feature that serves one case only is the exception,
 and the pull request says why.
 
+### What Ask makes is added in `api/src/format`, never as a case somewhere else
+
+A new file format, chart kind or maker is one file or folder there and one line in its list, as
+`api/src/format/README.md` says. Code outside that folder never names a format: it reads the lists.
+
 ## The API's queries
 
 ### `npm run queries:check` is the standing guard, and it is a guard rather than a goal

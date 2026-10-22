@@ -2,10 +2,10 @@ import { Router } from 'express'
 import { TEXT_MOST, TURNS_MOST, answerQuestion, assistantState, noteAnswered, writeChatHeading } from '../lib/assistant.js'
 import { isBillingRefusal } from '../lib/scanParse.js'
 import { sessionToken, sessionUser } from '../lib/auth.js'
-import { SAVED_MOST, emailConversation, placesIn, removeQuestion, saveQuestion, savedQuestions } from '../lib/assistantChat.js'
+import { SAVED_MOST, emailConversation, removeQuestion, saveQuestion, savedQuestions } from '../lib/assistantChat.js'
 import { answeredTurnsOf, chatOf, deleteChat, endTurn, keptChats, restartFailedTurn, restoreChat, startTurn } from '../lib/assistantChats.js'
-import { chartsById } from '../lib/assistantCharts.js'
 import { deleteFile, fileDownload, fileStates, keptFiles, restoreFile } from '../lib/assistantFiles.js'
+import { madeIn, madeOf, placesIn } from '../format/index.js'
 import { mailAvailable } from '../lib/mail.js'
 import { ownsServer } from './account.js'
 
@@ -95,21 +95,12 @@ router.get('/chats', (req, res) => res.json(keptChats(req.user.id, {
 	pageSize: req.query.pageSize === undefined ? 25 : Number(req.query.pageSize)
 })))
 
-// a chat as Ask shows it again, with what its answers' files are now and the charts they drew
+// a chat as Ask shows it again, with what its answers made, as it is now
 router.get('/chats/:id', (req, res) => {
 	const chat = chatOf(req.user.id, req.params.id)
 	if (!chat) return res.status(404).json({ error: GONE, gone: true })
-	const places = chat.turns.flatMap(t => (t.answer ? placesIn(t.answer) : []))
-	const files = fileStates(req.user.id, places.filter(p => p.kind === 'file').map(p => p.id))
-	const charts = chartsById(req.user.id, places.filter(p => p.kind === 'chart').map(p => p.id))
-	res.json({
-		...chat,
-		turns: chat.turns.map(t => {
-			const own = t.answer ? placesIn(t.answer) : []
-			const pick = (kind, from) => Object.fromEntries(own.filter(p => p.kind === kind && from[p.id]).map(p => [p.id, from[p.id]]))
-			return { ...t, files: pick('file', files), charts: pick('chart', charts) }
-		})
-	})
+	const made = madeIn(req.user.id, chat.turns.flatMap(t => (t.answer ? placesIn(t.answer) : [])))
+	res.json({ ...chat, turns: chat.turns.map(t => ({ ...t, made: madeOf(made, t.answer ? placesIn(t.answer) : []) })) })
 })
 
 router.delete('/chats/:id', (req, res) => {

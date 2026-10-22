@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react'
 import { askAssistant, getAssistantFileStates, getChat } from '../api/client.js'
 
 /* The chats opened in this visit (24a, 24f), so an answer still coming when the page is left lands in its chat.
-   A turn is { id, question, answer, files, charts, state, doing }; `doing` is the file or chart being made.
+   A turn is { id, question, answer, made, state, doing }; `made` holds what the answer made by maker and id
+   (file, chart), and `doing` says what is being made.
    A chat the server has not named yet is the draft, shown at /ask. */
 
 let owner = null
@@ -131,7 +132,7 @@ function send(body, key) {
 		patch(run.chatId, run.key, { id: step.turn })
 		run.key = step.turn
 	}).then(
-		out => patch(run.chatId, run.key, { state: 'answered', answer: out.answer, files: out.files ?? {}, charts: out.charts ?? {}, doing: null }),
+		out => patch(run.chatId, run.key, { state: 'answered', answer: out.answer, made: out.made ?? {}, doing: null }),
 		error => {
 			if (error.status === 404 && error.body?.gone) {
 				chats.set(run.chatId, { id: run.chatId, status: 'gone', turns: [] })
@@ -184,11 +185,12 @@ export const stopAsking = () => asking?.controller.abort()
 export function refreshFiles() {
 	const chatId = shownId
 	const turns = view.turns
-	const ids = turns.flatMap(t => Object.keys(t.files ?? {}))
+	const filesOf = t => t.made?.file ?? {}
+	const ids = turns.flatMap(t => Object.keys(filesOf(t)))
 	if (!ids.length) return
 	getAssistantFileStates(ids).then(out => {
-		const changed = turns.some(t => Object.keys(t.files ?? {}).some(id => out.files[id] && out.files[id].state !== t.files[id].state))
-		if (changed) edit(chatId, list => list.map(t => (t.files ? { ...t, files: Object.fromEntries(Object.entries(t.files).map(([id, f]) => [id, out.files[id] ? { ...f, ...out.files[id] } : f])) } : t)))
+		const changed = turns.some(t => Object.keys(filesOf(t)).some(id => out.files[id] && out.files[id].state !== filesOf(t)[id].state))
+		if (changed) edit(chatId, list => list.map(t => (t.made?.file ? { ...t, made: { ...t.made, file: Object.fromEntries(Object.entries(t.made.file).map(([id, f]) => [id, out.files[id] ? { ...f, ...out.files[id] } : f])) } } : t)))
 	}, () => { /* the rows keep what they showed */ })
 }
 

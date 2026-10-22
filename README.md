@@ -334,6 +334,9 @@ printed amounts.
   Files are compressed ahead of time, and the server sends the smallest one the browser accepts.
 - **The server** keeps each account's records apart in every query. Totals and counts are kept on
   the record by the database itself, so lists and statistics read them for free.
+- **What Ask makes** is one maker for each kind of thing (a file, a chart), and one file for each
+  format a maker offers (Excel, CSV, Word and PDF; bars and shares). A new format is one file, and
+  the rest of the server reads the lists. How, in [`api/src/format`](api/src/format/README.md).
 - **Every change that lands on `main`** runs the checks below, then builds and publishes a new
   image. A server running Watchtower picks it up by itself.
 - **The checks:**

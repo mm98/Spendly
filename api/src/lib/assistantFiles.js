@@ -2,7 +2,7 @@ import { db } from '../db.js'
 import { newId } from './ids.js'
 import { fromEpoch, nowEpoch, toEpoch } from './dates.js'
 import { fileSizeLabel } from './copy.js'
-import { DOCUMENT_TYPES } from './documentFiles.js'
+import { FILE_FORMATS, fileFormat, optionsFor } from '../format/file/formats.js'
 import { usableLocale, writerFor } from './statusEmail.js'
 import { readStoredFile, removeStoredFile, storeFile } from './storage.js'
 import { escapeLike } from './textSearch.js'
@@ -12,7 +12,6 @@ import { escapeLike } from './textSearch.js'
 
 const FOLDER = 'ask-files'
 
-export const FILE_TYPES = Object.keys(DOCUMENT_TYPES)
 export const FILE_KEPT_DAYS = 30
 // SPENDLY_ASSISTANT_FILES_PER_DAY, set in docker-compose.yml; 0 lets no account make files
 const PER_DAY = Math.max(0, Math.floor(Number(process.env.SPENDLY_ASSISTANT_FILES_PER_DAY ?? 10)) || 0)
@@ -28,8 +27,6 @@ export const FILE_REFUSALS = {
 	usedUp: 'today\'s files are used up. Ask again tomorrow.',
 	failed: 'something went wrong while it was made. Ask again.'
 }
-
-const KINDS = { xlsx: 'Excel', docx: 'Word', pdf: 'PDF', csv: 'CSV' }
 
 const insertFile = db.prepare(`INSERT INTO user_assistant_files (id, user_id, chat_id, title, download_name, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
 	VALUES (@id, @userId, @chatId, @title, @downloadName, @type, @askedAt, @size, @storedName, @failedReason, @keptUntil, @expiresAt)`)
@@ -81,7 +78,7 @@ export function askedAtIn(zone, at = new Date()) {
 
 /** What the reader's row shows about one file (ChatFile in react/src/components/Chat.jsx). */
 export function fileMeta(row, now = nowEpoch()) {
-	const base = { id: row.id, title: row.title, type: row.type, kind: KINDS[row.type], chatId: row.chat_id ?? null }
+	const base = { id: row.id, title: row.title, type: row.type, kind: fileFormat(row.type)?.name ?? row.type.toUpperCase(), chatId: row.chat_id ?? null }
 	if (row.failed_reason) return { ...base, state: 'failed', reason: row.failed_reason }
 	if (row.deleted_at) return { ...base, state: 'gone', gone: 'deleted' }
 	if (row.expires_at <= now) return { ...base, state: 'gone', gone: 'expired' }
@@ -119,7 +116,7 @@ export function fileDownload(userId, id) {
 	const title = (row.download_name || row.title).replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150).trim() || 'Spendly'
 	// a file made before has a T before the time: 2026-10-22T14-05 or 2026-10-22T14.05.33
 	const askedAt = row.asked_at.replace(/T(\d\d)[-.](\d\d)/, ' $1.$2')
-	return { name: `${title} (${askedAt}).${row.type}`, mime: DOCUMENT_TYPES[row.type].mime, content }
+	return { name: `${title} (${askedAt}).${row.type}`, mime: fileFormat(row.type)?.mime ?? 'application/octet-stream', content }
 }
 
 export const deleteFile = (userId, id) => markDeleted.run(nowEpoch(), id, userId).changes > 0
@@ -132,16 +129,17 @@ export const restoreFilesOfChat = (userId, chatId, at) => { unmarkChatDeleted.ru
 /** Whether the reader may make another file on `day`; the server's owner has no limit. */
 export const fileAllowed = (userId, day, unlimited) => unlimited || (selectMade.get(userId, day)?.made_files_count ?? 0) < PER_DAY
 
-/** Makes one file of `doc` (lib/documentFiles.js) for the question `title`, or keeps why it could not
-    be made. Answers the reader's row for it either way. */
-export function makeFile({ userId, chatId = null, day, unlimited, title, askedAt, type, doc, write, refusal }) {
+/** Makes one file of `doc` (format/file/document.js) in the format `type` for the question `title`, or keeps
+    why it could not be made. Answers the reader's row for it either way. */
+export function makeFile({ userId, chatId = null, day, unlimited, title, askedAt, type, doc, write, options, refusal }) {
+	const format = fileFormat(type) ?? FILE_FORMATS[0]
 	const now = nowEpoch()
-	const row = { id: newId('af'), userId, chatId, title, downloadName: doc?.title || null, type, askedAt, size: 0, storedName: null, failedReason: refusal ?? null,
+	const row = { id: newId('af'), userId, chatId, title, downloadName: doc?.title || null, type: format.type, askedAt, size: 0, storedName: null, failedReason: refusal ?? null,
 		keptUntil: fromEpoch(toEpoch(day) + FILE_KEPT_DAYS * DAY), expiresAt: now + FILE_KEPT_DAYS * DAY }
 	if (!row.failedReason && !fileAllowed(userId, day, unlimited)) row.failedReason = FILE_REFUSALS.usedUp
 	if (!row.failedReason) {
 		try {
-			const content = DOCUMENT_TYPES[type].build(doc, write)
+			const content = format.build(doc, write, optionsFor(format, options))
 			row.size = content.length
 			row.storedName = storeFile(userId, FOLDER, content)
 		} catch (error) {
@@ -158,7 +156,7 @@ export function makeFile({ userId, chatId = null, day, unlimited, title, askedAt
 		if (row.storedName) removeStoredFile(userId, FOLDER, row.storedName)
 		throw error
 	}
-	return fileMeta({ id: row.id, chat_id: chatId, title, type, size: row.size, failed_reason: row.failedReason, kept_until: row.keptUntil, expires_at: row.expiresAt, deleted_at: null }, now)
+	return fileMeta({ id: row.id, chat_id: chatId, title, type: format.type, size: row.size, failed_reason: row.failedReason, kept_until: row.keptUntil, expires_at: row.expiresAt, deleted_at: null }, now)
 }
 
 /** Removes files past their 30 days, and the bytes of deleted files once Undo is over. */

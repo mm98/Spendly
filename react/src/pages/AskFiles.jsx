@@ -66,7 +66,7 @@ export default function AskFiles() {
 		body = (
 			<>
 				<ChatFiles>
-					{data.files.map(f => <ChatFile key={f.id} title={f.title} type={f.type} size={f.size} keptUntil={f.keptUntil} href={f.href} chatTo={f.chatId ? `/ask/${f.chatId}?file=${f.id}` : undefined} onDelete={() => remove(f)} />)}
+					{data.files.map(f => <ChatFile key={f.id} title={f.title} kind={f.kind} size={f.size} keptUntil={f.keptUntil} href={f.href} chatTo={f.chatId ? `/ask/${f.chatId}?file=${f.id}` : undefined} onDelete={() => remove(f)} />)}
 				</ChatFiles>
 				<ListMore loose shown={data.files.length} total={data.matched} pageSize={STEP} onMore={() => setPages(pages + 1)} />
 			</>
