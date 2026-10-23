@@ -249,6 +249,10 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	height: var(--control-h-touch);
 	transform: translate(-50%, -50%);
 }
+/* on touch a field's end buttons keep their drawn size in a taller field: the inset at the right
+   matches the one above and below, and the text stops the same 8px before them */
+.sp-touch .sp-field__trails { right: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
+.sp-touch .sp-input--trail-2 { padding-right: calc((var(--control-h-touch) - var(--field-trail)) / 2 + var(--field-trail) * 2 + var(--sp-14) + var(--sp-8)); }
 /* on touch a field-end button's ::after is its press area, not its tip: without this the tip's dark
    chip fills the area once tapped, and the area lets taps through */
 .sp-touch .sp-field__trails > [data-tip]::after {
