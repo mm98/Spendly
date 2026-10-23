@@ -170,7 +170,7 @@ function StatusEditor({ status, onCancel, onSave }) {
 		if (!empty) onSave({ name: name.trim(), tone })
 	}
 	return (
-		<ListItem variant="outline" selected editable>
+		<ListItem variant="outline" selected editable data-status-editor>
 			<TextField inputRef={field} value={name} maxLength={40} aria-label="Status name" onChange={setName}
 				onKeyDown={ev => { if (ev.key === 'Enter') save(); if (ev.key === 'Escape') onCancel() }} />
 			<span className="sp-grow" />

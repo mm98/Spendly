@@ -84,3 +84,25 @@ is removed in the change that settles it.
 - **To take into `design/`:** on touch, `.sp-field__trails` sits `(--control-h-touch - --field-trail) / 2`
   from the right, and `.sp-input--trail-2` pads by the same amount in place of `--sp-6`. Then the
   app's rules and this entry go.
+
+## For Claude Design: touch rules found in an iPhone run
+
+- **Where:** `react/src/styles/app.css`, the five rules at the end of the file, from "on touch a facet
+  group's whole head" to "on a phone the status editor wraps". Found 23 Oct 2026, iPhone 15 in WebKit.
+- **What the reader saw:**
+  - In Filters, a group heading looked 48px tall, but only its 18px line of text opened or closed it.
+  - After a tap on an icon or a colour in a category or vendor form, its name stayed on the screen
+    in a dark box. A phone keeps `:hover` on the last thing tapped, and the tip shows on `:hover`.
+  - On Budget, an amount beside a long row name broke into three lines: "400.", "00", "kr.".
+  - On Check a bank statement, "Other amount" was cut off in the four-way switch on a phone.
+  - In Settings, Statuses, Rename put the name field, four tones and two buttons on one line: the
+    name field was 26px wide, Save was off the screen and the page scrolled sideways.
+- **To take into `design/`:**
+  - On touch, `.sp-field-group__fold` stretches to the head's height, and its press area takes in
+    the legend's padding under it.
+  - On touch, `[data-tip]` shows no tip, except on a disabled control and on a field-end button.
+  - A `.sp-sum__value` beside a label does not shrink, up to 60% of the row; the label wraps.
+  - `.sp-segmented--facet` columns are `minmax(max-content, 1fr)`.
+  - Mobile screens draws the status editor on a phone: here it wraps, the name on the first line,
+    the tones on the second, the buttons on the third.
+  Then the app's rules and this entry go.
