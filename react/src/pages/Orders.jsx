@@ -10,7 +10,7 @@ import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { DateField, RangePicker, RangeSheet } from '../components/DatePickers.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { RangeSlider, SearchInput } from '../components/Inputs.jsx'
+import { AskTrail, RangeSlider, SearchInput } from '../components/Inputs.jsx'
 import { BulkBar, Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow, ListToolbar, Records, Selected } from '../components/List.jsx'
 import { Announce, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -19,10 +19,12 @@ import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
-import { failureMessage, getCategoryPage, getCurrentUser, getImport, getOrders, getSettings, getVendorPage, spendKinds } from '../api/client.js'
+import { failureMessage, getCategoryPage, getCurrentUser, getImport, getOrders, getSearchNames, getSettings, getVendorPage, spendKinds } from '../api/client.js'
 import { peek, readAs, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today, withShortMonth } from '../api/format.js'
+import { useAskSearch } from '../app/askSearch.js'
 import { useListMemory } from '../app/listMemory.js'
+import { nameSpans, readSearch, withoutPart } from '../app/searchReading.js'
 import { useScanPicker } from '../app/scanPicker.jsx'
 import { useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, OrderAmount, OrderFiles, OrderNote, OrderPhoto, OverLimitDot, OverLimitProvider, StatusPill, columnsFor, orderLine, useOverLimitIds, vendorName } from '../app/orderRow.jsx'
@@ -90,6 +92,41 @@ const requestOf = (f, sort) => ({
 	from: f.from, to: f.to || (f.from ? today() : ''), minAmount: f.min, maxAmount: f.max, sort
 })
 
+/* The address's names for the filters Ask gives, which it names as the assistant's list_orders does. */
+const ASKED_KEYS = { query: 'q', vendorId: 'vendor', categoryId: 'category', status: 'status', kind: 'kind', from: 'from', to: 'to', minAmount: 'min', maxAmount: 'max' }
+
+/* A part of the typed search sets its filters beside the address's own (Order list 2b). A shop or a
+   category joins those picked; a date replaces the date asked, a named period or two days alike. */
+const SEVERAL = new Set(['vendor', 'category'])
+const DATES = ['period', 'from', 'to']
+const withParts = (params, reading) => {
+	const next = new URLSearchParams(params)
+	if (reading.rest) next.set('q', reading.rest)
+	else next.delete('q')
+	for (const part of reading.parts)
+		for (const [key, value] of Object.entries(part.set)) {
+			if (DATES.includes(key)) for (const k of DATES) if (!(k in part.set)) next.delete(k)
+			next.set(key, SEVERAL.has(key) ? [...new Set([...listOf(next.get(key)), value])].join(',') : value)
+		}
+	return next
+}
+
+/* A change keeps a typed part whose value it still asks for, without writing the value to the address
+   too; any other part it touches goes, words and all. A change to the search itself is left as it is. */
+const throughParts = (changes, typed, reading) => {
+	if ('q' in changes) return changes
+	const out = { ...changes }
+	let q = typed
+	for (const part of [...reading.parts].reverse()) {
+		const touched = Object.keys(part.set).filter(k => k in out || (DATES.includes(k) && DATES.some(d => d in out)))
+		if (!touched.length) continue
+		const kept = Object.entries(part.set).every(([k, v]) => (SEVERAL.has(k) ? listOf(out[k] ?? '').includes(v) : (out[k] ?? '') === v))
+		if (!kept) { q = withoutPart(q, part); continue }
+		for (const [k, v] of Object.entries(part.set)) out[k] = SEVERAL.has(k) ? listOf(out[k]).filter(x => x !== v).join(',') : ''
+	}
+	return q === typed ? out : { ...out, q }
+}
+
 /* A preset is a calendar period around today, held in the address by its name; a link that carries
    the same two dates still lands on the same chip. */
 const PRESETS = [
@@ -145,7 +182,11 @@ const menuHere = ev => {
 export default function OrderList() {
 	const navigate = useNavigate()
 	const [params, setParams] = useSearchParams()
-	const f = useMemo(() => readFilters(params), [params])
+	// what the typed search reads (2b): its parts filter beside the address's own, its other words search
+	const typed = params.get('q') ?? ''
+	const reading = useSearchReading(typed)
+	const asked = useMemo(() => withParts(params, reading), [params, reading])
+	const f = useMemo(() => readFilters(asked), [asked])
 	// Orders opened with nothing asked opens on the default view, if one is set (2g); only on arrival
 	const arrived = useRef([...params.keys()].length === 0)
 	const viewsAnswer = useViews().data
@@ -177,17 +218,28 @@ export default function OrderList() {
 
 	// starts from the address itself: the page can still be drawing the one before it, and
 	// building on that would undo the change made just before this one
+	const read = useRef(reading)
+	read.current = reading
 	const update = useCallback(changes => {
+		const now = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
 		// a changed filter or sort starts the list again from its first page
-		setParams(withChanges(window.location.hash.split('?')[1] ?? '', { pages: '', ...changes }), { replace: true })
+		setParams(withChanges(now, { pages: '', ...throughParts(changes, now.get('q') ?? '', read.current) }), { replace: true })
 	}, [setParams])
 
 	// a new key starts the search field over from the address, dropping text not yet written
 	const [searchKey, setSearchKey] = useState(0)
 	const search = useCallback(q => update({ q }), [update])
-
 	// a date range typed by hand is held open here, so the crumb and Clear all can close it
 	const [custom, setCustom] = useState(false)
+	// Ask's filters replace every filter and the search; its sentence is never written to the address (2b)
+	const askedFor = useCallback(filters => {
+		setCustom(false)
+		const changes = Object.fromEntries([...FACETS, 'q'].map(k => [k, '']))
+		for (const [key, value] of Object.entries(filters)) if (ASKED_KEYS[key]) changes[ASKED_KEYS[key]] = String(value)
+		update(changes)
+	}, [update])
+	const ask = useAskSearch('orders', askedFor)
+
 	useEffect(() => { if (!f.from && !f.to) setCustom(false) }, [f.from, f.to])
 	// every facet goes and the search and sort stay, at every width (c12)
 	const clearAll = () => { setCustom(false); update(Object.fromEntries(FACETS.map(k => [k, '']))) }
@@ -262,8 +314,8 @@ export default function OrderList() {
 		clearAll()
 	}
 
-	const vendorName = id => vendors?.find(v => v.id === id)?.name ?? 'Vendor'
-	const categoryName = id => (id === 'none' ? 'No category' : categories?.find(c => c.id === id)?.name ?? 'Category')
+	const vendorName = id => vendors?.find(v => v.id === id)?.name ?? reading.named.get(id) ?? 'Vendor'
+	const categoryName = id => (id === 'none' ? 'No category' : categories?.find(c => c.id === id)?.name ?? reading.named.get(id) ?? 'Category')
 	const crumbOf = {
 		date: () => {
 			if (!f.from && !f.to) return null
@@ -291,13 +343,15 @@ export default function OrderList() {
 		amount: () => {
 			if (!f.min && !f.max) return null
 			const label = f.min && f.max ? `${amount(Number(f.min), 0)} - ${currency(Number(f.max), 0)}`
-				: f.min ? `From ${currency(Number(f.min), 0)}` : `Up to ${currency(Number(f.max), 0)}`
+				: f.min ? `Over ${currency(Number(f.min), 0)}` : `Up to ${currency(Number(f.max), 0)}`
 			return <Crumb key="amount" name="the amount range" onRemove={removing({ min: '', max: '' })}>{label}</Crumb>
 		}
 	}
 	// in the order the filters were applied (c12): a new one joins the end of the address
 	const groupOf = k => (k === 'from' || k === 'to' || k === 'period' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
-	const crumbs = [...new Set([...params.keys()].map(groupOf))].flatMap(g => crumbOf[g]?.() ?? []).filter(Boolean)
+	// in Ask mode the words Ask kept as search text are a crumb too, since the field holds the sentence
+	const searched = ask.on && f.q ? [<Crumb key="q" name="the search text" onRemove={removing({ q: '' })}>{`"${f.q}"`}</Crumb>] : []
+	const crumbs = [...searched, ...[...new Set([...asked.keys()].map(groupOf))].flatMap(g => crumbOf[g]?.() ?? []).filter(Boolean)]
 	useEffect(() => {
 		if (!crumbFocus || crumbs.length === crumbFocus.count) return
 		setCrumbFocus(null)
@@ -334,7 +388,7 @@ export default function OrderList() {
 	))
 	// on a phone the search stands alone, and Filters and Sort share one card below it (7a)
 	const controls = touch ? <>
-		<OrderSearch key={searchKey} q={f.q} onSearch={search} touch />
+		<OrderSearch key={searchKey} q={typed} onSearch={search} ask={ask} touch />
 		<ListItem variant="card">
 			<div className="sp-combobox sp-combobox--grow">
 				<button type="button" className="sp-combobox__trigger" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'}
@@ -348,7 +402,7 @@ export default function OrderList() {
 	</> : (
 		// without the rail, Filters joins the bar before sort (15e)
 		<Controls>
-			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} />
+			<OrderSearch key={searchKey} q={typed} onSearch={search} ask={ask} touch={touch} />
 			{railed ? null : filtersButton}
 			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>{sortOptions}</Combobox>
 			{narrow
@@ -464,12 +518,16 @@ export default function OrderList() {
 			{/* on a phone a selection takes the top bar's place (c12) */}
 			{touch && narrow && chosen.length ? <BulkBar head count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar> : null}
 			{none ? null : controls}
+			{ask.on && ask.unread
+				? <span className="sp-field__help" data-color="warning">Couldn't turn that into filters. Try naming a shop, a category, an amount or a period.</span>
+				: null}
 			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
 			{body}
 			{filtersOpen
 				? (
 					<FiltersSheet
-						params={params}
+						params={asked}
+						views={params}
 						custom={custom}
 						facetData={facetData}
 						onApply={(next, nextCustom) => { setFiltersOpen(false); setCustom(nextCustom); update(next) }}
@@ -503,7 +561,7 @@ export default function OrderList() {
 
 /** The facets on a phone or a narrow window (c12 touch, 18b): a sheet over the list, whose
     choices wait for Apply rather than filtering at once. */
-function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
+function FiltersSheet({ params, views, custom, facetData, onApply, onClose }) {
 	const [draft, setDraft] = useState(() => new URLSearchParams(params))
 	const [draftCustom, setDraftCustom] = useState(custom)
 	const f = readFilters(draft)
@@ -533,7 +591,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 					<Button variant="text" size="small" onClick={clear}>Reset</Button>
 				</div>
 				<div className="ol-sheet-body">
-					<SheetViews params={params} onOpen={onClose} />
+					<SheetViews params={views} onOpen={onClose} />
 					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={matched}
 							counts={count.loading ? undefined : count.data?.facets} {...facetData} />
 				</div>
@@ -547,8 +605,9 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 }
 
 /** The list's search (c20). The field keeps what is typed and writes it to the address once it
-    settles, so a key pressed while the list redraws is never overwritten. */
-function OrderSearch({ q, onSearch, touch }) {
+    settles, so a key pressed while the list redraws is never overwritten. With `ask` it ends in Ask
+    (2b): Alt+A switches the mode, and in Ask mode the field holds a sentence sent with Enter. */
+function OrderSearch({ q, onSearch, ask, touch }) {
 	const [text, setText] = useState(q)
 	const wrote = useRef(q)
 	useEffect(() => {
@@ -564,16 +623,63 @@ function OrderSearch({ q, onSearch, touch }) {
 		if (settled === wrote.current) return
 		wrote.current = settled
 		onSearch(settled)
-	}, [settled, onSearch])
+	}, [settled, onSearch, ask.on])
+	const field = useRef(null)
+	// the field keeps focus across the switch, which draws it again
+	const switching = useRef(false)
+	useEffect(() => { if (switching.current) { switching.current = false; field.current?.focus() } })
+	const toggle = () => { switching.current = true; ask.toggle() }
+	const keys = ev => {
+		if (ev.altKey && ev.code === 'KeyA' && ask.available && !ask.working) { ev.preventDefault(); toggle() }
+		else if (ask.on && ev.key === 'Enter') { ev.preventDefault(); ask.send() }
+		else if (ask.working && ev.key === 'Escape') { ev.preventDefault(); ask.stop() }
+	}
+	const ends = ask.available
+		? <AskTrail on={ask.on} busy={ask.working} spent={ask.spent} onToggle={toggle} onStop={ask.stop} />
+		: undefined
+	if (ask.on) return (
+		<SearchInput
+			value={ask.text}
+			onChange={ask.setText}
+			icon="message-circle"
+			clear={false}
+			ends={ends}
+			readOnly={ask.working}
+			inputRef={field}
+			onKeyDown={keys}
+			placeholder="Ask, for example: groceries over 500 last month"
+			aria-label="Ask about your orders"
+			data-page-search="orders"
+		/>
+	)
 	return (
 		<SearchInput
 			value={text}
 			onChange={setText}
+			ends={ends}
+			inputRef={field}
+			onKeyDown={keys}
 			placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
 			aria-label="Search orders"
 			data-page-search="orders"
 		/>
 	)
+}
+
+/** What the typed search `q` reads (2b), with the shops and categories it names once the server has
+    said which runs of words those are. Until it has, those words are searched as text. */
+function useSearchReading(q) {
+	const settled = useSettled(q)
+	const spans = useMemo(() => nameSpans(settled, { presets: PRESETS }), [settled])
+	const found = useApi(getSearchNames, [spans], { enabled: spans.length > 0 })
+	return useMemo(() => {
+		const names = new Map()
+		// a run that names a shop and a category is the category
+		for (const n of found.data?.names ?? []) if (!names.has(n.span) || n.kind === 'category') names.set(n.span, n)
+		const reading = readSearch(q, { presets: PRESETS, names: spans.length ? names : null })
+		// the names the server gave, so a part's crumb is named before the facet's own read answers
+		return { ...reading, named: new Map([...names.values()].map(n => [n.id, n.name])) }
+	}, [q, spans, found.data])
 }
 
 /** The text the search box holds, once it has stopped changing, so a word typed is one request. */

@@ -42,6 +42,13 @@ Everything that needs you, on one page.
 ![The order list with its filters and saved views beside it](docs/order-list.png)
 
 - **Search** by vendor (and its other names), item, note or reference.
+- **The search reads what you type.** An amount ("over 500", "under 200", "500-1000"), a period
+  ("this month", "last month", "august", "2025") and the full name of a vendor or a category each
+  become a filter tag while you type. The other words are searched as text. Removing a tag removes
+  its words, and deleting the words removes the tag.
+- **Ask in the search.** The button at the end of the search, or Alt+A, switches it to Ask. Type a
+  sentence such as "groceries over 500 last month" and press Enter, and Ask sets the filters for it.
+  It uses one of the day's Ask questions. The button is not there when Ask is not set up.
 - **Filters** for date, status, receipt attached or missing, vendor, category, kind (expense, gift,
   sold, work, other), amount, attachments and discounts. Every filter shows a live count, and
   each active one shows as a tag you can remove.
@@ -256,8 +263,8 @@ Everything that needs you, on one page.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
 - **Each account has 25 questions a day** (`SPENDLY_ASK_QUESTIONS_PER_DAY`), counted on the
-  person's own calendar day. The count shows when 3 or fewer are left. A failed or stopped answer is
-  not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
+  person's own calendar day. Ask in the order search counts too. The count shows when 3 or fewer
+  are left. A failed or stopped answer is not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
   daily limit and sees no count.
 - **An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can read your account
   through the address `/mcp` on your Spendly server.

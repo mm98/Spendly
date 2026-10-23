@@ -59,13 +59,3 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
-
-## For Claude Design: What Ask can do keeps Close in a short window
-
-- **Where:** `react/src/styles/app.css`, the rule under "What Ask can do scrolls its parts". Ask 24c.
-- **What the reader sees:** in a window lower than the dialog, the list scrolls and the heading and
-  Close stay, as 24c says.
-- **What was found:** `.sp-chat__help` scrolls, but `.sp-dialog` has no height limit, so the dialog
-  grew past the window and the whole page under it scrolled instead. Found 22 Oct 2026.
-- **To take into `design/`:** a dialog that holds `.sp-chat__help` is at most the window's height less
-  the scrim's padding. Then the app's rule and this entry go.

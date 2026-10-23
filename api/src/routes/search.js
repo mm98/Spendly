@@ -80,3 +80,34 @@ router.get('/', (req, res) => {
 		}
 	})
 })
+
+/* The shops and categories that runs of typed words (lowercased by the client) name in full. An ASCII
+   span reads the name indexes; one lower() cannot fold is matched with lower_fold. */
+const SPANS_MOST = 60
+const SPAN_LENGTH_MOST = 80
+const namesOf = (shape, from) => db.prepare(shape === 'ascii'
+	? `SELECT s.value AS span, n.id, n.name FROM json_each(@spans) s JOIN ${from} ON lower(n.name) = s.value WHERE n.user_id = @userId`
+	: `SELECT s.value AS span, n.id, n.name FROM ${from} JOIN json_each(@spans) s ON lower_fold(n.name) = s.value WHERE n.user_id = @userId`)
+const NAMED = Object.fromEntries(['ascii', 'fold'].map(shape => [shape, {
+	vendor: namesOf(shape, 'vendors n'),
+	alias: shape === 'ascii'
+		? db.prepare(`SELECT s.value AS span, v.id, v.name FROM json_each(@spans) s
+			JOIN vendor_aliases n ON lower(n.name) = s.value AND n.user_id = @userId JOIN vendors v ON v.id = n.vendor_id`)
+		: db.prepare(`SELECT s.value AS span, v.id, v.name FROM vendor_aliases n JOIN json_each(@spans) s ON lower_fold(n.name) = s.value
+			JOIN vendors v ON v.id = n.vendor_id WHERE n.user_id = @userId`),
+	category: namesOf(shape, 'categories n')
+}]))
+
+router.get('/names', (req, res) => {
+	const spans = [...new Set([req.query.span ?? []].flat().map(s => String(s).trim()).filter(s => s && s.length <= SPAN_LENGTH_MOST))].slice(0, SPANS_MOST)
+	const names = []
+	for (const shape of ['ascii', 'fold']) {
+		const these = spans.filter(s => asciiNeedle(s) === (shape === 'ascii'))
+		if (!these.length) continue
+		const params = { userId: req.user.id, spans: JSON.stringify(these) }
+		const statements = NAMED[shape]
+		for (const row of [...statements.vendor.all(params), ...statements.alias.all(params)]) names.push({ ...row, kind: 'vendor' })
+		for (const row of statements.category.all(params)) names.push({ ...row, kind: 'category' })
+	}
+	res.json({ names })
+})
