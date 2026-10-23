@@ -53,6 +53,19 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			const { keys, byKey, onMove } = now.current
 			if (next.join('\n') !== keys.join('\n')) onMove(next.map(k => byKey.get(k)), byKey.get(key), next.indexOf(key))
 		}
+		// picking a row up puts down the one already held, where it is shown
+		const pickUp = key => {
+			const { live, held } = now.current
+			if (held) commit(live, held.key)
+			setHeld({ key, from: live })
+			setOrder(live)
+			tell(key, 'picked up')
+		}
+		const drop = key => {
+			setHeld(null)
+			commit(now.current.live, key)
+			tell(key, 'dropped')
+		}
 
 		const follow = () => {
 			const p = press.current
@@ -80,6 +93,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			p.grab = p.y0 - list.current.getBoundingClientRect().top - inList(row)
 			try { p.handle.setPointerCapture(p.id) } catch { /* the pointer is already gone */ }
 			if (p.touch) navigator.vibrate?.(10)
+			if (now.current.held) drop(now.current.held.key)
 			snap()
 			setOrder(now.current.live)
 			setCarried(p.key)
@@ -118,6 +132,12 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 				// the click that ends a drag opens nothing
 				window.addEventListener('click', swallow, { capture: true, once: true })
 				setTimeout(() => window.removeEventListener('click', swallow, true))
+			} else if (now.current.held?.key === p.key) drop(p.key)
+			else {
+				// a press that does not drag selects the row, so ↑ ↓ move it; the press itself takes no focus
+				if (now.current.held) refocus.current = p.key
+				pickUp(p.key)
+				p.handle.focus()
 			}
 			end()
 		}
@@ -136,7 +156,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 
 		const onPointerDown = ev => {
 			const row = handleIn(ev.target)?.closest('[data-reorder]')
-			if (!row || !list.current?.contains(row) || ev.button > 0 || press.current || now.current.held) return
+			if (!row || !list.current?.contains(row) || ev.button > 0 || press.current) return
 			const touch = ev.pointerType === 'touch'
 			press.current = { key: row.dataset.reorder, id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, y: ev.clientY, touch, live: false, handle: handleIn(ev.target) }
 			if (touch) press.current.timer = setTimeout(begin, HOLD_MS)
@@ -155,16 +175,8 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			const holding = held?.key === key
 			if (ev.key === ' ' || (ev.key === 'Enter' && !holding)) {
 				ev.preventDefault()
-				if (holding) {
-					setHeld(null)
-					commit(live, key)
-					tell(key, 'dropped')
-					return
-				}
-				if (held) commit(live, held.key)
-				setHeld({ key, from: live })
-				setOrder(live)
-				tell(key, 'picked up')
+				if (holding) drop(key)
+				else pickUp(key)
 				return
 			}
 			if (!holding) return
@@ -188,6 +200,13 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			setOrder(next)
 			tell(key, null, next)
 		}
+
+		// a held row that focus leaves, by Tab or a click elsewhere, is put down where it is shown.
+		// Moving a row can blur its handle for a moment; settle gives focus back before this looks.
+		const onBlur = () => setTimeout(() => {
+			const { held } = now.current
+			if (held && document.activeElement !== rowOf(held.key)?.querySelector('.sp-list-item__handle')) drop(held.key)
+		})
 
 		// a row that moved slides from where it was drawn to its new place
 		const settle = () => {
@@ -213,7 +232,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 			refocus.current = null
 			if (back && document.activeElement !== back) back.focus()
 		}
-		act.current = { onPointerDown, onKeyDown, settle, end }
+		act.current = { onPointerDown, onKeyDown, onBlur, settle, end }
 	}
 
 	useLayoutEffect(() => act.current.settle())
@@ -221,7 +240,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 
 	return {
 		items: live.map(k => byKey.get(k)),
-		list: { ref: list, onPointerDown: act.current.onPointerDown, onKeyDown: act.current.onKeyDown },
+		list: { ref: list, onPointerDown: act.current.onPointerDown, onKeyDown: act.current.onKeyDown, onBlur: act.current.onBlur },
 		row: item => ({ 'data-reorder': String(keyOf(item)) }),
 		// carried by a pointer, or picked up from the keyboard; else the row's own
 		variant: (item, rest = 'default') => (carried === String(keyOf(item)) ? 'carried' : held?.key === String(keyOf(item)) ? 'picked' : rest),
