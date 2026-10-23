@@ -159,12 +159,14 @@ export function vendorPage(userId, q, languages = []) {
 		params.alike = JSON.stringify(alike)
 		lead = 'v.id NOT IN (SELECT value FROM json_each(@alike)), '
 	}
+	const matchedSql = `SELECT COUNT(*) c FROM vendors v WHERE ${where.join(' AND ')}`
+	// before the name sort, which reads every matched row to rank them
+	if (countsOnly(q)) return { vendors: [], matched: db.prepare(matchedSql).get(params).c }
 	if (sort.byName) {
 		const found = db.prepare(`SELECT v.id, v.name, v.favourite FROM vendors v WHERE ${where.join(' AND ')}`).all(params)
-		if (countsOnly(q)) return { vendors: [], matched: found.length }
 		return pageOfRanked(userId, q, byName(found, v => (alike.includes(v.id) ? 0 : 1)), { duplicates, brief })
 	}
-	const matched = db.prepare(`SELECT COUNT(*) c FROM vendors v WHERE ${where.join(' AND ')}`).get(params).c
+	const matched = db.prepare(matchedSql).get(params).c
 	const { limit, offset } = pageOf(q, matched)
 	sql = `SELECT v.id FROM vendors v ${sort.stats ? statsJoin : ''} WHERE ${where.join(' AND ')}
 		ORDER BY ${lead}${order} LIMIT @limit OFFSET @offset`

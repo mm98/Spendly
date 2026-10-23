@@ -646,7 +646,7 @@ const widerThan = (from, to) => [
 ].filter(c => !c.key || (from && to && c.from <= from && c.to >= to && !(c.from === from && c.to === to)))
 
 const widened = readAs(getOrders, async (request, periods, signal) => {
-	const answers = await Promise.all(periods.map(p => getOrders({ ...request, from: p.from, to: p.to, page: 1, pageSize: 1 }, signal)))
+	const answers = await Promise.all(periods.map(p => getOrders({ ...request, from: p.from, to: p.to, pageSize: 0 }, signal)))
 	return answers.map(a => a.matched)
 })
 

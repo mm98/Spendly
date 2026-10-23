@@ -2,7 +2,7 @@
    paths are relative, since the dev server proxies /api (vite.config.js). */
 
 import { detectLocale, parseAmount, today } from './format.js'
-import { forgetAll, invalidate, peek } from './useApi.js'
+import { cachedFetch, forgetAll, invalidate, peek } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
 import { noteServerBuild, writeSettled, writeStarted } from './build.js'
 
@@ -526,13 +526,14 @@ export async function getNextCategoryColour(signal) {
 	return (await request('/api/categories/colour', { signal })).colour
 }
 
-/** What Home's category cards are drawn from: every category with a limit, and how many categories there are. */
+/** What Home's category cards are drawn from: every category with a limit, as who it is and its limit,
+    and how many categories there are. The count is the menu's own answer, shared rather than asked again. */
 export async function getHomeCategories(signal) {
-	const [limited, all] = await Promise.all([
-		request('/api/categories' + qs({ limited: 'yes', pageSize: MOST }), { signal }),
-		request('/api/categories' + qs({ pageSize: 1 }), { signal })
+	const [limited, counts] = await Promise.all([
+		request('/api/categories' + qs({ limited: 'yes', pageSize: MOST, shape: 'brief' }), { signal }),
+		cachedFetch(getCounts, [], signal)
 	])
-	return { limited: limited.categories, count: all.matched }
+	return { limited: limited.categories, count: counts.categories }
 }
 
 /** The categories over their monthly limit this month: limits are set by hand, so the server's largest page holds them. */
@@ -773,6 +774,12 @@ export const bookmarkPhotoLightUrl = (id, photoId) => `/api/bookmarks/${id}/phot
 
 export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })
+}
+
+/** How many orders (drafts included), vendors and bookmarks not archived, and categories the account
+    has, `{ orders, vendors, categories, bookmarks }`: what the menu counts. */
+export async function getCounts(signal) {
+	return request('/api/counts', { signal })
 }
 
 /** Every item line of the orders a list request names (`ids` for orders picked by hand), in the
@@ -1291,7 +1298,7 @@ export async function discardDraft(id, signal) {
 
 /** A draft was made, changed or discarded: only the lists that show drafts read it. */
 export function invalidateDraftData() {
-	drop(getOrders, getOrder, getDrafts, getDraft, getViews, getScanReview)
+	drop(getOrders, getCounts, getOrder, getDrafts, getDraft, getViews, getScanReview)
 }
 
 /** Sends one file to be kept until a save files it (17a). `onSent` hears the fraction sent, 0 to 1;
@@ -1351,10 +1358,10 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
-const vendorReads = [getVendorPage, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
-const categoryReads = [getCategoryPage, getVendorOrdersCarrying, getRecentCategoryNames, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
-const bookmarkReads = [getBookmarks, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
+const orderReads = [getOrders, getCounts, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const vendorReads = [getVendorPage, getCounts, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
+const categoryReads = [getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getHomeCategories, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
+const bookmarkReads = [getBookmarks, getCounts, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 
 /** An order changed: everything sums orders, and saving one can create a vendor or a category. */

@@ -9,7 +9,7 @@ import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { ScreenBarSlot } from './screenBar.jsx'
 import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getAsk, getBookmarks, getBudgetDue, getCategoryPage, getCurrentUser, getOrders, getSettings, getVendorPage, onSessionEnded, saveSettings } from '../api/client.js'
+import { getAsk, getBudgetDue, getCounts, getCurrentUser, getSettings, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SessionDialog, SignedOutBanner } from './SessionDialog.jsx'
@@ -356,10 +356,11 @@ function Row({ rail, count, children, ...rest }) {
 function Counted({ useCount, ...rest }) {
 	return <Row count={useCount()} {...rest} />
 }
-const useOrdersCount = () => useApi(getOrders, [{ pageSize: 0 }]).data?.total
-const useVendorsCount = () => useApi(getVendorPage, [{ pageSize: 0 }]).data?.matched
-const useCategoriesCount = () => useApi(getCategoryPage, [{ pageSize: 0 }]).data?.matched
-const useBookmarksCount = () => useApi(getBookmarks, [{ pageSize: 0 }]).data?.matched
+// the four counts are one request, shared by every row that shows one
+const useOrdersCount = () => useApi(getCounts).data?.orders
+const useVendorsCount = () => useApi(getCounts).data?.vendors
+const useCategoriesCount = () => useApi(getCounts).data?.categories
+const useBookmarksCount = () => useApi(getCounts).data?.bookmarks
 // payments due this month, paid or not; none due shows no count, not a zero (9a)
 const useBudgetDueCount = () => {
 	const now = new Date()

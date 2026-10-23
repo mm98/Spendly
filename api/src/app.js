@@ -7,6 +7,7 @@ import { router as vendorsRouter } from './routes/vendors.js'
 import { router as categoriesRouter } from './routes/categories.js'
 import { router as ordersRouter } from './routes/orders.js'
 import { router as bookmarksRouter } from './routes/bookmarks.js'
+import { router as countsRouter } from './routes/counts.js'
 import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as accountRouter, ownsServer, updaterAvailable } from './routes/account.js'
@@ -248,6 +249,7 @@ app.use('/api/vendors', vendorsRouter)
 app.use('/api/categories', categoriesRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/bookmarks', bookmarksRouter)
+app.use('/api/counts', countsRouter)
 app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/account/passkeys', passkeysRouter)

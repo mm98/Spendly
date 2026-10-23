@@ -12,8 +12,8 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Viewer } from '../components/Attachments.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	attachmentFileUrl, attachmentPageUrl, discardDraft, discardScanDocument, failureMessage, getCurrentUser, getDraft, getOrder, itemAttachmentThumbnailUrl,
-	getOrderDraft, getOrders, getScanReview, invalidateDraftData, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
+	attachmentFileUrl, attachmentPageUrl, discardDraft, discardScanDocument, failureMessage, getCounts, getCurrentUser, getDraft, getOrder, itemAttachmentThumbnailUrl,
+	getOrderDraft, getScanReview, invalidateDraftData, rereadScanDocument, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile,
 	watchScanProgress
 } from '../api/client.js'
 import { activeLocaleCode, amount, dayShortMonth, dot, plural, sep, shortDate } from '../api/format.js'
@@ -486,7 +486,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 /** Step 1 (3a): the receipt zone, then an empty order or a copy. */
 function Start({ scanOnly, file, from, picking }) {
 	const navigate = useNavigate()
-	const any = useApi(getOrders, [{ pageSize: 0 }])
+	const counts = useApi(getCounts)
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [sending, setSending] = useState(null)
 	const [refused, setRefused] = useState(null)
@@ -536,7 +536,7 @@ function Start({ scanOnly, file, from, picking }) {
 
 	if (sending) return <Reading file={sending} onDiscard={() => { cancelled.current = true; setSending(null); navigate(origin, { replace: true }) }} />
 
-	const copyable = (any.data?.total ?? 0) > 0
+	const copyable = (counts.data?.orders ?? 0) > 0
 	return (
 		<Empty>
 			<EmptyTitle>{scanOnly ? 'Start from a receipt' : 'Start from a receipt, or from scratch'}</EmptyTitle>
