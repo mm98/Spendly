@@ -3,6 +3,7 @@ import { app } from './app.js'
 import { scheduleAskSweep } from './lib/ask.js'
 import { scheduleDailyBackups } from './lib/backup.js'
 import { checkMail } from './lib/mail.js'
+import { warmSearchMeaning } from './lib/searchMeaning.js'
 import { scheduleStatusEmails } from './lib/statusEmail.js'
 
 const PORT = process.env.PORT ?? 4000
@@ -11,3 +12,4 @@ scheduleDailyBackups()
 checkMail()
 scheduleStatusEmails()
 scheduleAskSweep()
+warmSearchMeaning()

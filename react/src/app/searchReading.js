@@ -14,9 +14,21 @@ function amountOf(word) {
 	return decimals === undefined ? whole : `${whole}.${decimals}`
 }
 
-/* the words that open an amount, and which end of the range the amount is */
-const ABOVE = [['over'], ['above'], ['more', 'than'], ['at', 'least'], ['min'], ['>'], ['>=']]
-const BELOW = [['under'], ['below'], ['less', 'than'], ['at', 'most'], ['up', 'to'], ['max'], ['<'], ['<=']]
+/* the words that open an amount, in English and Danish, and which end of the range the amount is;
+   "then" is read as "than", since it is typed for it so often */
+const withThen = phrases => phrases.flatMap(p => (p.at(-1) === 'than' ? [p, [...p.slice(0, -1), 'then']] : [p]))
+const ABOVE = withThen([['over'], ['above'], ['more', 'than'], ['greater', 'than'], ['bigger', 'than'], ['higher', 'than'],
+	['more', 'expensive', 'than'], ['at', 'least'], ['min'], ['>'], ['>='], ['≥'],
+	['mere', 'end'], ['større', 'end'], ['dyrere', 'end'], ['mindst']])
+const BELOW = withThen([['under'], ['below'], ['less', 'than'], ['cheaper', 'than'], ['lower', 'than'], ['smaller', 'than'],
+	['at', 'most'], ['up', 'to'], ['max'], ['<'], ['<='], ['≤'],
+	['mindre', 'end'], ['billigere', 'end'], ['højst'], ['op', 'til']])
+/* a sign written onto its amount: ">500", "≤200" */
+const SIGNS = { '>': 'min', '>=': 'min', '≥': 'min', '<': 'max', '<=': 'max', '≤': 'max' }
+/* the words after an amount that make it one end: "500 or more", "200 eller mindre" */
+const AFTER = [[['or', 'more'], 'min'], [['and', 'up'], 'min'], [['eller', 'mere'], 'min'], [['or', 'less'], 'max'], [['eller', 'mindre'], 'max']]
+const RANGE_JOINS = new Set(['-', 'to', 'til'])
+const BETWEEN = [[['between'], 'and'], [['mellem'], 'og']]
 
 const startsWith = (words, at, phrase) => phrase.every((w, i) => words[at + i]?.word === w)
 
@@ -34,34 +46,58 @@ function readAmount(words, at) {
 			const found = amountAt(words, at + phrase.length)
 			if (found) return { length: phrase.length + found.length, set: { [key]: found.value } }
 		}
-	// a range: 500-1000, 500 - 1000, 500 to 1000, between 500 and 1000
+	const signed = words[at]?.word.match(/^(>=|<=|>|<|≥|≤)(.+)$/)
+	if (signed) {
+		const value = amountOf(signed[2])
+		if (value !== null) return { length: UNITS.has(words[at + 1]?.word) ? 2 : 1, set: { [SIGNS[signed[1]]]: value } }
+	}
+	// a range: 500-1000, 500 - 1000, 500 to 1000, between 500 and 1000, mellem 500 og 1000
 	const joined = words[at]?.word.match(/^([^-]+)-([^-]+)$/)
 	if (joined) {
 		const [min, max] = [amountOf(joined[1]), amountOf(joined[2])]
 		if (min !== null && max !== null && Number(min) <= Number(max))
 			return { length: UNITS.has(words[at + 1]?.word) ? 2 : 1, set: { min, max } }
 	}
-	const between = startsWith(words, at, ['between']) ? 1 : 0
-	const low = amountAt(words, at + between)
-	const joiner = low && words[at + between + low.length]?.word
-	if (low && (between ? joiner === 'and' : joiner === '-' || joiner === 'to')) {
-		const high = amountAt(words, at + between + low.length + 1)
+	const [opener, and] = BETWEEN.find(([phrase]) => startsWith(words, at, phrase)) ?? [[], null]
+	const low = amountAt(words, at + opener.length)
+	const joiner = low && words[at + opener.length + low.length]?.word
+	if (low && (and ? joiner === and : RANGE_JOINS.has(joiner))) {
+		const high = amountAt(words, at + opener.length + low.length + 1)
 		if (high && Number(low.value) <= Number(high.value))
-			return { length: between + low.length + 1 + high.length, set: { min: low.value, max: high.value } }
+			return { length: opener.length + low.length + 1 + high.length, set: { min: low.value, max: high.value } }
 	}
+	// an amount with its end after it: 500+, 500 or more
+	const plus = words[at]?.word.match(/^(.+)\+$/)
+	if (plus) {
+		const value = amountOf(plus[1])
+		if (value !== null) return { length: UNITS.has(words[at + 1]?.word) ? 2 : 1, set: { min: value } }
+	}
+	if (low && !opener.length) for (const [phrase, key] of AFTER)
+		if (startsWith(words, at + low.length, phrase)) return { length: low.length + phrase.length, set: { [key]: low.value } }
 	return null
 }
 
-const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+const MONTHS = [
+	['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'],
+	['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december']]
 const monthOf = word => {
 	const short = word.replace(/\.$/, '')
-	const full = MONTHS.indexOf(short)
-	// "aug", "sept": three or four letters stand for the month they begin
-	return full >= 0 || short.length < 3 || short.length > 4 ? full : MONTHS.findIndex(m => m.startsWith(short))
+	for (const names of MONTHS) {
+		const full = names.indexOf(short)
+		if (full >= 0) return full
+	}
+	// "aug", "sept", "okt": three or four letters stand for the month they begin
+	if (short.length < 3 || short.length > 4) return -1
+	for (const names of MONTHS) {
+		const begun = names.findIndex(m => m.startsWith(short))
+		if (begun >= 0) return begun
+	}
+	return -1
 }
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const span = (from, to) => ({ from: iso(from), to: iso(to) })
 const yearOf = (word, now) => (/^\d{4}$/.test(word) && Number(word) >= 1900 && Number(word) <= now.getFullYear() + 1 ? Number(word) : null)
+const dayOf = (now, back) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - back)
 
 /* a day inside the period before the one `now` is in, for each length a period can have */
 const BEFORE = {
@@ -70,22 +106,47 @@ const BEFORE = {
 	quarter: n => new Date(n.getFullYear(), n.getMonth() - 3, 15),
 	year: n => new Date(n.getFullYear() - 1, 6, 1)
 }
+/* the words for this period and the one before, and the periods' own names, in English and Danish */
+const THIS = new Set(['this', 'denne', 'dette'])
+const LAST = new Set(['last', 'previous', 'sidste', 'forrige'])
+const PERIOD_NAMES = { week: 'week', month: 'month', quarter: 'quarter', year: 'year', uge: 'week', måned: 'month', kvartal: 'quarter', år: 'year' }
+/* one day, named: how many days back it is */
+const DAYS = [[['today'], 0], [['i', 'dag'], 0], [['yesterday'], 1], [['i', 'går'], 1]]
+/* the days up to today: "last 30 days", "sidste 30 dage" */
+const DAY_WORDS = new Set(['days', 'day', 'dage', 'dag'])
+const SINCE = new Set(['since', 'siden', 'fra'])
+
+/** A month with an optional year after it, from `at`: { from, to, length }, the last such month there was without a year. */
+function monthAt(words, at, now) {
+	const month = words[at] ? monthOf(words[at].word) : -1
+	if (month < 0) return null
+	const year = words[at + 1] ? yearOf(words[at + 1].word, now) : null
+	const y = year ?? (month <= now.getMonth() ? now.getFullYear() : now.getFullYear() - 1)
+	return { from: new Date(y, month, 1), to: new Date(y, month + 1, 0), length: year === null ? 1 : 2 }
+}
 
 function readPeriod(words, at, { now, presets }) {
 	const [first, second] = [words[at]?.word, words[at + 1]?.word]
-	const preset = presets.find(p => p.key === second)
-	if (first === 'this' && preset) return { length: 2, set: { period: preset.key } }
-	if ((first === 'last' || first === 'previous') && preset && BEFORE[preset.key]) {
+	for (const [phrase, back] of DAYS)
+		if (startsWith(words, at, phrase)) return { length: phrase.length, set: span(dayOf(now, back), dayOf(now, back)) }
+	if (first === 'i' && second === 'år' && presets.some(p => p.key === 'year')) return { length: 2, set: { period: 'year' } }
+	const preset = presets.find(p => p.key === PERIOD_NAMES[second])
+	if (THIS.has(first) && preset) return { length: 2, set: { period: preset.key } }
+	if (LAST.has(first) && preset && BEFORE[preset.key]) {
 		const [from, to] = preset.range(BEFORE[preset.key](now))
 		return { length: 2, set: { from, to } }
 	}
-	const month = first ? monthOf(first) : -1
-	if (month >= 0) {
+	const count = second && /^\d{1,3}$/.test(second) ? Number(second) : 0
+	if ((LAST.has(first) || first === 'past') && count > 0 && DAY_WORDS.has(words[at + 2]?.word))
+		return { length: 3, set: span(dayOf(now, count - 1), now) }
+	if (SINCE.has(first)) {
+		const month = monthAt(words, at + 1, now)
+		if (month) return { length: 1 + month.length, set: { from: iso(month.from) } }
 		const year = second ? yearOf(second, now) : null
-		// a month without a year is the last one there was
-		const y = year ?? (month <= now.getMonth() ? now.getFullYear() : now.getFullYear() - 1)
-		return { length: year === null ? 1 : 2, set: span(new Date(y, month, 1), new Date(y, month + 1, 0)) }
+		if (year !== null) return { length: 2, set: { from: iso(new Date(year, 0, 1)) } }
 	}
+	const month = monthAt(words, at, now)
+	if (month) return { length: month.length, set: span(month.from, month.to) }
 	const year = first ? yearOf(first, now) : null
 	if (year !== null) return { length: 1, set: span(new Date(year, 0, 1), new Date(year, 11, 31)) }
 	return null
@@ -105,7 +166,7 @@ function readName(words, at, { names }) {
 }
 
 /* a word before a part that belongs to it: "in august", "from Bilka" */
-const LEADS = { period: new Set(['in', 'during']), name: new Set(['from', 'at', 'in']) }
+const LEADS = { period: new Set(['in', 'during', 'i']), name: new Set(['from', 'at', 'in', 'fra', 'hos', 'i']) }
 const led = (leads, read) => (words, at, context) => {
 	if (leads.has(words[at]?.word)) {
 		const found = read(words, at + 1, context)
@@ -131,6 +192,12 @@ export function wordsOf(text) {
 
 const spanText = words => words.map(w => w.word).join(' ')
 
+/* words that only join a sentence together; once a part is read they are not searched as text,
+   so "orders over 500 from netto" does not look for orders with the word "orders" in them */
+const FILLERS = new Set(['orders', 'order', 'purchases', 'bought', 'spent', 'show', 'find', 'all', 'my', 'the', 'and', 'or', 'with',
+	'for', 'of', 'on', 'in', 'at', 'from', 'ordrer', 'ordre', 'køb', 'købt', 'brugt', 'vis', 'alle', 'mine', 'og', 'med',
+	'til', 'af', 'på', 'i', 'fra', 'hos', 'eller'])
+
 /** What `text` holds: { parts, rest }. `names` maps a span (spanText) to the shop or category it names
     ({ kind, id }); without it, names are not read. `presets` are the list's named periods. */
 export function readSearch(text, { now = new Date(), presets = [], names = null } = {}) {
@@ -143,7 +210,8 @@ export function readSearch(text, { now = new Date(), presets = [], names = null 
 		parts.push({ start: words[at].start, end: words[at + found.length - 1].end, set: found.set })
 		at += found.length
 	}
-	return { parts, rest: rest.map(i => text.slice(words[i].start, words[i].end)).join(' '), restAt: rest, words }
+	const searched = parts.length ? rest.filter(i => !FILLERS.has(words[i].word)) : rest
+	return { parts, rest: searched.map(i => text.slice(words[i].start, words[i].end)).join(' '), restAt: rest, words }
 }
 
 /* how many spans one text may ask about, so a long sentence is still one short request */

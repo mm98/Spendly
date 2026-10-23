@@ -38,6 +38,7 @@ export const FALLBACK_ID = 'shapes-1'
 const FALLBACK = { id: FALLBACK_ID, embed: async texts => texts.map(shapes) }
 
 let loading = null
+let loaded = null
 async function load() {
 	try {
 		const { pipeline, env } = await import('@huggingface/transformers')
@@ -63,5 +64,13 @@ async function load() {
 export async function embedder() {
 	if (process.env.SPENDLY_EMBEDDER === 'shapes') return FALLBACK
 	loading ??= Promise.race([load(), new Promise(resolve => setTimeout(() => resolve(null), LOAD_MS))])
-	return (await loading) ?? FALLBACK
+		.then(found => (loaded = found ?? FALLBACK))
+	return loading
+}
+
+/** The embedder if it has finished loading, else null; asking starts the loading. */
+export function embedderIfLoaded() {
+	if (process.env.SPENDLY_EMBEDDER === 'shapes') return FALLBACK
+	embedder()
+	return loaded
 }

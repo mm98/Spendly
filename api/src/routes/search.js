@@ -3,6 +3,7 @@ import { db } from '../db.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { decorateOrderSearchRows } from '../lib/decorate.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
+import { categoriesMeant } from '../lib/searchMeaning.js'
 
 export const router = Router()
 
@@ -82,7 +83,8 @@ router.get('/', (req, res) => {
 })
 
 /* The shops and categories that runs of typed words (lowercased by the client) name in full. An ASCII
-   span reads the name indexes; one lower() cannot fold is matched with lower_fold. */
+   span reads the name indexes; one lower() cannot fold is matched with lower_fold. A word that names
+   nothing in full may still mean a category (lib/searchMeaning.js). */
 const SPANS_MOST = 60
 const SPAN_LENGTH_MOST = 80
 const namesOf = (shape, from) => db.prepare(shape === 'ascii'
@@ -98,7 +100,7 @@ const NAMED = Object.fromEntries(['ascii', 'fold'].map(shape => [shape, {
 	category: namesOf(shape, 'categories n')
 }]))
 
-router.get('/names', (req, res) => {
+router.get('/names', async (req, res) => {
 	const spans = [...new Set([req.query.span ?? []].flat().map(s => String(s).trim()).filter(s => s && s.length <= SPAN_LENGTH_MOST))].slice(0, SPANS_MOST)
 	const names = []
 	for (const shape of ['ascii', 'fold']) {
@@ -108,6 +110,12 @@ router.get('/names', (req, res) => {
 		const statements = NAMED[shape]
 		for (const row of [...statements.vendor.all(params), ...statements.alias.all(params)]) names.push({ ...row, kind: 'vendor' })
 		for (const row of statements.category.all(params)) names.push({ ...row, kind: 'category' })
+	}
+	const named = new Set(names.map(n => n.span))
+	try {
+		for (const row of await categoriesMeant(req.user.id, spans.filter(s => !named.has(s)))) names.push({ ...row, kind: 'category' })
+	} catch (error) {
+		console.error('Reading a search word\'s meaning failed:', error.message)
 	}
 	res.json({ names })
 })
