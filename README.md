@@ -66,7 +66,7 @@ Everything that needs you, on one page.
 - **Leave out of statistics** - for an order that should be listed but not counted.
 - **Duplicate, edit or delete.** A deleted order can be brought back from the message that follows.
 - **While you edit:**
-  - Lines can be reordered by dragging, duplicated, and given a photo (pasting works).
+  - Lines can be reordered by dragging or with the arrow keys, duplicated, and given a photo (pasting works).
   - Category suggestions come from your own earlier orders.
   - A warning shows before a save takes a category over its limit. It never blocks the save.
   - Unsaved changes are never lost by accident.
