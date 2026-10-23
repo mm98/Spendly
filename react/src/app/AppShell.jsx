@@ -9,7 +9,7 @@ import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { ScreenBarSlot } from './screenBar.jsx'
 import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getAsk, getBudgetDue, getCounts, getCurrentUser, getSettings, getStatuses, getViews, onSessionEnded, saveSettings } from '../api/client.js'
+import { getAsk, getBudgetDue, getCounts, getCurrentUser, getSettings, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SessionDialog, SignedOutBanner } from './SessionDialog.jsx'
@@ -361,15 +361,11 @@ const useOrdersCount = () => useApi(getCounts).data?.orders
 const useVendorsCount = () => useApi(getCounts).data?.vendors
 const useCategoriesCount = () => useApi(getCounts).data?.categories
 const useBookmarksCount = () => useApi(getCounts).data?.bookmarks
-const thisMonth = () => {
-	const now = new Date()
-	return [now.getFullYear(), now.getMonth() + 1]
-}
 // payments due this month, paid or not; none due shows no count, not a zero (9a)
-const useBudgetDueCount = () => useApi(getBudgetDue, thisMonth()).data || null
-
-/** What every page's frame reads, as [read, arguments]: the route loader asks for it beside the settings, in one request. */
-export const frameReads = () => [[getCounts], [getViews], [getStatuses], [getAsk], [getBudgetDue, thisMonth()]]
+const useBudgetDueCount = () => {
+	const now = new Date()
+	return useApi(getBudgetDue, [now.getFullYear(), now.getMonth() + 1]).data || null
+}
 
 /** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
     ends on the sign-in page, once the reader has been let go. */
