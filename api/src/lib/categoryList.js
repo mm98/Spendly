@@ -7,8 +7,6 @@ import { countsOnly, listOf, nameOrder, pageOf } from './listPage.js'
 /* A page of the account's categories (GET /api/categories with page, pageSize, ids or name): the
    filter, the order and the page boundary are the server's, so no reader holds the whole list. */
 
-const ORDERS = `SELECT oc.category_id, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id
-	WHERE ot.user_id = @userId`
 const MONTH = `SELECT oc.category_id, SUM(ot.total) AS spend
 	FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ${moneyPaid('ot.')} AND ot.exclude_from_stats = 0`
@@ -19,16 +17,11 @@ const SORTS = {
 	'month-desc': { month: true, by: 'COALESCE(m.spend, 0) DESC, c.name' },
 	'month-asc': { month: true, by: 'COALESCE(m.spend, 0) ASC, c.name' },
 	'limit-desc': { by: 'c.budget DESC, c.name' },
-	'orders-desc': { orders: true, by: 'COALESCE(o.orders, 0) DESC, c.name' }
+	'orders-desc': { by: 'c.order_count DESC, c.name' }
 }
 
-const selectRows = db.prepare(`SELECT id, name, icon, colour, budget, favourite FROM categories
+const selectRows = db.prepare(`SELECT id, name, icon, colour, budget, favourite, order_count FROM categories
 	WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))`)
-/* CROSS JOIN drives each count from the category's own covering link index, as countOrders does
-   in routes/categories.js. */
-const selectOrders = db.prepare(`SELECT oc.category_id, COUNT(*) AS orders
-	FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id
-	WHERE oc.category_id IN (SELECT value FROM json_each(@ids)) AND ot.user_id = @userId GROUP BY oc.category_id`)
 /* A page's sums and counts are added up here from its own rows: no GROUP BY, so SQLite does not
    sort them in a temp B-tree, as bookmarkCategoryCounts does in lib/aggregate.js. */
 const selectMonth = db.prepare(`SELECT oc.category_id, ot.total AS spend
@@ -56,7 +49,6 @@ function monthOf(today) {
 	return { from: Date.UTC(y, m - 1, 1) / 1000, to: Date.UTC(y, m, 1) / 1000, yearFrom: Date.UTC(y, m - 13, 1) / 1000 }
 }
 
-const byCategory = (rows, key) => new Map(rows.map(r => [r.category_id, r[key]]))
 const sumBy = (rows, key) => {
 	const sums = new Map()
 	for (const r of rows) sums.set(r.category_id, (sums.get(r.category_id) ?? 0) + r[key])
@@ -74,7 +66,6 @@ function rowsFor(userId, ids, extras, month, view = null) {
 		const c = byId.get(id)
 		return { id, name: c.name, icon: c.icon, colour: c.colour, budget: c.budget, favourite: Boolean(c.favourite) }
 	})
-	const orders = byCategory(selectOrders.all(params), 'orders')
 	const spend = extras.includes('month') ? sumBy(selectMonth.all(params), 'spend') : null
 	const year = extras.includes('month') ? sumBy(selectYear.all(params), 'spend') : null
 	const bookmarks = !extras.includes('bookmarks') ? null
@@ -82,7 +73,7 @@ function rowsFor(userId, ids, extras, month, view = null) {
 	return ids.filter(id => byId.has(id)).map(id => {
 		const c = byId.get(id)
 		return {
-			id, name: c.name, icon: c.icon, colour: c.colour, budget: c.budget, favourite: Boolean(c.favourite), orders: orders.get(id) ?? 0,
+			id, name: c.name, icon: c.icon, colour: c.colour, budget: c.budget, favourite: Boolean(c.favourite), orders: c.order_count,
 			...(spend ? { monthSpend: spend.get(id) ?? 0, monthAverage: (year.get(id) ?? 0) / 12 } : {}),
 			...(bookmarks ? { bookmarks: bookmarks.get(id) ?? 0 } : {})
 		}
@@ -140,8 +131,7 @@ export function categoryPage(userId, q, today, languages = []) {
 	const joinMonth = sort.month || over || q.flag === 'near-limit' || named
 	if (joinMonth) Object.assign(params, { from: month.from, to: month.to })
 	const from = `categories c
-		${joinMonth ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}
-		${sort.orders ? `LEFT JOIN (${ORDERS} GROUP BY oc.category_id) o ON o.category_id = c.id` : ''}`
+		${joinMonth ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}`
 	// the count needs the month's spend only to find the categories over or near their limit, or with spend in it
 	const filtersMonth = over || named || q.flag === 'near-limit'
 	const counted = `categories c ${filtersMonth ? `LEFT JOIN (${MONTH} GROUP BY oc.category_id) m ON m.category_id = c.id` : ''}`
