@@ -6,14 +6,13 @@ is removed in the change that settles it.
 
 ## Large accounts still make everyone wait on a few pages
 
-- **Where:** the Orders, Home and Statistics pages, and the server, which answers one request at a time.
+- **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
 - **What the reader sees:** with 30 accounts opening a page at once, every account waits about
-  1.1 to 1.8 seconds, the smallest ones too.
-- **What was found:** one 50,000-order account still costs 70 to 130 ms on a sorted category or vendor
-  page, from this month's spend and each vendor's spend, saving and last order. Statistics, a whole year
-  by day, takes about 420 ms.
-- **Proposed shape:** heavy reads side by side instead of in turn, one start-up request for the frame,
-  one request for Home's figures. Measure the 30 accounts again after each.
+  1.2 to 2.2 seconds, the smallest ones too.
+- **What was found:** the reads themselves are now sound; the time is the large accounts' reads
+  standing in one line. Home is the heaviest.
+- **Proposed shape:** heavy reads run side by side, on a few helpers beside the server. Measure the
+  30 accounts again after it.
 - **Found:** 2026-10-23.
 
 ## A deleted record should not be removed for good at once

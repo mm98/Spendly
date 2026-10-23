@@ -1,4 +1,5 @@
 import { db } from '../db.js'
+import { counted } from './aggregate.js'
 import { newId } from './ids.js'
 import { CATEGORY_PALETTE, VENDOR_PALETTE, nthColour } from './palette.js'
 
@@ -124,7 +125,12 @@ const storeColumns = db.prepare(`UPDATE orders SET
 			(SELECT s.type FROM statuses s WHERE s.user_id = orders.user_id AND s.key = orders.status), 'custom')
 	WHERE id IN (SELECT value FROM json_each(?))`)
 const addCategoryOrders = db.prepare('UPDATE categories SET order_count = order_count + ? WHERE id = ?')
-const addVendorOrders = db.prepare('UPDATE vendors SET order_count = order_count + ? WHERE id = ?')
+// the vendor's kept totals, worked out again as migrations/268 and 269 first filled them
+const storeVendorTotals = db.prepare(`UPDATE vendors SET (order_count, spend_cents, saved_cents, last_order_date) = (
+	SELECT COUNT(*), COALESCE(SUM(CAST(ROUND(${counted('total')} * 100) AS INTEGER)), 0),
+		COALESCE(SUM(CAST(ROUND(${counted('saved')} * 100) AS INTEGER)), 0), MAX(date)
+	FROM orders WHERE user_id = vendors.user_id AND vendor_id = vendors.id)
+	WHERE id IN (SELECT value FROM json_each(?))`)
 
 /** Adds one to `counts` for each of `ids`. */
 const tally = (counts, ids) => { for (const id of ids) counts.set(id, (counts.get(id) ?? 0) + 1) }
@@ -151,7 +157,7 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 
 	/* Every trigger the fill would fire per row is off while a batch is written -- the
 	   item-totals set, the orders search_text and status_type pairs, the order_categories count pair, the
-	   category and vendor order counts -- and the batch's stored columns and counts are written once before they come back. A statement that
+	   category and vendor order counts, the vendor totals -- and the batch's stored columns and counts are written once before they come back. A statement that
 	   fires a trigger keeps a statement journal sized by what the transaction has already
 	   changed, so per-row triggers make a big fill quadratic. DDL is transactional in SQLite,
 	   so a failed batch restores the triggers untouched; the recreate is from sqlite_master's
@@ -195,10 +201,10 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 			for (const item of items) insertOrderItem.run(item)
 		}
 		storeColumns.run(JSON.stringify(rows.map(r => r.order.id)))
-		const byCategory = new Map(), byVendor = new Map()
-		for (const { order, categories } of rows) { tally(byCategory, categories); tally(byVendor, [order.vendorId]) }
+		const byCategory = new Map()
+		for (const { categories } of rows) tally(byCategory, categories)
 		for (const [id, n] of byCategory) addCategoryOrders.run(n, id)
-		for (const [id, n] of byVendor) addVendorOrders.run(n, id)
+		storeVendorTotals.run(JSON.stringify([...new Set(rows.map(r => r.order.vendorId))]))
 		for (const t of triggers) db.exec(t.sql)
 	})
 	const flush = () => {

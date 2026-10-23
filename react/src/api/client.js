@@ -88,7 +88,70 @@ function refusal(path, method, status, data, upload = false) {
 // the reader's own date, which the server takes as today
 const TODAY = 'X-Spendly-Today'
 
-async function request(path, { method = 'GET', body, signal, form } = {}) {
+/* Reads asked in the same moment go as one request (api/src/routes/many.js), at most this many at a time;
+   a read asked alone, or marked `alone` because it waits on another site, goes as itself. */
+const MANY_MAX = 20
+let gathering = null
+
+const aborted = () => new DOMException('The read was stopped.', 'AbortError')
+
+function gather(path, signal) {
+	return new Promise((resolve, reject) => {
+		if (signal?.aborted) return reject(aborted())
+		if (!gathering) {
+			gathering = []
+			queueMicrotask(sendGathered)
+		}
+		gathering.push({ path, signal, resolve, reject })
+	})
+}
+
+function sendGathered() {
+	const reads = []
+	for (const read of gathering) if (read.signal?.aborted) read.reject(aborted())
+	else reads.push(read)
+	gathering = null
+	for (let at = 0; at < reads.length; at += MANY_MAX) sendMany(reads.slice(at, at + MANY_MAX))
+}
+
+async function sendMany(reads) {
+	if (reads.length === 1) {
+		const [read] = reads
+		return request(read.path, { signal: read.signal, alone: true }).then(read.resolve, read.reject)
+	}
+	// the shared request stops only once every read in it has stopped
+	const controller = new AbortController()
+	let waiting = reads.length
+	for (const read of reads) read.signal?.addEventListener('abort', () => {
+		read.reject(aborted())
+		if (--waiting === 0) controller.abort()
+	}, { once: true })
+	let answers
+	try {
+		const res = await fetch('/api/many?' + new URLSearchParams(reads.map(read => ['get', read.path])), {
+			signal: controller.signal, credentials: 'include', headers: { [TODAY]: today() }
+		})
+		noteServerBuild(res.headers.get('Build'))
+		answers = res.ok ? await res.json().then(out => out?.answers, () => null) : null
+	} catch (error) {
+		for (const read of reads) read.reject(error)
+		return
+	}
+	// a server without the shared request answers each read on its own
+	if (answers?.length !== reads.length) {
+		for (const read of reads) request(read.path, { signal: read.signal, alone: true }).then(read.resolve, read.reject)
+		return
+	}
+	reads.forEach((read, i) => {
+		const { status, body } = answers[i]
+		if (status === 204) read.resolve(null)
+		else if (status >= 200 && status < 300) read.resolve(body)
+		else read.reject(refusal(read.path, 'GET', status, body))
+	})
+}
+
+async function request(path, { method = 'GET', body, signal, form, alone = false } = {}) {
+	if (method === 'GET' && !form && !alone) return gather(path, signal)
 	const json = !form && body !== undefined
 	const writes = method !== 'GET'
 	if (writes) writeStarted()
@@ -627,7 +690,7 @@ export async function getBookmark(id, signal) {
     over is the same nothing: a bookmark is saved by typing a name, never by this succeeding. */
 export async function getBookmarkPreview(url, signal) {
 	try {
-		return await request('/api/bookmarks/preview' + qs({ url }), { signal })
+		return await request('/api/bookmarks/preview' + qs({ url }), { signal, alone: true })
 	} catch {
 		return { title: null, image: null }
 	}
@@ -1055,7 +1118,7 @@ export async function getVersion(signal) {
 /** The running build against the newest published one, asked of the registry by the server:
     { current, published, commit, latestBuiltAt }, the last null when it is this one or unknown. */
 export async function checkVersion(signal) {
-	return request('/api/version/check', { signal })
+	return request('/api/version/check', { signal, alone: true })
 }
 
 /** Asks the server to install the newest published version (11d). It restarts to do so, so the answer

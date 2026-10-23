@@ -2,7 +2,8 @@
    lists the server never reads (sort labels, range chips) live in the client alone -- copies
    of them sat here once, imported by nothing, which is how a dead copy starts to drift. */
 export const SPEND_KINDS = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
-// the kinds whose total came to the account, counted as a returned order is
+// the kinds whose total came to the account, counted as a returned order is; the vendor totals'
+// triggers (migrations/269_vendor_order_totals.sql) hold a copy, so a change needs a new migration
 export const MONEY_BACK_KINDS = ['Sold']
 export const ORDER_STATUSES = ['Ordered', 'Delivered', 'Returned']
 
