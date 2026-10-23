@@ -262,8 +262,8 @@ Everything that needs you, on one page.
 - **An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can read your account
   through the address `/mcp` on your Spendly server.
 - **It only reads.** It can find orders and open one, list categories and shops with what was
-  spent, read a year's budget, read statistics for a period and the months behind it, and use the
-  same search as the app. It cannot change or delete anything.
+  spent, sorted and filtered as their pages are, read a year's budget, read statistics for a period
+  and the months behind it, and use the same search as the app. It cannot change or delete anything.
 - **Tokens are made in Settings, AI assistants.** Give a token a name, and Spendly shows it one
   time, with the address to paste. On a computer it also shows the setup text for Claude, Claude
   Code, Cursor and ChatGPT, with the token filled in. Each value has a copy button.

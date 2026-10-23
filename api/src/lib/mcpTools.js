@@ -55,26 +55,28 @@ export const MCP_TOOLS = [
 	},
 	{
 		name: 'list_categories',
-		description: 'The account\'s categories with their monthly limit, how many orders each has, the spend in one month and the monthly average over the last twelve months. Spend is money paid: returned and sold orders are left out of it.',
+		description: 'The account\'s categories with their monthly limit, how many orders each has, whether it is a favourite, the spend in one month and the monthly average over the last twelve months. Spend is money paid: returned and sold orders are left out of it.',
 		inputSchema: {
 			type: 'object',
 			properties: {
 				query: text('Text to find in the category name.'),
 				month: text('The month the spend is counted in, as YYYY-MM. This month when left out. When given, only categories with spend in that month are listed.', { pattern: '^\\d{4}-\\d{2}$' }),
+				sort: text('The order of the rows. By name when left out. "month-desc" is the most spent in the month first, "limit-desc" the highest monthly limit first.', { enum: ['name-asc', 'month-desc', 'month-asc', 'limit-desc', 'orders-desc'] }),
+				flag: text('Only some categories: "limited" those with a monthly limit, "over-limit" those past it in the month, "near-limit" those close to it but not past, from the warning level the account has chosen in Settings.', { enum: ['limited', 'over-limit', 'near-limit'] }),
 				...page,
 				...pageSize(100)
 			}
 		},
-		path: a => `/api/categories${query({ with: 'month', query: a.query, month: a.month, page: a.page ?? 1, pageSize: sizeOf(a.pageSize, 100) })}`
+		path: a => `/api/categories${query({ with: 'month', query: a.query, month: a.month, sort: a.sort, flag: a.flag, page: a.page ?? 1, pageSize: sizeOf(a.pageSize, 100) })}`
 	},
 	{
 		name: 'list_vendors',
-		description: 'The shops the account buys from, with how many orders each has, the total spent and saved, and the date of the last order. Spent is money paid: returned and sold orders are counted as orders but left out of it.',
+		description: 'The shops the account buys from, with how many orders each has, the total spent and saved, the date of the last order, whether it is a favourite, and its other names. Spent is money paid: returned and sold orders are counted as orders but left out of it.',
 		inputSchema: {
 			type: 'object',
 			properties: {
 				query: text('Text to find in the shop name or one of its other names.'),
-				sort: text('The order of the rows. Most spent first when left out.', { enum: ['spend-desc', 'spend-asc', 'orders-desc', 'saved-desc', 'name-asc', 'recent'] }),
+				sort: text('The order of the rows. Most spent first when left out. "recent" is the latest order first.', { enum: ['spend-desc', 'spend-asc', 'orders-desc', 'saved-desc', 'saved-asc', 'name-asc', 'recent'] }),
 				archived: text('Shops put away: left out by default.', { enum: ['no', 'yes', 'all'] }),
 				...page,
 				...pageSize(50)

@@ -53,3 +53,6 @@ export const MAX_PAGE_SIZE = 1000
 
 // The largest file one upload may carry; the client states the same number (OrderNew's MAX_MB).
 export const MAX_UPLOAD_MB = 25
+
+// the share of a limit a warning starts at for an account that never chose one; the column's default holds a copy
+export const NOTIFY_EARLY_DEFAULT = 90

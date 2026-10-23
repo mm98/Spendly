@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { db } from '../db.js'
-import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, SPEND_KINDS } from '../lib/constants.js'
+import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, NOTIFY_EARLY_DEFAULT, SPEND_KINDS } from '../lib/constants.js'
 import { statusKeys } from '../lib/statuses.js'
 import { looksOf, setLooks } from '../lib/looks.js'
 import { mailAvailable } from '../lib/mail.js'
@@ -96,7 +96,7 @@ router.patch('/', (req, res) => {
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
 		listSort: 'name-asc', currency: 'DKK', locale: 'auto', density: 'comfortable',
-		notifyWhileSaving: true, notifyMonthlySummary: true, notifyEarly: 90, scanOverrides: true, sidebar: 'open', compareMonth: 'last',
+		notifyWhileSaving: true, notifyMonthlySummary: true, notifyEarly: NOTIFY_EARLY_DEFAULT, scanOverrides: true, sidebar: 'open', compareMonth: 'last',
 		recentRows: 5
 	}
 	const next = { ...currentApi, ...req.body }
