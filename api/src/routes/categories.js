@@ -9,7 +9,7 @@ import {
 	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, bookmarkCategoryCounts
 } from '../lib/aggregate.js'
 import { wantsPage } from '../lib/listPage.js'
-import { categoryPage, knownCategoryNames } from '../lib/categoryList.js'
+import { categoryPage, knownCategoryNames, limitedCategories } from '../lib/categoryList.js'
 import { recentCategoryNames } from '../lib/latestOrders.js'
 
 export const router = Router()
@@ -71,6 +71,11 @@ router.get('/', (req, res) => {
 		return averages ? { ...row, monthAverage: averages.get(c.id) ?? 0 } : row
 	}))
 })
+
+// every category with a limit, or only those over it this month (`over=yes`); registered before /:id
+router.get('/limited', (req, res) => res.json({
+	categories: limitedCategories(req.user.id, req.today ?? todayIso(), { over: req.query.over === 'yes', languages: req.acceptsLanguages() })
+}))
 
 // the colour a new category's form starts on; registered before /:id, or that route would answer it
 router.get('/colour', (req, res) => res.json({ colour: nextCategoryColour(req.user.id) }))

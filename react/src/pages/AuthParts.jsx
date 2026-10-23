@@ -9,6 +9,7 @@ import { Spinner } from '../components/Utilities.jsx'
 import { Gauge } from '../components/Data.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { getAuthOptions, getCurrentUser } from '../api/client.js'
+import { useApi } from '../api/useApi.js'
 
 // the server refuses anything shorter
 export const MIN_PASSWORD = 12
@@ -155,7 +156,5 @@ export function useMail() {
 
 /** The server's answer for the signed-out pages, or null until it comes. */
 export function useAuthOptions() {
-	const [options, setOptions] = useState(null)
-	useEffect(() => { getAuthOptions().then(setOptions).catch(() => {}) }, [])
-	return options
+	return useApi(getAuthOptions).data ?? null
 }

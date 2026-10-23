@@ -4,6 +4,21 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## Category and vendor reads count every order, every time
+
+- **Where:** `api/src/lib/categoryList.js`, `api/src/lib/vendorList.js` and the order list's counts
+  per filter (`GET /api/orders?with=facets`). Felt on Orders, Categories, Vendors and Bookmarks.
+- **What the reader sees:** on a large account these pages are slow to fill, and slower right after
+  a save. The server answers one request at a time, so everyone else waits too.
+- **What was found:** each read counts every order of each category or vendor in the whole account.
+  With 50,000 orders one read takes up to 380 ms. With 30 accounts opening Orders at once, every
+  account waited about 6 seconds, the smallest ones too.
+- **Proposed shape:** keep the count on the category and the vendor, kept up to date by the database
+  as order totals are. Measure the 30 accounts again after it, before anything larger: heavy reads
+  side by side, one start-up request for the frame, one request for Home's figures.
+- **Also seen:** Statistics, a whole year by day, takes about 420 ms on 50,000 orders.
+- **Found:** 2026-10-23.
+
 ## A deleted record should not be removed for good at once
 
 - **Where:** Delete order (`react/src/pages/DeleteOrder.jsx`, `DELETE /api/orders/:id`), bulk

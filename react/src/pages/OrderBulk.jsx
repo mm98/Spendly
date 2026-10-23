@@ -74,9 +74,9 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 			}), 'The status was not changed. Try again.')} />
 		: open === 'category'
 			? <AddCategory chosen={all ? null : chosen} count={count} busy={busy} onCancel={close}
-				onApply={names => write({ addCategories: names }, before => ({
+				onApply={names => write({ addCategories: names }, (before, out) => ({
 					message: `${names.join(', ')} added to ${plural(before.length, 'order')}.`,
-					undo: undoing(() => removeAdded(before, names), 'The categories were not changed back. Try again.')
+					undo: undoing(() => removeAdded(before, out.added), 'The categories were not changed back. Try again.')
 				}), 'No category was added. Try again.')} />
 			: null
 
@@ -117,12 +117,10 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 }
 
 /* A category comes off only the orders that did not carry it before. */
-async function removeAdded(orders, names) {
-	const categories = await Promise.all(names.map(name => getCategoryPage({ name, pageSize: 1, shape: 'brief' }).then(r => r.categories[0])))
-	return Promise.all(names.map((name, i) => {
-		const category = categories[i]
-		const ids = category ? orders.filter(o => !o.categories.some(x => x.id === category.id)).map(o => o.id) : []
-		return ids.length ? changeOrders({ ids, removeCategories: [category.id] }) : null
+function removeAdded(orders, categoryIds) {
+	return Promise.all(categoryIds.map(id => {
+		const ids = orders.filter(o => !o.categories.some(x => x.id === id)).map(o => o.id)
+		return ids.length ? changeOrders({ ids, removeCategories: [id] }) : null
 	}))
 }
 
