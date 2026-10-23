@@ -73,14 +73,27 @@ is removed in the change that settles it.
   border or background, `position: absolute`, `pointer-events: auto`. Then the app's rule and this
   entry go.
 
-## For Claude Design: the order search's end buttons sit close to the edge on a phone
+## For Claude Design: a field's end buttons sit close to the edge on a phone
 
 - **Where:** `react/src/styles/app.css`, the rules under "on touch a field's end buttons keep their
-  drawn size". Order list 2b, Mobile screens 7a.
-- **What the reader sees:** on a phone the Ask button had less space on its right than above and
-  below it.
-- **What was found:** `.sp-field__trails` sits `--sp-6` from the right at every size, but on touch the
-  30px buttons are centred in a 48px field, so they sit 9px from the top and bottom. Found 23 Oct 2026.
-- **To take into `design/`:** on touch, `.sp-field__trails` sits `(--control-h-touch - --field-trail) / 2`
-  from the right, and `.sp-input--trail-2` pads by the same amount in place of `--sp-6`. Then the
+  drawn size". Order list 2b, Mobile screens 7a, the Ask page's chat field and every search field.
+- **What the reader sees:** on a phone an end button (Ask, clear, the Ask page's help) had less space
+  on its right than above and below it, and a search field's clear button sat high.
+- **What was found:** `.sp-field__trail` and `.sp-field__trails` sit `--sp-6` from the right, and a
+  search field's single button `--sp-6` from the top, at every size. On touch the field is 48px and the
+  button 30px, so the even inset is 9px. Found 23 Oct 2026.
+- **To take into `design/`:** on touch, an end button or group sits `(--control-h-touch - --field-trail) / 2`
+  from the right, a button not centred by its field sits the same from the top, and `.sp-input--trail`,
+  `.sp-input--trail-2` and the chat field pad by that amount in place of `--sp-6`. Then the app's rules
+  and this entry go.
+
+## For Claude Design: Ask in a search field keeps its hover colour after a tap
+
+- **Where:** `react/src/styles/app.css`, the rule under "a touch screen keeps a tapped button hovered".
+  Order list 2b.
+- **What the reader sees:** on a phone, after a tap on Ask, it showed the lighter hover green, not the
+  green it has when on, until the next tap somewhere else.
+- **What was found:** a touch screen keeps `:hover` on the last tapped element. Other controls hover
+  only under `@media (hover: hover)` (21b); `.sp-field__trail--ask` does not. Found 23 Oct 2026.
+- **To take into `design/`:** the Ask button's hover rules sit under `@media (hover: hover)`. Then the
   app's rules and this entry go.
