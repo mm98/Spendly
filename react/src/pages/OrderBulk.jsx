@@ -118,7 +118,7 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 
 /* A category comes off only the orders that did not carry it before. */
 async function removeAdded(orders, names) {
-	const categories = await Promise.all(names.map(name => getCategoryPage({ name, pageSize: 1 }).then(r => r.categories[0])))
+	const categories = await Promise.all(names.map(name => getCategoryPage({ name, pageSize: 1, shape: 'brief' }).then(r => r.categories[0])))
 	return Promise.all(names.map((name, i) => {
 		const category = categories[i]
 		const ids = category ? orders.filter(o => !o.categories.some(x => x.id === category.id)).map(o => o.id) : []

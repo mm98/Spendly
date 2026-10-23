@@ -100,7 +100,7 @@ export default function Bookmarks() {
 	const clearAll = () => write({ q: '', category: '', archived: '' })
 
 	const { used, withoutCount } = counts
-	const idOf = name => getCategoryPage({ name, pageSize: 1 }).then(r => r.categories[0]?.id, () => null)
+	const idOf = name => getCategoryPage({ name, pageSize: 1, shape: 'brief' }).then(r => r.categories[0]?.id, () => null)
 	const categoryName = category === NONE ? 'Without category' : chosen.data?.categories[0]?.name ?? ''
 	const sortLabel = SORTS.find(s => s.id === sort).label
 

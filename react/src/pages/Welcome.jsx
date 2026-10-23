@@ -13,7 +13,7 @@ import { Spinner } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryIconPicker, SWATCHES } from '../app/categoryMark.jsx'
 import {
-	createCategory, failureMessage, finishSetup, getCategoryPage, getCurrentUser, getOrders, getSettings, saveSettings
+	createCategory, failureMessage, finishSetup, getCounts, getCurrentUser, getSettings, saveSettings
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, detectLocale, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { landing } from './AuthParts.jsx'
@@ -79,9 +79,9 @@ export default function Welcome() {
 	const done = chosen => {
 		setBusy(true)
 		setProblem(null)
-		return Promise.all([getCategoryPage({ pageSize: 1 }), getOrders({ pageSize: 1 })])
+		return getCounts()
 			// an account that already holds records keeps them as they are
-			.then(([cats, orders]) => (cats?.matched || orders?.total ? null : makeCategory(chosen)))
+			.then(counts => (counts.categories || counts.orders ? null : makeCategory(chosen)))
 			.then(() => finishSetup())
 			.then(() => navigate(next, { replace: true }))
 			.catch(fail)

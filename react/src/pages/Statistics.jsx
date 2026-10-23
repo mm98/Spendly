@@ -22,7 +22,7 @@ import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { useScanPicker } from '../app/scanPicker.jsx'
-import { getCategoryPage, getCurrentUser, getLimitedCategories, getSettings, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
+import { getCategoryPage, getCounts, getCurrentUser, getLimitedCategories, getSettings, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, shortDate, today
@@ -164,7 +164,7 @@ export default function Statistics() {
 	const categories = useApi(getLimitedCategories)
 	const vendors = useCrumbRecords(getVendorPage, crumbs, 'vendor')?.vendors
 	const crumbCategories = useCrumbRecords(getCategoryPage, crumbs, 'category')?.categories
-	const known = useApi(getCategoryPage, [{ pageSize: 0 }]).data?.matched
+	const known = useApi(getCounts).data?.categories
 
 	// the table's loaded pages are in the address, as on every list (4d); a new period or crumb drops them
 	const { pages, setPages, restored } = useListMemory()
