@@ -1,10 +1,10 @@
 import { lazy } from 'react'
 import { redirect } from 'react-router'
-import { AppShell, frameReads } from './app/AppShell.jsx'
+import { AppShell } from './app/AppShell.jsx'
 import { NewerVersion, RouteError, ShellError } from './app/RouteError.jsx'
 import { SignedOut } from './app/SignedOut.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
-import { cachedFetch, peek } from './api/useApi.js'
+import { cachedFetch } from './api/useApi.js'
 import { setCurrency, setLocale } from './api/format.js'
 import { setDensity } from './app/theme.js'
 
@@ -18,9 +18,7 @@ const requireAuth = async ({ request }) => {
 			const { pathname, search } = new URL(request.url)
 			throw redirect(pathname === '/' ? '/welcome' : `/welcome?next=${encodeURIComponent(pathname + search)}`)
 		}
-		// a tab that has no settings yet has none of the frame's reads either: they go in the same request
-		const frame = peek(getSettings) === undefined ? frameReads().map(([read, args]) => cachedFetch(read, args).catch(() => {})) : []
-		await Promise.all([cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale); setDensity(s?.density) }).catch(() => {}), ...frame])
+		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale); setDensity(s?.density) }).catch(() => {})
 		return null
 	} catch (e) {
 		if (e instanceof Response) throw e

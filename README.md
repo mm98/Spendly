@@ -337,8 +337,7 @@ printed amounts.
 - **The app** loads each page when it is first opened, keeps every request in one place, and
   shares one cache across pages, so a count in the sidebar follows a change made on another page.
   Files are compressed ahead of time, and the server sends the smallest one the browser accepts.
-  The server's answers are compressed too, except an answer that arrives line by line. Reads a page
-  asks for at the same moment travel as one request.
+  The server's answers are compressed too, except an answer that arrives line by line.
 - **The server** keeps each account's records apart in every query. Totals and counts are kept on
   the record by the database itself, so lists and statistics read them for free.
 - **What Ask makes** is one maker for each kind of thing (a file, a chart), and one file for each

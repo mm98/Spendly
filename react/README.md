@@ -120,11 +120,6 @@ answer to fetch again, so a sidebar count follows a write on another page. Signi
 the cache without asking the readers on screen to fetch again. A request refused because the
 session has ended opens the "You've been signed out" dialog.
 
-Reads asked in the same moment go to the server as one `GET /api/many` (`api/src/routes/many.js`),
-which asks each of them of itself, so each is cached and refused as it would be alone. A read that
-waits on another site passes `alone`. The route loader asks the frame's reads (`frameReads()` in
-`AppShell.jsx`) beside the first settings read, so a fresh tab starts with two requests.
-
 ## The build
 
 Every page is its own chunk, loaded when its route is first opened. React, the DOM renderer and
