@@ -1,4 +1,5 @@
 import express from 'express'
+import compression from 'compression'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -122,6 +123,10 @@ app.use('/api', (req, res, next) => {
 	if (process.env.SPENDLY_BUILD_SHA) res.setHeader('Build', process.env.SPENDLY_BUILD_SHA)
 	next()
 })
+
+/* The API's answers go compressed when the browser accepts it. A line-by-line answer (Ask, a demo fill,
+   an import) is left as it is: compressing it would hold each line back until a block fills. */
+app.use('/api', compression({ filter: (req, res) => !String(res.getHeader('Content-Type') ?? '').includes('ndjson') && compression.filter(req, res) }))
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 

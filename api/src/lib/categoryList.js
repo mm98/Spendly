@@ -160,6 +160,21 @@ export function categoryPage(userId, q, today, languages = []) {
 	return { categories: rowsFor(userId, page.map(r => r.id), extras, month, view), matched }
 }
 
+const selectLimited = db.prepare('SELECT id, name, icon, colour, budget, favourite FROM categories WHERE user_id = ? AND budget > 0')
+
+/** Every category with a monthly limit, by name, as who it is and its limit: never paged, so none is
+    ever left out. `over` keeps those whose spend this month is past the limit. */
+export function limitedCategories(userId, today, { over = false, languages = [] } = {}) {
+	let rows = selectLimited.all(userId)
+	if (over && rows.length) {
+		const spend = sumBy(selectMonth.all({ userId, ids: JSON.stringify(rows.map(c => c.id)), ...monthOf(today) }), 'spend')
+		rows = rows.filter(c => (spend.get(c.id) ?? 0) > c.budget)
+	}
+	const compare = nameOrder(languages)
+	return rows.sort((a, b) => compare(a.name, b.name))
+		.map(c => ({ id: c.id, name: c.name, icon: c.icon, colour: c.colour, budget: c.budget, favourite: Boolean(c.favourite) }))
+}
+
 /** Which of these names a category of the account already has, in any case: what an import would not create. */
 export function knownCategoryNames(userId, names) {
 	const held = new Set(selectAccountNames.all(userId).map(r => r.name.trim().toLowerCase()))

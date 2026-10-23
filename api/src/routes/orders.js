@@ -699,7 +699,7 @@ const applyBulk = db.transaction((userId, ids, change, today) => {
 		for (const categoryId of categoryIds) insertOrderCategoryOnce.run(id, categoryId)
 		for (const categoryId of change.removeCategories ?? []) deleteOrderCategory.run(id, categoryId)
 	}
-	return { changed, kept }
+	return { changed, kept, added: categoryIds }
 })
 
 // an Undo puts back exactly what a status change kept: each order's status and its dated events
@@ -740,8 +740,9 @@ router.post('/bulk', (req, res) => {
 	if (change.status && !isStatus(req.user.id, change.status)) return res.status(400).json({ error: 'That status does not exist.' })
 	// a draft is deleted by discarding it; it takes no other change, as Create is what makes it an order
 	const discarded = change.delete ? ids.filter(id => discardDraft(req.user.id, id)).length : 0
-	const { changed, kept } = applyBulk(req.user.id, ids, change, req.today)
-	res.json(change.status ? { changed, kept } : { changed: changed + discarded })
+	const { changed, kept, added } = applyBulk(req.user.id, ids, change, req.today)
+	// the categories added, by id in the order their names came, so an Undo needs no lookup
+	res.json(change.status ? { changed, kept } : change.addCategories.length ? { changed, added } : { changed: changed + discarded })
 })
 
 /* ---- attachments ----

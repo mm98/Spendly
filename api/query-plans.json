@@ -647,15 +647,6 @@
 				"idx_categories_user"
 			]
 		},
-		"SELECT c.id, c.name, c.favourite FROM categories c WHERE c.user_id = @userId AND c.budget > 0": {
-			"plan": [
-				"SEARCH c USING INDEX idx_categories_user (user_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_categories_user"
-			]
-		},
 		"SELECT c.id, c.name, c.favourite FROM categories c WHERE c.user_id = @userId AND c.id IN (SELECT bc.category_id FROM bookmark_categories bc JOIN bookmarks b ON b.id = bc.bookmark_id WHERE b.user_id = @userId AND b.archived = @view)": {
 			"plan": [
 				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
@@ -2692,6 +2683,15 @@
 			"findings": [],
 			"indexes": [
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT id, name, icon, colour, budget, favourite FROM categories WHERE user_id = ? AND budget > 0": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
 			]
 		},
 		"SELECT id, name, icon, colour, budget, favourite FROM categories WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))": {

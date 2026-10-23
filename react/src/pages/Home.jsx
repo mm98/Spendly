@@ -18,7 +18,7 @@ import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
 import { OrderAmount, OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import {
-	failureMessage, getCategoryPage, getCurrentUser, getDrafts, getHomeCategories, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsMonths, getStatsSlice, thisMonthSlice,
+	failureMessage, getCategoryPage, getCounts, getCurrentUser, getDrafts, getHomeAttention, getLimitedCategories, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsMonths, getStatsSlice, thisMonthSlice,
 	overBudget, putSummaryAway, scanThumbnailUrl, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -48,16 +48,16 @@ function loudness(settings) {
 /** A category with a limit is near it from the reader's chosen share up to the limit itself. */
 const nearLimit = (c, early) => c.budget > 0 && early < 100 && !overBudget(c) && c.monthSpend >= (c.budget * early) / 100
 
-/** The month window and the account's categories, joined: what three cards are drawn from. `list`
-    is getHomeCategories' answer; `top` the four that spent most, in the window's order. */
-function monthView(window, list, early, top) {
-	if (!window || !list || !top) return null
-	const categories = withMonthSpend(list.limited, window.split)
+/** The month window joined with every category with a limit, how many categories there are (`count`)
+    and the four that spent most (`top`, in the window's order): what three cards are drawn from. */
+function monthView(window, limited, count, early, top) {
+	if (!window || !limited || count === undefined || !top) return null
+	const categories = withMonthSpend(limited, window.split)
 	const byOverage = c => c.monthSpend - c.budget
 	const spent = withMonthSpend(top, window.split)
 	return {
 		window,
-		count: list.count,
+		count,
 		withSpend: window.split.filter(s => s.id && s.amount > 0).length,
 		early,
 		over: categories.filter(overBudget).sort((a, b) => byOverage(b) - byOverage(a)),
@@ -140,7 +140,8 @@ const firstName = user => String(user?.name ?? '').trim().split(/\s+/)[0] || nul
 export default function Home() {
 	const touch = useShellShape() === 'touch'
 	const month = useApi(getStatsSlice, [thisMonthSlice()])
-	const categories = useApi(getHomeCategories)
+	const categories = useApi(getLimitedCategories)
+	const counts = useApi(getCounts)
 	const settings = useApi(getSettings)
 	const known = settings.data !== undefined || !!settings.error
 	const rows = settings.data?.recentRows ?? RECENT
@@ -161,9 +162,9 @@ export default function Home() {
 	// the four categories that spent most this month, by the window's own figures, ties by name
 	const topIds = (month.data?.window.split ?? []).filter(s => s.id && s.amount > 0)
 		.sort((a, b) => b.amount - a.amount || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).slice(0, 4).map(s => s.id)
-	const topRead = useApi(getCategoryPage, [{ ids: topIds.join(','), pageSize: 4 }], { enabled: topIds.length > 0 })
+	const topRead = useApi(getCategoryPage, [{ ids: topIds.join(','), pageSize: 4, shape: 'brief' }], { enabled: topIds.length > 0 })
 	const top = !topIds.length ? [] : topRead.data ? topIds.map(id => topRead.data.categories.find(c => c.id === id)).filter(Boolean) : topRead.error ? [] : null
-	const view = monthView(month.data?.window, categories.data, loud.early, top)
+	const view = monthView(month.data?.window, categories.data, counts.data?.categories, loud.early, top)
 	// the summary waits for the settings, so one switched off never flashes up
 	const summary = useApi(getMonthlySummary, [], { enabled: known && loud.summary })
 	const toast = useToast()
@@ -179,11 +180,11 @@ export default function Home() {
 	}
 	const due = summary.data
 	const notice = known && loud.summary && due?.orders && !due.seen && putAway !== due.month && categories.data
-		? <MonthlySummary summary={due} categories={categories.data.limited} early={loud.early} onHide={() => hide(due.month)} />
+		? <MonthlySummary summary={due} categories={categories.data} early={loud.early} onHide={() => hide(due.month)} />
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	// the card waits for the settings, so a row switched off never flashes up
-	const props = { month, compared, categories, view, recent, rows, drafts, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
+	const props = { month, compared, categories, counts, view, recent, rows, drafts, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
 }
@@ -191,9 +192,9 @@ export default function Home() {
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, compared, categories, view, recent, rows, drafts, attention, looks, notice }) {
+function DesktopHome({ month, compared, categories, counts, view, recent, rows, drafts, attention, looks, notice }) {
 	const newest = recent.data?.orders[0]
-	const lost = month.error || categories.error
+	const lost = month.error || categories.error || counts.error
 	return (
 		<div className="hm-page sp-stack sp-gap-12">
 			{notice}
@@ -217,7 +218,7 @@ function DesktopHome({ month, compared, categories, view, recent, rows, drafts, 
 					{lost
 						? (
 							<Hold shape={<CategoriesCard />}>
-								<Failed variant="card" label="Categories this month" what="This month's categories" error={lost} onRetry={retrying(month, categories)} />
+								<Failed variant="card" label="Categories this month" what="This month's categories" error={lost} onRetry={retrying(month, categories, counts)} />
 							</Hold>
 						)
 						: <CategoriesCard view={view} />}
@@ -704,7 +705,7 @@ function MonthsCard() {
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ month, compared, categories, view, recent, rows, drafts, attention, looks, name }) {
+function PhoneHome({ month, compared, categories, counts, view, recent, rows, drafts, attention, looks, name }) {
 	const w = month.data?.window
 	return (
 		<>
@@ -717,11 +718,11 @@ function PhoneHome({ month, compared, categories, view, recent, rows, drafts, at
 			{month.error
 				? (
 					<Hold shape={<PhoneMonth />}>
-						<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={retrying(month, categories)} />
+						<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={retrying(month, categories, counts)} />
 					</Hold>
 				)
 				: <PhoneMonth w={w} compared={compared} />}
-			{month.error || categories.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
+			{month.error || categories.error || counts.error ? null : <PhoneAlerts view={view} attention={attention} looks={looks} />}
 			<PhoneDrafts drafts={drafts} />
 			<PhoneRecent recent={recent} rows={rows} />
 		</>
