@@ -1151,7 +1151,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					? (
 						<ListItem variant="outline" actions={<>
 							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>Add files</Button>
-							<input ref={picker} type="file" accept={FILE_TYPES} multiple hidden tabIndex={-1}
+							<input ref={picker} type="file" name="attachments" accept={FILE_TYPES} multiple hidden tabIndex={-1}
 								onChange={async ev => { const picked = [...ev.target.files]; ev.target.value = ''; addFiles(picked, await Promise.all(picked.map(f => sniffedProblem(f)))) }} />
 						</>}>
 							<span className="sp-data">The receipt was not copied - add this trip's receipt</span>

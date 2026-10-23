@@ -87,6 +87,7 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 				ref={field}
 				id={id}
 				type="file"
+				name="file"
 				accept={accept}
 				multiple={multiple}
 				onChange={ev => { take(ev.target.files); ev.target.value = '' }}

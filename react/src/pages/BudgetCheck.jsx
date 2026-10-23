@@ -177,7 +177,7 @@ export default function BudgetCheck() {
 					? <Button variant="outline" aria-pressed={showColumns ? 'true' : 'false'} onClick={toggleColumns}>{showColumns ? 'Close columns' : 'Columns'}</Button>
 					: null}
 				<Button variant="outline" onClick={() => picker.current?.click()}>Another file</Button>
-				<input ref={picker} type="file" accept={BANK_FILES} hidden tabIndex={-1}
+				<input ref={picker} type="file" name="bank-file" accept={BANK_FILES} hidden tabIndex={-1}
 					onChange={ev => { const chosen = ev.target.files?.[0]; ev.target.value = ''; read(chosen) }} />
 			</Controls>
 			{showColumns || !ready || !payments.length
