@@ -1,13 +1,14 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
+import { Anchor, Menu, MenuItem } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { useReorder } from '../components/Reorder.js'
-import { Skeleton } from '../components/Utilities.jsx'
+import { Skeleton, useDismiss } from '../components/Utilities.jsx'
 import { addStatus, changeStatus, deleteStatus, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { TONES } from '../app/statuses.js'
@@ -46,28 +47,14 @@ export async function saveStatuses(after) {
 export function StatusesCard({ value, change, saved, touch = false }) {
 	const list = value('statuses') ?? null
 	const [editing, setEditing] = useState(null)
-	const [said, setSaid] = useState('')
 	const made = useRef(0)
 	const edit = next => change('statuses', saved && sameAs(next, saved) ? saved : next)
-	// a phone moves a status with its up and down buttons, so the handle is the desktop's (18b)
 	const reorder = useReorder({
 		items: list ?? [],
 		keyOf: status => status.key,
 		nameOf: status => status.name,
 		onMove: edit
 	})
-	const rows = reorder.list.ref
-	// the row and the way it was last moved by a button, so focus can follow it to its new place
-	const moved = useRef(null)
-	useEffect(() => {
-		const last = moved.current
-		if (!last || !list) return
-		moved.current = null
-		const at = list.findIndex(s => s.key === last.key)
-		// the pressed button again, or the other one where the pressed one is now disabled at an end
-		const way = at <= 0 ? 'down' : at >= list.length - 1 ? 'up' : last.way
-		rows.current?.querySelector(`[data-status="${CSS.escape(last.key)}"] [data-move="${way}"]`)?.focus()
-	}, [list])
 
 	if (!list)
 		return (
@@ -79,16 +66,6 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 			</Card>
 		)
 
-	const step = (status, way) => {
-		const at = list.findIndex(s => s.key === status.key)
-		const to = at + (way === 'up' ? -1 : 1)
-		if (to < 0 || to >= list.length) return
-		const next = [...list]
-		next.splice(to, 0, next.splice(at, 1)[0])
-		moved.current = { key: status.key, way }
-		edit(next)
-		setSaid(`${status.name}, position ${to + 1} of ${list.length}`)
-	}
 	const remove = status => edit(list.filter(s => s.key !== status.key))
 	const keep = (status, next) => {
 		edit(status ? list.map(s => (s.key === status.key ? { ...s, ...next } : s))
@@ -99,68 +76,80 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	return (
 		<Card footer={editing === 'new' ? null : <Button variant="outline" onClick={() => setEditing('new')}>Add a status</Button>}
 			footerLayout="stack" footerCommits>
-			<CardHeader name="Statuses" {...landing('statuses')} aside={touch ? undefined : 'Drag to reorder'} />
+			<CardHeader name="Statuses" {...landing('statuses')} aside="Drag to reorder" />
 			<div className="sp-stack sp-gap-6" {...reorder.list}>
-				<Announce>{touch ? said : reorder.said}</Announce>
-				{reorder.items.map((status, i) => (
+				<Announce>{reorder.said}</Announce>
+				{reorder.items.map(status => (
 					<Fragment key={status.key}>
 						{reorder.lands(status) ? <Insertion /> : null}
 						{editing === status.key
-							? <StatusEditor status={status} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
+							? <StatusEditor status={status} touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
 							: (
 								<ListItem variant={reorder.variant(status)} editable
-									handle={touch ? undefined : <Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
+									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
 									data-status={status.key} {...reorder.row(status)}>
-									{touch
-										? (
-											// on a phone the count goes under the name, so the name keeps its room beside the buttons
-											<span className="sp-stack sp-grow">
-												<StatusLook tone={status.tone}>{status.name}</StatusLook>
-												<span className="sp-meta">{plural(status.orders ?? 0, 'order')}</span>
-											</span>
-										)
-										: (
-											<>
-												<StatusLook tone={status.tone}>{status.name}</StatusLook>
-												<span className="sp-grow" />
-												<span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>
-											</>
-										)}
+									<StatusLook tone={status.tone}>{status.name}</StatusLook>
+									<span className="sp-grow" />
+									{/* on a phone the count is left out, so the name sits level with the rest of the row (11a) */}
+									{touch ? null : <span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>}
 									{status.builtIn ? <Pill>built in</Pill> : null}
-									<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
-										<Icon name="pencil" size={14} />
-									</Mark>
-									{status.builtIn || status.orders
-										? null
-										: (
-											<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
-												<Icon name="trash" size={14} />
-											</Mark>
-										)}
 									{touch
-										? (
+										? <StatusMenu status={status} onRename={() => setEditing(status.key)} onDelete={() => remove(status)} />
+										: (
 											<>
-												<IconButton variant="outline" icon="chevron-up" aria-label={`Move ${status.name} up`} data-move="up"
-													disabled={i === 0} onClick={() => step(status, 'up')} />
-												<IconButton variant="outline" icon="chevron-down" aria-label={`Move ${status.name} down`} data-move="down"
-													disabled={i === list.length - 1} onClick={() => step(status, 'down')} />
+												<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
+													<Icon name="pencil" size={14} />
+												</Mark>
+												{deletable(status)
+													? (
+														<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
+															<Icon name="trash" size={14} />
+														</Mark>
+													)
+													: null}
 											</>
-										)
-										: null}
+										)}
 								</ListItem>
 							)}
 					</Fragment>
 				))}
 				{editing === 'new'
-					? <StatusEditor onCancel={() => setEditing(null)} onSave={next => keep(null, next)} />
+					? <StatusEditor touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(null, next)} />
 					: null}
 			</div>
 		</Card>
 	)
 }
 
+// an added status no order carries can go; a built-in one stays
+const deletable = status => !status.builtIn && !status.orders
+
+/** A status's actions on a phone (11a): Rename, and Delete where it may go. Draft has neither,
+    so it has no menu: the pencil and the bin sit too close together for two 44px targets. */
+function StatusMenu({ status, onRename, onDelete }) {
+	const [open, setOpen] = useState(false)
+	const anchor = useRef(null)
+	const close = useCallback(() => setOpen(false), [])
+	useDismiss(anchor, open, close)
+	if (status.type === 'draft') return null
+	return (
+		<Anchor ref={anchor} open={open}>
+			<IconButton icon="dots-vertical" aria-label={`Actions for ${status.name}`}
+				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
+			{open
+				? (
+					<Menu position="floating" aria-label={status.name}>
+						<MenuItem onClick={() => { close(); onRename() }}>Rename</MenuItem>
+						{deletable(status) ? <MenuItem onClick={() => { close(); onDelete() }}>Delete</MenuItem> : null}
+					</Menu>
+				)
+				: null}
+		</Anchor>
+	)
+}
+
 /* One status open for its name and tone (11a): the four looks the list can draw, as pills. */
-function StatusEditor({ status, onCancel, onSave }) {
+function StatusEditor({ status, touch = false, onCancel, onSave }) {
 	const [name, setName] = useState(status?.name ?? '')
 	const [tone, setTone] = useState(status?.tone ?? 'neutral')
 	const field = useRef(null)
@@ -170,10 +159,11 @@ function StatusEditor({ status, onCancel, onSave }) {
 		if (!empty) onSave({ name: name.trim(), tone })
 	}
 	return (
-		<ListItem variant="outline" selected editable data-status-editor>
+		<ListItem variant="outline" selected editable>
 			<TextField inputRef={field} value={name} maxLength={40} aria-label="Status name" onChange={setName}
 				onKeyDown={ev => { if (ev.key === 'Enter') save(); if (ev.key === 'Escape') onCancel() }} />
-			<span className="sp-grow" />
+			{/* on a phone the row wraps and the field takes the first line, so it has no spacer to share it with */}
+			{touch ? null : <span className="sp-grow" />}
 			<div className="sp-row-flex sp-gap-6 sp-flex-none" role="radiogroup" aria-label="Tone">
 				{TONE_NAMES.map(([key, label]) => (
 					<label key={key} className="st-tone">

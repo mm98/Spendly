@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Card, CardBody, CardHeader, Toolbar } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
@@ -215,12 +215,42 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 		if (role !== 'none') patch[role] = i
 		onChange(patch)
 	}
+	const touch = useShellShape() === 'touch'
+	const columns = Array.from({ length: width }, (_, i) => {
+		const role = roleOf(i)
+		const name = mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`
+		return {
+			i,
+			name,
+			values: (
+				<span className="sp-subtitle sp-truncate">
+					{(role.id === 'none' ? describeColumn(body.map(r => r[i]), mapping.header ? rows[0][i] : '') : null)
+						?? body.slice(0, 3).map(r => r[i] || '(empty)').join(dot)}
+				</span>
+			),
+			choice: (
+				<div className="sp-stack sp-gap-8">
+					<PickOnly aria-label={`${name} is mapped to`}
+						value={role.id === 'none' ? <span className="sp-ink-5">{role.label}</span> : role.label}
+						options={ROLES.map(r => ({ id: r.id, label: r.label, selected: r.id === role.id }))}
+						onPick={id => set(i, id)} />
+					{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
+						<Field label="Every date can be read two ways. Which is right?">
+							<PickOnly value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
+								options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label, selected: f.id === dateFormat }))}
+								onPick={id => onChange({ dateFormat: id })} />
+						</Field>
+					) : <span className="sp-note sp-ink-danger">These are not dates Spendly can read.</span>}
+				</div>
+			)
+		}
+	})
 	return (
 		<Card variant="flush">
 			<Toolbar>
 				<span className="sp-section-label">Columns</span>
 				<span className="sp-grow" />
-				<span className="sp-note">{file}</span>
+				<span className={touch ? 'sp-note sp-truncate' : 'sp-note'}>{file}</span>
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-12">
@@ -232,49 +262,42 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 					</Choice>
 				</div>
 			</CardBody>
-			<div className="bg-sideways">
-				<table className="sp-table sp-table--static bg-map">
-					<thead>
-						<tr>
-							<th scope="col" className="sp-col-title">File</th>
-							<th scope="col" className="sp-col-flex">First three values</th>
-							<th scope="col" className="bg-col-map">Spendly</th>
-						</tr>
-					</thead>
-					<tbody>
-						{Array.from({ length: width }, (_, i) => {
-							const role = roleOf(i)
-							const name = mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`
-							return (
-								<tr key={i}>
-									<td><span className="sp-title">{name}</span></td>
-									<td>
-										<span className="sp-subtitle sp-truncate">
-											{(role.id === 'none' ? describeColumn(body.map(r => r[i]), mapping.header ? rows[0][i] : '') : null)
-												?? body.slice(0, 3).map(r => r[i] || '(empty)').join(dot)}
-										</span>
-									</td>
-									<td>
-										<div className="sp-stack sp-gap-8">
-											<PickOnly aria-label={`${name} is mapped to`}
-												value={role.id === 'none' ? <span className="sp-ink-5">{role.label}</span> : role.label}
-												options={ROLES.map(r => ({ id: r.id, label: r.label, selected: r.id === role.id }))}
-												onPick={id => set(i, id)} />
-											{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
-												<Field label="Every date can be read two ways. Which is right?">
-													<PickOnly value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
-														options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label, selected: f.id === dateFormat }))}
-														onPick={id => onChange({ dateFormat: id })} />
-												</Field>
-											) : <span className="sp-note sp-ink-danger">These are not dates Spendly can read.</span>}
-										</div>
-									</td>
+			{touch
+				// on a phone a block per column, its choice under it at the full width: nothing scrolls sideways (21h)
+				? columns.map(c => (
+					<Fragment key={c.i}>
+						<span className="sp-rule" />
+						<CardBody>
+							<div className="sp-stack sp-gap-8">
+								<span className="sp-stacked">
+									<span className="sp-title">{c.name}</span>
+									{c.values}
+								</span>
+								{c.choice}
+							</div>
+						</CardBody>
+					</Fragment>
+				))
+				: (
+					<table className="sp-table sp-table--static">
+						<thead>
+							<tr>
+								<th scope="col" className="sp-col-title">File</th>
+								<th scope="col" className="sp-col-flex">First three values</th>
+								<th scope="col" className="bg-col-map">Spendly</th>
+							</tr>
+						</thead>
+						<tbody>
+							{columns.map(c => (
+								<tr key={c.i}>
+									<td><span className="sp-title">{c.name}</span></td>
+									<td>{c.values}</td>
+									<td>{c.choice}</td>
 								</tr>
-							)
-						})}
-					</tbody>
-				</table>
-			</div>
+							))}
+						</tbody>
+					</table>
+				)}
 			<CardBody>
 				<span className="sp-note">Money out is read as a minus amount. Choose a column as money out only when your bank shows it in a column of its own.</span>
 			</CardBody>

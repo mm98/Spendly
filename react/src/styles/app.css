@@ -173,8 +173,10 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 [data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *):has(> img, > .sp-mark__open > img) { border-color: var(--line-3); }
 [data-theme="dark"] :is(.sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *), .sp-record__photo) > img,
 [data-theme="dark"] .sp-mark--photo:not(.sp-mark--round, .sp-nav-item > *, .sp-viewer *) > .sp-mark__open > img { opacity: var(--fade-photo); }
-[data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo):hover > img,
-[data-theme="dark"] .sp-mark--photo:hover > .sp-mark__open > img { opacity: 1; }
+@media (hover: hover) {
+	[data-theme="dark"] :is(.sp-mark--photo, .sp-record__photo):hover > img,
+	[data-theme="dark"] .sp-mark--photo:hover > .sp-mark__open > img { opacity: 1; }
+}
 
 /* uploading, the ring sits over the image, the old one or the new local preview (17b) */
 .sp-mark--photo > .sp-spinner { position: relative; z-index: 1; }
@@ -226,8 +228,7 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 .sp-chip--facet > span > span { overflow: hidden; text-overflow: ellipsis; }
 .sp-chip--facet > span + span { flex: none; }
 /* a value with no orders is disabled rather than hidden (c12), as a disabled choice reads */
-.sp-chip--facet:has(input:disabled),
-.sp-chip--facet:has(input:disabled):hover { border-color: var(--line-3); color: var(--ink-5); cursor: not-allowed; }
+.sp-chip--facet:has(input:disabled) { border-color: var(--line-3); color: var(--ink-5); cursor: not-allowed; }
 /* the palette never grows past 60vh; its results scroll inside it (9d). Full screen on a phone (7b) */
 .sp-palette { display: flex; flex-direction: column; max-height: 60vh; }
 .sp-palette--screen { max-height: none; }
@@ -248,30 +249,6 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	width: var(--control-h-touch);
 	height: var(--control-h-touch);
 	transform: translate(-50%, -50%);
-}
-/* on touch a field's end buttons keep their drawn size in a taller field: the inset at the right
-   matches the one above and below, and the text stops the same 8px before them */
-.sp-touch :not(.sp-field__trails) > .sp-field__trail,
-.sp-touch .sp-field__trails { right: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
-/* a field wrap centres its button and the chat field holds it to the bottom, so only the rest move down */
-.sp-touch :not(.sp-field__trails, .sp-field__wrap, .sp-chat__wrap) > .sp-field__trail { top: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
-.sp-touch .sp-input--trail,
-.sp-touch .sp-chat__wrap > .sp-textarea.sp-chat__field { padding-right: calc((var(--control-h-touch) - var(--field-trail)) / 2 + var(--field-trail) + var(--sp-8)); }
-.sp-touch .sp-input--trail-2 { padding-right: calc((var(--control-h-touch) - var(--field-trail)) / 2 + var(--field-trail) * 2 + var(--sp-14) + var(--sp-8)); }
-.sp-touch .sp-field__wrap > .sp-tokens:has(+ .sp-field__trail) { padding-right: var(--control-h-touch); }
-/* a touch screen keeps a tapped button hovered, so on touch Ask shows its real state, on or off, after the tap */
-.sp-touch .sp-field__trail--ask:hover { background: none; color: var(--ink-4); }
-.sp-touch .sp-field__trail--ask[aria-pressed="true"]:hover { background: var(--green); color: #fff; }
-/* on touch a field-end button's ::after is its press area, not its tip: without this the tip's dark
-   chip fills the area once tapped, and the area lets taps through */
-.sp-touch .sp-field__trails > [data-tip]::after {
-	position: absolute;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	background: none;
-	pointer-events: auto;
-	transition: none;
 }
 
 /* the item editor measures its own width: below 640 its thirds become fixed + fluid (15b, .rr-f-thirds) */
@@ -309,17 +286,8 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 .sp-touch .sp-field-group__fold { align-self: stretch; position: relative; }
 .sp-touch .sp-field-group__fold::after { content: ""; position: absolute; inset: 0 0 calc(var(--sp-6) * -1); }
 
-/* on touch a tapped control keeps :hover, so a tip would stay over the screen: only a disabled
-   control, whose tip says why, and a field-end button, whose ::after is its press area, keep theirs */
-.sp-touch [data-tip]:not(.sp-field__trails > *, :disabled, [aria-disabled="true"])::after { content: none; }
-
 /* a figure keeps its width and the label beside it wraps; only a value wider than the row breaks */
 .sp-sum:not(.sp-sum--stacked) > .sp-sum__value { flex-shrink: 0; max-width: 60%; }
 
 /* a facet switch's options share the width, but each is at least as wide as its own label */
 .sp-segmented--facet { grid-auto-columns: minmax(max-content, 1fr); }
-
-/* on a phone the status editor wraps: the name takes the first line, the tones and buttons the next */
-.sp-touch .sp-list-item[data-status-editor] { flex-wrap: wrap; height: auto; padding-block: var(--sp-8); }
-.sp-touch .sp-list-item[data-status-editor] > .sp-input { flex: 1 0 100%; }
-.sp-touch .sp-list-item[data-status-editor] > .sp-grow { display: none; }

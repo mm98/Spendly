@@ -339,11 +339,11 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					{h(<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder="none" />)}
 				</Field>
 				<div className="sp-field">
-					<div className="sp-row-flex sp-gap-12">
+					<label className="sp-row-flex sp-gap-12">
 						{h(<Switch id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={values.defaultExcludeFromStats}
 							onChange={ev => set('defaultExcludeFromStats', ev.target.checked)} />)}
-						<label className="sp-data" htmlFor={statsSwitch}>Leave out of statistics</label>
-					</div>
+						<span className="sp-data">Leave out of statistics</span>
+					</label>
 					<span className="sp-field__help" id={`${statsSwitch}-help`}>For a vendor of one-off purchases, like a car dealer. A new order from this vendor starts with Leave out of statistics on, and you can still change it on the order.</span>
 				</div>
 			</Card>

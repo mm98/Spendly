@@ -30,8 +30,10 @@
 	.hm-wells > * { flex: 1 1 0; }
 
 	/* a summary line opens that month's orders in its category, drawn as the line it is */
-	a.hm-link,
-	a.hm-link:hover { color: inherit; text-decoration: none; border-radius: var(--r-tile); }
+	a.hm-link { color: inherit; text-decoration: none; border-radius: var(--r-tile); }
+	@media (hover: hover) {
+		a.hm-link:hover { color: inherit; text-decoration: none; }
+	}
 	a.hm-link:focus-visible { outline: none; box-shadow: var(--ring); }
 
 }

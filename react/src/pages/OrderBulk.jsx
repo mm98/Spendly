@@ -230,7 +230,7 @@ function SetStatus({ chosen, count, busy, onCancel, onApply }) {
 			onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onCancel() } }}
 			head={<><span className="sp-title">Set status</span><span className="sp-subtitle">Replaces the status on {which(count)}.</span></>}
 			note={typeOf(status) === 'delivered'
-				? <><Switch id={today} checked={deliveredToday} onChange={ev => setDeliveredToday(ev.target.checked)} /><label className="sp-subtitle" htmlFor={today}>Also set delivery date to today</label></>
+				? <label className="sp-row-flex sp-gap-8"><Switch id={today} checked={deliveredToday} onChange={ev => setDeliveredToday(ev.target.checked)} /><span className="sp-subtitle">Also set delivery date to today</span></label>
 				: null}
 			actions={<>
 				<Button variant="outline" fullWidth onClick={onCancel}>Cancel</Button>
