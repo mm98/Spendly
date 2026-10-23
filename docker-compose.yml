@@ -33,9 +33,6 @@ services:
       # the whole file and costs the most. Text and pictures read the first 5 pages only. A scanned
       # PDF, or one whose words come out broken or too few, is always sent as pictures.
       # SPENDLY_PDF_READING: text
-      # Optional: "off" stops the order search from finding a category by what a word means
-      # ("food" for Groceries). The search then knows only the full names.
-      # SPENDLY_SEARCH_MEANING: "off"
       # Optional: how many questions each account can ask on Ask each day. Every question is paid
       # on the key above. 0 turns Ask off.
       # SPENDLY_ASK_QUESTIONS_PER_DAY: 25
