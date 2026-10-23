@@ -435,3 +435,5 @@ a control that does nothing.
   non-technical reader understands. Explanations of how the design works live in the notes,
   never on the screen.
 - The area for things worth buying later is called Bookmarks, everywhere.
+- On a phone every target is at least 44 tall, a box or a switch with its whole line, and nothing
+  shows a hover look: a phone keeps the last thing tapped as hovered.

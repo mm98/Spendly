@@ -1099,14 +1099,14 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 			{amountScale?.stops || amountScale?.highest ? <AmountFacet scale={amountScale} min={f.min} max={f.max} update={update} /> : null}
 
 			<div className="sp-field-group">
-				<div className="sp-row-flex sp-gap-12">
+				<label className="sp-row-flex sp-gap-12">
 					<Switch id={`${switches}-files`} checked={f.files === '1'} onChange={ev => update({ files: ev.target.checked ? '1' : '' })} />
-					<label className="sp-data" htmlFor={`${switches}-files`}>Has attachments</label>
-				</div>
-				<div className="sp-row-flex sp-gap-12">
+					<span className="sp-data">Has attachments</span>
+				</label>
+				<label className="sp-row-flex sp-gap-12">
 					<Switch id={`${switches}-discounted`} checked={f.discounted === '1'} onChange={ev => update({ discounted: ev.target.checked ? '1' : '' })} />
-					<label className="sp-data" htmlFor={`${switches}-discounted`}>Discounted only</label>
-				</div>
+					<span className="sp-data">Discounted only</span>
+				</label>
 			</div>
 		</Groups>
 	)

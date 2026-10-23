@@ -26,7 +26,9 @@
   .sp[data-theme="dark"] { background: var(--bg); color: var(--ink); }
 
   .sp a { color: var(--green); }
-  .sp a:hover { color: var(--green-2); }
+  @media (hover: hover) {
+    .sp a:hover { color: var(--green-2); }
+  }
   .sp code {
     font-size: var(--t-11);
     background: var(--hover);
@@ -180,8 +182,10 @@
   cursor: pointer;
   outline: none;
 }
-.sp-list__toolbar--link:hover,
-.sp-list__toolbar--toggle:hover { background: var(--surface-2); }
+@media (hover: hover) {
+  .sp-list__toolbar--link:hover,
+  .sp-list__toolbar--toggle:hover { background: var(--surface-2); }
+}
 .sp-list__toolbar--link:focus-visible,
 .sp-list__toolbar--toggle:focus-visible { box-shadow: var(--ring); }
 .sp-card__chevron { margin-left: auto; flex: none; display: flex; color: var(--line-5); transition: transform 120ms ease; }
@@ -228,7 +232,9 @@
    a button while behaving like navigation. */
 .sp-card__footer > .sp-btn:only-child:not([class*="--text"]) { width: 100%; }
 a.sp-card { text-decoration: none; color: inherit; }
-a.sp-card:hover { border-color: var(--line-3); }
+@media (hover: hover) {
+  a.sp-card:hover { border-color: var(--line-3); }
+}
 
 /* ---------- mark - LOCKED c2 ---------- */
 
@@ -297,8 +303,10 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
   transition: opacity 100ms ease;
 }
 .sp-mark__remove:focus-visible { box-shadow: var(--ring); }
-.sp-mark:hover .sp-mark__remove,
 .sp-mark:focus-within .sp-mark__remove { opacity: 1; }
+@media (hover: hover) {
+  .sp-mark:hover .sp-mark__remove { opacity: 1; }
+}
 
 /* the button that fills the box, where the box itself cannot be one - a mark that
    carries a remove control cannot also be a button, since a button inside a button
@@ -420,7 +428,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   color: var(--ink-4);
   cursor: pointer;
 }
-.sp-field__trail:hover { background: var(--hover); color: var(--ink-2); }
+@media (hover: hover) {
+  .sp-field__trail:hover { background: var(--hover); color: var(--ink-2); }
+}
 .sp-field__trail:active { background: var(--line-2); }
 /* Two controls at a field's end: the order list's clear and Ask (Order list 2b). Inside
    the group a trail sits in the row rather than at the field's corner. */
@@ -438,19 +448,40 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-field__trails > .sp-field__trail { position: relative; top: auto; right: auto; transform: none; }
 /* Ask: a ghost mark when off, a filled green mark when on */
 .sp-field__trail--ask[aria-pressed="true"] { background: var(--green); color: #fff; }
-.sp-field__trail--ask[aria-pressed="true"]:hover { background: var(--green-2); color: #fff; }
+@media (hover: hover) {
+  .sp-field__trail--ask[aria-pressed="true"]:hover { background: var(--green-2); color: #fff; }
+}
 .sp-field__trail--ask[aria-pressed="true"]:active { background: var(--green-press); }
 .sp-field__trail--ask:disabled { background: none; opacity: var(--fade-disabled); cursor: not-allowed; }
 /* while Ask works the button is Stop: the spinner, giving way to x on hover and focus */
 .sp-field__trail--ask[aria-busy="true"] { background: none; color: var(--ink-4); }
-.sp-field__trail--ask[aria-busy="true"]:hover { background: var(--hover); color: var(--ink-2); }
+@media (hover: hover) {
+  .sp-field__trail--ask[aria-busy="true"]:hover { background: var(--hover); color: var(--ink-2); }
+}
 .sp-field__trail--ask > .sp-field__stop { display: none; }
-.sp-field__trail--ask[aria-busy="true"]:is(:hover, :focus-visible) > .sp-spinner { display: none; }
-.sp-field__trail--ask[aria-busy="true"]:is(:hover, :focus-visible) > .sp-field__stop { display: flex; }
+.sp-field__trail--ask[aria-busy="true"]:focus-visible > .sp-spinner { display: none; }
+@media (hover: hover) {
+  .sp-field__trail--ask[aria-busy="true"]:hover > .sp-spinner { display: none; }
+}
+.sp-field__trail--ask[aria-busy="true"]:focus-visible > .sp-field__stop { display: flex; }
+@media (hover: hover) {
+  .sp-field__trail--ask[aria-busy="true"]:hover > .sp-field__stop { display: flex; }
+}
 /* on touch each keeps its drawn size in a 44px press area; 30 + 14 apart, so the areas meet */
 .sp-touch .sp-field__trails { gap: var(--sp-14); }
-.sp-touch .sp-field__trails > .sp-field__trail::after { content: ""; position: absolute; top: 50%; left: 50%; width: 44px; height: var(--control-h-touch); transform: translate(-50%, -50%); }
-.sp-touch .sp-input--trail-2 { padding-right: calc(var(--sp-6) + var(--field-trail) * 2 + var(--sp-14) + var(--sp-8)); }
+/* the ::after is the press area, not a tip, so it takes none of the tip's box: a tapped button
+   showed the tip's dark chip over its mark, and the tip's pointer-events let taps through */
+.sp-touch .sp-field__trails > .sp-field__trail::after { content: ""; position: absolute; top: 50%; left: 50%; width: 44px; height: var(--control-h-touch); margin: 0; padding: 0; border: 0; background: none; transform: translate(-50%, -50%); pointer-events: auto; transition: none; }
+/* on touch the field is 48 and its end buttons keep their 30, so they sit (48 - 30) / 2 = 9 from the
+   right, the same as above and below; a button its field does not centre sits 9 from the top, and
+   the text stops the same 8 before the buttons */
+.sp-touch :not(.sp-field__trails) > .sp-field__trail,
+.sp-touch .sp-field__trails { right: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
+.sp-touch :not(.sp-field__trails, .sp-field__wrap, .sp-chat__wrap) > .sp-field__trail { top: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
+.sp-touch .sp-input--trail,
+.sp-touch .sp-chat__wrap > .sp-textarea.sp-chat__field { padding-right: calc((var(--control-h-touch) - var(--field-trail)) / 2 + var(--field-trail) + var(--sp-8)); }
+.sp-touch .sp-input--trail-2 { padding-right: calc((var(--control-h-touch) - var(--field-trail)) / 2 + var(--field-trail) * 2 + var(--sp-14) + var(--sp-8)); }
+.sp-touch .sp-field__wrap > .sp-tokens:has(+ .sp-field__trail) { padding-right: var(--control-h-touch); }
 
 .sp-input,
 .sp-textarea {
@@ -472,8 +503,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   line-height: var(--lh);
   resize: vertical;
 }
-.sp-input:hover,
-.sp-textarea:hover { border-color: var(--line-5); }
+@media (hover: hover) {
+  .sp-input:hover,
+  .sp-textarea:hover { border-color: var(--line-5); }
+}
 .sp-input:focus-visible,
 .sp-textarea:focus-visible { border-color: var(--green); box-shadow: var(--ring); }
 /* A placeholder is not a value: one step down from the text that will replace it,
@@ -519,7 +552,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   font-size: var(--t-13);
   cursor: pointer;
 }
-.sp-input[type="file"]:hover { border-color: var(--green); background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-input[type="file"]:hover { border-color: var(--green); background: var(--green-tint-2); }
+}
 /* A native control brings its own glyphs, and they are the only ones in the design
    that are not from the register: a black calendar on a date field, a grey clear on
    a search field. Both are suppressed, and the field's own trail carries the
@@ -550,7 +585,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   background: var(--surface);
   z-index: 1;
 }
-.sp-field__wrap:has(> .sp-input[type="date"]) > .sp-field__trail:hover { background: var(--hover); }
+@media (hover: hover) {
+  .sp-field__wrap:has(> .sp-input[type="date"]) > .sp-field__trail:hover { background: var(--hover); }
+}
 /* iOS 15+ draws the value in ::-webkit-date-and-time-value, which defaults to
    width: 100% and text-align: center; text-align on the input does not reach it.
    Without this a date sits mid-field while every neighbouring value sits left
@@ -616,8 +653,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-check { border-radius: var(--r-marker); }
 .sp-radio { border-radius: var(--r-pill); }
-.sp-check:hover,
-.sp-radio:hover { border-color: var(--green); }
+@media (hover: hover) {
+  .sp-check:hover,
+  .sp-radio:hover { border-color: var(--green); }
+}
 .sp-check:focus-visible,
 .sp-radio:focus-visible { box-shadow: var(--ring); }
 
@@ -672,6 +711,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   cursor: pointer;
 }
 .sp-choice:has(:disabled) { color: var(--ink-5); cursor: not-allowed; }
+/* on touch the row is the target: the box or switch and its label are one <label>, at least 44 tall */
+.sp-touch :is(.sp-choice, label.sp-row-flex):has(> :is(.sp-check, .sp-radio, .sp-switch)) { box-sizing: border-box; min-height: var(--row-h-touch); }
 
 /* A named set of controls, which was drawn twice: `.sp-fieldset` for a group of
    choices and `.sp-field-group` for a group in the filter rail. They had the same reset,
@@ -756,11 +797,15 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-stepper__btn:first-child { border-right: 1px solid var(--line); }
 .sp-stepper__btn:last-child { border-left: 1px solid var(--line); }
-.sp-stepper__btn:hover { background: var(--surface-2); }
+@media (hover: hover) {
+  .sp-stepper__btn:hover { background: var(--surface-2); }
+}
 .sp-stepper:focus-within { border-color: var(--green); box-shadow: var(--ring); }
 .sp-stepper__btn:focus-visible { background: var(--green-tint); }
 .sp-stepper__btn:disabled { color: var(--ink-6); cursor: not-allowed; }
-.sp-stepper__btn:disabled:hover { background: none; }
+@media (hover: hover) {
+  .sp-stepper__btn:disabled:hover { background: none; }
+}
 .sp-stepper__value {
   flex: 1;
   min-width: 0;
@@ -912,10 +957,14 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   white-space: nowrap;
   text-decoration: none;
 }
-.sp-btn:not(:disabled):hover { background: var(--btn-fill-hover); }
+@media (hover: hover) {
+  .sp-btn:not(:disabled):hover { background: var(--btn-fill-hover); }
+}
 .sp-btn:not(:disabled):active { background: var(--btn-fill-press); }
 /* a disabled solid button holds its resting ground under the pointer */
-.sp-btn:disabled:hover { background: var(--btn-fill); }
+@media (hover: hover) {
+  .sp-btn:disabled:hover { background: var(--btn-fill); }
+}
 .sp-btn:focus-visible { box-shadow: var(--ring); }
 /* a disabled button does not answer the pointer: every variant's hover is written
    :not(:disabled), so no colour is named here to override the others */
@@ -928,9 +977,13 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 /* hovers into its own colour, the way the solid weight does - a green-inked button
    that greys on hover reads as disabling itself */
-.sp-btn--outline:not(:disabled):hover { background: var(--btn-tint); border-color: var(--btn-border-hover); }
+@media (hover: hover) {
+  .sp-btn--outline:not(:disabled):hover { background: var(--btn-tint); border-color: var(--btn-border-hover); }
+}
 .sp-btn--outline:not(:disabled):active { background: var(--btn-tint-press); }
-.sp-btn--outline:disabled:hover { background: var(--surface); }
+@media (hover: hover) {
+  .sp-btn--outline:disabled:hover { background: var(--surface); }
+}
 
 /* The edge inherits the button's colour instead of the grey line. For a button on a
    tinted ground, where --line-3 is 1.17:1 against --green-tint and the white ground
@@ -954,9 +1007,13 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   color: var(--btn-ink);
   padding: 0 var(--sp-8);
 }
-.sp-btn--text:not(:disabled):hover { background: var(--btn-tint); }
+@media (hover: hover) {
+  .sp-btn--text:not(:disabled):hover { background: var(--btn-tint); }
+}
 .sp-btn--text:not(:disabled):active { background: var(--btn-tint-press); }
-.sp-btn--text:disabled:hover { background: none; }
+@media (hover: hover) {
+  .sp-btn--text:disabled:hover { background: none; }
+}
 
 .sp-btn--block { width: 100%; }
 
@@ -984,7 +1041,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
-.sp-icon-btn:hover { background: var(--hover); color: var(--ink); }
+@media (hover: hover) {
+  .sp-icon-btn:hover { background: var(--hover); color: var(--ink); }
+}
 .sp-icon-btn:focus-visible { box-shadow: var(--ring); }
 .sp-icon-btn:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
 .sp-icon-btn--small { width: var(--box); height: var(--box); border-radius: var(--r-marker); }
@@ -1038,13 +1097,19 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   outline: none;
 }
 .sp-chip > span { min-width: 0; }
-.sp-chip:hover { border-color: var(--line-5); }
+@media (hover: hover) {
+  .sp-chip:hover { border-color: var(--line-5); }
+}
 .sp-chip:focus-visible { box-shadow: var(--ring); }
 .sp-chip--solid { background: var(--hover); border-color: transparent; }
 .sp-chip--dashed { border-style: dashed; color: var(--ink-5); }
-.sp-chip--dashed:hover { color: var(--ink-3); }
+@media (hover: hover) {
+  .sp-chip--dashed:hover { color: var(--ink-3); }
+}
 .sp-chip--static { cursor: default; }
-.sp-chip--static:hover { border-color: var(--line-3); }
+@media (hover: hover) {
+  .sp-chip--static:hover { border-color: var(--line-3); }
+}
 /* pill chip: a one-shot range or shortcut, as Order statistics 5b draws it */
 .sp-chip--pill {
   border-radius: var(--r-pill);
@@ -1155,18 +1220,26 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-table tbody tr { border-bottom: 1px solid var(--line-2); }
 .sp-table tbody tr:last-child { border-bottom: 0; }
-.sp-table tbody tr:hover { background: var(--hover); cursor: pointer; }
+@media (hover: hover) {
+  .sp-table tbody tr:hover { background: var(--hover); cursor: pointer; }
+}
 /* A reference table is read, not opened: its rows carry no record behind them, so
    neither the lit row nor the hand belongs on them. Same opt-out as
    .sp-chip--static - the interactive default stands, the inert case declares itself. */
-.sp-table--static tbody tr:hover { background: none; cursor: default; }
+@media (hover: hover) {
+  .sp-table--static tbody tr:hover { background: none; cursor: default; }
+}
 /* a checked row marks itself, so the tick and the row never disagree */
 .sp-list-item:has(input:checked) { background: var(--green-tint); }
-.sp-list-item:has(input:checked):hover { background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-list-item:has(input:checked):hover { background: var(--green-tint-2); }
+}
 .sp-table tbody tr[aria-selected="true"],
 .sp-table tbody tr:has(input:checked) { background: var(--green-tint); }
-.sp-table tbody tr[aria-selected="true"]:hover,
-.sp-table tbody tr:has(input:checked):hover { background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-table tbody tr[aria-selected="true"]:hover,
+  .sp-table tbody tr:has(input:checked):hover { background: var(--green-tint-2); }
+}
 /* a cancelled row dims every cell but its status, so the label that tells it from a draft keeps full contrast (2b) */
 .sp-table tbody tr[data-void="true"] > td:not(.sp-col-status) { opacity: var(--fade-inactive); }
 /* a faded part is drawn at full strength while a list or a menu inside it is open: a fade
@@ -1277,10 +1350,12 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* a card's box shows on hover or focus, on every card once one is picked, and always on touch (2c).
    Over a photo it reads by its own white fill and a soft shadow; nothing is drawn behind it */
 .sp-record__photos > .sp-record__pick { opacity: 0; }
-.sp-record:hover .sp-record__pick,
 .sp-record__pick:focus-within,
 .sp-list--cards:has(.sp-record__pick :checked) .sp-record__pick,
 .sp-touch .sp-record__photos > .sp-record__pick { opacity: 1; }
+@media (hover: hover) {
+  .sp-record:hover .sp-record__pick { opacity: 1; }
+}
 .sp-record__photos:not(.sp-record__photos--empty) > .sp-record__pick > .sp-check { box-shadow: var(--shadow-menu); }
 /* the box and the menu sit over the photo, so both carry a lift to stay legible */
 .sp-record__photos .sp-check { box-shadow: 0 1px 4px rgba(27, 26, 23, 0.28); }
@@ -1359,7 +1434,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-record__foot > .sp-stack { min-width: 0; }
 .sp-record__foot > .sp-stack > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-record__foot .sp-cell-menu { margin: -12px 0; align-self: center; }
-.sp-record:hover { border-color: var(--line-4); cursor: pointer; }
+@media (hover: hover) {
+  .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
+}
 /* a picked card: its own border turns green, and nothing else - no second pixel, no fill (2c) */
 .sp-record:has(input:checked) { border-color: var(--green); }
 .sp-record[data-void="true"] { opacity: var(--fade-inactive); }
@@ -1412,10 +1489,14 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
-.sp-menu__item:hover { background: var(--hover); }
+@media (hover: hover) {
+  .sp-menu__item:hover { background: var(--hover); }
+}
 .sp-menu__item:focus-visible { background: var(--hover); box-shadow: var(--ring); }
 .sp-menu__item:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
-.sp-menu__item:disabled:hover { background: none; }
+@media (hover: hover) {
+  .sp-menu__item:disabled:hover { background: none; }
+}
 /* drawn as a border, not a 1px fill: borders snap to whole screen pixels, so every rule renders alike at 125% and 150% display scaling */
 .sp-menu hr {
   height: 0;
@@ -1463,7 +1544,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
-.sp-option:hover { background: var(--hover); }
+@media (hover: hover) {
+  .sp-option:hover { background: var(--hover); }
+}
 .sp-option:focus-visible { box-shadow: var(--ring); }
 .sp-option[aria-pressed="true"] {
   background: var(--green-tint-2);
@@ -1495,7 +1578,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green), 0 0 0 7px var(--green-tint);
 }
 .sp-option--custom { background: var(--surface); border: 1px solid var(--line-3); color: var(--ink-3); }
-.sp-option--custom:hover { border-color: var(--line-5); }
+@media (hover: hover) {
+  .sp-option--custom:hover { border-color: var(--line-5); }
+}
 
 /* ---------- meter - LOCKED c10 ---------- */
 
@@ -1608,7 +1693,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-.sp-segmented__item:hover { background: var(--surface-2); }
+@media (hover: hover) {
+  .sp-segmented__item:hover { background: var(--surface-2); }
+}
 .sp-segmented__item:has(:checked) {
   background: var(--green);
   color: var(--surface);
@@ -1646,10 +1733,14 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   cursor: pointer;
   outline: none;
 }
-.sp-pager__arrow:hover { background: var(--surface-2); border-color: var(--line-5); }
+@media (hover: hover) {
+  .sp-pager__arrow:hover { background: var(--surface-2); border-color: var(--line-5); }
+}
 .sp-pager__arrow:focus-visible { box-shadow: var(--ring); }
 .sp-pager__arrow:disabled { color: var(--ink-6); cursor: not-allowed; }
-.sp-pager__arrow:disabled:hover { background: var(--surface); border-color: var(--line-3); }
+@media (hover: hover) {
+  .sp-pager__arrow:disabled:hover { background: var(--surface); border-color: var(--line-3); }
+}
 
 /* ---------- DrillCrumb: the drill path in statistics ----------
    The root level is text; every level the user drilled into is a removable crumb. */
@@ -1731,7 +1822,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   cursor: pointer;
   outline: none;
 }
-.sp-crumb__remove:hover { background: var(--green-5); color: var(--green); }
+@media (hover: hover) {
+  .sp-crumb__remove:hover { background: var(--green-5); color: var(--green); }
+}
 /* the x keeps its 14px when a long crumb wraps */
 .sp-crumb__remove { flex: none; }
 .sp-crumb__remove:focus-visible { box-shadow: var(--ring); }
@@ -1752,8 +1845,10 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   text-align: center;
   cursor: pointer;
 }
-.sp-filedrop:hover,
 .sp-filedrop:focus-within { border-color: var(--green); background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-filedrop:hover { border-color: var(--green); background: var(--green-tint-2); }
+}
 /* the same drop laid on its side: the mark at the left, the two lines beside it, for a
    card where the stacked drop is taller than its content needs */
 .sp-filedrop--row {
@@ -1821,7 +1916,8 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-touch .sp-popover__actions .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-list__toolbar .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-controls .sp-btn:not(.sp-btn--block),
-.sp-touch .sp-topbar .sp-btn:not(.sp-btn--block) { width: auto; }
+.sp-touch .sp-topbar .sp-btn:not(.sp-btn--block),
+.sp-touch .sp-list-item--editable .sp-btn:not(.sp-btn--block) { width: auto; }
 /* two commits sharing a row each take half of it */
 .sp-dialog__actions > .sp-btn--block { flex: 1; min-width: 0; }
 .sp-touch .sp-switch { width: 44px; height: 26px; }
@@ -1903,7 +1999,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
 .sp-combobox--stretch .sp-combobox__trigger { height: auto; }
 .sp-input--stretch { height: auto; display: flex; align-items: center; }
 
-.sp-combobox__trigger:hover { border-color: var(--line-5); }
+@media (hover: hover) {
+  .sp-combobox__trigger:hover { border-color: var(--line-5); }
+}
 .sp-combobox__trigger:focus-visible,
 .sp-combobox__trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: var(--ring); }
 .sp-combobox__trigger > .sp-grow { pointer-events: none; }
@@ -1973,8 +2071,10 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   outline: none;
 }
 /* hover and keyboard focus are one state; the current value is another, and they can sit on different rows */
-.sp-combobox__option:hover,
 .sp-combobox__option:focus-visible { background: var(--hover); }
+@media (hover: hover) {
+  .sp-combobox__option:hover { background: var(--hover); }
+}
 /* selection is the ground, not the weight: weighting the whole option bolded its meta
    lines too, so a selected row read heavier throughout while its neighbours kept the
    title-only weight */
@@ -2023,7 +2123,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   box-shadow: 0 8px 22px rgba(27, 26, 23, 0.18);
   cursor: pointer;
 }
-.sp-fab:hover { background: var(--green-2); }
+@media (hover: hover) {
+  .sp-fab:hover { background: var(--green-2); }
+}
 .sp-fab:focus-visible { box-shadow: var(--ring), 0 8px 22px rgba(27, 26, 23, 0.18); }
 /* docked: over a phone screen's content, right-aligned above the tab bar */
 .sp-fab--docked { position: absolute; right: var(--sp-12); bottom: 80px; }
@@ -2037,7 +2139,9 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
    no width to spare (the phone Budget bar's year) */
 .sp-combobox--bare { flex: none; }
 .sp-combobox--bare .sp-combobox__trigger { width: auto; gap: var(--sp-4); padding: 0 var(--sp-4); border-color: transparent; background: none; }
-.sp-combobox--bare .sp-combobox__trigger:hover { border-color: transparent; background: var(--hover); }
+@media (hover: hover) {
+  .sp-combobox--bare .sp-combobox__trigger:hover { border-color: transparent; background: var(--hover); }
+}
 
 /* ---------- Pager: range sentence, size Combobox, two arrows ---------- */
 
@@ -2078,18 +2182,26 @@ label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
   opacity: 0;
   transition: visibility 0s linear var(--submenu-delay), opacity 90ms ease-out var(--submenu-delay);
 }
-.sp-menu li:hover > .sp-menu__sub,
 .sp-menu li:focus-within > .sp-menu__sub,
-/* the same depth as the rule that hides it: that one carries an element selector, so
+/* the same depth as the rule that hides it: that one carries an element selector,
+so
    at equal class count this one lost and a submenu opened on hover but never from
    its item's own state - which is what a keyboard and a touch device have */
 .sp-menu li:has(> .sp-menu__sub) > .sp-menu__item[aria-expanded="true"] + .sp-menu__sub {
   visibility: visible;
   opacity: 1;
 }
+@media (hover: hover) {
+  .sp-menu li:hover > .sp-menu__sub {
+    visibility: visible;
+    opacity: 1;
+  }
+}
 /* the item is open while its submenu is, so the parent stays visibly the one drilled into */
-.sp-menu li:hover > .sp-menu__item,
 .sp-menu li:focus-within > .sp-menu__item { background: var(--hover); }
+@media (hover: hover) {
+  .sp-menu li:hover > .sp-menu__item { background: var(--hover); }
+}
 /* the gap between item and submenu belongs to the item, so crossing it loses nothing */
 .sp-menu__sub::before {
   content: "";
@@ -2236,7 +2348,9 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
   border-radius: var(--r-pill);
   background: var(--shell-scroll);
 }
-.sp-sidebar__grip:hover::before { background: var(--shell-count); }
+@media (hover: hover) {
+  .sp-sidebar__grip:hover::before { background: var(--shell-count); }
+}
 .sp-sidebar__grip:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18); }
 .sp-sidebar__brand {
   display: flex;
@@ -2283,9 +2397,11 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
 a.sp-nav-item,
 button.sp-nav-item,
 label.sp-nav-item { cursor: pointer; }
-a.sp-nav-item:hover,
-button.sp-nav-item:hover,
-label.sp-nav-item:hover { background: var(--shell-item-hover); color: #fff; }
+@media (hover: hover) {
+  a.sp-nav-item:hover,
+  button.sp-nav-item:hover,
+  label.sp-nav-item:hover { background: var(--shell-item-hover); color: #fff; }
+}
 a.sp-nav-item:focus-visible,
 button.sp-nav-item:focus-visible,
 label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18); }
@@ -2302,8 +2418,10 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   color: #fff;
   font-weight: 600;
 }
-a.sp-nav-item--action:hover,
-button.sp-nav-item--action:hover { background: var(--shell-action-hover); color: #fff; }
+@media (hover: hover) {
+  a.sp-nav-item--action:hover,
+  button.sp-nav-item--action:hover { background: var(--shell-action-hover); color: #fff; }
+}
 .sp-sidebar__brand > .sp-mark--solid { background: var(--shell-action); color: #fff; }
 .sp-sidebar .sp-nav-item > .sp-mark--solid { background: var(--shell-mark); color: #fff; }
 /* One leading slot for every row, the width of an inline mark, so an icon and a set of
@@ -2805,7 +2923,9 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
   cursor: pointer;
   outline: none;
 }
-.sp-field-group__more:hover { text-decoration: underline; }
+@media (hover: hover) {
+  .sp-field-group__more:hover { text-decoration: underline; }
+}
 .sp-field-group__more:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 
 /* facet chip: a hidden checkbox in a label, counted */
@@ -2904,10 +3024,14 @@ button.sp-nav-item--action:hover { background: var(--shell-action-hover); color:
 /* the file slot: the frame is the control, and Remove sits under it */
 .sp-slot { margin-top: 0; display: flex; flex-direction: column; align-items: center; gap: var(--sp-6); }
 label.sp-mark { cursor: pointer; }
-label.sp-mark:hover { outline: 2px solid var(--green); outline-offset: 1px; }
+@media (hover: hover) {
+  label.sp-mark:hover { outline: 2px solid var(--green); outline-offset: 1px; }
+}
 label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1px; }
 /* the add tile answers as every add control does: green dashed edge and tint, no outline */
-label.sp-mark--add:hover { outline: none; border-color: var(--green); background: var(--green-tint-2); }
+@media (hover: hover) {
+  label.sp-mark--add:hover { outline: none; border-color: var(--green); background: var(--green-tint-2); }
+}
 .sp-slot__remove {
   padding: 0;
   border: 0;
@@ -2919,7 +3043,9 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
   cursor: pointer;
   outline: none;
 }
-.sp-slot__remove:hover { text-decoration: underline; }
+@media (hover: hover) {
+  .sp-slot__remove:hover { text-decoration: underline; }
+}
 .sp-slot__remove:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 
 /* ---------- line editor - LOCKED c15 ----------
@@ -3080,7 +3206,9 @@ label.sp-mark--add:hover { outline: none; border-color: var(--green); background
    is a span, and the hand and the lit bar were both promising a click it does not
    have - the spark inside a stat being the case that showed it. */
 button.sp-bars__col { cursor: pointer; }
-button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
+@media (hover: hover) {
+  button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
+}
 .sp-bars__col:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-bars__bar {
   display: block;
@@ -3145,7 +3273,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   cursor: pointer;
   outline: none;
 }
-.sp-shares__row:hover { color: var(--green); }
+@media (hover: hover) {
+  .sp-shares__row:hover { color: var(--green); }
+}
 .sp-shares__row:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-shares__value { font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -3251,7 +3381,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   display: grid;
   place-items: center;
 }
-.sp-period__preset:hover { color: var(--ink); }
+@media (hover: hover) {
+  .sp-period__preset:hover { color: var(--ink); }
+}
 .sp-period__preset:has(:checked) { background: var(--green); color: var(--surface); font-weight: 600; }
 .sp-period__preset:has(:focus-visible) { box-shadow: var(--ring); }
 .sp-period__preset { min-width: 0; }
@@ -3285,10 +3417,14 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 }
 .sp-window__btn:first-child { border-right: 1px solid var(--line); }
 .sp-window__btn:last-child { border-left: 1px solid var(--line); }
-.sp-window__btn:hover { background: var(--surface-2); }
+@media (hover: hover) {
+  .sp-window__btn:hover { background: var(--surface-2); }
+}
 .sp-window__btn:focus-visible { background: var(--green-tint); }
 .sp-window__btn:disabled { color: var(--line-5); cursor: not-allowed; }
-.sp-window__btn:disabled:hover { background: none; }
+@media (hover: hover) {
+  .sp-window__btn:disabled:hover { background: none; }
+}
 /* the window with a select between its arrows (the phone Statistics period): it takes the
    full width, and the select is borderless inside the window's own box. No flex basis: in
    a column (the Include switch under it) a basis of 0 collapsed its height. */
@@ -3319,8 +3455,12 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   background: var(--surface);
   color: var(--green);
 }
-.sp-list-item--add:hover .sp-mark--add { border-color: var(--green); background: var(--green-tint-2); }
-.sp-list-item--add:hover { border-color: var(--green); background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-list-item--add:hover .sp-mark--add { border-color: var(--green); background: var(--green-tint-2); }
+}
+@media (hover: hover) {
+  .sp-list-item--add:hover { border-color: var(--green); background: var(--green-tint-2); }
+}
 .sp-list-item--add:focus-within { box-shadow: var(--ring); }
 .sp-list-item--add > .sp-title { font-weight: 600; }
 
@@ -3357,7 +3497,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   background: var(--surface);
   color: var(--ink-2);
 }
-.sp-icon-btn--outline:hover { border-color: var(--line-5); background: var(--surface-2); }
+@media (hover: hover) {
+  .sp-icon-btn--outline:hover { border-color: var(--line-5); background: var(--surface-2); }
+}
 
 .sp-totals {
   display: flex;
@@ -3425,7 +3567,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   border-radius: 50%;
   background: var(--surface);
 }
-.sp-strip-nav:hover > svg { border-color: var(--green); color: var(--green); background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-strip-nav:hover > svg { border-color: var(--green); color: var(--green); background: var(--green-tint-2); }
+}
 .sp-strip-nav:focus-visible { outline: none; }
 .sp-strip-nav:focus-visible > svg { box-shadow: var(--ring); }
 .sp-strip-nav:disabled { opacity: 0; pointer-events: none; }
@@ -3469,7 +3613,9 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-viewer__bar { display: flex; align-items: center; gap: var(--sp-8); font-size: var(--t-12); }
 .sp-viewer__count { color: var(--shell-item); font-variant-numeric: tabular-nums; }
 .sp-viewer .sp-icon-btn { color: var(--shell-item); }
-.sp-viewer .sp-icon-btn:hover { background: var(--shell-item-hover); color: #fff; }
+@media (hover: hover) {
+  .sp-viewer .sp-icon-btn:hover { background: var(--shell-item-hover); color: #fff; }
+}
 
 /* bar heights and legend keys arrive as data */
 .sp-bars__bar[data-h="30"] { height: 30%; }
@@ -3490,15 +3636,19 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 
 /* a line's remove control appears on hover or focus, and stays put on touch */
 .sp-list-item__remove { opacity: 0; transition: opacity 100ms ease; }
-.sp-list-item:hover .sp-list-item__remove,
 .sp-list-item:focus-within .sp-list-item__remove { opacity: 1; }
+@media (hover: hover) {
+  .sp-list-item:hover .sp-list-item__remove { opacity: 1; }
+}
 .sp-touch .sp-list-item__remove { opacity: 1; }
 
 .sp-touch .sp-mark__remove { opacity: 1; }
 
 /* an empty photo mark inside an editable line is the file control itself */
 label.sp-mark--empty { cursor: pointer; }
-label.sp-mark--empty:hover { border-color: var(--green); background: var(--green-tint-2); color: var(--green); }
+@media (hover: hover) {
+  label.sp-mark--empty:hover { border-color: var(--green); background: var(--green-tint-2); color: var(--green); }
+}
 label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 
 .sp-menu--floating { display: none; }
@@ -3648,7 +3798,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 /* :not(:disabled), and the shorthand is why: a plain background on hover resets
    background-image, which took the stroke off a blocked day the moment the pointer
    crossed it. */
-.sp-range__day:not(:disabled):hover { background: var(--hover); }
+@media (hover: hover) {
+  .sp-range__day:not(:disabled):hover { background: var(--hover); }
+}
 
 /* The chosen day - the single date, or either end of a range. It was marked for a
    screen reader and drawn for nobody: opening a date field showed the right month
@@ -3659,7 +3811,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   color: var(--surface);
   font-weight: 600;
 }
-.sp-range__day[aria-selected="true"]:not(:disabled):hover { background: var(--green-2); }
+@media (hover: hover) {
+  .sp-range__day[aria-selected="true"]:not(:disabled):hover { background: var(--green-2); }
+}
 .sp-range__day:focus-visible { box-shadow: var(--ring); }
 .sp-range__foot {
   display: flex;
@@ -3727,15 +3881,19 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   text-align: left;
   cursor: pointer;
 }
-.sp-doc:hover,
 .sp-doc:focus-within { border-color: var(--green); background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-doc:hover { border-color: var(--green); background: var(--green-tint-2); }
+}
 .sp-doc--filled {
   border-style: solid;
   border-color: var(--line);
   background: var(--surface);
   cursor: default;
 }
-.sp-doc--filled:hover { border-color: var(--line); background: var(--surface); }
+@media (hover: hover) {
+  .sp-doc--filled:hover { border-color: var(--line); background: var(--surface); }
+}
 .sp-doc__kind {
   display: grid;
   place-items: center;
@@ -3797,7 +3955,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
-.sp-toast__undo:hover { text-decoration: underline; }
+@media (hover: hover) {
+  .sp-toast__undo:hover { text-decoration: underline; }
+}
 .sp-toast__undo:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-toast--compact { padding: var(--sp-6) var(--sp-8); border-radius: var(--r-tile); font-size: var(--t-11); gap: var(--sp-8); }
 
@@ -3822,8 +3982,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   pointer-events: none;
   transition: opacity 90ms ease-out;
 }
-[data-tip]:hover::after,
 [data-tip]:focus-visible::after { opacity: 1; }
+@media (hover: hover) {
+  [data-tip]:hover::after { opacity: 1; }
+}
 [data-theme="dark"] [data-tip]::after {
   background: #2e2b26;
   border: 1px solid var(--line);
@@ -3842,8 +4004,11 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
    scrolls or clips cuts it off. Above and centred; it moves to the side, then under, only when it
    would leave the window. Without anchor positioning the absolute placement above stays. */
 @supports (anchor-name: --tip) {
-  [data-tip]:is(:hover, :focus-visible) { anchor-name: --sp-tip; }
-  [data-tip]:is(:hover, :focus-visible)::after {
+  [data-tip]:focus-visible { anchor-name: --sp-tip; }
+  @media (hover: hover) {
+    [data-tip]:hover { anchor-name: --sp-tip; }
+  }
+  [data-tip]:focus-visible::after {
     position: fixed;
     position-anchor: --sp-tip;
     position-area: top;
@@ -3852,11 +4017,27 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
     margin: 0 0 var(--sp-6);
     position-try-fallbacks: top span-left, top span-right, flip-block, bottom span-left, bottom span-right;
   }
-  :is(.sp-chat__composer > [data-tip]:last-child, .sp-chat__more > [data-tip]):is(:hover, :focus-visible)::after { position-area: top span-left; }
+  @media (hover: hover) {
+    [data-tip]:hover::after {
+      position: fixed;
+      position-anchor: --sp-tip;
+      position-area: top;
+      inset: auto;
+      transform: none;
+      margin: 0 0 var(--sp-6);
+      position-try-fallbacks: top span-left, top span-right, flip-block, bottom span-left, bottom span-right;
+    }
+  }
+  :is(.sp-chat__composer > [data-tip]:last-child, .sp-chat__more > [data-tip]):focus-visible::after { position-area: top span-left; }
+  @media (hover: hover) {
+    :is(.sp-chat__composer > [data-tip]:last-child, .sp-chat__more > [data-tip]):hover::after { position-area: top span-left; }
+  }
 }
 /* a chat's heading on Chats (Ask 24f) is the link that opens it */
 a.sp-chat__file-name { text-decoration: none; }
-a.sp-chat__file-name:hover { color: var(--green); text-decoration: underline; }
+@media (hover: hover) {
+  a.sp-chat__file-name:hover { color: var(--green); text-decoration: underline; }
+}
 
 .sp-tip {
   display: inline-block;
@@ -3970,31 +4151,43 @@ a.sp-chat__file-name:hover { color: var(--green); text-decoration: underline; }
    The same row as the sidebar's, on a light surface: saved views, section nav. */
 
 .sp-nav-item--light { color: var(--ink-2); font-size: var(--t-13); }
-a.sp-nav-item--light:hover,
-button.sp-nav-item--light:hover,
-label.sp-nav-item--light:hover { background: var(--hover); color: var(--ink-2); }
-.sp-nav-item--light[aria-current="page"],
-a.sp-nav-item--light[aria-current="page"]:hover,
-button.sp-nav-item--light[aria-current="page"]:hover {
+@media (hover: hover) {
+  a.sp-nav-item--light:hover,
+  button.sp-nav-item--light:hover,
+  label.sp-nav-item--light:hover { background: var(--hover); color: var(--ink-2); }
+}
+.sp-nav-item--light[aria-current="page"] {
   background: var(--green-tint-2);
   color: var(--green);
   font-weight: 600;
+}
+@media (hover: hover) {
+  a.sp-nav-item--light[aria-current="page"]:hover,
+  button.sp-nav-item--light[aria-current="page"]:hover {
+    background: var(--green-tint-2);
+    color: var(--green);
+    font-weight: 600;
+  }
 }
 .sp-nav-item--light .sp-nav-item__count { color: var(--ink-4); }
 /* the row's own state, not a badge beside it: a saved view whose filters have
    changed since it was saved. A chip here would make one row taller than the
    others and shift the list every time a filter moved */
 .sp-nav-item--light.sp-nav-item--edited { background: var(--amber-tint-2); color: var(--amber-ink-2); }
-a.sp-nav-item--light.sp-nav-item--edited:hover,
-button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-tint); color: var(--amber-ink-2); }
+@media (hover: hover) {
+  a.sp-nav-item--light.sp-nav-item--edited:hover,
+  button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-tint); color: var(--amber-ink-2); }
+}
 .sp-nav-item--light.sp-nav-item--edited .sp-nav-item__count { color: var(--amber-ink); }
 .sp-nav-item--light[aria-current="page"] .sp-nav-item__count { color: var(--green); }
 .sp-nav-list { display: flex; flex-direction: column; gap: var(--sp-6); }
+/* on touch the row is drawn 44 tall, the gap stays 6 */
+.sp-touch .sp-nav-item--light { min-height: var(--row-h-touch); }
 /* A name field standing in a row's place (naming, rename) keeps its own control height
    but takes only the row's 40px in the list: the extra overlaps the 6px gaps above and
    below (1px each on desktop, 4px on touch), so no row under it moves. */
 .sp-nav-list > .sp-field__wrap { margin-block: calc((40px - var(--control-h)) / 2); z-index: 1; }
-.sp-touch .sp-nav-list > .sp-field__wrap { margin-block: calc((40px - var(--control-h-touch)) / 2); }
+.sp-touch .sp-nav-list > .sp-field__wrap { margin-block: calc((var(--row-h-touch) - var(--control-h-touch)) / 2); }
 
 /* ---------- token field - DRAFT c3 ----------
    Not its own component: the field (c3) holding several values at once. */
@@ -4067,8 +4260,10 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
    must not invite a click. */
 a.sp-list-item,
 button.sp-list-item { cursor: pointer; }
-a.sp-list-item:hover,
-button.sp-list-item:hover { background: var(--hover); }
+@media (hover: hover) {
+  a.sp-list-item:hover,
+  button.sp-list-item:hover { background: var(--hover); }
+}
 a.sp-list-item:focus-visible,
 button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 /* Stated after the checked fill, so a row that is both ticked and uncertain still
@@ -4079,8 +4274,10 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   border: 1px solid var(--amber-3);
   color: var(--amber-ink-2);
 }
-.sp-list-item[data-color="warning"]:hover,
-.sp-list-item[data-color="warning"]:has(input:checked):hover { background: var(--amber-tint); }
+@media (hover: hover) {
+  .sp-list-item[data-color="warning"]:hover,
+  .sp-list-item[data-color="warning"]:has(input:checked):hover { background: var(--amber-tint); }
+}
 .sp-list-item__count {
   display: grid;
   place-items: center;
@@ -4157,8 +4354,10 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
-.sp-palette__row:hover,
 .sp-palette__row[aria-selected="true"] { background: var(--green-tint); }
+@media (hover: hover) {
+  .sp-palette__row:hover { background: var(--green-tint); }
+}
 .sp-palette__row:focus-visible { background: var(--hover); }
 .sp-palette__name { font-weight: 600; white-space: nowrap; }
 .sp-palette__name--plain { font-weight: 400; }
@@ -4237,7 +4436,9 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   border-radius: var(--r-tile);
   width: 100%;
 }
-.sp-choice--row:hover { background: var(--hover); }
+@media (hover: hover) {
+  .sp-choice--row:hover { background: var(--hover); }
+}
 .sp-choice--row:has(:checked) { background: var(--green-tint); }
 
 /* ---------- popover panel - DRAFT c25 ----------
@@ -4407,7 +4608,9 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
    reserved for a value that cannot be saved. */
 
 .sp-input[data-color="warning"] { border-color: var(--amber); background: var(--amber-tint-2); }
-.sp-input[data-color="warning"]:hover { border-color: var(--amber-ink); }
+@media (hover: hover) {
+  .sp-input[data-color="warning"]:hover { border-color: var(--amber-ink); }
+}
 .sp-input[data-color="warning"]:focus-visible { border-color: var(--amber-ink); }
 
 
@@ -4419,8 +4622,10 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 /* The row's own text is one step down from a card's ink, since a note is secondary to
    what it sits under. A row carrying a record - a reference and an amount - is not
    secondary, so it takes the card's ink back. */
-a.sp-list-item--primary:hover,
-button.sp-list-item--primary:hover { background: var(--green-tint); }
+@media (hover: hover) {
+  a.sp-list-item--primary:hover,
+  button.sp-list-item--primary:hover { background: var(--green-tint); }
+}
 
 .sp-gauge__fill[data-fill="68"] { width: 68%; }
 
@@ -4877,8 +5082,12 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   transform: rotate(-0.6deg);
 }
 /* the handle under the pointer darkens and its row takes the row hover; a carried row stays white */
-.sp-list-item__handle:hover { color: var(--ink-3); }
-.sp-list-item:not(.sp-list-item--carried):has(> .sp-list-item__handle:hover) { background: var(--hover); }
+@media (hover: hover) {
+  .sp-list-item__handle:hover { color: var(--ink-3); }
+}
+@media (hover: hover) {
+  .sp-list-item:not(.sp-list-item--carried):has(> .sp-list-item__handle:hover) { background: var(--hover); }
+}
 /* a row the keyboard picked up wears the selected-row tint until it is dropped */
 .sp-list-item--picked { background: var(--green-tint); }
 /* on touch a handle is held before it drags, so holding it selects nothing and opens no callout */
@@ -4950,10 +5159,14 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-list-item--card[aria-selected="true"] { background: var(--green-tint); border-color: var(--green); }
 /* a row that holds a setting (a Segmented, a switch) keeps its ground: the checked-row
    tint is for a row the tick selects, and a Segmented always has one option checked */
-.sp-list-item--setting:has(input:checked),
-.sp-list-item--setting:has(input:checked):hover { background: var(--surface-2); }
-.sp-list-item--card.sp-list-item--setting:has(input:checked),
-.sp-list-item--card.sp-list-item--setting:has(input:checked):hover { background: var(--surface); }
+.sp-list-item--setting:has(input:checked) { background: var(--surface-2); }
+@media (hover: hover) {
+  .sp-list-item--setting:has(input:checked):hover { background: var(--surface-2); }
+}
+.sp-list-item--card.sp-list-item--setting:has(input:checked) { background: var(--surface); }
+@media (hover: hover) {
+  .sp-list-item--card.sp-list-item--setting:has(input:checked):hover { background: var(--surface); }
+}
 /* the row's own text column and its lines: they exist wherever a row carries more
    than one line, so they are the row's parts and not the card's */
 .sp-stacked--fill { flex: 1; overflow: visible; }
@@ -5273,6 +5486,12 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-list-item--outline { background: none; border: 1px solid var(--line); }
 /* a row that turns into a field (rename, edit) keeps one height in both states: the field's height plus a 4px inset each side; the content centres, so nothing below it moves */
 .sp-list-item--editable { box-sizing: border-box; height: calc(var(--control-h) + var(--sp-8)); padding-block: 0; }
+/* on a phone a row being renamed wraps: the name, with no handle, then the tones, then Cancel and
+   Save at the right (Settings 11a, Statuses on a phone) */
+.sp-touch .sp-list-item--editable:has(> .sp-input) { flex-wrap: wrap; height: auto; padding-block: var(--sp-12); }
+.sp-touch .sp-list-item--editable:has(> .sp-input) > .sp-input { flex: 1 1 0; min-width: 0; }
+.sp-touch .sp-list-item--editable:has(> .sp-input) > .sp-row-flex { flex: 1 0 100%; }
+.sp-touch .sp-list-item--editable:has(> .sp-input) > .sp-row-flex:last-child { justify-content: flex-end; }
 .sp-list-item--outline[aria-selected="true"] { border-color: var(--green); }
 
 /* a key carrying a tone, where it marks a value rather than a keystroke - c6 */
@@ -5312,7 +5531,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   cursor: pointer;
   outline: none;
 }
-.sp-add-row:hover { border-color: var(--green); background: var(--green-tint-2); }
+@media (hover: hover) {
+  .sp-add-row:hover { border-color: var(--green); background: var(--green-tint-2); }
+}
 .sp-add-row:focus-visible { box-shadow: var(--ring); }
 .sp-add-row > svg { flex: none; }
 
@@ -5409,7 +5630,9 @@ a.sp-menu__item { text-decoration: none; }
 .sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { width: 420px; max-width: 100%; }
 /* a row that opens is never inert: pointer and hover fill (c15) */
 .sp-list-item--opens { cursor: pointer; }
-.sp-list-item--opens:hover { background: var(--hover); }
+@media (hover: hover) {
+  .sp-list-item--opens:hover { background: var(--hover); }
+}
 /* A plain row in a card that opens something - another page, or this one narrowed -
    is a link or a button in this state (4a By status and Top vendors, 10a Categories
    this month, 7a Drafts and Recent orders). Its content stays where the row draws it:
@@ -5428,7 +5651,9 @@ a.sp-menu__item { text-decoration: none; }
   cursor: pointer;
   outline: none;
 }
-.sp-row-opens:hover { background: var(--hover); }
+@media (hover: hover) {
+  .sp-row-opens:hover { background: var(--hover); }
+}
 .sp-row-opens:focus-visible { box-shadow: var(--ring); }
 .sp-touch .sp-row-opens { box-sizing: border-box; min-height: var(--row-h-touch); }
 /* a row opens from its title too, as a link a new tab can take (c1, 16a) */
@@ -5468,8 +5693,13 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-slot__remove::after,
 .sp-touch .sp-toast__undo::after { content: ""; position: absolute; top: 50%; left: 50%; width: var(--control-h-touch); height: var(--control-h-touch); transform: translate(-50%, -50%); }
 /* the presets' track is the target, not only the pill drawn in it (7a) */
-.sp-touch .sp-segmented__item::before,
 .sp-touch .sp-period__preset::before { content: ""; position: absolute; inset: calc(var(--sp-6) * -1) 0; }
+/* on touch an option's press area fills the 48px track: up to the track's edge above and below, and
+   half the gap to each side, so neighbouring areas meet. The label clips its own text in place of
+   the option, which no longer clips, so the area can reach outside it */
+.sp-touch .sp-segmented__item { overflow: visible; }
+.sp-touch .sp-segmented__item::before { content: ""; position: absolute; inset: calc((var(--sp-6) + 1px) * -1) calc(var(--sp-6) / -2); }
+.sp-touch .sp-segmented__item > .sp-label { inset: 50% 0 auto; transform: translateY(-50%); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
 /* a card's menu sits in a hit target of its own, larger than its glyph (c1) */
 .sp-record__menu > .sp-record__act::after { content: ""; position: absolute; inset: 0; }
 
@@ -5535,9 +5765,11 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 
 /* the pointed column carries a full-height band, and its readout stands in it, so the
    readout reads as that column's whatever the neighbouring heights (4a) */
-.sp-bars--plot .sp-bars__col:hover,
 .sp-bars--plot .sp-bars__col:focus-visible,
 .sp-bars--plot .sp-bars__col:has(> .sp-bars__tip) { background: var(--hover); border-radius: var(--r-tile); }
+@media (hover: hover) {
+  .sp-bars--plot .sp-bars__col:hover { background: var(--hover); border-radius: var(--r-tile); }
+}
 /* a step still to come is drawn empty: a span with its tick and no bar, no band */
 .sp-bars--plot .sp-bars__col[data-future] { background: none; }
 /* the limit is named in the legend, not on the line, so no bar is ever under its label */
@@ -5650,9 +5882,11 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__chart .sp-bars__col > .sp-tip--panel { display: none; position: absolute; bottom: calc(100% + var(--sp-6)); left: 50%; transform: translateX(-50%); z-index: 3; }
 .sp-chat__chart .sp-bars__col:first-child > .sp-tip--panel { left: 0; transform: none; }
 .sp-chat__chart .sp-bars__col:last-child > .sp-tip--panel { left: auto; right: 0; transform: none; }
-.sp-chat__chart .sp-bars__col:hover > .sp-tip--panel,
 .sp-chat__chart .sp-bars__col:focus-visible > .sp-tip--panel,
 .sp-chat__chart .sp-bars__col[data-open] > .sp-tip--panel { display: flex; }
+@media (hover: hover) {
+  .sp-chat__chart .sp-bars__col:hover > .sp-tip--panel { display: flex; }
+}
 /* the donut beside its shares where there is room, above them where there is not */
 .sp-chat__shares { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-16); }
 .sp-chat__shares > .sp-donut { flex: none; }

@@ -1256,11 +1256,11 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				</Field>
 			</div>
 			<div className="sp-field">
-				<div className="sp-row-flex sp-gap-12">
+				<label className="sp-row-flex sp-gap-12">
 					<Switch id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={!!draft.excludeFromStats}
 						onChange={ev => set({ excludeFromStats: ev.target.checked, excludeFromStatsSetByHand: true })} />
-					<label className="sp-data" htmlFor={statsSwitch}>Leave out of statistics</label>
-				</div>
+					<span className="sp-data">Leave out of statistics</span>
+				</label>
 				<span className="sp-field__help" id={`${statsSwitch}-help`}>For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
 			</div>
 		</>

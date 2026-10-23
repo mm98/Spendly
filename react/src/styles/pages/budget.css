@@ -26,11 +26,5 @@
 	.bg-line { display: flex; align-items: center; height: 1lh; }
 
 	.sp-table .bg-col-map { width: 240px; }
-	/* on a phone the bank check's column table scrolls sideways like the sheet: never narrower than
-	   twice the Spendly column, so the other two share at least its width and part of it shows */
-	@media (max-width: 639.98px) {
-		.bg-sideways { overflow-x: auto; }
-		.bg-map { min-width: 480px; }
-	}
 
 }

@@ -29,7 +29,9 @@
 	.st-theme input { position: absolute; opacity: 0; pointer-events: none; }
 	/* the ring is a box-shadow: .sp-well sets border-color unlayered, which a page rule cannot beat */
 	.st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--green); }
-	.st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
+	@media (hover: hover) {
+		.st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
+	}
 	.st-theme:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
 	.st-theme:has(input:checked) .st-theme__name { font-weight: 600; }
 

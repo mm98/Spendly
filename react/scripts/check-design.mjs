@@ -529,6 +529,11 @@ for (const [p, ast] of parsed) {
 				&& !above.some(a => a.type === 'JSXAttribute' && a.name?.name === 'control'))
 				fail('every control is named', lineOf(n), `<${tag}> has no name`)
 
+			// on touch a switch and its line are one label, so the whole row takes a tap
+			if (tag === 'Switch' && !above.some(a => a.type === 'JSXElement' && ['label', 'Choice'].includes(tagOf(a)))
+				&& !above.some(a => a.type === 'JSXAttribute' && a.name?.name === 'control'))
+				fail('a switch row is one label', lineOf(n), '<Switch> outside a <label> or <Choice>')
+
 			if (tag === 'Field') {
 				const label = attr(n, 'label')
 				const words = label ? stringsIn(label.value).join('') : ''
@@ -1329,6 +1334,21 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- a hover state shows only where a pointer can hover ----
+   A phone keeps :hover on the last thing tapped, so every :hover rule the app adds sits under
+   @media (hover: hover), as the design's own do. */
+
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages]) {
+	let s = css.replace(/\/\*[\s\S]*?\*\//g, '')
+	for (let k = s.indexOf('@media (hover: hover)'); k >= 0; k = s.indexOf('@media (hover: hover)')) {
+		let j = s.indexOf('{', k), d = 0
+		for (; j < s.length; j++) { if (s[j] === '{') d++; else if (s[j] === '}' && --d === 0) break }
+		s = s.slice(0, k) + s.slice(j + 1)
+	}
+	for (const m of s.matchAll(/([^{};]*:hover[^{};]*)\{/g))
+		fail('hover only where a pointer hovers', relative(root, p), `${m[1].trim().slice(0, 80)} is outside @media (hover: hover)`)
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -1463,7 +1483,9 @@ const DESIGN_RULES = {
 	'a top-aligned list row uses sp-list-item--top': 'a top-aligned list row uses sp-list-item--top',
 	'an icon in a top-aligned row centres on the first line': COPY,
 	'a danger row icon takes the danger ink': COPY,
-	'a field tail mark is centred on the field': COPY
+	'a field tail mark is centred on the field': COPY,
+	'hover only where a pointer hovers': 'hover only where a pointer hovers',
+	'a switch row is one label': 'a switch row is one label'
 }
 {
 	const designCheck = read(join(root, '../design/styles/check.js'))
