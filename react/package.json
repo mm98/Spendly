@@ -13,7 +13,8 @@
 		"preview": "vite preview",
 		"icons:sync": "node scripts/sync-icons.mjs",
 		"icons:check": "node scripts/sync-icons.mjs --check",
-		"scroll:check": "node scripts/check-page-scroll.mjs"
+		"scroll:check": "node scripts/check-page-scroll.mjs",
+		"search:check": "node scripts/check-search.mjs"
 	},
 	"dependencies": {
 		"@simplewebauthn/browser": "^14.0.0",
