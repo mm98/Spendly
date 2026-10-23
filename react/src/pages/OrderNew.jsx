@@ -472,7 +472,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 						<div className="sp-row-flex sp-gap-8 sp-wrap">
 							<Button size="small" onClick={onManual}>Continue manually</Button>
 							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>{photo ? 'Try another photo' : 'Try another file'}</Button>
-							<input ref={picker} type="file" accept={FILE_TYPES} hidden tabIndex={-1} onChange={take} />
+							<input ref={picker} type="file" name="receipt" accept={FILE_TYPES} hidden tabIndex={-1} onChange={take} />
 							<Button variant="outline" size="small" onClick={() => setAsking(true)}>Discard</Button>
 						</div>
 					</div>

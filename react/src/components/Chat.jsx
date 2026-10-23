@@ -202,7 +202,7 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp,
 		<div className={join('sp-chat__dock', bar && 'sp-chat__dock--bar')}>
 			<div className="sp-chat__composer">
 				<span className="sp-field__wrap sp-chat__wrap">
-					<textarea ref={fieldRef} className="sp-textarea sp-chat__field" rows={1} value={value} disabled={disabled}
+					<textarea ref={fieldRef} className="sp-textarea sp-chat__field" name="question" rows={1} value={value} disabled={disabled}
 						onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label="Ask" {...rest} />
 					<button type="button" className="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog"
 						data-tip="What Ask can do" onClick={onHelp}><Icon name="help-circle" size={15} /></button>

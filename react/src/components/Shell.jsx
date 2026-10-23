@@ -308,7 +308,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 						: (
 							<>
 								<span className="sp-palette__icon"><Icon name="search" /></span>
-								<input ref={inputRef} className="sp-palette__term" type="search" value={value}
+								<input ref={inputRef} className="sp-palette__term" type="search" name="search" value={value}
 									onChange={ev => onChange?.(ev.target.value)} placeholder={placeholder} {...term} />
 								{count ? <span className="sp-note" aria-live="polite">{count}</span> : null}
 							</>

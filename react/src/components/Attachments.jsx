@@ -68,6 +68,7 @@ export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, .
 			<Icon name="plus" size={18} />
 			<input
 				type="file"
+				name="attachment"
 				accept={accept}
 				multiple={multiple}
 				aria-label="Add attachment"

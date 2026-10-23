@@ -61,10 +61,10 @@ const LOOK = {
 }
 
 /** The theme to pick, one tile per theme, each drawn as the app looks in it (Settings 11a). */
-export function ThemeTiles({ name, options = [], value, onChange, id, ...rest }) {
+export function ThemeTiles({ name, options = [], value, onChange, ...rest }) {
 	reject(rest, 'ThemeTiles')
 	return (
-		<div className="st-trio" role="radiogroup" id={id} aria-labelledby={id ? `${id}-label` : undefined} {...rest}>
+		<div className="st-trio" {...rest}>
 			{options.map(option => (
 				<label className="sp-well st-theme" key={option.value}>
 					<input type="radio" className="sp-radio" name={name} value={option.value}
@@ -76,3 +76,6 @@ export function ThemeTiles({ name, options = [], value, onChange, id, ...rest })
 		</div>
 	)
 }
+
+// a set of radios, so Field names it with a legend rather than a label
+ThemeTiles.fieldRole = 'group'

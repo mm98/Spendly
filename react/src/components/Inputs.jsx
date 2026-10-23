@@ -116,7 +116,7 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
 	)
 }
 
-export function SearchInput({ value, onChange, kbd, inputRef, ...rest }) {
+export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', ...rest }) {
 	const clearable = !!value
 	const own = useRef(null)
 	const bind = el => {
@@ -131,6 +131,7 @@ export function SearchInput({ value, onChange, kbd, inputRef, ...rest }) {
 				type="search"
 				classes={join('sp-input--search', 'sp-input--lead', kbd && 'sp-input--search-kbd', 'sp-input--trail')}
 				component="SearchInput"
+				name={name}
 				value={value}
 				onChange={onChange}
 				inputRef={bind}

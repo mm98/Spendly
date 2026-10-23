@@ -1,4 +1,4 @@
-import { cloneElement, useEffect, useRef, useState } from 'react'
+import { cloneElement, useEffect, useId, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { SearchInput } from './Inputs.jsx'
 import { Icon } from './Icon.jsx'
@@ -40,6 +40,9 @@ export function Choice({ variant = 'default', control, children, description, de
 	const wiring = {}
 	for (const key of ['id', 'aria-describedby', 'aria-invalid', 'data-color', 'required'])
 		if (key in rest) { wiring[key] = rest[key]; delete rest[key] }
+	// the browser asks every box for an id or a name, even one its label already wraps
+	const auto = useId()
+	if (control && !wiring.id && !control.props.id && !control.props.name) wiring.id = auto
 	for (const slot of ['lead', 'trail', 'unit']) delete rest[slot]
 	const wired = control && Object.keys(wiring).length ? cloneElement(control, wiring) : control
 	return (
@@ -225,6 +228,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 						{chosenOutside ? null : customIcon}
 						<input
 							type="color"
+							name="custom-colour"
 							aria-label="Custom colour"
 							value={chosenOutside ? value : '#1d4d33'}
 							onChange={ev => onChange?.(ev.target.value)}

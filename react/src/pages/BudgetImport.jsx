@@ -48,7 +48,7 @@ export function ImportButton({ onImported }) {
 	return (
 		<>
 			<Button size="small" onClick={() => picker.current?.click()}>Import from Excel</Button>
-			<input ref={picker} type="file" hidden accept=".xlsx" aria-label="Choose the Excel budget"
+			<input ref={picker} type="file" name="budget" hidden accept=".xlsx" aria-label="Choose the Excel budget"
 				onChange={ev => { read(ev.target.files?.[0]); ev.target.value = '' }} />
 			{found ? (
 				<Dialog onCancel={() => setFound(null)}>
