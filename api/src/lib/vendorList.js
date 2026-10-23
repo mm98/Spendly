@@ -13,26 +13,26 @@ import { lookalikePairs, vendorsAlikeTo, vendorsLike } from './vendorLookalikes.
 const STATS = `SELECT vendor_id, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved, MAX(date) AS last
 	FROM orders WHERE user_id = @userId`
 
-/* `stats` sorts read the account's grouped orders once; `byName` is ordered by nameOrder. Ties go
-   to the name as stored. */
+/* `stats` sorts read the account's grouped orders once, an order count reads the vendor's own;
+   `byName` is ordered by nameOrder. Ties go to the name as stored. */
 const SORTS = {
 	'name-asc': { byName: true },
 	// a picker's plain alphabetical list
 	'name': { byName: true },
 	'spend-desc': { stats: true, by: 'COALESCE(s.spend, 0) DESC, v.name' },
 	'spend-asc': { stats: true, by: 'COALESCE(s.spend, 0) ASC, v.name' },
-	'orders-desc': { stats: true, by: 'COALESCE(s.orders, 0) DESC, v.name' },
+	'orders-desc': { by: 'v.order_count DESC, v.name' },
 	'saved-desc': { stats: true, by: 'COALESCE(s.saved, 0) DESC, v.name' },
 	'saved-asc': { stats: true, by: 'COALESCE(s.saved, 0) ASC, v.name' },
 	// the order list's filter rail: most used first
-	'use': { stats: true, by: 'COALESCE(s.orders, 0) DESC, v.name' },
+	'use': { by: 'v.order_count DESC, v.name' },
 	// the merge picker: the most recently used first
 	'recent': { stats: true, by: 's.last IS NULL, s.last DESC, v.name' }
 }
 
 export const LOOKALIKES = 'possible-duplicate'
 
-const selectRows = db.prepare(`SELECT id, name, colour, favourite, archived, origin, default_exclude_from_stats FROM vendors
+const selectRows = db.prepare(`SELECT id, name, colour, favourite, archived, origin, default_exclude_from_stats, order_count FROM vendors
 	WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))`)
 const selectStats = db.prepare(`${STATS} AND vendor_id IN (SELECT value FROM json_each(@ids)) GROUP BY vendor_id`)
 // a page's names are few, so groupNames orders them rather than a sort in SQL
@@ -71,12 +71,12 @@ function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = fal
 	const keepNames = keeps.length ? new Map(selectNames.all({ userId, ids: JSON.stringify(keeps) }).map(v => [v.id, v.name])) : null
 	return ids.filter(id => byId.has(id)).map(id => {
 		const v = byId.get(id)
-		const s = stats.get(id) ?? { orders: 0, spend: 0, saved: 0, last: null }
+		const s = stats.get(id) ?? { spend: 0, saved: 0, last: null }
 		const duplicateOf = duplicates?.get(id) ?? null
 		return {
 			id, name: v.name, colour: v.colour, favourite: Boolean(v.favourite), archived: Boolean(v.archived),
 			createdByScan: v.origin === 'scan', aliases: aliases.get(id) ?? [],
-			orders: s.orders, spend: s.spend, saved: s.saved, lastOrder: s.last ? fromEpoch(s.last) : null,
+			orders: v.order_count, spend: s.spend, saved: s.saved, lastOrder: s.last ? fromEpoch(s.last) : null,
 			...(duplicates ? { duplicateOf, duplicateName: duplicateOf ? keepNames.get(duplicateOf) ?? null : null } : {}),
 			...(defaults ? { defaultCategories: defaultsBy.get(id) ?? [], defaultExcludeFromStats: Boolean(v.default_exclude_from_stats) } : {})
 		}

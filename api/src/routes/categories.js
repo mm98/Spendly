@@ -6,7 +6,7 @@ import { newId } from '../lib/ids.js'
 import { findCategoryByFold, nextCategoryColour } from '../lib/findOrCreate.js'
 import { todayIso, toEpoch } from '../lib/dates.js'
 import {
-	categoryMonthAverages, categoryMonthSpends, categoryOrderCounts, categoryStatsFor, bookmarkCategoryCounts
+	categoryMonthAverages, categoryMonthSpends, categoryStatsFor, bookmarkCategoryCounts
 } from '../lib/aggregate.js'
 import { wantsPage } from '../lib/listPage.js'
 import { categoryPage, knownCategoryNames, limitedCategories } from '../lib/categoryList.js'
@@ -15,7 +15,7 @@ import { recentCategoryNames } from '../lib/latestOrders.js'
 export const router = Router()
 
 const CATEGORY_COLUMNS = 'id, name, icon, icon_path, colour, budget, favourite'
-const selectAll = db.prepare(`SELECT ${CATEGORY_COLUMNS} FROM categories WHERE user_id = ? ORDER BY name`)
+const selectAll = db.prepare(`SELECT ${CATEGORY_COLUMNS}, order_count FROM categories WHERE user_id = ? ORDER BY name`)
 const selectOne = db.prepare(`SELECT ${CATEGORY_COLUMNS} FROM categories WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
 const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon_path, colour, budget, favourite)
@@ -63,11 +63,10 @@ const listRow = (category, orders = 0, bookmarks = 0) => ({
    pickers that read this list do not pay for it. */
 router.get('/', (req, res) => {
 	if (wantsPage(req.query)) return res.json(categoryPage(req.user.id, req.query, req.today ?? todayIso(), req.acceptsLanguages()))
-	const orderCounts = categoryOrderCounts(req.user.id)
 	const bookmarkCounts = bookmarkCategoryCounts(req.user.id)
 	const averages = req.query.average ? categoryMonthAverages(req.user.id, toEpoch(req.today ?? todayIso())) : null
 	res.json(selectAll.all(req.user.id).map(c => {
-		const row = listRow(c, orderCounts.get(c.id), bookmarkCounts.get(c.id))
+		const row = listRow(c, c.order_count, bookmarkCounts.get(c.id))
 		return averages ? { ...row, monthAverage: averages.get(c.id) ?? 0 } : row
 	}))
 })

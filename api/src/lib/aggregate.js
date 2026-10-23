@@ -23,20 +23,6 @@ export function vendorStats(userId) {
 	}]))
 }
 
-/* How many orders carry each category, keyed by category id: what the category list reads.
-   Only the count, so the links are counted from the covering link index with no order totals read. */
-const categoryOrderCountsQuery = db.prepare(`
-	SELECT oc.category_id AS categoryId, COUNT(*) AS orders
-	FROM order_categories oc
-	JOIN orders ot ON ot.id = oc.order_id
-	WHERE ot.user_id = ?
-	GROUP BY oc.category_id
-`)
-
-export function categoryOrderCounts(userId) {
-	return new Map(categoryOrderCountsQuery.all(userId).map(r => [r.categoryId, r.orders]))
-}
-
 /* The one-vendor and one-category questions, asked of that entity's own rows -- not the
    whole-account rollups above with all but one entry thrown away. GET/PATCH /vendors/:id and
    /categories/:id each called the batched map to render a single record: ~25ms grouping
@@ -77,8 +63,7 @@ const bookmarkCategoryLinksQuery = db.prepare(`
 	JOIN bookmarks b ON b.id = bc.bookmark_id WHERE b.user_id = ?
 `)
 
-/** How many bookmarks each category is on, keyed by category id -- the bookmark-side twin of
-    categoryOrderCounts. */
+/** How many bookmarks each category is on, keyed by category id. */
 export function bookmarkCategoryCounts(userId) {
 	const counts = new Map()
 	for (const { categoryId } of bookmarkCategoryLinksQuery.all(userId))

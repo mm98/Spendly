@@ -278,6 +278,17 @@ const listOf = v => [...new Set([].concat(v ?? []).flatMap(x => String(x).split(
 // a draft is listed with what it will come to, so only a cancelled order and money back count nothing
 const LISTED_SPEND = value => `CASE WHEN ot.status_type = 'cancelled' OR ${moneyBack('ot.')} THEN 0 ELSE ${value} END`
 
+const selectCategoryOrderCounts = db.prepare('SELECT id, order_count n FROM categories WHERE user_id = ? AND order_count > 0')
+
+/* Each category's orders under every filter but the category one. With no other filter that is the
+   count each category keeps, so the whole account's links are not counted again. */
+function categoryCounts(userId, q, counts) {
+	const rows = buildOrderFilter(userId, q, 'category').filtered
+		? counts('category', 'oc.category_id id, COUNT(*) n', 'oc.category_id', 'JOIN order_categories oc ON oc.order_id = ot.id')
+		: selectCategoryOrderCounts.all(userId)
+	return Object.fromEntries(rows.map(r => [r.id, r.n]))
+}
+
 function orderFacets(userId, q) {
 	const counts = (except, select, group, join = '') => {
 		const { whereSql, params } = buildOrderFilter(userId, q, except)
@@ -303,7 +314,7 @@ function orderFacets(userId, q) {
 		facets: {
 			status: add(byKey(counts('status', 'ot.status, COUNT(*) n', 'ot.status'), 'status'), draftsMatching(userId, q, 'status'), d => [d.status]),
 			vendor: add(byKey(counts('vendor', 'ot.vendor_id, COUNT(*) n', 'ot.vendor_id'), 'vendor_id'), draftsMatching(userId, q, 'vendor'), d => (d.sort.vendorId ? [d.sort.vendorId] : [])),
-			category: add(byKey(counts('category', 'oc.category_id, COUNT(*) n', 'oc.category_id', 'JOIN order_categories oc ON oc.order_id = ot.id'), 'category_id'), draftsMatching(userId, q, 'category'), d => d.sort.categoryIds),
+			category: add(categoryCounts(userId, q, counts), draftsMatching(userId, q, 'category'), d => d.sort.categoryIds),
 			receipt: { attached: receipt.attached + attached, missing: receipt.n - receipt.attached + draftsWith.length - attached }
 		}
 	}
