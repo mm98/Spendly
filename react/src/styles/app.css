@@ -249,6 +249,17 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	height: var(--control-h-touch);
 	transform: translate(-50%, -50%);
 }
+/* on touch a field-end button's ::after is its press area, not its tip: without this the tip's dark
+   chip fills the area once tapped, and the area lets taps through */
+.sp-touch .sp-field__trails > [data-tip]::after {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	pointer-events: auto;
+	transition: none;
+}
 
 /* the item editor measures its own width: below 640 its thirds become fixed + fluid (15b, .rr-f-thirds) */
 .sp-line-editor__form { container-type: inline-size; }
