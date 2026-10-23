@@ -8,10 +8,16 @@ npm run dev            # http://localhost:5173, proxies /api to http://localhost
 npm run build          # dist/, then .gz and .br beside every text file
 npm run design:check   # the design system's rules, held against src/ (runs in CI)
 npm run bank:check     # the bank statement reader against scripts/fixtures
+npm run search:check   # 54 searches typed into the order list, and the filters each sets (session, not CI)
 ```
 
 The API has to run beside the dev server (`npm run dev` in `../api`), or every page shows its
 error state. `SPENDLY_API_URL` points the proxy somewhere else.
+
+The order search is read in two places: `src/app/searchReading.js` reads amounts, periods and the
+fixed English and Danish words while you type, and `GET /api/search/names` names the shops and
+categories in the other words, by full name or, for one word, by meaning (`api/src/lib/searchMeaning.js`).
+The cases marked meaning in `search:check` need the API to have the language model (`SPENDLY_MODEL_DIR`).
 
 ## What is here
 
