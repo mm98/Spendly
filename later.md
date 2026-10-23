@@ -59,3 +59,16 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## For Claude Design: the order search's Ask button on a phone
+
+- **Where:** `react/src/styles/app.css`, the rule under "on touch a field-end button's ::after is its
+  press area". Order list 2b, Mobile screens 7a.
+- **What the reader sees:** after a tap on Ask, the button showed as one dark box, with no mark.
+- **What was found:** `.sp-touch .sp-field__trails > .sp-field__trail::after` draws the 44px press
+  area with `::after`, which the tooltip (`[data-tip]::after`, c18) also uses. On touch the tapped
+  button keeps `:hover`, so the tip's dark chip filled the press area, and the tip's
+  `pointer-events: none` made the area let taps through. Found 23 Oct 2026.
+- **To take into `design/`:** on touch, a field-end button's `::after` carries no tip: no padding,
+  border or background, `position: absolute`, `pointer-events: auto`. Then the app's rule and this
+  entry go.
