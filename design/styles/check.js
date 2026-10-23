@@ -59,6 +59,21 @@
   for (const f of pages) for (const m of src[f].matchAll(/<div class="sp-topbar">((?:(?!sp-topbar)[\s\S]){0,1500}?)<\/div>\s*<div class="sp-shell__body/g))
     if (/sp-btn|sp-combobox/.test(m[1])) fail('nothing but search in the top bar', f.replace('.dc.html',''), 'the desktop top bar carries page controls');
 
+  /* A hover state shows only where a pointer can hover (iPhone touch brief, 1). Caught: a phone
+     keeps :hover on the last thing tapped, so an order row opened and closed stayed grey. */
+  for (const [name, css] of [['components.css', comp], ...Object.entries(pageCss)]) {
+    let s = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    for (let k = s.indexOf('@media (hover: hover)'); k >= 0; k = s.indexOf('@media (hover: hover)')) {
+      let j = s.indexOf('{', k), d = 0;
+      for (; j < s.length; j++) { if (s[j] === '{') d++; else if (s[j] === '}' && --d === 0) break; }
+      s = s.slice(0, k) + s.slice(j + 1);
+    }
+    for (const m of s.matchAll(/([^{};]*:hover[^{};]*)\{/g)) fail('hover only where a pointer hovers', name, m[1].trim().slice(0, 80) + ' is outside @media (hover: hover)');
+  }
+  /* On touch a switch and its line are one label (iPhone touch brief, 2). Caught: a switch with
+     a separate <label for> beside it, so only the 26px switch and the text took a tap. */
+  for (const f of pages) if (/<input class="sp-switch"[^>]*>\s*<label[^>]*\sfor=/.test(src[f])) fail('a switch row is one label', f.replace('.dc.html', ''), 'a switch with a separate label[for]');
+
   /* The saved questions' list on the empty page takes the column's width. Caught: centred in
      .sp-chat__start it took its widest content, so a long question was 880px in a 566px
      column and an iPhone 15 scrolled sideways by 521px. */

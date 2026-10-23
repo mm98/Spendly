@@ -81,7 +81,9 @@
   /* the ring, not the border: .sp-well sets border-color unlayered, so a page rule
      can never win there - box-shadow is a property the component leaves alone */
   .st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--green); }
-  .st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
+  @media (hover: hover) {
+    .st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
+  }
   .st-theme:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
   .st-theme:has(input:checked) .sp-subtitle { font-weight: 600; }
 

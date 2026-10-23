@@ -725,6 +725,7 @@
     <div class="doc-note"><b>Under <span class="sp-nowrap">prefers-reduced-motion</span></b> the shift is instant and the tilt is dropped. The insertion line and the shadow stay - they carry the information; the motion is decoration.</div>
     <div class="doc-note"><b>Dropping in the same place is not a change.</b> No dirty flag, no save, no toast. A user who picks a row up and puts it back has done nothing.</div>
     <div class="doc-note"><b>A failed save restores the previous order</b> and says so. An optimistic reorder that silently reverts on the next load is worse than one that never appeared to work.</div>
+    <div class="doc-note"><b>Hover only where a pointer can hover.</b> Every hover fill, border and colour in the system sits under <code>@media (hover: hover)</code>. A phone keeps <code>:hover</code> on the last thing tapped, so without it a row opened and closed again stayed grey and read as selected. Focus rings, the pressed state and the selected state are unchanged, and on a phone the lists, card heads, menus, pickers, segmented options and buttons show no hover at all.</div>
   </div>
 </section>
 
@@ -1326,6 +1327,7 @@
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>Click the label</b> - focuses the control, since every label is bound to one. <b>Type</b> - updates without validating. <b>Blur or submit</b> - validates and shows the message at the field, never in a summary. <b>Escape</b> - reverts to the last saved value. <b>Enter</b> - submits. <b>Trailing button</b> - does whatever the field gives it: reveals a password, opens the date picker, clears the value. It is a real button, so it is reachable by keyboard after the input rather than being part of it. A unit and a leading icon are not: neither takes the pointer, since there is nothing to press. A picked value opens its Combobox panel instead, from the trigger. The label is tied by <code>for</code>, the message by <code>aria-describedby</code>, and an invalid field carries <code>aria-invalid</code>, so the error is read with the field rather than announced separately. What a user typed survives a validation failure - the field is never cleared for them.</div>
     <div class="doc-note"><b>RangeInput - drag a handle</b> - sets that bound coarsely and writes it into its field, which is where an exact figure is typed: the rail and the field are one value seen twice, so editing either moves the other. A handle cannot pass its neighbour; driving it further stops it at the neighbour's value. Arrow keys move a handle by one step and Home and End take it to its bound. Dragging snaps to the same step, so the rail and the field can never disagree by a fraction of one. There is no commit - the value applies as it moves. <b>TokenField - type</b> - filters the values already known and offers them beneath the field, as the Combobox panel does; typing something new is allowed where the field accepts free values, and refused where it does not. <b>Enter</b> - commits what was typed as a value and clears the input for the next. A comma is part of the value, since a vendor or category name can hold one ("Nabu Casa, Inc"). <b>Paste a list</b> - one value for each line. <b>Click a value's ×</b> - removes that one value and leaves the rest, with no confirmation, since it is undone by adding it again. <b>Backspace in an empty input</b> - removes the last value. <b>Escape</b> - clears what was typed without removing anything. A value already held is not added twice: typing it again selects the one that is there.</div>
+    <div class="doc-note"><b>On touch a field's end buttons sit as far from the right as from the top and bottom.</b> The field is 48px and the button keeps its 30px, so the inset is <code>(--control-h-touch - --field-trail) / 2</code>, 9px, at the right, and from the top for a button its field does not centre. <code>.sp-input--trail</code>, <code>.sp-input--trail-2</code> and the chat field pad by that inset, the buttons and 8px.</div>
   </div>
 </section>
 
@@ -1541,6 +1543,8 @@
     <div class="doc-note"><b>Narrow</b> (<code>.sp-combobox--narrow</code>, <code>.sp-segmented--narrow</code>): at most <code>--field-w</code>, 280, for a setting whose values are short, so the field does not span its form column (<a href="Settings and import.dc.html#11a">11a</a>). In a narrower column it takes the column's width.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>Click a label</b> - toggles its control. <b>Space</b> - toggles the focused control; <b>arrow keys</b> - move within a radio group or a segmented group, where only one segment is a tab stop. <b>Segmented</b> - applies instantly, because the choice is a view rather than a value. <b>Toggle</b> - applies at once, with no Save. <b>Combobox: click the trigger</b> - opens the panel over the content below it; <b>click or Enter</b> - picks and closes; <b>type</b> - narrows the list and bolds the match; <b>arrow keys</b> - move through options including group headers, which are skipped; <b>Escape</b> - closes and keeps the previous value; <b>the create row</b> - makes the typed value and selects it. <b>Search</b> - filters as you type, and Escape clears it. Each control is a real input, so its state is reported without help: a checkbox announces checked, the segmented reads as a radio group, the combobox as a listbox with the selected option marked <code>aria-selected</code>. A combobox keeps what was typed until it closes, so reopening it does not lose a half-typed search.</div>
+    <div class="doc-note"><b>On touch the whole row is the target.</b> A checkbox, radio or switch and its label are one <code>&lt;label&gt;</code> (<code>.sp-choice</code>, or <code>label.sp-row-flex</code> for a switch beside a line of text), at least 44px tall (<code>--row-h-touch</code>). The box and the switch keep their drawn size. A switch is never a separate <code>&lt;label for&gt;</code> beside its input.</div>
+    <div class="doc-note"><b>On touch a segmented option's press area fills the 48px track</b>: to the track's edge above and below, and half the 6px gap to each side, so neighbouring areas meet. The drawn option stays 34px. The label clips its own text with the ellipsis, so the option itself does not clip and its area can reach outside it.</div>
   </div>
 </section>
 
@@ -2828,14 +2832,14 @@
           </div>
         </div>
         <div class="sp-field-group">
-          <div class="sp-row-flex sp-gap-12">
+          <label class="sp-row-flex sp-gap-12">
             <input class="sp-switch" id="c12-toggle" type="checkbox" role="switch" defaultChecked="{{ true }}">
-            <label class="sp-data" for="c12-toggle">Only records with…</label>
-          </div>
-          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-data">Only records with…</span>
+          </label>
+          <label class="sp-row-flex sp-gap-12">
             <input class="sp-switch" id="c12-toggle-2" type="checkbox" role="switch">
-            <label class="sp-data" for="c12-toggle-2">Only records that…</label>
-          </div>
+            <span class="sp-data">Only records that…</span>
+          </label>
         </div>
       </div>
     </div>
@@ -4065,6 +4069,7 @@
     <div class="doc-note">Done, which carries Undo · a problem, which carries none because nothing changed · compact. Toasts never stack: a second replaces the first and restarts the timer, and hovering holds it.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>Undo</b> - reverses the action and dismisses the toast; it is the only control on it. <b>Escape</b> - dismisses without undoing. <b>⌘Z</b> - the same as Undo while it is up. A toast confirms rather than asks, so it never blocks and is never the only place an outcome is reported. The toast is a polite live region, so it is announced without stealing focus, and Undo is reachable by keyboard for as long as the toast is up. It never appears twice for the same action; a second action replaces the first toast rather than stacking.</div>
+    <div class="doc-note"><b>On touch a field-end button's <code>::after</code> is its press area, not its tip.</b> It carries no padding, border or background, sits <code>position: absolute</code> and takes taps (<code>pointer-events: auto</code>), so a tapped Ask or clear shows its mark, not a dark box.</div>
   </div>
 </section>
 
@@ -4385,6 +4390,7 @@
     <div class="doc-note">Rest · hover, which takes <code>--hover</code> · current, which is one row only · focus, which rings the row. A count of zero still shows, so the list does not shift as records come and go.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note">Selecting a row changes what the page shows and leaves the list in place. Save current adds the filters in force as a new row; it appears only where views can be saved. Keyboard: Tab reaches every row, Enter follows it. The current row is marked <code>aria-current="page"</code>, so a screen reader states which one it is without relying on colour. Counts are live - they recompute as records change - and a row whose destination has no count shows none rather than a zero.</div>
+    <div class="doc-note"><b>On touch the row is drawn 44px tall</b> (<code>--row-h-touch</code>), with the same 6px between rows: the Filters sheet's Views, Saved views and the order views list. A name field in a row's place overlaps the gaps by 2px each side on touch, so no row under it moves.</div>
   </div>
 </section>
 

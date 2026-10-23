@@ -288,11 +288,17 @@ paged or searched on the server, and is tested with more rows than the demo data
   later that it lacks is added to the script in the same change that handles it.
 - **Chromium is the default and only installed engine.** `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`
   (Playwright 1.56.1). Firefox/WebKit need an explicit install first
-  (`npx playwright install firefox`, or `webkit` + `install-deps webkit`) and are an explicit
-  request, not a standing default. Report "verified in Blink, others unverified," never silence.
+  (`npx playwright install firefox`, or `webkit` + `install-deps webkit`). Firefox is an explicit
+  request; WebKit is required by the rule below. Report "verified in Blink, others unverified,"
+  never silence.
 - **A fault on an iPhone is reproduced in WebKit, not Chromium.** Native date fields, the phone's
   keyboard-facing inputs and other controls the engine draws itself differ there. Use the
   `devices['iPhone 15']` profile, and say "verified in WebKit" only when WebKit rendered it.
+- **A change a phone can see is checked in WebKit before its pull request opens,** on the pages it
+  reaches, with the `devices['iPhone 15']` profile. Drive it by tap, not by click or focus, and look
+  again after each tap: a touch screen keeps a tapped control in its hover state, which a mouse
+  pass never shows. Measure each space against the ones it should equal (a button's inset on every
+  side, a gap against its twin), not only against a number.
 - **`--with-deps` fails as two steps, not one.** It installs system deps first and aborts the whole
   run if any apt source is unreachable — even an irrelevant one. Split it: `install` the engine, then
   `install-deps` separately, so an apt failure doesn't cost you an already-downloaded browser.

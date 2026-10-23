@@ -251,8 +251,17 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 }
 /* on touch a field's end buttons keep their drawn size in a taller field: the inset at the right
    matches the one above and below, and the text stops the same 8px before them */
+.sp-touch :not(.sp-field__trails) > .sp-field__trail,
 .sp-touch .sp-field__trails { right: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
+/* a field wrap centres its button and the chat field holds it to the bottom, so only the rest move down */
+.sp-touch :not(.sp-field__trails, .sp-field__wrap, .sp-chat__wrap) > .sp-field__trail { top: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
+.sp-touch .sp-input--trail,
+.sp-touch .sp-chat__wrap > .sp-textarea.sp-chat__field { padding-right: calc((var(--control-h-touch) - var(--field-trail)) / 2 + var(--field-trail) + var(--sp-8)); }
 .sp-touch .sp-input--trail-2 { padding-right: calc((var(--control-h-touch) - var(--field-trail)) / 2 + var(--field-trail) * 2 + var(--sp-14) + var(--sp-8)); }
+.sp-touch .sp-field__wrap > .sp-tokens:has(+ .sp-field__trail) { padding-right: var(--control-h-touch); }
+/* a touch screen keeps a tapped button hovered, so on touch Ask shows its real state, on or off, after the tap */
+.sp-touch .sp-field__trail--ask:hover { background: none; color: var(--ink-4); }
+.sp-touch .sp-field__trail--ask[aria-pressed="true"]:hover { background: var(--green); color: #fff; }
 /* on touch a field-end button's ::after is its press area, not its tip: without this the tip's dark
    chip fills the area once tapped, and the area lets taps through */
 .sp-touch .sp-field__trails > [data-tip]::after {

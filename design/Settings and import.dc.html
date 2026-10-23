@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022a">
+<link rel="stylesheet" href="styles/components.css?v=v20261022d">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/settings.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
@@ -47,6 +47,8 @@
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
     <div class="doc-note"><b>The profile photo is a FileDrop</b>: drop an image on the round mark, or use Upload a photo. With no photo the mark is the initials on <code>--green-3</code>, round, as in the sidebar.</div>
     <div class="doc-note"><b>Draft, Ordered, Delivered, Returned and Cancelled are built in</b> and are never deleted, whatever their order count; Delivered is drawn mid-rename as Received. The app knows Returned and Cancelled by what they mean, not by their name: they are left out of spending, a scanned return receipt is filed under Returned, demo data and imports use them, and a cancelled order is struck out. A new status with the same name would not bring that back, so the row has no delete control. Each built-in row carries the "built in" pill; all but Draft keep the pencil, since a rename changes only the name.</div>
+    <div class="doc-note"><b>Statuses on a phone</b> (STATUSES · PHONE): each row is the handle, the name's pill, "built in" where it applies, and one actions button with Rename, and Delete on an added status with no orders. The order count is left out on a phone, so the pill sits in the middle of the row with the rest; a long name ends in an ellipsis. The pencil and the trash are desktop only: side by side they sit 36px apart on a phone, too close for two 44px targets. Draft has neither, so it has no actions button.</div>
+    <div class="doc-note"><b>Renaming on a phone wraps the row</b>: the name field on the first line, with no drag handle while the row is renamed, the four tones on the second, Cancel and Save at the right on the third. The row grows while it is being renamed and returns to its height on Save or Cancel.</div>
     <div class="doc-note"><b>A status the reader added can be deleted once no orders use it.</b> The delete control is absent on a row with orders, not disabled - reassigning the orders is what makes it appear. Every row except Draft has the pencil; an added status with no orders also has the trash. Rename, reorder and delete all wait for the save bar, like every change on this page. Its tone is one of the four the pill component has, picked as the pill the list will draw.</div>
     <div class="doc-note"><b>Order views in the menu offers 2, 3, 4, 5, 6, 8, 10</b> - same numeric-combobox pattern as Rows per page (tabular figures, unit word beside the value, chevron right). Views beyond the chosen count collapse into the "N more in Orders" row in the sidebar. The list is always the first N; when the open view is one of the rest, that row is marked current and nothing else changes (<a href="Navigation shell.dc.html#9e">9e</a>).</div>
     <div class="doc-note"><b>The save bar is sticky to the bottom of the content column.</b> Each card saves on its own, so the bar names which one is dirty - and with a pane this long the dirty card is usually scrolled off screen by the time you want to save it. A bar that scrolls away leaves the only exit from an edit somewhere the user has to hunt for. It appears when something is dirty and is absent otherwise, matching the edit screen in 1d.</div>
@@ -539,6 +541,90 @@
     </div>
   </div>
 </div>
+
+  <div class="sp-stack sp-gap-6 sp-touch doc-w361">
+    <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">STATUSES · PHONE</span><span class="sp-meta">361px</span></div>
+    <div class="sp-card">
+      <div class="sp-card__head">
+        <span class="sp-section-label">STATUSES</span>
+        <span class="sp-grow"></span>
+        <span class="sp-meta">Drag to reorder</span>
+      </div>
+      <div class="sp-stack sp-gap-6">
+            <div class="sp-list-item sp-list-item--editable">
+              <svg class="sp-ink-5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+              <span class="sp-pill sp-pill--truncate">Draft</span>
+              <span class="sp-grow"></span>
+              <span class="sp-pill">built in</span>
+            </div>
+            <div class="sp-list-item sp-list-item--editable">
+              <svg class="sp-ink-5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+              <span class="sp-pill sp-pill--truncate" data-state="progress">Ordered</span>
+              <span class="sp-grow"></span>
+              <span class="sp-pill">built in</span>
+              <div class="sp-anchor">
+                <button type="button" class="sp-icon-btn" aria-label="Actions for Ordered" aria-haspopup="menu" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                <menu class="sp-menu sp-menu--floating" role="menu" aria-label="Ordered">
+                  <li role="menuitem"><button type="button" class="sp-menu__item">Rename</button></li>
+                </menu>
+              </div>
+            </div>
+        <div class="sp-list-item sp-list-item--outline sp-list-item--editable" aria-selected="true">
+          <input class="sp-input sp-grow" type="text" defaultValue="Received" aria-label="Status name">
+          <div class="sp-row-flex sp-gap-6 sp-flex-none" role="radiogroup" aria-label="Tone">
+            <label class="st-tone"><input type="radio" name="st-tone-ph" defaultChecked="{{ true }}" aria-label="Positive"><span class="sp-pill" data-color="success">Aa</span></label>
+            <label class="st-tone"><input type="radio" name="st-tone-ph" aria-label="In progress"><span class="sp-pill" data-state="progress">Aa</span></label>
+            <label class="st-tone"><input type="radio" name="st-tone-ph" aria-label="Problem"><span class="sp-pill" data-color="danger">Aa</span></label>
+            <label class="st-tone"><input type="radio" name="st-tone-ph" aria-label="Neutral"><span class="sp-pill">Aa</span></label>
+          </div>
+          <div class="sp-row-flex sp-gap-8 sp-flex-none">
+            <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+            <button type="button" class="sp-btn">Save</button>
+          </div>
+        </div>
+            <div class="sp-list-item sp-list-item--editable">
+              <svg class="sp-ink-5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+              <span class="sp-pill sp-pill--truncate" data-color="danger">Returned</span>
+              <span class="sp-grow"></span>
+              <span class="sp-pill">built in</span>
+              <div class="sp-anchor">
+                <button type="button" class="sp-icon-btn" aria-label="Actions for Returned" aria-haspopup="menu" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                <menu class="sp-menu sp-menu--floating" role="menu" aria-label="Returned">
+                  <li role="menuitem"><button type="button" class="sp-menu__item">Rename</button></li>
+                </menu>
+              </div>
+            </div>
+            <div class="sp-list-item sp-list-item--editable">
+              <svg class="sp-ink-5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+              <span class="sp-pill sp-pill--truncate">Cancelled</span>
+              <span class="sp-grow"></span>
+              <span class="sp-pill">built in</span>
+              <div class="sp-anchor">
+                <button type="button" class="sp-icon-btn" aria-label="Actions for Cancelled" aria-haspopup="menu" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                <menu class="sp-menu sp-menu--floating" role="menu" aria-label="Cancelled">
+                  <li role="menuitem"><button type="button" class="sp-menu__item">Rename</button></li>
+                </menu>
+              </div>
+            </div>
+            <div class="sp-list-item sp-list-item--editable">
+              <svg class="sp-ink-5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+              <span class="sp-pill sp-pill--truncate">On hold</span>
+              <span class="sp-grow"></span>
+              <div class="sp-anchor" data-open="true">
+                <button type="button" class="sp-icon-btn" aria-label="Actions for On hold" aria-haspopup="menu" aria-expanded="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                <menu class="sp-menu sp-menu--floating" role="menu" aria-label="On hold">
+                  <li role="menuitem"><button type="button" class="sp-menu__item">Rename</button></li>
+                  <li role="menuitem"><button type="button" class="sp-menu__item">Delete</button></li>
+                </menu>
+              </div>
+            </div>
+      </div>
+      <div class="sp-card__footer sp-card__footer--stack sp-card__footer--commits">
+        <button type="button" class="sp-btn sp-btn--outline">Add a status</button>
+      </div>
+    </div>
+  </div>
+
 </section>
 
 

@@ -1,127 +1,104 @@
-# Ask inside the order list's search (Brief-order-search-ask)
+# Four touch questions from an iPhone run (Brief-iphone-touch)
 
-The order list's search can now read a sentence. Normal search picks out the parts it knows while the reader types, and an Ask button in the field hands the whole sentence to Ask when the reader presses Enter. Either way the result is the normal list with its normal filters, shown as the normal chips. This is for the order list only. Every other search keeps its look.
+The app was run as an iPhone 15 (393 x 659, touch). These are the four questions only the design could answer, plus the three "For Claude Design" entries in `later.md`. Desktop does not change, except for one markup change that looks the same: a switch and its line are now one `<label>`.
 
-## 1. The Ask button
+## 1. A tapped row stays grey on a phone
 
-**The problem.** The order list's search matches the whole text against an order's fields, so a sentence such as "groceries over 500 last month" finds nothing. The field also had no place for a second control.
+**The problem.** A phone keeps `:hover` on the last thing tapped. After an order row, a card head or a menu row was tapped and the reader stepped back, the row kept its grey hover fill and looked selected.
+
+**What changed.** Every hover state shows only where a pointer can hover. Each `:hover` rule sits under `@media (hover: hover)`, as the budget line and the amount cell (21a, 21b) already did. That covers fills, borders, colours, reveals (a mark's remove, a card's pick), submenus opening on hover and tooltips shown on hover. Focus rings, the pressed state (`:active`), the selected state and `data-hover` specimens do not change. A rule written as `:is(:hover, :focus-visible)` is split: the focus half stays where it was, the hover half moves under the media query.
+
+**Where.** `styles/components.css`: all 107 hover selectors. `styles/pages/settings.css`: `.st-theme:hover`. `Components c1` note. App: wrap the 4 `:hover` rules in `app.css`, 1 in `pages/home.css` and 1 in `pages/settings.css` the same way. `styles/check.js` now fails on any `:hover` outside `@media (hover: hover)`.
+
+**What is still open.** Nothing.
+
+## 2. Tap areas under 44px on a phone
+
+**The problem.** On the phone a tick box row was 20 to 26px tall, a switch 26px, a light nav row 40px, a segmented option 34px, and a status's pencil and bin 24 x 24 at 36px apart.
 
 **What changed.**
-- The field ends in two buttons, `--sp-2` apart, each the field's normal 30px trailing button: the clear button (`x`), shown while the field has text, and Ask (`message-circle`).
-- Ask off is a ghost button. Ask on is filled `--green` with a white mark (`aria-pressed="true"`), `--green-2` on hover and `--green-press` when pressed.
-- Tooltips, placed above the button when there is room: "Ask (Alt+A)" when off, "Back to search (Alt+A)" when on.
-- When Ask is turned off on the server, the button is not rendered and the field ends in the clear button only.
-- Only `OrderSearch` passes Ask to `SearchInput`. The dozen other searches do not change.
+- **Tick box, radio and switch:** on touch the whole row is the target. The control and its label are one `<label>`, at least 44px tall (`--row-h-touch`). The box and the switch keep their drawn size. Ten switches that had a separate `<label for>` beside them are now wrapped in one `label.sp-row-flex`, with the same classes and look.
+- **Status pencil and bin:** on a phone they become one actions button (the icon button, three dots, 48px on touch) opening a menu: Rename, and Delete on an added status with no orders. Draft has neither, so it has no button. Desktop keeps the pencil and the bin. See point 3.
+- **Light nav row:** on touch it is drawn 44px tall, with the same 6px gap. A name field in a row's place now overlaps the gaps by 2px each side, so no row under it moves.
+- **Segmented option:** on touch its press area fills the 48px track: up to the track's edge above and below, and half the 6px gap to each side, so neighbouring areas meet. The drawn option stays 34px. The label clips its own text with the ellipsis, so the option no longer clips and its area can reach outside it.
 
 **Where.**
-- `Order list 2b`: the toolbar search, the "Ask on" specimen and the notes.
-- `Layout rules 15e`: the order list toolbars, at every width.
-- `styles/components.css`: `.sp-field__trails`, `.sp-field__trails > .sp-field__trail`, `.sp-field__trail--ask` and its `[aria-pressed]`, `:disabled` and `[aria-busy]` states, and `.sp-input--trail-2` (next to `.sp-input--trail`). These are new rules. No existing rule changed.
-- App: `react/src/pages/Orders.jsx` `OrderSearch` (both places it is drawn), `react/src/components/Inputs.jsx` `SearchInput` (an optional Ask control at the end).
+- `styles/components.css`: `.sp-touch :is(.sp-choice, label.sp-row-flex):has(> :is(.sp-check, .sp-radio, .sp-switch))` after `.sp-choice`; `.sp-touch .sp-nav-item--light` after `.sp-nav-list`, and `.sp-touch .sp-nav-list > .sp-field__wrap`; `.sp-touch .sp-segmented__item`, its `::before` and `> .sp-label` beside the touch press areas (the old shared `::before` rule with `.sp-period__preset` is split; the preset's is unchanged).
+- `Components c5` and `c22` notes.
+- Markup: `Components`, `Mobile screens 7a`, `Order create`, `Order editing layouts`, `Order list`, `Vendors and categories` (the "Leave out of statistics" switches and their likes). App: every switch whose label is a separate `<label htmlFor>` becomes one `<label>` holding both.
+- `styles/check.js` now fails on a switch with a separate `label[for]`.
 
 **What is still open.** Nothing.
 
-## 2. Ask mode in the field
+## 3. Statuses on a phone
 
-**The problem.** The reader needs to see that the field is in Ask mode, and that typing does nothing until Enter.
+**The problem.** On a phone "built in", the pencil and the two arrows left little room, the order count under the name pushed the name's chip up out of line with the rest, and the Rename editor did not fit on one line.
 
 **What changed.**
-- The lead icon changes from `search` to `message-circle`, and the placeholder reads "Ask, for example: groceries over 500 last month". The clear button is hidden in Ask mode.
-- Nothing runs while the reader types. Enter sends the sentence. The filters Ask returns replace the current filters.
-- The sentence stays in the field so it can be changed and sent again. It is never stored, so a saved view or a link holds only the filters.
-- Words Ask keeps as search text are shown as a chip, in straight quotes.
-- The mode lasts until the button or Alt+A turns it off, and ends when the reader leaves the page. Turning it off empties the field, or puts back the words Ask kept as search text.
+- The phone row is the handle, the name's pill (`.sp-pill--truncate`, a long name ends in an ellipsis), "built in" where it applies, and the actions button from point 2. The order count is left out on a phone, so the pill sits in the middle of the row with the rest. Desktop keeps the count.
+- The row's reorder control is the drag handle, as on desktop (touch-and-hold, `Components` handle notes). The app's up and down arrows are not part of the drawing.
+- Renaming on a phone wraps the row: the name field on the first line, with no drag handle (a row being renamed is not dragged), the four tones on the second, Cancel and Save at the right on the third, at their own width. The row grows while it is renamed and returns to its height on Save or Cancel.
 
-**Where.** `Order list 2b`: the specimens "Ask on", "Ask on, typed" and "Ask answered", plus the notes.
+**Where.** `Settings and import 11a`: the new "STATUSES · PHONE" state beside the screen, and two notes. `styles/components.css`: `.sp-touch .sp-list-item--editable:has(> .sp-input)` and its children, after `.sp-list-item--editable`; `.sp-touch .sp-list-item--editable .sp-btn:not(.sp-btn--block)` joins the list of places where a touch button keeps its own width. App: `pages/SettingsStatuses.jsx`, the phone branch of the list row and `StatusEditor`; the wrap rule in `app.css` is replaced by the design's.
 
 **What is still open.** Nothing.
 
-## 3. What the reader sees when normal search reads a part
+## 4. The bank check's column table on a phone
 
-**The problem.** A reader must be able to see that "over 500" became a filter, and be able to undo it.
+**The problem.** On a phone the column table was 480px wide and scrolled sideways, the Spendly choice was cut at the screen edge, and nothing showed that the table scrolled.
 
-**What changed.**
-- While the reader types, an amount ("over 500", "under 200", "500-1000") sets the lowest or highest total. "This month" or "this year" sets that Date preset. "Last month", a month name or a year sets the Custom range. A shop's or a category's whole name, in any case, sets that facet.
-- Each part appears at once as a chip in the filter row (`sp-crumb`, unchanged) and in the facet rail. The text stays in the field as typed.
-- A part and its chip are one: removing the chip removes those words from the field, and deleting the words removes the chip.
-- Words that are not read stay search text, matched as today.
-- Chip copy follows the existing formats: "Over 500 kr.", "01/09/2026 - 30/09/2026".
+**What changed.** On a phone the columns are a list, not a table: one block per column, its name and first three values on top, its Spendly choice under it at the full width, a rule between blocks. Nothing scrolls sideways.
 
-**Where.** `Order list 2b`: the specimen "Search reads the parts it knows", plus the notes.
+**Where.** `Budget 21h`: the new "COLUMNS · PHONE" state and a note. App: `pages/BudgetCheck.jsx`, the column step only; `.bg-sideways` and the 480px minimum go on a phone.
 
 **What is still open.** Nothing.
 
-## 4. While Ask works
+## later.md: the Ask button's ::after on a phone
 
-**The problem.** Ask takes a few seconds, and the reader needs to see it working and be able to stop it.
+**The problem.** After a tap on Ask the button showed as one dark box with no mark: the tooltip's `::after` styles filled the 44px press area, and its `pointer-events: none` let taps through.
 
-**What changed.**
-- The field is read-only. The Ask button shows `.sp-spinner` and becomes Stop (`aria-label="Stop"`, tooltip "Stop (Esc)"). On hover or focus the spinner gives way to `x`.
-- Esc in the field also stops it.
-- The list and its chips stay as they were until the filters arrive. Stopping leaves everything as it was, with the sentence still editable.
+**What changed.** On touch a field-end button's `::after` carries no tip: no margin, padding, border or background, `position: absolute`, `pointer-events: auto`, no transition.
 
-**Where.** `Order list 2b`: the specimen "Ask working", plus the notes. `styles/components.css`: `.sp-field__trail--ask[aria-busy="true"]`, `.sp-field__stop`.
+**Where.** `styles/components.css`: `.sp-touch .sp-field__trails > .sp-field__trail::after`. `Components c18` note. Remove the rule under "on touch a field-end button's ::after is its press area" from `react/src/styles/app.css`, and the entry "For Claude Design: the order search's Ask button on a phone" from `later.md`.
 
 **What is still open.** Nothing.
 
-## 5. When Ask cannot help
+## later.md: a field's end buttons sit close to the edge on a phone
 
-**The problem.** Two cases had no drawing: Ask did not understand the sentence, and the reader has no questions left today.
+**The problem.** On a phone an end button had less space on its right than above and below, and a search field's clear button sat high.
 
-**What changed.**
-- Not understood: a help line under the toolbar reads "Couldn't turn that into filters. Try naming a shop, a category, an amount or a period." in the warning tone (`.sp-field__help[data-color="warning"]`). The sentence stays, and the list and filters do not change. The line goes when the reader edits the field.
-- No questions left: the field returns to search mode and the Ask button is disabled (`--fade-disabled`). Its tooltip reads "No questions left today. Resets at midnight." on hover and focus. The tooltip is held by the field's end, because a disabled button gets no pointer events. The button comes back on its own when the day's questions reset.
-- Ask turned off on the server: no button, as planned.
+**What changed.** On touch an end button or group sits `(--control-h-touch - --field-trail) / 2` (9px) from the right, a button its field does not centre sits the same from the top, and `.sp-input--trail`, `.sp-input--trail-2`, the chat field and a token field with an end button pad by that inset.
 
-**Where.** `Order list 2b`: the specimens "Ask did not understand" and "No questions left today", plus the notes.
+**Where.** `styles/components.css`: the rules after `.sp-touch .sp-field__trails > .sp-field__trail::after`, in place of the old `.sp-touch .sp-input--trail-2`. `Components c3` note. Remove the rules under "on touch a field's end buttons keep their drawn size" from `app.css`, and the entry "For Claude Design: a field's end buttons sit close to the edge on a phone" from `later.md`.
 
 **What is still open.** Nothing.
 
-## 6. Phone
+## later.md: Ask keeps its hover colour after a tap
 
-**The problem.** On a phone the search stands alone at full width, and the button needs a touch size.
+**The problem.** On a phone, after a tap on Ask it showed the lighter hover green until the next tap elsewhere.
 
-**What changed.** Ask sits inside the field, as on desktop. Both buttons keep their drawn 30px, and each has a 44px wide press area as tall as the field. On touch the buttons sit `--sp-14` apart, so the two press areas meet and do not overlap. Confirmed: 44px, not the system's 48.
+**What changed.** Settled by point 1: Ask's hover rules sit under `@media (hover: hover)`.
 
-**Where.** `Mobile screens 7a`: the order list's search, plus a note. `Order list 2b`: the specimen "On a phone, Ask on". `styles/components.css`: `.sp-touch .sp-field__trails`, `.sp-touch .sp-field__trails > .sp-field__trail::after`, `.sp-touch .sp-input--trail-2`.
-
-**What is still open.** Nothing.
-
-## 7. The keyboard
-
-**The problem.** There was no key to switch Ask mode from the field.
-
-**What changed.** In the field, Alt+A (Option+A on a Mac) turns Ask mode on and off, Enter sends in Ask mode, and Esc stops a running question. The top bar's search keeps Cmd+K. Confirmed: Alt+A stays, even though Option+A types "å" on some Mac layouts.
-
-**Where.** `Order list 2b` notes. App: `OrderSearch` key handling.
-
-**What is still open.** Nothing.
-
-## later.md: "For Claude Design: What Ask can do keeps Close in a short window"
-
-**The problem.** `.sp-dialog` had no height limit. In a window lower than the dialog, it grew past the window and the page under it scrolled, instead of the list inside it.
-
-**What changed.** A dialog holding `.sp-chat__help` is at most the window's height less the scrim's padding (`100dvh - 2 x --sp-16`). The list scrolls inside it, and the heading and Close stay in view.
-
-**Where.** `styles/components.css`: `.sp-dialog:has(> .sp-chat__help)`, next to `.sp-chat__help`. `Ask Spendly 24c` note. Remove the rule under "What Ask can do scrolls its parts" from `react/src/styles/app.css`, and this entry from `later.md`.
+**Where.** `styles/components.css`: `.sp-field__trail--ask` hover rules. Remove the rules under "a touch screen keeps a tapped button hovered" from `app.css`, and the entry "For Claude Design: Ask in a search field keeps its hover colour after a tap" from `later.md`.
 
 **What is still open.** Nothing.
 
 ## later.md: other entries
 
-"Large accounts still make everyone wait on a few pages" and "A deleted record should not be removed for good at once" are app and server entries. Neither is in this brief, so both stay in `later.md`.
+"Large accounts still make everyone wait on a few pages" and "A deleted record should not be removed for good at once" are app and server entries outside this brief, so both stay.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Order list.dc.html` - the toolbar search with Ask, the eight states and the notes (2b).
-- `Layout rules.dc.html` - the order list toolbars with the Ask button (15e).
-- `Mobile screens.dc.html` - the phone's order list search with Ask, plus a note (7a).
-- `Ask Spendly.dc.html` - the dialog height note (24c).
+- `Settings and import.dc.html` - Statuses on a phone and its notes (11a).
+- `Budget.dc.html` - the bank check's columns on a phone and a note (21h).
+- `Components.dc.html` - notes on c1, c3, c5, c18 and c22, and two switches as one label.
+- `Mobile screens.dc.html`, `Order create.dc.html`, `Order editing layouts.dc.html`, `Order list.dc.html`, `Vendors and categories.dc.html` - switches as one label.
 - `support.js`, `components.js`, `icons.js` - loaded by the pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets. `components.css` gains the field-end rules and the dialog height rule.
-- `styles/pages/order-list.css`, `layout-rules.css`, `mobile-screens.css`, `budget.css`, `ask-spendly.css` - the page stylesheets these pages link.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets. `components.css` carries every rule above.
+- `styles/check.js` - with the two new assertions.
+- `styles/pages/settings.css`, `budget.css`, `mobile-screens.css`, `order-create.css`, `order-editing.css`, `order-list.css` - the page stylesheets these pages link.
 
 ## styles/check.js
 
