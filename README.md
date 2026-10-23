@@ -42,13 +42,10 @@ Everything that needs you, on one page.
 ![The order list with its filters and saved views beside it](docs/order-list.png)
 
 - **Search** by vendor (and its other names), item, note or reference.
-- **The search reads what you type, in English and Danish.** An amount ("over 500", "greater than 500",
-  "mere end 500", "under 200", "500-1000", "mellem 200 og 500", "500+"), a period ("this month",
-  "sidste måned", "august", "i år", "yesterday", "last 30 days", "since june", "2025") and the full name
-  of a vendor or a category each become a filter tag while you type. A word that means a category
-  ("food" or "dagligvarer" for Groceries) becomes that category's tag too, found by the language model
-  on your own server. Joining words ("orders", "from", "fra") are then not searched; the other words
-  are searched as text. Removing a tag removes its words, and deleting the words removes the tag.
+- **The search reads what you type.** An amount ("over 500", "under 200", "500-1000"), a period
+  ("this month", "last month", "august", "2025") and the full name of a vendor or a category each
+  become a filter tag while you type. The other words are searched as text. Removing a tag removes
+  its words, and deleting the words removes the tag.
 - **Ask in the search.** The button at the end of the search, or Alt+A, switches it to Ask. Type a
   sentence such as "groceries over 500 last month" and press Enter, and Ask sets the filters for it.
   It uses one of the day's Ask questions. The button is not there when Ask is not set up.
@@ -316,7 +313,6 @@ folder and you have backed up Spendly. The files Ask makes are in a second folde
 | `SPENDLY_OWNER_EMAIL` | Which account manages the server, may install updates and uses Ask without a daily limit | The first account made on the server. |
 | `SPENDLY_SECURITY_CONTACT` | A `security.txt` page with where to report a security problem | No such page. |
 | `SPENDLY_TERMS_URL` and `SPENDLY_PRIVACY_URL` | Your own terms and privacy notice | The built-in pages are used. |
-| `SPENDLY_SEARCH_MEANING` | `off` stops the order search from finding a category by what a word means | A word such as "food" finds the category nearest in meaning. |
 | `SPENDLY_PDF_READING` | How a PDF is sent to be read: `text` (default), `pictures` or `document` | Text. |
 
 A receipt in another currency is converted with rates from
@@ -332,7 +328,7 @@ printed amounts.
 | The server | [Node.js 22](https://nodejs.org) and [Express 5](https://expressjs.com) |
 | The database | [SQLite](https://sqlite.org), through [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) |
 | Reading receipts | [Claude](https://www.anthropic.com/claude), through the Anthropic API |
-| Category suggestions, and words in the search | A small language model, run on the server with [Transformers.js](https://huggingface.co/docs/transformers.js) |
+| Category suggestions | A small language model, run on the server with [Transformers.js](https://huggingface.co/docs/transformers.js) |
 | PDFs and pictures | [MuPDF](https://mupdf.com) and [sharp](https://sharp.pixelplumbing.com) |
 | Passkeys | [SimpleWebAuthn](https://simplewebauthn.dev) |
 | Assistants | The [Model Context Protocol](https://modelcontextprotocol.io), over HTTP |

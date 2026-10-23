@@ -258,11 +258,6 @@ scrolls at all. Run it on the pages the change reaches, before anything is pushe
 CI. A change to something every page shares (the shell, a shared component) names every page by
 leaving `--pages` out. A new route is added to its page list, or the check fails and names it.
 
-### A change to what the order search reads runs `npm run search:check`
-
-It types every case into the order list and checks the filters each one sets. A new word or phrase
-the search reads is added there as a case in the same change. Run it before anything is pushed, never in CI.
-
 ### Never assume or guess. Always validate first.
 
 A threshold, or a claim that something fits or is safe, is a claim about the full range it applies
