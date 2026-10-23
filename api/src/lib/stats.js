@@ -245,29 +245,30 @@ function medianOver(userId, from, to, orders, scope) {
 	`).get({ userId, from, to, take: 2 - (orders % 2), skip: Math.floor((orders - 1) / 2), ...scope.params }).median ?? 0
 }
 
-/* The first day of each step a chart draws, as a day index into the window: a day each, a week
-   from each Monday, a month from each first of the month. The window's first day always starts one. */
+/* The first day of each step a chart draws: a day each, a week from each Monday, a month from each
+   first of the month. `sql` is the same first day for an order's date (day 0 of 1970 was a Thursday). */
 const STEP_START = {
-	day: () => true,
-	week: at => new Date(at * 1000).getUTCDay() === 1,
-	month: at => new Date(at * 1000).getUTCDate() === 1
+	day: { starts: () => true, sql: 'ot.date' },
+	week: { starts: at => new Date(at * 1000).getUTCDay() === 1, sql: 'ot.date - ((ot.date / 86400 + 3) % 7) * 86400' },
+	month: { starts: at => new Date(at * 1000).getUTCDate() === 1, sql: "CAST(strftime('%s', ot.date, 'unixepoch', 'start of month') AS INTEGER)" }
 }
 export const STEPS = Object.keys(STEP_START)
 
 /** The median order of each step of the window, in step order; a step with no order is 0. Each
-    step's orders are ranked by amount and counted, and its middle one or two are averaged. */
+    step's orders are ranked by amount and counted, and its middle one or two are averaged. The
+    window's first day always starts a step. */
 function stepMediansOver(userId, from, to, step, scope) {
 	const starts = []
-	for (let d = from; d < to; d += DAY) if (d === from || STEP_START[step](d)) starts.push(d)
+	for (let d = from; d < to; d += DAY) if (d === from || STEP_START[step].starts(d)) starts.push(d)
 	const found = prepared(`
 		SELECT bucket, AVG(amount) AS median FROM (
 			SELECT bucket, amount,
 				ROW_NUMBER() OVER (PARTITION BY bucket ORDER BY amount) AS rank, COUNT(*) OVER (PARTITION BY bucket) AS orders
-			FROM (SELECT (SELECT MAX(value) FROM json_each(@starts) WHERE value <= ot.date) AS bucket, ${scope.signed('total')} AS amount
+			FROM (SELECT MAX(@from, ${STEP_START[step].sql}) AS bucket, ${scope.signed('total')} AS amount
 				FROM orders ot WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to${scope.and})
 		) WHERE rank IN ((orders + 1) / 2, (orders + 2) / 2)
 		GROUP BY bucket
-	`).all({ userId, from, to, starts: JSON.stringify(starts), ...scope.params })
+	`).all({ userId, from, to, ...scope.params })
 	const byStart = new Map(found.map(r => [r.bucket, r.median]))
 	return starts.map(at => byStart.get(at) ?? 0)
 }

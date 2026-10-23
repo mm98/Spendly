@@ -8,35 +8,22 @@ export const counted = (value, alias = '') => `CASE WHEN ${moneyPaid(alias)} AND
 /* Real aggregation: SUM/GROUP BY over the orders table's stored totals (see
    migrations/001_init.sql), not a per-order fetch-and-add-in-JS loop. */
 
-const vendorStatsQuery = db.prepare(`
-	SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved, MAX(date) AS last
-	FROM orders
-	WHERE user_id = ?
-	GROUP BY vendor_id
-`)
+// a vendor's totals are kept on its row (migrations/269_vendor_order_totals.sql), in whole øre
+const VENDOR_TOTALS = 'order_count AS orders, spend_cents / 100.0 AS spend, saved_cents / 100.0 AS saved, last_order_date AS last'
+const vendorStatsQuery = db.prepare(`SELECT id AS vendorId, ${VENDOR_TOTALS} FROM vendors WHERE user_id = ? AND order_count > 0`)
 
-/** Orders/spend/saved per vendor, keyed by vendor id. A vendor belongs to exactly one order
-    at a time, so the totals are a plain SUM — no splitting question the way categories have. */
+/** Orders/spend/saved and the last order's date per vendor with orders, keyed by vendor id. */
 export function vendorStats(userId) {
 	return new Map(vendorStatsQuery.all(userId).map(r => [r.vendorId, {
 		orders: r.orders, spend: r.spend, saved: r.saved, last: r.last
 	}]))
 }
 
-/* The one-vendor and one-category questions, asked of that entity's own rows -- not the
-   whole-account rollups above with all but one entry thrown away. GET/PATCH /vendors/:id and
-   /categories/:id each called the batched map to render a single record: ~25ms grouping
-   50,000 orders by vendor to read one vendor, ~105ms joining 60,768 category links to read one
-   category. Scoped to the entity, the same arithmetic runs over its own indexed rows alone:
-   ~2ms and ~5ms. The batched maps stay for the list pages, where every entry is read. */
-const vendorStatsForQuery = db.prepare(`
-	SELECT COUNT(*) AS orders, COALESCE(SUM(${counted('total')}), 0) AS spend, COALESCE(SUM(${counted('saved')}), 0) AS saved
-	FROM orders WHERE user_id = ? AND vendor_id = ?
-`)
+const vendorStatsForQuery = db.prepare(`SELECT ${VENDOR_TOTALS} FROM vendors WHERE user_id = ? AND id = ?`)
 /** One vendor's orders/spend/saved -- the same shape one entry of vendorStats holds. */
 export function vendorStatsFor(userId, vendorId) {
 	const r = vendorStatsForQuery.get(userId, vendorId)
-	if (!r.orders) return { orders: 0, spend: 0, saved: 0 }
+	if (!r?.orders) return { orders: 0, spend: 0, saved: 0 }
 	return { orders: r.orders, spend: r.spend, saved: r.saved }
 }
 

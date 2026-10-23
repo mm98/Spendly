@@ -1,5 +1,4 @@
 import { db } from '../db.js'
-import { counted } from './aggregate.js'
 import { fromEpoch } from './dates.js'
 import { resolveVendor } from './findOrCreate.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from './textSearch.js'
@@ -10,31 +9,28 @@ import { lookalikePairs, vendorsAlikeTo, vendorsLike } from './vendorLookalikes.
 /* A page of the account's vendors (GET /api/vendors with page, pageSize, ids, name or like): the
    filter, the order and the page boundary are the server's, so no reader holds the whole list. */
 
-const STATS = `SELECT vendor_id, COUNT(*) AS orders, SUM(${counted('total')}) AS spend, SUM(${counted('saved')}) AS saved, MAX(date) AS last
-	FROM orders WHERE user_id = @userId`
-
-/* `stats` sorts read the account's grouped orders once, an order count reads the vendor's own;
-   `byName` is ordered by nameOrder. Ties go to the name as stored. */
+/* Every count and total is kept on the vendor's row; `byName` is ordered by nameOrder. Ties go to the
+   name as stored. */
 const SORTS = {
 	'name-asc': { byName: true },
 	// a picker's plain alphabetical list
 	'name': { byName: true },
-	'spend-desc': { stats: true, by: 'COALESCE(s.spend, 0) DESC, v.name' },
-	'spend-asc': { stats: true, by: 'COALESCE(s.spend, 0) ASC, v.name' },
+	'spend-desc': { by: 'v.spend_cents DESC, v.name' },
+	'spend-asc': { by: 'v.spend_cents ASC, v.name' },
 	'orders-desc': { by: 'v.order_count DESC, v.name' },
-	'saved-desc': { stats: true, by: 'COALESCE(s.saved, 0) DESC, v.name' },
-	'saved-asc': { stats: true, by: 'COALESCE(s.saved, 0) ASC, v.name' },
+	'saved-desc': { by: 'v.saved_cents DESC, v.name' },
+	'saved-asc': { by: 'v.saved_cents ASC, v.name' },
 	// the order list's filter rail: most used first
 	'use': { by: 'v.order_count DESC, v.name' },
 	// the merge picker: the most recently used first
-	'recent': { stats: true, by: 's.last IS NULL, s.last DESC, v.name' }
+	'recent': { by: 'v.last_order_date IS NULL, v.last_order_date DESC, v.name' }
 }
 
 export const LOOKALIKES = 'possible-duplicate'
 
-const selectRows = db.prepare(`SELECT id, name, colour, favourite, archived, origin, default_exclude_from_stats, order_count FROM vendors
+const selectRows = db.prepare(`SELECT id, name, colour, favourite, archived, origin, default_exclude_from_stats, order_count,
+	spend_cents, saved_cents, last_order_date FROM vendors
 	WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))`)
-const selectStats = db.prepare(`${STATS} AND vendor_id IN (SELECT value FROM json_each(@ids)) GROUP BY vendor_id`)
 // a page's names are few, so groupNames orders them rather than a sort in SQL
 const selectAliases = db.prepare(`SELECT vendor_id, name FROM vendor_aliases
 	WHERE user_id = @userId AND vendor_id IN (SELECT value FROM json_each(@ids))`)
@@ -64,19 +60,18 @@ function rowsFor(userId, ids, { duplicates = null, defaults = false, brief = fal
 		const v = byId.get(id)
 		return { id, name: v.name, colour: v.colour, favourite: Boolean(v.favourite), archived: Boolean(v.archived) }
 	})
-	const stats = new Map(selectStats.all(params).map(s => [s.vendor_id, s]))
 	const aliases = groupNames(selectAliases.all(params))
 	const defaultsBy = defaults ? groupNames(selectDefaults.all(params)) : null
 	const keeps = duplicates ? [...new Set(ids.map(id => duplicates.get(id)).filter(Boolean))] : []
 	const keepNames = keeps.length ? new Map(selectNames.all({ userId, ids: JSON.stringify(keeps) }).map(v => [v.id, v.name])) : null
 	return ids.filter(id => byId.has(id)).map(id => {
 		const v = byId.get(id)
-		const s = stats.get(id) ?? { spend: 0, saved: 0, last: null }
 		const duplicateOf = duplicates?.get(id) ?? null
 		return {
 			id, name: v.name, colour: v.colour, favourite: Boolean(v.favourite), archived: Boolean(v.archived),
 			createdByScan: v.origin === 'scan', aliases: aliases.get(id) ?? [],
-			orders: v.order_count, spend: s.spend, saved: s.saved, lastOrder: s.last ? fromEpoch(s.last) : null,
+			orders: v.order_count, spend: v.spend_cents / 100, saved: v.saved_cents / 100,
+			lastOrder: v.last_order_date == null ? null : fromEpoch(v.last_order_date),
 			...(duplicates ? { duplicateOf, duplicateName: duplicateOf ? keepNames.get(duplicateOf) ?? null : null } : {}),
 			...(defaults ? { defaultCategories: defaultsBy.get(id) ?? [], defaultExcludeFromStats: Boolean(v.default_exclude_from_stats) } : {})
 		}
@@ -119,7 +114,6 @@ export function vendorPage(userId, q, languages = []) {
 		where.push(`v.id IN (${vendorIdsMatching(match)})`)
 	}
 
-	const statsJoin = `LEFT JOIN (${STATS} GROUP BY vendor_id) s ON s.vendor_id = v.id`
 	const order = `${fav ? 'v.favourite DESC, ' : ''}${sort.by}`
 	// the name order is the reader's alphabet, so the ranking it pages by is made here
 	const byName = (rows, lead = () => 0) => {
@@ -128,7 +122,7 @@ export function vendorPage(userId, q, languages = []) {
 	}
 	const rankedSql = sort.byName
 		? `SELECT json_extract(value, '$[0]') AS id, json_extract(value, '$[1]') AS r FROM json_each(@ranks)`
-		: `SELECT v.id, ROW_NUMBER() OVER (ORDER BY ${order}) AS r FROM vendors v ${sort.stats ? statsJoin : ''}
+		: `SELECT v.id, ROW_NUMBER() OVER (ORDER BY ${order}) AS r FROM vendors v
 			WHERE v.user_id = @userId AND v.archived = 0`
 	let sql
 	if (q.flag === LOOKALIKES && q.archived !== 'yes') {
@@ -168,7 +162,7 @@ export function vendorPage(userId, q, languages = []) {
 	}
 	const matched = db.prepare(matchedSql).get(params).c
 	const { limit, offset } = pageOf(q, matched)
-	sql = `SELECT v.id FROM vendors v ${sort.stats ? statsJoin : ''} WHERE ${where.join(' AND ')}
+	sql = `SELECT v.id FROM vendors v WHERE ${where.join(' AND ')}
 		ORDER BY ${lead}${order} LIMIT @limit OFFSET @offset`
 	const page = db.prepare(sql).all({ ...params, limit, offset })
 	return { vendors: rowsFor(userId, page.map(r => r.id), { duplicates, brief }), matched }

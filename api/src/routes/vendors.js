@@ -240,9 +240,7 @@ router.post('/', (req, res) => {
 		aliasesFor(req.user.id, vendor.id), defaultCategoriesFor(req.user.id, vendor.id)))
 })
 
-/* One vendor's stats, not vendorStats' whole-account rollup read for one entry -- the map
-   groups all 50,000 of a big account's orders (~25ms) to render a single record this reads
-   in ~2ms from that vendor's own indexed rows (lib/aggregate.js). */
+// one vendor's stats, read from its own row rather than every vendor's
 const statsForOne = (userId, vendorId) => new Map([[vendorId, vendorStatsFor(userId, vendorId)]])
 
 // the names the latest orders carry, for a picker's Recent group
