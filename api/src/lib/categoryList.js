@@ -3,6 +3,7 @@ import { moneyPaid } from './moneyPaid.js'
 import { findCategoryByFold } from './findOrCreate.js'
 import { MATCHERS, asciiNeedle, escapeLike } from './textSearch.js'
 import { countsOnly, listOf, nameOrder, pageOf } from './listPage.js'
+import { NOTIFY_EARLY_DEFAULT } from './constants.js'
 
 /* A page of the account's categories (GET /api/categories with page, pageSize, ids or name): the
    filter, the order and the page boundary are the server's, so no reader holds the whole list. */
@@ -40,6 +41,7 @@ const selectViewBookmarks = db.prepare(`SELECT bc.category_id, 1 AS bookmarks
 	WHERE b.user_id = @userId AND b.archived = @view AND bc.category_id IN (SELECT value FROM json_each(@ids))`)
 const selectByName = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
 const selectAccountNames = db.prepare('SELECT name FROM categories WHERE user_id = ?')
+const selectEarly = db.prepare('SELECT notify_early FROM user_settings WHERE user_id = ?')
 
 const MONTH_PARAM = /^\d{4}-(0[1-9]|1[0-2])$/
 
@@ -110,7 +112,9 @@ export function categoryPage(userId, q, today, languages = []) {
 	if (q.limited === 'yes' || q.flag === 'limited' || over) where.push('c.budget > 0')
 	if (over) where.push('COALESCE(m.spend, 0) > c.budget')
 	if (q.flag === 'near-limit') {
-		const early = Math.min(99, Math.max(1, Math.floor(Number(q.early) || 0)))
+		// without `early`, the account's own warning level from Settings, as the page sends it
+		const asked = q.early ?? selectEarly.get(userId)?.notify_early ?? NOTIFY_EARLY_DEFAULT
+		const early = Math.min(99, Math.max(1, Math.floor(Number(asked) || 0)))
 		where.push('c.budget > 0', 'COALESCE(m.spend, 0) <= c.budget', 'COALESCE(m.spend, 0) * 100 >= c.budget * @early')
 		params.early = early
 	}
