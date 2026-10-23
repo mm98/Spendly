@@ -8,11 +8,14 @@ is removed in the change that settles it.
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
 - **What the reader sees:** with 30 accounts opening a page at once, every account waits about
-  1.2 to 2.2 seconds, the smallest ones too.
-- **What was found:** the reads themselves are now sound; the time is the large accounts' reads
-  standing in one line. Home is the heaviest.
-- **Proposed shape:** heavy reads run side by side, on a few helpers beside the server. Measure the
-  30 accounts again after it.
+  0.7 to 2 seconds, the smallest ones too.
+- **What was found:** read helpers were built and measured on branch `feat/read-helpers`: a few
+  threads beside the server, each with its own read-only connection. With 30 accounts opening
+  Statistics at once, the reads took 450 ms on the server alone and 150 ms on 4 helpers, but the page
+  as a whole did not get faster: the reads are about half of its time, and the rest is receiving the
+  requests and sending the answers. The gain also depends on how many processors the server has.
+- **Proposed shape:** pick the branch up when real use shows many accounts waiting at once; move the
+  order list to the helpers too, and measure on the real server's processor count.
 - **Found:** 2026-10-23.
 
 ## A deleted record should not be removed for good at once
