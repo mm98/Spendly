@@ -20,6 +20,9 @@ import { db } from '../db.js'
 db.function('contains_fold', { deterministic: true }, (haystack, needle) =>
 	haystack != null && String(haystack).toLowerCase().includes(needle) ? 1 : 0)
 
+// the same full fold, for an equality: a whole name typed in another case than it is stored in
+db.function('lower_fold', { deterministic: true }, text => (text == null ? null : String(text).toLowerCase()))
+
 /** Whether LIKE's ASCII fold can match this (already JS-lowercased) needle correctly. */
 export const asciiNeedle = needle => /^[\x00-\x7F]*$/.test(needle)
 

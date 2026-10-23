@@ -5,6 +5,7 @@ import { Icon } from './Icon.jsx'
 import { Chip } from './Chip.jsx'
 import { countOf, usePanelPlace, useListbox } from './Combobox.jsx'
 import { formatNumber, parseNumber } from './format.js'
+import { Spinner } from './Utilities.jsx'
 
 const TEXT = {
 	default: null,
@@ -116,20 +117,26 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
 	)
 }
 
-export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', ...rest }) {
-	const clearable = !!value
+/** `icon` is the lead mark; `clear` false hides the clear button; `ends` are controls after it, at the
+    field's end with it (.sp-field__trails), such as the order list's Ask (AskTrail). */
+export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, ...rest }) {
+	const clearable = clear && !!value
 	const own = useRef(null)
 	const bind = el => {
 		own.current = el
 		if (typeof inputRef === 'function') inputRef(el)
 		else if (inputRef) inputRef.current = el
 	}
+	// clearing hands focus back to the field, where the reader types the next search
+	const clearing = clearable
+		? <Trail label="Clear the search" onClick={() => { onChange?.(''); own.current?.focus() }}><Icon name="x" /></Trail>
+		: null
 	return (
 		<span className="sp-picker__search">
-			<span className="sp-field__lead"><Icon name="search" size={14} /></span>
+			<span className="sp-field__lead"><Icon name={icon} size={14} /></span>
 			<Box
 				type="search"
-				classes={join('sp-input--search', 'sp-input--lead', kbd && 'sp-input--search-kbd', 'sp-input--trail')}
+				classes={join('sp-input--search', 'sp-input--lead', kbd && 'sp-input--search-kbd', ends ? 'sp-input--trail-2' : 'sp-input--trail')}
 				component="SearchInput"
 				name={name}
 				value={value}
@@ -137,12 +144,34 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', .
 				inputRef={bind}
 				{...rest}
 			/>
-			{/* clearing hands focus back to the field, where the reader types the next search */}
-			{clearable
-				? <Trail label="Clear the search" onClick={() => { onChange?.(''); own.current?.focus() }}><Icon name="x" /></Trail>
-				: null}
-			{!clearable && kbd ? <span className="sp-field__kbd">{kbd}</span> : null}
+			{ends ? <span className="sp-field__trails">{clearing}{ends}</span> : clearing}
+			{!clearable && !ends && kbd ? <span className="sp-field__kbd">{kbd}</span> : null}
 		</span>
+	)
+}
+
+/** Ask at a search field's end (Order list 2b): off, on (`on`), or Stop while it works (`busy`).
+    `spent` is no questions left today: disabled, its reason held by the field's end. */
+export function AskTrail({ on, busy, spent, onToggle, onStop }) {
+	if (spent) return (
+		<span data-tip="No questions left today. Resets at midnight.">
+			<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed="false" aria-label="Ask" disabled>
+				<Icon name="message-circle" />
+			</button>
+		</span>
+	)
+	if (busy) return (
+		<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-busy="true" aria-label="Stop"
+			data-tip="Stop (Esc)" onClick={onStop}>
+			<Spinner />
+			<span className="sp-field__stop"><Icon name="x" /></span>
+		</button>
+	)
+	return (
+		<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed={on ? 'true' : 'false'} aria-label="Ask"
+			data-tip={on ? 'Back to search (Alt+A)' : 'Ask (Alt+A)'} onClick={onToggle}>
+			<Icon name="message-circle" />
+		</button>
 	)
 }
 

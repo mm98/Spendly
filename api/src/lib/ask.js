@@ -143,3 +143,75 @@ export async function writeChatHeading(chatId, question, answer) {
 		console.error('Chat heading failed:', error.message)
 	}
 }
+
+/* Ask turning a sentence typed in a list's search into its filters (Order list 2b): a list is named by its
+   read tool, whose arguments less paging and sort are the filters. Another list is one more line here. */
+export const FILTER_LISTS = { orders: 'list_orders' }
+const NOT_FILTERS = new Set(['page', 'pageSize', 'sort'])
+
+const filterTool = list => {
+	const reads = MCP_TOOLS.find(t => t.name === FILTER_LISTS[list])
+	const properties = Object.fromEntries(Object.entries(reads.inputSchema.properties).filter(([key]) => !NOT_FILTERS.has(key)))
+	return {
+		name: `show_${list}`,
+		description: `Show the reader their ${list} list with these filters. Every filter is optional; leave out what the sentence does not ask for.`,
+		input_schema: { type: 'object', properties }
+	}
+}
+
+const filterInstructions = (list, today) => `The reader typed a sentence in the search of their ${list} list in Spendly, a money app. Today is ${today}.
+
+Turn the sentence into the list's filters and call show_${list} once with them. Look up the ids of shops (vendors) and categories with the read tools; a shop or category named in the sentence must be one the tools find. A period such as "last month" or "this summer" becomes from and to. Words that are not a filter go in query, as few as the search needs; leave query out when every word was read.
+
+When the sentence cannot be turned into these filters, do not call show_${list}: answer with the word no.`
+
+// a filter Ask gives is kept only in the shape the list can read
+const FILTER_VALUES = {
+	string: (value, schema) => (typeof value === 'string' && value.trim() && (!schema.enum || schema.enum.includes(value)) && (!schema.pattern || new RegExp(schema.pattern).test(value)) ? value.trim() : undefined),
+	number: value => (Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : undefined)
+}
+
+/** The filters of `list` that the sentence `text` asks for, as the list's read tool names them, or null when
+    it asks for none. Reads with the session `token`, like a question does. */
+export async function filtersFor({ list, text, token, self, today, signal }) {
+	const anthropic = getClient()
+	const show = filterTool(list)
+	const tools = [...MCP_TOOLS.map(({ name, description, inputSchema }) => ({ name, description, input_schema: inputSchema })), show]
+	const messages = [{ role: 'user', content: text }]
+	for (let round = 0; round < ROUNDS_MOST; round++) {
+		const response = await anthropic.beta.messages.create({
+			model: ASK_MODEL,
+			max_tokens: 4000,
+			betas: ['server-side-fallback-2026-07-01'],
+			fallbacks: 'default',
+			cache_control: { type: 'ephemeral' },
+			output_config: { effort: 'low' },
+			system: filterInstructions(list, today),
+			tools,
+			messages
+		}, { signal, timeout: REQUEST_TIMEOUT_MS })
+		const shown = response.content.find(b => b.type === 'tool_use' && b.name === show.name)
+		if (shown) {
+			const filters = {}
+			for (const [key, schema] of Object.entries(show.input_schema.properties)) {
+				const value = FILTER_VALUES[schema.type]?.(shown.input?.[key], schema)
+				if (value !== undefined) filters[key] = value
+			}
+			return Object.keys(filters).length ? filters : null
+		}
+		if (response.stop_reason !== 'tool_use' && response.stop_reason !== 'pause_turn') return null
+		messages.push({ role: 'assistant', content: response.content })
+		if (response.stop_reason === 'pause_turn') continue
+		const calls = response.content.filter(b => b.type === 'tool_use')
+		const results = await Promise.all(calls.map(async call => {
+			const result = await callTool(call.name, call.input ?? {}, token, self)
+				.catch(() => ({ content: [{ type: 'text', text: 'Spendly could not read this.' }], isError: true }))
+			return result
+				? { type: 'tool_result', tool_use_id: call.id, content: result.content, is_error: !!result.isError }
+				: { type: 'tool_result', tool_use_id: call.id, content: `No tool named ${call.name}.`, is_error: true }
+		}))
+		signal?.throwIfAborted()
+		messages.push({ role: 'user', content: results })
+	}
+	return null
+}

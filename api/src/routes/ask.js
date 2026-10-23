@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { TEXT_MOST, TURNS_MOST, answerQuestion, askState, noteAnswered, writeChatHeading } from '../lib/ask.js'
+import { FILTER_LISTS, TEXT_MOST, TURNS_MOST, answerQuestion, askState, filtersFor, noteAnswered, writeChatHeading } from '../lib/ask.js'
 import { isBillingRefusal } from '../lib/scanParse.js'
 import { sessionToken, sessionUser } from '../lib/auth.js'
 import { SAVED_MOST, emailConversation, removeQuestion, saveQuestion, savedQuestions } from '../lib/askChat.js'
@@ -87,6 +87,34 @@ router.post('/', async (req, res) => {
 		// the log is the one place a bad key, a timeout or a refused account is told apart
 		console.error('Ask answer failed:', isBillingRefusal(error) ? 'billing' : error.message)
 		res.end(JSON.stringify({ error: 'Spendly could not answer that just now.', status: 502 }) + '\n')
+	}
+})
+
+/* A sentence typed in a list's search, turned into that list's filters (Order list 2b): one question of
+   the day's, counted only when filters come back. 422 is a sentence that names no filter. */
+router.post('/filters', async (req, res) => {
+	const state = stateOf(req)
+	if (!state.ready) return res.status(404).json({ error: 'Ask is not set up on this server.' })
+	if (state.left === 0) return res.status(429).json({ error: 'No questions left today.', left: 0 })
+	const list = Object.hasOwn(FILTER_LISTS, req.body?.list) ? req.body.list : null
+	const text = typeof req.body?.text === 'string' ? req.body.text.trim() : ''
+	if (!list) return res.status(400).json({ error: 'There is no such list.' })
+	if (!text || text.length > TEXT_MOST) return res.status(400).json({ error: `Write at most ${TEXT_MOST} characters.` })
+	if (asking.has(req.user.id)) return res.status(409).json({ error: 'Wait for the answer to the last question.' })
+	asking.add(req.user.id)
+	const stop = new AbortController()
+	res.on('close', () => { asking.delete(req.user.id); if (!res.writableEnded) stop.abort() })
+	try {
+		const filters = await filtersFor({
+			list, text, token: sessionToken(req), self: `http://127.0.0.1:${req.socket.localPort}`, today: req.today, signal: stop.signal
+		})
+		if (!filters) return res.status(422).json({ error: 'Couldn\'t turn that into filters.' })
+		noteAnswered(req.user.id, req.today)
+		res.json({ filters, left: state.left === null ? null : state.left - 1 })
+	} catch (error) {
+		if (stop.signal.aborted) return
+		console.error('Ask filters failed:', isBillingRefusal(error) ? 'billing' : error.message)
+		res.status(502).json({ error: 'Spendly could not answer that just now.' })
 	}
 })
 

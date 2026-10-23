@@ -304,6 +304,16 @@ export async function askQuestion({ chatId = null, question = '', retry = null }
 	}
 }
 
+/** The filters of the list `list` that a sentence typed in its search asks for, as Ask reads them:
+    { filters, left }, the filters named as the assistant's tools name them. 422 is a sentence that names none. */
+export async function askFilters(list, text, signal) {
+	try {
+		return await request('/api/ask/filters', { method: 'POST', body: { list, text }, signal })
+	} finally {
+		invalidate(getAsk)
+	}
+}
+
 /* ---- Chats (24f): the chats kept for 30 days after their last question ---- */
 
 /** One page of the kept chats, latest asked first: { chats, matched, total, pages, page, keptDays }. */
@@ -1319,6 +1329,13 @@ export function sendFile(file, { signal, onSent, scan = false } = {}) {
     at eight; `counts` holds the full number of vendors and, past eight orders, of items. */
 export async function searchRecords(query, signal) {
 	return request('/api/search' + qs({ query }), { signal })
+}
+
+/** The shops and categories that runs of typed words name in full: { names: [{ span, kind, id, name }] }.
+    Each span is lowercased words joined by one space. */
+export async function getSearchNames(spans, signal) {
+	const usp = new URLSearchParams(spans.map(span => ['span', span]))
+	return request(`/api/search/names?${usp}`, { signal })
 }
 
 /* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses) ---- */

@@ -4396,6 +4396,70 @@
 				"sqlite_autoindex_users_1"
 			]
 		},
+		"SELECT s.value AS span, n.id, n.name FROM categories n JOIN json_each(@spans) s ON lower_fold(n.name) = s.value WHERE n.user_id = @userId": {
+			"plan": [
+				"SEARCH n USING INDEX idx_categories_user (user_id=?)",
+				"SCAN s VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
+		"SELECT s.value AS span, n.id, n.name FROM json_each(@spans) s JOIN categories n ON lower(n.name) = s.value WHERE n.user_id = @userId": {
+			"plan": [
+				"SEARCH n USING INDEX idx_categories_user (user_id=?)",
+				"SCAN s VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
+		"SELECT s.value AS span, n.id, n.name FROM json_each(@spans) s JOIN vendors n ON lower(n.name) = s.value WHERE n.user_id = @userId": {
+			"plan": [
+				"SEARCH n USING INDEX idx_vendors_user_name (user_id=?)",
+				"SCAN s VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT s.value AS span, n.id, n.name FROM vendors n JOIN json_each(@spans) s ON lower_fold(n.name) = s.value WHERE n.user_id = @userId": {
+			"plan": [
+				"SEARCH n USING INDEX idx_vendors_user_name (user_id=?)",
+				"SCAN s VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT s.value AS span, v.id, v.name FROM json_each(@spans) s JOIN vendor_aliases n ON lower(n.name) = s.value AND n.user_id = @userId JOIN vendors v ON v.id = n.vendor_id": {
+			"plan": [
+				"SEARCH n USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"SCAN s VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT s.value AS span, v.id, v.name FROM vendor_aliases n JOIN json_each(@spans) s ON lower_fold(n.name) = s.value JOIN vendors v ON v.id = n.vendor_id WHERE n.user_id = @userId": {
+			"plan": [
+				"SEARCH n USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"SCAN s VIRTUAL TABLE INDEX 1:"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT saved_views_shown AS shown FROM users WHERE id = ?": {
 			"plan": [
 				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
@@ -4950,7 +5014,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 33
+			"readers": 35
 		},
 		"idx_order_attachments_item": {
 			"table": "order_attachments",
@@ -5243,7 +5307,7 @@
 				"user_id",
 				null
 			],
-			"readers": 20
+			"readers": 22
 		},
 		"idx_vendor_aliases_vendor": {
 			"table": "vendor_aliases",
@@ -5265,7 +5329,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 43
+			"readers": 45
 		}
 	}
 }

@@ -368,6 +368,7 @@ const REQUESTS = [
 	'/ask/chats', '/ask/chats?q=bilka', '/ask/chats?pageSize=0', '/ask/chats/ch-fixture',
 	'/ask/files', '/ask/files?q=bilka', '/ask/files?pageSize=0', '/ask/files/states?ids=af-fixture,af-gone', '/ask/files/af-fixture/download',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
+	'/search/names?span=groceries&span=netto&span=zzz', '/search/names?span=føtex&span=mad',
 	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
 	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture', '/drafts/od-fixture'
@@ -543,11 +544,12 @@ server.close()
 /* ---- explain what was captured ---- */
 
 const explainer = new Database(DB_PATH, { readonly: true })
-// The non-ASCII text filter (lib/textSearch.js) registers this on the app's own connection;
+// The non-ASCII text filter (lib/textSearch.js) registers these on the app's own connection;
 // this second connection needs its own copy, and it is the real implementation rather than a
 // stub so the timings printed below are the ones the app actually pays.
 explainer.function('contains_fold', { deterministic: true }, (haystack, needle) =>
 	haystack != null && String(haystack).toLowerCase().includes(needle) ? 1 : 0)
+explainer.function('lower_fold', { deterministic: true }, text => (text == null ? null : String(text).toLowerCase()))
 
 const median = xs => xs.sort((a, b) => a - b)[xs.length >> 1]
 
