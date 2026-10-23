@@ -422,6 +422,35 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-field__trail:hover { background: var(--hover); color: var(--ink-2); }
 .sp-field__trail:active { background: var(--line-2); }
+/* Two controls at a field's end: the order list's clear and Ask (Order list 2b). Inside
+   the group a trail sits in the row rather than at the field's corner. */
+/* centred by top and bottom rather than a transform: a transform would hold the
+   tooltip's fixed placement inside the group, over the button it names */
+.sp-field__trails {
+  position: absolute;
+  right: var(--sp-6);
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sp-field__trails > .sp-field__trail { position: relative; top: auto; right: auto; transform: none; }
+/* Ask: a ghost mark when off, a filled green mark when on */
+.sp-field__trail--ask[aria-pressed="true"] { background: var(--green); color: #fff; }
+.sp-field__trail--ask[aria-pressed="true"]:hover { background: var(--green-2); color: #fff; }
+.sp-field__trail--ask[aria-pressed="true"]:active { background: var(--green-press); }
+.sp-field__trail--ask:disabled { background: none; opacity: var(--fade-disabled); cursor: not-allowed; }
+/* while Ask works the button is Stop: the spinner, giving way to x on hover and focus */
+.sp-field__trail--ask[aria-busy="true"] { background: none; color: var(--ink-4); }
+.sp-field__trail--ask[aria-busy="true"]:hover { background: var(--hover); color: var(--ink-2); }
+.sp-field__trail--ask > .sp-field__stop { display: none; }
+.sp-field__trail--ask[aria-busy="true"]:is(:hover, :focus-visible) > .sp-spinner { display: none; }
+.sp-field__trail--ask[aria-busy="true"]:is(:hover, :focus-visible) > .sp-field__stop { display: flex; }
+/* on touch each keeps its drawn size in a 44px press area; 30 + 14 apart, so the areas meet */
+.sp-touch .sp-field__trails { gap: var(--sp-14); }
+.sp-touch .sp-field__trails > .sp-field__trail::after { content: ""; position: absolute; top: 50%; left: 50%; width: 44px; height: var(--control-h-touch); transform: translate(-50%, -50%); }
+.sp-touch .sp-input--trail-2 { padding-right: calc(var(--sp-6) + var(--field-trail) * 2 + var(--sp-14) + var(--sp-8)); }
 
 .sp-input,
 .sp-textarea {
@@ -477,6 +506,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-input--lead { padding-left: calc(var(--sp-12) + var(--icon-sm) + var(--sp-8)); }
 /* the counterpart to --lead: room for a trailing control, so typed text stops before it */
 .sp-input--trail { padding-right: calc(var(--sp-6) + var(--field-trail) + var(--sp-8)); }
+/* two trailing controls (.sp-field__trails): text stops before both */
+.sp-input--trail-2 { padding-right: calc(var(--sp-6) + var(--field-trail) * 2 + var(--sp-2) + var(--sp-8)); }
 /* a search field is a field with a leading icon, and nothing else: it takes the
    same text size every other field takes */
 
@@ -5701,5 +5732,8 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 /* What Ask can do (Ask 24c): one block of parts, in the dialog on a computer and in the
    sheet on a phone. A part is its label, its formats on one comma-separated line, an example */
 .sp-chat__help { display: flex; flex-direction: column; gap: var(--sp-16); min-height: 0; overflow-y: auto; }
+/* a dialog holding it is at most the window less the scrim's padding, so the list
+   scrolls and the heading and Close stay (Ask 24c) */
+.sp-dialog:has(> .sp-chat__help) { max-height: calc(100dvh - var(--sp-16) * 2); }
 .sp-chat__help-part { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-6); max-width: 100%; }
 .sp-chat__formats { font-size: var(--t-13); color: var(--ink-2); line-height: var(--lh); text-wrap: pretty; }

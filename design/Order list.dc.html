@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261021o">
+<link rel="stylesheet" href="styles/components.css?v=v20261022d">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/order-list.css?v=v20260917b">
 <script src="./components.js?v=v20260917b"></script>
@@ -403,7 +403,8 @@
         <div class="sp-controls">
           <div class="sp-picker__search sp-grow">
             <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
-            <input class="sp-input sp-input--lead sp-input--search" type="search" defaultValue="nuage" aria-label="Search orders">
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Search orders" defaultValue="nuage" aria-label="Search orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail" aria-label="Clear the search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="false" aria-label="Ask" data-tip="Ask (Alt+A)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
           </div>
           <div class="sp-combobox sp-combobox--sort">
             <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Sort">
@@ -757,6 +758,93 @@
       </div>
     </div>
   </div>
+  <div class="doc-specimens" data-screen-label="2b The order list's search and Ask">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Search reads the parts it knows</span>
+      <div class="sp-stack sp-gap-12 doc-w480">
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Search orders" defaultValue="decor over 500 last month" aria-label="Search orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail" aria-label="Clear the search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="false" aria-label="Ask" data-tip="Ask (Alt+A)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
+          </div>
+          <div class="sp-filters"><span class="sp-crumb"><span class="sp-crumb__label">Decor</span><button type="button" class="sp-crumb__remove" aria-label="Remove Decor">×</button></span><span class="sp-crumb"><span class="sp-crumb__label">Over 500 kr.</span><button type="button" class="sp-crumb__remove" aria-label="Remove amount">×</button></span><span class="sp-crumb"><span class="sp-crumb__label">01/09/2026 - 30/09/2026</span><button type="button" class="sp-crumb__remove" aria-label="Remove the date range">×</button></span></div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Ask on</span>
+      <div class="sp-stack sp-gap-12 doc-w480">
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Ask, for example: groceries over 500 last month" aria-label="Ask about your orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-label="Ask" data-tip="Back to search (Alt+A)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
+          </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Ask on, typed</span>
+      <div class="sp-stack sp-gap-12 doc-w480">
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Ask, for example: groceries over 500 last month" defaultValue="chairs from Indbo this summer over 3000" aria-label="Ask about your orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-label="Ask" data-tip="Back to search (Alt+A)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
+          </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Ask working</span>
+      <div class="sp-stack sp-gap-12 doc-w480">
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Ask, for example: groceries over 500 last month" defaultValue="chairs from Indbo this summer over 3000" readOnly="{{ true }}" aria-label="Ask about your orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-busy="true" aria-label="Stop" data-tip="Stop (Esc)"><span class="sp-spinner"></span><span class="sp-field__stop"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></span></button></span>
+          </div>
+          <div class="sp-filters"><span class="sp-crumb"><span class="sp-crumb__label">This year</span><button type="button" class="sp-crumb__remove" aria-label="Remove This year">×</button></span></div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Ask answered</span>
+      <div class="sp-stack sp-gap-12 doc-w480">
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Ask, for example: groceries over 500 last month" defaultValue="chairs from Indbo this summer over 3000" aria-label="Ask about your orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-label="Ask" data-tip="Back to search (Alt+A)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
+          </div>
+          <div class="sp-filters"><span class="sp-crumb"><span class="sp-crumb__label">Indbo Møbler</span><button type="button" class="sp-crumb__remove" aria-label="Remove Indbo Møbler">×</button></span><span class="sp-crumb"><span class="sp-crumb__label">Seating</span><button type="button" class="sp-crumb__remove" aria-label="Remove Seating">×</button></span><span class="sp-crumb"><span class="sp-crumb__label">01/06/2026 - 31/08/2026</span><button type="button" class="sp-crumb__remove" aria-label="Remove the date range">×</button></span><span class="sp-crumb"><span class="sp-crumb__label">Over 3.000 kr.</span><button type="button" class="sp-crumb__remove" aria-label="Remove amount">×</button></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Clear all</button></div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Ask did not understand</span>
+      <div class="sp-stack sp-gap-12 doc-w480">
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Ask, for example: groceries over 500 last month" defaultValue="the blue one" aria-label="Ask about your orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-label="Ask" data-tip="Back to search (Alt+A)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
+          </div>
+          <span class="sp-field__help" data-color="warning">Couldn't turn that into filters. Try naming a shop, a category, an amount or a period.</span>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">No questions left today</span>
+      <div class="sp-stack sp-gap-12 doc-w480">
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Search orders" aria-label="Search orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="false" aria-label="Ask" disabled="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
+          </div>
+          <div class="sp-stack doc-end"><span class="sp-tip">No questions left today. Resets at midnight.</span></div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">On a phone, Ask on</span>
+      <div class="sp-stack sp-gap-12 doc-w361">
+          <div class="sp-touch sp-stack sp-gap-12"><div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search sp-input--trail-2" type="search" placeholder="Ask, for example: groceries over 500 last month" aria-label="Ask about your orders">
+            <span class="sp-field__trails"><button type="button" class="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-label="Ask" data-tip="Back to search (Alt+A)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></button></span>
+          </div></div>
+      </div>
+    </div>
+  </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Every facet group folds from its head</b> (<a href="Components.dc.html#c12">c12</a>): Status and Kind are drawn folded, the rest open. Pressing the head folds or opens it; a folded group shows only its head, the count or the range kept at the right. Folded groups are remembered for the next visit. The Vendor values scroll inside the group past 240px.</div>
@@ -764,6 +852,14 @@
     <div class="doc-note"><b>The Amount track is spaced by order count, not by kroner.</b> Each step along it covers the same share of the orders in the current set, so the handle position is a percentile and the fields show the amount at that percentile. One very large order then takes the last sliver of the track instead of pushing every everyday order into the first few pixels.</div>
     <div class="doc-note"><b>The track ends at the 99th percentile, read as "and above".</b> The right end is the amount 99% of the set falls under, rounded to a clean figure (25.000), and the meta and the To field append <b>+</b> while the handle sits there: <b>0 - 25.000+ kr.</b> At the end the To bound is open, so the largest orders stay in the result. Typing a figure above the end in the To field is accepted and parks the handle at the end. Typing exactly the end figure is the same as dragging the handle there: the bound is open and reads <b>0 - 25.000+ kr.</b> A set of fewer than 20 orders uses a straight scale from 0 to its largest order, with no <b>+</b>.</div>
     <div class="doc-note"><b>Orders left out of statistics still count here.</b> The facet filters the list, which shows every order; only Statistics and Home leave them out (<a href="Order editing layouts.dc.html#1d">1d</a>).</div>
+    <div class="doc-note"><b>The order list's search ends in Ask</b> (<code>.sp-field__trails</code>, <code>.sp-field__trail--ask</code>). The field's end holds two buttons, <code>--sp-2</code> apart: the clear button (<code>x</code>), shown while the field has text, and Ask (<code>message-circle</code>), a ghost button when off and filled <code>--green</code> with a white mark when on (<code>aria-pressed</code>). The input takes <code>.sp-input--trail-2</code> so text stops before both. Only <code>OrderSearch</code> passes Ask to <code>SearchInput</code>; every other search keeps its look. When Ask is turned off on the server the button is not rendered and the field ends in the clear button only.</div>
+    <div class="doc-note"><b>Search reads the parts it knows as the reader types.</b> An amount ("over 500", "under 200", "500-1000") sets the lowest or highest total; a period ("this month", "this year") sets that Date preset, and "last month", a month name or a year sets the Custom range; a shop's or a category's name (whole name, any case) sets that facet. Each one appears at once as a chip in the filter row and in the rail, and the text stays in the field as typed. A part and its chip are one: removing the chip removes those words from the field, and deleting the words removes the chip. Words it does not read stay search text, matched as today.</div>
+    <div class="doc-note"><b>Ask mode.</b> The lead icon changes from <code>search</code> to <code>message-circle</code>, the placeholder becomes "Ask, for example: groceries over 500 last month", and the clear button is hidden. Nothing runs while the reader types. Enter sends the sentence; Ask's filters replace the current ones, shown as the normal chips. The sentence stays in the field so it can be changed and sent again; it is never stored, so a saved view or a link holds only the filters. Words Ask keeps as search text show as a chip in straight quotes. The mode lasts until the button or Alt+A turns it off, and ends when the reader leaves the page; turning it off empties the field, or puts back the words Ask kept as search text.</div>
+    <div class="doc-note"><b>While Ask works</b> the field is read-only and the Ask button shows <code>.sp-spinner</code>. The button is Stop for the whole wait: on hover or focus the spinner gives way to <code>x</code>, the tooltip reads "Stop (Esc)", and Esc in the field does the same. The list and its chips stay as they were until the filters arrive. Stopping leaves everything as it was and the sentence editable.</div>
+    <div class="doc-note"><b>When Ask cannot read the sentence</b> the help line under the toolbar reads "Couldn't turn that into filters. Try naming a shop, a category, an amount or a period." in the warning tone (<code>.sp-field__help[data-color="warning"]</code>). The sentence stays, the list and filters do not change, and the line goes when the reader edits the field.</div>
+    <div class="doc-note"><b>When no questions are left today</b> the field returns to search mode and the Ask button is disabled (<code>--fade-disabled</code>). Its tooltip reads "No questions left today. Resets at midnight." on hover and focus; the tooltip is held by the field's end, since a disabled button receives no pointer events. The button comes back on its own when the day's questions reset.</div>
+    <div class="doc-note"><b>Keyboard.</b> In the field, Alt+A (Option+A on a Mac) turns Ask mode on and off, Enter sends in Ask mode, and Esc stops a running question. The top bar's search keeps Cmd+K; the two do not meet.</div>
+    <div class="doc-note"><b>On a phone</b> (Mobile screens <a href="Mobile screens.dc.html#7a">7a</a>) Ask sits inside the field like on desktop. Both buttons keep their drawn 30px and each has a 44px wide press area the field's height; they sit <code>--sp-14</code> apart, so the two press areas meet and do not overlap.</div>
   </div>
 </section>
 

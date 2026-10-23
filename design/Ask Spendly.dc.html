@@ -423,6 +423,7 @@
     <div class="doc-note"><b>An example question</b> is a saved question's button without its remove button (<code>.sp-chat__pick</code>), so it is one line, at most 320px, cut with ... and with the whole question as its tooltip. Pressing it closes the dialog and puts the question in the field with the cursor at its end, replacing what was typed; it is not sent, so the reader can change "October" before sending. Saved questions on the empty page still send at once (<a href="#24b">24b</a> 6).</div>
     <div class="doc-note"><b>The help states no limits</b>: the questions left show under the field (<a href="#24b">24b</a> 3, 4), as before. With no questions left the example buttons are disabled, since the field is. When the server makes no files, the Files part stays with the line "Ask cannot make files on this Spendly." and no list or example.</div>
     <div class="doc-note"><b>On a phone</b> the top bar's menu holds the same four items in the same order, with the same states (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>).</div>
+    <div class="doc-note"><b>What Ask can do never grows past the window.</b> A dialog holding <code>.sp-chat__help</code> is at most the window's height less the scrim's padding (<code>100dvh - 2 x --sp-16</code>); in a lower window the list scrolls inside it and the heading and Close stay in view, and the page under the scrim does not scroll.</div>
   </div>
 </section>
 

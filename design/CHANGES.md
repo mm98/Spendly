@@ -1,115 +1,127 @@
-# What Ask can do, shown to the reader (Brief-ask-help)
+# Ask inside the order list's search (Brief-order-search-ask)
 
-After review: the help is only what Ask can make. It has two parts, Files and Charts, each its formats on one comma-separated line and one example question. "Files are kept for 30 days" is a footnote at the left of Close (above Close on the phone), absent when the server makes no files. Answers, Also and Today are removed, and the charts read "Bar chart" and "Donut chart".
+The order list's search can now read a sentence. Normal search picks out the parts it knows while the reader types, and an Ask button in the field hands the whole sentence to Ask when the reader presses Enter. Either way the result is the normal list with its normal filters, shown as the normal chips. This is for the order list only. Every other search keeps its look.
 
-## 1. Where the help lives
+## 1. The Ask button
 
-**The problem.** Nothing on any Ask screen said that Ask can also make a file or draw a chart. A reader found it only by chance or in the README.
+**The problem.** The order list's search matches the whole text against an order's fields, so a sentence such as "groceries over 500 last month" finds nothing. The field also had no place for a second control.
 
 **What changed.**
-- The empty page's line now reads: "Answers come from your orders, vendors, categories, budget and statistics, and can be a file or a chart. Asking never changes anything."
-- The chat field has one icon button at its right edge, `circle-help`, with the tooltip and label "What Ask can do". It sits on the field's last line, level with Send, while the field grows. It is never disabled, also when the field is.
-- No key is bound to it. "?" stays the keyboard shortcuts everywhere, and typing "?" in the field just types it.
-- The button is part of the field, so it appears everywhere the field does: the empty page, a conversation, Chats, Files and the phone.
-- On a computer it opens a Dialog with the heading "What Ask can do", the parts below and one action, Close. Escape, Close and a click on the scrim close it, and focus returns to the button. A dialog taller than the window scrolls its parts.
+- The field ends in two buttons, `--sp-2` apart, each the field's normal 30px trailing button: the clear button (`x`), shown while the field has text, and Ask (`message-circle`).
+- Ask off is a ghost button. Ask on is filled `--green` with a white mark (`aria-pressed="true"`), `--green-2` on hover and `--green-press` when pressed.
+- Tooltips, placed above the button when there is room: "Ask (Alt+A)" when off, "Back to search (Alt+A)" when on.
+- When Ask is turned off on the server, the button is not rendered and the field ends in the clear button only.
+- Only `OrderSearch` passes Ask to `SearchInput`. The dozen other searches do not change.
 
 **Where.**
-- `Ask Spendly 24b` 1, 6 and 7 (the empty page's line, and the note on 1).
-- `Ask Spendly 24c`: the specimens "What Ask can do - the button in the field" and "What Ask can do - open", plus the notes.
-- Every chat field on `Ask Spendly 24a-24f`, `Components` (the chat specimen) and `Mobile screens 7a`.
-- `styles/components.css`: `.sp-chat__wrap`, and `.sp-chat__wrap > .sp-field__trail` (with its `.sp-touch` variant). These are new variant rules at the end of the file; no existing rule changed.
-- `Icon legend`: a new row for `circle-help`.
-- App: `react/src/components/Chat.jsx` `ChatDock` (the field and the button), `ChatStart` (the line), and `react/src/app/askListFrame.jsx` (Chats and Files show the button too, since it belongs to the field).
+- `Order list 2b`: the toolbar search, the "Ask on" specimen and the notes.
+- `Layout rules 15e`: the order list toolbars, at every width.
+- `styles/components.css`: `.sp-field__trails`, `.sp-field__trails > .sp-field__trail`, `.sp-field__trail--ask` and its `[aria-pressed]`, `:disabled` and `[aria-busy]` states, and `.sp-input--trail-2` (next to `.sp-input--trail`). These are new rules. No existing rule changed.
+- App: `react/src/pages/Orders.jsx` `OrderSearch` (both places it is drawn), `react/src/components/Inputs.jsx` `SearchInput` (an optional Ask control at the end).
 
 **What is still open.** Nothing.
 
-## 2. What the help says, and how a long list looks
+## 2. Ask mode in the field
 
-**The problem.** The list of what Ask makes grows on the server. The help has to follow that list without a design change.
-
-**What changed.**
-- Two parts, Files then Charts. Nothing else is in the help: what Ask reads stays on the empty page's line, and the limits stay under the field.
-- The help states no limits. The questions left still show under the field (`Ask Spendly 24b` 3, 4), as before.
-- Each part (`.sp-chat__help-part`) is built the same way: the section label, then its formats on one line, comma separated (`.sp-chat__formats`), then one example question.
-- Files and Charts are filled from the server's list in `GET /api/assistant`. There is one part per kind, in the server's order, with the kind's name as its label and its formats joined with ", " on one line, using the names the server gives them. A new format is one more name in the line; a new kind is a new part. A kind with no formats is not shown.
-- Copy:
-  - Files: "Excel, CSV, Word, PDF", example "Make an Excel file of my orders in October".
-  - Charts: "Bar chart, Donut chart", example "Show my spending per month as a chart".
-
-**Where.** `Ask Spendly 24c` (the specimens and notes). `styles/components.css`: `.sp-chat__help`, `.sp-chat__help-part`, `.sp-chat__formats`. The `GET /api/assistant` payload gains the list of kinds; that is the build's part.
-
-**What is still open.** The chart names are the names the server sends. The design uses "Bar chart" and "Donut chart" in place of "bars over time" and "shares of a whole" from the brief, so the server's list should send those names. Please confirm.
-
-## 3. Pressing an example question
-
-**The problem.** The brief left it to the design whether an example can be pressed.
+**The problem.** The reader needs to see that the field is in Ask mode, and that typing does nothing until Enter.
 
 **What changed.**
-- An example is a saved question's button without its remove button (`.sp-chat__pick`): one line, at most 320px wide, cut with ... and showing the whole question as its tooltip.
-- Pressing it closes the help and puts the question in the field, with the cursor at the end, replacing whatever was typed. It is not sent, so the reader can change "October" first.
-- Saved questions on the empty page still send at once.
+- The lead icon changes from `search` to `message-circle`, and the placeholder reads "Ask, for example: groceries over 500 last month". The clear button is hidden in Ask mode.
+- Nothing runs while the reader types. Enter sends the sentence. The filters Ask returns replace the current filters.
+- The sentence stays in the field so it can be changed and sent again. It is never stored, so a saved view or a link holds only the filters.
+- Words Ask keeps as search text are shown as a chip, in straight quotes.
+- The mode lasts until the button or Alt+A turns it off, and ends when the reader leaves the page. Turning it off empties the field, or puts back the words Ask kept as search text.
 
-**Where.** `Ask Spendly 24c` notes. App: `ChatExamples` / `ChatPick` in `react/src/components/Chat.jsx`. The help reuses `ChatPick` without its remove button.
+**Where.** `Order list 2b`: the specimens "Ask on", "Ask on, typed" and "Ask answered", plus the notes.
 
 **What is still open.** Nothing.
 
-## 4. On the phone
+## 3. What the reader sees when normal search reads a part
+
+**The problem.** A reader must be able to see that "over 500" became a filter, and be able to undo it.
 
 **What changed.**
-- The phone has the same button at the field's right edge. It opens the same parts in the bottom sheet, with Close as a block button under them.
-- A tap on the scrim or a drag down also closes the sheet.
-- An example question closes the sheet and puts the question in the field, not sent. The keyboard opens only when the reader taps the field.
+- While the reader types, an amount ("over 500", "under 200", "500-1000") sets the lowest or highest total. "This month" or "this year" sets that Date preset. "Last month", a month name or a year sets the Custom range. A shop's or a category's whole name, in any case, sets that facet.
+- Each part appears at once as a chip in the filter row (`sp-crumb`, unchanged) and in the facet rail. The text stays in the field as typed.
+- A part and its chip are one: removing the chip removes those words from the field, and deleting the words removes the chip.
+- Words that are not read stay search text, matched as today.
+- Chip copy follows the existing formats: "Over 500 kr.", "01/09/2026 - 30/09/2026".
 
-**Where.** `Mobile screens 7a`: the frame "ASK - WHAT ASK CAN DO" and its note. App: the phone's Ask in `react/src/pages/Ask.jsx`.
+**Where.** `Order list 2b`: the specimen "Search reads the parts it knows", plus the notes.
 
 **What is still open.** Nothing.
 
-## 5. When Ask is used up, or a server makes no files
+## 4. While Ask works
+
+**The problem.** Ask takes a few seconds, and the reader needs to see it working and be able to stop it.
 
 **What changed.**
-- Each part stays in place with a short note. Nothing is hidden without saying why.
-- No questions left today: the example buttons are disabled, since the field is.
-- No files on this server:
-  - Files keeps its label, with the line "Ask cannot make files on this Spendly." and no list or example.
+- The field is read-only. The Ask button shows `.sp-spinner` and becomes Stop (`aria-label="Stop"`, tooltip "Stop (Esc)"). On hover or focus the spinner gives way to `x`.
+- Esc in the field also stops it.
+- The list and its chips stay as they were until the filters arrive. Stopping leaves everything as it was, with the sentence still editable.
 
-**Where.** `Ask Spendly 24c`: the specimens "No questions left today" and "This server makes no files", and the last note.
+**Where.** `Order list 2b`: the specimen "Ask working", plus the notes. `styles/components.css`: `.sp-field__trail--ask[aria-busy="true"]`, `.sp-field__stop`.
 
 **What is still open.** Nothing.
 
-## later.md: "For Claude Design: a file's row shows the format's name it is given"
+## 5. When Ask cannot help
 
-This settles that entry, so it can be removed from `later.md`.
-
-**The problem.** The handoff's `ChatFile` took a `type` and kept its own list of four format names, so a new format on the server would also need a change in the design.
+**The problem.** Two cases had no drawing: Ask did not understand the sentence, and the reader has no questions left today.
 
 **What changed.**
-- `ChatFile` takes `kind`, the format's name as the server sends it ("Excel", "CSV"), instead of `type`. It no longer keeps a list of formats.
-- The row reads as before: "Excel · 4 KB".
+- Not understood: a help line under the toolbar reads "Couldn't turn that into filters. Try naming a shop, a category, an amount or a period." in the warning tone (`.sp-field__help[data-color="warning"]`). The sentence stays, and the list and filters do not change. The line goes when the reader edits the field.
+- No questions left: the field returns to search mode and the Ask button is disabled (`--fade-disabled`). Its tooltip reads "No questions left today. Resets at midnight." on hover and focus. The tooltip is held by the field's end, because a disabled button gets no pointer events. The button comes back on its own when the day's questions reset.
+- Ask turned off on the server: no button, as planned.
 
-**Where.**
-- `react_handoff/Chat.jsx` (`ChatFile`; the `TYPE` list is removed).
-- `react_handoff/README.md` (the `ChatFile` paragraph).
-- `React components` (the specimens pass `kind`).
+**Where.** `Order list 2b`: the specimens "Ask did not understand" and "No questions left today", plus the notes.
 
 **What is still open.** Nothing.
 
-## later.md: "A deleted record should not be removed for good at once"
+## 6. Phone
 
-Not done in this pass, at the user's choice. Drawing "Recently deleted" is left for later, and the entry stays in `later.md`.
+**The problem.** On a phone the search stands alone at full width, and the button needs a touch size.
+
+**What changed.** Ask sits inside the field, as on desktop. Both buttons keep their drawn 30px, and each has a 44px wide press area as tall as the field. On touch the buttons sit `--sp-14` apart, so the two press areas meet and do not overlap. Confirmed: 44px, not the system's 48.
+
+**Where.** `Mobile screens 7a`: the order list's search, plus a note. `Order list 2b`: the specimen "On a phone, Ask on". `styles/components.css`: `.sp-touch .sp-field__trails`, `.sp-touch .sp-field__trails > .sp-field__trail::after`, `.sp-touch .sp-input--trail-2`.
+
+**What is still open.** Nothing.
+
+## 7. The keyboard
+
+**The problem.** There was no key to switch Ask mode from the field.
+
+**What changed.** In the field, Alt+A (Option+A on a Mac) turns Ask mode on and off, Enter sends in Ask mode, and Esc stops a running question. The top bar's search keeps Cmd+K. Confirmed: Alt+A stays, even though Option+A types "å" on some Mac layouts.
+
+**Where.** `Order list 2b` notes. App: `OrderSearch` key handling.
+
+**What is still open.** Nothing.
+
+## later.md: "For Claude Design: What Ask can do keeps Close in a short window"
+
+**The problem.** `.sp-dialog` had no height limit. In a window lower than the dialog, it grew past the window and the page under it scrolled, instead of the list inside it.
+
+**What changed.** A dialog holding `.sp-chat__help` is at most the window's height less the scrim's padding (`100dvh - 2 x --sp-16`). The list scrolls inside it, and the heading and Close stay in view.
+
+**Where.** `styles/components.css`: `.sp-dialog:has(> .sp-chat__help)`, next to `.sp-chat__help`. `Ask Spendly 24c` note. Remove the rule under "What Ask can do scrolls its parts" from `react/src/styles/app.css`, and this entry from `later.md`.
+
+**What is still open.** Nothing.
+
+## later.md: other entries
+
+"Large accounts still make everyone wait on a few pages" and "A deleted record should not be removed for good at once" are app and server entries. Neither is in this brief, so both stay in `later.md`.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Ask Spendly.dc.html` - the button in the field, the help dialog and its states (24c), the empty page's line (24b).
-- `Mobile screens.dc.html` - the button on the phone and the help sheet (7a).
-- `Components.dc.html` - the chat specimen's field with the button.
-- `Icon legend.dc.html` - the `circle-help` row.
-- `React components.dc.html` - `ChatFile` specimens with `kind`.
-- `react_handoff/` - `Chat.jsx` and `README.md` changed; the other files are there so React components opens.
+- `Order list.dc.html` - the toolbar search with Ask, the eight states and the notes (2b).
+- `Layout rules.dc.html` - the order list toolbars with the Ask button (15e).
+- `Mobile screens.dc.html` - the phone's order list search with Ask, plus a note (7a).
+- `Ask Spendly.dc.html` - the dialog height note (24c).
 - `support.js`, `components.js`, `icons.js` - loaded by the pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets. `components.css` gains the help and field rules at its end.
-- `styles/pages/ask-spendly.css`, `mobile-screens.css`, `icon-legend.css`, `budget.css` - the page stylesheets these pages link.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets. `components.css` gains the field-end rules and the dialog height rule.
+- `styles/pages/order-list.css`, `layout-rules.css`, `mobile-screens.css`, `budget.css`, `ask-spendly.css` - the page stylesheets these pages link.
 
 ## styles/check.js
 
