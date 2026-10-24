@@ -5834,6 +5834,12 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
   scrollbar-gutter: stable;
 }
 .sp-shell--touch .sp-shell__body .sp-chat__scroll { margin-right: 0; padding-right: 0; scrollbar-gutter: auto; }
+/* thin draws a 10px bar in Blink and then ignores ::-webkit-scrollbar, so the inset above, which
+   counts on 8px, came out 2px short. Where the 8px webkit bar exists it is the one drawn; Firefox
+   has no ::-webkit-scrollbar and keeps thin, which it draws at 8px. */
+@supports selector(::-webkit-scrollbar) {
+  .sp-shell__body .sp-chat__scroll { scrollbar-width: auto; scrollbar-color: auto; }
+}
 /* a thread fades out over 24 at an edge while more of it lies past that edge: under the top bar
    once scrolled down, above the field while there is more below. A mask, so it works on any ground */
 .sp-chat__scroll[data-below="true"] { mask-image: linear-gradient(to bottom, #000 calc(100% - var(--sp-12) * 2), transparent); }

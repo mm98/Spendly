@@ -267,8 +267,8 @@ Everything that needs you, on one page.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
 - **Each account has 25 questions a day** (`SPENDLY_ASK_QUESTIONS_PER_DAY`), counted on the
-  person's own calendar day. Ask in the order search counts too. The count shows when 3 or fewer
-  are left. A failed or stopped answer is not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
+  person's own calendar day. Ask in the order search counts too. When 3 or fewer are left, an
+  alert at the top of the chat shows the count and when it starts again; it stays in view while the chat scrolls. A failed or stopped answer is not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
   daily limit and sees no count.
 - **An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can read your account
   through the address `/mcp` on your Spendly server.

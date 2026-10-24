@@ -1,97 +1,51 @@
-# The day's limit in Ask, and five fixes found on the way (Brief-ask-limit-alerts)
+# Ask: a file row shows the file's name (fixed)
 
-This package follows `design_handoff_ask_thread_times`, which stays as presented. It covers the questions-left alert in Ask and the component fixes made while reviewing Ask, Components and Layout rules. `later.md` was read before the work. Its one Claude Design entry, "touch rules found in an iPhone run", is already settled by `design_handoff_ask_thread_times`.
+## Fixed from design_handoff_ask_file_row_name
 
-## 1. The questions left today: a bar pinned at the top of the chat
+- **The problem:** two decisions confirmed in chat after the package was presented lived only in chat: what a file that could not be made is called, and whether the second line still names the type now that the name has an ending.
+- **What changed:** a file that could not be made keeps the name it would have had (drawn as "All orders.xlsx"), so its row reads like the others. The second line still names the type, Excel, Word, PDF or CSV, beside the name's ending. Both are notes; no markup or style changes.
+- **Where:** `Ask Spendly 24d`, the note "A file row". In the app, `react/src/components/Chat.jsx` (ChatFile) already draws both.
+- **What is still open:** nothing.
 
-**The problem.** "2 questions left today" sat in small text under the field, at the right, where it was easy to miss. When none were left, an alert closed the thread and scrolled away with it.
+Answers the brief "a file row on Ask shows the file's name" (24 Oct 2026), and settles one entry in the repo's `later.md`.
 
-**What changed.**
-- With 3 or fewer questions left, the amber inline alert (`.sp-alert`) is pinned at the top of the chat, under the top bar, at the column's width. The count is its title ("2 questions left today", "1 question left today") and its note says when the count starts again, from the server's reset time: "The count starts again tomorrow from 00:00."
-- With none left, the same pinned alert reads "No questions left today", with the note "You can ask again tomorrow from 00:00. This chat stays on Chats." It no longer sits at the end of the thread. The field stays disabled with the placeholder "No questions left today".
-- The thread scrolls under the alert and fades at its edge, so the alert stays in view however far the reader scrolls.
-- It cannot be closed. It is absent with more than 3 left, or when there is no limit.
-- On a phone it keeps the phone gutter at the sides and above.
-- Nothing sits under the field any more: the hint line (`.sp-chat__hint`) is removed, with its rule.
+Every page's stylesheet link is now `components.css?v=v20261024a`.
 
-**Where.** `Ask Spendly 24b` 3 and 4 and their notes; `24a` (the field note) and `24c` (the help note); `Components c34`. `styles/components.css`: `.sp-chat > .sp-alert` and `.sp-touch .sp-chat > .sp-alert`, after `.sp-chat__msg--mine + .sp-chat__time`; the `.sp-chat__hint` rule is gone. App: `react/src/components/Chat.jsx`. `Chat` renders the alert as its first child, before `ChatScroll`, when the server's count is 3 or less. `ChatDock` drops the hint row and its `left` prop. The "none left" alert moves out of the thread to the same place.
+## 1. The file row's title is the file's name
 
-**What is still open.** Nothing.
+- **The problem:** Ask 24d, the React components note and `emails/README.md` said a file row's title is the question as it was sent ("Make a spreadsheet of my orders at Bilka this year"). The app now shows the file's name, so the design and the app disagreed.
+- **What changed:** the title is the name the file downloads as, without the time it was made: "Orders at Bilka in 2026.xlsx". The downloaded file is unchanged: "Orders at Bilka in 2026 (2026-10-22 14.05.33).xlsx". Two files from one question each have their own name. The tooltip, and the labels "Download", "Delete" and "Open the chat of" plus the title, follow the title. Truncation, the second line and every state are unchanged.
+  - The drawn rows now carry file names: "Orders at Bilka in 2026.xlsx", "Orders in September 2026.xlsx", "September 2026 in summary.docx", "All orders.xlsx", "Orders at Bauhaus.csv", "Orders in October 2026.xlsx", "Budget for August 2026.pdf", "Orders in 2026.xlsx". The questions in the thread and the saved questions are unchanged.
+- **Where:**
+  - `Ask Spendly 24d`: the note "A file row" and the rows in states 1 to 5. `Ask Spendly 24e`: the rows and their labels.
+  - `Components c34`: the file row specimens. `Mobile screens 7a`: the answer's row and the Files rows.
+  - `React components`: the note "A file row is one component in two places" and the `ChatFile` specimens. `react_handoff/Chat.jsx`: the `title` prop's comment. `react_handoff/README.md`: the `ChatFile` paragraph.
+  - `emails/README.md`: the files line. `emails/ask-chat-sample.json`: the two file titles, so `Auth and first run 20f` shows names.
+  - In the app: `react/src/components/Chat.jsx` (ChatFile), `react/src/app/askAnswer.jsx`, `react/src/pages/AskFiles.jsx` and the answer email, as the brief names. No markup or style changes.
+- **What is still open:** nothing.
 
-## 2. An alert's mark, and a toast's icon, sit on the first line
+## 2. later.md: a long conversation's bar is wider than 8px in Chrome
 
-**The problem.** The inline alert centred its "!" on the middle of its title and note, and a toast whose message wrapped centred its icon between the two lines.
+Settles the later.md entry "For Claude Design: a long conversation's bar is wider than 8px in Chrome". Remove the entry, and the rule at the end of `react/src/styles/app.css`.
 
-**What changed.** Only these two components change. The alert's mark centres on the title's line. The title and note sit at the top, and the alert takes the title's size so its line height is the title's. A toast with an icon sits at the top, and its icon's box is one line tall, so the icon centres on the first line. A one-line toast looks as before. The compact toast has no icon and does not change.
-
-**Where.** `Components c19` (inline alert) and `c18` (toast). `styles/components.css`: `font-size` in `.sp-alert`; `.sp-alert > .sp-alert__mark` and `.sp-alert > .sp-alert__body` after `.sp-alert__body`; `.sp-toast:has(> .sp-toast__icon)` and `.sp-toast > .sp-toast__icon` after `.sp-toast__icon[data-color="danger"]`. App: the same rules in `react/src/styles/components.css`.
-
-**What is still open.** Nothing.
-
-## 3. A photo's Replace and Remove on a phone
-
-**The problem.** On a phone, a filled image slot was drawn as two stacked text buttons beside the photo (Layout rules 15b). That was its own version of the image slot, beside the component's photo-as-target with the Remove link under it.
-
-**What changed.** On a phone, a filled slot is a row: the image, then two bordered icon buttons on one line beside it (`.sp-slot__actions`). Replace (`upload`) is a `<label>` over the file input. Remove (`trash`) is in `sp-ink-danger`, like a document's remove button. On a phone the image is not the target and has no Remove link under it. On desktop, and for an empty slot, the frame stays the target with Remove under it.
-
-**Where.** `Components c17` (a new note, and a filled slot in the phone example), `c15` (the line editor's sheet); `Layout rules 15b` and its note. `styles/components.css`: `.sp-slot__actions`, its label and file input, and `.sp-touch .sp-slot:has(> .sp-slot__actions)`, after `.sp-slot__remove:focus-visible`. App: the image slot component renders the actions row in place of the frame label and the Remove link when on touch.
-
-**What is still open.** Nothing.
-
-## 4. A stretched dropdown on a phone keeps its chevron at the right
-
-**The problem.** In a phone toolbar, Filters and Sort stretch to share the row, but each chevron sat straight after its label instead of at the right edge.
-
-**What changed.** The chevron sits at the trigger's right edge, as in every full-width dropdown.
-
-**Where.** `Layout rules 15e` (under 440px). `styles/components.css`: `.sp-touch .sp-controls > .sp-combobox .sp-combobox__chevron`, after the touch `.sp-controls` rules. App: picks up the rule.
-
-**What is still open.** Nothing.
-
-## 5. A stepper always shows its digit
-
-**The problem.** A stepper in a narrow column could shrink until its number was hidden. The two steppers on Layout rules were also drawn with a div value of their own, not the stepper's input.
-
-**What changed.** `.sp-stepper__value` is `width: 0` with a minimum of one digit plus its padding, so its column decides its width and it never shrinks below one digit. Both Layout rules steppers now use the component's markup.
-
-**Where.** `Layout rules 15a` and `15b`; `Components c4`. `styles/components.css`: `width` and `min-width` in `.sp-stepper__value`. App: the same rule in `react/src/styles/components.css`.
-
-**What is still open.** Nothing.
-
-## 6. Layout rules: New order uses the bordered icon button
-
-**The problem.** In the phone toolbar on Layout rules, New order was the plain icon button, unlike the bordered one used beside other controls.
-
-**What changed.** It is `sp-icon-btn--outline`.
-
-**Where.** `Layout rules 15e`.
-
-**What is still open.** Nothing.
-
-## styles/check.js
-
-New assertions:
-- an alert's mark sits on the title line;
-- a toast's icon sits on the first line;
-- a stretched dropdown keeps its chevron at the edge;
-- a stepper shows its digit: the one-digit minimum exists, and every stepper uses `.sp-stepper__value`.
-
-## later.md: other entries
-
-"Large accounts still make everyone wait on a few pages" and "A deleted record should not be removed for good at once" are app and server entries outside this brief, so both stay.
+- **The problem:** `scrollbar-width: thin` draws a 10px bar in Blink, which then ignores the 8px `::-webkit-scrollbar`. The thread's right inset counts on 8px, so in Chrome and Edge the thread was 2px narrower than the field under it.
+- **What changed:** where `::-webkit-scrollbar` is supported, the long conversation's scroll takes `scrollbar-width: auto; scrollbar-color: auto`, so Blink and Safari draw the 8px bar the stylesheet already gives. Firefox keeps thin, which it draws at 8px. A phone still shows no bar.
+- **Where:** `styles/components.css`, `@supports selector(::-webkit-scrollbar) { .sp-shell__body .sp-chat__scroll }`, after `.sp-shell--touch .sp-shell__body .sp-chat__scroll`. `Ask Spendly 24a` draws by it.
+- **What is still open:** nothing.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Ask Spendly.dc.html` - the pinned limit alert (24b 3, 4) and notes.
-- `Components.dc.html` - c34 with the pinned alert, the phone image slot (c15, c17).
-- `Layout rules.dc.html` - 15a and 15b steppers, the 15b image slot and note, and the 15e New order button.
+- `Ask Spendly.dc.html` - 24d and 24e rows and note.
+- `Components.dc.html` - c34 rows.
+- `Mobile screens.dc.html` - 7a rows.
+- `React components.dc.html` - the note and the `ChatFile` specimens.
+- `Auth and first run.dc.html` - 20f, which draws the answer email from `emails/`.
+- `react_handoff/` - `Chat.jsx` and `README.md` changed; the rest so React components opens.
+- `emails/` - `README.md` and `ask-chat-sample.json` changed; the rest so 20f opens.
 - `support.js`, `components.js`, `icons.js` - loaded by the pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets. `components.css` carries every rule above.
-- `styles/pages/ask-spendly.css`, `layout-rules.css` - the page stylesheets these pages link.
-- `styles/check.js` - with the new assertions.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets; `components.css` carries fix 2.
+- `styles/pages/ask-spendly.css`, `budget.css`, `mobile-screens.css`, `auth-and-first-run.css` - linked by the pages above.
 
-## styles/check.js result
-
-0 finding(s) across 27 pages.
+`styles/check.js`: 0 finding(s) across 27 pages.

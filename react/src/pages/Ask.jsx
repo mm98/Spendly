@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
-import { Chat, ChatDivider, ChatDock, ChatExamples, ChatMessage, ChatMore, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
+import { Chat, ChatDivider, ChatDock, ChatExamples, ChatLimit, ChatMessage, ChatMore, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
 import { IconButton } from '../components/Button.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
-import { Alert, Anchor, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Anchor, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Failed } from '../components/Failed.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Spinner, useDismiss } from '../components/Utilities.jsx'
 import { emailConversation, failureMessage, getAsk, getCurrentUser, getSavedQuestions, removeSavedQuestion, saveQuestion } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { dayWords, messageTime, plural } from '../api/format.js'
+import { dayWords, messageTime } from '../api/format.js'
 import { ask, askAgain, lastChat, newChat, noteEmailed, refreshFiles, showChat, showDraft, stopAsking, useChat, wasEmailed } from '../app/ask.js'
 import { AnswerText } from '../app/askAnswer.jsx'
 import { useAskHelp } from '../app/askHelp.jsx'
@@ -39,7 +39,7 @@ export default function Ask() {
 
 	const working = turns.some(t => t.state === 'working')
 	const noneLeft = !!askStatus?.ready && askStatus.left === 0
-	const left = askStatus?.left
+	const left = askStatus?.ready ? askStatus.left : null
 	const saved = savedList?.questions ?? []
 	const savedMost = savedList?.most ?? 0
 	const emailed = wasEmailed(turns)
@@ -163,6 +163,7 @@ export default function Ask() {
 					end={<ConversationMenu>{items}</ConversationMenu>} />
 				: null}
 			<Chat>
+				<ChatLimit left={left} />
 				{opening ?? (turns.length
 					? (
 						<ChatThread scrollRef={scroller}>
@@ -189,9 +190,6 @@ export default function Ask() {
 										)
 								]
 							})}
-							{noneLeft
-								? <Alert mark="!" title="No questions left today">You can ask again tomorrow from 00:00. This chat stays on Chats.</Alert>
-								: null}
 						</ChatThread>
 					)
 					: (
@@ -222,7 +220,6 @@ export default function Ask() {
 					disabled={noneLeft || !!opening}
 					fieldRef={field}
 					placeholder={noneLeft ? 'No questions left today' : touch && turns.length ? 'Ask a follow-up' : 'Ask about your orders, vendors and budget'}
-					left={left > 0 && left <= 3 ? `${plural(left, 'question')} left today` : null}
 					end={touch
 						? null
 						: <ChatMore><Menu position="floating" aria-label="Conversation">{items}</Menu></ChatMore>}

@@ -372,7 +372,7 @@ is what that component already reads.
 derived from `state` rather than passed, so a file that could not be made cannot read
 as ready: `ready` shows the format and size, `making` the format and Being made with the
 spinner in Download's place, `failed` the reason in the red ink, `gone` Deleted or
-Removed after 30 days. The title is the question only; the time it was asked is in the
+Removed after 30 days. The title is the file's name without the time it was made; the time is in the
 downloaded file's name, which the server sets. `onDelete` adds Delete, on Files only.
 The format is `kind`, its name as the server sends it ("Excel", "CSV"): the row keeps no
 list of formats, so a new one on the server needs no change here.
