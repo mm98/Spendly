@@ -230,6 +230,8 @@
    scroll region has to look like one without scrolling. Documentation only. */
 
 .doc-h300 { height: 300px; }
+/* a screen held at the height of the one above it, so a long thread scrolls inside it */
+.doc-h840 { height: 840px; }
   /* Room reserved for a specimen whose open panel is absolutely positioned: the
      panel occupies no flow space, so without this the specimens beneath it sit
      under the panel rather than below it. Measured from the panel, not guessed - it starts 75px into the wrapper and stands 476px, so 560 clears it. */

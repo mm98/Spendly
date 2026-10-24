@@ -2730,6 +2730,10 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   outline: none;
 }
 .sp-field-group__fold:focus-visible { box-shadow: var(--ring); }
+/* on touch a group's whole head is the fold's target, not only its line of text: the fold
+   stretches to the head's height and its press area takes in the legend's padding under it */
+.sp-touch .sp-field-group__fold { align-self: stretch; position: relative; }
+.sp-touch .sp-field-group__fold::after { content: ""; position: absolute; inset: 0 0 calc(var(--sp-6) * -1); }
 .sp-field-group__fold[aria-expanded="false"] .sp-card__chevron { transform: rotate(-90deg); }
 /* a long facet's values scroll inside the group at 240px; the inset is room for a value's focus ring */
 .sp-field-group__values {
@@ -3006,7 +3010,8 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 .sp-segmented--facet {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  /* an option is never narrower than its label, so a long one (Other amount) is not cut on a phone */
+  grid-auto-columns: minmax(max-content, 1fr);
   width: 100%;
   border: 0;
   border-radius: var(--r-card);
@@ -4121,6 +4126,9 @@ a.sp-chat__file-name { text-decoration: none; }
 .sp-sum__value { margin-left: auto; font-weight: 600; text-align: right; }
 /* a long value breaks inside the row rather than running past it */
 .sp-sum__value { min-width: 0; overflow-wrap: anywhere; }
+/* beside a label the value keeps its width, up to 60% of the row, and the label wraps: an
+   amount never breaks into 400. / 00 / kr. */
+.sp-sum:not(.sp-sum--stacked) > .sp-sum__value { flex-shrink: 0; max-width: 60%; }
 .sp-sum--stacked { flex-direction: column; gap: var(--sp-6); }
 .sp-sum--stacked .sp-sum__value { margin-left: 0; text-align: left; }
 .sp-sum--total { padding-top: var(--sp-12); border-top: 1px solid var(--line); }
@@ -5047,14 +5055,18 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-menu--scrolls,
 .sp-popover__list,
 .sp-palette__body,
+.sp-chat__scroll,
 .sp-calendar--sheet { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .sp-menu--scrolls::-webkit-scrollbar,
 .sp-popover__list::-webkit-scrollbar,
 .sp-palette__body::-webkit-scrollbar,
+.sp-chat__scroll::-webkit-scrollbar,
 .sp-calendar--sheet::-webkit-scrollbar { width: 8px; }
+.sp-chat__scroll::-webkit-scrollbar-track { background: none; }
 .sp-menu--scrolls::-webkit-scrollbar-thumb,
 .sp-popover__list::-webkit-scrollbar-thumb,
 .sp-palette__body::-webkit-scrollbar-thumb,
+.sp-chat__scroll::-webkit-scrollbar-thumb,
 .sp-calendar--sheet::-webkit-scrollbar-thumb {
   background: var(--scroll-thumb);
   border: 2px solid transparent;
@@ -5789,6 +5801,20 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    pinned under them. A message is a mark and its text; the reader's own turn it round. */
 .sp-chat { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .sp-chat__scroll { flex: 1; min-height: 0; overflow-y: auto; }
+/* a long conversation (Ask 24a): the part that scrolls reaches into the body's right inset, so
+   its bar runs down the page's edge, clear of the reader's mark, and the column keeps its width
+   whether the bar shows or not. The bar is the shared scrolling-region bar; a phone shows none. */
+.sp-shell__body .sp-chat__scroll {
+  margin-right: calc(var(--sp-16) * -1);
+  padding-right: calc(var(--sp-16) - 8px);
+  scrollbar-gutter: stable;
+}
+.sp-shell--touch .sp-shell__body .sp-chat__scroll { margin-right: 0; padding-right: 0; scrollbar-gutter: auto; }
+/* a thread fades out over 24 at an edge while more of it lies past that edge: under the top bar
+   once scrolled down, above the field while there is more below. A mask, so it works on any ground */
+.sp-chat__scroll[data-below="true"] { mask-image: linear-gradient(to bottom, #000 calc(100% - var(--sp-12) * 2), transparent); }
+.sp-chat__scroll[data-above="true"] { mask-image: linear-gradient(to bottom, transparent, #000 calc(var(--sp-12) * 2)); }
+.sp-chat__scroll[data-above="true"][data-below="true"] { mask-image: linear-gradient(to bottom, transparent, #000 calc(var(--sp-12) * 2), #000 calc(100% - var(--sp-12) * 2), transparent); }
 .sp-chat__thread { display: flex; flex-direction: column; gap: var(--sp-16); width: 100%; margin: 0 auto; padding: var(--sp-16) 0; }
 /* a message never spans the column: at most three quarters of it, Spendly's at the
    left and the reader's at the right */
@@ -5798,6 +5824,17 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__msg > .sp-mark { margin-top: calc(var(--sp-12) + 1px + (var(--t-14) * var(--lh) - var(--mark-small)) / 2); }
 .sp-chat__msg--mine { flex-direction: row-reverse; }
 .sp-chat__thread > .sp-alert { align-self: stretch; }
+/* the time a message was sent sits 4 under its bubble, lined up with the bubble's edge: past the
+   mark at the left for Spendly's, at the right for the reader's. A day line opens the conversation
+   and stands wherever the day changes. */
+.sp-chat__time {
+  margin-top: calc(var(--sp-12) * -1);
+  padding-left: calc(var(--mark-small) + var(--sp-10));
+  font-size: var(--t-11);
+  color: var(--ink-5);
+  font-variant-numeric: tabular-nums;
+}
+.sp-chat__msg--mine + .sp-chat__time { padding-left: 0; padding-right: calc(var(--mark-small) + var(--sp-10)); text-align: right; }
 /* every message is a bubble: the reader's on the green tint, Spendly's on the surface,
    both at a card's inset (12 by --card-pad) and, inside an answer, a card's 12 gap */
 .sp-chat__question {
