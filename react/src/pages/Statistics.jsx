@@ -91,12 +91,14 @@ function useCurrent(fn, args, options) {
 }
 
 /* The last two answers, newest first, each with its arguments: a card keeps its figures until the new
-   period's land, then counts and moves to them. A change other than the period (`same`) drops them. */
+   period's land, then counts and moves to them. A change other than the period (`same`) drops them,
+   except an answer that still answers these arguments: it is taken over, or the card waits for a refetch that never comes. */
 function useAnswers(state, args, same) {
 	const [held, setHeld] = useState([])
-	const fresh = state.data !== undefined && held[0]?.data !== state.data
-	if (fresh) setHeld([{ data: state.data, args, same }, ...held].slice(0, 2))
-	return (fresh ? [{ data: state.data, args, same }, ...held] : held).filter(answer => answer.same === same)
+	const fresh = state.data !== undefined && (held[0]?.data !== state.data || held[0].same !== same)
+	const next = fresh ? [{ data: state.data, args, same }, ...held.filter(answer => answer.data !== state.data)].slice(0, 2) : held
+	if (fresh) setHeld(next)
+	return next.filter(answer => answer.same === same)
 }
 
 /** The answer among `answers` for one period, or none. */
