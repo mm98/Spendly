@@ -7,7 +7,6 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Announce, ListItem } from '../components/ListItem.jsx'
 import { ReorderList } from '../components/Reorder.jsx'
-import { Rows } from '../components/motion.js'
 import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
@@ -1071,11 +1070,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			{itemsHead}
 			<div className="sp-stack sp-gap-8" ref={list} onClick={touch && !scan ? undefined : rowClick}>
 				<Announce>{said}</Announce>
-				<Rows count={lines.length}>
-					<ReorderList items={lines} keyOf={line => line.key} nameOf={line => line.title || 'Unnamed line'} onMove={moveLines}>
-						{line => (editing && !sheeted && editing.key === line.key ? editor : lineRow(line))}
-					</ReorderList>
-				</Rows>
+				<ReorderList items={lines} keyOf={line => line.key} nameOf={line => line.title || 'Unnamed line'} onMove={moveLines}>
+					{line => (editing && !sheeted && editing.key === line.key ? editor : lineRow(line))}
+				</ReorderList>
 				{!lines.length && !(editing?.isNew) && tried
 					? (
 						<Empty dashed>

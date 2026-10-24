@@ -107,12 +107,3 @@ is removed in the change that settles it.
   one removes its line from the list.
 - **Found:** 2026-10-24.
 
-## A part closed before Motion has loaded never finishes closing
-
-- **Where:** `MotionShell` in `react/src/components/motion.js`, which loads Motion's features after the
-  first paint.
-- **What the reader sees:** nothing in normal use; the features load within a moment of the page
-  opening. A dialog, sheet or fold closed in that moment would stay on screen, not answering.
-- **What was found:** in Storybook's tests a story pressed before the features loaded, and the closing
-  part stayed drawn. Storybook now gives the features at once. A question for Claude Design.
-- **Found:** 2026-10-24.

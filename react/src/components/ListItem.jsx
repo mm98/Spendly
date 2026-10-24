@@ -81,13 +81,13 @@ export function ListItem({
 	const attrs = {
 		...(color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'ListItem') }),
 		...(selected !== undefined ? { 'aria-selected': selected ? 'true' : 'false' } : {}),
-		...moves,
+		...(moving ? {} : moves),
 		...rest
 	}
 	const grip = moving ? moving.handle : {}
 	// called, never mounted as a component of its own, so the row is not drawn anew on each render
 	const box = inner => moving
-		? <Reorder.Item as="div" {...itemOf(moving)} className={classes} {...attrs}>{inner}</Reorder.Item>
+		? <Reorder.Item as="div" {...itemOf(moving, moves)} className={classes} {...attrs}>{inner}</Reorder.Item>
 		: <m.div className={classes} {...attrs}>{inner}</m.div>
 	// a row that opens and also moves is a plain box: the handle and the open target side by side,
 	// never a button inside a button (Components, Ordering by hand)

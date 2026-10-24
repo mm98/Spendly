@@ -8,7 +8,7 @@ import { Mark, initialsOf } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
 import { SearchInput } from './Inputs.jsx'
 import { Kbd } from './Utilities.jsx'
-import { PRESENCE, glide, m, slideLabels, useGoing, useStill } from './motion.js'
+import { PRESENCE, glide, m, slideLabels, useGoing, useRow, useStill } from './motion.js'
 import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
 import { Button } from './Button.jsx'
 
@@ -201,6 +201,8 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 	const [hint, tipEvents] = useTip(tip)
 	// a saved view in a ReorderList is carried by its handle, or picked up from the keyboard
 	const moving = useMovingRow()
+	// and arrives and leaves as the ReorderList's other rows do
+	const moves = useRow()
 	if (moving?.state) variant = moving.state
 	const grip = moving ? moving.handle : {}
 	const classes = join('sp-nav-item', pick(NAV, variant, 'variant', 'NavItem'))
@@ -238,7 +240,7 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 		)
 		const page = current ? { 'aria-current': 'page' } : {}
 		const row = inner => moving
-			? <Reorder.Item as="span" {...itemOf(moving)} className={classes} {...state}>{inner}</Reorder.Item>
+			? <Reorder.Item as="span" {...itemOf(moving, moves)} className={classes} {...state}>{inner}</Reorder.Item>
 			: <span className={classes} {...state}>{inner}</span>
 		return row(
 			<>
