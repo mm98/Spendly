@@ -59,6 +59,10 @@ function MenuSheet({ owner, children }) {
 	)
 }
 
+/** @param {object} props
+    @param {keyof typeof MENU} [props.position]
+    @param {boolean} [props.scrolls]
+    @param {import('react').ReactNode} [props.children] */
 export function Menu({ position, scrolls = false, children, ...rest }) {
 	reject(rest, 'Menu')
 	const host = useContext(MenuHost)
@@ -149,6 +153,15 @@ function fitSubmenu(item) {
 	if (r.height > room) Object.assign(sub.style, { maxHeight: room + 'px', overflowY: 'auto' })
 }
 
+/** @param {object} props
+    @param {string} [props.icon]
+    @param {string} [props.to]
+    @param {() => void} [props.onClick]
+    @param {boolean} [props.disabled]
+    @param {boolean} [props.danger]
+    @param {'draft' | 'progress' | 'done' | 'returned' | 'cancelled'} [props.dot] a status's dot, as the combobox draws it
+    @param {boolean} [props.selected]
+    @param {import('react').ReactNode} [props.children] the label, and a Menu for a submenu */
 export function MenuItem({ icon, to, onClick, disabled = false, danger = false, dot, selected, children, ...rest }) {
 	reject(rest, 'MenuItem')
 	// the nested menu is a child, not a prop: one of these children is a Menu and the
@@ -213,7 +226,9 @@ export function MenuItem({ icon, to, onClick, disabled = false, danger = false, 
 	)
 }
 
-/** The heading over a group of items. */
+/** The heading over a group of items.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function MenuLabel({ children, ...rest }) {
 	reject(rest, 'MenuLabel')
 	return <li className="sp-menu__label" role="presentation" {...rest}>{children}</li>
@@ -227,6 +242,14 @@ export function MenuSeparator(props) {
 
 const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--end', static: 'sp-popover--static' }
 
+/** @param {object} props
+    @param {keyof typeof POPOVER} [props.position]
+    @param {import('react').ReactNode} [props.head]
+    @param {import('react').ReactNode} [props.search]
+    @param {import('react').ReactNode} [props.children]
+    @param {import('react').ReactNode} [props.summary]
+    @param {import('react').ReactNode} [props.note]
+    @param {import('react').ReactNode} [props.actions] */
 export function Popover({ position = 'default', head, search, children, summary, note, actions, ...rest }) {
 	reject(rest, 'Popover')
 	return (
@@ -242,7 +265,11 @@ export function Popover({ position = 'default', head, search, children, summary,
 }
 
 /** The element a floating panel hangs from. Open, it lets its menu out of a card that clips
-    (`data-menu-open`), places it above when the room below is short, and on touch makes it a sheet. */
+    (`data-menu-open`), places it above when the room below is short, and on touch makes it a sheet.
+    @param {object} props
+    @param {boolean} [props.open]
+    @param {import('react').Ref<HTMLDivElement>} [props.ref]
+    @param {import('react').ReactNode} [props.children] */
 export function Anchor({ open, ref, children, ...rest }) {
 	reject(rest, 'Anchor')
 	const box = useRef(null)
@@ -275,7 +302,11 @@ function useDialogPart(kind) {
 const isActions = c => c && typeof c === 'object' && c.type === DialogActions
 
 /** `onCancel` is what Escape and a press on the backdrop do: the dialog's own way out (c13). A page
-    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d). */
+    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children]
+    @param {boolean} [props.scrim]
+    @param {() => void} [props.onCancel] */
 export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	reject(rest, 'Dialog')
 	const box = useRef(null)
@@ -335,21 +366,27 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	)
 }
 
-/** What the dialog asks, as its heading. It names the dialog. */
+/** What the dialog asks, as its heading. It names the dialog.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function DialogTitle({ children, ...rest }) {
 	reject(rest, 'DialogTitle')
 	const id = useDialogPart('title')
 	return <span className="sp-heading" id={id} {...rest}>{children}</span>
 }
 
-/** What the decision costs, stated in full. It is read with the dialog's name. */
+/** What the decision costs, stated in full. It is read with the dialog's name.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function DialogBody({ children, ...rest }) {
 	reject(rest, 'DialogBody')
 	const id = useDialogPart('body')
 	return <span className="sp-dialog__body" id={id} {...rest}>{children}</span>
 }
 
-/** The way out and the commit. It spaces and aligns its own buttons. */
+/** The way out and the commit. It spaces and aligns its own buttons.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function DialogActions({ children, ...rest }) {
 	reject(rest, 'DialogActions')
 	return <div className="sp-dialog__actions" {...rest}>{children}</div>
@@ -359,7 +396,19 @@ const TOAST_COLOR = { default: null, danger: 'danger' }
 
 /** `title` makes the message its second line, and `seconds` is how long its Undo lasts (6d). An
     `asks` toast is a notice that stays until answered: `mark` stands for the icon, `actions` answer. */
-/** `list` is a short list under the words of a toast that asks, read out as `listLabel` (6d). */
+/** `list` is a short list under the words of a toast that asks, read out as `listLabel` (6d).
+    @param {object} props
+    @param {string} [props.icon]
+    @param {import('react').ReactNode} [props.mark]
+    @param {import('react').ReactNode} [props.title]
+    @param {keyof typeof TOAST_COLOR} [props.color]
+    @param {boolean} [props.compact]
+    @param {boolean} [props.asks]
+    @param {import('react').ReactNode} [props.actions]
+    @param {import('react').ReactNode[]} [props.list]
+    @param {string} [props.listLabel]
+    @param {number} [props.seconds]
+    @param {import('react').ReactNode} [props.children] */
 export function Toast({ icon, mark, title, color = 'default', compact = false, asks = false, actions, list, listLabel, seconds, children, ...rest }) {
 	reject(rest, 'Toast')
 	// the way back is a child, not a prop: it is the last thing in the row, which is
@@ -399,7 +448,10 @@ export function Toast({ icon, mark, title, color = 'default', compact = false, a
 	)
 }
 
-/** The way back out of what a toast reports, or its one way on (Retry now). */
+/** The way back out of what a toast reports, or its one way on (Retry now).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children]
+    @param {() => void} [props.onClick] */
 export function ToastUndo({ children, onClick, ...rest }) {
 	reject(rest, 'ToastUndo')
 	return <button type="button" className="sp-toast__undo sp-nowrap" onClick={onClick} {...rest}>{children}</button>
@@ -408,7 +460,14 @@ export function ToastUndo({ children, onClick, ...rest }) {
 const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
 
 /** `action` is one button at the row's far end, after a spacer (3a, 3b); `below` puts it under the
-    words instead, where a phone's row is too narrow to hold both. */
+    words instead, where a phone's row is too narrow to hold both.
+    @param {object} props
+    @param {keyof typeof ALERT_COLOR} [props.color]
+    @param {import('react').ReactNode} [props.mark]
+    @param {import('react').ReactNode} [props.title]
+    @param {import('react').ReactNode} [props.action]
+    @param {boolean} [props.below]
+    @param {import('react').ReactNode} [props.children] */
 export function Alert({ color = 'warning', mark, title, action, below = false, children, ...rest }) {
 	reject(rest, 'Alert')
 	return (
@@ -437,7 +496,10 @@ const UNDER = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab, .sp-btn:
 /** Shows a toast: `show({ message, title, icon, color, undo: { label, onClick } })`. */
 export const useToast = () => useContext(ToastContext)
 
-/** `notice` is a notice that stays until answered (6d), held in the same place above any toast. */
+/** `notice` is a notice that stays until answered (6d), held in the same place above any toast.
+    @param {object} props
+    @param {import('react').ReactNode} [props.notice]
+    @param {import('react').ReactNode} [props.children] */
 export function Toaster({ notice, children }) {
 	const [toast, setToast] = useState(null)
 	const [hovered, setHovered] = useState(false)
