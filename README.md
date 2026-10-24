@@ -339,6 +339,7 @@ printed amounts.
 | Email | [Nodemailer](https://nodemailer.com) |
 | Shipping | [Docker](https://www.docker.com), built and published by GitHub Actions |
 | Design | A design system of its own, in [`design/`](design/), made with Claude Design |
+| Component catalogue | [Storybook](https://storybook.js.org), in [`storybook/`](storybook/), for building only: it is not in the image |
 
 ## How it is built
 
@@ -361,6 +362,7 @@ printed amounts.
   - The query plan of every statement the server runs, against an account of real size.
   - The bank statement reader, against example files.
   - The icon library, against its source.
+  - The component catalogue: every component file has a story, and the catalogue builds.
   - Comments, external links, and the security of every package.
 
 The app's own [README](react/README.md) goes deeper: routes, the shell, data, the build and
@@ -373,6 +375,7 @@ measurements.
 | [`react/`](react/) | The app: every page you see. |
 | [`api/`](api/) | The server, the database and its migrations, and the background jobs. |
 | [`design/`](design/) | The design system: every screen and component, and the rules below. |
+| [`storybook/`](storybook/) | The app's own components, one by one, in light and dark, on a phone and a desktop. |
 | [`docs/`](docs/) | The screenshots on this page, rendered from the running app. |
 | [`CLAUDE.md`](CLAUDE.md) | The rules for working in this repository: how to check a change and what counts as done. |
 | [`later.md`](later.md) | Known small faults and things to look at again. |
@@ -390,6 +393,10 @@ To test a change, `node scripts/session.mjs` in `react/` starts both on a scratc
 one filled test account signed in, so every check and screenshot after it starts at once.
 
 The screenshots on this page are made by `react/scripts/regen-docs.mjs` from the running app.
+
+To look at one component on its own, `npm install && npm run dev` in `storybook/` (after
+`npm install` in `react/`) and open http://localhost:6006. How to add a story is in
+[`storybook/README.md`](storybook/README.md).
 
 ## The design system
 

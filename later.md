@@ -71,3 +71,12 @@ is removed in the change that settles it.
   Design. The disabled button is wrapped in a span that carries its tooltip, so the rule that places
   the field's end controls does not reach it. Not yet checked on the order list page itself.
 - **Found:** 2026-10-24.
+
+## The design's React specimens pass a prop the combobox does not take
+
+- **Where:** `design/React components.dc.html`, the searchable combobox specimen.
+- **What the reader sees:** nothing; the chevron is drawn by the combobox itself either way.
+- **What was found:** the specimen passes `chevron`, which neither `design/react_handoff/Combobox.jsx`
+  nor `react/src/components/Combobox.jsx` takes, so it lands on the box as a stray attribute. The
+  story in `storybook/stories/Combobox.stories.jsx` leaves it out. A note for the next Claude Design brief.
+- **Found:** 2026-10-24.

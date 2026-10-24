@@ -1,6 +1,7 @@
 **/node_modules
 react/dist
 design
+storybook
 docs
 *.html
 *.md
