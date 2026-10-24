@@ -2078,7 +2078,11 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   right: 0;
   top: calc(100% + var(--sp-2));
   z-index: 5;
-  min-width: 232px;
+  /* the field's width; it grows only for an option that would not fit, up to 288, and an option
+     longer than that is cut with an ellipsis (c3) */
+  width: max-content;
+  min-width: 100%;
+  max-width: 288px;
   padding: var(--sp-6);
   list-style: none;
   flex-direction: column;
@@ -2160,6 +2164,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 /* over the limit (8b) */
 .sp-combobox__dot[data-dot="problem"] { background: var(--red-ink); }
 .sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
+/* an option's name stays on its line and ends in an ellipsis past the panel's 288 */
+.sp-combobox__option > span:not(.sp-combobox__dot, .sp-combobox__meta, .sp-combobox__check, .sp-mark) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
 .sp-combobox__empty { padding: var(--sp-8) var(--sp-12); font-size: var(--t-13); color: var(--ink-5); }
 
@@ -5136,17 +5142,36 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-popover__list,
 .sp-palette__body,
 .sp-chat__scroll,
+.sp-combobox__panel,
+.sp-field-group__values,
+.sp-chat__start,
+.sp-chat__help,
+.sp-chat__field,
+.sp-chat__figures,
 .sp-calendar--sheet { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .sp-menu--scrolls::-webkit-scrollbar,
 .sp-popover__list::-webkit-scrollbar,
 .sp-palette__body::-webkit-scrollbar,
 .sp-chat__scroll::-webkit-scrollbar,
+.sp-combobox__panel::-webkit-scrollbar,
+.sp-field-group__values::-webkit-scrollbar,
+.sp-chat__start::-webkit-scrollbar,
+.sp-chat__help::-webkit-scrollbar,
+.sp-chat__field::-webkit-scrollbar,
+.sp-chat__figures::-webkit-scrollbar,
 .sp-calendar--sheet::-webkit-scrollbar { width: 8px; }
+.sp-chat__figures::-webkit-scrollbar { height: 8px; }
 .sp-chat__scroll::-webkit-scrollbar-track { background: none; }
 .sp-menu--scrolls::-webkit-scrollbar-thumb,
 .sp-popover__list::-webkit-scrollbar-thumb,
 .sp-palette__body::-webkit-scrollbar-thumb,
 .sp-chat__scroll::-webkit-scrollbar-thumb,
+.sp-combobox__panel::-webkit-scrollbar-thumb,
+.sp-field-group__values::-webkit-scrollbar-thumb,
+.sp-chat__start::-webkit-scrollbar-thumb,
+.sp-chat__help::-webkit-scrollbar-thumb,
+.sp-chat__field::-webkit-scrollbar-thumb,
+.sp-chat__figures::-webkit-scrollbar-thumb,
 .sp-calendar--sheet::-webkit-scrollbar-thumb {
   background: var(--scroll-thumb);
   border: 2px solid transparent;
@@ -6073,7 +6098,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__pick > .sp-icon-btn { flex: none; }
 /* the saved questions in a conversation, on a desktop: the action select in the controls
    bar, its panel wide enough for a question, each one cut as on the empty page */
-.sp-chat__saved-menu .sp-combobox__panel { right: auto; width: 320px; }
+.sp-chat__saved-menu .sp-combobox__panel { right: auto; width: 320px; max-width: none; }
 .sp-chat__saved-menu .sp-combobox__option > .sp-truncate { flex: 0 1 auto; }
 .sp-touch .sp-chat__saved-menu { display: none; }
 .sp-chat__dock { padding-top: var(--sp-12); }

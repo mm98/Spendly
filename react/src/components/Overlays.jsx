@@ -5,7 +5,7 @@ import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
-import { roomOf, usePanelPlace } from './Combobox.jsx'
+import { roomOf, usePanelPlace, usePanelRest } from './Combobox.jsx'
 import { menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
 import { PRESENCE, Presence, m, useGoing, usePanelMotion } from './motion.js'
 
@@ -44,8 +44,10 @@ export function useMenuPlace(box, open) {
 	const touch = useContext(ShellTouch)
 	const menu = useMemo(() => ({ get current() { return box.current?.querySelector(':scope > .sp-menu--floating') ?? null } }), [box])
 	usePanelPlace(box, menu, open && !touch)
-	// the menu fades out as it closes: the host spreads data-closing so it stays drawn until then
-	return usePanelMotion(menu, open && !touch)
+	// the menu fades out as it closes, where it stood: the host spreads data-closing so it stays drawn until then
+	const closing = usePanelMotion(menu, open && !touch)
+	usePanelRest(menu, open && !touch, closing)
+	return closing
 }
 
 /** On touch a floating menu is the c13 sheet from the bottom edge (c9), holding the same items.

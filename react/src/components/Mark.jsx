@@ -100,12 +100,14 @@ export function Mark({
 	if (picker && rest['aria-label']) console.error('<Mark as="label"> the file input inside it carries the name: an aria-label on the mark is not read')
 	if (!derives && !rest['aria-label'] && !picker)
 		console.error('<Mark> needs a name: a string child it derives from, or an aria-label')
-	// a name on a span is read only with a role, so a named mark is an image unless hidden
+	// a name on a span is read only with a role, so a named mark is an image unless hidden; one that
+	// holds its remove control is a group, since an image may hold no control
 	const hidden = rest['aria-hidden'] === true || rest['aria-hidden'] === 'true'
+	const role = remove ? 'group' : 'img'
 	const named = picker ? {}
 		: derives && !rest['aria-label']
-			? { role: 'img', 'aria-label': children }
-			: rest['aria-label'] && !rest.role && !hidden && !onClick ? { role: 'img' } : {}
+			? { role, 'aria-label': children }
+			: rest['aria-label'] && !rest.role && !hidden && !onClick ? { role } : {}
 	const body = (
 		<>
 			{shown}

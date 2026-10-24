@@ -31,7 +31,7 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 's
     @param {import('react').ReactNode} [props.handle] A drag handle, so the row can be moved.
     @param {string} [props.handleLabel] What the drag handle says it moves, such as Move Housing.
     @param {import('react').ReactNode} [props.actions] Controls at the end of the row.
-    @param {number} [props.count] A count at the end of the row.
+    @param {number | '!'} [props.count] A count leading the row, or ! for an attention row that counts nothing.
     @param {import('react').ReactNode} [props.chevron] An arrow at the end, for a row that opens something.
     @param {boolean} [props.selected] The row is the picked one in a set. Outline and card rows only.
     @param {boolean} [props.opens] The row opens something when clicked: the pointer and the hover fill show it.

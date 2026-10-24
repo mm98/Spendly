@@ -422,7 +422,7 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
     @param {object} props
     @param {boolean} [props.loose] Has its own border, for a set with no list around it.
     @param {boolean} [props.head] Stands in for a phone's top bar.
-    @param {number} props.count How many records are picked.
+    @param {string} props.count What is picked, written out, such as 3 selected.
     @param {() => void} [props.onClear]
     @param {import('react').ReactNode} [props.selectAll] The box that picks every record on the page.
     @param {import('react').ReactNode} [props.children] What can be done to the picked records: the buttons. */
