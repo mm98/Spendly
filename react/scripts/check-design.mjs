@@ -1485,7 +1485,11 @@ const DESIGN_RULES = {
 	'a danger row icon takes the danger ink': COPY,
 	'a field tail mark is centred on the field': COPY,
 	'hover only where a pointer hovers': 'hover only where a pointer hovers',
-	'a switch row is one label': 'a switch row is one label'
+	'a switch row is one label': 'a switch row is one label',
+	'an alert mark sits on the title line': COPY,
+	'a toast icon sits on the first line': COPY,
+	'a stretched combobox keeps its chevron at the edge': COPY,
+	'a stepper shows its digit': COPY
 }
 {
 	const designCheck = read(join(root, '../design/styles/check.js'))

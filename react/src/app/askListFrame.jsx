@@ -1,9 +1,8 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Chat, ChatDock, ChatMore, ChatScroll } from '../components/Chat.jsx'
+import { Chat, ChatDock, ChatLimit, ChatMore, ChatScroll } from '../components/Chat.jsx'
 import { getAsk } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { plural } from '../api/format.js'
 import { askInLastChat, lastChat, stopAsking, useAsking } from './ask.js'
 import { useAskHelp } from './askHelp.jsx'
 
@@ -16,7 +15,7 @@ export function AskListFrame({ controls, empty, children }) {
 	const [text, setText] = useState('')
 	const field = useRef(null)
 	const noneLeft = !!askStatus?.ready && askStatus.left === 0
-	const left = askStatus?.left
+	const left = askStatus?.ready ? askStatus.left : null
 	const last = lastChat()
 	// Chats and Files keep this frame on a computer only
 	const { onHelp, help } = useAskHelp({ makes: askStatus?.makes, disabled: noneLeft, touch: false, field, setText })
@@ -37,6 +36,7 @@ export function AskListFrame({ controls, empty, children }) {
 
 	return (
 		<Chat>
+			<ChatLimit left={left} />
 			<Chat spaced>
 				{controls}
 				{empty ?? <ChatScroll>{children}</ChatScroll>}
@@ -52,7 +52,6 @@ export function AskListFrame({ controls, empty, children }) {
 				fieldRef={field}
 				disabled={noneLeft}
 				placeholder={noneLeft ? 'No questions left today' : 'Ask about your orders, vendors and budget'}
-				left={left > 0 && left <= 3 ? `${plural(left, 'question')} left today` : null}
 				end={<ChatMore back={last ? `/ask/${last}` : '/ask'} />}
 			/>
 			{help}

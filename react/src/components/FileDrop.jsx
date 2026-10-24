@@ -3,6 +3,7 @@ import { join, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Spinner } from './Utilities.jsx'
+import { useShellShape } from '../app/useMedia.js'
 
 /** What a photo place takes, and what an attachment place takes: a photo, or a PDF besides. */
 export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/gif'
@@ -148,6 +149,12 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 	usePastePlace(field, take)
 	const failed = refused?.problem ?? problem
 	const what = src ? `Replace ${name}` : `Add ${name}`
+	// on a phone a filled slot is the image and its Replace and Remove buttons beside it; the image is not the target
+	const actions = useShellShape() === 'touch' && Boolean(src) && !failed
+	const input = (
+		<input ref={field} id={id} type="file" accept={accept} aria-describedby={describedBy}
+			onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
+	)
 	return (
 		<span
 			className={join('sp-slot', start && 'sp-slot--start')}
@@ -158,27 +165,33 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 			{...rest}
 		>
 			<Mark
-				as="label"
+				as={actions ? undefined : 'label'}
 				size={size}
 				fill={src ? 'photo' : 'empty'}
 				goods={Boolean(src)}
 				text={src && !failed && !busy ? kind : undefined}
 				danger={failed || undefined}
-				htmlFor={id}
-				aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? `${what}, still sending` : what}
-				data-tip={what}
+				htmlFor={actions ? undefined : id}
+				aria-label={actions ? undefined : failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? `${what}, still sending` : what}
+				data-tip={actions ? undefined : what}
 				onDragOver={ev => ev.preventDefault()}
 				onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files?.[0]) }}
 			>
 				{src ? <img src={src} alt="" /> : <Icon name="camera" size={26} />}
 				{src && busy ? <Spinner /> : null}
-				<input ref={field} id={id} type="file" accept={accept} aria-describedby={describedBy}
-					onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
+				{actions ? null : input}
 			</Mark>
-			{refused
-				? <button type="button" className="sp-slot__remove" aria-label={`Remove ${refused.name}`} onClick={() => setRefused(null)}>Remove</button>
-				: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={`Send ${name} again`} onClick={onRetry}>Retry</button>
-					: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
+			{actions
+				? (
+					<span className="sp-slot__actions">
+						<label className="sp-icon-btn sp-icon-btn--outline" aria-label={busy ? `${what}, still sending` : what}><Icon name="upload" />{input}</label>
+						<button type="button" className="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="trash" /></button>
+					</span>
+				)
+				: refused
+					? <button type="button" className="sp-slot__remove" aria-label={`Remove ${refused.name}`} onClick={() => setRefused(null)}>Remove</button>
+					: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={`Send ${name} again`} onClick={onRetry}>Retry</button>
+						: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
 		</span>
 	)
 }
