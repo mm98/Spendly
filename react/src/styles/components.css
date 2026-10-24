@@ -446,6 +446,11 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   gap: var(--sp-2);
 }
 .sp-field__trails > .sp-field__trail { position: relative; top: auto; right: auto; transform: none; }
+/* a disabled trail takes no hover, so its tooltip is carried by a span around it (Ask with no
+   questions left); the span is a row item and the button sits in it as it would in the row.
+   Caught: unwrapped by the rule above, the button kept its corner placement and dropped below the field. */
+.sp-field__trails > span[data-tip] { position: relative; display: flex; }
+.sp-field__trails > span[data-tip] > .sp-field__trail { position: relative; top: auto; right: auto; transform: none; }
 /* Ask: a ghost mark when off, a filled green mark when on */
 .sp-field__trail--ask[aria-pressed="true"] { background: var(--green); color: #fff; }
 @media (hover: hover) {
@@ -2908,8 +2913,8 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 .sp-field__kbd {
   position: absolute;
   right: var(--sp-12);
-  top: 0;
-  height: var(--control-h);
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   pointer-events: none;
