@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
-<link rel="stylesheet" href="styles/components.css?v=v20261024t">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20261024u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
@@ -1489,6 +1489,44 @@
     </div>
     </div>
 
+    <div class="doc-specimen doc-open-room">
+      <span class="doc-specimen__label">Combobox - the list's width: the field's, and past it only for an option that would not fit, up to 288</span>
+      <div class="sp-card doc-w400">
+      <div class="sp-row-flex sp-gap-16">
+        <div class="sp-field doc-w157">
+          <span class="sp-field__label" id="c5-w-kind">Kind</span>
+          <div class="sp-combobox" data-open="true">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" aria-labelledby="c5-w-kind">
+              <span>Expense</span>
+              <span class="sp-grow"></span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+            </button>
+            <ul class="sp-combobox__panel" role="listbox" aria-labelledby="c5-w-kind">
+              <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Expense</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option"><span>Income</span></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option"><span>Refund</span></button></li>
+            </ul>
+          </div>
+        </div>
+        <div class="sp-field doc-w157">
+          <span class="sp-field__label" id="c5-w-cat">Category</span>
+          <div class="sp-combobox" data-open="true">
+            <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" aria-labelledby="c5-w-cat">
+              <span>Decor</span>
+              <span class="sp-grow"></span>
+              <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+            </button>
+            <ul class="sp-combobox__panel" role="listbox" aria-labelledby="c5-w-cat">
+              <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Decor</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option"><span>Office</span></button></li>
+              <li role="option"><button type="button" class="sp-combobox__option"><span>Garden furniture, outdoor storage and greenhouse supplies</span></button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
     <div class="doc-specimen">
       <span class="doc-specimen__label">Combobox - mode 2, searchable</span>
       <div class="sp-card doc-w400">
@@ -1537,6 +1575,8 @@
     <div class="doc-notes__label">Fixed</div>
     <div class="doc-note">Native inputs, our styling. Checkbox and Radio are <code>&lt;input&gt;</code> at <code>--box</code> (16px) with <code>appearance: none</code>: the box is radius <code>--r-marker</code> with a <code>--line-4</code> border, filling <code>--green</code> with a white tick when <code>:checked</code>; the radio becomes a 5px <code>--green</code> ring. Toggle is a checkbox with <code>role="switch"</code>, 34×20 at <code>--r-pill</code> with a 16px thumb - <code>--line-3</code> when off, <code>--green</code> when on. Segmented is a real radio group: a <code>--control-h</code> track with <code>--sp-6</code> padding and gap, its segments centred with <code>--sp-12</code> horizontal padding only, at <code>--r-tile</code> inside the track's <code>--r-field</code>. Each segment reserves its selected width through a hidden <code>data-label</code> copy at 600, so choosing one shifts nothing; the radio inputs are clipped rather than hidden, so they stay focusable. Combobox is never a native select, because options carry dots, marks, meta and a check. The triggers on this page open for real, so the closed and open states can be compared - mode 1's trigger is a <code>&lt;button&gt;</code>, mode 2's is an <code>&lt;input role="combobox"&gt;</code>, and both open the same <code>role="listbox"</code> panel at <code>--r-field</code> with <code>--shadow-menu</code>. The panel is an overlay anchored under the trigger, at least as wide as the trigger, so opening one never reflows the page behind it. SearchInput is <code>type="search"</code> with the icon inside the field.</div>
     <div class="doc-note"><b>Option rows.</b> An option is <code>--row-h</code> (32px) with <code>--sp-6</code> above and below its label, and the panel gaps rows by <code>--sp-2</code>: 34px a row on desktop, was 42. On touch an option is <code>--row-h-touch</code> (44px) with no gap: 44px a row, was 54, so a phone shows about 12 categories at once instead of 9 or 10. Two rows that touch are still two 44px targets. A separator between groups keeps <code>--sp-4</code> each side. Menu items and palette rows take the same 44px on touch; on desktop they keep their own heights (menu 36 with no gap, palette 38). A facet group's head keeps <code>--control-h-touch</code>, since it opens a group of 48px fields.</div>
+    <div class="doc-note"><b>The list is the field's width.</b> A select's or a chip combobox's panel is <code>min-width: 100%</code> of its field and <code>width: max-content</code>, capped at 288 (<code>max-width</code>, the same 288 as <code>.sp-combobox--end</code>). Kind, Status and the other narrow fields open a list exactly as wide as the field; a list grows past it only for an option that would not fit, and an option longer than 288 stays on its line and ends in an ellipsis. There is no fixed floor: the 232 that made Kind's list 75px wider than its field is gone. The saved-questions select keeps its own 320 (<code>.sp-chat__saved-menu</code>). Lifted out of a clipping box, the panel is fixed and keeps the width it measured, so the percentage floor never becomes the window's.</div>
+    <div class="doc-note"><b>A closing list fades where it stood.</b> A panel moved to fit - hung from the field's right edge, lifted out of a clipping box, turned upwards or capped in height - keeps that placement until its fade-out has ended, and only then goes back to its own spot under the field. It never jumps during the fade, and never pushes the page into a scrollbar. The same holds for every menu opened from a button.</div>
     <div class="doc-note"><b>Favourites first, wherever a vendor or a category is picked.</b> Every mode 2 list of vendors or categories is grouped Favourites, Recent, then the rest, headed "Favourites", "Recent" and "Other vendors" or "Other categories". This covers the order form's vendor field, the category tokens on the order and vendor forms, Add category in an order's menu and the bulk bar, the category picker on Bookmarks and in the import mapping, and the merge target pickers. Favourites are alphabetical. Recent is the vendors or categories on the latest orders, newest first, up to 5, as the vendor field does today; one that is a favourite shows only under Favourites. The rest are alphabetical. A group with nothing in it is not drawn, and with one group left there is no header. Typing filters every group in place, keeping the order; the create row stays last. Overviews, tables, cards and the order list's filter rail are not pickers and stay as they are. The Vendors and Categories pages are not pickers either: every sort there ignores favourites, and sort by name is plain A to Z.</div>
     <div class="doc-notes__label">States</div>
     <div class="doc-note"><code>:checked</code>, <code>:disabled</code> and <code>:focus-visible</code> - all the element's own. In the Combobox panel hover and keyboard focus are one state (<code>--hover</code>) and the current value is another (<code>--green-tint</code> with a check); they can sit on different rows at once, and conflating them is the usual bug in a hand-built dropdown. A disabled choice greys its whole label, because the label is the hit area.</div>

@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
-<link rel="stylesheet" href="styles/components.css?v=v20261024t">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20261024u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/order-list.css?v=v20260917b">
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -273,6 +273,7 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The menu column's head is named.</b> The last <code>th.sp-col-menu</code> holds the word "Actions" in a <code>.sp-announce</code> span: read out, drawn nowhere, so the column keeps its width and no head is empty. The same in Vendors and Categories.</div>
     <div class="doc-note"><b>Set status</b> and <b>Add category</b> open their flyouts. Apply writes to every selected order at once, whatever the count, and a toast offers Undo (<a href="States and confirmations.dc.html#6d">6d</a>): "Status set to Delivered on 2 orders.", "Decor added to 2 orders.". Only a destructive action asks first. Undo puts back everything Apply wrote, including the delivery date that "Also set delivery date to today" set. Cancel closes without writing.</div>
     <div class="doc-note"><b>Export</b> downloads the selected orders in the export format of <a href="Actions inventory.dc.html#16b">16b</a>: one row per item line, in the import's columns, so the file can be imported again.</div>
     <div class="doc-note"><b>Delete</b> is the 6d confirmation, naming the count.</div>

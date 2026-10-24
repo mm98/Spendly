@@ -118,6 +118,10 @@
   .doc-w340 { width: 340px; }
 .doc-w361 { width: 361px; }
 .doc-w400 { width: 400px; }
+  /* the Kind field on Order edit, for drawing its list at the field's width */
+  .doc-w157 { width: 157px; }
+  /* room under a drawn open list, which overlays and takes no height of its own: on the specimen, since .sp-card owns its padding */
+  .doc-open-room { padding-bottom: 150px; }
   .doc-w420 { width: 420px; }
   .doc-w440 { width: 440px; }
   .doc-w460 { width: 460px; }

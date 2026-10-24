@@ -1,68 +1,93 @@
-# Motion gaps (fixed 2): every scrolling list shows the shared scrollbar
+# A closing drop-down keeps its place while it fades out
 
-## Fixed from design_handoff_motion_gaps_fixed
+## Fixed from design_handoff_dropdown_close_jump
 
-**The problem** - On Order create and Order edit, the vendor combobox's list drew the browser's own scrollbar: wide, light, with arrows, on the dark surface. Every scrolling region is meant to show the same bar (thin, no track, `--scroll-thumb`), but that is stated as a list of selectors in `components.css`, and `.sp-combobox__panel` was never on it. The list only scrolls past `--list-max` (420px), which the vendor list with Favourites, Recent and Other vendors now reaches, so the gap showed only now. It was missing in every earlier package and on main. Five more regions scroll and were missing too: filter group values, an answer's figures table (sideways), Ask's empty start, Ask's help, and the Ask field.
+- **The width specimen's open lists covered the next specimen** (Components c5, "Combobox - the list's width"). `.doc-open-room` sat on the `.sp-card`, whose own padding wins over the layered doc rule, so the 150px room never applied. It is on the `.doc-specimen` now. No component rule changed.
+- **The long option did not reach the cap.** It is longer now ("Garden furniture, outdoor storage and greenhouse supplies"), so the list is drawn at 288 with the name cut by the ellipsis.
 
-**What changed** - `.sp-combobox__panel`, `.sp-field-group__values`, `.sp-chat__start`, `.sp-chat__help`, `.sp-chat__field` and `.sp-chat__figures` join the shared scrollbar rules: `scrollbar-width: thin` and `scrollbar-color: var(--scroll-thumb) transparent`, an 8px webkit bar, a pill thumb. `.sp-chat__figures` scrolls sideways, so its webkit bar is 8px high. No other component's rules changed. `styles/check.js` gains "every scrolling region shows the shared bar": any rule with `overflow: auto` or `scroll` whose class is not in the shared rules fails, unless it hides its bar. Run against the previous package's stylesheet it reports all six.
+Answers `Brief-drop-down-close-jump.md`, its second question (the list's width), and two later.md entries.
 
-**Where** - `styles/components.css`, the scrolling regions block. `styles/check.js`. In the app: `react/src/styles/components.css`, the same block.
+## 1. The panel jumps while it fades out
 
-**What is still open** - Nothing.
+**The problem** - On Order edit, the Kind list is moved left to fit near the window edge. On close, `usePanelPlace`'s cleanup calls `reset()` as soon as `open` turns false, while `usePanelMotion` still draws the panel fading out (`data-closing`). The fade is drawn in the panel's default spot: 75px to the right, past the window edge, with a sideways scrollbar for about a quarter second. The same happens to any panel that was hung from an edge, lifted out of a clipping box, turned upwards or capped in height.
 
----
+**What changed** - A closing panel keeps its placement until its fade-out has ended, then goes back to its own spot. The motion is unchanged.
+- `usePanelPlace` no longer resets in its cleanup; the cleanup only removes the scroll and resize listeners. The reset is `unplace(list)`, shared.
+- New internal hook `usePanelRest(panel, open, closing)` in `Combobox.jsx`: a layout effect that calls `unplace` once `open` and `closing` are both false. It runs in the commit that drops `data-closing`, before paint, so the panel is hidden and back in its spot in the same frame.
+- Called after `usePanelMotion` in `ComboboxOne` and `ComboboxMany` (`Combobox.jsx`) and in `useMenuPlace` (`Overlays.jsx`), so every select, the chip combobox and every menu opened from a button.
+- `DatePickers.jsx` uses `usePanelMotion` without `usePanelPlace`: unchanged.
 
-## Page switches no longer blink
+**Where** - `react_handoff/Combobox.jsx` (`usePanelPlace`, `usePanelRest`, `ComboboxOne`, `ComboboxMany`), `react_handoff/Overlays.jsx` (`useMenuPlace`); app files `react/src/components/Combobox.jsx`, `react/src/components/Overlays.jsx`. Drawn as a note in Components c5 ("A closing list fades where it stood").
 
-## Fixed from design_handoff_motion_gaps
+**What is still open** - `react/src/pages/vendorsCategories.jsx` calls `usePanelPlace(anchor, panel, !touch)` and never fades. Since the cleanup no longer resets, it needs one line after it: `usePanelRest(panel, !touch)`, so a switch to touch still clears the placement. Please confirm once it is in.
 
-**The problem** - Every page switch blinked and the app read like a full page load. `ShellContent page={path}` keyed the body by page, so a switch unmounted the whole body and mounted a new one at `opacity: 0` (`PRESENCE.page`): the old page went in one frame and the new one faded up from nothing. Loading `domMax` with the app (point 2 below) made the fade run from the first switch, so it showed on every one.
+## 2. The list's width
 
-**What changed** - A page switch is not animated. The new page replaces the old at once, the body stays mounted, nothing fades or rises; only the sidebar's marker moves. `ShellContent` loses its `page` prop and always renders a plain `main`; `PRESENCE.page` is removed.
+**The problem** - `.sp-combobox__panel` had `min-width: 232px`. The Kind field on Order edit is 157px wide, so its list was 75px wider than the field although its options fit, which is also why it had to hang from the right edge near the window edge.
 
-**Where** - `react_handoff/Shell.jsx` (`ShellContent` and its JSDoc), `react_handoff/motion.js` (`PRESENCE`), `react_handoff/README.md` and `styles/components.css` (the Motion comment: page change removed from what Motion runs), React components, the first implementation note and the Shell Motion note. In the app: `react/src/components/Shell.jsx`, `react/src/components/motion.js`, and drop `page=` from `ShellContent` in `react/src/app/AppShell.jsx` if the PR added it.
+**What changed** - Decided: a list is the field's width, and grows past it only when an option would not fit, up to 288px; an option longer than that is cut with an ellipsis. 288 is the width `.sp-combobox--end` already uses.
+- `.sp-combobox__panel`: `min-width: 232px` replaced by `width: max-content; min-width: 100%; max-width: 288px`.
+- New rule: `.sp-combobox__option > span:not(.sp-combobox__dot, .sp-combobox__meta, .sp-combobox__check, .sp-mark)` takes `min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap`, so an option's name stays on its line.
+- `.sp-chat__saved-menu .sp-combobox__panel` keeps its 320 with `max-width: none`.
+- `usePanelPlace`: a panel lifted out to `position: fixed` also gets `minWidth` set to its measured width, since a fixed panel's `min-width: 100%` would be the window's.
+- `.sp-combobox--end` (288) is unchanged.
 
-**What is still open** - Nothing.
-
----
-
-Answers the brief "two gaps in the Motion update" (pull request #575).
-
-## 1. Rows you can drag fade in and out
-
-**The problem** - On the four lists you can drag (accounts on Budget, order lines, statuses, order views while editing), a row added or removed appeared or vanished at once. `Rows` around a `ReorderList` saw one child, the list, and never a row; a moving `ListItem` or `NavItem` spread `itemOf(moving)` on `Reorder.Item`, not `useRow()`.
-
-**What changed** - `ReorderList` owns its rows' presence. It puts `<Rows count={order.length}>` around the keyed `Slot`s inside `Reorder.Group`, so each `Slot` is a direct, keyed child of the `AnimatePresence`. `itemOf(moving, moves)` takes the row's `useRow()` result and spreads it first, then the drag's own props, so `layout: 'position'` always wins and a carried row still glides. `ListItem` no longer spreads `moves` on its attributes when it is moving (it goes through `itemOf` instead); `NavItem` now calls `useRow()` and passes it to `itemOf`. A row added drops in, a row removed fades where it stood and the rest glide up, as on every other list.
-
-**Where** - `react_handoff/Reorder.jsx` (`ReorderList`, `itemOf`), `react_handoff/ListItem.jsx` (`ListItem`), `react_handoff/Shell.jsx` (`NavItem`), `react_handoff/motion.js` (`useRow` comment). Drawn as a note in Components, Ordering by hand ("Adding and removing"), and in React components, the list rows' Motion note. In the app: remove the `<Rows>` around the `ReorderList` in `react/src/pages/Budget.jsx`, `react/src/pages/OrderForm.jsx` and `react/src/pages/SettingsStatuses.jsx`; `react/src/pages/OrderViews.jsx` needs no change and now fades too.
-
-**What is still open** - A row leaving stays in `AnimatePresence` for `--motion-out` while its value is already gone from `Reorder.Group`'s `values`. A drag started inside that window has not been tried; please confirm in the browser that carrying a row while another fades out behaves.
-
-## 2. Motion's features load with the app
-
-**The problem** - `MotionShell` fetched `domMax` after the first paint. Until it arrived, a `layoutId` marker could not slide (the side menu's marker jumped on the first page change in Firefox, one run in four) and a part closed in that time never finished closing.
-
-**What changed** - `domMax` is imported with the app and passed straight to `LazyMotion features={domMax} strict`. No wait: the first page change slides its markers, and every part leaving through `Presence`, `Fold` or `Rows` runs its way out from the start. The first download grows by `domMax`. Components still import `m`, never `motion`.
-
-**Where** - `react_handoff/motion.js` (`MotionShell`; the `features` loader is gone), `react_handoff/README.md` (Motion paragraph), React components, the first implementation note. The harness on React components passes `domMax` through from Motion's browser build. In the app: `react/src/components/motion.js`.
+**Where** - Components c5, new specimen "Combobox - the list's width" (Kind at 157 with its list at 157; a Category list grown to 288 with a long option cut) and the note "The list is the field's width". `styles/components.css`: `.sp-combobox__panel`, the option rule after `.sp-combobox__check`, `.sp-chat__saved-menu .sp-combobox__panel`. `react_handoff/Combobox.jsx` (`usePanelPlace`). App: `react/src/styles/components.css`, `react/src/components/Combobox.jsx`. Reaches every select and chip combobox; the narrow ones (Kind, Status, the Date row) most.
 
 **What is still open** - Nothing.
 
-## later.md
+## 3. later.md: "The app's components and their use differ from Claude Design"
 
-The brief cites a later.md entry for "a part closed before the features load never finishes closing". later.md on `main` has no such entry today, so there is nothing to remove; point 2 settles the fault if it is added back. The other entries (accessibility faults, design differences) are outside this brief and are not touched here.
+Settles the entry. Each line of `storybook/design-differences.json`:
+
+**The problem** - `npm run design:check` and `npm run props:check` report four app-only files and eight places where a page passes a kind of value the component's JSDoc does not name.
+
+**What changed**
+- **`Failed.jsx`, `Icon.jsx`, `icons.js`, `tabler.js`** - they stay in the app, as `react_handoff/README.md` already states: the harness draws icons from the project's `icons.js`, and `Failed.jsx` reads the app's API client. Not a difference: list them as accepted in `design-differences.json` (or exempt them in the check) rather than as `appOnly`.
+- **`<BulkBar count>` given text** (`BudgetCheck.jsx`, `Orders.jsx`) - the pages are right; the design draws "3 selected". JSDoc now `{string} props.count What is picked, written out, such as 3 selected.`
+- **`<FieldGroup count>` given text** (`Orders.jsx`, "128 total") - the design draws "12 total" on a folded head. JSDoc now `{number | string}`.
+- **`<ListItem count>` given '!'** (`OrderForm.jsx`) - the design draws the attention row with "!" (Duplicate and alerts, Home, States and confirmations). JSDoc now `{number | '!'}`.
+- **`<Sum value>` given a drawn part** (`Order.jsx`, `VendorForm.jsx`, `vendorsCategories.jsx`) - legitimate: a link to the vendor, the categories, a note's well, a loading line. JSDoc now `{import('react').ReactNode}`.
+- **`<Segmented value>` given a number** (`Budget.jsx`, the months) - legitimate. JSDoc of `options[].value`, `value`, `defaultValue` and `onChange` now `string | number`.
+
+**Where** - `react_handoff/List.jsx` (BulkBar), `Choice.jsx` (FieldGroup), `ListItem.jsx`, `Data.jsx` (Sum), `Segmented.jsx`; the app's same files in `react/src/components/`; `storybook/design-differences.json`.
+
+**What is still open** - Nothing. Remove the later.md entry once the check is clean.
+
+## 4. later.md: "The whole pages in Storybook have accessibility faults"
+
+Settles the entry, except its contrast line (see below).
+
+**The problem** - In `storybook/pages/Pages.stories.jsx`: names that do not hold the drawn words, an empty column head, and controls inside controls.
+
+**What changed**
+- **Sidebar rows** ("All orders, 441") - a row is named by the words it draws: no `aria-label` on a `NavItem`; its name is its label and count as drawn. Remove the `aria-label` in `react/src/app/views.jsx` (`SidebarViews`). Navigation shell 9b.
+- **Statistics share rows** ("Transport, 4,795 kr.") - same rule: no `aria-label`, the name is what the row draws. `react/src/pages/Statistics.jsx`. Order statistics 4a.
+- **The bookmark's empty picture strip** - still the link to the shop; its name starts with what it draws: "No picture, open at" and the domain. `react/src/pages/Bookmarks.jsx`. Bookmarks 22a.
+- **The lists' last column head** (`.sp-col-menu`) - holds "Actions" in a `.sp-announce` span: read out, drawn nowhere. Orders, Vendors, Categories (`react/src/components/List.jsx`). Order list 2a.
+- **The line photo's Add box** - a label around its file input takes no role and no `aria-label`; the input is named "Add the line's photo". `Mark` already reports an `aria-label` on `as="label"`; the page passes it. `react/src/pages/OrderForm.jsx`. Order create 3a.
+- **Large marks on the order and vendor forms** - a mark that holds its remove control is now `role="group"`, not `img`, since an image may hold no control. One that also opens is already the open button and the remove button side by side. `react_handoff/Mark.jsx`; app `react/src/components/Mark.jsx`, used from `react/src/pages/OrderParts.jsx`. Order create 3a.
+
+**What is still open** - The grey text in a bookmark's empty picture box and address line (under 4.5:1) is left for the colour pass, as decided for the contrast entry. Please confirm the entry is split: the contrast line moves into "The Storybook's accessibility check finds faults in the components", and the rest is removed.
+
+## 5. later.md entries not done in this pass
+
+- **"The Storybook's accessibility check finds faults in the components"** - every contrast line is kept for a separate colour pass, as decided in this chat. The drop zone's control inside a control was answered before (a label around its file input, the platform's own pattern).
+- **"Large accounts still make everyone wait"** and **"A deleted record should not be removed for good at once"** - not design fixes for this project. The second has an open question for Claude Design: where "Recently deleted" lives. Please confirm when it should be drawn.
 
 ## Files
 
-- `README.md` - the design's overview, unchanged.
+- `README.md` - the design's overview, unchanged from the project root.
 - `CHANGES.md` - this note.
-- `Components.dc.html` - Ordering by hand gains the "Adding and removing" note.
-- `React components.dc.html` - the Motion notes, `domMax` in the harness, and the page switch notes.
-- `react_handoff/` - all components, since the React components page loads every one; changed: `motion.js`, `Reorder.jsx`, `ListItem.jsx`, `Shell.jsx`, `README.md`.
-- `styles/components.css` - the Motion comment no longer lists the page change, and six scrolling regions join the shared scrollbar rules.
-- `styles/check.js` - the new scrollbar assertion.
-- `support.js`, `components.js`, `icons.js`, `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - what the two pages load.
+- `Components.dc.html` - c5: the list width specimen and the two notes.
+- `Navigation shell.dc.html`, `Order statistics.dc.html`, `Bookmarks.dc.html`, `Order list.dc.html`, `Order create.dc.html` - the naming notes of section 4.
+- `support.js`, `components.js` - what the pages load.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets; `components.css` holds the panel width and option rules; `doc.css` adds `.doc-w157` and `.doc-open-room` (on the specimen) for the drawing.
+- `styles/pages/navigation-shell.css`, `order-create.css`, `order-list.css`, `order-statistics.css` - linked by the changed pages.
+- `react_handoff/Combobox.jsx`, `Overlays.jsx` - the close timing and the fixed width.
+- `react_handoff/Mark.jsx` - the group role.
+- `react_handoff/List.jsx`, `Choice.jsx`, `ListItem.jsx`, `Data.jsx`, `Segmented.jsx` - the JSDoc types.
 
 ## styles/check.js
 
-0 finding(s) across 27 pages.
+    0 finding(s) across 27 pages

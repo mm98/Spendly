@@ -13,11 +13,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022b">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
+<link rel="stylesheet" href="styles/components.css?v=v20261024u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/order-statistics.css?v=v20260917b">
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
   a { color: #1d4d33; }
@@ -809,6 +809,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>A share row is named by the words it draws.</b> The row that opens a category's or a vendor's orders takes no <code>aria-label</code>: its name is the name, the amount and the share as drawn ("Transport 4.795 kr. 18 %").</div>
     <div class="doc-note"><b>Median order, not average.</b> The order figure and its sparkline are the median of the orders in the set, so one very large order barely moves them. Total spend and the breakdowns are still sums. The comparison pill compares median with median.</div>
     <div class="doc-note"><b>Include N left-out orders</b> appears only when the period holds at least one order marked Leave out of statistics (<a href="Order editing layouts.dc.html#1d">1d</a>); N is that count, singular for one. Off by default. Turning it on puts them back into every figure on the page for this visit; it is in the URL as <code>excluded=include</code> and is not remembered. The switch says nothing when the period has none, so it is absent rather than disabled. On a phone it sits under the period select (<a href="Mobile screens.dc.html">Mobile screens, Statistics</a>), with the same rules. When every order in the set is left out (a vendor whose default leaves its orders out, <a href="Vendors and categories.dc.html#5l">5l</a>), the page is its empty state reading "All 12 orders here are left out of statistics", with the Include switch above it as the way to see them.</div>
       <div class="doc-note"><b>Every card follows the period, and none is tied to a month.</b> By category, Top vendors and Limits cover the whole period, like the figures, the charts and the order list (here 2026 to date; <a href="#4g">4g</a> is the same page for one month). Limits are set per month, so for a longer period a category's limit is its monthly limit times the months in the period: 12 for a year, 3 for a quarter; a custom period counts each month by the share of its days it covers. The pace marker is how far through the period today is, by days (day 232 of 365 is 64%, drawn at the nearest step of 5). The card's name is Limits for every period, Month included.</div>

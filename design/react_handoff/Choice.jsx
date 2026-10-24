@@ -94,7 +94,7 @@ const keepFolded = (name, folded) => {
     @param {object} props
     @param {import('react').ReactNode} props.legend What the set of controls is about.
     @param {boolean} [props.facet] Draw the group as a filter: its head folds and unfolds it.
-    @param {number} [props.count] Facet only. How many values there are, drawn at the end of the head.
+    @param {number | string} [props.count] Facet only. How many values there are, drawn at the end of the head: a number, or written out, such as 12 total.
     @param {import('react').ReactNode} [props.meta] Facet only. A word at the right end of the head, such as the range now set.
     @param {import('react').ReactNode} [props.children] The controls. */
 export function FieldGroup({ legend, facet = false, count, meta, children, ...rest }) {

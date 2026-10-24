@@ -13,11 +13,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022a">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
+<link rel="stylesheet" href="styles/components.css?v=v20261024u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/navigation-shell.css?v=v20260917b">
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
   a { color: #1d4d33; }
@@ -100,6 +100,7 @@
   <div class="doc-lede">The sidebar collapses to icons when a page needs the width - statistics and the wide list benefit. Search is the same field in the top bar; ⌘K opens it as a palette over the page, grouped by kind, with the recent things you touched when the query is empty.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>A row is named by the words it draws.</b> A sidebar row, a saved view included, takes no <code>aria-label</code>: its name is its label and its count as drawn ("All orders 441"), so a reader who says what they see reaches it. The count's warning ink is not part of the name.</div>
       <div class="doc-note"><b>While a new order is being made, the New order row is the current one</b> (<code>aria-current="page"</code>, <code>--shell-current</code>): on step 1, while a scan is read, and on the edit screen until it is saved. Once saved, the order is an ordinary order and All orders is current. Scan receipt never takes the current state: it is a button, filled on every screen.</div>
       <div class="doc-note"><b>Scan receipt and New order go to different places.</b> New order opens step 1 of <a href="Order create.dc.html#3a">3a</a>, where the user picks receipt, empty order or copy. Scan receipt opens the file picker straight away and the chosen file goes to step 2, reading; cancelling the picker changes nothing.</div>
     <div class="doc-note"><b>68px, and the width alone decides it.</b> Rows keep their 40px height and 44px targets; only the labels go. Nothing shrinks - the rail is the expanded sidebar with the text removed, not a scaled copy of it. The viewport produces this state below 1280. On a wider screen the user can also choose it with the grip (<a href="#9i">9i</a>), and the choice is stored per user.</div>
