@@ -40,6 +40,9 @@ With `multiple`:
 - `searchable` needs `onSearch`, and a query belongs only to a searchable one. Both are reported.
 - Picking an option applies it and closes the panel; focus stays on the trigger.
 - On touch the panel opens as a sheet from the bottom edge.
+- The panel is the field's width. It grows past it only for an option that would not fit, up to 288; a longer option stays on one line and ends in an ellipsis.
+- A panel moved to fit (hung from the field's edge, lifted out of a box that would cut it, turned upwards) fades out where it stood, then goes back under the field. The same holds for a `Menu` opened from a button.
+- A list longer than its cap scrolls inside, with the thin scrollbar every scrolling list shares.
 - With `multiple`: only Enter or a new line ends a value, never a comma, since a name can hold one. Backspace in the empty input removes the last value. A pasted list adds one value per line. The same value is never added twice. An added chip grows in and a removed one shrinks out.
 
 ## Example

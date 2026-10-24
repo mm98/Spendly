@@ -14,7 +14,7 @@ The square (or round) box that stands for a record: a vendor's initials, a categ
 - `count`: a number in the corner, e.g. how many photos
 - `text`: a word under the box, e.g. "Receipt", "PDF"
 - `danger`: why it failed, in red, e.g. "Too large"
-- `remove`: a `MarkRemove` in the corner
+- `remove`: a `MarkRemove` in the corner. A named mark that holds one is read as a group, since an image may hold no control
 - `onClick`: makes the mark a button; `as="label"` wraps a file input
 - `aria-label`
 - `children`: a string is a name: its initials are drawn and, on a solid mark, its colour is derived from it. An element (an `Icon`, an `img`, a `Spinner`) is drawn as it is.
