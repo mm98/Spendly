@@ -29,7 +29,7 @@ export function TabBar({ children, ...rest }) {
  * One destination in that bar.
  *
  * @param {object} props
- * @param {string} [props.icon]
+ * @param {import('./Icon.jsx').IconName} [props.icon]
  * @param {boolean} [props.current]
  * @param {() => void} [props.onClick]
  * @param {import('react').ReactNode} [props.children]

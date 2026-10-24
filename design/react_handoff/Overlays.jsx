@@ -56,7 +56,7 @@ export function Menu({ position, scrolls = false, children, ...rest }) {
  * genuinely unreachable.
  *
  * @param {object} props
- * @param {string} [props.icon] An Icon name.
+ * @param {import('./Icon.jsx').IconName} [props.icon] An Icon name.
  * @param {() => void} [props.onClick]
  * @param {boolean} [props.disabled]
  * @param {boolean} [props.danger] The action that removes something. One per menu, and last, under a separator - a destructive item among ordinary ones is how it gets clicked by accident.
@@ -249,7 +249,7 @@ const TOAST_COLOR = { default: null, danger: 'danger' }
  * Takes no `className` and no `style`.
  *
  * @param {object} props
- * @param {string} [props.icon] An Icon name.
+ * @param {import('./Icon.jsx').IconName} [props.icon] An Icon name.
  * @param {keyof typeof TOAST_COLOR} [props.color]
  * @param {boolean} [props.compact] The smaller one, for a count or a status.
  * @param {boolean} [props.asks] It needs an answer, so it does not take itself away.

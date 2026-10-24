@@ -29,8 +29,8 @@ const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
  * @param {boolean} [props.fullWidth]
  * @param {string} [props.to] An in-app route. Renders a link.
  * @param {string} [props.href] A URL outside the app. Renders an anchor.
- * @param {string} [props.iconStart] An Icon name before the label.
- * @param {string} [props.iconEnd] An Icon name after the label.
+ * @param {import('./Icon.jsx').IconName} [props.iconStart] An Icon name before the label.
+ * @param {import('./Icon.jsx').IconName} [props.iconEnd] An Icon name after the label.
  * @param {import('react').ReactNode} [props.children] The label.
  */
 export function Button({
@@ -81,7 +81,7 @@ const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn-
  * Takes no `className` and no `style`.
  *
  * @param {object} props
- * @param {string | import('react').ReactElement} props.icon The glyph. An element, as every other slot in this library takes - Combobox's lead, a Field's lead and trail, a Mark's text, a ListItem's chevron. A name string is accepted too, since this component's own first form took one.
+ * @param {import('./Icon.jsx').IconName | import('react').ReactElement} props.icon The glyph. An element, as every other slot in this library takes - Combobox's lead, a Field's lead and trail, a Mark's text, a ListItem's chevron. A name string is accepted too, since this component's own first form took one.
  * @param {keyof typeof ICON_STYLE} [props.variant]
  * @param {keyof typeof ICON_SIZE} [props.size]
  * @param {boolean} [props.danger] An action that removes something: the red ink, on the same outline. The same state MenuItem has.

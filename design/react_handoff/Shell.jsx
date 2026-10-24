@@ -159,7 +159,7 @@ const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item-
  *
  * @param {object} props
  * @param {keyof typeof NAV} [props.variant] `light` is the same row on a light ground - a sheet, a phone's menu. `edited` marks a saved view whose filters have been changed since it was saved.
- * @param {string} [props.icon] An Icon name. It sits in a fixed slot, so every label starts on one line.
+ * @param {import('./Icon.jsx').IconName} [props.icon] An Icon name. It sits in a fixed slot, so every label starts on one line.
  * @param {number} [props.count] The records behind the row.
  * @param {'warning' | 'danger'} [props.countColor] A count that is a backlog.
  * @param {import('react').ReactNode} [props.sub] A second line - the account row's address.

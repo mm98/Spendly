@@ -10,7 +10,7 @@ import { reject } from './variants.js'
 
 /**
  * @param {object} props
- * @param {string} [props.icon] An Icon name, above the text.
+ * @param {import('./Icon.jsx').IconName} [props.icon] An Icon name, above the text.
  * @param {import('react').ReactNode} props.children What may be dropped here.
  * @param {string} [props.accept] Passed to the input.
  * @param {boolean} [props.multiple]
