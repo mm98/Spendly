@@ -59,3 +59,12 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## The design's React specimens pass a prop the combobox does not take
+
+- **Where:** `design/React components.dc.html`, the searchable combobox specimen.
+- **What the reader sees:** nothing; the chevron is drawn by the combobox itself either way.
+- **What was found:** the specimen passes `chevron`, which neither `design/react_handoff/Combobox.jsx`
+  nor `react/src/components/Combobox.jsx` takes, so it lands on the box as a stray attribute. The
+  story in `storybook/stories/Combobox.stories.jsx` leaves it out. A note for the next Claude Design brief.
+- **Found:** 2026-10-24.

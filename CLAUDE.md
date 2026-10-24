@@ -137,6 +137,16 @@ have to. Putting screens together from its patterns is the build's job:
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
   file found there is deleted in the same pull request that builds its answers.
 
+## Storybook
+
+### A component change updates its story in the same pull request
+
+`storybook/` draws every file in `react/src/components` with the real code. A change that adds a
+component, a variant, a prop or a state adds or changes its story, and is looked at there in light
+and dark, on Phone and Desktop, with the browser console open: the components report a wrong prop
+there and nowhere else. `npm run check` and `npm run build` in `storybook/` are among the checks run
+before a merge.
+
 ## Build for the general case
 
 A feature is built for every case its idea covers, not only for the case that asked for it. Name and

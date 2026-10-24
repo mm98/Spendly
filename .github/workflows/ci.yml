@@ -40,6 +40,7 @@ jobs:
           cache-dependency-path: |
             react/package-lock.json
             api/package-lock.json
+            storybook/package-lock.json
 
       # Every control that opens a new browsing context carries rel="noopener". Whole tree, not
       # the diff: one that lands without it is wrong every day after.
@@ -79,6 +80,25 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: react
         run: npm run icons:check
+
+      # Storybook draws the app's components, so a change to a component is checked against it here.
+      # It uses the app's packages installed above.
+      - name: Install Storybook
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm ci
+      - name: Audit Storybook's packages
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm audit --audit-level=high
+      - name: Every component has a story
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm run check
+      - name: Storybook builds
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm run build
 
       - name: Install the API
         if: ${{ !cancelled() }}
