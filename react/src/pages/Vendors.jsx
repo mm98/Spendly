@@ -6,7 +6,7 @@ import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
-import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
@@ -279,17 +279,17 @@ export default function Vendors() {
 			{bar}
 			{crumbs}
 			{body}
-			{deleting
+			<Leaving>{deleting
 				? (
 					<ConfirmDelete title={`Delete ${deleting.name}?`} action="Delete vendor" busy={busy}
 						onConfirm={remove} onCancel={() => setDeleting(null)}>
 						{deleteNote(deleting)}
 					</ConfirmDelete>
 				)
-				: null}
-			{merging
+				: null}</Leaving>
+			<Leaving>{merging
 				? <MergeDialog kind="vendor" source={merging.source} initial={merging.target} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
-				: null}
+				: null}</Leaving>
 		</>
 	)
 }

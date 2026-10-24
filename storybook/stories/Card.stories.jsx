@@ -44,7 +44,7 @@ export const WithFooter = {
 
 export const Head = {
 	args: { name: 'Drafts', meta: 'newest 3', aside: '', asideTone: 'default', dismissLabel: 'Hide the drafts', onDismiss: fn() },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: CardHeader },
+	parameters: { variantsOf: CardHeader },
 	render: ({ name, meta, aside, asideTone, dismissLabel, onDismiss }) => (
 		<Card>
 			<CardHeader name={name} meta={meta} aside={aside} asideTone={asideTone} onDismiss={onDismiss} dismissLabel={dismissLabel} />
@@ -58,8 +58,7 @@ export const Head = {
 }
 
 export const Heads = {
-	parameters: { a11y: knownAccessibilityFaults },
-	render: () => (
+		render: () => (
 		<Cards>
 			<Card><CardHeader name="Needs a look" /><span className="sp-data">2 categories over their limit</span></Card>
 			<Card><CardHeader name="Drafts" meta="newest 3" actions={[{ label: 'All 5', to: '/orders' }]} /><span className="sp-data">Indbo Møbler · 19/08</span></Card>
@@ -144,7 +143,7 @@ export const Wells = {
 export const ToolbarAndFooter = {
 	args: { variant: 'default', label: 'Recent orders' },
 	argTypes: { label: { control: 'text', description: 'The toolbar\'s words' } },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: Toolbar },
+	parameters: { variantsOf: Toolbar },
 	render: ({ variant, label }) => (
 		<Card variant="flush">
 			<Toolbar variant={variant}><span className="sp-section-label">{label}</span></Toolbar>

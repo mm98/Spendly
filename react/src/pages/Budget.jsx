@@ -18,9 +18,10 @@ import { Choice, Switch } from '../components/Choice.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useReorder } from '../components/Reorder.js'
+import { useRowMotion } from '../app/rowMotion.js'
 import { Icon } from '../components/Icon.jsx'
 import { AddRow, Empty, EmptyBody, EmptyTitle, Redacted, Skeleton } from '../components/Utilities.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
 import { parseNumber } from '../components/format.js'
 import { join } from '../components/variants.js'
 import { useShellShape } from '../app/useMedia.js'
@@ -512,10 +513,10 @@ function BudgetYears({ years, onYearsChanged }) {
 						</Empty>
 					</Card>
 				)}
-			{starting ? (
+			<Leaving>{starting ? (
 				<NewYear from={latest} onClose={() => setStarting(false)}
 					onStarted={next => { setStarting(false); onYearsChanged(); goYear(next) }} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -557,11 +558,11 @@ function YearView({ year, view, editing, covered, touch, onYearsChanged }) {
 				? <SheetView {...shared} />
 				: <MonthsView {...shared} onDelete={() => setDeleting(true)} />}
 			{editing ? <AccountsCard sheet={sheet} onChanged={loaded.refresh} /> : null}
-			{deleting ? (
+			<Leaving>{deleting ? (
 				<Confirm title={`Delete ${year}?`} commit={`Delete ${year}`} busy={busy}
 					body={`The ${year} budget, with its ${plural(rows, 'row')} and every amount in them.`}
 					onConfirm={removeYear} onCancel={() => setDeleting(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -929,10 +930,10 @@ function RowEditor({ sheet, line, group, index, write, onClose }) {
 					</Combobox>
 				</Field>
 			</LineEditor>
-			{asking ? (
+			<Leaving>{asking ? (
 				<Confirm title={`Delete ${line.name}?`} commit="Delete row" body={`${line.name}, with every amount in it.`}
 					onConfirm={remove} onCancel={() => setAsking(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -974,12 +975,12 @@ function GroupEditor({ sheet, group, kind = group?.kind, index = 0, count = 0, w
 					<TextField autoFocus value={name} onChange={v => { setName(v); setError('') }} />
 				</Field>
 			</LineEditor>
-			{asking ? (
+			<Leaving>{asking ? (
 				<Confirm title={`Delete ${group.name}?`} commit="Delete group"
 					body={rows ? `${group.name} and its ${plural(rows, 'row')}, with every amount in them.` : `${group.name}, which has no rows.`}
 					onConfirm={() => write(() => deleteBudgetGroup(group.id)).then(onClose, () => setAsking(false))}
 					onCancel={() => setAsking(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -1036,6 +1037,7 @@ function AccountsCard({ sheet, onChanged }) {
 		nameOf: account => account.name,
 		onMove: (next, account, to) => write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})
 	})
+	const motion = useRowMotion(reorder.items, account => account.id)
 
 	if (!list) return <AccountsLoading />
 	const year = sheet.year
@@ -1055,15 +1057,15 @@ function AccountsCard({ sheet, onChanged }) {
 			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
 			<div className="sp-stack sp-gap-8" {...reorder.list}>
 				<Announce>{reorder.said}</Announce>
-				{reorder.items.map((account, i) => (
+				{motion.items.map(account => (
 					<Fragment key={account.id}>
 						{reorder.lands(account) ? <Insertion /> : null}
 						{open === account.id
-							? <AccountEditor account={account} index={i} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
+							? <AccountEditor account={account} index={reorder.items.indexOf(account)} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
 							: (
 								<ListItem variant={reorder.variant(account)}
 									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}
-									{...reorder.row(account)}>
+									{...(motion.leaving(account) ? {} : reorder.row(account))} {...motion.row(account)}>
 									<span className="sp-stacked sp-grow bg-opens-account" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}
 										onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setOpen(account.id) } }}>
@@ -1127,12 +1129,12 @@ function AccountEditor({ account, index = 0, list, write, onMove, onClose }) {
 					</Choice>
 				</>
 			</LineEditor>
-			{asking ? (
+			<Leaving>{asking ? (
 				<Confirm title={`Delete ${account.name}?`} commit="Delete account"
 					body={account.rows ? `${account.name}. Counting all years, ${plural(account.rows, 'row')} will have no account.` : `${account.name}, which no row uses in any year.`}
 					onConfirm={() => write(() => deleteBudgetAccount(account.id)).then(onClose, () => setAsking(false))}
 					onCancel={() => setAsking(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }

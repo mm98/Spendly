@@ -116,7 +116,7 @@ const pickerStory = extra => ({
 })
 
 export const Colours = {
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: Picker },
+	parameters: { variantsOf: Picker },
 	...pickerStory({ swatches: SWATCHES }),
 	args: { 'aria-label': 'Colour', value: 'green-2', custom: true, customIcon: 'plus', onChange: fn() },
 	argTypes: { value: { control: 'select', options: SWATCHES } },

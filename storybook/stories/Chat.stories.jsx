@@ -134,7 +134,7 @@ export const Failed = {
 export const OneFile = {
 	args: { title: 'Make a spreadsheet of my orders at Bilka this year', kind: 'Excel', size: '18 KB', state: 'ready', href: '#', reason: 'too many orders for one file.', gone: 'expired', onDelete: fn() },
 	argTypes: { gone: { control: 'inline-radio', options: ['deleted', 'expired'], if: { arg: 'state', eq: 'gone' } }, reason: { if: { arg: 'state', eq: 'failed' } } },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: ChatFile, layout: 'padded' },
+	parameters: { variantsOf: ChatFile, layout: 'padded' },
 	render: ({ onSend, state, reason, gone, ...args }) => (
 		<div style={{ maxWidth: 640 }}>
 			<ChatFiles>
@@ -145,8 +145,7 @@ export const OneFile = {
 }
 
 export const Files = {
-	parameters: { a11y: knownAccessibilityFaults },
-	render: () => (
+		render: () => (
 		<div style={{ padding: 16, maxWidth: 640 }}>
 			<ChatFiles>
 				<ChatFile title="Make a spreadsheet of my orders at Bilka this year" kind="Excel" size="18 KB" href="#" />

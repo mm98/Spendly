@@ -3,7 +3,8 @@ import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
-import { TextField, TokensField } from '../components/Inputs.jsx'
+import { TextField } from '../components/Inputs.jsx'
+import { Combobox } from '../components/Combobox.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import { Check, Choice, Picker, Switch } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
@@ -12,7 +13,7 @@ import { VendorMark } from '../app/categoryMark.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Stacked } from '../components/Utilities.jsx'
-import { Alert, useToast } from '../components/Overlays.jsx'
+import { Alert, useToast, Leaving } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
@@ -320,7 +321,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 							</div>
 						)
 						: null}>
-					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
+					{h(<Combobox multiple value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
 				</Field>
 				<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
 					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
@@ -411,18 +412,18 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		<>
 			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Vendors' }} /> : null}
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
-			{guard.prompt}
-			{deleting
+			<Leaving>{guard.prompt}</Leaving>
+			<Leaving>{deleting
 				? (
 					<ConfirmDelete title={`Delete ${vendor.name}?`} action="Delete vendor" busy={busy}
 						onConfirm={remove} onCancel={() => setDeleting(false)}>
 						{deleteNote(vendor)}
 					</ConfirmDelete>
 				)
-				: null}
-			{merging
+				: null}</Leaving>
+			<Leaving>{merging
 				? <MergeDialog kind="vendor" source={vendor} initial={merging} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
-				: null}
+				: null}</Leaving>
 		</>
 	)
 }

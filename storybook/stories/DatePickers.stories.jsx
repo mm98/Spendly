@@ -86,7 +86,7 @@ const PRESETS = [{ value: 'week', label: 'Week' }, { value: 'month', label: 'Mon
 export const Period = {
 	args: { name: 'period', value: 'month' },
 	argTypes: { value: { control: 'inline-radio', options: PRESETS.map(p => p.value) } },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: PeriodPicker },
+	parameters: { variantsOf: PeriodPicker },
 	render: ({ onChange, ...args }) => {
 		const [period, setPeriod] = useHeld(args, 'value')
 		return <PeriodPicker {...args} presets={PRESETS} value={period} onChange={p => { setPeriod(p.period); onChange(p) }} />

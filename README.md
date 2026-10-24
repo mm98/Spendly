@@ -198,6 +198,9 @@ Everything that needs you, on one page.
   filters and choices, full-screen pictures, and touch-sized controls. Add Spendly to the home
   screen and it opens like an app.
 - **Every page remembers where you were**, scroll position included.
+- **Things move gently.** Menus, lists, calendars and dialogs open with a short slide and fade,
+  figures count to their new value, and content fades in where its placeholder stood. A device set
+  to reduce motion gets every change at once.
 
 ### Accounts and security
 
@@ -428,6 +431,9 @@ a control that does nothing.
   something fit. A look the components cannot express is a gap in the system, added to the
   system first.
 - Every variant is a named choice from a closed set. Colour is a separate choice from structure.
+- Motion has one pace, set by the motion tokens: opening is the slower half and eases into place,
+  closing is quicker. Nothing moves when the reader asks for reduced motion, and no part looks
+  different at rest because it can move.
 - A fade is one of a few named strengths, one for each meaning. A faded part is at full strength
   while a list or a menu inside it is open.
 - After Save, a field shows the saved value at once and never the old one, not even for a moment.

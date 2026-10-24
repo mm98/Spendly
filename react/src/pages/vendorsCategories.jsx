@@ -7,9 +7,9 @@ import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace } from '../compo
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { SearchInput, TokensField } from '../components/Inputs.jsx'
+import { SearchInput } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuLabel, MenuSeparator, Popover } from '../components/Overlays.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Leaving } from '../components/Overlays.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
 import { Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
@@ -59,7 +59,8 @@ export function RowMenu({ noun, label, open, onToggle, onClose, panel, children 
 		<Anchor ref={box} open={open || !!panel} onClick={ev => ev.stopPropagation()}>
 			<IconButton icon="dots-vertical" aria-label={`${noun} menu, ${label}`} aria-haspopup="menu"
 				aria-expanded={open || panel ? 'true' : 'false'} onClick={onToggle} />
-			{panel ? panel(box) : <Menu position="floating" aria-label={label}>{children}</Menu>}
+			<Leaving>{panel ? panel(box) : null}</Leaving>
+			{panel ? null : <Menu position="floating" aria-label={label}>{children}</Menu>}
 		</Anchor>
 	)
 }
@@ -359,7 +360,7 @@ export function MergeButton({ merge, size = 'standard', disabled = false, childr
 		<Anchor ref={box} open={merge.open && !touch}>
 			<Button variant="outline" size={size} fullWidth aria-haspopup="dialog" aria-expanded={merge.open ? 'true' : 'false'} disabled={disabled}
 				onClick={merge.onToggle}>{children}</Button>
-			{merge.open ? merge.picker(box) : null}
+			<Leaving>{merge.open ? merge.picker(box) : null}</Leaving>
 		</Anchor>
 	)
 }
@@ -549,7 +550,7 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 	const groups = groupPicks(matches, useRecent('category').filter(n => !value.some(v => same(v, n))), query, 'Other categories', { byName: true })
 	const exists = value.some(n => same(n, query)) || Boolean(exact)
 	return (
-		<TokensField value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
+		<Combobox multiple value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
 			{[
 				...pickGroups(groups, c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
 				<MoreMatches key="more" rows={offered.rows} matched={offered.matched} noun="categories" />,
@@ -557,7 +558,7 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 					? <ComboboxOption key="create" create mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>
 					: null
 			]}
-		</TokensField>
+		</Combobox>
 	)
 }
 

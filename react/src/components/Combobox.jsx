@@ -2,10 +2,12 @@ import { Children, Fragment, cloneElement, isValidElement, useContext, useEffect
 import { createPortal } from 'react-dom'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
+import { IconButton } from './Button.jsx'
+import { Chip } from './Chip.jsx'
 import { SearchInput } from './Inputs.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
-import { own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
+import { inMs, own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
 import { singular } from './format.js'
 
 const VARIANT = {
@@ -22,7 +24,7 @@ const VARIANT = {
 
 const DOTS = /** @type {const} */ (['draft', 'progress', 'done', 'returned', 'cancelled'])
 
-/** The list half of every combobox in the library - Combobox, and TokensField's suggestions: the
+/** The list half of every combobox in the library - Combobox, with one value or several: the
     options in order, the one the keyboard is on, and what picking one does. Internal. */
 export function useListbox(children, { panelId, onPick }) {
 	const [active, setActive] = useState(-1)
@@ -199,10 +201,19 @@ export function countOf(options, noun = 'options') {
 
 /** Picking an option applies it and closes the panel (c5), focus staying on the trigger. `prefix`
     is the word kept inside the trigger ahead of the value, as the sort control's Sort (c8). `noun`
-    names the options in the count a narrowed list reads out, plural ("vendors").
+    names the options in the count a narrowed list reads out, plural ("vendors"). `multiple` holds
+    several typed values as chips (22c): `marked` is one drawn in green (5h); `trails` maps a value to
+    a mark drawn before its remove, as an over-limit category's dot (8b); `end` is a button at the
+    field's right end, the chips keeping clear of it.
     @param {object} props
+    @param {boolean} [props.multiple] The field holds several values, drawn as chips. `value` is then the list of them.
     @param {keyof typeof VARIANT} [props.variant] `default`; `sort` is the small pick-only control above a list; `end` opens its panel from the right edge; `stretch` lets the trigger grow with its value.
-    @param {import('react').ReactNode} [props.value] What the closed control shows: the chosen value's name.
+    @param {import('react').ReactNode | string[]} [props.value] What the closed control shows: the chosen value's name. With `multiple`, the values.
+    @param {(value: string[]) => void} [props.onChange] With `multiple`: called with the values after one is added or removed.
+    @param {boolean} [props.danger] With `multiple`: the value is wrong, and the field is drawn in red.
+    @param {string} [props.marked] With `multiple`: one value drawn in green.
+    @param {Record<string, import('react').ReactNode>} [props.trails] With `multiple`: a part drawn before a value's remove button, by value, such as a warning dot.
+    @param {import('react').ReactNode} [props.end] With `multiple`: a button at the right end of the field.
     @param {import('react').ReactNode} [props.lead] A part before the value: a mark, a dot or a word.
     @param {string} [props.prefix] A word kept inside the control before the value, such as Sort.
     @param {boolean} [props.open] Whether the list is open. Leave it out to let the control keep its own state.
@@ -211,7 +222,7 @@ export function countOf(options, noun = 'options') {
     @param {boolean} [props.searchable] The reader can type to narrow the list. The control becomes a text field.
     @param {string} [props.search] The words typed to narrow the list. Leave it out to let the control keep them.
     @param {(text: string) => void} [props.onSearch] Called as the reader types.
-    @param {string} [props.placeholder] Searchable only. Shown when nothing is chosen.
+    @param {string} [props.placeholder] Searchable or `multiple` only. Shown when nothing is chosen.
     @param {string} [props.noun] What the options are, plural, for the count read out as typing narrows the list.
     @param {import('react').ReactNode} [props.children] The options, groups and separators.
     @param {string} [props.id]
@@ -223,7 +234,141 @@ export function countOf(options, noun = 'options') {
     @param {string} [props['aria-label']]
     @param {boolean | 'true' | 'false'} [props['aria-invalid']]
     @param {string} [props['aria-describedby']] */
-export function Combobox({
+export function Combobox({ multiple = false, ...props }) {
+	return multiple ? <ComboboxMany {...props} /> : <ComboboxOne {...props} />
+}
+
+/* Several values as chips, offering `children` (ComboboxOption) in a panel filtered by `onSearch` (22c). */
+function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
+	reject(rest, 'Combobox')
+	// what Field hands the control belongs on the input that takes focus, not on the box around it
+	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
+	const [typed, setTyped] = useState('')
+	const [open, setOpen] = useState(false)
+	const panelId = useId()
+	const suggests = children !== undefined
+	const type = text => {
+		setTyped(text)
+		listbox.setActive(-1)
+		onSearch?.(text)
+	}
+	const listbox = useListbox(children, { panelId, onPick: () => type('') })
+	const { options, active } = listbox
+	// a name can hold a comma ("Nabu Casa, Inc"), so only Enter or a new line ends a value
+	const addAll = texts => {
+		const next = [...new Set(texts.map(t => t.trim()).filter(t => t && !value.includes(t)))]
+		if (next.length) onChange?.([...value, ...next])
+		type('')
+	}
+	// a chip the reader adds grows in; one they remove is still drawn for --motion-out as it shrinks away
+	const [before, setBefore] = useState(value)
+	const [added, setAdded] = useState(() => new Set())
+	if (before !== value) {
+		const fresh = value.filter(t => !before.includes(t))
+		if (fresh.length) setAdded(was => new Set([...was, ...fresh]))
+		setBefore(value)
+	}
+	const [leaving, setLeaving] = useState([])
+	const remove = token => {
+		if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+			setLeaving(was => [...was, { token, at: value.indexOf(token) }])
+			const out = inMs('--motion-out', 0)
+			setTimeout(() => setLeaving(was => was.filter(l => l.token !== token)), out)
+		}
+		onChange?.(value.filter(t => t !== token))
+	}
+	const drawn = [...value]
+	for (const { token, at } of leaving) if (!value.includes(token)) drawn.splice(Math.min(at, drawn.length), 0, token)
+	const add = () => addAll([typed])
+	const shown = suggests && open && options.length > 0
+	const holder = useRef(null)
+	const input = useRef(null)
+	usePanelPlace(holder, listbox.panel, shown, options.length)
+	// a press anywhere in the box but on a token's remove types into it: the input is one line of it
+	const field = (
+		<span className="sp-tokens" onClick={ev => { if (!ev.target.closest('button, input')) { input.current?.focus(); setOpen(true) } }} {...box}>
+			{drawn.map(token => (
+				<Chip
+					key={token}
+					{...(token === marked ? { color: 'success' } : {})}
+					{...(!value.includes(token) ? { 'data-leaving': 'true', 'aria-hidden': 'true', inert: true } : added.has(token) ? { 'data-added': 'true' } : {})}
+					trail={<>
+						{trails?.[token]}
+						<IconButton
+							icon={<Icon name="x" size={9} />}
+							aria-label={`Remove ${token}`}
+							size="small"
+							onClick={() => remove(token)}
+						/>
+					</>}
+				>
+					{token}
+				</Chip>
+			))}
+			<input
+				ref={input}
+				id={id}
+				className="sp-tokens__add"
+				aria-label={label}
+				aria-describedby={describedBy}
+				required={required}
+				placeholder={placeholder}
+				value={typed}
+				{...(danger || invalid === true || invalid === 'true' ? { 'aria-invalid': 'true' } : {})}
+				{...(suggests
+					? {
+						role: 'combobox',
+						'aria-expanded': shown ? 'true' : 'false',
+						'aria-controls': panelId,
+						'aria-autocomplete': 'list',
+						'aria-activedescendant': shown ? listbox.activeId : undefined,
+						// a press opens it, focus alone does not: focus a page moves here must not cover the field
+						onClick: () => setOpen(true)
+					}
+					: {})}
+				onChange={ev => { type(ev.target.value); setOpen(true) }}
+				onKeyDown={ev => {
+					if (suggests && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
+						ev.preventDefault()
+						setOpen(true)
+						const by = ev.key === 'ArrowDown' ? 1 : -1
+						return listbox.step(by, active < 0 ? (by > 0 ? -1 : options.length) : active)
+					}
+					if (shown && (ev.key === 'Home' || ev.key === 'End') && active > -1) {
+						ev.preventDefault()
+						return ev.key === 'Home' ? listbox.step(1, -1) : listbox.step(-1, options.length)
+					}
+					if (ev.key === 'Enter' && shown && active > -1) { ev.preventDefault(); options[active].pick(); return }
+					if (ev.key === 'Escape' && shown) { ev.stopPropagation(); setOpen(false); return }
+					if (ev.key === 'Enter') { ev.preventDefault(); add() }
+					// backspace in an empty field removes the last value, which is what
+					// every token field does and what a reader will try first
+					if (ev.key === 'Backspace' && !typed && value.length) remove(value[value.length - 1])
+				}}
+				onPaste={ev => {
+					const lines = ev.clipboardData.getData('text').split(/\r?\n/)
+					if (lines.length < 2) return
+					ev.preventDefault()
+					addAll([typed + lines[0], ...lines.slice(1)])
+				}}
+				onBlur={() => { add(); setOpen(false) }}
+			/>
+		</span>
+	)
+	const boxed = end ? <span className="sp-field__wrap">{field}<span className="sp-field__trail">{end}</span></span> : field
+	if (!suggests) return boxed
+	return (
+		<div className="sp-combobox" data-open={shown ? 'true' : 'false'} ref={holder}>
+			{boxed}
+			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
+			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
+			<span className="sp-announce" aria-live="polite">{typed && open ? countOf(options, noun) : ''}</span>
+		</div>
+	)
+}
+
+
+function ComboboxOne({
 	variant = 'default',
 	value,
 	lead,
@@ -382,7 +527,11 @@ export function Combobox({
 							onBlur={() => { setTyped(null); setEditing(false) }}
 							onKeyDown={searchKeys}
 						/>
-						<span className="sp-field__chevron"><Icon name="chevron-down" size={14} /></span>
+						{/* the chevron opens and closes the list, as a native select's does; a press on it keeps
+						   the cursor in the field, and the field's own name and keys stay the way in for a keyboard */}
+						<span className="sp-field__chevron" aria-hidden="true"
+							onMouseDown={ev => { ev.preventDefault(); ev.currentTarget.parentElement.querySelector('input')?.focus() }}
+							onClick={toggle}><Icon name="chevron-down" size={14} /></span>
 						<span className="sp-announce" aria-live="polite">{query ? countOf(options, noun) : ''}</span>
 					</span>
 				)
@@ -447,7 +596,7 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
 	reject(rest, 'ComboboxOption')
 	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
 	return (
-		<li>
+		<li role="none">
 			<button
 				type="button"
 				className="sp-combobox__option"
@@ -475,13 +624,13 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
     @param {import('react').ReactNode} [props.children] The group's heading. */
 export function ComboboxGroup({ children, ...rest }) {
 	reject(rest, 'ComboboxGroup')
-	return <li className="sp-combobox__group" {...rest}>{children}</li>
+	return <li className="sp-combobox__group" role="presentation" {...rest}>{children}</li>
 }
 
 /** A rule between sets of options (c5). */
 export function ComboboxSeparator(props) {
 	reject(props, 'ComboboxSeparator')
-	return <li {...props}><hr /></li>
+	return <li role="none" {...props}><hr aria-hidden="true" /></li>
 }
 
 /** What the panel says when nothing matches.
@@ -489,5 +638,5 @@ export function ComboboxSeparator(props) {
     @param {import('react').ReactNode} [props.children] What to say when no option matches the typed words. */
 export function ComboboxEmpty({ children, ...rest }) {
 	reject(rest, 'ComboboxEmpty')
-	return <li className="sp-combobox__empty" {...rest}>{children}</li>
+	return <li className="sp-combobox__empty" role="presentation" {...rest}>{children}</li>
 }

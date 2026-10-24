@@ -7,6 +7,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { useReorder } from '../components/Reorder.js'
+import { useRowMotion } from '../app/rowMotion.js'
 import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
@@ -18,7 +19,7 @@ import { Sum } from '../components/Data.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { FILE_TYPES, PHOTO_TYPES, Slot, sniffedProblem } from '../components/FileDrop.jsx'
 import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
-import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, Toast, useToast } from '../components/Overlays.jsx'
+import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, Toast, useToast, Leaving } from '../components/Overlays.jsx'
 import { Empty, Spinner, useFocusTrap } from '../components/Utilities.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
@@ -223,6 +224,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			return [...moved, ...ls.filter(l => !moved.includes(l))]
 		})
 	})
+	const motion = useRowMotion(reorder.items, line => line.key)
 	const list = reorder.list.ref
 	const column = useRef(null)
 	const stacked = useStacked(column)
@@ -1013,14 +1015,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (touch && scan)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} opens
-					mark={<Include line={line} setLines={setLines} />}>
+					mark={<Include line={line} setLines={setLines} />} {...motion.row(line)}>
 					{words}
 				</ListItem>
 			)
 		if (touch && !reordering)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} mark={mark}
-					onClick={() => openLine(line)}>
+					onClick={() => openLine(line)} {...motion.row(line)}>
 					{text}
 				</ListItem>
 			)
@@ -1029,7 +1031,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			<ListItem
 				key={line.key}
 				data-line={line.key}
-				{...reorder.row(line)}
+				{...(motion.leaving(line) ? {} : reorder.row(line))}
+				{...motion.row(line)}
 				variant={reorder.variant(line)}
 				color={warn ? 'warning' : 'default'}
 				opens={!touch && !reordering}
@@ -1078,7 +1081,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			<div className="sp-stack sp-gap-8" {...reorder.list} onClick={touch && !scan ? undefined : rowClick}>
 				<Announce>{said}</Announce>
 				<Announce>{reorder.said}</Announce>
-				{reorder.items.map(line => (
+				{motion.items.map(line => (
 					<Fragment key={line.key}>
 						{reorder.lands(line) ? <Insertion /> : null}
 						{editing && !sheeted && editing.key === line.key ? editor : lineRow(line)}
@@ -1542,14 +1545,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}
+			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving>
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
 	const main = stacked
-		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}{sheet}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}</div>
+		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></div>
 		: <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}</div>
-	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}</Panel>
+	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}<Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></Panel>
 	if (!region) return <>{stacked ? null : createdNotice}{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }
@@ -1794,7 +1797,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 	return (
 		<LineEditor
 			onPaste={paste}
-			sheet={sheet}
+			sheet=<Leaving>{sheet}</Leaving>
 			hint={`Enter saves${dot}Escape cancels${dot}${MAC ? '⌘↵' : 'Ctrl ↵'} saves and opens the next line`}
 			commit={editing.isNew ? 'Add line' : 'Save line'}
 			photo={

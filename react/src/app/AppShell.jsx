@@ -8,7 +8,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { ScreenBarSlot } from './screenBar.jsx'
-import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
+import { Menu, MenuItem, Toaster, Leaving } from '../components/Overlays.jsx'
 import { getAsk, getBudgetDue, getCounts, getCurrentUser, getSettings, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
@@ -22,6 +22,7 @@ import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
 import { ShortcutSheet, useShortcutKeys } from './Shortcuts.jsx'
 import { pasteAnywhere } from '../components/FileDrop.jsx'
 import { useUpdateNotice } from './UpdateNotice.jsx'
+import { markLoaded } from './loaded.js'
 
 
 /* The route's handle names the page for the browser tab, the sidebar row it belongs to, the
@@ -54,6 +55,8 @@ export function AppShell() {
 	const fold = useFold(shape, visit)
 
 	useEffect(() => { document.title = title ? `${title} - Spendly` : 'Spendly' }, [title])
+
+	useEffect(() => markLoaded(document.body), [])
 
 	useRecentRecords()
 
@@ -197,8 +200,8 @@ export function AppShell() {
 					: null}
 			</Shell>
 			{touch ? null : overlay}
-			{keySheet}
-			{signedOut}
+			<Leaving>{keySheet}</Leaving>
+			<Leaving>{signedOut}</Leaving>
 			<SavedLater />
 		</Toaster>
 		</ScreenBarSlot.Provider>

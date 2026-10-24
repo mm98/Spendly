@@ -4,26 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## A row that opens and has a drag handle puts a button inside a button
-
-- **Where:** `react/src/components/ListItem.jsx` and `NavItem` in `react/src/components/Shell.jsx`, a
-  row that opens something (`opens`, or a click) and also has a `handle`.
-- **What the reader sees:** nothing yet: no page in the app gives a row both. In Storybook, choosing
-  a handle on the One row and One nav item stories logs "button cannot be a descendant of button",
-  so `handle` keeps no control on those two.
-- **Proposed shape:** Claude Design says whether a row that opens may have a handle, and how.
-- **Found:** 2026-10-24.
-
-## The Files Docs page in Storybook opens under the file viewer
-
-- **Where:** Storybook, Fields/Files, the Docs page (`storybook/stories/FileDrop.stories.jsx`, the
-  viewer story).
-- **What the reader sees:** the viewer story starts open, so on the Docs page its dark box covers the
-  props table and the other examples until it is closed.
-- **Proposed shape:** draw that story closed in the Docs page, or inline there, as other stories that
-  open over the page do.
-- **Found:** 2026-10-24.
-
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
@@ -80,32 +60,23 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## The design's React specimens pass a prop the combobox does not take
-
-- **Where:** `design/React components.dc.html`, the searchable combobox specimen.
-- **What the reader sees:** nothing; the chevron is drawn by the combobox itself either way.
-- **What was found:** the specimen passes `chevron`, which neither `design/react_handoff/Combobox.jsx`
-  nor `react/src/components/Combobox.jsx` takes, so it lands on the box as a stray attribute. The
-  story in `storybook/stories/Combobox.stories.jsx` leaves it out. A note for the next Claude Design brief.
-- **Found:** 2026-10-24.
-
 ## The Storybook's accessibility check finds faults in the components
 
 - **Where:** the stories marked `knownAccessibilityFaults` in `storybook/stories/`. Their test
   reports the faults and does not fail. The Accessibility panel in Storybook lists each one.
-- **What the reader sees:** grey small text is hard to read for someone with weak sight, and a
-  screen reader names some parts wrongly or not at all.
+- **What the reader sees:** some small grey text is hard to read on a tinted ground, and a screen
+  reader is told a few parts in a way it does not expect.
 - **What was found:**
-  - The grey text (`--ink-5`, #8b8a82 on white) has a contrast of 3.46:1. The standard asks for
-    4.5:1 for text this small. It is the meta lines, section labels, units, axis ticks and group
-    heads, and it fails in 37 stories. It is a token, so it is a question for `design/`.
-  - `Mark` puts `aria-label` on a `span` with no role, so the name is not read out
-    (`Mark.jsx`; the Fills, Gone, Empty states and Attachment strip stories).
-  - The combobox panel is a `listbox` whose children are `li` around `button role="option"`, and
-    its group heads are `li` too: a listbox may hold only options and groups (`Combobox.jsx`).
-  - The custom colour in `Picker` is a `label` with `aria-pressed`, which a label cannot carry
-    (`Choice.jsx`).
-  - The search palette is a dialog with no name (`Palette` in `Shell.jsx`).
-  - The account button's name does not contain the words drawn on it (`SidebarAccount` in
-    `Shell.jsx`, with the name the Shell story passes).
+  - Grey small text (`--ink-5`, #72716b) is under 4.5:1 on the tinted grounds: 4.06:1 on #eceae4,
+    4.32:1 on #f2f1eb, 4.3:1 on #eef1ee, 4.17:1 on #e7efe8 (Card wells, Chat, Choice, Field note,
+    List cards, DatePickers).
+  - `--ink-4` on the danger tint #f0e6e4 is 4.43:1, and the green #2f7a51 on #eceae4 is 4.33:1.
+  - A calendar's days outside the month (#c3c1b8) are 1.8:1 (DatePickers ranges).
+  - A NavItem drawn on the page's ground, not the sidebar's, has #7d9186 and #c3d2c8 text on
+    #eceae4 (Shell, One Nav Item).
+  - `Mark` with `role="img"` is not allowed on the element it is drawn as in the picture slot and
+    the attachment strip (FileDrop).
+  - The drop zone holds a control inside a control (FileDrop, Drop Zone).
+  - The account row's name is the name passed with `aria-label` ("Name, email"), which does not
+    begin with the words drawn on it (`AppShell` and the Shell stories).
 - **Found:** 2026-10-24.

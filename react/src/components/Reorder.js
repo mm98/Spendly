@@ -5,7 +5,7 @@ const HOLD_MS = 200
 const THRESHOLD = 4
 // a touch that travels this far before the hold is up is a scroll, not a pickup
 const SCROLLED = 8
-const SHIFT = 'translate 150ms ease'
+const SHIFT = 'translate var(--motion-in) var(--ease-enter)'
 
 const handleIn = target => target?.closest?.('.sp-list-item__handle')
 const still = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -240,7 +240,7 @@ export function useReorder({ items, keyOf, nameOf, onMove }) {
 
 	return {
 		items: live.map(k => byKey.get(k)),
-		list: { ref: list, onPointerDown: act.current.onPointerDown, onKeyDown: act.current.onKeyDown, onBlur: act.current.onBlur },
+		list: { ref: list, onPointerDown: act.current.onPointerDown, onKeyDown: act.current.onKeyDown, onBlur: act.current.onBlur, 'data-reordering': carried || held ? 'true' : undefined },
 		row: item => ({ 'data-reorder': String(keyOf(item)) }),
 		// carried by a pointer, or picked up from the keyboard; else the row's own
 		variant: (item, rest = 'default') => (carried === String(keyOf(item)) ? 'carried' : held?.key === String(keyOf(item)) ? 'picked' : rest),

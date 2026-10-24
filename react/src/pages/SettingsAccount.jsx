@@ -5,7 +5,7 @@ import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Halves } from '../components/Well.jsx'
@@ -204,7 +204,7 @@ export function AccountCard({ user, value, change, touch }) {
 				<span className="sp-grow" />
 				<Button variant="outline" size="small" onClick={() => setAsking(true)}>Change password</Button>
 			</CardFooter>
-			{asking ? <PasswordDialog onClose={() => setAsking(false)} onSaved={() => { setAsking(false); toast({ message: 'Your password is changed.' }) }} /> : null}
+			<Leaving>{asking ? <PasswordDialog onClose={() => setAsking(false)} onSaved={() => { setAsking(false); toast({ message: 'Your password is changed.' }) }} /> : null}</Leaving>
 		</Card>
 	)
 }

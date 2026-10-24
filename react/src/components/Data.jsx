@@ -1,8 +1,57 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
-import { Skeleton } from './Utilities.jsx'
+import { Skeleton, inMs } from './Utilities.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
+
+/* Counts a changed figure in its own digit slots, so separators and currency stay put and the last
+   frame is the formatted figure; the first value, a non-text figure and reduced motion show as is. */
+function useCounted(figure) {
+	const [shown, setShown] = useState(figure)
+	const last = useRef(figure)
+	useEffect(() => {
+		const from = digitsOf(last.current), to = digitsOf(figure)
+		last.current = figure
+		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+		if (from === null || to === null || from === to || still) { setShown(figure); return }
+		const ms = 2 * inMs('--motion-in', 180)
+		const start = performance.now()
+		let raf
+		const frame = now => {
+			const t = Math.min(1, (now - start) / ms)
+			const eased = 1 - (1 - t) ** 3
+			setShown(t < 1 ? intoSlots(String(figure), Math.round(from + (to - from) * eased)) : figure)
+			if (t < 1) raf = requestAnimationFrame(frame)
+		}
+		raf = requestAnimationFrame(frame)
+		return () => cancelAnimationFrame(raf)
+	}, [figure])
+	return shown
+}
+const digitsOf = v => {
+	if (typeof v !== 'string' && typeof v !== 'number') return null
+	const d = String(v).replace(/\D/g, '')
+	return d ? Number(d) : null
+}
+// writes n into the figure's digit slots from the right, dropping leading slots it does not need;
+// a figure ending in two decimals keeps them and the digit before them
+function intoSlots(figure, n) {
+	const run = figure.match(/\d[\d.,\s\u00a0]*\d|\d/)
+	if (!run) return figure
+	const chars = [...run[0]]
+	const decimals = /[.,]\d{2}$/.test(run[0]) ? 2 : 0
+	let digits = String(Math.abs(n)).padStart(decimals + 1, '0')
+	const out = []
+	for (let i = chars.length - 1; i >= 0; i--) {
+		if (/\d/.test(chars[i])) {
+			if (!digits.length) break
+			out.unshift(digits.at(-1))
+			digits = digits.slice(0, -1)
+		} else if (digits.length) out.unshift(chars[i])
+	}
+	if (digits.length) out.unshift(digits)
+	return figure.slice(0, run.index) + out.join('') + figure.slice(run.index + run[0].length)
+}
 
 /** `passed` is a limit already passed, one full fill in the over colour (5i); a list row splits
     it with `over`. `remainder` is the share of what is not listed, that colour at its width (4d).
@@ -371,10 +420,11 @@ const HELP_INK = { default: null, warning: 'warning', success: 'success', danger
     @param {boolean} [props.bare] No box of its own: the parts sit straight in the card or row that holds them. */
 export function Stat({ figure, large = false, color = 'default', label, delta, meta, help, helpColor = 'default', bare = false, ...rest }) {
 	reject(rest, 'Stat')
+	const counted = useCounted(figure)
 	const parts = (
 		<>
 			{label ? <span className={bare ? 'sp-meta' : 'sp-section-label'}>{label}</span> : null}
-			<span className={join('sp-stat__figure', large && 'sp-stat__figure--large', pick(STAT_INK, color, 'color', 'Stat'))}>{figure}</span>
+			<span className={join('sp-stat__figure', large && 'sp-stat__figure--large', pick(STAT_INK, color, 'color', 'Stat'))}>{counted}</span>
 			{delta ? <span className="sp-stat__delta">{delta}</span> : null}
 			{meta ? <span className="sp-meta">{meta}</span> : null}
 			{help
@@ -423,6 +473,7 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
     @param {import('react').ReactNode} [props.children] What the line is. */
 export function Sum({ variant = 'default', tone = 'default', named = false, edits = false, meta, value, children, ...rest }) {
 	reject(rest, 'Sum')
+	const counted = useCounted(value)
 	// a line typed into is a title stack, the row's own child: the touch rule cuts its name there (7a)
 	const name = edits || meta
 		? <span className="sp-stacked"><span className="sp-ink-2">{children}</span>{meta ? <span className="sp-meta">{meta}</span> : null}</span>
@@ -430,7 +481,7 @@ export function Sum({ variant = 'default', tone = 'default', named = false, edit
 	return (
 		<div className={join('sp-sum', pick(SUM, variant, 'variant', 'Sum'), edits && 'sp-sum--edits')} {...rest}>
 			{name}
-			<span className={join('sp-sum__value', pick(SUM_TONE, tone, 'tone', 'Sum'))}>{value}</span>
+			<span className={join('sp-sum__value', pick(SUM_TONE, tone, 'tone', 'Sum'))}>{counted}</span>
 		</div>
 	)
 }

@@ -7,7 +7,7 @@ import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
-import { useToast } from '../components/Overlays.jsx'
+import { useToast, Leaving } from '../components/Overlays.jsx'
 import { Skeleton } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
 import { useShellShape } from '../app/useMedia.js'
@@ -255,15 +255,15 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 		: null
 	const prompt = (
 		<>
-			{guard.prompt}
-			{confirming
+			<Leaving>{guard.prompt}</Leaving>
+			<Leaving>{confirming
 				? (
 					<ConfirmDelete title={`Delete ${bookmark.name}?`} action="Delete bookmark" busy={busy}
 						onConfirm={remove} onCancel={() => setConfirming(false)}>
 						{bookmarkDeleteNote(bookmark)}
 					</ConfirmDelete>
 				)
-				: null}
+				: null}</Leaving>
 		</>
 	)
 
@@ -272,7 +272,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 		<>
 			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Bookmarks' }} /> : null}
 				cards={form} rail={<>{summaryCard}{endOfLife}</>} alone={endOfLife} bar={bar} />
-			{prompt}
+			<Leaving>{prompt}</Leaving>
 		</>
 	)
 }

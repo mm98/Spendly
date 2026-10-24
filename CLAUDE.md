@@ -507,6 +507,12 @@ verification catches a drifted one. When a value moves, grep for it in prose too
 
 ## Reporting
 
+- **While work runs, the user gets a one-line status before and after every step, and at least
+  every 30 seconds.** Every check runs in the background with a time limit, never as one blocking
+  command over 60 seconds, so a status can go out while it runs. A check that ends the work quietly
+  still gets a line saying what was done. Silence reads as stuck.
+- **A correction the user has to give twice is written into this file in the same turn,** without
+  being asked. A promise in chat does not reach the next thread; this file does.
 - Never claim what was not run. "Tests pass" means executed; "fixed in Firefox" means Firefox
   rendered it. Mid-work, "not rendered yet" is a complete, honest status.
 - Lead with what was measured, then what changed. Numbers before adjectives.

@@ -5,6 +5,7 @@ import { Card, Cards } from '../../react/src/components/Card.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Menu, MenuItem, MenuSeparator } from '../../react/src/components/Overlays.jsx'
 import { Kbd } from '../../react/src/components/Utilities.jsx'
+import { Icon } from '../../react/src/components/Icon.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
 import { iconControl, knownAccessibilityFaults, useHeld } from './controls.js'
 
@@ -70,8 +71,8 @@ export const SidebarAndTopBar = {
 }
 
 export const OneNavItem = {
-	args: { children: 'All orders', icon: 'receipt', count: 18, current: false, variant: 'default', tip: 'All orders', onClick: fn() },
-	argTypes: { icon: iconControl },
+	args: { children: 'All orders', icon: 'receipt', count: 18, current: false, variant: 'default', tip: 'All orders', handle: 'none', handleLabel: 'Move All orders', onClick: fn() },
+	argTypes: { icon: iconControl, handle: { control: 'select', options: ['none', 'grip'], mapping: { none: undefined, grip: <Icon name="grip-vertical" size={12} /> } } },
 	parameters: { a11y: knownAccessibilityFaults, variantsOf: NavItem, layout: 'padded' },
 	render: args => <div style={{ width: 240 }}><NavItem {...args} /></div>
 }

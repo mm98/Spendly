@@ -459,8 +459,10 @@ for (const [p, ast] of parsed) {
 	for (const p of library) for (const m of read(p).matchAll(/^(\w+)\.fieldRole = 'group'/gm)) groups.add(m[1])
 	const isGroup = el => groups.has(tagOf(el)) || ['group', 'radiogroup'].includes(literal(attr(el, 'role')))
 	// the library's controls a reader types or picks in; the sets (Segmented, Picker) name their own parts
-	const CONTROLS = ['TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'TokensField', 'Combobox', 'Stepper', 'Check', 'Radio', 'Switch']
-	const VALUE_CONTROLS = ['input', 'select', 'textarea', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'TokensField', 'Stepper']
+	const CONTROLS = ['TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'Combobox', 'Stepper', 'Check', 'Radio', 'Switch']
+	const VALUE_CONTROLS = ['input', 'select', 'textarea', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'Stepper']
+	// a combobox of several values is typed into, so a label binds it as it binds a text field
+	const isValueControl = el => VALUE_CONTROLS.includes(tagOf(el)) || (tagOf(el) === 'Combobox' && !!attr(el, 'multiple'))
 	const ACRONYMS = ['PDF', 'CSV', 'DKK', 'VAT', 'CVR', 'XLS', 'JSON', 'ID', 'OK', 'EAN', 'MOMS']
 	const REFS = ['htmlFor', 'aria-labelledby', 'aria-describedby', 'aria-controls']
 
@@ -541,7 +543,7 @@ for (const [p, ast] of parsed) {
 					if (/^(Status|Kind)$/.test(words.trim()) && tagOf(outer(c)) !== 'Combobox')
 						fail('Status and Kind are selects', lineOf(c), `the ${words.trim()} field holds a <${tagOf(c)}>`)
 					// a Stepper is named by a text label only, and keeps aria-label under any other
-					const named = tagOf(outer(c)) === 'Combobox' || (tagOf(outer(c)) === 'Stepper' && label?.value?.type === 'Literal')
+					const named = (tagOf(outer(c)) === 'Combobox' && !attr(outer(c), 'multiple')) || (tagOf(outer(c)) === 'Stepper' && label?.value?.type === 'Literal')
 					if (named && (attr(outer(c), 'aria-label') || attr(c, 'aria-label')))
 						fail('one name per control', lineOf(c), `<Field label=${label ? text.slice(label.value.start, label.value.end) : ''}> holds a <${tagOf(c)}> with its own aria-label`)
 				}
@@ -597,7 +599,7 @@ for (const [p, ast] of parsed) {
 				if (by && attr(next, 'aria-label')) fail('one name per control', lineOf(next), `"${words}" group carries both aria-label and aria-labelledby`)
 				return
 			}
-			if (tagOf(outer(next)) === 'Combobox') {
+			if (tagOf(outer(next)) === 'Combobox' && !attr(outer(next), 'multiple')) {
 				// the trigger reads the label whose id is its own id and -label, when it has no aria-label
 				const trigger = attr(next, 'id') ? canon(attr(next, 'id').value, text) : null
 				if (!id) fail('a visible label is bound', lineOf(el), `"${words}" labels a pick list but carries no id`)
@@ -605,8 +607,8 @@ for (const [p, ast] of parsed) {
 				if (attr(next, 'aria-label')) fail('one name per control', lineOf(next), `"${words}" pick list carries its own aria-label too`)
 				return
 			}
-			let control = VALUE_CONTROLS.includes(tagOf(next)) || tagOf(outer(next)) !== tagOf(next) && VALUE_CONTROLS.includes(tagOf(outer(next)))
-			visit(next, k => { if (k.type === 'JSXElement' && VALUE_CONTROLS.includes(tagOf(k))) control = true })
+			let control = isValueControl(next) || tagOf(outer(next)) !== tagOf(next) && isValueControl(outer(next))
+			visit(next, k => { if (k.type === 'JSXElement' && isValueControl(k)) control = true })
 			if (control && tagOf(el) !== 'label') fail('a field label binds its control', lineOf(el), `"${words}" is a span, not a bound label`)
 		})
 	}
@@ -653,8 +655,7 @@ for (const [p, ast] of parsed) {
 		if (missing.length) fail('every component prop has JSDoc', rel(e.p), `${e.n} does not document ${missing.join(', ')}`)
 	}
 	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
-	// the design draws the card grid as a variant of .sp-list, and a token field that suggests inside .sp-combobox
-	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox' }
+	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options' }
 	const roots = {}
 	for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n)
 	for (const [cls, names] of Object.entries(roots))
@@ -801,9 +802,9 @@ const attrLiteral = (el, name) => {
 const childElements = el => el.children.filter(c => !(c.type === 'JSXText' && !c.value.trim()))
 const ownText = el => el.children.filter(c => c.type === 'JSXText').map(c => c.value).join('').trim()
 const isTag = n => n.type === 'JSXElement' && n.openingElement.name.type === 'JSXIdentifier'
-const CONTROL_PARTS = ['Button', 'IconButton', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'TokensField', 'RangeSlider', 'Field', 'FieldGroup',
+const CONTROL_PARTS = ['Button', 'IconButton', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'RangeSlider', 'Field', 'FieldGroup',
 	'Gauge', 'Segmented', 'Stepper', 'Switch', 'Check', 'Radio', 'Choice', 'Chip', 'Picker', 'Combobox', 'DateField', 'PeriodPicker', 'Bars', 'Donut', 'Plot',
-	'List', 'ListItem', 'Records', 'Shares', 'LineEditor', 'ThemeTiles', 'Well', 'Card', 'Cards', 'input', 'select', 'textarea', 'button']
+	'List', 'ListItem', 'Shares', 'LineEditor', 'ThemeTiles', 'Well', 'Card', 'Cards', 'input', 'select', 'textarea', 'button']
 const CONTROL_CLASS = /^sp-(tokens|input|select|textarea|field|gauge|segmented|stepper|switch|check|radio|btn|chip|options|option|tone|swatch|meter|bars|donut|table|list|lines|cards|note-row|choice|well|card|field__help|combobox|period)(?![\w-])/
 const holdsControl = el => {
 	let found = false

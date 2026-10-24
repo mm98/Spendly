@@ -6,7 +6,7 @@ import { Field } from '../components/Field.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Well } from '../components/Well.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { createMcpToken, failureMessage, getMcpTokens, removeMcpToken } from '../api/client.js'
 import { dayShortMonthYear, dot, isToday } from '../api/format.js'
@@ -95,8 +95,8 @@ export function AssistantsCard({ state, touch }) {
 					</div>
 				</Fragment>
 			))}
-			{removing ? <Remove token={removing} onDone={() => setRemoving(null)}
-				onRemoved={() => { setRemoving(null); if (made?.id === removing.id) setMade(null) }} /> : null}
+			<Leaving>{removing ? <Remove token={removing} onDone={() => setRemoving(null)}
+				onRemoved={() => { setRemoving(null); if (made?.id === removing.id) setMade(null) }} /> : null}</Leaving>
 		</Card>
 	)
 }

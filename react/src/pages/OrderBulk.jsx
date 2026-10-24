@@ -4,7 +4,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { Check, Choice, Radio, Switch } from '../components/Choice.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, SearchInput } from '../components/Inputs.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Popover, useToast } from '../components/Overlays.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Popover, useToast, Leaving } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
@@ -106,12 +106,12 @@ export function BulkActions({ chosen, all, count, request, filtered, touch, icon
 	return (
 		<Anchor ref={anchor} open={!!open && !touch}>
 			{actions}
-			{panel && touch ? <SheetOf label={open === 'status' ? 'Set status' : 'Add category'} onClose={close}>{panel}</SheetOf> : null}
-			{panel && !touch ? panel : null}
-			{deleting
+			<Leaving>{panel && touch ? <SheetOf label={open === 'status' ? 'Set status' : 'Add category'} onClose={close}>{panel}</SheetOf> : null}</Leaving>
+			<Leaving>{panel && !touch ? panel : null}</Leaving>
+			<Leaving>{deleting
 				? <DeleteOrders count={count} request={request} ids={ids} filtered={filtered} busy={busy} onCancel={() => setDeleting(false)}
 					onDelete={() => write({ delete: true }, null, 'Nothing was deleted. Try again.')} />
-				: null}
+				: null}</Leaving>
 		</Anchor>
 	)
 }

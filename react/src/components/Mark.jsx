@@ -96,9 +96,11 @@ export function Mark({
 	if (chosen) paint['data-ink'] = inkFor(chosen)
 	if (!derives && !rest['aria-label'])
 		console.error('<Mark> needs a name: a string child it derives from, or an aria-label')
+	// a name on a span or label is read only with a role, so a named mark is an image unless hidden
+	const hidden = rest['aria-hidden'] === true || rest['aria-hidden'] === 'true'
 	const named = derives && !rest['aria-label']
 		? { role: 'img', 'aria-label': children }
-		: {}
+		: rest['aria-label'] && !rest.role && !hidden && !onClick ? { role: 'img' } : {}
 	const body = (
 		<>
 			{shown}
