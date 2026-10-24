@@ -3,8 +3,10 @@ import { ICONS } from './icons.js'
 /* One glyph from the register, by name. Its colour is the control's own ink and its size the
    design's default, so a caller states neither unless the drawing asks for another size. */
 
+/** @typedef {keyof typeof ICONS} IconName */
+
 /** @param {object} props
-    @param {string} props.name a name in the icon register
+    @param {IconName} props.name
     @param {number} [props.size] */
 export function Icon({ name, size = 16 }) {
 	const paths = ICONS[name]

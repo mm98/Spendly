@@ -497,7 +497,7 @@ export function Facets({ children, ...rest }) {
     @param {string} props.name
     @param {() => void} [props.onRemove]
     @param {() => void} [props.onOpen]
-    @param {import('react').ReactNode} [props.children] */
+    @param {string | number} [props.children] text only */
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
 	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }

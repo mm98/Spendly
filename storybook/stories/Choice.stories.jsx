@@ -116,7 +116,7 @@ const pickerStory = extra => ({
 })
 
 export const Colours = {
-	parameters: { a11y: knownAccessibilityFaults },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Picker },
 	...pickerStory({ swatches: SWATCHES, customIcon: <Icon name="plus" /> }),
 	args: { 'aria-label': 'Colour', value: 'green-2', custom: true, onChange: fn() },
 	argTypes: { value: { control: 'select', options: SWATCHES } },
@@ -129,6 +129,7 @@ export const Colours = {
 }
 
 export const Icons = {
+	parameters: { variantsOf: Picker },
 	...pickerStory({ icons: GLYPHS.map(name => ({ name, icon: <Icon name={name} /> })) }),
 	args: { 'aria-label': 'Icon', value: 'armchair', onChange: fn() },
 	argTypes: { value: { control: 'select', options: GLYPHS } }

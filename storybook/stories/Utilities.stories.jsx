@@ -100,6 +100,7 @@ export const HiddenAmount = {
 }
 
 export const AddARow = {
+	parameters: { variantsOf: AddRow },
 	args: { children: 'Add a line', onClick: fn() },
 	argTypes: { children: text('What the row adds') },
 	render: args => <div style={{ maxWidth: 360 }}><AddRow {...args} /></div>,

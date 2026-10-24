@@ -1,15 +1,18 @@
-// Every story, drawn once with its own args and once more for each value of each control that offers
-// a list of values. Fails when a value crashes the story or makes it log an error, and when the story
-// hands the Docs code panel something it cannot write out.
+// Every story, drawn once with its own args, once more for each value of each control that offers a
+// list of values, and once with each text box of a prop it may leave out emptied. Fails when one
+// crashes the story or makes it log an error or a warning, and when the story hands the Docs code
+// panel something it cannot write out.
 
 import { act, isValidElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { composeStories, setProjectAnnotations } from '@storybook/react'
 import { includeConditionalArg } from 'storybook/internal/csf'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import * as argTypesFromTypes from '@storybook/react/entry-preview-argtypes'
 import preview from '../.storybook/preview.jsx'
 
-setProjectAnnotations(preview)
+// the controls Storybook builds from each component's types, then the project's own rules
+setProjectAnnotations([argTypesFromTypes, preview])
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
@@ -33,11 +36,13 @@ const writeOut = (Story, context) => {
 
 const logged = []
 const consoleError = console.error
+const consoleWarn = console.warn
 beforeEach(() => {
 	logged.length = 0
 	console.error = (...parts) => { logged.push(parts.map(String).join(' ')); consoleError(...parts) }
+	console.warn = (...parts) => { logged.push(parts.map(String).join(' ')); consoleWarn(...parts) }
 })
-afterEach(() => { console.error = consoleError })
+afterEach(() => { console.error = consoleError; console.warn = consoleWarn })
 
 // Storybook leaves out an arg whose argType's `if` does not hold; a story is drawn with the rest.
 const shown = (Story, args) => Object.fromEntries(Object.entries(args).map(([key, value]) =>
@@ -62,15 +67,21 @@ for (const [file, module] of Object.entries(files)) {
 	const stories = composeStories(module, { decorators: [writeOut] })
 	describe(file.replace('../stories/', ''), () => {
 		for (const [name, Story] of Object.entries(stories)) {
-			const choices = Object.entries(Story.argTypes ?? {}).filter(([, type]) => Array.isArray(type.options))
+			const choices = Object.entries(Story.argTypes ?? {}).flatMap(([prop, type]) =>
+				Array.isArray(type.options) ? [[prop, type.options]]
+					: type.control?.type === 'text' && !type.control.disable ? [[prop, ['']]]
+						: [])
 			test(name, async () => {
-				for (const [prop, type] of [[null, null], ...choices])
-					for (const value of prop ? type.options : [undefined]) {
+				for (const [prop, values] of [[null, [undefined]], ...choices])
+					for (const value of values) {
 						const args = prop ? shown(Story, { ...Story.args, [prop]: value }) : {}
 						logged.length = 0
 						const result = await draw(Story, args)
-						expect({ [prop ? `${prop}=${JSON.stringify(value)}` : 'as written']: result })
-							.toEqual({ [prop ? `${prop}=${JSON.stringify(value)}` : 'as written']: { thrown: [], logged: [], source: null } })
+						// an emptied text the component needs is its own "needs" message, which is right; a value
+						// outside a fixed set, a crash or a warning from React is not
+						if (value === '') result.logged = result.logged.filter(line => !line.startsWith('<') || line.includes('is not one of'))
+						const key = prop ? `${prop}=${JSON.stringify(value)}` : 'as written'
+						expect({ [key]: result }).toEqual({ [key]: { thrown: [], logged: [], source: null } })
 					}
 			})
 		}

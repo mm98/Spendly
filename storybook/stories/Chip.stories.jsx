@@ -23,7 +23,7 @@ export const Clickable = {
 		await expect(args.onClick).toHaveBeenCalledOnce()
 	}
 }
-export const Facet = { args: { variant: 'facet', children: 'Delivered', count: 12, defaultSelected: true, disabled: false, onSelect: fn() } }
+export const Facet = { args: { variant: 'facet', name: 'status', children: 'Delivered', count: 12, defaultSelected: true, disabled: false, onSelect: fn() } }
 
 export const Facets = {
 	args: { onSelect: fn() },
@@ -48,6 +48,7 @@ export const Facets = {
 }
 
 export const OnePill = {
+	parameters: { variantsOf: Pill },
 	args: { color: 'default', state: undefined, truncate: false, children: 'Approved' },
 	argTypes: { color: { control: 'inline-radio', options: ['default', 'success', 'danger'] }, state: { control: 'inline-radio', options: [undefined, 'progress'] } },
 	render: args => <Pill {...args} />

@@ -18,8 +18,8 @@ const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
  * @param {boolean} [props.fullWidth]
  * @param {string} [props.to] an address inside the app: the button is a link
  * @param {string} [props.href] an address outside the app
- * @param {string} [props.iconStart]
- * @param {string} [props.iconEnd]
+ * @param {import('./Icon.jsx').IconName} [props.iconStart]
+ * @param {import('./Icon.jsx').IconName} [props.iconEnd]
  * @param {import('react').ReactNode} [props.children]
  */
 export function Button({
@@ -61,7 +61,7 @@ const ICON_STYLE = { bare: null, outline: 'sp-icon-btn--outline', quiet: 'sp-ico
 const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field', xsmall: 'sp-icon-btn--xsmall' }
 
 /** @param {object} props
-    @param {string | import('react').ReactElement} props.icon a name in the icon register, or a drawn glyph
+    @param {import('./Icon.jsx').IconName | import('react').ReactElement} props.icon a drawn glyph, or its name
     @param {keyof typeof ICON_STYLE} [props.variant]
     @param {keyof typeof ICON_SIZE} [props.size]
     @param {boolean} [props.danger]

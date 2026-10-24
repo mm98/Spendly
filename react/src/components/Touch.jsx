@@ -13,7 +13,7 @@ export function TabBar({ children, ...rest }) {
 
 /** One destination in that bar: a link when it has a `to`, since a destination navigates.
     @param {object} props
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {boolean} [props.current]
     @param {string} [props.to]
     @param {() => void} [props.onClick]
@@ -103,7 +103,7 @@ export function SaveBar({ children, ...rest }) {
 /** The one floating action (7a): New order, above the tab bar. Its label is required, since
     a glyph names nothing.
     @param {object} props
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {string} [props.to]
     @param {() => void} [props.onClick] */
 export function Fab({ icon = 'plus', to, onClick, ...rest }) {

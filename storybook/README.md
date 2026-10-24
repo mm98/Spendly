@@ -42,6 +42,10 @@ desktop shell at Desktop, the phone shell and the phone date sheet at Phone.
 - **Controls** changes a story's props while you look. Each prop's kind comes from the type comment
   above its component (a number box, a switch, a text box, or a choice of the values the component
   accepts). A prop that holds drawn parts has no control, since there is nothing to type into it.
+  Controls and the props table show only what changes how the part looks. Plain HTML attributes
+  (`id`, `name`, `role`, `aria-*`, `data-*` and the like), handles on an element and handlers are
+  left out of both; a handler's calls still show in Actions. `name` stays where the part draws it
+  as text: the list is `DRAWN_NAME` in `.storybook/types.js`.
 - **Actions** logs every call a story's handlers get: a click, a change, a pick.
 - **Interactions** replays a story's `play` steps one by one, and shows where one failed.
 - **Accessibility** lists what [axe](https://github.com/dequelabs/axe-core) finds in the story.
@@ -55,7 +59,8 @@ Every story is a test, run in Chromium by Vitest. It fails when the story does n
 accessibility check finds a fault.
 
 `tests/every-choice.test.jsx` draws every story once more for each value of each control that offers
-a list of values, and fails when one crashes the story or makes it log an error. It also checks that
+a list of values, and once with each text box emptied. It fails when one crashes the story or makes
+it log an error or a warning. It also checks that
 the Docs code panel can write the story out: a story that draws something on the page's body uses
 `OverThePage` from `stories/controls.js`, never a bare `createPortal()`. A story marked `knownAccessibilityFaults` has faults that are
 written in `later.md`: they show as warnings and do not fail. Remove the mark when they are fixed.
@@ -71,7 +76,7 @@ there. A change in a picture is approved or turned down on chromatic.com. It nev
 | `.storybook/main.js` | Where the stories are, the add-ons, and how the app's React and files are reached. |
 | `.storybook/preview.jsx` | The app's styles, the theme and phone switches, a router for links, and the error check. |
 | `.storybook/variants.js` | The allowed values of each prop, read from the components. |
-| `.storybook/types.js` | The control for a prop that holds drawn parts, and for a prop with no type comment. |
+| `.storybook/types.js` | The control for a prop that holds drawn parts, a locale, or one allowed value, and for a prop with no type comment; which props are wiring and stay hidden. |
 | `tests/` | Tests over all the stories at once. |
 | `stories/*.stories.jsx` | The stories. Each file is named after the component file it shows. |
 | `stories/controls.js` | What stories share: a value held for a control, the icon picker, the faults mark. |
@@ -110,7 +115,7 @@ export const Two = {
 
 - **Name the component** in the default export, and the file's other parts in `subcomponents`, so
   the Docs page has their props. A story about one of those parts names it in
-  `parameters.variantsOf`, so its controls offer that part's values.
+  `parameters.variantsOf`, so its controls and props table are that part's, not the file's main one.
 - **Every prop the story shows is an arg**, so Controls can change it. Words are text args, not
   elements: the story puts them in place. A prop that takes an element gets `control: false`.
 - **Every handler is `fn()`**, so Actions logs it and a `play` step can check it.
@@ -119,7 +124,9 @@ export const Two = {
 - **A control that does something gets a `play` step** that uses it the way a reader would, and
   checks what happened.
 - **A new prop gets a type comment** in its component: `@param {number} [props.maxMb]`, and for a
-  fixed set `@param {keyof typeof VARIANT} [props.variant]`, so the set is the component's own.
+  fixed set `@param {keyof typeof VARIANT} [props.variant]`, so the set is the component's own. An
+  icon is `{import('./Icon.jsx').IconName}`. A prop the component reads without a fallback is
+  required: no brackets around its name.
 - **Never type a list of allowed values.** They come from the component. A prop whose values are
   not checked with `pick()` in the component gets its options in the story.
 - **Show the states that matter**: the resting form, each variant, disabled, an error, empty and

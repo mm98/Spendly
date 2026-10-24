@@ -160,7 +160,7 @@ const NAV = {
     moves the row, and `trail` takes the count's slot, so a row in edit mode keeps its height (2g).
     @param {object} props
     @param {keyof typeof NAV} [props.variant]
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {import('react').ReactNode} [props.mark]
     @param {import('react').ReactNode} [props.handle]
     @param {string} [props.handleLabel]
@@ -345,7 +345,7 @@ const PaletteScreen = createContext(false)
     @param {import('react').Ref<HTMLInputElement>} [props.inputRef]
     @param {string} [props.placeholder]
     @param {string} props.label
-    @param {import('react').ReactNode} [props.foot]
+    @param {string[]} [props.foot] the keys named at its foot
     @param {import('react').ReactNode} [props.children] */
 export function Palette({ screen = false, value, onChange, onCancel, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
 	reject(rest, 'Palette')
@@ -418,7 +418,7 @@ function marked(text, match) {
 /** One record or one action, led by `icon` or `thumb` (a picture's address, or true for the empty box).
     `match` is marked in the name; an amount (`value`), a `note` or `kbd` end it, and a phone drops them (7b).
     @param {object} props
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {string | boolean} [props.thumb]
     @param {boolean} [props.plain]
     @param {boolean} [props.action]

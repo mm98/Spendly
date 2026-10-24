@@ -41,3 +41,27 @@ export const variantArgTypes = ({ component, argTypes, parameters }) => {
 		}
 	return next
 }
+
+// A story about another component of the file takes that component's props as its controls, in
+// place of the file's own component's, which it does not draw.
+export const shownArgTypes = ({ component, argTypes, parameters, initialArgs = {} }) => {
+	const shown = parameters.variantsOf
+	const extract = parameters.docs?.extractArgTypes
+	if (!shown || shown === component || !extract) return argTypes
+	const own = extract(shown) ?? {}
+	const next = {}
+	for (const [prop, argType] of Object.entries(argTypes))
+		if (prop in own || prop in initialArgs || argType.control !== undefined) next[prop] = argType
+	for (const [prop, argType] of Object.entries(own)) {
+		const told = next[prop] ?? {}
+		next[prop] = {
+			...told,
+			...argType,
+			description: told.description || argType.description,
+			...(told.control !== undefined ? { control: told.control } : {}),
+			...(told.options ? { options: told.options } : {}),
+			...(told.if ? { if: told.if } : {})
+		}
+	}
+	return next
+}

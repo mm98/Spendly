@@ -149,7 +149,7 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
     @param {import('react').ReactNode} [props.kbd]
     @param {import('react').Ref<HTMLInputElement>} [props.inputRef]
     @param {string} [props.name]
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {boolean} [props.clear]
     @param {import('react').ReactNode} [props.ends] */
 export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, ...rest }) {

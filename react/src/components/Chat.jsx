@@ -196,7 +196,7 @@ export function ChatFiles({ children, ...rest }) {
     @param {string} [props.keptUntil]
     @param {string} [props.href]
     @param {string} [props.to]
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {import('react').ReactNode} [props.meta]
     @param {string} [props.chatTo]
     @param {() => void} [props.onDelete] */
@@ -283,7 +283,7 @@ export function ChatPick({ question, disabled = false, onChoose, onRemove, ...re
     @param {object} props
     @param {{ name: string, formats?: string[], example?: string, off?: string }[]} props.makes
     @param {boolean} [props.disabled]
-    @param {(question: string) => void} [props.onChoose] */
+    @param {(question: string) => void} props.onChoose */
 export function ChatHelp({ makes, disabled = false, onChoose, ...rest }) {
 	reject(rest, 'ChatHelp')
 	return (
@@ -318,8 +318,8 @@ export function ChatLimit({ left }) {
     while `working`, then `end`. `bar` pins it above a phone's tab bar.
     @param {object} props
     @param {boolean} [props.bar]
-    @param {string} [props.value]
-    @param {(value: string) => void} [props.onChange]
+    @param {string} props.value
+    @param {(value: string) => void} props.onChange
     @param {() => void} [props.onSend]
     @param {() => void} [props.onStop]
     @param {() => void} [props.onHelp]
