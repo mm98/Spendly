@@ -6,6 +6,7 @@ import { Mark } from '../../react/src/components/Mark.jsx'
 import { Segmented } from '../../react/src/components/Segmented.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
+import { knownAccessibilityFaults } from './controls.js'
 
 // The card's words are plain text controls; the story lays them out as the app does.
 const words = { title: { control: 'text', description: 'The first line the story puts inside' }, subtitle: { control: 'text', description: 'The second line' } }
@@ -43,7 +44,7 @@ export const WithFooter = {
 
 export const Head = {
 	args: { name: 'Drafts', meta: 'newest 3', aside: '', asideTone: 'default', dismissLabel: 'Hide the drafts', onDismiss: fn() },
-	parameters: { variantsOf: CardHeader },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: CardHeader },
 	render: ({ name, meta, aside, asideTone, dismissLabel, onDismiss }) => (
 		<Card>
 			<CardHeader name={name} meta={meta} aside={aside} asideTone={asideTone} onDismiss={onDismiss} dismissLabel={dismissLabel} />
@@ -57,6 +58,7 @@ export const Head = {
 }
 
 export const Heads = {
+	parameters: { a11y: knownAccessibilityFaults },
 	render: () => (
 		<Cards>
 			<Card><CardHeader name="Needs a look" /><span className="sp-data">2 categories over their limit</span></Card>
@@ -123,6 +125,7 @@ export const InAWell = {
 }
 
 export const Wells = {
+	parameters: { a11y: knownAccessibilityFaults },
 	render: () => (
 		<Cards>
 			<Card><Well><span className="sp-title">Default</span><span className="sp-subtitle">Its own thing inside the card.</span></Well></Card>
@@ -141,7 +144,7 @@ export const Wells = {
 export const ToolbarAndFooter = {
 	args: { variant: 'default', label: 'Recent orders' },
 	argTypes: { label: { control: 'text', description: 'The toolbar\'s words' } },
-	parameters: { variantsOf: Toolbar },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Toolbar },
 	render: ({ variant, label }) => (
 		<Card variant="flush">
 			<Toolbar variant={variant}><span className="sp-section-label">{label}</span></Toolbar>

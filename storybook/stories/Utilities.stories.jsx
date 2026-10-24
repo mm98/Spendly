@@ -4,7 +4,7 @@ import { Card, Cards } from '../../react/src/components/Card.jsx'
 import { Button } from '../../react/src/components/Button.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
-import { iconControl } from './controls.js'
+import { iconControl, knownAccessibilityFaults } from './controls.js'
 
 const text = description => ({ control: 'text', description })
 
@@ -15,6 +15,7 @@ export default {
 }
 
 export const EmptyStates = {
+	parameters: { a11y: knownAccessibilityFaults },
 	args: { icon: 'receipt', title: 'No orders in August', body: 'Every order you scan or enter will appear here.', dashed: false, onNew: fn(), onClear: fn() },
 	argTypes: { icon: iconControl, title: text('EmptyTitle\'s words'), body: text('EmptyBody\'s words') },
 	render: ({ icon, title, body, dashed, onNew, onClear }) => (

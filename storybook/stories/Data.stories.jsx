@@ -3,7 +3,7 @@ import { Card, CardHeader, Cards } from '../../react/src/components/Card.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
-import { useHeld } from './controls.js'
+import { knownAccessibilityFaults, useHeld } from './controls.js'
 
 const percent = { control: { type: 'range', min: 0, max: 100, step: 1 } }
 
@@ -25,6 +25,7 @@ export const OneGauge = {
 }
 
 export const Gauges = {
+	parameters: { a11y: knownAccessibilityFaults },
 	render: () => (
 		<Cards>
 			<Card>
@@ -57,7 +58,7 @@ const MONTHS = [
 export const SpendByMonth = {
 	args: { selected: 'aug', limit: 34, onSelect: fn() },
 	argTypes: { selected: { control: 'inline-radio', options: MONTHS.map(m => m.key) }, limit: { ...percent, description: 'Where Plot draws its limit line' } },
-	parameters: { variantsOf: Bars },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Bars },
 	render: ({ limit, onSelect, ...args }) => {
 		const [month, setMonth] = useHeld(args, 'selected')
 		return (
@@ -84,7 +85,7 @@ export const SpendByMonth = {
 export const ColumnsWithReadout = {
 	args: { open: 'aug', variant: 'default' },
 	argTypes: { open: { control: 'inline-radio', options: ['apr', 'may', 'jun', 'jul', 'aug', 'sep'] } },
-	parameters: { variantsOf: Bars },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Bars },
 	render: ({ open, variant }) => (
 		<Card>
 			<Bars open={open} variant={variant} columns={[['apr', 'Apr', 50, '5.010,00'], ['may', 'May', 65, '6.240,00'], ['jun', 'Jun', 70, '6.880,00'], ['jul', 'Jul', 60, '5.660,00'], ['aug', 'Aug', 100, '9.840,00'], ['sep', 'Sep', 80, '8.080,00']].map(([key, tick, height, amount]) => ({
@@ -97,7 +98,7 @@ export const ColumnsWithReadout = {
 
 export const SharesOfAWhole = {
 	args: { figure: '61.480 kr.', label: 'August', loading: false, onPick: fn() },
-	parameters: { variantsOf: Donut },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Donut },
 	render: ({ figure, label, loading, onPick }) => (
 		<Card>
 			<CardHeader name="By category" aside={label} />

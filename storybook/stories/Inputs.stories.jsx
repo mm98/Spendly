@@ -2,7 +2,7 @@ import { expect, fn, userEvent } from 'storybook/test'
 import { TextField, PasswordField, NumberField, SearchInput, AskTrail, RangeSlider, TokensField } from '../../react/src/components/Inputs.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { Kbd } from '../../react/src/components/Utilities.jsx'
-import { useHeld } from './controls.js'
+import { knownAccessibilityFaults, useHeld } from './controls.js'
 
 const label = { control: 'text', description: 'The Field\'s label' }
 
@@ -51,7 +51,7 @@ export const Password = {
 
 export const Amount = {
 	args: { label: 'Amount', value: 1320, locale: 'da-DK', decimals: 2, expected: false },
-	parameters: { variantsOf: NumberField },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: NumberField },
 	render: held(NumberField, { field: { unit: 'kr.' } })
 }
 

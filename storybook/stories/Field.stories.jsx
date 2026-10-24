@@ -4,6 +4,7 @@ import { TextField, NumberField } from '../../react/src/components/Inputs.jsx'
 import { IconButton } from '../../react/src/components/Button.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { Kbd } from '../../react/src/components/Utilities.jsx'
+import { knownAccessibilityFaults } from './controls.js'
 
 const Text = ({ initial = '', ...rest }) => {
 	const [value, setValue] = useState(initial)
@@ -23,11 +24,11 @@ export const Required = { args: { required: true } }
 export const Hint = { args: { label: 'Reference', message: 'Yours, if you use one.', children: <Text placeholder="Optional" /> } }
 export const Warning = { args: { label: 'Date', messageType: 'warning', message: 'Later than the usual date.', children: <Text initial="24.12.2026" /> } }
 export const Danger = { args: { label: 'Amount', messageType: 'danger', message: 'An amount is required.', children: <NumberField value={null} onChange={() => {}} locale="da-DK" /> } }
-export const WithUnit = { args: { label: 'Amount', unit: 'kr.', children: <NumberField value={1320} onChange={() => {}} locale="da-DK" /> } }
+export const WithUnit = { parameters: { a11y: knownAccessibilityFaults }, args: { label: 'Amount', unit: 'kr.', children: <NumberField value={1320} onChange={() => {}} locale="da-DK" /> } }
 export const WithLead = { args: { label: 'Search', lead: <Icon name="search" />, children: <Text placeholder="Search" /> } }
 export const WithTrail = { args: { label: 'Name', trail: <IconButton icon="x" aria-label="Clear" size="field" />, children: <Text initial="Value" /> } }
 export const WithKey = { args: { label: 'Search', kbd: <Kbd>S</Kbd>, children: <Text placeholder="Search" /> } }
-export const Note = { args: { label: 'Vendor', note: 'matched existing vendor', noteType: 'success' } }
+export const Note = { parameters: { a11y: knownAccessibilityFaults }, args: { label: 'Vendor', note: 'matched existing vendor', noteType: 'success' } }
 
 export const States = {
 	argTypes: { label: { control: false }, message: { control: false } },

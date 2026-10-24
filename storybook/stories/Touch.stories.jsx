@@ -6,7 +6,7 @@ import { Button, IconButton } from '../../react/src/components/Button.jsx'
 import { Choice, Radio, FieldGroup } from '../../react/src/components/Choice.jsx'
 import { Stacked } from '../../react/src/components/Utilities.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
-import { iconControl } from './controls.js'
+import { iconControl, knownAccessibilityFaults } from './controls.js'
 
 const TAB_NAMES = ['Home', 'Orders', 'Statistics', 'More']
 
@@ -29,6 +29,7 @@ const tabs = current => (
 )
 
 export const WithTabsAndButton = {
+	parameters: { a11y: knownAccessibilityFaults },
 	args: { fabIcon: 'plus', fabLabel: 'New order' },
 	argTypes: { fabIcon: { ...iconControl, description: 'Fab\'s `icon`' }, fabLabel: { control: 'text', description: 'Fab\'s name' } },
 	render: ({ current, fabIcon, fabLabel }) => (

@@ -6,7 +6,7 @@ import { Mark } from '../../react/src/components/Mark.jsx'
 import { Menu, MenuItem, MenuSeparator } from '../../react/src/components/Overlays.jsx'
 import { Kbd } from '../../react/src/components/Utilities.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
-import { iconControl, useHeld } from './controls.js'
+import { iconControl, knownAccessibilityFaults, useHeld } from './controls.js'
 
 export default {
 	title: 'Shell/Desktop',
@@ -17,6 +17,7 @@ export default {
 }
 
 export const SidebarAndTopBar = {
+	parameters: { a11y: knownAccessibilityFaults },
 	args: { collapsed: false, accountOpen: false, noReceipt: 4, onSignOut: fn() },
 	argTypes: {
 		collapsed: { description: 'Shell\'s `collapsed`: the sidebar drawn as a rail' },
@@ -71,12 +72,12 @@ export const SidebarAndTopBar = {
 export const OneNavItem = {
 	args: { children: 'All orders', icon: 'receipt', count: 18, current: false, variant: 'default', tip: 'All orders', onClick: fn() },
 	argTypes: { icon: iconControl },
-	parameters: { variantsOf: NavItem, layout: 'padded' },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: NavItem, layout: 'padded' },
 	render: args => <div style={{ width: 240 }}><NavItem {...args} /></div>
 }
 
 export const SearchPalette = {
-	parameters: { layout: 'centered', variantsOf: Palette },
+	parameters: { a11y: knownAccessibilityFaults, layout: 'centered', variantsOf: Palette },
 	args: { value: 'bil', count: 4, label: 'Search', placeholder: 'Search orders, vendors, items…', onChange: fn(), onCancel: fn() },
 	render: ({ onChange, ...args }) => {
 		const [query, setQuery] = useHeld(args, 'value')

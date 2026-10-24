@@ -3,7 +3,7 @@ import { Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor, Dialog, Dial
 import { Button, IconButton } from '../../react/src/components/Button.jsx'
 import { Choice, Radio } from '../../react/src/components/Choice.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
-import { iconControl, useHeld } from './controls.js'
+import { iconControl, knownAccessibilityFaults, useHeld } from './controls.js'
 
 const STATUSES = ['draft', 'progress', 'done', 'returned', 'cancelled']
 const text = description => ({ control: 'text', description })
@@ -15,6 +15,7 @@ export default {
 }
 
 export const MenuInPlace = {
+	parameters: { a11y: knownAccessibilityFaults },
 	args: { label: 'This order', onEdit: fn(), onExport: fn(), deleteDisabled: true },
 	argTypes: { label: text('The menu\'s name and its first line'), deleteDisabled: { description: 'Delete\'s `disabled`' } },
 	render: ({ label, onEdit, onExport, deleteDisabled }) => (

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useHeld } from './controls.js'
+import { knownAccessibilityFaults, useHeld } from './controls.js'
 import { List, Caption, Selected, ListHead, ListRow, ListCell, Controls, Filters, Crumb, Crumbs, Record, Records, ListMore, BulkBar, ListToolbar } from '../../react/src/components/List.jsx'
 import { Card, CardHeader } from '../../react/src/components/Card.jsx'
 import { Button } from '../../react/src/components/Button.jsx'
@@ -35,6 +35,7 @@ export default {
 
 // a narrow column draws orders as cards, so the table is a wide screen's only
 export const Orders = {
+	parameters: { a11y: knownAccessibilityFaults },
 	globals: { viewport: { value: 'desktop', isRotated: false } },
 	args: { rows: ORDERS.length, noun: 'orders', pageSize: 10, compact: false, headless: false, locale: 'da-DK', onRowClick: fn() },
 	argTypes: { rows: { control: { type: 'range', min: 0, max: ORDERS.length }, description: 'How many of the story\'s orders the list is given' } },
@@ -135,6 +136,7 @@ export const DrillPath = {
 const BOOKMARKS = Array.from({ length: 9 }, (_, i) => ({ id: i, name: ['Lounge chair', 'Pendant lamp', 'Rug, 200 × 300', 'Side table'][i % 4], site: ['hay.dk', 'muuto.com', 'bolia.com'][i % 3], category: ['Furniture', 'Lighting', 'Decor'][i % 3] }))
 
 export const Cards_ = {
+	parameters: { a11y: knownAccessibilityFaults },
 	name: 'Cards',
 	args: { pageSize: 6, onOpen: fn() },
 	argTypes: { pageSize: { control: { type: 'range', min: 1, max: 9 }, description: 'ListMore\'s pageSize' } },

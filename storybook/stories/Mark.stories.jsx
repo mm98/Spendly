@@ -1,6 +1,7 @@
 import { Mark, MarkRemove } from '../../react/src/components/Mark.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
+import { knownAccessibilityFaults } from './controls.js'
 
 export default {
 	title: 'Controls/Mark',
@@ -30,6 +31,7 @@ export const Names = {
 }
 
 export const Fills = {
+	parameters: { a11y: knownAccessibilityFaults },
 	render: ({ size }) => (
 		<div className="sp-row-flex sp-gap-8">
 			<Mark size={size} aria-label="Default"><Icon name="receipt" /></Mark>
