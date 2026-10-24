@@ -1,7 +1,10 @@
-// The kind of each prop, for the Controls panel and the Docs table. The components declare no types,
-// so Storybook knows a prop's default but not its kind, and offers "Set object" for all of them.
-// The kind is read from the default the component gives the prop, else from the value the story
-// gives it: a number box, a switch or a text box.
+// The control for each prop, from the type comment the component gives it. Two cases the reader
+// leaves as "Set object" are settled here:
+// - content (text or other parts drawn inside): a text box when the story gives it words, else no
+//   control, since a part is not typed into a box;
+// - a prop with no type comment: its kind is read from its default, else from the story's value.
+
+const CONTENT = /\bReact(Node|Element)\b/
 
 const kindOfDefault = summary => {
 	if (summary === 'true' || summary === 'false') return 'boolean'
@@ -14,14 +17,17 @@ const kindOfValue = value => ['boolean', 'number', 'string'].includes(typeof val
 
 const CONTROLS = { boolean: 'boolean', number: 'number', string: 'text' }
 
+const untyped = argType => !argType.type?.name || (argType.type.name === 'other' && argType.type.value === 'any')
+
 export const typeArgTypes = ({ argTypes, initialArgs = {} }) => {
 	const next = { ...argTypes }
 	for (const [prop, argType] of Object.entries(argTypes)) {
-		if (argType.options) {
-			next[prop] = { ...argType, table: { ...argType.table, type: { summary: argType.options.map(value => `'${value}'`).join(' | ') } } }
+		if (argType.options || argType.control !== undefined) continue
+		if (CONTENT.test(argType.table?.type?.summary ?? '')) {
+			next[prop] = { ...argType, control: typeof initialArgs[prop] === 'string' ? { type: 'text' } : false }
 			continue
 		}
-		if (argType.type?.name || argType.control !== undefined) continue
+		if (!untyped(argType)) continue
 		const kind = kindOfDefault(argType.table?.defaultValue?.summary) ?? kindOfValue(initialArgs[prop])
 		if (!kind) continue
 		next[prop] = {

@@ -20,6 +20,17 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger' }
 
 const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__footer--stack' }
 
+/** @param {object} props
+    @param {keyof typeof VARIANT} [props.variant]
+    @param {keyof typeof COLOR} [props.color]
+    @param {boolean} [props.spread]
+    @param {string} [props.to]
+    @param {import('react').ReactNode[]} [props.footer] the commits, one button each
+    @param {keyof typeof FOOTER} [props.footerLayout]
+    @param {boolean} [props.footerCommits]
+    @param {import('react').ReactNode} [props.after]
+    @param {import('react').ReactNode} [props.chevron]
+    @param {import('react').ReactNode} [props.children] */
 export function Card({
 	variant = 'default',
 	color = 'default',
@@ -75,7 +86,17 @@ const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink
 
 /** A card's head (c10): one slot per view, drawn in a fixed order, so it cannot be assembled by hand.
     Only a child of Card; `actions` are at most two `{ label, to, href, onClick, held }`;
-    a `held` action is hidden but keeps its place, so the head does not change height. */
+    a `held` action is hidden but keeps its place, so the head does not change height.
+    @param {object} props
+    @param {import('react').ReactNode} props.name
+    @param {import('react').ReactNode} [props.meta]
+    @param {import('react').ReactNode} [props.aside]
+    @param {keyof typeof ASIDE} [props.asideTone]
+    @param {import('react').ReactNode} [props.control]
+    @param {import('react').ReactNode} [props.status]
+    @param {{ label: string, to?: string, href?: string, onClick?: () => void, held?: boolean }[]} [props.actions]
+    @param {() => void} [props.onDismiss]
+    @param {string} [props.dismissLabel] */
 export function CardHeader({
 	name,
 	meta,
@@ -114,20 +135,27 @@ export function CardHeader({
 }
 
 /** The grid cards sit in. `fluid` fills the available width instead of holding a
-    column count, for a set whose length the page does not know. */
+    column count, for a set whose length the page does not know.
+    @param {object} props
+    @param {boolean} [props.fluid]
+    @param {import('react').ReactNode} [props.children] */
 export function Cards({ fluid = false, children, ...rest }) {
 	reject(rest, 'Cards')
 	return <div className={join('sp-cards', fluid && 'sp-cards--fluid')} {...rest}>{children}</div>
 }
 
 /** A footer row of figures inside the card's body, under its rule, where more follows it: the
-    Top vendors card's total (Order statistics). Actions go in Card's `footer`. */
+    Top vendors card's total (Order statistics). Actions go in Card's `footer`.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function CardFooter({ children, ...rest }) {
 	reject(rest, 'CardFooter')
 	return <div className="sp-card__footer" {...rest}>{children}</div>
 }
 
-/** A part of a flush card that needs the padding back. */
+/** A part of a flush card that needs the padding back.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function CardBody({ children, ...rest }) {
 	reject(rest, 'CardBody')
 	return <div className="sp-card__body" {...rest}>{children}</div>
@@ -135,7 +163,13 @@ export function CardBody({ children, ...rest }) {
 
 const TOOLBAR = { default: null, loose: 'sp-list__toolbar--loose', link: 'sp-list__toolbar--link', toggle: 'sp-list__toolbar--toggle' }
 
-/** A card's header row. `chevron` ends a link or toggle header (c10): it turns as the card folds. */
+/** A card's header row. `chevron` ends a link or toggle header (c10): it turns as the card folds.
+    @param {object} props
+    @param {keyof typeof TOOLBAR} [props.variant]
+    @param {boolean} [props.expanded]
+    @param {() => void} [props.onClick]
+    @param {import('react').ReactNode} [props.chevron]
+    @param {import('react').ReactNode} [props.children] */
 export function Toolbar({ variant = 'default', expanded, onClick, chevron, children, ...rest }) {
 	reject(rest, 'Toolbar')
 	const classes = join('sp-list__toolbar', pick(TOOLBAR, variant, 'variant', 'Toolbar'))
@@ -151,14 +185,20 @@ export function Toolbar({ variant = 'default', expanded, onClick, chevron, child
 }
 
 /** The foot of a card's own set of things. A List builds its own. `loose` takes the
-    grid's width, where there is no list border to sit inside. */
+    grid's width, where there is no list border to sit inside.
+    @param {object} props
+    @param {boolean} [props.loose]
+    @param {import('react').ReactNode} [props.children] */
 export function ListFooter({ loose = false, children, ...rest }) {
 	reject(rest, 'ListFooter')
 	return <div className={join('sp-list__footer', loose && 'sp-list__footer--loose')} {...rest}>{children}</div>
 }
 
 /** The rail beside a record's form (c21): its cards in a column, held in view while the form
-    scrolls. `wide` is the 400 rail. */
+    scrolls. `wide` is the 400 rail.
+    @param {object} props
+    @param {boolean} [props.wide]
+    @param {import('react').ReactNode} [props.children] */
 export function Panel({ wide = false, children, ...rest }) {
 	reject(rest, 'Panel')
 	return <div className={join('sp-panel', wide && 'sp-panel--wide')} {...rest}>{children}</div>

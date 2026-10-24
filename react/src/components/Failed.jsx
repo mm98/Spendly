@@ -18,7 +18,14 @@ const reasonOf = error => failureMessage(error, answered(error?.status)
 	: 'Check your connection, then try again.')
 
 /** A read that did not load and the one action that fixes it (6a, c13; c-alert's problem form).
-    The title is always "<what> did not load"; `back` replaces Try again for a record that is gone. */
+    The title is always "<what> did not load"; `back` replaces Try again for a record that is gone.
+    @param {object} props
+    @param {keyof typeof VARIANT} [props.variant]
+    @param {string} props.what what did not load, first in the title
+    @param {string} [props.label] the card's name, in the card form
+    @param {{ status?: number, signedOut?: boolean }} [props.error]
+    @param {() => void} [props.onRetry]
+    @param {{ to: string, label: string }} [props.back] where to go instead, for a record that is gone */
 export function Failed({ variant = 'page', what, label, error, onRetry, back, ...rest }) {
 	reject(rest, 'Failed')
 	const form = pick(VARIANT, variant, 'variant', 'Failed')

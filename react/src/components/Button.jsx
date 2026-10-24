@@ -60,6 +60,13 @@ export function Button({
 const ICON_STYLE = { bare: null, outline: 'sp-icon-btn--outline', quiet: 'sp-icon-btn--quiet' }
 const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field', xsmall: 'sp-icon-btn--xsmall' }
 
+/** @param {object} props
+    @param {string | import('react').ReactElement} props.icon a name in the icon register, or a drawn glyph
+    @param {keyof typeof ICON_STYLE} [props.variant]
+    @param {keyof typeof ICON_SIZE} [props.size]
+    @param {boolean} [props.danger]
+    @param {string} [props.to]
+    @param {string} [props.href] */
 export function IconButton({
 	icon,
 	variant = 'bare',

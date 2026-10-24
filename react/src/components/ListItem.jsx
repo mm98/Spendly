@@ -19,6 +19,22 @@ const VARIANT = {
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 'success' }
 
+/** @param {object} props
+    @param {keyof typeof VARIANT} [props.variant]
+    @param {keyof typeof COLOR} [props.color]
+    @param {import('react').ReactNode} [props.mark]
+    @param {import('react').ReactNode} [props.handle] the grip; a row with one can be moved
+    @param {string} [props.handleLabel]
+    @param {import('react').ReactNode} [props.actions]
+    @param {number} [props.count]
+    @param {import('react').ReactNode} [props.chevron]
+    @param {boolean} [props.selected]
+    @param {boolean} [props.opens]
+    @param {boolean} [props.editable]
+    @param {boolean} [props.setting]
+    @param {() => void} [props.onClick]
+    @param {string} [props.to]
+    @param {import('react').ReactNode} [props.children] */
 export function ListItem({
 	variant = 'default',
 	color = 'default',
@@ -78,7 +94,10 @@ export function ListItem({
 }
 
 /** The heading over a set of rows that carries a total (c33, sp-list-head): on the rows' inset,
-    so the label starts on their first column and the total ends on their amounts. */
+    so the label starts on their first column and the total ends on their amounts.
+    @param {object} props
+    @param {string} props.label
+    @param {string} props.amount */
 export function ListItemHead({ label, amount, ...rest }) {
 	reject(rest, 'ListItemHead')
 	return (
@@ -90,7 +109,9 @@ export function ListItemHead({ label, amount, ...rest }) {
 	)
 }
 
-/** What a reorder by keyboard says after each move, read out and not drawn (c1 Ordering by hand). */
+/** What a reorder by keyboard says after each move, read out and not drawn (c1 Ordering by hand).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function Announce({ children, ...rest }) {
 	reject(rest, 'Announce')
 	return <span className="sp-announce" aria-live="polite" {...rest}>{children}</span>
@@ -102,7 +123,9 @@ export function Insertion(props) {
 	return <span className="sp-list-item__insertion" {...props} />
 }
 
-/** A control that appears when its row is hovered or focused, and stays put on touch. */
+/** A control that appears when its row is hovered or focused, and stays put on touch.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ListItemRemove({ children, ...rest }) {
 	reject(rest, 'ListItemRemove')
 	return <span className="sp-list-item__remove" {...rest}>{children}</span>

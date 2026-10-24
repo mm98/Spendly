@@ -14,7 +14,8 @@ export default {
 		reactDocgen: 'react-docgen-typescript',
 		reactDocgenTypescriptOptions: {
 			include: ['../react/src/components/*.jsx'],
-			compilerOptions: { allowJs: true, checkJs: true },
+			// the components' type comments name React's types, which only this folder installs
+			compilerOptions: { allowJs: true, checkJs: true, paths: { react: [fileURLToPath(new URL('../node_modules/@types/react', import.meta.url))] } },
 			shouldExtractLiteralValuesFromEnum: true,
 			savePropValueAsString: true
 		}

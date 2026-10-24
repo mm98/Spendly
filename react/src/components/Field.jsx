@@ -5,6 +5,22 @@ import { Choice, FieldGroup } from './Choice.jsx'
 const MESSAGE = { hint: null, quiet: null, warning: 'warning', danger: 'danger' }
 const NOTE = { hint: null, success: 'success', warning: 'warning' }
 
+/** @param {object} props
+    @param {import('react').ReactNode} [props.label]
+    @param {string} [props.id]
+    @param {import('react').ReactNode} [props.lead]
+    @param {import('react').ReactNode} [props.trail]
+    @param {import('react').ReactNode} [props.unit]
+    @param {import('react').ReactNode} [props.kbd]
+    @param {import('react').ReactNode} [props.chevron]
+    @param {import('react').ReactNode} [props.message]
+    @param {keyof typeof MESSAGE} [props.messageType]
+    @param {import('react').ReactNode} [props.labelAction]
+    @param {import('react').ReactNode} [props.note]
+    @param {keyof typeof NOTE} [props.noteType]
+    @param {import('react').ReactNode} [props.after]
+    @param {boolean} [props.required]
+    @param {import('react').ReactNode} props.children the control */
 export function Field({
 	label,
 	id,

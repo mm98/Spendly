@@ -4,7 +4,18 @@ import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber, round } from './format.js'
 
 /** `step` is what minus and plus move by; `decimals` how many places a typed value keeps, the step's
-    own when absent (14a). A value with places is typed and read in `locale`, shown without trailing zeros. */
+    own when absent (14a). A value with places is typed and read in `locale`, shown without trailing zeros.
+    @param {object} props
+    @param {number} [props.value]
+    @param {number} [props.defaultValue]
+    @param {(value: number) => void} [props.onChange]
+    @param {number} [props.min]
+    @param {number} [props.max]
+    @param {number} [props.step]
+    @param {number} [props.decimals]
+    @param {string} [props.locale]
+    @param {string} [props.id]
+    @param {string} [props.fieldLabel] */
 export function Stepper({
 	value,
 	defaultValue = 1,

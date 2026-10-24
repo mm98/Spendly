@@ -4,7 +4,7 @@ import { ICONS } from './icons.js'
    design's default, so a caller states neither unless the drawing asks for another size. */
 
 /** @param {object} props
-    @param {keyof typeof ICONS} props.name
+    @param {string} props.name a name in the icon register
     @param {number} [props.size] */
 export function Icon({ name, size = 16 }) {
 	const paths = ICONS[name]

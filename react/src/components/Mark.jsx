@@ -35,6 +35,20 @@ const swatchOf = name => {
 	return DERIVED[hash % DERIVED.length]
 }
 
+/** @param {object} props
+    @param {keyof typeof SIZE} [props.size]
+    @param {keyof typeof FILL} [props.fill]
+    @param {string} [props.swatch] a colour of the set, or a colour value; only a solid mark is painted
+    @param {boolean} [props.round]
+    @param {boolean} [props.goods]
+    @param {boolean} [props.faded]
+    @param {number} [props.count]
+    @param {string} [props.text]
+    @param {string} [props.danger] why it failed, in place of text
+    @param {import('react').ReactNode} [props.remove]
+    @param {() => void} [props.onClick]
+    @param {'label'} [props.as]
+    @param {import('react').ReactNode} [props.children] a name, which gives the initials and colour, or a part to draw */
 export function Mark({
 	size,
 	fill = 'default',
@@ -110,7 +124,10 @@ export function Mark({
 	return <span className={classes} {...paint} {...named} {...rest}>{body}</span>
 }
 
-/** The control that takes an attachment away, in the mark's own corner. */
+/** The control that takes an attachment away, in the mark's own corner.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children]
+    @param {() => void} [props.onClick] */
 export function MarkRemove({ children, onClick, ...rest }) {
 	reject(rest, 'MarkRemove')
 	return (
