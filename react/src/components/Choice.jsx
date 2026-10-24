@@ -4,6 +4,8 @@ import { SearchInput } from './Inputs.jsx'
 import { Icon } from './Icon.jsx'
 import { countOf } from './Combobox.jsx'
 
+/** @param {object} props
+    @param {boolean} [props.indeterminate] */
 export function Check({ indeterminate = false, ...rest }) {
 	reject(rest, 'Check')
 	const box = useRef(null)
@@ -33,6 +35,12 @@ export function Switch({ ...rest }) {
 
 const CHOICE = { default: null, row: 'sp-choice--row', described: 'sp-choice--described' }
 
+/** @param {object} props
+    @param {keyof typeof CHOICE} [props.variant]
+    @param {import('react').ReactElement} props.control the box: a Check, Radio or Switch
+    @param {import('react').ReactNode} [props.children]
+    @param {import('react').ReactNode} [props.description]
+    @param {'meta' | 'help'} [props.descriptionTone] */
 export function Choice({ variant = 'default', control, children, description, descriptionTone = 'meta', ...rest }) {
 	reject(rest, 'Choice')
 	if (description && variant !== 'described')
@@ -68,7 +76,13 @@ const keepFolded = (name, folded) => {
 }
 
 /** `facet` is the group as a filter rail draws it (c12): its head, a `count` at its end, folds it (16a).
-    A facet whose controls name themselves, as a range does, has a head row, its `meta` at the right. */
+    A facet whose controls name themselves, as a range does, has a head row, its `meta` at the right.
+    @param {object} props
+    @param {import('react').ReactNode} props.legend
+    @param {boolean} [props.facet]
+    @param {number} [props.count]
+    @param {import('react').ReactNode} [props.meta]
+    @param {import('react').ReactNode} [props.children] */
 export function FieldGroup({ legend, facet = false, count, meta, children, ...rest }) {
 	reject(rest, 'FieldGroup')
 	if ((count !== undefined || meta !== undefined) && !facet) console.error('<FieldGroup> a count or a meta belongs to a facet head')
@@ -100,19 +114,26 @@ export function FieldGroup({ legend, facet = false, count, meta, children, ...re
 	)
 }
 
-/** A facet's values: however many there are, they scroll inside the group past --list-max (16a). */
+/** A facet's values: however many there are, they scroll inside the group past --list-max (16a).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function FieldGroupValues({ children, ...rest }) {
 	reject(rest, 'FieldGroupValues')
 	return <div className="sp-field-group__values" {...rest}>{children}</div>
 }
 
-/** Shows the rest of a facet's values (c12). */
+/** Shows the rest of a facet's values (c12).
+    @param {object} props
+    @param {() => void} [props.onClick]
+    @param {import('react').ReactNode} [props.children] */
 export function FieldGroupMore({ onClick, children, ...rest }) {
 	reject(rest, 'FieldGroupMore')
 	return <button type="button" className="sp-field-group__more" onClick={onClick} {...rest}>{children}</button>
 }
 
-/** What a facet opens under its values, as the date facet's Custom range (c12, Order list 2d). */
+/** What a facet opens under its values, as the date facet's Custom range (c12, Order list 2d).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function FieldGroupPanel({ children, ...rest }) {
 	reject(rest, 'FieldGroupPanel')
 	return <div className="sp-field-group__panel" {...rest}>{children}</div>
@@ -168,7 +189,21 @@ function walk(ev) {
 
 /** `search` with `onSearch` puts the search above the cells, `noun` (plural) naming them in the count read
     out as they narrow; `more` is the "+N" cell, with `onMore` (c7). An icon option may carry a `label`,
-    or be `loading` (a skeleton tile); `empty` stands in for a grid with no cells. */
+    or be `loading` (a skeleton tile); `empty` stands in for a grid with no cells.
+    @param {object} props
+    @param {string[]} [props.swatches] colours of the set by name, or colour values
+    @param {{ name: string, label?: string, loading?: boolean }[]} [props.icons]
+    @param {string} [props.value]
+    @param {(value: string) => void} [props.onChange]
+    @param {boolean} [props.custom]
+    @param {import('react').ReactNode} [props.customIcon]
+    @param {string} [props.search]
+    @param {(text: string) => void} [props.onSearch]
+    @param {string} [props.searchLabel]
+    @param {string} [props.noun]
+    @param {import('react').ReactNode} [props.more]
+    @param {() => void} [props.onMore]
+    @param {import('react').ReactNode} [props.empty] */
 export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, noun, more, onMore, empty, ...rest }) {
 	reject(rest, 'Picker')
 	if (swatches && icons) console.error('<Picker> takes swatches or icons, not both')

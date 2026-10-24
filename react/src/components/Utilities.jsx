@@ -2,25 +2,35 @@ import { useEffect } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
+/** @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function Stacked({ children, ...rest }) {
 	reject(rest, 'Stacked')
 	return <span className="sp-stacked sp-stacked--fill" {...rest}>{children}</span>
 }
 
-/** One line of that column. The first sits to the top of its content, the rest centre. */
+/** One line of that column. The first sits to the top of its content, the rest centre.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function Line({ children, ...rest }) {
 	reject(rest, 'Line')
 	return <span className="sp-list-item__line" {...rest}>{children}</span>
 }
 
 /** A key, as the reader sees it on their keyboard. `accent` is one inside a surface
-    that is already green. */
+    that is already green.
+    @param {object} props
+    @param {boolean} [props.accent]
+    @param {import('react').ReactNode} [props.children] */
 export function Kbd({ accent = false, children, ...rest }) {
 	reject(rest, 'Kbd')
 	return <kbd className={join('sp-kbd', accent && 'sp-kbd--accent')} {...rest}>{children}</kbd>
 }
 
-/** Another state of a part laid over its resting form, which stays unseen beneath so the height holds (6b). */
+/** Another state of a part laid over its resting form, which stays unseen beneath so the height holds (6b).
+    @param {object} props
+    @param {import('react').ReactNode} props.shape the resting form, held unseen
+    @param {import('react').ReactNode} [props.children] */
 export function Hold({ shape, children, ...rest }) {
 	reject(rest, 'Hold')
 	return (
@@ -31,18 +41,25 @@ export function Hold({ shape, children, ...rest }) {
 	)
 }
 
+/** @param {object} props
+    @param {boolean} [props.dashed]
+    @param {import('react').ReactNode} [props.children] */
 export function Empty({ dashed = false, children, ...rest }) {
 	reject(rest, 'Empty')
 	return <div className={join('sp-empty', dashed && 'sp-empty--dashed')} {...rest}>{children}</div>
 }
 
-/** What is not here. */
+/** What is not here.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function EmptyTitle({ children, ...rest }) {
 	reject(rest, 'EmptyTitle')
 	return <span className="sp-empty__title" {...rest}>{children}</span>
 }
 
-/** What to do about it, under the title. */
+/** What to do about it, under the title.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function EmptyBody({ children, ...rest }) {
 	reject(rest, 'EmptyBody')
 	return <span className="sp-empty__body" {...rest}>{children}</span>
@@ -63,6 +80,8 @@ const SKELETON = {
 	icon: 'sp-skeleton--icon'
 }
 
+/** @param {object} props
+    @param {keyof typeof SKELETON} props.shape */
 export function Skeleton({ shape, ...rest }) {
 	reject(rest, 'Skeleton')
 	return <span className={join('sp-skeleton', pick(SKELETON, shape, 'shape', 'Skeleton'))} aria-hidden="true" {...rest} />
@@ -80,6 +99,9 @@ export function Redacted(props) {
 	return <span className="sp-redacted" role="img" aria-label="Hidden" {...props} />
 }
 
+/** @param {object} props
+    @param {import('react').ReactNode} [props.children]
+    @param {() => void} [props.onClick] */
 export function AddRow({ children, onClick, ...rest }) {
 	reject(rest, 'AddRow')
 	return (

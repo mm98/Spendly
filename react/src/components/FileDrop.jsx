@@ -58,7 +58,19 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
 /** `action` is the button-shaped words inside the zone (3a); `grow` takes the room left in its row (10a);
     `row` lays the zone on its side, the mark at the left and its lines beside it (c4).
     `onFiles(files, problems)`: each file chosen or dropped, and why it cannot be taken (`sniffedProblem`) or null.
-    `disabled` draws the zone muted with no file input (20b); its children say why. */
+    `disabled` draws the zone muted with no file input (20b); its children say why.
+    @param {object} props
+    @param {string} [props.icon]
+    @param {import('react').ReactNode} [props.children]
+    @param {string} [props.accept] the file types taken, as a file input names them
+    @param {boolean} [props.multiple]
+    @param {number} [props.maxMb]
+    @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles]
+    @param {import('react').ReactNode} [props.action]
+    @param {boolean} [props.grow]
+    @param {boolean} [props.row]
+    @param {boolean} [props.disabled]
+    @param {string} [props.id] */
 export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, grow = false, row = false, disabled = false, id, ...rest }) {
 	reject(rest, 'FileDrop')
 	const field = useRef(null)
@@ -135,7 +147,26 @@ export function pasteAnywhere(ev) {
 
 /** The file slot (c17): a refused file, or a page's `problem`, shows its reason with a Remove, or a
     Retry when `onRetry` is given (17b); `busy` draws the spinner over the picture while it is sent (17a).
-    `inspect(file)` answers the reason a file is refused, or null, in place of the type and size check. */
+    `inspect(file)` answers the reason a file is refused, or null, in place of the type and size check.
+    @param {object} props
+    @param {string} [props.id]
+    @param {string} [props.src] the picture in the slot, if there is one
+    @param {import('./Mark.jsx').MarkSize} [props.size]
+    @param {string} [props.kind]
+    @param {string} [props.word]
+    @param {string} [props.name]
+    @param {boolean} [props.start]
+    @param {string} [props.accept]
+    @param {(file: File) => Promise<string | null> | string | null} [props.inspect]
+    @param {string} [props.problem]
+    @param {boolean} [props.busy]
+    @param {(file: File) => void} [props.onFile]
+    @param {() => void} [props.onRemove]
+    @param {() => void} [props.onRetry]
+    @param {import('react').ReactNode} [props.lead]
+    @param {import('react').ReactNode} [props.trail]
+    @param {import('react').ReactNode} [props.unit]
+    @param {string} [props.aria-describedby] */
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)

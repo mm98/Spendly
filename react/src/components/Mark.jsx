@@ -21,6 +21,8 @@ const FILL = {
 
 const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
 
+/** @typedef {keyof typeof SIZE} MarkSize */
+
 export const initialsOf = name => {
 	const words = String(name).trim().split(/\s+/).filter(Boolean)
 	if (!words.length) return ''
@@ -36,7 +38,7 @@ const swatchOf = name => {
 }
 
 /** @param {object} props
-    @param {keyof typeof SIZE} [props.size]
+    @param {MarkSize} [props.size]
     @param {keyof typeof FILL} [props.fill]
     @param {string} [props.swatch] a colour of the set, or a colour value; only a solid mark is painted
     @param {boolean} [props.round]
