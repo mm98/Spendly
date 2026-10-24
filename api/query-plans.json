@@ -2275,7 +2275,7 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT f.id, f.chat_id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at FROM json_each(?) j CROSS JOIN user_ask_files f ON f.id = j.value WHERE +f.user_id = ?": {
+		"SELECT f.id, f.chat_id, f.title, f.download_name, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at FROM json_each(?) j CROSS JOIN user_ask_files f ON f.id = j.value WHERE +f.user_id = ?": {
 			"plan": [
 				"SCAN j VIRTUAL TABLE INDEX 1:",
 				"SEARCH f USING INDEX sqlite_autoindex_user_ask_files_1 (id=?)"
@@ -2444,7 +2444,7 @@
 				"idx_categories_user"
 			]
 		},
-		"SELECT id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_ask_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now AND (title LIKE @like ESCAPE '\\' OR download_name LIKE @like ESCAPE '\\') ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
+		"SELECT id, chat_id, title, download_name, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_ask_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now AND (title LIKE @like ESCAPE '\\' OR download_name LIKE @like ESCAPE '\\') ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH user_ask_files USING INDEX user_ask_files_user (user_id=?)"
 			],
@@ -2453,7 +2453,7 @@
 				"user_ask_files_user"
 			]
 		},
-		"SELECT id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_ask_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
+		"SELECT id, chat_id, title, download_name, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason FROM user_ask_files WHERE user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH user_ask_files USING INDEX user_ask_files_user (user_id=?)"
 			],

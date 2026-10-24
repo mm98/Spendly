@@ -272,8 +272,11 @@ const insertTurn = db.prepare("INSERT INTO user_ask_chat_turns (chat_id, questio
 for (const id of ['ch-fixture', 'ch-removed']) { insertChat.run(id, USER); insertTurn.run(id); insertTurn.run(id) }
 for (let i = 0; i < NEIGHBOURS; i++) { insertChat.run(`ch-n${i}`, `u-neighbour${String(i).padStart(6, '0')}`); insertTurn.run(`ch-n${i}`) }
 // files and charts Ask made: two files and a chart on the account, and one of each next door
+// the account's file has bytes on disk, so its download answers rather than 404s
+const { storeFile } = await import('../src/lib/storage.js')
+const storedFixture = storeFile(USER, 'ask-files', Buffer.from('xlsx'))
 const insertFile = db.prepare(`INSERT INTO user_ask_files (id, user_id, chat_id, title, type, asked_at, size, stored_name, kept_until, expires_at)
-	VALUES (?, ?, ?, 'Make a spreadsheet of my orders this month', 'xlsx', '2026-10-22T14-05', 4, 'not-on-disk', '2026-11-21', unixepoch() + 2592000)`)
+	VALUES (?, ?, ?, 'Make a spreadsheet of my orders this month', 'xlsx', '2026-10-22T14-05', 4, '${storedFixture}', '2026-11-21', unixepoch() + 2592000)`)
 const insertChart = db.prepare(`INSERT INTO user_ask_charts (id, user_id, chart, expires_at) VALUES (?, ?, '{"kind":"bars"}', unixepoch() + 2592000)`)
 insertFile.run('af-fixture', USER, 'ch-fixture')
 insertFile.run('af-removed', USER, 'ch-removed')
