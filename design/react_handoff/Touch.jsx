@@ -1,7 +1,8 @@
-import { useRef } from 'react'
+import { useContext, useRef } from 'react'
 import { Link } from 'react-router'
 import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
+import { Leaves } from './Utilities.jsx'
 
 /** The surface's destinations, at the bottom where a thumb reaches; over a home bar band its items sit lower (brief 28).
     @param {object} props
@@ -43,12 +44,15 @@ export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 	reject(rest, 'Sheet')
 	const box = useRef(null)
 	const pull = useRef(null)
+	// closing under a Leaving (Overlays.jsx), it slides down and takes no more pulls
+	const leaving = useContext(Leaves)
 	const bind = el => {
 		box.current = el
 		if (typeof ref === 'function') ref(el)
 		else if (ref) ref.current = el
 	}
 	const close = () => {
+		if (leaving) return
 		if (onDismiss) return onDismiss()
 		const under = box.current?.parentElement
 		if (under?.classList.contains('sp-scrim')) under.click()
@@ -86,7 +90,7 @@ export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 		}
 	}
 	return (
-		<div className="sp-sheet" ref={bind} {...rest}>
+		<div className="sp-sheet" ref={bind} {...(leaving ? { 'data-leaving': 'true' } : {})} {...rest}>
 			{handle ? <span className="sp-sheet__handle" {...grip} /> : null}
 			{children}
 		</div>

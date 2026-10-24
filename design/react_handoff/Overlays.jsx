@@ -6,7 +6,7 @@ import { Icon } from './Icon.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
 import { roomOf, usePanelPlace } from './Combobox.jsx'
-import { menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
+import { Leaves, inMs, menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
 
 const MENU = {
 	floating: 'sp-menu--floating',
@@ -256,8 +256,9 @@ const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--e
     @param {import('react').ReactNode} [props.actions] The Cancel and Apply buttons. */
 export function Popover({ position = 'default', head, search, children, summary, note, actions, ...rest }) {
 	reject(rest, 'Popover')
+	const leaving = useContext(Leaves)
 	return (
-		<div className={join('sp-popover', pick(POPOVER, position, 'position', 'Popover'))} {...rest}>
+		<div className={join('sp-popover', pick(POPOVER, position, 'position', 'Popover'))} {...(leaving ? { 'data-leaving': 'true' } : {})} {...rest}>
 			{head ? <div className="sp-popover__head">{head}</div> : null}
 			{search ?? null}
 			{children ? <div className="sp-popover__list">{children}</div> : null}
@@ -293,6 +294,29 @@ export function Anchor({ open, ref, children, ...rest }) {
 	)
 }
 
+/** Keeps a Dialog, Sheet or Popover on the page while it closes. The page writes its condition as
+    before, inside it: `<Leaving>{open ? <Dialog ...> : null}</Leaving>`. When the child goes, the
+    part it last drew stays, marked data-leaving="true", for --motion-out, and is then removed and
+    `onClosed` called. Opened again meanwhile, it stays. Under reduced motion it goes at once.
+    @param {object} props
+    @param {() => void} [props.onClosed] Called once the part has gone, such as to return focus.
+    @param {import('react').ReactNode} [props.children] The open part, or nothing once it closes. */
+export function Leaving({ onClosed, children }) {
+	const last = useRef(children ?? null)
+	if (children) last.current = children
+	const [, gone] = useState(0)
+	const leaving = !children && last.current != null
+	const closed = useRef(onClosed)
+	useEffect(() => { closed.current = onClosed })
+	useEffect(() => {
+		if (!leaving) return
+		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+		const timer = setTimeout(() => { last.current = null; gone(n => n + 1); closed.current?.() }, still ? 0 : inMs('--motion-out', 140))
+		return () => clearTimeout(timer)
+	}, [leaving])
+	return <Leaves.Provider value={leaving}>{children ?? last.current}</Leaves.Provider>
+}
+
 // the dialog is named by its title and described by its body, whichever ids those parts take
 const DialogParts = createContext(null)
 
@@ -316,20 +340,24 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	const box = useRef(null)
 	const backdrop = useRef(null)
 	const pressed = useRef(false)
+	// closing under a Leaving, it answers nothing more
+	const leaving = useContext(Leaves)
+	const gone = useRef(leaving)
+	gone.current = leaving
 	const [parts, setParts] = useState({ title: [], body: [] })
 	const register = useCallback((kind, id) => {
 		setParts(p => ({ ...p, [kind]: [...p[kind], id] }))
 		return () => setParts(p => ({ ...p, [kind]: p[kind].filter(x => x !== id) }))
 	}, [])
 	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)')
-	const keys = ev => { if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() } }
+	const keys = ev => { if (ev.key === 'Escape' && onCancel && !gone.current) { ev.stopPropagation(); onCancel() } }
 	// Escape with focus outside the box (on the page's body) still answers as cancel
 	const cancel = useRef(onCancel)
 	useEffect(() => { cancel.current = onCancel })
 	useEffect(() => {
 		if (!scrim) return
 		const key = ev => {
-			if (ev.key !== 'Escape' || !cancel.current) return
+			if (ev.key !== 'Escape' || !cancel.current || gone.current) return
 			if (ev.target !== document.body && !within(backdrop.current, ev.target)) return
 			cancel.current()
 		}
@@ -351,6 +379,7 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	const panel = (
 		<DialogParts.Provider value={register}>
 			<div className={touch ? 'sp-sheet' : 'sp-dialog'} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
+				{...(leaving && touch ? { 'data-leaving': 'true' } : {})}
 				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
 				{above}
 				{actions}
@@ -363,7 +392,7 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 		<Scrim dialog ref={backdrop}
 			onMouseDown={ev => { if (ev.target === ev.currentTarget) ev.preventDefault() }}
 			onPointerDown={ev => { pressed.current = ev.target === ev.currentTarget }}
-			onClick={ev => { if (pressed.current && ev.target === ev.currentTarget) onCancel?.(); pressed.current = false }}>
+			onClick={ev => { if (pressed.current && ev.target === ev.currentTarget && !leaving) onCancel?.(); pressed.current = false }}>
 			{panel}
 		</Scrim>,
 		document.body

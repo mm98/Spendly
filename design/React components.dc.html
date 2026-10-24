@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261024g">
-<link rel="stylesheet" href="styles/components.css?v=v20261024n">
+<link rel="stylesheet" href="styles/components.css?v=v20261024o">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
@@ -300,7 +300,8 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">three promises, not three sizes</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> In a popover's list of choices that picks one, the green tint slides from the old row to the new. A submenu slides out from its item, its items following 20ms apart, after the same <code>--submenu-delay</code> rest. A menu or popover opens from its trigger: a fade and a 4px drop, rising instead when placed above. A dialog grows the last 2% into place over a fading scrim. A menu let out of its anchor closes the same way back; a popover and a dialog close that way once the component holds them for <code>--motion-out</code> with <code>data-leaving="true"</code> before removing them.</div>
+	<div class="doc-note"><b>Motion.</b> In a popover's list of choices that picks one, the green tint slides from the old row to the new. A submenu slides out from its item, its items following 20ms apart, after the same <code>--submenu-delay</code> rest. A menu or popover opens from its trigger: a fade and a 4px drop, rising instead when placed above. A dialog grows the last 2% into place over a fading scrim. A menu let out of its anchor closes the same way back. A dialog, a sheet and a popover close the same way back too, inside a <code>Leaving</code>.</div>
+	<div class="doc-note"><b>Closing with the fade.</b> The page keeps its condition and wraps it: <code>&lt;Leaving onClosed={...}&gt;{open ? &lt;Dialog ...&gt; : null}&lt;/Leaving&gt;</code>. When the child goes, <code>Leaving</code> keeps the part it last drew, with the words it had, for <code>--motion-out</code>; the Dialog with its Scrim, a Sheet and a Popover under it mark themselves <code>data-leaving="true"</code> and answer no more presses or keys. Then it is removed and <code>onClosed</code> called. Opened again meanwhile, it stays open. Under reduced motion it goes at once. A part outside a <code>Leaving</code> is removed at once, as before.</div>
 	<div class="doc-note">A Menu acts on click: every item does its thing and closes. A Popover waits - it holds a decision and a Cancel / Apply pair, so nothing happens until the reader applies it. A Dialog interrupts, and cannot be answered by ignoring it. That is why they are three components.</div>
 	<span class="doc-specimen__label">the menu, and the panel that waits</span>
 	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-top sp-wrap">{{ menus }}</div></div>
@@ -308,6 +309,8 @@
 	<span class="doc-specimen__label">the dialog, drawn without its scrim so the panel can be read</span>
 	<div class="sp-card">{{ dialog }}</div>
 	{{ dialogCode }}
+	<span class="doc-specimen__label">the same dialog over the page, opened and closed in a Leaving</span>
+	<div class="sp-card"><div class="sp-row-flex sp-gap-12">{{ leaving }}</div></div>
 </section>
 
 <section class="doc-section">
@@ -318,6 +321,7 @@
 		<span class="sp-meta">what happened, and what is still true</span>
 	</div>
 	<div class="doc-note">A Toast reports what already happened and takes itself away; the <code>asks</code> variant needs an answer, so it sits on the page's own surface rather than reading as something that will disappear. An Alert states a condition that persists and stays until the condition does.</div>
+	<div class="doc-note"><b>Grey on a toast.</b> Small grey text on a toast, the seconds beside Undo, is #8b8a82 in the light theme (5.02:1 on #1b1a17) and <code>--ink-4</code> #a8a29a in the dark theme (5.57:1 on #2e2b26). The toast sets <code>--ink-5</code> to it, so <code>sp-meta</code> inside takes it. A toast that asks sits on the page's surface and keeps the page's grey.</div>
 	<span class="doc-specimen__label">a result with the way back, a problem, a count, and one that asks</span>
 	<div class="sp-card"><div class="sp-stack sp-gap-12">{{ toasts }}</div></div>
 	{{ toastsCode }}
@@ -388,6 +392,7 @@
 		<span class="sp-meta">the page's own furniture</span>
 	</div>
 	<div class="doc-note"><b>Motion.</b> The current row's ground slides from the row it left to the row it reached, in the dark and the light sidebar alike.</div>
+	<div class="doc-note"><b>The account row.</b> <code>SidebarAccount</code> is a <code>NavItem</code> whose whole row is the one button that opens the account menu, as it was: the photo or initials as its <code>mark</code>, the name over the address as its label, the up chevron as its <code>trail</code>. It keeps <code>aria-haspopup="menu"</code>, <code>aria-expanded</code>, Up and Down to open the menu at either end, and the menu placed above the row at its width, or beside the mark on the rail. Its focus ring is the nav row's own. Its name is the words drawn on it, the name and the address; the mark is hidden from screen readers. No <code>control</code>: that is a Switch, and makes the row a label.</div>
 	<div class="doc-note">The shell is a grid of two tracks, and collapsing it is a track width rather than an animation - an animated track reflows every card beside it on every frame. The rail is the same sidebar at its narrow width, and peeking shows its labels over the page rather than pushing it.</div>
 	<span class="doc-specimen__label">the menu, and the top bar above the page</span>
 	{{ shell }}
@@ -644,7 +649,7 @@ class Component extends DCLogic {
 			Check, Radio, Switch, Choice, FieldGroup, Segmented, Stepper, FileDrop,
 			TextField, PasswordField, NumberField, SearchInput, RangeSlider,
 			TokensField, Picker,
-			Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor,
+			Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor, Leaving, SidebarAccount,
 			Dialog, DialogTitle, DialogBody, DialogActions, Toast, ToastUndo, Alert,
 			List, Caption, ListHead, ListRow, ListCell, Foot, Toolbar, ListFooter,
 			Gauge, GaugeKey, Bars, Plot, Stat, Sum, Skeleton, Spinner, MarkRemove,
@@ -1530,10 +1535,24 @@ class Component extends DCLogic {
 					e('span', { key: 'g', className: 'sp-grow' }),
 					e(Button, { key: 'd', color: 'danger', iconStart: 'trash', onClick: () => this.setState({ lastAction: 'Deleted the order' }) }, 'Delete order'))),
 
+			leaving: [
+				e(Button, { key: 'open', variant: 'outline', iconStart: 'trash', onClick: () => this.setState({ leavingOpen: true }) }, 'Delete order'),
+				e(Leaving, { key: 'l', onClosed: () => this.setState({ lastAction: 'The dialog has gone' }) },
+					this.state.leavingOpen
+						? e(Dialog, { onCancel: () => this.setState({ leavingOpen: false }) },
+							e(DialogTitle, { key: 't' }, 'Delete this order?'),
+							e(DialogBody, { key: 'b' }, 'SPENDLY-447 from Indbo Møbler, 3.980,00 kr. Its 4 lines and 3 attachments go with it.'),
+							e(DialogActions, { key: 'a' },
+								e(Button, { key: 'k', variant: 'outline', onClick: () => this.setState({ leavingOpen: false }) }, 'Keep it'),
+								e('span', { key: 'g', className: 'sp-grow' }),
+								e(Button, { key: 'd', color: 'danger', iconStart: 'trash', onClick: () => this.setState({ leavingOpen: false }) }, 'Delete order')))
+						: null)
+			],
+
 			toasts: (() => {
 				const drop = id => this.setState(s => ({ toasts: s.toasts.filter(x => x !== id) }));
 				const shown = [
-					this.state.toasts.includes('removed') && e(Toast, { key: 'removed', icon: 'check' },
+					this.state.toasts.includes('removed') && e(Toast, { key: 'removed', icon: 'check', seconds: 6 },
 						'Line removed from SPENDLY-447',
 						e(ToastUndo, { key: 'u', onClick: () => drop('removed') }, 'Undo')),
 					this.state.toasts.includes('unreadable') && e(Toast, {
@@ -1794,7 +1813,16 @@ class Component extends DCLogic {
 					e(NavItem, { key: 's', icon: 'settings' }, 'Settings'),
 					e('span', { key: 'sp', className: 'sp-grow' }),
 					e(SidebarDivider, { key: 'd2' }),
-					e(NavItem, { key: 'a', icon: 'user' }, 'Account'),
+					e(SidebarAccount, {
+						key: 'a', name: 'Maja Holm', email: 'maja@example.net', tip: 'Maja Holm',
+						expanded: !!this.state.accountOpen,
+						onClick: () => this.setState(s => ({ accountOpen: !s.accountOpen })),
+						onDismiss: () => this.setState({ accountOpen: false }),
+						menu: e(Menu, { position: 'plain' },
+							e(MenuItem, { key: 's', icon: 'settings', onClick: () => this.setState({ accountOpen: false }) }, 'Settings'),
+							e(MenuSeparator, { key: 'r' }),
+							e(MenuItem, { key: 'o', onClick: () => this.setState({ accountOpen: false }) }, 'Sign out'))
+					}),
 					// the grip is the committed control, so the menu carries it - the state it
 					// writes is the page's, stored per user, and here it is the Menu tweak
 					e(SidebarGrip, {
