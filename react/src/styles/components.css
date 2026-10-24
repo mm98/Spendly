@@ -808,7 +808,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-stepper__value {
   flex: 1;
-  min-width: 0;
+  /* however narrow its column, a stepper keeps room for one digit between its buttons; width 0
+     so the column, not the native input's size, decides how wide the value is */
+  width: 0;
+  min-width: calc(1ch + 2 * var(--sp-8));
   height: 100%;
   padding: 0 var(--sp-8);
   border: 0;
@@ -1143,6 +1146,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-touch .sp-controls > .sp-combobox { flex: 1 1 0; min-width: 0; }
 .sp-touch .sp-controls > .sp-combobox .sp-combobox__trigger { width: 100%; }
 .sp-touch .sp-controls > .sp-combobox .sp-combobox__trigger > span { overflow: hidden; text-overflow: ellipsis; }
+/* a stretched trigger keeps its chevron at the right edge, as every field-width combobox does */
+.sp-touch .sp-controls > .sp-combobox .sp-combobox__chevron { margin-left: auto; }
 
 /* ---------- list - LOCKED c1 ---------- */
 
@@ -3052,6 +3057,13 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   .sp-slot__remove:hover { text-decoration: underline; }
 }
 .sp-slot__remove:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
+/* on a phone a filled slot is a row: the image, then Replace and Remove as two bordered icon
+   buttons on one line beside it, in place of the Remove link under it (c17). Desktop keeps the
+   image as the Replace target and Remove under it. */
+.sp-slot__actions { display: flex; gap: var(--sp-8); }
+.sp-slot__actions > label.sp-icon-btn { position: relative; cursor: pointer; }
+.sp-slot__actions input[type="file"] { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sp-touch .sp-slot:has(> .sp-slot__actions) { flex-direction: row; align-items: center; gap: var(--sp-12); width: auto; }
 
 /* ---------- line editor - LOCKED c15 ----------
    One component, two homes: it expands a row on desktop and fills the sheet on touch. */
@@ -3948,6 +3960,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 }
 .sp-toast__icon { display: grid; place-items: center; flex: none; color: var(--green-4); }
 .sp-toast__icon[data-color="danger"] { color: var(--red); }
+/* the icon centres on the first line of the words, never on the middle of a message that
+   wraps: the row sits at the top and the icon's box is one line tall (1lh at the toast's size) */
+.sp-toast:has(> .sp-toast__icon) { align-items: flex-start; }
+.sp-toast > .sp-toast__icon { height: 1lh; }
 .sp-toast__undo {
   margin-left: auto;
   padding: 0;
@@ -4082,6 +4098,8 @@ a.sp-chat__file-name { text-decoration: none; }
   display: flex;
   align-items: center;
   gap: var(--sp-12);
+  /* the title's size, so the row's 1lh is the title's line and its mark centres on it */
+  font-size: var(--t-13);
   padding: var(--card-pad);
   border: 1px solid var(--amber);
   border-radius: var(--r-card);
@@ -4100,6 +4118,12 @@ a.sp-chat__file-name { text-decoration: none; }
   font-weight: 700;
 }
 .sp-alert__body { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+/* the mark centres on the title's line, never on the middle of the title and note: both sit
+   at the top, and the mark (the title's size, so its 1lh is the title's line) moves half the
+   difference; at --mark-small it overhangs the line a little above and below */
+.sp-alert > .sp-alert__mark,
+.sp-alert > .sp-alert__body { align-self: flex-start; }
+.sp-alert > .sp-alert__mark { margin-top: calc((1lh - var(--mark-small)) / 2); }
 .sp-alert__title { font-size: var(--t-13); font-weight: 600; color: var(--amber-ink-2); }
 .sp-alert__note { font-size: var(--t-12); color: var(--amber-ink-2); }
 .sp-alert[data-color="danger"] { border-color: var(--red-ink); background: var(--red-tint); }
@@ -5823,7 +5847,9 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 /* the mark sits outside its bubble, on the centre of the bubble's first line */
 .sp-chat__msg > .sp-mark { margin-top: calc(var(--sp-12) + 1px + (var(--t-14) * var(--lh) - var(--mark-small)) / 2); }
 .sp-chat__msg--mine { flex-direction: row-reverse; }
-.sp-chat__thread > .sp-alert { align-self: stretch; }
+/* the day's limit (Ask 24b 3, 4): the amber alert pinned at the top of the chat, the thread scrolling under it */
+.sp-chat > .sp-alert { flex: none; }
+.sp-touch .sp-chat > .sp-alert { margin: var(--phone-gutter) var(--phone-gutter) 0; }
 /* the time a message was sent sits 4 under its bubble, lined up with the bubble's edge: past the
    mark at the left for Spendly's, at the right for the reader's. A day line opens the conversation
    and stands wherever the day changes. */
@@ -5986,7 +6012,6 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    size already. */
 .sp-textarea.sp-chat__field::placeholder { line-height: calc(var(--t-14) * var(--lh)); }
 .sp-touch .sp-textarea.sp-chat__field::placeholder { line-height: calc(var(--t-16) * var(--lh)); }
-.sp-chat__hint { display: flex; align-items: center; gap: var(--sp-12); width: 100%; margin: var(--sp-6) auto 0; font-size: var(--t-11); color: var(--ink-5); }
 /* a page body that is one region filling the column, as the chat is */
 .sp-shell__body--fill { flex: 1; min-height: 0; }
 /* the confirm banner on a page that fills the column keeps the phone gutter: such a body

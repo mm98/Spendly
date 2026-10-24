@@ -4,8 +4,9 @@ import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
-import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
+import { Alert, MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
 import { Spinner, useDismiss } from './Utilities.jsx'
+import { plural } from '../api/format.js'
 
 /* ---------- chat (c34, Ask 24a) ---------- */
 
@@ -234,9 +235,18 @@ export function ChatHelp({ makes, disabled = false, onChoose, ...rest }) {
 	)
 }
 
+/** The day's limit pinned at the top of the chat (24b 3, 4), as `Chat`'s first child: shown with 3 or fewer
+    questions `left`, absent with more or with no limit (`left` null). */
+export function ChatLimit({ left }) {
+	if (left == null || left > 3) return null
+	return left === 0
+		? <Alert mark="!" title="No questions left today">You can ask again tomorrow from 00:00. This chat stays on Chats.</Alert>
+		: <Alert mark="!" title={`${plural(left, 'question')} left today`}>The count starts again tomorrow from 00:00.</Alert>
+}
+
 /** Under the thread: the field with What Ask can do at its edge (`onHelp`, never disabled), and Send, or Stop
-    while `working`, then `end`. `bar` pins it above a phone's tab bar. The line under the field shows only `left`. */
-export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp, working = false, disabled = false, fieldRef, placeholder, left, end, ...rest }) {
+    while `working`, then `end`. `bar` pins it above a phone's tab bar. */
+export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp, working = false, disabled = false, fieldRef, placeholder, end, ...rest }) {
 	reject(rest, 'ChatDock')
 	const size = bar ? 'small' : 'standard'
 	return (
@@ -253,14 +263,6 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp,
 					: <Button size={size} disabled={disabled || !value.trim()} onClick={onSend}>Send</Button>}
 				{end}
 			</div>
-			{left
-				? (
-					<div className="sp-chat__hint">
-						<span className="sp-grow" />
-						<span className="sp-meta--over">{left}</span>
-					</div>
-				)
-				: null}
 		</div>
 	)
 }
