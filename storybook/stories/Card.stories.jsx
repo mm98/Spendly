@@ -5,22 +5,60 @@ import { Pill } from '../../react/src/components/Pill.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Segmented } from '../../react/src/components/Segmented.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
+import { expect, fn, userEvent } from 'storybook/test'
+import { knownAccessibilityFaults } from './controls.js'
+
+// The card's words are plain text controls; the story lays them out as the app does.
+const words = { title: { control: 'text', description: 'The first line the story puts inside' }, subtitle: { control: 'text', description: 'The second line' } }
 
 export default {
 	title: 'Layout/Card',
 	component: Card,
-	argTypes: {
-		variant: { control: 'inline-radio', options: ['default', 'flush', 'row', 'shell'] },
-		color: { control: 'inline-radio', options: ['default', 'warning', 'danger'] }
-	},
-	args: { children: [<span key="t" className="sp-title">A card</span>, <span key="s" className="sp-subtitle">Its second line.</span>] }
+	subcomponents: { CardHeader, CardBody, Cards, Toolbar, ListFooter, Well, Halves },
+	args: { title: 'A card', subtitle: 'Its second line.' },
+	argTypes: { ...words, children: { control: false }, footer: { control: false }, after: { control: false }, chevron: { control: false } },
+	render: ({ title, subtitle, ...args }) => (
+		<Card {...args}>
+			<span className="sp-title">{title}</span>
+			<span className="sp-subtitle">{subtitle}</span>
+		</Card>
+	)
 }
 
 export const Plain = {}
-export const Warning = { args: { color: 'warning', children: [<span key="t" className="sp-title">Warning</span>, <span key="s" className="sp-subtitle">Something to deal with.</span>] } }
-export const Danger = { args: { color: 'danger', children: [<span key="t" className="sp-title">Danger</span>, <span key="s" className="sp-subtitle">Something that failed.</span>] } }
+export const Warning = { args: { color: 'warning', title: 'Warning', subtitle: 'Something to deal with.' } }
+export const Danger = { args: { color: 'danger', title: 'Danger', subtitle: 'Something that failed.' } }
+export const WithFooter = {
+	args: { title: 'A pair', subtitle: 'Equal halves, both at the committing size.', footerLayout: 'split', footerCommits: true, onSave: fn(), onCancel: fn() },
+	render: ({ title, subtitle, onSave, onCancel, ...args }) => (
+		<Card {...args} footer={[<Button key="a" variant="text" onClick={onCancel}>Cancel</Button>, <Button key="b" onClick={onSave}>Save</Button>]}>
+			<span className="sp-title">{title}</span>
+			<span className="sp-subtitle">{subtitle}</span>
+		</Card>
+	),
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByRole('button', { name: 'Save' }))
+		await expect(args.onSave).toHaveBeenCalledOnce()
+	}
+}
+
+export const Head = {
+	args: { name: 'Drafts', meta: 'newest 3', aside: '', asideTone: 'default', dismissLabel: 'Hide the drafts', onDismiss: fn() },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: CardHeader },
+	render: ({ name, meta, aside, asideTone, dismissLabel, onDismiss }) => (
+		<Card>
+			<CardHeader name={name} meta={meta} aside={aside} asideTone={asideTone} onDismiss={onDismiss} dismissLabel={dismissLabel} />
+			<span className="sp-data">Indbo Møbler · 19/08</span>
+		</Card>
+	),
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByRole('button', { name: 'Hide the drafts' }))
+		await expect(args.onDismiss).toHaveBeenCalledOnce()
+	}
+}
 
 export const Heads = {
+	parameters: { a11y: knownAccessibilityFaults },
 	render: () => (
 		<Cards>
 			<Card><CardHeader name="Needs a look" /><span className="sp-data">2 categories over their limit</span></Card>
@@ -78,7 +116,16 @@ export const ShellAndLink = {
 	)
 }
 
+export const InAWell = {
+	args: { variant: 'default', color: 'default', title: 'Default', subtitle: 'Its own thing inside the card.' },
+	parameters: { variantsOf: Well },
+	render: ({ variant, color, title, subtitle }) => (
+		<Card><Well variant={variant} color={color}><span className="sp-title">{title}</span><span className="sp-subtitle">{subtitle}</span></Well></Card>
+	)
+}
+
 export const Wells = {
+	parameters: { a11y: knownAccessibilityFaults },
 	render: () => (
 		<Cards>
 			<Card><Well><span className="sp-title">Default</span><span className="sp-subtitle">Its own thing inside the card.</span></Well></Card>
@@ -95,9 +142,12 @@ export const Wells = {
 }
 
 export const ToolbarAndFooter = {
-	render: () => (
+	args: { variant: 'default', label: 'Recent orders' },
+	argTypes: { label: { control: 'text', description: 'The toolbar\'s words' } },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Toolbar },
+	render: ({ variant, label }) => (
 		<Card variant="flush">
-			<Toolbar><span className="sp-section-label">Recent orders</span></Toolbar>
+			<Toolbar variant={variant}><span className="sp-section-label">{label}</span></Toolbar>
 			<CardBody><span className="sp-data">Indbo Møbler · 4.129,00 kr.</span></CardBody>
 			<ListFooter><span className="sp-meta">Showing 1 of 18</span></ListFooter>
 		</Card>

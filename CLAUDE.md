@@ -143,9 +143,15 @@ have to. Putting screens together from its patterns is the build's job:
 
 `storybook/` draws every file in `react/src/components` with the real code. A change that adds a
 component, a variant, a prop or a state adds or changes its story, and is looked at there in light
-and dark, on Phone and Desktop, with the browser console open: the components report a wrong prop
-there and nowhere else. `npm run check` and `npm run build` in `storybook/` are among the checks run
-before a merge.
+and dark, on Phone and Desktop. `npm run check`, `npm run build` and `npm test` in `storybook/` are
+among the checks run before a merge.
+
+A story is something to try, not a picture: every prop it shows is an arg, so the Controls panel
+changes it, and every handler is an `fn()` the Actions panel logs. A control that does something
+gets a `play` step that uses it and checks the result. Allowed values come from the component
+(`.storybook/variants.js`), never typed into a story. `npm test` fails on a wrong-prop message and
+on an accessibility fault; a story marked `knownAccessibilityFaults` has its faults in `later.md`,
+and a story is never marked to make a new fault pass.
 
 ## Build for the general case
 

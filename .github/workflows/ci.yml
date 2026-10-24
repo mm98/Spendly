@@ -11,6 +11,7 @@ on:
       - 'api/**'
       - 'react/**'
       - 'scripts/**'
+      - 'storybook/**'
       - 'Dockerfile'
       - '.dockerignore'
       - '.github/workflows/ci.yml'
@@ -95,10 +96,30 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: storybook
         run: npm run check
+      # the stats file lets Chromatic take new pictures only of the stories a change reaches
       - name: Storybook builds
         if: ${{ !cancelled() }}
         working-directory: storybook
-        run: npm run build
+        run: npm run build -- --stats-json
+      - name: Install the browser the stories are tested in
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npx playwright install --with-deps --only-shell chromium
+      # Every story renders, runs its play steps and its accessibility check, and logs no error.
+      - name: Every story passes its tests
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm test
+      # Pictures of the changed stories, compared on chromatic.com against the last approved ones.
+      # It reports and never fails the run: the change is on main already, and is approved there.
+      - name: Pictures of the stories
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        env:
+          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+        run: |
+          if [ -z "$CHROMATIC_PROJECT_TOKEN" ]; then echo "No Chromatic token: skipped"; exit 0; fi
+          npx chromatic --storybook-build-dir dist --only-changed --exit-zero-on-changes --exit-once-uploaded
 
       - name: Install the API
         if: ${{ !cancelled() }}

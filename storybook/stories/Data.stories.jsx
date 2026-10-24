@@ -1,12 +1,31 @@
-import { useState } from 'react'
 import { Gauge, GaugeKey, Bars, ChartTip, Donut, Shares, ShareRow, Legend, LegendItem, Plot, Stat, SumHead, Sum } from '../../react/src/components/Data.jsx'
 import { Card, CardHeader, Cards } from '../../react/src/components/Card.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
+import { expect, fn, userEvent } from 'storybook/test'
+import { knownAccessibilityFaults, useHeld } from './controls.js'
 
-export default { title: 'Data/Charts and figures' }
+const percent = { control: { type: 'range', min: 0, max: 100, step: 1 } }
+
+export default {
+	title: 'Data/Charts and figures',
+	component: Gauge,
+	subcomponents: { GaugeKey, Bars, ChartTip, Donut, Shares, ShareRow, Legend, LegendItem, Plot, Stat, SumHead, Sum }
+}
+
+export const OneGauge = {
+	args: { value: 72, over: 0, marker: undefined, untargeted: false, thin: false, negative: false, passed: false, remainder: false, 'aria-label': 'Decor, August' },
+	argTypes: { value: percent, over: percent, marker: percent },
+	render: args => (
+		<Card>
+			<CardHeader name={args['aria-label']} />
+			<Gauge {...args} over={args.over || undefined} />
+		</Card>
+	)
+}
 
 export const Gauges = {
+	parameters: { a11y: knownAccessibilityFaults },
 	render: () => (
 		<Cards>
 			<Card>
@@ -37,13 +56,16 @@ const MONTHS = [
 ]
 
 export const SpendByMonth = {
-	render: () => {
-		const [month, setMonth] = useState('aug')
+	args: { selected: 'aug', limit: 34, onSelect: fn() },
+	argTypes: { selected: { control: 'inline-radio', options: MONTHS.map(m => m.key) }, limit: { ...percent, description: 'Where Plot draws its limit line' } },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Bars },
+	render: ({ limit, onSelect, ...args }) => {
+		const [month, setMonth] = useHeld(args, 'selected')
 		return (
 			<Card>
 				<CardHeader name="Spend by month" />
-				<Plot axis={['30k', '20k', '10k', '0']} limit={{ at: 34, label: 'Limit' }}>
-					<Bars variant="plot" selected={month} onSelect={setMonth} columns={MONTHS} />
+				<Plot axis={['30k', '20k', '10k', '0']} limit={{ at: limit, label: 'Limit' }}>
+					<Bars variant="plot" selected={month} onSelect={key => { setMonth(key); onSelect(key) }} columns={MONTHS} />
 				</Plot>
 				<Legend>
 					<LegendItem series={1}>Furniture</LegendItem>
@@ -53,13 +75,20 @@ export const SpendByMonth = {
 				</Legend>
 			</Card>
 		)
+	},
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getAllByRole('button')[1])
+		await expect(args.onSelect).toHaveBeenCalledWith('jun')
 	}
 }
 
 export const ColumnsWithReadout = {
-	render: () => (
+	args: { open: 'aug', variant: 'default' },
+	argTypes: { open: { control: 'inline-radio', options: ['apr', 'may', 'jun', 'jul', 'aug', 'sep'] } },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Bars },
+	render: ({ open, variant }) => (
 		<Card>
-			<Bars open="aug" columns={[['apr', 'Apr', 50, '5.010,00'], ['may', 'May', 65, '6.240,00'], ['jun', 'Jun', 70, '6.880,00'], ['jul', 'Jul', 60, '5.660,00'], ['aug', 'Aug', 100, '9.840,00'], ['sep', 'Sep', 80, '8.080,00']].map(([key, tick, height, amount]) => ({
+			<Bars open={open} variant={variant} columns={[['apr', 'Apr', 50, '5.010,00'], ['may', 'May', 65, '6.240,00'], ['jun', 'Jun', 70, '6.880,00'], ['jul', 'Jul', 60, '5.660,00'], ['aug', 'Aug', 100, '9.840,00'], ['sep', 'Sep', 80, '8.080,00']].map(([key, tick, height, amount]) => ({
 				key, tick, height, label: `${tick} 2026, ${amount} kr.`,
 				readout: <ChartTip title={`${tick} 2026`} value={`${amount} kr.`} rows={[{ key: 'orders', name: 'Orders', value: '4' }]} />
 			}))} />
@@ -68,20 +97,26 @@ export const ColumnsWithReadout = {
 }
 
 export const SharesOfAWhole = {
-	render: () => (
+	args: { figure: '61.480 kr.', label: 'August', loading: false, onPick: fn() },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Donut },
+	render: ({ figure, label, loading, onPick }) => (
 		<Card>
-			<CardHeader name="By category" aside="August" />
+			<CardHeader name="By category" aside={label} />
 			<div className="sp-row-flex sp-gap-16">
-				<Donut shares={[{ series: 1, value: 48 }, { series: 2, value: 27 }, { series: 3, value: 17 }, { series: 4, value: 8 }]} figure="61.480 kr." label="August" aria-label="Furniture 48%, Decor 27%, Lighting 17%, Other 8%" />
+				<Donut shares={[{ series: 1, value: 48 }, { series: 2, value: 27 }, { series: 3, value: 17 }, { series: 4, value: 8 }]} figure={figure} label={label} loading={loading} aria-label="Furniture 48%, Decor 27%, Lighting 17%, Other 8%" />
 				<Shares>
-					<ShareRow series={1} amount="29.510 kr." value="48%" onClick={() => {}}>Furniture</ShareRow>
-					<ShareRow series={2} amount="16.600 kr." value="27%" onClick={() => {}}>Decor</ShareRow>
-					<ShareRow series={3} amount="10.450 kr." value="17%" onClick={() => {}}>Lighting</ShareRow>
-					<ShareRow series={4} amount="4.920 kr." value="8%" onClick={() => {}}>Other</ShareRow>
+					<ShareRow series={1} amount="29.510 kr." value="48%" onClick={() => onPick('Furniture')}>Furniture</ShareRow>
+					<ShareRow series={2} amount="16.600 kr." value="27%" onClick={() => onPick('Decor')}>Decor</ShareRow>
+					<ShareRow series={3} amount="10.450 kr." value="17%" onClick={() => onPick('Lighting')}>Lighting</ShareRow>
+					<ShareRow series={4} amount="4.920 kr." value="8%" onClick={() => onPick('Other')}>Other</ShareRow>
 				</Shares>
 			</div>
 		</Card>
-	)
+	),
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByText('Decor'))
+		await expect(args.onPick).toHaveBeenCalledWith('Decor')
+	}
 }
 
 export const Loading = {
@@ -91,6 +126,12 @@ export const Loading = {
 			<Card><Donut loading /></Card>
 		</Cards>
 	)
+}
+
+export const OneFigure = {
+	args: { label: 'August', figure: '61.480,00 kr.', delta: 'Saved 8.240,00 kr.', meta: '', help: '', helpColor: 'default', color: 'default', large: false, bare: false },
+	parameters: { variantsOf: Stat },
+	render: args => <Card><Stat {...args} /></Card>
 }
 
 export const Figures = {
@@ -106,6 +147,12 @@ export const Figures = {
 			</Card>
 		</Cards>
 	)
+}
+
+export const OneSum = {
+	args: { children: 'Shipping', value: '340,00 kr.', meta: '', variant: 'default', tone: 'default', named: false },
+	parameters: { variantsOf: Sum },
+	render: args => <div style={{ maxWidth: 420 }}><Card><Sum {...args} /></Card></div>
 }
 
 export const Sums = {

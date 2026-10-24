@@ -7,6 +7,7 @@ import '../../react/src/styles/tokens.css'
 import '../../react/src/styles/components.css'
 import '../../react/src/styles/app.css'
 import '../../react/src/styles/pages.js'
+import { variantArgTypes } from './variants.js'
 
 // The app's own switch: tokens.css draws each theme from the root's data-theme, on a body of class sp.
 const withTheme = (Story, { globals }) => {
@@ -24,8 +25,24 @@ const withShape = Story => {
 	return <ShellTouch.Provider value={touch}><Story /></ShellTouch.Provider>
 }
 
+// A component reports a wrong prop with console.error, and only there: a story that logs one
+// fails its test, and shows why in the Interactions panel.
+let reported = []
+const consoleError = console.error
+console.error = (...parts) => {
+	reported.push(parts.map(String).join(' '))
+	consoleError(...parts)
+}
+const failOnConsoleError = () => {
+	if (reported.length) throw new Error(`The story logged an error:\n${reported.join('\n')}`)
+}
+
 export default {
+	tags: ['autodocs'],
 	decorators: [withShape, withRouter, withTheme],
+	argTypesEnhancers: [variantArgTypes],
+	beforeEach: () => { reported = [] },
+	afterEach: failOnConsoleError,
 	globalTypes: {
 		theme: {
 			description: 'Light or dark',
@@ -37,6 +54,7 @@ export default {
 		layout: 'padded',
 		backgrounds: { disable: true },
 		controls: { expanded: true },
+		a11y: { test: 'error' },
 		viewport: {
 			// the sizes the screenshots in docs/ are taken at
 			options: {

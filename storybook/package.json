@@ -7,12 +7,21 @@
 	"scripts": {
 		"dev": "storybook dev -p 6006",
 		"build": "storybook build -o dist",
-		"check": "node scripts/check-stories.mjs"
+		"check": "node scripts/check-stories.mjs",
+		"test": "vitest run"
 	},
 	"devDependencies": {
+		"@storybook/addon-a11y": "10.6.3",
+		"@storybook/addon-docs": "10.6.3",
+		"@storybook/addon-vitest": "10.6.3",
 		"@storybook/react-vite": "10.6.3",
 		"@vitejs/plugin-react": "6.0.4",
+		"@vitest/browser": "4.1.12",
+		"@vitest/browser-playwright": "4.1.12",
+		"chromatic": "18.13.3",
+		"playwright": "1.63.0",
 		"storybook": "10.6.3",
-		"vite": "8.1.6"
+		"vite": "8.1.6",
+		"vitest": "4.1.12"
 	}
 }

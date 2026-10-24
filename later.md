@@ -68,3 +68,24 @@ is removed in the change that settles it.
   nor `react/src/components/Combobox.jsx` takes, so it lands on the box as a stray attribute. The
   story in `storybook/stories/Combobox.stories.jsx` leaves it out. A note for the next Claude Design brief.
 - **Found:** 2026-10-24.
+
+## The Storybook's accessibility check finds faults in the components
+
+- **Where:** the stories marked `knownAccessibilityFaults` in `storybook/stories/`. Their test
+  reports the faults and does not fail. The Accessibility panel in Storybook lists each one.
+- **What the reader sees:** grey small text is hard to read for someone with weak sight, and a
+  screen reader names some parts wrongly or not at all.
+- **What was found:**
+  - The grey text (`--ink-5`, #8b8a82 on white) has a contrast of 3.46:1. The standard asks for
+    4.5:1 for text this small. It is the meta lines, section labels, units, axis ticks and group
+    heads, and it fails in 37 stories. It is a token, so it is a question for `design/`.
+  - `Mark` puts `aria-label` on a `span` with no role, so the name is not read out
+    (`Mark.jsx`; the Fills, Gone, Empty states and Attachment strip stories).
+  - The combobox panel is a `listbox` whose children are `li` around `button role="option"`, and
+    its group heads are `li` too: a listbox may hold only options and groups (`Combobox.jsx`).
+  - The custom colour in `Picker` is a `label` with `aria-pressed`, which a label cannot carry
+    (`Choice.jsx`).
+  - The search palette is a dialog with no name (`Palette` in `Shell.jsx`).
+  - The account button's name does not contain the words drawn on it (`SidebarAccount` in
+    `Shell.jsx`, with the name the Shell story passes).
+- **Found:** 2026-10-24.
