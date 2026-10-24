@@ -80,3 +80,34 @@ is removed in the change that settles it.
   - The account row's name is the name passed with `aria-label` ("Name, email"), which does not
     begin with the words drawn on it (`AppShell` and the Shell stories).
 - **Found:** 2026-10-24.
+
+## The whole pages in Storybook have accessibility faults
+
+- **Where:** every story in `storybook/pages/Pages.stories.jsx`, marked `knownAccessibilityFaults`.
+- **What the reader sees:** a screen reader reads some rows and buttons by a name that is not the
+  words on them, and a few controls sit inside other controls.
+- **What was found:**
+  - The sidebar's rows ("All orders, 441"), the statistics rows ("Transport, 4,795 kr.") and the
+    empty photo box on a bookmark have a name that does not hold the words drawn on them.
+  - The lists' last column head (`.sp-col-menu`) is empty (Orders, Vendors, Categories).
+  - The line photo's Add box (`label[aria-label="Add the line's photo"]`) and the large marks on the
+    order and vendor forms have a role their element may not have, and hold a control inside a
+    control.
+  - The grey text in a bookmark's empty photo box and its address line is under 4.5:1.
+- **Found:** 2026-10-24.
+
+
+## The app's components and their use differ from Claude Design
+
+- **Where:** `storybook/design-differences.json`, reported by `npm run design:check` and
+  `npm run props:check` in `storybook/` on every CI run.
+- **What the reader sees:** nothing yet. These are places where the app's code is not what
+  Claude Design handed over, or where a page gives a part a kind of value its comment does not name.
+- **What was found:**
+  - Combobox, Inputs, List, ListItem and Shell are written differently from `design/react_handoff`.
+    Failed, Icon, Reorder, icons and tabler are only in the app.
+  - Pages give text to a count (BulkBar, FieldGroup, ListItem's "!"), a drawn part to Sum's value,
+    and a number to Segmented's value on Budget.
+- **What to do:** each one is a question for Claude Design or a fix in a page. The change that settles
+  one removes its line from the list.
+- **Found:** 2026-10-24.

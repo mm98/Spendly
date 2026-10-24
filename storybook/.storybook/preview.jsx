@@ -19,7 +19,8 @@ const withTheme = (Story, { globals }) => {
 	return <Story />
 }
 
-const withRouter = Story => <MemoryRouter><Story /></MemoryRouter>
+// a page story brings the app's own router, and a router cannot sit inside another
+const withRouter = (Story, { parameters }) => parameters.ownRouter ? <Story /> : <MemoryRouter><Story /></MemoryRouter>
 
 // The phone shape at the app's own breakpoint, as the app's shell hands it to every part inside it.
 const withShape = Story => {

@@ -7,7 +7,7 @@ const app = path => fileURLToPath(new URL(`../../react/${path}`, import.meta.url
 
 export default {
 	framework: '@storybook/react-vite',
-	stories: ['../stories/*.stories.jsx'],
+	stories: ['../stories/*.stories.jsx', '../pages/*.stories.jsx'],
 	addons: ['@storybook/addon-docs', '@storybook/addon-a11y', '@storybook/addon-vitest'],
 	core: { disableTelemetry: true },
 	typescript: {

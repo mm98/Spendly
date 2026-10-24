@@ -344,7 +344,7 @@ printed amounts.
 | Email | [Nodemailer](https://nodemailer.com) |
 | Shipping | [Docker](https://www.docker.com), built and published by GitHub Actions |
 | Design | A design system of its own, in [`design/`](design/), made with Claude Design |
-| Component catalogue | [Storybook](https://storybook.js.org), in [`storybook/`](storybook/). The image serves it at `/storybook` to signed-in people. Its stories are tested with [Vitest](https://vitest.dev) in Chromium and [axe](https://github.com/dequelabs/axe-core), and pictured by [Chromatic](https://www.chromatic.com) |
+| Component catalogue | [Storybook](https://storybook.js.org), in [`storybook/`](storybook/). The image serves it at `/storybook` to signed-in people. Its stories, and the app's main pages drawn from kept demo data, are tested with [Vitest](https://vitest.dev) in Chromium and [axe](https://github.com/dequelabs/axe-core), and pictured by [Chromatic](https://www.chromatic.com). Two checks compare the components with `design/` and how the pages use them |
 
 ## How it is built
 
@@ -380,7 +380,7 @@ measurements.
 | [`react/`](react/) | The app: every page you see. |
 | [`api/`](api/) | The server, the database and its migrations, and the background jobs. |
 | [`design/`](design/) | The design system: every screen and component, and the rules below. |
-| [`storybook/`](storybook/) | The app's own components, one by one, in light and dark, on a phone and a desktop: each with a page of its settings, controls to try them, and tests that run on every merge. |
+| [`storybook/`](storybook/) | The app's own components, one by one, in light and dark, on a phone and a desktop: each with a page of its settings, controls to try them, and tests that run on every merge. The main pages too, in the states that open a part, such as an order line being edited. |
 | [`docs/`](docs/) | The screenshots on this page, rendered from the running app. |
 | [`CLAUDE.md`](CLAUDE.md) | The rules for working in this repository: how to check a change and what counts as done. |
 | [`later.md`](later.md) | Known small faults and things to look at again. |

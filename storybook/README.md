@@ -24,6 +24,8 @@ Open http://localhost:6006.
 | `npm run build` | The whole catalogue as static files in `dist/`. CI runs this. |
 | `npm run check` | Fails when a component file has no story, or a story file names no component. CI runs this. |
 | `npm test` | Opens every story in Chromium and runs its tests (below). CI runs this. |
+| `npm run design:check` | Fails when a component file is not the same code as its copy in `design/react_handoff`. CI runs this. |
+| `npm run props:check` | Fails when a page gives a component's prop the wrong kind of value. CI runs this. |
 
 `npm test` needs Playwright's Chromium once: `npx playwright install chromium`.
 
@@ -72,7 +74,40 @@ written in `later.md`: they show as warnings and do not fail. Remove the mark wh
 
 After a merge to main, CI also sends the built Storybook to [Chromatic](https://www.chromatic.com),
 which takes a picture of each story the change reaches and compares it with the last one approved
-there. A change in a picture is approved or turned down on chromatic.com. It never fails CI.
+there. CI waits for the pictures and writes how many changed, with the link, in the run's summary.
+A change in a picture is approved or turned down on chromatic.com. It never fails CI.
+
+## The whole pages
+
+A part can look right in its own story and still be drawn wrong by the page that sets it up.
+`pages/Pages.stories.jsx` draws the app's main pages with the app's own routes and shell, each in
+one state: the order with a line open, the delete question, the budget being edited, and so on.
+Chromatic takes each one on a phone and a computer, light and dark.
+
+They need no server. `pages/answers.json` holds what the server answered for each page, kept from
+a demo account by `scripts/record-pages.mjs`, and a page story gives those answers back and sets
+the clock to the moment they were kept, so the pictures are the same on every run.
+
+- `pages/states.js` lists the states: the address, and the buttons pressed to reach the state, by
+  the name a screen reader reads.
+- A new state is added there, and then the answers are kept again:
+  `NODE_PATH=/opt/node22/lib/node_modules node scripts/record-pages.mjs` (it starts the API and the
+  app with `react/scripts/session.mjs`).
+- When a page starts to ask the server for something new, its story warns "No answer kept" and draws
+  the page's error state. Keep the answers again.
+- Keeping the answers again moves the dates in every page picture. Approve those in Chromatic.
+
+## Against Claude Design
+
+`design/react_handoff` is Claude Design's copy of every component. `npm run design:check` compares
+each one with `react/src/components`, with the comments left out, since the build may change those.
+`npm run props:check` reads each component's type comment and checks every place in `react/src`
+that draws it: a switch must get true or false, a choice one of its words, and so on. Both write
+what they find to the CI run's summary.
+
+What already differs and waits for an answer is listed in `design-differences.json`, and is
+reported on every run without failing it. A new difference fails, and so does one that is listed
+but gone, so the list stays true. Each failure says the line to add, if the difference is to wait.
 
 ## Where things are
 
@@ -86,6 +121,11 @@ there. A change in a picture is approved or turned down on chromatic.com. It nev
 | `stories/*.stories.jsx` | The stories. Each file is named after the component file it shows. |
 | `stories/controls.js` | What stories share: a value held for a control, the icon picker, the faults mark. |
 | `scripts/check-stories.mjs` | The check that every component file has a story, and every story file a component. |
+| `scripts/check-design-copy.mjs` | The check that each component is the same code as Claude Design's copy. |
+| `scripts/check-prop-use.mjs` | The check that each page gives each component's props the right kind of value. |
+| `design-differences.json` | What differs from Claude Design today, waiting for an answer. |
+| `pages/` | The whole pages: their states, the kept answers, and what gives the answers back. |
+| `scripts/record-pages.mjs` | Keeps the answers the pages need, from the running app. |
 | `vitest.config.js` | How `npm test` runs the stories. |
 
 ## Adding or changing a story

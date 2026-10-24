@@ -1,0 +1,20 @@
+{
+	"files": {
+		"Combobox.jsx": { "hash": "61e1dad3494eb73b" },
+		"Inputs.jsx": { "hash": "8727bed40de0c91d" },
+		"List.jsx": { "hash": "68d827183aba7714" },
+		"ListItem.jsx": { "hash": "90bcdb5cb27249bc" },
+		"Shell.jsx": { "hash": "f10a336dadf75ec1" }
+	},
+	"appOnly": ["Failed.jsx", "Icon.jsx", "Reorder.js", "icons.js", "tabler.js"],
+	"propUse": [
+		"react/src/pages/Budget.jsx: <Segmented value> is given a number",
+		"react/src/pages/BudgetCheck.jsx: <BulkBar count> is given text",
+		"react/src/pages/Order.jsx: <Sum value> is given a drawn part",
+		"react/src/pages/OrderForm.jsx: <ListItem count> is given the words '!'",
+		"react/src/pages/Orders.jsx: <BulkBar count> is given text",
+		"react/src/pages/Orders.jsx: <FieldGroup count> is given text",
+		"react/src/pages/VendorForm.jsx: <Sum value> is given a drawn part",
+		"react/src/pages/vendorsCategories.jsx: <Sum value> is given a drawn part"
+	]
+}
