@@ -10,6 +10,15 @@ export default {
 	stories: ['../stories/*.stories.jsx'],
 	addons: ['@storybook/addon-docs', '@storybook/addon-a11y', '@storybook/addon-vitest'],
 	core: { disableTelemetry: true },
+	typescript: {
+		reactDocgen: 'react-docgen-typescript',
+		reactDocgenTypescriptOptions: {
+			include: ['../react/src/components/*.jsx'],
+			compilerOptions: { allowJs: true, checkJs: true },
+			shouldExtractLiteralValuesFromEnum: true,
+			savePropValueAsString: true
+		}
+	},
 	viteFinal: config => ({
 		...config,
 		// the app's own JSX transform (react/vite.config.js), and fast refresh in dev

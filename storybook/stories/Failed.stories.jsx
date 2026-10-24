@@ -5,7 +5,9 @@ import { knownAccessibilityFaults } from './controls.js'
 export default {
 	title: 'States/Did not load',
 	component: Failed,
-	args: { what: 'Orders', onRetry: fn(), error: { status: 0 } }
+	args: { what: 'Orders', label: 'Orders', onRetry: fn(), error: { status: 0 } },
+	// the card form names its card; the page form has no place for a name
+	argTypes: { label: { if: { arg: 'variant', eq: 'card' } } }
 }
 
 export const NoConnection = {
@@ -17,4 +19,4 @@ export const NoConnection = {
 }
 export const ServerProblem = { parameters: { a11y: knownAccessibilityFaults }, args: { error: { status: 500 } } }
 export const InACard = { args: { variant: 'card', label: 'Top vendors', what: 'Top vendors' } }
-export const Gone = { parameters: { a11y: knownAccessibilityFaults }, args: { what: 'This order', error: { status: 404 }, back: { to: '/orders', label: 'All orders' } } }
+export const Gone = { parameters: { a11y: knownAccessibilityFaults }, args: { what: 'This order', label: 'This order', error: { status: 404 }, back: { to: '/orders', label: 'All orders' } } }
