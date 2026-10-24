@@ -9,7 +9,9 @@ import { useFocusTrap } from './Utilities.jsx'
 import { FILE_TYPES, sniffedProblem } from './FileDrop.jsx'
 
 /** The attachment strip (c16): tiles in one row that scrolls sideways under two chevrons. A
-    chevron is disabled, and so hidden, when there is nothing further that way. */
+    chevron is disabled, and so hidden, when there is nothing further that way.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function Strip({ children, ...rest }) {
 	reject(rest, 'Strip')
 	const box = useRef(null)
@@ -43,7 +45,10 @@ export function Strip({ children, ...rest }) {
 	)
 }
 
-/** One tile in the strip: its mark, then the file's name beneath it. */
+/** One tile in the strip: its mark, then the file's name beneath it.
+    @param {object} props
+    @param {string} props.name
+    @param {import('react').ReactNode} [props.children] */
 export function Attachment({ name, children, ...rest }) {
 	reject(rest, 'Attachment')
 	return (
@@ -55,7 +60,11 @@ export function Attachment({ name, children, ...rest }) {
 }
 
 /** The tile the strip ends with, a label over a file input. `onFiles(files, problems)`: each file chosen
-    or dropped, and why it cannot be kept (`sniffedProblem`) or null, so its tile can say so (17b). */
+    or dropped, and why it cannot be kept (`sniffedProblem`) or null, so its tile can say so (17b).
+    @param {object} props
+    @param {string} [props.accept]
+    @param {boolean} [props.multiple]
+    @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles] */
 export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, ...rest }) {
 	reject(rest, 'AttachmentAdd')
 	const take = async list => {
@@ -253,8 +262,16 @@ function ViewerFile({ item, onSwipe }) {
 	return body
 }
 
+/** @typedef {{ name: string, src: string, zoomSrc?: string, download: string, kind: string, pageSrc?: string, pages?: number, countPages?: () => Promise<number> }} ViewerItem */
+
 /** One file at full size (12b); `items` are `{ name, src, zoomSrc?, download, kind, pageSrc?, pages?, countPages? }`.
-    `beside` is a second file shown next to the first to compare them (3c). */
+    `beside` is a second file shown next to the first to compare them (3c).
+    @param {object} props
+    @param {ViewerItem[]} [props.items]
+    @param {number} [props.at] which of the items is shown
+    @param {ViewerItem} [props.beside]
+    @param {(at: number) => void} [props.onMove]
+    @param {() => void} [props.onClose] */
 export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest }) {
 	reject(rest, 'Viewer')
 	const box = useRef(null)
