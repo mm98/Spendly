@@ -60,7 +60,7 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
     `onFiles(files, problems)`: each file chosen or dropped, and why it cannot be taken (`sniffedProblem`) or null.
     `disabled` draws the zone muted with no file input (20b); its children say why.
     @param {object} props
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {import('react').ReactNode} [props.children]
     @param {string} [props.accept] the file types taken, as a file input names them
     @param {boolean} [props.multiple]
@@ -165,8 +165,7 @@ export function pasteAnywhere(ev) {
     @param {() => void} [props.onRetry]
     @param {import('react').ReactNode} [props.lead]
     @param {import('react').ReactNode} [props.trail]
-    @param {import('react').ReactNode} [props.unit]
-    @param {string} [props.aria-describedby] */
+    @param {import('react').ReactNode} [props.unit] */
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)

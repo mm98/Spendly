@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import { playwright } from '@vitest/browser-playwright'
+import reactDocgenTypescript from '@joshwooding/vite-plugin-react-docgen-typescript'
 import main from './.storybook/main.js'
 
 const browser = () => ({
@@ -21,7 +22,8 @@ export default defineConfig({
 			},
 			// Tests over all the stories at once, built the way Storybook builds them.
 			{
-				...main.viteFinal({ plugins: [] }),
+				// the same reader of the components' types that Storybook runs
+				...main.viteFinal({ plugins: [reactDocgenTypescript({ ...main.typescript.reactDocgenTypescriptOptions, savePropValueAsString: true })] }),
 				test: { name: 'stories', include: ['tests/*.test.jsx'], browser: browser() }
 			}
 		]

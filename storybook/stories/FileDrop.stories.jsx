@@ -43,9 +43,9 @@ export const DropZoneTurnedOff = {
 }
 
 export const PictureSlot = {
-	parameters: { a11y: knownAccessibilityFaults },
+	parameters: { a11y: knownAccessibilityFaults, variantsOf: Slot },
 	args: { size: 'large', kind: 'Photo', word: 'Add', busy: false, problem: '', onFile: fn(), onRemove: fn() },
-	argTypes: { title: { control: false }, meta: { control: false }, icon: { control: false } },
+	argTypes: Object.fromEntries(['title', 'meta', 'icon', 'action', 'children'].map(prop => [prop, { control: false, table: { disable: true } }])),
 	render: ({ onFile, onRemove, problem, title, meta, icon, onFiles, ...args }) => (
 		<div className="sp-row-flex sp-gap-16">
 			<Field label="Photo"><Slot {...args} problem={problem || undefined} onFile={onFile} onRemove={problem ? onRemove : undefined} /></Field>

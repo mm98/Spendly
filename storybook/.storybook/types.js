@@ -4,6 +4,8 @@
 //   control, since a part is not typed into a box;
 // - a prop with no type comment: its kind is read from its default, else from the story's value.
 
+import { LOCALES } from '../../react/src/api/format.js'
+
 const CONTENT = /\bReact(Node|Element)\b/
 
 const kindOfDefault = summary => {
@@ -22,9 +24,21 @@ const untyped = argType => !argType.type?.name || (argType.type.name === 'other'
 export const typeArgTypes = ({ argTypes, initialArgs = {} }) => {
 	const next = { ...argTypes }
 	for (const [prop, argType] of Object.entries(argTypes)) {
+		if (prop === 'locale' && argType.control === undefined) {
+			// the ways of writing numbers and dates an account can choose; none is the browser's own
+			next[prop] = { ...argType, options: LOCALES.map(l => l.code).filter(code => code !== 'auto'), control: { type: 'select' } }
+			continue
+		}
 		if (argType.options || argType.control !== undefined) continue
 		if (CONTENT.test(argType.table?.type?.summary ?? '')) {
 			next[prop] = { ...argType, control: typeof initialArgs[prop] === 'string' ? { type: 'text' } : false }
+			continue
+		}
+		// one allowed value: a choice of it or nothing, never a box that takes any text
+		const only = [argType.type?.raw, argType.type?.name, argType.table?.type?.summary]
+			.map(text => /^(["'])([^"']*)\1$/.exec(text ?? '')).find(Boolean)
+		if (only) {
+			next[prop] = { ...argType, options: [only[2]], control: { type: 'select' } }
 			continue
 		}
 		if (!untyped(argType)) continue
@@ -37,5 +51,21 @@ export const typeArgTypes = ({ argTypes, initialArgs = {} }) => {
 			table: { ...argType.table, type: { summary: kind } }
 		}
 	}
+	return next
+}
+
+// Controls and the props table hold what changes how the part looks. A plain HTML attribute, a
+// handle on an element, or a handler is wiring: it stays out of both, and a handler's calls still
+// show in Actions. `name` is wiring except where the part draws it as text.
+const WIRING = /^(id|name|key|ref|role|tabIndex|htmlFor|form|autoComplete|autoFocus|required|aria-.*|data-.*|on[A-Z].*|\w+Ref)$/
+const DRAWN_NAME = ['CardHeader', 'Attachment', 'Crumb', 'ChatChart', 'SidebarAccount']
+
+export const lookArgTypes = ({ component, argTypes, parameters }) => {
+	const shown = parameters.variantsOf ?? component
+	const named = DRAWN_NAME.includes(shown?.__docgenInfo?.displayName ?? shown?.name)
+	const next = { ...argTypes }
+	for (const prop of Object.keys(argTypes))
+		if (WIRING.test(prop) && !(prop === 'name' && named))
+			next[prop] = { ...argTypes[prop], control: false, table: { ...argTypes[prop].table, disable: true } }
 	return next
 }

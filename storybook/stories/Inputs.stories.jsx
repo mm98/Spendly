@@ -104,6 +104,7 @@ export const AskStates = {
 }
 
 export const AmountBetween = {
+	parameters: { variantsOf: RangeSlider },
 	args: { label: 'Amount between', value: [500, 4000], min: 0, max: 6000, step: 100 },
 	render: ({ label: name, onChange, ...args }) => {
 		const [bounds, setBounds] = useHeld(args, 'value')
@@ -116,6 +117,7 @@ export const AmountBetween = {
 }
 
 export const Tokens = {
+	parameters: { variantsOf: TokensField },
 	args: { label: 'Vendors this rule covers', value: ['Indbo Møbler', 'HAY'], placeholder: 'Add a vendor', danger: false },
 	render: ({ label: name, onChange, ...args }) => {
 		const [tokens, setTokens] = useHeld(args, 'value')

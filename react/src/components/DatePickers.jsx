@@ -480,7 +480,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 /** On touch the range picker is a sheet over the page, not a panel under the row (c14): the one
     sheet Statistics and the order filters share. Its own scrim closes it without applying.
     @param {object} props
-    @param {() => void} [props.onClose]
+    @param {() => void} props.onClose
     @param {import('react').ReactNode} [props.children] */
 export function RangeSheet({ onClose, children }) {
 	const box = useRef(null)

@@ -158,7 +158,7 @@ function fitSubmenu(item) {
 }
 
 /** @param {object} props
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {string} [props.to]
     @param {() => void} [props.onClick]
     @param {boolean} [props.disabled]
@@ -402,7 +402,7 @@ const TOAST_COLOR = { default: null, danger: 'danger' }
     `asks` toast is a notice that stays until answered: `mark` stands for the icon, `actions` answer. */
 /** `list` is a short list under the words of a toast that asks, read out as `listLabel` (6d).
     @param {object} props
-    @param {string} [props.icon]
+    @param {import('./Icon.jsx').IconName} [props.icon]
     @param {import('react').ReactNode} [props.mark]
     @param {import('react').ReactNode} [props.title]
     @param {keyof typeof TOAST_COLOR} [props.color]

@@ -7,8 +7,8 @@ import '../../react/src/styles/tokens.css'
 import '../../react/src/styles/components.css'
 import '../../react/src/styles/app.css'
 import '../../react/src/styles/pages.js'
-import { typeArgTypes } from './types.js'
-import { variantArgTypes } from './variants.js'
+import { lookArgTypes, typeArgTypes } from './types.js'
+import { shownArgTypes, variantArgTypes } from './variants.js'
 
 // The app's own switch: tokens.css draws each theme from the root's data-theme, on a body of class sp.
 const withTheme = (Story, { globals }) => {
@@ -41,7 +41,7 @@ const failOnConsoleError = () => {
 export default {
 	tags: ['autodocs'],
 	decorators: [withShape, withRouter, withTheme],
-	argTypesEnhancers: [variantArgTypes, typeArgTypes],
+	argTypesEnhancers: [shownArgTypes, variantArgTypes, typeArgTypes, lookArgTypes],
 	beforeEach: () => { reported = [] },
 	afterEach: failOnConsoleError,
 	globalTypes: {
