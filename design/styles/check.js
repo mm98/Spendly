@@ -84,6 +84,14 @@
      Layout rules 15e (< 440px) the chevrons of Filters and Sort sat right after their labels. */
   if (!/\.sp-touch \.sp-controls > \.sp-combobox \.sp-combobox__chevron \{[^}]*margin-left: auto/.test(comp))
     fail('a stretched combobox keeps its chevron at the edge', 'components.css', '.sp-touch .sp-controls > .sp-combobox .sp-combobox__chevron has no margin-left: auto');
+  /* A wrapped trail stays in the field's end row. Caught: Ask with no questions left, its button
+     inside a tooltip span, dropped below the search field. */
+  if (!/\.sp-field__trails > span\[data-tip\] > \.sp-field__trail \{[^}]*position: relative;[^}]*transform: none/.test(comp))
+    fail('a wrapped trail sits in its row', 'components.css', '.sp-field__trails > span[data-tip] > .sp-field__trail is not placed in the row');
+  /* A shortcut hint centres on the field's real height. Caught: on a phone (< 640px) the search
+     field is the 48px touch height, and the ⌘K hint, pinned to the 36px desktop height, sat high. */
+  if (!/\.sp-field__kbd \{[^}]*top: 50%;[^}]*transform: translateY\(-50%\)/.test(comp))
+    fail('a shortcut hint is centred in its field', 'components.css', '.sp-field__kbd is not centred on the field height');
   /* A stepper keeps room for one digit, and its value is always .sp-stepper__value. Caught: on
      Layout rules 15b a stepper drawn with its own div value shrank until the digit was hidden. */
   if (!/\.sp-stepper__value \{[^}]*min-width: calc\(1ch/.test(comp))
