@@ -1,5 +1,5 @@
 import { createContext, useContext, useLayoutEffect, useRef, useState } from 'react'
-import { AnimatePresence, LazyMotion, MotionConfig, animate, m, useIsPresent, useMotionValue, useReducedMotionConfig } from 'motion/react'
+import { AnimatePresence, LazyMotion, MotionConfig, animate, domMax, m, useIsPresent, useMotionValue, useReducedMotionConfig } from 'motion/react'
 
 /* Motion's settings, read from tokens.css. The stylesheet stays the only place the pace is written:
    this file reads --motion-in, --motion-out, --ease-enter, --ease-exit, --motion-rise and --motion-slide
@@ -103,17 +103,15 @@ export function useStill() {
 	return !!useReducedMotionConfig()
 }
 
-// the full feature set, fetched after the first paint: what layoutId, layout and drag need
-const features = () => import('motion/react').then(r => r.domMax)
-
-/** Motion for the whole app, once, around the shell (and the Storybook decorator): the features
-    load after the first paint, and a reader who asks the system for less motion gets it everywhere,
+/** Motion for the whole app, once, around the shell (and the Storybook decorator): the full feature
+    set (domMax, what layoutId, layout and drag need) loads with the app, so the first page change
+    slides its markers and a part closed at once still runs its way out; and a reader who asks the system for less motion gets it everywhere,
     with no component checking for itself. Under it, transforms and layout moves are off and fades stay.
     @param {object} props
     @param {import('react').ReactNode} [props.children] The app. */
 export function MotionShell({ children }) {
 	return (
-		<LazyMotion features={features} strict>
+		<LazyMotion features={domMax} strict>
 			<MotionConfig reducedMotion="user" transition={into()}>{children}</MotionConfig>
 		</LazyMotion>
 	)
@@ -209,7 +207,8 @@ export function Rows({ count, kind = 'row', children }) {
 }
 
 /** What a row spreads on its m element inside `Rows`: presence, the glide, and, while it leaves,
-    no presses and nothing read out. Outside `Rows`, nothing. Internal. */
+    no presses and nothing read out. Outside `Rows`, nothing. A row in a ReorderList passes it to
+    `itemOf` instead, which keeps the drag's own layout. Internal. */
 export function useRow() {
 	const rows = useContext(RowsOf)
 	const here = useIsPresent()
