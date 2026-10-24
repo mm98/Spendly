@@ -3,7 +3,8 @@ import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
-import { TextField, TokensField } from '../components/Inputs.jsx'
+import { TextField } from '../components/Inputs.jsx'
+import { Combobox } from '../components/Combobox.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import { Check, Choice, Picker, Switch } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
@@ -320,7 +321,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 							</div>
 						)
 						: null}>
-					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
+					{h(<Combobox multiple value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
 				</Field>
 				<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
 					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}

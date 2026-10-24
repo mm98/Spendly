@@ -1,5 +1,5 @@
-import { expect, fn, userEvent } from 'storybook/test'
-import { TextField, PasswordField, NumberField, SearchInput, AskTrail, RangeSlider, TokensField } from '../../react/src/components/Inputs.jsx'
+import { expect, fn, userEvent, waitFor } from 'storybook/test'
+import { TextField, PasswordField, NumberField, SearchInput, AskTrail, RangeSlider } from '../../react/src/components/Inputs.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { knownAccessibilityFaults, useHeld } from './controls.js'
 
@@ -18,7 +18,7 @@ const held = (Input, { field = {}, ...props } = {}) => ({ label: name, onChange,
 export default {
 	title: 'Fields/Inputs',
 	component: TextField,
-	subcomponents: { PasswordField, NumberField, SearchInput, AskTrail, RangeSlider, TokensField },
+	subcomponents: { PasswordField, NumberField, SearchInput, AskTrail, RangeSlider },
 	decorators: [Story => <div style={{ maxWidth: 420 }}><Story /></div>],
 	args: { onChange: fn() },
 	argTypes: { label, action: { control: false } }
@@ -43,8 +43,13 @@ export const Password = {
 	play: async ({ canvas, canvasElement }) => {
 		const box = canvasElement.querySelector('input')
 		await expect(box).toHaveAttribute('type', 'password')
-		await userEvent.click(canvas.getByRole('button', { name: 'Show password' }))
-		await expect(box).toHaveAttribute('type', 'text')
+		const eye = canvas.getByRole('button', { name: 'Show password' })
+		await userEvent.click(eye)
+		// the letters shuffle into place over the field, and then the field shows them
+		await waitFor(() => expect(box).toHaveAttribute('type', 'text'))
+		await expect(canvasElement.querySelector('.sp-input__shuffle')).toBeNull()
+		await userEvent.click(eye)
+		await waitFor(() => expect(box).toHaveAttribute('type', 'password'))
 	}
 }
 
@@ -110,19 +115,6 @@ export const AmountBetween = {
 		return (
 			<Field label={name}>
 				<RangeSlider {...args} label="Amount" value={bounds} onChange={next => { setBounds(next); onChange(next) }} />
-			</Field>
-		)
-	}
-}
-
-export const Tokens = {
-	parameters: { variantsOf: TokensField },
-	args: { label: 'Vendors this rule covers', value: ['Indbo Møbler', 'HAY'], placeholder: 'Add a vendor', danger: false },
-	render: ({ label: name, onChange, ...args }) => {
-		const [tokens, setTokens] = useHeld(args, 'value')
-		return (
-			<Field label={name}>
-				<TokensField {...args} aria-label={name} value={tokens} onChange={next => { setTokens(next); onChange(next) }} />
 			</Field>
 		)
 	}

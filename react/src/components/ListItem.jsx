@@ -74,6 +74,27 @@ export function ListItem({
 		...(selected !== undefined ? { 'aria-selected': selected ? 'true' : 'false' } : {}),
 		...rest
 	}
+	// a row that opens and also moves is a plain box: the handle and the open target side by side,
+	// never a button inside a button (Components, Ordering by hand)
+	if (handle && variant !== 'add' && (to || onClick)) {
+		const inside = (
+			<>
+				{mark}
+				{count != null ? <span className="sp-list-item__count">{count}</span> : null}
+				{children}
+			</>
+		)
+		return (
+			<div className={classes} {...attrs}>
+				<button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button>
+				{to
+					? <Link className="sp-list-item__open" to={to} data-go={to}>{inside}</Link>
+					: <button type="button" className="sp-list-item__open" onClick={onClick}>{inside}</button>}
+				{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
+				{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
+			</div>
+		)
+	}
 	const body = (
 		<>
 			{/* an add row holds the handle's column empty, so it lines up under rows that can move */}

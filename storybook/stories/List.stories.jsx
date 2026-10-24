@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { knownAccessibilityFaults, useHeld } from './controls.js'
-import { List, Caption, Selected, ListHead, ListRow, ListCell, Controls, Filters, Crumb, Crumbs, Record, Records, ListMore, BulkBar, ListToolbar } from '../../react/src/components/List.jsx'
+import { List, Caption, Selected, ListHead, ListRow, ListCell, Controls, Filters, Crumb, Crumbs, Record, ListMore, BulkBar, ListToolbar } from '../../react/src/components/List.jsx'
 import { Card, CardHeader } from '../../react/src/components/Card.jsx'
 import { Button } from '../../react/src/components/Button.jsx'
 import { Chip } from '../../react/src/components/Chip.jsx'
@@ -29,8 +29,9 @@ const ORDERS = Array.from({ length: 48 }, (_, i) => {
 export default {
 	title: 'Lists/List',
 	component: List,
-	subcomponents: { Caption, Selected, ListHead, ListRow, ListCell, Controls, Filters, Crumb, Crumbs, Record, Records, ListMore, BulkBar, ListToolbar },
-	argTypes: { data: { control: false }, children: { control: false } }
+	subcomponents: { Caption, Selected, ListHead, ListRow, ListCell, Controls, Filters, Crumb, Crumbs, Record, ListMore, BulkBar, ListToolbar },
+	// each story draws one body, so the choice is the story's, not a control's
+	argTypes: { data: { control: false }, children: { control: false }, body: { control: false, options: [] }, head: { control: false }, footer: { control: false } }
 }
 
 // a narrow column draws orders as cards, so the table is a wide screen's only
@@ -143,14 +144,14 @@ export const Cards_ = {
 	render: ({ pageSize, onOpen }) => {
 		const [shown, setShown] = useHeld({ shown: pageSize }, 'shown')
 		return (
-			<Records
+			<List body="cards"
 				head={<ListToolbar loose><strong className="sp-data">{BOOKMARKS.length} bookmarks</strong></ListToolbar>}
 				footer={<ListMore loose shown={Math.min(shown, BOOKMARKS.length)} total={BOOKMARKS.length} pageSize={pageSize} onMore={() => setShown(shown + pageSize)} />}>
 				{BOOKMARKS.slice(0, shown).map(b => (
 					<Record key={b.id} onClick={() => onOpen(b.name)} photos={[]} empty="No picture" title={b.name} subtitle={b.site}
 						headChips chips={[<Chip key="c">{b.category}</Chip>]} />
 				))}
-			</Records>
+			</List>
 		)
 	}
 }

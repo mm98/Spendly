@@ -4,7 +4,8 @@ import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber, round } from './format.js'
 
 /** `step` is what minus and plus move by; `decimals` how many places a typed value keeps, the step's
-    own when absent (14a). A value with places is typed and read in `locale`, shown without trailing zeros.
+    own when absent (14a). A value with places is typed and read in `locale`, always shown with all its places:
+    with `decimals` 2, twenty reads 20,00, never 20.
     @param {object} props
     @param {number} [props.value] The number. Leave it out to let the stepper keep its own value.
     @param {number} [props.defaultValue] The number at first, when the stepper keeps its own value.
@@ -12,7 +13,7 @@ import { formatNumber, parseNumber, round } from './format.js'
     @param {number} [props.min] The lowest number. Minus turns off there.
     @param {number} [props.max] The highest number. Plus turns off there.
     @param {number} [props.step] How much minus and plus change the number.
-    @param {number} [props.decimals] How many decimal places a typed number keeps. Read from the step when left out.
+    @param {number} [props.decimals] How many decimal places the number keeps and shows, trailing zeros included. Read from the step when left out.
     @param {string} [props.locale] How numbers are written, such as da-DK. The browser's when left out.
     @param {string} [props.id]
     @param {string} [props.fieldLabel] Handed by Field, never written by a caller: the field's label text. */
@@ -65,9 +66,8 @@ export function Stepper({
 	const noFewer = min !== undefined && fewer < min
 	const noMore = max !== undefined && more > max
 
-	const shown = typing ?? (fractional
-		? (places === undefined ? formatNumber(current, { locale, decimals }) : new Intl.NumberFormat(locale, { maximumFractionDigits: decimals }).format(current))
-		: String(current))
+	// every place is shown at all times, so a column of steppers aligns and 20,00 does not read as 20
+	const shown = typing ?? (fractional ? formatNumber(current, { locale, decimals }) : String(current))
 
 	return (
 		<div className="sp-stepper" {...box}>

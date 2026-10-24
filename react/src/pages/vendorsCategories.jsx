@@ -7,7 +7,7 @@ import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace } from '../compo
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { SearchInput, TokensField } from '../components/Inputs.jsx'
+import { SearchInput } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuLabel, MenuSeparator, Popover } from '../components/Overlays.jsx'
 import { Scrim } from '../components/Shell.jsx'
@@ -549,7 +549,7 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 	const groups = groupPicks(matches, useRecent('category').filter(n => !value.some(v => same(v, n))), query, 'Other categories', { byName: true })
 	const exists = value.some(n => same(n, query)) || Boolean(exact)
 	return (
-		<TokensField value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
+		<Combobox multiple value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
 			{[
 				...pickGroups(groups, c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
 				<MoreMatches key="more" rows={offered.rows} matched={offered.matched} noun="categories" />,
@@ -557,7 +557,7 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 					? <ComboboxOption key="create" create mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>
 					: null
 			]}
-		</TokensField>
+		</Combobox>
 	)
 }
 

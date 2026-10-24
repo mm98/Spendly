@@ -7,6 +7,8 @@ import { Stacked } from '../../react/src/components/Utilities.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
 
 const CHEVRON = <Icon name="chevron-right" />
+// a handle is a drawn part, so the story offers it by name
+const handleControl = (size = 14) => ({ control: 'select', options: ['none', 'grip'], mapping: { none: undefined, grip: <Icon name="grip-vertical" size={size} /> } })
 
 export default {
 	title: 'Lists/List item',
@@ -17,8 +19,8 @@ export default {
 }
 
 export const OneRow = {
-	args: { variant: 'default', color: 'default', name: 'Indbo Møbler', reference: 'SPENDLY-441', amount: '3.980,00', count: undefined, opens: true, editable: false, onClick: fn() },
-	argTypes: { name: { control: 'text', description: 'The row\'s title' }, reference: { control: 'text', description: 'Its second line' }, amount: { control: 'text', description: 'The amount at its end' } },
+	args: { variant: 'default', color: 'default', name: 'Indbo Møbler', reference: 'SPENDLY-441', amount: '3.980,00', count: undefined, opens: true, editable: false, handle: 'none', handleLabel: 'Move Indbo Møbler', onClick: fn() },
+	argTypes: { name: { control: 'text', description: 'The row\'s title' }, reference: { control: 'text', description: 'Its second line' }, amount: { control: 'text', description: 'The amount at its end' }, handle: handleControl() },
 	render: ({ name, reference, amount, ...args }) => (
 		<Card variant="flush">
 			<ListItem {...args} mark={<Mark size="medium" fill="solid">{name}</Mark>} chevron={CHEVRON}>
@@ -83,6 +85,31 @@ export const WithActionsAndHandle = {
 	play: async ({ args, canvas }) => {
 		await userEvent.click(canvas.getByRole('button', { name: 'Rename Belysning' }))
 		await expect(args.onRename).toHaveBeenCalledWith('Belysning')
+	}
+}
+
+// a row that opens and also moves: the handle and the open target side by side, never one inside the other
+export const OpensAndMoves = {
+	args: { onOpen: fn(), onRename: fn() },
+	render: ({ onOpen, onRename }) => (
+		<Card variant="flush">
+			{['Havemøbler', 'Boligtilbehør', 'Belysning'].map(name => (
+				<ListItem key={name} opens handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${name}`} onClick={() => onOpen(name)}
+					actions={<IconButton icon="pencil" aria-label={`Rename ${name}`} onClick={() => onRename(name)} />}>
+					<span className="sp-title sp-grow sp-truncate">{name}</span>
+				</ListItem>
+			))}
+		</Card>
+	),
+	play: async ({ args, canvas, canvasElement }) => {
+		await expect(canvasElement.querySelector('button button, a button')).toBeNull()
+		await userEvent.click(canvas.getByText('Belysning'))
+		await expect(args.onOpen).toHaveBeenCalledWith('Belysning')
+		await userEvent.click(canvas.getByRole('button', { name: 'Rename Belysning' }))
+		await expect(args.onRename).toHaveBeenCalledWith('Belysning')
+		await expect(args.onOpen).toHaveBeenCalledOnce()
+		await userEvent.click(canvas.getByRole('button', { name: 'Move Havemøbler' }))
+		await expect(args.onOpen).toHaveBeenCalledOnce()
 	}
 }
 

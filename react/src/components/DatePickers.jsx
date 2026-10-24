@@ -134,6 +134,13 @@ function Month({
 }) {
 	reject(rest, 'Month')
 	const grid = useRef(null)
+	// which way the month last stepped, so its days slide in from that side
+	const seen = useRef(year * 12 + month)
+	const step = useRef(null)
+	if (year * 12 + month !== seen.current) {
+		step.current = year * 12 + month > seen.current ? 'next' : 'prev'
+		seen.current = year * 12 + month
+	}
 	const days = monthDays(year, month, locale)
 	const today = iso(new Date())
 	const full = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -209,7 +216,7 @@ function Month({
 				{showWeeks ? <span className="sp-range__week">W</span> : null}
 				{weekdays(locale).map((d2, i) => <span key={i}>{d2}</span>)}
 			</div>
-			<div className="sp-range__days" role="grid" ref={grid}>
+			<div className="sp-range__days" role="grid" ref={grid} key={year * 12 + month} {...(step.current ? { 'data-step': step.current } : {})}>
 				{weeks.map((week, w) => (
 					<div role="row" style={{ display: 'contents' }} key={w}>
 						{showWeeks

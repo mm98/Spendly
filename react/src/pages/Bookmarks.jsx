@@ -9,7 +9,7 @@ import { FieldGroup } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
-import { Controls, Crumb, Filters, ListMore, Record, Records } from '../components/List.jsx'
+import { Controls, Crumb, Filters, List, ListMore, Record } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Segmented } from '../components/Segmented.jsx'
@@ -274,7 +274,7 @@ export default function Bookmarks() {
 	} else {
 		const footer = <ListMore loose shown={data.bookmarks.length} total={data.matched} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
 		body = (
-			<Records footer={footer}>
+			<List body="cards" footer={footer}>
 				{data.bookmarks.map(bookmark => {
 					const href = httpUrl(bookmark.url)
 					const site = siteOf(bookmark.url)
@@ -324,7 +324,7 @@ export default function Bookmarks() {
 						/>
 					)
 				})}
-			</Records>
+			</List>
 		)
 	}
 
@@ -403,7 +403,7 @@ const LOADING_WIDTHS = [['62pc', '44pc'], ['48pc', '36pc'], ['55pc', '30pc']]
 /* A page of cards held at the loaded cards' size (6b), so nothing moves when the bookmarks land. */
 function BookmarksLoading({ size }) {
 	return (
-		<Records aria-busy="true" aria-label="Loading your bookmarks">
+		<List body="cards" aria-busy="true" aria-label="Loading your bookmarks">
 			{Array.from({ length: size }, (_, i) => {
 				const [title, shop] = LOADING_WIDTHS[i % LOADING_WIDTHS.length]
 				return (
@@ -416,6 +416,6 @@ function BookmarksLoading({ size }) {
 						amount={<Bar role="sp-amount" w="64" h="20" end />} />
 				)
 			})}
-		</Records>
+		</List>
 	)
 }

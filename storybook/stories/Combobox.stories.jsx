@@ -90,6 +90,48 @@ export const Searchable = {
 		await expect(options.map(o => o.textContent)).toEqual(['MUMuuto', 'Add “mu”'])
 		await userEvent.click(options[0])
 		await expect(args.onPick).toHaveBeenCalledWith('Muuto')
+		// the arrow at the field's end opens the list and closes it again, as a native select's does
+		const arrow = canvasElement.querySelector('.sp-field__chevron')
+		await userEvent.click(arrow)
+		await expect(args.onOpenChange).toHaveBeenLastCalledWith(true)
+		await userEvent.click(arrow)
+		await expect(args.onOpenChange).toHaveBeenLastCalledWith(false)
+		await expect(field).toHaveFocus()
+	}
+}
+
+export const Several = {
+	args: { multiple: true, label: 'Vendors this rule covers', value: ['Indbo Møbler', 'HAY'], placeholder: 'Add a vendor', noun: 'vendors', danger: false, marked: undefined, onChange: fn(), onSearch: fn() },
+	argTypes: {
+		label: { control: 'text', description: 'The Field\'s label' },
+		marked: { control: 'select', options: [undefined, ...VENDORS.map(v => v.name)] }
+	},
+	render: ({ label, onChange, onSearch, onOpenChange, ...args }) => {
+		const [values, setValues] = useHeld(args, 'value')
+		const [query, setQuery] = useState('')
+		const change = next => { setValues(next); onChange(next) }
+		const matches = VENDORS.filter(v => !values.includes(v.name) && v.name.toLowerCase().includes(query.toLowerCase()))
+		return (
+			<Field label={label}>
+				<Combobox {...args} value={values} onChange={change} onSearch={q => { setQuery(q); onSearch(q) }}>
+					{matches.map(v => (
+						<ComboboxOption key={v.name} meta={v.orders} onSelect={() => change([...values, v.name])}>{v.name}</ComboboxOption>
+					))}
+				</Combobox>
+			</Field>
+		)
+	},
+	play: async ({ args, canvas, canvasElement }) => {
+		const field = canvas.getByRole('combobox')
+		await userEvent.type(field, 'Muuto{Enter}')
+		await expect(args.onChange).toHaveBeenLastCalledWith(['Indbo Møbler', 'HAY', 'Muuto'])
+		// a chip the reader adds grows in
+		await expect(canvasElement.querySelector('.sp-chip[data-added="true"]')).toHaveTextContent('Muuto')
+		await userEvent.click(canvas.getByRole('button', { name: 'Remove HAY' }))
+		await expect(args.onChange).toHaveBeenLastCalledWith(['Indbo Møbler', 'Muuto'])
+		// one removed shrinks out, and is gone once it has
+		await waitFor(() => expect(canvasElement.querySelector('.sp-chip[data-leaving="true"]')).toBeNull())
+		await expect([...canvasElement.querySelectorAll('.sp-chip')].map(c => c.textContent)).toEqual(['Indbo Møbler', 'Muuto'])
 	}
 }
 

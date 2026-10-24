@@ -12,6 +12,7 @@ import { Skeleton, useDismiss } from '../components/Utilities.jsx'
 import { addStatus, changeStatus, deleteStatus, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { TONES } from '../app/statuses.js'
+import { useRowMotion } from '../app/rowMotion.js'
 import { landing } from './SettingsParts.jsx'
 
 const TONE_NAMES = [['success', 'Positive'], ['progress', 'In progress'], ['danger', 'Problem'], ['neutral', 'Neutral']]
@@ -55,6 +56,7 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 		nameOf: status => status.name,
 		onMove: edit
 	})
+	const motion = useRowMotion(reorder.items, status => status.key)
 
 	if (!list)
 		return (
@@ -79,7 +81,7 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 			<CardHeader name="Statuses" {...landing('statuses')} aside="Drag to reorder" />
 			<div className="sp-stack sp-gap-6" {...reorder.list}>
 				<Announce>{reorder.said}</Announce>
-				{reorder.items.map(status => (
+				{motion.items.map(status => (
 					<Fragment key={status.key}>
 						{reorder.lands(status) ? <Insertion /> : null}
 						{editing === status.key
@@ -87,7 +89,7 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 							: (
 								<ListItem variant={reorder.variant(status)} editable
 									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
-									data-status={status.key} {...reorder.row(status)}>
+									data-status={status.key} {...(motion.leaving(status) ? {} : reorder.row(status))} {...motion.row(status)}>
 									<StatusLook tone={status.tone}>{status.name}</StatusLook>
 									<span className="sp-grow" />
 									{/* on a phone the count is left out, so the name sits level with the rest of the row (11a) */}

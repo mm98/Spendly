@@ -152,8 +152,29 @@ export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
     @param {() => void} [props.onLoadMore]
     @param {boolean} [props.headless] Draw no head row.
     @param {string} [props.locale] How the counts are written, such as da-DK. The browser's when left out.
-    @param {import('react').ReactNode} [props.children] The parts of the list: Caption, ListHead, ListRow and Foot. */
-export function List({
+    @param {'table' | 'cards'} [props.body] How the records are drawn: `table`, rows under a head; `cards`, record cards in a grid (c1, 2c, 22a).
+    @param {import('react').ReactNode} [props.head] Cards only. The line above the cards: the summary or the bulk bar.
+    @param {import('react').ReactNode} [props.footer] Cards only. The line under the cards, such as Load more.
+    @param {import('react').ReactNode} [props.children] The parts of the list: Caption, ListHead, ListRow and Foot. As cards, the Record cards. */
+export function List({ body = 'table', ...props }) {
+	if (body === 'cards') return <ListCards {...props} />
+	if (body !== 'table') console.error(`<List> body is table or cards, not ${body}`)
+	return <ListTable {...props} />
+}
+
+/* Record cards as a grid: `head` above it and `footer` under it (a `<ListMore loose>`), each at the grid's width. */
+function ListCards({ head, footer, children, ...rest }) {
+	reject(rest, 'List')
+	return (
+		<div className="sp-list sp-list--cards" {...rest}>
+			{head}
+			<Cards fluid>{children}</Cards>
+			{footer}
+		</div>
+	)
+}
+
+function ListTable({
 	data = [],
 	recordKey,
 	noun = 'records',
@@ -604,19 +625,3 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 	)
 }
 
-/** Record cards as a grid (c1, 2c, 22a): `head` above it (the summary or the bulk bar) and `footer`
-    under it (a `<ListMore loose>`), each at the grid's width.
-    @param {object} props
-    @param {import('react').ReactNode} [props.head] The line above the cards: the summary or the bulk bar.
-    @param {import('react').ReactNode} [props.footer] The line under the cards, such as Load more.
-    @param {import('react').ReactNode} [props.children] The Record cards. */
-export function Records({ head, footer, children, ...rest }) {
-	reject(rest, 'Records')
-	return (
-		<div className="sp-list sp-list--cards" {...rest}>
-			{head}
-			<Cards fluid>{children}</Cards>
-			{footer}
-		</div>
-	)
-}

@@ -195,6 +195,29 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 		</>
 	)
 	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest }
+	// a row that opens and also moves: the handle and the open target side by side (Components, Ordering by hand)
+	if (handle && !control && (to || onClick)) {
+		const inside = (
+			<>
+				{children != null ? <span className="sp-grow sp-truncate">{children}</span> : null}
+				{sub ? <span className="sp-nav-item__sub">{sub}</span> : null}
+				{count != null
+					? <span className="sp-nav-item__count" {...(countColor ? { 'data-color': countColor } : {})}>{count}</span>
+					: null}
+				{trail}
+			</>
+		)
+		const here = current ? { 'aria-current': 'page' } : {}
+		return (
+			<span className={classes} {...state}>
+				<span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button></span>
+				{to
+					? <Link className="sp-list-item__open" to={to} data-go={to} onClick={onClick} {...here}>{inside}</Link>
+					: <button type="button" className="sp-list-item__open" onClick={onClick}>{inside}</button>}
+				{hint}
+			</span>
+		)
+	}
 	if (control) return <label className={classes} {...state}>{body}</label>
 	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{body}</Link>
 	if (!onClick) return <span className={classes} {...state}>{body}</span>

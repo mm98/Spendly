@@ -22,6 +22,7 @@ import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
 import { ShortcutSheet, useShortcutKeys } from './Shortcuts.jsx'
 import { pasteAnywhere } from '../components/FileDrop.jsx'
 import { useUpdateNotice } from './UpdateNotice.jsx'
+import { markLoaded } from './loaded.js'
 
 
 /* The route's handle names the page for the browser tab, the sidebar row it belongs to, the
@@ -54,6 +55,8 @@ export function AppShell() {
 	const fold = useFold(shape, visit)
 
 	useEffect(() => { document.title = title ? `${title} - Spendly` : 'Spendly' }, [title])
+
+	useEffect(() => markLoaded(document.body), [])
 
 	useRecentRecords()
 

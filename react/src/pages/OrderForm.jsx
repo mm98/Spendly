@@ -7,6 +7,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { useReorder } from '../components/Reorder.js'
+import { useRowMotion } from '../app/rowMotion.js'
 import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
@@ -223,6 +224,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			return [...moved, ...ls.filter(l => !moved.includes(l))]
 		})
 	})
+	const motion = useRowMotion(reorder.items, line => line.key)
 	const list = reorder.list.ref
 	const column = useRef(null)
 	const stacked = useStacked(column)
@@ -1013,14 +1015,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (touch && scan)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} opens
-					mark={<Include line={line} setLines={setLines} />}>
+					mark={<Include line={line} setLines={setLines} />} {...motion.row(line)}>
 					{words}
 				</ListItem>
 			)
 		if (touch && !reordering)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} mark={mark}
-					onClick={() => openLine(line)}>
+					onClick={() => openLine(line)} {...motion.row(line)}>
 					{text}
 				</ListItem>
 			)
@@ -1029,7 +1031,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			<ListItem
 				key={line.key}
 				data-line={line.key}
-				{...reorder.row(line)}
+				{...(motion.leaving(line) ? {} : reorder.row(line))}
+				{...motion.row(line)}
 				variant={reorder.variant(line)}
 				color={warn ? 'warning' : 'default'}
 				opens={!touch && !reordering}
@@ -1078,7 +1081,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			<div className="sp-stack sp-gap-8" {...reorder.list} onClick={touch && !scan ? undefined : rowClick}>
 				<Announce>{said}</Announce>
 				<Announce>{reorder.said}</Announce>
-				{reorder.items.map(line => (
+				{motion.items.map(line => (
 					<Fragment key={line.key}>
 						{reorder.lands(line) ? <Insertion /> : null}
 						{editing && !sheeted && editing.key === line.key ? editor : lineRow(line)}

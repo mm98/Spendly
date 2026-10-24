@@ -4,16 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## A row that opens and has a drag handle puts a button inside a button
-
-- **Where:** `react/src/components/ListItem.jsx` and `NavItem` in `react/src/components/Shell.jsx`, a
-  row that opens something (`opens`, or a click) and also has a `handle`.
-- **What the reader sees:** nothing yet: no page in the app gives a row both. In Storybook, choosing
-  a handle on the One row and One nav item stories logs "button cannot be a descendant of button",
-  so `handle` keeps no control on those two.
-- **Proposed shape:** Claude Design says whether a row that opens may have a handle, and how.
-- **Found:** 2026-10-24.
-
 ## The Files Docs page in Storybook opens under the file viewer
 
 - **Where:** Storybook, Fields/Files, the Docs page (`storybook/stories/FileDrop.stories.jsx`, the
@@ -80,25 +70,12 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## The design's React specimens pass a prop the combobox does not take
-
-- **Where:** `design/React components.dc.html`, the searchable combobox specimen.
-- **What the reader sees:** nothing; the chevron is drawn by the combobox itself either way.
-- **What was found:** the specimen passes `chevron`, which neither `design/react_handoff/Combobox.jsx`
-  nor `react/src/components/Combobox.jsx` takes, so it lands on the box as a stray attribute. The
-  story in `storybook/stories/Combobox.stories.jsx` leaves it out. A note for the next Claude Design brief.
-- **Found:** 2026-10-24.
-
 ## The Storybook's accessibility check finds faults in the components
 
 - **Where:** the stories marked `knownAccessibilityFaults` in `storybook/stories/`. Their test
   reports the faults and does not fail. The Accessibility panel in Storybook lists each one.
-- **What the reader sees:** grey small text is hard to read for someone with weak sight, and a
-  screen reader names some parts wrongly or not at all.
+- **What the reader sees:** a screen reader names some parts wrongly or not at all.
 - **What was found:**
-  - The grey text (`--ink-5`, #8b8a82 on white) has a contrast of 3.46:1. The standard asks for
-    4.5:1 for text this small. It is the meta lines, section labels, units, axis ticks and group
-    heads, and it fails in 37 stories. It is a token, so it is a question for `design/`.
   - `Mark` puts `aria-label` on a `span` with no role, so the name is not read out
     (`Mark.jsx`; the Fills, Gone, Empty states and Attachment strip stories).
   - The combobox panel is a `listbox` whose children are `li` around `button role="option"`, and
@@ -108,4 +85,26 @@ is removed in the change that settles it.
   - The search palette is a dialog with no name (`Palette` in `Shell.jsx`).
   - The account button's name does not contain the words drawn on it (`SidebarAccount` in
     `Shell.jsx`, with the name the Shell story passes).
+- **Found:** 2026-10-24.
+
+## A toast's grey text keeps the old grey
+
+- **Where:** `react/src/styles/app.css`, `.sp-toast { --ink-5 }`; a toast's countdown (`Toast` `seconds`).
+- **What the reader sees:** nothing changes: the countdown keeps the grey it had.
+- **What was found:** the lighter-ground `--ink-5` (#72716b) is 3.55:1 on the light theme's dark
+  toast (#1b1a17), under 4.5:1. The app keeps #8b8a82 (5.02:1) inside a toast. The rule to take into
+  `design/`: grey small text on a toast uses a grey made for its dark ground. In the dark theme the
+  toast's grey (#90897e on #2e2b26) is 4.07:1, also under 4.5:1. Sent to Claude Design.
+- **Found:** 2026-10-24.
+
+## Dialogs, sheets and popovers close at once, and the account row is still its own
+
+- **Where:** `Dialog`, `Sheet` and `Popover` in `react/src/components/`; `SidebarAccount` in
+  `react/src/components/Shell.jsx`.
+- **What the reader sees:** these three open with the design's motion but close at once. The account
+  row looks as designed.
+- **What was found:** the design asks for a closing fade held with `data-leaving`, but a page removes
+  these parts at once, and the design does not say how a part stays on screen while it fades. It
+  also asks that `SidebarAccount` be a `NavItem` with a `control`, but does not say which part is
+  the button. Both are asked in the brief to Claude Design.
 - **Found:** 2026-10-24.

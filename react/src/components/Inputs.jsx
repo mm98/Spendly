@@ -1,11 +1,11 @@
-import { useId, useRef, useState } from 'react'
-import { IconButton } from './Button.jsx'
+import { useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
-import { Chip } from './Chip.jsx'
-import { countOf, usePanelPlace, useListbox } from './Combobox.jsx'
 import { formatNumber, parseNumber } from './format.js'
 import { Spinner } from './Utilities.jsx'
+
+// a duration token in milliseconds: the built stylesheet writes 180ms as .18s
+const inMs = time => (parseFloat(time) || 0) * (/\d\s*s\s*$/.test(time) && !/ms\s*$/.test(time) ? 1000 : 1)
 
 const TEXT = {
 	default: null,
@@ -92,22 +92,53 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
     @param {boolean} [props.danger] The value is wrong: the field is drawn in red. */
 export function PasswordField({ ...rest }) {
 	const [shown, setShown] = useState(false)
+	// while it turns, the field's letters shuffle into place (or back into dots) over an
+	// overlay the reader sees and a screen reader does not; the field keeps its value
+	const [shuffle, setShuffle] = useState(null)
+	const run = useRef(0)
+	const toggle = () => {
+		const next = !shown
+		const text = String(rest.value ?? '')
+		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+		if (still || !text || text.length > 40) { setShown(next); return }
+		const id = ++run.current
+		const target = next ? text : '\u2022'.repeat(text.length)
+		const from = next ? '\u2022'.repeat(text.length) : text
+		const ms = 2 * (inMs(getComputedStyle(document.documentElement).getPropertyValue('--motion-in')) || 180)
+		const start = performance.now()
+		const frame = now => {
+			if (id !== run.current) return
+			const t = Math.min(1, (now - start) / ms)
+			// letters settle left to right; the ones not yet settled show a passing glyph
+			setShuffle([...target].map((ch, i) => {
+				const at = (i + 1) / target.length
+				return t >= at ? ch : t >= at - 0.5 ? GLYPHS[Math.floor(Math.random() * GLYPHS.length)] : from[i]
+			}).join(''))
+			if (t < 1) requestAnimationFrame(frame)
+			else { setShown(next); setShuffle(null) }
+		}
+		requestAnimationFrame(frame)
+	}
 	return (
 		<Trailed
 			trail={
 				<Trail
 					label="Show password"
 					pressed={shown}
-					onClick={() => setShown(!shown)}
+					onClick={toggle}
 				>
 					<Icon name="eye" />
 				</Trail>
 			}
 		>
-			<Box type={shown ? 'text' : 'password'} classes="sp-input--trail" component="PasswordField" {...rest} />
+			<Box type={shown ? 'text' : 'password'} classes={join('sp-input--trail', shuffle !== null && 'sp-input--shuffling')} component="PasswordField" {...rest} />
+			{shuffle !== null ? <span className="sp-input__shuffle" aria-hidden="true">{shuffle}</span> : null}
 		</Trailed>
 	)
 }
+
+// what a letter passes through on its way into place
+const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789#%&*+=?'
 
 /** `cell` is the amount in a sheet's cell (Budget 21b): it reads as the figure until it is
     clicked or focused, then takes the field's border inside its own cell.
@@ -380,130 +411,6 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 				/>
 			</span>
 		</>
-	)
-}
-
-/** Typed values as chips, offering `children` (ComboboxOption) in a panel filtered by `onSearch` (22c);
-    `noun` (plural) names the count read out. `marked` is one token drawn in green (5h); `trails` maps a
-    token to a mark drawn before its remove, as an over-limit category's dot (8b); `end` is a button
-    at the field's right end, the chips keeping clear of it (a Field's own `trail` is its own wrapper's).
-    @param {object} props
-    @param {string[]} [props.value] The values, drawn as chips.
-    @param {(value: string[]) => void} [props.onChange]
-    @param {string} [props.placeholder] Grey words in the add field while there are no values.
-    @param {boolean} [props.danger] The value is wrong: the field is drawn in red.
-    @param {string} [props.id]
-    @param {(text: string) => void} [props.onSearch]
-    @param {string} [props.noun] What the options are, plural, for the count read out as typing narrows them.
-    @param {string} [props.marked] One value drawn in green.
-    @param {Record<string, import('react').ReactNode>} [props.trails] A part drawn before a value's remove button, by value, such as a warning dot.
-    @param {import('react').ReactNode} [props.end] A button at the right end of the field.
-    @param {import('react').ReactNode} [props.children] The options offered while typing. */
-export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
-	reject(rest, 'TokensField')
-	// what Field hands the control belongs on the input that takes focus, not on the box around it
-	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
-	const [typed, setTyped] = useState('')
-	const [open, setOpen] = useState(false)
-	const panelId = useId()
-	const suggests = children !== undefined
-	const type = text => {
-		setTyped(text)
-		listbox.setActive(-1)
-		onSearch?.(text)
-	}
-	const listbox = useListbox(children, { panelId, onPick: () => type('') })
-	const { options, active } = listbox
-	// a name can hold a comma ("Nabu Casa, Inc"), so only Enter or a new line ends a value
-	const addAll = texts => {
-		const next = [...new Set(texts.map(t => t.trim()).filter(t => t && !value.includes(t)))]
-		if (next.length) onChange?.([...value, ...next])
-		type('')
-	}
-	const add = () => addAll([typed])
-	const shown = suggests && open && options.length > 0
-	const holder = useRef(null)
-	const input = useRef(null)
-	usePanelPlace(holder, listbox.panel, shown, options.length)
-	// a press anywhere in the box but on a token's remove types into it: the input is one line of it
-	const field = (
-		<span className="sp-tokens" onClick={ev => { if (!ev.target.closest('button, input')) { input.current?.focus(); setOpen(true) } }} {...box}>
-			{value.map(token => (
-				<Chip
-					key={token}
-					{...(token === marked ? { color: 'success' } : {})}
-					trail={<>
-						{trails?.[token]}
-						<IconButton
-							icon={<Icon name="x" size={9} />}
-							aria-label={`Remove ${token}`}
-							size="small"
-							onClick={() => onChange?.(value.filter(t => t !== token))}
-						/>
-					</>}
-				>
-					{token}
-				</Chip>
-			))}
-			<input
-				ref={input}
-				id={id}
-				className="sp-tokens__add"
-				aria-label={label}
-				aria-describedby={describedBy}
-				required={required}
-				placeholder={placeholder}
-				value={typed}
-				{...(danger || invalid === true || invalid === 'true' ? { 'aria-invalid': 'true' } : {})}
-				{...(suggests
-					? {
-						role: 'combobox',
-						'aria-expanded': shown ? 'true' : 'false',
-						'aria-controls': panelId,
-						'aria-autocomplete': 'list',
-						'aria-activedescendant': shown ? listbox.activeId : undefined,
-						// a press opens it, focus alone does not: focus a page moves here must not cover the field
-						onClick: () => setOpen(true)
-					}
-					: {})}
-				onChange={ev => { type(ev.target.value); setOpen(true) }}
-				onKeyDown={ev => {
-					if (suggests && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
-						ev.preventDefault()
-						setOpen(true)
-						const by = ev.key === 'ArrowDown' ? 1 : -1
-						return listbox.step(by, active < 0 ? (by > 0 ? -1 : options.length) : active)
-					}
-					if (shown && (ev.key === 'Home' || ev.key === 'End') && active > -1) {
-						ev.preventDefault()
-						return ev.key === 'Home' ? listbox.step(1, -1) : listbox.step(-1, options.length)
-					}
-					if (ev.key === 'Enter' && shown && active > -1) { ev.preventDefault(); options[active].pick(); return }
-					if (ev.key === 'Escape' && shown) { ev.stopPropagation(); setOpen(false); return }
-					if (ev.key === 'Enter') { ev.preventDefault(); add() }
-					// backspace in an empty field removes the last value, which is what
-					// every token field does and what a reader will try first
-					if (ev.key === 'Backspace' && !typed && value.length) onChange?.(value.slice(0, -1))
-				}}
-				onPaste={ev => {
-					const lines = ev.clipboardData.getData('text').split(/\r?\n/)
-					if (lines.length < 2) return
-					ev.preventDefault()
-					addAll([typed + lines[0], ...lines.slice(1)])
-				}}
-				onBlur={() => { add(); setOpen(false) }}
-			/>
-		</span>
-	)
-	const boxed = end ? <span className="sp-field__wrap">{field}<span className="sp-field__trail">{end}</span></span> : field
-	if (!suggests) return boxed
-	return (
-		<div className="sp-combobox" data-open={shown ? 'true' : 'false'} ref={holder}>
-			{boxed}
-			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
-			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
-			<span className="sp-announce" aria-live="polite">{typed && open ? countOf(options, noun) : ''}</span>
-		</div>
 	)
 }
 

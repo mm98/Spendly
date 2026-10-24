@@ -11,7 +11,7 @@ import { DateField, RangePicker, RangeSheet } from '../components/DatePickers.js
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { AskTrail, RangeSlider, SearchInput } from '../components/Inputs.jsx'
-import { BulkBar, Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow, ListToolbar, Records, Selected } from '../components/List.jsx'
+import { BulkBar, Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow, ListToolbar, Selected } from '../components/List.jsx'
 import { Announce, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useToast } from '../components/Overlays.jsx'
@@ -884,12 +884,12 @@ function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPi
 		: <ListToolbar loose selectAll={selectAll}>{caption}</ListToolbar>
 	const footer = <ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
 	return (
-		<Records head={head} footer={footer} onContextMenu={menuHere}>
+		<List body="cards" head={head} footer={footer} onContextMenu={menuHere}>
 			{data.orders.map(o => (
 				<OrderCard key={o.id} order={o} touch={touch} picked={picked.includes(o.id)} onPick={shift => onPick(o.id, shift)}
 					menuOpen={menuFor === o.id} onMenu={setMenuFor} onOpen={onOpen} onDelete={onDelete} onCategory={onCategory} />
 			))}
-		</Records>
+		</List>
 	)
 }
 

@@ -18,6 +18,7 @@ import { Choice, Switch } from '../components/Choice.jsx'
 import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useReorder } from '../components/Reorder.js'
+import { useRowMotion } from '../app/rowMotion.js'
 import { Icon } from '../components/Icon.jsx'
 import { AddRow, Empty, EmptyBody, EmptyTitle, Redacted, Skeleton } from '../components/Utilities.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
@@ -1036,6 +1037,7 @@ function AccountsCard({ sheet, onChanged }) {
 		nameOf: account => account.name,
 		onMove: (next, account, to) => write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})
 	})
+	const motion = useRowMotion(reorder.items, account => account.id)
 
 	if (!list) return <AccountsLoading />
 	const year = sheet.year
@@ -1055,15 +1057,15 @@ function AccountsCard({ sheet, onChanged }) {
 			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
 			<div className="sp-stack sp-gap-8" {...reorder.list}>
 				<Announce>{reorder.said}</Announce>
-				{reorder.items.map((account, i) => (
+				{motion.items.map(account => (
 					<Fragment key={account.id}>
 						{reorder.lands(account) ? <Insertion /> : null}
 						{open === account.id
-							? <AccountEditor account={account} index={i} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
+							? <AccountEditor account={account} index={reorder.items.indexOf(account)} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
 							: (
 								<ListItem variant={reorder.variant(account)}
 									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}
-									{...reorder.row(account)}>
+									{...(motion.leaving(account) ? {} : reorder.row(account))} {...motion.row(account)}>
 									<span className="sp-stacked sp-grow bg-opens-account" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}
 										onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setOpen(account.id) } }}>
