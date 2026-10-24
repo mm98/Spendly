@@ -13,7 +13,7 @@ const Text = ({ initial = '', ...rest }) => {
 export default {
 	title: 'Fields/Field',
 	component: Field,
-	argTypes: { messageType: { control: 'inline-radio', options: ['hint', 'quiet', 'warning', 'danger'] } },
+	argTypes: { children: { control: false }, lead: { control: false }, trail: { control: false }, kbd: { control: false } },
 	args: { label: 'Vendor', message: '', children: <Text initial="Indbo Møbler" /> },
 	decorators: [Story => <div style={{ maxWidth: 360 }}><Story /></div>]
 }
@@ -30,9 +30,10 @@ export const WithKey = { args: { label: 'Search', kbd: <Kbd>S</Kbd>, children: <
 export const Note = { args: { label: 'Vendor', note: 'matched existing vendor', noteType: 'success' } }
 
 export const States = {
-	render: () => (
+	argTypes: { label: { control: false }, message: { control: false } },
+	render: ({ messageType, required }) => (
 		<div className="sp-stack sp-gap-12">
-			<Field label="Disabled"><TextField value="Value" onChange={() => {}} disabled /></Field>
+			<Field label="Disabled" required={required} messageType={messageType}><TextField value="Value" onChange={() => {}} disabled /></Field>
 			<Field label="Read-only"><TextField value="Value" onChange={() => {}} readOnly /></Field>
 			<Field label="Empty"><Text variant="empty" placeholder="Nothing yet" /></Field>
 			<Field label="Note"><Text multiline rows={3} initial="A note on the order." /></Field>
