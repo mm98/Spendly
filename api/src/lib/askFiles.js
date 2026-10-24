@@ -35,12 +35,12 @@ const countMade = db.prepare(`INSERT INTO user_ask_days (user_id, day, made_file
 	ON CONFLICT (user_id, day) DO UPDATE SET made_files_count = made_files_count + 1`)
 const selectAccount = db.prepare('SELECT s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 // the + keeps SQLite on the id key: each id is one row, where the account's index walks every file it has
-const selectStates = db.prepare(`SELECT f.id, f.chat_id, f.title, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at
+const selectStates = db.prepare(`SELECT f.id, f.chat_id, f.title, f.download_name, f.type, f.size, f.failed_reason, f.kept_until, f.expires_at, f.deleted_at
 	FROM json_each(?) j CROSS JOIN user_ask_files f ON f.id = j.value WHERE +f.user_id = ?`)
 const KEPT = 'user_id = @userId AND stored_name IS NOT NULL AND deleted_at IS NULL AND expires_at > @now'
 // a search matches the name the row shows or the name the file downloads as
 const MATCHES = "(title LIKE @like ESCAPE '\\' OR download_name LIKE @like ESCAPE '\\')"
-const KEPT_FIELDS = 'id, chat_id, title, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason'
+const KEPT_FIELDS = 'id, chat_id, title, download_name, type, size, kept_until, expires_at, deleted_at, NULL AS failed_reason'
 const selectKept = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_ask_files WHERE ${KEPT} ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
 const selectMatching = db.prepare(`SELECT ${KEPT_FIELDS} FROM user_ask_files WHERE ${KEPT} AND ${MATCHES}
 	ORDER BY created_at DESC, rowid DESC LIMIT @limit OFFSET @offset`)
@@ -76,9 +76,15 @@ export function askedAtIn(zone, at = new Date()) {
 	return `${p.year}-${p.month}-${p.day} ${p.hour}.${p.minute}.${p.second}`
 }
 
-/** What the reader's row shows about one file (ChatFile in react/src/components/Chat.jsx). */
+/** The name a file downloads as, before the time it was asked: its heading, in a form every system can save. */
+function fileName(row) {
+	// no path or reserved characters, and short enough for any disk
+	return (row.download_name || row.title).replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150).trim() || 'Spendly'
+}
+
+/** What the reader's row shows about one file (ChatFile in react/src/components/Chat.jsx): its name is the downloaded file's, without the time. */
 export function fileMeta(row, now = nowEpoch()) {
-	const base = { id: row.id, title: row.title, type: row.type, kind: fileFormat(row.type)?.name ?? row.type.toUpperCase(), chatId: row.chat_id ?? null }
+	const base = { id: row.id, title: `${fileName(row)}.${row.type}`, type: row.type, kind: fileFormat(row.type)?.name ?? row.type.toUpperCase(), chatId: row.chat_id ?? null }
 	if (row.failed_reason) return { ...base, state: 'failed', reason: row.failed_reason }
 	if (row.deleted_at) return { ...base, state: 'gone', gone: 'deleted' }
 	if (row.expires_at <= now) return { ...base, state: 'gone', gone: 'expired' }
@@ -112,11 +118,9 @@ export function fileDownload(userId, id) {
 	const row = selectDownload.get(id, userId, nowEpoch())
 	const content = row && readStoredFile(userId, FOLDER, row.stored_name)
 	if (!content) return null
-	// a name every system can save: no path or reserved characters, and short enough for any disk
-	const title = (row.download_name || row.title).replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150).trim() || 'Spendly'
 	// a file made before has a T before the time: 2026-10-22T14-05 or 2026-10-22T14.05.33
 	const askedAt = row.asked_at.replace(/T(\d\d)[-.](\d\d)/, ' $1.$2')
-	return { name: `${title} (${askedAt}).${row.type}`, mime: fileFormat(row.type)?.mime ?? 'application/octet-stream', content }
+	return { name: `${fileName(row)} (${askedAt}).${row.type}`, mime: fileFormat(row.type)?.mime ?? 'application/octet-stream', content }
 }
 
 export const deleteFile = (userId, id) => markDeleted.run(nowEpoch(), id, userId).changes > 0
@@ -158,7 +162,7 @@ export function makeFile({ userId, chatId = null, day, unlimited, title, askedAt
 		if (row.storedName) removeStoredFile(userId, FOLDER, row.storedName)
 		throw error
 	}
-	return fileMeta({ id: row.id, chat_id: chatId, title, type: format.type, size: row.size, failed_reason: row.failedReason, kept_until: row.keptUntil, expires_at: row.expiresAt, deleted_at: null }, now)
+	return fileMeta({ id: row.id, chat_id: chatId, title, download_name: row.downloadName, type: format.type, size: row.size, failed_reason: row.failedReason, kept_until: row.keptUntil, expires_at: row.expiresAt, deleted_at: null }, now)
 }
 
 /** Removes files past their 30 days, and the bytes of deleted files once Undo is over. */

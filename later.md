@@ -59,14 +59,3 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
-
-## For Claude Design: a long conversation's bar is wider than 8px in Chrome
-
-- **Where:** Ask, a conversation longer than the page, on a computer.
-- **What the reader sees:** in Chrome and Edge the thread was 2px narrower than the field under it.
-- **Found:** `scrollbar-width: thin` draws a 10px bar in Blink, and Blink then ignores the 8px
-  `::-webkit-scrollbar`. The inset beside the bar counts on 8px. Firefox draws thin at 8px.
-- **The rule `app.css` adds:** where `::-webkit-scrollbar` is supported, `.sp-shell__body .sp-chat__scroll`
-  takes `scrollbar-width: auto; scrollbar-color: auto`, so Blink and Safari draw the 8px bar the
-  stylesheet already gives. Remove it from the end of `react/src/styles/app.css` once `design/` has it.
-- **Found:** 2026-10-24.

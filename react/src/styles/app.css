@@ -280,9 +280,3 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	display: contents;
 	visibility: hidden;
 }
-
-/* a long conversation's bar is 8 wide in every engine, as the inset beside it counts on: a thin bar is
-   wider in Blink, so an engine that draws the 8px bar the stylesheet gives takes that one instead */
-@supports selector(::-webkit-scrollbar) {
-	.sp-shell__body .sp-chat__scroll { scrollbar-width: auto; scrollbar-color: auto; }
-}

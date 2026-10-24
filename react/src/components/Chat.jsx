@@ -144,7 +144,7 @@ export function ChatFiles({ children, ...rest }) {
 	return <div className="sp-chat__files" {...rest}>{children}</div>
 }
 
-/** One file: the mark, the question as its title, its `kind` (the format's name, Excel) and size, and what can be done with it.
+/** One file: the mark, the file's name as its title, its `kind` (the format's name, Excel) and size, and what can be done with it.
     `keptUntil`, `chatTo` (Open chat) and `onDelete` are the Files page's; a file that could not be made
     never reads as ready. A kept chat on Chats is the same row: its `icon`, the title linked `to` it, and
     its own `meta` line in place of a file's. */
