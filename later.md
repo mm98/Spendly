@@ -4,6 +4,16 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## The Files Docs page in Storybook opens under the file viewer
+
+- **Where:** Storybook, Fields/Files, the Docs page (`storybook/stories/FileDrop.stories.jsx`, the
+  viewer story).
+- **What the reader sees:** the viewer story starts open, so on the Docs page its dark box covers the
+  props table and the other examples until it is closed.
+- **Proposed shape:** draw that story closed in the Docs page, or inline there, as other stories that
+  open over the page do.
+- **Found:** 2026-10-24.
+
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
