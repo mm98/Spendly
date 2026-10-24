@@ -107,15 +107,19 @@ export const roomOf = root => {
 	return { top, bottom }
 }
 
+// the panel back in its own spot under the field: no inline placement, not turned upwards
+const unplace = list => { list.removeAttribute('style'); delete list.dataset.place }
+
 /** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
-    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it. */
+    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it.
+    Closing keeps the placement, so the fade-out is drawn where the panel stood: `usePanelRest`, after
+    `usePanelMotion`, puts it back once the fade has ended. Internal. */
 export function usePanelPlace(root, panel, open, size) {
 	useLayoutEffect(() => {
 		const list = panel.current
 		if (!open || !list || !root.current) return
-		const reset = () => { list.removeAttribute('style'); delete list.dataset.place }
 		const place = () => {
-			reset()
+			unplace(list)
 			const at = root.current.getBoundingClientRect()
 			let drawn = list.getBoundingClientRect()
 			// wider than the room on its side: it hangs from the field's edge with more room beyond it
@@ -151,7 +155,8 @@ export function usePanelPlace(root, panel, open, size) {
 				return
 			}
 			const left = Math.min(Math.max(view.left, drawn.left), view.right - drawn.width)
-			Object.assign(list.style, { position: 'fixed', top: top + 'px', left: left + 'px', right: 'auto', bottom: 'auto', width: drawn.width + 'px' })
+			// fixed, a percentage floor would be the window's: the width stays the one measured
+			Object.assign(list.style, { position: 'fixed', top: top + 'px', left: left + 'px', right: 'auto', bottom: 'auto', width: drawn.width + 'px', minWidth: drawn.width + 'px' })
 			// a transformed ancestor moves what fixed is measured from, so correct by where it landed
 			const landed = list.getBoundingClientRect()
 			Object.assign(list.style, { top: top + (top - landed.top) + 'px', left: left + (left - landed.left) + 'px' })
@@ -164,9 +169,18 @@ export function usePanelPlace(root, panel, open, size) {
 		return () => {
 			window.removeEventListener('scroll', again, true)
 			window.removeEventListener('resize', again)
-			reset()
 		}
 	}, [root, panel, open, size])
+}
+
+/** Puts a placed panel back in its own spot once it is shut and its fade-out has ended: `closing` is
+    what `usePanelMotion` returns. Call it after both. A panel that never fades passes no `closing`.
+    Internal. */
+export function usePanelRest(panel, open, closing = false) {
+	useLayoutEffect(() => {
+		const list = panel.current
+		if (list && !open && !closing) unplace(list)
+	}, [panel, open, closing])
 }
 
 // a basis past the sheet's cap holds the sheet at its full height; the list scrolls inside it, under the search
@@ -269,6 +283,7 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 	const input = useRef(null)
 	usePanelPlace(holder, listbox.panel, shown, options.length)
 	const closing = usePanelMotion(listbox.panel, shown)
+	usePanelRest(listbox.panel, shown, closing)
 	// a press anywhere in the box but on a token's remove types into it: the input is one line of it
 	const field = (
 		<span className="sp-tokens" onClick={ev => { if (!ev.target.closest('button, input')) { input.current?.focus(); setOpen(true) } }} {...box}>
@@ -422,6 +437,7 @@ function ComboboxOne({
 	usePanelPlace(root, box.panel, isOpen && !touch, options.length)
 	// the panel fades out as it closes: the box keeps it drawn until then
 	const closing = usePanelMotion(box.panel, isOpen && !touch)
+	usePanelRest(box.panel, isOpen && !touch, closing)
 
 	const onKeys = ev => {
 		if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {

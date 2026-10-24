@@ -91,19 +91,3 @@ is removed in the change that settles it.
     control.
   - The grey text in a bookmark's empty photo box and its address line is under 4.5:1.
 - **Found:** 2026-10-24.
-
-
-## The app's components and their use differ from Claude Design
-
-- **Where:** `storybook/design-differences.json`, reported by `npm run design:check` and
-  `npm run props:check` in `storybook/` on every CI run.
-- **What the reader sees:** nothing yet. These are places where the app's code is not what
-  Claude Design handed over, or where a page gives a part a kind of value its comment does not name.
-- **What was found:**
-  - Failed, Icon, icons and tabler are only in the app.
-  - Pages give text to a count (BulkBar, FieldGroup, ListItem's "!"), a drawn part to Sum's value,
-    and a number to Segmented's value on Budget.
-- **What to do:** each one is a question for Claude Design or a fix in a page. The change that settles
-  one removes its line from the list.
-- **Found:** 2026-10-24.
-

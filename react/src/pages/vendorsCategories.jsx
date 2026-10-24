@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, CardHeader, Panel } from '../components/Card.jsx'
-import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace } from '../components/Combobox.jsx'
+import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace, usePanelRest } from '../components/Combobox.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -289,6 +289,7 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 	const vendor = kind === 'vendor'
 	const noun = vendor ? 'vendors' : 'categories'
 	usePanelPlace(anchor, panel, !touch)
+	usePanelRest(panel, !touch)
 	useFocusTrap(sheet, touch, 'input')
 	useEffect(() => { if (!touch) panel.current?.querySelector('input')?.focus({ preventScroll: true }) }, [touch])
 	const targets = usePickList(kind, find, mergeRequest(kind, source))

@@ -461,7 +461,7 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
     @param {boolean} [props.named] A name the reader typed: it ends in an ellipsis rather than wrapping.
     @param {boolean} [props.edits] Pressing the line opens its amount for editing in place.
     @param {import('react').ReactNode} [props.meta] The grey line under the name.
-    @param {string} props.value What the line comes to, written out.
+    @param {import('react').ReactNode} props.value What the line comes to: written out, or a part such as a link to the vendor, the categories, a note's well or a loading line.
     @param {import('react').ReactNode} [props.children] What the line is. */
 export function Sum({ variant = 'default', tone = 'default', named = false, edits = false, meta, value, children, ...rest }) {
 	reject(rest, 'Sum')

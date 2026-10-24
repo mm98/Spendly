@@ -2078,7 +2078,11 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   right: 0;
   top: calc(100% + var(--sp-2));
   z-index: 5;
-  min-width: 232px;
+  /* the field's width; it grows only for an option that would not fit, up to 288, and an option
+     longer than that is cut with an ellipsis (c3) */
+  width: max-content;
+  min-width: 100%;
+  max-width: 288px;
   padding: var(--sp-6);
   list-style: none;
   flex-direction: column;
@@ -2160,6 +2164,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 /* over the limit (8b) */
 .sp-combobox__dot[data-dot="problem"] { background: var(--red-ink); }
 .sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
+/* an option's name stays on its line and ends in an ellipsis past the panel's 288 */
+.sp-combobox__option > span:not(.sp-combobox__dot, .sp-combobox__meta, .sp-combobox__check, .sp-mark) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
 .sp-combobox__empty { padding: var(--sp-8) var(--sp-12); font-size: var(--t-13); color: var(--ink-5); }
 
@@ -6092,7 +6098,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__pick > .sp-icon-btn { flex: none; }
 /* the saved questions in a conversation, on a desktop: the action select in the controls
    bar, its panel wide enough for a question, each one cut as on the empty page */
-.sp-chat__saved-menu .sp-combobox__panel { right: auto; width: 320px; }
+.sp-chat__saved-menu .sp-combobox__panel { right: auto; width: 320px; max-width: none; }
 .sp-chat__saved-menu .sp-combobox__option > .sp-truncate { flex: 0 1 auto; }
 .sp-touch .sp-chat__saved-menu { display: none; }
 .sp-chat__dock { padding-top: var(--sp-12); }

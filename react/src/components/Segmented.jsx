@@ -9,10 +9,10 @@ const VARIANT = { default: null, facet: 'sp-segmented--facet', narrow: 'sp-segme
     chosen segment, and moves to the one picked next.
     @param {object} props
     @param {string} props.name Groups the radios.
-    @param {{ value: string, label: string, disabled?: boolean }[]} [props.options] The segments, in order: the value each stands for, its label, and whether it is turned off.
-    @param {string} [props.value] The chosen value. Leave it out to let the control keep its own state.
-    @param {string} [props.defaultValue] The value chosen at first, when the control keeps its own state.
-    @param {(value: string) => void} [props.onChange]
+    @param {{ value: string | number, label: string, disabled?: boolean }[]} [props.options] The segments, in order: the value each stands for, its label, and whether it is turned off.
+    @param {string | number} [props.value] The chosen value, of the options' own kind, such as a month's number. Leave it out to let the control keep its own state.
+    @param {string | number} [props.defaultValue] The value chosen at first, when the control keeps its own state.
+    @param {(value: string | number) => void} [props.onChange]
     @param {keyof typeof VARIANT} [props.variant] `default`, `facet` for the switch at the head of a filter panel, `narrow` no wider than a field, `fill` spans its column with equal segments.
     @param {boolean} [props.fixed] A set that is ordered and never grows, like the twelve months. It stays segments past four options. */
 export function Segmented({ name, options = [], value, defaultValue, onChange, variant = 'default', fixed = false, ...rest }) {
