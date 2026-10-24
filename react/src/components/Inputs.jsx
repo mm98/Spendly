@@ -57,9 +57,20 @@ function Trail({ label, onClick, pressed, children }) {
 	)
 }
 
-/** `action` is one icon button at the field's end: { icon, label, expanded, onClick }. */
+const TYPES = /** @type {const} */ (['text', 'email', 'tel', 'url'])
+
+/** `action` is one icon button at the field's end: { icon, label, expanded, onClick }.
+    @param {object} props
+    @param {typeof TYPES[number]} [props.type]
+    @param {boolean} [props.multiline]
+    @param {number} [props.rows] the height of a multiline field, in lines
+    @param {keyof typeof TEXT} [props.variant]
+    @param {{ icon: string, label: string, expanded?: boolean, onClick: () => void }} [props.action]
+    @param {string} [props.value]
+    @param {(value: string) => void} [props.onChange]
+    @param {boolean} [props.danger]
+    @param {string} [props.placeholder] */
 export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', action, ...rest }) {
-	const TYPES = ['text', 'email', 'tel', 'url']
 	if (!TYPES.includes(type)) console.error(`<TextField> type="${type}" is not one of: ${TYPES.join(' | ')}`)
 	if (multiline) return <Box as="textarea" rows={rows} component="TextField" {...rest} />
 	if (action) return (
@@ -75,6 +86,10 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
 	return <Box type={type} classes={pick(TEXT, variant, 'variant', 'TextField')} component="TextField" {...rest} />
 }
 
+/** @param {object} props
+    @param {string} [props.value]
+    @param {(value: string) => void} [props.onChange]
+    @param {boolean} [props.danger] */
 export function PasswordField({ ...rest }) {
 	const [shown, setShown] = useState(false)
 	return (
@@ -95,7 +110,16 @@ export function PasswordField({ ...rest }) {
 }
 
 /** `cell` is the amount in a sheet's cell (Budget 21b): it reads as the figure until it is
-    clicked or focused, then takes the field's border inside its own cell. */
+    clicked or focused, then takes the field's border inside its own cell.
+    @param {object} props
+    @param {number | null} [props.value]
+    @param {(value: number | null) => void} [props.onChange]
+    @param {() => void} [props.onBlur]
+    @param {number} [props.decimals]
+    @param {number} [props.min]
+    @param {string} [props.locale]
+    @param {boolean} [props.expected]
+    @param {boolean} [props.cell] */
 export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale, expected = false, cell = false, ...rest }) {
 	const [typing, setTyping] = useState(null)
 	return (
@@ -118,7 +142,16 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
 }
 
 /** `icon` is the lead mark; `clear` false hides the clear button; `ends` are controls after it, at the
-    field's end with it (.sp-field__trails), such as the order list's Ask (AskTrail). */
+    field's end with it (.sp-field__trails), such as the order list's Ask (AskTrail).
+    @param {object} props
+    @param {string} props.value
+    @param {(value: string) => void} props.onChange
+    @param {import('react').ReactNode} [props.kbd]
+    @param {import('react').Ref<HTMLInputElement>} [props.inputRef]
+    @param {string} [props.name]
+    @param {string} [props.icon]
+    @param {boolean} [props.clear]
+    @param {import('react').ReactNode} [props.ends] */
 export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, ...rest }) {
 	const clearable = clear && !!value
 	const own = useRef(null)
@@ -151,7 +184,13 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', i
 }
 
 /** Ask at a search field's end (Order list 2b): off, on (`on`), or Stop while it works (`busy`).
-    `spent` is no questions left today: disabled, its reason held by the field's end. */
+    `spent` is no questions left today: disabled, its reason held by the field's end.
+    @param {object} props
+    @param {boolean} [props.on]
+    @param {boolean} [props.busy]
+    @param {boolean} [props.spent]
+    @param {() => void} [props.onToggle]
+    @param {() => void} [props.onStop] */
 export function AskTrail({ on, busy, spent, onToggle, onStop }) {
 	if (spent) return (
 		<span data-tip="No questions left today. Resets at midnight.">
@@ -176,7 +215,18 @@ export function AskTrail({ on, busy, spent, onToggle, onStop }) {
 }
 
 /** `stops` are values at evenly spaced points, so the track is spaced by them, not by value.
-    `open` makes the top end "and above": shown with a +, and a To typed past it is kept. */
+    `open` makes the top end "and above": shown with a +, and a To typed past it is kept.
+    @param {object} props
+    @param {[number, number]} props.value low and high
+    @param {(value: [number, number]) => void} props.onChange
+    @param {number} [props.min]
+    @param {number} [props.max]
+    @param {number} [props.step]
+    @param {number[]} [props.stops]
+    @param {boolean} [props.open]
+    @param {string} [props.label]
+    @param {(value: number) => string} [props.format]
+    @param {string} [props.locale] */
 export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
 	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
@@ -336,7 +386,19 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 /** Typed values as chips, offering `children` (ComboboxOption) in a panel filtered by `onSearch` (22c);
     `noun` (plural) names the count read out. `marked` is one token drawn in green (5h); `trails` maps a
     token to a mark drawn before its remove, as an over-limit category's dot (8b); `end` is a button
-    at the field's right end, the chips keeping clear of it (a Field's own `trail` is its own wrapper's). */
+    at the field's right end, the chips keeping clear of it (a Field's own `trail` is its own wrapper's).
+    @param {object} props
+    @param {string[]} [props.value]
+    @param {(value: string[]) => void} [props.onChange]
+    @param {string} [props.placeholder]
+    @param {boolean} [props.danger]
+    @param {string} [props.id]
+    @param {(text: string) => void} [props.onSearch]
+    @param {string} [props.noun]
+    @param {string} [props.marked]
+    @param {Record<string, import('react').ReactNode>} [props.trails]
+    @param {import('react').ReactNode} [props.end]
+    @param {import('react').ReactNode} [props.children] */
 export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it

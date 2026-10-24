@@ -1,9 +1,9 @@
 import { join, reject } from './variants.js'
 
-const COLORS = ['default', 'success', 'danger']
+const COLORS = /** @type {const} */ (['default', 'success', 'danger'])
 
 /** @param {object} props
-    @param {'default' | 'success' | 'danger'} [props.color]
+    @param {typeof COLORS[number]} [props.color]
     @param {'progress'} [props.state]
     @param {boolean} [props.truncate]
     @param {import('react').ReactNode} [props.children] */

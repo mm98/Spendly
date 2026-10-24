@@ -16,7 +16,13 @@ export const ShellTouch = createContext(false)
 export const ShellHead = createContext(null)
 
 /** `viewport` fills the window; `touch` is the shell below 640: top bar, content, tab bar, one
-    floating action. `cover` owns the whole touch screen (7b's search), the page mounted under it. */
+    floating action. `cover` owns the whole touch screen (7b's search), the page mounted under it.
+    @param {object} props
+    @param {boolean} [props.collapsed]
+    @param {boolean} [props.viewport]
+    @param {boolean} [props.touch]
+    @param {import('react').ReactNode} [props.cover]
+    @param {import('react').ReactNode} [props.children] */
 export function Shell({ collapsed = false, viewport = false, touch = false, cover, children, ...rest }) {
 	const [head, setHead] = useState(null)
 	reject(rest, 'Shell')
@@ -58,6 +64,9 @@ export function Shell({ collapsed = false, viewport = false, touch = false, cove
 	)
 }
 
+/** @param {object} props
+    @param {boolean} [props.touch]
+    @param {import('react').ReactNode} [props.children] */
 export function TopBar({ touch = false, children, ...rest }) {
 	reject(rest, 'TopBar')
 	return <div className={join('sp-topbar', touch && 'sp-topbar--touch')} {...rest}>{children}</div>
@@ -65,6 +74,9 @@ export function TopBar({ touch = false, children, ...rest }) {
 
 const BODY = { default: null, split: 'sp-shell__body--split', rail: 'sp-shell__body--rail', fill: 'sp-shell__body--fill' }
 
+/** @param {object} props
+    @param {keyof typeof BODY} [props.layout]
+    @param {import('react').ReactNode} [props.children] */
 export function ShellContent({ layout = 'default', children, ...rest }) {
 	reject(rest, 'ShellContent')
 	return <main className={join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))} {...rest}>{children}</main>
@@ -80,7 +92,11 @@ const SIDEBAR = {
 
 const MOTION = { in: 'sp-sidebar--slide-in', out: 'sp-sidebar--slide-out' }
 
-/** `motion` runs the labels in as the column opens, or out before it closes (9i). */
+/** `motion` runs the labels in as the column opens, or out before it closes (9i).
+    @param {object} props
+    @param {keyof typeof SIDEBAR} [props.variant]
+    @param {keyof typeof MOTION} [props.motion]
+    @param {import('react').ReactNode} [props.children] */
 export function Sidebar({ variant = 'default', motion, children, ...rest }) {
 	reject(rest, 'Sidebar')
 	return (
@@ -90,17 +106,24 @@ export function Sidebar({ variant = 'default', motion, children, ...rest }) {
 	)
 }
 
-/** The product's own mark and name, as the menu's top block. */
+/** The product's own mark and name, as the menu's top block.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function SidebarBrand({ children, ...rest }) {
 	reject(rest, 'SidebarBrand')
 	return <div className="sp-sidebar__brand" {...rest}>{children}</div>
 }
 
+/** @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function SidebarGroup({ children, ...rest }) {
 	reject(rest, 'SidebarGroup')
 	return <div className="sp-sidebar__group" {...rest}>{children}</div>
 }
 
+/** @param {object} props
+    @param {boolean} [props.expanded]
+    @param {() => void} [props.onClick] */
 export function SidebarGrip({ expanded = true, onClick, ...rest }) {
 	reject(rest, 'SidebarGrip')
 	return (
@@ -134,7 +157,23 @@ const NAV = {
 
 /** `tip` is the label shown while the row's own is hidden, on the rail; `control` is a Switch
     at the row's end, which makes the row its label. `handle` takes the icon's slot with a grip that
-    moves the row, and `trail` takes the count's slot, so a row in edit mode keeps its height (2g). */
+    moves the row, and `trail` takes the count's slot, so a row in edit mode keeps its height (2g).
+    @param {object} props
+    @param {keyof typeof NAV} [props.variant]
+    @param {string} [props.icon]
+    @param {import('react').ReactNode} [props.mark]
+    @param {import('react').ReactNode} [props.handle]
+    @param {string} [props.handleLabel]
+    @param {number} [props.count]
+    @param {'warning' | 'danger'} [props.countColor]
+    @param {import('react').ReactNode} [props.trail]
+    @param {import('react').ReactNode} [props.sub]
+    @param {boolean} [props.current]
+    @param {string} [props.to]
+    @param {() => void} [props.onClick]
+    @param {string} [props.tip]
+    @param {import('react').ReactNode} [props.control]
+    @param {import('react').ReactNode} [props.children] */
 export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, children, ...rest }) {
 	reject(rest, 'NavItem')
 	const [hint, tipEvents] = useTip(tip)
@@ -226,7 +265,16 @@ function useSidebarMenu({ expanded, onClick, onDismiss }) {
 }
 
 /** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
-    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab. */
+    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab.
+    @param {object} props
+    @param {string} props.name
+    @param {string} [props.picture] the picture's address
+    @param {string} props.email
+    @param {boolean} [props.expanded]
+    @param {() => void} [props.onClick]
+    @param {() => void} [props.onDismiss]
+    @param {import('react').ReactNode} [props.menu]
+    @param {string} [props.tip] */
 export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
 	const [hint, tipEvents] = useTip(expanded ? null : tip)
@@ -272,7 +320,10 @@ function useTip(tip) {
 	return [hint, { onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: hide }]
 }
 
-/** The dimmed page a sheet or a dialog sits over. It fills the frame it is in. */
+/** The dimmed page a sheet or a dialog sits over. It fills the frame it is in.
+    @param {object} props
+    @param {boolean} [props.dialog]
+    @param {import('react').ReactNode} [props.children] */
 export function Scrim({ dialog = false, children, ...rest }) {
 	reject(rest, 'Scrim')
 	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...rest}>{children}</div>
@@ -283,7 +334,19 @@ export function Scrim({ dialog = false, children, ...rest }) {
 const PaletteScreen = createContext(false)
 
 /** The command palette (c24): query line, results as one listbox, keys at its foot. `screen`
-    fills a phone (7b): the search field with `onCancel` beside it, rows without figures or keys. */
+    fills a phone (7b): the search field with `onCancel` beside it, rows without figures or keys.
+    @param {object} props
+    @param {boolean} [props.screen]
+    @param {string} props.value
+    @param {(value: string) => void} props.onChange
+    @param {() => void} [props.onCancel]
+    @param {number} [props.count]
+    @param {string} [props.activeId]
+    @param {import('react').Ref<HTMLInputElement>} [props.inputRef]
+    @param {string} [props.placeholder]
+    @param {string} props.label
+    @param {import('react').ReactNode} [props.foot]
+    @param {import('react').ReactNode} [props.children] */
 export function Palette({ screen = false, value, onChange, onCancel, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
 	reject(rest, 'Palette')
 	const list = useId()
@@ -323,7 +386,9 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 	)
 }
 
-/** The label over a group of rows. */
+/** The label over a group of rows.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function PaletteGroup({ children, ...rest }) {
 	reject(rest, 'PaletteGroup')
 	return <span className="sp-palette__group" role="presentation" {...rest}>{children}</span>
@@ -351,7 +416,19 @@ function marked(text, match) {
 }
 
 /** One record or one action, led by `icon` or `thumb` (a picture's address, or true for the empty box).
-    `match` is marked in the name; an amount (`value`), a `note` or `kbd` end it, and a phone drops them (7b). */
+    `match` is marked in the name; an amount (`value`), a `note` or `kbd` end it, and a phone drops them (7b).
+    @param {object} props
+    @param {string} [props.icon]
+    @param {string | boolean} [props.thumb]
+    @param {boolean} [props.plain]
+    @param {boolean} [props.action]
+    @param {string} [props.match]
+    @param {import('react').ReactNode} [props.meta]
+    @param {string} [props.value]
+    @param {import('react').ReactNode} [props.note]
+    @param {import('react').ReactNode} [props.kbd]
+    @param {boolean} [props.selected]
+    @param {import('react').ReactNode} [props.children] */
 export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, note, kbd, selected = false, children, ...rest }) {
 	reject(rest, 'PaletteRow')
 	const screen = useContext(PaletteScreen)
@@ -373,7 +450,10 @@ export function PaletteRow({ icon, thumb = false, plain = false, action = false,
 	)
 }
 
-/** The way from a group to the rest of its records, in their own list. */
+/** The way from a group to the rest of its records, in their own list.
+    @param {object} props
+    @param {boolean} [props.selected]
+    @param {import('react').ReactNode} [props.children] */
 export function PaletteAll({ selected = false, children, ...rest }) {
 	reject(rest, 'PaletteAll')
 	return (
