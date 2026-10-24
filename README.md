@@ -434,6 +434,9 @@ a control that does nothing.
 - Motion has one pace, set by the motion tokens: opening is the slower half and eases into place,
   closing is quicker. Nothing moves when the reader asks for reduced motion, and no part looks
   different at rest because it can move.
+- A list that opens from a field is the field's width. It grows only for an option that would not
+  fit, up to a set limit, and a longer option is cut. A list or menu that closes fades out where it
+  stood.
 - A fade is one of a few named strengths, one for each meaning. A faded part is at full strength
   while a list or a menu inside it is open.
 - After Save, a field shows the saved value at once and never the old one, not even for a moment.
