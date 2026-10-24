@@ -1,4 +1,5 @@
 import { join, pick, reject } from './variants.js'
+import { m, useRow } from './motion.js'
 
 const VARIANT = {
 	outline: null,
@@ -43,6 +44,8 @@ export function Chip({
 	...rest
 }) {
 	reject(rest, 'Chip')
+	// a value in a field grows in as it is added and shrinks out as it is removed (Combobox multiple)
+	const moves = useRow()
 	if (disabled && variant !== 'facet') console.error('<Chip> disabled belongs to a facet chip: any other chip is text or a button that acts')
 	const acts = !!onClick || variant === 'facet'
 	const classes = join(
@@ -61,7 +64,7 @@ export function Chip({
 		const controlled = selected !== undefined
 		const stored = value ?? children
 		return (
-			<label className={classes} {...paint} {...rest}>
+			<m.label className={classes} {...paint} {...moves} {...rest}>
 				<input
 					type={inputType}
 					name={name}
@@ -74,13 +77,13 @@ export function Chip({
 				<span data-label={children}><span>{children}</span></span>
 				{trail}
 				{count != null ? <span data-label={count}>{count}</span> : null}
-			</label>
+			</m.label>
 		)
 	}
 	if (trail) {
 		if (onClick) console.error('<Chip> a chip with a trail is not itself a control')
-		return <span className={classes} {...paint} {...rest}>{typeof children === 'string' ? text : <span>{children}</span>}{trail}</span>
+		return <m.span className={classes} {...paint} {...moves} {...rest}>{typeof children === 'string' ? text : <span>{children}</span>}{trail}</m.span>
 	}
-	if (onClick) return <button type="button" className={classes} onClick={onClick} {...paint} {...rest}>{text}</button>
-	return <span className={classes} {...paint} {...rest}>{text}</span>
+	if (onClick) return <m.button type="button" className={classes} onClick={onClick} {...paint} {...moves} {...rest}>{text}</m.button>
+	return <m.span className={classes} {...paint} {...moves} {...rest}>{text}</m.span>
 }

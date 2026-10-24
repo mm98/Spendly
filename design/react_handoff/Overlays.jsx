@@ -6,7 +6,8 @@ import { Icon } from './Icon.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
 import { roomOf, usePanelPlace } from './Combobox.jsx'
-import { Leaves, inMs, menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
+import { menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
+import { PRESENCE, Presence, m, useGoing, usePanelMotion } from './motion.js'
 
 const MENU = {
 	floating: 'sp-menu--floating',
@@ -43,6 +44,8 @@ export function useMenuPlace(box, open) {
 	const touch = useContext(ShellTouch)
 	const menu = useMemo(() => ({ get current() { return box.current?.querySelector(':scope > .sp-menu--floating') ?? null } }), [box])
 	usePanelPlace(box, menu, open && !touch)
+	// the menu fades out as it closes: the host spreads data-closing so it stays drawn until then
+	return usePanelMotion(menu, open && !touch)
 }
 
 /** On touch a floating menu is the c13 sheet from the bottom edge (c9), holding the same items.
@@ -110,7 +113,8 @@ export function Menu({ position, scrolls = false, children, ...rest }) {
 		</menu>
 	)
 	if (!sheet) return menu
-	return host.open ? <MenuSheet owner={host.box}>{menu}</MenuSheet> : null
+	// on touch the menu is a sheet, which slides back down as it closes
+	return <Presence>{host.open ? <MenuSheet owner={host.box}>{menu}</MenuSheet> : null}</Presence>
 }
 
 /** What a menu's button needs from the keyboard (c9): Enter, Space or Down opens it on its first
@@ -256,16 +260,16 @@ const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--e
     @param {import('react').ReactNode} [props.actions] The Cancel and Apply buttons. */
 export function Popover({ position = 'default', head, search, children, summary, note, actions, ...rest }) {
 	reject(rest, 'Popover')
-	const leaving = useContext(Leaves)
+	const leaving = useGoing()
 	return (
-		<div className={join('sp-popover', pick(POPOVER, position, 'position', 'Popover'))} {...(leaving ? { 'data-leaving': 'true' } : {})} {...rest}>
+		<m.div className={join('sp-popover', pick(POPOVER, position, 'position', 'Popover'))} {...PRESENCE.panel(false)} {...(leaving ? { inert: true } : {})} {...rest}>
 			{head ? <div className="sp-popover__head">{head}</div> : null}
 			{search ?? null}
 			{children ? <div className="sp-popover__list">{children}</div> : null}
 			{summary ? <div className="sp-popover__summary">{summary}</div> : null}
 			{note ? <div className="sp-popover__note">{note}</div> : null}
 			{actions ? <div className="sp-popover__actions">{actions}</div> : null}
-		</div>
+		</m.div>
 	)
 }
 
@@ -279,7 +283,7 @@ export function Anchor({ open, ref, children, ...rest }) {
 	reject(rest, 'Anchor')
 	const box = useRef(null)
 	const keys = useMenuButton(box, open)
-	useMenuPlace(box, !!open)
+	const closing = useMenuPlace(box, !!open)
 	// stable, or each render empties box.current until after the menu sheet has read it in its own layout effect
 	const bind = useCallback(el => {
 		box.current = el
@@ -288,33 +292,21 @@ export function Anchor({ open, ref, children, ...rest }) {
 	}, [ref])
 	return (
 		<span className="sp-anchor" ref={bind} {...keys}
-			{...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false', 'data-menu-open': open ? 'true' : undefined })} {...rest}>
+			{...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false', 'data-menu-open': open || closing ? 'true' : undefined })}
+			{...(closing ? { 'data-closing': 'true' } : {})} {...rest}>
 			<MenuHostOf open={!!open} box={box}>{children}</MenuHostOf>
 		</span>
 	)
 }
 
-/** Keeps a Dialog, Sheet or Popover on the page while it closes. The page writes its condition as
-    before, inside it: `<Leaving>{open ? <Dialog ...> : null}</Leaving>`. When the child goes, the
-    part it last drew stays, marked data-leaving="true", for --motion-out, and is then removed and
-    `onClosed` called. Opened again meanwhile, it stays. Under reduced motion it goes at once.
+/** Keeps a Dialog, Sheet or Popover drawn while its way out runs, after its child goes:
+    `<Leaving>{open ? <Dialog ...> : null}</Leaving>`. Motion's presence: the part's own exit runs,
+    and it takes no more presses meanwhile. Under reduced motion only its fade runs.
     @param {object} props
     @param {() => void} [props.onClosed] Called once the part has gone, such as to return focus.
     @param {import('react').ReactNode} [props.children] The open part, or nothing once it closes. */
 export function Leaving({ onClosed, children }) {
-	const last = useRef(children ?? null)
-	if (children) last.current = children
-	const [, gone] = useState(0)
-	const leaving = !children && last.current != null
-	const closed = useRef(onClosed)
-	useEffect(() => { closed.current = onClosed })
-	useEffect(() => {
-		if (!leaving) return
-		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
-		const timer = setTimeout(() => { last.current = null; gone(n => n + 1); closed.current?.() }, still ? 0 : inMs('--motion-out', 140))
-		return () => clearTimeout(timer)
-	}, [leaving])
-	return <Leaves.Provider value={leaving}>{children ?? last.current}</Leaves.Provider>
+	return <Presence onGone={onClosed}>{children}</Presence>
 }
 
 // the dialog is named by its title and described by its body, whichever ids those parts take
@@ -341,7 +333,7 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	const backdrop = useRef(null)
 	const pressed = useRef(false)
 	// closing under a Leaving, it answers nothing more
-	const leaving = useContext(Leaves)
+	const leaving = useGoing()
 	const gone = useRef(leaving)
 	gone.current = leaving
 	const [parts, setParts] = useState({ title: [], body: [] })
@@ -378,12 +370,12 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	const touch = useContext(ShellTouch)
 	const panel = (
 		<DialogParts.Provider value={register}>
-			<div className={touch ? 'sp-sheet' : 'sp-dialog'} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
-				{...(leaving && touch ? { 'data-leaving': 'true' } : {})}
+			<m.div className={touch ? 'sp-sheet' : 'sp-dialog'} role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
+				{...(touch ? PRESENCE.sheet() : PRESENCE.dialog())}
 				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
 				{above}
 				{actions}
-			</div>
+			</m.div>
 		</DialogParts.Provider>
 	)
 	if (!scrim) return panel

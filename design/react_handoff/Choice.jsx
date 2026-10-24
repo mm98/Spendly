@@ -3,6 +3,7 @@ import { join, pick, reject } from './variants.js'
 import { SearchInput } from './Inputs.jsx'
 import { Icon } from './Icon.jsx'
 import { countOf } from './Combobox.jsx'
+import { Fold, glide, m } from './motion.js'
 
 /** @param {object} props
     @param {boolean} [props.indeterminate] Some of the set is ticked, not all: the box shows a dash. */
@@ -53,8 +54,21 @@ export function Choice({ variant = 'default', control, children, description, de
 	if (control && !wiring.id && !control.props.id && !control.props.name) wiring.id = auto
 	for (const slot of ['lead', 'trail', 'unit']) delete rest[slot]
 	const wired = control && Object.keys(wiring).length ? cloneElement(control, wiring) : control
+	// a set of radio rows draws its tint once, on the checked row, and it moves to the row picked next;
+	// a radio the page does not hold is followed through the group's own change events
+	const radioRow = variant === 'row' && control?.type === Radio && control.props.name
+	const box = useRef(null)
+	const [on, setOn] = useState(() => !!(control?.props.checked ?? control?.props.defaultChecked))
+	useEffect(() => {
+		if (!radioRow) return
+		const follow = ev => { if (ev.target?.name === control.props.name) setOn(!!box.current?.querySelector('input')?.checked) }
+		document.addEventListener('change', follow)
+		return () => document.removeEventListener('change', follow)
+	}, [radioRow, control?.props.name])
+	const marked = radioRow && (control.props.checked ?? on)
 	return (
-		<label className={join('sp-choice', pick(CHOICE, variant, 'variant', 'Choice'))} {...rest}>
+		<label className={join('sp-choice', pick(CHOICE, variant, 'variant', 'Choice'))} ref={box} {...rest}>
+			{marked ? <m.span className="sp-marker" layoutId={'sp-choice-' + control.props.name} transition={glide()} aria-hidden="true" /> : null}
 			{wired}
 			{description
 				? (
@@ -97,11 +111,12 @@ export function FieldGroup({ legend, facet = false, count, meta, children, ...re
 			<span className="sp-card__chevron"><Icon name="chevron-down" size={14} /></span>
 		</button>
 	)
+	// the values fold by height as the head opens and closes them
 	if (meta !== undefined)
 		return (
 			<div className="sp-field-group" {...rest}>
 				<div className="sp-field-group__head">{head(<span className="sp-meta">{meta}</span>)}</div>
-				{open ? children : null}
+				<Fold open={open}>{children}</Fold>
 			</div>
 		)
 	return (
@@ -109,7 +124,7 @@ export function FieldGroup({ legend, facet = false, count, meta, children, ...re
 			{facet
 				? <legend className="sp-field-group__head">{head(count !== undefined ? <span className="sp-field-group__count">{count}</span> : null)}</legend>
 				: <legend>{legend}</legend>}
-			{!facet || open ? children : null}
+			{facet ? <Fold open={open}>{children}</Fold> : children}
 		</fieldset>
 	)
 }

@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261024g">
-<link rel="stylesheet" href="styles/components.css?v=v20261024n">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
+<link rel="stylesheet" href="styles/components.css?v=v20261024t">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
   a { color: #1d4d33; }
@@ -2062,7 +2062,7 @@
     <div class="doc-notes__label">States</div>
     <div class="doc-note">On touch there is no floating menu at all: the same actions arrive as the sheet in <a href="#c13">c13</a>, full width from the bottom edge, which is why this section has no touch specimen. Hover and <code>:focus-visible</code> share the <code>--hover</code> fill, so keyboard and pointer look alike. An item whose submenu is open holds that fill, so the parent stays visibly the one being drilled into; opened by click it also carries <code>aria-expanded="true"</code>. <code>disabled</code> items stay in place at <code>--fade-disabled</code> rather than disappearing. A destructive item keeps <code>--red-ink</code> text and never becomes a filled row.</div>
     <div class="doc-notes__label">Actions</div>
-    <div class="doc-note"><b>Click an item</b> - performs it and closes the menu. <b>Hover an item with a chevron for 500ms</b> - opens its submenu beside the menu. The delay is the whole point: a pointer crossing the menu on its way elsewhere opens nothing, and only a deliberate rest opens a level. Leaving it closes the submenu after the same 500ms, so crossing the gap between item and submenu does not lose it, and moving to another chevron item cancels the pending open. <b>Click it</b> - opens at once, without waiting out the delay; clicking again closes it. Opening one submenu closes any other. On touch there is no hover, so tap is the only way in. One level only, aligned to the item's top - outward by default, and inward when the parent menu is itself anchored to a right edge, so a submenu is never clipped. A submenu holds values rather than actions, so it shows the current one with a check and picking one both applies it and closes the whole menu. <b>Arrow keys</b> - move; <b>Escape</b> - closes and returns focus to the control that opened it. <b>A destructive item</b> - confirms first. The menu is opened from a button that carries <code>aria-haspopup</code> and <code>aria-expanded</code>, focus moves into it and returns to the trigger on close, and a destructive item is named as what it will delete. It closes on any outside press or Escape without acting.</div>
+    <div class="doc-note"><b>Click an item</b> - performs it and closes the menu. <b>Hover an item with a chevron for 200ms</b> - opens its submenu beside the menu. The delay is the whole point: a pointer crossing the menu on its way elsewhere opens nothing, and only a deliberate rest opens a level. Leaving it closes the submenu after the same 500ms, so crossing the gap between item and submenu does not lose it, and moving to another chevron item cancels the pending open. <b>Click it</b> - opens at once, without waiting out the delay; clicking again closes it. Opening one submenu closes any other. On touch there is no hover, so tap is the only way in. One level only, aligned to the item's top - outward by default, and inward when the parent menu is itself anchored to a right edge, so a submenu is never clipped. A submenu holds values rather than actions, so it shows the current one with a check and picking one both applies it and closes the whole menu. <b>Arrow keys</b> - move; <b>Escape</b> - closes and returns focus to the control that opened it. <b>A destructive item</b> - confirms first. The menu is opened from a button that carries <code>aria-haspopup</code> and <code>aria-expanded</code>, focus moves into it and returns to the trigger on close, and a destructive item is named as what it will delete. It closes on any outside press or Escape without acting.</div>
   </div>
 
   <div class="doc-notes">

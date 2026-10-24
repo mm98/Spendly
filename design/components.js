@@ -313,22 +313,35 @@
      control moved it - the grip or the hover peek. Opening runs the words in as the
      column widens; closing runs them out first and gives the width back after, since
      a label that is already gone has nothing to animate. */
+  /* The labels run at the motion tokens, as the app's Motion runs them (slideLabels in motion.js);
+     the stylesheet no longer holds this slide. */
+  function slideRun(side, way) {
+    var css = getComputedStyle(document.documentElement);
+    var ms = function (t) { var v = css.getPropertyValue(t).trim(); var n = parseFloat(v); return /ms$/.test(v) ? n : n * 1000; };
+    var by = parseFloat(css.getPropertyValue('--motion-slide')) || 0;
+    var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var labels = side.querySelectorAll('.sp-nav-item > :not(.sp-nav-item__icon):not(.sp-mark), .sp-sidebar__brand > :not(.sp-mark), .sp-sidebar__group');
+    var time = way === 'in' ? ms('--motion-in') : ms('--motion-out');
+    if (still || !labels.length || !labels[0].animate) return 0;
+    var frames = way === 'in'
+      ? [{ opacity: 0, transform: 'translateX(' + -by + 'px)' }, { opacity: 1, transform: 'none' }]
+      : [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(' + -by + 'px)' }];
+    var ease = css.getPropertyValue(way === 'in' ? '--ease-enter' : '--ease-exit').trim();
+    labels.forEach(function (l) { l.animate(frames, { duration: time, easing: ease, fill: way === 'out' ? 'forwards' : 'none' }); });
+    return time;
+  }
   function slideOpen(side) {
     if (!side) return;
-    side.classList.remove('sp-sidebar--slide-out');
-    side.classList.add('sp-sidebar--slide-in');
-    clearTimeout(side.__spIn);
-    side.__spIn = setTimeout(function () { side.classList.remove('sp-sidebar--slide-in'); }, 220);
+    slideRun(side, 'in');
   }
   function slideShut(side, done) {
     if (!side) { done(); return; }
-    side.classList.remove('sp-sidebar--slide-in');
-    side.classList.add('sp-sidebar--slide-out');
     clearTimeout(side.__spOut);
+    var time = slideRun(side, 'out');
     side.__spOut = setTimeout(function () {
-      side.classList.remove('sp-sidebar--slide-out');
+      side.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); });
       done();
-    }, 140);
+    }, time);
   }
 
   /* The sidebar's grip (c11): one click collapses the sidebar it belongs to, the next
@@ -386,7 +399,7 @@
     side.addEventListener('pointerenter', function () {
       clearTimeout(closeT);
       clearTimeout(side.__spOut);
-      side.classList.remove('sp-sidebar--slide-out');
+      side.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); });
       if (!railed() || side.classList.contains('sp-sidebar--peek')) return;
       openT = setTimeout(function () {
         if (!railed()) return;
@@ -403,12 +416,57 @@
     });
   }
 
+  /* The selection drawn once and moved to the option picked, as the app's Motion moves it (layoutId
+     in Segmented, PeriodPicker, Choice): the segmented control, the period picker's window sizes and a
+     set of radio rows. The chosen option holds a .sp-marker; picking another moves it there, sliding
+     from where it was at the motion tokens. */
+  var CHOSEN = '.sp-segmented__item, .sp-period__preset, .sp-choice--row';
+  function optionOf(input) {
+    var item = input && input.type === 'radio' ? input.closest(CHOSEN) : null;
+    if (item && item.classList.contains('sp-choice--row') && input.parentElement !== item) return null;
+    return item;
+  }
+  function setOf(item) { return item.closest('.sp-segmented, .sp-period__presets') || item.parentElement; }
+  function markOf(item) {
+    var mark = item.querySelector(':scope > .sp-marker');
+    if (mark) return mark;
+    mark = document.createElement('span');
+    mark.className = 'sp-marker';
+    mark.setAttribute('aria-hidden', 'true');
+    item.insertBefore(mark, item.firstChild);
+    return mark;
+  }
+  function placeMarkers() {
+    document.querySelectorAll('input[type="radio"]:checked').forEach(function (input) {
+      var item = optionOf(input);
+      if (item) markOf(item);
+    });
+  }
+  document.addEventListener('change', function (ev) {
+    var item = optionOf(ev.target);
+    if (!item) return;
+    var set = setOf(item);
+    var was = null;
+    set.querySelectorAll('.sp-marker').forEach(function (m) { if (m.parentElement !== item) { was = was || m.getBoundingClientRect(); m.remove(); } });
+    var mark = markOf(item);
+    if (!was || !mark.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var now = mark.getBoundingClientRect();
+    var css = getComputedStyle(document.documentElement);
+    var time = css.getPropertyValue('--motion-in').trim();
+    var ms = /ms$/.test(time) ? parseFloat(time) : parseFloat(time) * 1000;
+    mark.animate([
+      { transformOrigin: '0 0', transform: 'translate(' + (was.left - now.left) + 'px, ' + (was.top - now.top) + 'px) scale(' + (was.width / now.width) + ', ' + (was.height / now.height) + ')' },
+      { transformOrigin: '0 0', transform: 'none' }
+    ], { duration: ms, easing: css.getPropertyValue('--ease-enter').trim() });
+  });
+
   function start() {
     refresh();
+    placeMarkers();
     let queued = null;
     new MutationObserver(() => {
       if (queued) return;
-      queued = setTimeout(() => { queued = null; refresh(); }, 60);
+      queued = setTimeout(() => { queued = null; refresh(); placeMarkers(); }, 60);
     }).observe(document.documentElement, { childList: true, subtree: true });
   }
 

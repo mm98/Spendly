@@ -13,11 +13,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261024g">
-<link rel="stylesheet" href="styles/components.css?v=v20261024o">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
+<link rel="stylesheet" href="styles/components.css?v=v20261024t">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script src="https://unpkg.com/framer-motion@11.18.2/dist/framer-motion.js"></script>
 <style>
 	body { margin: 0; background: var(--bg); font-family: Poppins, system-ui, sans-serif; color: var(--ink); }
 	/* the wrapper carries the theme too, so the ground under the sections is the
@@ -41,7 +42,7 @@
 	<div class="doc-lede">The components in <code>react_handoff/</code>, rendered from their own source files rather than redrawn. Every specimen below is a real call to a real component, so a prop set that has drifted from <a href="Components.dc.html">the library</a> shows up here as a broken specimen rather than as a surprise in the app.</div>
 	<div class="doc-notes">
 		<div class="doc-notes__label">Notes for implementation</div>
-		<div class="doc-note"><b>What moves, and how fast.</b> Panels, menus, dialogs, sheets, folds, the segmented selection and added or removed rows, at the <code>--motion-*</code> tokens in <code>tokens.css</code>. A part shown by an attribute animates both ways from CSS. A part the component mounts animates in from CSS and out only when the component keeps it for <code>--motion-out</code> with <code>data-leaving="true"</code>, so on this page those still close at once. Each section says which applies.</div>
+		<div class="doc-note"><b>What moves, and how fast.</b> One pace, the <code>--motion-*</code> tokens in <code>tokens.css</code>, read by CSS and by Motion alike. CSS keeps what works in every browser: hover and colour, check boxes and radios, the chevrons' turn, submenus, gauges and bars, the calendar's month slide, the password shuffle. Motion (<code>motion.js</code>) runs what CSS cannot: a part leaving the page, a marker or a row moving to a new place, height folds, reordering and the page change. <code>motion.js</code> reads the tokens off <code>:root</code> once and turns them into Motion's units, so no number is written twice. <code>MotionShell</code> goes once around the app and the Storybook decorator: <code>LazyMotion</code> with <code>domMax</code>, fetched after the first paint (layoutId, layout and drag need it), and <code>MotionConfig reducedMotion="user"</code>, so a reader who asks for less motion gets fades only, everywhere, and no component checks for itself. On this page <code>m</code> is the full <code>motion</code>, since each specimen renders in its own root.</div>
 		<div class="doc-note"><b>This page is a harness, not a build.</b> It fetches each <code>.jsx</code> file, strips the module syntax, and evaluates it against React with three stand-ins: the router's link, the app's <code>Icon</code>, and the shared variant helpers. The app compiles the same files properly; nothing here is a second implementation of them.</div>
 		<div class="doc-note"><b>A console error is the point.</b> The components report an unknown prop value, a <code>className</code> or a <code>style</code> rather than rendering something wrong quietly. The last block on this page calls them wrongly on purpose, so the reporting is visible in the browser console.</div>
 		<div class="doc-note"><b>The stylesheets are the ones the pages use.</b> No copy, no override: <code>tokens.css</code> then <code>components.css</code>, loaded from <code>styles/</code>.</div>
@@ -122,7 +123,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">variant · color · state</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> A chip the reader adds grows in; one they remove shrinks out, held for <code>--motion-out</code> with <code>data-leaving="true"</code> before it goes.</div>
+	<div class="doc-note"><b>Motion.</b> A value the reader adds to a <code>Combobox multiple</code> grows in; one they remove shrinks out and the others close up. The field wraps its chips in <code>Rows kind="chip"</code>; a chip anywhere else does not move.</div>
 	<span class="doc-specimen__label">Chip: variant, then the danger colour</span>
 	<div class="sp-card"><div class="sp-row-flex sp-gap-8 sp-wrap">{{ chips }}</div></div>
 	{{ chipsCode }}
@@ -141,7 +142,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">every control the reader types, picks or drops into</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> The combobox panel, the date field's calendar and the range picker under a PeriodPicker's Custom open from their trigger: a fade and a 4px drop at <code>--motion-in</code> (180ms), and back the same way at <code>--motion-out</code> (140ms). The chevron turns to point up while open. A segmented control's green, and a PeriodPicker's, slides to the option picked. A facet group's values grow in as it unfolds. A check box fills and its tick draws; a radio's dot grows in. A calendar stepped a month slides its days in from that side. All from <code>components.css</code>; none of it runs under reduced motion.</div>
+	<div class="doc-note"><b>Motion.</b> The combobox panel, a menu let out of its anchor, the date field's calendar and the range under a PeriodPicker's Custom open from their trigger, a fade and a drop of <code>--motion-rise</code> at <code>--motion-in</code>, rising when placed above, and close back the same way at <code>--motion-out</code> in every browser: <code>usePanelMotion</code> keeps the host <code>data-closing="true"</code> until the fade is done, and the panel's show rule keeps it drawn. The selection in a segmented control and in a PeriodPicker's window sizes is one marker (<code>.sp-marker</code>) that Motion moves to the option picked (<code>layoutId</code>); a control the page does not hold the value of keeps each option's own green.</div>
 	<div class="doc-lede">One segment for all of them, because a reader choosing a control is choosing between these and not between three pages. Every one is controlled - <code>value</code> and <code>onChange</code>, no internal copy - and none takes a colour: an error is a boolean and a message, never a variant.</div>
 
 	<span class="doc-specimen__label">Field owns the label, the message and the spacing; each control renders only its own box</span>
@@ -245,7 +246,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">variant · color · footer · footerLayout · CardHeader</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> A card that folds from its toolbar grows and shrinks its body by height, at <code>--motion-in</code> open and <code>--motion-out</code> closed, while its chevron turns. In a browser that cannot animate to <code>auto</code> it folds at once, as before.</div>
+	<div class="doc-note"><b>Motion.</b> A card that folds from its toolbar passes the toolbar's <code>expanded</code> to its body: <code>&lt;CardBody open={expanded}&gt;</code>. The body grows to its height as it opens and back to nothing as it closes (<code>Fold</code>), clipped only while it moves, while its chevron turns. A facet group's values fold the same way.</div>
 	<span class="doc-specimen__label">CardHeader: every view in its own slot</span>
 	<div class="sp-stack sp-gap-12 doc-w400">{{ cardHeaders }}</div>
 	{{ cardHeadersCode }}
@@ -271,7 +272,7 @@
 		<span class="sp-meta">variant · color · mark · handle · actions · count · chevron</span>
 	</div>
 	<div class="doc-note"><b>A row that opens and has a handle</b> is a plain box with the handle and the open target side by side, as <a href="Components.dc.html">Components</a>, Ordering by hand, draws it. The open target, <code>sp-list-item__open</code>, holds the mark, the count and the words and stretches over the row; actions and the handle sit above it. NavItem the same.</div>
-	<div class="doc-note"><b>Motion.</b> A row the reader just added drops in, and one they removed fades and closes up where it stood. While a row is carried, the rows it passes ease aside: the drag sets each one's move as its <code>translate</code> on a list marked <code>data-reordering="true"</code>, and the transition takes it home. The row is marked <code>data-added="true"</code> on its first render and <code>data-leaving="true"</code> for <code>--motion-out</code> before it is removed; the list does the marking, so a list loading its rows does not animate them.</div>
+	<div class="doc-note"><b>Motion.</b> A list whose rows change wraps them, keyed, in <code>&lt;Rows count={n}&gt;</code>: rows loaded with the list stay still, a row added later drops in, a row removed fades where it stood and the rows below glide up, and after a sort or a filter each row glides to its new place. Past 60 rows nothing glides. A list the reader orders by hand is a <code>ReorderList</code> (<code>Reorder.jsx</code>, Motion's <code>Reorder</code>): the handle carries a row and the rows it passes make room; a press picks it up for the arrows, Space puts it down, Escape puts it back, and each move is read out. The insertion line is gone: the rows themselves show where the row lands.</div>
 	<div class="doc-note">One row for every list in the product. It was two components - one for an editable set, one for everything else - until the two were compared: they differed by one shade of ground and 2px of radius. What varies is what the row carries, not the row.</div>
 	<div class="doc-note"><b>A surface is not a row.</b> A Card owns a ground, an edge and padding and holds a section of a page; its <code>row</code> variant is layout only, laying its own children in a line. A row that wants a card's ground is this component's <code>card</code> variant, because it repeats - and repeating is what separates a row from a surface. The control states, the text column and the line parts live here, not on the card. Which body a list shows is a question about the list's own width, answered by a container query - one implementation, no phone-only component.</div>
 	<span class="doc-specimen__label">the card variant: a list with no columns to align</span>
@@ -300,8 +301,8 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">three promises, not three sizes</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> In a popover's list of choices that picks one, the green tint slides from the old row to the new. A submenu slides out from its item, its items following 20ms apart, after the same <code>--submenu-delay</code> rest. A menu or popover opens from its trigger: a fade and a 4px drop, rising instead when placed above. A dialog grows the last 2% into place over a fading scrim. A menu let out of its anchor closes the same way back. A dialog, a sheet and a popover close the same way back too, inside a <code>Leaving</code>.</div>
-	<div class="doc-note"><b>Closing with the fade.</b> The page keeps its condition and wraps it: <code>&lt;Leaving onClosed={...}&gt;{open ? &lt;Dialog ...&gt; : null}&lt;/Leaving&gt;</code>. When the child goes, <code>Leaving</code> keeps the part it last drew, with the words it had, for <code>--motion-out</code>; the Dialog with its Scrim, a Sheet and a Popover under it mark themselves <code>data-leaving="true"</code> and answer no more presses or keys. Then it is removed and <code>onClosed</code> called. Opened again meanwhile, it stays open. Under reduced motion it goes at once. A part outside a <code>Leaving</code> is removed at once, as before.</div>
+	<div class="doc-note"><b>Motion.</b> In a set of radio rows the green tint is one marker that moves from the old row to the new. A submenu slides out from its item, its items following 20ms apart, in CSS. A dialog grows the last 2% into place over a fading scrim, and a popover drops in from its trigger; both leave the same way under <code>Leaving</code>.</div>
+	<div class="doc-note"><b>Closing with the fade.</b> The page keeps its condition and wraps it: <code>&lt;Leaving onClosed={...}&gt;{open ? &lt;Dialog ...&gt; : null}&lt;/Leaving&gt;</code>. <code>Leaving</code> is Motion's <code>AnimatePresence</code> under the same name and props, so its 63 uses do not change: when the child goes, its way out runs, it takes no more presses meanwhile, and <code>onClosed</code> is called once it has gone.</div>
 	<div class="doc-note">A Menu acts on click: every item does its thing and closes. A Popover waits - it holds a decision and a Cancel / Apply pair, so nothing happens until the reader applies it. A Dialog interrupts, and cannot be answered by ignoring it. That is why they are three components.</div>
 	<span class="doc-specimen__label">the menu, and the panel that waits</span>
 	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-top sp-wrap">{{ menus }}</div></div>
@@ -337,7 +338,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">records · columns · bulkActions</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> A record or table row the reader added drops in, and a removed one fades out, as ListItem does (<a href="#r6">r6</a>).</div>
+	<div class="doc-note"><b>Motion.</b> The List wraps its own table rows and record cards in <code>Rows</code>, so a row added drops in, a row removed fades and the rest glide up, and a sort or a filter glides each row to its new place, as ListItem does (<a href="#r6">r6</a>).</div>
 	<div class="doc-note"><b>Written the way a table is written.</b> A <code>Caption</code> says what it is, a <code>ListHead</code> of cells declares each column's heading and width, and a <code>ListRow</code> is the template every record is drawn through - its child is a function of one record, returning that record's cells in the head's order. That order is the one thing this shape asks of a page, so the list checks it: a row drawing a different number of cells from the head is reported, because every cell after the gap would otherwise sit under the wrong heading in silence.</div>
 	<div class="doc-note"><b>The page supplies the data, the head, the row and what can be done to a selection.</b> Everything else is the list's, because it is the same on every list: the count, the caption becoming the bulk bar, the select-all box and its three states, shift-click taking the run, Escape clearing, the pager, and paging keeping a selection where a filter change drops it. <code>Selected</code> is the only reason a list has boxes - leave it out and the list is a plain table.</div>
 	<div class="doc-note">A head cell states a role, never a width: seven roles, each with its width declared once in the stylesheet, and exactly one <code>title</code> - the column with no width of its own, which absorbs whatever the fixed ones leave. That is why the title looks different on every page and every other column is identical everywhere.</div>
@@ -377,7 +378,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">what is still arriving</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> What replaces a skeleton fades in where it stood. The component that swaps them marks the arriving content <code>data-loaded="true"</code>; content there from the start is not marked.</div>
+	<div class="doc-note"><b>Motion.</b> What replaces a skeleton fades in where it stood. The app's <code>markLoaded</code> finds each element that took a placeholder's place, as before, and hands it to <code>arrive</code> in <code>motion.js</code>; content there from the start does not fade.</div>
 	<div class="doc-note">A skeleton is the shape of what is loading rather than a spinner: a row being fetched looks like the row it will become. The spinner is for work of unknown length on one line of text.</div>
 	<span class="doc-specimen__label">a row on its way, and work of unknown length</span>
 	<div class="sp-card">{{ loading }}</div>
@@ -391,7 +392,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">the page's own furniture</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> The current row's ground slides from the row it left to the row it reached, in the dark and the light sidebar alike.</div>
+	<div class="doc-note"><b>Motion.</b> The current row's ground is one marker that Motion moves from the row it left to the row it reached, in the dark and the light sidebar alike. The labels run in from <code>--motion-slide</code> as the column opens and out before it closes; <code>Sidebar</code> calls <code>onMotionEnd</code> when they are done, which is when the shell narrows the column. A new page fades in, rising <code>--motion-rise</code>, and the one it replaces goes at once, so a click never waits on a fade: <code>ShellContent page={path}</code>, the sidebar and top bar still.</div>
 	<div class="doc-note"><b>The account row.</b> <code>SidebarAccount</code> is a <code>NavItem</code> whose whole row is the one button that opens the account menu, as it was: the photo or initials as its <code>mark</code>, the name over the address as its label, the up chevron as its <code>trail</code>. It keeps <code>aria-haspopup="menu"</code>, <code>aria-expanded</code>, Up and Down to open the menu at either end, and the menu placed above the row at its width, or beside the mark on the rail. Its focus ring is the nav row's own. Its name is the words drawn on it, the name and the address; the mark is hidden from screen readers. No <code>control</code>: that is a Switch, and makes the row a label.</div>
 	<div class="doc-note">The shell is a grid of two tracks, and collapsing it is a track width rather than an animation - an animated track reflows every card beside it on every frame. The rail is the same sidebar at its narrow width, and peeking shows its labels over the page rather than pushing it.</div>
 	<span class="doc-specimen__label">the menu, and the top bar above the page</span>
@@ -412,7 +413,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">the touch surface's own furniture</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> The tab bar's current colour crosses over to the item pressed. A sheet rises from the bottom edge over a fading scrim, and falls back the same way when it closes, held for <code>--motion-out</code> with <code>data-leaving="true"</code>. Its drag still moves it by hand; the slide adds to the drag rather than replacing it.</div>
+	<div class="doc-note"><b>Motion.</b> The tab bar's current colour crosses over to the item pressed. A sheet rises from the bottom edge over a fading scrim, and falls back the same way when it closes. Its drag moves the same value Motion slides it with, so a sheet let go short of closing springs back from where the finger left it, and one let go past it falls from there.</div>
 	<div class="doc-note">Not the desktop shell's parts at a smaller size. A bar welded to the frame's edge, a row of destinations a thumb reaches, a surface that rises from the bottom - a touch screen has places a desktop page does not, and grouping them in <code>Touch.jsx</code> keeps a desktop page from reaching for one by accident.</div>
 	<div class="doc-note">The save bar and the tab bar never share a screen. A record opened for editing is a screen pushed over its list: it has a back button, and the bar it commits from takes the tab bar's place at the bottom. The tab bar belongs to the top-level screens.</div>
 	<span class="doc-specimen__label">a record being edited: the top bar, the body and the bar it commits from</span>
@@ -458,12 +459,12 @@
 /* Helpers first: a stripped module has no imports left, so each file is evaluated
    with what the earlier ones exported - a helper loaded after its callers leaves
    them with no binding at all. */
-const FILES = ['variants.js', 'format.js', 'colour.js', 'EmailLine.jsx',
+const FILES = ['variants.js', 'format.js', 'colour.js', 'motion.js', 'EmailLine.jsx',
 		'Button.jsx', 'Mark.jsx', 'Chip.jsx', 'Pill.jsx',
 	// Choice before Field: a field handed a box renders a Choice around it, and a
 	// file evaluated after its callers leaves them with no binding at all
 	'Choice.jsx', 'Field.jsx',
-	'Card.jsx', 'Well.jsx', 'ListItem.jsx', 'Combobox.jsx',
+	'Card.jsx', 'Well.jsx', 'Reorder.jsx', 'ListItem.jsx', 'Combobox.jsx',
 	'Segmented.jsx', 'Stepper.jsx', 'FileDrop.jsx',
 	// DatePickers before Inputs: DateField reaches for the Calendar, and a file
 	// evaluated after its callers leaves them with no binding at all
@@ -547,8 +548,9 @@ class Component extends DCLogic {
 	}
 
 	async waitForBabel() {
-		for (let i = 0; i < 100 && !window.Babel; i++) await new Promise(r => setTimeout(r, 50));
+		for (let i = 0; i < 100 && !(window.Babel && window.Motion); i++) await new Promise(r => setTimeout(r, 50));
 		if (!window.Babel) throw new Error('Babel did not load');
+		if (!window.Motion) throw new Error('Motion did not load');
 	}
 
 	async load() {
@@ -581,6 +583,16 @@ class Component extends DCLogic {
 				useSyncExternalStore: React.useSyncExternalStore,
 				createPortal: (node, at) => (window.ReactDOM && window.ReactDOM.createPortal ? window.ReactDOM.createPortal(node, at) : node),
 				useNavigate: () => () => {},
+				/* Motion, from its browser build at the version the page loads. `m` is the full `motion`
+				   here: each specimen renders in a root of its own, with no LazyMotion around it. */
+				...(() => {
+					const M = window.Motion || {};
+					return {
+						AnimatePresence: M.AnimatePresence, LazyMotion: M.LazyMotion, MotionConfig: M.MotionConfig,
+						animate: M.animate, m: M.motion, useIsPresent: M.useIsPresent, useMotionValue: M.useMotionValue,
+						useReducedMotionConfig: M.useReducedMotionConfig, Reorder: M.Reorder, useDragControls: M.useDragControls
+					};
+				})(),
 				// from react/src/api/format.js and react/src/app/useMedia.js, which are the app's, not the library's
 				plural: (n, noun, pluralNoun = noun + 's') => new Intl.NumberFormat().format(n) + ' ' + (n === 1 ? noun : pluralNoun),
 				useShellShape: () => {
@@ -628,6 +640,10 @@ class Component extends DCLogic {
 		// cross a newline swallows the whole file
 		const body = src
 			.replace(/^[ \t]*import[^\n;]*;?[ \t]*$/gm, '')
+			// a re-export hands on names the scope already holds
+			.replace(/^[ \t]*export\s*\{[^}\n]*\}[ \t]*;?[ \t]*$/gm, '')
+			// motion.js fetches Motion's features late; here the browser build already holds them
+			.replace(/import\('motion\/react'\)/g, 'Promise.resolve(window.Motion)')
 			.replace(/export\s+(async\s+function|function|const|let)/g, '$1');
 		// the return is appended after the transform: Babel reads the file as a module,
 		// where a top-level return is a syntax error
@@ -648,7 +664,7 @@ class Component extends DCLogic {
 			Stacked, Line, Combobox, ComboboxOption, ComboboxGroup, ComboboxEmpty,
 			Check, Radio, Switch, Choice, FieldGroup, Segmented, Stepper, FileDrop,
 			TextField, PasswordField, NumberField, SearchInput, RangeSlider,
-			TokensField, Picker,
+			Picker,
 			Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor, Leaving, SidebarAccount,
 			Dialog, DialogTitle, DialogBody, DialogActions, Toast, ToastUndo, Alert,
 			List, Caption, ListHead, ListRow, ListCell, Foot, Toolbar, ListFooter,
@@ -952,6 +968,8 @@ class Component extends DCLogic {
 				lines.map((line, i) => e('span', { className: 'doc-code__line', key: i }, line)));
 		};
 
+		// the shell specimen's rows can be pressed, so the current row's ground can be seen moving
+		const navAt = key => ({ current: (this.state.navAt ?? 'h') === key, onClick: () => this.setState({ navAt: key }) });
 		const vals = {
 			calls,
 			status: 'Loaded ' + FILES.length + ' files: ' + Object.keys(m).filter(k => /^[A-Z]/.test(k) && k !== 'React').join(', ') + '.',
@@ -1371,7 +1389,8 @@ class Component extends DCLogic {
 				e(Field, { label: 'Email' },
 					e(TextField, { type: 'email', value: this.state.email, onChange: email => this.setState({ email }), placeholder: 'name@example.net' })),
 				e(Field, { label: 'Vendors this rule covers' },
-					e(TokensField, {
+					e(Combobox, {
+						multiple: true,
 						value: this.state.tokens,
 						onChange: tokens => this.setState({ tokens }),
 						'aria-label': 'Vendors this rule covers',
@@ -1802,15 +1821,15 @@ class Component extends DCLogic {
 						e(Mark, { size: 'small', fill: 'solid' }, 'S'),
 						e('span', { className: 'sp-strong' }, 'Spendly')),
 					// rows are the menu's own children: its column is what spaces them
-					e(NavItem, { key: 'h', icon: 'home', current: true }, 'Home'),
+					e(NavItem, { key: 'h', icon: 'home', ...navAt('h') }, 'Home'),
 					e(SidebarGroup, { key: 'g1' }, 'Orders'),
-					e(NavItem, { key: 'o', icon: 'receipt', count: 18 }, 'All orders'),
-					e(NavItem, { key: 'v', icon: 'building-store', count: 24 }, 'Vendors'),
-					e(NavItem, { key: 'c', icon: 'category', count: 6 }, 'Categories'),
+					e(NavItem, { key: 'o', icon: 'receipt', count: 18, ...navAt('o') }, 'All orders'),
+					e(NavItem, { key: 'v', icon: 'building-store', count: 24, ...navAt('v') }, 'Vendors'),
+					e(NavItem, { key: 'c', icon: 'category', count: 6, ...navAt('c') }, 'Categories'),
 					e(SidebarDivider, { key: 'd' }),
 					e(SidebarGroup, { key: 'g2' }, 'Needs attention'),
-					e(NavItem, { key: 'r', icon: 'bookmark', count: 4, countColor: 'warning' }, 'No receipt'),
-					e(NavItem, { key: 's', icon: 'settings' }, 'Settings'),
+					e(NavItem, { key: 'r', icon: 'bookmark', count: 4, countColor: 'warning', ...navAt('r') }, 'No receipt'),
+					e(NavItem, { key: 's', icon: 'settings', ...navAt('s') }, 'Settings'),
 					e('span', { key: 'sp', className: 'sp-grow' }),
 					e(SidebarDivider, { key: 'd2' }),
 					e(SidebarAccount, {

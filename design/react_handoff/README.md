@@ -1,8 +1,9 @@
 # React components from the library
 
-28 files, the same as `react/src/components/` on main, byte for byte. `Icon.jsx`, `icons.js`,
-`tabler.js` and `Reorder.js` stay in the app: the harness draws icons from the project's
-`icons.js`. `Failed.jsx` stays too, since it reads the app's API client.
+30 files: `react/src/components/` on main, with the Motion pass applied (`motion.js` and
+`Reorder.jsx` are new, and `Reorder.jsx` replaces the app's `Reorder.js`). `Icon.jsx`, `icons.js`
+and `tabler.js` stay in the app: the harness draws icons from the project's `icons.js`.
+`Failed.jsx` stays too, since it reads the app's API client.
 
     Attachments.jsx   Strip, Attachment, AttachmentAdd, Viewer
     Button.jsx        Button, IconButton
@@ -14,7 +15,8 @@
     Chip.jsx          Chip
     Choice.jsx        Check, Radio, Switch, Choice, FieldGroup, FieldGroupValues,
                       FieldGroupMore, FieldGroupPanel, Picker
-    Combobox.jsx      Combobox, ComboboxOption, ComboboxGroup, ComboboxSeparator, ComboboxEmpty
+    Combobox.jsx      Combobox (with `multiple`), ComboboxOption, ComboboxGroup, ComboboxSeparator,
+                      ComboboxEmpty
     Data.jsx          Gauge, GaugeKey, Bars, ChartTip, Donut, Shares, ShareRow, Legend,
                       LegendItem, Plot, Stat, SumHead, Sum
     DatePickers.jsx   RangePicker, RangeSheet, PeriodWindow, PeriodPicker, Calendar, DateField
@@ -22,17 +24,20 @@
     Field.jsx         Field
     FileDrop.jsx      FileDrop, Slot
     Inputs.jsx        TextField, PasswordField, NumberField, SearchInput, AskTrail,
-                      RangeSlider, TokensField
+                      RangeSlider
     LineEditor.jsx    LineEditor, Totals
     List.jsx          Caption, Selected, ListHead, ListRow, Foot, ListCell, SelectAllBox, List,
                       ListMore, BulkBar, ListToolbar, Controls, Filters, Facets, Crumb, Crumbs,
-                      Record, Records
+                      Record
     ListItem.jsx      ListItem, ListItemHead, Announce, Insertion, ListItemRemove
     Mark.jsx          Mark, MarkRemove
+    motion.js         MotionShell, Leaving's Presence, Fold, Rows, and the token bridge
+                      (pace, into, away, PRESENCE) the components move with
     Overlays.jsx      Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor,
                       Dialog, DialogTitle, DialogBody, DialogActions,
                       Toast, ToastUndo, Alert, Toaster
     Pill.jsx          Pill
+    Reorder.jsx       ReorderList
     Segmented.jsx     Segmented
     Shell.jsx         Shell, TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup,
                       SidebarGrip, SidebarDivider, NavItem, SidebarAccount, Scrim,
@@ -63,6 +68,22 @@ folder (the router link, the app's `Icon`, React's hooks and portal, `plural` fr
 `api/format.js`, `useShellShape` from `app/useMedia.js`). Names are looked up when they
 are called, since the files import each other in a cycle. Nothing is redrawn there, so a
 prop set that drifts from the library shows up as a broken specimen.
+
+## What moves, and with what
+
+CSS keeps what moves the same in every browser: hover and colour, check boxes and radios, the
+chevrons' turn, submenus, the tab bar's colour, gauges and bars, the calendar's month slide and
+the password shuffle. Motion runs what CSS fails at or cannot reach: a part leaving the page, a
+marker or a row moving to a new place, height folds, reordering and the page change. The rule for
+a new case: if CSS draws it the same in Chrome, Safari and Firefox, it stays CSS.
+
+`motion.js` is the one place the components meet Motion. It reads `--motion-in`, `--motion-out`,
+`--ease-enter`, `--ease-exit`, `--motion-rise` and `--motion-slide` off `:root` the first time
+something moves, so `tokens.css` stays the only place the pace is written. `MotionShell` goes
+once around the app and the Storybook decorator: `LazyMotion` with `domMax`, fetched after the
+first paint, since `layoutId`, `layout` and drag need it, and `MotionConfig reducedMotion="user"`,
+so reduced motion is one setting and no component checks it. Components import `m`, never
+`motion`, which `LazyMotion strict` refuses.
 
 ## Every prop is documented
 

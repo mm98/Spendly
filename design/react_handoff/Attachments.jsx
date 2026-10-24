@@ -72,7 +72,7 @@ export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, .
 		if (files.length) onFiles?.(files, await Promise.all(files.map(file => sniffedProblem(file, accept))))
 	}
 	return (
-		<Mark as="label" size="xlarge" fill="add" aria-label="Add attachment" data-tip="Add attachment"
+		<Mark as="label" size="xlarge" fill="add" data-tip="Add attachment"
 			onDragOver={ev => ev.preventDefault()} onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files) }} {...rest}>
 			<Icon name="plus" size={18} />
 			<input

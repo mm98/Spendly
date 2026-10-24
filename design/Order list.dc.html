@@ -13,11 +13,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261024b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
+<link rel="stylesheet" href="styles/components.css?v=v20261024t">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <link rel="stylesheet" href="styles/pages/order-list.css?v=v20260917b">
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
   a { color: #1d4d33; }
@@ -1085,7 +1085,7 @@
 
   <div class="doc-notes">
     <div class="doc-notes__label">Notes for implementation</div>
-    <div class="doc-note"><b>Flyouts open to the left</b>, because the menu is already right-aligned against the row's end. They open on hover after the submenu delay (<code>--submenu-delay</code>, 500ms), on click, and on <b>→</b> or Enter from the keyboard; <b>←</b> or Esc returns to the parent menu with the item still highlighted.</div>
+    <div class="doc-note"><b>Flyouts open to the left</b>, because the menu is already right-aligned against the row's end. They open on hover after the submenu delay (<code>--submenu-delay</code>, 200ms), on click, and on <b>→</b> or Enter from the keyboard; <b>←</b> or Esc returns to the parent menu with the item still highlighted.</div>
     <div class="doc-note"><b>One flyout at a time.</b> Moving to another parent item closes the open one immediately - no two-level cascade anywhere in this app, and a submenu never has a submenu.</div>
     <div class="doc-note"><b>Single-row edits apply immediately and offer Undo; bulk edits confirm.</b> That is the difference between the flyouts here and the popovers in <a href="#2a">2a</a>, and it follows the rule that undo is preferred over confirmation where the action is cheap to reverse.</div>
     <div class="doc-note"><b>Both flyouts are the Combobox from 14a</b> in its two modes - pick-only for status, searchable multi-select for category. They are not new components, and they inherit its keyboard table and its flat traversal.</div>

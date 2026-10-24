@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
 import { within } from './Utilities.jsx'
+import { Rows, m, useRow } from './motion.js'
 import { Check } from './Choice.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Cards, ListFooter } from './Card.jsx'
@@ -152,8 +153,35 @@ export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
     @param {() => void} [props.onLoadMore]
     @param {boolean} [props.headless] Draw no head row.
     @param {string} [props.locale] How the counts are written, such as da-DK. The browser's when left out.
-    @param {import('react').ReactNode} [props.children] The parts of the list: Caption, ListHead, ListRow and Foot. */
-export function List({
+    @param {'table' | 'cards'} [props.body] How the records are drawn: `table`, rows under a head; `cards`, record cards in a grid (c1, 2c, 22a).
+    @param {import('react').ReactNode} [props.head] Cards only. The line above the cards: the summary or the bulk bar.
+    @param {import('react').ReactNode} [props.footer] Cards only. The line under the cards, such as Load more.
+    @param {import('react').ReactNode} [props.children] The parts of the list: Caption, ListHead, ListRow and Foot. As cards, the Record cards. */
+export function List({ body = 'table', ...props }) {
+	if (body === 'cards') return <ListCards {...props} />
+	if (body !== 'table') console.error(`<List> body is table or cards, not ${body}`)
+	return <ListTable {...props} />
+}
+
+/* Record cards as a grid: `head` above it and `footer` under it (a `<ListMore loose>`), each at the grid's width. */
+function ListCards({ head, footer, children, ...rest }) {
+	reject(rest, 'List')
+	return (
+		<div className="sp-list sp-list--cards" {...rest}>
+			{head}
+			<Cards fluid><Rows count={Children.count(children)}>{children}</Rows></Cards>
+			{footer}
+		</div>
+	)
+}
+
+// a table row that arrives, leaves and glides to its place after a sort or a filter (Rows)
+function GlidingRow({ children, ...rest }) {
+	const moves = useRow()
+	return <m.tr {...moves} {...rest}>{children}</m.tr>
+}
+
+function ListTable({
 	data = [],
 	recordKey,
 	noun = 'records',
@@ -318,11 +346,11 @@ export function List({
 					</tr>
 				</thead>}
 				<tbody>
-					{page.map(record => {
+					<Rows count={page.length}>{page.map(record => {
 						const key = recordKey(record)
 						const isPicked = picked.includes(key)
 						return (
-							<tr
+							<GlidingRow
 								key={key}
 								{...(selecting ? { 'aria-selected': isPicked ? 'true' : 'false' } : {})}
 								{...(rowVoid?.(record) ? { 'data-void': 'true' } : {})}
@@ -330,9 +358,9 @@ export function List({
 								onAuxClick={rowTo ? ev => follow(ev, rowTo(record)) : undefined}
 							>
 								{cellsOf(record)}
-							</tr>
+							</GlidingRow>
 						)
-					})}
+					})}</Rows>
 				</tbody>
 			</table>
 
@@ -556,7 +584,8 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 	reject(rest, 'Record')
 	const menuBox = useRef(null)
 	const menuKeys = useMenuButton(menuBox, !!menu?.open)
-	useMenuPlace(menuBox, !!menu?.open)
+	const closing = useMenuPlace(menuBox, !!menu?.open)
+	const moves = useRow()
 	const strip = photos.length
 		? photos.map((photo, i) => <span className={join('sp-record__photo', faded && 'sp-record__photo--faded')} key={i}>{photo}</span>)
 		: <><Icon name="photo" size={22} /><span className="sp-meta">{empty}</span></>
@@ -565,11 +594,11 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 	const lines = [].concat(meta ?? [])
 	const chipBox = chips ? <div className="sp-record__chips" onClick={ev => ev.stopPropagation()}>{chips}</div> : null
 	return (
-		<article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...rest}>
+		<m.article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...moves} {...rest}>
 			{href
 				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
 				: <div className={stripClass}>{strip}{extras}</div>}
-			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open ? 'true' : undefined} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
+			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open || closing ? 'true' : undefined} {...(closing ? { 'data-closing': 'true' } : {})} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
 				onKeyDown={ev => {
 					menuKeys.onKeyDown(ev)
 					// Escape closes the menu and hands focus back to its button (c1)
@@ -600,23 +629,7 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 						: <span className="sp-amount">{amount}</span>}
 				</div>
 			</div>
-		</article>
+		</m.article>
 	)
 }
 
-/** Record cards as a grid (c1, 2c, 22a): `head` above it (the summary or the bulk bar) and `footer`
-    under it (a `<ListMore loose>`), each at the grid's width.
-    @param {object} props
-    @param {import('react').ReactNode} [props.head] The line above the cards: the summary or the bulk bar.
-    @param {import('react').ReactNode} [props.footer] The line under the cards, such as Load more.
-    @param {import('react').ReactNode} [props.children] The Record cards. */
-export function Records({ head, footer, children, ...rest }) {
-	reject(rest, 'Records')
-	return (
-		<div className="sp-list sp-list--cards" {...rest}>
-			{head}
-			<Cards fluid>{children}</Cards>
-			{footer}
-		</div>
-	)
-}

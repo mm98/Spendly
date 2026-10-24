@@ -1,33 +1,23 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
-import { Skeleton, inMs } from './Utilities.jsx'
+import { Skeleton } from './Utilities.jsx'
+import { count, useStill } from './motion.js'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
-/* A figure that changes counts to its new value over --motion-in x 2, easing out. It
-   counts in the figure's own digit slots, so its separators, currency and sign stay
-   where the formatter put them, and the last frame is the formatted figure itself. A
-   figure that is not text or a number, the first value, and reduced motion show as is. */
+/* Counts a changed figure in its own digit slots, so separators and currency stay put and the last
+   frame is the formatted figure; the first value, a non-text figure and reduced motion show as is. */
 function useCounted(figure) {
 	const [shown, setShown] = useState(figure)
 	const last = useRef(figure)
+	const still = useStill()
 	useEffect(() => {
 		const from = digitsOf(last.current), to = digitsOf(figure)
 		last.current = figure
-		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
-		if (from === null || to === null || from === to || still) { setShown(figure); return }
-		const ms = 2 * inMs('--motion-in', 180)
-		const start = performance.now()
-		let raf
-		const frame = now => {
-			const t = Math.min(1, (now - start) / ms)
-			const eased = 1 - (1 - t) ** 3
-			setShown(t < 1 ? intoSlots(String(figure), Math.round(from + (to - from) * eased)) : figure)
-			if (t < 1) raf = requestAnimationFrame(frame)
-		}
-		raf = requestAnimationFrame(frame)
-		return () => cancelAnimationFrame(raf)
-	}, [figure])
+		if (from === null || to === null || from === to) { setShown(figure); return }
+		// Motion counts over twice --motion-in on the way-in curve; the last frame is the formatted figure
+		return count(from, to, still, n => setShown(n === to ? figure : intoSlots(String(figure), Math.round(n))))
+	}, [figure, still])
 	return shown
 }
 const digitsOf = v => {

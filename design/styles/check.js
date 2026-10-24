@@ -341,6 +341,43 @@
     if (!r || !/top\s*:\s*50%/.test(r.body) || !/translateY\(-50%\)/.test(r.body) || /height\s*:\s*var\(--control-h\)/.test(r.body))
       fail('a field tail mark is centred on the field', 'components.css', `${sel} is not top: 50% with translateY(-50%)`);
   }
+  /* A floating layer (the date field's calendar, the period picker's Custom range, a combobox
+     panel, a menu) is on top of the whole page. An element holding one must not start its own
+     stacking context, or the layer's z-index only counts inside it and the next card's chart
+     draws over it: the selection slide set isolation on .sp-period__presets and the bars on
+     Statistics covered the Custom range. Broad :has() containers count, since any of them may
+     hold a layer. */
+  /* A turned icon's child may be an svg path (a drawn page puts the svg in the slot itself), which
+     turns about the svg's corner unless its box is its own: the sort control's chevron vanished
+     when open. Every selector that rotates a `> *` also sets transform-box: fill-box. */
+  {
+    const turned = new Set(), boxed = new Set();
+    for (const hit of comp.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sels = hit[1].replace(/\/\*[\s\S]*?\*\//g, '').split(',').map(s => s.trim()).filter(s => /> \*$/.test(s));
+      if (/transform\s*:\s*rotate\(/.test(hit[2])) sels.forEach(s => turned.add(s.replace(/\[aria-expanded="true"\]|\[data-open="true"\]|\[open\]/g, '')));
+      if (/transform-box\s*:\s*fill-box/.test(hit[2])) sels.forEach(s => boxed.add(s));
+    }
+    for (const s of turned) if (!boxed.has(s)) fail('a turned icon turns about its own box', 'components.css', `${s} rotates without transform-box: fill-box`);
+  }
+  /* A narrow field is capped at --field-w for a full form column; in a half it fills the
+     half. Without the release a narrow combobox in Settings ended 20px short of its note. */
+  for (const cls of [...new Set([...comp.matchAll(/\.(sp-[\w-]+--narrow)\s*\{[^}]*max-width\s*:[^;}]*--field-w/g)].map(m => m[1]))])
+    if (!new RegExp(`\\.sp-halves > \\.sp-field > \\.${cls}[^{]*\\{[^}]*max-width\\s*:\\s*none|\\.sp-halves > \\.sp-field > \\.${cls}\\s*,[^{]*\\{[^}]*max-width\\s*:\\s*none`).test(comp))
+      fail('a narrow field fills a half', 'components.css', `.${cls} has no release in .sp-halves`);
+  {
+    // the host itself, not a part inside it: the last compound of the selector names it
+    const HOSTS = /^(\.sp-period(__presets|__anchor)?|\.sp-field__wrap|\.sp-combobox|\.sp-anchor|\.sp-cell-menu|\.sp-record__menu|\.sp-controls)(?![\w-])/;
+    const hostOf = m => /^:has\(/.test(m) ? true : HOSTS.test(m.replace(/\([^()]*\)/g, '').split(/\s*[\s>+~]\s*/).pop());
+    const TRAPS = /(^|;)\s*(isolation\s*:\s*isolate|contain\s*:\s*(paint|strict|content)|filter\s*:\s*(?!none)|transform\s*:\s*(?!none)|will-change\s*:\s*(transform|opacity|filter))/;
+    // read off the text, not a full parse: the checker runs close to its time budget
+    for (const hit of comp.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const body = hit[2];
+      if (!TRAPS.test(body)) continue;
+      const sel = hit[1].replace(/\/\*[\s\S]*?\*\//g, '').trim();
+      for (const m of sel.split(',').map(s => s.trim()))
+        if (hostOf(m) && !/(::after|::before)$/.test(m)) fail('a floating layer is never trapped under a stacking context', 'components.css', `${m} sets ${body.match(TRAPS)[2]}`);
+    }
+  }
   for (const [name, css] of [['components.css', comp], ['doc.css', doc], ...Object.entries(pageCss)]) {
     const rules = parse(css);
     // two rules for one selector at one scope, disagreeing on a property: the later

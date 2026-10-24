@@ -1,147 +1,209 @@
-# Brief: three questions from building the motion update
+# Brief: bring Motion into the design system
 
-Answers the three questions the app could not build from `design_handoff_motion_second_pass_fixed`, the points it raised for information, and the design entries in the repo's `later.md`.
+This package replaces `design_handoff_motion_library_fixed_3`, and with it `design_handoff_motion_library_fixed_2`, `design_handoff_motion_library_fixed` and `design_handoff_motion_library`. It keeps every section of them and adds the fix below.
 
-This package replaces `design_handoff_motion_follow_up`, which was not applied.
+## Fixed from design_handoff_motion_library_fixed_3
 
-## Fixed from design_handoff_motion_follow_up
+### The attachment strip's fades cover the strip
 
-- **The problem:** section 6 read the old component files on `main` as a sign that the motion update was built on another branch, and asked which one.
-- **What changed:** the motion update is held back from `main` until this package is applied, so there is no other branch. Section 6 now says the order: the app applies this package and the last one together, pushes to `main`, and the next pass here takes the changed files into `react_handoff/`.
-- **Where:** this note, section 6.
-- **What is still open:** none.
+- **The problem:** raised in chat: on an attachment strip (c16), the fade under the earlier and later buttons, on both sides, covered only the tiles' own height from the wrap's edge. The strip scrolls in a box 4px larger on every side (room for the tiles' focus ring) and holds the names under the tiles, so a tile's edge and its name scrolled out from beside and under the fade.
+- **What changed:** each fade covers the strip's whole scrolling box, edge to edge and top to bottom, names included. Its round button stays where it was: centred on the tiles and 4px in from the strip's edge, measured on Components, both strips, both sides.
+- **Where:** `styles/components.css`, `.sp-strip-nav.sp-strip-nav`, its two sides, and `.sp-strip-nav > svg`. Components c16; the app's `Strip` in `Attachments.jsx` takes it with no change.
+- **What is still open:** nothing.
 
-## 1. A dialog, sheet or popover closes with the fade inside a Leaving
+## Fixed from design_handoff_motion_library_fixed_2 (kept)
 
-**The problem** - The package said the component keeps a `Dialog` (on its `Scrim`), `Sheet` or `Popover` mounted for `--motion-out` with `data-leaving="true"`. But a page removes these parts at once (`{open ? <Dialog .../> : null}`), about 124 times, and the components had no way to stay after the page removed them.
+### The drawn pages load the components.js that moves the selection
 
-**What changed** - One new component, `Leaving`, in `Overlays.jsx`. The page keeps its condition and wraps it:
+- **The problem:** raised in chat: on Components, the facet segmented control (c12) and others still jumped. Every page loaded `components.js?v=v20260917b`, so a browser that had the file kept the old copy, without the selection marker.
+- **What changed:** every page loads `components.js?v=v20261024s`. Each segmented control, the period picker's window sizes and every set of radio rows on the drawn pages now slide their selection; checked on Components, every segmented control with a choice holds the marker. No file content changed.
+- **Where:** the script link on every `.dc.html` page that loads `components.js`.
+- **What is still open:** nothing.
 
-    <Leaving onClosed={() => ...}>{open ? <Dialog ...>...</Dialog> : null}</Leaving>
+## Changed from design_handoff_motion_library_fixed
 
-- When its child goes, `Leaving` keeps the part it last drew, with the words and figures it had then, so a page that clears its record on close (`order` set to null) needs no guard. It holds the part for `--motion-out`, then removes it and calls `onClosed`.
-- While it is held, the parts under it mark themselves `data-leaving="true"` from a context, `Leaves` (`Utilities.jsx`): `Scrim` (`Shell.jsx`), the `Dialog` panel when it is a sheet on touch, `Sheet` (`Touch.jsx`) and `Popover`. The CSS rules for that state are already in `components.css`.
-- A closing part answers nothing more: `Dialog` ignores Escape and a press on the backdrop, and `Sheet` ignores the pull on its handle.
-- Opened again before the fade ends, it stays open. Under reduced motion it goes at once.
-- A part outside a `Leaving` is removed at once, as it is now, so call sites can move over one at a time.
-- An `open` prop was weighed and not taken: the page would always render the part, so every call site that reads a record the close clears (`order.name`) would need a guard.
+### A submenu opens and closes sooner
 
-**Where** - `react_handoff/Overlays.jsx` (`Leaving`, `Dialog`, `Popover`), `react_handoff/Touch.jsx` (`Sheet`), `react_handoff/Shell.jsx` (`Scrim`), `react_handoff/Utilities.jsx` (`Leaves`, `inMs`). `React components.dc.html` r7: the note "Closing with the fade" and a live specimen, the delete dialog opened over the page and closed in a `Leaving`. App: the same in `react/src/components/`, then each `Dialog`, `Sheet` and `Popover` in `react/src/pages/` and `react/src/app/` wrapped in a `Leaving`. Add a closing story to `storybook/stories/Overlays.stories.jsx` and `Touch.stories.jsx`.
+- **The problem:** raised in chat: the submenu felt slow. It rested 500ms before opening and before closing.
+- **What changed:** `--submenu-delay` is 200ms. A pointer that only crosses an item still does not open its submenu; the slide itself is unchanged (`--motion-in` / `--motion-out`, items 20ms apart).
+- **Where:** `styles/tokens.css`, `--submenu-delay`; the notes in Components (c9, "Hover an item with a chevron for 200ms") and Order list (the flyouts); `react/src/styles/tokens.css` in the app.
+- **What is still open:** nothing.
 
-**What is still open** - Nothing.
+## Fixed from design_handoff_motion_library
 
-## 2. The account row is a NavItem whose whole row is the button
+### The sort control's chevron stays when open
 
-**The problem** - The last package said `SidebarAccount` composes `NavItem` with `mark`, `control` and `tip`. But a `NavItem` with a `control` is a `label` around a Switch, and the account row is one button that opens the account menu.
+- **The problem:** raised in chat: on Components, the sort control's chevron disappeared when it opened. The turn rotates the slot's child; on the drawn pages the slot is the svg itself, so the child is its path, which turned about the svg's corner and left the box. In the app the slot wraps the icon, so it turned in place there.
+- **What changed:** the turned icon turns about its own box (`transform-box: fill-box; transform-origin: center`), so it points up in place wherever the slot holds it. No look changes at rest. `styles/check.js` gains "a turned icon turns about its own box".
+- **Where:** `styles/components.css`, `.sp-combobox__trigger > .sp-combobox__chevron:last-child > *` and `.sp-combobox .sp-field__chevron > *`; `styles/check.js`. Components, the sort control.
+- **What is still open:** nothing.
 
-**What changed** - No `control`. `SidebarAccount` is a `NavItem` drawn as its button, which `NavItem` already is when it has `onClick`:
+Answers `Brief-motion-library.md`: Motion (`motion` 14.6.0, `motion/react`) takes over what CSS cannot do the same in every browser, with one rule for which is which, one place for the timing, one reduced-motion setting and a small download. It also carries two layout fixes raised in chat and the non-colour points of the later.md accessibility entry. `react_handoff/` is main's `react/src/components/` with this pass applied.
 
-- `mark` - the photo, or the initials on `green-3`, both hidden from screen readers.
-- The label - the name over the address (`EmailLine`, tone `nav`), as before.
-- `trail` - the up chevron (`sp-combobox__chevron`), hidden from screen readers.
-- On the button - `aria-haspopup="menu"`, `aria-expanded`, Up and Down to open the menu at its last or first item, `tip` on the rail while the menu is closed.
-- The focus ring is the nav row's own. The menu is placed as before: above the row at its width, or beside the mark on the rail.
-- The button's name is the words drawn on it, the name and then the address. This settles the account point of the later.md accessibility entry.
-- `NavItem` gains one prop, `ref`, set on its button, link or label, which the account menu places itself against.
-- Nothing looks different.
+## 1. When Motion, when CSS
 
-**Where** - `react_handoff/Shell.jsx`, `NavItem` (`ref` and its JSDoc) and `SidebarAccount`. `React components.dc.html` r12: the sidebar specimen ends with the account row and its menu, in place of a plain Account row, and the note "The account row". App: `react/src/components/Shell.jsx`; `react/src/app/AppShell.jsx` passes the same props as now; `storybook/stories/Shell.stories.jsx`.
+**The problem** - Some motion depended on CSS features that Firefox does not animate (anchor positioning with transitions, `transition-behavior: allow-discrete`, `interpolate-size`). There was no rule for which mechanism a new case should use.
 
-**What is still open** - Nothing.
+**What changed** - The rule, written in `react_handoff/README.md` ("What moves, and with what") and at the head of the motion section in `components.css`: if CSS draws it the same in Chrome, Safari and Firefox, it stays CSS. CSS keeps hover and colour, check boxes and radios, the chevrons' turn, submenus, the tab bar's colour, gauges and bars, the calendar's month slide and the password shuffle. Motion runs parts leaving the page, a marker or a row moving to a new place, height folds, reordering and page changes.
 
-## 3. Small grey text on a toast
-
-**The problem** - The new `--ink-5` is 3.55:1 on the light theme's toast (#72716b on #1b1a17) and 4.07:1 on the dark theme's (#90897e on #2e2b26). The countdown beside Undo is small grey text, so both are under 4.5:1.
-
-**What changed** - On a toast, `--ink-5` is #8b8a82 in the light theme (5.02:1), the value the app already uses, and `--ink-4` #a8a29a in the dark theme (5.57:1). Both are values the system has; no new colour. A toast that asks sits on the page's own surface, so it keeps the page's grey. The r8 toast specimen shows the countdown.
-
-**Where** - `styles/components.css`, after `.sp-toast--compact`: `.sp-toast:not(.sp-toast--asks)` and its dark theme rule. `React components.dc.html` r8, the note "Grey on a toast". App: `react/src/styles/components.css`; the override in `app.css` (`.sp-toast { --ink-5 }`) goes.
+**Where** - `react_handoff/README.md`; `styles/components.css`, the motion section; React components, the top note.
 
 **What is still open** - Nothing.
 
-## 4. List's bodies are `table` and `cards`
+## 2. One place for the timing
 
-**The problem** - The package named `body="cards"` and not the other value. The app calls it `table` (`'table' | 'cards'`, default `table`).
+**The problem** - Motion and CSS each needed the same pace, and writing the numbers in JS would put them in two places.
 
-**What changed** - `table` is right. Keep it.
+**What changed** - `react_handoff/motion.js` reads `--motion-in`, `--motion-out`, `--ease-enter`, `--ease-exit`, `--motion-rise` and the new `--motion-slide` off `:root` the first time something moves, after the stylesheet has applied, and turns them into Motion's units (seconds, cubic-bezier arrays, pixels). A missing token is reported and moves nothing; there is no fallback number. It exports `into()` and `away()` (the way in and out), `PRESENCE` (what each kind of part does as it arrives and leaves: panel, scrim, dialog, sheet, row, chip, page) and `glide()`. `inMs` and the `Leaves` context are removed from `Utilities.jsx`; every component reads the pace through `motion.js`.
 
-**Where** - `react/src/components/List.jsx`.
+`--motion-slide: 10px` is new in `tokens.css`: the sidebar labels' travel, which was written as 10px in the keyframes. No value changed.
 
-**What is still open** - Nothing.
-
-## 5. A duration is read in its own unit
-
-**The problem** - `PasswordField` and `useCounted` read `--motion-in` with `parseFloat`, which assumes milliseconds. The built stylesheet writes 180ms as `.18s`, so the shuffle and the counting lasted under a millisecond.
-
-**What changed** - One helper, `inMs(token, fallback)` in `Utilities.jsx`, reads a duration token in milliseconds whichever unit it is written in. `PasswordField`, `useCounted` and `Leaving` use it.
-
-**Where** - `react_handoff/Utilities.jsx` (`inMs`), `Inputs.jsx` (`PasswordField`), `Data.jsx` (`useCounted`), `Overlays.jsx` (`Leaving`). App: use the one helper from `Utilities.jsx` in place of the local `inMs` in `Inputs.jsx` and `Data.jsx`.
+**Where** - `react_handoff/motion.js`; `styles/tokens.css`, the motion block; `react/src/components/motion.js` and `react/src/styles/tokens.css` in the app.
 
 **What is still open** - Nothing.
 
-## 6. The app's changed component files are not in react_handoff yet
+## 3. Reduced motion from one setting, and what loads
 
-**The problem** - The app did not copy `Combobox.jsx`, `List.jsx`, `ListItem.jsx`, `Shell.jsx` and `Inputs.jsx` back into `design/`. Only this project changes `design/`, so it should take them in.
+**The problem** - Each component checked `prefers-reduced-motion` itself.
 
-**What changed** - Nothing yet. The motion update is held back from `main` until this package is applied, so `main` still has the files from before it. `react_handoff/` here is the last package's files with this package's changes on top. The order:
+**What changed** - `MotionShell` (in `motion.js`) goes once around the app: `LazyMotion` with `domMax`, fetched by dynamic import after the first paint, and `strict`, so a component that reaches for the full `motion` is refused; and `MotionConfig reducedMotion="user"`, so under the system setting transforms and layout moves are off and fades stay. The few parts that animate a number or a set of elements (the counting figures, the sidebar labels, the password shuffle, panel fades) read the same setting through `useStill()`. No component calls `matchMedia` for motion any more.
 
-1. The app applies `design_handoff_motion_second_pass_fixed` and this package together, with the `TokensField`, `Records` and `SidebarAccount` changes, and pushes to `main`.
-2. The next pass here takes `Combobox.jsx`, `List.jsx`, `ListItem.jsx`, `Shell.jsx`, `Inputs.jsx` and every other changed file from `react/src/components/` on `main` into `react_handoff/`, so the two copies are one again.
+`domMax` is needed for `layoutId` (the moving markers), `layout` (rows gliding) and drag (`Reorder`); `domAnimation` alone cannot do them. Components import `m`, never `motion`.
 
-**Where** - `react_handoff/`; `react/src/components/` on `main`.
-
-**What is still open** - Nothing. The four checker findings below clear at step 2.
-
-## 7. later.md: the remaining accessibility faults in the components
-
-**The problem** - The later.md entry "The Storybook's accessibility check finds faults in the components" lists five faults besides the grey text, which the last package settled.
-
-**What changed** - All five are fixed, with no change to how anything looks:
-
-- **`Mark`** - a mark named by `aria-label` on a `span` or `label` takes `role="img"`, so the name is read out. A hidden mark, a button mark and one that names itself from its initials are as they were.
-- **Combobox** - the option's `li` is `role="none"`, a group head and the empty line are `role="presentation"`, and a separator's `li` is `role="none"` with its `hr` hidden. The listbox now holds only options.
-- **`Picker`** - the custom colour, a `label`, no longer carries `aria-pressed`. It says it is chosen with `data-chosen="true"`, which draws the chosen ring as before.
-- **`Palette`** - the dialog is named by its `label`, the search's name.
-- **`SidebarAccount`** - its name is the words on it (section 2).
-
-Please remove the entry from `later.md`.
-
-**Where** - `react_handoff/Mark.jsx`, `Combobox.jsx` (`ComboboxOption`, `ComboboxGroup`, `ComboboxSeparator`, `ComboboxEmpty`), `Choice.jsx` (`Picker`), `Shell.jsx` (`Palette`, `SidebarAccount`). `styles/components.css`: `label.sp-option--swatch[data-chosen="true"]` and its focus rule replace the `aria-pressed` ones on the label. App: the same files in `react/src/components/` and `react/src/styles/components.css`; then drop `knownAccessibilityFaults` from the stories that pass.
+**Where** - `react_handoff/motion.js` (`MotionShell`, `useStill`). In the app: wrap the shell in `react/src/main.jsx` or `app/AppShell.jsx` in `<MotionShell>`; in Storybook, add the same wrapper as a global decorator in `.storybook/preview.jsx`.
 
 **What is still open** - Nothing.
 
-## 8. later.md: the Files Docs page opens under the file viewer
+## 4. The sliding marker, in every browser
 
-**The problem** - On Fields/Files' Docs page, the viewer story starts open, and its dark box covers the props table and the other examples.
+**The problem** - Firefox fault 1: the selection was a `::after` placed with anchor positioning, which Firefox places but does not animate; the sidebar's marker jumped from 4 to 526 px in one frame.
 
-**What changed** - On the Docs page the viewer story is drawn closed, behind its Open button, as other stories that open over the page are. Its own story page still opens it. No change to the design.
+**What changed** - The selection is a real element, `.sp-marker`, drawn inside the chosen option, and Motion moves it to the next one (`layoutId`), in `Segmented`, the PeriodPicker's window sizes, radio choice rows (`Choice variant="row"` with a `Radio`) and the sidebar's current row, dark and light. A Segmented or radio set the page does not hold the value of follows its own choice, so it moves too. The option holding the marker draws no ground of its own and is its own stacking context; the row of options is not (see 12). At rest nothing looks different.
 
-**Where** - `storybook/stories/FileDrop.stories.jsx`, the viewer story. Please remove the entry from `later.md`.
-
-**What is still open** - Nothing.
-
-## 9. later.md: entries the last package settled
-
-**The problem** - Two entries are still in `later.md` but were settled in `design_handoff_motion_second_pass_fixed`: "A row that opens and has a drag handle puts a button inside a button" (its section "later.md: A row that opens and has a drag handle") and "The design's React specimens pass a prop the combobox does not take" (the specimen passes no `chevron`).
-
-**What changed** - Nothing new to design.
-
-**Where** - Please remove both entries in the change that applies them.
+**Where** - `react_handoff/Segmented.jsx`, `DatePickers.jsx` (`PeriodPicker`), `Choice.jsx` (`Choice`), `Shell.jsx` (`NavItem`); `styles/components.css`, `.sp-marker` and its four option rules. React components r4, r7 and r12: the radio rows, segmented controls and the shell's rows can be pressed to see it move. On the drawn pages `components.js` places the same marker and slides it at the tokens, so Components and every page with a segmented control or radio rows move as the app does.
 
 **What is still open** - Nothing.
 
-## 10. later.md: entries left as they are
+## 5. The closing fade, in every browser
 
-- **Large accounts still make everyone wait** - a server question, nothing to draw.
-- **A deleted record should not be removed for good at once** - "Recently deleted" is left for later, decided 24 Oct 2026, so nothing is drawn for it yet. Please confirm: its other open questions (how long a copy is kept, which kinds, bulk delete) stay open with it.
+**The problem** - Firefox fault 2: the combobox panel, floating menus, the date calendar and the Custom range were hidden with `display: none` and relied on `allow-discrete` to stay drawn while fading; Firefox removed them at once.
 
-## 11. The checker reads a rule's real scope
+**What changed** - These panels stay mounted and shown by their host's `data-open`, as before. `usePanelMotion` (in `motion.js`) runs the fade and the `--motion-rise` drop in and out, rising when the panel is placed above its trigger, and keeps the host marked `data-closing="true"` until the fade is done; each panel's show rule also shows it under `data-closing`. A touch menu sheet slides back down under presence.
 
-**The problem** - `styles/check.js` found a menu rule "declared 2× identically". The second copy is in the motion block and is live: it resets a transition delay the block's own shorthand sets. The checker took the nearest at-rule as a rule's scope. That at-rule was an `@supports` that had already closed, so the rule read as top level.
+**Where** - `react_handoff/Combobox.jsx` (both forms), `Overlays.jsx` (`useMenuPlace`, `Anchor`, `Menu` on touch), `List.jsx` (`Record` menu), `DatePickers.jsx` (`DateField`, `PeriodPicker`); `styles/components.css`, the show rules of `.sp-combobox__panel`, `.sp-menu--floating`, `.sp-period__custom` and `.sp-calendar`.
 
-**What changed** - A rule's scope is the innermost at-rule still open at it. Duplicates count only within one scope.
+**What is still open** - Nothing.
 
-**Where** - `styles/check.js`, `scopeOf` and the duplicate rule.
+## 6. Leaving becomes AnimatePresence, under the same name
+
+**The problem** - `Leaving` (63 uses in 24 files) kept a part drawn on a timer read from `--motion-out`.
+
+**What changed** - `Leaving` is now Motion's presence, with the same name and props (`onClosed`, children), so no call site changes. `Dialog`, `Scrim`, `Popover` and `Sheet` are `m` elements with their own way in and out (`PRESENCE`); while one leaves it is `inert`, so it takes no more presses. A dialog on touch is a sheet and leaves as one. `Sheet`'s drag moves the same motion value Motion slides it with, so a sheet let go short of closing goes back from where the finger left it.
+
+**Where** - `react_handoff/Overlays.jsx`, `Shell.jsx` (`Scrim`), `Touch.jsx` (`Sheet`), `motion.js` (`Presence`, `useGoing`).
+
+**What is still open** - Nothing. The sheet's rise on opening was the app's own `app.css` fault (brief, "for your information"): with Motion moving the sheet, its `transition: transform` rule in `react/src/styles/app.css` can go.
+
+## 7. Rows added and removed: `Rows` replaces `app/rowMotion.js`
+
+**The problem** - `useRowMotion` kept removed rows as ghosts and marked `data-added` / `data-leaving` for CSS.
+
+**What changed** - A list wraps its keyed rows in `<Rows count={n}>`. Rows loaded with the list do not move; one added later drops in; one removed fades where it stood and the rows below glide up. `ListItem`, `Record` and the List's table rows read it (`useRow`); the List wraps its own table rows and record cards, so pages using `List` change nothing. Past 60 rows nothing glides (`GLIDE_MAX`).
+
+**Where** - `react_handoff/motion.js` (`Rows`, `useRow`), `ListItem.jsx`, `List.jsx`. In the app: delete `app/rowMotion.js`; in `OrderForm.jsx`, `Budget.jsx` and `SettingsStatuses.jsx`, replace `useRowMotion` and its `row()` marks with `<Rows count={items.length}>` around the rows.
+
+**What is still open** - Nothing. A load or a scan filling a list at once is no longer told apart from one row arriving: rows present at the list's first render never animate, and later arrivals fade in, many or one.
+
+## 8. Reordering by hand: `ReorderList` replaces `Reorder.js`
+
+**The problem** - `components/Reorder.js` measured rows and set translates by hand.
+
+**What changed** - `react_handoff/Reorder.jsx`, `ReorderList`, built on Motion's `Reorder`: `<ReorderList items keyOf nameOf onMove>{item => <ListItem handle ... />}</ReorderList>` inside the page's own list element (it draws no box: `.sp-reorder` is `display: contents`). The handle carries a row and the rows it passes make room; a touch starts after a 200ms still hold and a move of 8px first is a scroll; a press that does not drag picks the row up, the arrows move it, Space puts it down, Escape puts it back, a held row that loses focus is put down; each move is read out. `onMove(items, item, to)` is called once, as before. `ListItem` and `NavItem` take the carried and picked states from it. The insertion line is no longer drawn: the rows show where the row lands.
+
+**Where** - `react_handoff/Reorder.jsx`, `ListItem.jsx`, `Shell.jsx` (`NavItem`). In the app: delete `components/Reorder.js`; `OrderForm.jsx`, `OrderViews.jsx`, `Budget.jsx` and `SettingsStatuses.jsx` move from `useReorder` to `ReorderList`, and drop `Insertion` and `lands`.
+
+**What is still open** - Nothing.
+
+## 9. Chips, figures, the sidebar labels, content after a skeleton
+
+**The problem** - Each kept its own timers and its own reduced-motion check.
+
+**What changed** -
+- **Chips** - `Combobox multiple` wraps its chips in `Rows kind="chip"`: one added grows in, one removed shrinks out and the others close up. The leaving and added bookkeeping in `Combobox.jsx` is gone.
+- **Counting figures** - `useCounted` in `Data.jsx` counts with Motion's `animate` over twice `--motion-in` on the way-in curve, in the figure's digit slots as before.
+- **Password shuffle** - stays its own (it changes letters, not style), but reads the pace and reduced motion through `motion.js`.
+- **Sidebar labels** - `Sidebar` runs them in from `--motion-slide` as the column opens and out before it closes, on `--ease-enter` and `--ease-exit` (they used plain ease-out and ease-in), and calls the new `onMotionEnd` when they are done. The `sp-sidebar--slide-in` / `--slide-out` classes and keyframes are gone. In the app, `AppShell`'s sidebar fold narrows the column on `onMotionEnd` instead of after `SLIDE_IN_MS` / `SLIDE_OUT_MS`, which go.
+- **Content after a skeleton** - `app/loaded.js` finds each element that took a placeholder's place, as before, and calls `arrive(node)` from `motion.js` instead of setting `data-loaded`.
+
+**Where** - `react_handoff/Combobox.jsx`, `Chip.jsx`, `Data.jsx`, `Inputs.jsx`, `Shell.jsx`, `motion.js`; `components.js` (the drawn pages' sidebar runs the same slide from the tokens). App: `app/AppShell.jsx`, `app/loaded.js`.
+
+**What is still open** - Nothing.
+
+## 10. Folding by height
+
+**The problem** - Folds animated only where `interpolate-size` exists; Firefox folded at once.
+
+**What changed** - `Fold` (in `motion.js`) grows its contents to their height and back to nothing, clipped only while it moves. A card's folding body takes the toolbar's state: `<Toolbar variant="toggle" expanded={open}>` then `<CardBody open={open}>`. A facet group's values fold the same way inside `FieldGroup`. A removed row closing up is the rows below gliding (7). The `interpolate-size` rules are gone; `.sp-fold` keeps the gap its parts had.
+
+**Where** - `react_handoff/Card.jsx` (`CardBody open`), `Choice.jsx` (`FieldGroup`), `motion.js` (`Fold`); `styles/components.css`, `.sp-fold`. App: pages with a folding card pass `open` to its `CardBody`.
+
+**What is still open** - Nothing.
+
+## 11. New motion
+
+**The problem** - Pages changed, and lists re-sorted or re-filtered, with nothing moving.
+
+**What changed** -
+- **Pages** - `ShellContent page={key}`: a new page fades in and rises `--motion-rise`; the one it replaces goes at once, so a click never waits on a fade. The sidebar and top bar stay still. In `AppShell`, pass the route's pathname (not its search) as `page`, so a filter change does not count as a new page.
+- **Lists after a sort or a filter** - inside `Rows`, every row and record card glides to its new place, those that leave fade and new ones fade in (7). This covers the order list's table and cards, and every list wrapped in `Rows`.
+
+**Where** - `react_handoff/Shell.jsx` (`ShellContent`), `motion.js`, `List.jsx`. App: `app/AppShell.jsx`. Notes in React components r12 and r9.
+
+**What is still open** - Nothing.
+
+## 12. A floating layer is never trapped under a stacking context
+
+**The problem** - Raised in chat: on Statistics, Custom's range picker opened under the bars. The sliding selection set `isolation: isolate` on `.sp-period__presets`, the row that holds the Custom range, so the range's `z-index` counted only inside that row and the chart card after it drew over it. The sidebar and radio-row slides had the same rule.
+
+**What changed** - The rows of options are no longer stacking contexts; only the option holding the marker is (4). `styles/check.js` gains "a floating layer is never trapped under a stacking context": no rule may give an element that holds a calendar, a range, a combobox panel or a menu (`.sp-period`, `.sp-period__presets`, `.sp-period__anchor`, `.sp-field__wrap`, `.sp-combobox`, `.sp-anchor`, `.sp-cell-menu`, `.sp-record__menu`, `.sp-controls`, or a broad `:has()` container) `isolation`, `contain: paint`, a `transform`, a `filter` or a `will-change` that makes one.
+
+**Where** - `styles/components.css`, the motion section; `styles/check.js`. Order statistics, the period bar.
+
+**What is still open** - Nothing.
+
+## 13. A narrow field fills a half
+
+**The problem** - Raised in chat: in Settings, Currency, Date and time format, Kind and Status ended about 20px short of their own note and the card's edge. They are `narrow` comboboxes, capped at `--field-w` (280px) for a full form column, inside `.sp-halves`, whose halves are wider.
+
+**What changed** - In a half a narrow combobox or segmented control fills the half; in a full column it is still capped. `styles/check.js` gains "a narrow field fills a half".
+
+**Where** - `styles/components.css`, after `.sp-halves`; `styles/check.js`. Settings and import 11b.
+
+**What is still open** - Nothing.
+
+## 14. later.md: The Storybook's accessibility check finds faults in the components
+
+**The problem** - The entry lists contrast faults and three structural ones.
+
+**What changed** - Decided in chat: the non-colour points are fixed now, the colours are a separate pass.
+- **`Mark` with `role="img"` in the picture slot and the attachment strip** - a mark drawn as a file picker's label (`as="label"`) takes no role and no name; the file input inside it carries the name ("Add the image", "Add attachment"). `Mark` reports an `aria-label` passed to such a mark.
+- **The account row's name** - `SidebarAccount` names itself by the words it draws, name then email with a space, so the label begins with what is seen; it reports an `aria-label` passed to it, which `AppShell` and the Shell stories should drop.
+
+Please remove these two points from the entry; the others stay.
+
+**Where** - `react_handoff/Mark.jsx`, `FileDrop.jsx` (`Slot`), `Attachments.jsx` (`AttachmentAdd`), `Shell.jsx` (`SidebarAccount`). App: `app/AppShell.jsx`, `storybook/stories/Shell.stories.jsx` (no `aria-label` on the account row).
+
+**What is still open** -
+- **The drop zone holds a control inside a control** - not changed. The zone is a label around its file input, the platform's own pattern, and holds no other control; the story names no rule, so the fault cannot be reproduced here. Kept in the entry: please confirm which axe rule the Drop Zone story reports.
+- **The contrast points** (`--ink-5` on tinted grounds, `--ink-4` on the danger tint, the green on `#eceae4`, out-of-month days, the NavItem on the page ground) - kept for a separate colour pass, as decided.
+
+## 15. Storybook and the harness
+
+**The problem** - Storybook and the React components page render the components without the app's shell.
+
+**What changed** - Storybook needs the same `<MotionShell>` as the app, as a global decorator in `.storybook/preview.jsx`; every story for the components above then moves as the app does. The React components page loads Motion's browser build (framer-motion 11.18.2, the same API) and gives the files `motion` as `m`, since each specimen renders in a root of its own; it strips re-exports and resolves `motion.js`'s late feature load to the loaded build. `FILES` adds `motion.js` and `Reorder.jsx`; the token field specimen is `Combobox multiple`, as on main.
+
+**Where** - `React components.dc.html`, the harness and the notes in r0, r3, r4, r5, r6, r7, r9, r11, r12, r13.
 
 **What is still open** - Nothing.
 
@@ -149,24 +211,19 @@ Please remove the entry from `later.md`.
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `React components.dc.html` - r7, r8 and r12 notes and specimens; loads `react_handoff/`.
-- `react_handoff/*` - the component files: `Overlays.jsx`, `Touch.jsx`, `Shell.jsx`, `Utilities.jsx`, `Inputs.jsx`, `Data.jsx`, `Mark.jsx`, `Combobox.jsx`, `Choice.jsx` changed; the rest are what the page loads.
-- `styles/components.css` - the toast grey, the custom colour's chosen state.
-- `styles/tokens.css`, `styles/doc.css`, `support.js`, `icons.js` - what the page loads.
-- `styles/check.js` - the checker.
+- `React components.dc.html` - the harness with Motion, the motion notes, pressable shell rows.
+- `Components.dc.html`, `Order list.dc.html` - the submenu delay in their notes, and the pages the fixes are seen on.
+- `react_handoff/*` - main's component files with this pass; `motion.js` and `Reorder.jsx` new, `Reorder.js` replaced; the folder's README.
+- `styles/tokens.css` - `--motion-slide`, `--submenu-delay` 200ms.
+- `styles/components.css` - the motion section rewritten to what stays CSS and what Motion needs, the panels' `data-closing` show rules, the sidebar slide keyframes removed, the halves release.
+- `styles/check.js` - the two new rules.
+- `components.js` - the drawn pages' sidebar slide from the tokens, and the moving selection marker.
+- `support.js`, `icons.js`, `styles/doc.css` - what the page loads.
 
-Every page's link to `components.css` moves to `?v=v20261024o`. The other pages changed in nothing else and are not in the package.
+Every page's stylesheet links move to `?v=v20261024r` (tokens) and `?v=v20261024t` (components), and its `components.js` link to `?v=v20261024s`; the other pages changed in nothing else and are not in the package.
 
 ## styles/check.js
 
-    4 finding(s) across 27 pages
+    0 findings across 27 pages
 
-    one component per root class - 2
-       react: .sp-combobox is rendered by Combobox and TokensField
-       react: .sp-list is rendered by List and Records
-
-    one word per object - 2
-       react: TokensField renders .sp-combobox
-       react: Records renders .sp-list
-
-These are `TokensField` and `Records`, decided in the last package and built in the app. They clear when those files are taken in from `main` (section 6, step 2).
+Run in two halves of the pages, since one run passes the script time limit; each half reported only the start page's screen count, which counts both halves together (47 + 58 = 105).
