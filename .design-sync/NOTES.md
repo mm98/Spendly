@@ -46,3 +46,4 @@
 - `entry/styles.js` mirrors the stylesheet imports in `react/src/main.jsx`. If main.jsx adds or reorders a stylesheet, change it here too.
 - Preview content with dates is fixed in 2026, but several components still read today (quick ranges, presets, the today mark), so those cards can drift with the calendar.
 - The playwright version is pinned by the browser build in `/opt/pw-browsers` (chromium-1243 = playwright 1.63.0); a new environment may need another version.
+- `storybook/` (stories for every file in `react/src/components`) landed after this sync was built in the package shape. A later sync can switch to the storybook shape (`"shape": "storybook"`, `storybookConfigDir: "storybook/.storybook"`), which grades previews against Storybook's own render; that replaces the hand-written previews here and needs a full re-verify.
