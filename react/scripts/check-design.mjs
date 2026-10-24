@@ -1489,6 +1489,8 @@ const DESIGN_RULES = {
 	'an alert mark sits on the title line': COPY,
 	'a toast icon sits on the first line': COPY,
 	'a stretched combobox keeps its chevron at the edge': COPY,
+	'a wrapped trail sits in its row': COPY,
+	'a shortcut hint is centred in its field': COPY,
 	'a stepper shows its digit': COPY
 }
 {
