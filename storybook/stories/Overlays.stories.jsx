@@ -1,9 +1,9 @@
 import { expect, fn, userEvent, waitFor } from 'storybook/test'
-import { Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor, Dialog, DialogTitle, DialogBody, DialogActions, Toast, ToastUndo, Alert } from '../../react/src/components/Overlays.jsx'
+import { Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor, Dialog, DialogTitle, DialogBody, DialogActions, Toast, ToastUndo, Alert, Leaving } from '../../react/src/components/Overlays.jsx'
 import { Button, IconButton } from '../../react/src/components/Button.jsx'
 import { Choice, Radio } from '../../react/src/components/Choice.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
-import { iconControl, knownAccessibilityFaults, useHeld } from './controls.js'
+import { iconControl, useHeld } from './controls.js'
 
 const STATUSES = ['draft', 'progress', 'done', 'returned', 'cancelled']
 const text = description => ({ control: 'text', description })
@@ -15,8 +15,7 @@ export default {
 }
 
 export const MenuInPlace = {
-	parameters: { a11y: knownAccessibilityFaults },
-	args: { label: 'This order', onEdit: fn(), onExport: fn(), deleteDisabled: true },
+		args: { label: 'This order', onEdit: fn(), onExport: fn(), deleteDisabled: true },
 	argTypes: { label: text('The menu\'s name and its first line'), deleteDisabled: { description: 'Delete\'s `disabled`' } },
 	render: ({ label, onEdit, onExport, deleteDisabled }) => (
 		<div style={{ maxWidth: 260 }}>
@@ -153,6 +152,45 @@ export const DialogOverThePage = {
 		await userEvent.keyboard('{Escape}')
 		await waitFor(() => expect(args.onCancel).toHaveBeenCalled())
 		await waitFor(() => expect(page.querySelector('[role="dialog"]')).toBeNull())
+	}
+}
+
+export const DialogClosingWithTheFade = {
+	args: { open: true, title: 'Delete this order?', body: 'SPENDLY-447 from Indbo Møbler, 3.980,00 kr.', onCancel: fn(), onClosed: fn() },
+	argTypes: dialogText,
+	parameters: { variantsOf: Leaving },
+	// the Docs page draws it closed, behind its button
+	render: ({ title, body, onCancel, onClosed, ...args }, { viewMode }) => {
+		const [open, setOpen] = useHeld(viewMode === 'docs' ? { ...args, open: false } : args, 'open')
+		const close = () => { setOpen(false); onCancel() }
+		return (
+			<>
+				<Button variant="outline" color="danger" onClick={() => setOpen(true)}>Delete order</Button>
+				<Leaving onClosed={onClosed}>
+					{open
+						? (
+							<Dialog onCancel={close}>
+								<DialogTitle>{title}</DialogTitle>
+								<DialogBody>{body}</DialogBody>
+								<DialogActions>
+									<Button variant="outline" onClick={close}>Keep it</Button>
+									<span className="sp-grow" />
+									<Button color="danger" iconStart="trash" onClick={() => setOpen(false)}>Delete order</Button>
+								</DialogActions>
+							</Dialog>
+						)
+						: null}
+				</Leaving>
+			</>
+		)
+	},
+	play: async ({ args, canvasElement }) => {
+		const page = canvasElement.ownerDocument.body
+		await userEvent.click(page.querySelector('[role="dialog"] button'))
+		await expect(args.onCancel).toHaveBeenCalledOnce()
+		await waitFor(() => expect(page.querySelector('.sp-scrim[data-leaving="true"] [role="dialog"]')).not.toBeNull())
+		await waitFor(() => expect(page.querySelector('[role="dialog"]')).toBeNull())
+		await expect(args.onClosed).toHaveBeenCalledOnce()
 	}
 }
 

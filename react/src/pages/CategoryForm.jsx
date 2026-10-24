@@ -10,7 +10,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Gauge, Stat, Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
-import { useToast } from '../components/Overlays.jsx'
+import { useToast, Leaving } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	changeOrders, createCategory, deleteCategory, failureMessage, getCategory, getCategoryPage, getNextCategoryColour,
@@ -304,13 +304,13 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		<>
 			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Categories' }} /> : null}
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
-			{guard.prompt}
-			{deleting
+			<Leaving>{guard.prompt}</Leaving>
+			<Leaving>{deleting
 				? <DeleteCategory category={category} busy={busy} onConfirm={remove} onCancel={() => setDeleting(false)} />
-				: null}
-			{merging
+				: null}</Leaving>
+			<Leaving>{merging
 				? <MergeDialog kind="category" source={category} initial={merging} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
-				: null}
+				: null}</Leaving>
 		</>
 	)
 }

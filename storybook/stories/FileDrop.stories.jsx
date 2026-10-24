@@ -36,7 +36,7 @@ export const DropZone = {
 	}
 }
 
-export const DropZoneOnItsSide = { parameters: { a11y: knownAccessibilityFaults }, args: { row: true } }
+export const DropZoneOnItsSide = { args: { row: true } }
 
 export const DropZoneTurnedOff = {
 	args: { disabled: true, title: 'Scanning is off', meta: 'No questions left today. You can scan again tomorrow.', onFiles: undefined }
@@ -80,8 +80,9 @@ const RECEIPT = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://w
 export const Viewing = {
 	args: { at: 0, onMove: fn(), onClose: fn() },
 	argTypes: { at: { control: 'inline-radio', options: [0, 1, null], description: 'The picture shown, or none' }, title: { control: false }, meta: { control: false }, icon: { control: false } },
-	render: ({ onMove, onClose, ...args }) => {
-		const [at, setAt] = useHeld(args, 'at')
+	// the Docs page draws it closed, so its dark box does not cover the page
+	render: ({ onMove, onClose, ...args }, { viewMode }) => {
+		const [at, setAt] = useHeld(viewMode === 'docs' ? { ...args, at: null } : args, 'at')
 		const items = [{ name: 'receipt.jpg', src: RECEIPT, download: RECEIPT, kind: 'Photo' }, { name: 'second-page.jpg', src: RECEIPT, download: RECEIPT, kind: 'Photo' }]
 		return at === null
 			? <Button variant="outline" onClick={() => setAt(0)}>Open the receipt</Button>

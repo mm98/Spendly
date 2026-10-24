@@ -14,7 +14,7 @@ import { AskTrail, RangeSlider, SearchInput } from '../components/Inputs.jsx'
 import { BulkBar, Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow, ListToolbar, Selected } from '../components/List.jsx'
 import { Announce, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { useToast } from '../components/Overlays.jsx'
+import { useToast, Leaving } from '../components/Overlays.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
@@ -523,7 +523,7 @@ export default function OrderList() {
 				: null}
 			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
 			{body}
-			{filtersOpen
+			<Leaving>{filtersOpen
 				? (
 					<FiltersSheet
 						params={asked}
@@ -534,13 +534,13 @@ export default function OrderList() {
 						onClose={() => setFiltersOpen(false)}
 					/>
 				)
-				: null}
-			{deleting
+				: null}</Leaving>
+			<Leaving>{deleting
 				? (
 					<DeleteOrder order={deleting} onClose={() => setDeleting(null)}
 						onDeleted={() => { setDeleting(null); setRefocus({ id: deleting.id, at: data.orders.findIndex(o => o.id === deleting.id) }) }} />
 				)
-				: null}
+				: null}</Leaving>
 		</div>
 	)
 

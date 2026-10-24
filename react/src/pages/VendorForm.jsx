@@ -13,7 +13,7 @@ import { VendorMark } from '../app/categoryMark.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Stacked } from '../components/Utilities.jsx'
-import { Alert, useToast } from '../components/Overlays.jsx'
+import { Alert, useToast, Leaving } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
@@ -412,18 +412,18 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		<>
 			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Vendors' }} /> : null}
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
-			{guard.prompt}
-			{deleting
+			<Leaving>{guard.prompt}</Leaving>
+			<Leaving>{deleting
 				? (
 					<ConfirmDelete title={`Delete ${vendor.name}?`} action="Delete vendor" busy={busy}
 						onConfirm={remove} onCancel={() => setDeleting(false)}>
 						{deleteNote(vendor)}
 					</ConfirmDelete>
 				)
-				: null}
-			{merging
+				: null}</Leaving>
+			<Leaving>{merging
 				? <MergeDialog kind="vendor" source={vendor} initial={merging} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
-				: null}
+				: null}</Leaving>
 		</>
 	)
 }

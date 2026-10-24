@@ -6,7 +6,7 @@ import { Button } from '../components/Button.jsx'
 import { FILE_TYPES, FileDrop, MAX_FILE_MB, fileProblem, sniffedProblem } from '../components/FileDrop.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Spinner } from '../components/Utilities.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Viewer } from '../components/Attachments.jsx'
@@ -273,7 +273,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 					</Card>
 				)
 				: null}
-			{asking ? <DiscardScan file={file} onKeep={() => setAsking(false)} onDiscard={() => { setAsking(false); onDiscard() }} /> : null}
+			<Leaving>{asking ? <DiscardScan file={file} onKeep={() => setAsking(false)} onDiscard={() => { setAsking(false); onDiscard() }} /> : null}</Leaving>
 		</div>
 	)
 }
@@ -478,7 +478,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 					</div>
 				</div>
 			</Card>
-			{asking ? <DiscardScan file={file} onKeep={() => setAsking(false)} onDiscard={onDiscard} /> : null}
+			<Leaving>{asking ? <DiscardScan file={file} onKeep={() => setAsking(false)} onDiscard={onDiscard} /> : null}</Leaving>
 		</div>
 	)
 }
@@ -566,7 +566,7 @@ function Start({ scanOnly, file, from, picking }) {
 						</>
 					)}
 			</div>
-			{picking ? <CopyPicker onClose={() => navigate('/orders/new', { replace: true })} /> : null}
+			<Leaving>{picking ? <CopyPicker onClose={() => navigate('/orders/new', { replace: true })} /> : null}</Leaving>
 		</Empty>
 	)
 }

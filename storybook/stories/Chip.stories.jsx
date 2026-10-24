@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { expect, fn, userEvent } from 'storybook/test'
 import { Chip } from '../../react/src/components/Chip.jsx'
 import { Pill } from '../../react/src/components/Pill.jsx'
-import { knownAccessibilityFaults } from './controls.js'
 
 export default {
 	title: 'Controls/Chip and Pill',
@@ -14,7 +13,7 @@ export default {
 
 export const Outline = {}
 export const Solid = { args: { variant: 'solid' } }
-export const Dashed = { parameters: { a11y: knownAccessibilityFaults }, args: { variant: 'dashed', children: 'No category' } }
+export const Dashed = { args: { variant: 'dashed', children: 'No category' } }
 export const Danger = { args: { color: 'danger', children: 'Over the limit' } }
 export const Clickable = {
 	args: { onClick: fn() },

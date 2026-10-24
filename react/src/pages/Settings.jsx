@@ -13,7 +13,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { NavItem } from '../components/Shell.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
-import { useToast } from '../components/Overlays.jsx'
+import { useToast, Leaving } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
@@ -238,7 +238,7 @@ export default function Settings() {
 			<>
 				{current ? <Arrive section={current} visit={visit}>{cards[current]}</Arrive> : <PhoneIndex user={user.data} />}
 				{saveBar}
-				{guard.prompt}
+				<Leaving>{guard.prompt}</Leaving>
 			</>
 		)
 	}
@@ -251,7 +251,7 @@ export default function Settings() {
 				{body ?? <Arrive section={current} visit={visit} room={row}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
 			</div>
-			{guard.prompt}
+			<Leaving>{guard.prompt}</Leaving>
 		</div>
 	)
 }

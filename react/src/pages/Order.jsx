@@ -9,7 +9,7 @@ import { Chip } from '../components/Chip.jsx'
 import { Well } from '../components/Well.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Alert } from '../components/Overlays.jsx'
+import { Alert, Leaving } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import { attachmentDownloadUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
 import { dot, plural, shortDate } from '../api/format.js'
@@ -187,7 +187,7 @@ function OrderView({ order, touch, onGone }) {
 	return (
 		<>
 			<div className="sp-stack sp-gap-12" ref={column}>{validatedNotice}{stacked ? details : null}{items}{attachments}</div>
-			<Panel>{stacked ? null : details}{totals}{dialog}{viewer}</Panel>
+			<Panel>{stacked ? null : details}{totals}<Leaving>{dialog}</Leaving>{viewer}</Panel>
 		</>
 	)
 }

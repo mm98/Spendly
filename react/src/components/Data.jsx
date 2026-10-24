@@ -1,9 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
-import { Skeleton } from './Utilities.jsx'
-
-// a duration token in milliseconds: the built stylesheet writes 180ms as .18s
-const inMs = time => (parseFloat(time) || 0) * (/\d\s*s\s*$/.test(time) && !/ms\s*$/.test(time) ? 1000 : 1)
+import { Skeleton, inMs } from './Utilities.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
@@ -17,7 +14,7 @@ function useCounted(figure) {
 		last.current = figure
 		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 		if (from === null || to === null || from === to || still) { setShown(figure); return }
-		const ms = 2 * (inMs(getComputedStyle(document.documentElement).getPropertyValue('--motion-in')) || 180)
+		const ms = 2 * inMs('--motion-in', 180)
 		const start = performance.now()
 		let raf
 		const frame = now => {

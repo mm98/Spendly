@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Button } from '../components/Button.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
 import { budgetFromFile } from '../api/budgetImport.js'
 import { failureMessage, getBudgetYears, importBudget } from '../api/client.js'
 import { plural } from '../api/format.js'
@@ -50,7 +50,7 @@ export function ImportButton({ onImported }) {
 			<Button size="small" onClick={() => picker.current?.click()}>Import from Excel</Button>
 			<input ref={picker} type="file" name="budget" hidden accept=".xlsx" aria-label="Choose the Excel budget"
 				onChange={ev => { read(ev.target.files?.[0]); ev.target.value = '' }} />
-			{found ? (
+			<Leaving>{found ? (
 				<Dialog onCancel={() => setFound(null)}>
 					<DialogTitle>Bring in {plural(years.length, 'year')}?</DialogTitle>
 					<DialogBody>{found.file} holds {listed(years.map((y, i) => `${y} (${plural(rows[i], 'row')})`))}.</DialogBody>
@@ -71,7 +71,7 @@ export function ImportButton({ onImported }) {
 						<Button disabled={busy} onClick={write}>Import {plural(years.length, 'year')}</Button>
 					</DialogActions>
 				</Dialog>
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }

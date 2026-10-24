@@ -8,7 +8,7 @@ import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { useToast } from '../components/Overlays.jsx'
+import { useToast, Leaving } from '../components/Overlays.jsx'
 import { Well } from '../components/Well.jsx'
 import { Icon } from '../components/Icon.jsx'
 
@@ -598,7 +598,7 @@ function CaptureCard({ newest, loading }) {
 				<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
 				{copy}
 			</div>
-			{picking ? <CopyPicker onClose={() => setPicking(false)} /> : null}
+			<Leaving>{picking ? <CopyPicker onClose={() => setPicking(false)} /> : null}</Leaving>
 		</Card>
 	)
 }

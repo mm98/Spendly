@@ -6,7 +6,7 @@ import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Gauge } from '../components/Data.jsx'
-import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
@@ -280,12 +280,12 @@ export default function Categories() {
 			{bar}
 			{crumbs.length ? <Filters>{crumbs}</Filters> : null}
 			{body}
-			{deleting
+			<Leaving>{deleting
 				? <DeleteCategory category={deleting} busy={busy} onConfirm={remove} onCancel={() => setDeleting(null)} />
-				: null}
-			{merging
+				: null}</Leaving>
+			<Leaving>{merging
 				? <MergeDialog kind="category" source={merging.source} initial={merging.target} busy={busy} onConfirm={merge} onCancel={() => setMerging(null)} />
-				: null}
+				: null}</Leaving>
 		</>
 	)
 }

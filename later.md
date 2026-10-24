@@ -4,16 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## The Files Docs page in Storybook opens under the file viewer
-
-- **Where:** Storybook, Fields/Files, the Docs page (`storybook/stories/FileDrop.stories.jsx`, the
-  viewer story).
-- **What the reader sees:** the viewer story starts open, so on the Docs page its dark box covers the
-  props table and the other examples until it is closed.
-- **Proposed shape:** draw that story closed in the Docs page, or inline there, as other stories that
-  open over the page do.
-- **Found:** 2026-10-24.
-
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
@@ -74,37 +64,19 @@ is removed in the change that settles it.
 
 - **Where:** the stories marked `knownAccessibilityFaults` in `storybook/stories/`. Their test
   reports the faults and does not fail. The Accessibility panel in Storybook lists each one.
-- **What the reader sees:** a screen reader names some parts wrongly or not at all.
+- **What the reader sees:** some small grey text is hard to read on a tinted ground, and a screen
+  reader is told a few parts in a way it does not expect.
 - **What was found:**
-  - `Mark` puts `aria-label` on a `span` with no role, so the name is not read out
-    (`Mark.jsx`; the Fills, Gone, Empty states and Attachment strip stories).
-  - The combobox panel is a `listbox` whose children are `li` around `button role="option"`, and
-    its group heads are `li` too: a listbox may hold only options and groups (`Combobox.jsx`).
-  - The custom colour in `Picker` is a `label` with `aria-pressed`, which a label cannot carry
-    (`Choice.jsx`).
-  - The search palette is a dialog with no name (`Palette` in `Shell.jsx`).
-  - The account button's name does not contain the words drawn on it (`SidebarAccount` in
-    `Shell.jsx`, with the name the Shell story passes).
-- **Found:** 2026-10-24.
-
-## A toast's grey text keeps the old grey
-
-- **Where:** `react/src/styles/app.css`, `.sp-toast { --ink-5 }`; a toast's countdown (`Toast` `seconds`).
-- **What the reader sees:** nothing changes: the countdown keeps the grey it had.
-- **What was found:** the lighter-ground `--ink-5` (#72716b) is 3.55:1 on the light theme's dark
-  toast (#1b1a17), under 4.5:1. The app keeps #8b8a82 (5.02:1) inside a toast. The rule to take into
-  `design/`: grey small text on a toast uses a grey made for its dark ground. In the dark theme the
-  toast's grey (#90897e on #2e2b26) is 4.07:1, also under 4.5:1. Sent to Claude Design.
-- **Found:** 2026-10-24.
-
-## Dialogs, sheets and popovers close at once, and the account row is still its own
-
-- **Where:** `Dialog`, `Sheet` and `Popover` in `react/src/components/`; `SidebarAccount` in
-  `react/src/components/Shell.jsx`.
-- **What the reader sees:** these three open with the design's motion but close at once. The account
-  row looks as designed.
-- **What was found:** the design asks for a closing fade held with `data-leaving`, but a page removes
-  these parts at once, and the design does not say how a part stays on screen while it fades. It
-  also asks that `SidebarAccount` be a `NavItem` with a `control`, but does not say which part is
-  the button. Both are asked in the brief to Claude Design.
+  - Grey small text (`--ink-5`, #72716b) is under 4.5:1 on the tinted grounds: 4.06:1 on #eceae4,
+    4.32:1 on #f2f1eb, 4.3:1 on #eef1ee, 4.17:1 on #e7efe8 (Card wells, Chat, Choice, Field note,
+    List cards, DatePickers).
+  - `--ink-4` on the danger tint #f0e6e4 is 4.43:1, and the green #2f7a51 on #eceae4 is 4.33:1.
+  - A calendar's days outside the month (#c3c1b8) are 1.8:1 (DatePickers ranges).
+  - A NavItem drawn on the page's ground, not the sidebar's, has #7d9186 and #c3d2c8 text on
+    #eceae4 (Shell, One Nav Item).
+  - `Mark` with `role="img"` is not allowed on the element it is drawn as in the picture slot and
+    the attachment strip (FileDrop).
+  - The drop zone holds a control inside a control (FileDrop, Drop Zone).
+  - The account row's name is the name passed with `aria-label` ("Name, email"), which does not
+    begin with the words drawn on it (`AppShell` and the Shell stories).
 - **Found:** 2026-10-24.

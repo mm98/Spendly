@@ -21,7 +21,7 @@ import { useReorder } from '../components/Reorder.js'
 import { useRowMotion } from '../app/rowMotion.js'
 import { Icon } from '../components/Icon.jsx'
 import { AddRow, Empty, EmptyBody, EmptyTitle, Redacted, Skeleton } from '../components/Utilities.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
 import { parseNumber } from '../components/format.js'
 import { join } from '../components/variants.js'
 import { useShellShape } from '../app/useMedia.js'
@@ -513,10 +513,10 @@ function BudgetYears({ years, onYearsChanged }) {
 						</Empty>
 					</Card>
 				)}
-			{starting ? (
+			<Leaving>{starting ? (
 				<NewYear from={latest} onClose={() => setStarting(false)}
 					onStarted={next => { setStarting(false); onYearsChanged(); goYear(next) }} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -558,11 +558,11 @@ function YearView({ year, view, editing, covered, touch, onYearsChanged }) {
 				? <SheetView {...shared} />
 				: <MonthsView {...shared} onDelete={() => setDeleting(true)} />}
 			{editing ? <AccountsCard sheet={sheet} onChanged={loaded.refresh} /> : null}
-			{deleting ? (
+			<Leaving>{deleting ? (
 				<Confirm title={`Delete ${year}?`} commit={`Delete ${year}`} busy={busy}
 					body={`The ${year} budget, with its ${plural(rows, 'row')} and every amount in them.`}
 					onConfirm={removeYear} onCancel={() => setDeleting(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -930,10 +930,10 @@ function RowEditor({ sheet, line, group, index, write, onClose }) {
 					</Combobox>
 				</Field>
 			</LineEditor>
-			{asking ? (
+			<Leaving>{asking ? (
 				<Confirm title={`Delete ${line.name}?`} commit="Delete row" body={`${line.name}, with every amount in it.`}
 					onConfirm={remove} onCancel={() => setAsking(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -975,12 +975,12 @@ function GroupEditor({ sheet, group, kind = group?.kind, index = 0, count = 0, w
 					<TextField autoFocus value={name} onChange={v => { setName(v); setError('') }} />
 				</Field>
 			</LineEditor>
-			{asking ? (
+			<Leaving>{asking ? (
 				<Confirm title={`Delete ${group.name}?`} commit="Delete group"
 					body={rows ? `${group.name} and its ${plural(rows, 'row')}, with every amount in them.` : `${group.name}, which has no rows.`}
 					onConfirm={() => write(() => deleteBudgetGroup(group.id)).then(onClose, () => setAsking(false))}
 					onCancel={() => setAsking(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }
@@ -1129,12 +1129,12 @@ function AccountEditor({ account, index = 0, list, write, onMove, onClose }) {
 					</Choice>
 				</>
 			</LineEditor>
-			{asking ? (
+			<Leaving>{asking ? (
 				<Confirm title={`Delete ${account.name}?`} commit="Delete account"
 					body={account.rows ? `${account.name}. Counting all years, ${plural(account.rows, 'row')} will have no account.` : `${account.name}, which no row uses in any year.`}
 					onConfirm={() => write(() => deleteBudgetAccount(account.id)).then(onClose, () => setAsking(false))}
 					onCancel={() => setAsking(false)} />
-			) : null}
+			) : null}</Leaving>
 		</>
 	)
 }

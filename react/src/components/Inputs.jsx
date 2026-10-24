@@ -2,10 +2,7 @@ import { useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber } from './format.js'
-import { Spinner } from './Utilities.jsx'
-
-// a duration token in milliseconds: the built stylesheet writes 180ms as .18s
-const inMs = time => (parseFloat(time) || 0) * (/\d\s*s\s*$/.test(time) && !/ms\s*$/.test(time) ? 1000 : 1)
+import { Spinner, inMs } from './Utilities.jsx'
 
 const TEXT = {
 	default: null,
@@ -104,7 +101,7 @@ export function PasswordField({ ...rest }) {
 		const id = ++run.current
 		const target = next ? text : '\u2022'.repeat(text.length)
 		const from = next ? '\u2022'.repeat(text.length) : text
-		const ms = 2 * (inMs(getComputedStyle(document.documentElement).getPropertyValue('--motion-in')) || 180)
+		const ms = 2 * inMs('--motion-in', 180)
 		const start = performance.now()
 		const frame = now => {
 			if (id !== run.current) return

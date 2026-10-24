@@ -23,7 +23,7 @@ export const Required = { args: { required: true } }
 export const Hint = { args: { label: 'Reference', message: 'Yours, if you use one.', children: <Text placeholder="Optional" /> } }
 export const Warning = { args: { label: 'Date', messageType: 'warning', message: 'Later than the usual date.', children: <Text initial="24.12.2026" /> } }
 export const Danger = { args: { label: 'Amount', messageType: 'danger', message: 'An amount is required.', children: <NumberField value={null} onChange={() => {}} locale="da-DK" /> } }
-export const WithUnit = { parameters: { a11y: knownAccessibilityFaults }, args: { label: 'Amount', unit: 'kr.', children: <NumberField value={1320} onChange={() => {}} locale="da-DK" /> } }
+export const WithUnit = { args: { label: 'Amount', unit: 'kr.', children: <NumberField value={1320} onChange={() => {}} locale="da-DK" /> } }
 export const WithLead = {
 	args: { label: 'Search', lead: 'search', children: <Text placeholder="Search" /> },
 	play: async ({ canvasElement }) => {

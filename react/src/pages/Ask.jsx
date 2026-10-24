@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Chat, ChatDivider, ChatDock, ChatExamples, ChatLimit, ChatMessage, ChatMore, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
 import { IconButton } from '../components/Button.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
-import { Anchor, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Anchor, Menu, MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { Failed } from '../components/Failed.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Spinner, useDismiss } from '../components/Utilities.jsx'
 import { emailConversation, failureMessage, getAsk, getCurrentUser, getSavedQuestions, removeSavedQuestion, saveQuestion } from '../api/client.js'
@@ -225,7 +225,7 @@ export default function Ask() {
 						: <ChatMore><Menu position="floating" aria-label="Conversation">{items}</Menu></ChatMore>}
 				/>
 			</Chat>
-			{help}
+			<Leaving>{help}</Leaving>
 		</>
 	)
 }

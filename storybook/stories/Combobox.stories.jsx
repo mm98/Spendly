@@ -3,7 +3,7 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import { Combobox, ComboboxOption, ComboboxGroup, ComboboxSeparator, ComboboxEmpty } from '../../react/src/components/Combobox.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
-import { knownAccessibilityFaults, useHeld } from './controls.js'
+import { useHeld } from './controls.js'
 
 const VENDORS = [
 	{ name: 'Indbo Møbler', orders: '7 orders' },
@@ -136,8 +136,7 @@ export const Several = {
 }
 
 export const Sort = {
-	parameters: { a11y: knownAccessibilityFaults },
-	args: { variant: 'sort', 'aria-label': 'Sort', prefix: 'Sort', value: SORTS[0], onPick: fn() },
+		args: { variant: 'sort', 'aria-label': 'Sort', prefix: 'Sort', value: SORTS[0], onPick: fn() },
 	argTypes: { value: { control: 'select', options: SORTS } },
 	render: ({ onPick, onOpenChange, ...args }) => {
 		const [sort, setSort] = useHeld(args, 'value')
@@ -160,8 +159,7 @@ export const Sort = {
 }
 
 export const Status = {
-	parameters: { a11y: knownAccessibilityFaults },
-	args: { 'aria-label': 'Status', value: 'Delivered', open: true, onPick: fn() },
+		args: { 'aria-label': 'Status', value: 'Delivered', open: true, onPick: fn() },
 	argTypes: { value: { control: 'select', options: Object.keys(STATUSES) } },
 	render: ({ onPick, onOpenChange, ...args }) => {
 		const [status, setStatus] = useHeld(args, 'value')

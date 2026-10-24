@@ -11,7 +11,7 @@ import { Icon } from '../components/Icon.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Controls, Crumb, Filters, List, ListMore, Record } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Menu, MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
@@ -333,15 +333,15 @@ export default function Bookmarks() {
 			{head}
 			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
 			{body}
-			{sheet}
-			{deleting
+			<Leaving>{sheet}</Leaving>
+			<Leaving>{deleting
 				? (
 					<ConfirmDelete title={`Delete ${deleting.name}?`} action="Delete bookmark" busy={busy}
 						onConfirm={() => remove(deleting)} onCancel={() => setDeleting(null)}>
 						{bookmarkDeleteNote(deleting)}
 					</ConfirmDelete>
 				)
-				: null}
+				: null}</Leaving>
 		</>
 	)
 }

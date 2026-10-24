@@ -5,6 +5,7 @@ import { getAsk } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { askInLastChat, lastChat, stopAsking, useAsking } from './ask.js'
 import { useAskHelp } from './askHelp.jsx'
+import { Leaving } from '../components/Overlays.jsx'
 
 /** Chats and Files on a desktop (24e, 24f): the controls bar 12 above the list that scrolls, or `empty` in
     its place, and Ask's chat bar under them with Back to chat. A question asked here goes to that chat. */
@@ -54,7 +55,7 @@ export function AskListFrame({ controls, empty, children }) {
 				placeholder={noneLeft ? 'No questions left today' : 'Ask about your orders, vendors and budget'}
 				end={<ChatMore back={last ? `/ask/${last}` : '/ask'} />}
 			/>
-			{help}
+			<Leaving>{help}</Leaving>
 		</Chat>
 	)
 }

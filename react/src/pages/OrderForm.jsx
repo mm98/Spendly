@@ -19,7 +19,7 @@ import { Sum } from '../components/Data.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { FILE_TYPES, PHOTO_TYPES, Slot, sniffedProblem } from '../components/FileDrop.jsx'
 import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
-import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, Toast, useToast } from '../components/Overlays.jsx'
+import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, Toast, useToast, Leaving } from '../components/Overlays.jsx'
 import { Empty, Spinner, useFocusTrap } from '../components/Utilities.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
@@ -1545,14 +1545,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}{sheet}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}
+			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving>
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
 	const main = stacked
-		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}{sheet}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}</div>
+		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></div>
 		: <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}</div>
-	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}{dialog}{confirmRemoval}{compareAsk}{viewer}{guard.prompt}</Panel>
+	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}<Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></Panel>
 	if (!region) return <>{stacked ? null : createdNotice}{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }
@@ -1797,7 +1797,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 	return (
 		<LineEditor
 			onPaste={paste}
-			sheet={sheet}
+			sheet=<Leaving>{sheet}</Leaving>
 			hint={`Enter saves${dot}Escape cancels${dot}${MAC ? '⌘↵' : 'Ctrl ↵'} saves and opens the next line`}
 			commit={editing.isNew ? 'Add line' : 'Save line'}
 			photo={

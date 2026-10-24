@@ -7,11 +7,8 @@ import { Chip } from './Chip.jsx'
 import { SearchInput } from './Inputs.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
-import { own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
+import { inMs, own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
 import { singular } from './format.js'
-
-// a duration token in milliseconds: the built stylesheet writes 180ms as .18s
-const inMs = time => (parseFloat(time) || 0) * (/\d\s*s\s*$/.test(time) && !/ms\s*$/.test(time) ? 1000 : 1)
 
 const VARIANT = {
 	default: null,
@@ -275,7 +272,7 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 	const remove = token => {
 		if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
 			setLeaving(was => [...was, { token, at: value.indexOf(token) }])
-			const out = inMs(getComputedStyle(document.documentElement).getPropertyValue('--motion-out'))
+			const out = inMs('--motion-out', 0)
 			setTimeout(() => setLeaving(was => was.filter(l => l.token !== token)), out)
 		}
 		onChange?.(value.filter(t => t !== token))
@@ -599,7 +596,7 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
 	reject(rest, 'ComboboxOption')
 	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
 	return (
-		<li>
+		<li role="none">
 			<button
 				type="button"
 				className="sp-combobox__option"
@@ -627,13 +624,13 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
     @param {import('react').ReactNode} [props.children] The group's heading. */
 export function ComboboxGroup({ children, ...rest }) {
 	reject(rest, 'ComboboxGroup')
-	return <li className="sp-combobox__group" {...rest}>{children}</li>
+	return <li className="sp-combobox__group" role="presentation" {...rest}>{children}</li>
 }
 
 /** A rule between sets of options (c5). */
 export function ComboboxSeparator(props) {
 	reject(props, 'ComboboxSeparator')
-	return <li {...props}><hr /></li>
+	return <li role="none" {...props}><hr aria-hidden="true" /></li>
 }
 
 /** What the panel says when nothing matches.
@@ -641,5 +638,5 @@ export function ComboboxSeparator(props) {
     @param {import('react').ReactNode} [props.children] What to say when no option matches the typed words. */
 export function ComboboxEmpty({ children, ...rest }) {
 	reject(rest, 'ComboboxEmpty')
-	return <li className="sp-combobox__empty" {...rest}>{children}</li>
+	return <li className="sp-combobox__empty" role="presentation" {...rest}>{children}</li>
 }

@@ -7,7 +7,7 @@ import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Announce, Insertion } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { NavItem } from '../components/Shell.jsx'
 import { useReorder } from '../components/Reorder.js'
 import { useDismiss } from '../components/Utilities.jsx'
@@ -131,7 +131,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 				))}
 			</div>
 			{mode === 'naming' ? <span className="sp-meta">{summary}</span> : null}
-			{deleting
+			<Leaving>{deleting
 				? (
 					<Dialog onCancel={() => setDeleting(null)} aria-label={`Delete the view ${deleting.name}?`}>
 						<div className="sp-stack sp-gap-12">
@@ -147,7 +147,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 						</div>
 					</Dialog>
 				)
-				: null}
+				: null}</Leaving>
 		</Card>
 	)
 }

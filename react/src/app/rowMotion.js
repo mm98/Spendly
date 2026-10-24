@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-
-// a duration token in milliseconds: the built stylesheet writes 180ms as .18s
-const inMs = time => (parseFloat(time) || 0) * (/\d\s*s\s*$/.test(time) && !/ms\s*$/.test(time) ? 1000 : 1)
+import { inMs } from '../components/Utilities.jsx'
 
 /* data-added and data-leaving on a list's rows. One row arriving alone is the reader's; many at once
    is a load or a scan filling the list, which does not animate. */
 
 const still = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-const outMs = () => inMs(getComputedStyle(document.documentElement).getPropertyValue('--motion-out'))
+const outMs = () => inMs('--motion-out', 0)
 
 /** `items` with each removed row kept in its place for `--motion-out`; `row(item)` gives a row its
     marks, spread on the row element. */

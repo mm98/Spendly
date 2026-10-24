@@ -4,7 +4,6 @@ import { LineEditor, Totals } from '../../react/src/components/LineEditor.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { TextField, NumberField } from '../../react/src/components/Inputs.jsx'
 import { Card } from '../../react/src/components/Card.jsx'
-import { knownAccessibilityFaults } from './controls.js'
 
 export default {
 	title: 'Lists/Line editor',
@@ -19,8 +18,7 @@ export default {
 }
 
 export const EditALine = {
-	parameters: { a11y: knownAccessibilityFaults },
-	render: args => {
+		render: args => {
 		const [name, setName] = useState('Lounge chair')
 		const [price, setPrice] = useState(4129)
 		return (
@@ -40,8 +38,7 @@ export const EditALine = {
 }
 
 export const Saving = {
-	parameters: { a11y: knownAccessibilityFaults },
-	args: { title: 'Line 1 of 1', first: true, last: true, saving: true, onMoveUp: undefined, onMoveDown: undefined, onDelete: undefined },
+		args: { title: 'Line 1 of 1', first: true, last: true, saving: true, onMoveUp: undefined, onMoveDown: undefined, onDelete: undefined },
 	render: args => (
 		<LineEditor {...args}>
 			<Field label="What was bought"><TextField value="Lounge chair" onChange={() => {}} /></Field>

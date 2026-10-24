@@ -4,8 +4,9 @@ import { Card } from '../../react/src/components/Card.jsx'
 import { Button, IconButton } from '../../react/src/components/Button.jsx'
 import { Choice, Radio, FieldGroup } from '../../react/src/components/Choice.jsx'
 import { Stacked } from '../../react/src/components/Utilities.jsx'
-import { expect, fn, userEvent } from 'storybook/test'
-import { OverThePage, iconControl, knownAccessibilityFaults } from './controls.js'
+import { Leaving } from '../../react/src/components/Overlays.jsx'
+import { expect, fn, userEvent, waitFor } from 'storybook/test'
+import { OverThePage, iconControl, useHeld } from './controls.js'
 
 const TAB_NAMES = ['Home', 'Orders', 'Statistics', 'More']
 
@@ -28,8 +29,7 @@ const tabs = current => (
 )
 
 export const WithTabsAndButton = {
-	parameters: { a11y: knownAccessibilityFaults },
-	args: { fabIcon: 'plus', fabLabel: 'New order' },
+		args: { fabIcon: 'plus', fabLabel: 'New order' },
 	argTypes: { fabIcon: { ...iconControl, description: 'Fab\'s `icon`' }, fabLabel: { control: 'text', description: 'Fab\'s name' } },
 	render: ({ current, fabIcon, fabLabel }) => (
 		<Shell touch>
@@ -101,4 +101,51 @@ export const SheetFromTheBottom = {
 			</OverThePage>
 		</>
 	)
+}
+
+export const SheetClosingWithTheFade = {
+	args: { open: true, onApply: fn(), onClosed: fn() },
+	parameters: { variantsOf: Leaving },
+	// the Docs page draws it closed, behind its button
+	render: ({ onApply, onClosed, ...args }, { viewMode }) => {
+		const [open, setOpen] = useHeld(viewMode === 'docs' ? { ...args, open: false } : args, 'open')
+		const apply = () => { setOpen(false); onApply() }
+		return (
+			<>
+				<Shell touch>
+					<TopBar touch><span className="sp-title sp-grow">Orders</span></TopBar>
+					<ShellContent>
+						<Button variant="outline" onClick={() => setOpen(true)}>Set a status</Button>
+					</ShellContent>
+					{tabs()}
+				</Shell>
+				<OverThePage>
+					<Leaving onClosed={onClosed}>
+						{open
+							? (
+								<Scrim dialog>
+									<Sheet role="dialog" aria-modal="true" aria-label="Set a status" onDismiss={() => setOpen(false)}>
+										<span className="sp-heading">Set a status</span>
+										<FieldGroup legend="Status">
+											<Choice variant="row" control={<Radio name="closing-status" defaultChecked />}>Approved</Choice>
+											<Choice variant="row" control={<Radio name="closing-status" />}>In progress</Choice>
+										</FieldGroup>
+										<Button fullWidth onClick={apply}>Apply</Button>
+									</Sheet>
+								</Scrim>
+							)
+							: null}
+					</Leaving>
+				</OverThePage>
+			</>
+		)
+	},
+	play: async ({ args, canvasElement }) => {
+		const page = canvasElement.ownerDocument.body
+		await userEvent.click([...page.querySelectorAll('.sp-sheet button')].find(b => b.textContent === 'Apply'))
+		await expect(args.onApply).toHaveBeenCalledOnce()
+		await waitFor(() => expect(page.querySelector('.sp-sheet[data-leaving="true"]')).not.toBeNull())
+		await waitFor(() => expect(page.querySelector('.sp-sheet')).toBeNull())
+		await expect(args.onClosed).toHaveBeenCalledOnce()
+	}
 }

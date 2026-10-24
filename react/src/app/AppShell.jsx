@@ -8,7 +8,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { useScanPicker } from './scanPicker.jsx'
 import { ScreenBarSlot } from './screenBar.jsx'
-import { Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
+import { Menu, MenuItem, Toaster, Leaving } from '../components/Overlays.jsx'
 import { getAsk, getBudgetDue, getCounts, getCurrentUser, getSettings, onSessionEnded, saveSettings } from '../api/client.js'
 import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
@@ -200,8 +200,8 @@ export function AppShell() {
 					: null}
 			</Shell>
 			{touch ? null : overlay}
-			{keySheet}
-			{signedOut}
+			<Leaving>{keySheet}</Leaving>
+			<Leaving>{signedOut}</Leaving>
 			<SavedLater />
 		</Toaster>
 		</ScreenBarSlot.Provider>

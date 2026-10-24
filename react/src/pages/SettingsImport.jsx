@@ -10,7 +10,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
 import { Gauge, Stat } from '../components/Data.jsx'
 import { Skeleton, Spinner, Stacked, useDismiss } from '../components/Utilities.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Leaving, useToast } from '../components/Overlays.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	checkImportDuplicates, failureMessage, getCurrentUser, getImportUndo, getImports, getKnownVendorNames, getSettings, importOrders,
@@ -341,7 +341,7 @@ function History({ history, onReuse }) {
 				)
 			})}
 			{said ? <span className="sp-meta" role="status">{said}</span> : null}
-			{asking ? <UndoImport id={asking.id} onCancel={() => setAsking(null)} onConfirm={() => undo(asking)} /> : null}
+			<Leaving>{asking ? <UndoImport id={asking.id} onCancel={() => setAsking(null)} onConfirm={() => undo(asking)} /> : null}</Leaving>
 		</Card>
 	)
 }
@@ -635,7 +635,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 					? <Button disabled><Spinner />Importing…</Button>
 					: <Button disabled={!drafts$.length || duplicates === null} onClick={run}>Import {ordersWord(drafts$.length)}</Button>}
 			</ImportFooter>
-			{leaving ? <LeaveDialog body={importLeaveBody(source.file)} onStay={() => setLeaving(false)} onLeave={restart} /> : null}
+			<Leaving>{leaving ? <LeaveDialog body={importLeaveBody(source.file)} onStay={() => setLeaving(false)} onLeave={restart} /> : null}</Leaving>
 		</Card>
 	)
 }
@@ -706,7 +706,7 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 				{downloadButton}
 				{stopped && importId && imported ? <Button variant="outline" disabled={undoing} onClick={() => setAsking(true)}>Undo this import</Button> : null}
 			</ImportFooter>
-			{asked}
+			<Leaving>{asked}</Leaving>
 		</Card>
 	)
 
@@ -732,7 +732,7 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 				{downloadButton}
 				<Button to={`/orders?import=${encodeURIComponent(importId)}`}>See the {ordersWord(imported)}</Button>
 			</ImportFooter>
-			{asked}
+			<Leaving>{asked}</Leaving>
 		</Card>
 	)
 }

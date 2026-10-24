@@ -36,8 +36,7 @@ export default {
 
 // a narrow column draws orders as cards, so the table is a wide screen's only
 export const Orders = {
-	parameters: { a11y: knownAccessibilityFaults },
-	globals: { viewport: { value: 'desktop', isRotated: false } },
+		globals: { viewport: { value: 'desktop', isRotated: false } },
 	args: { rows: ORDERS.length, noun: 'orders', pageSize: 10, compact: false, headless: false, locale: 'da-DK', onRowClick: fn() },
 	argTypes: { rows: { control: { type: 'range', min: 0, max: ORDERS.length }, description: 'How many of the story\'s orders the list is given' } },
 	render: ({ rows, ...args }) => (

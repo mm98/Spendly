@@ -4,7 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, Leaving } from '../components/Overlays.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { failureMessage, getPasskeys, removePasskey, renamePasskey } from '../api/client.js'
 import { dayShortMonthYear, dot, isToday } from '../api/format.js'
@@ -75,8 +75,8 @@ export function PasskeysCard() {
 						)}
 				</Fragment>
 			))}
-			{removing ? <Remove passkey={removing} onDone={() => setRemoving(null)} /> : null}
-			{adding ? <AddPasskey onDone={() => setAdding(false)} onDeviceRefused={deviceRefused} /> : null}
+			<Leaving>{removing ? <Remove passkey={removing} onDone={() => setRemoving(null)} /> : null}</Leaving>
+			<Leaving>{adding ? <AddPasskey onDone={() => setAdding(false)} onDeviceRefused={deviceRefused} /> : null}</Leaving>
 		</Card>
 	)
 }
