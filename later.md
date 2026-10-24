@@ -60,6 +60,18 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
+## The Ask button with no questions left sits below the search field
+
+- **Where:** the order list's search field with Ask at its end (`SearchInput` with `AskTrail spent`,
+  `react/src/components/Inputs.jsx`), and the rule `.sp-field__trails > .sp-field__trail` in
+  `react/src/styles/components.css`.
+- **What the reader sees:** when no questions are left today, the Ask icon drops below the search
+  field instead of sitting at its end.
+- **What was found:** seen in a Chromium render of the component while it was being synced to Claude
+  Design. The disabled button is wrapped in a span that carries its tooltip, so the rule that places
+  the field's end controls does not reach it. Not yet checked on the order list page itself.
+- **Found:** 2026-10-24.
+
 ## The design's React specimens pass a prop the combobox does not take
 
 - **Where:** `design/React components.dc.html`, the searchable combobox specimen.
