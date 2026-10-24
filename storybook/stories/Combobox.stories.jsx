@@ -261,7 +261,8 @@ export const ClosingAtTheEdge = {
 			await expect(root).toHaveAttribute('data-closing', 'true')
 			await expect(panel.getBoundingClientRect().left).toBeCloseTo(open.left, 0)
 			await waitFor(() => expect(root).not.toHaveAttribute('data-closing'))
-			await expect(panel).not.toHaveAttribute('style')
+			// the fade leaves its own opacity behind; what must go is the placement
+			await waitFor(() => expect([panel.style.position, panel.style.left, panel.style.right, panel.style.width]).toEqual(['', '', '', '']))
 		} finally {
 			MotionGlobalConfig.skipAnimations = skipped
 		}
