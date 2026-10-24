@@ -5,41 +5,52 @@ import { Card } from '../../react/src/components/Card.jsx'
 import { Button, IconButton } from '../../react/src/components/Button.jsx'
 import { Choice, Radio, FieldGroup } from '../../react/src/components/Choice.jsx'
 import { Stacked } from '../../react/src/components/Utilities.jsx'
+import { expect, fn, userEvent } from 'storybook/test'
+import { iconControl } from './controls.js'
+
+const TAB_NAMES = ['Home', 'Orders', 'Statistics', 'More']
 
 export default {
 	title: 'Shell/Phone',
+	component: TabBar,
+	subcomponents: { TabBarItem, Sheet, SaveBar, Fab, Shell, TopBar, ShellContent, Scrim },
 	parameters: { layout: 'fullscreen' },
-	globals: { viewport: { value: 'phone', isRotated: false } }
+	globals: { viewport: { value: 'phone', isRotated: false } },
+	args: { current: 'Orders' },
+	argTypes: { current: { control: 'inline-radio', options: TAB_NAMES, description: 'The tab that is TabBarItem\'s `current`' } }
 }
 
-const TABS = (
+const tabs = current => (
 	<TabBar>
-		<TabBarItem icon="home" to="/">Home</TabBarItem>
-		<TabBarItem icon="receipt" to="/orders" current>Orders</TabBarItem>
-		<TabBarItem icon="chart-bar" to="/statistics">Statistics</TabBarItem>
-		<TabBarItem icon="user" to="/more">More</TabBarItem>
+		{[['home', '/'], ['receipt', '/orders'], ['chart-bar', '/statistics'], ['user', '/more']].map(([icon, to], i) => (
+			<TabBarItem key={to} icon={icon} to={to} current={TAB_NAMES[i] === current}>{TAB_NAMES[i]}</TabBarItem>
+		))}
 	</TabBar>
 )
 
 export const WithTabsAndButton = {
-	render: () => (
+	args: { fabIcon: 'plus', fabLabel: 'New order' },
+	argTypes: { fabIcon: { ...iconControl, description: 'Fab\'s `icon`' }, fabLabel: { control: 'text', description: 'Fab\'s name' } },
+	render: ({ current, fabIcon, fabLabel }) => (
 		<Shell touch>
-			<TopBar touch><span className="sp-title sp-grow">Orders</span></TopBar>
+			<TopBar touch><span className="sp-title sp-grow">{current}</span></TopBar>
 			<ShellContent>
 				<Card><span className="sp-title">Indbo Møbler</span><span className="sp-subtitle">SPENDLY-441</span></Card>
 				<Card><span className="sp-title">HAY</span><span className="sp-subtitle">SPENDLY-438</span></Card>
 			</ShellContent>
-			<Fab to="/orders/new" aria-label="New order" />
-			{TABS}
+			<Fab icon={fabIcon} to="/orders/new" aria-label={fabLabel} />
+			{tabs(current)}
 		</Shell>
 	)
 }
 
 export const EditingWithSaveBar = {
-	render: () => (
+	args: { note: 'Unsaved changes', onSave: fn(), onDiscard: fn(), onBack: fn() },
+	argTypes: { note: { control: 'text', description: 'What the save bar says' }, current: { control: false } },
+	render: ({ note, onSave, onDiscard, onBack }) => (
 		<Shell touch>
 			<TopBar touch>
-				<IconButton icon="chevron-left" aria-label="Back to the orders" />
+				<IconButton icon="chevron-left" aria-label="Back to the orders" onClick={onBack} />
 				<Stacked><span className="sp-title">Indbo Møbler</span><span className="sp-subtitle">SPENDLY-441</span></Stacked>
 				<IconButton icon="dots-vertical" aria-label="This order" />
 			</TopBar>
@@ -50,35 +61,41 @@ export const EditingWithSaveBar = {
 					<span className="sp-amount-secondary" data-color="success">Saved 1.320,00 kr.</span>
 				</Card>
 				<SaveBar>
-					<span className="sp-subtitle sp-grow">Unsaved changes</span>
-					<Button variant="outline">Discard</Button>
-					<Button>Save</Button>
+					<span className="sp-subtitle sp-grow">{note}</span>
+					<Button variant="outline" onClick={onDiscard}>Discard</Button>
+					<Button onClick={onSave}>Save</Button>
 				</SaveBar>
 			</ShellContent>
 		</Shell>
-	)
+	),
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByRole('button', { name: 'Save' }))
+		await expect(args.onSave).toHaveBeenCalledOnce()
+	}
 }
 
 export const SheetFromTheBottom = {
-	render: () => (
+	args: { handle: true, onDismiss: fn(), onApply: fn() },
+	parameters: { variantsOf: Sheet },
+	render: ({ current, handle, onDismiss, onApply }) => (
 		<>
 			<Shell touch>
 				<TopBar touch><span className="sp-title sp-grow">Orders</span></TopBar>
 				<ShellContent>
 					<Card><span className="sp-title">The screen underneath</span><span className="sp-subtitle">Still there, dimmed.</span></Card>
 				</ShellContent>
-				{TABS}
+				{tabs(current)}
 			</Shell>
 			{createPortal(
 				<Scrim dialog>
-					<Sheet role="dialog" aria-modal="true" aria-label="Set a status" onDismiss={() => {}}>
+					<Sheet role="dialog" aria-modal="true" aria-label="Set a status" handle={handle} onDismiss={onDismiss}>
 						<span className="sp-heading">Set a status</span>
 						<FieldGroup legend="Status">
 							<Choice variant="row" control={<Radio name="status" defaultChecked />}>Approved</Choice>
 							<Choice variant="row" control={<Radio name="status" />}>In progress</Choice>
 							<Choice variant="row" control={<Radio name="status" />}>Returned</Choice>
 						</FieldGroup>
-						<Button fullWidth>Apply</Button>
+						<Button fullWidth onClick={onApply}>Apply</Button>
 					</Sheet>
 				</Scrim>,
 				document.body
