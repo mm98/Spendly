@@ -8,7 +8,7 @@ One row for every list in the product. What varies is what the row carries: a ha
 - `variant`: `'default'` | `'outline'` | `'primary'` | `'stack'` (two lines instead of a row) | `'top'` | `'add'` (the add row, a button) | `'carried'` (mid-drag) | `'picked'` (picked up from the keyboard) | `'card'` | `'sticky'` (the card row that stays put while the page scrolls: a form's commit bar)
 - `color`: `'default'` | `'warning'` | `'danger'` | `'success'`
 - `mark`: a `Mark` at the start
-- `handle`: the drag handle's icon, such as `<Icon name="grip-vertical" />`; `handleLabel` says what it moves (default `'Reorder'`)
+- `handle`: the drag handle's icon, such as `<Icon name="grip-vertical" />`; `handleLabel` says what it moves (default `'Reorder'`). A row with a handle is drawn inside a `ReorderList`, which moves it.
 - `count`: a count that leads the row's text
 - `actions`: controls at the end, such as a `ListItemRemove`
 - `chevron`: at the very end, such as `<Icon name="chevron-right" />`
@@ -22,8 +22,11 @@ One row for every list in the product. What varies is what the row carries: a ha
 ## Parts
 
 - `ListItemRemove`: a control that shows when its row is hovered or focused, and stays on touch. Goes in `actions`.
-- `Insertion`: the line where a carried row will land. Sits between rows.
-- `Announce`: what a keyboard reorder says after each move. Read out, not drawn.
+- `Announce`: something said to a screen reader after a change. Read out, not drawn.
+
+## Motion
+
+- Inside `Rows` (or a `ReorderList`, which holds its own), a row added later drops in, a row removed fades where it stood, and the rows below glide up. After a sort or a filter each row glides to its new place.
 
 ## Rules
 

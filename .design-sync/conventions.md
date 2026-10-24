@@ -9,7 +9,7 @@ const { SpendlyRoot, Card, CardHeader, Button } = window.Spendly;
 <SpendlyRoot>{/* your screen */}</SpendlyRoot>
 ```
 
-`SpendlyRoot` puts the `sp` class on `<body>` and gives the tree a router. Without the `sp` class the font, ink colour and page ground are missing and text falls back to a serif. Without the router, any component with `to=` (Button, Card, NavItem, Record) crashes. Use `to="/orders"` for in-app links; `href` for outside addresses.
+`SpendlyRoot` puts the `sp` class on `<body>` and gives the tree a router. Without the `sp` class the font, ink colour and page ground are missing and text falls back to a serif. Without the router, any component with `to=` (Button, Card, NavItem, Record) crashes. Use `to="/orders"` for in-app links; `href` for outside addresses. It also turns on the app's motion (sliding markers, fades, rows that make room), and follows the device's "reduce motion" setting, so a screen needs no motion setup of its own.
 
 Dark mode: set `data-theme="dark"` on `<html>`. Without it, the light look is used.
 

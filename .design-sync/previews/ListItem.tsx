@@ -1,4 +1,4 @@
-import { ListItem, ListItemRemove, Insertion, Announce, Mark, Stacked, Line, Pill, Icon, IconButton, Button } from 'spendly-react';
+import { ListItem, ListItemRemove, Announce, Mark, Stacked, Line, Pill, Icon, IconButton, Button } from 'spendly-react';
 
 const col = { display: 'grid', gap: 8, maxWidth: 420 } as const;
 
@@ -64,7 +64,6 @@ export const Reorder = () => (
 				<span className="sp-subtitle">2 × 4.310,00 kr.</span>
 			</div>
 		</ListItem>
-		<Insertion />
 		<ListItem color="warning" handle={<Icon name="grip-vertical" />} handleLabel="Move Side table" mark={<Mark size="medium" fill="empty" aria-label="No photo yet" />}>
 			<div className="sp-stack">
 				<span className="sp-data">Side table</span>
