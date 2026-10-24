@@ -20,7 +20,7 @@ The surface a section of a page sits on: a ground, an edge and padding, with an 
   `name` (required, the section label), `meta`, `aside` with `asideTone` `'default' | 'note' | 'danger'`,
   `control` (e.g. a `Segmented`), `status` (e.g. a `Pill`), `actions` (at most two `{ label, to, href, onClick, held }`),
   `onDismiss` with `dismissLabel`.
-- `CardBody`: the padding back inside a `flush` card.
+- `CardBody`: the padding back inside a `flush` card. Under a `toggle` `Toolbar`, `open` says whether the body is unfolded; it folds and unfolds smoothly.
 - `CardFooter`: a footer row of figures inside the body, under its rule (actions go in `footer`).
 - `Toolbar`: a card's header row; `variant` `'default' | 'loose' | 'link' | 'toggle'`, `expanded`, `chevron`.
 - `ListFooter`: the foot of a card's own set of things; `loose` takes the grid's width.

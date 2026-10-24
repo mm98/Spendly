@@ -5,8 +5,9 @@ The dark column of destinations on the left of a desktop page: the brand, rows i
 
 ## Props
 
-- `variant`: `'default'` (expanded, 248px) | `'rail'` (icons only, 68px) | `'peek'` (a rail that floats open at full width over the page) | `'slide-in'` | `'slide-out'`
+- `variant`: `'default'` (expanded, 248px) | `'rail'` (icons only, 68px) | `'peek'` (a rail that floats open at full width over the page)
 - `motion`: `'in'` | `'out'`: the labels run in as the column opens, or out before it closes
+- `onMotionEnd`: called once the labels have run in or out, such as to narrow the column after `'out'`
 - `children`: `SidebarBrand`, then `NavItem` rows with `SidebarGroup` titles and `SidebarDivider` rules, then `<span className="sp-grow" />`, the bottom zone (`SidebarAccount`), and `SidebarGrip` last
 
 ## Parts

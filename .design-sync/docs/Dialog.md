@@ -15,7 +15,7 @@ A decision that stops the page and cannot be answered by ignoring it: a question
 - `DialogTitle`: what the dialog asks, as its heading. It names the dialog.
 - `DialogBody`: what the decision costs, stated in full.
 - `DialogActions`: the way out and the commit. It spaces and aligns its own buttons; a `sp-grow` span between them pushes them to the two ends; `fullWidth` buttons share it in halves.
-- `Leaving`: keeps a `Dialog`, `Sheet` or `Popover` drawn while it closes. The page keeps its condition inside it: `<Leaving onClosed={...}>{open ? <Dialog ...> : null}</Leaving>`. The part fades out for the closing time, answers no more presses, then goes and `onClosed` is called. Under reduced motion it goes at once. Without a `Leaving` the part is removed at once.
+- `Leaving`: keeps a `Dialog`, `Sheet` or `Popover` drawn while it closes. The page keeps its condition inside it: `<Leaving onClosed={...}>{open ? <Dialog ...> : null}</Leaving>`. The part runs its own way out, answers no more presses meanwhile, then goes and `onClosed` is called. Under reduced motion only its fade runs. Without a `Leaving` the part is removed at once.
 - `Scrim`: the dimmed backdrop a dialog or a sheet sits over; `dialog` centres a dialog in it. `Dialog` draws its own; use `Scrim` yourself only around `Dialog scrim={false}`.
 
 ## Rules

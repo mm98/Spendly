@@ -11,11 +11,11 @@ One row in a list of destinations: an icon, a label and a count. Dark in the sid
 - `count` with `countColor` (`'warning'`): the number at the row's end
 - `trail`: content in the count's place (e.g. `<span className="sp-meta">locked</span>`)
 - `sub`: a small line in place of a label ("3 more in Orders")
-- `current`: the page the reader is on
+- `current`: the page the reader is on. The marker slides from the last current row to the new one.
 - `to`: the row is a link; `onClick` without `to` makes it a button; with neither it is plain text
 - `tip`: the label shown on hover while the row's own is hidden (on the rail)
 - `control`: a `Switch` at the row's end; the row becomes its label
-- `handle` with `handleLabel` (default `'Reorder'`): a grip in the icon's place that moves the row
+- `handle` with `handleLabel` (default `'Reorder'`): a grip in the icon's place that moves the row. A row with a handle is drawn inside a `ReorderList`, which moves it.
 
 ## Rules
 
