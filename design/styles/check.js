@@ -45,6 +45,25 @@
     }
   }
 
+  /* Every region that scrolls shows the shared bar: thin, no track, the --scroll-thumb ink.
+     Caught: the vendor combobox's list on Order create drew the browser's wide light bar
+     with arrows, since .sp-combobox__panel scrolled at --list-max but was never named in
+     the shared list; filter values and Ask's start and help had the same gap. A region
+     that hides its bar (::-webkit-scrollbar { display: none }) is exempt. */
+  {
+    const bare = comp.replace(/\/\*[\s\S]*?\*\//g, '');
+    const lists = [...bare.matchAll(/([^{}]+)\{\s*scrollbar-width:\s*thin;\s*scrollbar-color:\s*var\(--scroll-thumb\)/g)].map(m => m[1]).join(',');
+    const thumbs = [...bare.matchAll(/([^{}]+)\{[^{}]*background:\s*var\(--scroll-thumb\)/g)].map(m => m[1]).join(',');
+    for (const m of bare.matchAll(/([^{}]+)\{[^{}]*overflow(?:-[xy])?:\s*(?:auto|scroll)[^{}]*\}/g)) {
+      const cls = (m[1].trim().match(/\.sp-[\w-]+(?![\s\S]*\.sp-)/) || [])[0]
+      if (!cls) continue
+      const name = cls.replace('.', '\\.')
+      if (new RegExp(name + '::-webkit-scrollbar\\s*\\{\\s*display:\\s*none').test(bare)) continue
+      const named = s => new RegExp(name + '(?![\\w-])').test(s)
+      if (!named(lists) || !named(thumbs)) fail('every scrolling region shows the shared bar', 'components.css', cls + ' scrolls but is not in the shared scrollbar rules')
+    }
+  }
+
   /* An answer's figures table sizes its number and amount columns to their content.
      Caught: on a phone (393 wide) the fixed 152px and 90px columns took the whole
      bubble, the name column had no width, and amounts were cut at the right edge. */

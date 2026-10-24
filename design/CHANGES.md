@@ -1,4 +1,18 @@
-# Motion gaps (fixed): page switches no longer blink
+# Motion gaps (fixed 2): every scrolling list shows the shared scrollbar
+
+## Fixed from design_handoff_motion_gaps_fixed
+
+**The problem** - On Order create and Order edit, the vendor combobox's list drew the browser's own scrollbar: wide, light, with arrows, on the dark surface. Every scrolling region is meant to show the same bar (thin, no track, `--scroll-thumb`), but that is stated as a list of selectors in `components.css`, and `.sp-combobox__panel` was never on it. The list only scrolls past `--list-max` (420px), which the vendor list with Favourites, Recent and Other vendors now reaches, so the gap showed only now. It was missing in every earlier package and on main. Five more regions scroll and were missing too: filter group values, an answer's figures table (sideways), Ask's empty start, Ask's help, and the Ask field.
+
+**What changed** - `.sp-combobox__panel`, `.sp-field-group__values`, `.sp-chat__start`, `.sp-chat__help`, `.sp-chat__field` and `.sp-chat__figures` join the shared scrollbar rules: `scrollbar-width: thin` and `scrollbar-color: var(--scroll-thumb) transparent`, an 8px webkit bar, a pill thumb. `.sp-chat__figures` scrolls sideways, so its webkit bar is 8px high. No other component's rules changed. `styles/check.js` gains "every scrolling region shows the shared bar": any rule with `overflow: auto` or `scroll` whose class is not in the shared rules fails, unless it hides its bar. Run against the previous package's stylesheet it reports all six.
+
+**Where** - `styles/components.css`, the scrolling regions block. `styles/check.js`. In the app: `react/src/styles/components.css`, the same block.
+
+**What is still open** - Nothing.
+
+---
+
+## Page switches no longer blink
 
 ## Fixed from design_handoff_motion_gaps
 
@@ -45,7 +59,8 @@ The brief cites a later.md entry for "a part closed before the features load nev
 - `Components.dc.html` - Ordering by hand gains the "Adding and removing" note.
 - `React components.dc.html` - the Motion notes, `domMax` in the harness, and the page switch notes.
 - `react_handoff/` - all components, since the React components page loads every one; changed: `motion.js`, `Reorder.jsx`, `ListItem.jsx`, `Shell.jsx`, `README.md`.
-- `styles/components.css` - the Motion comment no longer lists the page change; no rule changed.
+- `styles/components.css` - the Motion comment no longer lists the page change, and six scrolling regions join the shared scrollbar rules.
+- `styles/check.js` - the new scrollbar assertion.
 - `support.js`, `components.js`, `icons.js`, `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - what the two pages load.
 
 ## styles/check.js
