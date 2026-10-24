@@ -27,7 +27,11 @@ const itemsOf = menu => [...(menu?.querySelectorAll(':scope > li > .sp-menu__ite
 const MenuHost = createContext(null)
 const FLOATS = ['floating', 'up', 'start']
 
-/** The provider an Anchor or a record's menu wraps its menu in. Internal. */
+/** The provider an Anchor or a record's menu wraps its menu in. Internal.
+    @param {object} props
+    @param {boolean} props.open
+    @param {import('react').RefObject<HTMLElement>} props.box
+    @param {import('react').ReactNode} [props.children] */
 export function MenuHostOf({ open, box, children }) {
 	const value = useMemo(() => ({ open, box }), [open, box])
 	return <MenuHost.Provider value={value}>{children}</MenuHost.Provider>

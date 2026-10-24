@@ -49,7 +49,7 @@ const swatchOf = name => {
     @param {string} [props.danger] why it failed, in place of text
     @param {import('react').ReactNode} [props.remove]
     @param {() => void} [props.onClick]
-    @param {'label'} [props.as]
+    @param {'span' | 'label'} [props.as] a label wraps a file input, as a picker's hit target
     @param {import('react').ReactNode} [props.children] a name, which gives the initials and colour, or a part to draw */
 export function Mark({
 	size,
