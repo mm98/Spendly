@@ -31,7 +31,7 @@ const FLOATS = ['floating', 'up', 'start']
     @param {object} props
     @param {boolean} props.open Whether the menu is open.
     @param {import('react').RefObject<HTMLElement>} props.box The control the menu belongs to.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The menu. */
+    @param {import('react').ReactNode} [props.children] The menu. */
 export function MenuHostOf({ open, box, children }) {
 	const value = useMemo(() => ({ open, box }), [open, box])
 	return <MenuHost.Provider value={value}>{children}</MenuHost.Provider>
@@ -66,7 +66,7 @@ function MenuSheet({ owner, children }) {
 /** @param {object} props
     @param {keyof typeof MENU} [props.position] Where the menu sits: `floating` under its button, `up` above it, `start` from the left edge, `side-left` or `side-right` beside it, `sub` inside a menu row, `row` under a row's menu button at the right, `plain` with no panel of its own.
     @param {boolean} [props.scrolls] Caps its height and scrolls, for a list whose length the page does not know.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The MenuItems, labels and separators. */
+    @param {import('react').ReactNode} [props.children] The MenuItems, labels and separators. */
 export function Menu({ position, scrolls = false, children, ...rest }) {
 	reject(rest, 'Menu')
 	const host = useContext(MenuHost)
@@ -249,11 +249,11 @@ const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--e
 /** @param {object} props
     @param {keyof typeof POPOVER} [props.position] Which edge it hangs from: `default`, `start`, `end`, or `static` drawn in place.
     @param {import('react').ReactNode} [props.head] A title, and any word about what this does.
-    @param {import('react').ReactElement} [props.search] A search at the top of the panel.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What the panel holds, such as the choices.
+    @param {import('react').ReactNode} [props.search] A search at the top of the panel.
+    @param {import('react').ReactNode} [props.children] What the panel holds, such as the choices.
     @param {import('react').ReactNode} [props.summary] What applying will do, such as a count.
     @param {import('react').ReactNode} [props.note] A grey line at the foot of the panel.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.actions] The Cancel and Apply buttons. */
+    @param {import('react').ReactNode} [props.actions] The Cancel and Apply buttons. */
 export function Popover({ position = 'default', head, search, children, summary, note, actions, ...rest }) {
 	reject(rest, 'Popover')
 	return (
@@ -273,7 +273,7 @@ export function Popover({ position = 'default', head, search, children, summary,
     @param {object} props
     @param {boolean} [props.open] Whether the panel inside it is showing.
     @param {import('react').Ref<HTMLDivElement>} [props.ref]
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The button and the panel it opens. */
+    @param {import('react').ReactNode} [props.children] The button and the panel it opens. */
 export function Anchor({ open, ref, children, ...rest }) {
 	reject(rest, 'Anchor')
 	const box = useRef(null)
@@ -308,7 +308,7 @@ const isActions = c => c && typeof c === 'object' && c.type === DialogActions
 /** `onCancel` is what Escape and a press on the backdrop do: the dialog's own way out (c13). A page
     that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d).
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] A DialogTitle, then the body (a DialogBody or plain words), then DialogActions.
+    @param {import('react').ReactNode} [props.children] A DialogTitle, then the body (a DialogBody or plain words), then DialogActions.
     @param {boolean} [props.scrim] Draw it over the dimmed page, as it appears in use.
     @param {() => void} [props.onCancel] */
 export function Dialog({ children, scrim = true, onCancel, ...rest }) {
@@ -390,7 +390,7 @@ export function DialogBody({ children, ...rest }) {
 
 /** The way out and the commit. It spaces and aligns its own buttons.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The buttons. */
+    @param {import('react').ReactNode} [props.children] The buttons. */
 export function DialogActions({ children, ...rest }) {
 	reject(rest, 'DialogActions')
 	return <div className="sp-dialog__actions" {...rest}>{children}</div>
@@ -408,8 +408,8 @@ const TOAST_COLOR = { default: null, danger: 'danger' }
     @param {keyof typeof TOAST_COLOR} [props.color] `default`, or `danger` for something that went wrong.
     @param {boolean} [props.compact] The smaller one, for a count or a status.
     @param {boolean} [props.asks] It needs an answer, so it does not take itself away.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.actions] The buttons that answer a toast that asks.
-    @param {import('react').ReactElement[]} [props.list] A short list under the words of a toast that asks.
+    @param {import('react').ReactNode} [props.actions] The buttons that answer a toast that asks.
+    @param {import('react').ReactNode[]} [props.list] A short list under the words of a toast that asks.
     @param {string} [props.listLabel] What the list is, read out.
     @param {number} [props.seconds] How many seconds are left to undo, shown beside Undo.
     @param {import('react').ReactNode} [props.children] The message, and a ToastUndo where there is a way back. */
@@ -469,7 +469,7 @@ const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
     @param {keyof typeof ALERT_COLOR} [props.color] `warning`, `danger` or `success`.
     @param {import('react').ReactNode} [props.mark] The glyph in its own round mark.
     @param {import('react').ReactNode} [props.title] The first line, in bold.
-    @param {import('react').ReactElement} [props.action] One button at the far end of the row.
+    @param {import('react').ReactNode} [props.action] One button at the far end of the row.
     @param {boolean} [props.below] Put the button under the words, where a phone's row is too narrow for both.
     @param {import('react').ReactNode} [props.children] What it means for the reader, in their terms. */
 export function Alert({ color = 'warning', mark, title, action, below = false, children, ...rest }) {
@@ -502,8 +502,8 @@ export const useToast = () => useContext(ToastContext)
 
 /** `notice` is a notice that stays until answered (6d), held in the same place above any toast.
     @param {object} props
-    @param {import('react').ReactElement} [props.notice] A toast that asks, held above any other toast until it is answered.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The page. */
+    @param {import('react').ReactNode} [props.notice] A toast that asks, held above any other toast until it is answered.
+    @param {import('react').ReactNode} [props.children] The page. */
 export function Toaster({ notice, children }) {
 	const [toast, setToast] = useState(null)
 	const [hovered, setHovered] = useState(false)

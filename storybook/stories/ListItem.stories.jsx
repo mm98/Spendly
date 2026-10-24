@@ -13,6 +13,7 @@ export default {
 	component: ListItem,
 	subcomponents: { ListItemHead },
 	decorators: [Story => <div style={{ maxWidth: 560 }}><Story /></div>],
+	argTypes: { mark: { control: false }, handle: { control: false }, actions: { control: false }, children: { control: false } }
 }
 
 export const OneRow = {
@@ -71,7 +72,7 @@ export const WithActionsAndHandle = {
 	render: ({ onRename, onAdd }) => (
 		<Card variant="flush">
 			{['Havemøbler', 'Boligtilbehør', 'Belysning'].map(name => (
-				<ListItem key={name} handle handleLabel={`Move ${name}`}
+				<ListItem key={name} handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${name}`}
 					actions={<IconButton icon="pencil" aria-label={`Rename ${name}`} onClick={() => onRename(name)} />}>
 					<span className="sp-title sp-grow sp-truncate">{name}</span>
 				</ListItem>

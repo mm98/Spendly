@@ -203,7 +203,7 @@ export function countOf(options, noun = 'options') {
     @param {object} props
     @param {keyof typeof VARIANT} [props.variant] `default`; `sort` is the small pick-only control above a list; `end` opens its panel from the right edge; `stretch` lets the trigger grow with its value.
     @param {import('react').ReactNode} [props.value] What the closed control shows: the chosen value's name.
-    @param {import('react').ReactElement} [props.lead] A part before the value: a mark, a dot or a word.
+    @param {import('react').ReactNode} [props.lead] A part before the value: a mark, a dot or a word.
     @param {string} [props.prefix] A word kept inside the control before the value, such as Sort.
     @param {boolean} [props.open] Whether the list is open. Leave it out to let the control keep its own state.
     @param {boolean} [props.defaultOpen] The list starts open, when the control keeps its own state.
@@ -213,11 +213,11 @@ export function countOf(options, noun = 'options') {
     @param {(text: string) => void} [props.onSearch] Called as the reader types.
     @param {string} [props.placeholder] Searchable only. Shown when nothing is chosen.
     @param {string} [props.noun] What the options are, plural, for the count read out as typing narrows the list.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The options, groups and separators.
+    @param {import('react').ReactNode} [props.children] The options, groups and separators.
     @param {string} [props.id]
     @param {boolean} [props.required]
-    @param {boolean} [props.trail] Set by the Field around it.
-    @param {boolean} [props.unit] Set by the Field around it.
+    @param {import('react').ReactNode} [props.trail] Set by the Field around it.
+    @param {import('react').ReactNode} [props.unit] Set by the Field around it.
     @param {boolean} [props.autoFocus]
     @param {boolean} [props.disabled] The control cannot be opened.
     @param {string} [props['aria-label']]
@@ -437,7 +437,7 @@ export function Combobox({
     @param {boolean} [props.active] Where the arrow keys are. Set by the Combobox, never by a page.
     @param {string} [props.id]
     @param {typeof DOTS[number]} [props.dot] A status dot before the name: draft, progress, done, returned or cancelled.
-    @param {import('react').ReactElement} [props.mark] A part before the name: a mark or an icon.
+    @param {import('react').ReactNode} [props.mark] A part before the name: a mark or an icon.
     @param {import('react').ReactNode} [props.meta] A grey value at the end of the option, such as a count.
     @param {() => void} [props.onSelect]
     @param {boolean} [props.create] The option makes a new value from the typed words. It is left out of the count.

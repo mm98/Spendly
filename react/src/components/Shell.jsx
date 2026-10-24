@@ -21,8 +21,8 @@ export const ShellHead = createContext(null)
     @param {boolean} [props.collapsed] The menu is a rail: 68px, icons only, every label a tooltip.
     @param {boolean} [props.viewport] Fill the window.
     @param {boolean} [props.touch] The phone form: top bar, content, tab bar and one round button.
-    @param {import('react').ReactElement} [props.cover] A part that covers the whole phone screen, such as the search, with the page kept under it.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The Sidebar, the TopBar and the ShellContent, in any order. */
+    @param {import('react').ReactNode} [props.cover] A part that covers the whole phone screen, such as the search, with the page kept under it.
+    @param {import('react').ReactNode} [props.children] The Sidebar, the TopBar and the ShellContent, in any order. */
 export function Shell({ collapsed = false, viewport = false, touch = false, cover, children, ...rest }) {
 	const [head, setHead] = useState(null)
 	reject(rest, 'Shell')
@@ -66,7 +66,7 @@ export function Shell({ collapsed = false, viewport = false, touch = false, cove
 
 /** @param {object} props
     @param {boolean} [props.touch] The phone form.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What the top bar holds: the search and the buttons. */
+    @param {import('react').ReactNode} [props.children] What the top bar holds: the search and the buttons. */
 export function TopBar({ touch = false, children, ...rest }) {
 	reject(rest, 'TopBar')
 	return <div className={join('sp-topbar', touch && 'sp-topbar--touch')} {...rest}>{children}</div>
@@ -76,7 +76,7 @@ const BODY = { default: null, split: 'sp-shell__body--split', rail: 'sp-shell__b
 
 /** @param {object} props
     @param {keyof typeof BODY} [props.layout] `default`; `rail` puts a filter rail before the content; `split` puts a panel after it; `fill` fills the height.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The page. */
+    @param {import('react').ReactNode} [props.children] The page. */
 export function ShellContent({ layout = 'default', children, ...rest }) {
 	reject(rest, 'ShellContent')
 	return <main className={join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))} {...rest}>{children}</main>
@@ -96,7 +96,7 @@ const MOTION = { in: 'sp-sidebar--slide-in', out: 'sp-sidebar--slide-out' }
     @param {object} props
     @param {keyof typeof SIDEBAR} [props.variant] `default`; `rail` is narrow, with icons only; `peek` shows the labels over the page; `slide-in` and `slide-out` run while it opens and closes.
     @param {keyof typeof MOTION} [props.motion] Run the labels in as the menu opens (`in`), or out before it closes (`out`).
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The brand, the menu rows, group titles, dividers and the grip. */
+    @param {import('react').ReactNode} [props.children] The brand, the menu rows, group titles, dividers and the grip. */
 export function Sidebar({ variant = 'default', motion, children, ...rest }) {
 	reject(rest, 'Sidebar')
 	return (
@@ -108,7 +108,7 @@ export function Sidebar({ variant = 'default', motion, children, ...rest }) {
 
 /** The product's own mark and name, as the menu's top block.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The product's mark and name. */
+    @param {import('react').ReactNode} [props.children] The product's mark and name. */
 export function SidebarBrand({ children, ...rest }) {
 	reject(rest, 'SidebarBrand')
 	return <div className="sp-sidebar__brand" {...rest}>{children}</div>
@@ -161,18 +161,18 @@ const NAV = {
     @param {object} props
     @param {keyof typeof NAV} [props.variant] `default`; `action` is the filled row for the main action; `light` on a light ground; `edited` a saved view whose filters changed; `carried` and `picked` while being moved.
     @param {import('./Icon.jsx').IconName} [props.icon] The icon at the start.
-    @param {import('react').ReactElement} [props.mark] A mark in place of the icon.
-    @param {boolean} [props.handle] Draw a drag handle in the icon's place, so the row can be moved.
+    @param {import('react').ReactNode} [props.mark] A mark in place of the icon.
+    @param {import('react').ReactNode} [props.handle] A drag handle in the icon's place, so the row can be moved.
     @param {string} [props.handleLabel] What the drag handle says it moves.
     @param {number} [props.count] How many records are behind the row.
     @param {'warning' | 'danger'} [props.countColor] A count that is a backlog: `warning` or `danger`.
-    @param {import('react').ReactElement} [props.trail] A part in the count's place, such as a menu button.
+    @param {import('react').ReactNode} [props.trail] A part in the count's place, such as a menu button.
     @param {import('react').ReactNode} [props.sub] A second line, such as the account's address.
     @param {boolean} [props.current] This is the page the reader is on.
     @param {string} [props.to] The page it opens.
     @param {() => void} [props.onClick]
     @param {string} [props.tip] The label shown as a tooltip when the menu is a narrow rail.
-    @param {import('react').ReactElement} [props.control] A Switch at the end. The row is then its label.
+    @param {import('react').ReactNode} [props.control] A Switch at the end. The row is then its label.
     @param {import('react').ReactNode} [props.children] The row's label. */
 export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, children, ...rest }) {
 	reject(rest, 'NavItem')
@@ -181,7 +181,7 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 	const body = (
 		<>
 			{handle
-				? <span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel}><Icon name="grip-vertical" size={12} /></button></span>
+				? <span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button></span>
 				: mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
 			{/* a long name ends in an ellipsis on one line (9f); an empty box would push the sub text away */}
 			{children != null ? <span className="sp-grow sp-truncate">{children}</span> : null}
@@ -273,7 +273,7 @@ function useSidebarMenu({ expanded, onClick, onDismiss }) {
     @param {boolean} [props.expanded] The account menu is open.
     @param {() => void} [props.onClick]
     @param {() => void} [props.onDismiss]
-    @param {import('react').ReactElement} [props.menu] The menu that opens over the account.
+    @param {import('react').ReactNode} [props.menu] The menu that opens over the account.
     @param {string} [props.tip] The tooltip when the menu is a narrow rail. */
 export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
@@ -323,7 +323,7 @@ function useTip(tip) {
 /** The dimmed page a sheet or a dialog sits over. It fills the frame it is in.
     @param {object} props
     @param {boolean} [props.dialog] It sits under a dialog, not a sheet.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The sheet or the dialog. */
+    @param {import('react').ReactNode} [props.children] The sheet or the dialog. */
 export function Scrim({ dialog = false, children, ...rest }) {
 	reject(rest, 'Scrim')
 	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...rest}>{children}</div>
@@ -346,7 +346,7 @@ const PaletteScreen = createContext(false)
     @param {string} [props.placeholder] Grey words while nothing is typed.
     @param {string} props.label The search's name, for a screen reader.
     @param {string[]} [props.foot] the keys named at its foot
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The groups of results. */
+    @param {import('react').ReactNode} [props.children] The groups of results. */
 export function Palette({ screen = false, value, onChange, onCancel, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
 	reject(rest, 'Palette')
 	const list = useId()
@@ -426,7 +426,7 @@ function marked(text, match) {
     @param {import('react').ReactNode} [props.meta] A grey line under the name.
     @param {string} [props.value] An amount at the end.
     @param {import('react').ReactNode} [props.note] A word at the end, such as Open.
-    @param {string} [props.kbd] A keyboard shortcut at the end, such as N.
+    @param {import('react').ReactNode} [props.kbd] A keyboard shortcut at the end, such as N.
     @param {boolean} [props.selected] The arrow keys are on this row.
     @param {import('react').ReactNode} [props.children] The record's or the action's name. */
 export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, note, kbd, selected = false, children, ...rest }) {

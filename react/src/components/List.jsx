@@ -152,7 +152,7 @@ export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
     @param {() => void} [props.onLoadMore]
     @param {boolean} [props.headless] Draw no head row.
     @param {string} [props.locale] How the counts are written, such as da-DK. The browser's when left out.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The parts of the list: Caption, ListHead, ListRow and Foot. */
+    @param {import('react').ReactNode} [props.children] The parts of the list: Caption, ListHead, ListRow and Foot. */
 export function List({
 	data = [],
 	recordKey,
@@ -396,7 +396,7 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
     @param {boolean} [props.head] Stands in for a phone's top bar.
     @param {number} props.count How many records are picked.
     @param {() => void} [props.onClear]
-    @param {import('react').ReactElement} [props.selectAll] The box that picks every record on the page.
+    @param {import('react').ReactNode} [props.selectAll] The box that picks every record on the page.
     @param {import('react').ReactNode} [props.children] What can be done to the picked records: the buttons. */
 export function BulkBar({ loose = false, head = false, count, onClear, selectAll, children, ...rest }) {
 	reject(rest, 'BulkBar')
@@ -427,7 +427,7 @@ export function BulkBar({ loose = false, head = false, count, onClear, selectAll
     `selectAll` leads it with the box that selects the page, as the rows' header row does.
     @param {object} props
     @param {boolean} [props.loose] Has its own border.
-    @param {import('react').ReactElement} [props.selectAll] The box that picks every record on the page, at the start.
+    @param {import('react').ReactNode} [props.selectAll] The box that picks every record on the page, at the start.
     @param {import('react').ReactNode} [props.children] The summary line, such as 24 orders. */
 export function ListToolbar({ loose = false, selectAll, children, ...rest }) {
 	reject(rest, 'ListToolbar')
@@ -441,7 +441,7 @@ export function ListToolbar({ loose = false, selectAll, children, ...rest }) {
 
 /** The bar above a list (c20): search, then pickers and the one button, each at its own width.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The search, then the lists and the one button. */
+    @param {import('react').ReactNode} [props.children] The search, then the lists and the one button. */
 export function Controls({ children, ...rest }) {
 	reject(rest, 'Controls')
 	return <div className="sp-controls" {...rest}>{children}</div>
@@ -450,7 +450,7 @@ export function Controls({ children, ...rest }) {
 /** What is filtering the list, one removable crumb each, and Clear all (c12, Order list 2b).
     @param {object} props
     @param {() => void} [props.onClear]
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One Crumb for each filter now on. */
+    @param {import('react').ReactNode} [props.children] One Crumb for each filter now on. */
 export function Filters({ onClear, children, ...rest }) {
 	reject(rest, 'Filters')
 	return (
@@ -485,7 +485,7 @@ function keepFocus(ev) {
 
 /** The facet rail's groups (c12): one `FieldGroup facet` per thing the list can be filtered by.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One facet FieldGroup for each thing the list can be filtered by. */
+    @param {import('react').ReactNode} [props.children] One facet FieldGroup for each thing the list can be filtered by. */
 export function Facets({ children, ...rest }) {
 	reject(rest, 'Facets')
 	return <div className="sp-facets" {...rest}>{children}</div>
@@ -516,7 +516,7 @@ export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 /** The drill path (c8): the root as text, then a Crumb for every level drilled into.
     @param {object} props
     @param {import('react').ReactNode} [props.root] Where the path starts, as words.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One Crumb for each level drilled into. */
+    @param {import('react').ReactNode} [props.children] One Crumb for each level drilled into. */
 export function Crumbs({ root, children, ...rest }) {
 	reject(rest, 'Crumbs')
 	const levels = [].concat(children ?? []).flat().filter(Boolean)
@@ -535,18 +535,18 @@ export function Crumbs({ root, children, ...rest }) {
     `href` makes the strip a link out, named by `hrefLabel`; `menu.onClose` runs as focus leaves.
     `headChips` puts the chips in the head, right of the name, instead of a row of their own (22a).
     @param {object} props
-    @param {import('react').ReactElement[]} [props.photos] The record's pictures, across the top.
+    @param {import('react').ReactNode[]} [props.photos] The record's pictures, across the top.
     @param {import('react').ReactNode} [props.empty] What the band at the top says when there are no pictures.
     @param {boolean} [props.faded] The pictures stand in for the record's own, so they are drawn faded.
-    @param {string} [props.more] A count over the last picture, such as +3.
+    @param {import('react').ReactNode} [props.more] A count over the last picture, such as +3.
     @param {string} [props.href] Makes the picture band a link out of the app.
     @param {string} [props.hrefLabel] The name of that link.
-    @param {import('react').ReactElement} [props.pick] The box that picks the record.
-    @param {import('react').ReactElement} [props.menu] The record's menu button.
+    @param {import('react').ReactNode} [props.pick] The box that picks the record.
+    @param {{ label: string, open?: boolean, onToggle: () => void, onClose?: () => void, children: import('react').ReactNode }} [props.menu] The record's menu button.
     @param {import('react').ReactNode} props.title The record's name.
     @param {import('react').ReactNode} [props.subtitle] A line under the name.
-    @param {import('react').ReactElement} [props.status] The record's status, as a Pill.
-    @param {import('react').ReactElement} [props.chips] The record's chips, such as its categories.
+    @param {import('react').ReactNode} [props.status] The record's status, as a Pill.
+    @param {import('react').ReactNode} [props.chips] The record's chips, such as its categories.
     @param {boolean} [props.headChips] Put the chips in the head, right of the name, instead of on their own row.
     @param {import('react').ReactNode | import('react').ReactNode[]} [props.meta] One or two grey lines, such as the date.
     @param {import('react').ReactNode} [props.amount] The amount, at the end.
@@ -607,9 +607,9 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 /** Record cards as a grid (c1, 2c, 22a): `head` above it (the summary or the bulk bar) and `footer`
     under it (a `<ListMore loose>`), each at the grid's width.
     @param {object} props
-    @param {import('react').ReactElement} [props.head] The line above the cards: the summary or the bulk bar.
-    @param {import('react').ReactElement} [props.footer] The line under the cards, such as Load more.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The Record cards. */
+    @param {import('react').ReactNode} [props.head] The line above the cards: the summary or the bulk bar.
+    @param {import('react').ReactNode} [props.footer] The line under the cards, such as Load more.
+    @param {import('react').ReactNode} [props.children] The Record cards. */
 export function Records({ head, footer, children, ...rest }) {
 	reject(rest, 'Records')
 	return (

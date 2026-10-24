@@ -80,9 +80,9 @@ const keepFolded = (name, folded) => {
     @param {object} props
     @param {import('react').ReactNode} props.legend What the set of controls is about.
     @param {boolean} [props.facet] Draw the group as a filter: its head folds and unfolds it.
-    @param {string | number} [props.count] Facet only. How many values there are, drawn at the end of the head, such as 24 total.
+    @param {number} [props.count] Facet only. How many values there are, drawn at the end of the head.
     @param {import('react').ReactNode} [props.meta] Facet only. A word at the right end of the head, such as the range now set.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The controls. */
+    @param {import('react').ReactNode} [props.children] The controls. */
 export function FieldGroup({ legend, facet = false, count, meta, children, ...rest }) {
 	reject(rest, 'FieldGroup')
 	if ((count !== undefined || meta !== undefined) && !facet) console.error('<FieldGroup> a count or a meta belongs to a facet head')
@@ -116,7 +116,7 @@ export function FieldGroup({ legend, facet = false, count, meta, children, ...re
 
 /** A facet's values: however many there are, they scroll inside the group past --list-max (16a).
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The values to pick from, such as chips or check boxes. A long set scrolls inside the group. */
+    @param {import('react').ReactNode} [props.children] The values to pick from, such as chips or check boxes. A long set scrolls inside the group. */
 export function FieldGroupValues({ children, ...rest }) {
 	reject(rest, 'FieldGroupValues')
 	return <div className="sp-field-group__values" {...rest}>{children}</div>
@@ -133,7 +133,7 @@ export function FieldGroupMore({ onClick, children, ...rest }) {
 
 /** What a facet opens under its values, as the date facet's Custom range (c12, Order list 2d).
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What opens under the values, such as a custom date range. */
+    @param {import('react').ReactNode} [props.children] What opens under the values, such as a custom date range. */
 export function FieldGroupPanel({ children, ...rest }) {
 	reject(rest, 'FieldGroupPanel')
 	return <div className="sp-field-group__panel" {...rest}>{children}</div>
@@ -196,7 +196,7 @@ function walk(ev) {
     @param {string} [props.value] The chosen colour or icon.
     @param {(value: string) => void} [props.onChange]
     @param {boolean} [props.custom] Colours only. Add a cell that picks a colour outside the set.
-    @param {import('./Icon.jsx').IconName} [props.customIcon] The icon on the custom cell before a colour outside the set is chosen.
+    @param {import('react').ReactNode} [props.customIcon] The icon on the custom cell before a colour outside the set is chosen.
     @param {string} [props.search] Icons only. The words in the search above the icons.
     @param {(text: string) => void} [props.onSearch]
     @param {string} [props.searchLabel] The search field's placeholder and name.
@@ -260,7 +260,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 						aria-pressed={chosenOutside ? 'true' : 'false'}
 						{...(chosenOutside ? { style: { '--swatch': value } } : {})}
 					>
-						{chosenOutside || !customIcon ? null : <Icon name={customIcon} />}
+						{chosenOutside ? null : customIcon}
 						<input
 							type="color"
 							name="custom-colour"

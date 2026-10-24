@@ -17,6 +17,7 @@ export default {
 	parameters: { layout: 'fullscreen' },
 	decorators: [Story => <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}><Story /></div>],
 	args: { onSend: fn() },
+	argTypes: { children: { control: false } }
 }
 
 // The box the question is typed in, holding what is typed; `onSend` is each story's action.

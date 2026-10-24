@@ -5,7 +5,7 @@ import { Icon } from './Icon.jsx'
 
 /** The surface's destinations, at the bottom where a thumb reaches; over a home bar band its items sit lower (brief 28).
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The destinations, one TabBarItem each. */
+    @param {import('react').ReactNode} [props.children] The destinations, one TabBarItem each. */
 export function TabBar({ children, ...rest }) {
 	reject(rest, 'TabBar')
 	return <nav className="sp-tabbar sp-tabbar--band" {...rest}>{children}</nav>
@@ -38,7 +38,7 @@ const PULL_START_PX = 4
     @param {boolean} [props.handle] The grip that says it can be dragged away.
     @param {() => void} [props.onDismiss]
     @param {import('react').Ref<HTMLDivElement>} [props.ref]
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What the sheet holds: a title, a list, actions. */
+    @param {import('react').ReactNode} [props.children] What the sheet holds: a title, a list, actions. */
 export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 	reject(rest, 'Sheet')
 	const box = useRef(null)

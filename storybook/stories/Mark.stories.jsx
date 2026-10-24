@@ -8,6 +8,7 @@ export default {
 	component: Mark,
 	subcomponents: { MarkRemove },
 	args: { children: 'Indbo Møbler', size: 'medium', fill: 'solid' },
+	argTypes: { remove: { control: false } }
 }
 
 export const FromAName = {}

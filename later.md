@@ -4,22 +4,14 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## The design's components take narrower settings in the app
+## A row that opens and has a drag handle puts a button inside a button
 
-- **Where:** `design/react_handoff/*.jsx` against `react/src/components/*.jsx`, in their type comments.
-- **What the reader sees:** nothing in the app. In Storybook, each setting has a control and a
-  description. The design's copies still type the settings below as any part, and most of their
-  settings have no description.
-- **What was found:** the app takes one kind of value where every caller passes one kind:
-  - text: Field `unit` and `kbd`, SearchInput `kbd`, FileDrop `action`, Record `more`, and the
-    facet count of a FieldGroup, which is "24 total" rather than a number;
-  - an icon name: Field `lead`, Picker `customIcon`;
-  - an icon name or a drawn icon: `chevron` on Card, Toolbar, SumHead and ListItem;
-  - on or off: Field `chevron`, the drag `handle` on ListItem and NavItem;
-  - the flags Field hands its control (`lead`, `trail`, `unit` on Combobox and Slot) are on or off.
-  A setting that holds only other parts is typed `ReactElement`, and one that takes words is
-  `ReactNode`, so Storybook knows which one gets a text box.
-- **Proposed shape:** Claude Design takes the same types and the descriptions into `design/`.
+- **Where:** `react/src/components/ListItem.jsx` and `NavItem` in `react/src/components/Shell.jsx`, a
+  row that opens something (`opens`, or a click) and also has a `handle`.
+- **What the reader sees:** nothing yet: no page in the app gives a row both. In Storybook, choosing
+  a handle on the One row and One nav item stories logs "button cannot be a descendant of button",
+  so `handle` keeps no control on those two.
+- **Proposed shape:** Claude Design says whether a row that opens may have a handle, and how.
 - **Found:** 2026-10-24.
 
 ## The Files Docs page in Storybook opens under the file viewer

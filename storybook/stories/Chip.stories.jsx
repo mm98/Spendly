@@ -9,6 +9,7 @@ export default {
 	component: Chip,
 	subcomponents: { Pill },
 	args: { children: 'Indbo Møbler' },
+	argTypes: { trail: { control: false } }
 }
 
 export const Outline = {}

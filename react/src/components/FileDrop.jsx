@@ -66,7 +66,7 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
     @param {boolean} [props.multiple] Several files can be dropped at once.
     @param {number} [props.maxMb] The largest file it takes, in MB.
     @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles]
-    @param {string} [props.action] Words drawn like a button inside the zone, such as Choose a file.
+    @param {import('react').ReactNode} [props.action] Words drawn like a button inside the zone, such as Choose a file.
     @param {boolean} [props.grow] Take the room left in the row.
     @param {boolean} [props.row] Lay the zone on its side: the icon at the left, the words beside it.
     @param {boolean} [props.disabled] The zone takes no files.
@@ -163,9 +163,9 @@ export function pasteAnywhere(ev) {
     @param {(file: File) => void} [props.onFile]
     @param {() => void} [props.onRemove]
     @param {() => void} [props.onRetry]
-    @param {boolean} [props.lead] Set by the Field around it.
-    @param {boolean} [props.trail] Set by the Field around it.
-    @param {boolean} [props.unit] Set by the Field around it.
+    @param {import('react').ReactNode} [props.lead] Set by the Field around it.
+    @param {import('react').ReactNode} [props.trail] Set by the Field around it.
+    @param {import('react').ReactNode} [props.unit] Set by the Field around it.
     @param {string} [props['aria-describedby']] */
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')

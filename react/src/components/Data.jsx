@@ -1,7 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Skeleton } from './Utilities.jsx'
-import { Icon } from './Icon.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
@@ -273,7 +272,7 @@ export function Donut({ shares = [], figure, label, loading = false, ...rest }) 
 
 /** The share list a donut is read from (c14), one ShareRow per share.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One ShareRow for each share. */
+    @param {import('react').ReactNode} [props.children] One ShareRow for each share. */
 export function Shares({ children, ...rest }) {
 	reject(rest, 'Shares')
 	return <div className="sp-shares" {...rest}>{children}</div>
@@ -307,7 +306,7 @@ export function ShareRow({ series = 1, value, amount, href, onClick, children, .
 
 /** What each series of a chart is (c14). Drawn only when a chart has more than one.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One LegendItem for each series. */
+    @param {import('react').ReactNode} [props.children] One LegendItem for each series. */
 export function Legend({ children, ...rest }) {
 	reject(rest, 'Legend')
 	return <div className="sp-legend" {...rest}>{children}</div>
@@ -333,7 +332,7 @@ export function LegendItem({ series = 1, children, ...rest }) {
     @param {string[]} [props.axis] The values, highest first.
     @param {number} [props.gridlines] How many rules behind the bars.
     @param {{ at: string }} [props.limit] Where the limit line is drawn, from the top of the plot.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The Bars. */
+    @param {import('react').ReactNode} [props.children] The Bars. */
 export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 	reject(rest, 'Plot')
 	return (
@@ -393,10 +392,10 @@ const SUM_TONE = { default: null, expected: 'sp-ink-5', success: 'sp-ink-success
 /** What a summary is about (c21), and as a card that opens it (Order create 3a): its mark, its
     name, one line under it, and the card's chevron when the card is a link.
     @param {object} props
-    @param {import('react').ReactElement} [props.mark] The mark at the start.
+    @param {import('react').ReactNode} [props.mark] The mark at the start.
     @param {string} props.title What the summary is about.
     @param {string} [props.subtitle] One line under it.
-    @param {import('./Icon.jsx').IconName | import('react').ReactElement} [props.chevron] An arrow at the end, when the card opens it: an icon name, or a drawn icon. */
+    @param {import('react').ReactNode} [props.chevron] An arrow at the end, when the card opens it. */
 export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 	reject(rest, 'SumHead')
 	return (
@@ -406,7 +405,7 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 				<span className="sp-title">{title}</span>
 				{subtitle ? <span className="sp-subtitle">{subtitle}</span> : null}
 			</span>
-			{chevron ? <span className="sp-card__chevron">{typeof chevron === 'string' ? <Icon name={chevron} /> : chevron}</span> : null}
+			{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}
 		</span>
 	)
 }

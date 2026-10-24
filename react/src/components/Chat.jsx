@@ -17,7 +17,7 @@ export const SpendlyMark = ({ size = 'small' }) => <Mark size={size} fill="solid
     Chats and Files (24e, 24f), holding the controls bar 12 above the list.
     @param {object} props
     @param {boolean} [props.spaced] The inner form on Chats and Files: more room above the list.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The thread, or the empty start, and the limit line. */
+    @param {import('react').ReactNode} [props.children] The thread, or the empty start, and the limit line. */
 export function Chat({ spaced = false, children, ...rest }) {
 	reject(rest, 'Chat')
 	return <div className={join('sp-chat', spaced && 'sp-gap-12')} {...rest}>{children}</div>
@@ -35,7 +35,7 @@ function markEdges(box) {
     while more lies past it, measured again on a scroll, a new message, a font or a resize.
     @param {object} props
     @param {import('react').Ref<HTMLDivElement>} [props.scrollRef]
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What scrolls above the dock: the thread, or a list. */
+    @param {import('react').ReactNode} [props.children] What scrolls above the dock: the thread, or a list. */
 export function ChatScroll({ scrollRef, children, ...rest }) {
 	reject(rest, 'ChatScroll')
 	const own = useRef(null)
@@ -65,7 +65,7 @@ export function ChatScroll({ scrollRef, children, ...rest }) {
 /** The messages, oldest first, in the part that scrolls; an answer is read out when it arrives.
     @param {object} props
     @param {import('react').Ref<HTMLDivElement>} [props.scrollRef]
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The messages, oldest first, with day lines between days. */
+    @param {import('react').ReactNode} [props.children] The messages, oldest first, with day lines between days. */
 export function ChatThread({ scrollRef, children, ...rest }) {
 	reject(rest, 'ChatThread')
 	return (
@@ -77,14 +77,14 @@ export function ChatThread({ scrollRef, children, ...rest }) {
 
 /** The empty conversation: the empty state, and the example questions under it.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The empty state, then the example questions. */
+    @param {import('react').ReactNode} [props.children] The empty state, then the example questions. */
 export function ChatStart({ children, ...rest }) {
 	reject(rest, 'ChatStart')
 	return <div className="sp-chat__start" {...rest}>{children}</div>
 }
 
 /** @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The example questions, one ChatPick each. */
+    @param {import('react').ReactNode} [props.children] The example questions, one ChatPick each. */
 export function ChatExamples({ children, ...rest }) {
 	reject(rest, 'ChatExamples')
 	return <div className="sp-chat__examples" {...rest}>{children}</div>
@@ -94,11 +94,11 @@ export function ChatExamples({ children, ...rest }) {
     `time` is the time read under it and `sentAt` its ISO moment; an answer being written has none.
     @param {object} props
     @param {boolean} [props.mine] The reader's own message, at the right.
-    @param {import('react').ReactElement} [props.mark] The mark outside the bubble.
-    @param {import('react').ReactElement} [props.end] A part after the bubble, such as the save button.
+    @param {import('react').ReactNode} [props.mark] The mark outside the bubble.
+    @param {import('react').ReactNode} [props.end] A part after the bubble, such as the save button.
     @param {string} [props.time] The time shown under the message.
     @param {string} [props.sentAt] The moment it was sent, as an ISO time.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The question or the answer. */
+    @param {import('react').ReactNode} [props.children] The question or the answer. */
 export function ChatMessage({ mine = false, mark, end, time, sentAt, children, ...rest }) {
 	reject(rest, 'ChatMessage')
 	if (time && !sentAt) console.error('<ChatMessage> a time names its moment in sentAt')
@@ -163,7 +163,7 @@ export function ChatReply({ state = 'answered', doing = 'Reading your orders', o
 
 /** A small table of figures inside an answer, framed as a block.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] A small table of figures. */
+    @param {import('react').ReactNode} [props.children] A small table of figures. */
 export function ChatFigures({ children, ...rest }) {
 	reject(rest, 'ChatFigures')
 	return <div className="sp-chat__figures" {...rest}>{children}</div>
@@ -176,7 +176,7 @@ const FILE_GONE = { deleted: 'Deleted', expired: 'Removed after 30 days' }
 
 /** The frame one answer's files share, a row per file, a rule between rows. Also the list on Files (24e).
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One ChatFile for each file. */
+    @param {import('react').ReactNode} [props.children] One ChatFile for each file. */
 export function ChatFiles({ children, ...rest }) {
 	reject(rest, 'ChatFiles')
 	return <div className="sp-chat__files" {...rest}>{children}</div>
@@ -236,7 +236,7 @@ export function ChatFile({ title, kind, size, state = 'ready', reason, gone, kep
     @param {string} props.name "Spending per month".
     @param {import('react').ReactNode} [props.meta] The chart's period or total, such as Oct 2025 - Sep 2026.
     @param {string} [props.failed] Why it could not be made, in place of the chart: the frame and the name stay.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] Bars, or the Donut and its Shares inside ChatShares, then the Legend when there is more than one series. */
+    @param {import('react').ReactNode} [props.children] Bars, or the Donut and its Shares inside ChatShares, then the Legend when there is more than one series. */
 export function ChatChart({ name, meta, failed, children, ...rest }) {
 	reject(rest, 'ChatChart')
 	if (failed && children) console.error('<ChatChart> a chart that could not be made draws nothing')
@@ -255,7 +255,7 @@ export function ChatChart({ name, meta, failed, children, ...rest }) {
 
 /** The Donut beside its Shares where the bubble has room, above them where not.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The Donut, then its Shares. */
+    @param {import('react').ReactNode} [props.children] The Donut, then its Shares. */
 export function ChatShares({ children, ...rest }) {
 	reject(rest, 'ChatShares')
 	return <div className="sp-chat__shares" {...rest}>{children}</div>
@@ -327,7 +327,7 @@ export function ChatLimit({ left }) {
     @param {boolean} [props.disabled] The field and Send are off.
     @param {import('react').Ref<HTMLTextAreaElement>} [props.fieldRef]
     @param {string} [props.placeholder] Grey words while the field is empty.
-    @param {import('react').ReactElement} [props.end] A part after Send, such as the conversation menu. */
+    @param {import('react').ReactNode} [props.end] A part after Send, such as the conversation menu. */
 export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp, working = false, disabled = false, fieldRef, placeholder, end, ...rest }) {
 	reject(rest, 'ChatDock')
 	const size = bar ? 'small' : 'standard'
@@ -353,7 +353,7 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp,
     choice in the menu closes it. On Chats and Files it is `back`, the link back to the chat.
     @param {object} props
     @param {string} [props.back] On Chats and Files: the address back to the chat, in place of the menu.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The Menu the button opens. */
+    @param {import('react').ReactNode} [props.children] The Menu the button opens. */
 export function ChatMore({ back, children, ...rest }) {
 	reject(rest, 'ChatMore')
 	const [open, setOpen] = useState(false)

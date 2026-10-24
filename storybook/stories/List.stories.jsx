@@ -30,7 +30,7 @@ export default {
 	title: 'Lists/List',
 	component: List,
 	subcomponents: { Caption, Selected, ListHead, ListRow, ListCell, Controls, Filters, Crumb, Crumbs, Record, Records, ListMore, BulkBar, ListToolbar },
-	argTypes: { data: { control: false } }
+	argTypes: { data: { control: false }, children: { control: false } }
 }
 
 // a narrow column draws orders as cards, so the table is a wide screen's only

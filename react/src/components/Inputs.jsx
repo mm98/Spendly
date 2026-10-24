@@ -5,7 +5,7 @@ import { Icon } from './Icon.jsx'
 import { Chip } from './Chip.jsx'
 import { countOf, usePanelPlace, useListbox } from './Combobox.jsx'
 import { formatNumber, parseNumber } from './format.js'
-import { Kbd, Spinner } from './Utilities.jsx'
+import { Spinner } from './Utilities.jsx'
 
 const TEXT = {
 	default: null,
@@ -146,12 +146,12 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
     @param {object} props
     @param {string} props.value The words in the search.
     @param {(value: string) => void} props.onChange
-    @param {string} [props.kbd] The keyboard shortcut that puts the cursor in the search, such as Ctrl K.
+    @param {import('react').ReactNode} [props.kbd] The keyboard shortcut that puts the cursor in the search, such as Ctrl K.
     @param {import('react').Ref<HTMLInputElement>} [props.inputRef]
     @param {string} [props.name]
     @param {import('./Icon.jsx').IconName} [props.icon] The icon at the start.
     @param {boolean} [props.clear] Show a button that empties the search.
-    @param {import('react').ReactElement} [props.ends] Controls at the end of the field, such as Ask. */
+    @param {import('react').ReactNode} [props.ends] Controls at the end of the field, such as Ask. */
 export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, ...rest }) {
 	const clearable = clear && !!value
 	const own = useRef(null)
@@ -178,7 +178,7 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', i
 				{...rest}
 			/>
 			{ends ? <span className="sp-field__trails">{clearing}{ends}</span> : clearing}
-			{!clearable && !ends && kbd ? <span className="sp-field__kbd"><Kbd>{kbd}</Kbd></span> : null}
+			{!clearable && !ends && kbd ? <span className="sp-field__kbd">{kbd}</span> : null}
 		</span>
 	)
 }
@@ -396,9 +396,9 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
     @param {(text: string) => void} [props.onSearch]
     @param {string} [props.noun] What the options are, plural, for the count read out as typing narrows them.
     @param {string} [props.marked] One value drawn in green.
-    @param {Record<string, import('react').ReactElement>} [props.trails] A part drawn before a value's remove button, by value, such as a warning dot.
-    @param {import('react').ReactElement} [props.end] A button at the right end of the field.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The options offered while typing. */
+    @param {Record<string, import('react').ReactNode>} [props.trails] A part drawn before a value's remove button, by value, such as a warning dot.
+    @param {import('react').ReactNode} [props.end] A button at the right end of the field.
+    @param {import('react').ReactNode} [props.children] The options offered while typing. */
 export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it
