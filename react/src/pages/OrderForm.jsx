@@ -1797,7 +1797,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 	return (
 		<LineEditor
 			onPaste={paste}
-			sheet=<Leaving>{sheet}</Leaving>
+			sheet={sheet}
 			hint={`Enter saves${dot}Escape cancels${dot}${MAC ? '⌘↵' : 'Ctrl ↵'} saves and opens the next line`}
 			commit={editing.isNew ? 'Add line' : 'Save line'}
 			photo={
