@@ -640,8 +640,18 @@ for (const [p, ast] of parsed) {
 		const own = unwrap(fn.body.body.findLast(st => st.type === 'ReturnStatement')?.argument)
 		const rootTag = own?.type === 'JSXElement' && own.openingElement.name.name
 		const classAttr = /^[a-z]/.test(rootTag || '') && own.openingElement.attributes.find(a => a.type === 'JSXAttribute' && a.name?.name === 'className')
-		exports.push({ p, n: fn.id.name, fn, cls: classAttr ? firstWord(classAttr.value) : null })
+		exports.push({ p, n: fn.id.name, fn, cls: classAttr ? firstWord(classAttr.value) : null, at: n.start })
 	})
+	// Storybook's props table is built from the JSDoc right above the function
+	for (const e of exports) {
+		const props = e.fn.params[0]?.type === 'ObjectPattern' ? e.fn.params[0].properties.filter(q => q.type === 'Property').map(q => q.key.name ?? q.key.value) : []
+		if (!props.length) continue
+		const before = read(e.p).slice(0, e.at), end = before.lastIndexOf('*/'), start = before.lastIndexOf('/**')
+		const doc = start >= 0 && end > start && /^\s*$/.test(before.slice(end + 2)) ? before.slice(start, end) : ''
+		if (!/@param \{object\} props\b/.test(doc)) { fail('every component prop has JSDoc', rel(e.p), `${e.n} has no @param {object} props block`); continue }
+		const missing = props.filter(q => !doc.includes(`props.${q}]`) && !doc.includes(`props.${q} `) && !doc.includes(`props.${q}\n`) && !doc.includes(`props['${q}']`))
+		if (missing.length) fail('every component prop has JSDoc', rel(e.p), `${e.n} does not document ${missing.join(', ')}`)
+	}
 	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
 	// the design draws the card grid as a variant of .sp-list, and a token field that suggests inside .sp-combobox
 	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options', Records: 'sp-list', TokensField: 'sp-combobox' }
@@ -1491,7 +1501,8 @@ const DESIGN_RULES = {
 	'a stretched combobox keeps its chevron at the edge': COPY,
 	'a wrapped trail sits in its row': COPY,
 	'a shortcut hint is centred in its field': COPY,
-	'a stepper shows its digit': COPY
+	'a stepper shows its digit': COPY,
+	'every component prop has JSDoc': 'every component prop has JSDoc'
 }
 {
 	const designCheck = read(join(root, '../design/styles/check.js'))

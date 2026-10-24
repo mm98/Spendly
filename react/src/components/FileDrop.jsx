@@ -165,7 +165,8 @@ export function pasteAnywhere(ev) {
     @param {() => void} [props.onRetry]
     @param {import('react').ReactNode} [props.lead]
     @param {import('react').ReactNode} [props.trail]
-    @param {import('react').ReactNode} [props.unit] */
+    @param {import('react').ReactNode} [props.unit]
+    @param {string} [props['aria-describedby']] */
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)

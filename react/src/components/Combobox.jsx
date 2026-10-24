@@ -219,7 +219,10 @@ export function countOf(options, noun = 'options') {
     @param {import('react').ReactNode} [props.trail]
     @param {import('react').ReactNode} [props.unit]
     @param {boolean} [props.autoFocus]
-    @param {boolean} [props.disabled] */
+    @param {boolean} [props.disabled]
+    @param {string} [props['aria-label']]
+    @param {boolean | 'true' | 'false'} [props['aria-invalid']]
+    @param {string} [props['aria-describedby']] */
 export function Combobox({
 	variant = 'default',
 	value,
