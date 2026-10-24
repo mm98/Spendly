@@ -96,6 +96,16 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: storybook
         run: npm run check
+      # The components are Claude Design's code, and the pages give each one the kind of value its
+      # type comment asks for. Both write what differs to the run's summary.
+      - name: Components are as Claude Design has them
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm run design:check
+      - name: Pages give the components the right kind of value
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm run props:check
       # the stats file lets Chromatic take new pictures only of the stories a change reaches
       - name: Storybook builds
         if: ${{ !cancelled() }}

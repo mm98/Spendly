@@ -8,6 +8,8 @@
 		"dev": "storybook dev -p 6006",
 		"build": "storybook build -o dist",
 		"check": "node scripts/check-stories.mjs",
+		"design:check": "node scripts/check-design-copy.mjs",
+		"props:check": "node scripts/check-prop-use.mjs",
 		"test": "vitest run"
 	},
 	"devDependencies": {
