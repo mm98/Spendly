@@ -2,6 +2,15 @@
 
 Answers the three questions the app could not build from `design_handoff_motion_second_pass_fixed`, the points it raised for information, and the design entries in the repo's `later.md`.
 
+This package replaces `design_handoff_motion_follow_up`, which was not applied.
+
+## Fixed from design_handoff_motion_follow_up
+
+- **The problem:** section 6 read the old component files on `main` as a sign that the motion update was built on another branch, and asked which one.
+- **What changed:** the motion update is held back from `main` until this package is applied, so there is no other branch. Section 6 now says the order: the app applies this package and the last one together, pushes to `main`, and the next pass here takes the changed files into `react_handoff/`.
+- **Where:** this note, section 6.
+- **What is still open:** none.
+
 ## 1. A dialog, sheet or popover closes with the fade inside a Leaving
 
 **The problem** - The package said the component keeps a `Dialog` (on its `Scrim`), `Sheet` or `Popover` mounted for `--motion-out` with `data-leaving="true"`. But a page removes these parts at once (`{open ? <Dialog .../> : null}`), about 124 times, and the components had no way to stay after the page removed them.
@@ -74,11 +83,14 @@ Answers the three questions the app could not build from `design_handoff_motion_
 
 **The problem** - The app did not copy `Combobox.jsx`, `List.jsx`, `ListItem.jsx`, `Shell.jsx` and `Inputs.jsx` back into `design/`. Only this project changes `design/`, so it should take them in.
 
-**What changed** - Nothing yet. On `main` at 2026-10-24T15:29Z these files do not have the change: `List.jsx`, `ListItem.jsx` and `Shell.jsx` are the same as `react_handoff/` before this package, and `Combobox.jsx`, `Inputs.jsx` and `Data.jsx` are missing the last package's motion changes. So the build is on another branch. `react_handoff/` here is the last package's files with this package's changes on top.
+**What changed** - Nothing yet. The motion update is held back from `main` until this package is applied, so `main` still has the files from before it. `react_handoff/` here is the last package's files with this package's changes on top. The order:
 
-**Where** - `react_handoff/`.
+1. The app applies `design_handoff_motion_second_pass_fixed` and this package together, with the `TokensField`, `Records` and `SidebarAccount` changes, and pushes to `main`.
+2. The next pass here takes `Combobox.jsx`, `List.jsx`, `ListItem.jsx`, `Shell.jsx`, `Inputs.jsx` and every other changed file from `react/src/components/` on `main` into `react_handoff/`, so the two copies are one again.
 
-**What is still open** - Please confirm the branch the motion update is on. The next pass takes those files into `react_handoff/` with this package's changes merged in. The four checker findings below clear then.
+**Where** - `react_handoff/`; `react/src/components/` on `main`.
+
+**What is still open** - Nothing. The four checker findings below clear at step 2.
 
 ## 7. later.md: the remaining accessibility faults in the components
 
@@ -157,4 +169,4 @@ Every page's link to `components.css` moves to `?v=v20261024o`. The other pages 
        react: TokensField renders .sp-combobox
        react: Records renders .sp-list
 
-These are `TokensField` and `Records`, decided in the last package and built in the app. They clear when those files are taken in (section 6).
+These are `TokensField` and `Records`, decided in the last package and built in the app. They clear when those files are taken in from `main` (section 6, step 2).
