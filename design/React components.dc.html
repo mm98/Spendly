@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022d">
+<link rel="stylesheet" href="styles/components.css?v=v20261024a">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
@@ -107,7 +107,7 @@
 
 <section class="doc-section">
 	<div class="doc-section__head"><span class="doc-section__title">Chat.jsx - files and a chart in an answer</span></div>
-	<div class="doc-note"><b>A file row is one component in two places</b>: in an answer (Ask 24d) with Download, and on Files (24e) with Download and Delete. Its second line is derived from the state, so a failed file cannot look ready. The title is the question only; the time goes into the downloaded file's name. A chart is the library's Bars in <code>ChatChart</code>, its columns spans with a label and a readout, since nothing in an answer drills in.</div>
+	<div class="doc-note"><b>A file row is one component in two places</b>: in an answer (Ask 24d) with Download, and on Files (24e) with Download and Delete. Its second line is derived from the state, so a failed file cannot look ready. The title is the file's name without the time it was made, "Orders at Bilka in 2026.xlsx"; the downloaded file's name adds the time. A chart is the library's Bars in <code>ChatChart</code>, its columns spans with a label and a readout, since nothing in an answer drills in.</div>
 	<span class="doc-specimen__label">ready, being made, could not be made, gone, and on Files</span>
 	<div class="sp-card"><div class="doc-w560">{{ chatFiles }}</div></div>
 	<span class="doc-specimen__label">Bars in an answer, the readout open on a tapped column</span>
@@ -1654,11 +1654,11 @@ class Component extends DCLogic {
 				e(Sum, { variant: 'total', value: '3.980,00 kr.' }, 'Total')),
 
 			chatFiles: ChatFiles ? e(ChatFiles, null,
-				e(ChatFile, { key: 'a', title: 'Make a spreadsheet of my orders at Bilka this year', kind: 'Excel', size: '18 KB', href: '#' }),
-				e(ChatFile, { key: 'b', title: 'A summary of September as a document', kind: 'Word', state: 'making' }),
-				e(ChatFile, { key: 'c', title: 'Make a spreadsheet of every order I have', kind: 'Excel', state: 'failed', reason: 'too many orders for one file. Ask for one year at a time.' }),
-				e(ChatFile, { key: 'd', title: 'Make a PDF of my budget for August', kind: 'PDF', state: 'gone', gone: 'expired' }),
-				e(ChatFile, { key: 'f', title: 'Make a CSV of my orders at Bauhaus', kind: 'CSV', size: '6 KB', keptUntil: '2026-11-21', href: '#', onDelete: () => this.setState({ lastAction: 'Deleted a file' }) })) : null,
+				e(ChatFile, { key: 'a', title: 'Orders at Bilka in 2026.xlsx', kind: 'Excel', size: '18 KB', href: '#' }),
+				e(ChatFile, { key: 'b', title: 'September 2026 in summary.docx', kind: 'Word', state: 'making' }),
+				e(ChatFile, { key: 'c', title: 'All orders.xlsx', kind: 'Excel', state: 'failed', reason: 'too many orders for one file. Ask for one year at a time.' }),
+				e(ChatFile, { key: 'd', title: 'Budget for August 2026.pdf', kind: 'PDF', state: 'gone', gone: 'expired' }),
+				e(ChatFile, { key: 'f', title: 'Orders at Bauhaus.csv', kind: 'CSV', size: '6 KB', keptUntil: '2026-11-21', href: '#', onDelete: () => this.setState({ lastAction: 'Deleted a file' }) })) : null,
 			chatChart: ChatChart ? e(ChatChart, { name: 'Spending per month', meta: 'Apr - Sep 2026' },
 				e(Bars, { open: 'aug', columns: [['apr', 'Apr', 50, '5.010,00'], ['may', 'May', 65, '6.240,00'], ['jun', 'Jun', 70, '6.880,00'], ['jul', 'Jul', 60, '5.660,00'], ['aug', 'Aug', 100, '9.840,00'], ['sep', 'Sep', 80, '8.080,00']].map(([key, tick, height, amt]) => ({
 					key, tick, height, label: tick + ' 2026, ' + amt + ' kr.',

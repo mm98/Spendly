@@ -281,13 +281,13 @@
           "items": [
             {
               "first": true,
-              "title": "Make a spreadsheet of my orders at Bilka this year",
+              "title": "Orders at Bilka in 2026.xlsx",
               "kind": "Excel",
               "size": "18 KB",
               "attached": true
             },
             {
-              "title": "Make a spreadsheet of my orders at Bilka this year",
+              "title": "Orders at Bilka in 2026.pdf",
               "kind": "PDF",
               "size": "18,4 MB",
               "attached": false

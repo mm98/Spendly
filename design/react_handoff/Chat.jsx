@@ -27,9 +27,9 @@ export function ChatFiles({ children, ...rest }) {
  * with it.
  *
  * @param {object} props
- * @param {string} props.title The question as it was sent, and nothing else. The
- *   time it was asked goes only into the downloaded file's name, which the server
- *   sets: "{question} (2026-10-22T14-05).xlsx".
+ * @param {string} props.title The file's name without the time it was made:
+ *   "Orders at Bilka in 2026.xlsx". The time goes only into the downloaded file's
+ *   name, which the server sets: "Orders at Bilka in 2026 (2026-10-22 14.05.33).xlsx".
  * @param {string} props.kind The format's name as the server sends it: "Excel", "CSV".
  *   The row keeps no list of formats, so a format added on the server needs no change here.
  * @param {string} [props.size] Already formatted: "18 KB", "1.2 MB".
