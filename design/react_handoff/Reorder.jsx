@@ -1,6 +1,7 @@
 import { createContext, useContext, useRef, useState } from 'react'
 import { Reorder, useDragControls } from 'motion/react'
 import { Announce } from './ListItem.jsx'
+import { Rows } from './motion.js'
 
 // Components, Ordering by hand: a touch drags after holding still, a pointer once it moves
 const HOLD_MS = 200
@@ -18,6 +19,8 @@ export const useMovingRow = () => useContext(Moving)
     Space, moved with the arrows and put down with Space, Escape putting it back. `onMove(items, item, to)`
     gets the new order once, when `item` is put down somewhere new, at `to`. It draws no box of its own:
     it goes inside the page's list element, and each row is a ListItem or NavItem with a `handle`.
+    Its rows arrive and leave as any list's do (Rows): one added drops in, one removed fades and the
+    rest glide up. The page puts no `Rows` around it.
     @param {object} props
     @param {any[]} props.items The rows' records, in their saved order.
     @param {(item: any) => string | number} props.keyOf A record's key.
@@ -89,7 +92,9 @@ export function ReorderList({ items, keyOf, nameOf, onMove, children }) {
 	return (
 		<>
 			<Reorder.Group as="div" axis="y" className="sp-reorder" values={order} onReorder={setLive}>
-				{order.map(key => <Slot key={key} {...row(key)}>{children(byKey.get(key))}</Slot>)}
+				<Rows count={order.length}>
+					{order.map(key => <Slot key={key} {...row(key)}>{children(byKey.get(key))}</Slot>)}
+				</Rows>
 			</Reorder.Group>
 			<Announce>{said}</Announce>
 		</>
@@ -120,10 +125,12 @@ function Slot({ children, onPress, ...row }) {
 	return <Moving.Provider value={value}>{children}</Moving.Provider>
 }
 
-/** What a moving row spreads on Motion's `Reorder.Item`, which it is drawn as. Internal. */
-export function itemOf(moving) {
+/** What a moving row spreads on Motion's `Reorder.Item`, which it is drawn as: the row's presence
+    from `useRow()` (its way in and out, and no presses while it leaves), then the drag, whose layout
+    always wins, so a row still glides as it is carried. Internal. */
+export function itemOf(moving, moves = {}) {
 	const { value, controls, onDragStart, onDragEnd, onKeyDown, onBlur } = moving
-	return { value, dragListener: false, dragControls: controls, layout: 'position', onDragStart, onDragEnd, onKeyDown, onBlur }
+	return { ...moves, value, dragListener: false, dragControls: controls, layout: 'position', onDragStart, onDragEnd, onKeyDown, onBlur }
 }
 
 export { Reorder }
