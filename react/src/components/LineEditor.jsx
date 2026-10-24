@@ -3,23 +3,23 @@ import { Icon } from './Icon.jsx'
 import { join, reject } from './variants.js'
 
 /** @param {object} props
-    @param {import('react').ReactNode} [props.photo]
-    @param {string} [props.hint]
-    @param {string} [props.title]
-    @param {string} [props.what] what one line is, in the buttons' names
-    @param {() => void} [props.onMoveUp]
+    @param {import('react').ReactElement} [props.photo] The line's photo slot. Leave it out for a line with no photo.
+    @param {string} [props.hint] The keys the editor answers to, at the start of the button row.
+    @param {string} [props.title] The head of the editor, such as Row 7 of 8 in Housing.
+    @param {string} [props.what] What one line is, such as line or row. It goes into the buttons' names.
+    @param {() => void} [props.onMoveUp] With onMoveDown and onDelete, an existing one.
     @param {() => void} [props.onMoveDown]
-    @param {() => void} [props.onDelete]
-    @param {boolean} [props.first]
-    @param {boolean} [props.last]
-    @param {boolean} [props.handle]
-    @param {boolean} [props.sheet]
-    @param {string} [props.commit]
-    @param {boolean} [props.saving]
+    @param {() => void} [props.onDelete] Asks first; the dialog is the caller's.
+    @param {boolean} [props.first] The first line: Move up is turned off.
+    @param {boolean} [props.last] The last line: Move down is turned off.
+    @param {boolean} [props.handle] Keep room for the drag handle column, so the text lines up with the rows around it.
+    @param {boolean} [props.sheet] The editor is in a sheet on a phone: the fields sit in one column and the keys are not named.
+    @param {string} [props.commit] The words on the save button, such as Save row.
+    @param {boolean} [props.saving] The line is being saved: the save button is off and reads Saving…, and Enter does nothing.
     @param {() => void} [props.onCommit]
     @param {() => void} [props.onCommitNext]
     @param {() => void} [props.onCancel]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The fields of the line. */
 export function LineEditor({
 	photo,
 	hint = 'Enter saves · Escape cancels',
@@ -96,7 +96,7 @@ export function LineEditor({
 
 /** The line under a list of items (c15): what they come to, then the saving.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] What the lines come to, then the save state. */
 export function Totals({ children, ...rest }) {
 	reject(rest, 'Totals')
 	return <div className="sp-totals" {...rest}>{children}</div>

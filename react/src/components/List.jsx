@@ -40,21 +40,21 @@ export function ListRow() { return null }
 export function Foot() { return null }
 
 /** @param {object} props
-    @param {keyof typeof WIDTH} [props.width] the column's width, in the head
-    @param {keyof typeof WIDTH} [props.column]
-    @param {keyof typeof CELL | 'checkbox'} [props.cell]
-    @param {boolean} [props.truncate]
-    @param {import('react').ReactNode} [props.children]
-    @param {boolean} [props.head]
-    @param {number} [props.selectedCount]
-    @param {number} [props.total]
-    @param {string} [props.noun]
+    @param {keyof typeof WIDTH} [props.width] The column's width, set in the head: `title`, `flex`, `date`, `number`, `status`, `amount` or `menu`.
+    @param {keyof typeof WIDTH} [props.column] Set by the List: the column this cell sits in.
+    @param {keyof typeof CELL | 'checkbox'} [props.cell] What the cell holds: `default`, `flex`, `amount`, `menu`, `number`, or `checkbox` for the box that picks the row.
+    @param {boolean} [props.truncate] Row only. Keep the text on one line and cut it with an ellipsis.
+    @param {import('react').ReactNode} [props.children] What the cell shows.
+    @param {boolean} [props.head] Set by the List: the cell is in the head row.
+    @param {number} [props.selectedCount] Set by the List: how many rows are picked.
+    @param {number} [props.total] Set by the List: how many rows there are.
+    @param {string} [props.noun] Set by the List: what the rows are, plural.
     @param {(checked: boolean) => void} [props.onToggleAll]
-    @param {boolean} [props.checked]
-    @param {string} [props.labelledBy]
+    @param {boolean} [props.checked] Set by the List: the row is picked.
+    @param {string} [props.labelledBy] Set by the List: the element that names the row.
     @param {(shift: boolean) => void} [props.onToggle]
     @param {string} [props.id]
-    @param {string} [props.to] */
+    @param {string} [props.to] Set by the List: the row's address, on its title cell. */
 export function ListCell({ width, column, cell = 'default', truncate = false, children, head, selectedCount, total, noun, onToggleAll, checked, labelledBy, onToggle, id, to, ...rest }) {
 	reject(rest, 'ListCell')
 	if (cell === 'checkbox') {
@@ -119,9 +119,9 @@ const partsOf = children => {
 /** The box that selects every record on the page. It stands in the header row and
     in the bulk bar, and over a grid of cards in both their places, so it is written once.
     @param {object} props
-    @param {number} props.selectedCount
-    @param {number} props.total
-    @param {string} props.noun
+    @param {number} props.selectedCount How many records are picked.
+    @param {number} props.total How many records are on the page.
+    @param {string} props.noun What the records are, plural, as in Select all 5 orders.
     @param {(checked: boolean) => void} props.onToggleAll */
 export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
 	const all = total > 0 && selectedCount === total
@@ -136,23 +136,23 @@ export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
 }
 
 /** @param {object} props
-    @param {object[]} [props.data] the records loaded so far
-    @param {(record: object) => string | number} props.recordKey
-    @param {string} [props.noun]
-    @param {(record: object) => void} [props.onRowClick]
-    @param {(record: object) => string} [props.rowTo]
-    @param {number} [props.pageSize]
-    @param {string} [props.selectionKey] when it changes, the picks are cleared
-    @param {(string | number)[]} [props.picked]
+    @param {object[]} [props.data] The records loaded so far.
+    @param {(record: object) => string | number} props.recordKey Gives the value that tells one record from another.
+    @param {string} [props.noun] What the records are, plural, for the sentences the list says itself.
+    @param {(record: object) => void} [props.onRowClick] Called with the record whose row was clicked.
+    @param {(record: object) => string} [props.rowTo] Gives a record's address: each row is then a link to it.
+    @param {number} [props.pageSize] How many rows show at first, and how many Load more adds.
+    @param {string} [props.selectionKey] When it changes, the picked rows are cleared.
+    @param {(string | number)[]} [props.picked] The keys of the picked rows, when the page keeps them.
     @param {(keys: (string | number)[]) => void} [props.onPick]
-    @param {(record: object) => boolean} [props.rowVoid]
-    @param {import('react').ReactNode} [props.bulkNote]
-    @param {boolean} [props.compact]
-    @param {number} [props.total] the count on the server, when the server pages
+    @param {(record: object) => boolean} [props.rowVoid] Tells which records do not count, such as a cancelled order. They are drawn faded.
+    @param {import('react').ReactNode} [props.bulkNote] A line under the bar that acts on the picked rows, such as Select all 40 matching.
+    @param {boolean} [props.compact] Denser rows, for a narrow column.
+    @param {number} [props.total] How many records the server has, when the server sends them a page at a time.
     @param {() => void} [props.onLoadMore]
-    @param {boolean} [props.headless]
-    @param {string} [props.locale]
-    @param {import('react').ReactNode} [props.children] */
+    @param {boolean} [props.headless] Draw no head row.
+    @param {string} [props.locale] How the counts are written, such as da-DK. The browser's when left out.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The parts of the list: Caption, ListHead, ListRow and Foot. */
 export function List({
 	data = [],
 	recordKey,
@@ -345,13 +345,13 @@ export function List({
 /** The foot of a list that grows by pages (c1), once there is more than one: how many of how many, and
     Load more while more remain. `loose` as ListFooter's; `children` sits beside the count.
     @param {object} props
-    @param {number} props.shown
-    @param {number} props.total
-    @param {number} [props.pageSize]
+    @param {number} props.shown How many are shown.
+    @param {number} props.total How many there are in all.
+    @param {number} [props.pageSize] How many Load more adds.
     @param {() => void} [props.onMore]
-    @param {boolean} [props.loose]
-    @param {string} [props.locale]
-    @param {import('react').ReactNode} [props.children] */
+    @param {boolean} [props.loose] Take the full width, where there is no list border around it.
+    @param {string} [props.locale] How the counts are written, such as da-DK.
+    @param {import('react').ReactNode} [props.children] A part beside the count. */
 export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, locale, children, ...rest }) {
 	reject(rest, 'ListMore')
 	const line = useRef(null)
@@ -392,12 +392,12 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 /** What can be done to the records picked (c1, c12), in place of what sat there before the first pick.
     `loose` carries its own border, for a set with no list around it; `head` stands in for a phone's top bar.
     @param {object} props
-    @param {boolean} [props.loose]
-    @param {boolean} [props.head]
-    @param {number} props.count
+    @param {boolean} [props.loose] Has its own border, for a set with no list around it.
+    @param {boolean} [props.head] Stands in for a phone's top bar.
+    @param {number} props.count How many records are picked.
     @param {() => void} [props.onClear]
-    @param {import('react').ReactNode} [props.selectAll]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement} [props.selectAll] The box that picks every record on the page.
+    @param {import('react').ReactNode} [props.children] What can be done to the picked records: the buttons. */
 export function BulkBar({ loose = false, head = false, count, onClear, selectAll, children, ...rest }) {
 	reject(rest, 'BulkBar')
 	const slot = useContext(ShellHead)
@@ -426,9 +426,9 @@ export function BulkBar({ loose = false, head = false, count, onClear, selectAll
 /** The summary line over a grid of cards (2c), where no list draws one: `loose` carries its own border.
     `selectAll` leads it with the box that selects the page, as the rows' header row does.
     @param {object} props
-    @param {boolean} [props.loose]
-    @param {import('react').ReactNode} [props.selectAll]
-    @param {import('react').ReactNode} [props.children] */
+    @param {boolean} [props.loose] Has its own border.
+    @param {import('react').ReactElement} [props.selectAll] The box that picks every record on the page, at the start.
+    @param {import('react').ReactNode} [props.children] The summary line, such as 24 orders. */
 export function ListToolbar({ loose = false, selectAll, children, ...rest }) {
 	reject(rest, 'ListToolbar')
 	return (
@@ -441,7 +441,7 @@ export function ListToolbar({ loose = false, selectAll, children, ...rest }) {
 
 /** The bar above a list (c20): search, then pickers and the one button, each at its own width.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The search, then the lists and the one button. */
 export function Controls({ children, ...rest }) {
 	reject(rest, 'Controls')
 	return <div className="sp-controls" {...rest}>{children}</div>
@@ -450,7 +450,7 @@ export function Controls({ children, ...rest }) {
 /** What is filtering the list, one removable crumb each, and Clear all (c12, Order list 2b).
     @param {object} props
     @param {() => void} [props.onClear]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One Crumb for each filter now on. */
 export function Filters({ onClear, children, ...rest }) {
 	reject(rest, 'Filters')
 	return (
@@ -485,7 +485,7 @@ function keepFocus(ev) {
 
 /** The facet rail's groups (c12): one `FieldGroup facet` per thing the list can be filtered by.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One facet FieldGroup for each thing the list can be filtered by. */
 export function Facets({ children, ...rest }) {
 	reject(rest, 'Facets')
 	return <div className="sp-facets" {...rest}>{children}</div>
@@ -497,7 +497,7 @@ export function Facets({ children, ...rest }) {
     @param {string} props.name
     @param {() => void} [props.onRemove]
     @param {() => void} [props.onOpen]
-    @param {string | number} [props.children] text only */
+    @param {string | number} [props.children] The filter's words. */
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
 	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }
@@ -515,8 +515,8 @@ export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 
 /** The drill path (c8): the root as text, then a Crumb for every level drilled into.
     @param {object} props
-    @param {import('react').ReactNode} [props.root]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.root] Where the path starts, as words.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One Crumb for each level drilled into. */
 export function Crumbs({ root, children, ...rest }) {
 	reject(rest, 'Crumbs')
 	const levels = [].concat(children ?? []).flat().filter(Boolean)
@@ -535,23 +535,23 @@ export function Crumbs({ root, children, ...rest }) {
     `href` makes the strip a link out, named by `hrefLabel`; `menu.onClose` runs as focus leaves.
     `headChips` puts the chips in the head, right of the name, instead of a row of their own (22a).
     @param {object} props
-    @param {import('react').ReactNode[]} [props.photos]
-    @param {import('react').ReactNode} [props.empty]
-    @param {boolean} [props.faded]
-    @param {import('react').ReactNode} [props.more]
-    @param {string} [props.href]
-    @param {string} [props.hrefLabel]
-    @param {import('react').ReactNode} [props.pick]
-    @param {{ label: string, open?: boolean, onToggle: () => void, onClose?: () => void, children: import('react').ReactNode }} [props.menu]
-    @param {import('react').ReactNode} props.title
-    @param {import('react').ReactNode} [props.subtitle]
-    @param {import('react').ReactNode} [props.status]
-    @param {import('react').ReactNode} [props.chips]
-    @param {boolean} [props.headChips]
-    @param {import('react').ReactNode | import('react').ReactNode[]} [props.meta]
-    @param {import('react').ReactNode} [props.amount]
+    @param {import('react').ReactElement[]} [props.photos] The record's pictures, across the top.
+    @param {import('react').ReactNode} [props.empty] What the band at the top says when there are no pictures.
+    @param {boolean} [props.faded] The pictures stand in for the record's own, so they are drawn faded.
+    @param {string} [props.more] A count over the last picture, such as +3.
+    @param {string} [props.href] Makes the picture band a link out of the app.
+    @param {string} [props.hrefLabel] The name of that link.
+    @param {import('react').ReactElement} [props.pick] The box that picks the record.
+    @param {import('react').ReactElement} [props.menu] The record's menu button.
+    @param {import('react').ReactNode} props.title The record's name.
+    @param {import('react').ReactNode} [props.subtitle] A line under the name.
+    @param {import('react').ReactElement} [props.status] The record's status, as a Pill.
+    @param {import('react').ReactElement} [props.chips] The record's chips, such as its categories.
+    @param {boolean} [props.headChips] Put the chips in the head, right of the name, instead of on their own row.
+    @param {import('react').ReactNode | import('react').ReactNode[]} [props.meta] One or two grey lines, such as the date.
+    @param {import('react').ReactNode} [props.amount] The amount, at the end.
     @param {() => void} [props.onClick]
-    @param {boolean} [props.void] */
+    @param {boolean} [props.void] The record does not count, such as a cancelled order. It is drawn faded. */
 export function Record({ photos = [], empty, faded = false, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, headChips = false, meta, amount, onClick, void: isVoid = false, ...rest }) {
 	reject(rest, 'Record')
 	const menuBox = useRef(null)
@@ -607,9 +607,9 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 /** Record cards as a grid (c1, 2c, 22a): `head` above it (the summary or the bulk bar) and `footer`
     under it (a `<ListMore loose>`), each at the grid's width.
     @param {object} props
-    @param {import('react').ReactNode} [props.head]
-    @param {import('react').ReactNode} [props.footer]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement} [props.head] The line above the cards: the summary or the bulk bar.
+    @param {import('react').ReactElement} [props.footer] The line under the cards, such as Load more.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The Record cards. */
 export function Records({ head, footer, children, ...rest }) {
 	reject(rest, 'Records')
 	return (

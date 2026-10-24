@@ -115,7 +115,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 							? <ViewName name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
 							: mode === 'editing'
 								? (
-									<NavItem variant={reorder.variant(view, active?.id === view.id && edited ? 'edited' : 'light')} handle={<Icon name="grip-vertical" size={12} />}
+									<NavItem variant={reorder.variant(view, active?.id === view.id && edited ? 'edited' : 'light')} handle
 										handleLabel={`Reorder ${view.name}`} current={active?.id === view.id} {...reorder.row(view)}
 										trail={<span className="sp-cell-menu"><ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onHighlight={() => highlight(view)} onDelete={() => setDeleting(view)} /></span>}>
 										{view.name}

@@ -5,7 +5,7 @@ import { Icon } from './Icon.jsx'
 import { Chip } from './Chip.jsx'
 import { countOf, usePanelPlace, useListbox } from './Combobox.jsx'
 import { formatNumber, parseNumber } from './format.js'
-import { Spinner } from './Utilities.jsx'
+import { Kbd, Spinner } from './Utilities.jsx'
 
 const TEXT = {
 	default: null,
@@ -61,15 +61,15 @@ const TYPES = /** @type {const} */ (['text', 'email', 'tel', 'url'])
 
 /** `action` is one icon button at the field's end: { icon, label, expanded, onClick }.
     @param {object} props
-    @param {typeof TYPES[number]} [props.type]
-    @param {boolean} [props.multiline]
-    @param {number} [props.rows] the height of a multiline field, in lines
-    @param {keyof typeof TEXT} [props.variant]
-    @param {{ icon: string, label: string, expanded?: boolean, onClick: () => void }} [props.action]
-    @param {string} [props.value]
+    @param {typeof TYPES[number]} [props.type] The kind of text, for the phone keyboard and the check that comes with it: text, email, url and so on.
+    @param {boolean} [props.multiline] A box of several lines instead of one.
+    @param {number} [props.rows] How many lines a multiline field shows.
+    @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` fills its row.
+    @param {{ icon: string, label: string, expanded?: boolean, onClick: () => void }} [props.action] A button at the end of the field: its icon, its name, and what it does.
+    @param {string} [props.value] The text in the field.
     @param {(value: string) => void} [props.onChange]
-    @param {boolean} [props.danger]
-    @param {string} [props.placeholder] */
+    @param {boolean} [props.danger] The value is wrong: the field is drawn in red.
+    @param {string} [props.placeholder] Grey words shown while the field is empty. */
 export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', action, ...rest }) {
 	if (!TYPES.includes(type)) console.error(`<TextField> type="${type}" is not one of: ${TYPES.join(' | ')}`)
 	if (multiline) return <Box as="textarea" rows={rows} component="TextField" {...rest} />
@@ -87,9 +87,9 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
 }
 
 /** @param {object} props
-    @param {string} [props.value]
+    @param {string} [props.value] The password.
     @param {(value: string) => void} [props.onChange]
-    @param {boolean} [props.danger] */
+    @param {boolean} [props.danger] The value is wrong: the field is drawn in red. */
 export function PasswordField({ ...rest }) {
 	const [shown, setShown] = useState(false)
 	return (
@@ -112,14 +112,14 @@ export function PasswordField({ ...rest }) {
 /** `cell` is the amount in a sheet's cell (Budget 21b): it reads as the figure until it is
     clicked or focused, then takes the field's border inside its own cell.
     @param {object} props
-    @param {number | null} [props.value]
+    @param {number | null} [props.value] The number. Empty is null.
     @param {(value: number | null) => void} [props.onChange]
     @param {() => void} [props.onBlur]
-    @param {number} [props.decimals]
-    @param {number} [props.min]
-    @param {string} [props.locale]
-    @param {boolean} [props.expected]
-    @param {boolean} [props.cell] */
+    @param {number} [props.decimals] How many decimal places it shows: two for money, three for a quantity.
+    @param {number} [props.min] The lowest number it takes.
+    @param {string} [props.locale] How numbers are written, such as da-DK. Defaults to the browser's.
+    @param {boolean} [props.expected] A planned figure, not a real one: drawn in grey.
+    @param {boolean} [props.cell] The number in a table cell: it reads as text until it is clicked. */
 export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale, expected = false, cell = false, ...rest }) {
 	const [typing, setTyping] = useState(null)
 	return (
@@ -144,14 +144,14 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
 /** `icon` is the lead mark; `clear` false hides the clear button; `ends` are controls after it, at the
     field's end with it (.sp-field__trails), such as the order list's Ask (AskTrail).
     @param {object} props
-    @param {string} props.value
+    @param {string} props.value The words in the search.
     @param {(value: string) => void} props.onChange
-    @param {import('react').ReactNode} [props.kbd]
+    @param {string} [props.kbd] The keyboard shortcut that puts the cursor in the search, such as Ctrl K.
     @param {import('react').Ref<HTMLInputElement>} [props.inputRef]
     @param {string} [props.name]
-    @param {import('./Icon.jsx').IconName} [props.icon]
-    @param {boolean} [props.clear]
-    @param {import('react').ReactNode} [props.ends] */
+    @param {import('./Icon.jsx').IconName} [props.icon] The icon at the start.
+    @param {boolean} [props.clear] Show a button that empties the search.
+    @param {import('react').ReactElement} [props.ends] Controls at the end of the field, such as Ask. */
 export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, ...rest }) {
 	const clearable = clear && !!value
 	const own = useRef(null)
@@ -178,7 +178,7 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', i
 				{...rest}
 			/>
 			{ends ? <span className="sp-field__trails">{clearing}{ends}</span> : clearing}
-			{!clearable && !ends && kbd ? <span className="sp-field__kbd">{kbd}</span> : null}
+			{!clearable && !ends && kbd ? <span className="sp-field__kbd"><Kbd>{kbd}</Kbd></span> : null}
 		</span>
 	)
 }
@@ -186,9 +186,9 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', i
 /** Ask at a search field's end (Order list 2b): off, on (`on`), or Stop while it works (`busy`).
     `spent` is no questions left today: disabled, its reason held by the field's end.
     @param {object} props
-    @param {boolean} [props.on]
-    @param {boolean} [props.busy]
-    @param {boolean} [props.spent]
+    @param {boolean} [props.on] Ask is turned on.
+    @param {boolean} [props.busy] Ask is working: the button reads Stop.
+    @param {boolean} [props.spent] No questions are left today: the button is off.
     @param {() => void} [props.onToggle]
     @param {() => void} [props.onStop] */
 export function AskTrail({ on, busy, spent, onToggle, onStop }) {
@@ -217,16 +217,16 @@ export function AskTrail({ on, busy, spent, onToggle, onStop }) {
 /** `stops` are values at evenly spaced points, so the track is spaced by them, not by value.
     `open` makes the top end "and above": shown with a +, and a To typed past it is kept.
     @param {object} props
-    @param {[number, number]} props.value low and high
+    @param {[number, number]} props.value The low and the high end.
     @param {(value: [number, number]) => void} props.onChange
-    @param {number} [props.min]
-    @param {number} [props.max]
-    @param {number} [props.step]
-    @param {number[]} [props.stops]
-    @param {boolean} [props.open]
-    @param {string} [props.label]
-    @param {(value: number) => string} [props.format]
-    @param {string} [props.locale] */
+    @param {number} [props.min] The lowest value.
+    @param {number} [props.max] The highest value.
+    @param {number} [props.step] How far one move goes.
+    @param {number[]} [props.stops] Values at evenly spaced points on the track, in place of min and max.
+    @param {boolean} [props.open] The top end means and above: it is shown with a +.
+    @param {string} [props.label] What is being bounded.
+    @param {(value: number) => string} [props.format] How an end is written in its field.
+    @param {string} [props.locale] How numbers are written, such as da-DK. */
 export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
 	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
@@ -388,17 +388,17 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
     token to a mark drawn before its remove, as an over-limit category's dot (8b); `end` is a button
     at the field's right end, the chips keeping clear of it (a Field's own `trail` is its own wrapper's).
     @param {object} props
-    @param {string[]} [props.value]
+    @param {string[]} [props.value] The values, drawn as chips.
     @param {(value: string[]) => void} [props.onChange]
-    @param {string} [props.placeholder]
-    @param {boolean} [props.danger]
+    @param {string} [props.placeholder] Grey words in the add field while there are no values.
+    @param {boolean} [props.danger] The value is wrong: the field is drawn in red.
     @param {string} [props.id]
     @param {(text: string) => void} [props.onSearch]
-    @param {string} [props.noun]
-    @param {string} [props.marked]
-    @param {Record<string, import('react').ReactNode>} [props.trails]
-    @param {import('react').ReactNode} [props.end]
-    @param {import('react').ReactNode} [props.children] */
+    @param {string} [props.noun] What the options are, plural, for the count read out as typing narrows them.
+    @param {string} [props.marked] One value drawn in green.
+    @param {Record<string, import('react').ReactElement>} [props.trails] A part drawn before a value's remove button, by value, such as a warning dot.
+    @param {import('react').ReactElement} [props.end] A button at the right end of the field.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The options offered while typing. */
 export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it

@@ -271,19 +271,19 @@ const field = ({ invalid, ...props }) => props
 /** `single` is the touch sheet's form (c14): the heading, From and To, the months scrolling under them,
     the day count and Apply - the sheet itself is the way out, so there is no Cancel.
     @param {object} props
-    @param {string} [props.from] a day as yyyy-mm-dd
-    @param {string} [props.to] a day as yyyy-mm-dd
-    @param {(from: string, to: string) => void} [props.onChange]
-    @param {{ label: string, value: [string, string] }[]} [props.quick]
-    @param {string} [props.min]
-    @param {string} [props.max]
-    @param {number} [props.minDays]
-    @param {(day: string) => boolean} [props.unavailable]
+    @param {string} [props.from] The first day, as yyyy-mm-dd.
+    @param {string} [props.to] The last day, as yyyy-mm-dd.
+    @param {(from: string, to: string) => void} [props.onChange] Both dates, in order - the control never reports one without the other, since a range is the pair.
+    @param {{ label: string, value: [string, string] }[]} [props.quick] The quick ranges beside the calendar, in place of the standard ones.
+    @param {string} [props.min] The first day that can be picked, as yyyy-mm-dd.
+    @param {string} [props.max] The last day that can be picked, as yyyy-mm-dd.
+    @param {number} [props.minDays] The shortest range allowed, counting both ends.
+    @param {(day: string) => boolean} [props.unavailable] Tells which days cannot be picked, such as weekends.
     @param {() => void} [props.onApply]
-    @param {() => void} [props.onCancel]
-    @param {boolean} [props.showWeeks]
-    @param {string} [props.locale]
-    @param {boolean} [props.single] */
+    @param {() => void} [props.onCancel] Also what Escape does.
+    @param {boolean} [props.showWeeks] Number the calendar's rows with their week.
+    @param {string} [props.locale] How dates are written, such as da-DK.
+    @param {boolean} [props.single] The phone form: From and To at the top, the months scrolling under them, and Apply. */
 export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, single = false, ...rest }) {
 	reject(rest, 'RangePicker')
 	if (minDays !== undefined && minDays < 1) console.error('<RangePicker> minDays counts days inclusively, so the smallest range is 1')
@@ -481,7 +481,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
     sheet Statistics and the order filters share. Its own scrim closes it without applying.
     @param {object} props
     @param {() => void} props.onClose
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The RangePicker, in a sheet over the page. */
 export function RangeSheet({ onClose, children }) {
 	const box = useRef(null)
 	useFocusTrap(box)
@@ -576,13 +576,13 @@ export function Selected() { return null }
 const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year', days30: 'days30' }
 
 /** @param {object} props
-    @param {string} props.label
-    @param {keyof typeof WINDOW} [props.unit]
-    @param {string} [props.previousLabel]
-    @param {string} [props.nextLabel]
+    @param {string} props.label The window's name, such as August 2026.
+    @param {keyof typeof WINDOW} [props.unit] How long the window is: `week`, `month`, `quarter`, `year` or `days30`. It sets the label's width.
+    @param {string} [props.previousLabel] The name of the left arrow.
+    @param {string} [props.nextLabel] The name of the right arrow.
     @param {() => void} [props.onPrevious]
     @param {() => void} [props.onNext]
-    @param {boolean} [props.touch] */
+    @param {boolean} [props.touch] The larger arrows for touch. */
 export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
 	reject(rest, 'PeriodWindow')
 	const size = touch ? 15 : 14
@@ -614,20 +614,20 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
    steps back to the window holding today (c14); `extra` follows the comparison, as a second
    switch (4a); `actions` end the row (4a). */
 /** @param {object} props
-    @param {{ value: string, label: string }[]} [props.presets]
-    @param {string} props.value the preset picked, or custom
-    @param {(period: { period: string, selected: { from: string, to: string } | null, past: { from: string, to: string, name: string } | null }) => void} [props.onChange]
-    @param {string} [props.from]
-    @param {string} [props.to]
-    @param {string} [props.at] the day the presets resolve around, as yyyy-mm-dd
-    @param {import('react').ReactNode} [props.stepper]
-    @param {string} [props.name]
-    @param {import('react').ReactNode} [props.custom]
+    @param {{ value: string, label: string }[]} [props.presets] The periods to choose from, in place of the standard five.
+    @param {string} props.value The chosen period, or `custom`.
+    @param {(period: { period: string, selected: { from: string, to: string } | null, past: { from: string, to: string, name: string } | null }) => void} [props.onChange] Called when the preset changes, with the same object a Selected child is handed.
+    @param {string} [props.from] The custom range's first day.
+    @param {string} [props.to] The custom range's last day.
+    @param {string} [props.at] The day the periods are counted from, as yyyy-mm-dd. Today when left out.
+    @param {import('react').ReactElement} [props.stepper] The PeriodWindow that moves the period back and forward.
+    @param {string} [props.name] Groups the radios.
+    @param {import('react').ReactElement} [props.custom] The RangePicker, shown when the custom period is chosen.
     @param {() => void} [props.onPresent]
-    @param {import('react').ReactNode} [props.extra]
-    @param {import('react').ReactNode} [props.actions]
-    @param {import('react').ReactNode} [props.children]
-    @param {string} [props.locale] */
+    @param {import('react').ReactElement} [props.extra] A second switch after the comparison.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.actions] Buttons at the end of the row.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One Selected, which draws what the chosen period is.
+    @param {string} [props.locale] How dates are written, such as da-DK. */
 export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this
@@ -728,9 +728,9 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 }
 
 /** @param {object} props
-    @param {boolean} [props.sheet]
-    @param {boolean} [props.open]
-    @param {import('react').ReactNode} [props.children] */
+    @param {boolean} [props.sheet] The phone form, in a sheet.
+    @param {boolean} [props.open] Whether the calendar is showing.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The months. */
 export function Calendar({ sheet = false, open = true, children, ...rest }) {
 	reject(rest, 'Calendar')
 	return (
@@ -792,18 +792,18 @@ function dayShortcuts({ min, max, unavailable }) {
 
 /** `placeholder` is what the empty field says, as an open end reads Today (c12).
     @param {object} props
-    @param {string} [props.value] a day as yyyy-mm-dd
+    @param {string} [props.value] The day, as yyyy-mm-dd.
     @param {(value: string) => void} [props.onChange]
-    @param {string} [props.min]
-    @param {string} [props.max]
-    @param {(day: string) => boolean} [props.unavailable]
-    @param {boolean} [props.native] the phone's own date field; on a phone when absent
-    @param {boolean} [props.danger]
-    @param {boolean} [props.showWeeks]
-    @param {boolean} [props.shortcuts]
-    @param {string} [props.locale]
-    @param {string} [props.id]
-    @param {string} [props.placeholder] */
+    @param {string} [props.min] The first day that can be picked.
+    @param {string} [props.max] The last day that can be picked.
+    @param {(day: string) => boolean} [props.unavailable] Tells which days cannot be picked.
+    @param {boolean} [props.native] Use the phone's own date field. On a phone when left out.
+    @param {boolean} [props.danger] The date is wrong: the field is drawn in red.
+    @param {boolean} [props.showWeeks] Number the calendar's rows with their week.
+    @param {boolean} [props.shortcuts] Offer Today and Yesterday as one-click chips in the calendar.
+    @param {string} [props.locale] How dates are written, such as da-DK. The browser's when left out.
+    @param {string} [props.id] Bound by the Field around it.
+    @param {string} [props.placeholder] What the empty field says, such as Today. */
 export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, shortcuts = true, locale, id, placeholder, ...rest }) {
 	reject(rest, 'DateField')
 	// what Field hands the control: its message and its state, on the input that takes focus

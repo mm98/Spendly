@@ -11,19 +11,19 @@ const VARIANT = {
 const COLOR = { default: null, danger: 'danger', success: 'success' }
 
 /** @param {object} props
-    @param {keyof typeof VARIANT} [props.variant]
-    @param {keyof typeof COLOR} [props.color]
-    @param {import('react').ReactNode} [props.trail]
-    @param {'checkbox' | 'radio'} [props.inputType]
-    @param {string} [props.name]
-    @param {string} [props.value]
-    @param {boolean} [props.selected]
-    @param {boolean} [props.defaultSelected]
+    @param {keyof typeof VARIANT} [props.variant] `outline` has a border, `solid` a fill, `dashed` a dashed border, `pill` is the small round one a reader taps, `facet` the one they tick in a filter.
+    @param {keyof typeof COLOR} [props.color] `default`, or `danger` and `success` for a value that is wrong or done.
+    @param {import('react').ReactElement} [props.trail] A small control at the end of the chip, such as the button that removes the value.
+    @param {'checkbox' | 'radio'} [props.inputType] Facet only. `checkbox` lets several chips be picked, `radio` only one in the group.
+    @param {string} [props.name] Facet only, and required for a radio: it is what makes a set of them one group.
+    @param {string} [props.value] Facet only. The value the chip stands for, when it differs from its words. Defaults to the words.
+    @param {boolean} [props.selected] Facet only. Whether the chip is picked. Leave it out to let the chip keep its own state.
+    @param {boolean} [props.defaultSelected] Facet only. Whether the chip starts picked, when it keeps its own state.
     @param {(selected: boolean, value: string) => void} [props.onSelect]
-    @param {() => void} [props.onClick]
-    @param {boolean} [props.disabled]
-    @param {number} [props.count]
-    @param {import('react').ReactNode} [props.children] */
+    @param {() => void} [props.onClick] Renders a button.
+    @param {boolean} [props.disabled] The chip cannot be picked.
+    @param {number} [props.count] Facet only. How many records have this value, drawn after the words.
+    @param {import('react').ReactNode} [props.children] The words on the chip. */
 export function Chip({
 	variant = 'outline',
 	color = 'default',

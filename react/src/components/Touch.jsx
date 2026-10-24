@@ -5,7 +5,7 @@ import { Icon } from './Icon.jsx'
 
 /** The surface's destinations, at the bottom where a thumb reaches; over a home bar band its items sit lower (brief 28).
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The destinations, one TabBarItem each. */
 export function TabBar({ children, ...rest }) {
 	reject(rest, 'TabBar')
 	return <nav className="sp-tabbar sp-tabbar--band" {...rest}>{children}</nav>
@@ -13,11 +13,11 @@ export function TabBar({ children, ...rest }) {
 
 /** One destination in that bar: a link when it has a `to`, since a destination navigates.
     @param {object} props
-    @param {import('./Icon.jsx').IconName} [props.icon]
-    @param {boolean} [props.current]
-    @param {string} [props.to]
+    @param {import('./Icon.jsx').IconName} [props.icon] The icon above the label.
+    @param {boolean} [props.current] This is the page the reader is on.
+    @param {string} [props.to] The page it opens.
     @param {() => void} [props.onClick]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] The label. */
 export function TabBarItem({ icon, current = false, to, onClick, children, ...rest }) {
 	reject(rest, 'TabBarItem')
 	const body = <>{icon ? <Icon name={icon} size={18} /> : null}{children}</>
@@ -35,10 +35,10 @@ const PULL_START_PX = 4
 /** A sheet from the bottom edge (c13). Its handle dragged down far enough closes it and discards, as
     `onDismiss` or else a press on the dimmed page under it does; short of that it goes back.
     @param {object} props
-    @param {boolean} [props.handle]
+    @param {boolean} [props.handle] The grip that says it can be dragged away.
     @param {() => void} [props.onDismiss]
     @param {import('react').Ref<HTMLDivElement>} [props.ref]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What the sheet holds: a title, a list, actions. */
 export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 	reject(rest, 'Sheet')
 	const box = useRef(null)
@@ -94,7 +94,7 @@ export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 }
 
 /** @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] The words and buttons in the bar, such as Save and Cancel. */
 export function SaveBar({ children, ...rest }) {
 	reject(rest, 'SaveBar')
 	return <div className="sp-savebar" {...rest}>{children}</div>
@@ -103,8 +103,8 @@ export function SaveBar({ children, ...rest }) {
 /** The one floating action (7a): New order, above the tab bar. Its label is required, since
     a glyph names nothing.
     @param {object} props
-    @param {import('./Icon.jsx').IconName} [props.icon]
-    @param {string} [props.to]
+    @param {import('./Icon.jsx').IconName} [props.icon] The icon on the round button.
+    @param {string} [props.to] The page it opens. Without it the button calls its click handler.
     @param {() => void} [props.onClick] */
 export function Fab({ icon = 'plus', to, onClick, ...rest }) {
 	reject(rest, 'Fab')

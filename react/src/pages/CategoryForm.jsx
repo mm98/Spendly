@@ -6,7 +6,6 @@ import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Check, Choice, Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
-import { Icon } from '../components/Icon.jsx'
 import { Gauge, Stat, Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
@@ -235,7 +234,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 						{h(<CategoryIconPicker value={values.icon} onChange={v => set('icon', v)} />)}
 					</Field>
 					<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
-						{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
+						{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon="plus"
 							value={colour} onChange={v => set('colour', v)} />)}
 					</Field>
 					<Choice variant="described" description="Leads the list in every category picker."

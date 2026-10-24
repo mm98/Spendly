@@ -16,7 +16,7 @@ export default {
 	component: Card,
 	subcomponents: { CardHeader, CardBody, Cards, Toolbar, ListFooter, Well, Halves },
 	args: { title: 'A card', subtitle: 'Its second line.' },
-	argTypes: { ...words, children: { control: false }, footer: { control: false }, after: { control: false }, chevron: { control: false } },
+	argTypes: { ...words },
 	render: ({ title, subtitle, ...args }) => (
 		<Card {...args}>
 			<span className="sp-title">{title}</span>

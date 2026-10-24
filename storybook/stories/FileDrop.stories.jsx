@@ -16,7 +16,7 @@ export default {
 	subcomponents: { Slot, Strip, Attachment, AttachmentAdd, Viewer },
 	decorators: [Story => <div style={{ maxWidth: 560 }}><Story /></div>],
 	args: { icon: 'upload', title: 'Drop a receipt here, or choose a file', meta: 'Images and PDF', onFiles: fn() },
-	argTypes: { ...words, icon: iconControl, action: { control: false }, children: { control: false } },
+	argTypes: { ...words, icon: iconControl, action: { control: false } },
 	render: ({ title, meta, ...args }) => (
 		<FileDrop {...args}>
 			<span>{title}</span>

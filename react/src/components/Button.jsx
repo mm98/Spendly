@@ -11,16 +11,16 @@ const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
 
 /**
  * @param {object} props
- * @param {keyof typeof STYLE} [props.variant]
- * @param {keyof typeof COLOR} [props.color]
- * @param {keyof typeof SIZE} [props.size]
- * @param {keyof typeof BORDER} [props.border]
- * @param {boolean} [props.fullWidth]
- * @param {string} [props.to] an address inside the app: the button is a link
- * @param {string} [props.href] an address outside the app
- * @param {import('./Icon.jsx').IconName} [props.iconStart]
- * @param {import('./Icon.jsx').IconName} [props.iconEnd]
- * @param {import('react').ReactNode} [props.children]
+ * @param {keyof typeof STYLE} [props.variant] How the button is drawn: `solid` is filled, `outline` has a border and no fill, `text` has neither.
+ * @param {keyof typeof COLOR} [props.color] The colour of the fill or the ink: `primary`, `warning`, or `danger` for an action that removes something.
+ * @param {keyof typeof SIZE} [props.size] `standard` for most buttons, `small` in a row or a card head, `xsmall` beside a field label or a rail heading. On touch, `xsmall` draws at the small size.
+ * @param {keyof typeof BORDER} [props.border] `line` is the usual border. `inherit` takes the border colour from `color`.
+ * @param {boolean} [props.fullWidth] The button spans the width of its column.
+ * @param {string} [props.to] An address inside the app. The button is drawn as a link.
+ * @param {string} [props.href] An address outside the app. The button is drawn as a link that leaves the app.
+ * @param {import('./Icon.jsx').IconName} [props.iconStart] An icon before the label.
+ * @param {import('./Icon.jsx').IconName} [props.iconEnd] An icon after the label.
+ * @param {import('react').ReactNode} [props.children] The label.
  */
 export function Button({
 	variant = 'solid',
@@ -61,12 +61,12 @@ const ICON_STYLE = { bare: null, outline: 'sp-icon-btn--outline', quiet: 'sp-ico
 const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field', xsmall: 'sp-icon-btn--xsmall' }
 
 /** @param {object} props
-    @param {import('./Icon.jsx').IconName | import('react').ReactElement} props.icon a drawn glyph, or its name
-    @param {keyof typeof ICON_STYLE} [props.variant]
-    @param {keyof typeof ICON_SIZE} [props.size]
-    @param {boolean} [props.danger]
-    @param {string} [props.to]
-    @param {string} [props.href] */
+    @param {import('./Icon.jsx').IconName | import('react').ReactElement} props.icon The icon: a name from the icon set, or an icon already drawn.
+    @param {keyof typeof ICON_STYLE} [props.variant] `bare` has no border, `outline` has a border, `quiet` has no border and lighter ink.
+    @param {keyof typeof ICON_SIZE} [props.size] `row` fits a list row, `small` and `xsmall` are smaller, `field` fits inside a text field.
+    @param {boolean} [props.danger] An action that removes something: the icon is drawn in red.
+    @param {string} [props.to] An address inside the app. The button is drawn as a link.
+    @param {string} [props.href] An address outside the app. The button is drawn as a link that leaves the app. */
 export function IconButton({
 	icon,
 	variant = 'bare',

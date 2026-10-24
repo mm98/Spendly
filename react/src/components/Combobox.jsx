@@ -201,25 +201,25 @@ export function countOf(options, noun = 'options') {
     is the word kept inside the trigger ahead of the value, as the sort control's Sort (c8). `noun`
     names the options in the count a narrowed list reads out, plural ("vendors").
     @param {object} props
-    @param {keyof typeof VARIANT} [props.variant]
-    @param {import('react').ReactNode} [props.value] what the closed trigger shows
-    @param {import('react').ReactNode} [props.lead]
-    @param {string} [props.prefix]
-    @param {boolean} [props.open]
-    @param {boolean} [props.defaultOpen]
+    @param {keyof typeof VARIANT} [props.variant] `default`; `sort` is the small pick-only control above a list; `end` opens its panel from the right edge; `stretch` lets the trigger grow with its value.
+    @param {import('react').ReactNode} [props.value] What the closed control shows: the chosen value's name.
+    @param {import('react').ReactElement} [props.lead] A part before the value: a mark, a dot or a word.
+    @param {string} [props.prefix] A word kept inside the control before the value, such as Sort.
+    @param {boolean} [props.open] Whether the list is open. Leave it out to let the control keep its own state.
+    @param {boolean} [props.defaultOpen] The list starts open, when the control keeps its own state.
     @param {(open: boolean) => void} [props.onOpenChange]
-    @param {boolean} [props.searchable]
-    @param {string} [props.search]
-    @param {(text: string) => void} [props.onSearch]
-    @param {string} [props.placeholder]
-    @param {string} [props.noun]
-    @param {import('react').ReactNode} [props.children]
+    @param {boolean} [props.searchable] The reader can type to narrow the list. The control becomes a text field.
+    @param {string} [props.search] The words typed to narrow the list. Leave it out to let the control keep them.
+    @param {(text: string) => void} [props.onSearch] Called as the reader types.
+    @param {string} [props.placeholder] Searchable only. Shown when nothing is chosen.
+    @param {string} [props.noun] What the options are, plural, for the count read out as typing narrows the list.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The options, groups and separators.
     @param {string} [props.id]
     @param {boolean} [props.required]
-    @param {import('react').ReactNode} [props.trail]
-    @param {import('react').ReactNode} [props.unit]
+    @param {boolean} [props.trail] Set by the Field around it.
+    @param {boolean} [props.unit] Set by the Field around it.
     @param {boolean} [props.autoFocus]
-    @param {boolean} [props.disabled]
+    @param {boolean} [props.disabled] The control cannot be opened.
     @param {string} [props['aria-label']]
     @param {boolean | 'true' | 'false'} [props['aria-invalid']]
     @param {string} [props['aria-describedby']] */
@@ -433,16 +433,16 @@ export function Combobox({
 /** `create` marks the row that makes the typed value (c5), left out of the count a narrowed list reads out.
     `truncate` keeps a long option on one line, cut with ..., as a saved question is (24b 8).
     @param {object} props
-    @param {boolean} [props.selected]
-    @param {boolean} [props.active]
+    @param {boolean} [props.selected] The option that is chosen now.
+    @param {boolean} [props.active] Where the arrow keys are. Set by the Combobox, never by a page.
     @param {string} [props.id]
-    @param {typeof DOTS[number]} [props.dot]
-    @param {import('react').ReactNode} [props.mark]
-    @param {import('react').ReactNode} [props.meta]
+    @param {typeof DOTS[number]} [props.dot] A status dot before the name: draft, progress, done, returned or cancelled.
+    @param {import('react').ReactElement} [props.mark] A part before the name: a mark or an icon.
+    @param {import('react').ReactNode} [props.meta] A grey value at the end of the option, such as a count.
     @param {() => void} [props.onSelect]
-    @param {boolean} [props.create]
-    @param {boolean} [props.truncate]
-    @param {import('react').ReactNode} [props.children] */
+    @param {boolean} [props.create] The option makes a new value from the typed words. It is left out of the count.
+    @param {boolean} [props.truncate] Keep a long name on one line and cut it with an ellipsis.
+    @param {import('react').ReactNode} [props.children] The option's name. */
 export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, create = false, truncate = false, children, ...rest }) {
 	reject(rest, 'ComboboxOption')
 	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
@@ -472,7 +472,7 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
 
 /** The heading over a set of options.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] The group's heading. */
 export function ComboboxGroup({ children, ...rest }) {
 	reject(rest, 'ComboboxGroup')
 	return <li className="sp-combobox__group" {...rest}>{children}</li>
@@ -486,7 +486,7 @@ export function ComboboxSeparator(props) {
 
 /** What the panel says when nothing matches.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] What to say when no option matches the typed words. */
 export function ComboboxEmpty({ children, ...rest }) {
 	reject(rest, 'ComboboxEmpty')
 	return <li className="sp-combobox__empty" {...rest}>{children}</li>

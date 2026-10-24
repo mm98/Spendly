@@ -4,7 +4,6 @@ import { SearchInput } from '../../react/src/components/Inputs.jsx'
 import { Card, Cards } from '../../react/src/components/Card.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Menu, MenuItem, MenuSeparator } from '../../react/src/components/Overlays.jsx'
-import { Kbd } from '../../react/src/components/Utilities.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
 import { iconControl, knownAccessibilityFaults, useHeld } from './controls.js'
 
@@ -49,7 +48,7 @@ export const SidebarAndTopBar = {
 					<SidebarGrip expanded={!railed} onClick={() => setRailed(!railed)} />
 				</Sidebar>
 				<TopBar>
-					<SearchInput value={search} onChange={setSearch} placeholder="Search orders, vendors, items…" aria-label="Search" kbd={<Kbd>Ctrl K</Kbd>} />
+					<SearchInput value={search} onChange={setSearch} placeholder="Search orders, vendors, items…" aria-label="Search" kbd="Ctrl K" />
 				</TopBar>
 				<ShellContent>
 					<Cards>
