@@ -1,4 +1,16 @@
-# Motion gaps: rows you can drag, and features before they load
+# Motion gaps (fixed): page switches no longer blink
+
+## Fixed from design_handoff_motion_gaps
+
+**The problem** - Every page switch blinked and the app read like a full page load. `ShellContent page={path}` keyed the body by page, so a switch unmounted the whole body and mounted a new one at `opacity: 0` (`PRESENCE.page`): the old page went in one frame and the new one faded up from nothing. Loading `domMax` with the app (point 2 below) made the fade run from the first switch, so it showed on every one.
+
+**What changed** - A page switch is not animated. The new page replaces the old at once, the body stays mounted, nothing fades or rises; only the sidebar's marker moves. `ShellContent` loses its `page` prop and always renders a plain `main`; `PRESENCE.page` is removed.
+
+**Where** - `react_handoff/Shell.jsx` (`ShellContent` and its JSDoc), `react_handoff/motion.js` (`PRESENCE`), `react_handoff/README.md` and `styles/components.css` (the Motion comment: page change removed from what Motion runs), React components, the first implementation note and the Shell Motion note. In the app: `react/src/components/Shell.jsx`, `react/src/components/motion.js`, and drop `page=` from `ShellContent` in `react/src/app/AppShell.jsx` if the PR added it.
+
+**What is still open** - Nothing.
+
+---
 
 Answers the brief "two gaps in the Motion update" (pull request #575).
 
@@ -31,8 +43,9 @@ The brief cites a later.md entry for "a part closed before the features load nev
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
 - `Components.dc.html` - Ordering by hand gains the "Adding and removing" note.
-- `React components.dc.html` - the Motion notes, and `domMax` in the harness.
+- `React components.dc.html` - the Motion notes, `domMax` in the harness, and the page switch notes.
 - `react_handoff/` - all components, since the React components page loads every one; changed: `motion.js`, `Reorder.jsx`, `ListItem.jsx`, `Shell.jsx`, `README.md`.
+- `styles/components.css` - the Motion comment no longer lists the page change; no rule changed.
 - `support.js`, `components.js`, `icons.js`, `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - what the two pages load.
 
 ## styles/check.js

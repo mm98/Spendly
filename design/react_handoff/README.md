@@ -74,14 +74,14 @@ prop set that drifts from the library shows up as a broken specimen.
 CSS keeps what moves the same in every browser: hover and colour, check boxes and radios, the
 chevrons' turn, submenus, the tab bar's colour, gauges and bars, the calendar's month slide and
 the password shuffle. Motion runs what CSS fails at or cannot reach: a part leaving the page, a
-marker or a row moving to a new place, height folds, reordering and the page change. The rule for
+marker or a row moving to a new place, height folds and reordering. A page switch is not animated: the new page replaces the old at once. The rule for
 a new case: if CSS draws it the same in Chrome, Safari and Firefox, it stays CSS.
 
 `motion.js` is the one place the components meet Motion. It reads `--motion-in`, `--motion-out`,
 `--ease-enter`, `--ease-exit`, `--motion-rise` and `--motion-slide` off `:root` the first time
 something moves, so `tokens.css` stays the only place the pace is written. `MotionShell` goes
 once around the app and the Storybook decorator: `LazyMotion` with `domMax`, loaded with the
-app, since `layoutId`, `layout` and drag need it from the first page change, and `MotionConfig reducedMotion="user"`,
+app, since `layoutId`, `layout` and drag need it from the first page switch, and `MotionConfig reducedMotion="user"`,
 so reduced motion is one setting and no component checks it. Components import `m`, never
 `motion`, which `LazyMotion strict` refuses.
 

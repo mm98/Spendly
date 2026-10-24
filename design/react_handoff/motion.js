@@ -81,11 +81,6 @@ export const PRESENCE = {
 		initial: { opacity: 0, scale: 0.8 },
 		animate: { opacity: 1, scale: 1, transition: into() },
 		exit: { opacity: 0, scale: 0.8, transition: away() }
-	}),
-	// the page body: a new page fades in and rises --motion-rise; the old one goes at once
-	page: () => ({
-		initial: { opacity: 0, y: pace().rise },
-		animate: { opacity: 1, y: 0, transition: into() }
 	})
 }
 
@@ -104,7 +99,7 @@ export function useStill() {
 }
 
 /** Motion for the whole app, once, around the shell (and the Storybook decorator): the full feature
-    set (domMax, what layoutId, layout and drag need) loads with the app, so the first page change
+    set (domMax, what layoutId, layout and drag need) loads with the app, so the first page switch
     slides its markers and a part closed at once still runs its way out; and a reader who asks the system for less motion gets it everywhere,
     with no component checking for itself. Under it, transforms and layout moves are off and fades stay.
     @param {object} props
