@@ -23,7 +23,7 @@ The label, help or error message, and slots around one control. It binds the lab
 
 - Takes no `className` or `style`.
 - A field with no control is reported and draws nothing.
-- Three shapes, chosen by the control: a value (TextField, NumberField, Combobox, TokensField, DateField…) gets a label above; a box (Check, Radio, Switch) gets its label beside it, inside a `Choice`; a set (Picker, RangeSlider, Segmented) gets a `FieldGroup` with a legend.
+- Three shapes, chosen by the control: a value (TextField, NumberField, Combobox, DateField…) gets a label above; a box (Check, Radio, Switch) gets its label beside it, inside a `Choice`; a set (Picker, RangeSlider, Segmented) gets a `FieldGroup` with a legend.
 - The control's padding follows the slots. Do not repeat it on the control.
 
 ## Example

@@ -1,4 +1,4 @@
-import { Combobox, ComboboxEmpty, ComboboxGroup, ComboboxOption, ComboboxSeparator, Field, Mark } from 'spendly-react';
+import { IconButton, Combobox, ComboboxEmpty, ComboboxGroup, ComboboxOption, ComboboxSeparator, Field, Mark } from 'spendly-react';
 
 const noop = () => {};
 // the open panel hangs below the trigger outside its own box: this keeps the cell tall enough to show it
@@ -58,6 +58,44 @@ export const Closed = () => (
 			<Combobox variant="narrow" value="DKK" disabled>
 				<ComboboxOption selected onSelect={noop}>DKK</ComboboxOption>
 			</Combobox>
+		</Field>
+	</div>
+);
+
+const several = { display: 'grid', gap: 16, maxWidth: 380 } as const;
+const ignore = () => {};
+
+
+export const Several = () => (
+	<div style={several}>
+		<Field label="Other names for this vendor" message="Press Enter after each name.">
+			<Combobox multiple value={['Indbo', 'Indbo Møbler ApS', 'INDBO.DK']} onChange={ignore} placeholder="Add…" />
+		</Field>
+		<Field label="Vendors this rule covers">
+			<Combobox multiple value={[]} onChange={ignore} placeholder="Add a vendor" />
+		</Field>
+	</div>
+);
+
+export const SeveralMarked = () => (
+	<div style={several}>
+		<Field label="Other names" note="matched existing vendor" noteType="success">
+			<Combobox multiple value={['IKEA', 'IKEA Taastrup', 'IKEA A/S']} marked="IKEA Taastrup" onChange={ignore} placeholder="Add…" />
+		</Field>
+		<Field label="Categories">
+			<Combobox multiple value={['Decor', 'Lighting', 'Garden']} trails={{ Decor: <span className="sp-combobox__dot" data-dot="returned" /> }}
+				onChange={ignore} placeholder="Add…" />
+		</Field>
+	</div>
+);
+
+export const SeveralStates = () => (
+	<div style={several}>
+		<Field label="Other names" messageType="danger" message="Bilka already uses the name Føtex.">
+			<Combobox multiple value={['Bilka', 'Føtex']} onChange={ignore} placeholder="Add…" />
+		</Field>
+		<Field label="Tags">
+			<Combobox multiple value={['Living room', 'Gift']} onChange={ignore} placeholder="Add…" end={<IconButton icon="plus" aria-label="Add from the list" size="field" />} />
 		</Field>
 	</div>
 );
