@@ -184,15 +184,20 @@ export default function Home() {
 		: null
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	// the card waits for the settings, so a row switched off never flashes up
-	const props = { month, compared, categories, counts, view, recent, rows, drafts, attention: attention.data, looks: known ? looksIn(settings.data) : null, name }
+	const looks = known ? looksIn(settings.data) : null
+	// the desktop cards above Recent orders are absent or held until known: its rows wait for them, so nothing pushes them down once they land
+	const aboveDrawn = known && (!loud.summary || summary.data !== undefined || !!summary.error)
+		&& (drafts.data !== undefined || !!drafts.error) && (attention.data !== undefined || !!attention.error)
+		&& Boolean(month.error || categories.error || counts.error || (view && looks))
+	const props = { month, compared, categories, counts, view, recent, rows, drafts, attention: attention.data, looks, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
-	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} notice={notice} />
+	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} aboveDrawn={aboveDrawn} notice={notice} />
 }
 
 /** Asks again only for what failed. */
 const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
 
-function DesktopHome({ month, compared, categories, counts, view, recent, rows, drafts, attention, looks, notice }) {
+function DesktopHome({ month, compared, categories, counts, view, recent, rows, drafts, attention, looks, aboveDrawn, notice }) {
 	const newest = recent.data?.orders[0]
 	const lost = month.error || categories.error || counts.error
 	return (
@@ -212,7 +217,7 @@ function DesktopHome({ month, compared, categories, counts, view, recent, rows, 
 				<div className="sp-stack sp-gap-12">
 					{lost ? null : <AlertsCard view={view} attention={attention} looks={looks} />}
 					<DraftsCard drafts={drafts} />
-					<RecentCard recent={recent} rows={rows} />
+					<RecentCard recent={recent} rows={rows} held={!aboveDrawn} />
 				</div>
 				<div className="sp-stack sp-gap-12">
 					{lost
@@ -416,9 +421,9 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	)
 }
 
-function RecentCard({ recent, rows }) {
-	const orders = recent.data?.orders
-	const total = recent.data?.total
+function RecentCard({ recent, rows, held }) {
+	const orders = held ? undefined : recent.data?.orders
+	const total = held ? undefined : recent.data?.total
 	const caption = (
 		<>
 			<span className="sp-section-label">Recent orders</span>
@@ -451,8 +456,9 @@ function RecentCard({ recent, rows }) {
 }
 
 function RecentList({ caption, orders, rows }) {
+	// a list of its own once the orders land, so its rows replace the placeholders in place rather than arriving one by one
 	return (
-		<List data={orders ?? Array.from({ length: rows }, (_, i) => i + 1)} recordKey={o => o.id ?? o} noun="orders" headless locale={NUMBER_LOCALE}
+		<List key={orders ? 'orders' : 'loading'} data={orders ?? Array.from({ length: rows }, (_, i) => i + 1)} recordKey={o => o.id ?? o} noun="orders" headless locale={NUMBER_LOCALE}
 			rowTo={orders ? o => `/orders/${o.id}` : undefined}>
 			<Caption>{caption}</Caption>
 			<ListHead>
