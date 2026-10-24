@@ -9,6 +9,19 @@ const SIZE = { standard: null, small: 'sp-btn--small', xsmall: 'sp-btn--xsmall' 
 
 const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
 
+/**
+ * @param {object} props
+ * @param {keyof typeof STYLE} [props.variant]
+ * @param {keyof typeof COLOR} [props.color]
+ * @param {keyof typeof SIZE} [props.size]
+ * @param {keyof typeof BORDER} [props.border]
+ * @param {boolean} [props.fullWidth]
+ * @param {string} [props.to] an address inside the app: the button is a link
+ * @param {string} [props.href] an address outside the app
+ * @param {string} [props.iconStart]
+ * @param {string} [props.iconEnd]
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function Button({
 	variant = 'solid',
 	color = 'primary',
