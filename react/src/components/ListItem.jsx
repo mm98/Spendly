@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
+import { Icon } from './Icon.jsx'
 
 const VARIANT = {
 	default: null,
@@ -20,21 +21,21 @@ const VARIANT = {
 const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 'success' }
 
 /** @param {object} props
-    @param {keyof typeof VARIANT} [props.variant]
-    @param {keyof typeof COLOR} [props.color]
-    @param {import('react').ReactNode} [props.mark]
-    @param {import('react').ReactNode} [props.handle] the grip; a row with one can be moved
-    @param {string} [props.handleLabel]
-    @param {import('react').ReactNode} [props.actions]
-    @param {number} [props.count]
-    @param {import('react').ReactNode} [props.chevron]
-    @param {boolean} [props.selected]
-    @param {boolean} [props.opens]
-    @param {boolean} [props.editable]
-    @param {boolean} [props.setting]
-    @param {() => void} [props.onClick]
-    @param {string} [props.to]
-    @param {import('react').ReactNode} [props.children] */
+    @param {keyof typeof VARIANT} [props.variant] The row's form: `default`, `outline`, `primary`, `stack` (lines under each other), `top` (aligned to the top), `add` (a row that adds one), `carried` and `picked` (while being moved), `card` (a row on its own surface), `sticky` (stays put while the page scrolls).
+    @param {keyof typeof COLOR} [props.color] The row's tint for something that needs attention: `warning` (amber), `danger` or `success`.
+    @param {import('react').ReactElement} [props.mark] The part at the start of the row: a mark, a photo or an icon.
+    @param {boolean} [props.handle] Draw a drag handle, so the row can be moved.
+    @param {string} [props.handleLabel] What the drag handle says it moves, such as Move Housing.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.actions] Controls at the end of the row.
+    @param {number} [props.count] A count at the end of the row.
+    @param {import('./Icon.jsx').IconName | import('react').ReactElement} [props.chevron] An arrow at the end, for a row that opens something: an icon name, or a drawn icon.
+    @param {boolean} [props.selected] The row is the picked one in a set. Outline and card rows only.
+    @param {boolean} [props.opens] The row opens something when clicked: the pointer and the hover fill show it.
+    @param {boolean} [props.editable] The row turns into a field: it keeps one height at rest and while editing.
+    @param {boolean} [props.setting] The row holds a setting: it keeps its ground when an option in it is ticked.
+    @param {() => void} [props.onClick] Renders a button.
+    @param {string} [props.to] An address inside the app. The row is drawn as a link.
+    @param {import('react').ReactNode} [props.children] What the row says. */
 export function ListItem({
 	variant = 'default',
 	color = 'default',
@@ -78,13 +79,13 @@ export function ListItem({
 		<>
 			{/* an add row holds the handle's column empty, so it lines up under rows that can move */}
 			{handle && variant === 'add' ? <span className="sp-list-item__handle" aria-hidden="true" />
-				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
+				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}><Icon name="grip-vertical" size={14} /></button> : null}
 			{mark}
 			{/* the count leads what it counts, as the attention row draws it (Components) */}
 			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
 			{children}
 			{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
-			{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
+			{chevron ? <span className="sp-list-item__chevron">{typeof chevron === 'string' ? <Icon name={chevron} /> : chevron}</span> : null}
 		</>
 	)
 	if (to) return <Link className={classes} to={to} data-go={to} {...attrs}>{body}</Link>
@@ -96,8 +97,8 @@ export function ListItem({
 /** The heading over a set of rows that carries a total (c33, sp-list-head): on the rows' inset,
     so the label starts on their first column and the total ends on their amounts.
     @param {object} props
-    @param {string} props.label
-    @param {string} props.amount */
+    @param {string} props.label The heading's words.
+    @param {string} props.amount The total, at the end, lined up with the rows' amounts. */
 export function ListItemHead({ label, amount, ...rest }) {
 	reject(rest, 'ListItemHead')
 	return (
@@ -111,7 +112,7 @@ export function ListItemHead({ label, amount, ...rest }) {
 
 /** What a reorder by keyboard says after each move, read out and not drawn (c1 Ordering by hand).
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] What is read out after each move. It is not drawn. */
 export function Announce({ children, ...rest }) {
 	reject(rest, 'Announce')
 	return <span className="sp-announce" aria-live="polite" {...rest}>{children}</span>
@@ -125,7 +126,7 @@ export function Insertion(props) {
 
 /** A control that appears when its row is hovered or focused, and stays put on touch.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] The control that appears when the row is hovered or focused. */
 export function ListItemRemove({ children, ...rest }) {
 	reject(rest, 'ListItemRemove')
 	return <span className="sp-list-item__remove" {...rest}>{children}</span>

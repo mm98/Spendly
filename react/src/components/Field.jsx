@@ -1,26 +1,28 @@
 import { cloneElement, useId } from 'react'
 import { pick, reject } from './variants.js'
 import { Choice, FieldGroup } from './Choice.jsx'
+import { Icon } from './Icon.jsx'
+import { Kbd } from './Utilities.jsx'
 
 const MESSAGE = { hint: null, quiet: null, warning: 'warning', danger: 'danger' }
 const NOTE = { hint: null, success: 'success', warning: 'warning' }
 
 /** @param {object} props
-    @param {import('react').ReactNode} [props.label]
-    @param {string} [props.id]
-    @param {import('react').ReactNode} [props.lead]
-    @param {import('react').ReactNode} [props.trail]
-    @param {import('react').ReactNode} [props.unit]
-    @param {import('react').ReactNode} [props.kbd]
-    @param {import('react').ReactNode} [props.chevron]
-    @param {import('react').ReactNode} [props.message]
-    @param {keyof typeof MESSAGE} [props.messageType]
-    @param {import('react').ReactNode} [props.labelAction]
-    @param {import('react').ReactNode} [props.note]
-    @param {keyof typeof NOTE} [props.noteType]
-    @param {import('react').ReactNode} [props.after]
-    @param {boolean} [props.required]
-    @param {import('react').ReactNode} props.children the control */
+    @param {import('react').ReactNode} [props.label] The words above the control. They name it for a screen reader too.
+    @param {string} [props.id] Bound to the control.
+    @param {import('./Icon.jsx').IconName} [props.lead] An icon at the start of the control.
+    @param {import('react').ReactElement} [props.trail] A small control at the end, such as a clear button.
+    @param {string} [props.unit] A unit at the end of the control, such as the currency sign.
+    @param {string} [props.kbd] A keyboard shortcut at the end of the control, such as "S".
+    @param {boolean} [props.chevron] A small arrow at the end, for a control that opens a list rather than taking typed words.
+    @param {import('react').ReactNode} [props.message] One line under the control: a hint, or what is wrong.
+    @param {keyof typeof MESSAGE} [props.messageType] How the message reads: `hint`, `quiet` (lighter), `warning` or `danger`. A danger message also marks the control as wrong.
+    @param {import('react').ReactElement} [props.labelAction] A small button at the right end of the label, such as Forgot it?
+    @param {import('react').ReactNode} [props.note] A word beside the label about where the value came from, such as matched existing vendor.
+    @param {keyof typeof NOTE} [props.noteType] How the note reads: `hint`, `success` or `warning`.
+    @param {import('react').ReactElement} [props.after] What the message offers to do, drawn under it.
+    @param {boolean} [props.required] Marks the label and sets `required` on the control, so the browser and a screen reader both know.
+    @param {import('react').ReactElement | import('react').ReactElement[]} props.children The control: one text field, list, date field, switch or other input. */
 export function Field({
 	label,
 	id,
@@ -77,12 +79,12 @@ export function Field({
 	const wrapped = lead || trail || unit || kbd || chevron
 		? (
 			<span className="sp-field__wrap">
-				{lead ? <span className="sp-field__lead">{lead}</span> : null}
+				{lead ? <span className="sp-field__lead"><Icon name={lead} /></span> : null}
 				{control}
 				{unit ? <span className="sp-field__unit">{unit}</span> : null}
 				{trail ? <span className="sp-field__trail">{trail}</span> : null}
-				{kbd ? <span className="sp-field__kbd">{kbd}</span> : null}
-				{chevron ? <span className="sp-field__chevron">{chevron}</span> : null}
+				{kbd ? <span className="sp-field__kbd"><Kbd>{kbd}</Kbd></span> : null}
+				{chevron ? <span className="sp-field__chevron"><Icon name="chevron-down" size={14} /></span> : null}
 			</span>
 		)
 		: control

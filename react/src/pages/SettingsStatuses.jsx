@@ -86,7 +86,7 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 							? <StatusEditor status={status} touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
 							: (
 								<ListItem variant={reorder.variant(status)} editable
-									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
+									handle handleLabel={`Move ${status.name}`}
 									data-status={status.key} {...reorder.row(status)}>
 									<StatusLook tone={status.tone}>{status.name}</StatusLook>
 									<span className="sp-grow" />

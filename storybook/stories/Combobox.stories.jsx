@@ -24,7 +24,6 @@ export default {
 	subcomponents: { ComboboxOption, ComboboxGroup, ComboboxSeparator, ComboboxEmpty },
 	decorators: [Story => <div style={{ maxWidth: 360, minHeight: 360 }}><Story /></div>],
 	args: { onOpenChange: fn() },
-	argTypes: { children: { control: false }, lead: { control: false }, trail: { control: false }, unit: { control: false } }
 }
 
 export const Vendor = {

@@ -140,7 +140,7 @@ export function AppShell() {
 			onClick={() => openPalette()}
 			placeholder={touch ? 'Search' : 'Search orders, vendors, items…'}
 			aria-label="Search orders"
-			kbd={touch ? undefined : <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd>}
+			kbd={touch ? undefined : MAC ? '⌘K' : 'Ctrl K'}
 		/>
 	)
 	const [keysShown, setKeysShown] = useState(false)

@@ -11,7 +11,7 @@ import { FILE_TYPES, sniffedProblem } from './FileDrop.jsx'
 /** The attachment strip (c16): tiles in one row that scrolls sideways under two chevrons. A
     chevron is disabled, and so hidden, when there is nothing further that way.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The attachments, and an AttachmentAdd at the end. */
 export function Strip({ children, ...rest }) {
 	reject(rest, 'Strip')
 	const box = useRef(null)
@@ -48,7 +48,7 @@ export function Strip({ children, ...rest }) {
 /** One tile in the strip: its mark, then the file's name beneath it.
     @param {object} props
     @param {string} props.name
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The picture or icon of the file, usually a Mark. */
 export function Attachment({ name, children, ...rest }) {
 	reject(rest, 'Attachment')
 	return (
@@ -62,8 +62,8 @@ export function Attachment({ name, children, ...rest }) {
 /** The tile the strip ends with, a label over a file input. `onFiles(files, problems)`: each file chosen
     or dropped, and why it cannot be kept (`sniffedProblem`) or null, so its tile can say so (17b).
     @param {object} props
-    @param {string} [props.accept]
-    @param {boolean} [props.multiple]
+    @param {string} [props.accept] The file types that may be chosen.
+    @param {boolean} [props.multiple] Several files can be chosen at once.
     @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles] */
 export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, ...rest }) {
 	reject(rest, 'AttachmentAdd')
@@ -267,9 +267,9 @@ function ViewerFile({ item, onSwipe }) {
 /** One file at full size (12b); `items` are `{ name, src, zoomSrc?, download, kind, pageSrc?, pages?, countPages? }`.
     `beside` is a second file shown next to the first to compare them (3c).
     @param {object} props
-    @param {ViewerItem[]} [props.items]
+    @param {ViewerItem[]} [props.items] The files to show, in order.
     @param {number} [props.at] which of the items is shown
-    @param {ViewerItem} [props.beside]
+    @param {ViewerItem} [props.beside] A second file shown next to the first, to compare them.
     @param {(at: number) => void} [props.onMove]
     @param {() => void} [props.onClose] */
 export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest }) {

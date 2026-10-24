@@ -60,16 +60,16 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
     `onFiles(files, problems)`: each file chosen or dropped, and why it cannot be taken (`sniffedProblem`) or null.
     `disabled` draws the zone muted with no file input (20b); its children say why.
     @param {object} props
-    @param {import('./Icon.jsx').IconName} [props.icon]
-    @param {import('react').ReactNode} [props.children]
+    @param {import('./Icon.jsx').IconName} [props.icon] The icon above the words.
+    @param {import('react').ReactNode} [props.children] The words in the zone: what may be dropped here.
     @param {string} [props.accept] the file types taken, as a file input names them
-    @param {boolean} [props.multiple]
-    @param {number} [props.maxMb]
+    @param {boolean} [props.multiple] Several files can be dropped at once.
+    @param {number} [props.maxMb] The largest file it takes, in MB.
     @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles]
-    @param {import('react').ReactNode} [props.action]
-    @param {boolean} [props.grow]
-    @param {boolean} [props.row]
-    @param {boolean} [props.disabled]
+    @param {string} [props.action] Words drawn like a button inside the zone, such as Choose a file.
+    @param {boolean} [props.grow] Take the room left in the row.
+    @param {boolean} [props.row] Lay the zone on its side: the icon at the left, the words beside it.
+    @param {boolean} [props.disabled] The zone takes no files.
     @param {string} [props.id] */
 export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, grow = false, row = false, disabled = false, id, ...rest }) {
 	reject(rest, 'FileDrop')
@@ -151,21 +151,21 @@ export function pasteAnywhere(ev) {
     @param {object} props
     @param {string} [props.id]
     @param {string} [props.src] the picture in the slot, if there is one
-    @param {import('./Mark.jsx').MarkSize} [props.size]
-    @param {string} [props.kind]
-    @param {string} [props.word]
+    @param {import('./Mark.jsx').MarkSize} [props.size] The size of the box, as a Mark's sizes.
+    @param {string} [props.kind] What the picture is, shown on it, such as Photo.
+    @param {string} [props.word] The word in the empty box, such as Add.
     @param {string} [props.name]
-    @param {boolean} [props.start]
-    @param {string} [props.accept]
-    @param {(file: File) => Promise<string | null> | string | null} [props.inspect]
-    @param {string} [props.problem]
-    @param {boolean} [props.busy]
+    @param {boolean} [props.start] Align the box to the top of its row.
+    @param {string} [props.accept] The file types it takes.
+    @param {(file: File) => Promise<string | null> | string | null} [props.inspect] Checks a file and answers why it is refused, or null. Replaces the type and size check.
+    @param {string} [props.problem] Why the picture failed, shown in the box with Remove.
+    @param {boolean} [props.busy] The picture is being sent: a spinner is drawn over it.
     @param {(file: File) => void} [props.onFile]
     @param {() => void} [props.onRemove]
     @param {() => void} [props.onRetry]
-    @param {import('react').ReactNode} [props.lead]
-    @param {import('react').ReactNode} [props.trail]
-    @param {import('react').ReactNode} [props.unit]
+    @param {boolean} [props.lead] Set by the Field around it.
+    @param {boolean} [props.trail] Set by the Field around it.
+    @param {boolean} [props.unit] Set by the Field around it.
     @param {string} [props['aria-describedby']] */
 export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')

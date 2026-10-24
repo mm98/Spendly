@@ -1034,7 +1034,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				color={warn ? 'warning' : 'default'}
 				opens={!touch && !reordering}
 				// a phone's Reorder mode has the handle and the two buttons, both (1c)
-				handle={scan ? undefined : <Icon name="grip-vertical" size={14} />}
+				handle={!scan}
 				handleLabel={`Reorder ${named}, currently position ${at + 1} of ${lines.length}`}
 				mark={scan ? <><Include line={line} setLines={setLines} />{mark}</> : mark}
 				actions={reordering

@@ -7,7 +7,7 @@ import { ICONS } from './icons.js'
 
 /** @param {object} props
     @param {IconName} props.name
-    @param {number} [props.size] */
+    @param {number} [props.size] The width and height in pixels. */
 export function Icon({ name, size = 16 }) {
 	const paths = ICONS[name]
 	if (!paths) {
@@ -22,8 +22,8 @@ const MARKS = { '*': { fill: 'currentColor' }, '#': { fill: 'currentColor', stro
 
 /** A Tabler icon from its paths, each drawn on its own as Tabler draws it.
     @param {object} props
-    @param {string[]} props.paths
-    @param {number} props.size */
+    @param {string[]} props.paths The lines of the icon, as the icon set draws them.
+    @param {number} props.size The width and height in pixels. */
 export function Glyph({ paths, size }) {
 	return (
 		<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"

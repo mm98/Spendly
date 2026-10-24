@@ -15,7 +15,6 @@ export default {
 		title: 'Line 2 of 4', what: 'line', commit: 'Save line', first: false, last: false, saving: false, handle: false, sheet: false,
 		onMoveUp: fn(), onMoveDown: fn(), onDelete: fn(), onCommit: fn(), onCancel: fn()
 	},
-	argTypes: { photo: { control: false }, children: { control: false } }
 }
 
 export const EditALine = {

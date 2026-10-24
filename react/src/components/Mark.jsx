@@ -38,19 +38,19 @@ const swatchOf = name => {
 }
 
 /** @param {object} props
-    @param {MarkSize} [props.size]
-    @param {keyof typeof FILL} [props.fill]
+    @param {MarkSize} [props.size] `small` and `medium` for a list row, `large` for a head, `xlarge` for an attached picture.
+    @param {keyof typeof FILL} [props.fill] `default` is a light tint, `solid` a full colour, `plain` no fill, `photo` a picture, `empty` an empty frame to drop a picture in, `none` a grey box, `add` a frame that adds a picture.
     @param {string} [props.swatch] a colour of the set, or a colour value; only a solid mark is painted
-    @param {boolean} [props.round]
-    @param {boolean} [props.goods]
-    @param {boolean} [props.faded]
-    @param {number} [props.count]
-    @param {string} [props.text]
+    @param {boolean} [props.round] A circle rather than a rounded square.
+    @param {boolean} [props.goods] The picture shows goods (an item, an order) rather than paper. The light theme tones it.
+    @param {boolean} [props.faded] The picture stands in for a missing one, such as the vendor's picture in place of an item's photo. It is drawn faded.
+    @param {number} [props.count] A count drawn over the mark, such as 3 more pictures.
+    @param {string} [props.text] What the image is - a banner across the foot of the box, like a figtext.
     @param {string} [props.danger] why it failed, in place of text
-    @param {import('react').ReactNode} [props.remove]
-    @param {() => void} [props.onClick]
+    @param {import('react').ReactElement} [props.remove] The control that takes an attachment away.
+    @param {() => void} [props.onClick] Renders a button.
     @param {'span' | 'label'} [props.as] a label wraps a file input, as a picker's hit target
-    @param {import('react').ReactNode} [props.children] a name, which gives the initials and colour, or a part to draw */
+    @param {import('react').ReactNode} [props.children] A name, which gives the initials and the colour, or a part to draw inside the mark. */
 export function Mark({
 	size,
 	fill = 'default',
@@ -128,7 +128,7 @@ export function Mark({
 
 /** The control that takes an attachment away, in the mark's own corner.
     @param {object} props
-    @param {import('react').ReactNode} [props.children]
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The control's icon.
     @param {() => void} [props.onClick] */
 export function MarkRemove({ children, onClick, ...rest }) {
 	reject(rest, 'MarkRemove')

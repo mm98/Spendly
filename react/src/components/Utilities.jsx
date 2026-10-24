@@ -3,7 +3,7 @@ import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
 /** @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The lines, one under the other. */
 export function Stacked({ children, ...rest }) {
 	reject(rest, 'Stacked')
 	return <span className="sp-stacked sp-stacked--fill" {...rest}>{children}</span>
@@ -11,7 +11,7 @@ export function Stacked({ children, ...rest }) {
 
 /** One line of that column. The first sits to the top of its content, the rest centre.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What one line holds. */
 export function Line({ children, ...rest }) {
 	reject(rest, 'Line')
 	return <span className="sp-list-item__line" {...rest}>{children}</span>
@@ -20,8 +20,8 @@ export function Line({ children, ...rest }) {
 /** A key, as the reader sees it on their keyboard. `accent` is one inside a surface
     that is already green.
     @param {object} props
-    @param {boolean} [props.accent]
-    @param {import('react').ReactNode} [props.children] */
+    @param {boolean} [props.accent] For a key drawn on a green surface.
+    @param {import('react').ReactNode} [props.children] The key or keys, such as ⌘K. */
 export function Kbd({ accent = false, children, ...rest }) {
 	reject(rest, 'Kbd')
 	return <kbd className={join('sp-kbd', accent && 'sp-kbd--accent')} {...rest}>{children}</kbd>
@@ -29,8 +29,8 @@ export function Kbd({ accent = false, children, ...rest }) {
 
 /** Another state of a part laid over its resting form, which stays unseen beneath so the height holds (6b).
     @param {object} props
-    @param {import('react').ReactNode} props.shape the resting form, held unseen
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement} props.shape The usual form of the part. It stays hidden underneath, so the height does not jump.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The other state, drawn over it: loading, failed or empty. */
 export function Hold({ shape, children, ...rest }) {
 	reject(rest, 'Hold')
 	return (
@@ -42,8 +42,8 @@ export function Hold({ shape, children, ...rest }) {
 }
 
 /** @param {object} props
-    @param {boolean} [props.dashed]
-    @param {import('react').ReactNode} [props.children] */
+    @param {boolean} [props.dashed] Draw a dashed border around the empty state.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The mark, the title, the body and the action, in the order they are read. */
 export function Empty({ dashed = false, children, ...rest }) {
 	reject(rest, 'Empty')
 	return <div className={join('sp-empty', dashed && 'sp-empty--dashed')} {...rest}>{children}</div>
@@ -51,7 +51,7 @@ export function Empty({ dashed = false, children, ...rest }) {
 
 /** What is not here.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] What is missing, in one line. */
 export function EmptyTitle({ children, ...rest }) {
 	reject(rest, 'EmptyTitle')
 	return <span className="sp-empty__title" {...rest}>{children}</span>
@@ -59,7 +59,7 @@ export function EmptyTitle({ children, ...rest }) {
 
 /** What to do about it, under the title.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] Why it is empty, and what the reader can do. */
 export function EmptyBody({ children, ...rest }) {
 	reject(rest, 'EmptyBody')
 	return <span className="sp-empty__body" {...rest}>{children}</span>
@@ -81,7 +81,7 @@ const SKELETON = {
 }
 
 /** @param {object} props
-    @param {keyof typeof SKELETON} props.shape */
+    @param {keyof typeof SKELETON} props.shape The form of the grey placeholder: a line, a short line, a title, a pill, a mark, a check box, an icon, a chart bar, or `fill` for its whole box. */
 export function Skeleton({ shape, ...rest }) {
 	reject(rest, 'Skeleton')
 	return <span className={join('sp-skeleton', pick(SKELETON, shape, 'shape', 'Skeleton'))} aria-hidden="true" {...rest} />
@@ -100,7 +100,7 @@ export function Redacted(props) {
 }
 
 /** @param {object} props
-    @param {import('react').ReactNode} [props.children]
+    @param {import('react').ReactNode} [props.children] What the row adds, such as Add a line.
     @param {() => void} [props.onClick] */
 export function AddRow({ children, onClick, ...rest }) {
 	reject(rest, 'AddRow')

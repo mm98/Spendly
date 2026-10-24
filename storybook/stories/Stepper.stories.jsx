@@ -7,7 +7,7 @@ export default {
 	title: 'Fields/Stepper',
 	component: Stepper,
 	args: { onChange: fn() },
-	argTypes: { label: { control: 'text', description: 'The Field\'s label, which names the value and its buttons' }, fieldLabel: { control: false } },
+	argTypes: { label: { control: 'text', description: 'The Field\'s label, which names the value and its buttons' } },
 	render: ({ label, onChange, ...args }) => {
 		const [value, setValue] = useHeld(args, 'value')
 		return <Field label={label}><Stepper {...args} value={value} onChange={next => { setValue(next); onChange(next) }} /></Field>

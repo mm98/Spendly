@@ -4,6 +4,24 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## The design's components take narrower settings in the app
+
+- **Where:** `design/react_handoff/*.jsx` against `react/src/components/*.jsx`, in their type comments.
+- **What the reader sees:** nothing in the app. In Storybook, each setting has a control and a
+  description. The design's copies still type the settings below as any part, and most of their
+  settings have no description.
+- **What was found:** the app takes one kind of value where every caller passes one kind:
+  - text: Field `unit` and `kbd`, SearchInput `kbd`, FileDrop `action`, Record `more`, and the
+    facet count of a FieldGroup, which is "24 total" rather than a number;
+  - an icon name: Field `lead`, Picker `customIcon`;
+  - an icon name or a drawn icon: `chevron` on Card, Toolbar, SumHead and ListItem;
+  - on or off: Field `chevron`, the drag `handle` on ListItem and NavItem;
+  - the flags Field hands its control (`lead`, `trail`, `unit` on Combobox and Slot) are on or off.
+  A setting that holds only other parts is typed `ReactElement`, and one that takes words is
+  `ReactNode`, so Storybook knows which one gets a text box.
+- **Proposed shape:** Claude Design takes the same types and the descriptions into `design/`.
+- **Found:** 2026-10-24.
+
 ## The Files Docs page in Storybook opens under the file viewer
 
 - **Where:** Storybook, Fields/Files, the Docs page (`storybook/stories/FileDrop.stories.jsx`, the

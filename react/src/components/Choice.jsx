@@ -5,7 +5,7 @@ import { Icon } from './Icon.jsx'
 import { countOf } from './Combobox.jsx'
 
 /** @param {object} props
-    @param {boolean} [props.indeterminate] */
+    @param {boolean} [props.indeterminate] Some of the set is ticked, not all: the box shows a dash. */
 export function Check({ indeterminate = false, ...rest }) {
 	reject(rest, 'Check')
 	const box = useRef(null)
@@ -36,11 +36,11 @@ export function Switch({ ...rest }) {
 const CHOICE = { default: null, row: 'sp-choice--row', described: 'sp-choice--described' }
 
 /** @param {object} props
-    @param {keyof typeof CHOICE} [props.variant]
-    @param {import('react').ReactElement} props.control the box: a Check, Radio or Switch
-    @param {import('react').ReactNode} [props.children]
-    @param {import('react').ReactNode} [props.description]
-    @param {'meta' | 'help'} [props.descriptionTone] */
+    @param {keyof typeof CHOICE} [props.variant] `default`; `row` is a row in a list, filled when it is the one chosen; `described` adds a second line under the label.
+    @param {import('react').ReactElement} props.control The box: a Check, a Radio or a Switch.
+    @param {import('react').ReactNode} [props.children] The label.
+    @param {import('react').ReactNode} [props.description] The second line under the label. Needs the `described` variant.
+    @param {'meta' | 'help'} [props.descriptionTone] How the second line reads: `meta` is grey, `help` is the hint style of a field. */
 export function Choice({ variant = 'default', control, children, description, descriptionTone = 'meta', ...rest }) {
 	reject(rest, 'Choice')
 	if (description && variant !== 'described')
@@ -78,11 +78,11 @@ const keepFolded = (name, folded) => {
 /** `facet` is the group as a filter rail draws it (c12): its head, a `count` at its end, folds it (16a).
     A facet whose controls name themselves, as a range does, has a head row, its `meta` at the right.
     @param {object} props
-    @param {import('react').ReactNode} props.legend
-    @param {boolean} [props.facet]
-    @param {number} [props.count]
-    @param {import('react').ReactNode} [props.meta]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} props.legend What the set of controls is about.
+    @param {boolean} [props.facet] Draw the group as a filter: its head folds and unfolds it.
+    @param {string | number} [props.count] Facet only. How many values there are, drawn at the end of the head, such as 24 total.
+    @param {import('react').ReactNode} [props.meta] Facet only. A word at the right end of the head, such as the range now set.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The controls. */
 export function FieldGroup({ legend, facet = false, count, meta, children, ...rest }) {
 	reject(rest, 'FieldGroup')
 	if ((count !== undefined || meta !== undefined) && !facet) console.error('<FieldGroup> a count or a meta belongs to a facet head')
@@ -116,7 +116,7 @@ export function FieldGroup({ legend, facet = false, count, meta, children, ...re
 
 /** A facet's values: however many there are, they scroll inside the group past --list-max (16a).
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The values to pick from, such as chips or check boxes. A long set scrolls inside the group. */
 export function FieldGroupValues({ children, ...rest }) {
 	reject(rest, 'FieldGroupValues')
 	return <div className="sp-field-group__values" {...rest}>{children}</div>
@@ -125,7 +125,7 @@ export function FieldGroupValues({ children, ...rest }) {
 /** Shows the rest of a facet's values (c12).
     @param {object} props
     @param {() => void} [props.onClick]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] The button's words, such as Show all. */
 export function FieldGroupMore({ onClick, children, ...rest }) {
 	reject(rest, 'FieldGroupMore')
 	return <button type="button" className="sp-field-group__more" onClick={onClick} {...rest}>{children}</button>
@@ -133,7 +133,7 @@ export function FieldGroupMore({ onClick, children, ...rest }) {
 
 /** What a facet opens under its values, as the date facet's Custom range (c12, Order list 2d).
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What opens under the values, such as a custom date range. */
 export function FieldGroupPanel({ children, ...rest }) {
 	reject(rest, 'FieldGroupPanel')
 	return <div className="sp-field-group__panel" {...rest}>{children}</div>
@@ -191,19 +191,19 @@ function walk(ev) {
     out as they narrow; `more` is the "+N" cell, with `onMore` (c7). An icon option may carry a `label`,
     or be `loading` (a skeleton tile); `empty` stands in for a grid with no cells.
     @param {object} props
-    @param {string[]} [props.swatches] colours of the set by name, or colour values
-    @param {{ name: string, label?: string, loading?: boolean }[]} [props.icons]
-    @param {string} [props.value]
+    @param {string[]} [props.swatches] The colours to choose from, by name or as colour values.
+    @param {{ name: string, label?: string, loading?: boolean }[]} [props.icons] The icons to choose from. Each can have a label, or be a grey placeholder while loading.
+    @param {string} [props.value] The chosen colour or icon.
     @param {(value: string) => void} [props.onChange]
-    @param {boolean} [props.custom]
-    @param {import('react').ReactNode} [props.customIcon]
-    @param {string} [props.search]
+    @param {boolean} [props.custom] Colours only. Add a cell that picks a colour outside the set.
+    @param {import('./Icon.jsx').IconName} [props.customIcon] The icon on the custom cell before a colour outside the set is chosen.
+    @param {string} [props.search] Icons only. The words in the search above the icons.
     @param {(text: string) => void} [props.onSearch]
-    @param {string} [props.searchLabel]
-    @param {string} [props.noun]
-    @param {import('react').ReactNode} [props.more]
+    @param {string} [props.searchLabel] The search field's placeholder and name.
+    @param {string} [props.noun] What the cells are, plural, for the count read out as the search narrows them.
+    @param {import('react').ReactNode} [props.more] The words on a last cell that shows more icons, such as +40.
     @param {() => void} [props.onMore]
-    @param {import('react').ReactNode} [props.empty] */
+    @param {import('react').ReactNode} [props.empty] Shown in place of the icons when none match. */
 export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, noun, more, onMore, empty, ...rest }) {
 	reject(rest, 'Picker')
 	if (swatches && icons) console.error('<Picker> takes swatches or icons, not both')
@@ -260,7 +260,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 						aria-pressed={chosenOutside ? 'true' : 'false'}
 						{...(chosenOutside ? { style: { '--swatch': value } } : {})}
 					>
-						{chosenOutside ? null : customIcon}
+						{chosenOutside || !customIcon ? null : <Icon name={customIcon} />}
 						<input
 							type="color"
 							name="custom-colour"

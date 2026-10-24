@@ -1062,7 +1062,7 @@ function AccountsCard({ sheet, onChanged }) {
 							? <AccountEditor account={account} index={i} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
 							: (
 								<ListItem variant={reorder.variant(account)}
-									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}
+									handle handleLabel={`Move ${account.name}`}
 									{...reorder.row(account)}>
 									<span className="sp-stacked sp-grow bg-opens-account" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}

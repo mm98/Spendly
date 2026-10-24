@@ -1,6 +1,7 @@
 import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Skeleton } from './Utilities.jsx'
+import { Icon } from './Icon.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
@@ -10,11 +11,11 @@ const pct = n => `${Math.max(0, Math.min(100, n))}%`
     @param {number} props.value the fill, 0 to 100
     @param {number} [props.over] the part past the limit, 0 to 100
     @param {number} [props.marker] where the marker stands, 0 to 100
-    @param {boolean} [props.untargeted]
-    @param {boolean} [props.thin]
-    @param {boolean} [props.negative]
-    @param {boolean} [props.passed]
-    @param {boolean} [props.remainder] */
+    @param {boolean} [props.untargeted] No limit is set, so the track is plain rather than the tint of a limit being approached.
+    @param {boolean} [props.thin] The smaller one, for a gauge inside a row.
+    @param {boolean} [props.negative] Money came back: the fill grows from the right, in red.
+    @param {boolean} [props.passed] The limit is already passed: one full fill in the over colour.
+    @param {boolean} [props.remainder] The share of what is not listed: drawn in that colour at its width. */
 export function Gauge({ value, over, marker, untargeted = false, thin = false, negative = false, passed = false, remainder = false, ...rest }) {
 	reject(rest, 'Gauge')
 	return (
@@ -88,13 +89,13 @@ function useTickStep(box, columns, skip) {
     nothing may carry `readout`, its chart tooltip, and `label`, its name for a screen reader; `open` is the
     column a finger tapped, whose readout stays until a tap elsewhere (Ask 24d).
     @param {object} props
-    @param {BarsColumn[]} [props.columns]
-    @param {keyof typeof BARS} [props.variant]
-    @param {boolean} [props.days]
-    @param {string} [props.selected]
-    @param {string} [props.open]
+    @param {BarsColumn[]} [props.columns] The columns, in order. Each has a key, a label, a height in percent, and may be split in parts or paired.
+    @param {keyof typeof BARS} [props.variant] `default`; `plot` takes the plot frame's height; `card` the height of a card; `spark` is the chart at a figure's size.
+    @param {boolean} [props.days] One bar per day.
+    @param {string} [props.selected] The key of the column the reader drilled into.
+    @param {string} [props.open] The key of the column a finger tapped, whose readout stays open until a tap elsewhere.
     @param {(key: string, from?: string, to?: string) => void} [props.onSelect]
-    @param {boolean} [props.loading]
+    @param {boolean} [props.loading] Draw grey placeholder bars while the figures load.
     @param {import('react').Ref<HTMLDivElement>} [props.ref] */
 export function Bars({ columns = [], variant = 'default', days = false, selected, open, onSelect, loading = false, ref, ...rest }) {
 	reject(rest, 'Bars')
@@ -214,10 +215,10 @@ const SERIES = { 1: '1', 2: '2', 3: '3', 4: '4' }
 /** A chart step's readout (c18, the tooltip as a panel): its name and total, a row per series
     drawn, and a line under them. Bars hangs it beside the column it reads.
     @param {object} props
-    @param {string} props.title
-    @param {string} [props.value]
-    @param {{ key: string, name: string, series: keyof typeof SERIES, value: string }[]} [props.rows]
-    @param {import('react').ReactNode} [props.note] */
+    @param {string} props.title The step's name, such as a month.
+    @param {string} [props.value] The step's total.
+    @param {{ key: string, name: string, series: keyof typeof SERIES, value: string }[]} [props.rows] One row per series drawn: its name, its colour and its value.
+    @param {import('react').ReactNode} [props.note] A line under the rows, such as 12 orders. */
 export function ChartTip({ title, value, rows = [], note, ...rest }) {
 	reject(rest, 'ChartTip')
 	return (
@@ -241,10 +242,10 @@ const RING = { 1: 'var(--green)', 2: 'var(--green-3)', 3: 'var(--green-4)', 4: '
 /** The ring a share list is read from (c14, 4a): a slice per share in that share's series key, and
     the whole named in its hole. `loading` holds its place before the shares arrive.
     @param {object} props
-    @param {{ series: keyof typeof SERIES, value: number }[]} [props.shares]
-    @param {string} [props.figure]
-    @param {string} [props.label]
-    @param {boolean} [props.loading] */
+    @param {{ series: keyof typeof SERIES, value: number }[]} [props.shares] The slices: each one's series colour and its value.
+    @param {string} [props.figure] The figure in the ring's hole, such as the total.
+    @param {string} [props.label] What the figure is, under it.
+    @param {boolean} [props.loading] Hold the ring's place before the shares arrive. */
 export function Donut({ shares = [], figure, label, loading = false, ...rest }) {
 	reject(rest, 'Donut')
 	let at = 0
@@ -272,7 +273,7 @@ export function Donut({ shares = [], figure, label, loading = false, ...rest }) 
 
 /** The share list a donut is read from (c14), one ShareRow per share.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One ShareRow for each share. */
 export function Shares({ children, ...rest }) {
 	reject(rest, 'Shares')
 	return <div className="sp-shares" {...rest}>{children}</div>
@@ -281,12 +282,12 @@ export function Shares({ children, ...rest }) {
 /** One share: its series key, what it is, its `amount` when shown, and its value. A share is a filter, so it
     is a button; in an answer it opens its orders, so it is a link to `href` (Ask 24d).
     @param {object} props
-    @param {keyof typeof SERIES} [props.series]
-    @param {string} props.value
-    @param {string} [props.amount]
-    @param {string} [props.href]
+    @param {keyof typeof SERIES} [props.series] The series colour, 1 to 4.
+    @param {string} props.value The share, such as 42 %.
+    @param {string} [props.amount] The amount, when it is shown.
+    @param {string} [props.href] In an answer: the address of the share's orders. The row is then a link.
     @param {() => void} [props.onClick]
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactNode} [props.children] What the share is. */
 export function ShareRow({ series = 1, value, amount, href, onClick, children, ...rest }) {
 	reject(rest, 'ShareRow')
 	const body = (
@@ -306,7 +307,7 @@ export function ShareRow({ series = 1, value, amount, href, onClick, children, .
 
 /** What each series of a chart is (c14). Drawn only when a chart has more than one.
     @param {object} props
-    @param {import('react').ReactNode} [props.children] */
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One LegendItem for each series. */
 export function Legend({ children, ...rest }) {
 	reject(rest, 'Legend')
 	return <div className="sp-legend" {...rest}>{children}</div>
@@ -314,8 +315,8 @@ export function Legend({ children, ...rest }) {
 
 /** `series="limit"` is the plot's limit line, named here rather than on the line (4a).
     @param {object} props
-    @param {keyof typeof SERIES | 'limit'} [props.series]
-    @param {import('react').ReactNode} [props.children] */
+    @param {keyof typeof SERIES | 'limit'} [props.series] The series colour, 1 to 4, or `limit` for the limit line.
+    @param {import('react').ReactNode} [props.children] What the series is. */
 export function LegendItem({ series = 1, children, ...rest }) {
 	reject(rest, 'LegendItem')
 	return (
@@ -329,10 +330,10 @@ export function LegendItem({ series = 1, children, ...rest }) {
 }
 
 /** @param {object} props
-    @param {string[]} [props.axis]
-    @param {number} [props.gridlines]
-    @param {{ at: string }} [props.limit]
-    @param {import('react').ReactNode} [props.children] */
+    @param {string[]} [props.axis] The values, highest first.
+    @param {number} [props.gridlines] How many rules behind the bars.
+    @param {{ at: string }} [props.limit] Where the limit line is drawn, from the top of the plot.
+    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The Bars. */
 export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 	reject(rest, 'Plot')
 	return (
@@ -360,15 +361,15 @@ const HELP_INK = { default: null, warning: 'warning', success: 'success', danger
     own. A card's name is its CardHeader (4a), so a bare figure's label is only ever the quiet line
     a phone tile names it with (7a).
     @param {object} props
-    @param {string} props.figure
-    @param {boolean} [props.large]
-    @param {keyof typeof STAT_INK} [props.color]
-    @param {string} [props.label]
-    @param {import('react').ReactNode} [props.delta]
-    @param {import('react').ReactNode} [props.meta]
-    @param {import('react').ReactNode} [props.help]
-    @param {keyof typeof HELP_INK} [props.helpColor]
-    @param {boolean} [props.bare] */
+    @param {string} props.figure The figure, written out, such as 12.400 kr.
+    @param {boolean} [props.large] Draw the figure at the large size.
+    @param {keyof typeof STAT_INK} [props.color] The figure's colour: `default`, `success` (green), or `zero` (grey).
+    @param {string} [props.label] The grey line that names the figure on a phone tile.
+    @param {import('react').ReactNode} [props.delta] How the figure moved, such as +4 %.
+    @param {import('react').ReactNode} [props.meta] The grey line under the figure: what it is measured against.
+    @param {import('react').ReactNode} [props.help] The same line written as a field's hint, such as a drilled figure's share of the level above.
+    @param {keyof typeof HELP_INK} [props.helpColor] The hint's colour: `default`, `warning`, `success` or `danger`.
+    @param {boolean} [props.bare] No box of its own: the parts sit straight in the card or row that holds them. */
 export function Stat({ figure, large = false, color = 'default', label, delta, meta, help, helpColor = 'default', bare = false, ...rest }) {
 	reject(rest, 'Stat')
 	const parts = (
@@ -392,10 +393,10 @@ const SUM_TONE = { default: null, expected: 'sp-ink-5', success: 'sp-ink-success
 /** What a summary is about (c21), and as a card that opens it (Order create 3a): its mark, its
     name, one line under it, and the card's chevron when the card is a link.
     @param {object} props
-    @param {import('react').ReactNode} [props.mark]
-    @param {string} props.title
-    @param {string} [props.subtitle]
-    @param {import('react').ReactNode} [props.chevron] */
+    @param {import('react').ReactElement} [props.mark] The mark at the start.
+    @param {string} props.title What the summary is about.
+    @param {string} [props.subtitle] One line under it.
+    @param {import('./Icon.jsx').IconName | import('react').ReactElement} [props.chevron] An arrow at the end, when the card opens it: an icon name, or a drawn icon. */
 export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 	reject(rest, 'SumHead')
 	return (
@@ -405,7 +406,7 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 				<span className="sp-title">{title}</span>
 				{subtitle ? <span className="sp-subtitle">{subtitle}</span> : null}
 			</span>
-			{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}
+			{chevron ? <span className="sp-card__chevron">{typeof chevron === 'string' ? <Icon name={chevron} /> : chevron}</span> : null}
 		</span>
 	)
 }
@@ -414,13 +415,13 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
     a name the reader typed, which ends in an ellipsis rather than wrapping. An `edits` line opens its
     amount in place when pressed, and shows it under the pointer (Budget 21a); `meta` is the line under its name.
     @param {object} props
-    @param {keyof typeof SUM} [props.variant]
-    @param {keyof typeof SUM_TONE} [props.tone]
-    @param {boolean} [props.named]
-    @param {boolean} [props.edits]
-    @param {import('react').ReactNode} [props.meta]
-    @param {string} props.value
-    @param {import('react').ReactNode} [props.children] */
+    @param {keyof typeof SUM} [props.variant] `default`; `stacked` puts the amount under the name; `total` is the last line.
+    @param {keyof typeof SUM_TONE} [props.tone] The amount's colour: `default`, `expected` (grey), `success` or `danger`.
+    @param {boolean} [props.named] A name the reader typed: it ends in an ellipsis rather than wrapping.
+    @param {boolean} [props.edits] Pressing the line opens its amount for editing in place.
+    @param {import('react').ReactNode} [props.meta] The grey line under the name.
+    @param {string} props.value What the line comes to, written out.
+    @param {import('react').ReactNode} [props.children] What the line is. */
 export function Sum({ variant = 'default', tone = 'default', named = false, edits = false, meta, value, children, ...rest }) {
 	reject(rest, 'Sum')
 	// a line typed into is a title stack, the row's own child: the touch rule cuts its name there (7a)

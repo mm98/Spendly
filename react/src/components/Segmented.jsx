@@ -5,13 +5,13 @@ const VARIANT = { default: null, facet: 'sp-segmented--facet', narrow: 'sp-segme
 /** `fixed` is a set that is ordered and never grows, like the twelve months (Budget 21a): it
     stays segments past four, where any other set becomes a Combobox.
     @param {object} props
-    @param {string} props.name
-    @param {{ value: string, label: string, disabled?: boolean }[]} [props.options]
-    @param {string} [props.value]
-    @param {string} [props.defaultValue]
+    @param {string} props.name Groups the radios.
+    @param {{ value: string, label: string, disabled?: boolean }[]} [props.options] The segments, in order: the value each stands for, its label, and whether it is turned off.
+    @param {string} [props.value] The chosen value. Leave it out to let the control keep its own state.
+    @param {string} [props.defaultValue] The value chosen at first, when the control keeps its own state.
     @param {(value: string) => void} [props.onChange]
-    @param {keyof typeof VARIANT} [props.variant]
-    @param {boolean} [props.fixed] */
+    @param {keyof typeof VARIANT} [props.variant] `default`, `facet` for the switch at the head of a filter panel, `narrow` no wider than a field, `fill` spans its column with equal segments.
+    @param {boolean} [props.fixed] A set that is ordered and never grows, like the twelve months. It stays segments past four options. */
 export function Segmented({ name, options = [], value, defaultValue, onChange, variant = 'default', fixed = false, ...rest }) {
 	reject(rest, 'Segmented')
 	if (options.length > 4 && !fixed) console.error('<Segmented> more than four options is a Combobox')

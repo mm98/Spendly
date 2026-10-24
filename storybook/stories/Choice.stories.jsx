@@ -24,7 +24,7 @@ const box = ({ args, ...story } = {}) => ({
 		disabled: { description: 'The box\'s own `disabled`' },
 		indeterminate: { description: 'A checkbox standing for some of a set', if: { arg: 'box', eq: 'check' } },
 		description: { if: { arg: 'variant', eq: 'described' } },
-		control: { control: false }
+		
 	},
 	render: args => {
 		const [checked, setChecked] = useHeld(args, 'checked')
@@ -117,8 +117,8 @@ const pickerStory = extra => ({
 
 export const Colours = {
 	parameters: { a11y: knownAccessibilityFaults, variantsOf: Picker },
-	...pickerStory({ swatches: SWATCHES, customIcon: <Icon name="plus" /> }),
-	args: { 'aria-label': 'Colour', value: 'green-2', custom: true, onChange: fn() },
+	...pickerStory({ swatches: SWATCHES }),
+	args: { 'aria-label': 'Colour', value: 'green-2', custom: true, customIcon: 'plus', onChange: fn() },
 	argTypes: { value: { control: 'select', options: SWATCHES } },
 	play: async ({ args, canvas }) => {
 		const mid = canvas.getByRole('button', { name: 'Mid green' })
