@@ -90,6 +90,18 @@ function useCurrent(fn, args, options) {
 	return { ...state, data: current ? state.data : undefined }
 }
 
+/* The last two answers, newest first, each with its arguments: a card keeps its figures until the new
+   period's land, then counts and moves to them. A change other than the period (`same`) drops them. */
+function useAnswers(state, args, same) {
+	const [held, setHeld] = useState([])
+	const fresh = state.data !== undefined && held[0]?.data !== state.data
+	if (fresh) setHeld([{ data: state.data, args, same }, ...held].slice(0, 2))
+	return (fresh ? [{ data: state.data, args, same }, ...held] : held).filter(answer => answer.same === same)
+}
+
+/** The answer among `answers` for one period, or none. */
+const answerFor = (answers, range, windowId) => answers.find(a => a.args[0].range === range && a.args[0].windowId === windowId)
+
 /** The vendors or the categories the crumbs name, by id, archived ones too. */
 function useCrumbRecords(read, crumbs, kind) {
 	const ids = crumbs.filter(c => c.kind === kind && c.value !== 'none').map(c => c.value)
@@ -151,15 +163,18 @@ export default function Statistics() {
 	const filter = filterOf(crumbs)
 	// each step of the chart carries its own median order, so the request names the step the chart draws
 	const step = unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs)
-	const stats = useCurrent(getStatsSlice, [{ ...base, step, ...filter }])
+	const statsArgs = [{ ...base, step, ...filter }]
+	const stats = useCurrent(getStatsSlice, statsArgs)
 	// the window still running is compared with the same number of days of the earlier one
 	const [pastFrom, pastTo] = boundsOf(range, before)
 	const daysIn = Math.floor((todayUtc() - fromMs) / DAY_MS) + 1
 	const sameDays = todayUtc() >= fromMs && todayUtc() <= toMs ? Math.min(daysIn, Math.round((pastTo - pastFrom) / DAY_MS) + 1) : null
 	const pastLast = isoOf(pastFrom + ((sameDays ?? 1) - 1) * DAY_MS)
-	const past = useCurrent(getStatsSlice, [{ ...base, windowId: before, ...filter, ...(sameDays == null ? {} : { to: pastLast }) }], { enabled: comparing })
+	const pastArgs = [{ ...base, windowId: before, ...filter, ...(sameDays == null ? {} : { to: pastLast }) }]
+	const past = useCurrent(getStatsSlice, pastArgs, { enabled: comparing })
 	// inside a crumb every figure is held against the level above it (4b)
-	const parent = useCurrent(getStatsSlice, [{ ...base, ...filterOf(crumbs.slice(0, -1)) }], { enabled: drilled })
+	const parentArgs = [{ ...base, ...filterOf(crumbs.slice(0, -1)) }]
+	const parent = useCurrent(getStatsSlice, parentArgs, { enabled: drilled })
 	// every category with a limit, the records the crumbs name, and how many categories there are
 	const categories = useApi(getLimitedCategories)
 	const vendors = useCrumbRecords(getVendorPage, crumbs, 'vendor')?.vendors
@@ -169,12 +184,16 @@ export default function Statistics() {
 	// the table's loaded pages are in the address, as on every list (4d); a new period or crumb drops them
 	const { pages, setPages, restored } = useListMemory()
 	const size = usePageSize()
-	const slice = JSON.stringify({ base, filter, size })
-	const read = useCurrent(getSliceOrderPages, [{ ...base, ...filter }, size, pages], { enabled: !touch && size != null })
-	// the rows already drawn stay while Load more fetches the next page of the same slice
-	const [shownRows, setShownRows] = useState(null)
-	if (read.data && shownRows?.data !== read.data) setShownRows({ slice, data: read.data })
-	const loadedRows = read.data ?? (shownRows?.slice === slice ? shownRows.data : undefined)
+	const readArgs = [{ ...base, ...filter }, size, pages]
+	const read = useCurrent(getSliceOrderPages, readArgs, { enabled: !touch && size != null })
+	// everything but the period: while only the period moves, the cards keep the last period's answers
+	const same = JSON.stringify({ flow, including, filter, comparing, touch, size })
+	const statsAnswers = useAnswers(stats, statsArgs, same)
+	const pastAnswers = useAnswers(past, pastArgs, same)
+	const parentAnswers = useAnswers(parent, parentArgs, same)
+	// the rows already drawn stay while Load more fetches the next page of the same period
+	const readAnswers = useAnswers(read, readArgs, same)
+	const loadedRows = answerFor(readAnswers, range, id)?.data
 	const loadMore = () => (read.error ? read.refresh() : setPages(pages + 1))
 	// the window goes back to where the reader left it once the rows are drawn, or there are none to draw
 	const drawn = !!stats.error || (!!stats.data && (touch || !stats.data.window.orders || !!loadedRows || !!read.error))
@@ -231,7 +250,18 @@ export default function Statistics() {
 	const older = stats.data ? stats.data.older : range === 'custom' ? null : windowIdAt(range, fromMs - DAY_MS)
 	const newer = stats.data ? stats.data.newer : range !== 'custom' && toMs < todayUtc() ? windowIdAt(range, toMs + DAY_MS) : null
 
-	const view = stats.data?.window
+	/* The period the cards show trails the one chosen until all its answers land, so they change
+	   together; every answer beside it is that same period's, so no figure stands beside another's. */
+	const complete = answer => {
+		const { range: r, windowId: w } = answer.args[0]
+		return (!comparing || past.error || answerFor(pastAnswers, r, yearEarlier(r, w)))
+			&& (!drilled || parent.error || answerFor(parentAnswers, r, w))
+			&& (touch || size == null || read.error || answerFor(readAnswers, r, w))
+	}
+	const viewAnswer = statsAnswers.find(complete) ?? statsAnswers[0]
+	const { range: viewRange, windowId: viewId } = viewAnswer?.args[0] ?? statsArgs[0]
+	const view = viewAnswer?.data.window
+	const [viewFromMs, viewToMs] = boundsOf(viewRange, viewId)
 
 	const quick = quickRanges(stats.data?.firstOrder)
 	const rangePicker = draft
@@ -341,16 +371,16 @@ export default function Statistics() {
 	const scan = useScanPicker()
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 
-	const name = nameOf(range, id)
-	const nameInText = nameOf(range, id, true)
+	const name = nameOf(viewRange, viewId)
+	const nameInText = nameOf(viewRange, viewId, true)
 	// a card's meta names a month by the month alone, as 4g does; every other period by its name
-	const cardName = range === 'month' ? stepLabel('month', id) : name
+	const cardName = viewRange === 'month' ? stepLabel('month', viewId) : name
 	// limits are set per month: a period of whole months is counted in months, any other in days
-	const first = new Date(fromMs), after = new Date(toMs + DAY_MS)
+	const first = new Date(viewFromMs), after = new Date(viewToMs + DAY_MS)
 	const span = first.getUTCDate() === 1 && after.getUTCDate() === 1
 		? { count: (after.getUTCFullYear() - first.getUTCFullYear()) * 12 + after.getUTCMonth() - first.getUTCMonth(), unit: 'month' }
-		: { count: Math.round((toMs - fromMs) / DAY_MS) + 1, unit: 'day' }
-	const labels = { vendors, categories: crumbCategories, windowYear: id.slice(0, 4) }
+		: { count: Math.round((viewToMs - viewFromMs) / DAY_MS) + 1, unit: 'day' }
+	const labels = { vendors, categories: crumbCategories, windowYear: viewId.slice(0, 4) }
 	const crumbsBar = drilled
 		? <CrumbsBar root={name} crumbs={crumbs} labels={labels} link={ordersLink(view?.slice ?? { from, to }, crumbs)}
 			onTruncate={i => write({ crumbs: crumbs.slice(0, i + 1) })}
@@ -426,8 +456,9 @@ export default function Statistics() {
 	const selectedKey = time ? chart.columns.find(c => c.crumb?.value === time.value)?.key ?? null : null
 	const sliceName = time ? crumbLabel(time, labels) : name
 	const sliceInText = time ? crumbLabel(time, labels, true) : nameInText
-	const wasName = nameOf(range, before)
-	const was = comparing && past.data ? past.data.window : null
+	const wasName = nameOf(viewRange, yearEarlier(viewRange, viewId))
+	const pastAnswer = comparing ? answerFor(pastAnswers, viewRange, yearEarlier(viewRange, viewId)) : undefined
+	const was = pastAnswer?.data.window ?? null
 	const failedNotice = comparing && past.error
 		? (
 			<Alert color="danger" mark="!" title={`${wasName} did not load`} action={<Button variant="outline" size="small" onClick={retry}>Try again</Button>}>
@@ -447,18 +478,19 @@ export default function Statistics() {
 			: (categories.data ?? []).reduce((sum, c) => sum + (c.budget > 0 && spentIn.has(c.id) ? c.budget : 0), 0)
 	// a bar of days or weeks gets its share of the monthly limit, so the line stands where a month on limit would be
 	const stepDays = { day: 1, week: 7 }[chart.unit]
-	const windowDays = Math.round((toMs - fromMs) / DAY_MS) + 1
+	const windowDays = Math.round((viewToMs - viewFromMs) / DAY_MS) + 1
 	const limitPerStep = chart.unit === 'month' ? limit : stepDays ? (limit * view.budgets.months * stepDays) / windowDays : 0
 	const records = crumbs.filter(c => !isTime(c)).map(c => crumbLabel(c, labels))
 	const narrowed = records.length ? `${records.join(dot)}${records.length === 1 ? ' only' : ''}` : null
 
 	// an order added while paging shifts the pages by one, so a row can arrive twice
-	const rows = [...new Map((loadedRows?.orders ?? []).map(order => [order.id, order])).values()]
+	const viewRows = answerFor(readAnswers, viewRange, viewId)?.data
+	const rows = [...new Map((viewRows?.orders ?? []).map(order => [order.id, order])).values()]
 	const table = touch
 		? <SliceCard view={view} link={ordersLink(view.slice, crumbs)} drilled={drilled} />
 		: (
 			<OrdersTable view={view} name={sliceInText} drilled={drilled} rows={rows}
-				matched={loadedRows?.matched} failed={read.error} onLoadMore={loadMore} onRetry={retry} />
+				matched={viewRows?.matched} failed={read.error} onLoadMore={loadMore} onRetry={retry} />
 		)
 	const spendChart = (
 		<SpendChart chart={chart} touch={touch} selected={selectedKey} narrowed={narrowed}
@@ -467,15 +499,15 @@ export default function Statistics() {
 	)
 
 	if (drilled) {
-		const parentView = parent.data?.window
-		const above = crumbs.length > 1 ? OF_CRUMB[crumbs.at(-2).kind] : OF_WINDOW[range] ?? 'the period'
+		const parentView = answerFor(parentAnswers, viewRange, viewId)?.data.window
+		const above = crumbs.length > 1 ? OF_CRUMB[crumbs.at(-2).kind] : OF_WINDOW[viewRange] ?? 'the period'
 		/* The card beside the chart is the first breakdown the path has not already narrowed. */
 		const side = !categoryCrumb
-			? <CategoryRows key={`category ${slice}`} view={view} onOpen={drillTo('category')} hint />
+			? <CategoryRows key={`category ${same}`} view={view} onOpen={drillTo('category')} hint />
 			: category?.budget > 0 && chart.unit === 'month' && flow !== 'refunds'
-				? <LimitByMonth key={`by month ${slice}`} chart={chart} category={category} touch={touch} />
+				? <LimitByMonth key={`by month ${same}`} chart={chart} category={category} touch={touch} />
 				: !vendorCrumb
-					? <VendorsCard key={`vendors ${slice}`} view={view} name={sliceName} touch={touch} onOpen={drillTo('vendor')} />
+					? <VendorsCard key={`vendors ${same}`} view={view} name={sliceName} touch={touch} onOpen={drillTo('vendor')} />
 					: !statusCrumb
 						? <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />
 						: <SavingChart chart={chart} name={sliceName} touch={touch} selected={selectedKey} />
@@ -496,19 +528,19 @@ export default function Statistics() {
 		period,
 		notice: failedNotice,
 		kpis: (
-			<Kpis view={view} chart={chart} was={was} by={sameDays == null ? null : dayAndMonth(pastLast)}
+			<Kpis view={view} chart={chart} was={was} by={pastAnswer?.args[0].to ? dayAndMonth(pastAnswer.args[0].to) : null}
 				waiting={comparing && !was && !past.error} touch={touch} />
 		),
 		chart: spendChart,
 		byCategory: touch
-			? <CategoryRows key={`category ${range} ${id}`} view={view} known={known} name={cardName} onOpen={drillTo('category')} />
+			? <CategoryRows key={`category ${same}`} view={view} known={known} name={cardName} onOpen={drillTo('category')} />
 			: <CategoryCard view={view} known={known} name={cardName} onOpen={drillTo('category')} />,
 		byStatus: <StatusCard view={view} flow={flow} onOpen={drillTo('status')} />,
-		vendors: <VendorsCard key={`vendors ${range} ${id}`} view={view} name={cardName} touch={touch} onOpen={drillTo('vendor')} />,
+		vendors: <VendorsCard key={`vendors ${same}`} view={view} name={cardName} touch={touch} onOpen={drillTo('vendor')} />,
 		saving: <SavingChart chart={chart} name={name} touch={touch} selected={selectedKey}
 			onOpen={canDrill({ kind: 'month' }) ? column => drill(column.crumb) : undefined} />,
 		limits: flow === 'refunds' ? null
-			: <LimitCard key={`limits ${range} ${id}`} view={view} period={nameInText} span={span} categories={categories} touch={touch} onRetry={retry} />,
+			: <LimitCard key={`limits ${same}`} view={view} period={nameInText} span={span} categories={categories} touch={touch} onRetry={retry} />,
 		slice: table
 	})
 }
