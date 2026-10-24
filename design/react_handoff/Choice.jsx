@@ -14,8 +14,6 @@ import { join, pick, reject } from './variants.js'
 
 /**
  * @param {object} props
- * @param {boolean} [props.checked] Controlled. Omit for uncontrolled.
- * @param {boolean} [props.defaultChecked]
  * @param {boolean} [props.indeterminate] Some of the set, not all.
  */
 export function Check({ indeterminate = false, ...rest }) {
@@ -37,13 +35,17 @@ export function Check({ indeterminate = false, ...rest }) {
 	)
 }
 
-/** One of a set, where picking one unpicks the others. Needs a `name`. */
+/**
+ * One of a set, where picking one unpicks the others. Needs a `name`.
+ */
 export function Radio({ ...rest }) {
 	reject(rest, 'Radio')
 	return <input type="radio" className="sp-radio" {...rest} />
 }
 
-/** A checkbox whose change applies at once, so the form has nothing to save. */
+/**
+ * A checkbox whose change applies at once, so the form has nothing to save.
+ */
 export function Switch({ ...rest }) {
 	reject(rest, 'Switch')
 	return <input type="checkbox" className="sp-switch" {...rest} />
@@ -55,17 +57,15 @@ const CHOICE = { default: null, row: 'sp-choice--row', described: 'sp-choice--de
  * A box and its label, as one target. The label is the hit area, so the box needs
  * no `id` and no `htmlFor`.
  *
- * @param {object} props
- * @param {'default'|'row'|'described'} [props.variant] `row` is a choice that is a
- *   row in a list, filled when it is the one chosen. `described` carries a second
- *   line under its label.
- * @param {React.ReactNode} props.control A Check, Radio or Switch. A Field around
- *   this Choice hands down an id, a description and a colour; they are forwarded to
- *   the control, since that is the element they have to land on.
- * @param {React.ReactNode} props.children The label.
- * @param {React.ReactNode} [props.description] The second line. Described variant.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {keyof typeof CHOICE} [props.variant] `row` is a choice that is a row in a list, filled when it is the one chosen. `described` carries a second line under its label.
+ * @param {import('react').ReactElement} props.control A Check, Radio or Switch. A Field around this Choice hands down an id, a description and a colour; they are forwarded to the control, since that is the element they have to land on.
+ * @param {import('react').ReactNode} props.children The label.
+ * @param {import('react').ReactNode} [props.description] The second line. Described variant.
  */
 export function Choice({ variant = 'default', control, children, description, ...rest }) {
 	reject(rest, 'Choice')
@@ -114,10 +114,13 @@ export function Choice({ variant = 'default', control, children, description, ..
  * same axis, same 12/600 legend - so they are this component now, with the group's
  * gap settled at the field's 6.
  *
- * @param {React.ReactNode} props.legend What the set is.
- * @param {React.ReactNode} props.children The controls.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} props.legend What the set is.
+ * @param {import('react').ReactNode} props.children The controls.
  */
 export function FieldGroup({ legend, children, ...rest }) {
 	reject(rest, 'FieldGroup')
@@ -148,17 +151,17 @@ export function FieldGroup({ legend, children, ...rest }) {
  * marked as chosen - because a colour that cannot be seen or unpicked is not a
  * choice, it is a dialog that happened.
  *
- * @param {object} props
- * @param {string[]} [props.swatches] Names from the library's set, or colour values.
- * @param {Array<{name: string, icon: React.ReactNode}>} [props.icons]
- * @param {string} props.value The chosen swatch, colour value or icon name.
- * @param {(value: string) => void} props.onChange
- * @param {string} props['aria-label'] What is being chosen.
- * @param {boolean} [props.custom] Offer a colour outside the set. Colour groups only.
- * @param {React.ReactNode} [props.customIcon] An Icon for the custom cell when
- *   nothing outside the set has been chosen yet.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {string[]} [props.swatches] Names from the library's set, or colour values.
+ * @param {{ name: string, label?: string, loading?: boolean }[]} [props.icons]
+ * @param {string} props.value The chosen swatch, colour value or icon name.
+ * @param {(value: string) => void} props.onChange
+ * @param {boolean} [props.custom] Offer a colour outside the set. Colour groups only.
+ * @param {import('react').ReactNode} [props.customIcon] An Icon for the custom cell when nothing outside the set has been chosen yet.
  */
 export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, ...rest }) {
 	reject(rest, 'Picker')

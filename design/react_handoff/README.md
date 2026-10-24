@@ -48,6 +48,13 @@ each, strips the module syntax, and evaluates it against React with three stand-
 (the router link, the app's `Icon`, React's hooks). Nothing is redrawn there, so a
 prop set that drifts from the library shows up as a broken specimen.
 
+## Every prop is documented
+
+Each export carries a JSDoc block in the app's form: `@param {object} props`, then
+one `@param` per prop it destructures, with the app's types (`import('react').ReactNode`,
+`keyof typeof MAP`). Storybook reads it for the props table. `styles/check.js`
+asserts every destructured prop is in the block.
+
 ## What is exported, and what is not
 
 Exported: what a page composes - a control, a surface, or a part a page puts inside

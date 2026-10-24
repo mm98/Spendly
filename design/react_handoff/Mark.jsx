@@ -102,39 +102,17 @@ const useInk = (paints, deps) => {
 
 /**
  * @param {object} props
- * @param {'small'|'medium'|'large'|'xlarge'} props.size `xlarge` is the attachment
- *   size - the box an uploaded image is shown in, which was its own component until
- *   four of its nine rules turned out to be the mark's already.
- * @param {'default'|'solid'|'plain'|'photo'|'empty'|'none'|'add'} [props.fill]
-
- * @param {React.ReactNode} [props.children] What the mark stands for. A string - a
- *   record's own name - and the mark derives its initials and its colour from it, so
- *   one vendor looks the same in every list. An element instead, an icon, for a thing
- *   whose look the user picked. There is no prop for the name: the mark's accessible
- *   name is `aria-label`, and this is the thing itself.
- * @param {string} [props.swatch] Which colour a solid mark takes - a swatch name
- *   from the library's set. A colour the user picked outside the set is not a swatch:
- *   pass it as style={{ background }} and the ink is worked out from it the same way.
- *   For a mark whose colour the user picked; a mark with a `name` derives its own, so passing both is how two lists
- *   end up showing the same record in two colours.
- * @param {boolean} [props.round] A circle rather than a rounded square. The shape
- *   says what kind of thing it is - a person is a circle everywhere, a record is
- *   not - so it is the mark's own axis and not a consequence of what it holds.
- * @param {string|number} [props.count] Sits over the mark.
- * @param {React.ReactNode} [props.text] What the image is - a banner across the
- *   foot of the box, like a figtext. "Receipt", "PDF".
- * @param {React.ReactNode} [props.danger] Why it could not be kept, in the same
- *   banner. The colour is not a parameter: it follows from which of the two you
- *   passed, so a text cannot be red and a failure cannot be quiet.
- * @param {React.ReactNode} [props.remove] The control that takes an attachment away.
- *   Quiet until the box is hovered or holds focus. A mark with one cannot itself be
- *   a button, so passing `onClick` alongside it renders the opening control inside
- *   the box instead - a button inside a button is not a thing the browser draws.
- * @param {string} [props['aria-label']] What it is, for a screen reader - a box
- *   holding initials or a photo has no text of its own to read. Passed straight
- *   through, so the call says it is for assistive technology and not for the page.
+ * @param {MarkSize} props.size `xlarge` is the attachment size - the box an uploaded image is shown in, which was its own component until four of its nine rules turned out to be the mark's already.
+ * @param {keyof typeof FILL} [props.fill]
+ * @param {string} [props.swatch] Which colour a solid mark takes - a swatch name from the library's set. A colour the user picked outside the set is not a swatch: pass it as style={{ background }} and the ink is worked out from it the same way. For a mark whose colour the user picked; a mark with a `name` derives its own, so passing both is how two lists end up showing the same record in two colours.
+ * @param {boolean} [props.round] A circle rather than a rounded square. The shape says what kind of thing it is - a person is a circle everywhere, a record is not - so it is the mark's own axis and not a consequence of what it holds.
+ * @param {number} [props.count] Sits over the mark.
+ * @param {string} [props.text] What the image is - a banner across the foot of the box, like a figtext. "Receipt", "PDF".
+ * @param {string} [props.danger] Why it could not be kept, in the same banner. The colour is not a parameter: it follows from which of the two you passed, so a text cannot be red and a failure cannot be quiet.
+ * @param {import('react').ReactNode} [props.remove] The control that takes an attachment away. Quiet until the box is hovered or holds focus. A mark with one cannot itself be a button, so passing `onClick` alongside it renders the opening control inside the box instead - a button inside a button is not a thing the browser draws.
  * @param {() => void} [props.onClick] Renders a button.
-
+ * @param {'span' | 'label'} [props.as] a label wraps a file input, as a picker's hit target
+ * @param {import('react').ReactNode} [props.children] What the mark stands for. A string - a record's own name - and the mark derives its initials and its colour from it, so one vendor looks the same in every list. An element instead, an icon, for a thing whose look the user picked. There is no prop for the name: the mark's accessible name is `aria-label`, and this is the thing itself.
  */
 export function Mark({
 	size,
@@ -213,7 +191,13 @@ export function Mark({
 	return <span className={classes} {...paint} {...named} {...rest}>{body}</span>
 }
 
-/** The control that takes an attachment away, in the mark's own corner. */
+/**
+ * The control that takes an attachment away, in the mark's own corner.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ * @param {() => void} [props.onClick]
+ */
 export function MarkRemove({ children, onClick, ...rest }) {
 	reject(rest, 'MarkRemove')
 	return (

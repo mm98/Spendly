@@ -59,26 +59,36 @@ const WIDTH = {
    and falls back to the left of the column. */
 const CELL = { default: null, flex: 'sp-cell-flex', amount: 'sp-stacked sp-cell-amount', menu: 'sp-cell-menu' }
 
-/** What the table is, above it. HTML's caption. Content, or a function of the
-    records; omit it and the list states its own count. */
+/**
+ * What the table is, above it. HTML's caption. Content, or a function of the
+ * records; omit it and the list states its own count.
+ */
 export function Caption() { return null }
 
-/** What the caption becomes once records are picked: the bar's own content, as a
-    function of the records picked, so it can count them and name them and offer
-    what can be done to them. Omit it and the list states the count. Either way the
-    list keeps the select-all box first - that is the system's rule, not a page's.
-    Put an `sp-grow` in the content to say where the split falls. The one part HTML has no word for, since a table
-    does not select. */
+/**
+ * What the caption becomes once records are picked: the bar's own content, as a
+ * function of the records picked, so it can count them and name them and offer
+ * what can be done to them. Omit it and the list states the count. Either way the
+ * list keeps the select-all box first - that is the system's rule, not a page's.
+ * Put an `sp-grow` in the content to say where the split falls. The one part HTML has no word for, since a table
+ * does not select.
+ */
 export function Selected() { return null }
 
-/** The header row: one ListCell per column, each carrying the column's width. */
+/**
+ * The header row: one ListCell per column, each carrying the column's width.
+ */
 export function ListHead() { return null }
 
-/** The row template. Its child is a function of one record, returning that record's
-    cells in the head's order. */
+/**
+ * The row template. Its child is a function of one record, returning that record's
+ * cells in the head's order.
+ */
 export function ListRow() { return null }
 
-/** Anything the foot carries beside the count and Load more, which the list builds itself. */
+/**
+ * Anything the foot carries beside the count and Load more, which the list builds itself.
+ */
 export function Foot() { return null }
 
 /**
@@ -86,16 +96,19 @@ export function Foot() { return null }
  * it carries the cell's treatment and content.
  *
  * @param {object} props
- * @param {'title'|'flex'|'date'|'number'|'status'|'amount'|'menu'} [props.width] Head
- *   only. The role, never a measurement - each role's width is declared once in the
- *   stylesheet. Exactly one column is `title`, the one with no width of its own.
- * @param {'default'|'flex'|'amount'|'menu'|'checkbox'} [props.cell] The cell's
- *   treatment. `checkbox` is the selecting box: in the head it selects the page, in
- *   the row it selects that record, and declaring it in both is what turns selection
- *   on - a list with no checkbox cell has no boxes. It takes nothing else; the list
- *   hands it what it needs when it draws the row, and it sits where the cells sit so
- *   the head and the row still read in the same order.
+ * @param {keyof typeof WIDTH} [props.width] Head only. The role, never a measurement - each role's width is declared once in the stylesheet. Exactly one column is `title`, the one with no width of its own.
+ * @param {keyof typeof CELL | 'checkbox'} [props.cell] The cell's treatment. `checkbox` is the selecting box: in the head it selects the page, in the row it selects that record, and declaring it in both is what turns selection on - a list with no checkbox cell has no boxes. It takes nothing else; the list hands it what it needs when it draws the row, and it sits where the cells sit so the head and the row still read in the same order.
  * @param {boolean} [props.truncate] Row only. The text takes the cut.
+ * @param {import('react').ReactNode} [props.children]
+ * @param {boolean} [props.head]
+ * @param {number} [props.selectedCount]
+ * @param {number} [props.total]
+ * @param {string} [props.noun]
+ * @param {(checked: boolean) => void} [props.onToggleAll]
+ * @param {boolean} [props.checked]
+ * @param {string} [props.labelledBy]
+ * @param {(shift: boolean) => void} [props.onToggle]
+ * @param {string} [props.id]
  */
 export function ListCell({ width, cell = 'default', truncate = false, children, head, selectedCount, total, noun, onToggleAll, checked, labelledBy, onToggle, id, ...rest }) {
 	reject(rest, 'ListCell')
@@ -166,30 +179,17 @@ function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
 }
 
 /**
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
  * @param {object[]} props.data Already filtered and sorted by the page.
- * @param {(record: object) => string} props.recordKey What identifies a record.
- * @param {string} [props.noun] The plural, for the two sentences the list speaks for
- *   itself - the select-all box's "Select all 5 orders on this page" and the pager's
- *   "The orders before these". Nothing on screen uses it: the caption and the bar are
- *   the page's. Defaults to "records", which is true of anything.
- * @param {(record: object) => void} [props.onRowClick] Called with the record whose
- *   row was clicked. Without it the rows are not clickable - a row that reacts to a
- *   click and does nothing is worse than one that does not react.
- * @param {number} [props.pageSize] How many show at first and how many Load more
- *   appends. Default 20. It is the user's setting from Settings, not a page's layout
- *   choice - so a page passes the setting through or passes nothing, and never picks
- *   a number because it looked right. Lists load more rather than paginate: the foot
- *   states the filtered count and one Load more, which disappears once everything is
- *   loaded rather than going disabled, and appending keeps the scroll position where
- *   paging would have thrown it away.
- * @param {string|number} [props.selectionKey] Change it when the filters, the search
- *   or the sort change and the selection drops - it no longer describes anything.
- *   Paging does not, which is the one case the two differ.
+ * @param {(record: object) => string | number} props.recordKey What identifies a record.
+ * @param {string} [props.noun] The plural, for the two sentences the list speaks for itself - the select-all box's "Select all 5 orders on this page" and the pager's "The orders before these". Nothing on screen uses it: the caption and the bar are the page's. Defaults to "records", which is true of anything.
+ * @param {(record: object) => void} [props.onRowClick] Called with the record whose row was clicked. Without it the rows are not clickable - a row that reacts to a click and does nothing is worse than one that does not react.
+ * @param {number} [props.pageSize] How many show at first and how many Load more appends. Default 20. It is the user's setting from Settings, not a page's layout choice - so a page passes the setting through or passes nothing, and never picks a number because it looked right. Lists load more rather than paginate: the foot states the filtered count and one Load more, which disappears once everything is loaded rather than going disabled, and appending keeps the scroll position where paging would have thrown it away.
+ * @param {string} [props.selectionKey] Change it when the filters, the search or the sort change and the selection drops - it no longer describes anything. Paging does not, which is the one case the two differ.
  * @param {boolean} [props.compact] The denser row a narrow column affords.
- * @param {React.ReactNode} props.children The parts above.
- *
- * Takes no `className` and no `style`.
+ * @param {import('react').ReactNode} props.children The parts above.
  */
 export function List({
 	data = [],

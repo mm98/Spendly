@@ -24,6 +24,13 @@ import { formatNumber, parseNumber, round } from './format.js'
    accepted on the way in. */
 
 /**
+ * The two glyphs are the component's own, not a caller's: a stepper steps by one, so
+ * its buttons are the register's minus and plus. They used to be required props, and
+ * a caller who left them out got two blank buttons with no error - the same defect
+ * the search field's lead and clear were fixed for.
+ *
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
  * @param {number} [props.value] Controlled. Omit and the component holds it.
  * @param {number} [props.defaultValue]
@@ -32,20 +39,8 @@ import { formatNumber, parseNumber, round } from './format.js'
  * @param {number} [props.max] Native.
  * @param {number} [props.step] Native. Also what the buttons step by. Default 1.
  * @param {string} [props.locale] Defaults to the browser's.
- * @param {string} [props.fieldLabel] Handed by Field, never written by a caller: the
- *   field's label text. Inside a Field it is what is being counted, and the label is
- *   the value input's one name, so the page writes the word once.
- * @param {string} [props['aria-label']] What is being counted, for a stepper outside
- *   a Field (or in one whose label is not plain text) - the field shows a number,
- *   which names nothing. The two buttons say "one step fewer" and "one step more" of
- *   it, from whichever of the two names it has.
- *
- * The two glyphs are the component's own, not a caller's: a stepper steps by one, so
- * its buttons are the register's minus and plus. They used to be required props, and
- * a caller who left them out got two blank buttons with no error - the same defect
- * the search field's lead and clear were fixed for.
- *
- * Takes no `className` and no `style`.
+ * @param {string} [props.id]
+ * @param {string} [props.fieldLabel] Handed by Field, never written by a caller: the field's label text. Inside a Field it is what is being counted, and the label is the value input's one name, so the page writes the word once.
  */
 export function Stepper({
 	value,

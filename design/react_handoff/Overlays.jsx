@@ -30,20 +30,14 @@ const MENU = {
 /**
  * A list of actions, each of which acts at once.
  *
- * @param {object} props
- * @param {'floating'|'sub'|'row'|'plain'|'up'|'start'|'side-left'|'side-right'} [props.position]
- *   `sub` is a menu inside a menu item, opening to the side of its row.
- *   Where the panel sits against its trigger. `plain` is a menu with no panel of
- *   its own, for one inside a sheet or a dialog where the surface is already there.
- * @param {boolean} [props.scrolls] Caps its height and scrolls, for a list whose
- *   length the page does not know.
- * @param {string} props['aria-label'] What the menu acts on.
- * @param {React.ReactNode} props.children The label, and a nested `<Menu>` where
- *   the row opens one - written beneath the label, the way the markup nests it:
- *   an item with a submenu is a button and a menu inside one list item. The item
- *   reads which of its children is the menu, so there is no prop for it. MenuItems, MenuLabels and MenuSeparators.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {keyof typeof MENU} [props.position] `sub` is a menu inside a menu item, opening to the side of its row. Where the panel sits against its trigger. `plain` is a menu with no panel of its own, for one inside a sheet or a dialog where the surface is already there.
+ * @param {boolean} [props.scrolls] Caps its height and scrolls, for a list whose length the page does not know.
+ * @param {import('react').ReactNode} props.children The label, and a nested `<Menu>` where the row opens one - written beneath the label, the way the markup nests it: an item with a submenu is a button and a menu inside one list item. The item reads which of its children is the menu, so there is no prop for it. MenuItems, MenuLabels and MenuSeparators.
  */
 export function Menu({ position, scrolls = false, children, ...rest }) {
 	reject(rest, 'Menu')
@@ -65,16 +59,10 @@ export function Menu({ position, scrolls = false, children, ...rest }) {
  * @param {string} [props.icon] An Icon name.
  * @param {() => void} [props.onClick]
  * @param {boolean} [props.disabled]
- * @param {boolean} [props.danger] The action that removes something. One per menu,
- *   and last, under a separator - a destructive item among ordinary ones is how it
- *   gets clicked by accident.
- * @param {string} [props.dot] A status dot before the label: draft, progress, done,
- *   returned, cancelled. The same dot the combobox uses, since it is the same thing.
+ * @param {boolean} [props.danger] The action that removes something. One per menu, and last, under a separator - a destructive item among ordinary ones is how it gets clicked by accident.
+ * @param {'draft' | 'progress' | 'done' | 'returned' | 'cancelled'} [props.dot] A status dot before the label: draft, progress, done, returned, cancelled. The same dot the combobox uses, since it is the same thing.
  * @param {boolean} [props.selected] The status this record already has.
- * @param {React.ReactNode} props.children The label, and a nested `<Menu>` where
- *   the row opens one - written beneath the label, the way the markup nests it:
- *   an item with a submenu is a button and a menu inside one list item. The item
- *   reads which of its children is the menu, so there is no prop for it.
+ * @param {import('react').ReactNode} props.children The label, and a nested `<Menu>` where the row opens one - written beneath the label, the way the markup nests it: an item with a submenu is a button and a menu inside one list item. The item reads which of its children is the menu, so there is no prop for it.
  */
 export function MenuItem({ icon, onClick, disabled = false, danger = false, dot, selected, children, ...rest }) {
 	reject(rest, 'MenuItem')
@@ -110,13 +98,20 @@ export function MenuItem({ icon, onClick, disabled = false, danger = false, dot,
 	)
 }
 
-/** The heading over a group of items. */
+/**
+ * The heading over a group of items.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function MenuLabel({ children, ...rest }) {
 	reject(rest, 'MenuLabel')
 	return <li className="sp-menu__label" {...rest}>{children}</li>
 }
 
-/** A rule between groups. */
+/**
+ * A rule between groups.
+ */
 export function MenuSeparator(props) {
 	reject(props, 'MenuSeparator')
 	return <li className="sp-menu__sep" role="separator" {...props} />
@@ -128,20 +123,17 @@ const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--e
  * A panel that asks for a decision before it applies. Not a Menu: a menu item acts
  * on click, this one waits for Apply.
  *
- * @param {object} props
- * @param {'default'|'start'|'end'|'static'} [props.position] Which edge it hangs
- *   from. `static` is one drawn in place rather than over the page.
- * @param {React.ReactNode} props.head A title, and any word about what this does.
- * @param {React.ReactNode} props.children The label, and a nested `<Menu>` where
- *   the row opens one - written beneath the label, the way the markup nests it:
- *   an item with a submenu is a button and a menu inside one list item. The item
- *   reads which of its children is the menu, so there is no prop for it. The choices.
- * @param {React.ReactNode} [props.summary] What applying will do, in the reader's
- *   terms - a count, a total.
- * @param {React.ReactNode} [props.note] A quiet line at the panel's foot.
- * @param {React.ReactNode} props.actions The Cancel and Apply pair.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {keyof typeof POPOVER} [props.position] Which edge it hangs from. `static` is one drawn in place rather than over the page.
+ * @param {import('react').ReactNode} props.head A title, and any word about what this does.
+ * @param {import('react').ReactNode} props.children The label, and a nested `<Menu>` where the row opens one - written beneath the label, the way the markup nests it: an item with a submenu is a button and a menu inside one list item. The item reads which of its children is the menu, so there is no prop for it. The choices.
+ * @param {import('react').ReactNode} [props.summary] What applying will do, in the reader's terms - a count, a total.
+ * @param {import('react').ReactNode} [props.note] A quiet line at the panel's foot.
+ * @param {import('react').ReactNode} props.actions The Cancel and Apply pair.
  */
 export function Popover({ position = 'default', head, children, summary, note, actions, ...rest }) {
 	reject(rest, 'Popover')
@@ -160,10 +152,9 @@ export function Popover({ position = 'default', head, children, summary, note, a
  * The element a panel hangs from. Without it the panel measures itself against the
  * page instead of its trigger.
  *
- * @param {boolean} [props.open] Whether the panel inside it is showing. The anchor
- *   carries this, not the trigger: the stylesheet reads `[data-open]` here to show
- *   the panel, so a page that only sets `aria-expanded` on its button gets a menu
- *   that renders and never appears.
+ * @param {object} props
+ * @param {boolean} [props.open] Whether the panel inside it is showing. The anchor carries this, not the trigger: the stylesheet reads `[data-open]` here to show the panel, so a page that only sets `aria-expanded` on its button gets a menu that renders and never appears.
+ * @param {import('react').ReactNode} [props.children]
  */
 export function Anchor({ open, children, ...rest }) {
 	reject(rest, 'Anchor')
@@ -186,14 +177,13 @@ export function Anchor({ open, children, ...rest }) {
  * action row and puts the rest above it, so the order on the page is the order in
  * the call and a use cannot pass a button where a sentence goes.
  *
- * @param {object} props
- * @param {React.ReactNode} props.children A `<DialogTitle>`, the body - a
- *   `<DialogBody>` or plain words - and a `<DialogActions>`. A dialog that asks
- *   without saying what happens is a dialog nobody can answer.
- * @param {boolean} [props.scrim] Draw it over the dimmed page, as it appears in
- *   use. A dialog with no scrim is one being shown rather than used.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} props.children A `<DialogTitle>`, the body - a `<DialogBody>` or plain words - and a `<DialogActions>`. A dialog that asks without saying what happens is a dialog nobody can answer.
+ * @param {boolean} [props.scrim] Draw it over the dimmed page, as it appears in use. A dialog with no scrim is one being shown rather than used.
  */
 export function Dialog({ children, scrim = true, ...rest }) {
 	reject(rest, 'Dialog')
@@ -214,19 +204,34 @@ export function Dialog({ children, scrim = true, ...rest }) {
 	return <Scrim dialog>{panel}</Scrim>
 }
 
-/** What the dialog asks, as its heading. */
+/**
+ * What the dialog asks, as its heading.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function DialogTitle({ children, ...rest }) {
 	reject(rest, 'DialogTitle')
 	return <span className="sp-heading" {...rest}>{children}</span>
 }
 
-/** What the decision costs, stated in full. */
+/**
+ * What the decision costs, stated in full.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function DialogBody({ children, ...rest }) {
 	reject(rest, 'DialogBody')
 	return <span className="sp-dialog__body" {...rest}>{children}</span>
 }
 
-/** The way out and the commit. It spaces and aligns its own buttons. */
+/**
+ * The way out and the commit. It spaces and aligns its own buttons.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function DialogActions({ children, ...rest }) {
 	reject(rest, 'DialogActions')
 	return <div className="sp-dialog__actions" {...rest}>{children}</div>
@@ -239,16 +244,16 @@ const TOAST_COLOR = { default: null, danger: 'danger' }
  * ask - a toast that needs an answer is the `asks` variant, which stays on the
  * page's own surface so it does not read as something that will disappear.
  *
- * @param {object} props
- * @param {string} [props.icon] An Icon name.
- * @param {'default'|'danger'} [props.color]
- * @param {boolean} [props.compact] The smaller one, for a count or a status.
- * @param {boolean} [props.asks] It needs an answer, so it does not take itself away.
- * @param {React.ReactNode} props.children What happened, and a `<ToastUndo>` where
- *   there is a way back - written after the message, the way the markup nests it.
- *   The toast reads which of its children is the undo, so there is no prop for it.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {string} [props.icon] An Icon name.
+ * @param {keyof typeof TOAST_COLOR} [props.color]
+ * @param {boolean} [props.compact] The smaller one, for a count or a status.
+ * @param {boolean} [props.asks] It needs an answer, so it does not take itself away.
+ * @param {import('react').ReactNode} props.children What happened, and a `<ToastUndo>` where there is a way back - written after the message, the way the markup nests it. The toast reads which of its children is the undo, so there is no prop for it.
  */
 export function Toast({ icon, color = 'default', compact = false, asks = false, children, ...rest }) {
 	reject(rest, 'Toast')
@@ -271,7 +276,13 @@ export function Toast({ icon, color = 'default', compact = false, asks = false, 
 	)
 }
 
-/** The way back out of what a toast reports. */
+/**
+ * The way back out of what a toast reports.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ * @param {() => void} [props.onClick]
+ */
 export function ToastUndo({ children, onClick, ...rest }) {
 	reject(rest, 'ToastUndo')
 	return <button type="button" className="sp-toast__undo" onClick={onClick} {...rest}>{children}</button>
@@ -283,14 +294,15 @@ const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
  * A condition that persists, stated where it applies. Warning is the default,
  * because that is what an alert is for: something the reader may proceed past.
  *
- * @param {object} props
- * @param {'warning'|'danger'|'success'} [props.color]
- * @param {React.ReactNode} [props.mark] The glyph in its own round mark.
- * @param {React.ReactNode} props.title
- * @param {React.ReactNode} [props.children] What it means for the reader, in their
- *   terms.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {keyof typeof ALERT_COLOR} [props.color]
+ * @param {import('react').ReactNode} [props.mark] The glyph in its own round mark.
+ * @param {import('react').ReactNode} props.title
+ * @param {import('react').ReactNode} [props.children] What it means for the reader, in their terms.
  */
 export function Alert({ color = 'warning', mark, title, children, ...rest }) {
 	reject(rest, 'Alert')

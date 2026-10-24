@@ -12,30 +12,24 @@ import { join, reject } from './variants.js'
    are the same every time, and no field is drawn here twice. */
 
 /**
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
- * @param {React.ReactNode} [props.photo] The order line's photo slot. Omitted, the editor
- *   is the plain form, for a row with no photo.
- * @param {React.ReactNode} [props.title] The head, for the plain form: Row 7 of 8 in Housing, New group in costs.
+ * @param {import('react').ReactNode} [props.photo] The order line's photo slot. Omitted, the editor is the plain form, for a row with no photo.
+ * @param {string} [props.hint] The keys, at the start of the action row. An order line adds its own: Enter saves · Escape cancels · ⌘↵ saves and opens the next line.
+ * @param {string} [props.title] The head, for the plain form: Row 7 of 8 in Housing, New group in costs.
  * @param {string} [props.what] The thing edited, for the move and delete labels: row, group, account.
- * @param {() => void} [props.onMoveUp] With onMoveDown and onDelete, an existing
- *   one. A new one passes none of the three, and the head shows only the title.
+ * @param {() => void} [props.onMoveUp] With onMoveDown and onDelete, an existing one. A new one passes none of the three, and the head shows only the title.
  * @param {() => void} [props.onMoveDown]
  * @param {() => void} [props.onDelete] Asks first; the dialog is the caller's.
  * @param {boolean} [props.first] Disables Move up.
  * @param {boolean} [props.last] Disables Move down.
- * @param {boolean} [props.handle] Open in a list that reorders: keeps the rows' handle
- *   column, so the row's text stays on its line when it opens.
- * @param {React.ReactNode} props.commit Save row, Add group.
+ * @param {boolean} [props.handle] Open in a list that reorders: keeps the rows' handle column, so the row's text stays on its line when it opens.
+ * @param {string} props.commit Save row, Add group.
  * @param {boolean} [props.saving]
  * @param {() => void} props.onCommit
  * @param {() => void} props.onCancel
- * @param {React.ReactNode} [props.hint] The keys, at the start of the action row. An order
- *   line adds its own: Enter saves · Escape cancels · ⌘↵ saves and opens the next line.
- * @param {React.ReactNode} props.children The fields. With a photo they are passed as the
- *   order line lays them out - the item, then its grid - and rendered as given. Without, they sit two by two in reading order - a budget row's
- *   Name, Expected each month, Account, Group - or alone, for a group or an account.
- *
- * Takes no `className` and no `style`.
+ * @param {import('react').ReactNode} props.children The fields. With a photo they are passed as the order line lays them out - the item, then its grid - and rendered as given. Without, they sit two by two in reading order - a budget row's Name, Expected each month, Account, Group - or alone, for a group or an account.
  */
 export function LineEditor({
 	photo,

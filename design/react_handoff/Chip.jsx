@@ -25,30 +25,20 @@ const VARIANT = {
 const COLOR = { default: null, danger: 'danger' }
 
 /**
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
- * @param {'outline'|'solid'|'dashed'|'pill'|'facet'} [props.variant] Appearance on
- *   the style axis, and the same words Button uses: `outline` has a border and no
- *   ground, `solid` a ground and no border, `dashed` an open border. `pill` is the small
- *   round one the reader taps; `facet` the one they tick. A chip with no `onClick` states a value and
- *   cannot be acted on, which the component works out for itself.
- * @param {'default'|'danger'} [props.color]
- * @param {React.ReactNode} props.children The text. The facet variant needs it as a
- *   plain string, since it reserves its selected width from a copy of it.
- * @param {'checkbox'|'radio'} [props.inputType] Facet only.
- * @param {string} [props.name] Facet only, and required for a radio: it is what
- *   makes a set of them one group.
- * @param {string} [props.value] Facet only. What the chip stands for, when that is
- *   not the words on it - "In progress" shown, 'progress' stored. Defaults to the
- *   text, and reaches `onSelect` as its second argument.
+ * @param {keyof typeof VARIANT} [props.variant] Appearance on the style axis, and the same words Button uses: `outline` has a border and no ground, `solid` a ground and no border, `dashed` an open border. `pill` is the small round one the reader taps; `facet` the one they tick. A chip with no `onClick` states a value and cannot be acted on, which the component works out for itself.
+ * @param {keyof typeof COLOR} [props.color]
+ * @param {import('react').ReactNode} [props.trail] A control at the chip's tail - the remove on a value in a set. A chip with one is a span carrying a button, never a button inside a button.
+ * @param {'checkbox' | 'radio'} [props.inputType] Facet only.
+ * @param {string} [props.name] Facet only, and required for a radio: it is what makes a set of them one group.
+ * @param {string} [props.value] Facet only. What the chip stands for, when that is not the words on it - "In progress" shown, 'progress' stored. Defaults to the text, and reaches `onSelect` as its second argument.
  * @param {boolean} [props.selected] Controlled. Omit for uncontrolled.
  * @param {boolean} [props.defaultSelected] Uncontrolled starting state.
  * @param {(selected: boolean, value: string) => void} [props.onSelect]
- * @param {React.ReactNode} [props.trail] A control at the chip's tail - the remove
- *   on a value in a set. A chip with one is a span carrying a button, never a button
- *   inside a button.
  * @param {() => void} [props.onClick] Renders a button.
- *
- * Takes no `className` and no `style`.
+ * @param {import('react').ReactNode} props.children The text. The facet variant needs it as a plain string, since it reserves its selected width from a copy of it.
  */
 export function Chip({
 	variant = 'outline',

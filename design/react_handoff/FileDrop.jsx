@@ -11,12 +11,11 @@ import { reject } from './variants.js'
 /**
  * @param {object} props
  * @param {string} [props.icon] An Icon name, above the text.
- * @param {React.ReactNode} props.children What may be dropped here.
+ * @param {import('react').ReactNode} props.children What may be dropped here.
  * @param {string} [props.accept] Passed to the input.
  * @param {boolean} [props.multiple]
- * @param {(files: FileList) => void} [props.onFiles]
- *
- * Takes no `className` and no `style`.
+ * @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles] Takes no `className` and no `style`.
+ * @param {string} [props.id]
  */
 export function FileDrop({ icon, children, accept, multiple = false, onFiles, id, ...rest }) {
 	reject(rest, 'FileDrop')

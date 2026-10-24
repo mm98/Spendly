@@ -955,8 +955,34 @@
         // a component whose own root is a tree, not a single class, is not comparable
         const treeRoot = /^\s*return \(?\s*<[A-Z]/.test(tail);
         const cls = treeRoot ? null : (tail.match(/className=\{?(?:join\()?["'`]([\w-]+)/) || [])[1];
-        exports.push({ f, n: m[1], body, cls });
+        const pre = s.slice(0, from), end = pre.lastIndexOf('*/'), start = pre.lastIndexOf('/**');
+        const doc = start >= 0 && end > start && /^\s*$/.test(pre.slice(end + 2)) ? pre.slice(start, end) : '';
+        exports.push({ f, n: m[1], body, cls, doc });
       });
+    }
+    /* Every export documents each prop it destructures with a JSDoc @param, in the app's
+       form (`@param {object} props`, then `props.name`), since Storybook builds its props
+       table from it. Caught: the app's components on main carried JSDoc on every export
+       while 43 exports here had none, or a block that missed props or sat apart from
+       the function. */
+    for (const e of exports) {
+      const open = e.body.match(/^export function \w+\(\s*\{/);
+      if (!open) continue;
+      let i = open[0].length, d = 1;
+      while (d && i < e.body.length) { if (e.body[i] === '{') d++; else if (e.body[i] === '}') d--; i++; }
+      let depth = 0, cur = '';
+      const parts = [];
+      for (const ch of e.body.slice(open[0].length, i - 1).replace(/\/\/[^\n]*/g, '')) {
+        if ('{[('.includes(ch)) depth++;
+        if ('}])'.includes(ch)) depth--;
+        if (ch === ',' && !depth) { parts.push(cur); cur = ''; } else cur += ch;
+      }
+      parts.push(cur);
+      const props = parts.map(p => p.trim()).filter(p => p && !p.startsWith('...')).map(p => p.match(/^['"]?([\w-]+)/)[1]);
+      if (!props.length) continue;
+      if (!/@param \{object\} props\b/.test(e.doc)) { fail('every component prop has JSDoc', e.f, `${e.n} has no @param {object} props block`); continue; }
+      const missing = props.filter(p => !new RegExp(`@param \\{[^\\n]*\\}\\s+\\[?props(\\.${p}\\b|\\['${p}'\\])`).test(e.doc));
+      if (missing.length) fail('every component prop has JSDoc', e.f, `${e.n} does not document ${missing.join(', ')}`);
     }
     const roots = {};
     for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n);

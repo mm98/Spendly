@@ -89,23 +89,10 @@ function Trail({ label, onClick, pressed, children }) {
  * scrolls, rather than growing without end.
  *
  * @param {object} props
- * @param {string} props.value
- * @param {(value: string) => void} props.onChange
- * @param {'text'|'email'|'tel'|'url'} [props.type] A native type, for the keyboard
- *   and the validation that comes with it. Not `number` - a quantity is a Stepper
- *   and money is an NumberField, neither of which a number input can render in
- *   every locale. Not `search` either: that is SearchInput, which carries its clear.
- * @param {string} [props.id] Bound by the Field around it.
- * @param {boolean} [props.danger] The value cannot be saved.
- * @param {string} [props.placeholder]
- * @param {number} [props.maxLength]
- * @param {boolean} [props.readOnly]
+ * @param {typeof TYPES[number]} [props.type] A native type, for the keyboard and the validation that comes with it. Not `number` - a quantity is a Stepper and money is an NumberField, neither of which a number input can render in every locale. Not `search` either: that is SearchInput, which carries its clear.
  * @param {boolean} [props.multiline]
  * @param {number} [props.rows] Multiline only. The line cap.
- * @param {'default'|'empty'|'readonly'|'stretch'} [props.variant]
- *
- * Takes no `className` and no `style`. Prefix and suffix are Field's `lead` and
- * `unit` slots - a control does not own what sits beside it.
+ * @param {keyof typeof TEXT} [props.variant] Takes no `className` and no `style`. Prefix and suffix are Field's `lead` and `unit` slots - a control does not own what sits beside it.
  */
 export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', ...rest }) {
 	const TYPES = ['text', 'email', 'tel', 'url']
@@ -117,18 +104,6 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
 /**
  * A password, with its reveal. The reveal is built in and never optional, which is
  * what replaces a confirm field; paste is never blocked.
- *
- * @param {object} props
- * @param {string} props.value
- * @param {(value: string) => void} props.onChange
- * @param {'current-password'|'new-password'} props.autoComplete Which password this
- *   is, so a manager offers the right thing.
- * @param {boolean} [props.danger]
- *
- * The eye is the component's own: a password field shows one control, and which
- * glyph it is was never a caller's decision. Worth knowing: the register has `eye`
- * and no struck-through counterpart, so the button states which way it is through
- * `aria-pressed` and its label rather than through a second glyph.
  */
 export function PasswordField({ ...rest }) {
 	const [shown, setShown] = useState(false)
@@ -164,16 +139,13 @@ export function PasswordField({ ...rest }) {
  * must line up; a field is read on its own, next to its label.
  *
  * @param {object} props
- * @param {number|null} props.value
- * @param {(value: number|null) => void} props.onChange
+ * @param {number | null} props.value
+ * @param {(value: number | null) => void} props.onChange
  * @param {number} [props.decimals] Two for money, three for a quantity.
  * @param {number} [props.min]
  * @param {string} [props.locale] Defaults to the browser's.
- * @param {boolean} [props.computed] A figure the design works out rather than one
- *   the reader types. Read-only and tinted.
- * @param {boolean} [props.danger]
- * @param {boolean} [props.expected] A planned figure rather than a real one: the grey
- *   an expected amount has everywhere in the budget.
+ * @param {boolean} [props.computed] A figure the design works out rather than one the reader types. Read-only and tinted.
+ * @param {boolean} [props.expected] A planned figure rather than a real one: the grey an expected amount has everywhere in the budget.
  */
 export function NumberField({ value, onChange, decimals = 2, min, locale, computed = false, expected = false, ...rest }) {
 	const [typing, setTyping] = useState(null)
@@ -201,15 +173,7 @@ export function NumberField({ value, onChange, decimals = 2, min, locale, comput
  * Search. A field with a leading icon and a clear, and it reports as you type -
  * debouncing is the caller's, since only the caller knows what the typing costs.
  *
- * @param {object} props
- * @param {string} props.value
- * @param {(value: string) => void} props.onChange
- * @param {React.ReactNode} [props.kbd] The shortcut that focuses it.
- * @param {string} [props.placeholder]
  *
- * The clear is the control's own and appears whenever there is something to clear -
- * not a caller's to supply, since a search field that cannot be emptied in one
- * click is a search field the reader has to backspace out of.
  *
  * Its box is `.sp-picker__search`, not the `.sp-field__wrap` the other fields use.
  * That is what all 64 drawn search fields are: one relative box holding the lead and
@@ -217,11 +181,17 @@ export function NumberField({ value, onChange, decimals = 2, min, locale, comput
  * width that is left, a touch bar gives it the whole row. It used to render the wrap
  * and a second export bolted this box around it, which made two boxes where the
  * design has one, and two names a caller could not choose between.
+ * /
+ * /* The lead is the register's search glyph and the clear is the register's x. Neither
+ * is a caller's decision: a search field with a different lead is not a search
+ * field, and one that cannot be emptied in a click is one the reader backspaces out
+ * of.
+ *
+ * @param {object} props
+ * @param {string} props.value
+ * @param {(value: string) => void} props.onChange
+ * @param {import('react').ReactNode} [props.kbd] The shortcut that focuses it.
  */
-/* The lead is the register's search glyph and the clear is the register's x. Neither
-   is a caller's decision: a search field with a different lead is not a search
-   field, and one that cannot be emptied in a click is one the reader backspaces out
-   of. */
 export function SearchInput({ value, onChange, kbd, ...rest }) {
 	const clearable = !!value
 	return (
@@ -259,13 +229,13 @@ export function SearchInput({ value, onChange, kbd, ...rest }) {
  * percentage into the custom property the rail already reads.
  *
  * @param {object} props
- * @param {[number, number]} props.value
+ * @param {[number, number]} props.value low and high
  * @param {(value: [number, number]) => void} props.onChange
  * @param {number} props.min
  * @param {number} props.max
  * @param {number} [props.step]
  * @param {string} props.label What is being bounded.
- * @param {(n: number) => string} [props.format] How a bound reads in its field.
+ * @param {(value: number) => string} [props.format] How a bound reads in its field.
  */
 export function RangeSlider({ value, onChange, min, max, step = 1, label, format, ...rest }) {
 	reject(rest, 'RangeSlider')
@@ -382,12 +352,9 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
  * @param {object} props
  * @param {string[]} props.value
  * @param {(value: string[]) => void} props.onChange
- * @param {string} props['aria-label'] What the set holds.
  * @param {string} [props.placeholder] Shown in the add field when the set is empty.
- * @param {React.ReactNode} props.remove An Icon for a value's remove control.
- * @param {boolean} [props.danger]
- *
- * Takes no `className` and no `style`.
+ * @param {boolean} [props.danger] Takes no `className` and no `style`.
+ * @param {string} [props.id]
  */
 export function TokensField({ value = [], onChange, placeholder, danger = false, id, ...rest }) {
 	reject(rest, 'TokensField')

@@ -15,8 +15,13 @@ import { Icon } from './Icon.jsx'
 const STATE = { ready: null, making: null, failed: null, gone: 'gone' }
 const GONE = { deleted: 'Deleted', expired: 'Removed after 30 days' }
 
-/** The frame one answer's files share, a row per file, a rule between rows. Also the
-    list on Files (24e). */
+/**
+ * The frame one answer's files share, a row per file, a rule between rows. Also the
+ * list on Files (24e).
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function ChatFiles({ children, ...rest }) {
 	reject(rest, 'ChatFiles')
 	return <div className="sp-chat__files" {...rest}>{children}</div>
@@ -26,12 +31,13 @@ export function ChatFiles({ children, ...rest }) {
  * One file: the document mark, the title, its format and size, and what can be done
  * with it.
  *
+ *
+ *
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
- * @param {string} props.title The file's name without the time it was made:
- *   "Orders at Bilka in 2026.xlsx". The time goes only into the downloaded file's
- *   name, which the server sets: "Orders at Bilka in 2026 (2026-10-22 14.05.33).xlsx".
- * @param {string} props.kind The format's name as the server sends it: "Excel", "CSV".
- *   The row keeps no list of formats, so a format added on the server needs no change here.
+ * @param {string} props.title The file's name without the time it was made: "Orders at Bilka in 2026.xlsx". The time goes only into the downloaded file's name, which the server sets: "Orders at Bilka in 2026 (2026-10-22 14.05.33).xlsx".
+ * @param {string} props.kind The format's name as the server sends it: "Excel", "CSV". The row keeps no list of formats, so a format added on the server needs no change here.
  * @param {string} [props.size] Already formatted: "18 KB", "1.2 MB".
  * @param {'ready'|'making'|'failed'|'gone'} [props.state]
  * @param {string} [props.reason] Why it could not be made, one line. `failed` only.
@@ -39,8 +45,6 @@ export function ChatFiles({ children, ...rest }) {
  * @param {string} [props.keptUntil] The last day it is kept, ISO 8601. On Files only.
  * @param {string} [props.href] The download. `ready` only.
  * @param {() => void} [props.onDelete] Offers Delete after Download. On Files only.
- *
- * Takes no `className` and no `style`.
  */
 export function ChatFile({ title, kind, size, state = 'ready', reason, gone, keptUntil, href, onDelete, ...rest }) {
 	reject(rest, 'ChatFile')
@@ -72,15 +76,15 @@ export function ChatFile({ title, kind, size, state = 'ready', reason, gone, kep
  * A chart in an answer: the figure frame a table uses, the chart's name and its
  * period or total, then the chart. The frame does not scroll when it holds one.
  *
- * @param {object} props
- * @param {React.ReactNode} props.name "Spending per month".
- * @param {React.ReactNode} [props.meta] "Oct 2025 - Sep 2026".
- * @param {React.ReactNode} [props.failed] Why it could not be made, in place of the
- *   chart: the frame and the name stay.
- * @param {React.ReactNode} [props.children] Bars, or the Donut and its Shares inside
- *   ChatShares, then the Legend when there is more than one series.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {string} props.name "Spending per month".
+ * @param {import('react').ReactNode} [props.meta] "Oct 2025 - Sep 2026".
+ * @param {string} [props.failed] Why it could not be made, in place of the chart: the frame and the name stay.
+ * @param {import('react').ReactNode} [props.children] Bars, or the Donut and its Shares inside ChatShares, then the Legend when there is more than one series.
  */
 export function ChatChart({ name, meta, failed, children, ...rest }) {
 	reject(rest, 'ChatChart')
@@ -98,7 +102,12 @@ export function ChatChart({ name, meta, failed, children, ...rest }) {
 	)
 }
 
-/** The Donut beside its Shares where the bubble has room, above them where not. */
+/**
+ * The Donut beside its Shares where the bubble has room, above them where not.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function ChatShares({ children, ...rest }) {
 	reject(rest, 'ChatShares')
 	return <div className="sp-chat__shares" {...rest}>{children}</div>

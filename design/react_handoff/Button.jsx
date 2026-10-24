@@ -19,20 +19,19 @@ const SIZE = { standard: null, small: 'sp-btn--small', xsmall: 'sp-btn--xsmall' 
 const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
 
 /**
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
- * @param {'solid'|'outline'|'text'} [props.variant]
- * @param {'primary'|'warning'|'danger'} [props.color]
- * @param {'standard'|'small'|'xsmall'} [props.size] `xsmall` is for a rail section
- *   header; on touch it renders at the small size.
- * @param {'line'|'inherit'} [props.border] `inherit` takes the border from `color`.
+ * @param {keyof typeof STYLE} [props.variant]
+ * @param {keyof typeof COLOR} [props.color]
+ * @param {keyof typeof SIZE} [props.size] `xsmall` is for a rail section header; on touch it renders at the small size.
+ * @param {keyof typeof BORDER} [props.border] `inherit` takes the border from `color`.
  * @param {boolean} [props.fullWidth]
  * @param {string} [props.to] An in-app route. Renders a link.
  * @param {string} [props.href] A URL outside the app. Renders an anchor.
  * @param {string} [props.iconStart] An Icon name before the label.
  * @param {string} [props.iconEnd] An Icon name after the label.
- * @param {React.ReactNode} [props.children] The label.
- *
- * Takes no `className` and no `style`.
+ * @param {import('react').ReactNode} [props.children] The label.
  */
 export function Button({
 	variant = 'solid',
@@ -77,20 +76,17 @@ const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn-
  * spelled as the attribute rather than as `label`, because that is where it goes -
  * a prop called label that never appears on screen is a prop that misleads.
  *
- * @param {object} props
- * @param {React.ReactNode} props.icon The glyph. An element, as every other slot in
- *   this library takes - Combobox's lead, a Field's lead and trail, a Mark's text,
- *   a ListItem's chevron. A name string is accepted too, since this component's own
- *   first form took one.
- * @param {string} props['aria-label'] What the control does.
- * @param {'bare'|'outline'|'quiet'} [props.variant]
- * @param {'row'|'small'|'field'|'xsmall'} [props.size]
- * @param {boolean} [props.danger] An action that removes something: the red ink,
- *   on the same outline. The same state MenuItem has.
- * @param {string} [props.to] An in-app route. Renders a link.
- * @param {string} [props.href] A URL outside the app. Renders an anchor.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {string | import('react').ReactElement} props.icon The glyph. An element, as every other slot in this library takes - Combobox's lead, a Field's lead and trail, a Mark's text, a ListItem's chevron. A name string is accepted too, since this component's own first form took one.
+ * @param {keyof typeof ICON_STYLE} [props.variant]
+ * @param {keyof typeof ICON_SIZE} [props.size]
+ * @param {boolean} [props.danger] An action that removes something: the red ink, on the same outline. The same state MenuItem has.
+ * @param {string} [props.to] An in-app route. Renders a link.
+ * @param {string} [props.href] A URL outside the app. Renders an anchor.
  */
 export function IconButton({
 	icon,

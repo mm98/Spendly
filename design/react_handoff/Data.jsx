@@ -17,20 +17,17 @@ const pct = n => `${Math.max(0, Math.min(100, n))}%`
  * there for semantics - it is what a screen reader reads - and paints nothing,
  * because a browser insets its own bar inside its box.
  *
+ *
+ *
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
  * @param {number} props.value What has been spent, as a percentage of the limit.
  * @param {number} [props.over] How far past the limit it went, as a percentage.
- * @param {number} [props.marker] Where the limit sits, when the gauge is scaled
- *   past it.
- * @param {string} props['aria-label'] What is being measured - a bar has no text.
- * @param {boolean} [props.untargeted] No limit is set, so the track is plain rather
- *   than the tint of a limit being approached.
+ * @param {number} [props.marker] Where the limit sits, when the gauge is scaled past it.
+ * @param {boolean} [props.untargeted] No limit is set, so the track is plain rather than the tint of a limit being approached.
  * @param {boolean} [props.thin] The smaller one, for a gauge inside a row.
- * @param {boolean} [props.negative] Money came back: the fill grows from the right
- *   in the danger colour, so a negative reads as a direction and not as a smaller
- *   positive.
- *
- * Takes no `className` and no `style`.
+ * @param {boolean} [props.negative] Money came back: the fill grows from the right in the danger colour, so a negative reads as a direction and not as a smaller positive.
  */
 export function Gauge({ value, over, marker, untargeted = false, thin = false, negative = false, ...rest }) {
 	reject(rest, 'Gauge')
@@ -47,7 +44,9 @@ export function Gauge({ value, over, marker, untargeted = false, thin = false, n
 	)
 }
 
-/** The marker drawn inline, so a line of text can name what it means. */
+/**
+ * The marker drawn inline, so a line of text can name what it means.
+ */
 export function GaugeKey(props) {
 	reject(props, 'GaugeKey')
 	return <span className="sp-gauge__key" {...props} />
@@ -60,26 +59,16 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
  * chart can be drilled into, and a plain span where it cannot - a column that does
  * nothing must not invite a click.
  *
- * @param {object} props
- * @param {Array<{key: string, height: number, from?: string, to?: string, tick?: React.ReactNode, muted?: boolean, segments?: Array<{key: string, share: number}>, pair?: number[], label?: string, readout?: React.ReactNode}>} props.columns
- *   `height` and `share` are percentages. `segments` splits a column by category;
- *   `pair` is two bars read against each other rather than stacked. `from` and `to`
- *   are the first and last day the column counts, as ISO dates - a step is a period,
- *   and the reader who clicks August wants August's orders, not the string "aug".
- *   `label` names a column that cannot be clicked, for a screen reader: "August 2026,
- *   9.840,00 kr., 31 orders". `readout` is the chart tooltip that column shows on
- *   hover, focus or a tap - in an answer (Ask 24d), where no column drills in.
- * @param {'default'|'plot'|'spark'} [props.variant] `plot` takes the plot frame's
- *   height; `spark` is the chart at a stat's size.
- * @param {string} [props.selected] The key of the column the reader drilled into.
- * @param {string} [props.open] The key of the column a finger tapped, whose readout
- *   stays open until a tap elsewhere.
- * @param {(key: string, from: string, to: string) => void} [props.onSelect] The
- *   column's key and the period it covers, in order - reported together the way
- *   `RangePicker` reports a range, since a step the reader can drill into is a range.
- *   A column with only one end is reported: half a period cannot be filtered on.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {BarsColumn[]} props.columns `height` and `share` are percentages. `segments` splits a column by category; `pair` is two bars read against each other rather than stacked. `from` and `to` are the first and last day the column counts, as ISO dates - a step is a period, and the reader who clicks August wants August's orders, not the string "aug". `label` names a column that cannot be clicked, for a screen reader: "August 2026, 9.840,00 kr., 31 orders". `readout` is the chart tooltip that column shows on hover, focus or a tap - in an answer (Ask 24d), where no column drills in.
+ * @param {keyof typeof BARS} [props.variant] `plot` takes the plot frame's height; `spark` is the chart at a stat's size.
+ * @param {string} [props.selected] The key of the column the reader drilled into.
+ * @param {string} [props.open] The key of the column a finger tapped, whose readout stays open until a tap elsewhere.
+ * @param {(key: string, from?: string, to?: string) => void} [props.onSelect] The column's key and the period it covers, in order - reported together the way `RangePicker` reports a range, since a step the reader can drill into is a range. A column with only one end is reported: half a period cannot be filtered on.
  */
 export function Bars({ columns = [], variant = 'default', selected, open, onSelect, ...rest }) {
 	reject(rest, 'Bars')
@@ -141,14 +130,15 @@ export function Bars({ columns = [], variant = 'default', selected, open, onSele
  * against its neighbours: a value axis, gridlines, and the limit the bars cross.
  * The plot states its height once and the axis, the grid and the bars take it.
  *
- * @param {object} props
- * @param {React.ReactNode[]} props.axis The values, highest first.
- * @param {number} [props.gridlines] How many rules behind the bars. Default 4.
- * @param {{ at: number, label: React.ReactNode }} [props.limit] Where the limit is
- *   drawn, in pixels from the plot's top - the axis is what gives it meaning.
- * @param {React.ReactNode} props.children The Bars.
+ *
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {string[]} props.axis The values, highest first.
+ * @param {number} [props.gridlines] How many rules behind the bars. Default 4.
+ * @param {{ at: string }} [props.limit] Where the limit is drawn, in pixels from the plot's top - the axis is what gives it meaning.
+ * @param {import('react').ReactNode} props.children The Bars.
  */
 export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 	reject(rest, 'Plot')
@@ -171,10 +161,10 @@ export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
  * green - never a percentage.
  *
  * @param {object} props
- * @param {React.ReactNode} props.figure
+ * @param {string} props.figure
  * @param {boolean} [props.large]
- * @param {React.ReactNode} [props.label]
- * @param {React.ReactNode} [props.delta]
+ * @param {string} [props.label]
+ * @param {import('react').ReactNode} [props.delta]
  */
 export function Stat({ figure, large = false, label, delta, ...rest }) {
 	reject(rest, 'Stat')
@@ -189,7 +179,14 @@ export function Stat({ figure, large = false, label, delta, ...rest }) {
 
 const SUM = { default: null, stacked: 'sp-sum--stacked', total: 'sp-sum--total' }
 
-/** A line of a sum: what it is, and what it comes to. `total` is the last line. */
+/**
+ * A line of a sum: what it is, and what it comes to. `total` is the last line.
+ *
+ * @param {object} props
+ * @param {keyof typeof SUM} [props.variant]
+ * @param {string} props.value
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function Sum({ variant = 'default', value, children, ...rest }) {
 	reject(rest, 'Sum')
 	return (

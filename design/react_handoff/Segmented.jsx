@@ -7,20 +7,19 @@ import { join, pick, reject } from './variants.js'
    its selected weight, which is what stops the row shifting as the pick moves, so
    every item needs its label as a string. */
 
+const VARIANT = { default: null, facet: 'sp-segmented--facet' }
+
 /**
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
  * @param {string} props.name Groups the radios.
- * @param {Array<{value: string, label: string, disabled?: boolean}>} props.options
+ * @param {{ value: string, label: string, disabled?: boolean }[]} props.options
  * @param {string} [props.value] Controlled.
  * @param {string} [props.defaultValue]
  * @param {(value: string) => void} [props.onChange]
- * @param {'default'|'facet'} [props.variant] `facet` spans its column with equal
- *   shares and no border of its own, for the switch at the head of a facet panel.
- *
- * Takes no `className` and no `style`.
+ * @param {keyof typeof VARIANT} [props.variant] `facet` spans its column with equal shares and no border of its own, for the switch at the head of a facet panel.
  */
-const VARIANT = { default: null, facet: 'sp-segmented--facet' }
-
 export function Segmented({ name, options = [], value, defaultValue, onChange, variant = 'default', ...rest }) {
 	reject(rest, 'Segmented')
 	if (options.length > 4) console.error('<Segmented> more than four options is a Combobox')

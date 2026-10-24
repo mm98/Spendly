@@ -14,13 +14,26 @@ import { Icon } from './Icon.jsx'
    the shell's `TopBar` with `touch` - see Shell.jsx. */
 
 
-/** The surface's destinations, at the bottom where a thumb reaches. */
+/**
+ * The surface's destinations, at the bottom where a thumb reaches.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function TabBar({ children, ...rest }) {
 	reject(rest, 'TabBar')
 	return <nav className="sp-tabbar" {...rest}>{children}</nav>
 }
 
-/** One destination in that bar. */
+/**
+ * One destination in that bar.
+ *
+ * @param {object} props
+ * @param {string} [props.icon]
+ * @param {boolean} [props.current]
+ * @param {() => void} [props.onClick]
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function TabBarItem({ icon, current = false, onClick, children, ...rest }) {
 	reject(rest, 'TabBarItem')
 	return (
@@ -43,6 +56,7 @@ export function TabBarItem({ icon, current = false, onClick, children, ...rest }
  *
  * @param {object} props
  * @param {boolean} [props.handle] The grip that says it can be dragged away.
+ * @param {import('react').ReactNode} [props.children]
  */
 export function Sheet({ handle = true, children, ...rest }) {
 	reject(rest, 'Sheet')
@@ -59,7 +73,8 @@ export function Sheet({ handle = true, children, ...rest }) {
  * is a different shape from a row. On a page the bar a form commits from is
  * `<ListItem variant="sticky">` - it was the card row all along.
  *
- * @param {React.ReactNode} props.children
+ * @param {object} props
+ * @param {import('react').ReactNode} props.children
  */
 export function SaveBar({ children, ...rest }) {
 	reject(rest, 'SaveBar')

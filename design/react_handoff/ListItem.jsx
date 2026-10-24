@@ -28,28 +28,17 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 's
 
 /**
  * @param {object} props
- * @param {'default'|'outline'|'primary'|'stack'|'top'|'add'|'carried'|'picked'|'card'|'sticky'} [props.variant]
- *   `card` puts the row on a surface ground with a surface's edge and padding, for
- *   a list with no columns to align. Which body a list shows is a question about the
- *   list's own width, answered by a container query - not about a device, and never
- *   a second component.
- * @param {'default'|'warning'|'danger'|'success'} [props.color]
- * @param {React.ReactNode} [props.mark] Leads the row.
- * @param {React.ReactNode} [props.handle] A drag grip, for a row in a set the user
- *   reorders.
- * @param {React.ReactNode} [props.actions] Controls at the row's tail. Wrap one in
- *   `ListItemRemove` for the control that appears on hover.
- * @param {string|number} [props.count] A count at the row's tail.
- * @param {React.ReactNode} [props.chevron] Shown when the row opens something.
- * @param {boolean} [props.selected] outline variant, in a set the user picks from.
+ * @param {keyof typeof VARIANT} [props.variant] `card` puts the row on a surface ground with a surface's edge and padding, for a list with no columns to align. Which body a list shows is a question about the list's own width, answered by a container query - not about a device, and never a second component.
+ * @param {keyof typeof COLOR} [props.color]
+ * @param {import('react').ReactNode} [props.mark] Leads the row.
+ * @param {import('react').ReactNode} [props.handle] A drag grip, for a row in a set the user reorders.
+ * @param {import('react').ReactNode} [props.actions] Controls at the row's tail. Wrap one in `ListItemRemove` for the control that appears on hover.
+ * @param {number} [props.count] A count at the row's tail.
+ * @param {import('react').ReactNode} [props.chevron] Shown when the row opens something.
+ * @param {boolean} [props.selected] Outline and card variants, in a set the user picks from.
  * @param {() => void} [props.onClick] Renders a button.
  * @param {string} [props.to] Renders a link.
- * @param {boolean} [props.selected] Outline and card variants, in a set the user
- *   picks from.
- * @param {React.ReactNode} props.children
- *
-
- * Takes no `className` and no `style`.
+ * @param {import('react').ReactNode} props.children Takes no `className` and no `style`.
  */
 export function ListItem({
 	variant = 'default',
@@ -95,13 +84,20 @@ export function ListItem({
 	return <div className={classes} {...attrs}>{body}</div>
 }
 
-/** Where a carried row will land. Belongs to the drag, not to the data. */
+/**
+ * Where a carried row will land. Belongs to the drag, not to the data.
+ */
 export function Insertion(props) {
 	reject(props, 'Insertion')
 	return <span className="sp-list-item__insertion" {...props} />
 }
 
-/** A control that appears when its row is hovered or focused, and stays put on touch. */
+/**
+ * A control that appears when its row is hovered or focused, and stays put on touch.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function ListItemRemove({ children, ...rest }) {
 	reject(rest, 'ListItemRemove')
 	return <span className="sp-list-item__remove" {...rest}>{children}</span>

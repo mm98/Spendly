@@ -11,11 +11,9 @@ const COLORS = ['default', 'success', 'danger']
 
 /**
  * @param {object} props
- * @param {'default'|'success'|'danger'} [props.color]
+ * @param {typeof COLORS[number]} [props.color]
  * @param {'progress'} [props.state]
- * @param {React.ReactNode} props.children
- *
- * Takes no `className` and no `style`.
+ * @param {import('react').ReactNode} props.children Takes no `className` and no `style`.
  */
 export function Pill({ color = 'default', state, children, ...rest }) {
 	reject(rest, 'Pill')

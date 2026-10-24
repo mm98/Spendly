@@ -10,15 +10,11 @@ import { Icon } from './Icon.jsx'
    the rail showing its labels over the page rather than pushing it. */
 
 /**
- * @param {object} props
- * @param {boolean} [props.collapsed] The menu is a rail: 68px, icons only, every
- *   label a tooltip. Collapsing is the track's width and not an animation - an
- *   animated grid track reflows every card beside it on every frame.
- * @param {React.ReactNode} props.children Sidebar, TopBar and ShellContent,
- *   in any order - the shell reads which is which and places them, so the top bar
- *   cannot end up inside the content.
- *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {boolean} [props.collapsed] The menu is a rail: 68px, icons only, every label a tooltip. Collapsing is the track's width and not an animation - an animated grid track reflows every card beside it on every frame.
+ * @param {import('react').ReactNode} props.children Sidebar, TopBar and ShellContent, in any order - the shell reads which is which and places them, so the top bar cannot end up inside the content.
  */
 export function Shell({ collapsed = false, children, ...rest }) {
 	reject(rest, 'Shell')
@@ -41,14 +37,20 @@ export function Shell({ collapsed = false, children, ...rest }) {
 	)
 }
 
-/** The bar above the page: the search, and anything else that belongs to the whole
-    screen rather than to what is on it. A sibling of the content, never inside it.
-
-    One bar, on a desktop shell and on a phone. It was two exports - `ShellTopbar`
-    here and `PhoneTopBar` in Phone.jsx - rendering the same `.sp-topbar` and
-    differing only in `touch` being hardcoded off in one of them. A caller reading
-    the export list could not tell them apart, because at the call site there was
-    nothing to tell apart: the difference is `touch`, so `touch` is the prop. */
+/**
+ * The bar above the page: the search, and anything else that belongs to the whole
+ * screen rather than to what is on it. A sibling of the content, never inside it.
+ *
+ * One bar, on a desktop shell and on a phone. It was two exports - `ShellTopbar`
+ * here and `PhoneTopBar` in Phone.jsx - rendering the same `.sp-topbar` and
+ * differing only in `touch` being hardcoded off in one of them. A caller reading
+ * the export list could not tell them apart, because at the call site there was
+ * nothing to tell apart: the difference is `touch`, so `touch` is the prop.
+ *
+ * @param {object} props
+ * @param {boolean} [props.touch]
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function TopBar({ touch = false, children, ...rest }) {
 	reject(rest, 'TopBar')
 	return <div className={join('sp-topbar', touch && 'sp-topbar--touch')} {...rest}>{children}</div>
@@ -60,8 +62,8 @@ const BODY = { default: null, split: 'sp-shell__body--split', rail: 'sp-shell__b
  * The page's body inside the shell.
  *
  * @param {object} props
- * @param {'default'|'split'|'rail'} [props.layout] `rail` puts a facet rail before
- *   the content, `split` puts a panel after it.
+ * @param {keyof typeof BODY} [props.layout] `rail` puts a facet rail before the content, `split` puts a panel after it.
+ * @param {import('react').ReactNode} [props.children]
  */
 export function ShellContent({ layout = 'default', children, ...rest }) {
 	reject(rest, 'ShellContent')
@@ -81,13 +83,8 @@ const SIDEBAR = {
 
 /**
  * @param {object} props
- * @param {'default'|'rail'|'peek'|'slide-in'|'slide-out'} [props.variant] `rail` is
- *   the same sidebar at its narrow width; `peek` shows its labels over the page
- *   rather than pushing it.
- * @param {React.ReactNode} props.children A SidebarBrand, then NavItems,
- *   SidebarGroup titles, SidebarDividers and a SidebarGrip, all as direct
- *   children - the menu's column is what spaces them, so nothing may sit between it
- *   and a row.
+ * @param {keyof typeof SIDEBAR} [props.variant] `rail` is the same sidebar at its narrow width; `peek` shows its labels over the page rather than pushing it.
+ * @param {import('react').ReactNode} props.children A SidebarBrand, then NavItems, SidebarGroup titles, SidebarDividers and a SidebarGrip, all as direct children - the menu's column is what spaces them, so nothing may sit between it and a row.
  */
 export function Sidebar({ variant = 'default', children, ...rest }) {
 	reject(rest, 'Sidebar')
@@ -98,7 +95,12 @@ export function Sidebar({ variant = 'default', children, ...rest }) {
 	)
 }
 
-/** The product's own mark and name, as the menu's top block. */
+/**
+ * The product's own mark and name, as the menu's top block.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function SidebarBrand({ children, ...rest }) {
 	reject(rest, 'SidebarBrand')
 	return <div className="sp-sidebar__brand" {...rest}>{children}</div>
@@ -110,6 +112,9 @@ export function SidebarBrand({ children, ...rest }) {
  * because that column is what holds them --sp-6 apart and what keeps every row's
  * padding equal. Wrapping them in anything takes both away - they inherit the
  * title's side padding and lose the gap, so a selected row touches the one below it.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
  */
 export function SidebarGroup({ children, ...rest }) {
 	reject(rest, 'SidebarGroup')
@@ -139,7 +144,9 @@ export function SidebarGrip({ expanded = true, onClick, ...rest }) {
 	)
 }
 
-/** The rule between the destinations and the pinned zone at the bottom. */
+/**
+ * The rule between the destinations and the pinned zone at the bottom.
+ */
 export function SidebarDivider(props) {
 	reject(props, 'SidebarDivider')
 	return <span className="sp-sidebar__divider" {...props} />
@@ -151,17 +158,15 @@ const NAV = { default: null, action: 'sp-nav-item--action', light: 'sp-nav-item-
  * A destination, or the action at the menu's foot.
  *
  * @param {object} props
- * @param {'default'|'action'|'light'|'edited'} [props.variant] `light` is the same
- *   row on a light ground - a sheet, a phone's menu. `edited` marks a saved view
- *   whose filters have been changed since it was saved.
- * @param {string} [props.icon] An Icon name. It sits in a fixed slot, so every
- *   label starts on one line.
- * @param {React.ReactNode} [props.count] The records behind the row.
- * @param {'warning'} [props.countColor] A count that is a backlog.
- * @param {React.ReactNode} [props.sub] A second line - the account row's address.
+ * @param {keyof typeof NAV} [props.variant] `light` is the same row on a light ground - a sheet, a phone's menu. `edited` marks a saved view whose filters have been changed since it was saved.
+ * @param {string} [props.icon] An Icon name. It sits in a fixed slot, so every label starts on one line.
+ * @param {number} [props.count] The records behind the row.
+ * @param {'warning' | 'danger'} [props.countColor] A count that is a backlog.
+ * @param {import('react').ReactNode} [props.sub] A second line - the account row's address.
  * @param {boolean} [props.current] The page the reader is on.
  * @param {string} [props.to]
  * @param {() => void} [props.onClick]
+ * @param {import('react').ReactNode} [props.children]
  */
 export function NavItem({ variant = 'default', icon, count, countColor, sub, current = false, to, onClick, children, ...rest }) {
 	reject(rest, 'NavItem')
@@ -181,7 +186,13 @@ export function NavItem({ variant = 'default', icon, count, countColor, sub, cur
 	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
 }
 
-/** The dimmed page a sheet or a dialog sits over. It fills the frame it is in. */
+/**
+ * The dimmed page a sheet or a dialog sits over. It fills the frame it is in.
+ *
+ * @param {object} props
+ * @param {boolean} [props.dialog]
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function Scrim({ dialog = false, children, ...rest }) {
 	reject(rest, 'Scrim')
 	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...rest}>{children}</div>

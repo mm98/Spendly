@@ -388,24 +388,7 @@ function standardRanges(locale) {
  * carries its full date for a screen reader, today is marked, and a day outside
  * `min` or `max` is disabled rather than missing.
  *
- * @param {object} props
- * @param {string} props.from The first date, as an ISO string.
- * @param {string} props.to The last date. Two props rather than a pair: a third date
- *   cannot be expressed, so there is nothing to guard against - a pair had to be
- *   checked for length and for order, and a wrong one still rendered.
- * @param {(from: string, to: string) => void} props.onChange Both dates, in order -
- *   the control never reports one without the other, since a range is the pair.
- * The glyphs are the component's own, from the register: a month-back arrow is never
- * anything but a chevron, so passing them was a decision that was not one. Nor are
- * the quick ranges, the day count or the pair of actions a caller's to leave out,
- * which is how one call site ended up offering less than another.
- * @param {Array<{label: string, value: [string, string]}>} [props.quick] To replace
- *   the standard ranges, not to remove them - an empty array is reported.
- * @param {string} [props.min] An ISO date.
- * @param {string} [props.max]
- * @param {number} [props.minDays] The shortest range that means anything - a hire of
- *   at least two days, a period that has to cover a week. Counted inclusively, so 2
- *   is a day and the day after it.
+ *
  *
  *   The end the reader did not just touch is what moves. Picking a start too close to
  *   the end pushes the end out; picking an end too close to the start pulls the start
@@ -413,12 +396,20 @@ function standardRanges(locale) {
  *   range they cannot fix without working out which end the control objects to.
  *   Where the push would cross min or max it is taken from the other end instead, so
  *   the floor holds even at the edge of what can be picked.
+ *
+ * @param {object} props
+ * @param {string} props.from The first date, as an ISO string.
+ * @param {string} props.to The last date. Two props rather than a pair: a third date cannot be expressed, so there is nothing to guard against - a pair had to be checked for length and for order, and a wrong one still rendered.
+ * @param {(from: string, to: string) => void} props.onChange Both dates, in order - the control never reports one without the other, since a range is the pair. The glyphs are the component's own, from the register: a month-back arrow is never anything but a chevron, so passing them was a decision that was not one. Nor are the quick ranges, the day count or the pair of actions a caller's to leave out, which is how one call site ended up offering less than another.
+ * @param {{ label: string, value: [string, string] }[]} [props.quick] To replace the standard ranges, not to remove them - an empty array is reported.
+ * @param {string} [props.min] An ISO date.
+ * @param {string} [props.max]
+ * @param {number} [props.minDays] The shortest range that means anything - a hire of at least two days, a period that has to cover a week. Counted inclusively, so 2 is a day and the day after it.
+ * @param {(day: string) => boolean} [props.unavailable]
  * @param {() => void} props.onApply
  * @param {() => void} props.onCancel Also what Escape does.
  * @param {boolean} [props.showWeeks] Number the rows with their ISO week.
- * @param {string} [props.locale]
- *
- * Takes no `className` and no `style`.
+ * @param {string} [props.locale] Takes no `className` and no `style`.
  */
 export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, ...rest }) {
 	reject(rest, 'RangePicker')
@@ -718,24 +709,15 @@ export function Selected() { return null }
  * period, even if it is "this month".
  *
  * @param {object} props
+ * @param {{ value: string, label: string }[]} [props.presets] To replace the standard five, not to remove them.
  * @param {string} props.value The chosen preset.
- * @param {string} [props.from] The custom range's first date, when the preset is
- *   `custom`. Two props rather than a pair, for the reason RangePicker takes two: a
- *   third date cannot be expressed, so nothing has to be guarded against.
+ * @param {(period: { period: string, selected: { from: string, to: string } | null, past: { from: string, to: string, name: string } | null }) => void} props.onChange Called when the preset changes, with the same object a Selected child is handed. One shape for both, so a page reads the same thing whether it is rendering or reacting.
+ * @param {string} [props.from] The custom range's first date, when the preset is `custom`. Two props rather than a pair, for the reason RangePicker takes two: a third date cannot be expressed, so nothing has to be guarded against.
  * @param {string} [props.to] Its last date.
- * @param {(period: {period: string, selected: {from: string, to: string}, past: {from: string, to: string, name: string}}) => void} props.onChange
- *   Called when the preset changes, with the same object a Selected child is handed.
- *   One shape for both, so a page reads the same thing whether it is rendering or
- *   reacting.
- * @param {Array<{value: string, label: string}>} [props.presets] To replace the
- *   standard five, not to remove them.
  * @param {string} props.name Groups the radios.
- * @param {React.ReactNode} [props.children] A Selected, and nothing else.
- * @param {React.ReactNode} [props.custom] The RangePicker, shown when the custom
- *   preset is the chosen one.
- * @param {string} [props.locale]
- *
- * Takes no `className` and no `style`.
+ * @param {import('react').ReactNode} [props.custom] The RangePicker, shown when the custom preset is the chosen one.
+ * @param {import('react').ReactNode} [props.children] A Selected, and nothing else.
+ * @param {string} [props.locale] Takes no `className` and no `style`.
  */
 export function PeriodPicker({ presets, value, onChange, from, to, name, custom, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
@@ -820,6 +802,11 @@ export function PeriodPicker({ presets, value, onChange, from, to, name, custom,
 /**
  * The single month a phone shows, in a sheet: the same grid at touch size, scrolling
  * inside the sheet with its weekday row pinned.
+ *
+ * @param {object} props
+ * @param {boolean} [props.sheet]
+ * @param {boolean} [props.open]
+ * @param {import('react').ReactNode} [props.children]
  */
 export function Calendar({ sheet = false, open = true, children, ...rest }) {
 	reject(rest, 'Calendar')
@@ -872,16 +859,7 @@ function fromReadable(text, locale) {
  * button; clicking away closes it too; and Tab leaves, because the dropdown is not
  * a modal - it is a panel hanging off a field.
  *
- * @param {object} props
- * @param {string} props.value An ISO date.
- * @param {(value: string) => void} props.onChange
- * The calendar glyph and the two month arrows are the component's own, from the
- * register - a date field's calendar is never another glyph.
- * @param {string} [props.min] An ISO date. Days outside are disabled, not hidden.
- * @param {string} [props.max]
- * @param {number} [props.minDays] The shortest range that means anything - a hire of
- *   at least two days, a period that has to cover a week. Counted inclusively, so 2
- *   is a day and the day after it.
+ *
  *
  *   The end the reader did not just touch is what moves. Picking a start too close to
  *   the end pushes the end out; picking an end too close to the start pulls the start
@@ -889,13 +867,20 @@ function fromReadable(text, locale) {
  *   range they cannot fix without working out which end the control objects to.
  *   Where the push would cross min or max it is taken from the other end instead, so
  *   the floor holds even at the edge of what can be picked.
- * @param {boolean} [props.native] Force one or the other.
- * @param {boolean} [props.showWeeks] Number the calendar's rows with their ISO week.
- * @param {boolean} [props.danger]
- * @param {string} [props.locale] Defaults to the browser's.
- * @param {string} [props.id] Bound by the Field around it.
  *
  * Takes no `className` and no `style`.
+ *
+ * @param {object} props
+ * @param {string} props.value An ISO date.
+ * @param {(value: string) => void} props.onChange The calendar glyph and the two month arrows are the component's own, from the register - a date field's calendar is never another glyph.
+ * @param {string} [props.min] An ISO date. Days outside are disabled, not hidden.
+ * @param {string} [props.max]
+ * @param {(day: string) => boolean} [props.unavailable]
+ * @param {boolean} [props.native] Force one or the other.
+ * @param {boolean} [props.danger]
+ * @param {boolean} [props.showWeeks] Number the calendar's rows with their ISO week.
+ * @param {string} [props.locale] Defaults to the browser's.
+ * @param {string} [props.id] Bound by the Field around it.
  */
 export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, locale, id, ...rest }) {
 	reject(rest, 'DateField')

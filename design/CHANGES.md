@@ -1,53 +1,33 @@
-# Search field ends: the shortcut key hint and Ask with no questions left
+# Component props in JSDoc
 
-Two faults at the end of a search field, both seen on a phone-sized field and both in `styles/components.css`.
+Brief: the app's components on main (`react/src/components/`) now document their props in JSDoc, which Storybook reads; the design's components do the same from now on.
 
-## 1. The shortcut key hint sits high in a touch field
+## Every component in react_handoff documents its props
 
-**The problem.** The top bar's search field shows the `⌘K` hint at its end. The hint was pinned to the desktop field height (36px, `--control-h`), so in the 48px touch field (`--control-h-touch`) it sat in the top 36px instead of the middle.
+- **The problem:** the app's exports each carry `@param {object} props` and one `@param` per prop. `react_handoff/` did so only in part: 43 exports had no block, a block missing props, or a block separated from its function by a constant (`Toolbar` in Card.jsx, `Segmented`). The types differed from the app's (`React.ReactNode`, literal unions).
+- **What changed:** every export in `react_handoff/` (95 blocks) now has a JSDoc block directly above it: prose first, then `@param {object} props` and one `@param` per prop it destructures, in the order it destructures them. Types are taken from the app's block for the same export (`import('react').ReactNode`, `keyof typeof MAP`); where the app names a constant this file does not have (`FILE_STATE`, `FILE_GONE` in `ChatFile`) the design's own type is kept. Optional marks and descriptions are the design's where it had them, the app's otherwise. No code changed: only comments.
+- **Where:** `react_handoff/*.jsx` (all 23), `react_handoff/README.md` (section "Every prop is documented"). The app's files already carry their blocks: nothing to port to `react/src/components/` beyond keeping new props documented.
+- **What is still open:** none.
 
-**What changed.** The hint is centred on the field's real height, whatever that height is. No value changes.
+## A check for it
 
-**Where.**
-- `styles/components.css`, `.sp-field__kbd`: `top: 0; height: var(--control-h)` is now `top: 50%; transform: translateY(-50%)`.
-- Every page with the top bar's search field (Home, Ask Spendly, Vendors and categories, Components, the Navigation shell). The markup is unchanged.
-- App: `react/src/styles/components.css`, the same selector. `SearchInput` in `react/src/components/Inputs.jsx` needs no change.
+- **The problem:** nothing caught an undocumented prop.
+- **What changed:** `styles/check.js` asserts "every component prop has JSDoc": each export that destructures props has a `@param {object} props` block directly above it naming every destructured prop. Tested by removing `Pill`'s `color` line: the check reports it.
+- **Where:** `styles/check.js`, the react exports block.
+- **What is still open:** none.
 
-**What is still open.** Nothing.
+## later.md
 
-## 2. The Ask button with no questions left sits below the search field
-
-Settles the later.md entry "The Ask button with no questions left sits below the search field". Please remove it from `later.md`.
-
-**The problem.** With no questions left today, `AskTrail spent` wraps the disabled button in a span carrying its tooltip (a disabled button takes no pointer events). The rule that places the field's end controls, `.sp-field__trails > .sp-field__trail`, only reaches a button directly in the group, so the wrapped button kept the lone trail's corner placement and dropped below the field.
-
-**What changed.** The tooltip span is a row item of the field's end, and the button inside it sits as the other end buttons do. It looks the same as before: disabled, at `--fade-disabled`, at the field's end, with the tooltip "No questions left today. Resets at midnight." on hover and focus.
-
-**Where.**
-- `Order list 2b`, the specimen "No questions left today": now drawn with the span, as `AskTrail` renders it, and the note "When no questions are left today" names the span.
-- `styles/components.css`, added beside `.sp-field__trails > .sp-field__trail`:
-  ```css
-  .sp-field__trails > span[data-tip] { position: relative; display: flex; }
-  .sp-field__trails > span[data-tip] > .sp-field__trail { position: relative; top: auto; right: auto; transform: none; }
-  ```
-- App: `react/src/styles/components.css`, the same two rules after `.sp-field__trails > .sp-field__trail`. `AskTrail` in `react/src/components/Inputs.jsx` needs no change.
-
-**What is still open.** Nothing.
-
-## Stylesheet version
-
-Every page now links `styles/components.css?v=v20261024b`, so a browser holding the earlier copy loads the new one.
+Read on main before this task. No entry is settled by this change: the Storybook Files Docs page, the combobox specimen's `chevron` and the accessibility faults remain open, and none was in this brief. Please confirm whether the combobox `chevron` entry should be done next, since it is a fault in `React components.dc.html`.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Order list.dc.html` - Order list 2b, the redrawn specimen and its note.
-- `support.js`, `components.js` - load the page.
-- `styles/tokens.css`, `styles/doc.css`, `styles/pages/order-list.css` - the page's other stylesheets, unchanged.
-- `styles/components.css` - both fixes.
-- `styles/check.js` - two new assertions: "a shortcut hint is centred in its field" and "a wrapped trail sits in its row".
+- `react_handoff/*.jsx`, `format.js`, `variants.js` - the components with their JSDoc; the two helpers so the folder is whole.
+- `react_handoff/README.md` - the rule in the components' own notes.
+- `styles/check.js` - the new assertion.
 
-## Check
+## styles/check.js
 
-`styles/check.js`: 0 finding(s) across 27 pages
+0 finding(s) across 27 pages.

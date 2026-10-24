@@ -13,11 +13,9 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger' }
 
 /**
  * @param {object} props
- * @param {'default'|'quiet'} [props.variant]
- * @param {'default'|'warning'|'danger'} [props.color]
- * @param {React.ReactNode} props.children
- *
- * Takes no `className` and no `style`.
+ * @param {keyof typeof VARIANT} [props.variant]
+ * @param {keyof typeof COLOR} [props.color]
+ * @param {import('react').ReactNode} props.children Takes no `className` and no `style`.
  */
 export function Well({ variant = 'default', color = 'default', children, ...rest }) {
 	reject(rest, 'Well')

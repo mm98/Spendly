@@ -35,34 +35,25 @@ import { Choice, FieldGroup } from './Choice.jsx'
 const MESSAGE = { hint: null, warning: 'warning', danger: 'danger' }
 
 /**
- * @param {object} props
- * @param {React.ReactNode} props.label
- * @param {React.ReactElement} props.children Any control in the library: a
- *   TextField, a Combobox, a Stepper, a Check, a Switch, a Segmented, a Picker. The
- *   AmountField, a Combobox, a Stepper, a Check, a Radio, a Switch. Required: a
- *   field with nothing in it is a label.
- *
  *   A box is laid out differently from a value, and the field works out which it
  *   has. A control you type or pick a value in takes its label above it, bound by
  *   id. A box takes its label beside it, inside a `<label>` that wraps it, because
  *   the text is the thing you click - so the field renders a Choice around it rather
  *   than stacking a bare box under a heading. The caller writes the same Field
  *   either way.
- * @param {string} [props.id] Bound to the control. Generated when omitted.
- * @param {React.ReactNode} [props.lead] An icon inside the control's head.
- * @param {React.ReactNode} [props.trail] A control inside its tail.
- * @param {React.ReactNode} [props.unit] A unit inside its tail.
- * @param {React.ReactNode} [props.kbd] A shortcut hint inside its tail.
- * @param {React.ReactNode} [props.chevron] A chevron inside its tail, for a control
- *   that opens rather than accepts typing.
- * @param {boolean} [props.required] Marks the label and sets `required` on the
- *   control, so the browser and a screen reader both know. The marker is quiet ink,
- *   not red: a field not yet filled in is not a field that failed.
- * @param {React.ReactNode} [props.message] At most one, under the control.
- * @param {'hint'|'warning'|'danger'} [props.messageType]
  *
- * Takes no `className` and no `style`, and no input props - those belong to the
- * control, which is the child.
+ * @param {object} props
+ * @param {import('react').ReactNode} props.label
+ * @param {string} [props.id] Bound to the control. Generated when omitted.
+ * @param {import('react').ReactNode} [props.lead] An icon inside the control's head.
+ * @param {import('react').ReactNode} [props.trail] A control inside its tail.
+ * @param {import('react').ReactNode} [props.unit] A unit inside its tail.
+ * @param {import('react').ReactNode} [props.kbd] A shortcut hint inside its tail.
+ * @param {import('react').ReactNode} [props.chevron] A chevron inside its tail, for a control that opens rather than accepts typing.
+ * @param {import('react').ReactNode} [props.message] At most one, under the control.
+ * @param {keyof typeof MESSAGE} [props.messageType] Takes no `className` and no `style`, and no input props - those belong to the control, which is the child.
+ * @param {boolean} [props.required] Marks the label and sets `required` on the control, so the browser and a screen reader both know. The marker is quiet ink, not red: a field not yet filled in is not a field that failed.
+ * @param {import('react').ReactNode} props.children Any control in the library: a TextField, a Combobox, a Stepper, a Check, a Switch, a Segmented, a Picker. The AmountField, a Combobox, a Stepper, a Check, a Radio, a Switch. Required: a field with nothing in it is a label.
  */
 export function Field({
 	label,

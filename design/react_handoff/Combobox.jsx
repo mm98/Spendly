@@ -52,29 +52,21 @@ const VARIANT = {
 const DOTS = ['draft', 'progress', 'done', 'returned', 'cancelled']
 
 /**
+ * Takes no `className` and no `style`.
+ *
  * @param {object} props
- * @param {'default'|'sort'|'end'|'stretch'} [props.variant] `sort` is the pick-only
- *   control above a list; `end` anchors a panel wider than its trigger; `stretch`
- *   lets the trigger grow to its content.
- * @param {string} props['aria-label'] What is being chosen - the trigger shows the
- *   value, not the question it answers.
- * @param {React.ReactNode} props.value What the trigger reads when closed.
- * @param {React.ReactNode} [props.lead] Shown before the value - the sort control's
- *   own word, a mark, a dot.
+ * @param {keyof typeof VARIANT} [props.variant] `sort` is the pick-only control above a list; `end` anchors a panel wider than its trigger; `stretch` lets the trigger grow to its content.
+ * @param {import('react').ReactNode} props.value What the trigger reads when closed.
+ * @param {import('react').ReactNode} [props.lead] Shown before the value - the sort control's own word, a mark, a dot.
  * @param {boolean} [props.open] Controlled. Omit to let the component hold it.
  * @param {boolean} [props.defaultOpen]
- * @param {(next: boolean) => void} [props.onOpenChange]
- * @param {boolean} [props.searchable] The reader narrows the set by typing. The
- *   trigger becomes the input, and typing opens the panel.
+ * @param {(open: boolean) => void} [props.onOpenChange]
+ * @param {boolean} [props.searchable] The reader narrows the set by typing. The trigger becomes the input, and typing opens the panel.
  * @param {string} [props.search] Controlled query. Omit and the component holds it.
- * @param {(query: string) => void} [props.onSearch] Called as the reader types. The
- *   page filters its own options with it - matching on an option's rendered text
- *   would match on its mark and its meta value too.
- * @param {string} [props.placeholder] Searchable only, and only where the field has
- *   no chosen value to show.
- * @param {React.ReactNode} props.children Options, groups and separators.
- *
- * Takes no `className` and no `style`.
+ * @param {(text: string) => void} [props.onSearch] Called as the reader types. The page filters its own options with it - matching on an option's rendered text would match on its mark and its meta value too.
+ * @param {string} [props.placeholder] Searchable only, and only where the field has no chosen value to show.
+ * @param {import('react').ReactNode} props.children Options, groups and separators.
+ * @param {string} [props.id]
  */
 export function Combobox({
 	variant = 'default',
@@ -292,13 +284,13 @@ export function Combobox({
  *
  * @param {object} props
  * @param {boolean} [props.selected] The one currently chosen.
- * @param {boolean} [props.active] Where the arrow keys are. Set by Combobox, never
- *   by a page - it is keyboard position, not data.
- * @param {string} [props.dot] A status: draft, progress, done, returned, cancelled.
- * @param {React.ReactNode} [props.mark]
- * @param {React.ReactNode} [props.meta] A value at the option's tail.
+ * @param {boolean} [props.active] Where the arrow keys are. Set by Combobox, never by a page - it is keyboard position, not data.
+ * @param {string} [props.id]
+ * @param {typeof DOTS[number]} [props.dot] A status: draft, progress, done, returned, cancelled.
+ * @param {import('react').ReactNode} [props.mark]
+ * @param {import('react').ReactNode} [props.meta] A value at the option's tail.
  * @param {() => void} [props.onSelect]
- * @param {React.ReactNode} props.children The option's name.
+ * @param {import('react').ReactNode} props.children The option's name.
  */
 export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, children, ...rest }) {
 	reject(rest, 'ComboboxOption')
@@ -325,13 +317,23 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
 	)
 }
 
-/** The heading over a set of options. */
+/**
+ * The heading over a set of options.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function ComboboxGroup({ children, ...rest }) {
 	reject(rest, 'ComboboxGroup')
 	return <li className="sp-combobox__group" {...rest}>{children}</li>
 }
 
-/** What the panel says when nothing matches. */
+/**
+ * What the panel says when nothing matches.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} [props.children]
+ */
 export function ComboboxEmpty({ children, ...rest }) {
 	reject(rest, 'ComboboxEmpty')
 	return <li className="sp-combobox__empty" {...rest}>{children}</li>
