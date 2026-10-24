@@ -9,7 +9,7 @@ One row for every list in the product. What varies is what the row carries: a ha
 - `color`: `'default'` | `'warning'` | `'danger'` | `'success'`
 - `mark`: a `Mark` at the start
 - `handle`: the drag handle's icon, such as `<Icon name="grip-vertical" />`; `handleLabel` says what it moves (default `'Reorder'`). A row with a handle is drawn inside a `ReorderList`, which moves it.
-- `count`: a count that leads the row's text
+- `count`: a count that leads the row's text, or `'!'` for an attention row that counts nothing
 - `actions`: controls at the end, such as a `ListItemRemove`
 - `chevron`: at the very end, such as `<Icon name="chevron-right" />`
 - `selected`: for the `outline` and `card` variants

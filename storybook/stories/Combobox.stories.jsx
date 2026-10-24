@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { MotionGlobalConfig } from 'motion/react'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import { Combobox, ComboboxOption, ComboboxGroup, ComboboxSeparator, ComboboxEmpty } from '../../react/src/components/Combobox.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
@@ -182,5 +183,109 @@ export const Disabled = {
 	play: async ({ args, canvas }) => {
 		await userEvent.click(canvas.getByRole('combobox'))
 		await expect(args.onOpenChange).not.toHaveBeenCalled()
+	}
+}
+
+const KINDS = ['Expense', 'Income', 'Refund']
+const CATEGORIES = ['Decor', 'Office', 'Garden furniture, outdoor storage and greenhouse supplies']
+// on a phone a list is a sheet from the bottom edge: these stories are about the desktop panel
+const DESKTOP = { viewport: { value: 'desktop', isRotated: false } }
+const MANY = ['Bathroom', 'Bedroom', 'Books', 'Children', 'Cleaning', 'Clothes', 'Decor', 'Electronics', 'Garden', 'Gifts', 'Groceries', 'Health', 'Hobby', 'Kitchen', 'Lighting', 'Living room', 'Office', 'Pets', 'Sports', 'Storage', 'Tools', 'Travel']
+
+// one select whose choice the story holds, opened or shut by its args
+const Held = ({ args, name, options, onPick, onOpenChange }) => {
+	const [value, setValue] = useHeld(args, 'value')
+	const [open, setOpen] = useHeld(args, 'open')
+	const openChange = next => { setOpen(next); onOpenChange(next) }
+	return (
+		<Combobox {...args} value={value} open={open} onOpenChange={openChange}>
+			{options.map(option => (
+				<ComboboxOption key={option} selected={value === option} onSelect={() => { setValue(option); onPick(option); openChange(false) }}>{option}</ComboboxOption>
+			))}
+		</Combobox>
+	)
+}
+
+/** A list is its field's width, and grows past it only for an option that would not fit, up to 288. */
+export const ListWidth = {
+	globals: DESKTOP,
+	args: { label: 'Kind', value: KINDS[0], open: true, onPick: fn() },
+	argTypes: {
+		value: { control: 'select', options: KINDS },
+		label: { control: 'text', description: 'The Field\'s label' }
+	},
+	render: ({ label, onPick, onOpenChange, ...args }) => (
+		<div className="sp-row-flex sp-gap-16">
+			<div style={{ width: 157 }}><Field label={label}><Held args={args} options={KINDS} onPick={onPick} onOpenChange={onOpenChange} /></Field></div>
+			<div style={{ width: 157 }}><Field label="Category"><Held args={{ ...args, value: CATEGORIES[0] }} options={CATEGORIES} onPick={onPick} onOpenChange={onOpenChange} /></Field></div>
+		</div>
+	),
+	play: async ({ canvasElement }) => {
+		const [kind, category] = [...canvasElement.querySelectorAll('.sp-combobox')]
+		const width = el => el.getBoundingClientRect().width
+		await waitFor(() => expect(Math.abs(width(kind.querySelector('.sp-combobox__panel')) - width(kind))).toBeLessThan(0.5))
+		await expect(width(category.querySelector('.sp-combobox__panel'))).toBeCloseTo(288, 0)
+		// the long option stays on its line and is cut
+		const long = page(canvasElement).getByRole('option', { name: CATEGORIES[2] }).querySelector('span')
+		await expect(long.scrollWidth).toBeGreaterThan(long.clientWidth)
+	}
+}
+
+/** A list moved to fit, here hung from its field's right edge at the window's edge, fades out where it stood. */
+export const ClosingAtTheEdge = {
+	globals: DESKTOP,
+	args: { label: 'Category', value: CATEGORIES[0], open: false, onPick: fn() },
+	argTypes: {
+		value: { control: 'select', options: CATEGORIES },
+		label: { control: 'text', description: 'The Field\'s label' }
+	},
+	render: ({ label, onPick, onOpenChange, ...args }) => (
+		<div style={{ position: 'fixed', top: 16, right: 16, width: 157 }}>
+			<Field label={label}><Held args={args} options={CATEGORIES} onPick={onPick} onOpenChange={onOpenChange} /></Field>
+		</div>
+	),
+	play: async ({ args, canvas, canvasElement }) => {
+		await userEvent.click(canvas.getByRole('combobox'))
+		const panel = canvasElement.querySelector('.sp-combobox__panel')
+		const root = canvasElement.querySelector('.sp-combobox')
+		await waitFor(() => expect(panel.style.right).toBe('0px'))
+		const open = panel.getBoundingClientRect()
+		await expect(open.right).toBeLessThanOrEqual(document.documentElement.clientWidth)
+		// npm test skips every move; this check needs the fade itself
+		const skipped = MotionGlobalConfig.skipAnimations
+		MotionGlobalConfig.skipAnimations = false
+		try {
+			await userEvent.click(page(canvasElement).getByRole('option', { name: 'Office' }))
+			await expect(args.onPick).toHaveBeenCalledWith('Office')
+			// while it fades it keeps its place; once the fade has ended it is back in its own spot
+			await expect(root).toHaveAttribute('data-closing', 'true')
+			await expect(panel.getBoundingClientRect().left).toBeCloseTo(open.left, 0)
+			await waitFor(() => expect(root).not.toHaveAttribute('data-closing'))
+			await expect(panel).not.toHaveAttribute('style')
+		} finally {
+			MotionGlobalConfig.skipAnimations = skipped
+		}
+	}
+}
+
+/** A list longer than its cap scrolls inside, with the thin shared scrollbar. */
+export const LongList = {
+	globals: DESKTOP,
+	args: { label: 'Category', value: MANY[0], open: true, onPick: fn() },
+	argTypes: {
+		value: { control: 'select', options: MANY },
+		label: { control: 'text', description: 'The Field\'s label' }
+	},
+	render: ({ label, onPick, onOpenChange, ...args }) => (
+		<Field label={label}><Held args={args} options={MANY} onPick={onPick} onOpenChange={onOpenChange} /></Field>
+	),
+	play: async ({ canvasElement }) => {
+		const panel = canvasElement.querySelector('.sp-combobox__panel')
+		await expect(panel.scrollHeight).toBeGreaterThan(panel.clientHeight)
+		await expect(getComputedStyle(panel).scrollbarWidth).toBe('thin')
+		// the last option is reached by scrolling the list, not the page
+		panel.scrollTop = panel.scrollHeight
+		const last = page(canvasElement).getByRole('option', { name: 'Travel' }).getBoundingClientRect()
+		await expect(last.bottom).toBeLessThanOrEqual(panel.getBoundingClientRect().bottom + 0.5)
 	}
 }
