@@ -2826,7 +2826,7 @@
 				"sqlite_autoindex_user_ask_questions_2"
 			]
 		},
-		"SELECT id, question, answer, state FROM user_ask_chat_turns WHERE chat_id = ? ORDER BY id": {
+		"SELECT id, question, answer, state, asked_at, answered_at FROM user_ask_chat_turns WHERE chat_id = ? ORDER BY id": {
 			"plan": [
 				"SEARCH user_ask_chat_turns USING INDEX user_ask_chat_turns_chat (chat_id=?)"
 			],

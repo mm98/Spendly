@@ -226,6 +226,9 @@ Everything that needs you, on one page.
   answer is about. A follow-up
   question uses the earlier ones. **Stop** ends an answer that is coming, and a failed answer can be
   tried again.
+- **Every message shows its time** under it, and a line with the day (Today, Yesterday, 12 Oct)
+  starts each new day of a chat. An older message saved without a time shows none. A long chat fades at
+  the top and bottom while there is more to scroll to.
 - **Every chat is kept** for 30 days after its last question, with its own address, so a reload or a
   bookmark opens it again and it can be continued. Spendly writes a short heading for it after the
   first answer; this does not count toward the day's questions.

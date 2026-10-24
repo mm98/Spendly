@@ -196,10 +196,31 @@ export const dayShortMonth = iso => {
 /** A moment in epoch seconds -> "2 Sep 2026", year always, in the reader's own order (Settings > Passkeys). */
 export const dayShortMonthYear = seconds => withShortMonth(dayShortMonthYearFormat(), new Date(seconds * 1000))
 
-/** Whether a moment in epoch seconds falls on the reader's today. */
-export const isToday = seconds => {
+const clockFormat = formatter({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const localDayOf = seconds => {
 	const at = new Date(seconds * 1000)
-	return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}` === today()
+	return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`
+}
+
+/** Whether a moment in epoch seconds falls on the reader's today. */
+export const isToday = seconds => localDayOf(seconds) === today()
+
+/** The calendar day a moment in epoch seconds falls on, as words: Today, Yesterday, or "12 Oct", with the year
+    once it is not this one (Ask 24a). */
+export const dayWords = seconds => {
+	const day = localDayOf(seconds)
+	if (day === today()) return 'Today'
+	const before = new Date()
+	before.setDate(before.getDate() - 1)
+	if (day === localDayOf(before.getTime() / 1000)) return 'Yesterday'
+	return dayShortMonth(day)
+}
+
+/** When a message was sent: "14:32" today, and its day in front before today ("Yesterday 20:40", "12 Oct 20:40"). */
+export const messageTime = seconds => {
+	const clock = clockFormat().format(new Date(seconds * 1000))
+	const day = dayWords(seconds)
+	return day === 'Today' ? clock : `${day} ${clock}`
 }
 
 /** "2026-07-18" -> "18 July 2026", in the reader's own order. */

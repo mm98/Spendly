@@ -281,13 +281,8 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	visibility: hidden;
 }
 
-/* on touch a facet group's whole head is the fold's target, not only its line of text: the legend's
-   padding under it too, so the target is the head's 48 */
-.sp-touch .sp-field-group__fold { align-self: stretch; position: relative; }
-.sp-touch .sp-field-group__fold::after { content: ""; position: absolute; inset: 0 0 calc(var(--sp-6) * -1); }
-
-/* a figure keeps its width and the label beside it wraps; only a value wider than the row breaks */
-.sp-sum:not(.sp-sum--stacked) > .sp-sum__value { flex-shrink: 0; max-width: 60%; }
-
-/* a facet switch's options share the width, but each is at least as wide as its own label */
-.sp-segmented--facet { grid-auto-columns: minmax(max-content, 1fr); }
+/* a long conversation's bar is 8 wide in every engine, as the inset beside it counts on: a thin bar is
+   wider in Blink, so an engine that draws the 8px bar the stylesheet gives takes that one instead */
+@supports selector(::-webkit-scrollbar) {
+	.sp-shell__body .sp-chat__scroll { scrollbar-width: auto; scrollbar-color: auto; }
+}

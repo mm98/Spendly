@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
-import { Chat, ChatDock, ChatExamples, ChatMessage, ChatMore, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
+import { Chat, ChatDivider, ChatDock, ChatExamples, ChatMessage, ChatMore, ChatPick, ChatQuestion, ChatReply, ChatSave, ChatStart, ChatThread, SpendlyMark } from '../components/Chat.jsx'
 import { IconButton } from '../components/Button.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Alert, Anchor, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
@@ -8,7 +8,7 @@ import { Failed } from '../components/Failed.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Spinner, useDismiss } from '../components/Utilities.jsx'
 import { emailConversation, failureMessage, getAsk, getCurrentUser, getSavedQuestions, removeSavedQuestion, saveQuestion } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { plural } from '../api/format.js'
+import { dayWords, messageTime, plural } from '../api/format.js'
 import { ask, askAgain, lastChat, newChat, noteEmailed, refreshFiles, showChat, showDraft, stopAsking, useChat, wasEmailed } from '../app/ask.js'
 import { AnswerText } from '../app/askAnswer.jsx'
 import { useAskHelp } from '../app/askHelp.jsx'
@@ -140,6 +140,16 @@ export default function Ask() {
 	if (sending) emailIcon = <Spinner />
 	else if (emailed) emailIcon = 'check'
 
+	// a day line opens the conversation and stands before each message on a new day; a message without a time has none
+	let shownDay = null
+	const dayLine = (key, at) => {
+		if (!at) return null
+		const day = dayWords(at)
+		if (day === shownDay) return null
+		shownDay = day
+		return <ChatDivider key={key}>{day}</ChatDivider>
+	}
+
 	const mine = account ? <AccountMark name={account.name} email={account.email} picture={account.picture} /> : null
 	const items = <ConversationItems mails={mails} emailLabel={emailLabel} emailIcon={emailIcon} canEmail={canEmail} canStartNew={canStartNew} onEmail={email} onNew={startNew} />
 	let opening = null
@@ -159,16 +169,19 @@ export default function Ask() {
 							{turns.map(t => {
 								const isSaved = saved.some(s => s.question === t.question)
 								const full = !isSaved && saved.length >= savedMost
+								const answeredAt = t.state === 'working' ? null : t.answeredAt
 								return [
-									<ChatMessage key={`q${t.id}`} mine mark={mine}
+									dayLine(`dq${t.id}`, t.askedAt),
+									<ChatMessage key={`q${t.id}`} mine mark={mine} {...timeOf(t.askedAt)}
 										end={<ChatSave saved={isSaved} disabled={!savedList || full} tip={full ? `${savedMost} saved. Remove one to save another.` : undefined}
 											onClick={() => toggleSaved(t.question)} />}>
 										<ChatQuestion>{t.question}</ChatQuestion>
 									</ChatMessage>,
+									t.state === 'stopped' ? null : dayLine(`da${t.id}`, answeredAt),
 									t.state === 'stopped'
 										? null
 										: (
-											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />} data-turn={t.id}>
+											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />} data-turn={t.id} {...timeOf(answeredAt)}>
 												<ChatReply state={t.state} doing={t.doing?.doing} onRetry={() => askAgain(t.id)}>
 													{t.state === 'answered' ? <AnswerText text={t.answer} made={t.made} onOpen={to => navigate(to)} /> : null}
 												</ChatReply>
@@ -219,6 +232,9 @@ export default function Ask() {
 		</>
 	)
 }
+
+// the time under a message, from epoch seconds; none while there is none
+const timeOf = at => (at ? { time: messageTime(at), sentAt: new Date(at * 1000).toISOString() } : {})
 
 /* The reader's own mark, the one the sidebar's account row shows: the photo, or initials on its swatch. */
 function AccountMark({ name, email, picture }) {

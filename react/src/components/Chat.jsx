@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
@@ -19,10 +19,40 @@ export function Chat({ spaced = false, children, ...rest }) {
 	return <div className={join('sp-chat', spaced && 'sp-gap-12')} {...rest}>{children}</div>
 }
 
-/** The part above the dock that scrolls: the thread, or the list on Chats and Files. */
+// the stylesheet fades an edge of the part that scrolls while more lies past it
+function markEdges(box) {
+	if (box.scrollTop > 1) box.setAttribute('data-above', 'true')
+	else box.removeAttribute('data-above')
+	if (box.scrollTop + box.clientHeight < box.scrollHeight - 1) box.setAttribute('data-below', 'true')
+	else box.removeAttribute('data-below')
+}
+
+/** The part above the dock that scrolls: the thread, or the list on Chats and Files. Each edge fades
+    while more lies past it, measured again on a scroll, a new message, a font or a resize. */
 export function ChatScroll({ scrollRef, children, ...rest }) {
 	reject(rest, 'ChatScroll')
-	return <div className="sp-chat__scroll" ref={scrollRef} {...rest}>{children}</div>
+	const own = useRef(null)
+	useLayoutEffect(() => {
+		const box = own.current
+		if (!box) return
+		const mark = () => markEdges(box)
+		mark()
+		const frame = requestAnimationFrame(mark)
+		const sizes = new ResizeObserver(mark)
+		sizes.observe(box)
+		for (const child of box.children) sizes.observe(child)
+		box.addEventListener('scroll', mark, { passive: true })
+		return () => {
+			cancelAnimationFrame(frame)
+			sizes.disconnect()
+			box.removeEventListener('scroll', mark)
+		}
+	}, [])
+	const ref = useCallback(el => {
+		own.current = el
+		if (scrollRef) scrollRef.current = el
+	}, [scrollRef])
+	return <div className="sp-chat__scroll" ref={ref} {...rest}>{children}</div>
 }
 
 /** The messages, oldest first, in the part that scrolls; an answer is read out when it arrives. */
@@ -46,10 +76,21 @@ export function ChatExamples({ children, ...rest }) {
 	return <div className="sp-chat__examples" {...rest}>{children}</div>
 }
 
-/** One message: its `mark` outside the bubble, and `end` after it. `mine` is the reader's own, at the right. */
-export function ChatMessage({ mine = false, mark, end, children, ...rest }) {
+/** One message: its `mark` outside the bubble, and `end` after it. `mine` is the reader's own, at the right.
+    `time` is the time read under it and `sentAt` its ISO moment; an answer being written has none. */
+export function ChatMessage({ mine = false, mark, end, time, sentAt, children, ...rest }) {
 	reject(rest, 'ChatMessage')
-	return <div className={join('sp-chat__msg', mine && 'sp-chat__msg--mine')} {...rest}>{mark}{children}{end}</div>
+	if (time && !sentAt) console.error('<ChatMessage> a time names its moment in sentAt')
+	return <>
+		<div className={join('sp-chat__msg', mine && 'sp-chat__msg--mine')} {...rest}>{mark}{children}{end}</div>
+		{time ? <time className="sp-chat__time" dateTime={sentAt}>{time}</time> : null}
+	</>
+}
+
+/** The day line that opens a conversation and stands wherever the day changes: Today, Yesterday, 12 Oct. */
+export function ChatDivider({ children, ...rest }) {
+	reject(rest, 'ChatDivider')
+	return <div className="sp-divider" {...rest}>{children}</div>
 }
 
 /** The reader's question, as they asked it. */
@@ -194,7 +235,7 @@ export function ChatHelp({ makes, disabled = false, onChoose, ...rest }) {
 }
 
 /** Under the thread: the field with What Ask can do at its edge (`onHelp`, never disabled), and Send, or Stop
-    while `working`, then `end`. `bar` pins it above a phone's tab bar, where the hint has no keys and shows only `left`. */
+    while `working`, then `end`. `bar` pins it above a phone's tab bar. The line under the field shows only `left`. */
 export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp, working = false, disabled = false, fieldRef, placeholder, left, end, ...rest }) {
 	reject(rest, 'ChatDock')
 	const size = bar ? 'small' : 'standard'
@@ -212,15 +253,14 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp,
 					: <Button size={size} disabled={disabled || !value.trim()} onClick={onSend}>Send</Button>}
 				{end}
 			</div>
-			{bar && !left
-				? null
-				: (
+			{left
+				? (
 					<div className="sp-chat__hint">
-						{bar ? null : <span>Enter sends, Shift Enter makes a new line</span>}
 						<span className="sp-grow" />
-						{left ? <span className="sp-meta--over">{left}</span> : null}
+						<span className="sp-meta--over">{left}</span>
 					</div>
-				)}
+				)
+				: null}
 		</div>
 	)
 }
