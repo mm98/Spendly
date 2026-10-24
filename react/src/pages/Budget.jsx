@@ -15,10 +15,10 @@ import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
-import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
+import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { useReorder } from '../components/Reorder.js'
-import { useRowMotion } from '../app/rowMotion.js'
+import { ReorderList } from '../components/Reorder.jsx'
+import { Rows } from '../components/motion.js'
 import { Icon } from '../components/Icon.jsx'
 import { AddRow, Empty, EmptyBody, EmptyTitle, Redacted, Skeleton } from '../components/Utilities.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
@@ -1031,14 +1031,6 @@ function AccountsCard({ sheet, onChanged }) {
 		next.splice(to, 0, next.splice(from, 1)[0])
 		write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})
 	}
-	const reorder = useReorder({
-		items: list ?? [],
-		keyOf: account => account.id,
-		nameOf: account => account.name,
-		onMove: (next, account, to) => write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})
-	})
-	const motion = useRowMotion(reorder.items, account => account.id)
-
 	if (!list) return <AccountsLoading />
 	const year = sheet.year
 	const lines = sheet.groups.flatMap(g => g.lines.map(l => ({ ...l, kind: g.kind })))
@@ -1055,17 +1047,14 @@ function AccountsCard({ sheet, onChanged }) {
 		<Card>
 			<CardHeader name="Accounts" />
 			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
-			<div className="sp-stack sp-gap-8" {...reorder.list}>
-				<Announce>{reorder.said}</Announce>
-				{motion.items.map(account => (
-					<Fragment key={account.id}>
-						{reorder.lands(account) ? <Insertion /> : null}
-						{open === account.id
-							? <AccountEditor account={account} index={reorder.items.indexOf(account)} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
+			<div className="sp-stack sp-gap-8">
+				<Rows count={list.length}>
+					<ReorderList items={list} keyOf={account => account.id} nameOf={account => account.name}
+						onMove={(next, account, to) => write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})}>
+						{account => (open === account.id
+							? <AccountEditor account={account} index={list.indexOf(account)} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
 							: (
-								<ListItem variant={reorder.variant(account)}
-									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}
-									{...(motion.leaving(account) ? {} : reorder.row(account))} {...motion.row(account)}>
+								<ListItem handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}>
 									<span className="sp-stacked sp-grow bg-opens-account" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}
 										onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setOpen(account.id) } }}>
@@ -1073,9 +1062,9 @@ function AccountsCard({ sheet, onChanged }) {
 										{through(account.id).map(text => <span className="sp-subtitle" key={text}>{text}</span>)}
 									</span>
 								</ListItem>
-							)}
-					</Fragment>
-				))}
+							))}
+					</ReorderList>
+				</Rows>
 				{open === 'new'
 					? <AccountEditor list={list} write={write} onClose={() => setOpen(null)} />
 					: <AddRow data-opener="account:new" onClick={() => setOpen('new')}>{list.length ? 'Add an account' : 'Add the first account'}</AddRow>}

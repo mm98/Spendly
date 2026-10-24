@@ -1,8 +1,8 @@
-import { useContext, useRef } from 'react'
+import { useRef } from 'react'
 import { Link } from 'react-router'
 import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
-import { Leaves } from './Utilities.jsx'
+import { PRESENCE, animate, into, m, useGoing, useMotionValue } from './motion.js'
 
 /** The surface's destinations, at the bottom where a thumb reaches; over a home bar band its items sit lower (brief 28).
     @param {object} props
@@ -45,7 +45,9 @@ export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 	const box = useRef(null)
 	const pull = useRef(null)
 	// closing under a Leaving (Overlays.jsx), it slides down and takes no more pulls
-	const leaving = useContext(Leaves)
+	const leaving = useGoing()
+	// one value for where it is drawn: the rise in, the pull, the way back and the slide out all move it
+	const y = useMotionValue(0)
 	const bind = el => {
 		box.current = el
 		if (typeof ref === 'function') ref(el)
@@ -70,8 +72,7 @@ export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 			if (!p.moving && by < PULL_START_PX) return
 			p.moving = true
 			p.by = by
-			box.current.style.transition = 'none'
-			box.current.style.transform = `translateY(${by}px)`
+			y.set(by)
 		},
 		onPointerUp: ev => {
 			const p = pull.current
@@ -79,21 +80,19 @@ export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 			const sheet = box.current
 			if (!p?.moving || !sheet) return
 			const fast = p.by / Math.max(1, ev.timeStamp - p.at) > FLICK_PX_PER_MS
-			sheet.style.removeProperty('transition')
 			if (p.by >= Math.min(CLOSE_PX, sheet.offsetHeight / 3) || (fast && p.by > CLOSE_PX / 3)) close()
-			else sheet.style.removeProperty('transform')
+			else animate(y, 0, into())
 		},
 		onPointerCancel: () => {
 			pull.current = null
-			box.current?.style.removeProperty('transition')
-			box.current?.style.removeProperty('transform')
+			animate(y, 0, into())
 		}
 	}
 	return (
-		<div className="sp-sheet" ref={bind} {...(leaving ? { 'data-leaving': 'true' } : {})} {...rest}>
+		<m.div className="sp-sheet" ref={bind} style={{ y }} {...PRESENCE.sheet()} {...(leaving ? { inert: true } : {})} {...rest}>
 			{handle ? <span className="sp-sheet__handle" {...grip} /> : null}
 			{children}
-		</div>
+		</m.div>
 	)
 }
 

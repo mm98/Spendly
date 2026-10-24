@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, transformWithOxc } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // base is relative so a build can be opened from any path -- the prototype it ports
@@ -19,12 +19,23 @@ const stripHtmlComments = () => ({
 	transformIndexHtml: html => html.replace(/[ \t]*<!--(?!\[if)[\s\S]*?-->\n?/g, '')
 })
 
+/* motion.js (from design/react_handoff) is a .js file that holds JSX, which Vite only reads in a .jsx.
+   Storybook imports this plugin too. */
+export const jsxInComponentJs = () => ({
+	name: 'jsx-in-component-js',
+	enforce: 'pre',
+	transform(code, id) {
+		if (!/[\\/]src[\\/]components[\\/][^\\/]+\.js$/.test(id) || !/<[A-Za-z]/.test(code)) return null
+		return transformWithOxc(code, id, { lang: 'jsx', jsx: { runtime: 'automatic' } })
+	}
+})
+
 // /.well-known/change-password is answered by the API, as it is when the API serves the build
 const api = { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true }
 
 export default defineConfig({
 	base: './',
-	plugins: [react(), stripHtmlComments()],
+	plugins: [jsxInComponentJs(), react(), stripHtmlComments()],
 	// the commit this bundle was built from (the Dockerfile passes GIT_SHA);
 	// null anywhere else, which the update notice reads as "nothing to be out of date with"
 	define: { __BUILD_COMMIT__: JSON.stringify(process.env.GIT_SHA || null) },

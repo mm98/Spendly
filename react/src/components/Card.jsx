@@ -2,6 +2,7 @@ import { Children, createContext, useContext } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
+import { Fold } from './motion.js'
 
 const VARIANT = {
 	default: null,
@@ -153,12 +154,15 @@ export function CardFooter({ children, ...rest }) {
 	return <div className="sp-card__footer" {...rest}>{children}</div>
 }
 
-/** A part of a flush card that needs the padding back.
+/** A part of a flush card that needs the padding back. Under a `toggle` Toolbar it is the card's
+    folding body: `open` is the toolbar's `expanded`, and it folds by height as that changes.
     @param {object} props
+    @param {boolean} [props.open] Under a toggle Toolbar: whether the body is unfolded.
     @param {import('react').ReactNode} [props.children] The part of a flush card that needs its padding back. */
-export function CardBody({ children, ...rest }) {
+export function CardBody({ open, children, ...rest }) {
 	reject(rest, 'CardBody')
-	return <div className="sp-card__body" {...rest}>{children}</div>
+	const body = <div className="sp-card__body" {...rest}>{children}</div>
+	return open === undefined ? body : <Fold open={open}>{body}</Fold>
 }
 
 const TOOLBAR = { default: null, loose: 'sp-list__toolbar--loose', link: 'sp-list__toolbar--link', toggle: 'sp-list__toolbar--toggle' }

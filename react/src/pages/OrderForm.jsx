@@ -5,9 +5,9 @@ import { useLocation, useNavigate } from 'react-router'
 import { Card, CardBody, CardHeader, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
-import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
-import { useReorder } from '../components/Reorder.js'
-import { useRowMotion } from '../app/rowMotion.js'
+import { Announce, ListItem } from '../components/ListItem.jsx'
+import { ReorderList } from '../components/Reorder.jsx'
+import { Rows } from '../components/motion.js'
 import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
@@ -214,18 +214,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// a save that kept the reader here ends the task: on a phone the tab bar is back until the next change (9h)
 	const [rested, setRested] = useState(Boolean(created))
 	// a line moved by hand marks the order changed and waits for the save bar (c1)
-	const reorder = useReorder({
-		items: lines,
-		keyOf: line => line.key,
-		nameOf: line => line.title || 'Unnamed line',
-		onMove: next => setLines(ls => {
-			const now = new Map(ls.map(l => [l.key, l]))
-			const moved = next.map(l => now.get(l.key)).filter(Boolean)
-			return [...moved, ...ls.filter(l => !moved.includes(l))]
-		})
+	const moveLines = next => setLines(ls => {
+		const now = new Map(ls.map(l => [l.key, l]))
+		const moved = next.map(l => now.get(l.key)).filter(Boolean)
+		return [...moved, ...ls.filter(l => !moved.includes(l))]
 	})
-	const motion = useRowMotion(reorder.items, line => line.key)
-	const list = reorder.list.ref
+	const list = useRef(null)
 	const column = useRef(null)
 	const stacked = useStacked(column)
 	// below 900 the line opens in a sheet, as on a phone (1d)
@@ -1015,25 +1009,22 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (touch && scan)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} opens
-					mark={<Include line={line} setLines={setLines} />} {...motion.row(line)}>
+					mark={<Include line={line} setLines={setLines} />}>
 					{words}
 				</ListItem>
 			)
 		if (touch && !reordering)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} mark={mark}
-					onClick={() => openLine(line)} {...motion.row(line)}>
+					onClick={() => openLine(line)}>
 					{text}
 				</ListItem>
 			)
-		const at = reorder.items.indexOf(line)
+		const at = lines.indexOf(line)
 		return (
 			<ListItem
 				key={line.key}
 				data-line={line.key}
-				{...(motion.leaving(line) ? {} : reorder.row(line))}
-				{...motion.row(line)}
-				variant={reorder.variant(line)}
 				color={warn ? 'warning' : 'default'}
 				opens={!touch && !reordering}
 				// a phone's Reorder mode has the handle and the two buttons, both (1c)
@@ -1078,15 +1069,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const itemsCard = (
 		<Card>
 			{itemsHead}
-			<div className="sp-stack sp-gap-8" {...reorder.list} onClick={touch && !scan ? undefined : rowClick}>
+			<div className="sp-stack sp-gap-8" ref={list} onClick={touch && !scan ? undefined : rowClick}>
 				<Announce>{said}</Announce>
-				<Announce>{reorder.said}</Announce>
-				{motion.items.map(line => (
-					<Fragment key={line.key}>
-						{reorder.lands(line) ? <Insertion /> : null}
-						{editing && !sheeted && editing.key === line.key ? editor : lineRow(line)}
-					</Fragment>
-				))}
+				<Rows count={lines.length}>
+					<ReorderList items={lines} keyOf={line => line.key} nameOf={line => line.title || 'Unnamed line'} onMove={moveLines}>
+						{line => (editing && !sheeted && editing.key === line.key ? editor : lineRow(line))}
+					</ReorderList>
+				</Rows>
 				{!lines.length && !(editing?.isNew) && tried
 					? (
 						<Empty dashed>
@@ -1278,7 +1267,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						<span className="sp-meta sp-truncate">{detailsLine(draft)}</span>
 					</span>
 				</Toolbar>
-				<CardBody>
+				<CardBody open={!folded}>
 					<div className="sp-stack sp-gap-12">{fields}</div>
 				</CardBody>
 			</Card>

@@ -74,11 +74,7 @@ is removed in the change that settles it.
   - A calendar's days outside the month (#c3c1b8) are 1.8:1 (DatePickers ranges).
   - A NavItem drawn on the page's ground, not the sidebar's, has #7d9186 and #c3d2c8 text on
     #eceae4 (Shell, One Nav Item).
-  - `Mark` with `role="img"` is not allowed on the element it is drawn as in the picture slot and
-    the attachment strip (FileDrop).
   - The drop zone holds a control inside a control (FileDrop, Drop Zone).
-  - The account row's name is the name passed with `aria-label` ("Name, email"), which does not
-    begin with the words drawn on it (`AppShell` and the Shell stories).
 - **Found:** 2026-10-24.
 
 ## The whole pages in Storybook have accessibility faults
@@ -104,10 +100,19 @@ is removed in the change that settles it.
 - **What the reader sees:** nothing yet. These are places where the app's code is not what
   Claude Design handed over, or where a page gives a part a kind of value its comment does not name.
 - **What was found:**
-  - Combobox, Inputs, List, ListItem and Shell are written differently from `design/react_handoff`.
-    Failed, Icon, Reorder, icons and tabler are only in the app.
+  - Failed, Icon, icons and tabler are only in the app.
   - Pages give text to a count (BulkBar, FieldGroup, ListItem's "!"), a drawn part to Sum's value,
     and a number to Segmented's value on Budget.
 - **What to do:** each one is a question for Claude Design or a fix in a page. The change that settles
   one removes its line from the list.
+- **Found:** 2026-10-24.
+
+## A part closed before Motion has loaded never finishes closing
+
+- **Where:** `MotionShell` in `react/src/components/motion.js`, which loads Motion's features after the
+  first paint.
+- **What the reader sees:** nothing in normal use; the features load within a moment of the page
+  opening. A dialog, sheet or fold closed in that moment would stay on screen, not answering.
+- **What was found:** in Storybook's tests a story pressed before the features loaded, and the closing
+  part stayed drawn. Storybook now gives the features at once. A question for Claude Design.
 - **Found:** 2026-10-24.

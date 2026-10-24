@@ -233,12 +233,8 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 .sp-palette { display: flex; flex-direction: column; max-height: 60vh; }
 .sp-palette--screen { max-height: none; }
 /* a sheet is dragged down to close (c13): its grip takes the finger, and it slides back if let go */
-.sp-sheet { transition: transform 160ms ease-out; }
 .sp-sheet__handle { position: relative; cursor: grab; touch-action: none; }
 .sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
-@media (prefers-reduced-motion: reduce) {
-	.sp-sheet { transition: none; }
-}
 
 /* the field's trailing button carries the same 44px press area on touch as the design's small controls (19b) */
 .sp-touch button.sp-field__trail::after {

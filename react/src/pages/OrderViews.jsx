@@ -1,15 +1,14 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { FieldGroup } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
-import { Announce, Insertion } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { NavItem } from '../components/Shell.jsx'
-import { useReorder } from '../components/Reorder.js'
+import { ReorderList } from '../components/Reorder.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
 import { addView, changeView, deleteView, failureMessage, orderViewsAs } from '../api/client.js'
 import { amount } from '../api/format.js'
@@ -78,15 +77,11 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 		.then(() => { setDeleting(null); if (active?.id === view.id) navigate(ALL_ORDERS) })
 		.catch(e => { setDeleting(null); fail(e, 'The view was not deleted. Try again.') })
 	// reordering saves on drop (9e), and a save that fails puts the views back and says so (c1)
-	const reorder = useReorder({
-		items: order ?? views,
-		keyOf: view => view.id,
-		nameOf: view => view.name,
-		onMove: next => {
-			setOrder(next)
-			orderViewsAs(next.map(v => v.id)).catch(e => { setOrder(null); fail(e, 'The new order was not saved. Try again.') })
-		}
-	})
+	const move = next => {
+		setOrder(next)
+		orderViewsAs(next.map(v => v.id)).catch(e => { setOrder(null); fail(e, 'The new order was not saved. Try again.') })
+	}
+	const shown = order ?? views
 
 	// a new label is a new button, so a press that ends naming never lands on the Save that replaces Cancel
 	const slot = mode === 'editing' ? { label: 'Done', onClick: () => setMode('rest') }
@@ -102,33 +97,33 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 				: null}>
 			<CardHeader name="Views" actions={[slot]} />
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
-			<div className="sp-nav-list" {...reorder.list}>
-				<Announce>{reorder.said}</Announce>
+			<div className="sp-nav-list">
 				{mode === 'editing'
 					? <NavItem variant="light" icon="receipt" current={onList && !active && !now} trail={<span className="sp-meta">locked</span>}>All orders</NavItem>
 					: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={onList && !active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
 				{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
-				{reorder.items.map(view => (
-					<Fragment key={view.id}>
-						{reorder.lands(view) ? <Insertion /> : null}
-						{renaming === view.id
-							? <ViewName name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
-							: mode === 'editing'
-								? (
-									<NavItem variant={reorder.variant(view, active?.id === view.id && edited ? 'edited' : 'light')} handle={<Icon name="grip-vertical" size={12} />}
-										handleLabel={`Reorder ${view.name}`} current={active?.id === view.id} {...reorder.row(view)}
+				{mode === 'editing'
+					? (
+						<ReorderList items={shown} keyOf={view => view.id} nameOf={view => view.name} onMove={move}>
+							{view => (renaming === view.id
+								? <ViewName name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
+								: (
+									<NavItem variant={active?.id === view.id && edited ? 'edited' : 'light'} handle={<Icon name="grip-vertical" size={12} />}
+										handleLabel={`Reorder ${view.name}`} current={active?.id === view.id}
 										trail={<span className="sp-cell-menu"><ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onHighlight={() => highlight(view)} onDelete={() => setDeleting(view)} /></span>}>
 										{view.name}
 									</NavItem>
-								)
-								: (
-									<NavItem variant={active?.id === view.id && edited ? 'edited' : 'light'} to={viewLink(view)} mark={<ViewMark query={view.query} />}
-										current={active?.id === view.id} count={count(view.count)} countColor={viewCountColor(view)}
-										title={active?.id === view.id && edited ? 'Changed since it was saved' : undefined}
-										>{view.name}</NavItem>
-								)}
-					</Fragment>
-				))}
+								))}
+						</ReorderList>
+					)
+					: shown.map(view => (renaming === view.id
+						? <ViewName key={view.id} name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
+						: (
+							<NavItem key={view.id} variant={active?.id === view.id && edited ? 'edited' : 'light'} to={viewLink(view)} mark={<ViewMark query={view.query} />}
+								current={active?.id === view.id} count={count(view.count)} countColor={viewCountColor(view)}
+								title={active?.id === view.id && edited ? 'Changed since it was saved' : undefined}
+								>{view.name}</NavItem>
+						)))}
 			</div>
 			{mode === 'naming' ? <span className="sp-meta">{summary}</span> : null}
 			<Leaving>{deleting

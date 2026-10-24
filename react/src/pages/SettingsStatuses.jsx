@@ -1,18 +1,18 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { TextField } from '../components/Inputs.jsx'
-import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
+import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Menu, MenuItem } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { useReorder } from '../components/Reorder.js'
+import { ReorderList } from '../components/Reorder.jsx'
+import { Rows } from '../components/motion.js'
 import { Skeleton, useDismiss } from '../components/Utilities.jsx'
 import { addStatus, changeStatus, deleteStatus, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { TONES } from '../app/statuses.js'
-import { useRowMotion } from '../app/rowMotion.js'
 import { landing } from './SettingsParts.jsx'
 
 const TONE_NAMES = [['success', 'Positive'], ['progress', 'In progress'], ['danger', 'Problem'], ['neutral', 'Neutral']]
@@ -50,14 +50,6 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	const [editing, setEditing] = useState(null)
 	const made = useRef(0)
 	const edit = next => change('statuses', saved && sameAs(next, saved) ? saved : next)
-	const reorder = useReorder({
-		items: list ?? [],
-		keyOf: status => status.key,
-		nameOf: status => status.name,
-		onMove: edit
-	})
-	const motion = useRowMotion(reorder.items, status => status.key)
-
 	if (!list)
 		return (
 			<Card>
@@ -79,17 +71,15 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 		<Card footer={editing === 'new' ? null : <Button variant="outline" onClick={() => setEditing('new')}>Add a status</Button>}
 			footerLayout="stack" footerCommits>
 			<CardHeader name="Statuses" {...landing('statuses')} aside="Drag to reorder" />
-			<div className="sp-stack sp-gap-6" {...reorder.list}>
-				<Announce>{reorder.said}</Announce>
-				{motion.items.map(status => (
-					<Fragment key={status.key}>
-						{reorder.lands(status) ? <Insertion /> : null}
-						{editing === status.key
+			<div className="sp-stack sp-gap-6">
+				<Rows count={list.length}>
+					<ReorderList items={list} keyOf={status => status.key} nameOf={status => status.name} onMove={edit}>
+						{status => (editing === status.key
 							? <StatusEditor status={status} touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
 							: (
-								<ListItem variant={reorder.variant(status)} editable
+								<ListItem editable
 									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
-									data-status={status.key} {...(motion.leaving(status) ? {} : reorder.row(status))} {...motion.row(status)}>
+									data-status={status.key}>
 									<StatusLook tone={status.tone}>{status.name}</StatusLook>
 									<span className="sp-grow" />
 									{/* on a phone the count is left out, so the name sits level with the rest of the row (11a) */}
@@ -112,9 +102,9 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 											</>
 										)}
 								</ListItem>
-							)}
-					</Fragment>
-				))}
+						))}
+					</ReorderList>
+				</Rows>
 				{editing === 'new'
 					? <StatusEditor touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(null, next)} />
 					: null}

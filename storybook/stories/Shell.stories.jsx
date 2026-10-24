@@ -19,40 +19,45 @@ export default {
 
 export const SidebarAndTopBar = {
 	parameters: { a11y: knownAccessibilityFaults },
-	args: { collapsed: false, accountOpen: false, noReceipt: 4, onSignOut: fn() },
+	args: { collapsed: false, accountOpen: false, noReceipt: 4, onSignOut: fn(), onMotionEnd: fn() },
 	argTypes: {
 		collapsed: { description: 'Shell\'s `collapsed`: the sidebar drawn as a rail' },
 		accountOpen: { description: 'The account menu open' },
 		noReceipt: { control: { type: 'number', min: 0 }, description: 'The count on No receipt' }
 	},
-	render: ({ noReceipt, onSignOut, ...args }) => {
+	render: ({ noReceipt, onSignOut, onMotionEnd, ...args }) => {
 		const [railed, setRailed] = useHeld(args, 'collapsed')
+		// as the app's shell does: the labels run in as the column opens, and the column narrows once they have left
+		const [motion, setMotion] = useState(null)
+		const [here, setHere] = useState('home')
+		const row = key => ({ current: here === key, onClick: () => setHere(key) })
 		const [search, setSearch] = useState('')
 		const [account, setAccount] = useHeld(args, 'accountOpen')
 		return (
 			<Shell viewport collapsed={railed}>
-				<Sidebar variant={railed ? 'rail' : 'default'}>
+				<Sidebar variant={railed ? 'rail' : 'default'} motion={motion}
+					onMotionEnd={() => { if (motion === 'out') setRailed(true); setMotion(null); onMotionEnd() }}>
 					<SidebarBrand><Mark size="small" fill="solid">S</Mark><span className="sp-strong">Spendly</span></SidebarBrand>
-					<NavItem icon="home" current tip="Home">Home</NavItem>
+					<NavItem icon="home" tip="Home" {...row('home')}>Home</NavItem>
 					<SidebarGroup>Orders</SidebarGroup>
-					<NavItem icon="receipt" count={18} tip="All orders">All orders</NavItem>
-					<NavItem icon="building-store" count={24} tip="Vendors">Vendors</NavItem>
-					<NavItem icon="category" count={6} tip="Categories">Categories</NavItem>
+					<NavItem icon="receipt" count={18} tip="All orders" {...row('orders')}>All orders</NavItem>
+					<NavItem icon="building-store" count={24} tip="Vendors" {...row('vendors')}>Vendors</NavItem>
+					<NavItem icon="category" count={6} tip="Categories" {...row('categories')}>Categories</NavItem>
 					<SidebarDivider />
 					<SidebarGroup>Needs attention</SidebarGroup>
-					<NavItem icon="bookmark" count={noReceipt} countColor="warning" tip="No receipt">No receipt</NavItem>
-					<NavItem icon="settings" tip="Settings">Settings</NavItem>
+					<NavItem icon="bookmark" count={noReceipt} countColor="warning" tip="No receipt" {...row('receipt')}>No receipt</NavItem>
+					<NavItem icon="settings" tip="Settings" {...row('settings')}>Settings</NavItem>
 					<span className="sp-grow" />
 					<SidebarDivider />
 					<SidebarAccount name="Anna Kristensen" email="anna.kristensen@example.dk" expanded={account} tip={railed ? 'Anna Kristensen' : undefined}
-						aria-label="Anna Kristensen, anna.kristensen@example.dk" onClick={() => setAccount(!account)} onDismiss={() => setAccount(false)}
+						onClick={() => setAccount(!account)} onDismiss={() => setAccount(false)}
 						menu={<Menu aria-label="Account"><MenuItem icon="settings" onClick={() => setAccount(false)}>Settings</MenuItem><MenuSeparator /><MenuItem icon="power" onClick={() => { setAccount(false); onSignOut() }}>Sign out</MenuItem></Menu>} />
-					<SidebarGrip expanded={!railed} onClick={() => setRailed(!railed)} />
+					<SidebarGrip expanded={!railed} onClick={() => { if (railed) { setRailed(false); setMotion('in') } else setMotion('out') }} />
 				</Sidebar>
 				<TopBar>
 					<SearchInput value={search} onChange={setSearch} placeholder="Search orders, vendors, items…" aria-label="Search" kbd={<Kbd>Ctrl K</Kbd>} />
 				</TopBar>
-				<ShellContent>
+				<ShellContent page={here}>
 					<Cards>
 						<Card><span className="sp-section-label">August</span><span className="sp-stat__figure">61.480,00 kr.</span></Card>
 						<Card><span className="sp-section-label">July</span><span className="sp-stat__figure">54.120,00 kr.</span></Card>
@@ -61,10 +66,13 @@ export const SidebarAndTopBar = {
 			</Shell>
 		)
 	},
-	play: async ({ canvas }) => {
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByRole('button', { name: /^Vendors/ }))
+		await expect(canvas.getByRole('button', { name: /^Vendors/ })).toHaveAttribute('aria-current', 'page')
 		await userEvent.click(canvas.getByRole('button', { name: 'Collapse the menu' }))
 		const grip = await canvas.findByRole('button', { name: 'Expand the menu' })
 		await expect(grip).toHaveAttribute('aria-expanded', 'false')
+		await expect(args.onMotionEnd).toHaveBeenCalled()
 		await userEvent.click(grip)
 		await canvas.findByRole('button', { name: 'Collapse the menu' })
 	}

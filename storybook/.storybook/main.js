@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
+import { jsxInComponentJs } from '../../react/vite.config.js'
 
 // The app's own React and router, never a second copy: hooks fail when a component and the
 // renderer each load their own React. react/ needs `npm ci` first.
@@ -23,7 +24,7 @@ export default {
 	viteFinal: config => ({
 		...config,
 		// the app's own JSX transform (react/vite.config.js), and fast refresh in dev
-		plugins: [...(config.plugins ?? []), react()],
+		plugins: [jsxInComponentJs(), ...(config.plugins ?? []), react()],
 		resolve: {
 			...config.resolve,
 			alias: [

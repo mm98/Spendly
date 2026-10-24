@@ -7,6 +7,7 @@ import { Scrim } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
 import { useFocusTrap } from './Utilities.jsx'
 import { join, pick, reject } from './variants.js'
+import { glide, m, usePanelMotion } from './motion.js'
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const parse = s => {
@@ -686,8 +687,14 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 	const withCustom = custom && last
 	const before = withCustom ? list.slice(0, -1) : list
 
+	// the window size's green is drawn once and moves to the one picked; Custom's range fades in and out
+	const marker = useId()
+	const anchor = useRef(null)
+	const range = useRef({ get current() { return anchor.current?.querySelector(':scope > .sp-period__custom') ?? null } }).current
+	const closing = usePanelMotion(range, value === 'custom')
 	const preset = p => (
 		<label className="sp-period__preset" data-label={p.label} key={p.value}>
+			{value === p.value ? <m.span className="sp-marker" layoutId={marker} transition={glide()} aria-hidden="true" /> : null}
 			<input
 				type="radio"
 				name={name}
@@ -708,7 +715,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 				{before.map(preset)}
 				{withCustom
 					? (
-						<div className="sp-period__anchor">
+						<div className="sp-period__anchor" ref={anchor} {...(closing ? { 'data-closing': 'true' } : {})}>
 							{preset(last)}
 							<div className="sp-period__custom">{custom}</div>
 						</div>
@@ -859,6 +866,9 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 		document.addEventListener('pointerdown', away)
 		return () => document.removeEventListener('pointerdown', away)
 	}, [open])
+	// the calendar fades out as it closes: the field keeps it drawn until then
+	const calendar = useRef({ get current() { return wrap.current?.querySelector(':scope > .sp-calendar') ?? null } }).current
+	const closing = usePanelMotion(calendar, !isNative && open)
 
 	// the trail opens the same platform picker the field does, drawn with the register's calendar
 	const pickNative = () => {
@@ -903,6 +913,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 			className="sp-field__wrap"
 			ref={wrap}
 			data-open={open ? 'true' : 'false'}
+			{...(closing ? { 'data-closing': 'true' } : {})}
 			onKeyDown={ev => { if (ev.key === 'Escape' && open) { ev.stopPropagation(); close({ toTrigger: true }) } }}
 			// tabbing out closes it; a focused day that leaves the page names no new target
 			onBlur={ev => { if (open && ev.relatedTarget && !wrap.current?.contains(ev.relatedTarget)) setOpen(false) }}

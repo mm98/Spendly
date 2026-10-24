@@ -1,9 +1,12 @@
+import { useId, useState } from 'react'
 import { join, pick, reject } from './variants.js'
+import { glide, m } from './motion.js'
 
 const VARIANT = { default: null, facet: 'sp-segmented--facet', narrow: 'sp-segmented--narrow', fill: 'sp-segmented--fill' }
 
 /** `fixed` is a set that is ordered and never grows, like the twelve months (Budget 21a): it
-    stays segments past four, where any other set becomes a Combobox.
+    stays segments past four, where any other set becomes a Combobox. The green is drawn once, on the
+    chosen segment, and moves to the one picked next.
     @param {object} props
     @param {string} props.name Groups the radios.
     @param {{ value: string, label: string, disabled?: boolean }[]} [props.options] The segments, in order: the value each stands for, its label, and whether it is turned off.
@@ -16,10 +19,17 @@ export function Segmented({ name, options = [], value, defaultValue, onChange, v
 	reject(rest, 'Segmented')
 	if (options.length > 4 && !fixed) console.error('<Segmented> more than four options is a Combobox')
 	const controlled = value !== undefined
+	const marker = useId()
+	// the chosen segment, held here too when the control keeps its own state, so the green can move to it
+	const [own, setOwn] = useState(defaultValue)
+	const chosen = controlled ? value : own
 	return (
 		<div className={join('sp-segmented', pick(VARIANT, variant, 'variant', 'Segmented'))} {...rest}>
 			{options.map(option => (
 				<label className="sp-segmented__item" data-label={option.label} key={option.value}>
+					{chosen === option.value
+						? <m.span className="sp-marker" layoutId={marker} transition={glide()} aria-hidden="true" />
+						: null}
 					<input
 						type="radio"
 						name={name}
@@ -28,7 +38,7 @@ export function Segmented({ name, options = [], value, defaultValue, onChange, v
 						{...(controlled
 							? { checked: value === option.value }
 							: { defaultChecked: defaultValue === option.value })}
-						onChange={() => onChange?.(option.value)}
+						onChange={() => { setOwn(option.value); onChange?.(option.value) }}
 					/>
 					<span className="sp-label">{option.label}</span>
 				</label>

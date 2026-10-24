@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
 import { within } from './Utilities.jsx'
+import { Rows, m, useRow } from './motion.js'
 import { Check } from './Choice.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Cards, ListFooter } from './Card.jsx'
@@ -168,10 +169,16 @@ function ListCards({ head, footer, children, ...rest }) {
 	return (
 		<div className="sp-list sp-list--cards" {...rest}>
 			{head}
-			<Cards fluid>{children}</Cards>
+			<Cards fluid><Rows count={Children.count(children)}>{children}</Rows></Cards>
 			{footer}
 		</div>
 	)
+}
+
+// a table row that arrives, leaves and glides to its place after a sort or a filter (Rows)
+function GlidingRow({ children, ...rest }) {
+	const moves = useRow()
+	return <m.tr {...moves} {...rest}>{children}</m.tr>
 }
 
 function ListTable({
@@ -339,11 +346,11 @@ function ListTable({
 					</tr>
 				</thead>}
 				<tbody>
-					{page.map(record => {
+					<Rows count={page.length}>{page.map(record => {
 						const key = recordKey(record)
 						const isPicked = picked.includes(key)
 						return (
-							<tr
+							<GlidingRow
 								key={key}
 								{...(selecting ? { 'aria-selected': isPicked ? 'true' : 'false' } : {})}
 								{...(rowVoid?.(record) ? { 'data-void': 'true' } : {})}
@@ -351,9 +358,9 @@ function ListTable({
 								onAuxClick={rowTo ? ev => follow(ev, rowTo(record)) : undefined}
 							>
 								{cellsOf(record)}
-							</tr>
+							</GlidingRow>
 						)
-					})}
+					})}</Rows>
 				</tbody>
 			</table>
 
@@ -577,7 +584,8 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 	reject(rest, 'Record')
 	const menuBox = useRef(null)
 	const menuKeys = useMenuButton(menuBox, !!menu?.open)
-	useMenuPlace(menuBox, !!menu?.open)
+	const closing = useMenuPlace(menuBox, !!menu?.open)
+	const moves = useRow()
 	const strip = photos.length
 		? photos.map((photo, i) => <span className={join('sp-record__photo', faded && 'sp-record__photo--faded')} key={i}>{photo}</span>)
 		: <><Icon name="photo" size={22} /><span className="sp-meta">{empty}</span></>
@@ -586,11 +594,11 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 	const lines = [].concat(meta ?? [])
 	const chipBox = chips ? <div className="sp-record__chips" onClick={ev => ev.stopPropagation()}>{chips}</div> : null
 	return (
-		<article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...rest}>
+		<m.article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...moves} {...rest}>
 			{href
 				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
 				: <div className={stripClass}>{strip}{extras}</div>}
-			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open ? 'true' : undefined} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
+			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open || closing ? 'true' : undefined} {...(closing ? { 'data-closing': 'true' } : {})} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
 				onKeyDown={ev => {
 					menuKeys.onKeyDown(ev)
 					// Escape closes the menu and hands focus back to its button (c1)
@@ -621,7 +629,7 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 						: <span className="sp-amount">{amount}</span>}
 				</div>
 			</div>
-		</article>
+		</m.article>
 	)
 }
 
