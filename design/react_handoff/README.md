@@ -1,35 +1,49 @@
 # React components from the library
 
-25 files, grouped by what a component belongs to:
+28 files, the same as `react/src/components/` on main, byte for byte. `Icon.jsx`, `icons.js`,
+`tabler.js` and `Reorder.js` stay in the app: the harness draws icons from the project's
+`icons.js`. `Failed.jsx` stays too, since it reads the app's API client.
 
+    Attachments.jsx   Strip, Attachment, AttachmentAdd, Viewer
     Button.jsx        Button, IconButton
-    Card.jsx          Card, CardHeader, Cards, CardBody, Toolbar, ListFooter
-    Chat.jsx          ChatFiles, ChatFile, ChatChart, ChatShares
+    Card.jsx          Card, CardHeader, Cards, CardFooter, CardBody, Toolbar, ListFooter, Panel
+    Chat.jsx          SpendlyMark, Chat, ChatScroll, ChatThread, ChatStart, ChatExamples,
+                      ChatMessage, ChatDivider, ChatQuestion, ChatSave, ChatReply, ChatFigures,
+                      ChatFiles, ChatFile, ChatChart, ChatShares, ChatPick, ChatHelp, ChatLimit,
+                      ChatDock, ChatMore
     Chip.jsx          Chip
-    Choice.jsx        Check, Radio, Switch, Choice, FieldGroup, Picker
-    Combobox.jsx      Combobox, ComboboxOption, ComboboxGroup, ComboboxEmpty
-    Data.jsx          Gauge, GaugeKey, Bars, Plot, Stat, Sum
-    DatePickers.jsx   RangePicker, PeriodPicker, Calendar, DateField
+    Choice.jsx        Check, Radio, Switch, Choice, FieldGroup, FieldGroupValues,
+                      FieldGroupMore, FieldGroupPanel, Picker
+    Combobox.jsx      Combobox, ComboboxOption, ComboboxGroup, ComboboxSeparator, ComboboxEmpty
+    Data.jsx          Gauge, GaugeKey, Bars, ChartTip, Donut, Shares, ShareRow, Legend,
+                      LegendItem, Plot, Stat, SumHead, Sum
+    DatePickers.jsx   RangePicker, RangeSheet, PeriodWindow, PeriodPicker, Calendar, DateField
+    EmailLine.jsx     EmailLine
     Field.jsx         Field
-    FileDrop.jsx      FileDrop
-    Inputs.jsx        TextField, PasswordField, NumberField, SearchInput, RangeSlider, TokensField
-    LineEditor.jsx    LineEditor
-    List.jsx          Caption, Selected, ListHead, ListRow, Foot, ListCell, List
-    ListItem.jsx      ListItem, Insertion, ListItemRemove
+    FileDrop.jsx      FileDrop, Slot
+    Inputs.jsx        TextField, PasswordField, NumberField, SearchInput, AskTrail,
+                      RangeSlider, TokensField
+    LineEditor.jsx    LineEditor, Totals
+    List.jsx          Caption, Selected, ListHead, ListRow, Foot, ListCell, SelectAllBox, List,
+                      ListMore, BulkBar, ListToolbar, Controls, Filters, Facets, Crumb, Crumbs,
+                      Record, Records
+    ListItem.jsx      ListItem, ListItemHead, Announce, Insertion, ListItemRemove
     Mark.jsx          Mark, MarkRemove
     Overlays.jsx      Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Anchor,
                       Dialog, DialogTitle, DialogBody, DialogActions,
-                      Toast, ToastUndo, Alert
-    Touch.jsx         TabBar, TabBarItem, Sheet, SaveBar
+                      Toast, ToastUndo, Alert, Toaster
     Pill.jsx          Pill
     Segmented.jsx     Segmented
-    Shell.jsx         Shell, TopBar, ShellContent, Sidebar, SidebarBrand,
-                      SidebarGroup, SidebarGrip, SidebarDivider, NavItem, Scrim
+    Shell.jsx         Shell, TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup,
+                      SidebarGrip, SidebarDivider, NavItem, SidebarAccount, Scrim,
+                      Palette, PaletteGroup, PaletteRule, PaletteRow, PaletteAll
     Stepper.jsx       Stepper
-    Utilities.jsx     Stacked, Line, Kbd, Empty, EmptyTitle, EmptyBody, Skeleton, Spinner,
-                      AddRow
-    Well.jsx          Well
-    format.js         formatNumber, parseNumber, round
+    Touch.jsx         TabBar, TabBarItem, Sheet, SaveBar, Fab
+    Utilities.jsx     Stacked, Line, Kbd, Hold, Empty, EmptyTitle, EmptyBody, Skeleton,
+                      Spinner, Redacted, AddRow
+    Well.jsx          Well, Halves
+    colour.js         lightnessContrast, inkFor, themeNow, onThemeChange
+    format.js         formatNumber, parseNumber, round, singular
     variants.js       join, pick, reject
 
 Two rules decide the grouping. A component lives with the thing it is part of - a
@@ -43,9 +57,11 @@ the calendars are built on - the parser, the reader's own format, the typed-text
 hook - so it sits with them rather than with the other fields. Exporting five
 internals to move one component is worse than the move.
 
-`React components.dc.html` renders every one of them from these files - it fetches
-each, strips the module syntax, and evaluates it against React with three stand-ins
-(the router link, the app's `Icon`, React's hooks). Nothing is redrawn there, so a
+`React components.dc.html` renders them from these files - it fetches each, strips the
+module syntax, and evaluates it against React with stand-ins for what lives outside this
+folder (the router link, the app's `Icon`, React's hooks and portal, `plural` from the app's
+`api/format.js`, `useShellShape` from `app/useMedia.js`). Names are looked up when they
+are called, since the files import each other in a cycle. Nothing is redrawn there, so a
 prop set that drifts from the library shows up as a broken specimen.
 
 ## Every prop is documented

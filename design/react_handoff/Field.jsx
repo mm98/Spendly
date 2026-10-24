@@ -1,60 +1,26 @@
 import { cloneElement, useId } from 'react'
-import { join, pick, reject } from './variants.js'
+import { pick, reject } from './variants.js'
 import { Choice, FieldGroup } from './Choice.jsx'
 
-/* The field: a label, a control, and at most one message under it.
+const MESSAGE = { hint: null, quiet: null, warning: 'warning', danger: 'danger' }
+const NOTE = { hint: null, success: 'success', warning: 'warning' }
 
-   It does not render the control. That is the whole point of it - a field that fell
-   back to building its own input was a second TextField, with its own variant map to
-   keep in agreement, and a caller could pass input props to the wrapper and never
-   notice which one they had reached. The control comes in as the child, and this
-   owns only what sits around it.
-
-   What it does own is the wiring a caller should not have to repeat. The label is
-   bound to the control by an id it generates; the message is bound by
-   `aria-describedby`; and the message's colour travels onto the control - a danger
-   message makes it invalid, a warning colours it and does not, since nothing is
-   wrong and the save proceeds.
-
-   The input's padding follows its slots. A lead icon, a trail control, a unit or a
-   chevron each reserve their own room, so passing the slot is enough and there is no
-   separate variant to remember.
-
-   A choice is never a native select. Options in this system carry marks, meta and a
-   check, which a native option cannot hold, so the choosing control is the Combobox
-   and it arrives as the child like any other.
-
-   Three messages exist and each has one name: a hint is always true and stays when
-   the value is right, a warning is something the reader may pass, and a danger
-   message stops the save. */
-
-/* The three messages, named for what they are rather than for the colour they take:
-   they are named for the colour they take, because the system has exactly two words
-   for these - warning and danger - and a third name for the same red is a third
-   thing to keep in agreement. */
-const MESSAGE = { hint: null, warning: 'warning', danger: 'danger' }
-
-/**
- *   A box is laid out differently from a value, and the field works out which it
- *   has. A control you type or pick a value in takes its label above it, bound by
- *   id. A box takes its label beside it, inside a `<label>` that wraps it, because
- *   the text is the thing you click - so the field renders a Choice around it rather
- *   than stacking a bare box under a heading. The caller writes the same Field
- *   either way.
- *
- * @param {object} props
- * @param {import('react').ReactNode} props.label
- * @param {string} [props.id] Bound to the control. Generated when omitted.
- * @param {import('react').ReactNode} [props.lead] An icon inside the control's head.
- * @param {import('react').ReactNode} [props.trail] A control inside its tail.
- * @param {import('react').ReactNode} [props.unit] A unit inside its tail.
- * @param {import('react').ReactNode} [props.kbd] A shortcut hint inside its tail.
- * @param {import('react').ReactNode} [props.chevron] A chevron inside its tail, for a control that opens rather than accepts typing.
- * @param {import('react').ReactNode} [props.message] At most one, under the control.
- * @param {keyof typeof MESSAGE} [props.messageType] Takes no `className` and no `style`, and no input props - those belong to the control, which is the child.
- * @param {boolean} [props.required] Marks the label and sets `required` on the control, so the browser and a screen reader both know. The marker is quiet ink, not red: a field not yet filled in is not a field that failed.
- * @param {import('react').ReactNode} props.children Any control in the library: a TextField, a Combobox, a Stepper, a Check, a Switch, a Segmented, a Picker. The AmountField, a Combobox, a Stepper, a Check, a Radio, a Switch. Required: a field with nothing in it is a label.
- */
+/** @param {object} props
+    @param {import('react').ReactNode} [props.label] The words above the control. They name it for a screen reader too.
+    @param {string} [props.id] Bound to the control.
+    @param {import('react').ReactNode} [props.lead] An icon at the start of the control.
+    @param {import('react').ReactNode} [props.trail] A small control at the end, such as a clear button.
+    @param {import('react').ReactNode} [props.unit] A unit at the end of the control, such as the currency sign.
+    @param {import('react').ReactNode} [props.kbd] A keyboard shortcut at the end of the control, such as "S".
+    @param {import('react').ReactNode} [props.chevron] A small arrow at the end, for a control that opens a list rather than taking typed words.
+    @param {import('react').ReactNode} [props.message] One line under the control: a hint, or what is wrong.
+    @param {keyof typeof MESSAGE} [props.messageType] How the message reads: `hint`, `quiet` (lighter), `warning` or `danger`. A danger message also marks the control as wrong.
+    @param {import('react').ReactNode} [props.labelAction] A small button at the right end of the label, such as Forgot it?
+    @param {import('react').ReactNode} [props.note] A word beside the label about where the value came from, such as matched existing vendor.
+    @param {keyof typeof NOTE} [props.noteType] How the note reads: `hint`, `success` or `warning`.
+    @param {import('react').ReactNode} [props.after] What the message offers to do, drawn under it.
+    @param {boolean} [props.required] Marks the label and sets `required` on the control, so the browser and a screen reader both know.
+    @param {import('react').ReactNode} props.children The control: one text field, list, date field, switch or other input. */
 export function Field({
 	label,
 	id,
@@ -65,6 +31,13 @@ export function Field({
 	chevron,
 	message,
 	messageType = 'hint',
+	// a small button at the label's right end: sign in's Forgot it? (20a)
+	labelAction,
+	// a word beside the label about where the value came from (3a: "matched existing vendor")
+	note,
+	noteType = 'hint',
+	// what the message offers to do, under it: the alias another vendor holds (5h)
+	after,
 	required = false,
 	children,
 	...rest
@@ -75,6 +48,8 @@ export function Field({
 	const messageId = message ? `${fieldId}-message` : undefined
 	const color = pick(MESSAGE, messageType, 'messageType', 'Field')
 	const isDanger = messageType === 'danger'
+	// quiet is the help under a drop-down on Settings (11a): the lighter second-line tone
+	const helpClass = messageType === 'quiet' ? 'sp-meta' : 'sp-field__help'
 
 	if (!children) {
 		console.error('<Field> needs a control as its child - a field with nothing in it is a label')
@@ -83,17 +58,8 @@ export function Field({
 
 	// the binding is the field's job, so the control is handed it rather than asked
 	// for it: an id, the message it is described by, and the colour that message implies
-	/* Which label this control needs is the control's to say - `fieldRole` on the
-	   component - because it follows from what the control is, not from the page. A
-	   value takes a label bound by id; a box takes a label wrapping it; a set of
-	   inputs takes a legend, since a label can only point at one control. */
 	const role = (children.type && children.type.fieldRole) || 'value'
-	/* A control that builds names from the label - the Stepper's two buttons - says so
-	   with `fieldLabel` on the component, as it says its role. Only that control is
-	   handed the text: the others pass unknown props on to their element, where a
-	   label prop would be an attribute nobody asked for. Only plain text is handed,
-	   since a button name cannot hold markup; with any other label the control keeps
-	   its own aria-label. */
+	// only a control that builds names from the label is handed it, and only as plain text
 	const wantsLabel = children.type && children.type.fieldLabel && typeof label === 'string'
 	const control = cloneElement(children, {
 		id: fieldId,
@@ -121,10 +87,6 @@ export function Field({
 		)
 		: control
 
-	/* A box's label is the row it sits in, so there is no second label above it and
-	   nothing for `htmlFor` to point at - the wrapping label is the binding. The
-	   message still sits under it, and still describes and colours the box, because
-	   that part is the same question whatever the control is. */
 	if (role === 'box') return (
 		<div className="sp-field">
 			<Choice control={control}>
@@ -132,8 +94,9 @@ export function Field({
 				{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
 			</Choice>
 			{message
-				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
+				? <span id={messageId} className={helpClass} {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
+			{after}
 		</div>
 	)
 
@@ -143,21 +106,36 @@ export function Field({
 		<FieldGroup legend={label} aria-describedby={messageId}>
 			{children}
 			{message
-				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
+				? <span id={messageId} className={helpClass} {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
+			{after}
 		</FieldGroup>
 	)
 
+	const labelled = (
+		<label className="sp-field__label" htmlFor={fieldId} id={fieldId + '-label'}>
+			{label}
+			{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
+		</label>
+	)
+	const noteColor = note ? pick(NOTE, noteType, 'noteType', 'Field') : null
 	return (
 		<div className="sp-field">
-			<label className="sp-field__label" htmlFor={fieldId}>
-				{label}
-				{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
-			</label>
+			{labelAction
+				? <div className="sp-field__head">{labelled}<span className="sp-grow" />{labelAction}</div>
+				: note
+					? (
+						<div className="sp-row-flex sp-gap-8">
+							{labelled}
+							<span className="sp-field__help" {...(noteColor ? { 'data-color': noteColor } : {})}>{note}</span>
+						</div>
+					)
+					: labelled}
 			{wrapped}
 			{message
-				? <span id={messageId} className="sp-field__help" {...(color ? { 'data-color': color } : {})}>{message}</span>
+				? <span id={messageId} className={helpClass} {...(color ? { 'data-color': color } : {})}>{message}</span>
 				: null}
+			{after}
 		</div>
 	)
 }

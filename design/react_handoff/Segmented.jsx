@@ -1,28 +1,20 @@
 import { join, pick, reject } from './variants.js'
 
-/* Segmented: two to four choices, all visible, one picked.
+const VARIANT = { default: null, facet: 'sp-segmented--facet', narrow: 'sp-segmented--narrow', fill: 'sp-segmented--fill' }
 
-   It is radios in a bordered shell, not buttons - so the arrow keys move between
-   the options and a form reads it without any JavaScript. The label is measured at
-   its selected weight, which is what stops the row shifting as the pick moves, so
-   every item needs its label as a string. */
-
-const VARIANT = { default: null, facet: 'sp-segmented--facet' }
-
-/**
- * Takes no `className` and no `style`.
- *
- * @param {object} props
- * @param {string} props.name Groups the radios.
- * @param {{ value: string, label: string, disabled?: boolean }[]} props.options
- * @param {string} [props.value] Controlled.
- * @param {string} [props.defaultValue]
- * @param {(value: string) => void} [props.onChange]
- * @param {keyof typeof VARIANT} [props.variant] `facet` spans its column with equal shares and no border of its own, for the switch at the head of a facet panel.
- */
-export function Segmented({ name, options = [], value, defaultValue, onChange, variant = 'default', ...rest }) {
+/** `fixed` is a set that is ordered and never grows, like the twelve months (Budget 21a): it
+    stays segments past four, where any other set becomes a Combobox.
+    @param {object} props
+    @param {string} props.name Groups the radios.
+    @param {{ value: string, label: string, disabled?: boolean }[]} [props.options] The segments, in order: the value each stands for, its label, and whether it is turned off.
+    @param {string} [props.value] The chosen value. Leave it out to let the control keep its own state.
+    @param {string} [props.defaultValue] The value chosen at first, when the control keeps its own state.
+    @param {(value: string) => void} [props.onChange]
+    @param {keyof typeof VARIANT} [props.variant] `default`, `facet` for the switch at the head of a filter panel, `narrow` no wider than a field, `fill` spans its column with equal segments.
+    @param {boolean} [props.fixed] A set that is ordered and never grows, like the twelve months. It stays segments past four options. */
+export function Segmented({ name, options = [], value, defaultValue, onChange, variant = 'default', fixed = false, ...rest }) {
 	reject(rest, 'Segmented')
-	if (options.length > 4) console.error('<Segmented> more than four options is a Combobox')
+	if (options.length > 4 && !fixed) console.error('<Segmented> more than four options is a Combobox')
 	const controlled = value !== undefined
 	return (
 		<div className={join('sp-segmented', pick(VARIANT, variant, 'variant', 'Segmented'))} {...rest}>

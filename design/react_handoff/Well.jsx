@@ -1,22 +1,12 @@
 import { join, pick, reject } from './variants.js'
 
-/* The well: a bordered box inside a card, for content that belongs to the card but
-   reads as its own thing. `quiet` is the tighter grey one that carries a pair of
-   lines rather than a block.
-
-   A well directly above a card footer drops the footer's rule, since two
-   separators with nothing between them is one too many. The stylesheet does that
-   from the structure, so nothing here states it. */
-
-const VARIANT = { default: null, quiet: 'sp-well--quiet' }
+const VARIANT = { default: null, quiet: 'sp-well--quiet', snippet: 'sp-well--snippet' }
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }
 
-/**
- * @param {object} props
- * @param {keyof typeof VARIANT} [props.variant]
- * @param {keyof typeof COLOR} [props.color]
- * @param {import('react').ReactNode} props.children Takes no `className` and no `style`.
- */
+/** @param {object} props
+    @param {keyof typeof VARIANT} [props.variant] `default` is a bordered box inside a card. `quiet` is tighter and grey, for a pair of lines. `snippet` keeps text as written, with room for a button at its end.
+    @param {keyof typeof COLOR} [props.color] `default`, or `warning` and `danger` for something that needs attention.
+    @param {import('react').ReactNode} [props.children] What the well holds. */
 export function Well({ variant = 'default', color = 'default', children, ...rest }) {
 	reject(rest, 'Well')
 	return (
@@ -28,4 +18,13 @@ export function Well({ variant = 'default', color = 'default', children, ...rest
 			{children}
 		</div>
 	)
+}
+
+/** Two columns of equal width, each keeping its own height: two wells in one card (Budget 21a), two
+    fields, two cards.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] Two parts, drawn side by side. */
+export function Halves({ children, ...rest }) {
+	reject(rest, 'Halves')
+	return <div className="sp-halves" {...rest}>{children}</div>
 }

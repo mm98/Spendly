@@ -951,7 +951,7 @@
            last return in the file was wrong: List's body ends with the footer's
            markup, so it reported .sp-subtitle as List's root. */
         const own = body.match(/\n\treturn \(?/);
-        const tail = own ? body.slice(own.index) : '';
+        const tail = own ? body.slice(own.index).split(/\n\}/)[0] : '';
         // a component whose own root is a tree, not a single class, is not comparable
         const treeRoot = /^\s*return \(?\s*<[A-Z]/.test(tail);
         const cls = treeRoot ? null : (tail.match(/className=\{?(?:join\()?["'`]([\w-]+)/) || [])[1];
@@ -1022,7 +1022,10 @@
       const own = /<[a-z][\w]*[^>]*className=/.test(e.body);
       const kids = [...new Set([...e.body.matchAll(/<([A-Z]\w+)/g)].map(x => x[1]))].filter(k => k !== 'Icon');
       const decides = /useState|useEffect|useRef|\?|&&|pick\(|join\(/.test(e.body);
-      if (!own && kids.length && !decides)
+      /* A context provider shares a value with what is under it; it arranges nothing.
+         Caught: MenuHostOf, the provider an Anchor or a record's menu wraps its menu in. */
+      const provides = /useMemo\(/.test(e.body) && kids.every(k => /\.Provider$/.test(e.body.match(new RegExp('<' + k + '[\\w.]*'))[0]));
+      if (!own && kids.length && !decides && !provides)
         fail('no component is only an arrangement', 'react', `${e.n} renders ${kids.join(' + ')} and nothing of its own`);
     }
 

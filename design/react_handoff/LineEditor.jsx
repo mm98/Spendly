@@ -2,35 +2,24 @@ import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { join, reject } from './variants.js'
 
-/* The line editor (c15): what a list row opens into, in place. The order line keeps
-   its photo slot (`photo`); any other row - a budget row, a group, an account - is
-   the plain form, with a head naming what is open and the fields as children. One
-   frame, one form column and one action row for both, so an open row reads alike
-   wherever it is.
-
-   The fields are the caller's, as children, so this owns the frame and the parts that
-   are the same every time, and no field is drawn here twice. */
-
-/**
- * Takes no `className` and no `style`.
- *
- * @param {object} props
- * @param {import('react').ReactNode} [props.photo] The order line's photo slot. Omitted, the editor is the plain form, for a row with no photo.
- * @param {string} [props.hint] The keys, at the start of the action row. An order line adds its own: Enter saves · Escape cancels · ⌘↵ saves and opens the next line.
- * @param {string} [props.title] The head, for the plain form: Row 7 of 8 in Housing, New group in costs.
- * @param {string} [props.what] The thing edited, for the move and delete labels: row, group, account.
- * @param {() => void} [props.onMoveUp] With onMoveDown and onDelete, an existing one. A new one passes none of the three, and the head shows only the title.
- * @param {() => void} [props.onMoveDown]
- * @param {() => void} [props.onDelete] Asks first; the dialog is the caller's.
- * @param {boolean} [props.first] Disables Move up.
- * @param {boolean} [props.last] Disables Move down.
- * @param {boolean} [props.handle] Open in a list that reorders: keeps the rows' handle column, so the row's text stays on its line when it opens.
- * @param {string} props.commit Save row, Add group.
- * @param {boolean} [props.saving]
- * @param {() => void} props.onCommit
- * @param {() => void} props.onCancel
- * @param {import('react').ReactNode} props.children The fields. With a photo they are passed as the order line lays them out - the item, then its grid - and rendered as given. Without, they sit two by two in reading order - a budget row's Name, Expected each month, Account, Group - or alone, for a group or an account.
- */
+/** @param {object} props
+    @param {import('react').ReactNode} [props.photo] The line's photo slot. Leave it out for a line with no photo.
+    @param {string} [props.hint] The keys the editor answers to, at the start of the button row.
+    @param {string} [props.title] The head of the editor, such as Row 7 of 8 in Housing.
+    @param {string} [props.what] What one line is, such as line or row. It goes into the buttons' names.
+    @param {() => void} [props.onMoveUp] With onMoveDown and onDelete, an existing one.
+    @param {() => void} [props.onMoveDown]
+    @param {() => void} [props.onDelete] Asks first; the dialog is the caller's.
+    @param {boolean} [props.first] The first line: Move up is turned off.
+    @param {boolean} [props.last] The last line: Move down is turned off.
+    @param {boolean} [props.handle] Keep room for the drag handle column, so the text lines up with the rows around it.
+    @param {boolean} [props.sheet] The editor is in a sheet on a phone: the fields sit in one column and the keys are not named.
+    @param {string} [props.commit] The words on the save button, such as Save row.
+    @param {boolean} [props.saving] The line is being saved: the save button is off and reads Saving…, and Enter does nothing.
+    @param {() => void} [props.onCommit]
+    @param {() => void} [props.onCommitNext]
+    @param {() => void} [props.onCancel]
+    @param {import('react').ReactNode} [props.children] The fields of the line. */
 export function LineEditor({
 	photo,
 	hint = 'Enter saves · Escape cancels',
@@ -42,9 +31,11 @@ export function LineEditor({
 	first = false,
 	last = false,
 	handle = false,
+	sheet = false,
 	commit,
 	saving = false,
 	onCommit,
+	onCommitNext,
 	onCancel,
 	children,
 	...rest
@@ -55,7 +46,13 @@ export function LineEditor({
 	const keys = ev => {
 		if (ev.defaultPrevented || ev.target.getAttribute?.('aria-expanded') === 'true') return
 		if (ev.key === 'Escape') { ev.preventDefault(); onCancel?.() }
-		else if (ev.key === 'Enter' && ev.target instanceof HTMLInputElement) { ev.preventDefault(); onCommit?.() }
+		else if (ev.key === 'Enter' && ev.target instanceof HTMLInputElement) {
+			ev.preventDefault()
+			// a save in progress is answered once: a second Enter must not write the line again
+			if (saving) return
+			if ((ev.metaKey || ev.ctrlKey) && onCommitNext) onCommitNext()
+			else onCommit?.()
+		}
 	}
 	const parts = (
 		<>
@@ -67,21 +64,23 @@ export function LineEditor({
 				{onDelete ? <IconButton variant="outline" danger icon={<Icon name="trash" />} aria-label={`Delete the ${what}`} onClick={onDelete} /> : null}
 			</div>}
 			{photo ? children : (
-				<div className={join('sp-line-editor__grid', fields.length < 2 && 'sp-line-editor__grid--one')}>
+				// on a phone two halves holding unrelated values become two full-width fields (15b)
+				<div className={join('sp-line-editor__grid', (fields.length < 2 || sheet) && 'sp-line-editor__grid--one')}>
 					{children}
 				</div>
 			)}
 			<div className="sp-dialog__actions">
-				<span className="sp-note">{hint}</span>
-				<span className="sp-grow" />
-				<Button variant="outline" onClick={onCancel}>Cancel</Button>
-				<Button disabled={saving} onClick={onCommit}>{saving ? 'Saving...' : commit}</Button>
+				{/* in a sheet the two commits share the row (1c), with no keys to name */}
+				{sheet ? null : <><span className="sp-note sp-truncate">{hint}</span><span className="sp-grow" /></>}
+				<Button variant="outline" fullWidth={sheet} onClick={onCancel}>Cancel</Button>
+				<Button disabled={saving} fullWidth={sheet} onClick={onCommit}>{saving ? 'Saving…' : commit}</Button>
 			</div>
 		</>
 	)
-	const handleCol = handle ? <span className="sp-list-item__handle" aria-hidden="true"><Icon name="grip-vertical" /></span> : null
+	// an open row is not dragged: the column stays empty so the row's text keeps its line
+	const handleCol = handle ? <span className="sp-list-item__handle" aria-hidden="true" /> : null
 	if (photo) return (
-		<div className="sp-line-editor" onKeyDown={keys} {...rest}>
+		<div className={join('sp-line-editor', sheet && 'sp-line-editor--sheet')} onKeyDown={keys} {...rest}>
 			{handleCol}
 			{photo}
 			<div className="sp-line-editor__form">{parts}</div>
@@ -93,4 +92,12 @@ export function LineEditor({
 			<div className="sp-line-editor__form">{parts}</div>
 		</div>
 	)
+}
+
+/** The line under a list of items (c15): what they come to, then the saving.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] What the lines come to, then the save state. */
+export function Totals({ children, ...rest }) {
+	reject(rest, 'Totals')
+	return <div className="sp-totals" {...rest}>{children}</div>
 }

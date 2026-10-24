@@ -1,45 +1,26 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Icon } from './Icon.jsx'
-import { IconButton } from './Button.jsx'
-import { join, reject } from './variants.js'
-
-/* The date controls.
-
-   A date is drawn on desktop and native on touch, and that is one component rather
-   than two: on a phone the platform's own picker is better than anything drawn - a
-   full-screen wheel, the reader's format, the keyboard they expect - and on a
-   desktop it is a small dark dropdown nobody can style, so the field opens this
-   calendar instead. DateField switches on the surface it is in; it does not ask the
-   caller to know.
-
-   A range is always drawn: it needs two dates chosen against each other, the days
-   between them shown as a span, and the presets nobody wants to click twelve times.
-
-   One month grid, used twice. A Calendar is a month; RangePicker is two of them
-   side by side with the fields and presets around them; the phone's Calendar is the
-   same month at touch size in a sheet. Nothing here draws a second grid.
-
-   Dates are ISO strings on the way in and out - `2026-08-12` - and formatting for
-   the reader happens where it is read. A component that took Date objects would be
-   a component that disagrees with the draft about time zones. */
+import { Button, IconButton } from './Button.jsx'
+import { Chip } from './Chip.jsx'
+import { Scrim } from './Shell.jsx'
+import { Sheet } from './Touch.jsx'
+import { useFocusTrap } from './Utilities.jsx'
+import { join, pick, reject } from './variants.js'
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-/* A value that is not a date returns null rather than an Invalid Date. Anything
-   downstream then has one thing to check, instead of every formatter throwing on a
-   date it cannot read - a field handed a bad value should draw itself empty, never
-   take the page down with it. */
 const parse = s => {
 	const [y, m, d] = String(s).split('-').map(Number)
 	if (!y || !m || !d) return null
 	const at = new Date(y, m - 1, d)
 	return Number.isNaN(at.getTime()) ? null : at
 }
-const monthName = (year, month, locale) =>
-	new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(year, month, 1))
+// a calendar's heading starts with its month, capitalised in every locale
+const monthName = (year, month, locale) => {
+	const name = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(year, month, 1))
+	return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1)
+}
 
-/** The weekday initials in the reader's own order - a week starts on Monday in most
-    of Europe and on Sunday in the US, and the calendar has to agree with the
-    reader's own sense of where a week begins. */
 const weekdays = locale => {
 	const first = firstDayOfWeek(locale)
 	const fmt = new Intl.DateTimeFormat(locale, { weekday: 'narrow' })
@@ -47,14 +28,11 @@ const weekdays = locale => {
 	return Array.from({ length: 7 }, (unused, i) => fmt.format(new Date(2026, 1, 1 + ((first + i) % 7))))
 }
 const firstDayOfWeek = locale => {
-	const week = new Intl.Locale(locale ?? navigator.language).weekInfo
+	// the browser's own as Intl resolved it: a raw language tag can be one Intl.Locale refuses
+	const week = new Intl.Locale(locale ?? new Intl.DateTimeFormat().resolvedOptions().locale).weekInfo
 	return week ? week.firstDay % 7 : 1
 }
 
-/* The days of a month, and the days either side of it that share its first and last
-   weeks. Those are real days, not padding: a reader looking at the start of August
-   sees the 31st of July where the 31st of July belongs, and can pick it. They are
-   drawn faded, and they never hold the tab stop - the month's own days do that. */
 const monthDays = (year, month, locale) => {
 	const first = new Date(year, month, 1)
 	const lead = (first.getDay() - firstDayOfWeek(locale) + 7) % 7
@@ -73,10 +51,6 @@ const monthDays = (year, month, locale) => {
 	return [...before, ...own, ...after]
 }
 
-/* The ISO week a day falls in: the week containing that week's Thursday, counted
-   from the year's first such week. It is the number on the reader's own invoices
-   and delivery notes, so it is theirs rather than a count of Sundays - and it is
-   independent of where the locale starts a week. */
 const isoWeek = date => {
 	const d2 = new Date(date.getFullYear(), date.getMonth(), date.getDate())
 	// to the Thursday of this ISO week
@@ -89,9 +63,6 @@ const isoWeek = date => {
 const sameDay = (a, b) => a && b && iso(a) === b
 const addDays = (s, n) => { const d2 = parse(s); if (!d2) return s; d2.setDate(d2.getDate() + n); return iso(d2) }
 const addMonths = (s, n) => { const d2 = parse(s); if (!d2) return s; d2.setMonth(d2.getMonth() + n); return iso(d2) }
-/* A date moved by a whole number of days, still as an ISO string. Built from the
-   date's own parts so a daylight-saving boundary cannot shift it by an hour and land
-   it on the previous day. */
 const shift = (s, days) => {
 	const at = parse(s)
 	if (!at) return s
@@ -99,23 +70,9 @@ const shift = (s, days) => {
 }
 const clampDate = (s, min, max) => (min && s < min) ? min : (max && s > max) ? max : s
 
-/* Typing a date, once, for every field that takes one.
-
-   A date field is not a text box that happens to hold a date: Up and Down step it
-   by a day, PageUp and PageDown by a month, with Shift a year, and what cannot be
-   read as a date marks itself rather than silently keeping the old value. The date
-   field on a desktop and the two fields of a range picker all take this, so a
-   reader never meets two date formats or two sets of keys in one product.
-
-   The text being typed is held here and the value is not touched until it parses -
-   a half-written date is not a date. */
 function useDateText({ value, onChange, min, max, unavailable, locale }) {
 	const [typed, setTyped] = useState(null)
 	const shown = typed ?? readable(value, locale)
-	/* Out of range counts as invalid, and typing it does not commit. The calendar
-	   disables those days and the native field refuses them, so a typed date that
-	   slipped past both was the one way round the bounds. It is not clamped: moving
-	   what someone typed to a different date is worse than telling them. */
 	const parsedNow = typed === null || typed === '' ? null : fromReadable(typed, locale)
 	const unpickable = typeof unavailable === 'function'
 		? unavailable
@@ -123,18 +80,24 @@ function useDateText({ value, onChange, min, max, unavailable, locale }) {
 	const outOfRange = !!parsedNow && ((min && parsedNow < min) || (max && parsedNow > max) || unpickable(parsedNow))
 	const invalid = (typed !== null && typed !== '' && parsedNow === null) || outOfRange
 
+	const takes = parsed => !!parsed && !((min && parsed < min) || (max && parsed > max) || unpickable(parsed))
+
 	return {
 		value: shown,
 		invalid,
 		type: 'text',
 		inputMode: 'numeric',
 		autoComplete: 'off',
+		// a two-digit year may be the start of a four-digit one, so it is applied only on leaving
 		onChange: ev => {
 			setTyped(ev.target.value)
-			const parsed = fromReadable(ev.target.value, locale)
-			if (parsed && !((min && parsed < min) || (max && parsed > max) || unpickable(parsed))) onChange?.(parsed)
+			const parsed = fromReadable(ev.target.value, locale, { short: false })
+			if (takes(parsed)) onChange?.(parsed)
 		},
-		onBlur: () => setTyped(null),
+		onBlur: () => {
+			if (takes(parsedNow) && parsedNow !== value) onChange?.(parsedNow)
+			setTyped(null)
+		},
 		onKeyDown: ev => {
 			const base = clampDate(value || iso(new Date()), min, max)
 			const step = {
@@ -151,56 +114,6 @@ function useDateText({ value, onChange, min, max, unavailable, locale }) {
 	}
 }
 
-/**
- * One month, as a grid of days. Internal: the two controls that show a calendar
- * live in this file and share it, and a page reaches for DateField or RangePicker.
- *
- * It is a real grid: rows of gridcells, one day in the tab order at a time, and the
- * arrow keys move between days rather than between buttons. That is what a date
- * picker is expected to do - a reader who tabs through 31 buttons to reach the 31st
- * has been given a list, not a calendar.
- *
- * Every day carries its full date as its label, because "14" read on its own tells
- * a screen-reader user nothing. Today is marked with aria-current, the chosen day
- * with aria-selected, and a day outside min or max is disabled rather than hidden -
- * a missing day reads as a hole in the month.
- *
- * @param {object} props
- * @param {number} props.year
- * @param {number} props.month Zero-based, as the platform counts them.
- * @param {string} [props.value] The chosen date.
- * @param {[string, string]} [props.span] The range the days sit inside.
- * @param {(date: string) => void} props.onPick
- * @param {string} [props.focused] The day holding the tab stop. The caller owns it,
- *   so two months side by side share one.
- * @param {(date: string) => void} [props.onFocusDay]
- * @param {string} [props.min] An ISO date.
- * @param {string} [props.max]
- * @param {number} [props.minDays] The shortest range that means anything - a hire of
- *   at least two days, a period that has to cover a week. Counted inclusively, so 2
- *   is a day and the day after it.
- *
- *   The end the reader did not just touch is what moves. Picking a start too close to
- *   the end pushes the end out; picking an end too close to the start pulls the start
- *   back. The alternative is refusing the click, which leaves the reader holding a
- *   range they cannot fix without working out which end the control objects to.
- *   Where the push would cross min or max it is taken from the other end instead, so
- *   the floor holds even at the edge of what can be picked.
- * @param {string[]|((date: string) => boolean)} [props.unavailable] Days that cannot
- *   be picked inside the range that can - a list of ISO dates, or a test for one, so
- *   a rule (every weekend, the days already booked) does not have to be written out.
- *   They are disabled where min and max are also disabled: a day the reader can see
- *   and cannot choose, rather than a hole in the month.
- * @param {boolean} [props.showPrevious] Offer the step to the month before.
- * @param {boolean} [props.showNext]
- * @param {(by: number) => void} [props.onMove]
- * @param {boolean} [props.showWeeks] Number each row with its ISO week, under a W at
- *   the column's head. On by default: the number is what the reader's own invoices
- *   and delivery notes use, so a month that hides it makes them count.
- * @param {string} [props.locale]
- *
- * Takes no `className` and no `style`.
- */
 function Month({
 	year,
 	month,
@@ -221,6 +134,13 @@ function Month({
 }) {
 	reject(rest, 'Month')
 	const grid = useRef(null)
+	// which way the month last stepped, so its days slide in from that side
+	const seen = useRef(year * 12 + month)
+	const step = useRef(null)
+	if (year * 12 + month !== seen.current) {
+		step.current = year * 12 + month > seen.current ? 'next' : 'prev'
+		seen.current = year * 12 + month
+	}
 	const days = monthDays(year, month, locale)
 	const today = iso(new Date())
 	const full = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -229,9 +149,6 @@ function Month({
 		if (!span || !span[0] || !span[1]) return false
 		return s >= span[0] && s <= span[1]
 	}
-	/* A day is chosen if it is the single date, or either end of a range - the ends
-	   are chosen days, and without this they read as indistinguishable from the
-	   fourteen tinted days between them. */
 	const chosen = (date, s) => sameDay(date, value) || !!(span && (s === span[0] || s === span[1]))
 	const blocked = typeof unavailable === 'function'
 		? unavailable
@@ -247,9 +164,6 @@ function Month({
 	const go = to2 => {
 		const next2 = clampDate(to2, min, max)
 		onFocusDay?.(next2)
-		/* The day walked to may be in a month this grid does not show but its
-		   neighbour does - a range picker shows two - so the day is looked for across
-		   the whole picker, and the months are only moved when it is nowhere. */
 		const scope = () => grid.current?.closest('.sp-range, .sp-calendar, .sp-field__wrap') ?? document
 		// the day in the month that owns it, not the faded copy in its neighbour
 		const find = () => scope().querySelector(`[data-day="${next2}"]:not([data-outside])`)
@@ -291,22 +205,18 @@ function Month({
 	return (
 		<div className={join('sp-range__month', showWeeks && 'sp-range__month--weeks')} {...rest}>
 			<div className="sp-range__month-head">
-				{/* Past the bounds there is nothing to see, so the step is disabled rather
-				    than walking the reader into a month of greyed-out days. A month is
-				    reachable while any of its days is: the comparison is against the
-				    month's own last and first day, not against the day in view. */}
-				{showPrevious ? <button type="button" className="sp-range__nav" aria-label="The month before" disabled={!!min && iso(new Date(year, month, 0)) < min} onClick={() => onMove?.(-1)}><Icon name="chevron-left" /></button> : null}
+				{showPrevious ? <button type="button" className="sp-range__nav" aria-label="The month before" disabled={!!min && iso(new Date(year, month, 0)) < min} onClick={() => onMove?.(-1)}><Icon name="chevron-left" size={13} /></button> : null}
 				{/* the month is announced when it changes, so walking into the next one is
 				    not a silent jump for a screen-reader user */}
 				<span aria-live="polite">{monthName(year, month, locale)}</span>
 				<span className="sp-grow" />
-				{showNext ? <button type="button" className="sp-range__nav" aria-label="The month after" disabled={!!max && iso(new Date(year, month + 1, 1)) > max} onClick={() => onMove?.(1)}><Icon name="chevron-right" /></button> : null}
+				{showNext ? <button type="button" className="sp-range__nav" aria-label="The month after" disabled={!!max && iso(new Date(year, month + 1, 1)) > max} onClick={() => onMove?.(1)}><Icon name="chevron-right" size={13} /></button> : null}
 			</div>
 			<div className="sp-range__weekdays" aria-hidden="true">
 				{showWeeks ? <span className="sp-range__week">W</span> : null}
 				{weekdays(locale).map((d2, i) => <span key={i}>{d2}</span>)}
 			</div>
-			<div className="sp-range__days" role="grid" ref={grid}>
+			<div className="sp-range__days" role="grid" ref={grid} key={year * 12 + month} {...(step.current ? { 'data-step': step.current } : {})}>
 				{weeks.map((week, w) => (
 					<div role="row" style={{ display: 'contents' }} key={w}>
 						{showWeeks
@@ -346,13 +256,6 @@ function Month({
 	)
 }
 
-/* The ranges worth one click, from today. They are the control's own offer rather
-   than a caller's list, so every range picker in the product offers the same three -
-   a panel that dropped them was offering less for no stated reason.
-
-   They run shortest first, which is the order a reader narrows in: today, this week,
-   this month, this year. The week starts where the reader's own locale starts it,
-   not on a Monday this file decided. */
 function standardRanges(locale) {
 	const today = new Date()
 	const back = (today.getDay() - firstDayOfWeek(locale) + 7) % 7
@@ -369,59 +272,29 @@ function standardRanges(locale) {
 	]
 }
 
-/**
- * Two dates chosen against each other. Two months side by side, the quick ranges
- * above them, and the two dates as fields - because a reader who knows the dates
- * should not have to click for them.
- *
- * The next click sets whichever end the reader is editing, and after picking a
- * start it is the end - so the common case is two clicks with nothing to aim at.
- *
- * The two fields read and accept the reader's own format - the same one the date
- * field uses - while the value stays a pair of ISO dates. A field showing
- * 2026-08-03 is showing storage, not a date.
- *
- * The keyboard: the two grids share one tab stop, so Tab reaches the calendar once
- * and the arrow keys walk the whole range - a day at a time, a week with the up and
- * down keys, a month with PageUp and PageDown, a year with Shift. Walking off the
- * end of the shown months moves them. Enter picks the end being edited. Every day
- * carries its full date for a screen reader, today is marked, and a day outside
- * `min` or `max` is disabled rather than missing.
- *
- *
- *
- *   The end the reader did not just touch is what moves. Picking a start too close to
- *   the end pushes the end out; picking an end too close to the start pulls the start
- *   back. The alternative is refusing the click, which leaves the reader holding a
- *   range they cannot fix without working out which end the control objects to.
- *   Where the push would cross min or max it is taken from the other end instead, so
- *   the floor holds even at the edge of what can be picked.
- *
- * @param {object} props
- * @param {string} props.from The first date, as an ISO string.
- * @param {string} props.to The last date. Two props rather than a pair: a third date cannot be expressed, so there is nothing to guard against - a pair had to be checked for length and for order, and a wrong one still rendered.
- * @param {(from: string, to: string) => void} props.onChange Both dates, in order - the control never reports one without the other, since a range is the pair. The glyphs are the component's own, from the register: a month-back arrow is never anything but a chevron, so passing them was a decision that was not one. Nor are the quick ranges, the day count or the pair of actions a caller's to leave out, which is how one call site ended up offering less than another.
- * @param {{ label: string, value: [string, string] }[]} [props.quick] To replace the standard ranges, not to remove them - an empty array is reported.
- * @param {string} [props.min] An ISO date.
- * @param {string} [props.max]
- * @param {number} [props.minDays] The shortest range that means anything - a hire of at least two days, a period that has to cover a week. Counted inclusively, so 2 is a day and the day after it.
- * @param {(day: string) => boolean} [props.unavailable]
- * @param {() => void} props.onApply
- * @param {() => void} props.onCancel Also what Escape does.
- * @param {boolean} [props.showWeeks] Number the rows with their ISO week.
- * @param {string} [props.locale] Takes no `className` and no `style`.
- */
-export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, ...rest }) {
+// what the typed-text hook hands an input, less its own `invalid` flag, which is no attribute
+const field = ({ invalid, ...props }) => props
+
+/** `single` is the touch sheet's form (c14): the heading, From and To, the months scrolling under them,
+    the day count and Apply - the sheet itself is the way out, so there is no Cancel.
+    @param {object} props
+    @param {string} [props.from] The first day, as yyyy-mm-dd.
+    @param {string} [props.to] The last day, as yyyy-mm-dd.
+    @param {(from: string, to: string) => void} [props.onChange] Both dates, in order - the control never reports one without the other, since a range is the pair.
+    @param {{ label: string, value: [string, string] }[]} [props.quick] The quick ranges beside the calendar, in place of the standard ones.
+    @param {string} [props.min] The first day that can be picked, as yyyy-mm-dd.
+    @param {string} [props.max] The last day that can be picked, as yyyy-mm-dd.
+    @param {number} [props.minDays] The shortest range allowed, counting both ends.
+    @param {(day: string) => boolean} [props.unavailable] Tells which days cannot be picked, such as weekends.
+    @param {() => void} [props.onApply]
+    @param {() => void} [props.onCancel] Also what Escape does.
+    @param {boolean} [props.showWeeks] Number the calendar's rows with their week.
+    @param {string} [props.locale] How dates are written, such as da-DK.
+    @param {boolean} [props.single] The phone form: From and To at the top, the months scrolling under them, and Apply. */
+export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, single = false, ...rest }) {
 	reject(rest, 'RangePicker')
 	if (minDays !== undefined && minDays < 1) console.error('<RangePicker> minDays counts days inclusively, so the smallest range is 1')
-	// Two props rather than a pair: a third date cannot be expressed, so there is
-	// nothing to guard against. A pair had to be checked for length and for order,
-	// and a wrong one still rendered.
 	if (from && to && from > to) console.error('<RangePicker> from is after to: ' + from + ' → ' + to)
-	/* A value the control would refuse if the reader picked it. Reported, never
-	   clamped: the control is controlled, so moving the value silently would leave
-	   the page's state and what it draws disagreeing - and the page is the one that
-	   has to fix it. */
 	for (const [name, at] of [['from', from], ['to', to]]) {
 		if (!at) continue
 		if (min && at < min) console.error(`<RangePicker> ${name}="${at}" is before min="${min}"`)
@@ -438,15 +311,6 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 	// the typed fields are wired above the floor is defined, so they reach it by ref
 	const floorRef = useRef((a, b) => [a, b])
 
-	/* Cancel has to put the range back, and the picker is controlled - so it remembers
-	   the range it was opened with and reverts to that itself. Every caller would
-	   otherwise need the same undo, and the one that forgot would have a Cancel that
-	   only closed the panel.
-   onCancel is not an alternative to that - it is the dismissal. The picker cannot
-	   close the popover it sits in, so the page is told the reader cancelled and closes
-	   it. Both run: revert, then tell. Making the handler win instead would give any
-	   page that closes a popover a Cancel that closes but keeps the change.
-	   Applying makes the current range the one a later cancel reverts to. */
 	const opened = useRef([from, to])
 	const revert = () => {
 		const was = opened.current
@@ -481,9 +345,6 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 		setShown(s => (s.year === at.getFullYear() && s.month === at.getMonth()) ? s : { year: at.getFullYear(), month: at.getMonth() })
 	}, [from2])
 
-	/* The floor, applied by moving the end the reader did not just touch. `anchor`
-	   says which end is fixed: picking a start anchors the start and pushes the end
-	   out, picking an end anchors the end and pulls the start back. */
 	const floor = (a, b, anchor) => {
 		if (!minDays || minDays < 2) return [a, b]
 		const span = Math.round((parse(b) - parse(a)) / 86400000) + 1
@@ -532,6 +393,48 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 		locale
 	}
 
+	// the sheet scrolls through months up to the last day that can be picked, and opens on From's
+	const fieldId = useId()
+	const scroller = useRef(null)
+	const last = parse(max) || new Date()
+	const firstShown = new Date(Math.min(new Date(last.getFullYear(), last.getMonth() - 11, 1), start))
+	const sheetMonths = []
+	for (let at = new Date(firstShown.getFullYear(), firstShown.getMonth(), 1); at <= last; at = new Date(at.getFullYear(), at.getMonth() + 1, 1))
+		sheetMonths.push(at)
+	useLayoutEffect(() => {
+		if (!single || !scroller.current) return
+		const at = scroller.current.querySelector(`[data-month="${start.getFullYear()}-${start.getMonth()}"]`)
+		if (at) scroller.current.scrollTop = at.offsetTop - scroller.current.offsetTop
+	}, [single])
+
+	if (single)
+		return (
+			<>
+				<span className="sp-heading">Custom range</span>
+				<div className="sp-row-flex sp-gap-12">
+					<div className="sp-field sp-grow">
+						<label className="sp-field__label" htmlFor={`${fieldId}-from`}>From</label>
+						<input id={`${fieldId}-from`} className="sp-input sp-number" inputMode="numeric" onFocus={() => setEditing('from')}
+							{...field(fromText)} {...(fromText.invalid ? { 'aria-invalid': 'true' } : {})} />
+					</div>
+					<div className="sp-field sp-grow">
+						<label className="sp-field__label" htmlFor={`${fieldId}-to`}>To</label>
+						<input id={`${fieldId}-to`} className="sp-input sp-number" inputMode="numeric" onFocus={() => setEditing('to')}
+							{...field(toText)} {...(toText.invalid ? { 'aria-invalid': 'true' } : {})} />
+					</div>
+				</div>
+				<div className="sp-calendar sp-calendar--sheet" ref={scroller}>
+					{sheetMonths.map(at => (
+						<div key={`${at.getFullYear()}-${at.getMonth()}`} data-month={`${at.getFullYear()}-${at.getMonth()}`}>
+							<Month year={at.getFullYear()} month={at.getMonth()} {...shared} showWeeks={false} />
+						</div>
+					))}
+				</div>
+				<span className="sp-note">{days === 1 ? '1 day selected' : `${days} days selected`}</span>
+				<Button size="small" onClick={apply}>Apply</Button>
+			</>
+		)
+
 	return (
 		<div
 			className="sp-range"
@@ -550,7 +453,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 						className="sp-range__input"
 						data-editing={editing === 'from' ? 'true' : 'false'}
 						onFocus={() => setEditing('from')}
-						{...fromText}
+						{...field(fromText)}
 						{...(fromText.invalid ? { 'aria-invalid': 'true' } : {})}
 					/>
 				</label>
@@ -561,7 +464,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 						className="sp-range__input"
 						data-editing={editing === 'to' ? 'true' : 'false'}
 						onFocus={() => setEditing('to')}
-						{...toText}
+						{...field(toText)}
 						{...(toText.invalid ? { 'aria-invalid': 'true' } : {})}
 					/>
 				</label>
@@ -581,11 +484,27 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 	)
 }
 
-/* What each period comes to, in dates. The component resolves this rather than
-   taking it as a prop: it knows what "this month" means, and a caller passing the
-   line by hand is a caller whose line stops matching the moment the preset changes -
-   which is exactly what happened. */
+/** On touch the range picker is a sheet over the page, not a panel under the row (c14): the one
+    sheet Statistics and the order filters share. Its own scrim closes it without applying.
+    @param {object} props
+    @param {() => void} props.onClose
+    @param {import('react').ReactNode} [props.children] The RangePicker, in a sheet over the page. */
+export function RangeSheet({ onClose, children }) {
+	const box = useRef(null)
+	useFocusTrap(box)
+	return createPortal(
+		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
+			<Sheet role="dialog" aria-modal="true" aria-label="Choose dates" ref={box}
+				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
+				{children}
+			</Sheet>
+		</Scrim>,
+		document.body
+	)
+}
+
 const PERIODS = {
+	days30: today => [new Date(today.getFullYear(), today.getMonth(), today.getDate() - 29), today],
 	week: today => {
 		const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7))
 		return [monday, new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6)]
@@ -609,42 +528,26 @@ const STANDARD_PERIODS = [
 	{ value: 'custom', label: 'Custom' }
 ]
 
-/* The range as a line of prose: the parts both ends share are said once, so a
-   period inside one month reads "1 - 31 August 2026" rather than repeating the
-   month and the year on both sides of the dash. */
-const readableRange = ([from, to], locale) => {
-	const a = typeof from === 'string' ? parse(from) : from
-	const b = typeof to === 'string' ? parse(to) : to
+// the dates as c14 writes them: day and month numbers, the year once at the end unless they differ
+const numericRange = ([from, to], locale) => {
+	const a = parse(from)
+	const b = parse(to)
 	if (!a || !b) return ''
-	const sameYear = a.getFullYear() === b.getFullYear()
-	const sameMonth = sameYear && a.getMonth() === b.getMonth()
-	const day = new Intl.DateTimeFormat(locale, { day: 'numeric' })
-	const dayMonth = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' })
-	const full = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' })
-	if (sameMonth) return day.format(a) + ' - ' + full.format(b)
-	if (sameYear) return dayMonth.format(a) + ' - ' + full.format(b)
-	return full.format(a) + ' - ' + full.format(b)
+	const full = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+	if (a.getFullYear() !== b.getFullYear()) return full.format(a) + ' - ' + full.format(b)
+	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(a) + ' - ' + full.format(b)
 }
 
-/* What the bar says about the chosen period, beside the dates themselves. Derived
-   for the same reason the dates are: a period that has not finished shows only what
-   has happened so far, and a caller writing "year to date" by hand has a line that
-   stops being true the moment the preset changes. */
-const periodNote = (preset, [from, to]) => {
+const periodNote = (preset, [from, to], today) => {
 	const a = parse(from)
 	const b = parse(to)
 	if (!a || !b) return null
-	const today = new Date()
-	today.setHours(0, 0, 0, 0)
-	const unit = { week: 'week', month: 'month', quarter: 'quarter', year: 'year' }[preset]
-	if (unit && b > today && a <= today) return unit + ' to date'
+	const running = { week: 'to today', month: 'month to date', quarter: 'quarter to date', year: 'year to date' }[preset]
+	if (running && from <= today && today <= to) return running
 	const days = Math.round((b - a) / 86400000) + 1
 	return days === 1 ? '1 day' : days + ' days'
 }
 
-/* The period before this one, in dates: equal length, ending the day before this one
-   starts. A calendar preset steps back one whole unit, so comparing August with July
-   compares 31 days with 31 and not with an arbitrary 31-day window. */
 const precedingDates = (preset, [from, to]) => {
 	const a = parse(from)
 	const b = parse(to)
@@ -656,10 +559,6 @@ const precedingDates = (preset, [from, to]) => {
 	return [iso(new Date(a.getFullYear(), a.getMonth(), a.getDate() - days)), iso(new Date(a.getFullYear(), a.getMonth(), a.getDate() - 1))]
 }
 
-/* The period before this one, of equal length, named the way a reader would name it:
-   a year by its number, a month by its name, anything else by its length. Derived,
-   never passed - "Compare with July" written by a caller is a label that goes wrong
-   the moment the preset changes, which is how it came to be a static note. */
 const precedingName = (preset, [from, to], locale) => {
 	const a = parse(from)
 	const b = parse(to)
@@ -677,49 +576,66 @@ const precedingName = (preset, [from, to], locale) => {
 	return 'the previous ' + (days === 1 ? 'day' : days + ' days')
 }
 
-/**
- * The comparison area, as a child rather than a prop: content, or a function of both
- * periods - the same shape as a List's Caption and Selected.
- *
- *     { period: 'month',
- *       selected: { from: '2026-08-01', to: '2026-08-31' },
- *       past:     { from: '2026-07-01', to: '2026-07-31', name: 'juli' } }
- *
- * What the area holds is the page's - a switch, a word, a second figure. The bar
- * derives the periods and renders what comes back, and nothing else: whether a
- * comparison is on is the page's state, so the control for it is the page's too.
- *
- * Two objects rather than four dates, because each one is a period and its ends are
- * only meaningful together. `past.name` is the derived word for it - a year by
- * its number, a month by its name - so a page writing its own label does not have to
- * work out what to call the period, which is how a label comes to disagree with the
- * dates beside it.
- *
- *
- * Its presence is what asks for the comparison at all: a page with nothing to
- * compare writes no Selected and the bar has no comparison area. An empty one is not
- * that - it is reported, since it draws nothing and reads as an oversight.
- */
 export function Selected() { return null }
 
-/**
- * The period a page is read through: a handful of presets, and a custom range
- * behind the last of them. The presets are radios, so the arrow keys move between
- * them and one is always the answer - a page is always being read through some
- * period, even if it is "this month".
- *
- * @param {object} props
- * @param {{ value: string, label: string }[]} [props.presets] To replace the standard five, not to remove them.
- * @param {string} props.value The chosen preset.
- * @param {(period: { period: string, selected: { from: string, to: string } | null, past: { from: string, to: string, name: string } | null }) => void} props.onChange Called when the preset changes, with the same object a Selected child is handed. One shape for both, so a page reads the same thing whether it is rendering or reacting.
- * @param {string} [props.from] The custom range's first date, when the preset is `custom`. Two props rather than a pair, for the reason RangePicker takes two: a third date cannot be expressed, so nothing has to be guarded against.
- * @param {string} [props.to] Its last date.
- * @param {string} props.name Groups the radios.
- * @param {import('react').ReactNode} [props.custom] The RangePicker, shown when the custom preset is the chosen one.
- * @param {import('react').ReactNode} [props.children] A Selected, and nothing else.
- * @param {string} [props.locale] Takes no `className` and no `style`.
- */
-export function PeriodPicker({ presets, value, onChange, from, to, name, custom, children, locale, ...rest }) {
+/** The stepper inside the period control (c14): one box, an arrow either side of the window's
+    name. An arrow with no handler is disabled, never hidden, so the box keeps its width. */
+const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year', days30: 'days30' }
+
+/** @param {object} props
+    @param {string} props.label The window's name, such as August 2026.
+    @param {keyof typeof WINDOW} [props.unit] How long the window is: `week`, `month`, `quarter`, `year` or `days30`. It sets the label's width.
+    @param {string} [props.previousLabel] The name of the left arrow.
+    @param {string} [props.nextLabel] The name of the right arrow.
+    @param {() => void} [props.onPrevious]
+    @param {() => void} [props.onNext]
+    @param {boolean} [props.touch] The larger arrows for touch. */
+export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
+	reject(rest, 'PeriodWindow')
+	const size = touch ? 15 : 14
+	const previous = useRef(null)
+	const next = useRef(null)
+	// the arrow that had focus when it ran out of windows hands focus to the other one
+	const held = useRef(null)
+	useLayoutEffect(() => {
+		const lost = document.activeElement === document.body || document.activeElement?.disabled
+		if (!lost) return
+		if (held.current === 'previous' && !onPrevious && onNext) next.current?.focus()
+		if (held.current === 'next' && !onNext && onPrevious) previous.current?.focus()
+	}, [onPrevious, onNext])
+	const track = which => ({ onFocus: () => { held.current = which }, onBlur: ev => { if (ev.relatedTarget) held.current = null } })
+	return (
+		<div className="sp-window" {...rest}>
+			<button type="button" className="sp-window__btn" aria-label={previousLabel} disabled={!onPrevious} onClick={onPrevious} ref={previous} {...track('previous')}>
+				<Icon name="chevron-left" size={size} />
+			</button>
+			<span className="sp-window__label" data-w={pick(WINDOW, unit, 'unit', 'PeriodWindow')}>{label}</span>
+			<button type="button" className="sp-window__btn" aria-label={nextLabel} disabled={!onNext} onClick={onNext} ref={next} {...track('next')}>
+				<Icon name="chevron-right" size={size} />
+			</button>
+		</div>
+	)
+}
+
+/* `at` is the day the presets resolve around (today when absent), `stepper` moves it, `onPresent`
+   steps back to the window holding today (c14); `extra` follows the comparison, as a second
+   switch (4a); `actions` end the row (4a). */
+/** @param {object} props
+    @param {{ value: string, label: string }[]} [props.presets] The periods to choose from, in place of the standard five.
+    @param {string} props.value The chosen period, or `custom`.
+    @param {(period: { period: string, selected: { from: string, to: string } | null, past: { from: string, to: string, name: string } | null }) => void} [props.onChange] Called when the preset changes, with the same object a Selected child is handed.
+    @param {string} [props.from] The custom range's first day.
+    @param {string} [props.to] The custom range's last day.
+    @param {string} [props.at] The day the periods are counted from, as yyyy-mm-dd. Today when left out.
+    @param {import('react').ReactNode} [props.stepper] The PeriodWindow that moves the period back and forward.
+    @param {string} [props.name] Groups the radios.
+    @param {import('react').ReactNode} [props.custom] The RangePicker, shown when the custom period is chosen.
+    @param {() => void} [props.onPresent]
+    @param {import('react').ReactNode} [props.extra] A second switch after the comparison.
+    @param {import('react').ReactNode} [props.actions] Buttons at the end of the row.
+    @param {import('react').ReactNode} [props.children] One Selected, which draws what the chosen period is.
+    @param {string} [props.locale] How dates are written, such as da-DK. */
+export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this
 	// component derives, so it cannot be resolved until they exist
@@ -736,13 +652,12 @@ export function PeriodPicker({ presets, value, onChange, from, to, name, custom,
 	}
 	const list = presets ?? STANDARD_PERIODS
 	const today = new Date()
+	const box = useRef(null)
+	// Back to the present goes away under the reader, so focus moves to the stepper's live arrow
+	const back = useRef(false)
 	const dates = value === 'custom'
 		? [from, to]
-		: PERIODS[value] && PERIODS[value](today).map(iso)
-	/* What the bar knows, as one object: the preset, the dates it comes to, and the
-	   period before it. Built once and handed to both the Selected slot and onChange, so
-	   a page reads the same shape whether it is rendering or reacting - two shapes for
-	   one state is how the two come to disagree. */
+		: PERIODS[value] && PERIODS[value]((at && parse(at)) || today).map(iso)
 	const shapeOf = (preset, span) => {
 		const before = span && precedingDates(preset, span)
 		return {
@@ -751,8 +666,18 @@ export function PeriodPicker({ presets, value, onChange, from, to, name, custom,
 			past: before ? { from: before[0], to: before[1], name: precedingName(preset, span, locale) } : null
 		}
 	}
-	const resolved = dates ? readableRange(dates, locale) : null
-	const note = dates ? periodNote(value, dates) : null
+	const now = iso(today)
+	const current = !!dates && value !== 'custom' && dates[0] <= now && now <= dates[1]
+	// the window still running reads to today, never into days that have not happened
+	const resolved = dates ? numericRange(current ? [dates[0], now] : dates, locale) : null
+	const note = dates ? periodNote(value, dates, now) : null
+	const returns = value !== 'custom' && !!onPresent && !!PERIODS[value]
+	const away = !!dates && returns && !current
+	useLayoutEffect(() => {
+		if (away || !back.current) return
+		back.current = false
+		;(box.current?.querySelector('.sp-window__btn:not(:disabled)') ?? box.current?.querySelector('.sp-period__preset input:checked'))?.focus()
+	}, [away])
 	const offers = dates && picked
 	const against = offers
 		? { name: precedingName(value, dates, locale), dates: precedingDates(value, dates) }
@@ -778,8 +703,8 @@ export function PeriodPicker({ presets, value, onChange, from, to, name, custom,
 	)
 
 	return (
-		<div className="sp-period" {...rest}>
-			<div className="sp-period__presets">
+		<div className="sp-period" ref={box} {...rest}>
+			<div className="sp-period__presets" role="group" aria-label="Window size">
 				{before.map(preset)}
 				{withCustom
 					? (
@@ -790,24 +715,29 @@ export function PeriodPicker({ presets, value, onChange, from, to, name, custom,
 					)
 					: null}
 			</div>
+			{stepper}
 			{resolved ? <span className="sp-period__resolved">{resolved}</span> : null}
 			{against && picked
 				? <span className="sp-period__compare">{typeof picked === 'function' ? picked(shapeOf(value, dates)) : picked}</span>
 				: null}
-			{note ? <span className="sp-period__note">{note}</span> : null}
+			{extra}
+			{/* stepped away from the present, the word becomes the one press back to it (c14) */}
+			{away
+				? (
+					<Button variant="text" size="small" onClick={() => { back.current = true; onPresent() }}>
+						{value === 'days30' ? 'Back to today' : `Back to this ${value}`}
+					</Button>
+				)
+				: note ? <span className="sp-period__note">{note}</span> : null}
+			{actions ? <><span className="sp-grow" />{actions}</> : null}
 		</div>
 	)
 }
 
-/**
- * The single month a phone shows, in a sheet: the same grid at touch size, scrolling
- * inside the sheet with its weekday row pinned.
- *
- * @param {object} props
- * @param {boolean} [props.sheet]
- * @param {boolean} [props.open]
- * @param {import('react').ReactNode} [props.children]
- */
+/** @param {object} props
+    @param {boolean} [props.sheet] The phone form, in a sheet.
+    @param {boolean} [props.open] Whether the calendar is showing.
+    @param {import('react').ReactNode} [props.children] The months. */
 export function Calendar({ sheet = false, open = true, children, ...rest }) {
 	reject(rest, 'Calendar')
 	return (
@@ -824,9 +754,21 @@ function readable(value, locale) {
 	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parse(value))
 }
 
-/** What they typed, back to an ISO date. The locale says which number is the day. */
-function fromReadable(text, locale) {
-	const parts = String(text).split(/[^\d]+/).filter(Boolean).map(Number)
+const LETTERS = { day: 'dd', month: 'mm', year: 'yyyy' }
+
+/** How the reader writes a date, as an empty field shows it: their locale's order and separator
+    ("dd.mm.yyyy", "mm/dd/yyyy"). */
+export function datePattern(locale) {
+	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+		.formatToParts(new Date(2026, 10, 22))
+		.map(p => LETTERS[p.type] ?? p.value)
+		.join('')
+}
+
+/** What they typed, back to an ISO date. The locale says which number is the day; a two-digit
+    year is this century's, and any other short year is no date at all. */
+function fromReadable(text, locale, { short = true } = {}) {
+	const parts = String(text).split(/[^\d]+/).filter(Boolean)
 	if (parts.length < 3) return null
 	const order = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 		.formatToParts(new Date(2026, 10, 22))
@@ -835,55 +777,45 @@ function fromReadable(text, locale) {
 	const got = {}
 	order.forEach((type, i) => { got[type] = parts[i] })
 	if (!got.year || !got.month || !got.day) return null
-	if (got.month > 12 || got.day > 31) return null
-	return `${got.year}-${String(got.month).padStart(2, '0')}-${String(got.day).padStart(2, '0')}`
+	const year = got.year.length === 4 ? Number(got.year) : got.year.length === 2 && short ? 2000 + Number(got.year) : null
+	const month = Number(got.month)
+	const day = Number(got.day)
+	if (!year || !month || !day || month > 12 || day > new Date(year, month, 0).getDate()) return null
+	return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-/**
- * A date. Drawn on desktop, native on touch.
- *
- * The switch is the surface's, not the caller's: a touch surface carries .sp-touch,
- * so the field looks for one above it and renders the native control there. Passing
- * `native` states it outright, for a page that knows better than the DOM does.
- *
- * On desktop the value is typed as well as picked - a reader who knows the date
- * should not have to click for it - so the input is text with a numeric input mode
- * and the reader's own format, announced by a hint the field describes itself with.
- * The value in and out is always an ISO date.
- *
- * What the keyboard does, because a calendar that only takes a mouse is a calendar
- * half the readers cannot use: the trail button opens the dropdown and moves focus
- * into the grid; the arrow keys move a day at a time and a week at a time;
- * PageUp and PageDown move a month, with Shift a year; Home and End go to the ends
- * of the week; Enter or Space picks; Escape closes and puts focus back on the
- * button; clicking away closes it too; and Tab leaves, because the dropdown is not
- * a modal - it is a panel hanging off a field.
- *
- *
- *
- *   The end the reader did not just touch is what moves. Picking a start too close to
- *   the end pushes the end out; picking an end too close to the start pulls the start
- *   back. The alternative is refusing the click, which leaves the reader holding a
- *   range they cannot fix without working out which end the control objects to.
- *   Where the push would cross min or max it is taken from the other end instead, so
- *   the floor holds even at the edge of what can be picked.
- *
- * Takes no `className` and no `style`.
- *
- * @param {object} props
- * @param {string} props.value An ISO date.
- * @param {(value: string) => void} props.onChange The calendar glyph and the two month arrows are the component's own, from the register - a date field's calendar is never another glyph.
- * @param {string} [props.min] An ISO date. Days outside are disabled, not hidden.
- * @param {string} [props.max]
- * @param {(day: string) => boolean} [props.unavailable]
- * @param {boolean} [props.native] Force one or the other.
- * @param {boolean} [props.danger]
- * @param {boolean} [props.showWeeks] Number the calendar's rows with their ISO week.
- * @param {string} [props.locale] Defaults to the browser's.
- * @param {string} [props.id] Bound by the Field around it.
- */
-export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, locale, id, ...rest }) {
+/** The one-click days a single date offers (Input types: DateField): Today and Yesterday, each a
+    day the field can take; a month is not a date, so it is no shortcut here. */
+function dayShortcuts({ min, max, unavailable }) {
+	const now = new Date()
+	const today = iso(now)
+	const yesterday = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
+	const takes = s => !(min && s < min) && !(max && s > max) && !(typeof unavailable === 'function' && unavailable(s))
+	return [
+		takes(today) ? { label: 'Today', pick: today } : null,
+		takes(yesterday) ? { label: 'Yesterday', pick: yesterday } : null
+	].filter(Boolean)
+}
+
+/** `placeholder` is what the empty field says, as an open end reads Today (c12).
+    @param {object} props
+    @param {string} [props.value] The day, as yyyy-mm-dd.
+    @param {(value: string) => void} [props.onChange]
+    @param {string} [props.min] The first day that can be picked.
+    @param {string} [props.max] The last day that can be picked.
+    @param {(day: string) => boolean} [props.unavailable] Tells which days cannot be picked.
+    @param {boolean} [props.native] Use the phone's own date field. On a phone when left out.
+    @param {boolean} [props.danger] The date is wrong: the field is drawn in red.
+    @param {boolean} [props.showWeeks] Number the calendar's rows with their week.
+    @param {boolean} [props.shortcuts] Offer Today and Yesterday as one-click chips in the calendar.
+    @param {string} [props.locale] How dates are written, such as da-DK. The browser's when left out.
+    @param {string} [props.id] Bound by the Field around it.
+    @param {string} [props.placeholder] What the empty field says, such as Today. */
+export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, shortcuts = true, locale, id, placeholder, ...rest }) {
 	reject(rest, 'DateField')
+	// what Field hands the control: its message and its state, on the input that takes focus
+	const { 'aria-describedby': message, 'aria-invalid': invalid, required, lead, trail, unit, ...unused } = rest
+	const marked = danger || invalid === true || invalid === 'true'
 	// the same reporting the range does, and for the same reason: a value the reader
 	// could not have picked is the page's to fix, not this control's to overwrite
 	if (value) {
@@ -906,9 +838,6 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 	}, [native])
 
 	const isNative = native ?? touch
-	/* A native date input takes min and max and nothing else - it has no way to
-	   refuse scattered days - so on touch the reader could pick one the design
-	   forbids. The field says so rather than appearing to enforce it. */
 	if (isNative && unavailable) console.error('<DateField> a native picker cannot refuse single days: pass native={false} where unavailable matters')
 	const day = (value && parse(value)) || new Date()
 	const [shown, setShown] = useState({ year: day.getFullYear(), month: day.getMonth() })
@@ -919,7 +848,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 
 	const close = ({ toTrigger } = {}) => {
 		setOpen(false)
-		if (toTrigger) trigger.current?.focus()
+		if (toTrigger) trigger.current?.querySelector('button')?.focus()
 	}
 
 	// clicking away closes it: a panel that stays open behind the reader's next
@@ -931,18 +860,31 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 		return () => document.removeEventListener('pointerdown', away)
 	}, [open])
 
+	// the trail opens the same platform picker the field does, drawn with the register's calendar
+	const pickNative = () => {
+		const input = wrap.current?.querySelector('input')
+		try { input?.showPicker() } catch { input?.focus() }
+	}
 	if (isNative)
 		return (
-			<input
-				id={id}
-				type="date"
-				className="sp-input"
-				value={value}
-				min={min}
-				max={max}
-				onChange={ev => onChange?.(ev.target.value)}
-				{...(danger ? { 'aria-invalid': 'true' } : {})}
-			/>
+			<span className="sp-field__wrap" ref={wrap}>
+				<input
+					id={id}
+					type="date"
+					className="sp-input"
+					value={value}
+					min={min}
+					max={max}
+					onChange={ev => onChange?.(ev.target.value)}
+					aria-describedby={message}
+					required={required}
+					{...(marked ? { 'aria-invalid': 'true' } : {})}
+					{...unused}
+				/>
+				<button type="button" className="sp-field__trail" aria-label="Open the calendar" onClick={pickNative}>
+					<Icon name="calendar" size={15} />
+				</button>
+			</span>
 		)
 
 	const hintId = id ? `${id}-format` : undefined
@@ -962,27 +904,29 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 			ref={wrap}
 			data-open={open ? 'true' : 'false'}
 			onKeyDown={ev => { if (ev.key === 'Escape' && open) { ev.stopPropagation(); close({ toTrigger: true }) } }}
+			// tabbing out closes it; a focused day that leaves the page names no new target
+			onBlur={ev => { if (open && ev.relatedTarget && !wrap.current?.contains(ev.relatedTarget)) setOpen(false) }}
 		>
-			{/* the box, not TextField: the date typing behaviour already owns value,
-			    onChange and onKeyDown, and a field that wraps it would fight it for
-			    all three */}
 			<input
 				id={id}
 				className="sp-input sp-input--trail sp-number"
-				aria-describedby={hintId}
-				{...text}
-				{...(danger || text.invalid ? { 'aria-invalid': 'true' } : {})}
+				aria-describedby={[message, hintId].filter(Boolean).join(' ') || undefined}
+				required={required}
+				placeholder={placeholder ?? datePattern(locale)}
+				{...field(text)}
+				{...(marked || text.invalid ? { 'aria-invalid': 'true' } : {})}
+				{...unused}
 				onKeyDown={ev => {
 					// the panel opens on the key that opens every other panel in the system
 					if (ev.key === 'ArrowDown' && ev.altKey && !open) { ev.preventDefault(); return openTo(value) }
 					text.onKeyDown(ev)
 				}}
 			/>
-			{hintId ? <span id={hintId} hidden>{readable(iso(new Date(2026, 10, 22)), locale)}</span> : null}
+			{hintId ? <span id={hintId} hidden>For example {readable(iso(new Date(2026, 10, 22)), locale)}</span> : null}
 			<span className="sp-field__trail" ref={trigger}>
 				<IconButton
-					icon={<Icon name="calendar" />}
-					aria-label="Open the calendar"
+					icon={<Icon name="calendar" size={15} />}
+					aria-label="Pick a date"
 					size="field"
 					aria-haspopup="dialog"
 					aria-expanded={open ? 'true' : 'false'}
@@ -990,6 +934,16 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				/>
 			</span>
 			<div className="sp-calendar" role="dialog" aria-label="Choose a date">
+				{shortcuts
+					? (
+						<div className="sp-range__quick" role="group" aria-label="Days worth one click">
+							{dayShortcuts({ min, max, unavailable }).map(q => (
+								<Chip key={q.label}
+									onClick={() => { onChange?.(q.pick); close({ toTrigger: true }) }}>{q.label}</Chip>
+							))}
+						</div>
+					)
+					: null}
 				<Month
 					year={shown.year}
 					month={shown.month}
@@ -1010,3 +964,4 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 		</span>
 	)
 }
+

@@ -1,12 +1,5 @@
+import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
-
-/* The note row: a mark, a piece of text and sometimes a trailing control, inset so
-   it lines up with the line rows it sits beside.
-
-   `variant` is its structure - outline, primary, stacked, top-aligned - and
-   `color` is the set it paints with. A row that can be acted on renders a button
-   or a link and takes the hover and focus the stylesheet gives those elements;
-   a row that only states something stays a div and takes neither. */
 
 const VARIANT = {
 	default: null,
@@ -16,7 +9,7 @@ const VARIANT = {
 	top: 'sp-list-item--top',
 	add: 'sp-list-item--add',
 	carried: 'sp-list-item--carried',
-	// picked up from the keyboard and not yet dropped: the selected-row tint
+	// picked up from the keyboard, waiting for Space to drop it
 	picked: 'sp-list-item--picked',
 	card: 'sp-list-item--card',
 	// the card row that stays put while the page scrolls under it, lifted off what it
@@ -26,29 +19,39 @@ const VARIANT = {
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 'success' }
 
-/**
- * @param {object} props
- * @param {keyof typeof VARIANT} [props.variant] `card` puts the row on a surface ground with a surface's edge and padding, for a list with no columns to align. Which body a list shows is a question about the list's own width, answered by a container query - not about a device, and never a second component.
- * @param {keyof typeof COLOR} [props.color]
- * @param {import('react').ReactNode} [props.mark] Leads the row.
- * @param {import('react').ReactNode} [props.handle] A drag grip, for a row in a set the user reorders.
- * @param {import('react').ReactNode} [props.actions] Controls at the row's tail. Wrap one in `ListItemRemove` for the control that appears on hover.
- * @param {number} [props.count] A count at the row's tail.
- * @param {import('react').ReactNode} [props.chevron] Shown when the row opens something.
- * @param {boolean} [props.selected] Outline and card variants, in a set the user picks from.
- * @param {() => void} [props.onClick] Renders a button.
- * @param {string} [props.to] Renders a link.
- * @param {import('react').ReactNode} props.children Takes no `className` and no `style`.
- */
+/** @param {object} props
+    @param {keyof typeof VARIANT} [props.variant] The row's form: `default`, `outline`, `primary`, `stack` (lines under each other), `top` (aligned to the top), `add` (a row that adds one), `carried` and `picked` (while being moved), `card` (a row on its own surface), `sticky` (stays put while the page scrolls).
+    @param {keyof typeof COLOR} [props.color] The row's tint for something that needs attention: `warning` (amber), `danger` or `success`.
+    @param {import('react').ReactNode} [props.mark] The part at the start of the row: a mark, a photo or an icon.
+    @param {import('react').ReactNode} [props.handle] A drag handle, so the row can be moved.
+    @param {string} [props.handleLabel] What the drag handle says it moves, such as Move Housing.
+    @param {import('react').ReactNode} [props.actions] Controls at the end of the row.
+    @param {number} [props.count] A count at the end of the row.
+    @param {import('react').ReactNode} [props.chevron] An arrow at the end, for a row that opens something.
+    @param {boolean} [props.selected] The row is the picked one in a set. Outline and card rows only.
+    @param {boolean} [props.opens] The row opens something when clicked: the pointer and the hover fill show it.
+    @param {boolean} [props.editable] The row turns into a field: it keeps one height at rest and while editing.
+    @param {boolean} [props.setting] The row holds a setting: it keeps its ground when an option in it is ticked.
+    @param {() => void} [props.onClick] Renders a button.
+    @param {string} [props.to] An address inside the app. The row is drawn as a link.
+    @param {import('react').ReactNode} [props.children] What the row says. */
 export function ListItem({
 	variant = 'default',
 	color = 'default',
 	mark,
 	handle,
+	// what the handle says it moves: a row of several, each named, is one a reader can tell apart
+	handleLabel = 'Reorder',
 	actions,
 	count,
 	chevron,
 	selected,
+	// a row that opens on a click its list handles: the pointer and the hover fill of one that does (c15)
+	opens = false,
+	// a row that turns into a field (rename, edit): one height at rest and while editing (Settings 11a)
+	editable = false,
+	// a row that holds a setting keeps its ground when an option in it is checked (7a, 11b)
+	setting = false,
 	onClick,
 	to,
 	children,
@@ -61,7 +64,10 @@ export function ListItem({
 	const classes = join(
 		'sp-list-item',
 		variant === 'sticky' && 'sp-list-item--card',
-		pick(VARIANT, variant, 'variant', 'ListItem')
+		pick(VARIANT, variant, 'variant', 'ListItem'),
+		opens && 'sp-list-item--opens',
+		editable && 'sp-list-item--editable',
+		setting && 'sp-list-item--setting'
 	)
 	const attrs = {
 		...(color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'ListItem') }),
@@ -70,37 +76,58 @@ export function ListItem({
 	}
 	const body = (
 		<>
-			{handle ? <button type="button" className="sp-list-item__handle" aria-label="Reorder">{handle}</button> : null}
+			{/* an add row holds the handle's column empty, so it lines up under rows that can move */}
+			{handle && variant === 'add' ? <span className="sp-list-item__handle" aria-hidden="true" />
+				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
 			{mark}
+			{/* the count leads what it counts, as the attention row draws it (Components) */}
+			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
 			{children}
 			{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
-			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
 			{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
 		</>
 	)
-	if (to) return <a className={classes} href={to} data-go={to} {...attrs}>{body}</a>
+	if (to) return <Link className={classes} to={to} data-go={to} {...attrs}>{body}</Link>
 	if (onClick || variant === 'add')
 		return <button type="button" className={classes} onClick={onClick} {...attrs}>{body}</button>
 	return <div className={classes} {...attrs}>{body}</div>
 }
 
-/**
- * Where a carried row will land. Belongs to the drag, not to the data.
- */
+/** The heading over a set of rows that carries a total (c33, sp-list-head): on the rows' inset,
+    so the label starts on their first column and the total ends on their amounts.
+    @param {object} props
+    @param {string} props.label The heading's words.
+    @param {string} props.amount The total, at the end, lined up with the rows' amounts. */
+export function ListItemHead({ label, amount, ...rest }) {
+	reject(rest, 'ListItemHead')
+	return (
+		<div className="sp-list-head" {...rest}>
+			<span className="sp-section-label">{label}</span>
+			<span className="sp-grow" />
+			<span className="sp-amount">{amount}</span>
+		</div>
+	)
+}
+
+/** What a reorder by keyboard says after each move, read out and not drawn (c1 Ordering by hand).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] What is read out after each move. It is not drawn. */
+export function Announce({ children, ...rest }) {
+	reject(rest, 'Announce')
+	return <span className="sp-announce" aria-live="polite" {...rest}>{children}</span>
+}
+
+/** Where a carried row will land. Belongs to the drag, not to the data. */
 export function Insertion(props) {
 	reject(props, 'Insertion')
 	return <span className="sp-list-item__insertion" {...props} />
 }
 
-/**
- * A control that appears when its row is hovered or focused, and stays put on touch.
- *
- * @param {object} props
- * @param {import('react').ReactNode} [props.children]
- */
+/** A control that appears when its row is hovered or focused, and stays put on touch.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] The control that appears when the row is hovered or focused. */
 export function ListItemRemove({ children, ...rest }) {
 	reject(rest, 'ListItemRemove')
 	return <span className="sp-list-item__remove" {...rest}>{children}</span>
 }
-
 

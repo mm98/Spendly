@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261024a">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261024g">
+<link rel="stylesheet" href="styles/components.css?v=v20261024n">
 <link rel="stylesheet" href="styles/doc.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
@@ -41,6 +41,7 @@
 	<div class="doc-lede">The components in <code>react_handoff/</code>, rendered from their own source files rather than redrawn. Every specimen below is a real call to a real component, so a prop set that has drifted from <a href="Components.dc.html">the library</a> shows up here as a broken specimen rather than as a surprise in the app.</div>
 	<div class="doc-notes">
 		<div class="doc-notes__label">Notes for implementation</div>
+		<div class="doc-note"><b>What moves, and how fast.</b> Panels, menus, dialogs, sheets, folds, the segmented selection and added or removed rows, at the <code>--motion-*</code> tokens in <code>tokens.css</code>. A part shown by an attribute animates both ways from CSS. A part the component mounts animates in from CSS and out only when the component keeps it for <code>--motion-out</code> with <code>data-leaving="true"</code>, so on this page those still close at once. Each section says which applies.</div>
 		<div class="doc-note"><b>This page is a harness, not a build.</b> It fetches each <code>.jsx</code> file, strips the module syntax, and evaluates it against React with three stand-ins: the router's link, the app's <code>Icon</code>, and the shared variant helpers. The app compiles the same files properly; nothing here is a second implementation of them.</div>
 		<div class="doc-note"><b>A console error is the point.</b> The components report an unknown prop value, a <code>className</code> or a <code>style</code> rather than rendering something wrong quietly. The last block on this page calls them wrongly on purpose, so the reporting is visible in the browser console.</div>
 		<div class="doc-note"><b>The stylesheets are the ones the pages use.</b> No copy, no override: <code>tokens.css</code> then <code>components.css</code>, loaded from <code>styles/</code>.</div>
@@ -121,6 +122,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">variant · color · state</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> A chip the reader adds grows in; one they remove shrinks out, held for <code>--motion-out</code> with <code>data-leaving="true"</code> before it goes.</div>
 	<span class="doc-specimen__label">Chip: variant, then the danger colour</span>
 	<div class="sp-card"><div class="sp-row-flex sp-gap-8 sp-wrap">{{ chips }}</div></div>
 	{{ chipsCode }}
@@ -139,6 +141,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">every control the reader types, picks or drops into</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> The combobox panel, the date field's calendar and the range picker under a PeriodPicker's Custom open from their trigger: a fade and a 4px drop at <code>--motion-in</code> (180ms), and back the same way at <code>--motion-out</code> (140ms). The chevron turns to point up while open. A segmented control's green, and a PeriodPicker's, slides to the option picked. A facet group's values grow in as it unfolds. A check box fills and its tick draws; a radio's dot grows in. A calendar stepped a month slides its days in from that side. All from <code>components.css</code>; none of it runs under reduced motion.</div>
 	<div class="doc-lede">One segment for all of them, because a reader choosing a control is choosing between these and not between three pages. Every one is controlled - <code>value</code> and <code>onChange</code>, no internal copy - and none takes a colour: an error is a boolean and a message, never a variant.</div>
 
 	<span class="doc-specimen__label">Field owns the label, the message and the spacing; each control renders only its own box</span>
@@ -152,7 +155,7 @@
 	<div class="sp-card"><div class="sp-fields">{{ required }}</div></div>
 	{{ requiredCode }}
 
-	<span class="doc-specimen__label">text, amount, password, date, search, note, a computed figure, and one that blocks the save</span>
+	<span class="doc-specimen__label">text, amount, password, date, search, note, and one that blocks the save</span>
 	<div class="sp-card"><div class="sp-fields">{{ inputs }}</div></div>
 	{{ inputsCode }}
 	<div class="doc-note"><b>Numbers are written the reader's way.</b> The amount reads <code>1.320,00</code> because a native number input cannot render a comma separator - its value is always dot-decimal - so an amount is a text input with a decimal input mode, formatted on blur and accepting either separator while typing. The value stays a number; only the text is localised. The specimens pass <code>da-DK</code>; with no locale they follow the browser.</div>
@@ -242,6 +245,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">variant · color · footer · footerLayout · CardHeader</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> A card that folds from its toolbar grows and shrinks its body by height, at <code>--motion-in</code> open and <code>--motion-out</code> closed, while its chevron turns. In a browser that cannot animate to <code>auto</code> it folds at once, as before.</div>
 	<span class="doc-specimen__label">CardHeader: every view in its own slot</span>
 	<div class="sp-stack sp-gap-12 doc-w400">{{ cardHeaders }}</div>
 	{{ cardHeadersCode }}
@@ -266,6 +270,8 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">variant · color · mark · handle · actions · count · chevron</span>
 	</div>
+	<div class="doc-note"><b>A row that opens and has a handle</b> is a plain box with the handle and the open target side by side, as <a href="Components.dc.html">Components</a>, Ordering by hand, draws it. The open target, <code>sp-list-item__open</code>, holds the mark, the count and the words and stretches over the row; actions and the handle sit above it. NavItem the same.</div>
+	<div class="doc-note"><b>Motion.</b> A row the reader just added drops in, and one they removed fades and closes up where it stood. While a row is carried, the rows it passes ease aside: the drag sets each one's move as its <code>translate</code> on a list marked <code>data-reordering="true"</code>, and the transition takes it home. The row is marked <code>data-added="true"</code> on its first render and <code>data-leaving="true"</code> for <code>--motion-out</code> before it is removed; the list does the marking, so a list loading its rows does not animate them.</div>
 	<div class="doc-note">One row for every list in the product. It was two components - one for an editable set, one for everything else - until the two were compared: they differed by one shade of ground and 2px of radius. What varies is what the row carries, not the row.</div>
 	<div class="doc-note"><b>A surface is not a row.</b> A Card owns a ground, an edge and padding and holds a section of a page; its <code>row</code> variant is layout only, laying its own children in a line. A row that wants a card's ground is this component's <code>card</code> variant, because it repeats - and repeating is what separates a row from a surface. The control states, the text column and the line parts live here, not on the card. Which body a list shows is a question about the list's own width, answered by a container query - one implementation, no phone-only component.</div>
 	<span class="doc-specimen__label">the card variant: a list with no columns to align</span>
@@ -294,6 +300,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">three promises, not three sizes</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> In a popover's list of choices that picks one, the green tint slides from the old row to the new. A submenu slides out from its item, its items following 20ms apart, after the same <code>--submenu-delay</code> rest. A menu or popover opens from its trigger: a fade and a 4px drop, rising instead when placed above. A dialog grows the last 2% into place over a fading scrim. A menu let out of its anchor closes the same way back; a popover and a dialog close that way once the component holds them for <code>--motion-out</code> with <code>data-leaving="true"</code> before removing them.</div>
 	<div class="doc-note">A Menu acts on click: every item does its thing and closes. A Popover waits - it holds a decision and a Cancel / Apply pair, so nothing happens until the reader applies it. A Dialog interrupts, and cannot be answered by ignoring it. That is why they are three components.</div>
 	<span class="doc-specimen__label">the menu, and the panel that waits</span>
 	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-top sp-wrap">{{ menus }}</div></div>
@@ -326,6 +333,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">records · columns · bulkActions</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> A record or table row the reader added drops in, and a removed one fades out, as ListItem does (<a href="#r6">r6</a>).</div>
 	<div class="doc-note"><b>Written the way a table is written.</b> A <code>Caption</code> says what it is, a <code>ListHead</code> of cells declares each column's heading and width, and a <code>ListRow</code> is the template every record is drawn through - its child is a function of one record, returning that record's cells in the head's order. That order is the one thing this shape asks of a page, so the list checks it: a row drawing a different number of cells from the head is reported, because every cell after the gap would otherwise sit under the wrong heading in silence.</div>
 	<div class="doc-note"><b>The page supplies the data, the head, the row and what can be done to a selection.</b> Everything else is the list's, because it is the same on every list: the count, the caption becoming the bulk bar, the select-all box and its three states, shift-click taking the run, Escape clearing, the pager, and paging keeping a selection where a filter change drops it. <code>Selected</code> is the only reason a list has boxes - leave it out and the list is a plain table.</div>
 	<div class="doc-note">A head cell states a role, never a width: seven roles, each with its width declared once in the stylesheet, and exactly one <code>title</code> - the column with no width of its own, which absorbs whatever the fixed ones leave. That is why the title looks different on every page and every other column is identical everywhere.</div>
@@ -341,6 +349,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">measurements, drawn</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> A gauge fills and a bar rises from nothing when it first shows, and moves to its new length when its figure changes, over twice <code>--motion-in</code>. A <code>Stat</code> figure or a <code>Sum</code> value that changes counts to its new value in its own digit slots, so separators and currency stay put; the last frame is the formatted figure.</div>
 	<div class="doc-note">A measurement is the one thing a class cannot carry - no stylesheet can have seen the value - so these write their own width and height. The library's pages state theirs as data attributes with a rule each, which is right for a drawn page; a live component has a number that arrived a moment ago. Nothing here sets a colour, a size or a radius.</div>
 	<span class="doc-specimen__label">under its limit, past it with the limit marked, and with no limit set</span>
 	<div class="sp-card"><div class="sp-fields">{{ gauges }}</div></div>
@@ -364,6 +373,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">what is still arriving</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> What replaces a skeleton fades in where it stood. The component that swaps them marks the arriving content <code>data-loaded="true"</code>; content there from the start is not marked.</div>
 	<div class="doc-note">A skeleton is the shape of what is loading rather than a spinner: a row being fetched looks like the row it will become. The spinner is for work of unknown length on one line of text.</div>
 	<span class="doc-specimen__label">a row on its way, and work of unknown length</span>
 	<div class="sp-card">{{ loading }}</div>
@@ -377,6 +387,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">the page's own furniture</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> The current row's ground slides from the row it left to the row it reached, in the dark and the light sidebar alike.</div>
 	<div class="doc-note">The shell is a grid of two tracks, and collapsing it is a track width rather than an animation - an animated track reflows every card beside it on every frame. The rail is the same sidebar at its narrow width, and peeking shows its labels over the page rather than pushing it.</div>
 	<span class="doc-specimen__label">the menu, and the top bar above the page</span>
 	{{ shell }}
@@ -396,6 +407,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">the touch surface's own furniture</span>
 	</div>
+	<div class="doc-note"><b>Motion.</b> The tab bar's current colour crosses over to the item pressed. A sheet rises from the bottom edge over a fading scrim, and falls back the same way when it closes, held for <code>--motion-out</code> with <code>data-leaving="true"</code>. Its drag still moves it by hand; the slide adds to the drag rather than replacing it.</div>
 	<div class="doc-note">Not the desktop shell's parts at a smaller size. A bar welded to the frame's edge, a row of destinations a thumb reaches, a surface that rises from the bottom - a touch screen has places a desktop page does not, and grouping them in <code>Touch.jsx</code> keeps a desktop page from reaching for one by accident.</div>
 	<div class="doc-note">The save bar and the tab bar never share a screen. A record opened for editing is a screen pushed over its list: it has a back button, and the bar it commits from takes the tab bar's place at the bottom. The tab bar belongs to the top-level screens.</div>
 	<span class="doc-specimen__label">a record being edited: the top bar, the body and the bar it commits from</span>
@@ -441,7 +453,7 @@
 /* Helpers first: a stripped module has no imports left, so each file is evaluated
    with what the earlier ones exported - a helper loaded after its callers leaves
    them with no binding at all. */
-const FILES = ['variants.js', 'format.js',
+const FILES = ['variants.js', 'format.js', 'colour.js', 'EmailLine.jsx',
 		'Button.jsx', 'Mark.jsx', 'Chip.jsx', 'Pill.jsx',
 	// Choice before Field: a field handed a box renders a Choice around it, and a
 	// file evaluated after its callers leaves them with no binding at all
@@ -451,7 +463,7 @@ const FILES = ['variants.js', 'format.js',
 	// DatePickers before Inputs: DateField reaches for the Calendar, and a file
 	// evaluated after its callers leaves them with no binding at all
 	'DatePickers.jsx', 'Inputs.jsx', 'Utilities.jsx',
-	'Shell.jsx', 'Touch.jsx', 'Overlays.jsx', 'List.jsx', 'Data.jsx', 'LineEditor.jsx', 'Chat.jsx'];
+	'Shell.jsx', 'Touch.jsx', 'Overlays.jsx', 'List.jsx', 'Data.jsx', 'LineEditor.jsx', 'Chat.jsx', 'Attachments.jsx'];
 
 /* The harness. It evaluates the real component files so this page cannot drift from
    them: no copy of a component lives here.
@@ -559,7 +571,18 @@ class Component extends DCLogic {
 				useRef: React.useRef,
 				useEffect: React.useEffect,
 				useMemo: React.useMemo,
-				useCallback: React.useCallback
+				useCallback: React.useCallback,
+				isValidElement: React.isValidElement,
+				useSyncExternalStore: React.useSyncExternalStore,
+				createPortal: (node, at) => (window.ReactDOM && window.ReactDOM.createPortal ? window.ReactDOM.createPortal(node, at) : node),
+				useNavigate: () => () => {},
+				// from react/src/api/format.js and react/src/app/useMedia.js, which are the app's, not the library's
+				plural: (n, noun, pluralNoun = noun + 's') => new Intl.NumberFormat().format(n) + ' ' + (n === 1 ? noun : pluralNoun),
+				useShellShape: () => {
+					const media = q => React.useSyncExternalStore(c => { const l = matchMedia(q); l.addEventListener('change', c); return () => l.removeEventListener('change', c) }, () => matchMedia(q).matches);
+					const touch = media('(max-width: 639.98px)'), rail = media('(max-width: 1279.98px)');
+					return touch ? 'touch' : rail ? 'rail' : 'wide';
+				}
 			};
 			for (const file of FILES) {
 				// the files are edited while this page is open, so each is fetched past
@@ -595,17 +618,18 @@ class Component extends DCLogic {
 	/** Strips the module syntax a bundler would resolve, then returns what the file
 	    exported. The names are read off the source rather than guessed. */
 	evaluate(file, src, scope) {
-		const names = [...src.matchAll(/export\s+(?:function|const)\s+(\w+)/g)].map(m => m[1]);
+		const names = [...src.matchAll(/export\s+(?:async\s+)?(?:function|const|let)\s+(\w+)/g)].map(m => m[1]);
 		// one line at a time: these files carry no semicolons, so a pattern allowed to
 		// cross a newline swallows the whole file
 		const body = src
 			.replace(/^[ \t]*import[^\n;]*;?[ \t]*$/gm, '')
-			.replace(/export\s+(function|const)/g, '$1');
+			.replace(/export\s+(async\s+function|function|const|let)/g, '$1');
 		// the return is appended after the transform: Babel reads the file as a module,
 		// where a top-level return is a syntax error
 		const code = window.Babel.transform(body, { filename: file, presets: ['react'] }).code;
-		const keys = Object.keys(scope);
-		return new Function(...keys, code + '\nreturn {' + names.join(',') + '};')(...keys.map(k => scope[k]));
+		// read through the shared scope at call time: the files import each other in a cycle
+		// (Combobox, Shell, Inputs), so a binding taken at load would be missing for the earlier file
+		return new Function('__scope', 'with (__scope) {\n' + code + '\nreturn {' + names.join(',') + '};\n}')(scope);
 	}
 
 	renderVals() {
@@ -1046,7 +1070,7 @@ class Component extends DCLogic {
 					e(TextField, { ...bind('trail', 'Value') })),
 				e(Field, { label: 'Kbd', kbd: e(Kbd, null, 'S') },
 					e(TextField, { ...bind('kbd', ''), placeholder: 'Search' })),
-				e(Field, { label: 'Chevron' },
+				e(Field, { label: 'Chevron', chevron: e(Icon, { name: 'chevron-down' }) },
 					e(TextField, { value: 'Opens a menu', onChange: () => {}, readOnly: true }))
 			]),
 
@@ -1106,7 +1130,6 @@ class Component extends DCLogic {
 				'aria-label': 'Vendor',
 				placeholder: 'Start typing a vendor',
 				value: this.state.found,
-				chevron: e(Icon, { name: 'chevron-down' }),
 				search: this.state.vendorQuery,
 				onSearch: vendorQuery => this.setState({ vendorQuery }),
 				open: this.state.foundOpen,
@@ -1273,7 +1296,9 @@ class Component extends DCLogic {
 					actions: e(ListItemRemove, null, e(IconButton, { icon: 'trash', 'aria-label': 'Remove line', size: 'small' }))
 				}, e('div', { className: 'sp-stack' },
 					e('span', { className: 'sp-data' }, 'Lounge chair, oak'),
-					e('span', { className: 'sp-subtitle' }, '2 × 4.310,00 kr.'))),
+					e('span', { className: 'sp-subtitle' }, '2 × 4.310,00 kr.')),
+				e('span', { className: 'sp-grow' }),
+				e('span', { className: 'sp-stacked sp-cell-amount' }, e('span', { className: 'sp-amount' }, '8.620,00 kr.'))),
 				e(Insertion, { key: 'i' }),
 				e(ListItem, {
 					key: 'b',
@@ -1424,8 +1449,6 @@ class Component extends DCLogic {
 					})),
 				e(Field, { label: 'Note' },
 					e(TextField, { value: this.state.note, onChange: note => this.setState({ note }), multiline: true, rows: 3 })),
-				e(Field, { label: 'A computed figure', unit: 'kr.' },
-					e(NumberField, { value: 1650, onChange: () => {}, computed: true, locale: 'da-DK' })),
 				e(Field, { label: 'Danger', messageType: 'danger', message: 'An amount is required.' },
 					e(NumberField, { ...bind('blocked', null), danger: true, locale: 'da-DK' }))
 			]),
@@ -1457,6 +1480,14 @@ class Component extends DCLogic {
 					step: 0.25,
 					locale: 'da-DK',
 					onChange: quantity => this.setState({ quantity })
+				}),
+				e(Stepper, {
+					'aria-label': 'hours',
+					defaultValue: 20,
+					min: 0,
+					step: 1,
+					decimals: 2,
+					locale: 'da-DK'
 				})
 			]),
 

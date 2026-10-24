@@ -2,35 +2,24 @@ import { Link } from 'react-router'
 import { Icon } from './Icon.jsx'
 import { join, pick, reject } from './variants.js'
 
-/* Which element renders is decided by what the button does: `to` is an in-app
-   route and renders a react-router link, `href` is a URL outside the app and
-   renders an anchor, neither renders a <button>.
-
-   `variant` and `size` ride in the class, `color` in `data-color`. */
-
 const STYLE = { solid: null, outline: 'sp-btn--outline', text: 'sp-btn--text' }
 const COLOR = { primary: true, warning: true, danger: true }
+// on touch xsmall renders at the small size
 const SIZE = { standard: null, small: 'sp-btn--small', xsmall: 'sp-btn--xsmall' }
 
-/** Where the border takes its colour. Omitted it is the grey line, as everywhere
-    else; `inherit` takes it from the button's own `color`, for a button on a tinted
-    ground where a grey border does not read. No colour can be named, so no pairing of
-    a fill from one colour and a border from another can be invented. */
 const BORDER = { line: null, inherit: 'sp-btn--border-inherit' }
 
 /**
- * Takes no `className` and no `style`.
- *
  * @param {object} props
- * @param {keyof typeof STYLE} [props.variant]
- * @param {keyof typeof COLOR} [props.color]
- * @param {keyof typeof SIZE} [props.size] `xsmall` is for a rail section header; on touch it renders at the small size.
- * @param {keyof typeof BORDER} [props.border] `inherit` takes the border from `color`.
- * @param {boolean} [props.fullWidth]
- * @param {string} [props.to] An in-app route. Renders a link.
- * @param {string} [props.href] A URL outside the app. Renders an anchor.
- * @param {import('./Icon.jsx').IconName} [props.iconStart] An Icon name before the label.
- * @param {import('./Icon.jsx').IconName} [props.iconEnd] An Icon name after the label.
+ * @param {keyof typeof STYLE} [props.variant] How the button is drawn: `solid` is filled, `outline` has a border and no fill, `text` has neither.
+ * @param {keyof typeof COLOR} [props.color] The colour of the fill or the ink: `primary`, `warning`, or `danger` for an action that removes something.
+ * @param {keyof typeof SIZE} [props.size] `standard` for most buttons, `small` in a row or a card head, `xsmall` beside a field label or a rail heading. On touch, `xsmall` draws at the small size.
+ * @param {keyof typeof BORDER} [props.border] `line` is the usual border. `inherit` takes the border colour from `color`.
+ * @param {boolean} [props.fullWidth] The button spans the width of its column.
+ * @param {string} [props.to] An address inside the app. The button is drawn as a link.
+ * @param {string} [props.href] An address outside the app. The button is drawn as a link that leaves the app.
+ * @param {import('./Icon.jsx').IconName} [props.iconStart] An icon before the label.
+ * @param {import('./Icon.jsx').IconName} [props.iconEnd] An icon after the label.
  * @param {import('react').ReactNode} [props.children] The label.
  */
 export function Button({
@@ -71,23 +60,13 @@ export function Button({
 const ICON_STYLE = { bare: null, outline: 'sp-icon-btn--outline', quiet: 'sp-icon-btn--quiet' }
 const ICON_SIZE = { row: null, small: 'sp-icon-btn--small', field: 'sp-icon-btn--field', xsmall: 'sp-icon-btn--xsmall' }
 
-/**
- * `aria-label` is required: an icon alone is silent to a screen reader. It is
- * spelled as the attribute rather than as `label`, because that is where it goes -
- * a prop called label that never appears on screen is a prop that misleads.
- *
- *
- *
- * Takes no `className` and no `style`.
- *
- * @param {object} props
- * @param {import('./Icon.jsx').IconName | import('react').ReactElement} props.icon The glyph. An element, as every other slot in this library takes - Combobox's lead, a Field's lead and trail, a Mark's text, a ListItem's chevron. A name string is accepted too, since this component's own first form took one.
- * @param {keyof typeof ICON_STYLE} [props.variant]
- * @param {keyof typeof ICON_SIZE} [props.size]
- * @param {boolean} [props.danger] An action that removes something: the red ink, on the same outline. The same state MenuItem has.
- * @param {string} [props.to] An in-app route. Renders a link.
- * @param {string} [props.href] A URL outside the app. Renders an anchor.
- */
+/** @param {object} props
+    @param {import('./Icon.jsx').IconName | import('react').ReactElement} props.icon The icon: a name from the icon set, or an icon already drawn.
+    @param {keyof typeof ICON_STYLE} [props.variant] `bare` has no border, `outline` has a border, `quiet` has no border and lighter ink.
+    @param {keyof typeof ICON_SIZE} [props.size] `row` fits a list row, `small` and `xsmall` are smaller, `field` fits inside a text field.
+    @param {boolean} [props.danger] An action that removes something: the icon is drawn in red.
+    @param {string} [props.to] An address inside the app. The button is drawn as a link.
+    @param {string} [props.href] An address outside the app. The button is drawn as a link that leaves the app. */
 export function IconButton({
 	icon,
 	variant = 'bare',

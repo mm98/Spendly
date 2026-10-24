@@ -1,85 +1,65 @@
+import { useEffect } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
-/* The pieces with no domain of their own.
-
-   Every component in this library belongs to something - a list, a card, a field, a
-   shell. These do not: they are what those things are built out of, and each one is
-   here because more than one of them uses it.
-
-   That is the test for this file. A piece that only ever appears inside one
-   component belongs in that component's file, beside what uses it; a piece three
-   components reach for belongs here. Nothing lands here for being small. */
-
-/**
- * A column of lines about one thing - in a list row, in a table cell, in a card.
- * Neither list-specific nor title-specific: the lines are whatever the record has
- * to say, a name over a reference, an amount over its saving. It takes the width
- * the mark and any trailing controls leave, and does not clip, since each line
- * truncates its own text and an amount must never be cut.
- *
- * @param {object} props
- * @param {import('react').ReactNode} [props.children]
- */
+/** @param {object} props
+    @param {import('react').ReactNode} [props.children] The lines, one under the other. */
 export function Stacked({ children, ...rest }) {
 	reject(rest, 'Stacked')
 	return <span className="sp-stacked sp-stacked--fill" {...rest}>{children}</span>
 }
 
-/**
- * One line of that column. The first sits to the top of its content, the rest centre.
- *
- * @param {object} props
- * @param {import('react').ReactNode} [props.children]
- */
+/** One line of that column. The first sits to the top of its content, the rest centre.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] What one line holds. */
 export function Line({ children, ...rest }) {
 	reject(rest, 'Line')
 	return <span className="sp-list-item__line" {...rest}>{children}</span>
 }
 
-/**
- * A key, as the reader sees it on their keyboard. `accent` is one inside a surface
- * that is already green.
- *
- * @param {object} props
- * @param {boolean} [props.accent]
- * @param {import('react').ReactNode} [props.children]
- */
+/** A key, as the reader sees it on their keyboard. `accent` is one inside a surface
+    that is already green.
+    @param {object} props
+    @param {boolean} [props.accent] For a key drawn on a green surface.
+    @param {import('react').ReactNode} [props.children] The key or keys, such as ⌘K. */
 export function Kbd({ accent = false, children, ...rest }) {
 	reject(rest, 'Kbd')
 	return <kbd className={join('sp-kbd', accent && 'sp-kbd--accent')} {...rest}>{children}</kbd>
 }
 
-/**
- * Nothing here yet, and what to do about it. `dashed` is the one that invites the
- * first record rather than reporting an empty filter.
- *
- * @param {object} props
- * @param {boolean} [props.dashed]
- * @param {import('react').ReactNode} props.children The mark, the title, the body and the action, in the order they are read.
- */
+/** Another state of a part laid over its resting form, which stays unseen beneath so the height holds (6b).
+    @param {object} props
+    @param {import('react').ReactNode} props.shape The usual form of the part. It stays hidden underneath, so the height does not jump.
+    @param {import('react').ReactNode} [props.children] The other state, drawn over it: loading, failed or empty. */
+export function Hold({ shape, children, ...rest }) {
+	reject(rest, 'Hold')
+	return (
+		<div className="sp-hold" {...rest}>
+			<div className="sp-hold__ghost" aria-hidden="true">{shape}</div>
+			<div className="sp-hold__state">{children}</div>
+		</div>
+	)
+}
+
+/** @param {object} props
+    @param {boolean} [props.dashed] Draw a dashed border around the empty state.
+    @param {import('react').ReactNode} [props.children] The mark, the title, the body and the action, in the order they are read. */
 export function Empty({ dashed = false, children, ...rest }) {
 	reject(rest, 'Empty')
 	return <div className={join('sp-empty', dashed && 'sp-empty--dashed')} {...rest}>{children}</div>
 }
 
-/**
- * What is not here.
- *
- * @param {object} props
- * @param {import('react').ReactNode} [props.children]
- */
+/** What is not here.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] What is missing, in one line. */
 export function EmptyTitle({ children, ...rest }) {
 	reject(rest, 'EmptyTitle')
 	return <span className="sp-empty__title" {...rest}>{children}</span>
 }
 
-/**
- * What to do about it, under the title.
- *
- * @param {object} props
- * @param {import('react').ReactNode} [props.children]
- */
+/** What to do about it, under the title.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] Why it is empty, and what the reader can do. */
 export function EmptyBody({ children, ...rest }) {
 	reject(rest, 'EmptyBody')
 	return <span className="sp-empty__body" {...rest}>{children}</span>
@@ -91,51 +71,142 @@ const SKELETON = {
 	end: 'sp-skeleton--end',
 	title: 'sp-skeleton--title',
 	pill: 'sp-skeleton--pill',
+	// a chart's loading bar, inside Bars only; a part held at its own box takes `fill`
 	bar: 'sp-skeleton--bar',
+	fill: 'sp-skeleton--fill',
 	mark: 'sp-skeleton--mark',
 	'mark-large': 'sp-skeleton--mark-large',
 	check: 'sp-skeleton--check',
 	icon: 'sp-skeleton--icon'
 }
 
-/**
- * The shape of what is loading, not a spinner: a row being fetched looks like the
- * row it will become. For work of unknown length on one line of text there is the
- * spinner instead.
- *
- * @param {object} props
- * @param {keyof typeof SKELETON} props.shape
- */
+/** @param {object} props
+    @param {keyof typeof SKELETON} props.shape The form of the grey placeholder: a line, a short line, a title, a pill, a mark, a check box, an icon, a chart bar, or `fill` for its whole box. */
 export function Skeleton({ shape, ...rest }) {
 	reject(rest, 'Skeleton')
 	return <span className={join('sp-skeleton', pick(SKELETON, shape, 'shape', 'Skeleton'))} aria-hidden="true" {...rest} />
 }
 
-/**
- * Work of unknown length, on one line of text.
- */
+/** Work of unknown length, on one line of text. */
 export function Spinner(props) {
 	reject(props, 'Spinner')
 	return <span className="sp-spinner" aria-hidden="true" {...props} />
 }
 
-/**
- * The control at the end of a set that adds one more to it (c33): a row to a budget
- * group, a group to a side, an account to the list. Order lines keep their own add
- * row in ListItem, which holds a mark where the photo goes.
- *
- * Add, then what, then where: Add a row to Housing.
- *
- * @param {object} props
- * @param {import('react').ReactNode} [props.children]
- * @param {() => void} [props.onClick]
- */
+/** An amount held back from view: a bar of one length, so its width says nothing about the figure. */
+export function Redacted(props) {
+	reject(props, 'Redacted')
+	return <span className="sp-redacted" role="img" aria-label="Hidden" {...props} />
+}
+
+/** @param {object} props
+    @param {import('react').ReactNode} [props.children] What the row adds, such as Add a line.
+    @param {() => void} [props.onClick] */
 export function AddRow({ children, onClick, ...rest }) {
 	reject(rest, 'AddRow')
 	return (
 		<button type="button" className="sp-add-row" onClick={onClick} {...rest}>
-			<Icon name="plus" />
+			<Icon name="plus" size={14} />
 			<span>{children}</span>
 		</button>
 	)
+}
+
+// a surface drawn on the body for a control (a menu's sheet on touch) and that control's own box
+const owners = new WeakMap()
+
+/** Marks `surface`, drawn on the body, as part of `owner`: inside it counts as inside the owner. */
+export function own(surface, owner) {
+	if (surface && owner) owners.set(surface, owner)
+}
+
+/** Whether `el` sits in `box`, or in a surface drawn on the body for something in it. */
+export function within(box, el) {
+	for (let at = el; box && at instanceof Node; ) {
+		if (box.contains(at)) return true
+		const surface = at.closest?.('[data-surface]') ?? at.parentElement?.closest('[data-surface]')
+		at = surface ? owners.get(surface) : null
+	}
+	return false
+}
+
+/** The button that opened the menu `el` sits in, if it sits in one: where focus belongs once
+    that menu has closed under it. */
+export function menuTrigger(el) {
+	let menu = el?.closest?.('.sp-menu')
+	if (!menu) return null
+	while (menu.parentElement?.closest('.sp-menu')) menu = menu.parentElement.closest('.sp-menu')
+	const surface = menu.closest('[data-surface]')
+	const host = (surface && owners.get(surface)) ?? menu.parentElement
+	return [...(host?.querySelectorAll('[aria-haspopup="menu"]') ?? [])].find(b => !menu.contains(b)) ?? null
+}
+
+/** Closes an open menu, popover or combobox panel on a press outside, Escape or a Tab out of it,
+    and on Escape hands focus back to whatever inside it opened it. */
+export function useDismiss(ref, open, onClose) {
+	useEffect(() => {
+		if (!open) return
+		const box = ref.current
+		const away = ev => { if (box && !within(box, ev.target)) onClose() }
+		const key = ev => {
+			if (ev.key !== 'Escape') return
+			ev.stopPropagation()
+			// the item that had focus is about to be hidden, so focus goes to the control that opened it
+			if (within(box, document.activeElement)) box.querySelector('[aria-expanded]')?.focus()
+			onClose()
+		}
+		// a surface drawn on the body sends its keys to the document, not through the box
+		const keyAway = ev => { if (box && !box.contains(ev.target) && within(box, ev.target)) key(ev) }
+		// only a move to a known element counts: a focused node that leaves the page reports none
+		const left = ev => { if (ev.relatedTarget && box && !within(box, ev.relatedTarget)) onClose() }
+		document.addEventListener('pointerdown', away)
+		document.addEventListener('keydown', keyAway)
+		box?.addEventListener('keydown', key)
+		box?.addEventListener('focusout', left)
+		return () => {
+			document.removeEventListener('pointerdown', away)
+			document.removeEventListener('keydown', keyAway)
+			box?.removeEventListener('keydown', key)
+			box?.removeEventListener('focusout', left)
+		}
+	}, [ref, open, onClose])
+}
+
+const STOPS = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])'
+
+// what Tab can land on inside `box`: shown, and one radio per group, as the browser walks them
+const stopsIn = box => [...box.querySelectorAll(STOPS)].filter(el => {
+	if (el.checkVisibility && !el.checkVisibility()) return false
+	if (el.type !== 'radio' || el.checked || !el.name) return true
+	return !box.querySelector(`input[type="radio"][name="${CSS.escape(el.name)}"]:checked`)
+})
+
+/** Holds Tab inside a modal surface while `active`. Opening focuses `initial` (a selector), the box
+    or its first stop; closing returns focus to the opener, or to a closed menu's button. */
+export function useFocusTrap(ref, active = true, initial) {
+	useEffect(() => {
+		const box = ref.current
+		if (!box || !active) return
+		const back = menuTrigger(document.activeElement) ?? document.activeElement
+		const first = (initial && box.querySelector(initial)) ?? (box.hasAttribute('tabindex') ? box : stopsIn(box)[0] ?? box)
+		first.focus()
+		const tab = ev => {
+			if (ev.key !== 'Tab') return
+			const at = document.activeElement
+			// a surface opened over this one holds the keyboard itself
+			if (!box.contains(at) && at !== document.body) return
+			const stops = stopsIn(box)
+			if (!stops.length) { ev.preventDefault(); return }
+			const [head, tail] = [stops[0], stops.at(-1)]
+			if (!box.contains(at)) { ev.preventDefault(); (ev.shiftKey ? tail : head).focus() }
+			else if (ev.shiftKey && (at === head || at === box)) { ev.preventDefault(); tail.focus() }
+			else if (!ev.shiftKey && at === tail) { ev.preventDefault(); head.focus() }
+		}
+		document.addEventListener('keydown', tab)
+		return () => {
+			document.removeEventListener('keydown', tab)
+			const to = back?.isConnected && back.checkVisibility?.() !== false ? back : menuTrigger(back)
+			to?.focus?.()
+		}
+	}, [ref, initial, active])
 }
