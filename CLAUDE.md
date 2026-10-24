@@ -263,6 +263,11 @@ hide a broken selector as a slow run. Warm a cold dev server with one request ra
 Two things need no trigger: never claim what was not run ([Reporting](#reporting)), and read the file
 you're changing before changing it.
 
+**A change made by one replace across many files is read back at every place it changed.** A
+replace cannot tell a line it should change from one that only looks like it, and Storybook draws a
+part with its own settings, never the page that passes them. Read each changed line in the diff, and
+open each page whose part it reaches in the state that shows that part.
+
 **A check passes on its exit code, not on its last lines.** A failure printed early scrolls past a
 `tail`, and the summary below it can still read "all as blessed". Read `$?` after every check.
 
