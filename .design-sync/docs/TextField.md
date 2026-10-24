@@ -1,0 +1,31 @@
+---
+category: Forms
+---
+A one-line or multi-line text input. Always placed inside a `Field`, which gives it its label, message and slots.
+
+## Props
+
+- `value`, `onChange(text)`: `onChange` receives the text, not the event
+- `type`: `'text'` (default) | `'email'` | `'tel'` | `'url'`
+- `multiline` with `rows` (default 3): a textarea
+- `variant`: `'default'` | `'empty'` (dashed, nothing entered yet) | `'readonly'` | `'stretch'`
+- `action`: one icon button at the field's end, `{ icon, label, expanded, onClick }`
+- `placeholder`, `disabled`, `readOnly`, `name`, `autoComplete` and other native input attributes
+
+## Rules
+
+- Takes no `className` or `style`.
+- The label, help, warning and error come from the surrounding `Field` (`label`, `message`, `messageType` `'hint' | 'quiet' | 'warning' | 'danger'`, `required`, `lead`, `trail`, `unit`, `kbd`).
+- A field never changes size with its value.
+- Numbers use `NumberField`, passwords `PasswordField`, search `SearchInput`, dates `DateField`.
+
+## Example
+
+```jsx
+<Field label="Vendor" required>
+	<TextField value={vendor} onChange={setVendor} />
+</Field>
+<Field label="Email" messageType="danger" message="An email needs an @.">
+	<TextField type="email" value={email} onChange={setEmail} />
+</Field>
+```
