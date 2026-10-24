@@ -1,6 +1,5 @@
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
-import { Icon } from './Icon.jsx'
 
 const VARIANT = {
 	default: null,
@@ -23,12 +22,12 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 's
 /** @param {object} props
     @param {keyof typeof VARIANT} [props.variant] The row's form: `default`, `outline`, `primary`, `stack` (lines under each other), `top` (aligned to the top), `add` (a row that adds one), `carried` and `picked` (while being moved), `card` (a row on its own surface), `sticky` (stays put while the page scrolls).
     @param {keyof typeof COLOR} [props.color] The row's tint for something that needs attention: `warning` (amber), `danger` or `success`.
-    @param {import('react').ReactElement} [props.mark] The part at the start of the row: a mark, a photo or an icon.
-    @param {boolean} [props.handle] Draw a drag handle, so the row can be moved.
+    @param {import('react').ReactNode} [props.mark] The part at the start of the row: a mark, a photo or an icon.
+    @param {import('react').ReactNode} [props.handle] A drag handle, so the row can be moved.
     @param {string} [props.handleLabel] What the drag handle says it moves, such as Move Housing.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.actions] Controls at the end of the row.
+    @param {import('react').ReactNode} [props.actions] Controls at the end of the row.
     @param {number} [props.count] A count at the end of the row.
-    @param {import('./Icon.jsx').IconName | import('react').ReactElement} [props.chevron] An arrow at the end, for a row that opens something: an icon name, or a drawn icon.
+    @param {import('react').ReactNode} [props.chevron] An arrow at the end, for a row that opens something.
     @param {boolean} [props.selected] The row is the picked one in a set. Outline and card rows only.
     @param {boolean} [props.opens] The row opens something when clicked: the pointer and the hover fill show it.
     @param {boolean} [props.editable] The row turns into a field: it keeps one height at rest and while editing.
@@ -79,13 +78,13 @@ export function ListItem({
 		<>
 			{/* an add row holds the handle's column empty, so it lines up under rows that can move */}
 			{handle && variant === 'add' ? <span className="sp-list-item__handle" aria-hidden="true" />
-				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}><Icon name="grip-vertical" size={14} /></button> : null}
+				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
 			{mark}
 			{/* the count leads what it counts, as the attention row draws it (Components) */}
 			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
 			{children}
 			{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
-			{chevron ? <span className="sp-list-item__chevron">{typeof chevron === 'string' ? <Icon name={chevron} /> : chevron}</span> : null}
+			{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
 		</>
 	)
 	if (to) return <Link className={classes} to={to} data-go={to} {...attrs}>{body}</Link>

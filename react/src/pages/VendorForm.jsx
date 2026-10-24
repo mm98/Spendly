@@ -7,6 +7,7 @@ import { TextField, TokensField } from '../components/Inputs.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import { Check, Choice, Picker, Switch } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
+import { Icon } from '../components/Icon.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
@@ -322,7 +323,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					{h(<TokensField value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
 				</Field>
 				<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
-					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon="plus"
+					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 						value={values.colour} onChange={v => set('colour', v)} />)}
 				</Field>
 				<Choice variant="described" description="Leads the list wherever you pick a vendor."

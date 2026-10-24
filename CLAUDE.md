@@ -102,6 +102,10 @@ stated twice and obeyed once.
 pattern: components, tokens, layouts, behaviour rules. A new pattern is never invented in the app; it
 is proposed to Claude Design as a written brief, and built once it is in `design/`.
 
+**Only Claude Design changes a component.** In `react/src/components`, the build may change the
+JSDoc comments (types and descriptions) and nothing else, unless the user asks for a code change in
+words. A component that needs a new prop, type or behaviour is a brief, not an edit.
+
 `design/` is a design system, not an assembly manual. It does not draw every case, and it does not
 have to. Putting screens together from its patterns is the build's job:
 
@@ -141,7 +145,9 @@ have to. Putting screens together from its patterns is the build's job:
 
 ### A component change updates its story in the same pull request
 
-`storybook/` draws every file in `react/src/components` with the real code. A change that adds a
+`storybook/` draws every file in `react/src/components` with the real code. Storybook fits the
+component as it is: a control the component's types do not give is made in `storybook/` (its
+`.storybook/` setup or the story), never by changing the component. A change that adds a
 component, a variant, a prop or a state adds or changes its story, and is looked at there in light
 and dark, on Phone and Desktop. `npm run check`, `npm run build` and `npm test` in `storybook/` are
 among the checks run before a merge.

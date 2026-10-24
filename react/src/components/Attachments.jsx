@@ -11,7 +11,7 @@ import { FILE_TYPES, sniffedProblem } from './FileDrop.jsx'
 /** The attachment strip (c16): tiles in one row that scrolls sideways under two chevrons. A
     chevron is disabled, and so hidden, when there is nothing further that way.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The attachments, and an AttachmentAdd at the end. */
+    @param {import('react').ReactNode} [props.children] The attachments, and an AttachmentAdd at the end. */
 export function Strip({ children, ...rest }) {
 	reject(rest, 'Strip')
 	const box = useRef(null)
@@ -48,7 +48,7 @@ export function Strip({ children, ...rest }) {
 /** One tile in the strip: its mark, then the file's name beneath it.
     @param {object} props
     @param {string} props.name
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The picture or icon of the file, usually a Mark. */
+    @param {import('react').ReactNode} [props.children] The picture or icon of the file, usually a Mark. */
 export function Attachment({ name, children, ...rest }) {
 	reject(rest, 'Attachment')
 	return (

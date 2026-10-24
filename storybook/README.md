@@ -41,13 +41,16 @@ desktop shell at Desktop, the phone shell and the phone date sheet at Phone.
 
 - **Controls** changes a story's props while you look. Each prop's kind comes from the type comment
   above its component (a number box, a switch, a text box, or a choice of the values the component
-  accepts, or of the icons). A prop typed `ReactNode` takes words, so it gets a text box; one typed
-  `ReactElement` holds only other parts, so it has no control.
+  accepts). A prop that holds drawn parts has no control, since there is nothing to type into it.
   Controls and the props table show only what changes how the part looks. Plain HTML attributes
   (`id`, `name`, `role`, `aria-*`, `data-*` and the like), handles on an element and handlers are
   left out of both; a handler's calls still show in Actions. `name` stays where the part draws it
   as text: the list is `DRAWN_NAME` in `.storybook/types.js`. What a part around a control hands it
   (a Field's slot flags, a List's cell wiring) is left out too: the list is `HANDED` there.
+- **An icon or a key the app always draws the same way** into a prop that takes any part (Field
+  `lead` and `kbd`, a row's `chevron`, the custom colour's icon) gets a plain control: a choice of
+  the icons, or a text box for the key. Storybook draws the `<Icon>` or `<Kbd>` from it, so the
+  component itself is not changed. The list is `DRAWN_PARTS` in `.storybook/types.js`.
 - **Actions** logs every call a story's handlers get: a click, a change, a pick.
 - **Interactions** replays a story's `play` steps one by one, and shows where one failed.
 - **Accessibility** lists what [axe](https://github.com/dequelabs/axe-core) finds in the story.
@@ -128,9 +131,7 @@ export const Two = {
 - **A new prop gets a type comment** in its component: `@param {number} [props.maxMb]`, and for a
   fixed set `@param {keyof typeof VARIANT} [props.variant]`, so the set is the component's own. An
   icon is `{import('./Icon.jsx').IconName}`. A prop the component reads without a fallback is
-  required: no brackets around its name. Type a prop as narrowly as its callers use it: words are
-  `string`, an on/off is `boolean`, words that may hold bold text are `ReactNode`, and only other
-  parts are `ReactElement`. Each prop ends with one line that says what it does to the part.
+  required: no brackets around its name.
 - **Never type a list of allowed values.** They come from the component. A prop whose values are
   not checked with `pick()` in the component gets its options in the story.
 - **Show the states that matter**: the resting form, each variant, disabled, an error, empty and

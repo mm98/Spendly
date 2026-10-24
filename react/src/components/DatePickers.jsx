@@ -481,7 +481,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
     sheet Statistics and the order filters share. Its own scrim closes it without applying.
     @param {object} props
     @param {() => void} props.onClose
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The RangePicker, in a sheet over the page. */
+    @param {import('react').ReactNode} [props.children] The RangePicker, in a sheet over the page. */
 export function RangeSheet({ onClose, children }) {
 	const box = useRef(null)
 	useFocusTrap(box)
@@ -620,13 +620,13 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
     @param {string} [props.from] The custom range's first day.
     @param {string} [props.to] The custom range's last day.
     @param {string} [props.at] The day the periods are counted from, as yyyy-mm-dd. Today when left out.
-    @param {import('react').ReactElement} [props.stepper] The PeriodWindow that moves the period back and forward.
+    @param {import('react').ReactNode} [props.stepper] The PeriodWindow that moves the period back and forward.
     @param {string} [props.name] Groups the radios.
-    @param {import('react').ReactElement} [props.custom] The RangePicker, shown when the custom period is chosen.
+    @param {import('react').ReactNode} [props.custom] The RangePicker, shown when the custom period is chosen.
     @param {() => void} [props.onPresent]
-    @param {import('react').ReactElement} [props.extra] A second switch after the comparison.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.actions] Buttons at the end of the row.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] One Selected, which draws what the chosen period is.
+    @param {import('react').ReactNode} [props.extra] A second switch after the comparison.
+    @param {import('react').ReactNode} [props.actions] Buttons at the end of the row.
+    @param {import('react').ReactNode} [props.children] One Selected, which draws what the chosen period is.
     @param {string} [props.locale] How dates are written, such as da-DK. */
 export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
@@ -730,7 +730,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 /** @param {object} props
     @param {boolean} [props.sheet] The phone form, in a sheet.
     @param {boolean} [props.open] Whether the calendar is showing.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The months. */
+    @param {import('react').ReactNode} [props.children] The months. */
 export function Calendar({ sheet = false, open = true, children, ...rest }) {
 	reject(rest, 'Calendar')
 	return (

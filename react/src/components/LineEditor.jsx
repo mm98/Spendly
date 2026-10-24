@@ -3,7 +3,7 @@ import { Icon } from './Icon.jsx'
 import { join, reject } from './variants.js'
 
 /** @param {object} props
-    @param {import('react').ReactElement} [props.photo] The line's photo slot. Leave it out for a line with no photo.
+    @param {import('react').ReactNode} [props.photo] The line's photo slot. Leave it out for a line with no photo.
     @param {string} [props.hint] The keys the editor answers to, at the start of the button row.
     @param {string} [props.title] The head of the editor, such as Row 7 of 8 in Housing.
     @param {string} [props.what] What one line is, such as line or row. It goes into the buttons' names.
@@ -19,7 +19,7 @@ import { join, reject } from './variants.js'
     @param {() => void} [props.onCommit]
     @param {() => void} [props.onCommitNext]
     @param {() => void} [props.onCancel]
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The fields of the line. */
+    @param {import('react').ReactNode} [props.children] The fields of the line. */
 export function LineEditor({
 	photo,
 	hint = 'Enter saves · Escape cancels',

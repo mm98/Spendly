@@ -2,12 +2,14 @@ import { useLayoutEffect } from 'react'
 import { MemoryRouter } from 'react-router'
 import { ShellTouch } from '../../react/src/components/Shell.jsx'
 import { useShellShape } from '../../react/src/app/useMedia.js'
+import { Icon } from '../../react/src/components/Icon.jsx'
+import { Kbd } from '../../react/src/components/Utilities.jsx'
 import '../../react/src/styles/fonts.css'
 import '../../react/src/styles/tokens.css'
 import '../../react/src/styles/components.css'
 import '../../react/src/styles/app.css'
 import '../../react/src/styles/pages.js'
-import { lookArgTypes, typeArgTypes } from './types.js'
+import { drawnArgTypes, lookArgTypes, typeArgTypes } from './types.js'
 import { shownArgTypes, variantArgTypes } from './variants.js'
 
 // The app's own switch: tokens.css draws each theme from the root's data-theme, on a body of class sp.
@@ -26,6 +28,19 @@ const withShape = Story => {
 	return <ShellTouch.Provider value={touch}><Story /></ShellTouch.Provider>
 }
 
+// A prop Controls gives as an icon's name or a key's text, drawn as the app draws it there.
+const withDrawnParts = (Story, { args, argTypes }) => {
+	const drawn = Object.entries(argTypes).filter(([prop, argType]) => argType.drawn && typeof args[prop] === 'string' && args[prop] !== '')
+	if (!drawn.length) return <Story />
+	return Story({
+		args: {
+			...args,
+			...Object.fromEntries(drawn.map(([prop, { drawn: part }]) =>
+				[prop, part.key ? <Kbd>{args[prop]}</Kbd> : <Icon name={args[prop]} size={part.icon} />]))
+		}
+	})
+}
+
 // A component reports a wrong prop with console.error, and only there: a story that logs one
 // fails its test, and shows why in the Interactions panel.
 let reported = []
@@ -40,8 +55,8 @@ const failOnConsoleError = () => {
 
 export default {
 	tags: ['autodocs'],
-	decorators: [withShape, withRouter, withTheme],
-	argTypesEnhancers: [shownArgTypes, variantArgTypes, typeArgTypes, lookArgTypes],
+	decorators: [withDrawnParts, withShape, withRouter, withTheme],
+	argTypesEnhancers: [shownArgTypes, variantArgTypes, drawnArgTypes, typeArgTypes, lookArgTypes],
 	beforeEach: () => { reported = [] },
 	afterEach: failOnConsoleError,
 	globalTypes: {

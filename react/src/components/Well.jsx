@@ -23,7 +23,7 @@ export function Well({ variant = 'default', color = 'default', children, ...rest
 /** Two columns of equal width, each keeping its own height: two wells in one card (Budget 21a), two
     fields, two cards.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] Two parts, drawn side by side. */
+    @param {import('react').ReactNode} [props.children] Two parts, drawn side by side. */
 export function Halves({ children, ...rest }) {
 	reject(rest, 'Halves')
 	return <div className="sp-halves" {...rest}>{children}</div>

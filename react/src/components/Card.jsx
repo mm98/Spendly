@@ -2,7 +2,6 @@ import { Children, createContext, useContext } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
-import { Icon } from './Icon.jsx'
 
 const VARIANT = {
 	default: null,
@@ -26,12 +25,12 @@ const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__f
     @param {keyof typeof COLOR} [props.color] A tint for a card that needs attention: `warning` (amber) or `danger`.
     @param {boolean} [props.spread] In a card stretched to the height of the card beside it, share the free height between the parts.
     @param {string} [props.to] An address inside the app. The whole card is a link.
-    @param {import('react').ReactElement[]} [props.footer] The buttons at the foot of the card, one each.
+    @param {import('react').ReactNode[]} [props.footer] The buttons at the foot of the card, one each.
     @param {keyof typeof FOOTER} [props.footerLayout] How the footer buttons sit: `fill` in a row, `split` in two equal halves, `stack` one under the other.
     @param {boolean} [props.footerCommits] The footer closes a decision, so every button on it takes the full size.
-    @param {import('react').ReactElement} [props.after] A part drawn under the footer.
-    @param {import('./Icon.jsx').IconName | import('react').ReactElement} [props.chevron] An arrow at the end, for a card that opens or folds: an icon name, or a drawn icon.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The card's parts: a CardHeader first, then what the card shows. */
+    @param {import('react').ReactNode} [props.after] A part drawn under the footer.
+    @param {import('react').ReactNode} [props.chevron] An arrow at the end, for a card that opens or folds.
+    @param {import('react').ReactNode} [props.children] The card's parts: a CardHeader first, then what the card shows. */
 export function Card({
 	variant = 'default',
 	color = 'default',
@@ -61,7 +60,7 @@ export function Card({
 		<>
 			{heads.length ? <HeadSlot.Provider value={true}>{heads[0]}</HeadSlot.Provider> : null}
 			<HeadSlot.Provider value={false}>{content}</HeadSlot.Provider>
-			{chevron ? <span className="sp-card__chevron">{typeof chevron === 'string' ? <Icon name={chevron} /> : chevron}</span> : null}
+			{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}
 			{actions.length
 				? (
 					<div className={join(
@@ -93,8 +92,8 @@ const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink
     @param {import('react').ReactNode} [props.meta] Beside the name: what the rows shown are, such as newest 3.
     @param {import('react').ReactNode} [props.aside] At the right end: a fact about the card, such as August, top 8 of 10.
     @param {keyof typeof ASIDE} [props.asideTone] How the aside reads: `default` grey, `note`, or `danger` in red.
-    @param {import('react').ReactElement} [props.control] At the right end: one control that changes what the card shows, such as a Segmented or a Switch.
-    @param {import('react').ReactElement} [props.status] At the right end: one Pill.
+    @param {import('react').ReactNode} [props.control] At the right end: one control that changes what the card shows, such as a Segmented or a Switch.
+    @param {import('react').ReactNode} [props.status] At the right end: one Pill.
     @param {{ label: string, to?: string, href?: string, onClick?: () => void, held?: boolean }[]} [props.actions] At most two small buttons at the right end: each with its words, and an address or a click. A held one keeps its place but is hidden.
     @param {() => void} [props.onDismiss] Closes the card; renders the close button last.
     @param {string} [props.dismissLabel] The name of the close button, such as Hide the August summary. */
@@ -139,7 +138,7 @@ export function CardHeader({
     column count, for a set whose length the page does not know.
     @param {object} props
     @param {boolean} [props.fluid] Fill the width, instead of a fixed number of columns.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The cards. */
+    @param {import('react').ReactNode} [props.children] The cards. */
 export function Cards({ fluid = false, children, ...rest }) {
 	reject(rest, 'Cards')
 	return <div className={join('sp-cards', fluid && 'sp-cards--fluid')} {...rest}>{children}</div>
@@ -148,7 +147,7 @@ export function Cards({ fluid = false, children, ...rest }) {
 /** A footer row of figures inside the card's body, under its rule, where more follows it: the
     Top vendors card's total (Order statistics). Actions go in Card's `footer`.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The figures in the footer row, such as a total. */
+    @param {import('react').ReactNode} [props.children] The figures in the footer row, such as a total. */
 export function CardFooter({ children, ...rest }) {
 	reject(rest, 'CardFooter')
 	return <div className="sp-card__footer" {...rest}>{children}</div>
@@ -156,7 +155,7 @@ export function CardFooter({ children, ...rest }) {
 
 /** A part of a flush card that needs the padding back.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The part of a flush card that needs its padding back. */
+    @param {import('react').ReactNode} [props.children] The part of a flush card that needs its padding back. */
 export function CardBody({ children, ...rest }) {
 	reject(rest, 'CardBody')
 	return <div className="sp-card__body" {...rest}>{children}</div>
@@ -169,12 +168,12 @@ const TOOLBAR = { default: null, loose: 'sp-list__toolbar--loose', link: 'sp-lis
     @param {keyof typeof TOOLBAR} [props.variant] `default`; `loose` has its own border; `link` makes the whole row a link; `toggle` makes it fold the card.
     @param {boolean} [props.expanded] Toggle only. Whether the card is unfolded.
     @param {() => void} [props.onClick]
-    @param {import('./Icon.jsx').IconName | import('react').ReactElement} [props.chevron] An arrow at the end of a link or toggle row: an icon name, or a drawn icon. It turns as the card folds.
+    @param {import('react').ReactNode} [props.chevron] An arrow at the end of a link or toggle row. It turns as the card folds.
     @param {import('react').ReactNode} [props.children] What the row holds. */
 export function Toolbar({ variant = 'default', expanded, onClick, chevron, children, ...rest }) {
 	reject(rest, 'Toolbar')
 	const classes = join('sp-list__toolbar', pick(TOOLBAR, variant, 'variant', 'Toolbar'))
-	const body = <>{children}{chevron ? <span className="sp-card__chevron">{typeof chevron === 'string' ? <Icon name={chevron} /> : chevron}</span> : null}</>
+	const body = <>{children}{chevron ? <span className="sp-card__chevron">{chevron}</span> : null}</>
 	if (variant === 'toggle')
 		return (
 			<button type="button" className={classes} aria-expanded={expanded ? 'true' : 'false'} onClick={onClick} {...rest}>
@@ -199,7 +198,7 @@ export function ListFooter({ loose = false, children, ...rest }) {
     scrolls. `wide` is the 400 rail.
     @param {object} props
     @param {boolean} [props.wide] The wider rail.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The cards in the rail beside a form. */
+    @param {import('react').ReactNode} [props.children] The cards in the rail beside a form. */
 export function Panel({ wide = false, children, ...rest }) {
 	reject(rest, 'Panel')
 	return <div className={join('sp-panel', wide && 'sp-panel--wide')} {...rest}>{children}</div>

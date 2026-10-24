@@ -3,7 +3,7 @@ import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
 /** @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The lines, one under the other. */
+    @param {import('react').ReactNode} [props.children] The lines, one under the other. */
 export function Stacked({ children, ...rest }) {
 	reject(rest, 'Stacked')
 	return <span className="sp-stacked sp-stacked--fill" {...rest}>{children}</span>
@@ -11,7 +11,7 @@ export function Stacked({ children, ...rest }) {
 
 /** One line of that column. The first sits to the top of its content, the rest centre.
     @param {object} props
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] What one line holds. */
+    @param {import('react').ReactNode} [props.children] What one line holds. */
 export function Line({ children, ...rest }) {
 	reject(rest, 'Line')
 	return <span className="sp-list-item__line" {...rest}>{children}</span>
@@ -29,8 +29,8 @@ export function Kbd({ accent = false, children, ...rest }) {
 
 /** Another state of a part laid over its resting form, which stays unseen beneath so the height holds (6b).
     @param {object} props
-    @param {import('react').ReactElement} props.shape The usual form of the part. It stays hidden underneath, so the height does not jump.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The other state, drawn over it: loading, failed or empty. */
+    @param {import('react').ReactNode} props.shape The usual form of the part. It stays hidden underneath, so the height does not jump.
+    @param {import('react').ReactNode} [props.children] The other state, drawn over it: loading, failed or empty. */
 export function Hold({ shape, children, ...rest }) {
 	reject(rest, 'Hold')
 	return (
@@ -43,7 +43,7 @@ export function Hold({ shape, children, ...rest }) {
 
 /** @param {object} props
     @param {boolean} [props.dashed] Draw a dashed border around the empty state.
-    @param {import('react').ReactElement | import('react').ReactElement[]} [props.children] The mark, the title, the body and the action, in the order they are read. */
+    @param {import('react').ReactNode} [props.children] The mark, the title, the body and the action, in the order they are read. */
 export function Empty({ dashed = false, children, ...rest }) {
 	reject(rest, 'Empty')
 	return <div className={join('sp-empty', dashed && 'sp-empty--dashed')} {...rest}>{children}</div>

@@ -1,7 +1,6 @@
 import { expect, fn, userEvent } from 'storybook/test'
 import { TextField, PasswordField, NumberField, SearchInput, AskTrail, RangeSlider, TokensField } from '../../react/src/components/Inputs.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
-import { Kbd } from '../../react/src/components/Utilities.jsx'
 import { knownAccessibilityFaults, useHeld } from './controls.js'
 
 const label = { control: 'text', description: 'The Field\'s label' }
@@ -61,9 +60,9 @@ const search = ({ onChange, ends, ...args }) => {
 }
 
 export const Search = {
-	args: { value: '', placeholder: 'Search orders', 'aria-label': 'Search orders', icon: 'search', clear: true },
+	args: { value: '', placeholder: 'Search orders', 'aria-label': 'Search orders', icon: 'search', clear: true, kbd: 'S' },
 	parameters: { variantsOf: SearchInput },
-	render: args => search({ ...args, kbd: <Kbd>S</Kbd> }),
+	render: search,
 	play: async ({ args, canvas }) => {
 		await userEvent.type(canvas.getByRole('searchbox'), 'HAY')
 		await userEvent.click(canvas.getByRole('button', { name: 'Clear the search' }))

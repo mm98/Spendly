@@ -13,7 +13,7 @@ const COLOR = { default: null, danger: 'danger', success: 'success' }
 /** @param {object} props
     @param {keyof typeof VARIANT} [props.variant] `outline` has a border, `solid` a fill, `dashed` a dashed border, `pill` is the small round one a reader taps, `facet` the one they tick in a filter.
     @param {keyof typeof COLOR} [props.color] `default`, or `danger` and `success` for a value that is wrong or done.
-    @param {import('react').ReactElement} [props.trail] A small control at the end of the chip, such as the button that removes the value.
+    @param {import('react').ReactNode} [props.trail] A small control at the end of the chip, such as the button that removes the value.
     @param {'checkbox' | 'radio'} [props.inputType] Facet only. `checkbox` lets several chips be picked, `radio` only one in the group.
     @param {string} [props.name] Facet only, and required for a radio: it is what makes a set of them one group.
     @param {string} [props.value] Facet only. The value the chip stands for, when it differs from its words. Defaults to the words.
