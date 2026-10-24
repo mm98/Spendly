@@ -74,6 +74,23 @@
      a separate <label for> beside it, so only the 26px switch and the text took a tap. */
   for (const f of pages) if (/<input class="sp-switch"[^>]*>\s*<label[^>]*\sfor=/.test(src[f])) fail('a switch row is one label', f.replace('.dc.html', ''), 'a switch with a separate label[for]');
 
+  /* An alert's mark centres on its title's line, not on the middle of title and note (Ask brief).
+     Caught: the pinned questions-left alert's ! sat between its two lines. */
+  if (!/\.sp-alert > \.sp-alert__mark \{[^}]*margin-top: calc\(\(1lh - var\(--mark-small\)\) \/ 2\)/.test(comp))
+    fail('an alert mark sits on the title line', 'components.css', '.sp-alert > .sp-alert__mark is not placed on the title line');
+  if (!/\.sp-toast:has\(> \.sp-toast__icon\) \{[^}]*align-items: flex-start/.test(comp) || !/\.sp-toast > \.sp-toast__icon \{[^}]*height: 1lh/.test(comp))
+    fail('a toast icon sits on the first line', 'components.css', '.sp-toast does not place its icon on the first line');
+  /* A combobox stretched across a touch toolbar keeps its chevron at the right edge. Caught: on
+     Layout rules 15e (< 440px) the chevrons of Filters and Sort sat right after their labels. */
+  if (!/\.sp-touch \.sp-controls > \.sp-combobox \.sp-combobox__chevron \{[^}]*margin-left: auto/.test(comp))
+    fail('a stretched combobox keeps its chevron at the edge', 'components.css', '.sp-touch .sp-controls > .sp-combobox .sp-combobox__chevron has no margin-left: auto');
+  /* A stepper keeps room for one digit, and its value is always .sp-stepper__value. Caught: on
+     Layout rules 15b a stepper drawn with its own div value shrank until the digit was hidden. */
+  if (!/\.sp-stepper__value \{[^}]*min-width: calc\(1ch/.test(comp))
+    fail('a stepper shows its digit', 'components.css', '.sp-stepper__value has no one-digit minimum');
+  for (const f of pages) for (const m of src[f].matchAll(/<div class="sp-stepper">([\s\S]*?)<\/div>/g))
+    if (!/class="sp-stepper__value"/.test(m[1])) fail('a stepper shows its digit', f.replace('.dc.html', ''), 'a stepper without .sp-stepper__value');
+
   /* The saved questions' list on the empty page takes the column's width. Caught: centred in
      .sp-chat__start it took its widest content, so a long question was 880px in a 566px
      column and an iPhone 15 scrolled sideways by 521px. */

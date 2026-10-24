@@ -41,7 +41,7 @@
     <div class="doc-note"><b>Every message has its time under it</b> (<code>time.sp-chat__time</code>, 11px, <code>--ink-5</code>), in 24-hour time, lined up with the bubble's edge, 4 under it: left for Spendly's, right for the reader's. An answer's time is when it arrived; while it is being written it has none. The day is a <code>.sp-divider</code> line: one opens the conversation, and another stands wherever the day changes. It reads Today, Yesterday, then the day and month (<code>12 Oct</code>), with the year added when it is not this year (<code>12 Oct 2025</code>). A message sent today shows the time only (<code>14:32</code>); an earlier one names its day in front of it, in the day line's words (<code>Yesterday 20:40</code>, <code>12 Oct 20:40</code>), so a time read with its day line scrolled out of view never reads as today. Times and days are the reader's own time zone.</div>
     <div class="doc-note"><b>A message is a mark and a bubble</b> (<code>.sp-chat__msg</code>), the mark outside the bubble on its first line. The reader's question is <code>--mine</code>: their own account mark, the one the sidebar's account row shows (initials on its swatch, or the profile photo as <code>sp-mark--photo</code>), at the right, with the question in a <code>--green-tint</code> bubble beside it. Spendly's answer is at the left with the Spendly mark, the sidebar brand's solid "S", in a bubble on <code>--surface</code> with the <code>--line</code> border; a table sits inside it. While an answer comes, its bubble holds the spinner. A message is at most 75% of the column wide, so the two sides read apart. On touch, an answer that holds a table takes the full column instead (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>), so a phone has room for its three columns.</div>
     <div class="doc-note"><b>Answers</b> are text, a short list, a small table in <code>.sp-chat__figures</code> (the compact static table, framed), a file to download or a chart (<a href="#24d">24d</a>). The conversation is the page's body size (<code>--t-13</code>): questions, answers, and in an answer every table cell and every amount, names, counts and amounts alike; an amount keeps its weight. The table's head keeps its label size. The table sizes its number and amount columns to their content, on one line, and every text column shares the rest and wraps when it is longer. Nothing in the table is cut, whichever column comes first. A name is the link to its record. Every amount is <code>.sp-amount</code> (the Money component), in a sentence as in a cell. A named order, vendor or category is a link to its record; it opens in the same tab, and Back returns to the conversation as it was.</div>
-    <div class="doc-note"><b>The field</b> is a textarea one control high, growing to six lines and then scrolling. Enter sends, Shift Enter makes a new line, Send is disabled while the field is empty. No line under the field spells the keys out: the line under it (<code>.sp-chat__hint</code>) shows only the questions left today, and is absent when there is no limit to show. It takes focus when the page opens on a desktop; on a phone it does not, so the keyboard does not cover the conversation. The placeholder reads "Ask about your orders, vendors and budget"; on a phone it reads "Ask a follow-up" once something is asked (<a href="Mobile screens.dc.html#7a">7a</a>). An empty field is one line: a placeholder longer than the field is cut with ... rather than wrapping it to two lines. Follow-ups are sent with the earlier questions and answers of this conversation.</div>
+    <div class="doc-note"><b>The field</b> is a textarea one control high, growing to six lines and then scrolling. Enter sends, Shift Enter makes a new line, Send is disabled while the field is empty. Nothing sits under the field: the questions left today show in the bar at the top of the chat (<a href="#24b">24b</a> 3, 4). It takes focus when the page opens on a desktop; on a phone it does not, so the keyboard does not cover the conversation. The placeholder reads "Ask about your orders, vendors and budget"; on a phone it reads "Ask a follow-up" once something is asked (<a href="Mobile screens.dc.html#7a">7a</a>). An empty field is one line: a placeholder longer than the field is cut with ... rather than wrapping it to two lines. Follow-ups are sent with the earlier questions and answers of this conversation.</div>
     <div class="doc-note"><b>Every chat is kept</b>, on the server for the account, for 30 days after its last message, and is listed on Chats (<a href="#24f">24f</a>). Asking in a reopened chat starts its 30 days again, and the follow-up is sent with the whole chat before it. A chat is created with its first question and has its own address, <code>/ask/:chatId</code>, so Back, a reload and the emailed chat's button (<a href="Auth and first run.dc.html#20f">20f</a>) open it again. <code>/ask</code> shows the chat that was open last in this visit; a new visit, and New chat (<a href="#24c">24c</a>), open the empty page (<a href="#24b">24b</a> 1). A file a chat made is kept for 30 days from when it was made, on Files (<a href="#24e">24e</a>).</div>
   </div>
   <div class="doc-screen sp-shell">
@@ -247,6 +247,13 @@
       <span class="doc-specimen__label">3 - Near the day's limit</span>
       <div class="as-frame">
             <div class="sp-chat">
+              <div class="sp-alert">
+                <span class="sp-alert__mark" aria-hidden="true">!</span>
+                <div class="sp-alert__body">
+                  <span class="sp-alert__title">2 questions left today</span>
+                  <span class="sp-alert__note">The count starts again tomorrow from 00:00.</span>
+                </div>
+              </div>
               <div class="sp-chat__scroll">
                 <div class="sp-chat__thread"><div class="sp-divider">Today</div>
                   <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">Which shop did I use most this year?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div><time class="sp-chat__time">14:30</time>
@@ -260,7 +267,7 @@
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
-              <div class="sp-chat__hint"><span class="sp-grow"></span><span class="sp-meta--over">2 questions left today</span></div>
+              
             </div>
             </div>
       </div>
@@ -269,18 +276,18 @@
       <span class="doc-specimen__label">4 - No questions left today</span>
       <div class="as-frame">
             <div class="sp-chat">
+              <div class="sp-alert">
+                <span class="sp-alert__mark" aria-hidden="true">!</span>
+                <div class="sp-alert__body">
+                  <span class="sp-alert__title">No questions left today</span>
+                  <span class="sp-alert__note">You can ask again tomorrow from 00:00. This chat stays on Chats.</span>
+                </div>
+              </div>
               <div class="sp-chat__scroll">
                 <div class="sp-chat__thread"><div class="sp-divider">Today</div>
                   <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">Which shop did I use most this year?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div><time class="sp-chat__time">14:30</time>
                   <div class="sp-chat__msg"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><div class="sp-chat__reply"><p><a href="Vendors and categories.dc.html">Netto</a>, with 41 orders this year. After it come:</p>
                 <ul><li><a href="Vendors and categories.dc.html">Lidl</a>, 33 orders</li><li><a href="Vendors and categories.dc.html">Indbo Møbler</a>, 12 orders</li></ul></div></div><time class="sp-chat__time">14:30</time>
-                  <div class="sp-alert">
-                    <span class="sp-alert__mark" aria-hidden="true">!</span>
-                    <div class="sp-alert__body">
-                      <span class="sp-alert__title">No questions left today</span>
-                      <span class="sp-alert__note">You can ask again tomorrow from 00:00. This chat stays on Chats.</span>
-                    </div>
-                  </div>
                 </div>
               </div>
               <div class="sp-chat__dock">
@@ -298,6 +305,13 @@
       <span class="doc-specimen__label">5 - An answer that failed</span>
       <div class="as-frame">
             <div class="sp-chat">
+              <div class="sp-alert">
+                <span class="sp-alert__mark" aria-hidden="true">!</span>
+                <div class="sp-alert__body">
+                  <span class="sp-alert__title">2 questions left today</span>
+                  <span class="sp-alert__note">The count starts again tomorrow from 00:00.</span>
+                </div>
+              </div>
               <div class="sp-chat__scroll">
                 <div class="sp-chat__thread"><div class="sp-divider">Today</div>
                   <div class="sp-chat__msg sp-chat__msg--mine"><span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span><div class="sp-chat__question">Am I over budget on transport?</div><button type="button" class="sp-icon-btn sp-icon-btn--small sp-chat__save" aria-label="Save this question" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4" /></svg></button></div><time class="sp-chat__time">14:30</time>
@@ -311,7 +325,7 @@
                 <button type="button" class="sp-btn" disabled="{{ true }}">Send</button>
                 <div class="sp-chat__more"><button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded="false" data-tip="More"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div>
               </div>
-              <div class="sp-chat__hint"><span class="sp-grow"></span><span class="sp-meta--over">2 questions left today</span></div>
+              
             </div>
             </div>
       </div>
@@ -373,8 +387,8 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>1 - Nothing asked yet</b> is the empty state (<a href="Components.dc.html#c13">c13</a>) with the reader's saved questions under it. Its line says that an answer can be a file or a chart; the full list is behind the button in the field (<a href="#24c">24c</a>). A new account starts with three: "How much did I spend on food in August?", "Which shop did I use most this year?" and "Make a spreadsheet of my orders this month", the last one showing that an answer can be a file (<a href="#24d">24d</a>). They are saved questions like any other, so they count toward the 8 and can be removed. Accounts that exist already get them once, skipping any wording already saved and only as many as fit under 8. Choosing one sends it. In the conversation menu, Email this chat and New chat are disabled (<a href="#24c">24c</a>).</div>
     <div class="doc-note"><b>2 - While an answer comes</b> the question shows at once, the answer's place shows the spinner and "Reading your orders", and Send becomes <b>Stop</b> in its place. Stop ends the request and leaves the question in the thread. The field stays typable; Enter does nothing until the answer is in or stopped. Email this chat is disabled until the answer is in.</div>
-    <div class="doc-note"><b>3 - The day's limit shows only near its end.</b> With 3 or fewer left, the hint line states the count in <code>sp-meta--over</code> at its right. On a phone the hint line has no keys: it shows only this count, at the right under the field, and is absent otherwise.</div>
-    <div class="doc-note"><b>4 - None left:</b> the amber alert closes the thread and states when asking opens again, from the server's reset time; the field is disabled with the placeholder "No questions left today". The chat can still be read and emailed, and New chat still opens the empty page.</div>
+    <div class="doc-note"><b>3 - The day's limit shows only near its end.</b> With 3 or fewer left, the amber alert (<code>.sp-alert</code>) is pinned at the top of the chat, under the top bar, at the column's width: the count as its title ("2 questions left today", "1 question left today") and when the count starts again as its note, from the server's reset time. The thread scrolls under it and fades at its edge, so it stays in view however far the reader scrolls. It cannot be closed, and is absent with more than 3 left or no limit. On a phone it keeps the phone gutter at the sides and above.</div>
+    <div class="doc-note"><b>4 - None left:</b> the same pinned alert reads "No questions left today" and states when asking opens again, from the server's reset time; the field is disabled with the placeholder "No questions left today". The chat can still be read and emailed, and New chat still opens the empty page.</div>
     <div class="doc-note"><b>5 - A failed answer</b> stays where it would have been, in <code>--red-ink</code>, with Try again, which sends the same question again in place. A failed answer does not count against the limit. A conversation whose last answer failed cannot be emailed until it is answered.</div>
     <div class="doc-note"><b>6 - Saved questions.</b> Each question the reader sends carries a small bookmark button beside its bubble (<code>.sp-chat__save</code>, <code>aria-pressed</code>); pressing it saves the question as it was typed, and the bookmark fills in green. Pressing it again removes it. Saved questions are kept on the server for the account, across visits and devices, at most 8, newest last. At 8 the bookmark on an unsaved question is disabled, with the tooltip "8 saved. Remove one to save another." Saving the same wording twice is not possible: the bookmark on a question already saved shows it as saved.</div>
     <div class="doc-note"><b>On the empty page</b> the saved questions sit under the empty state (<code>.sp-chat__examples</code>), oldest first: each is a small outline button that sends it at once, with its small remove button beside it (<code>.sp-chat__pick</code>). Removing one takes effect at once, with no undo and no confirm, and a removed example does not come back: it is one line the reader can save again from any question. There is no Edit, no reorder and no rename; the wording is the question. A saved question is one line, at most 320px wide and never wider than the column; a longer one is cut with ... and shows the whole question as its tooltip. It is kept as typed, so a cut one still sends in full. A phone shows the same list, the same way.</div>
@@ -496,7 +510,7 @@
     <div class="doc-note"><b>Two parts: Files, then Charts.</b> Each is <code>.sp-chat__help-part</code>: the section label, its formats on one line, comma separated (<code>.sp-chat__formats</code>), wrapping when long, and one example question. Nothing else is in the help: what Ask reads stays on the empty page, and the limits stay under the field.</div>
     <div class="doc-note"><b>Files and Charts are filled from the server's list</b> of what Ask makes, sent with <code>GET /api/assistant</code>: one part per kind, in the server's order, the kind's name as the label, its formats in one line, joined with ", " in the server's order and with the names the server gives them. A new kind is a new part and a new format one more name in the line, with no change to the design. Each kind carries one example question. A kind with no formats is not shown.</div>
     <div class="doc-note"><b>An example question</b> is a saved question's button without its remove button (<code>.sp-chat__pick</code>), so it is one line, at most 320px, cut with ... and with the whole question as its tooltip. Pressing it closes the dialog and puts the question in the field with the cursor at its end, replacing what was typed; it is not sent, so the reader can change "October" before sending. Saved questions on the empty page still send at once (<a href="#24b">24b</a> 6).</div>
-    <div class="doc-note"><b>The help states no limits</b>: the questions left show under the field (<a href="#24b">24b</a> 3, 4), as before. With no questions left the example buttons are disabled, since the field is. When the server makes no files, the Files part stays with the line "Ask cannot make files on this Spendly." and no list or example.</div>
+    <div class="doc-note"><b>The help states no limits</b>: the questions left show in the bar at the top of the chat (<a href="#24b">24b</a> 3, 4). With no questions left the example buttons are disabled, since the field is. When the server makes no files, the Files part stays with the line "Ask cannot make files on this Spendly." and no list or example.</div>
     <div class="doc-note"><b>On a phone</b> the top bar's menu holds the same four items in the same order, with the same states (<a href="Mobile screens.dc.html#7a">Mobile screens 7a</a>).</div>
     <div class="doc-note"><b>What Ask can do never grows past the window.</b> A dialog holding <code>.sp-chat__help</code> is at most the window's height less the scrim's padding (<code>100dvh - 2 x --sp-16</code>); in a lower window the list scrolls inside it and the heading and Close stay in view, and the page under the scrim does not scroll.</div>
   </div>

@@ -200,9 +200,9 @@
           <div class="sp-stack sp-gap-6">
             <div class="sp-title">Quantity</div>
             <div class="sp-stepper">
-              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h8"></path></svg></button>
-              <div class="sp-grow sp-number lr-centre">2</div>
-              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg></button>
+              <button type="button" class="sp-stepper__btn" aria-label="Decrease">−</button>
+              <input class="sp-stepper__value" type="number" defaultValue="2" min="1" step="1" aria-label="Quantity">
+              <button type="button" class="sp-stepper__btn" aria-label="Increase">+</button>
             </div>
           </div>
           <div class="sp-stack sp-gap-6 sp-grow">
@@ -328,9 +328,9 @@
           <div class="sp-stack sp-gap-6 sp-flex-none">
             <div class="sp-title">Qty</div>
             <div class="sp-stepper">
-              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h8"></path></svg></button>
-              <div class="sp-grow sp-number lr-centre">2</div>
-              <button type="button" class="sp-stepper__btn" aria-label="Change"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg></button>
+              <button type="button" class="sp-stepper__btn" aria-label="Decrease">−</button>
+              <input class="sp-stepper__value" type="number" defaultValue="2" min="1" step="1" aria-label="Quantity">
+              <button type="button" class="sp-stepper__btn" aria-label="Increase">+</button>
             </div>
           </div>
           <div class="sp-stack sp-gap-6 sp-grow">
@@ -353,11 +353,13 @@
       <div class="sp-well">
         <div class="sp-section-label">375px</div>
         <div class="sp-row-flex sp-gap-12">
-          <div class="sp-mark sp-mark--large sp-mark--photo"></div>
-          <div class="sp-stack sp-gap-8">
-            <button type="button" class="sp-btn sp-btn--outline">Replace</button>
-            <button type="button" class="sp-btn sp-btn--outline sp-ink-danger">Delete</button>
-          </div>
+          <span class="sp-slot">
+            <span class="sp-mark sp-mark--large sp-mark--photo"></span>
+            <span class="sp-slot__actions">
+              <label class="sp-icon-btn sp-icon-btn--outline" for="lr-slot" aria-label="Replace the image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg><input id="lr-slot" type="file" accept="image/*"></label>
+              <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove the image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
+            </span>
+          </span>
         </div>
         <div class="sp-stack sp-gap-6">
           <div class="sp-title">Category</div>
@@ -367,7 +369,7 @@
             </button>
         </div>
       </div>
-      <div class="doc-note">Hover-revealed controls become permanent and full-size - the 28px overlay icons on desktop become 48px labelled buttons here, because there is no hover and an icon over a photo is an unmarked target.</div>
+      <div class="doc-note">Hover-revealed controls become permanent and full-size - on a phone the photo's Replace and Remove are two 48px bordered icon buttons on one line beside the image (<a href="Components.dc.html#c17">c17</a>), because there is no hover and an icon over a photo is an unmarked target.</div>
     </div>
   </div>
 
@@ -808,7 +810,7 @@
                     <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
                   </button>
                 </div>
-                <button type="button" class="sp-icon-btn" aria-label="New order">
+                <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="New order">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
                 </button>
               </div>

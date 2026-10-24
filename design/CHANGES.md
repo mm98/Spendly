@@ -1,74 +1,80 @@
-# A long Ask conversation: scrollbar, fades and message times (Brief-ask-long-thread)
+# The day's limit in Ask, and five fixes found on the way (Brief-ask-limit-alerts)
 
-This package replaces `design_handoff_ask_long_thread`. It carries everything that package did (points 1 and the later.md section), plus the times on messages, the fades at the thread's edges, the removed keys hint and the long-conversation drawing.
+This package follows `design_handoff_ask_thread_times`, which stays as presented. It covers the questions-left alert in Ask and the component fixes made while reviewing Ask, Components and Layout rules. `later.md` was read before the work. Its one Claude Design entry, "touch rules found in an iPhone run", is already settled by `design_handoff_ask_thread_times`.
 
-## 1. The scrollbar on a long conversation
+## 1. The questions left today: a bar pinned at the top of the chat
 
-**The problem.** `.sp-chat__scroll` was the one scrolling region without the shared bar, so a long thread showed the browser's default bar, with its track and arrows, flush against the reader's mark. The column also narrowed by the bar's width when it appeared.
-
-**What changed.** The thread takes the shared thin bar every other scrolling region has: 8px, no track, no arrows, the thumb in `--scroll-thumb`. The part that scrolls reaches 16px into the body's right inset, so the bar runs down the page edge, clear of the marks, and its space is kept while the thread is short. The column is the same width whether the bar shows or not. A phone shows no bar. Chats and Files (24e, 24f) use the same region and get the same bar.
-
-**Where.** `Ask Spendly 24a`: the note "The conversation takes the full content column". `styles/components.css`: `.sp-chat__scroll` joins the list of regions that "scroll by their own nature" (`scrollbar-width`, `::-webkit-scrollbar`, `-track`, `-thumb`), and `.sp-shell__body .sp-chat__scroll` and `.sp-shell--touch .sp-shell__body .sp-chat__scroll` after `.sp-chat__scroll`. App: `react/src/components/Chat.jsx` (`ChatScroll`) picks the rules up from the stylesheet.
-
-**What is still open.** Nothing.
-
-## 2. The thread fades at an edge while more lies past it
-
-**The problem.** A long thread was cut off hard against the field and the top bar, so a half-shown message read as a layout fault.
-
-**What changed.** The thread fades out over 24px at an edge while more of it lies past that edge. At the bottom, above the field, it fades while there is more below. At the top, under the top bar, it fades once the thread is scrolled down. In the middle of a long thread both edges fade. Scrolled to the latest message of a thread that fits, nothing fades. It is a mask, so it works on the light and dark grounds alike.
-
-**Where.** `Ask Spendly 24a`: the same note, and the new long conversation under the screen (point 5). `styles/components.css`: `.sp-chat__scroll[data-below="true"]`, `[data-above="true"]` and both together, after the touch `.sp-chat__scroll` rule. App: `ChatScroll` in `Chat.jsx` sets `data-above="true"` when `scrollTop > 1` and `data-below="true"` when `scrollTop + clientHeight < scrollHeight - 1`, and removes each otherwise. It measures on mount, again after the first frame, on every scroll, and from a `ResizeObserver` on the scroll element and its thread, so a new message, a font loading or a resize updates it.
-
-**What is still open.** Nothing.
-
-## 3. A time under every message, and a day line where the day changes
-
-**The problem.** A conversation showed no times, so a chat reopened from Chats gave no sense of when each question was asked.
+**The problem.** "2 questions left today" sat in small text under the field, at the right, where it was easy to miss. When none were left, an alert closed the thread and scrolled away with it.
 
 **What changed.**
-- Every message has its time under it, 4px below the bubble, lined up with the bubble's edge: at the left past the mark for Spendly's, at the right for the reader's. 11px, `--ink-5`, 24-hour time.
-- An answer's time is when it arrived. While an answer is being written it has none.
-- A day line, the existing `.sp-divider`, opens the conversation and stands wherever the day changes. It reads Today, Yesterday, then the day and month (`12 Oct`), with the year added when it is not this year (`12 Oct 2025`).
-- A message sent today shows the time only (`14:32`). An earlier one puts its day in front of the time, in the day line's words (`Yesterday 20:40`, `12 Oct 20:40`), so a time whose day line has scrolled out of view never reads as today.
-- Times and days are in the reader's own time zone.
+- With 3 or fewer questions left, the amber inline alert (`.sp-alert`) is pinned at the top of the chat, under the top bar, at the column's width. The count is its title ("2 questions left today", "1 question left today") and its note says when the count starts again, from the server's reset time: "The count starts again tomorrow from 00:00."
+- With none left, the same pinned alert reads "No questions left today", with the note "You can ask again tomorrow from 00:00. This chat stays on Chats." It no longer sits at the end of the thread. The field stays disabled with the placeholder "No questions left today".
+- The thread scrolls under the alert and fades at its edge, so the alert stays in view however far the reader scrolls.
+- It cannot be closed. It is absent with more than 3 left, or when there is no limit.
+- On a phone it keeps the phone gutter at the sides and above.
+- Nothing sits under the field any more: the hint line (`.sp-chat__hint`) is removed, with its rule.
 
-**Where.** `Ask Spendly 24a` (the note "Every message has its time under it"), 24b, 24d and the long conversation; `Components c34`; `Mobile screens 7a`. `styles/components.css`: `.sp-chat__time` and `.sp-chat__msg--mine + .sp-chat__time`, after `.sp-chat__thread > .sp-alert`. App: `Chat.jsx`. `ChatMessage` renders a `<time className="sp-chat__time" dateTime={iso}>` after itself from a new `sentAt` prop. `ChatThread`'s caller inserts a `.sp-divider` before the first message and before each message whose day differs from the one before. `ChatReply` in the `working` state has no time.
-
-**What is still open.** Nothing.
-
-## 4. The keys hint under the field is removed
-
-**The problem.** "Enter sends, Shift Enter makes a new line" sat under the field on every desktop conversation. It is not wanted.
-
-**What changed.** The hint is gone. Enter and Shift Enter behave as before. The line under the field (`.sp-chat__hint`) shows only the questions left today, and is absent when there is no limit to show, as on a phone today.
-
-**Where.** `Ask Spendly 24a` (the note on the field) and every dock on the page; `Components c34`. App: `ChatDock` in `Chat.jsx`, which renders the hint row only when `left` is set, on desktop as on the bar.
+**Where.** `Ask Spendly 24b` 3 and 4 and their notes; `24a` (the field note) and `24c` (the help note); `Components c34`. `styles/components.css`: `.sp-chat > .sp-alert` and `.sp-touch .sp-chat > .sp-alert`, after `.sp-chat__msg--mine + .sp-chat__time`; the `.sp-chat__hint` rule is gone. App: `react/src/components/Chat.jsx`. `Chat` renders the alert as its first child, before `ChatScroll`, when the server's count is 3 or less. `ChatDock` drops the hint row and its `left` prop. The "none left" alert moves out of the thread to the same place.
 
 **What is still open.** Nothing.
 
-## 5. A long conversation in 24a
+## 2. An alert's mark, and a toast's icon, sit on the first line
 
-**The problem.** 24a showed only a short conversation, so the bar, the fades and the day in front of a time had nowhere to be seen.
+**The problem.** The inline alert centred its "!" on the middle of its title and note, and a toast whose message wrapped centred its icon between the two lines.
 
-**What changed.** Under the 24a screen, a copy of it holds a three-day conversation (21 Oct, Yesterday, Today) at the screen's own height. It scrolls in the page, with the bar and the fades following the scroll position. The 24a screen above it is the short conversation, scrolled to its latest message, with no fade.
+**What changed.** Only these two components change. The alert's mark centres on the title's line. The title and note sit at the top, and the alert takes the title's size so its line height is the title's. A toast with an icon sits at the top, and its icon's box is one line tall, so the icon centres on the first line. A one-line toast looks as before. The compact toast has no icon and does not change.
 
-**Where.** `Ask Spendly 24a`, the specimen "A long conversation, scrolled up". `styles/doc.css`: `.doc-h840`, documentation only.
+**Where.** `Components c19` (inline alert) and `c18` (toast). `styles/components.css`: `font-size` in `.sp-alert`; `.sp-alert > .sp-alert__mark` and `.sp-alert > .sp-alert__body` after `.sp-alert__body`; `.sp-toast:has(> .sp-toast__icon)` and `.sp-toast > .sp-toast__icon` after `.sp-toast__icon[data-color="danger"]`. App: the same rules in `react/src/styles/components.css`.
+
+**What is still open.** Nothing.
+
+## 3. A photo's Replace and Remove on a phone
+
+**The problem.** On a phone, a filled image slot was drawn as two stacked text buttons beside the photo (Layout rules 15b). That was its own version of the image slot, beside the component's photo-as-target with the Remove link under it.
+
+**What changed.** On a phone, a filled slot is a row: the image, then two bordered icon buttons on one line beside it (`.sp-slot__actions`). Replace (`upload`) is a `<label>` over the file input. Remove (`trash`) is in `sp-ink-danger`, like a document's remove button. On a phone the image is not the target and has no Remove link under it. On desktop, and for an empty slot, the frame stays the target with Remove under it.
+
+**Where.** `Components c17` (a new note, and a filled slot in the phone example), `c15` (the line editor's sheet); `Layout rules 15b` and its note. `styles/components.css`: `.sp-slot__actions`, its label and file input, and `.sp-touch .sp-slot:has(> .sp-slot__actions)`, after `.sp-slot__remove:focus-visible`. App: the image slot component renders the actions row in place of the frame label and the Remove link when on touch.
 
 **What is still open.** Nothing.
 
-## later.md: touch rules found in an iPhone run
+## 4. A stretched dropdown on a phone keeps its chevron at the right
 
-**The problem.** In Filters a group heading looked 48px tall, but only its line of text opened it. On Budget, an amount beside a long row name broke into "400.", "00", "kr.". On Check a bank statement, "Other amount" was cut in the four-way switch on a phone. The app fixed these in `app.css`.
+**The problem.** In a phone toolbar, Filters and Sort stretch to share the row, but each chevron sat straight after its label instead of at the right edge.
 
-**What changed.**
-- On touch `.sp-field-group__fold` stretches to the head's height, and its press area takes in the legend's padding under it.
-- A `.sp-sum__value` beside a label does not shrink, up to 60% of the row; the label wraps.
-- `.sp-segmented--facet` columns are `minmax(max-content, 1fr)`.
+**What changed.** The chevron sits at the trigger's right edge, as in every full-width dropdown.
 
-**Where.** `styles/components.css`: `.sp-touch .sp-field-group__fold` and its `::after` after `.sp-field-group__fold:focus-visible`; `.sp-sum:not(.sp-sum--stacked) > .sp-sum__value` after `.sp-sum__value`; `grid-auto-columns` in `.sp-segmented--facet`. Remove the three rules at the end of `react/src/styles/app.css`, from "on touch a facet group's whole head" to "a facet switch's options", and the entry "For Claude Design: touch rules found in an iPhone run" from `later.md`.
+**Where.** `Layout rules 15e` (under 440px). `styles/components.css`: `.sp-touch .sp-controls > .sp-combobox .sp-combobox__chevron`, after the touch `.sp-controls` rules. App: picks up the rule.
 
 **What is still open.** Nothing.
+
+## 5. A stepper always shows its digit
+
+**The problem.** A stepper in a narrow column could shrink until its number was hidden. The two steppers on Layout rules were also drawn with a div value of their own, not the stepper's input.
+
+**What changed.** `.sp-stepper__value` is `width: 0` with a minimum of one digit plus its padding, so its column decides its width and it never shrinks below one digit. Both Layout rules steppers now use the component's markup.
+
+**Where.** `Layout rules 15a` and `15b`; `Components c4`. `styles/components.css`: `width` and `min-width` in `.sp-stepper__value`. App: the same rule in `react/src/styles/components.css`.
+
+**What is still open.** Nothing.
+
+## 6. Layout rules: New order uses the bordered icon button
+
+**The problem.** In the phone toolbar on Layout rules, New order was the plain icon button, unlike the bordered one used beside other controls.
+
+**What changed.** It is `sp-icon-btn--outline`.
+
+**Where.** `Layout rules 15e`.
+
+**What is still open.** Nothing.
+
+## styles/check.js
+
+New assertions:
+- an alert's mark sits on the title line;
+- a toast's icon sits on the first line;
+- a stretched dropdown keeps its chevron at the edge;
+- a stepper shows its digit: the one-digit minimum exists, and every stepper uses `.sp-stepper__value`.
 
 ## later.md: other entries
 
@@ -78,14 +84,14 @@ This package replaces `design_handoff_ask_long_thread`. It carries everything th
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Ask Spendly.dc.html` - 24a notes, times and day lines on every thread, the hint removed, the long conversation, and the scroll tracking that drives its fades.
-- `Components.dc.html` - c34 with times, a day line and no hint.
-- `Mobile screens.dc.html` - 7a with times and a day line.
+- `Ask Spendly.dc.html` - the pinned limit alert (24b 3, 4) and notes.
+- `Components.dc.html` - c34 with the pinned alert, the phone image slot (c15, c17).
+- `Layout rules.dc.html` - 15a and 15b steppers, the 15b image slot and note, and the 15e New order button.
 - `support.js`, `components.js`, `icons.js` - loaded by the pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets. `components.css` carries every rule above; `doc.css` adds `.doc-h840`.
-- `styles/pages/ask-spendly.css`, `budget.css`, `mobile-screens.css` - the page stylesheets these pages link.
-- `styles/check.js` - the checker.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets. `components.css` carries every rule above.
+- `styles/pages/ask-spendly.css`, `layout-rules.css` - the page stylesheets these pages link.
+- `styles/check.js` - with the new assertions.
 
-## styles/check.js
+## styles/check.js result
 
 0 finding(s) across 27 pages.
