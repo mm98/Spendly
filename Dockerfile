@@ -19,6 +19,13 @@ ARG GIT_SHA
 ENV GIT_SHA=$GIT_SHA
 RUN npm --prefix react run build
 
+# The Storybook, served at /storybook. It builds from react/'s own packages, installed above.
+FROM build AS storybook
+COPY storybook/package.json storybook/package-lock.json storybook/
+RUN npm --prefix storybook ci
+COPY storybook storybook
+RUN npm --prefix storybook run build
+
 # api deps in their own stage with a toolchain: better-sqlite3 falls back to a node-gyp
 # source build when its prebuilt binary can't be fetched, and slim has no python/g++.
 # Only node_modules is copied out, so none of the toolchain reaches the final image.
@@ -49,6 +56,7 @@ COPY --from=apideps /app/api/node_modules api/node_modules
 COPY --from=model /app/models models
 ENV SPENDLY_MODEL_DIR=/app/models
 COPY --from=build /app/react/dist react/dist
+COPY --from=storybook /app/storybook/dist storybook/dist
 ENV SPENDLY_DB=/data/spendly.sqlite3
 ENV SPENDLY_STORAGE=/storage
 # The build stamp /api/version answers with, so the UI can say which image is running and a

@@ -4,8 +4,8 @@ The components in `react/src/components`, one by one, drawn by the app's own cod
 styles. Nothing here is copied: a story imports the real component, so a change to a component shows
 here at once.
 
-It is for building only. It has its own packages, the app does not import anything from it, and the
-Docker image never copies this folder.
+It has its own packages, and the app does not import anything from it. The Docker image builds it
+and the server serves it at `/storybook`, only to someone signed in.
 
 ## Running it
 

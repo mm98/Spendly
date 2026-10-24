@@ -299,6 +299,8 @@ docker compose up -d
 
 Then open the address you set, and create the first account.
 
+The app's building blocks, one by one, are at the same address plus `/storybook`. Sign in first.
+
 **Your data is one folder.** The database lives in the folder mounted at `/data`. Back up that
 folder and you have backed up Spendly. The files Ask makes are in a second folder, mounted at
 `/storage`, with one folder for each account. They are kept for 30 days, so that folder needs no backup.
@@ -339,7 +341,7 @@ printed amounts.
 | Email | [Nodemailer](https://nodemailer.com) |
 | Shipping | [Docker](https://www.docker.com), built and published by GitHub Actions |
 | Design | A design system of its own, in [`design/`](design/), made with Claude Design |
-| Component catalogue | [Storybook](https://storybook.js.org), in [`storybook/`](storybook/), for building only: it is not in the image |
+| Component catalogue | [Storybook](https://storybook.js.org), in [`storybook/`](storybook/). The image serves it at `/storybook` to signed-in people |
 
 ## How it is built
 

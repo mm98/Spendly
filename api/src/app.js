@@ -279,6 +279,24 @@ app.use('/open', (req, res, next) => (req.method === 'GET' ? res.redirect(302, '
    An unknown /.well-known address stays a 404: that is how the manager knows it can trust this one. */
 app.get('/.well-known/change-password', (req, res) => res.redirect(302, '/#/settings/account'))
 
+/* The Storybook, for signed-in readers only. It runs inline scripts and draws each story in a
+   frame of its own page, so these pages alone get a looser policy. */
+const STORYBOOK_DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'storybook', 'dist')
+const STORYBOOK_CSP = CSP
+	.replace("script-src 'self'", "script-src 'self' 'unsafe-inline'")
+	.replace("style-src 'self'", "style-src 'self' 'unsafe-inline'")
+	.replace("frame-ancestors 'none'", "frame-ancestors 'self'")
+if (existsSync(STORYBOOK_DIST)) app.use('/storybook',
+	(req, res, next) => {
+		if (!sessionUser(req)) return res.redirect(302, '/#/signin')
+		res.setHeader('Content-Security-Policy', STORYBOOK_CSP)
+		res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+		res.setHeader('Cache-Control', 'private, no-cache')
+		next()
+	},
+	compression(),
+	express.static(STORYBOOK_DIST, { cacheControl: false }))
+
 /* Where to report a security problem (RFC 9116), when SPENDLY_SECURITY_CONTACT names someone.
    Expires is required and must stay under a year ahead, so it is always half a year from today. */
 app.get('/.well-known/security.txt', (req, res, next) => {
