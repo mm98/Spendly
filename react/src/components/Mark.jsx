@@ -21,6 +21,8 @@ const FILL = {
 
 const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
 
+/** @typedef {keyof typeof SIZE} MarkSize */
+
 export const initialsOf = name => {
 	const words = String(name).trim().split(/\s+/).filter(Boolean)
 	if (!words.length) return ''
@@ -35,6 +37,20 @@ const swatchOf = name => {
 	return DERIVED[hash % DERIVED.length]
 }
 
+/** @param {object} props
+    @param {MarkSize} [props.size]
+    @param {keyof typeof FILL} [props.fill]
+    @param {string} [props.swatch] a colour of the set, or a colour value; only a solid mark is painted
+    @param {boolean} [props.round]
+    @param {boolean} [props.goods]
+    @param {boolean} [props.faded]
+    @param {number} [props.count]
+    @param {string} [props.text]
+    @param {string} [props.danger] why it failed, in place of text
+    @param {import('react').ReactNode} [props.remove]
+    @param {() => void} [props.onClick]
+    @param {'span' | 'label'} [props.as] a label wraps a file input, as a picker's hit target
+    @param {import('react').ReactNode} [props.children] a name, which gives the initials and colour, or a part to draw */
 export function Mark({
 	size,
 	fill = 'default',
@@ -110,7 +126,10 @@ export function Mark({
 	return <span className={classes} {...paint} {...named} {...rest}>{body}</span>
 }
 
-/** The control that takes an attachment away, in the mark's own corner. */
+/** The control that takes an attachment away, in the mark's own corner.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children]
+    @param {() => void} [props.onClick] */
 export function MarkRemove({ children, onClick, ...rest }) {
 	reject(rest, 'MarkRemove')
 	return (

@@ -14,7 +14,10 @@ import { plural } from '../api/format.js'
 export const SpendlyMark = ({ size = 'small' }) => <Mark size={size} fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 
 /** The conversation and the dock under it, filling the content column. `spaced` is the inner one on
-    Chats and Files (24e, 24f), holding the controls bar 12 above the list. */
+    Chats and Files (24e, 24f), holding the controls bar 12 above the list.
+    @param {object} props
+    @param {boolean} [props.spaced]
+    @param {import('react').ReactNode} [props.children] */
 export function Chat({ spaced = false, children, ...rest }) {
 	reject(rest, 'Chat')
 	return <div className={join('sp-chat', spaced && 'sp-gap-12')} {...rest}>{children}</div>
@@ -29,7 +32,10 @@ function markEdges(box) {
 }
 
 /** The part above the dock that scrolls: the thread, or the list on Chats and Files. Each edge fades
-    while more lies past it, measured again on a scroll, a new message, a font or a resize. */
+    while more lies past it, measured again on a scroll, a new message, a font or a resize.
+    @param {object} props
+    @param {import('react').Ref<HTMLDivElement>} [props.scrollRef]
+    @param {import('react').ReactNode} [props.children] */
 export function ChatScroll({ scrollRef, children, ...rest }) {
 	reject(rest, 'ChatScroll')
 	const own = useRef(null)
@@ -56,7 +62,10 @@ export function ChatScroll({ scrollRef, children, ...rest }) {
 	return <div className="sp-chat__scroll" ref={ref} {...rest}>{children}</div>
 }
 
-/** The messages, oldest first, in the part that scrolls; an answer is read out when it arrives. */
+/** The messages, oldest first, in the part that scrolls; an answer is read out when it arrives.
+    @param {object} props
+    @param {import('react').Ref<HTMLDivElement>} [props.scrollRef]
+    @param {import('react').ReactNode} [props.children] */
 export function ChatThread({ scrollRef, children, ...rest }) {
 	reject(rest, 'ChatThread')
 	return (
@@ -66,19 +75,30 @@ export function ChatThread({ scrollRef, children, ...rest }) {
 	)
 }
 
-/** The empty conversation: the empty state, and the example questions under it. */
+/** The empty conversation: the empty state, and the example questions under it.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ChatStart({ children, ...rest }) {
 	reject(rest, 'ChatStart')
 	return <div className="sp-chat__start" {...rest}>{children}</div>
 }
 
+/** @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ChatExamples({ children, ...rest }) {
 	reject(rest, 'ChatExamples')
 	return <div className="sp-chat__examples" {...rest}>{children}</div>
 }
 
 /** One message: its `mark` outside the bubble, and `end` after it. `mine` is the reader's own, at the right.
-    `time` is the time read under it and `sentAt` its ISO moment; an answer being written has none. */
+    `time` is the time read under it and `sentAt` its ISO moment; an answer being written has none.
+    @param {object} props
+    @param {boolean} [props.mine]
+    @param {import('react').ReactNode} [props.mark]
+    @param {import('react').ReactNode} [props.end]
+    @param {string} [props.time]
+    @param {string} [props.sentAt]
+    @param {import('react').ReactNode} [props.children] */
 export function ChatMessage({ mine = false, mark, end, time, sentAt, children, ...rest }) {
 	reject(rest, 'ChatMessage')
 	if (time && !sentAt) console.error('<ChatMessage> a time names its moment in sentAt')
@@ -88,19 +108,28 @@ export function ChatMessage({ mine = false, mark, end, time, sentAt, children, .
 	</>
 }
 
-/** The day line that opens a conversation and stands wherever the day changes: Today, Yesterday, 12 Oct. */
+/** The day line that opens a conversation and stands wherever the day changes: Today, Yesterday, 12 Oct.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ChatDivider({ children, ...rest }) {
 	reject(rest, 'ChatDivider')
 	return <div className="sp-divider" {...rest}>{children}</div>
 }
 
-/** The reader's question, as they asked it. */
+/** The reader's question, as they asked it.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ChatQuestion({ children, ...rest }) {
 	reject(rest, 'ChatQuestion')
 	return <div className="sp-chat__question" {...rest}>{children}</div>
 }
 
-/** Saves a question or, `saved`, removes it again; `tip` says why it is disabled. */
+/** Saves a question or, `saved`, removes it again; `tip` says why it is disabled.
+    @param {object} props
+    @param {boolean} [props.saved]
+    @param {boolean} [props.disabled]
+    @param {string} [props.tip]
+    @param {() => void} [props.onClick] */
 export function ChatSave({ saved = false, disabled = false, tip, onClick, ...rest }) {
 	reject(rest, 'ChatSave')
 	return (
@@ -113,7 +142,12 @@ export function ChatSave({ saved = false, disabled = false, tip, onClick, ...res
 
 const REPLY_STATE = { answered: true, working: true, failed: true }
 
-/** Spendly's answer: `working` while it comes, saying `doing`, `failed` with Try again, or the reply. */
+/** Spendly's answer: `working` while it comes, saying `doing`, `failed` with Try again, or the reply.
+    @param {object} props
+    @param {keyof typeof REPLY_STATE} [props.state]
+    @param {string} [props.doing]
+    @param {() => void} [props.onRetry]
+    @param {import('react').ReactNode} [props.children] */
 export function ChatReply({ state = 'answered', doing = 'Reading your orders', onRetry, children, ...rest }) {
 	reject(rest, 'ChatReply')
 	pick(REPLY_STATE, state, 'state', 'ChatReply')
@@ -127,7 +161,9 @@ export function ChatReply({ state = 'answered', doing = 'Reading your orders', o
 	)
 }
 
-/** A small table of figures inside an answer, framed as a block. */
+/** A small table of figures inside an answer, framed as a block.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ChatFigures({ children, ...rest }) {
 	reject(rest, 'ChatFigures')
 	return <div className="sp-chat__figures" {...rest}>{children}</div>
@@ -138,7 +174,9 @@ export function ChatFigures({ children, ...rest }) {
 const FILE_STATE = { ready: null, making: null, failed: null, gone: 'gone' }
 const FILE_GONE = { deleted: 'Deleted', expired: 'Removed after 30 days' }
 
-/** The frame one answer's files share, a row per file, a rule between rows. Also the list on Files (24e). */
+/** The frame one answer's files share, a row per file, a rule between rows. Also the list on Files (24e).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ChatFiles({ children, ...rest }) {
 	reject(rest, 'ChatFiles')
 	return <div className="sp-chat__files" {...rest}>{children}</div>
@@ -147,7 +185,21 @@ export function ChatFiles({ children, ...rest }) {
 /** One file: the mark, the file's name as its title, its `kind` (the format's name, Excel) and size, and what can be done with it.
     `keptUntil`, `chatTo` (Open chat) and `onDelete` are the Files page's; a file that could not be made
     never reads as ready. A kept chat on Chats is the same row: its `icon`, the title linked `to` it, and
-    its own `meta` line in place of a file's. */
+    its own `meta` line in place of a file's.
+    @param {object} props
+    @param {string} props.title
+    @param {string} [props.kind]
+    @param {string} [props.size]
+    @param {keyof typeof FILE_STATE} [props.state]
+    @param {string} [props.reason]
+    @param {keyof typeof FILE_GONE} [props.gone]
+    @param {string} [props.keptUntil]
+    @param {string} [props.href]
+    @param {string} [props.to]
+    @param {string} [props.icon]
+    @param {import('react').ReactNode} [props.meta]
+    @param {string} [props.chatTo]
+    @param {() => void} [props.onDelete] */
 export function ChatFile({ title, kind, size, state = 'ready', reason, gone, keptUntil, href, to, icon = 'file-text', meta: line, chatTo, onDelete, ...rest }) {
 	reject(rest, 'ChatFile')
 	pick(FILE_STATE, state, 'state', 'ChatFile')
@@ -179,7 +231,12 @@ export function ChatFile({ title, kind, size, state = 'ready', reason, gone, kep
 }
 
 /** A chart in an answer: the figure frame a table uses, the chart's `name` and its period or total,
-    then the chart, or the line `failed` says why it could not be made in its place. */
+    then the chart, or the line `failed` says why it could not be made in its place.
+    @param {object} props
+    @param {string} props.name
+    @param {import('react').ReactNode} [props.meta]
+    @param {string} [props.failed]
+    @param {import('react').ReactNode} [props.children] */
 export function ChatChart({ name, meta, failed, children, ...rest }) {
 	reject(rest, 'ChatChart')
 	if (failed && children) console.error('<ChatChart> a chart that could not be made draws nothing')
@@ -196,14 +253,21 @@ export function ChatChart({ name, meta, failed, children, ...rest }) {
 	)
 }
 
-/** The Donut beside its Shares where the bubble has room, above them where not. */
+/** The Donut beside its Shares where the bubble has room, above them where not.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ChatShares({ children, ...rest }) {
 	reject(rest, 'ChatShares')
 	return <div className="sp-chat__shares" {...rest}>{children}</div>
 }
 
 /** A saved question on the empty page: pressing it sends it, and the x beside it removes it. One
-    line, cut with ... past 320px, the whole question in its tooltip. */
+    line, cut with ... past 320px, the whole question in its tooltip.
+    @param {object} props
+    @param {string} props.question
+    @param {boolean} [props.disabled]
+    @param {() => void} [props.onChoose]
+    @param {() => void} [props.onRemove] */
 export function ChatPick({ question, disabled = false, onChoose, onRemove, ...rest }) {
 	reject(rest, 'ChatPick')
 	return (
@@ -215,7 +279,11 @@ export function ChatPick({ question, disabled = false, onChoose, onRemove, ...re
 }
 
 /** What Ask can do (24c): a part for each kind of thing Ask makes, as the server lists them: its name, its
-    formats on one line and one example question, or `off`, why it makes nothing here. */
+    formats on one line and one example question, or `off`, why it makes nothing here.
+    @param {object} props
+    @param {{ name: string, formats?: string[], example?: string, off?: string }[]} props.makes
+    @param {boolean} [props.disabled]
+    @param {(question: string) => void} [props.onChoose] */
 export function ChatHelp({ makes, disabled = false, onChoose, ...rest }) {
 	reject(rest, 'ChatHelp')
 	return (
@@ -236,7 +304,9 @@ export function ChatHelp({ makes, disabled = false, onChoose, ...rest }) {
 }
 
 /** The day's limit pinned at the top of the chat (24b 3, 4), as `Chat`'s first child: shown with 3 or fewer
-    questions `left`, absent with more or with no limit (`left` null). */
+    questions `left`, absent with more or with no limit (`left` null).
+    @param {object} props
+    @param {number | null} props.left */
 export function ChatLimit({ left }) {
 	if (left == null || left > 3) return null
 	return left === 0
@@ -245,7 +315,19 @@ export function ChatLimit({ left }) {
 }
 
 /** Under the thread: the field with What Ask can do at its edge (`onHelp`, never disabled), and Send, or Stop
-    while `working`, then `end`. `bar` pins it above a phone's tab bar. */
+    while `working`, then `end`. `bar` pins it above a phone's tab bar.
+    @param {object} props
+    @param {boolean} [props.bar]
+    @param {string} [props.value]
+    @param {(value: string) => void} [props.onChange]
+    @param {() => void} [props.onSend]
+    @param {() => void} [props.onStop]
+    @param {() => void} [props.onHelp]
+    @param {boolean} [props.working]
+    @param {boolean} [props.disabled]
+    @param {import('react').Ref<HTMLTextAreaElement>} [props.fieldRef]
+    @param {string} [props.placeholder]
+    @param {import('react').ReactNode} [props.end] */
 export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp, working = false, disabled = false, fieldRef, placeholder, end, ...rest }) {
 	reject(rest, 'ChatDock')
 	const size = bar ? 'small' : 'standard'
@@ -268,7 +350,10 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp,
 }
 
 /** The conversation menu beside Send (24c): the button, and `children`, the Menu it opens upward. A
-    choice in the menu closes it. On Chats and Files it is `back`, the link back to the chat. */
+    choice in the menu closes it. On Chats and Files it is `back`, the link back to the chat.
+    @param {object} props
+    @param {string} [props.back]
+    @param {import('react').ReactNode} [props.children] */
 export function ChatMore({ back, children, ...rest }) {
 	reject(rest, 'ChatMore')
 	const [open, setOpen] = useState(false)

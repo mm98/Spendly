@@ -20,7 +20,7 @@ const VARIANT = {
 	narrow: 'sp-combobox--narrow'
 }
 
-const DOTS = ['draft', 'progress', 'done', 'returned', 'cancelled']
+const DOTS = /** @type {const} */ (['draft', 'progress', 'done', 'returned', 'cancelled'])
 
 /** The list half of every combobox in the library - Combobox, and TokensField's suggestions: the
     options in order, the one the keyboard is on, and what picking one does. Internal. */
@@ -199,7 +199,30 @@ export function countOf(options, noun = 'options') {
 
 /** Picking an option applies it and closes the panel (c5), focus staying on the trigger. `prefix`
     is the word kept inside the trigger ahead of the value, as the sort control's Sort (c8). `noun`
-    names the options in the count a narrowed list reads out, plural ("vendors"). */
+    names the options in the count a narrowed list reads out, plural ("vendors").
+    @param {object} props
+    @param {keyof typeof VARIANT} [props.variant]
+    @param {import('react').ReactNode} [props.value] what the closed trigger shows
+    @param {import('react').ReactNode} [props.lead]
+    @param {string} [props.prefix]
+    @param {boolean} [props.open]
+    @param {boolean} [props.defaultOpen]
+    @param {(open: boolean) => void} [props.onOpenChange]
+    @param {boolean} [props.searchable]
+    @param {string} [props.search]
+    @param {(text: string) => void} [props.onSearch]
+    @param {string} [props.placeholder]
+    @param {string} [props.noun]
+    @param {import('react').ReactNode} [props.children]
+    @param {string} [props.id]
+    @param {string} [props.aria-label]
+    @param {boolean | 'true' | 'false'} [props.aria-invalid]
+    @param {string} [props.aria-describedby]
+    @param {boolean} [props.required]
+    @param {import('react').ReactNode} [props.trail]
+    @param {import('react').ReactNode} [props.unit]
+    @param {boolean} [props.autoFocus]
+    @param {boolean} [props.disabled] */
 export function Combobox({
 	variant = 'default',
 	value,
@@ -408,7 +431,18 @@ export function Combobox({
 }
 
 /** `create` marks the row that makes the typed value (c5), left out of the count a narrowed list reads out.
-    `truncate` keeps a long option on one line, cut with ..., as a saved question is (24b 8). */
+    `truncate` keeps a long option on one line, cut with ..., as a saved question is (24b 8).
+    @param {object} props
+    @param {boolean} [props.selected]
+    @param {boolean} [props.active]
+    @param {string} [props.id]
+    @param {typeof DOTS[number]} [props.dot]
+    @param {import('react').ReactNode} [props.mark]
+    @param {import('react').ReactNode} [props.meta]
+    @param {() => void} [props.onSelect]
+    @param {boolean} [props.create]
+    @param {boolean} [props.truncate]
+    @param {import('react').ReactNode} [props.children] */
 export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, create = false, truncate = false, children, ...rest }) {
 	reject(rest, 'ComboboxOption')
 	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
@@ -436,7 +470,9 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
 	)
 }
 
-/** The heading over a set of options. */
+/** The heading over a set of options.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ComboboxGroup({ children, ...rest }) {
 	reject(rest, 'ComboboxGroup')
 	return <li className="sp-combobox__group" {...rest}>{children}</li>
@@ -448,7 +484,9 @@ export function ComboboxSeparator(props) {
 	return <li {...props}><hr /></li>
 }
 
-/** What the panel says when nothing matches. */
+/** What the panel says when nothing matches.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function ComboboxEmpty({ children, ...rest }) {
 	reject(rest, 'ComboboxEmpty')
 	return <li className="sp-combobox__empty" {...rest}>{children}</li>

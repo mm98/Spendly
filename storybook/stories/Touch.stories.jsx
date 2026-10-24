@@ -1,4 +1,3 @@
-import { createPortal } from 'react-dom'
 import { TabBar, TabBarItem, Sheet, SaveBar, Fab } from '../../react/src/components/Touch.jsx'
 import { Shell, TopBar, ShellContent, Scrim } from '../../react/src/components/Shell.jsx'
 import { Card } from '../../react/src/components/Card.jsx'
@@ -6,7 +5,7 @@ import { Button, IconButton } from '../../react/src/components/Button.jsx'
 import { Choice, Radio, FieldGroup } from '../../react/src/components/Choice.jsx'
 import { Stacked } from '../../react/src/components/Utilities.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
-import { iconControl, knownAccessibilityFaults } from './controls.js'
+import { OverThePage, iconControl, knownAccessibilityFaults } from './controls.js'
 
 const TAB_NAMES = ['Home', 'Orders', 'Statistics', 'More']
 
@@ -87,7 +86,7 @@ export const SheetFromTheBottom = {
 				</ShellContent>
 				{tabs(current)}
 			</Shell>
-			{createPortal(
+			<OverThePage>
 				<Scrim dialog>
 					<Sheet role="dialog" aria-modal="true" aria-label="Set a status" handle={handle} onDismiss={onDismiss}>
 						<span className="sp-heading">Set a status</span>
@@ -98,9 +97,8 @@ export const SheetFromTheBottom = {
 						</FieldGroup>
 						<Button fullWidth onClick={onApply}>Apply</Button>
 					</Sheet>
-				</Scrim>,
-				document.body
-			)}
+				</Scrim>
+			</OverThePage>
 		</>
 	)
 }

@@ -269,7 +269,21 @@ function standardRanges(locale) {
 const field = ({ invalid, ...props }) => props
 
 /** `single` is the touch sheet's form (c14): the heading, From and To, the months scrolling under them,
-    the day count and Apply - the sheet itself is the way out, so there is no Cancel. */
+    the day count and Apply - the sheet itself is the way out, so there is no Cancel.
+    @param {object} props
+    @param {string} [props.from] a day as yyyy-mm-dd
+    @param {string} [props.to] a day as yyyy-mm-dd
+    @param {(from: string, to: string) => void} [props.onChange]
+    @param {{ label: string, value: [string, string] }[]} [props.quick]
+    @param {string} [props.min]
+    @param {string} [props.max]
+    @param {number} [props.minDays]
+    @param {(day: string) => boolean} [props.unavailable]
+    @param {() => void} [props.onApply]
+    @param {() => void} [props.onCancel]
+    @param {boolean} [props.showWeeks]
+    @param {string} [props.locale]
+    @param {boolean} [props.single] */
 export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, single = false, ...rest }) {
 	reject(rest, 'RangePicker')
 	if (minDays !== undefined && minDays < 1) console.error('<RangePicker> minDays counts days inclusively, so the smallest range is 1')
@@ -464,7 +478,10 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 }
 
 /** On touch the range picker is a sheet over the page, not a panel under the row (c14): the one
-    sheet Statistics and the order filters share. Its own scrim closes it without applying. */
+    sheet Statistics and the order filters share. Its own scrim closes it without applying.
+    @param {object} props
+    @param {() => void} [props.onClose]
+    @param {import('react').ReactNode} [props.children] */
 export function RangeSheet({ onClose, children }) {
 	const box = useRef(null)
 	useFocusTrap(box)
@@ -558,6 +575,14 @@ export function Selected() { return null }
     name. An arrow with no handler is disabled, never hidden, so the box keeps its width. */
 const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year', days30: 'days30' }
 
+/** @param {object} props
+    @param {string} props.label
+    @param {keyof typeof WINDOW} [props.unit]
+    @param {string} [props.previousLabel]
+    @param {string} [props.nextLabel]
+    @param {() => void} [props.onPrevious]
+    @param {() => void} [props.onNext]
+    @param {boolean} [props.touch] */
 export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
 	reject(rest, 'PeriodWindow')
 	const size = touch ? 15 : 14
@@ -588,6 +613,21 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
 /* `at` is the day the presets resolve around (today when absent), `stepper` moves it, `onPresent`
    steps back to the window holding today (c14); `extra` follows the comparison, as a second
    switch (4a); `actions` end the row (4a). */
+/** @param {object} props
+    @param {{ value: string, label: string }[]} [props.presets]
+    @param {string} props.value the preset picked, or custom
+    @param {(period: { period: string, selected: { from: string, to: string } | null, past: { from: string, to: string, name: string } | null }) => void} [props.onChange]
+    @param {string} [props.from]
+    @param {string} [props.to]
+    @param {string} [props.at] the day the presets resolve around, as yyyy-mm-dd
+    @param {import('react').ReactNode} [props.stepper]
+    @param {string} [props.name]
+    @param {import('react').ReactNode} [props.custom]
+    @param {() => void} [props.onPresent]
+    @param {import('react').ReactNode} [props.extra]
+    @param {import('react').ReactNode} [props.actions]
+    @param {import('react').ReactNode} [props.children]
+    @param {string} [props.locale] */
 export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this
@@ -687,6 +727,10 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 	)
 }
 
+/** @param {object} props
+    @param {boolean} [props.sheet]
+    @param {boolean} [props.open]
+    @param {import('react').ReactNode} [props.children] */
 export function Calendar({ sheet = false, open = true, children, ...rest }) {
 	reject(rest, 'Calendar')
 	return (
@@ -746,7 +790,20 @@ function dayShortcuts({ min, max, unavailable }) {
 	].filter(Boolean)
 }
 
-/** `placeholder` is what the empty field says, as an open end reads Today (c12). */
+/** `placeholder` is what the empty field says, as an open end reads Today (c12).
+    @param {object} props
+    @param {string} [props.value] a day as yyyy-mm-dd
+    @param {(value: string) => void} [props.onChange]
+    @param {string} [props.min]
+    @param {string} [props.max]
+    @param {(day: string) => boolean} [props.unavailable]
+    @param {boolean} [props.native] the phone's own date field; on a phone when absent
+    @param {boolean} [props.danger]
+    @param {boolean} [props.showWeeks]
+    @param {boolean} [props.shortcuts]
+    @param {string} [props.locale]
+    @param {string} [props.id]
+    @param {string} [props.placeholder] */
 export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, shortcuts = true, locale, id, placeholder, ...rest }) {
 	reject(rest, 'DateField')
 	// what Field hands the control: its message and its state, on the input that takes focus

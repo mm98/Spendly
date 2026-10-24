@@ -5,7 +5,16 @@ import { Skeleton } from './Utilities.jsx'
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
 /** `passed` is a limit already passed, one full fill in the over colour (5i); a list row splits
-    it with `over`. `remainder` is the share of what is not listed, that colour at its width (4d). */
+    it with `over`. `remainder` is the share of what is not listed, that colour at its width (4d).
+    @param {object} props
+    @param {number} props.value the fill, 0 to 100
+    @param {number} [props.over] the part past the limit, 0 to 100
+    @param {number} [props.marker] where the marker stands, 0 to 100
+    @param {boolean} [props.untargeted]
+    @param {boolean} [props.thin]
+    @param {boolean} [props.negative]
+    @param {boolean} [props.passed]
+    @param {boolean} [props.remainder] */
 export function Gauge({ value, over, marker, untargeted = false, thin = false, negative = false, passed = false, remainder = false, ...rest }) {
 	reject(rest, 'Gauge')
 	return (
@@ -69,11 +78,24 @@ function useTickStep(box, columns, skip) {
 	return step
 }
 
+/** @typedef {{ key: string, height?: number, tick?: string, label?: string, from?: string, to?: string,
+    muted?: boolean, future?: boolean, inert?: boolean, pair?: number[], segments?: { key: string, share: number }[],
+    tip?: import('react').ReactNode, readout?: import('react').ReactNode }} BarsColumn */
+
 /** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
     `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `future` is a step still to come;
     A `card` variant is the plot at a card's height (10a); `days` is one bar per day (4g). A column that opens
     nothing may carry `readout`, its chart tooltip, and `label`, its name for a screen reader; `open` is the
-    column a finger tapped, whose readout stays until a tap elsewhere (Ask 24d). */
+    column a finger tapped, whose readout stays until a tap elsewhere (Ask 24d).
+    @param {object} props
+    @param {BarsColumn[]} [props.columns]
+    @param {keyof typeof BARS} [props.variant]
+    @param {boolean} [props.days]
+    @param {string} [props.selected]
+    @param {string} [props.open]
+    @param {(key: string, from?: string, to?: string) => void} [props.onSelect]
+    @param {boolean} [props.loading]
+    @param {import('react').Ref<HTMLDivElement>} [props.ref] */
 export function Bars({ columns = [], variant = 'default', days = false, selected, open, onSelect, loading = false, ref, ...rest }) {
 	reject(rest, 'Bars')
 	const [peek, setPeek] = useState(null)
@@ -190,7 +212,12 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 const SERIES = { 1: '1', 2: '2', 3: '3', 4: '4' }
 
 /** A chart step's readout (c18, the tooltip as a panel): its name and total, a row per series
-    drawn, and a line under them. Bars hangs it beside the column it reads. */
+    drawn, and a line under them. Bars hangs it beside the column it reads.
+    @param {object} props
+    @param {string} props.title
+    @param {string} [props.value]
+    @param {{ key: string, name: string, series: keyof typeof SERIES, value: string }[]} [props.rows]
+    @param {import('react').ReactNode} [props.note] */
 export function ChartTip({ title, value, rows = [], note, ...rest }) {
 	reject(rest, 'ChartTip')
 	return (
@@ -212,7 +239,12 @@ export function ChartTip({ title, value, rows = [], note, ...rest }) {
 const RING = { 1: 'var(--green)', 2: 'var(--green-3)', 3: 'var(--green-4)', 4: 'var(--green-5)' }
 
 /** The ring a share list is read from (c14, 4a): a slice per share in that share's series key, and
-    the whole named in its hole. `loading` holds its place before the shares arrive. */
+    the whole named in its hole. `loading` holds its place before the shares arrive.
+    @param {object} props
+    @param {{ series: keyof typeof SERIES, value: number }[]} [props.shares]
+    @param {string} [props.figure]
+    @param {string} [props.label]
+    @param {boolean} [props.loading] */
 export function Donut({ shares = [], figure, label, loading = false, ...rest }) {
 	reject(rest, 'Donut')
 	let at = 0
@@ -238,14 +270,23 @@ export function Donut({ shares = [], figure, label, loading = false, ...rest }) 
 	)
 }
 
-/** The share list a donut is read from (c14), one ShareRow per share. */
+/** The share list a donut is read from (c14), one ShareRow per share.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function Shares({ children, ...rest }) {
 	reject(rest, 'Shares')
 	return <div className="sp-shares" {...rest}>{children}</div>
 }
 
 /** One share: its series key, what it is, its `amount` when shown, and its value. A share is a filter, so it
-    is a button; in an answer it opens its orders, so it is a link to `href` (Ask 24d). */
+    is a button; in an answer it opens its orders, so it is a link to `href` (Ask 24d).
+    @param {object} props
+    @param {keyof typeof SERIES} [props.series]
+    @param {string} props.value
+    @param {string} [props.amount]
+    @param {string} [props.href]
+    @param {() => void} [props.onClick]
+    @param {import('react').ReactNode} [props.children] */
 export function ShareRow({ series = 1, value, amount, href, onClick, children, ...rest }) {
 	reject(rest, 'ShareRow')
 	const body = (
@@ -263,13 +304,18 @@ export function ShareRow({ series = 1, value, amount, href, onClick, children, .
 	return <button type="button" className="sp-shares__row" onClick={onClick} {...rest}>{body}</button>
 }
 
-/** What each series of a chart is (c14). Drawn only when a chart has more than one. */
+/** What each series of a chart is (c14). Drawn only when a chart has more than one.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function Legend({ children, ...rest }) {
 	reject(rest, 'Legend')
 	return <div className="sp-legend" {...rest}>{children}</div>
 }
 
-/** `series="limit"` is the plot's limit line, named here rather than on the line (4a). */
+/** `series="limit"` is the plot's limit line, named here rather than on the line (4a).
+    @param {object} props
+    @param {keyof typeof SERIES | 'limit'} [props.series]
+    @param {import('react').ReactNode} [props.children] */
 export function LegendItem({ series = 1, children, ...rest }) {
 	reject(rest, 'LegendItem')
 	return (
@@ -282,6 +328,11 @@ export function LegendItem({ series = 1, children, ...rest }) {
 	)
 }
 
+/** @param {object} props
+    @param {string[]} [props.axis]
+    @param {number} [props.gridlines]
+    @param {{ at: string }} [props.limit]
+    @param {import('react').ReactNode} [props.children] */
 export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 	reject(rest, 'Plot')
 	return (
@@ -307,7 +358,17 @@ const HELP_INK = { default: null, warning: 'warning', success: 'success', danger
     same line said as a field's help, which a drilled figure uses for its share of the level above (4b).
     `bare` sets the parts straight in what holds the figure, a card or a row, with no box of their
     own. A card's name is its CardHeader (4a), so a bare figure's label is only ever the quiet line
-    a phone tile names it with (7a). */
+    a phone tile names it with (7a).
+    @param {object} props
+    @param {string} props.figure
+    @param {boolean} [props.large]
+    @param {keyof typeof STAT_INK} [props.color]
+    @param {string} [props.label]
+    @param {import('react').ReactNode} [props.delta]
+    @param {import('react').ReactNode} [props.meta]
+    @param {import('react').ReactNode} [props.help]
+    @param {keyof typeof HELP_INK} [props.helpColor]
+    @param {boolean} [props.bare] */
 export function Stat({ figure, large = false, color = 'default', label, delta, meta, help, helpColor = 'default', bare = false, ...rest }) {
 	reject(rest, 'Stat')
 	const parts = (
@@ -329,7 +390,12 @@ const SUM = { default: null, stacked: 'sp-sum--stacked', total: 'sp-sum--total' 
 const SUM_TONE = { default: null, expected: 'sp-ink-5', success: 'sp-ink-success', danger: 'sp-ink-danger' }
 
 /** What a summary is about (c21), and as a card that opens it (Order create 3a): its mark, its
-    name, one line under it, and the card's chevron when the card is a link. */
+    name, one line under it, and the card's chevron when the card is a link.
+    @param {object} props
+    @param {import('react').ReactNode} [props.mark]
+    @param {string} props.title
+    @param {string} [props.subtitle]
+    @param {import('react').ReactNode} [props.chevron] */
 export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 	reject(rest, 'SumHead')
 	return (
@@ -346,7 +412,15 @@ export function SumHead({ mark, title, subtitle, chevron, ...rest }) {
 
 /** A line of a sum: what it is, and what it comes to. `total` is the last line. A `named` line is
     a name the reader typed, which ends in an ellipsis rather than wrapping. An `edits` line opens its
-    amount in place when pressed, and shows it under the pointer (Budget 21a); `meta` is the line under its name. */
+    amount in place when pressed, and shows it under the pointer (Budget 21a); `meta` is the line under its name.
+    @param {object} props
+    @param {keyof typeof SUM} [props.variant]
+    @param {keyof typeof SUM_TONE} [props.tone]
+    @param {boolean} [props.named]
+    @param {boolean} [props.edits]
+    @param {import('react').ReactNode} [props.meta]
+    @param {string} props.value
+    @param {import('react').ReactNode} [props.children] */
 export function Sum({ variant = 'default', tone = 'default', named = false, edits = false, meta, value, children, ...rest }) {
 	reject(rest, 'Sum')
 	// a line typed into is a title stack, the row's own child: the touch rule cuts its name there (7a)

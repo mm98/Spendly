@@ -2,6 +2,24 @@ import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { join, reject } from './variants.js'
 
+/** @param {object} props
+    @param {import('react').ReactNode} [props.photo]
+    @param {string} [props.hint]
+    @param {string} [props.title]
+    @param {string} [props.what] what one line is, in the buttons' names
+    @param {() => void} [props.onMoveUp]
+    @param {() => void} [props.onMoveDown]
+    @param {() => void} [props.onDelete]
+    @param {boolean} [props.first]
+    @param {boolean} [props.last]
+    @param {boolean} [props.handle]
+    @param {boolean} [props.sheet]
+    @param {string} [props.commit]
+    @param {boolean} [props.saving]
+    @param {() => void} [props.onCommit]
+    @param {() => void} [props.onCommitNext]
+    @param {() => void} [props.onCancel]
+    @param {import('react').ReactNode} [props.children] */
 export function LineEditor({
 	photo,
 	hint = 'Enter saves · Escape cancels',
@@ -76,7 +94,9 @@ export function LineEditor({
 	)
 }
 
-/** The line under a list of items (c15): what they come to, then the saving. */
+/** The line under a list of items (c15): what they come to, then the saving.
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function Totals({ children, ...rest }) {
 	reject(rest, 'Totals')
 	return <div className="sp-totals" {...rest}>{children}</div>

@@ -3,13 +3,21 @@ import { Link } from 'react-router'
 import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
-/** The surface's destinations, at the bottom where a thumb reaches; over a home bar band its items sit lower (brief 28). */
+/** The surface's destinations, at the bottom where a thumb reaches; over a home bar band its items sit lower (brief 28).
+    @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function TabBar({ children, ...rest }) {
 	reject(rest, 'TabBar')
 	return <nav className="sp-tabbar sp-tabbar--band" {...rest}>{children}</nav>
 }
 
-/** One destination in that bar: a link when it has a `to`, since a destination navigates. */
+/** One destination in that bar: a link when it has a `to`, since a destination navigates.
+    @param {object} props
+    @param {string} [props.icon]
+    @param {boolean} [props.current]
+    @param {string} [props.to]
+    @param {() => void} [props.onClick]
+    @param {import('react').ReactNode} [props.children] */
 export function TabBarItem({ icon, current = false, to, onClick, children, ...rest }) {
 	reject(rest, 'TabBarItem')
 	const body = <>{icon ? <Icon name={icon} size={18} /> : null}{children}</>
@@ -25,7 +33,12 @@ const FLICK_PX_PER_MS = 0.5
 const PULL_START_PX = 4
 
 /** A sheet from the bottom edge (c13). Its handle dragged down far enough closes it and discards, as
-    `onDismiss` or else a press on the dimmed page under it does; short of that it goes back. */
+    `onDismiss` or else a press on the dimmed page under it does; short of that it goes back.
+    @param {object} props
+    @param {boolean} [props.handle]
+    @param {() => void} [props.onDismiss]
+    @param {import('react').Ref<HTMLDivElement>} [props.ref]
+    @param {import('react').ReactNode} [props.children] */
 export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 	reject(rest, 'Sheet')
 	const box = useRef(null)
@@ -80,13 +93,19 @@ export function Sheet({ handle = true, onDismiss, ref, children, ...rest }) {
 	)
 }
 
+/** @param {object} props
+    @param {import('react').ReactNode} [props.children] */
 export function SaveBar({ children, ...rest }) {
 	reject(rest, 'SaveBar')
 	return <div className="sp-savebar" {...rest}>{children}</div>
 }
 
 /** The one floating action (7a): New order, above the tab bar. Its label is required, since
-    a glyph names nothing. */
+    a glyph names nothing.
+    @param {object} props
+    @param {string} [props.icon]
+    @param {string} [props.to]
+    @param {() => void} [props.onClick] */
 export function Fab({ icon = 'plus', to, onClick, ...rest }) {
 	reject(rest, 'Fab')
 	if (!rest['aria-label']) console.error('<Fab> needs an aria-label: a glyph names nothing')

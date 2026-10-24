@@ -10,6 +10,20 @@ const VARIANT = {
 
 const COLOR = { default: null, danger: 'danger', success: 'success' }
 
+/** @param {object} props
+    @param {keyof typeof VARIANT} [props.variant]
+    @param {keyof typeof COLOR} [props.color]
+    @param {import('react').ReactNode} [props.trail]
+    @param {'checkbox' | 'radio'} [props.inputType]
+    @param {string} [props.name]
+    @param {string} [props.value]
+    @param {boolean} [props.selected]
+    @param {boolean} [props.defaultSelected]
+    @param {(selected: boolean, value: string) => void} [props.onSelect]
+    @param {() => void} [props.onClick]
+    @param {boolean} [props.disabled]
+    @param {number} [props.count]
+    @param {import('react').ReactNode} [props.children] */
 export function Chip({
 	variant = 'outline',
 	color = 'default',

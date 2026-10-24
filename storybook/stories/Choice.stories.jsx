@@ -23,6 +23,7 @@ const box = ({ args, ...story } = {}) => ({
 		checked: { description: 'The box\'s own `checked`' },
 		disabled: { description: 'The box\'s own `disabled`' },
 		indeterminate: { description: 'A checkbox standing for some of a set', if: { arg: 'box', eq: 'check' } },
+		description: { if: { arg: 'variant', eq: 'described' } },
 		control: { control: false }
 	},
 	render: args => {

@@ -1,7 +1,12 @@
 import { join, reject } from './variants.js'
 
-const COLORS = ['default', 'success', 'danger']
+const COLORS = /** @type {const} */ (['default', 'success', 'danger'])
 
+/** @param {object} props
+    @param {typeof COLORS[number]} [props.color]
+    @param {'progress'} [props.state]
+    @param {boolean} [props.truncate]
+    @param {import('react').ReactNode} [props.children] */
 export function Pill({ color = 'default', state, truncate = false, children, ...rest }) {
 	reject(rest, 'Pill')
 	if (!COLORS.includes(color)) console.error(`<Pill> color="${color}" is not one of: ${COLORS.join(' | ')}`)

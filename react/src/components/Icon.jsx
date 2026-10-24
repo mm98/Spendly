@@ -3,6 +3,9 @@ import { ICONS } from './icons.js'
 /* One glyph from the register, by name. Its colour is the control's own ink and its size the
    design's default, so a caller states neither unless the drawing asks for another size. */
 
+/** @param {object} props
+    @param {string} props.name a name in the icon register
+    @param {number} [props.size] */
 export function Icon({ name, size = 16 }) {
 	const paths = ICONS[name]
 	if (!paths) {
@@ -15,7 +18,10 @@ export function Icon({ name, size = 16 }) {
 // the marks scripts/sync-icons.mjs puts on a path Tabler draws other than as a plain line
 const MARKS = { '*': { fill: 'currentColor' }, '#': { fill: 'currentColor', stroke: 'none' }, '~': { style: { opacity: 'var(--fade-icon-tone)' } } }
 
-/** A Tabler icon from its paths, each drawn on its own as Tabler draws it. */
+/** A Tabler icon from its paths, each drawn on its own as Tabler draws it.
+    @param {object} props
+    @param {string[]} props.paths
+    @param {number} props.size */
 export function Glyph({ paths, size }) {
 	return (
 		<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
