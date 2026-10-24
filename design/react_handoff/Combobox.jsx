@@ -451,7 +451,7 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
 	reject(rest, 'ComboboxOption')
 	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
 	return (
-		<li>
+		<li role="none">
 			<button
 				type="button"
 				className="sp-combobox__option"
@@ -479,13 +479,13 @@ export function ComboboxOption({ selected = false, active = false, id, dot, mark
     @param {import('react').ReactNode} [props.children] The group's heading. */
 export function ComboboxGroup({ children, ...rest }) {
 	reject(rest, 'ComboboxGroup')
-	return <li className="sp-combobox__group" {...rest}>{children}</li>
+	return <li className="sp-combobox__group" role="presentation" {...rest}>{children}</li>
 }
 
 /** A rule between sets of options (c5). */
 export function ComboboxSeparator(props) {
 	reject(props, 'ComboboxSeparator')
-	return <li {...props}><hr /></li>
+	return <li role="none" {...props}><hr aria-hidden="true" /></li>
 }
 
 /** What the panel says when nothing matches.
@@ -493,5 +493,5 @@ export function ComboboxSeparator(props) {
     @param {import('react').ReactNode} [props.children] What to say when no option matches the typed words. */
 export function ComboboxEmpty({ children, ...rest }) {
 	reject(rest, 'ComboboxEmpty')
-	return <li className="sp-combobox__empty" {...rest}>{children}</li>
+	return <li className="sp-combobox__empty" role="presentation" {...rest}>{children}</li>
 }

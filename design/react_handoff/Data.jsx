@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
-import { Skeleton } from './Utilities.jsx'
+import { Skeleton, inMs } from './Utilities.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
@@ -16,7 +16,7 @@ function useCounted(figure) {
 		last.current = figure
 		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 		if (from === null || to === null || from === to || still) { setShown(figure); return }
-		const ms = 2 * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--motion-in')) || 180)
+		const ms = 2 * inMs('--motion-in', 180)
 		const start = performance.now()
 		let raf
 		const frame = now => {

@@ -295,12 +295,16 @@
     at: m.index
   })).filter(r => r.sel && !r.sel.startsWith('@') && r.body);
   const scopeOf = (css, at) => {
+    // the innermost at-rule still open at `at`, not merely the nearest one: a closed
+    // @supports inside a @media block left the rules after it read as top level
     const b = css.slice(0, at);
-    const l = Math.max(b.lastIndexOf('@media'), b.lastIndexOf('@container'), b.lastIndexOf('@supports'), b.lastIndexOf('@keyframes'));
-    if (l < 0) return null;
-    const between = css.slice(l, at);
-    return (between.match(/\{/g) || []).length - (between.match(/\}/g) || []).length > 0
-      ? css.slice(l, css.indexOf('{', l)).replace(/\s+/g, ' ').trim() : null;
+    const opens = [...b.matchAll(/@(media|container|supports|keyframes)\b/g)].map(m => m.index).reverse();
+    for (const l of opens) {
+      const between = css.slice(l, at);
+      if ((between.match(/\{/g) || []).length - (between.match(/\}/g) || []).length > 0)
+        return css.slice(l, css.indexOf('{', l)).replace(/\s+/g, ' ').trim();
+    }
+    return null;
   };
   /* a single bar and a stacked bar are one shape: rounded at the top, square on the
      axis, at one radius. The stack was 6px all round while the bar was --r-marker
@@ -375,9 +379,10 @@
             .filter(k => t.body.split(';').map(d => d.split(':')[0].trim()).includes(k)).filter(Boolean);
           if (overlap.length) fail('at-rules come after their base', name, `${sel}: ${s.scope} sets ${overlap.join(', ')}, re-set later at top level`);
         }
-    // byte-identical duplicates are dead weight
+    // byte-identical duplicates in one scope are dead weight; the same rule inside a media query
+    // can be live, re-set after a shorthand there resets it
     const seen = {};
-    for (const r of rules) (seen[r.sel + '||' + r.body] ||= []).push(r.at);
+    for (const r of rules) (seen[r.sel + '||' + r.body + '||' + (scopeOf(css, r.at) || '')] ||= []).push(r.at);
     for (const [k, v] of Object.entries(seen)) if (v.length > 1) fail('no duplicate rules', name, k.split('||')[0] + ` declared ${v.length}× identically`);
     // The hand promises a click, so a table that only gets read declares itself:
     // .sp-table--static drops both the lit row and the pointer. This asserts the

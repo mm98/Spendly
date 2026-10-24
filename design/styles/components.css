@@ -1594,9 +1594,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   outline-offset: 1px;
 }
 /* a label carries the same chosen ring as a button: the custom cell is a label,
-   because it wraps the native colour input, and a colour chosen outside the set is
+   because it wraps the native colour input, and says so with data-chosen, since a label
+   cannot carry aria-pressed, and a colour chosen outside the set is
    chosen exactly as much as one inside it */
-label.sp-option--swatch[aria-pressed="true"] {
+label.sp-option--swatch[data-chosen="true"] {
   outline: none;
   background: var(--swatch, var(--green));
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green);
@@ -1613,7 +1614,7 @@ label.sp-option--swatch[aria-pressed="true"] {
 }
 /* focus on the chosen colour: a third ring outside the chosen one */
 .sp-option--swatch[aria-pressed="true"]:focus-visible,
-label.sp-option--swatch[aria-pressed="true"]:has(:focus-visible) {
+label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green), 0 0 0 7px var(--green-tint);
 }
 .sp-option--custom { background: var(--surface); border: 1px solid var(--line-3); color: var(--ink-3); }
@@ -4049,6 +4050,10 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 }
 .sp-toast__undo:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-toast--compact { padding: var(--sp-6) var(--sp-8); border-radius: var(--r-tile); font-size: var(--t-11); gap: var(--sp-8); }
+/* grey small text on the toast's dark ground (the countdown): 5.02:1 light, 5.57:1 dark.
+   A toast that asks sits on the page's surface and keeps the page's grey. */
+.sp-toast:not(.sp-toast--asks) { --ink-5: #8b8a82; }
+[data-theme="dark"] .sp-toast:not(.sp-toast--asks) { --ink-5: var(--ink-4); }
 
 /* ---------- tooltip - LOCKED c18 ---------- */
 

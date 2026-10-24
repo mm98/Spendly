@@ -257,7 +257,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 					<label
 						className={join('sp-option', 'sp-option--swatch', !chosenOutside && 'sp-option--custom')}
 						data-tip="Custom colour"
-						aria-pressed={chosenOutside ? 'true' : 'false'}
+						data-chosen={chosenOutside ? 'true' : 'false'}
 						{...(chosenOutside ? { style: { '--swatch': value } } : {})}
 					>
 						{chosenOutside ? null : customIcon}

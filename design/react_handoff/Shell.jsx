@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { EmailLine } from './EmailLine.jsx'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
@@ -7,7 +7,7 @@ import { Icon } from './Icon.jsx'
 import { Mark, initialsOf } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
 import { SearchInput } from './Inputs.jsx'
-import { Kbd } from './Utilities.jsx'
+import { Kbd, Leaves } from './Utilities.jsx'
 import { Button } from './Button.jsx'
 
 /** Whether the page sits in the touch shell: what a part that changes its form on touch reads. */
@@ -173,8 +173,9 @@ const NAV = {
     @param {() => void} [props.onClick]
     @param {string} [props.tip] The label shown as a tooltip when the menu is a narrow rail.
     @param {import('react').ReactNode} [props.control] A Switch at the end. The row is then its label.
+    @param {import('react').Ref<HTMLElement>} [props.ref] The row's own element: its button, link or label.
     @param {import('react').ReactNode} [props.children] The row's label. */
-export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, children, ...rest }) {
+export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, ref, children, ...rest }) {
 	reject(rest, 'NavItem')
 	const [hint, tipEvents] = useTip(tip)
 	const classes = join('sp-nav-item', pick(NAV, variant, 'variant', 'NavItem'))
@@ -194,7 +195,7 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 			{hint}
 		</>
 	)
-	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest }
+	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest, ref }
 	if (control) return <label className={classes} {...state}>{body}</label>
 	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{body}</Link>
 	if (!onClick) return <span className={classes} {...state}>{body}</span>
@@ -264,8 +265,10 @@ function useSidebarMenu({ expanded, onClick, onDismiss }) {
 	return { block, button, opener, drawn }
 }
 
-/** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
-    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab.
+/** The account at the sidebar's foot (9c): a NavItem whose whole row is the one button that opens
+    the account menu. Its name is the words on it, the name and the address; the photo or initials
+    are not read out. `menu` shows while `expanded`, fixed to the window so the sidebar cannot clip
+    it, placed against the row; `onDismiss` is a press outside both, Escape or Tab.
     @param {object} props
     @param {string} props.name
     @param {string} [props.picture] the picture's address
@@ -277,26 +280,26 @@ function useSidebarMenu({ expanded, onClick, onDismiss }) {
     @param {string} [props.tip] The tooltip when the menu is a narrow rail. */
 export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
-	const [hint, tipEvents] = useTip(expanded ? null : tip)
 	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
-	const bind = el => { block.current = el; button.current = el }
+	const bind = useCallback(el => { block.current = el; button.current = el }, [block, button])
 	const split = email.lastIndexOf('@')
-	const address = <EmailLine email={email} tone="nav" />
+	const mark = picture
+		? <Mark size="medium" fill="photo" round aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
+		: <Mark size="medium" fill="solid" swatch="green-3" round aria-hidden="true" aria-label={name || email}><>{initialsOf(name || (split > 0 ? email.slice(0, split) : email))}</></Mark>
+	const label = (
+		<span className="sp-stack">
+			{name ? <span className="sp-truncate">{name}</span> : null}
+			<EmailLine email={email} tone="nav" />
+		</span>
+	)
+	const chevron = <span className="sp-combobox__chevron" aria-hidden="true"><Icon name="chevron-up" size={14} /></span>
 	return (
 		<>
-			<button type="button" className="sp-nav-item" ref={bind} onClick={onClick} aria-haspopup="menu"
-				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents} onKeyDown={opener}
+			<NavItem ref={bind} mark={mark} tip={expanded ? null : tip} onClick={onClick} aria-haspopup="menu"
+				aria-expanded={expanded ? 'true' : 'false'} onKeyDown={opener} trail={chevron}
 				{...rest}>
-				{picture
-					? <Mark size="medium" fill="photo" round aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
-					: <Mark size="medium" fill="solid" swatch="green-3" round role="img" aria-label={name || email}><>{initialsOf(name || (split > 0 ? email.slice(0, split) : email))}</></Mark>}
-				<span className="sp-stack sp-grow">
-					{name ? <span className="sp-truncate">{name}</span> : null}
-					{address}
-				</span>
-				<span className="sp-combobox__chevron"><Icon name="chevron-up" size={14} /></span>
-				{hint}
-			</button>
+				{label}
+			</NavItem>
 			{drawn(menu)}
 		</>
 	)
@@ -326,7 +329,9 @@ function useTip(tip) {
     @param {import('react').ReactNode} [props.children] The sheet or the dialog. */
 export function Scrim({ dialog = false, children, ...rest }) {
 	reject(rest, 'Scrim')
-	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...rest}>{children}</div>
+	// under a Leaving (Overlays.jsx) the dimmed page fades with what it holds
+	const leaving = useContext(Leaves)
+	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...(leaving ? { 'data-leaving': 'true' } : {})} {...rest}>{children}</div>
 }
 
 /* ---------- command palette (c24) ---------- */
@@ -359,7 +364,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 	}
 	return (
 		<PaletteScreen.Provider value={screen}>
-			<div className={join('sp-palette', screen && 'sp-palette--screen')} role="dialog" aria-modal="true" {...rest}>
+			<div className={join('sp-palette', screen && 'sp-palette--screen')} role="dialog" aria-modal="true" aria-label={label} {...rest}>
 				<div className="sp-palette__search">
 					{screen
 						? (
